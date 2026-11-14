@@ -1,0 +1,65 @@
+{
+  "name": "endurance",
+  "duration_s": 600,
+  "repeat_every_s": 30,
+  "steps": [
+    {
+      "at": 0,
+      "action": "load_patch",
+      "patch": "basics-01-first-tone.json"
+    },
+    {
+      "at": 2,
+      "action": "note_storm",
+      "chords": 2
+    },
+    {
+      "at": 6,
+      "action": "random_walk",
+      "module_id": 3,
+      "duration_s": 2,
+      "hz": 25,
+      "seed": 999
+    },
+    {
+      "at": 12,
+      "action": "patch_switch",
+      "patch": "chaos-01-ember-veil-pad.json"
+    },
+    {
+      "at": 14,
+      "action": "note_storm",
+      "chords": 2,
+      "legato": true
+    },
+    {
+      "at": 18,
+      "action": "midi_burst",
+      "notes": [
+        48,
+        52,
+        55,
+        60,
+        64,
+        67,
+        71,
+        72
+      ]
+    },
+    {
+      "at": 21,
+      "action": "panic"
+    },
+    {
+      "at": 24,
+      "action": "patch_switch",
+      "patch": "basics-08-clocked-groove.json"
+    },
+    {
+      "at": 27,
+      "action": "param_jumps",
+      "module_id": 1,
+      "param": "bpm"
+    }
+  ]
+}
