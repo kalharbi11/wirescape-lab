@@ -76,6 +76,12 @@ jobs:
           CHROME="$(node -e "process.stdout.write(require('./apps/studio/node_modules/playwright').chromium.executablePath())")"
           echo "WIRESCAPE_CHROMIUM=$CHROME" >> "$GITHUB_ENV"
 
+      - name: Regression test UI tracing and cross-platform Vite launch
+        run: |
+          node --check bench/offline/ui_frames.cjs
+          node --check bench/offline/test_ui_frames.cjs
+          node bench/offline/test_ui_frames.cjs
+
       - name: Build Release native and desktop
         run: |
           python tools/dev.py build --headless --config Release
