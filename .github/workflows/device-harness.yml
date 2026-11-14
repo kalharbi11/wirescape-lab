@@ -99,11 +99,7 @@ jobs:
         run: python tools/dev.py build --headless --config Release
       - name: Locate real executable
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            ENGINE="build/native/Release/wirescape-engine.exe"
-          else
-            ENGINE="build/native/wirescape-engine"
-          fi
+          ENGINE="$(python -c "import sys; sys.path.insert(0,'tools'); from dev import _sidecar_executable; p=_sidecar_executable('Release'); print(p.as_posix()) if p else sys.exit(2)")"
           test -f "$ENGINE"
           echo "BENCH_ENGINE=$ENGINE" >> "$GITHUB_ENV"
       - name: Real null-sink all-scenarios dry-run
