@@ -20,7 +20,7 @@ python -m unittest discover -s bench/compare/tests
 python bench/compare/measure.py --dry-run
 ```
 
-The dry run launches a short-lived **synthetic sleeping Python process**, samples its CPU/RSS at 10 Hz for 1.2 s, writes a results folder and labels it `synthetic`. It is not hardware evidence. A live run without `--confirm-audio` exits before opening anything.
+Without `--engine`, the dry run launches a short-lived **synthetic sleeping Python process**, samples its CPU/RSS at 10 Hz for 1.2 s, writes a results folder and labels it `synthetic`. Add `--engine build/native/wirescape-engine` (Linux) or `--engine build/native/Release/wirescape-engine.exe` (Windows) with `--dry-run --tool wirescape` to measure the **actual idle Wirescape sidecar under `--null-audio`**, without any devices or owner authorization flags. This real-process sample is an idle-engine baseline, **not** a matched loaded-patch benchmark or hardware result. A live run without `--confirm-audio` exits before opening anything.
 
 ## 60-second run per tool and patch
 
