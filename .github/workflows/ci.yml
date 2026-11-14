@@ -112,44 +112,12 @@ jobs:
         run: |
           cmake -S native -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"
           cmake --build build/asan --parallel 2
-      - name: Run ABI2 sanitizer tests
-        # Three baseline tests fail UBSan at native/tests2/allocation_watch.h:19.
-        # They are executed unchanged in the advisory lane below.
-        run: ctest --test-dir build/asan -R abi2 -E '^(abi2_sidecar_unit_tests|abi2_live_replan_tests|abi2_midi_live_host_tests)$' --output-on-failure
+      - name: Run all ABI2 sanitizer tests
+        run: ctest --test-dir build/asan -R abi2 --output-on-failure
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: sanitizer-logs
-          path: build/asan/Testing/Temporary/LastTest.log
-          if-no-files-found: ignore
-
-  sanitizer-known-ub:
-    name: sanitizer-known-ub (advisory)
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    continue-on-error: true
-    env:
-      CMAKE_BUILD_PARALLEL_LEVEL: '2'
-      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
-      UBSAN_OPTIONS: halt_on_error=1
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: python -m pip install cmake==4.2.3 ninja==1.13.0
-      - name: Compile with the same ASan and UBSan flags
-        run: |
-          cmake -S native -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"
-          cmake --build build/asan --parallel 2
-      - name: Run three known-failing UBSan tests without modifying assertions
-        run: ctest --test-dir build/asan -R '^(abi2_sidecar_unit_tests|abi2_live_replan_tests|abi2_midi_live_host_tests)$' --output-on-failure
-      - if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sanitizer-known-ub-logs
           path: build/asan/Testing/Temporary/LastTest.log
           if-no-files-found: ignore
 
