@@ -54,6 +54,26 @@ class SyntheticSamplerTests(unittest.TestCase):
         self.assertEqual(fixture.count(bytes((0x80, 48, 0))), 15)
         self.assertEqual(fixture, fixture_bytes())
 
+    def test_wirescape_reference_patches_have_valid_endpoints(self):
+        import json
+        base = Path(__file__).resolve().parents[1] / "patches" / "wirescape"
+        for name in ("mono", "poly8", "poly8-fx"):
+            with self.subTest(name=name):
+                patch = json.loads((base / (name + ".json")).read_text())
+                self.assertEqual(patch["format"], "wirescape.native.patch")
+                self.assertEqual(patch["version"], 2)
+                ids = [m["id"] for m in patch["modules"]]
+                self.assertEqual(len(ids), len(set(ids)))
+                self.assertLessEqual(len(ids), 64)
+                for cable in patch["connections"]:
+                    self.assertIn(cable["from"]["module"], ids)
+                    self.assertIn(cable["to"]["module"], ids)
+                for output in patch["outputs"]:
+                    self.assertIn(output["module"], ids)
+                if name != "mono":
+                    voices = next(m for m in patch["modules"] if m["module"] == "midi.to_cv")
+                    self.assertEqual(voices["parameters"]["voice_count"], 8)
+
     def test_scaling_graph_count_and_ports(self):
         for n in (1, 2, 4, 8):
             patch = scaling_patch(n)
