@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+psutil>=5.9,<8
+numpy>=1.24
+scipy>=1.10
+soundfile>=0.12
+tzdata>=2025.1
