@@ -8,8 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from metrics import (basic, filter_metrics, oscillator_metrics, patch_metrics,
-                     read_audio, step_metrics)
+from metrics import (basic, direct_envelope_metrics, filter_metrics, oscillator_metrics,
+                     patch_metrics, read_audio, step_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -52,6 +52,15 @@ class MetricsTests(unittest.TestCase):
         metrics = patch_metrics(data)
         self.assertGreaterEqual(metrics["silence_segments"], 1)
         self.assertEqual(metrics["nonfinite_samples"], 0)
+
+    def test_direct_envelope_timing(self):
+        rate = 48000
+        x = np.concatenate([np.linspace(0, 1, 2400), np.ones(21600),
+                            np.linspace(1, 0, 4800), np.zeros(19200)])
+        stereo = np.column_stack([x, x])
+        record = direct_envelope_metrics(stereo, 0, 24000, .05, .1)
+        self.assertAlmostEqual(record["rise_measured_s"], .05, delta=.001)
+        self.assertAlmostEqual(record["fall_measured_s"], .1, delta=.002)
 
     def test_response_and_step(self):
         t = np.arange(48000) / 48000
