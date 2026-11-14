@@ -28,7 +28,7 @@ function patch(n) {
     connections: [], ui: {positions, labels:{}, view:{x:0,y:0,zoom:1}}};
 }
 async function record(page, n, action) {
-  await page.tracing.start({screenshots: true, snapshots: true});
+  await page.context().tracing.start({screenshots: true, snapshots: true});
   await page.evaluate(() => {
     const times=[]; let prev=0; let active=true;
     const tick=t => { if (!active) return; if (prev) times.push(t-prev); prev=t; requestAnimationFrame(tick); };
@@ -54,13 +54,15 @@ async function record(page, n, action) {
   }
   await pause(250);
   const intervals=await page.evaluate(() => window.__l4Frames.stop());
-  await page.tracing.stop({path:path.join(out,`trace-${n}-${action}.zip`)});
+  await page.context().tracing.stop({path:path.join(out,`trace-${n}-${action}.zip`)});
   return summary(intervals);
 }
 async function main() {
   mkdirSync(out,{recursive:true});
-  const server=spawn('npm',['run','preview','--','--host','127.0.0.1'],
+  const vite=path.join(ROOT,'apps/studio/node_modules/vite/bin/vite.js');
+  const server=spawn(process.execPath,[vite,'preview','--host','127.0.0.1'],
                      {cwd:path.join(ROOT,'apps/studio'),stdio:'ignore'});
+  server.on('error', error => { console.error('Vite preview spawn failed:', error.message); });
   let browser;
   try {
     let ready=false;
