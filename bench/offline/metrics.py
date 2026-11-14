@@ -153,3 +153,24 @@ def envelope_metrics(audio, on_frame, off_frame, attack_s, release_s, rate=RATE)
             "attack_error_ms": (measured_attack - attack_s) * 1000 if measured_attack is not None else None,
             "release_error_ms": (measured_release - release_s) * 1000 if measured_release is not None else None,
             "level_reference_fs": high}
+
+
+def direct_envelope_metrics(audio, on_frame, off_frame, rise_s, fall_s, rate=RATE):
+    """Time to 99% of held peak and 1% of release from direct envelope CV."""
+    if not np.isfinite(audio).all():
+        return {"nonfinite_samples": int(audio.size - np.count_nonzero(np.isfinite(audio)))}
+    x = audio[:, 0]
+    if not (0 <= on_frame < off_frame < len(x)):
+        return {"rise_measured_s": None, "fall_measured_s": None}
+    high = max(float(np.max(x[on_frame:off_frame])), 0.0)
+    if high < 1e-8:
+        return {"rise_measured_s": None, "fall_measured_s": None}
+    rise = np.flatnonzero(x[on_frame:off_frame] >= .99 * high)
+    fall = np.flatnonzero(x[off_frame:] <= .01 * high)
+    measured_rise = float(rise[0] / rate) if rise.size else None
+    measured_fall = float(fall[0] / rate) if fall.size else None
+    return {"rise_set_s": rise_s, "fall_set_s": fall_s,
+            "rise_measured_s": measured_rise, "fall_measured_s": measured_fall,
+            "rise_error_ms": (measured_rise - rise_s) * 1000 if measured_rise is not None else None,
+            "fall_error_ms": (measured_fall - fall_s) * 1000 if measured_fall is not None else None,
+            "reference_peak_fs": high, "rise_fraction": .99, "fall_fraction": .01}
