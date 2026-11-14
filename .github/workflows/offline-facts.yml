@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Offline facts (non-required)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'bench/offline/**'
+      - '.github/workflows/offline-facts.yml'
+      - 'native/**'
+      - 'apps/studio/patches/**'
+
+jobs:
+  offline-facts:
+    name: Offline facts / ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python dependencies
+        run: python -m pip install -r bench/offline/requirements.txt
+      - name: Pure DSP metric tests
+        run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
+      - name: Release headless build
+        run: python tools/dev.py build --headless --config Release
+      - name: Offline fact pack
+        run: python bench/offline/run_all.py --quick --out-dir '${{ runner.temp }}/wirescape-offline-facts'
+      - name: Upload numeric measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-facts-${{ matrix.runner }}
+          path: ${{ runner.temp }}/wirescape-offline-facts
+          if-no-files-found: warn
