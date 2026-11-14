@@ -1,0 +1,46 @@
+{
+  "name": "scene",
+  "duration_s": 35,
+  "steps": [
+    {
+      "at": 0,
+      "action": "load_patch",
+      "patch": "scene-01-hollow-chapel.json"
+    },
+    {
+      "at": 4,
+      "action": "mod_sweep",
+      "index": 3,
+      "steps": 11,
+      "duration_s": 1
+    },
+    {
+      "at": 8,
+      "action": "param_jumps",
+      "module_id": 1,
+      "param": "cutoff"
+    },
+    {
+      "at": 12,
+      "action": "random_walk",
+      "module_id": 4,
+      "duration_s": 2,
+      "hz": 50,
+      "seed": 1101
+    },
+    {
+      "at": 17,
+      "action": "patch_switch",
+      "patch": "scene-03-black-ice-choir.json"
+    },
+    {
+      "at": 23,
+      "action": "panic"
+    },
+    {
+      "at": 27,
+      "action": "patch_switch",
+      "patch": "scene-02-breathing-walls.json"
+    }
+  ]
+}
