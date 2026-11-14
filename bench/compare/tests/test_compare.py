@@ -49,7 +49,7 @@ class SyntheticSamplerTests(unittest.TestCase):
         for n in (1, 2, 4, 8):
             patch = scaling_patch(n)
             self.assertEqual(len(patch["modules"]), 6*n)
-            self.assertEqual(len(patch["connections"]), 5*n - 1)
+            self.assertEqual(len(patch["connections"]), 6*n - 1)
             self.assertEqual(len(set(m["id"] for m in patch["modules"])), 6*n)
             self.assertEqual(patch["outputs"][0]["bus_channel"], 0)
         with self.assertRaisesRegex(ValueError, "64-module"):
