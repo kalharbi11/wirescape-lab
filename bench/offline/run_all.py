@@ -252,20 +252,14 @@ def build_module_patch(module_id, descriptor, override=None):
         return None, "descriptor not found"
     outputs = descriptor["outputs"]
     audio = next((p["port"] for p in outputs if p["type"] == "WS2_AUDIO"), None)
-    cv = next((p["port"] for p in outputs if p["type"] in ("WS2_CV_UNI", "WS2_CV_BI")), None)
+    cv = next((p["port"] for p in outputs if p["type"] in ("WS2_CV_UNI", "WS2_CV_BI", "WS2_PITCH", "WS2_GATE")), None)
     if audio:
         input_port = next((p["port"] for p in descriptor["inputs"]
                            if p["type"] == "WS2_AUDIO"), None)
         return direct_source(module_id, descriptor["version"], override or {}, audio,
                              input_port), None
     if cv:
-        parts = [mod(1, module_id, descriptor["version"], override),
-                 mod(2, "essentials.vca", parameters={"gain": 1}),
-                 mod(3, "essentials.vco", parameters={"frequency": 440}),
-                 mod(4, "essentials.output")]
-        links = [edge(1, cv, 2, "gain_cv"), edge(3, "audio", 2, "audio"),
-                 edge(2, "audio", 4, "audio")]
-        return patch_doc(module_id, parts, links, 4, "audio"), None
+        return direct_source(module_id, descriptor["version"], override or {}, cv), None
     return None, "no audio or CV output available for renderer"
 
 
@@ -434,7 +428,7 @@ def module_sections(renderer, desc, all_modules, meta, out, quick):
         denormal_rows.append(dict(base_row, status="unavailable",
                                  reason="unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected"))
     save(out, "dsp", "module_outputs", meta, module_rows,
-         {"measure": "stereo output, unconnected inputs or VCO feed"})
+         {"measure": "direct output bus; VCO input feed only for audio-input modules"})
     save(out, "dsp", "parameter_steps", meta, param_rows,
          {"step": "first parameter min to max halfway through render",
           "highpass": "2nd order Butterworth 2kHz"})
