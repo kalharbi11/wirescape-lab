@@ -7,7 +7,7 @@ a fresh settings path, and no audio/MIDI/LAN consent flags.
 import argparse
 import datetime as dt
 import json
-import os
+import queue
 import subprocess
 import sys
 import threading
@@ -31,8 +31,15 @@ def probe(executable, folder):
     with stderr_path.open("wb") as stderr:
         process = subprocess.Popen(engine, cwd=ROOT, stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE, stderr=stderr, bufsize=0)
+        lines = queue.Queue()
+        def read_lines():
+            for raw in process.stdout:
+                lines.put(raw)
+            lines.put(None)
+        reader = threading.Thread(target=read_lines, daemon=True)
+        reader.start()
         try:
-            line = process.stdout.readline()
+            line = lines.get(timeout=30)
             if not line:
                 raise RuntimeError("sidecar exited without a hello")
             hello = json.loads(line)
@@ -54,7 +61,7 @@ def probe(executable, folder):
                                                 allow_nan=False).encode("utf-8") + b"\n")
                 process.stdin.flush()
                 for _ in range(500):
-                    response_line = process.stdout.readline()
+                    response_line = lines.get(timeout=25)
                     if not response_line:
                         raise RuntimeError("engine closed before refusal reply")
                     response = json.loads(response_line)
