@@ -23,8 +23,8 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from metrics import (basic, envelope_metrics, filter_metrics, oscillator_metrics,
-                     patch_metrics, read_audio, step_metrics)
+from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
+                     oscillator_metrics, patch_metrics, read_audio, step_metrics)
 
 ROOT = Path(__file__).resolve().parents[2]
 RATE = 48000
@@ -464,10 +464,26 @@ def envelope_sections(renderer, meta, out, quick):
     rows = [dict(module="essentials.adsr", status="measured",
                  **envelope_metrics(audio, on, off, attack, release))] if audio is not None else [
                      dict(module="essentials.adsr", **status)]
-    rows.append({"module": "essentials.function_envelope", "status": "unavailable",
-                 "reason": "renderer gate event does not drive an input cable"})
+    rise, fall = .05, .1
+    function_patch = patch_doc("function envelope", [
+        mod(1, "essentials.clock", parameters={"bpm": 60, "ticks_per_beat": 1,
+                                              "duty": .5, "run": 1}),
+        mod(2, "essentials.function_envelope", parameters={
+            "rise": rise, "fall": fall, "curve": 0}),
+        mod(3, "essentials.output")],
+        [edge(1, "clock", 2, "gate"), edge(2, "envelope", 3, "audio")],
+        3, "audio")
+    function_audio, function_status = run_wav(renderer, function_patch, [], seconds)
+    function_row = {"module": "essentials.function_envelope"}
+    if function_audio is not None:
+        function_row.update(status="measured", **direct_envelope_metrics(
+            function_audio, 0, round(RATE * .5), rise, fall))
+    else:
+        function_row.update(function_status)
+    rows.append(function_row)
     save(out, "dsp", "envelopes", meta, rows,
-         {"method": "analytic-signal amplitude smoothed over 128 samples",
+         {"ADSR_method": "analytic-signal amplitude smoothed over 128 samples",
+          "function_method": "direct CV; 60 BPM clock drives 0.5-second gate",
           "target_attack_s": attack, "target_release_s": release})
 
 
