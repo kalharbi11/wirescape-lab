@@ -8,8 +8,6 @@
 namespace allocation_watch {
 std::atomic<bool> enabled{false};
 std::atomic<uint64_t> count{0};
-thread_local bool thread_enabled = false;
-thread_local uint64_t thread_count = 0;
 } // namespace allocation_watch
 static void record() {
     if (allocation_watch::enabled.load(std::memory_order_relaxed)) ++allocation_watch::count;
