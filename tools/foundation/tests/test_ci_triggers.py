@@ -35,7 +35,10 @@ class CITriggers(unittest.TestCase):
         job = self.workflow.split("  sanitizers:", 1)[1].split("  studio:", 1)[0]
         self.assertIn("runs-on: ubuntu-latest", job)
         self.assertIn("-fsanitize=address,undefined", job)
-        self.assertIn("ctest --test-dir build/asan -R abi2 --output-on-failure", job)
+        self.assertIn("ctest --test-dir build/asan -R abi2 -E", job)
+        self.assertIn("sanitizer-known-ub:", self.workflow)
+        self.assertIn("continue-on-error: true", self.workflow)
+        self.assertIn("abi2_live_replan_tests", self.workflow)
 
     def test_studio_uses_playwright_and_desktop_tests_use_null_audio(self):
         self.assertIn("npx playwright install --with-deps chromium", self.workflow)
