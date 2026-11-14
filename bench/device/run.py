@@ -367,7 +367,8 @@ def main(argv=None):
                               args.monitor_target,args.process_helper,engine.process.pid)
             recorder.start()
         started=time.monotonic()
-        capture_offset=(started-recorder.started) if recorder and recorder.started else 0.
+        capture_offset=(log.epoch-recorder.started) if recorder and recorder.started else 0.
+        reference_offset=(started-recorder.started) if recorder and recorder.started else 0.
         for item in timeline:
             if not args.dry_run:
                 pause=started+item["at"]-time.monotonic()
@@ -383,12 +384,17 @@ def main(argv=None):
             if remaining>0:time.sleep(remaining)
         if recorder:
             capture=recorder.stop()
-            if capture:
-                from analyse import analyse
-                analysis=analyse(capture,log.events,args.rate,capture_offset)
+        references=[]
         if args.render:
-            manifest["offline_references"]=run_references(
+            references=run_references(
                 folder/"offline_scripts",scripts,args.rate,args.block,args.render)
+            manifest["offline_references"]=references
+        if capture:
+            from analyse import analyse
+            if references:
+                references=[{**ref,"capture_start_s":reference_offset+ref["start_s"]}
+                            for ref in references if ref.get("audio")]
+            analysis=analyse(capture,log.events,args.rate,capture_offset,references)
     except (RuntimeError,ValueError,OSError,TimeoutError,ImportError) as exc:
         error=str(exc)
         log.add("runner-error",message=error)
