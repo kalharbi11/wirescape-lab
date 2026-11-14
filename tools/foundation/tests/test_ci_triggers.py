@@ -1,56 +1,51 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Text-only CI workflow trigger and formatting-delivery contract."""
+"""Contracts for the lab's hosted-only CI; retired workflows live in ci/from-main."""
 import re
 import unittest
 from pathlib import Path
+
 ROOT = Path(__file__).resolve().parents[3]
-
-
-def source(path):
-    return (ROOT / path).read_text(encoding="utf-8")
+WORKFLOW = ROOT / ".github/workflows/ci.yml"
 
 
 class CITriggers(unittest.TestCase):
-    def test_no_ready_event_rerun(self):
-        for name in ("ci.yml", "portability.yml"):
-            with self.subTest(name=name):
-                workflow = source(".github/workflows/" + name)
-                events = re.search(r"(?m)^    types: \[([^]]+)\]$", workflow)
-                self.assertIsNotNone(events)
-                self.assertEqual(events.group(1), "opened, synchronize, reopened")
-    def test_drafts_receive_windows_check(self):
-        workflow = source(".github/workflows/ci.yml")
-        matrix = next(line for line in workflow.splitlines() if "include: ${{ fromJSON" in line)
-        self.assertIn("github.event_name == 'pull_request'", matrix)
-        self.assertIn("windows-x64", matrix)
-        self.assertNotIn("draft", matrix)
-        self.assertNotIn("ci/windows", matrix)
-    def test_studio_acceptance_locates_host_chromium_before_running(self):
-        workflow = source('.github/workflows/ci.yml')
-        step = workflow.split('      - name: Run task acceptance when specified', 1)[1]
-        conditional = "if re.search(r'apps/studio.*(npm test|playwright test)', task.read_text()):"
-        self.assertIn(conditional, step)
-        setup = step.split(conditional, 1)[1].split("subprocess.check_call([sys.executable, '-m', 'pip'", 1)[0]
-        self.assertIn('npx playwright install ffmpeg', setup)
-        self.assertIn("('chromium', 'chromium-browser', 'google-chrome')", setup)
-        self.assertIn('shutil.which(name)', setup)
-        self.assertIn('if not browser or not os.access(browser, os.X_OK):', setup)
-        self.assertIn("os.environ['WIRESCAPE_CHROMIUM'] = browser", setup)
-        self.assertLess(setup.index('npx playwright install ffmpeg'),
-                        setup.index("os.environ['WIRESCAPE_CHROMIUM'] = browser"))
-        self.assertIn("'tools/dev.py', 'accept'", step)
+    @classmethod
+    def setUpClass(cls):
+        cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_cloud_clang_format_is_pinned(self):
-        setup = source("tools/ci/codex_cloud_setup.sh")
-        self.assertIn("clang-format==18.", setup)
-        self.assertIn("clang-format --version", setup)
-    def test_static_provides_applyable_patch(self):
-        workflow = source(".github/workflows/static.yml")
-        helper = source("tools/ci/static_checks.py")
-        self.assertIn("=== format.patch begin ===", helper)
-        self.assertIn("patches.append(patch_text)", helper)
-        self.assertIn("publish_format_patch(root, patches)", helper)
-        self.assertIn("if: always()", workflow)
-        self.assertIn("actions/upload-artifact@v7", workflow)
-        self.assertIn("path: build/static/format.patch", workflow)
-        self.assertIn("name: format-patch", workflow)
+    def test_pull_requests_do_not_rerun_on_ready_event(self):
+        self.assertIn("types: [opened, synchronize, reopened]", self.workflow)
+        self.assertIn("branches: [main]", self.workflow)
+        self.assertIn("workflow_dispatch:", self.workflow)
+
+    def test_all_required_hosted_lanes_exist(self):
+        for name in ("linux-x64", "linux-arm64", "windows-x64", "sanitizers", "studio", "desktop"):
+            with self.subTest(name=name):
+                self.assertIn(name, self.workflow)
+        for runner in ("ubuntu-latest", "ubuntu-24.04-arm", "windows-latest"):
+            self.assertIn(runner, self.workflow)
+        self.assertNotRegex(self.workflow, r"self-hosted|ci/pi|merge_gate|board\\.py|guard\\.py")
+
+    def test_native_runs_real_headless_build_and_ctest(self):
+        self.assertIn("python tools/dev.py build --headless", self.workflow)
+        self.assertIn("python tools/dev.py test", self.workflow)
+        self.assertIn("cmake==4.2.3 ninja==1.13.0", self.workflow)
+
+    def test_sanitizers_use_linux_x64_with_real_abi2_tests(self):
+        job = self.workflow.split("  sanitizers:", 1)[1].split("  studio:", 1)[0]
+        self.assertIn("runs-on: ubuntu-latest", job)
+        self.assertIn("-fsanitize=address,undefined", job)
+        self.assertIn("ctest --test-dir build/asan -R abi2 -E", job)
+        self.assertIn("sanitizer-known-ub:", self.workflow)
+        self.assertIn("continue-on-error: true", self.workflow)
+        self.assertIn("abi2_live_replan_tests", self.workflow)
+
+    def test_studio_uses_playwright_and_desktop_tests_use_null_audio(self):
+        self.assertIn("npx playwright install --with-deps chromium", self.workflow)
+        self.assertIn("WIRESCAPE_CHROMIUM=", self.workflow)
+        self.assertIn("xvfb-run -a npm test", self.workflow)
+        self.assertIn("name: Python foundation regression suite", self.workflow)
+
+
+if __name__ == "__main__":
+    unittest.main()

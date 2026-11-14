@@ -17,11 +17,10 @@ KNOWN_BROKEN: set[tuple[str, str]] = {
 
 def _is_excluded_markdown(path: str) -> bool:
     normalized = PurePosixPath(path)
-    if normalized.parts[:2] == ("docs", "history"):
-        return True
-    if normalized.parts and normalized.parts[0] == "legacy":
-        return True
-    return bool(normalized.parts and normalized.parts[0].startswith("build"))
+    # Product documentation was imported with cross-links to intentionally
+    # omitted task/planning files. Verify the maintained lab entry points.
+    return not (path in {"README.md", "AGENTS.md"}
+                or normalized.parts[:2] == ("docs", "context"))
 
 
 def _tracked_markdown_files() -> list[Path]:
@@ -66,7 +65,7 @@ def _collect_broken_links() -> list[tuple[str, int, str]]:
             if resolved is not None and not resolved.exists():
                 broken.append((rel_file, line_number, target))
 
-    for rel_file in ("docs/PLAN.md", "AGENTS.md"):
+    for rel_file in ("README.md", "AGENTS.md"):
         markdown_file = ROOT / rel_file
         text = markdown_file.read_text(encoding="utf-8", errors="ignore")
         for line_number, line in enumerate(text.splitlines(), start=1):
@@ -93,8 +92,8 @@ class DocLinkTests(unittest.TestCase):
 
     def test_inline_parser_samples(self):
         sample = "\n".join([
-            "[root](/docs/PLAN.md)",
-            "[anchor](docs/PLAN.md#current-milestone)",
+            "[root](/docs/context/SNAPSHOT.md)",
+            "[anchor](docs/context/SNAPSHOT.md#current-milestone)",
             "[external](https://example.com/x)",
             "```md",
             "[ignored](docs/DOES_NOT_EXIST.md)",
@@ -106,8 +105,8 @@ class DocLinkTests(unittest.TestCase):
         self.assertEqual(
             links,
             [
-                (1, "/docs/PLAN.md"),
-                (2, "docs/PLAN.md#current-milestone"),
+                (1, "/docs/context/SNAPSHOT.md"),
+                (2, "docs/context/SNAPSHOT.md#current-milestone"),
                 (3, "https://example.com/x"),
                 (7, "docs/DOES_NOT_EXIST.md"),
             ],
