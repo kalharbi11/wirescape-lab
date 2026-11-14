@@ -407,7 +407,13 @@ def main(argv=None):
             except Exception as exc:
                 manifest["warnings"].append("Recorder cleanup: "+str(exc))
         if source:source.close()
-        if engine:engine.stop()
+        if engine:
+            engine.stop()
+            if engine.process is not None:
+                manifest["engine_exit_code"]=engine.process.returncode
+                if engine.process.returncode != 0:
+                    error=error or f"engine exited with status {engine.process.returncode}"
+                    manifest["warnings"].append("Nonzero native engine exit code")
         if engine and not args.dry_run:
             audio_samples=[e["payload"]["status"]["audio"] for e in log.events
                            if e.get("direction")=="out" and e.get("payload",{}).get("type")=="status"
