@@ -33,7 +33,7 @@ MODULE_FIXTURE = ROOT / "tools/foundation/fixtures/known_module_ids.txt"
 PATCHES = ROOT / "apps/studio/patches"
 COST_HELPER = ROOT / "tools/bench/abi2_cost.py"
 NUMBER = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?f?"
-PARAM = re.compile(r'ws::param\(\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*(' +
+PARAM = re.compile(r'(?:ws::param|stepped)\(\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*(' +
                    NUMBER + r')\s*,\s*(' + NUMBER + r')\s*,\s*(' + NUMBER + r')')
 PORT = re.compile(r'ws::port\(\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*(WS2_[A-Z0-9_]+)')
 
@@ -57,6 +57,8 @@ def descriptors():
         if not found:
             continue
         params = re.search(r'\bparams\s*\{(.*?)\};', text, re.S)
+        if not params:
+            params = re.search(r'\bparams\s*=\s*\[\]\s*\{(.*?)\};', text, re.S)
         inputs = re.search(r'\binputs\s*\{(.*?)\};', text, re.S)
         outputs = re.search(r'\boutputs\s*\{(.*?)\};', text, re.S)
         result[found.group(1)] = {
