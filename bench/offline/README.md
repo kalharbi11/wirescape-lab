@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Offline fact pack
 
 Run with devices off. Python 3.12 and a Release headless build are required.
