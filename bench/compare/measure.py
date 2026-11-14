@@ -346,11 +346,17 @@ def main(argv=None):
             facts = ROOT / "facts" / "compare" / "measured"
             facts.mkdir(parents=True, exist_ok=True)
             # No recordings, paths, command lines, hostnames or usernames in committed facts.
+            safe_command = (f"python bench/compare/measure.py --confirm-audio "
+                            f"--tool {args.tool} --patch {args.patch} --pid {args.pid} "
+                            f"--machine {args.machine} --rate {args.rate} --block {args.block} "
+                            f"--duration {args.duration:g}")
+            if args.scaling:
+                safe_command += " --scaling"
             write_json(facts / f"{manifest['date_ny']}-{args.machine}-{args.tool}-{args.patch}.json",
                        {"manifest": manifest, "measurement": windows_data,
-                        "source": "bench/compare/measure.py", "units": {
-                            "cpu": "percent_of_one_logical_core",
-                            "rss": "bytes", "duration": "seconds"}})
+                        "source": "bench/compare/measure.py", "command": safe_command,
+                        "units": {"cpu": "percent_of_one_logical_core",
+                                  "rss": "bytes", "duration": "seconds"}})
     if error:
         print("compare harness: " + error, file=sys.stderr)
         return 1
