@@ -117,37 +117,117 @@ def align_reference(reference,observed,rate,observed_rate=None,max_latency_s=.75
 
 
 def analyse(path,events,rate,start_offset_s=0.,references=None):
+    """Analyse FLAC in bounded chunks, including long 60-minute owner recordings."""
+    import bisect
     import soundfile as sf
-    audio,sr=sf.read(str(path),always_2d=True,dtype="float32")
-    mono=_mono(audio)
-    timeline=[e for e in events if e.get("direction")=="step"]
-    steps=[]
-    for index,e in enumerate(timeline):
-        at=max(0,float(e.get("elapsed_s",0))+start_offset_s)
-        end=(float(timeline[index+1].get("elapsed_s",0))+start_offset_s
-             if index+1<len(timeline) else len(audio)/sr)
-        a=max(0,min(len(audio),round(at*sr)))
-        b=max(a,min(len(audio),round(end*sr)))
-        item=metrics(audio[a:b])
-        item.update({"at_s":round(at,4),"action":e.get("action"),
-                     "clicks_s":[round(at+t,6) for t in detect_clicks(mono[a:b],sr)],
-                     "dropouts":detect_dropouts(mono[a:b],sr)})
-        if e.get("action")=="patch_switch" and steps:
-            item["loudness_jump_db"]=round(20*math.log10(max(item["rms"],1e-9)/max(steps[-1]["rms"],1e-9)),3)
-        if e.get("action")=="noteOff":
-            item["possible_stuck_note"]=detect_stuck_notes(mono,sr,at,e.get("release_s",.5))
-        steps.append(item)
-    result={"recording":Path(path).name,"rate":sr,"channels":audio.shape[1],
-            "duration_s":round(len(audio)/sr,3),"overall":metrics(audio),
-            "clicks_s":detect_clicks(mono,sr),"dropouts":detect_dropouts(mono,sr),
-            "discontinuities_s":detect_discontinuities(mono,sr),"steps":steps}
+    import numpy as np
+    with sf.SoundFile(str(path)) as source:
+        sr,channels,total=source.samplerate,source.channels,len(source)
+        duration=total/sr
+        timeline=[e for e in events if e.get("direction")=="step"]
+        boundaries=[min(total,max(0,round((float(e.get("elapsed_s",0))+start_offset_s)*sr)))
+                    for e in timeline]
+        sums=[{"n":0,"sq":0.,"sum":0.,"peak":0.} for _ in timeline]
+        allsum={"n":0,"sq":0.,"sum":0.,"peak":0.}
+        clicks=[]
+        dropouts=[]
+        discontinuities=[]
+        seen_dropouts=set()
+        history=np.empty(0,dtype=np.float64)
+        overlap=max(10,round(.12*sr))
+
+        def accumulate(bucket,segment):
+            if not len(segment):return
+            a=np.asarray(segment,dtype=np.float64)
+            bucket["n"]+=a.size
+            bucket["sq"]+=float(np.sum(a*a))
+            bucket["sum"]+=float(np.sum(a))
+            bucket["peak"]=max(bucket["peak"],float(np.max(np.abs(a))))
+
+        frame=0
+        while frame<total:
+            block=source.read(min(65536,total-frame),dtype="float32",always_2d=True)
+            if not len(block):break
+            mono=_mono(block)
+            accumulate(allsum,block)
+            at=frame
+            i=bisect.bisect_right(boundaries,at)-1
+            while at<frame+len(block):
+                next_boundary=(boundaries[i+1] if i+1<len(boundaries) else total)
+                end=min(frame+len(block),max(at+1,next_boundary))
+                if i>=0:accumulate(sums[i],block[at-frame:end-frame])
+                at=end
+                i=bisect.bisect_right(boundaries,at)-1
+            joined=np.concatenate((history,mono))
+            begin=frame-len(history)
+            for t in detect_clicks(joined,sr):
+                pos=round(t*sr)+begin
+                if frame<=pos<frame+len(block) and len(clicks)<50000:
+                    sec=round(pos/sr,6)
+                    clicks.append(sec)
+            for d in detect_dropouts(joined,sr):
+                pos=round(d["start_s"]*sr)+begin
+                if pos>=0 and pos not in seen_dropouts:
+                    seen_dropouts.add(pos)
+                    if len(dropouts)<50000:
+                        dropouts.append({"start_s":round(pos/sr,6),
+                                         "duration_ms":d["duration_ms"]})
+            for t in detect_discontinuities(joined,sr):
+                pos=round(t*sr)+begin
+                if frame<=pos<frame+len(block) and len(discontinuities)<50000:
+                    discontinuities.append(round(pos/sr,6))
+            history=joined[-overlap:]
+            frame+=len(block)
+
+        def finish(bucket):
+            if not bucket["n"]:return {"rms":0.,"peak":0.,"dc":0.}
+            return {"rms":round(math.sqrt(bucket["sq"]/bucket["n"]),9),
+                    "peak":round(bucket["peak"],9),
+                    "dc":round(bucket["sum"]/bucket["n"],9)}
+
+        steps=[]
+        for i,event in enumerate(timeline):
+            at=boundaries[i]/sr
+            out=finish(sums[i])
+            following=boundaries[i+1]/sr if i+1<len(boundaries) else duration
+            out.update({"at_s":round(at,4),"action":event.get("action"),
+                        "clicks_s":[t for t in clicks if at<=t<following],
+                        "dropouts":[d for d in dropouts if at<=d["start_s"]<following]})
+            if event.get("action")=="patch_switch" and steps:
+                out["loudness_jump_db"]=round(
+                    20*math.log10(max(out["rms"],1e-9)/max(steps[-1]["rms"],1e-9)),3)
+            if event.get("action")=="noteOff":
+                def window_rms(left,right):
+                    a=max(0,min(total,round(left*sr)))
+                    b=max(a,min(total,round(right*sr)))
+                    source.seek(a)
+                    data=source.read(b-a,dtype="float32")
+                    return finish_from_audio(data)
+                def finish_from_audio(data):
+                    if not len(data):return 0.
+                    return math.sqrt(float(np.mean(np.asarray(data,dtype=np.float64)**2)))
+                rel=float(event.get("release_s",.5))
+                early=window_rms(at-.1,at)
+                late=window_rms(at+rel,at+rel+.15)
+                out["possible_stuck_note"]=early>=.004 and late>=max(.004,early*.22)
+            steps.append(out)
+        result={"recording":Path(path).name,"rate":sr,"channels":channels,
+                "duration_s":round(duration,3),"overall":finish(allsum),
+                "clicks_s":clicks,"dropouts":dropouts,
+                "discontinuities_s":discontinuities,"steps":steps}
     if references:
         result["references"]=[]
         for item in references:
             f=Path(item["audio"])
-            if f.is_file():
-                ref,rr=sf.read(str(f),always_2d=True)
-                result["references"].append({"file":f.name,**align_reference(ref,audio,rr,sr)})
+            if not f.is_file():continue
+            start=max(0,round((item["start_s"]+start_offset_s)*sr))
+            with sf.SoundFile(str(path)) as capture, sf.SoundFile(str(f)) as ref:
+                capture.seek(start)
+                expected=ref.read(dtype="float32",always_2d=True)
+                observed=capture.read(len(expected)+round(sr*.75),dtype="float32",
+                                      always_2d=True)
+                result["references"].append({"file":f.name,
+                    **align_reference(expected,observed,ref.samplerate,sr)})
     return result
 
 
@@ -159,10 +239,21 @@ def plot(folder,audio_path):
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import numpy as np
-        audio,sr=sf.read(str(audio_path),always_2d=True,dtype="float32")
-        stride=max(1,len(audio)//3500)
+        with sf.SoundFile(str(audio_path)) as source:
+            stride=max(1,len(source)//3000)
+            times=[]
+            amplitudes=[]
+            frame=0
+            while True:
+                a=source.read(65536,dtype="float32",always_2d=True)
+                if not len(a):break
+                first=(-frame)%stride
+                positions=np.arange(first,len(a),stride)
+                times.extend((frame+positions)/source.samplerate)
+                amplitudes.extend(a[positions,0])
+                frame+=len(a)
         fig,ax=plt.subplots(figsize=(8,2),dpi=70)
-        ax.plot(np.arange(0,len(audio),stride)/sr,audio[::stride,0],linewidth=.4)
+        ax.plot(times,amplitudes,linewidth=.4)
         ax.set(xlabel="Seconds",ylabel="Amplitude",title="Recorded waveform")
         fig.tight_layout()
         name=Path(folder)/"waveform.png"
@@ -207,7 +298,9 @@ def report(folder,manifest,analysis,events,audio_path=None):
                 f"| {a['rms']} | {a['peak']} | {a['dc']} | {len(analysis['clicks_s'])} | {len(analysis['dropouts'])} |",
                 "","## Per-step audio metrics","","| Time (s) | Action | RMS | Peak | DC | Clicks | Dropouts |",
                 "|---:|---|---:|---:|---:|---:|---:|"]
-        for a in analysis["steps"]:
+        if len(analysis["steps"])>500:
+            lines.append("| ... | Remaining per-step metrics in analysis.json | ... | ... | ... | ... | ... |")
+        for a in analysis["steps"][:500]:
             lines.append(f"| {a['at_s']} | {a['action']} | {a['rms']:.5f} | {a['peak']:.5f} | {a['dc']:.5f} | {len(a['clicks_s'])} | {len(a['dropouts'])} |")
     else:
         lines+=["## Recording","","No audio recorded; signal metrics are unavailable.",""]
