@@ -43,7 +43,10 @@ def quantize(x, lo, hi, step):
     x = min(hi, max(lo, x))
     if step > 0:
         x = lo + round((x-lo)/step)*step
-    return round(min(hi, max(lo, x)), 7)
+    # Native catalogue limits are float32 values. Rounding a minimum such as
+    # 0.20000000298023224 to seven decimals becomes 0.2, outside its legal
+    # bound. Clamp AFTER decimal rounding to preserve the exact wire limit.
+    return min(hi, max(lo, round(min(hi, max(lo, x)), 7)))
 
 
 class Planner:

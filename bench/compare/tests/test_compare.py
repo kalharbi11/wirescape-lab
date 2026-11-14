@@ -90,6 +90,20 @@ class SyntheticSamplerTests(unittest.TestCase):
         self.assertNotEqual(proc.returncode, 0)
         self.assertIn("--confirm-audio is required", proc.stderr)
 
+    def test_engine_mode_rejects_device_authorization(self):
+        proc = subprocess.run([sys.executable, str(RUN), "--engine",
+                               str(RUN), "--confirm-audio"],
+                              capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("--engine is only supported", proc.stderr)
+
+    def test_missing_engine_rejected_without_starting_process(self):
+        proc = subprocess.run([sys.executable, str(RUN), "--dry-run",
+                               "--engine", str(RUN.parent / "missing-binary")],
+                              capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("--engine must point to a built executable", proc.stderr)
+
     def test_dry_run_rejects_recording(self):
         proc = subprocess.run([sys.executable, str(RUN), "--dry-run",
                                "--record", "monitor"],

@@ -1,19 +1,23 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Generate native scaling patches; purely file-based, never opens devices."""
+"""Generate native scaling patches; purely file-based, never opens devices.
+
+The explicit enforce_graph_limit=False API is for protocol refusal fixtures only;
+the CLI always enforces the supported 64-module ceiling.
+"""
 import argparse
 import json
 from pathlib import Path
 
 
-def scaling_patch(n):
+def scaling_patch(n, *, enforce_graph_limit=True):
     if not isinstance(n, int) or n < 1:
         raise ValueError("N must be a positive integer")
     # Five per voice, N-1 stereo summing mixers, one shared output.
-    if 6 * n > 64:
+    if enforce_graph_limit and 6 * n > 64:
         raise ValueError(f"N={n} exceeds Wirescape 64-module graph limit (6*N modules)")
     modules = []
     cables = []
-    ids = iter(range(1, 65))
+    ids = iter(range(1, 6 * n + 1))
     voices = []
 
     def module(kind, params):

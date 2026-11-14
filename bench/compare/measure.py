@@ -141,7 +141,8 @@ def write_json(path, value):
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--dry-run", action="store_true", help="synthetic process, no audio/MIDI")
+    p.add_argument("--dry-run", action="store_true", help="device-free synthetic or explicit null-sink process")
+    p.add_argument("--engine", type=Path, help="existing Wirescape executable; only for --dry-run --tool wirescape")
     p.add_argument("--confirm-audio", action="store_true", help="explicit owner authorization")
     p.add_argument("--tool", choices=("wirescape", "cardinal", "rack2", "pd", "plugdata"), default="wirescape")
     p.add_argument("--patch", choices=("mono", "poly8", "poly8-fx", "scaling"), default="mono")
@@ -206,6 +207,10 @@ def main(argv=None):
     # No backend or process is touched before authorization and mode validation.
     if not args.dry_run and not args.confirm_audio:
         p.error("--confirm-audio is required; no audio or MIDI device was opened")
+    if args.engine and (not args.dry_run or args.tool != "wirescape"):
+        p.error("--engine is only supported with --dry-run --tool wirescape")
+    if args.engine and not args.engine.is_file():
+        p.error("--engine must point to a built executable")
     if args.dry_run and (args.confirm_audio or args.pid or args.record != "none"
                          or args.audio_file or args.tone_file or args.filter_file or args.gate_time or args.facts
                          or args.scaling):
@@ -224,7 +229,7 @@ def main(argv=None):
         p.error("--scaling requires --patch scaling")
     import psutil
     folder = prepare_folder(args)
-    manifest = {"schema": 1, "mode": "synthetic" if args.dry_run else "owner_device",
+    manifest = {"schema": 1, "mode": ("null_sink_process" if args.engine else "synthetic") if args.dry_run else "owner_device",
                 "date_ny": dt.datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d"),
                 "commit": sha(), "machine": args.machine, "os": platform.system(),
                 "architecture": platform.machine(), "cpu": platform.processor() or platform.machine(),
@@ -236,14 +241,26 @@ def main(argv=None):
                 "recording_mode": args.record,
                 "scope": "same-machine_process_tree_and_manual_device_observations"}
     process = None
+    engine_stdout = engine_stderr = None
     recorder = None
     windows = []
     recordings = []
     error = None
     try:
         if args.dry_run:
-            process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(3)"],
-                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if args.engine:
+                # Keep stdin open for the protocol session. File-backed stdout avoids
+                # blocking the sidecar hello/status writer, without opening devices.
+                engine_stdout = (folder / "engine-protocol.ndjson").open("wb")
+                engine_stderr = (folder / "engine-stderr.log").open("wb")
+                process = subprocess.Popen([str(args.engine.resolve()), "--null-audio",
+                                            "--settings", str(folder / "settings.json"),
+                                            "--rate", str(args.rate), "--block", str(args.block)],
+                                           cwd=ROOT, stdin=subprocess.PIPE,
+                                           stdout=engine_stdout, stderr=engine_stderr)
+            else:
+                process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(3)"],
+                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             root = psutil.Process(process.pid)
             duration = 1.2
         else:
@@ -285,6 +302,20 @@ def main(argv=None):
                     recorder.start()
             samples = measure_process(root, duration)
             windows = samples
+            if args.engine:
+                engine_stdout.flush()
+                with (folder / "engine-protocol.ndjson").open("r", encoding="utf-8") as proto:
+                    first = proto.readline()
+                try:
+                    hello = json.loads(first)
+                except json.JSONDecodeError as exc:
+                    raise RuntimeError("real null-sink engine did not produce a valid hello") from exc
+                if hello.get("type") != "hello" or hello.get("v") != 0 or "session" not in hello:
+                    raise RuntimeError("real null-sink engine did not emit a v0 hello")
+                windows_data = {"engine_hello": {"type": "hello", "v": hello["v"],
+                                                  "session_received": True,
+                                                  "module_types": len(hello.get("catalogue", {}).get("modules", []))}}
+                manifest["engine_hello_validated"] = True
             after = args.xruns_after
             if not args.dry_run:
                 after = ask_number("Xrun count at measurement END", after)
@@ -293,7 +324,7 @@ def main(argv=None):
                         "xruns_start": before, "xruns_end": after,
                         "xruns_delta": None if before is None or after is None else after - before,
                         "audible_dropouts": args.audible_dropouts if not args.dry_run else None}
-            windows_data = {"resources": summary(samples), "owner_observations": observed}
+            windows_data = {**locals().get("windows_data", {}), "resources": summary(samples), "owner_observations": observed}
             if recorder:
                 audio = recorder.stop()
                 if audio:
@@ -319,12 +350,21 @@ def main(argv=None):
             except Exception as exc:
                 error = error or "recorder cleanup: " + str(exc)
         if process:
-            process.terminate()
+            if args.engine and process.stdin and not process.stdin.closed:
+                process.stdin.close()  # Engine receives EOF and shuts down the null sink.
+            elif process.poll() is None:
+                process.terminate()  # Synthetic Python process only.
             try:
-                process.wait(timeout=3)
+                process.wait(timeout=12 if args.engine else 3)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+            if args.engine and process.returncode != 0:
+                error = error or f"null-sink engine exit code {process.returncode}"
+        if engine_stdout:
+            engine_stdout.close()
+        if engine_stderr:
+            engine_stderr.close()
         manifest["completed"] = error is None
         manifest["measured"] = not args.dry_run
         write_json(folder / "manifest.json", manifest)
@@ -333,7 +373,8 @@ def main(argv=None):
             for sample in windows:
                 out.write(json.dumps(sample, allow_nan=False) + "\n")
         report = ["# Cross-tool measurement", "",
-                  "Mode: " + ("synthetic (no device or benchmark evidence)" if args.dry_run
+                  "Mode: " + ("real Wirescape null sink (no device evidence)" if args.engine else
+                              "synthetic (no device or benchmark evidence)" if args.dry_run
                               else "owner device measurement"),
                   "", "| Field | Value |", "|---|---|"]
         for key in ("commit", "machine", "tool", "tool_version", "patch", "sample_rate_hz",
