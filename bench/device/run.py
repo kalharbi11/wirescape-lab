@@ -324,9 +324,11 @@ def main(argv=None):
     capture=None
     error=None
     manifest={"schema":1,"machine":args.machine,"os":platform.system(),
+              "os_version":platform.release(),
               "cpu":platform.processor() or platform.machine(),"commit":sha,
               "rate":args.rate,"block":args.block,"audio_device":args.device or "default",
-              "driver":args.record if not args.dry_run else "null",
+              "driver":"null" if args.dry_run else "unknown",
+              "capture_backend":args.record,
               "dry_run":args.dry_run,"scenario":args.scenario,
               "engine_mode":("simulation" if args.dry_run and not args.engine
                              else "null-audio" if args.dry_run else "device"),
@@ -406,6 +408,18 @@ def main(argv=None):
                 manifest["warnings"].append("Recorder cleanup: "+str(exc))
         if source:source.close()
         if engine:engine.stop()
+        if engine and not args.dry_run:
+            audio_samples=[e["payload"]["status"]["audio"] for e in log.events
+                           if e.get("direction")=="out" and e.get("payload",{}).get("type")=="status"
+                           and "audio" in e.get("payload",{}).get("status",{})]
+            if audio_samples:
+                observed=next((a for a in reversed(audio_samples) if a.get("deviceId")),audio_samples[-1])
+                device=observed.get("deviceId") or args.device
+                if device:manifest["audio_device"]=device
+                for entry in engine.hello.get("audioDevices",[]) if engine.hello else []:
+                    if entry.get("id")==device:
+                        manifest["driver"]=entry.get("hostApi","unknown")
+                        break
         manifest["completed"]=error is None
         (folder/"manifest.json").write_text(
             json.dumps(manifest,indent=2,allow_nan=False)+"\n",encoding="utf-8")
