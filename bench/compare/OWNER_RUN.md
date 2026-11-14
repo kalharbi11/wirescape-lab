@@ -46,7 +46,7 @@ For scaling, first construct N=1,2,4,8,16,32,... versions with the same voice se
 python bench/compare/measure.py --confirm-audio --tool cardinal --patch scaling --scaling --pid 12345 --tool-version 24.12 --machine pi5 --audio-device interface-A --driver PipeWire
 ```
 
-The command prompts for each N: load that N patch, press Enter to start the 60-second sample, enter the before and after xrun counters and audible dropout observation. Stops at first xrun, audible dropout or native graph-capacity limit. Missing xrun readings do not establish an xrun-free result. Wirescape's scaling generator has a 64-module limit (6N modules), and reports N=16 as a graph limit. Each measured N has its own metrics in `analysis.json`.
+The command prompts for each N: load that N patch, press Enter to start the 60-second sample, enter the before and after xrun counters and audible dropout observation. Enter `x` at the load prompt if the program refuses that patch; this is recorded as a graph-load refusal, not a CPU failure. The sequence stops at first xrun, audible dropout or graph refusal. Missing xrun readings do not establish an xrun-free result. Wirescape's scaling generator has a 64-module limit (6N modules), and reports N=16 as a graph limit. Each measured N has its own metrics in `analysis.json`.
 
 ## Audio capture, signal analysis and optional latency
 
