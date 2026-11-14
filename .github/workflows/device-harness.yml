@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install offline analysis dependencies
-        run: python -m pip install numpy scipy soundfile
+        run: python -m pip install numpy scipy soundfile tzdata
       - name: Detector and authorization tests
         run: python -m unittest discover -s bench/device/tests
       - name: Pure offline dry-run
