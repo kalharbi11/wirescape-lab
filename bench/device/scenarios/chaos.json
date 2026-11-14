@@ -1,0 +1,53 @@
+{
+  "name": "chaos",
+  "duration_s": 35,
+  "steps": [
+    {
+      "at": 0,
+      "action": "load_patch",
+      "patch": "chaos-01-ember-veil-pad.json"
+    },
+    {
+      "at": 2,
+      "action": "note_storm",
+      "chords": 3,
+      "legato": true
+    },
+    {
+      "at": 6,
+      "action": "param_jumps",
+      "module_id": 2,
+      "param": "feedback"
+    },
+    {
+      "at": 8,
+      "action": "ramp",
+      "module_id": 2,
+      "param": "roughness",
+      "duration_s": 0.05,
+      "hz": 200
+    },
+    {
+      "at": 12,
+      "action": "random_walk",
+      "module_id": 2,
+      "duration_s": 3,
+      "hz": 30,
+      "seed": 5301
+    },
+    {
+      "at": 20,
+      "action": "note_storm",
+      "chords": 2
+    },
+    {
+      "at": 25,
+      "action": "panic"
+    },
+    {
+      "at": 28,
+      "action": "patch_switch",
+      "patch": "chaos-02-wireglass-lead.json"
+    }
+  ]
+}
