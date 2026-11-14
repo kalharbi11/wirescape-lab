@@ -176,13 +176,13 @@ def markdown_rows(rows):
 def save(out, section, name, meta, rows, notes=None):
     folder = out / section
     folder.mkdir(parents=True, exist_ok=True)
-    document = {"provenance": meta, "section": name, "rows": rows}
+    document = {"SPDX-License-Identifier": "GPL-3.0-only", "provenance": meta, "section": name, "rows": rows}
     if notes:
         document["method_details"] = notes
     (folder / (name + ".json")).write_text(json.dumps(document, indent=2, sort_keys=True,
                                                        allow_nan=False) + "\n", encoding="utf-8")
     machine = meta["machine"]
-    lines = [f"# {name}", "",
+    lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->", f"# {name}", "",
              f"Commit: {meta['commit']}; date ET: {meta['date_et']}",
              f"Machine: {machine['cpu']}; OS: {machine['os']}; compiler: {machine['compiler']}; configuration: {machine['configuration']}",
              f"Sample rate: {RATE} Hz; block frames: {', '.join(map(str, BLOCKS))}",
