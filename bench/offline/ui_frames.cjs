@@ -57,10 +57,15 @@ async function record(page, n, action) {
   await page.context().tracing.stop({path:path.join(out,`trace-${n}-${action}.zip`)});
   return summary(intervals);
 }
+function previewCommand() {
+  return {executable:process.execPath,
+          args:[path.join(ROOT,'apps/studio/node_modules/vite/bin/vite.js'),
+                'preview','--host','127.0.0.1']};
+}
 async function main() {
   mkdirSync(out,{recursive:true});
-  const vite=path.join(ROOT,'apps/studio/node_modules/vite/bin/vite.js');
-  const server=spawn(process.execPath,[vite,'preview','--host','127.0.0.1'],
+  const preview=previewCommand();
+  const server=spawn(preview.executable,preview.args,
                      {cwd:path.join(ROOT,'apps/studio'),stdio:'ignore'});
   server.on('error', error => { console.error('Vite preview spawn failed:', error.message); });
   let browser;
@@ -94,4 +99,5 @@ async function main() {
     console.log(path.join(out,'summary.json'));
   } finally { if(browser) await browser.close(); server.kill('SIGTERM'); }
 }
-main().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports = {patch, record, previewCommand};
+if (require.main === module) main().catch(e=>{console.error(e);process.exitCode=1;});
