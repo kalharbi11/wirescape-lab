@@ -153,11 +153,15 @@ def markdown_rows(rows):
                 for n, nested in v.items():
                     if isinstance(nested, (int, float)) or nested is None:
                         out[k + "_" + n] = nested
-            elif isinstance(v, (int, float)) or v is None:
+            elif k in ("module", "patch", "parameter", "metric", "model",
+                       "status", "reason") or isinstance(v, (int, float)) or v is None:
                 out[k] = v
         return out
     observed = [flatten(x) for x in rows]
-    columns = list(dict.fromkeys(k for record in observed for k in record))[:24]
+    available = list(dict.fromkeys(k for record in observed for k in record))
+    identities = ("module", "patch", "parameter", "metric", "model", "status", "reason")
+    columns = ([key for key in identities if key in available] +
+               [key for key in available if key not in identities])[:24]
     if not columns:
         columns = ["sample_count"]
         observed = [{"sample_count": 0}]
