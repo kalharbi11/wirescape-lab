@@ -257,7 +257,10 @@ def main(argv=None):
                     return False
                 if not sys.stdin.isatty():
                     raise RuntimeError("scaling needs an interactive owner terminal")
-                input(f"Load {n} copies of scaling patch in {args.tool}; press Enter to sample {duration:g}s: ")
+                action = input(f"Load N={n} in {args.tool}; Enter to sample {duration:g}s, x for load refusal: ").strip().lower()
+                if action == "x":
+                    levels.append({"n": n, "status": "graph_load_refused", "pass": False})
+                    return False
                 before = ask_number("Read starting xrun counter before sampling", None)
                 samples = measure_process(root, duration)
                 for s in samples:
