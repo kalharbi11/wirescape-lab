@@ -1,0 +1,478 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # Label changes do not trigger redundant required-check runs.
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+permissions:
+  contents: read
+# A newer push to the same PR cancels that PR's older run. Every push/dispatch run gets its
+# own group (run_id), so main runs are never cancelled or replaced while pending.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  acceptance:
+    name: Task acceptance (optional)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # headless build + full Studio Playwright suite
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Check PLAN Now freshness when changed (advisory)
+        continue-on-error: true
+        env: {GITHUB_TOKEN: "${{ github.token }}"}
+        run: if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qx docs/PLAN.md; then python tools/docs_fresh.py; fi
+      - name: Run task acceptance when specified
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          python - <<'PY'
+          import hashlib, io, os, re, shutil, subprocess, sys, tarfile, urllib.request
+          sys.path.insert(0, 'tools')
+          from pathlib import Path
+          from foundation.acceptance import select_pr_task
+          try:
+              issue, task, note = select_pr_task(Path.cwd(), os.environ.get('PR_BODY', ''))
+          except ValueError as error:
+              print(f'::error::{error}')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+                  out.write(f'### {error}\n\nTask acceptance not verified.\n')
+              raise SystemExit(1)
+          if issue is None:
+              print(note)
+              raise SystemExit(0)
+          if task is None:
+              # The two planner-approved user-only legacy issues are exceptions,
+              # not successful acceptance. Never report them as verified.
+              print(f'::warning::{note}')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+                  out.write(f'### {note}\n\nNot a task acceptance pass.\n')
+              raise SystemExit(0)
+          # Issue #29 planner decision: CI provisioning is the authorized sixth file.
+          if str(issue) in {'87', '89'}:
+              text = re.sub(r'(size: <= \d+ changed lines, <= )\d+( files)', r'\g<1>6\2', task.read_text())
+              task = Path(os.environ['RUNNER_TEMP']) / task.name
+              task.write_text(text)
+              print('Authorized file cap 6: issue #29 planner decision, 2026-10-28; line cap unchanged.')
+          if re.search(r'(?m)^\s*- pre-commit\b', task.read_text()):
+              subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pre-commit==4.3.0'])
+          if re.search(r'(?m)^\s*- actionlint\b', task.read_text()):
+              prefix = 'https://github.com/rhysd/actionlint/releases/download/v1.7.7/'
+              name = 'actionlint_1.7.7_linux_amd64.tar.gz'
+              archive = urllib.request.urlopen(prefix + name, timeout=30).read()
+              sums = urllib.request.urlopen(prefix + 'actionlint_1.7.7_checksums.txt', timeout=30).read().decode()
+              digest = next(line.split()[0] for line in sums.splitlines() if line.split()[-1] == name)
+              if hashlib.sha256(archive).hexdigest() != digest:
+                  raise ValueError('actionlint checksum mismatch')
+              directory = Path(os.environ['RUNNER_TEMP']) / 'acceptance-tools'
+              directory.mkdir(exist_ok=True)
+              tool = directory / 'actionlint'
+              with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+                  tool.write_bytes(bundle.extractfile('actionlint').read())
+              tool.chmod(0o755)
+              os.environ['PATH'] = str(directory) + os.pathsep + os.environ['PATH']
+          # Full Studio Playwright acceptance needs its pinned recording helper.
+          # Provision once without changing any selected test or assertion.
+          if re.search(r'apps/studio.*(npm test|playwright test)', task.read_text()):
+              subprocess.check_call('cd apps/studio && npm ci && npx playwright install ffmpeg', shell=True)
+              # Match the Web workflow's host Chromium lookup; fail closed if absent.
+              browser = next((path for name in ('chromium', 'chromium-browser', 'google-chrome')
+                              if (path := shutil.which(name))), None)
+              if not browser or not os.access(browser, os.X_OK):
+                  raise RuntimeError('No executable runner Chromium for Studio task acceptance')
+              os.environ['WIRESCAPE_CHROMIUM'] = browser
+              print(f'Task acceptance Chromium: {browser}')
+          subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'cmake==4.2.3', 'ninja==1.13.0'])
+          subprocess.check_call([sys.executable, 'tools/dev.py', 'build', '--headless'])
+          base = 'origin/' + os.environ['PR_BASE_REF']
+          print('Acceptance diff base:', base)
+          code = subprocess.call([sys.executable, 'tools/dev.py', 'accept', str(issue), '--file', str(task), '--base', base,
+                                  '--timeout', '1200'])
+          summary = Path('build_reports') / f'accept-{str(issue)}.md'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(summary.read_text() if summary.exists() else 'Acceptance report missing.\n')
+          if code:
+              for path in Path('build_reports').glob(f'accept-{str(issue)}-*.log'):
+                  tail = '\n'.join(path.read_text(errors='replace').splitlines()[-40:])[-6000:]
+                  print('::error::' + (str(path) + '\n' + tail).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          raise SystemExit(code)
+          PY
+  # Docs-only fast path (#596). A PR is docs-only when every changed path ends in .md.
+  # Not all of docs/: e.g. docs/specs/*.json feeds native tests.
+  # Push/dispatch runs, and any classification error, count as code.
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          fetch-depth: 2
+          sparse-checkout: .github
+      - id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          code=true
+          if [ "$EVENT" = pull_request ] && files=$(git diff --name-only HEAD^1 HEAD) && [ -n "$files" ]; then
+            printf '%s\n' "$files" | grep -qvE '\.md$' || code=false
+          fi
+          echo "code=$code" | tee -a "$GITHUB_OUTPUT"
+  native:
+    name: ${{ matrix.os }}
+    needs: changes
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON((github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request') && '[{"os":"linux-arm64","runner":"ubuntu-24.04-arm"},{"os":"windows-x64","runner":"windows-latest"}]' || '[{"os":"linux-arm64","runner":"ubuntu-24.04-arm"}]') }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    env:
+      # Linux ARM64 runners have 4 vCPUs (trial, #584); Windows stays at 2 for now.
+      CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.os == 'linux-arm64' && '4' || '2' }}
+      PIP_CACHE_DIR: ${{ github.workspace }}/.tools/pip-cache
+      CODE: ${{ needs.changes.outputs.code != 'false' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v6
+        if: env.CODE == 'true'
+        with:
+          path: .tools/pip-cache
+          key: tools-${{ runner.os }}-${{ runner.arch }}-cmake-4.2.3-ninja-1.13.0
+      - run: python -m pip install cmake==4.2.3 ninja==1.13.0
+        if: env.CODE == 'true'
+      - name: Fetch pinned PortAudio source
+        if: runner.os == 'Windows' && env.CODE == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build pinned PortAudio (MIT, v19.7.0)
+        if: runner.os == 'Windows' && env.CODE == 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build_reports/foundation | Out-Null
+          Start-Transcript -Path build_reports/foundation/portaudio.log
+          try {
+            $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+            if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator not found' }
+            cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF 2>&1 | Tee-Object -FilePath build_reports/foundation/portaudio-configure.log
+            if ($LASTEXITCODE) { throw "Native command failed: $LASTEXITCODE" }
+            cmake --build .tools/portaudio-build --config Release --parallel 2 2>&1 | Tee-Object -FilePath build_reports/foundation/portaudio-build.log
+            if ($LASTEXITCODE) { throw "Native command failed: $LASTEXITCODE" }
+            $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+            if (!$dll) { throw 'PortAudio DLL missing' }
+            "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+          } catch {
+            Write-Output "::error::$($_.Exception.Message)"
+            $detail = (Get-Content build_reports/foundation/portaudio*.log -Tail 35) -join '%0A'
+            Write-Output "::error::$detail"
+            throw
+          } finally { Stop-Transcript }
+      - name: Node 22 for Windows source setup
+        if: runner.os == 'Windows' && env.CODE == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Windows source setup parse, read-only preflight and real app smoke
+        if: runner.os == 'Windows' && env.CODE == 'true'
+        # Windows PowerShell 5.1, the shell the owner's VS x64 Developer PowerShell opens. Two 5.1-only
+        # breaks reached the owner after passing under pwsh: $home (2026-11-11), Select-Object -First (2026-11-12).
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tokens = $null; $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'tools/windows/setup.ps1'), [ref]$tokens, [ref]$errors)
+          if ($errors.Count) { throw ($errors | Out-String) }
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -version '[17.0,19.0)' -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -or !$vs) { throw 'VS 2022/2026 x64 toolchain missing' }
+          Import-Module (Join-Path $vs 'Common7\Tools\Microsoft.VisualStudio.DevShell.dll')
+          Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments '-arch=x64 -host_arch=x64'
+          $source = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE) { throw 'Cannot resolve source SHA' }
+          $before = git status --porcelain --untracked-files=all
+          & ./tools/windows/setup.ps1 -CheckOnly -Ref $source
+          if ($LASTEXITCODE) { throw 'Windows preflight failed' }
+          $after = git status --porcelain --untracked-files=all
+          if (($before -join "`n") -ne ($after -join "`n")) { throw 'CheckOnly changed the worktree' }
+          python -m unittest discover -s tools/foundation/tests -p test_windows_setup.py -v
+          if ($LASTEXITCODE) { throw 'Windows output-isolation behavior tests failed' }
+          & ./tools/windows/setup.ps1 -Ref $source
+          if ($LASTEXITCODE) { throw 'Windows source setup/smoke failed' }
+      - name: Docs-only PR, foundation tests only (incl. doc links)
+        if: env.CODE != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build_reports/foundation
+          python -m unittest discover -s tools/foundation/tests -v -b 2>&1 | tee build_reports/foundation/python-tests.log
+      - name: Build and test (devices stay off)
+        if: env.CODE == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build_reports/foundation
+          python -m unittest discover -s tools/foundation/tests -v -b 2>&1 | tee build_reports/foundation/python-tests.log
+          python tools/dev.py build --headless
+          python tools/dev.py test
+      - name: Summarize ABI2 benchmark
+        env:
+          ABI2_RUNNER: ${{ matrix.os }}
+        run: |
+          python - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+
+          benchmark_path = Path('build_reports/abi2/benchmark.json')
+          if not benchmark_path.is_file():
+              print('::warning::benchmark summary skipped: build_reports/abi2/benchmark.json not found')
+              raise SystemExit(0)
+
+          raw = benchmark_path.read_text(encoding='utf-8')
+          print(raw)
+          benchmark = json.loads(raw)
+          summary_path = Path(os.environ['GITHUB_STEP_SUMMARY'])
+          rows = benchmark.get('rows', [])
+          lines = [
+              '',
+              f"### ABI2 benchmark ({os.environ['ABI2_RUNNER']})",
+              '| Row | Median ns | P99 ns | Worst ns |',
+              '|---|---:|---:|---:|',
+          ]
+          for row in rows:
+              lines.append(
+                  f"| {row.get('name', '')} | {row.get('mean_ns', 0):.3f} | "
+                  f"{row.get('p99_ns', 0):.3f} | {row.get('worst_ns', 0):.3f} |"
+              )
+          lines.extend([
+              '',
+              f"- mono_ratio: {benchmark.get('mono_ratio', 0):.6g}",
+              f"- poly8_vs_eight_mono_ratio: {benchmark.get('poly8_vs_eight_mono_ratio', 0):.6g}",
+              f"- modulated_ratio: {benchmark.get('modulated_ratio', 0):.6g}",
+              '', '```json', raw, '```', '',
+          ])
+          with summary_path.open('a', encoding='utf-8') as handle:
+              handle.write('\n'.join(lines))
+          PYTHON
+      - name: Summarize failures
+        if: failure()
+        run: |
+          python - <<'PYTHON'
+          import os
+          from pathlib import Path
+          summaries = []
+          for path in Path('build_reports').rglob('*.log'):
+              text = str(path) + '\n' + path.read_text(errors='replace')[-3000:]
+              print('::error::' + text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+              tail = '\n'.join(path.read_text(errors='replace').splitlines()[-80:])
+              summaries.append(f'#### {path}\n\n````text\n{tail}\n````\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('\n'.join(summaries))
+          PYTHON
+      - name: Bound offline render evidence artifacts
+        if: always() && matrix.os == 'linux-arm64' && env.CODE == 'true'
+        run: |
+          python - <<'PYTHON'
+          from pathlib import Path
+          root = Path('build/native/render_evidence')
+          if root.exists():
+              size = sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
+              print(f'render_evidence uncompressed bytes: {size}')
+              if size > 20 * 1024 * 1024:
+                  raise SystemExit('render_evidence exceeds 20 MiB budget')
+          PYTHON
+      - uses: actions/upload-artifact@v7
+        if: always() && matrix.os == 'linux-arm64' && env.CODE == 'true'
+        with:
+          name: render-evidence-linux-arm64-${{ github.event.pull_request.head.sha || github.sha }}
+          path: build/**/render_evidence/
+          retention-days: 14
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ${{ matrix.os }}-summaries
+          path: |
+            build_reports/foundation/*.json
+            build_reports/abi2/*.json
+            build/native/abi2_equivalence.json
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: ${{ matrix.os }}-failure-logs
+          path: |
+            build_reports/**/*.log
+            build/native/Testing/Temporary/LastTest.log
+  # Register a dedicated runner: Settings > Actions > Runners > New self-hosted runner.
+  # Use the Linux ARM64 instructions and add the custom label pi5. Never expose
+  # this runner to fork PR code; enable only for trusted branches in this repo.
+  # pi5:
+  #   if: github.event_name == 'push' && github.repository == 'kalharbi11/wirescape'
+  #   runs-on: [self-hosted, linux, ARM64, pi5]
+  #   timeout-minutes: 30
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #     - run: python tools/dev.py build --headless
+  #     - run: python tools/dev.py test
+  # Sanitizer lanes run in parallel; the `sanitizers` job below is the required check.
+  # Flags, test selection and the cost gate are unchanged from the single-job layout.
+  sanitizers-asan:
+    needs: changes
+    if: needs.changes.outputs.code != 'false'
+    name: sanitizers / ASan+UBSan
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '4'
+      CCACHE_DIR: ${{ github.workspace }}/.tools/ccache
+      CCACHE_MAXSIZE: 2G
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_NOHASHDIR: 'true'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          # Transient mirror/DNS failures: bounded retries; a third failure still fails CI.
+          for i in 1 2 3; do
+            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y ccache && break
+            [ "$i" = 3 ] && exit 1
+            sleep 60
+          done
+          echo "nproc=$(nproc)"; free -m
+      # Compiler cache only (#569): ccache hashes compiler, flags and preprocessed source, so
+      # every test still runs against a fresh link. PRs restore; only main pushes save.
+      - uses: actions/cache/restore@v6
+        with:
+          path: .tools/ccache
+          key: ccache-asan-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: |
+            ccache-asan-${{ runner.arch }}-
+            ccache-sanitizers-${{ runner.arch }}-
+      - name: ASan and UBSan
+        run: |
+          set -euo pipefail
+          cmake -S native -B build/asan -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer' -DCMAKE_C_FLAGS='-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer'
+          cmake --build build/asan --parallel 4
+          free -m
+          ctest --test-dir build/asan -R abi2 --output-on-failure
+      - name: Compiler cache stats
+        if: always()
+        run: ccache --show-stats | tee -a "$GITHUB_STEP_SUMMARY" || true
+      - if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/cache/save@v6
+        with:
+          path: .tools/ccache
+          key: ccache-asan-${{ runner.arch }}-${{ github.sha }}
+  sanitizers-tsan:
+    needs: changes
+    if: needs.changes.outputs.code != 'false'
+    name: sanitizers / TSan + cost
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '4'
+      CCACHE_DIR: ${{ github.workspace }}/.tools/ccache
+      CCACHE_MAXSIZE: 2G
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_NOHASHDIR: 'true'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install build and instruction-count tools
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          # Transient mirror/DNS failures: bounded retries; a third failure still fails CI.
+          for i in 1 2 3; do
+            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y valgrind ccache && break
+            [ "$i" = 3 ] && exit 1
+            sleep 60
+          done
+          echo "nproc=$(nproc)"; free -m
+      # Compiler cache only (#569): ccache hashes compiler, flags and preprocessed source, so
+      # every test still runs against a fresh link. PRs restore; only main pushes save.
+      - uses: actions/cache/restore@v6
+        with:
+          path: .tools/ccache
+          key: ccache-tsan-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: |
+            ccache-tsan-${{ runner.arch }}-
+            ccache-sanitizers-${{ runner.arch }}-
+      - name: TSan
+        run: |
+          set -euo pipefail
+          cmake -S native -B build/tsan -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_FLAGS='-fsanitize=thread -fno-omit-frame-pointer' -DCMAKE_C_FLAGS='-fsanitize=thread -fno-omit-frame-pointer'
+          cmake --build build/tsan --parallel 4
+          free -m
+          ctest --test-dir build/tsan -R abi2 -E '^abi2_benchmark$' --output-on-failure
+      - name: Compiler cache stats
+        if: always()
+        run: ccache --show-stats | tee -a "$GITHUB_STEP_SUMMARY" || true
+      - if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/cache/save@v6
+        with:
+          path: .tools/ccache
+          key: ccache-tsan-${{ runner.arch }}-${{ github.sha }}
+      - name: Callgrind instructions per block
+        run: |
+          set -euo pipefail
+          python tools/bench/abi2_cost.py --gate --build-dir build/cost --output build_reports/abi2/cost.json | tee -a "$GITHUB_STEP_SUMMARY"
+  sanitizers:
+    # Required check. always() (never !cancelled(): a skipped required check counts as
+    # passing) so it reports when a lane fails, is skipped or is cancelled; it is green only when every lane's result is exactly `success`.
+    if: always()
+    needs: [changes, sanitizers-asan, sanitizers-tsan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every sanitizer lane to succeed
+        env:
+          ASAN: ${{ needs.sanitizers-asan.result }}
+          TSAN: ${{ needs.sanitizers-tsan.result }}
+          CHANGES: ${{ needs.changes.result }}
+          CODE: ${{ needs.changes.outputs.code }}
+        run: |
+          echo "changes: $CHANGES code=$CODE"
+          # Docs-only PRs (#596): both lanes must be skipped, never failed or cancelled.
+          if [ "$CHANGES" = success ] && [ "$CODE" = false ]; then
+            test "$ASAN" = skipped && test "$TSAN" = skipped && exit 0
+            exit 1
+          fi
+          echo "ASan+UBSan: $ASAN"; echo "TSan + cost: $TSAN"
+          test "$ASAN" = success && test "$TSAN" = success

@@ -1,0 +1,183 @@
+# SPDX-License-Identifier: GPL-3.0-only
+"""Owner update script: ref pinning, fail-fast order, and device-free execution."""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[3]
+SHA = "1234567890abcdef1234567890abcdef12345678"
+
+
+@unittest.skipIf(os.name == "nt", "Pi update script requires POSIX sh")
+class UpdateAndBuildTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="wirescape update space ")
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+        (self.root / "tools/pi").mkdir(parents=True)
+        shutil.copyfile(ROOT / "tools/pi/update-and-build.sh",
+                        self.root / "tools/pi/update-and-build.sh")
+        (self.root / "build/native").mkdir(parents=True)
+        executable = self.root / "build/native/wirescape-engine"
+        executable.write_text("#!/bin/sh\nexit 0\n")
+        executable.chmod(0o755)
+        for app in ("studio", "desktop"):
+            (self.root / "apps" / app).mkdir(parents=True)
+
+        self.bin = self.root / "fakebin"
+        self.bin.mkdir()
+        self.log = self.root / "commands.log"
+        self.log.write_text("")
+        self.add_fake("git", r"""#!/bin/sh
+printf 'git %s\n' "$*" >> "$WS_LOG"
+case " $* " in
+  *" status --porcelain "*) [ "$WS_DIRTY" != 1 ] || echo ' M owner.txt' ;;
+  *" rev-parse --verify "*) printf '%s\n' "$WS_SHA" ;;
+  *" rev-parse HEAD "*) printf '%s\n' "$WS_SHA" ;;
+esac
+""")
+        self.add_fake("python3", r"""#!/bin/sh
+if [ "$1" = "-" ]; then shift; exec "$WS_REAL_PYTHON" - "$@"; fi
+case "$1" in
+  */tools/pi/preflight.py)
+    case " $* " in
+      *" --check-only "*)
+        printf 'preflight --check-only\n' >> "$WS_LOG"
+        [ "$WS_FAIL_PREFLIGHT" != 1 ]; exit $? ;;
+      *" --run-stage "*)
+        case " $* " in
+          *" --run-stage studio-"*) cd "$WS_ROOT/apps/studio" ;;
+          *" --run-stage desktop-"*) cd "$WS_ROOT/apps/desktop" ;;
+        esac
+        while [ "$1" != '--' ]; do shift; done
+        shift
+        "$@"; exit $? ;;
+    esac ;;
+esac
+printf 'python3 %s (jobs=%s)\n' "$*" "$CMAKE_BUILD_PARALLEL_LEVEL" >> "$WS_LOG"
+[ "$WS_FAIL_BUILD" != 1 ] || exit 11
+case "$*" in
+  *"/tools/dev.py build --config Release")
+    [ "$WS_FAIL_DESKTOP_BUILD" != 1 ] || exit 17
+    mkdir -p "$WS_ROOT/apps/desktop/build"
+    touch "$WS_ROOT/apps/desktop/build/main.js" ;;
+esac
+""")
+        self.add_fake("npm", r"""#!/bin/sh
+printf 'npm %s : %s\n' "$PWD" "$*" >> "$WS_LOG"
+case "$*" in
+  'run build')
+    if [ "$WS_FAIL_NPM" = 1 ]; then exit 1; fi
+    case "$PWD" in
+      */apps/studio) mkdir -p dist; touch dist/index.html ;;
+      */apps/desktop) mkdir -p build; touch build/main.js ;;
+    esac ;;
+esac
+""")
+        self.env = {
+            **os.environ,
+            "PATH": str(self.bin) + os.pathsep + os.environ.get("PATH", ""),
+            "WS_LOG": str(self.log),
+            "WS_SHA": SHA,
+            "WS_ROOT": str(self.root),
+            "WS_REAL_PYTHON": sys.executable,
+        }
+
+    def add_fake(self, name, body):
+        path = self.bin / name
+        path.write_text(body)
+        path.chmod(0o755)
+
+    def run_update(self, *args, **overrides):
+        return subprocess.run(
+            ["sh", str(self.root / "tools/pi/update-and-build.sh"), *args],
+            env={**self.env, **overrides}, capture_output=True, text=True,
+            timeout=15,
+        )
+
+    def test_exact_revision_release_order_and_safe_owner_launcher(self):
+        done = self.run_update("origin/main")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        calls = self.log.read_text().splitlines()
+        fetch = next(i for i, line in enumerate(calls) if "fetch --prune origin" in line)
+        checkout = next(i for i, line in enumerate(calls) if "switch --detach" in line)
+        native = next(i for i, line in enumerate(calls) if "dev.py build --headless" in line)
+        desktop = next(i for i, line in enumerate(calls) if "dev.py build --config Release" in line)
+        studio_build = next(i for i, line in enumerate(calls) if
+                            line.startswith("npm ") and "/apps/studio : run build" in line)
+        desktop_ci = next(i for i, line in enumerate(calls) if
+                          line.startswith("npm ") and "/apps/desktop : ci" in line)
+        self.assertLess(fetch, checkout)
+        self.assertLess(checkout, native)
+        self.assertLess(native, studio_build)
+        self.assertLess(studio_build, desktop_ci)
+        self.assertLess(desktop_ci, desktop)
+        self.assertIn("tools/dev.py build --headless --config Release", calls[native])
+        self.assertIn("tools/dev.py build --config Release", calls[desktop])
+        self.assertEqual(calls.count("preflight --check-only"), 2)
+        self.assertIn("jobs=2", calls[native])
+        self.assertIn("jobs=2", calls[desktop])
+        self.assertEqual(sum(line.startswith("npm ") and line.endswith(" : ci") for line in calls), 2)
+        self.assertEqual(sum("run build" in line for line in calls), 1)
+        self.assertFalse(any("--confirm-audio" in line or "--confirm-midi" in line for line in calls))
+        self.assertIn(SHA, done.stdout)
+        self.assertIn("python3 tools/dev.py launch --confirm-audio --confirm-midi", done.stdout)
+        self.assertIn(str(self.root), done.stdout)
+        self.assertNotIn("--null-audio", done.stdout)
+
+    def test_dirty_checkout_fails_before_fetch_or_build(self):
+        done = self.run_update("main", WS_DIRTY="1")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("not clean", done.stderr)
+        self.assertNotIn("fetch ", self.log.read_text())
+        self.assertNotIn("dev.py build", self.log.read_text())
+
+    def test_build_failure_never_runs_npm_or_claims_success(self):
+        done = self.run_update(SHA, WS_FAIL_BUILD="1")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertNotIn("npm ", self.log.read_text())
+        self.assertNotIn("To launch", done.stdout)
+
+    def test_full_desktop_provenance_build_failure_propagates(self):
+        done = self.run_update(SHA, WS_FAIL_DESKTOP_BUILD="1")
+        self.assertEqual(done.returncode, 17, done.stderr)
+        self.assertIn("Stage desktop-build failed (exit 17)", done.stderr)
+        self.assertIn("dev.py build --headless --config Release", self.log.read_text())
+        self.assertIn("dev.py build --config Release", self.log.read_text())
+        self.assertNotIn("Built " + SHA, done.stdout)
+        self.assertNotIn("To launch", done.stdout)
+
+    def test_preflight_failure_never_fetches(self):
+        done = self.run_update("main", WS_FAIL_PREFLIGHT="1")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertNotIn("fetch ", self.log.read_text())
+
+    def test_npm_stage_failure_stops_before_desktop_and_preserves_code(self):
+        done = self.run_update(SHA, WS_FAIL_NPM="1")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("Stage studio-build failed", done.stderr)
+        self.assertNotIn("apps/desktop", self.log.read_text())
+
+    def test_bounded_jobs_override_and_bad_limit(self):
+        done = self.run_update(SHA, "--jobs", "4")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("jobs=4", self.log.read_text())
+        self.log.write_text("")
+        for value in ("0", "5", "-1", "many"):
+            self.assertEqual(self.run_update(SHA, "--jobs", value).returncode, 2)
+            self.assertEqual(self.log.read_text(), "")
+
+    def test_invalid_ref_and_arguments_never_call_git(self):
+        for args in ((), ("--help",), ("main..other",), ("main", "extra")):
+            self.log.write_text("")
+            done = self.run_update(*args)
+            self.assertEqual(done.returncode, 2, done.stderr)
+            self.assertEqual(self.log.read_text(), "")
+
+
+if __name__ == "__main__":
+    unittest.main()

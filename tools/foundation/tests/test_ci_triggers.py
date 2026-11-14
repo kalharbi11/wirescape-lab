@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: GPL-3.0-only
+"""Text-only CI workflow trigger and formatting-delivery contract."""
+import re
+import unittest
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def source(path):
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+class CITriggers(unittest.TestCase):
+    def test_no_ready_event_rerun(self):
+        for name in ("ci.yml", "portability.yml"):
+            with self.subTest(name=name):
+                workflow = source(".github/workflows/" + name)
+                events = re.search(r"(?m)^    types: \[([^]]+)\]$", workflow)
+                self.assertIsNotNone(events)
+                self.assertEqual(events.group(1), "opened, synchronize, reopened")
+    def test_drafts_receive_windows_check(self):
+        workflow = source(".github/workflows/ci.yml")
+        matrix = next(line for line in workflow.splitlines() if "include: ${{ fromJSON" in line)
+        self.assertIn("github.event_name == 'pull_request'", matrix)
+        self.assertIn("windows-x64", matrix)
+        self.assertNotIn("draft", matrix)
+        self.assertNotIn("ci/windows", matrix)
+    def test_studio_acceptance_locates_host_chromium_before_running(self):
+        workflow = source('.github/workflows/ci.yml')
+        step = workflow.split('      - name: Run task acceptance when specified', 1)[1]
+        conditional = "if re.search(r'apps/studio.*(npm test|playwright test)', task.read_text()):"
+        self.assertIn(conditional, step)
+        setup = step.split(conditional, 1)[1].split("subprocess.check_call([sys.executable, '-m', 'pip'", 1)[0]
+        self.assertIn('npx playwright install ffmpeg', setup)
+        self.assertIn("('chromium', 'chromium-browser', 'google-chrome')", setup)
+        self.assertIn('shutil.which(name)', setup)
+        self.assertIn('if not browser or not os.access(browser, os.X_OK):', setup)
+        self.assertIn("os.environ['WIRESCAPE_CHROMIUM'] = browser", setup)
+        self.assertLess(setup.index('npx playwright install ffmpeg'),
+                        setup.index("os.environ['WIRESCAPE_CHROMIUM'] = browser"))
+        self.assertIn("'tools/dev.py', 'accept'", step)
+
+    def test_cloud_clang_format_is_pinned(self):
+        setup = source("tools/ci/codex_cloud_setup.sh")
+        self.assertIn("clang-format==18.", setup)
+        self.assertIn("clang-format --version", setup)
+    def test_static_provides_applyable_patch(self):
+        workflow = source(".github/workflows/static.yml")
+        helper = source("tools/ci/static_checks.py")
+        self.assertIn("=== format.patch begin ===", helper)
+        self.assertIn("patches.append(patch_text)", helper)
+        self.assertIn("publish_format_patch(root, patches)", helper)
+        self.assertIn("if: always()", workflow)
+        self.assertIn("actions/upload-artifact@v7", workflow)
+        self.assertIn("path: build/static/format.patch", workflow)
+        self.assertIn("name: format-patch", workflow)

@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: GPL-3.0-only
+include(FetchContent)
+FetchContent_Declare(nlohmann_json
+  URL https://codeload.github.com/nlohmann/json/tar.gz/9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03
+  URL_HASH SHA256=0dbc5e40a01ff142e7e68c03e85247a4dcede2f592d12d3677dee3664d17975a)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(nlohmann_json)
+add_library(wirescape_runtime_document STATIC runtime_patch.cpp)
+target_include_directories(wirescape_runtime_document PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(wirescape_runtime_document PUBLIC wirescape_app_engine PRIVATE nlohmann_json::nlohmann_json)
+
+
+add_executable(groove_observation_tests groove_observation_tests.cpp ../tests2/allocation_watch.cpp)
+target_link_libraries(groove_observation_tests PRIVATE wirescape_engine2)
+add_test(NAME groove_observation_tests COMMAND groove_observation_tests)
+add_executable(groove_runtime_tests groove_runtime_tests.cpp ../tests2/allocation_watch.cpp)
+target_link_libraries(groove_runtime_tests PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME groove_runtime_tests COMMAND groove_runtime_tests)
+set_tests_properties(groove_runtime_tests PROPERTIES TIMEOUT 60)
+add_executable(runtime_patch_tests runtime_patch_tests.cpp ../tests2/allocation_watch.cpp)
+target_link_libraries(runtime_patch_tests PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME abi2_runtime_patch_tests COMMAND runtime_patch_tests "${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json")
+# Preserve loaded document graph guarantees before removing the Qt controller tests.
+# This target builds and runs regardless of Qt availability; no devices are opened.
+add_executable(qt_free_patch_coverage_tests qt_free_patch_coverage_tests.cpp ../tests2/allocation_watch.cpp)
+target_link_libraries(qt_free_patch_coverage_tests PRIVATE wirescape_runtime_document wirescape_engine nlohmann_json::nlohmann_json ${CMAKE_DL_LIBS})
+add_dependencies(qt_free_patch_coverage_tests ws_noise ws_clock ws_function_envelope ws_slew ws_vcf ws_ladder ws_vca ws_output)
+add_test(NAME qt_free_patch_coverage_tests COMMAND qt_free_patch_coverage_tests
+  "${PROJECT_SOURCE_DIR}/examples" $<TARGET_FILE_DIR:ws_noise> "${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json")
+
+add_executable(builtin_source_tests builtin_source_tests.cpp ../tests2/allocation_watch.cpp)
+target_link_libraries(builtin_source_tests PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME abi2_builtin_source_tests COMMAND builtin_source_tests)
+
+find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+add_executable(ui_patch_conformance ui_patch_conformance.cpp)
+target_link_libraries(ui_patch_conformance PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME ui_patch_conformance COMMAND ui_patch_conformance
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui_starters.json"
+  "${PROJECT_SOURCE_DIR}/../apps/studio/public/wirescape_modules.json")
+add_test(NAME ui_catalogue_sync COMMAND ${Python3_EXECUTABLE}
+  "${PROJECT_SOURCE_DIR}/../tools/gen_ui_catalogue.py" --check)
+add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cli/play_tests.py $<TARGET_FILE:wirescape_cli> "${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json")
+set_tests_properties(abi2_offline_play PROPERTIES TIMEOUT 45)
+add_test(NAME class_demo_patches COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/../tools/foundation/tests/test_class_demo_patches.py $<TARGET_FILE:wirescape_cli>)
+set_tests_properties(class_demo_patches PROPERTIES TIMEOUT 190)
+
+add_executable(class_demo_cc_depth_tests class_demo_cc_depth_tests.cpp)
+target_link_libraries(class_demo_cc_depth_tests PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME class_demo_cc_depth COMMAND class_demo_cc_depth_tests "${PROJECT_SOURCE_DIR}/examples")
+set_tests_properties(class_demo_cc_depth PROPERTIES TIMEOUT 120)
+
+# Optional QtCore document tooling; the engine remains independent of Qt.
+add_executable(runtime_module_config_tests runtime_module_config_tests.cpp)
+target_link_libraries(runtime_module_config_tests PRIVATE nlohmann_json::nlohmann_json)
+add_test(NAME runtime_module_config_tests COMMAND runtime_module_config_tests)
+
+# Product audio/event goldens run even when Qt inspection tools are unavailable.
+add_executable(golden_render ../tests/golden_render.cpp)
+target_link_libraries(golden_render PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME golden_render_hashes COMMAND "${Python3_EXECUTABLE}"
+  "${PROJECT_SOURCE_DIR}/../tools/golden.py" check --renderer $<TARGET_FILE:golden_render>)
+add_test(NAME golden_event_stream COMMAND "${Python3_EXECUTABLE}"
+  "${PROJECT_SOURCE_DIR}/../tools/golden.py" event-self-test --renderer $<TARGET_FILE:golden_render>)
+add_test(NAME golden_serialization COMMAND "${Python3_EXECUTABLE}"
+  "${PROJECT_SOURCE_DIR}/../tools/golden.py" serialization-self-test --renderer $<TARGET_FILE:golden_render>)
+set_tests_properties(golden_render_hashes golden_event_stream golden_serialization PROPERTIES TIMEOUT 60)
