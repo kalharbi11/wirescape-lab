@@ -147,7 +147,7 @@ jobs:
 
   publish:
     name: Publish facts-auto and fact PR
-    if: ${{ always() && github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' && needs.collect.result == 'success' }}
     needs: [collect]
     runs-on: ubuntu-latest
     timeout-minutes: 15
