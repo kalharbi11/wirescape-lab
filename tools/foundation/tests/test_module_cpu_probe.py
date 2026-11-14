@@ -79,12 +79,10 @@ class ModuleCpuProbeTests(unittest.TestCase):
     def test_spectral_pi_stress_reaches_both_modes_on_actual_hops(self):
         # At 48k/128 and size=3, each 4096/4-sample Spectral hop spans 8 blocks.
         # The probe sets mode before every block; tick() reads it on each hop's
-        # last sample. Inspect the checked-in acceptance command directly.
-        task = Path(__file__).resolve().parents[3] / 'docs/tasks/done/S1_1_SPECTRAL.md'
-        lines = [line.strip() for line in task.read_text(encoding='utf-8').splitlines()
-                 if line.strip().startswith('- pi-run:') and '--alternate mode=' in line]
-        self.assertEqual(len(lines), 1)
-        args = parse_args(shlex.split(lines[0].split('tools/module_cpu_probe.py', 1)[1]))
+        # last sample. Preserve the historical command as a local fixture:
+        # the original acceptance task file is not part of this lab.
+        command = 'tools/module_cpu_probe.py sound.spectral --param size=3 --param pitch=1 --alternate mode=0:1:32'
+        args = parse_args(shlex.split(command.split('tools/module_cpu_probe.py', 1)[1]))
         self.assertEqual(args.module, 'sound.spectral')
         self.assertIn('size=3', args.param)
         self.assertIn('pitch=1', args.param)

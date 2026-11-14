@@ -1,0 +1,138 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 256,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 147,
+    "timing_mode": "immediate"
+  },
+  "ui": {},
+  "name": "Compare A mono oscillator filter envelope",
+  "description": "Fixed 220 Hz saw/oscillator with 0.5 Hz LFO-gated envelope",
+  "modules": [
+    {
+      "id": 1,
+      "module": "essentials.lfo",
+      "version": 2,
+      "parameters": {
+        "rate": 0.5,
+        "depth": 1
+      }
+    },
+    {
+      "id": 2,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 3,
+      "module": "essentials.vcf",
+      "version": 2,
+      "parameters": {
+        "cutoff": 1800,
+        "resonance": 0.15
+      }
+    },
+    {
+      "id": 4,
+      "module": "essentials.adsr",
+      "version": 2,
+      "parameters": {
+        "attack": 0.015,
+        "decay": 0.14,
+        "sustain": 0.65,
+        "release": 0.2
+      }
+    },
+    {
+      "id": 5,
+      "module": "essentials.vca",
+      "version": 2,
+      "parameters": {
+        "gain": 0.02
+      }
+    },
+    {
+      "id": 6,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    }
+  ],
+  "connections": [
+    {
+      "kind": "signal",
+      "from": {
+        "module": 1,
+        "port": "control"
+      },
+      "to": {
+        "module": 4,
+        "port": "gate"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "audio"
+      },
+      "to": {
+        "module": 3,
+        "port": "audio"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 3,
+        "port": "low24"
+      },
+      "to": {
+        "module": 5,
+        "port": "audio"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 4,
+        "port": "envelope"
+      },
+      "to": {
+        "module": 5,
+        "port": "gain_cv"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 5,
+        "port": "audio"
+      },
+      "to": {
+        "module": 6,
+        "port": "audio"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ]
+}

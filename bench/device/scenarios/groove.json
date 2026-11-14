@@ -1,0 +1,47 @@
+{
+  "name": "groove",
+  "duration_s": 35,
+  "steps": [
+    {
+      "at": 0,
+      "action": "load_patch",
+      "patch": "basics-08-clocked-groove.json"
+    },
+    {
+      "at": 3,
+      "action": "param_jumps",
+      "module_id": 1,
+      "param": "bpm"
+    },
+    {
+      "at": 6,
+      "action": "ramp",
+      "module_id": 7,
+      "param": "mix",
+      "duration_s": 0.05,
+      "hz": 200
+    },
+    {
+      "at": 10,
+      "action": "random_walk",
+      "module_id": 5,
+      "duration_s": 2,
+      "hz": 50,
+      "seed": 42
+    },
+    {
+      "at": 16,
+      "action": "connect_cycle",
+      "index": 0
+    },
+    {
+      "at": 20,
+      "action": "buffer_change",
+      "frames": 256
+    },
+    {
+      "at": 25,
+      "action": "panic"
+    }
+  ]
+}
