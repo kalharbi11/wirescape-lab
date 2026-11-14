@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <audioclient.h>
 #include <audioclientactivationparams.h>
+#include <mmdeviceapi.h>
+#include <mmreg.h>
 #include <wrl.h>
 #include <algorithm>
 #include <chrono>
