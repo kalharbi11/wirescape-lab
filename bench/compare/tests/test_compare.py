@@ -45,6 +45,15 @@ class SyntheticSamplerTests(unittest.TestCase):
     def test_no_acceptable_level(self):
         self.assertIsNone(search_max_n(lambda n: False, levels=(1, 2, 4)))
 
+    def test_midi_fixture_is_deterministic(self):
+        from midi_fixture import fixture_bytes
+        fixture = fixture_bytes()
+        self.assertEqual(fixture[:4], b"MThd")
+        self.assertEqual(fixture[14:18], b"MTrk")
+        self.assertEqual(fixture.count(bytes((0x90, 48, 100))), 15)
+        self.assertEqual(fixture.count(bytes((0x80, 48, 0))), 15)
+        self.assertEqual(fixture, fixture_bytes())
+
     def test_scaling_graph_count_and_ports(self):
         for n in (1, 2, 4, 8):
             patch = scaling_patch(n)
