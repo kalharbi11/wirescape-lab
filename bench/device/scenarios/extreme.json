@@ -1,0 +1,90 @@
+{
+  "name": "extreme",
+  "duration_s": 70,
+  "steps": [
+    {
+      "at": 0,
+      "action": "load_patch",
+      "patch": "chaos-01-ember-veil-pad.json"
+    },
+    {
+      "at": 3,
+      "action": "param_jumps",
+      "all_params": true,
+      "spacing_s": 0.012
+    },
+    {
+      "at": 14,
+      "action": "random_walk",
+      "module_id": 2,
+      "duration_s": 5,
+      "hz": 100,
+      "seed": 701
+    },
+    {
+      "at": 22,
+      "action": "note_storm",
+      "chords": 5,
+      "legato": true
+    },
+    {
+      "at": 28,
+      "action": "patch_switch",
+      "patch": "scene-01-hollow-chapel.json"
+    },
+    {
+      "at": 30,
+      "action": "mod_sweep",
+      "index": 3,
+      "steps": 21,
+      "duration_s": 2
+    },
+    {
+      "at": 36,
+      "action": "add_remove",
+      "module_type": "essentials.lfo",
+      "module_id": 50002
+    },
+    {
+      "at": 42,
+      "action": "patch_switch",
+      "patch": "basics-01-first-tone.json"
+    },
+    {
+      "at": 44,
+      "action": "ramp",
+      "module_id": 4,
+      "param": "gain",
+      "duration_s": 0.05,
+      "hz": 200
+    },
+    {
+      "at": 49,
+      "action": "note_storm",
+      "chords": 4
+    },
+    {
+      "at": 53,
+      "action": "midi_burst",
+      "notes": [
+        48,
+        52,
+        55,
+        60,
+        64,
+        67,
+        71,
+        72
+      ]
+    },
+    {
+      "at": 58,
+      "action": "panic"
+    },
+    {
+      "at": 62,
+      "action": "buffer_change",
+      "frames": 128
+    }
+  ]
+}
