@@ -344,11 +344,19 @@ def oscillator_sections(renderer, desc, meta, out, quick):
                 params = {"frequency": hz} if model is None else {
                     "model": model, "coarse": 12 * math.log2(hz / 261.6255653005986)}
                 entry = {"module": ident, "model": model, "target_hz": hz}
-                if model is not None and not -48 <= params["coarse"] <= 48:
-                    rows.append(dict(entry, status="unavailable",
-                                     reason="target frequency exceeds coarse range"))
-                    continue
-                patch = direct_source(ident, d["version"], params, output)
+                if model is not None:
+                    # Plaits coarse is +/-48 semitones. Supply the residual via
+                    # a bounded constant CV connected to the pitch input.
+                    coarse = float(np.clip(params["coarse"], -48, 48))
+                    residual_cv = (params["coarse"] - coarse) / 12
+                    params["coarse"] = coarse
+                    patch = direct_source(ident, d["version"], params, output)
+                    if abs(residual_cv) > 1e-9:
+                        patch["modules"].append(mod(3, "essentials.scale_offset", parameters={
+                            "scale": 0, "offset": residual_cv}))
+                        patch["connections"].append(edge(3, "control", 1, "pitch"))
+                else:
+                    patch = direct_source(ident, d["version"], params, output)
                 audio, result = run_wav(renderer, patch, [], seconds)
                 if audio is not None:
                     result.update(oscillator_metrics(audio, hz))
