@@ -80,6 +80,19 @@ class SpectralTests(unittest.TestCase):
         self.assertLess(result["thd_percent"], .01)
         self.assertLess(result["nonharmonic_floor_db_relative"], -40.)
 
+    def test_recorded_gate_edge(self):
+        import numpy as np
+        import soundfile as sf
+        import tempfile
+        from analyse import analyse_recording
+        with tempfile.TemporaryDirectory() as directory:
+            f = Path(directory) / "synthetic.wav"
+            x = np.zeros(48000, dtype=np.float32)
+            x[12000:] = .7
+            sf.write(f, x, 48000)
+            result = analyse_recording(f, gate_times=[.25])
+            self.assertTrue(result["gate_edge_clicks"]["0.25"])
+
     def test_click_edge(self):
         import numpy as np
         from analyse import clicks
