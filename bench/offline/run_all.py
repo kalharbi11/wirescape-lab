@@ -283,6 +283,36 @@ def cpu_sections(probes, mods, meta, out, quick):
                 entry.update(result)
                 entry["p99_ns_per_sample"] = ns / (block * channels) if ns is not None else None
                 rows.append(entry)
+    failures = [dict(module=row["module"], block_frames=row["block_frames"],
+                     channels=row["channels"], status=row["status"],
+                     reason=row.get("reason"), stderr=row.get("stderr"),
+                     exit_code=row.get("exit_code"))
+                for row in rows if row["status"] != "measured"]
+    save(out, "perf", "probe_failures", meta, failures,
+         {"source": "module_cpu_probe", "scope": "nonzero or invalid JSON responses"})
+    denorm = []
+    for ident in mods:
+        for block in BLOCKS:
+            args = [probe, "--module", ident, "--rate", RATE, "--block", block,
+                    "--channels", 1, "--instances", 1, "--seconds", .1 if quick else 2]
+            normal = parsed_command(args + ["--input-mode", "normal"],
+                                    prefix="module_cpu_probe ", timeout=45)
+            tiny = parsed_command(args + ["--input-mode", "denormal"],
+                                  prefix="module_cpu_probe ", timeout=45)
+            row = {"module": ident, "block_frames": block,
+                   "input_value": 1e-30, "normal": normal, "denormal": tiny}
+            if normal.get("status") == "measured" and tiny.get("status") == "measured":
+                base = normal["render_ns"]["p99"]
+                test = tiny["render_ns"]["p99"]
+                row.update(status="measured", normal_p99_ns=base,
+                           denormal_p99_ns=test, p99_ratio=test / base if base else None)
+            else:
+                row["status"] = "unavailable"
+                row["reason"] = "normal or denormal probe failed"
+            denorm.append(row)
+    save(out, "perf", "denormal_spikes", meta, denorm,
+         {"input": "1e-30 constant on first and second signal inputs",
+          "metric": "denormal/normal p99 render duration ratio"})
     save(out, "perf", "module_cpu", meta, rows,
          {"input": "110-Hz saw first input; seeded noise second input; probe-defined inputs"})
     with tempfile.TemporaryDirectory(prefix="ws-engine-bench-") as temp:
@@ -329,6 +359,13 @@ def cpu_sections(probes, mods, meta, out, quick):
             row = {"patch": path.name, "block_frames": block}
             row.update(result)
             soak_rows.append(row)
+    soak_failures = [dict(patch=row["patch"], block_frames=row["block_frames"],
+                          status=row["status"], reason=row.get("reason"),
+                          stderr=row.get("stderr"), exit_code=row.get("exit_code"),
+                          sidecar_result="not checked")
+                     for row in soak_rows if row["status"] != "measured"]
+    save(out, "perf", "soak_failures", meta, soak_failures,
+         {"source": "wirescape_soak", "sidecar": "not checked"})
     save(out, "perf", "patch_soak", meta, soak_rows,
          {"mode": "paced device-free document soak", "warmup_blocks": 256,
           "note": "Soak reports max, median and percentiles; arithmetic mean unavailable in existing probe"})
