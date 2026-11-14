@@ -63,6 +63,6 @@ plugdata publishes Debian aarch64 builds for Raspberry Pi: https://plugdata.org/
 
 ## Sequence and signal probes
 
-Use the same MIDI note numbers, velocity 100/127, chord-on at 0 s, chord-off at 2 s, then repeat every 4 s during the 60-second sample. Mono uses the 0.5 Hz gate without MIDI. Disable auto-updates, background scans, visible analyzers and additional instruments in each application. Record any deviations in each run's notes outside the neutral facts files.
+Create the deterministic 60-second Standard MIDI File with `python bench/compare/midi_fixture.py --out bench/compare/results/fixtures/benchmark-60s.mid`. Deliver this same file through an owner-selected MIDI player/virtual port to every MIDI-enabled tool, with the player excluded from the measured process tree and documented in session notes. It uses notes 48, 52, 55, 60, 64, 67, 71 and 72, velocity 100/127, chord-on at 0 s, chord-off at 2 s, then repeats every 4 s for 60 s. Mono uses the 0.5 Hz gate without MIDI. Disable auto-updates, background scans, visible analyzers and additional instruments in each application. Record any deviations in each run's notes outside the neutral facts files.
 
 A waveform with zero audible dropouts is not a guarantee of zero reported xruns; log **both**. The CPU sampler reports 100% for one fully occupied logical core, and a tool using multiple cores can report greater than 100%. Do not compare tool-specific CPU meters with the sampler percentages without labelling their distinct units.
