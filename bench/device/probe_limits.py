@@ -15,7 +15,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
+ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "bench" / "compare"))
 from generate_scaling import scaling_patch
 
