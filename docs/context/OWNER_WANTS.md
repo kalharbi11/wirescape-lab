@@ -61,8 +61,8 @@ things are done today.
 - OSC Out to a microcontroller (ESP32) already exists for the Pi; physical-computing integration matters to me.
 
 ## Special modules and module categories
-- **CHAOS and Macro Oscillator (Plaits port) are special modules, not standard ones.** They come from other
-  projects (CHAOS from my earlier Surge-based prototype idea, Macro from Mutable Instruments Plaits). They're
+- **CHAOS and Macro Oscillator (Plaits port) are special modules, not standard ones.** They're ports of
+  other projects' designs (Macro from Mutable Instruments Plaits; CHAOS, see `docs/design/ports/`). They're
   important for studying what the app can host, because I want many different open-source projects, and
   anyone developing for this app, to find it easy to bring their work in.
 - The point of the complex modules isn't those modules themselves: it's to work out their **categories**, so
