@@ -61,6 +61,9 @@ jobs:
             echo 'C:\Program Files\Graphviz\bin' >> "$GITHUB_PATH"
           fi
 
+      - name: Verify fact staging on synthetic device-free records
+        run: python -m unittest discover -s bench/offline -p 'test_ci_stage_facts.py' -v
+
       - name: Install Studio, Electron and Chromium
         run: |
           npm --prefix apps/studio ci --no-audit --no-fund
@@ -174,8 +177,8 @@ jobs:
           git add facts
           if ! git diff --cached --quiet; then
             git commit -m "facts: CI run $GITHUB_RUN_ID"
-            git push origin facts-auto
           fi
+          git push origin facts-auto
           existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main --head facts-auto --json number --jq '.[0].number' || true)"
           title="facts: CI run $GITHUB_RUN_ID"
           body="Device-free CI measurements from $GITHUB_SHA. Linux x64/ARM64 and Windows facts. Missing measurements are recorded explicitly; raw traces are workflow artifacts."
