@@ -165,6 +165,7 @@ def parser():
     p.add_argument("--audio-file", type=Path, help="existing recording for signal analysis")
     p.add_argument("--tone-file", action="append", default=[], metavar="HZ:FILE")
     p.add_argument("--filter-file", action="append", default=[], metavar="HZ:FILE")
+    p.add_argument("--gate-time", type=float, action="append", default=[], help="gate edge second in capture")
     p.add_argument("--facts", action="store_true", help="write owner-measured provenance to facts/compare/measured")
     return p
 
@@ -206,7 +207,7 @@ def main(argv=None):
     if not args.dry_run and not args.confirm_audio:
         p.error("--confirm-audio is required; no audio or MIDI device was opened")
     if args.dry_run and (args.confirm_audio or args.pid or args.record != "none"
-                         or args.audio_file or args.tone_file or args.filter_file or args.facts
+                         or args.audio_file or args.tone_file or args.filter_file or args.gate_time or args.facts
                          or args.scaling):
         p.error("--dry-run prohibits device/process paths, recordings, scaling and facts publication")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,48}", args.machine):
@@ -251,17 +252,17 @@ def main(argv=None):
         if args.scaling:
             levels = []
             def check(n):
-                if args.tool == "wirescape" and 5 * n > 64:
+                if args.tool == "wirescape" and 6 * n > 64:
                     levels.append({"n": n, "status": "graph_module_limit", "pass": False})
                     return False
                 if not sys.stdin.isatty():
                     raise RuntimeError("scaling needs an interactive owner terminal")
                 input(f"Load {n} copies of scaling patch in {args.tool}; press Enter to sample {duration:g}s: ")
+                before = ask_number("Read starting xrun counter before sampling", None)
                 samples = measure_process(root, duration)
                 for s in samples:
                     windows.append({"n": n, **s})
-                before = ask_number("Read starting xrun counter", None)
-                after = ask_number("Read ending xrun counter", None)
+                after = ask_number("Read ending xrun counter after sampling", None)
                 audible = input("Audible dropouts? [y/N]: ").strip().lower().startswith("y")
                 xruns = None if before is None or after is None else int(after - before)
                 passed = xruns == 0 and not audible
@@ -273,16 +274,16 @@ def main(argv=None):
             windows_data = {"levels": levels, "max_passed_n": max_n,
                             "max_n_basis": "sequential_manual_xrun_and_audible_dropout_observations"}
         else:
+            before = args.xruns_before
             if not args.dry_run:
+                before = ask_number("Xrun count at measurement START", before)
                 recorder = recorder_for(args, folder)
                 if recorder:
                     recorder.start()
             samples = measure_process(root, duration)
             windows = samples
-            before = args.xruns_before
             after = args.xruns_after
             if not args.dry_run:
-                before = ask_number("Xrun count at measurement START (from notes)", before)
                 after = ask_number("Xrun count at measurement END", after)
             observed = {"native_cpu_meter_percent": ask_number("Tool CPU meter percent", args.meter)
                         if not args.dry_run else None,
@@ -299,7 +300,7 @@ def main(argv=None):
             recordings.append(args.audio_file)
         analyses = []
         for audio in recordings:
-            analyses.append({"file": Path(audio).name, "metrics": analyse_recording(audio)})
+            analyses.append({"file": Path(audio).name, "metrics": analyse_recording(audio, gate_times=args.gate_time)})
         if args.tone_file or args.filter_file:
             windows_data["signal_probes"] = analyse_probes(probe_files(args.tone_file),
                                                            probe_files(args.filter_file))
