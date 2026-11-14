@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Authorized owner recording. No recorder is instantiated during a dry run."""
 import platform
+import os
 import queue
 import shutil
 import signal
@@ -62,7 +63,10 @@ class Recorder:
             self._start_input()
         elif self.mode=="monitor":
             # Target is chosen explicitly; no microphone or endpoint-mix fallback.
-            self.temp=Path(tempfile.mkstemp(suffix=".wav",dir=self.directory)[1])
+            fd,name=tempfile.mkstemp(suffix=".wav",dir=self.directory)
+            os.close(fd)
+            self.temp=Path(name)
+            self.temp.unlink()  # pw-record creates its own output; avoid inherited fd
             if shutil.which("pw-record"):
                 cmd=["pw-record","--rate",str(self.rate),"--channels","2"]
                 if self.monitor_target:cmd+=["--target",self.monitor_target]
