@@ -185,14 +185,18 @@ def analyse(path,events,rate,start_offset_s=0.,references=None):
                     "peak":round(bucket["peak"],9),
                     "dc":round(bucket["sum"]/bucket["n"],9)}
 
+        clicks.sort()
+        dropouts.sort(key=lambda d:d["start_s"])
+        dropout_starts=[d["start_s"] for d in dropouts]
         steps=[]
         for i,event in enumerate(timeline):
             at=boundaries[i]/sr
             out=finish(sums[i])
             following=boundaries[i+1]/sr if i+1<len(boundaries) else duration
             out.update({"at_s":round(at,4),"action":event.get("action"),
-                        "clicks_s":[t for t in clicks if at<=t<following],
-                        "dropouts":[d for d in dropouts if at<=d["start_s"]<following]})
+                        "clicks_s":clicks[bisect.bisect_left(clicks,at):bisect.bisect_left(clicks,following)],
+                        "dropouts":dropouts[bisect.bisect_left(dropout_starts,at):
+                                            bisect.bisect_left(dropout_starts,following)]})
             if event.get("action")=="patch_switch" and steps:
                 out["loudness_jump_db"]=round(
                     20*math.log10(max(out["rms"],1e-9)/max(steps[-1]["rms"],1e-9)),3)
