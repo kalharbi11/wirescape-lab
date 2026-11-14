@@ -112,9 +112,11 @@ def filter_metrics(dry, wet, rate=RATE):
     f, p0 = signal.welch(dry[:, 0], rate, nperseg=nperseg)
     _, p1 = signal.welch(wet[:, 0], rate, nperseg=nperseg)
     db = 10 * np.log10(np.maximum(p1, 1e-30) / np.maximum(p0, 1e-30))
+    samples = {f"gain_{hz}_hz_db": float(db[np.argmin(np.abs(f - hz))])
+               for hz in (100, 1000, 5000)}
     return {"frequency_hz": [float(v) for v in f],
             "magnitude_db": [float(v) for v in db],
-            "nperseg": nperseg}
+            "nperseg": nperseg, **samples}
 
 
 def step_metrics(audio, step_frame, rate=RATE):
