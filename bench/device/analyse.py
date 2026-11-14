@@ -220,7 +220,7 @@ def analyse(path,events,rate,start_offset_s=0.,references=None):
         for item in references:
             f=Path(item["audio"])
             if not f.is_file():continue
-            start=max(0,round((item["start_s"]+start_offset_s)*sr))
+            start=max(0,round(item.get("capture_start_s",item["start_s"]+start_offset_s)*sr))
             with sf.SoundFile(str(path)) as capture, sf.SoundFile(str(f)) as ref:
                 capture.seek(start)
                 expected=ref.read(dtype="float32",always_2d=True)
