@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
     uint32_t instances = 2, block = 128, channels = 1;
     double rate = 48000, seconds = 60;
     uint64_t seed = 42;
+    bool denormal_input = false;
     std::vector<std::pair<std::string, float>> settings;
     std::string alternate_id, settings_text;
     float alternate_a = 0, alternate_b = 0;
@@ -68,6 +69,11 @@ int main(int argc, char **argv) {
     for (int i = 1; i + 1 < argc; i += 2) {
         const std::string key = argv[i], value = argv[i + 1];
         if (key == "--module") id = value;
+        else if (key == "--input-mode") {
+            if (value == "normal") denormal_input = false;
+            else if (value == "denormal") denormal_input = true;
+            else return fail("--input-mode must be normal or denormal");
+        }
         else if (key == "--instances") instances = uint32_t(std::stoul(value));
         else if (key == "--rate") rate = std::stod(value);
         else if (key == "--block") block = uint32_t(std::stoul(value));
@@ -171,9 +177,9 @@ int main(int argc, char **argv) {
         for (uint32_t i = 0; i < block; ++i) { // inputs are prepared outside the timed region
             phase += 110.0 / rate;
             if (phase >= 1) phase -= 1;
-            saw[i] = float(phase - .5);
+            saw[i] = denormal_input ? 1e-30f : float(phase - .5);
             lcg = lcg * 1664525u + 1013904223u;
-            noise[i] = .3f * (float(lcg >> 8) / 8388608.f - 1.f);
+            noise[i] = denormal_input ? 1e-30f : .3f * (float(lcg >> 8) / 8388608.f - 1.f);
         }
         if (alternate >= 0)
             for (auto &x : all) x->values[size_t(alternate)] = (k / alternate_every) % 2 ? alternate_b : alternate_a;
@@ -198,9 +204,9 @@ int main(int argc, char **argv) {
     const int64_t p99 = sorted.empty() ? 0 : sorted[std::min(sorted.size() - 1, size_t(double(sorted.size()) * .99))];
     std::printf("module_cpu_probe {\"module\":\"%s\",\"instances\":%u,\"sample_rate\":%.0f,"
                 "\"block\":%u,\"channels\":%u,\"seconds\":%g,"
-                "\"blocks\":%zu,\"render_ns\":{\"max\":%lld,\"p99\":%lld},\"period_ns\":%.0f,\"allocations\":%zu,"
+                "\"input_mode\":\"%s\",\"blocks\":%zu,\"render_ns\":{\"max\":%lld,\"p99\":%lld},\"period_ns\":%.0f,\"allocations\":%zu,"
                 "\"faults\":%zu,\"peak\":%.6g,\"params\":\"%s\",\"alternate\":\"%s\"}\n",
-                id.c_str(), instances, rate, block, channels, seconds, blocks, (long long)worst, (long long)p99,
+                id.c_str(), instances, rate, block, channels, seconds, denormal_input ? "denormal" : "normal", blocks, (long long)worst, (long long)p99,
                 1e9 * block / rate, allocations, faults + output_evidence.faults, output_evidence.peak,
                 settings_text.c_str(),
                 alternate_id.empty() ? ""
