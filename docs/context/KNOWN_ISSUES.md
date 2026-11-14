@@ -12,7 +12,7 @@ Numbers are issues/PRs in `kalharbi11/wirescape` (frozen). Open PRs there were n
 - **MIDI to CV pitch/gate not reaching VCO/ADSR** on the owner's Windows patch (#724; draft PR #727 adds a regression test; the engine path passes in tests).
 - **OSC Out phantom gate edge after panic reset** (#759; draft PR #763).
 - **ASIO device list frozen while playing; driver switch** (#722; draft PR #758).
-- **LAN-only OSC consent stays loopback without a warning** (#760; draft PR #762).
+- **LAN-only OSC consent stays loopback without a warning** (#760; source PR #762; ported to the lab).
 - From the first owner test session, not verified fixed: basics-04 silence after a short envelope with
   high VCA; scene-07 clicks after panic; Echo knob clicks; Groove start/stop lag.
 - FlexASIO not listed on Windows (owner evidence pending).
