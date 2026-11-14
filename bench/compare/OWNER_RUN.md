@@ -24,12 +24,12 @@ The dry run launches a short-lived **synthetic sleeping Python process**, sample
 
 ## 60-second run per tool and patch
 
-Start the named program manually, open the saved patch, set the same audio interface and 48 kHz / 256-frame settings, and identify its PID using Task Manager on Windows or `pgrep -af` on Linux. Record process version and host driver in the arguments; do not supply hostnames or personal identifiers as the machine label. Read `pw-top`'s **ERR** field or JACK xrun count on Pi before and after the run; use the tool's reported dropout counter on Windows. Document the counter source if it resets during the run. At sampling end the script prompts for the **initial** and final xrun readings, and for the tool's own CPU meter value.
+Start the named program manually, open the saved patch, set the same audio interface and 48 kHz / 256-frame settings, and identify its PID using Task Manager on Windows or `pgrep -af` on Linux. Record process version and host driver in the arguments; do not supply hostnames or personal identifiers as the machine label. Read `pw-top`'s **ERR** field or JACK xrun count on Pi before and after the run; use the tool's reported dropout counter on Windows. Enter only observed counts, not assumed zeros. Document the counter source if it resets during the run. The script prompts for the **initial** xrun counter before sampling, the final counter after sampling, and the tool's own CPU meter value.
 
 Example: Wirescape mono on Pi (replace PID, version, device and driver with observed values):
 
 ```sh
-python bench/compare/measure.py --confirm-audio --tool wirescape --patch mono --pid 12345 --tool-version 1.0.0 --machine pi5 --audio-device interface-A --driver PipeWire --rate 48000 --block 256 --xruns-before 0 --xruns-after 0
+python bench/compare/measure.py --confirm-audio --tool wirescape --patch mono --pid 12345 --tool-version 1.0.0 --machine pi5 --audio-device interface-A --driver PipeWire --rate 48000 --block 256 
 ```
 
 Example: Cardinal polyphonic patch on Windows (use the actual PID and version):
