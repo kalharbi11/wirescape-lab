@@ -369,10 +369,27 @@ def main(argv=None):
                               args.monitor_target,args.process_helper,engine.process.pid)
             recorder.start()
         started=time.monotonic()
+        real_null_sink=args.dry_run and engine.process is not None
+        # The null sink renders in real time. Running 600 seconds of events as
+        # one instantaneous burst overfills its bounded event queue and tests
+        # producer overload rather than the device-free scenario protocol.
+        # Compress the nominal timeline but cap request rate at ~333/s.
+        dry_run_scale=100.0
+        dry_run_min_spacing=.003
+        previous_dispatch=started-dry_run_min_spacing
+        if real_null_sink:
+            manifest["dry_run_clock_scale"]=dry_run_scale
+            manifest["dry_run_min_command_interval_ms"]=dry_run_min_spacing*1000
         capture_offset=(log.epoch-recorder.started) if recorder and recorder.started else 0.
         reference_offset=(started-recorder.started) if recorder and recorder.started else 0.
         for item in timeline:
-            if not args.dry_run:
+            if real_null_sink:
+                target=max(started+item["at"]/dry_run_scale,
+                           previous_dispatch+dry_run_min_spacing)
+                pause=target-time.monotonic()
+                if pause>0:time.sleep(pause)
+                previous_dispatch=time.monotonic()
+            elif not args.dry_run:
                 pause=started+item["at"]-time.monotonic()
                 if pause>0:time.sleep(pause)
             log.add("step",action=item["action"],planned_s=item["at"],
