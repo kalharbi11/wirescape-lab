@@ -36,10 +36,10 @@ class StageTests(unittest.TestCase):
             payload = json.loads((destination / "app/ci-linux-x64/protocol.json").read_text())
             self.assertEqual(payload["measurements"]["setParam"]["p50_ms"], 1.5)
             self.assertNotIn("stdout_tail", payload["measurements"])
-            missing = stage_collector(root, destination, "startup", "app", META, "linux-x64")
+            missing = stage_collector(root, destination, "repo", "repo", META, "linux-x64")
             self.assertEqual(missing, "collector output absent")
             self.assertEqual(json.loads(
-                (destination / "app/ci-linux-x64/startup.json").read_text())["status"],
+                (destination / "repo/ci-linux-x64/repo.json").read_text())["status"],
                 "unavailable")
 
     def test_full_pack_and_graph_table(self):
