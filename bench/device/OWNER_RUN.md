@@ -18,7 +18,14 @@ The engine binary is discovered under `build/native`, `build/native/Release`, or
 
 Pi: install PipeWire's `pw-record` or PulseAudio `parec`, ALSA, and PortAudio dependencies. The Python packages `mido` and `python-rtmidi` create an ALSA virtual output `Wirescape Bench` for scripted MIDI. For a PipeWire monitor, identify the **correct monitor node** with `wpctl status` or `pw-cli ls Node` and pass it through `--monitor-target`. For PulseAudio, specify the actual `<sink-name>.monitor`; the runner intentionally does not select a microphone as fallback.
 
-Windows: build `wirescape-engine.exe`; install loopMIDI, create a port named `Wirescape Bench`, and specify it using `--midi-port`. For a physical output-to-input cable, use `--record input --input-device <input-id>`. The legacy `tools/capture` Windows helper captures **its own process**, not the sidecar. `--record process-loopback` requires a separate compatible helper that accepts `--confirm-audio --pid <engine-pid> --rate <hz> --out <wav>`; it is not shipped with this implementation. Without it, that mode errors rather than silently substituting a shared desktop mix. WASAPI process-tree loopback requires Windows build 20348 or later.
+Windows: build `wirescape-engine.exe`; install loopMIDI, create a port named `Wirescape Bench`, and specify it using `--midi-port`. For a physical output-to-input cable, use `--record input --input-device <input-id>`. The legacy `tools/capture` helper captures **its own process**, not the sidecar. This task ships an independent `bench/device/capture_engine.cpp` WASAPI capture helper that targets the explicit sidecar PID and finalizes its WAV on stdin EOF. Build it **without running it**:
+
+```powershell
+cmake -S bench/device -B build/device-capture -G "Visual Studio 17 2022"
+cmake --build build/device-capture --config Release
+```
+
+On Windows build 20348+, use `--record process-loopback --process-helper build/device-capture/Release/wirescape_device_capture.exe` as a microphone-free alternative to physical `input` capture. The helper is never run in CI, and it refuses without `--confirm-audio`, a live sidecar PID and a fresh output path. If unavailable, the runner stops rather than capturing the system mix.
 
 ## One-command owner runs
 
@@ -48,6 +55,12 @@ python bench/device/run.py --scenario quick --confirm-audio --confirm-midi --mid
 
 ```powershell
 python bench/device/run.py --scenario full --confirm-audio --confirm-midi --midi-port "Wirescape Bench" --record input --input-device 2 --machine win-audio
+```
+
+Windows process-tree loopback example (same 15-minute quick sequence):
+
+```powershell
+python bench/device/run.py --scenario quick --confirm-audio --confirm-midi --midi-port "Wirescape Bench" --record process-loopback --process-helper build/device-capture/Release/wirescape_device_capture.exe --machine win-loopback
 ```
 
 Optional: use `--device <engine-device-id> --rate 48000 --block 256` to select the owner's real audio device, rate and buffer. Set `--record none` when no capture backend is available. For manual playing, use `--manual-midi --midi-port <controller-input-name> --confirm-midi` and play the desired phrases; that mode records incoming MIDI but produces no scripted external MIDI notes. Check routing and lower the physical amplifier gain before stressing parameters.
