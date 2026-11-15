@@ -6,9 +6,9 @@ Phases and goals: `0002`. Module design: `0003`. This file is the task list a ne
 lead works from.
 
 ## Name
-The rebuilt engine is **Weft** (owner asked for a new name, 2026-11-15; Fable's pick, easy to change until
-task T1.4 lands). "Wirescape" stays the product. Use: *Weft engine* (`weft/engine`), *Weft modules*,
-*Weft module API* (what `0003` calls "module API v3"), header `weft/module.h`, tool `wirescape module …`.
+The rebuilt engine is **Wire** (the owner's name, 2026-11-15; changeable until
+task T1.4 lands). "Wirescape" stays the product. Use: *Wire engine* (`wire/engine`), *Wire modules*,
+*Wire module API* (what `0003` calls "module API v3"), header `wire/module.h`, tool `wirescape module …`.
 ABI1, "ABI 2", `engine2`, `modules2` and Qt are the experiments that came before.
 
 ## Who may do what
@@ -39,13 +39,13 @@ shows 24 identical unless the PR declares a sound change; no force-push; devices
 | T0.13 | Edit-continuity harness: capture engine output while applying each edit kind; report phase reset, silence, largest jump | C (design), then B | — | T0.4 | table for every edit in KNOWN_ISSUES A2 |
 | T0.14 | Local native build in the cloud container (dependency download blocked) | owner | — | — | `python tools/dev.py build --headless` works for Fable |
 
-## Phase 1 — one engine (Weft)
+## Phase 1 — one engine (Wire)
 | ID | Task | Class | Depends | Done when |
 |---|---|---|---|---|
 | T1.1 | Freeze ABI1 reference data: run the ABI1-vs-ABI2 comparison tests once, store their expected outputs as data files the ABI2 tests read | B | T0.4 | comparison tests pass without linking the ABI1 library |
 | T1.2 | Delete ABI1: `native/src`, `native/modules`, `native/tests` (ABI1), provider bridge, fixture, ABI1 headers; remove the shim branches in the scheduler | C | T1.1 | golden identical; instruction counts not worse; no target links `wirescape_engine` |
 | T1.3 | Engine-native types: replace `ws_engine_config`, `ws_event`, `ws_meter`, ABI1 descriptor structs in facade, loader, sidecar, web, tools; engine reads patch v2 only; parameter lookup by string ID (no `legacy_index` in loader paths) | C | T1.2 | golden identical; v1 import only in Studio |
-| T1.4 | Rename and layout to the `0002` tree with Weft names; no behaviour change | B (mechanical, one PR, Fable reviews) | T1.3 | golden identical; all CI green |
+| T1.4 | Rename and layout to the `0002` tree with Wire names; no behaviour change | B (mechanical, one PR, Fable reviews) | T1.3 | golden identical; all CI green |
 | T1.5 | Residue sweep: Qt wording, dead options, issue numbers and agent names in comments, stale docs | B | T1.4 | `residue_by_file.csv` counts for Qt/issue refs/agent names at 0 in product code |
 | T1.6 | Format the core; split `process_node`, `Session::apply`, the config adapter into reviewable units | C (Opus subagent drafts, Fable reviews) | T1.3 | no function over complexity 40 in engine/host; golden identical |
 | T1.7 | Transport connected: tempo and play/stop from the app reach modules | C | T1.3 | LFO sync follows a tempo set over the protocol; test |
