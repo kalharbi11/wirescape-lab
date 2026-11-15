@@ -68,31 +68,31 @@ things are done today.
 - The point of the complex modules isn't those modules themselves: it's to work out their **categories**, so
   that when similar new modules are added, most of the infrastructure is already there.
 
-## GUTTR / GUTTUR (planned module; plan for compatibility now)
-- Soon I want to build a version of my GUTTR synth into Wirescape. It will be more stripped down, but I want
-  the **full throat voice** in it (the original GUTTUR engine, not the five-formant "lite" singer).
-- No chant sequencer, not many parts or sections. A multi-voice synth where I can modulate the voices
+## GUTTUR (planned module; plan for compatibility now)
+- I want a version of my GUTTUR throat voice in Wirescape: the full throat voice, stripped of the app UI,
+  the chant sequencer, gestures and percussion. A multi-voice synth where I can modulate the voices
   independently, based on the throat instrument.
-- It's a sketch and not fully developed, so it can be built completely differently if that's better and more
-  compatible. If it helps, I can get a sketch of it rewritten to fit Wirescape so Fable doesn't have to work
-  on it much.
-- What it is today (facts from the beta 0.4 source, for reference):
-  - GUTTR: a Python instrument on Surge XT through `surgepy`, Dear PyGui UI, voices A/B (Surge) and singer C,
-    a host DSP chain (roughness AM, looper, limiter), live MERGE effects between voices (vocoder, ring/AM/FM,
-    envelope gate/duck, waveset braid, throat-follow), a fry gate, a self-modulating LFO and a randomizer.
-    Controls map to the study guide *How Music Learned to Be Scary*. GPL-3 (because of Surge).
-  - GUTTUR full throat (`guttur/core.js`, ~82 KB, one file, no DOM; runs in Node, an AudioWorklet or the main
-    thread): band-limited LF glottal pulses decided per pitch cycle; tube-derived resonances from a vocal-tract
-    area function (vowel, pharynx, mouth, ring), precomputed into a shared tube grid; played through a ramped
-    zero-delay SVF cascade; a singer group with a leader, followers and one "looseness" axis; a room.
-  - Per-voice parameters include vowel, size/length, jitter, shimmer, growl, breath, creak, number of throats,
-    looseness, vibrato.
-  - In beta 0.4 the full throat runs through a synchronous Node bridge, which the build notes say may underrun
-    audio callbacks.
-- Things this kind of module seems to need from a host (as I understand it, for Fable to check): large
-  precomputed tables shared between instances and built off the audio thread; many voices with per-voice
-  parameters and independent modulation; decisions at pitch-cycle boundaries; groups of voices that follow a
-  leader; cross-voice effects (one voice shaping another); stereo output.
+- An agent extracted the engine and reviewed how it could fit: `docs/context/future_modules/guttur/`.
+  (This replaces the GUTTR beta 0.4 Surge-based version I sent earlier; ignore that one.)
+- It's a sketch and can be built completely differently if that's better or more compatible.
+- The point isn't GUTTUR itself: I want the infrastructure for its kind of module (model-based voices with
+  large tables, voices inside voices, groups, shared space, many per-voice controls) to be there, so similar
+  modules are easy later.
+
+## Stock modules that add capabilities
+- That's how the app has been growing: many stock modules brought a new capability with them (Chord →
+  polyphony, sequencers → timed events and sequencing, OSC and MIDI → communication, and so on).
+- Alongside the special modules, I want to look at which stock modules would add more capabilities to
+  Wirescape at the core level. Fable could lay the ground and protocols for them so we build them after,
+  or develop basic versions quickly. It's a way to expand what the app can support.
+
+## Custom UIs for modules
+- I want to start designing my own interfaces for modules (for example GUTTUR and CHAOS), the way VCV Rack
+  developers design their own panels.
+- I want the UI capabilities expanded so people can design module interfaces within Wirescape, and I want it
+  to be easy, or similar to existing UI-building systems, especially the ones used in module and plugin
+  environments.
+- Worth considering: support for JUCE's HTML/WebView UI approach.
 
 ## Process notes for the brief (not for Fable to act on)
 - Facts and opinions stay separate. The research packs and measurements are neutral; opinions only in proposals.
