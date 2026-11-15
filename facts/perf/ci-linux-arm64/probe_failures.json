@@ -1,0 +1,119 @@
+{
+  "ci_provenance": {
+    "commit": "e8d14f67949993924b8b4749a79ad808ec6717db",
+    "date_et": "2026-11-15",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "scope": "nonzero or invalid JSON responses",
+      "source": "module_cpu_probe"
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "e8d14f67949993924b8b4749a79ad808ec6717db",
+      "date_et": "2026-11-15",
+      "machine": {
+        "architecture": "aarch64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "aarch64",
+        "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "block_frames": 64,
+        "channels": 1,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "channels": 8,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "channels": 1,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "channels": 8,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "channels": 1,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "channels": 8,
+        "exit_code": 2,
+        "input_mode": "normal",
+        "instances": 1,
+        "module": "essentials.chord",
+        "reason": "process exit nonzero",
+        "sample_rate_hz": 48000,
+        "seconds": 2,
+        "status": "unavailable"
+      }
+    ],
+    "section": "probe_failures"
+  }
+}

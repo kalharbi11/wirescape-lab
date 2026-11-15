@@ -5,7 +5,7 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
+    "commit": "e8d14f67949993924b8b4749a79ad808ec6717db",
     "complexity": {
       "functions": 3818,
       "lizard_version": "not exposed"
@@ -21,17 +21,17 @@
       "targets": 169
     },
     "includes": {
-      "direct_includes": 374,
+      "direct_includes": 376,
       "files": 46
     },
     "loc": {
       "cloc": "[path]",
-      "files": 525
+      "files": 528
     },
     "long_lines": {
       "files": 259,
-      "over_120": 807,
-      "over_200": 220
+      "over_120": 809,
+      "over_200": 219
     },
     "machine": {
       "architecture": "aarch64",
@@ -62,10 +62,10 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1096
+    "source_files_tracked": 1099
   },
   "provenance": {
-    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
+    "commit": "e8d14f67949993924b8b4749a79ad808ec6717db",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",

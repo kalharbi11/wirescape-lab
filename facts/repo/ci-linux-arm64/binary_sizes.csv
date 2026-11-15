@@ -213,7 +213,7 @@ build/native/engine2/CMakeFiles/abi2_scale_offset_tests.dir/__/modules2/scale_of
 build/native/engine2/CMakeFiles/abi2_port_behavior_tests.dir/tests/port_behavior_tests.cpp.o,314576,file
 build/native/engine2/CMakeFiles/abi2_port_behavior_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_voice_tests.dir/__/voice/tests.cpp.o,28064,file
-build/native/engine2/CMakeFiles/abi2_benchmark.dir/tests/benchmark.cpp.o,105552,file
+build/native/engine2/CMakeFiles/abi2_benchmark.dir/tests/benchmark.cpp.o,106328,file
 build/native/engine2/CMakeFiles/ws2_sdk_template.dir/__/sdk/template/module.cpp.o,14160,file
 build/native/engine2/CMakeFiles/ws2_osc_out.dir/__/modules2/osc_out/module.cpp.o,19160,file
 build/native/engine2/CMakeFiles/ws2_groove.dir/__/modules2/groove/module.cpp.o,52120,file
@@ -264,7 +264,7 @@ build/native/engine2/CMakeFiles/wirescape_audio_service.dir/__/io/audio/device_i
 build/native/engine2/CMakeFiles/abi2_integration_tests.dir/__/tests2/integration_tests.cpp.o,133592,file
 build/native/engine2/CMakeFiles/abi2_integration_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/ws2_clock.dir/__/modules2/clock/module.cpp.o,24136,file
-build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/tests/module_cpu_probe.cpp.o,808552,file
+build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/tests/module_cpu_probe.cpp.o,797960,file
 build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/wirescape_midi_host.dir/__/control/midi_host.cpp.o,361528,file
 build/native/engine2/CMakeFiles/ws2_function_envelope.dir/__/modules2/function_envelope/module.cpp.o,21208,file
@@ -398,14 +398,14 @@ apps/studio/dist/patches/index.json,86508,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff,13144,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff,13156,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff,22104,file
+apps/studio/dist/assets/index-DbBlan8-.js.map,1056053,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff,23916,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2,14888,file
 apps/studio/dist/assets/index-hcJRR-ZL.css,65403,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2,14708,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2,15620,file
-apps/studio/dist/assets/index-Conxx3pP.js,409514,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2,24184,file
-apps/studio/dist/assets/index-Conxx3pP.js.map,1056053,file
+apps/studio/dist/assets/index-DbBlan8-.js,409514,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2,22588,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff,13208,file
 apps/studio/dist/panels/fx.delay.json,20,file

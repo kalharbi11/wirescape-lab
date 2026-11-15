@@ -32,14 +32,14 @@ native/document/ui_patch_conformance.cpp,0,0,119
 native/engine2/engine2.cpp,116,25,314
 native/engine2/engine2.h,0,0,105
 native/engine2/midi_release.h,0,0,105
-native/engine2/tests/benchmark.cpp,11,6,337
+native/engine2/tests/benchmark.cpp,11,5,342
 native/engine2/tests/benchmark_graph.h,1,1,567
 native/engine2/tests/cost_probe.cpp,0,0,110
 native/engine2/tests/engine_tests.cpp,53,21,436
 native/engine2/tests/feedback_tests.cpp,9,2,356
 native/engine2/tests/header_c99.c,1,0,165
 native/engine2/tests/midi_release_tests.cpp,4,1,228
-native/engine2/tests/module_cpu_probe.cpp,0,0,119
+native/engine2/tests/module_cpu_probe.cpp,2,0,152
 native/engine2/tests/module_cpu_probe_output.h,0,0,81
 native/engine2/tests/module_cpu_probe_output_tests.cpp,0,0,73
 native/engine2/tests/panic_stress.cpp,4,1,235

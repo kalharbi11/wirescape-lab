@@ -169,6 +169,8 @@ engine2,native/engine2/tests/benchmark.cpp,../../tests2/dsp_fixture.h
 engine2,native/engine2/tests/benchmark.cpp,../../tests2/module_loader.h
 engine2,native/engine2/tests/benchmark.cpp,benchmark_graph.h
 engine2,native/engine2/tests/benchmark.cpp,chrono
+engine2,native/engine2/tests/benchmark.cpp,cstdlib
+engine2,native/engine2/tests/benchmark.cpp,cstring
 engine2,native/engine2/tests/benchmark.cpp,memory
 engine2,native/engine2/tests/benchmark.cpp,vector
 engine2,native/engine2/tests/benchmark.cpp,wirescape/engine.h

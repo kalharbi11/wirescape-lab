@@ -9,8 +9,8 @@ apps/studio/src/engine/RealEngine.ts,receive ( message ),217,351,135,129,75
 native/cli/play.cpp,"wirescape_play( int argc , char ** argv)",28,148,121,114,74
 native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),849,1168,320,310,72
 native/engine2/engine2.cpp,wirescape::engine2::Engine::Impl::topology(),369,424,56,55,72
+native/engine2/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,217,159,157,71
 native/document/runtime_patch.cpp,"wirescape::document::load_runtime_patch( const std :: string & bytes , AppEngine * catalog , const ws_engine_config & config , std :: string & error , const std :: vector<engine2::Tap> * telemetry_taps)",29,95,67,67,70
-native/engine2/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,211,153,151,65
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::reconfigure( uint32_t node , const std :: vector<uint8_t> & config)",1029,1105,77,71,62
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::replan( Engine & candidate , uint64_t timeout_ns)",1118,1270,153,147,59
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::render( float * const * outputs , uint32_t output_channels , uint32_t frames , uint64_t callback_time_ns)",850,947,98,92,59

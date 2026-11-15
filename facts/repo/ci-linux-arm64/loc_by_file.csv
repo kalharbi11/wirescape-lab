@@ -21,11 +21,11 @@ apps/desktop/main.ts,apps,product,TypeScript,561,17,5
 native/src/engine.cpp,native,product,C++,555,0,0
 native/tests2/live_replan_tests.cpp,native,tests,C++,550,10,0
 tools/dev.py,tools,tools,Python,540,10,41
+bench/offline/run_all.py,bench,tools,Python,537,9,54
 native/modules2/groove/dsp.h,native,product,C/C++ Header,523,40,9
 native/modules2/spectral/dsp.h,native,product,C/C++ Header,519,33,12
 native/sdk/examples/step_sequencer/tests.cpp,native,product,C++,493,21,36
 apps/studio/src/engine/RealEngine.ts,apps,product,TypeScript,492,20,16
-bench/offline/run_all.py,bench,tools,Python,488,9,54
 native/modules2/macro_oscillator/tests.cpp,native,product,C++,476,12,2
 native/sidecar/protocol_unit_tests.cpp,native,product,C++,454,26,13
 native/sidecar/golden_tests.py,native,product,Python,450,21,33
@@ -116,10 +116,10 @@ native/modules2/chord/dsp.h,native,product,C/C++ Header,208,10,6
 native/modules2/quantizer/dsp.h,native,product,C/C++ Header,208,13,18
 tools/foundation/tests/test_sidecar_edit_soak.py,tools,tests,Python,204,80,27
 apps/studio/tests/mock-bridge/groove-apply.spec.ts,apps,tests,TypeScript,203,7,13
+native/engine2/tests/module_cpu_probe.cpp,native,tests,C++,203,8,6
 apps/studio/src/panels/widgets/FilterDisplay.ts,apps,product,TypeScript,200,11,17
 native/tools/render/main.cpp,native,product,C++,199,3,1
 apps/studio/tests/curated.spec.ts,apps,tests,TypeScript,197,2,7
-native/engine2/tests/module_cpu_probe.cpp,native,tests,C++,197,8,6
 apps/studio/src/styles/chrome.css,apps,product,CSS,195,19,14
 apps/studio/tests/groove-editor.spec.ts,apps,tests,TypeScript,195,5,11
 apps/studio/src/panels/widgets/EnvelopeCurve.ts,apps,product,TypeScript,194,13,20
@@ -273,6 +273,7 @@ native/modules/function_envelope/module.cpp,native,product,C++,82,1,1
 native/modules2/midi_cc_to_cv/dsp.h,native,product,C/C++ Header,82,3,0
 tools/golden.py,tools,tools,Python,82,5,11
 apps/studio/src/app/OnScreenKeyboard.ts,apps,product,TypeScript,81,2,6
+bench/offline/sidecar_probe.py,bench,tools,Python,81,7,9
 tools/cloud/git_deps.py,tools,tools,Python,81,14,17
 tools/foundation/tests/test_module_cpu_probe.py,tools,tests,Python,81,6,15
 apps/studio/tests/conditional-controls.spec.ts,apps,tests,TypeScript,79,2,2
@@ -347,6 +348,8 @@ tools/foundation/tests/test_abi2_cost.py,tools,tests,Python,52,2,8
 apps/studio/src/app/modulePresets.ts,apps,product,TypeScript,51,6,3
 bench/device/check_ci_reports.py,bench,tools,Python,51,4,9
 bench/offline/test_ui_frames.cjs,bench,tests,JavaScript,51,2,2
+bench/offline/verify_artifacts.py,bench,tools,Python,51,2,6
+bench/offline/test_sidecar_probe.py,bench,tests,Python,50,2,6
 native/modules2/osc_out/config.h,native,product,C/C++ Header,50,1,1
 tools/foundation/tests/test_compare_bench.py,tools,tests,Python,50,1,8
 apps/studio/tests-web/worklet-cadence.spec.ts,apps,tests,TypeScript,49,3,1
@@ -362,6 +365,7 @@ native/tests2/test_modules.h,native,tests,C/C++ Header,48,1,0
 apps/studio/src/panels/widgets/Scope.ts,apps,product,TypeScript,47,2,5
 apps/studio/tests/revision-editing.spec.ts,apps,tests,TypeScript,46,3,3
 native/control/module_catalog.h,native,product,C/C++ Header,46,1,0
+native/engine2/tests/benchmark.cpp,native,tests,C++,46,1,0
 tools/chaos_two_probe.py,tools,tools,Python,46,2,6
 tools/ci/codex_cloud_setup.sh,tools,tools,Bourne Shell,46,5,5
 native/cli/play_tests.py,native,product,Python,45,4,1
@@ -389,7 +393,6 @@ tools/foundation/tests/test_ci_triggers.py,tools,tests,Python,38,2,10
 native/control/osc_host.h,native,product,C/C++ Header,36,3,1
 native/engine2/tests/panic_stress.cpp,native,tests,C++,36,1,0
 native/modules2/chaos_lite/comb_body.h,native,product,C/C++ Header,36,2,0
-native/engine2/tests/benchmark.cpp,native,tests,C++,35,1,0
 native/engine2/tests/feedback_tests.cpp,native,tests,C++,35,1,0
 native/modules2/macro_oscillator/rng_scope.hpp,native,product,C/C++ Header,35,19,0
 native/tests2/utility_port_tests.h,native,tests,C/C++ Header,35,1,0
@@ -523,4 +526,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,76491,4339,4311
+SUM,SUM,product,unknown,76739,4350,4332
