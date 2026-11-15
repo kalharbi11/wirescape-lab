@@ -1,6 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — task list, engine name, Codex lead brief (Fable) — START HERE
+**Done:** `proposals/0004-execution-plan.md` (every task with class A/B/C, dependencies, done-when); engine
+named **Weft**; `docs/context/CODEX_LEAD.md` and `lead: run` trigger for a stand-in that handles class A.
+**State of main:** product tree unchanged. Phase 0 in progress through builders (#41/#48, #51–#55).
+**Next for Fable (fresh session):** 1) review `status/review` PRs and the Codex device results; 2) T0.13
+edit-continuity design; 3) T2.0 live-edit design note with an Opus subagent drafting; 4) Phase 1 from T1.1
+once #55 is merged and T0.14 (local build) is solved.
+**Open for the owner:** T0.14 (allow `add_repo` or choose another way to get the two libraries); veto the
+name Weft if you dislike it.
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — builder PRs merged, next issues queued, API v3 design note (Fable)
 **Done:** reviewed (subagents) and merged #45 speaker check, #46 Windows facts collection, #47 golden
 renders (24 of 24 bundled patches, references for Linux x64, ARM64 and Windows). Filed #51 (sound metrics),
