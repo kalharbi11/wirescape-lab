@@ -1,0 +1,45 @@
+{
+  "source_sha": "b1d92befa36afca6165217fdb4e1480bbf0e791a",
+  "architecture": "aarch64",
+  "tools": {
+    "git": "git version 2.47.3",
+    "c++": "c++ (Debian 14.2.0-19) 14.2.0",
+    "cmake": "cmake version 4.2.3",
+    "ninja": "1.13.0.git.kitware.jobserver-pipe-1",
+    "node": "v22.23.4",
+    "npm": "10.9.9",
+    "python": "3.13.5"
+  },
+  "stages": {
+    "native": {
+      "stage": "native",
+      "exit_code": 0,
+      "seconds": 406.43,
+      "log": "native.log"
+    },
+    "studio-ci": {
+      "stage": "studio-ci",
+      "exit_code": 0,
+      "seconds": 39.53,
+      "log": "studio-ci.log"
+    },
+    "studio-build": {
+      "stage": "studio-build",
+      "exit_code": 0,
+      "seconds": 9.86,
+      "log": "studio-build.log"
+    },
+    "desktop-ci": {
+      "stage": "desktop-ci",
+      "exit_code": 0,
+      "seconds": 3.98,
+      "log": "desktop-ci.log"
+    },
+    "desktop-build": {
+      "stage": "desktop-build",
+      "exit_code": 0,
+      "seconds": 39.34,
+      "log": "desktop-build.log"
+    }
+  }
+}

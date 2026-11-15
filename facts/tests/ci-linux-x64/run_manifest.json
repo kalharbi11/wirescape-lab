@@ -1,0 +1,41 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "sections": {
+    "l2": {
+      "bundled_patches.json": "recorded",
+      "denormal_spikes.json": "recorded",
+      "engine_cpu.json": "recorded",
+      "envelopes.json": "recorded",
+      "filters.json": "recorded",
+      "instruction_cost.json": "recorded",
+      "module_cpu.json": "recorded",
+      "module_outputs.json": "recorded",
+      "oscillators.json": "recorded",
+      "parameter_steps.json": "recorded",
+      "patch_soak.json": "recorded"
+    },
+    "memory": "recorded",
+    "protocol": "recorded",
+    "repo": "recorded",
+    "startup": "recorded",
+    "tests": "recorded",
+    "ui": "recorded"
+  }
+}

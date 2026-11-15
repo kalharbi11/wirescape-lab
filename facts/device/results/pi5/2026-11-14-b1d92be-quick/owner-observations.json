@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "audible_confirmed_during_run": true,
+  "initial_silence_reported": true,
+  "audible_dropouts_observed": false,
+  "unexpected_clicks_observed": false,
+  "notes": "Owner initially reported no sound, then confirmed audible sound after checking the powered-speaker listening path. At completion the owner reported no unexpected glitches noticed. Full-run listening coverage was not established.",
+  "stuck_notes_observed": false,
+  "listened_entire_run": null,
+  "owner_statement": "No unexpected glitches noticed"
+}

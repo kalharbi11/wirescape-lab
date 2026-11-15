@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "audible_confirmed_during_sound_check": true,
+  "initial_silence_reported": true,
+  "owner_statement": "its working",
+  "listening_output": "Speakers (Realtek(R) Audio)",
+  "driver": "Windows WASAPI shared",
+  "rate_hz": 48000,
+  "block_frames": 256,
+  "timed_quick_run_performed": false,
+  "audible_dropouts_observed": null,
+  "unexpected_clicks_observed": null,
+  "stuck_notes_observed": null,
+  "listened_entire_run": null,
+  "notes": "Original quiet comparison-patch sound check: owner heard no sound even with volume raised. After a separate local diagnostic copy raised VCA gain from 0.02 to 0.4, the owner confirmed audible output. No listening verdict is available for the unperformed 15-minute stress run."
+}

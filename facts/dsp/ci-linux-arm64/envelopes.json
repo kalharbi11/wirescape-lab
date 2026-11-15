@@ -1,0 +1,73 @@
+{
+  "ci_provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "ADSR_method": "analytic-signal amplitude smoothed over 128 samples",
+      "function_method": "direct CV; 60 BPM clock drives 0.5-second gate",
+      "target_attack_s": 0.05,
+      "target_release_s": 0.1
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "date_et": "2026-11-14",
+      "machine": {
+        "architecture": "aarch64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "aarch64",
+        "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "attack_error_ms": -5.000000000000004,
+        "attack_measured_s": 0.045,
+        "attack_set_s": 0.05,
+        "level_reference_fs": 0.9999999978548488,
+        "module": "essentials.adsr",
+        "release_error_ms": -10.000000000000009,
+        "release_measured_s": 0.09,
+        "release_set_s": 0.1,
+        "status": "measured"
+      },
+      {
+        "fall_error_ms": -1.020833333333346,
+        "fall_fraction": 0.01,
+        "fall_measured_s": 0.09897916666666666,
+        "fall_set_s": 0.1,
+        "module": "essentials.function_envelope",
+        "reference_peak_fs": 1.0,
+        "rise_error_ms": -0.5208333333333384,
+        "rise_fraction": 0.99,
+        "rise_measured_s": 0.049479166666666664,
+        "rise_set_s": 0.05,
+        "status": "measured"
+      }
+    ],
+    "section": "envelopes"
+  }
+}

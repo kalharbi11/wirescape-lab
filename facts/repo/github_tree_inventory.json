@@ -1,0 +1,207 @@
+{
+  "source": "https://api.github.com/repos/kalharbi11/wirescape-lab/git/trees/main?recursive=1",
+  "commit": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+  "date_et": "2026-11-14",
+  "machine": {
+    "location": "GitHub API metadata",
+    "cpu": "not applicable",
+    "os": "API-side repository tree",
+    "audio_devices": "not accessed"
+  },
+  "method": "GitHub git tree blob entries; sizes are raw blob bytes; .git tree nodes excluded",
+  "blobs": 875,
+  "blob_bytes": 6050156,
+  "by_top_level": {
+    "(root)": {
+      "files": 9,
+      "bytes": 43609
+    },
+    "LICENSES": {
+      "files": 2,
+      "bytes": 36228
+    },
+    "apps": {
+      "files": 232,
+      "bytes": 2155377
+    },
+    "bench": {
+      "files": 3,
+      "bytes": 1303
+    },
+    "ci": {
+      "files": 7,
+      "bytes": 45250
+    },
+    "controllers": {
+      "files": 1,
+      "bytes": 11308
+    },
+    "docs": {
+      "files": 39,
+      "bytes": 530918
+    },
+    "facts": {
+      "files": 8,
+      "bytes": 1077
+    },
+    "lab": {
+      "files": 2,
+      "bytes": 5384
+    },
+    "native": {
+      "files": 495,
+      "bytes": 2739792
+    },
+    "proposals": {
+      "files": 1,
+      "bytes": 187
+    },
+    "tests": {
+      "files": 1,
+      "bytes": 8165
+    },
+    "tools": {
+      "files": 75,
+      "bytes": 471558
+    }
+  },
+  "by_extension": {
+    ".clang-format": {
+      "files": 1,
+      "bytes": 241
+    },
+    ".clang-tidy": {
+      "files": 1,
+      "bytes": 224
+    },
+    ".gitignore": {
+      "files": 2,
+      "bytes": 1019
+    },
+    ".yaml": {
+      "files": 1,
+      "bytes": 517
+    },
+    ".md": {
+      "files": 146,
+      "bytes": 703432
+    },
+    "(none)": {
+      "files": 23,
+      "bytes": 425873
+    },
+    ".txt": {
+      "files": 36,
+      "bytes": 96693
+    },
+    ".ts": {
+      "files": 126,
+      "bytes": 1148803
+    },
+    ".json": {
+      "files": 138,
+      "bytes": 590786
+    },
+    ".cjs": {
+      "files": 11,
+      "bytes": 81949
+    },
+    ".html": {
+      "files": 8,
+      "bytes": 419360
+    },
+    ".mjs": {
+      "files": 3,
+      "bytes": 10316
+    },
+    ".js": {
+      "files": 1,
+      "bytes": 5560
+    },
+    ".css": {
+      "files": 12,
+      "bytes": 91111
+    },
+    ".yml": {
+      "files": 9,
+      "bytes": 47918
+    },
+    ".sh": {
+      "files": 8,
+      "bytes": 19712
+    },
+    ".gitkeep": {
+      "files": 9,
+      "bytes": 0
+    },
+    ".ino": {
+      "files": 1,
+      "bytes": 11308
+    },
+    ".py": {
+      "files": 64,
+      "bytes": 522560
+    },
+    ".cpp": {
+      "files": 160,
+      "bytes": 1326651
+    },
+    ".h": {
+      "files": 97,
+      "bytes": 499205
+    },
+    ".inc": {
+      "files": 1,
+      "bytes": 1197
+    },
+    ".c": {
+      "files": 1,
+      "bytes": 410
+    },
+    ".hex": {
+      "files": 2,
+      "bytes": 184
+    },
+    ".cmake": {
+      "files": 2,
+      "bytes": 6585
+    },
+    ".patch": {
+      "files": 4,
+      "bytes": 3548
+    },
+    ".hpp": {
+      "files": 1,
+      "bytes": 2612
+    },
+    ".ndjson": {
+      "files": 1,
+      "bytes": 8165
+    },
+    ".diff": {
+      "files": 1,
+      "bytes": 786
+    },
+    ".example": {
+      "files": 1,
+      "bytes": 449
+    },
+    ".desktop": {
+      "files": 1,
+      "bytes": 287
+    },
+    ".in": {
+      "files": 1,
+      "bytes": 246
+    },
+    ".cmd": {
+      "files": 1,
+      "bytes": 1275
+    },
+    ".ps1": {
+      "files": 1,
+      "bytes": 21174
+    }
+  },
+  "execution_note": "No local clone, CMake build, tests or app runs were available."
+}

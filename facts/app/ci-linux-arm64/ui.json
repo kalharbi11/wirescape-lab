@@ -1,0 +1,82 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "arch": "arm64",
+      "audio_devices": "not accessed",
+      "cpu": "unknown",
+      "os": "linux"
+    },
+    "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
+    "results": [
+      {
+        "action": "knob",
+        "frames": 62,
+        "max_ms": 16.799999999999955,
+        "modules": 50,
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.700000000000045
+      },
+      {
+        "action": "cable",
+        "frames": 62,
+        "max_ms": 66.70000000000005,
+        "modules": 50,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 33.299999999999955
+      },
+      {
+        "action": "knob",
+        "frames": 72,
+        "max_ms": 16.799999999999955,
+        "modules": 100,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 16.700000000000045
+      },
+      {
+        "action": "cable",
+        "frames": 79,
+        "max_ms": 133.30000000000018,
+        "modules": 100,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 50
+      },
+      {
+        "action": "knob",
+        "frames": 73,
+        "max_ms": 66.60000000000036,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 50
+      },
+      {
+        "action": "cable",
+        "frames": 140,
+        "max_ms": 233.30000000000018,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 66.60000000000036
+      }
+    ]
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "ui"
+}
