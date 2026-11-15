@@ -50,6 +50,9 @@ Discovery (write the answers in your notes):
 - Pi monitor node: `wpctl status` → the monitor of the USB audio output the owner uses = `<monitor-node>`.
   If unclear, ask the owner. If there is none, use `--record none` and say so.
 - Windows: confirm with the owner that loopMIDI has a port named `Wirescape Bench`.
+  Windows may expose different numbered names for its output and input. Use the actual output
+  name for `--midi-port` and the actual engine input name for `--engine-midi-port` in W1/W2
+  (for example, `--midi-port "Wirescape Bench 2" --engine-midi-port "Wirescape Bench 1"`).
 
 ## 2. Raspberry Pi 5 runs
 
