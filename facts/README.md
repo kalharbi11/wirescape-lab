@@ -16,6 +16,7 @@ next to its summary as JSON/CSV. Quotes from other projects carry the URL and da
 | `app/` | startup, memory, UI frame times, protocol latency |
 | `tests/` | test inventory, runtimes, CI durations and failures |
 | `compare/` | other tools: features, SDK shape, export pipelines, published numbers |
+| `code/` | `FACT_PACK.md`: LLM readings of the snapshot source (engine core, protocol, DSP, SDK) plus background knowledge, cross-checked; no execution. Tags and citation rules are in its §0 |
 
 ## L4 measurement coverage, 2026-11-14 (ET)
 
