@@ -134,7 +134,9 @@ def parsed_command(command, prefix=None, timeout=120):
     raw = result.get("stdout", "")
     try:
         if result["exit_code"] != 0:
-            raise ValueError("process exit nonzero")
+            detail = " ".join((result.get("stderr") or result.get("error") or "").split())
+            raise ValueError("exit code %s: %s" % (result.get("exit_code"),
+                                                   detail[:360] or "no stderr supplied"))
         if prefix:
             lines = [line[len(prefix):] for line in raw.splitlines() if line.startswith(prefix)]
             if len(lines) != 1:
@@ -142,8 +144,10 @@ def parsed_command(command, prefix=None, timeout=120):
             return dict(status="measured", **json.loads(lines[0]))
         return dict(status="measured", **json.loads(raw))
     except (ValueError, TypeError, json.JSONDecodeError) as e:
+        diagnostic = " ".join((result.get("stderr") or result.get("error") or "").split())[:360]
         return {"status": "unavailable", "exit_code": result.get("exit_code"),
-                "reason": str(e), "stderr": result.get("stderr", result.get("error", ""))}
+                "reason": str(e), "stderr": result.get("stderr", result.get("error", "")),
+                "error_text": diagnostic or str(e)}
 
 
 def markdown_rows(rows):
@@ -269,6 +273,121 @@ def build_module_patch(module_id, descriptor, override=None):
     if cv:
         return direct_source(module_id, descriptor["version"], override or {}, cv), None
     return None, "no audio or CV output available for renderer"
+
+
+def scripted_keyboard_patch(document):
+    """Produce a *derived* clocked-note fixture; never overwrite the bundled patch.
+
+    The native paced soak accepts a patch, but has no event-script argument.
+    StepSequencer has the same pitch/gate/velocity/notes output port names as
+    host.keyboard. A Clock drives its note events entirely inside the engine.
+    The input_mode field distinguishes these measurements from source patches.
+    """
+    keyboard = [m for m in document.get("modules", [])
+                if m.get("module") == "host.keyboard"]
+    if not keyboard:
+        return None, 0
+    derived = json.loads(json.dumps(document))
+    next_id = max(m["id"] for m in derived["modules"])
+    for node in derived["modules"]:
+        if node.get("module") != "host.keyboard":
+            continue
+        node["module"] = "example.step_sequencer"
+        node["version"] = 2
+        node["parameters"] = {"run": 1, "length": 8}
+        node.pop("config", None)
+        next_id += 1
+        derived["modules"].append({
+            "id": next_id, "module": "essentials.clock", "version": 2,
+            "parameters": {"bpm": 120, "ticks_per_beat": 1, "duty": 0.5, "run": 1}})
+        derived["connections"].append({
+            "kind": "signal",
+            "from": {"module": next_id, "port": "clock"},
+            "to": {"module": node["id"], "port": "clock"}})
+    return derived, len(keyboard)
+
+
+def soak_seconds_for(quick, requested):
+    seconds = requested if requested is not None else (.05 if quick else 30.)
+    if not math.isfinite(seconds) or seconds < .001 or seconds > 3600:
+        raise ValueError("soak seconds must be finite and within .001..3600")
+    return seconds
+
+
+def soak_patches(soak, patches, meta, out, seconds, engine):
+    """Paced document measurements, preserving raw vs substituted input provenance."""
+    rows = []
+    with tempfile.TemporaryDirectory(prefix="ws-soak-sources-") as temporary:
+        folder = Path(temporary)
+        for path in patches:
+            try:
+                original = json.loads(path.read_text(encoding="utf-8"))
+                derived, keyboard_count = scripted_keyboard_patch(original)
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                for block in BLOCKS:
+                    rows.append({"patch": path.name, "block_frames": block, "seconds": seconds,
+                                 "status": "unavailable",
+                                 "reason": "fixture parse: %s: %s" % (type(exc).__name__, exc)})
+                continue
+            derived_path = folder / path.name
+            if derived is not None:
+                derived_path.write_text(json.dumps(derived), encoding="utf-8")
+            for block in BLOCKS:
+                def measure(patch_path, duration):
+                    return parsed_command(
+                        [soak, "--patch", patch_path, "--rate", RATE, "--block", block,
+                         "--seconds", duration],
+                        timeout=max(45, math.ceil(duration) + 40))
+                input_mode = "original"
+                source_probe = None
+                scripted_probe = None
+                chosen = path
+                if derived is not None:
+                    source_probe = measure(path, .05)
+                    if source_probe["status"] != "measured":
+                        scripted_probe = measure(derived_path, .05)
+                        if scripted_probe["status"] == "measured":
+                            input_mode = "clocked_step_sequencer_for_host_keyboard"
+                            chosen = derived_path
+                result = measure(chosen, seconds)
+                row = {"patch": path.name, "block_frames": block, "seconds": seconds,
+                       "input_mode": input_mode}
+                if input_mode != "original":
+                    row.update(source_patch_status=source_probe["status"],
+                               source_patch_exit_code=source_probe.get("exit_code"),
+                               source_patch_error=source_probe.get("error_text"),
+                               keyboard_sources_replaced=keyboard_count,
+                               derived_modules_added=keyboard_count,
+                               scripted_source="essentials.clock -> example.step_sequencer")
+                if source_probe and source_probe["status"] != "measured" and input_mode == "original":
+                    row["source_patch_error"] = source_probe.get("error_text")
+                    if scripted_probe and scripted_probe["status"] != "measured":
+                        row["scripted_source_error"] = scripted_probe.get("error_text")
+                        row["reason"] = "scripted source preflight failed"
+                row.update(result)
+                if row["status"] == "unavailable":
+                    row["error_text"] = result.get("error_text", result.get("reason", ""))
+                    if scripted_probe and scripted_probe["status"] != "measured":
+                        row["reason"] += "; scripted keyboard source also failed: " + (
+                            scripted_probe.get("error_text") or scripted_probe.get("reason", ""))
+                rows.append(row)
+    failures = [dict(patch=row["patch"], block_frames=row["block_frames"],
+                     status=row["status"], reason=row.get("reason"),
+                     stderr=row.get("stderr"), exit_code=row.get("exit_code"),
+                     error_text=row.get("error_text") or row.get("reason") or "",
+                     source_patch_error=row.get("source_patch_error"),
+                     scripted_source_error=row.get("scripted_source_error"))
+                for row in rows if row["status"] != "measured"]
+    if failures:
+        failures = check_loads(engine, failures, PATCHES, RATE)
+    save(out, "perf", "soak_failures", meta, failures,
+         {"source": "wirescape_soak", "sidecar": "wirescape-engine --null-audio",
+          "note": "A derived clocked source is reported in input_mode, not as the original patch."})
+    save(out, "perf", "patch_soak", meta, rows,
+         {"mode": "paced device-free document soak", "warmup_blocks": 256,
+          "soak_seconds": seconds, "scripted_keyboard": "Clock and StepSequencer substitution",
+          "note": "Soak reports max, median and percentiles; arithmetic mean unavailable."})
+    return len(patches)
 
 
 def cpu_sections(probes, mods, meta, out, quick):
