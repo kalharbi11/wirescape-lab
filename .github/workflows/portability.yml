@@ -37,6 +37,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Device-free portability parser and inventory tests
+        run: python3 -m unittest discover -s bench/portability/tests -v
       - name: Cache pinned Arm GNU toolchain
         id: toolchain-cache
         uses: actions/cache@v4
