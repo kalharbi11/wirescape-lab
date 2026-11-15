@@ -8,8 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from metrics import (basic, direct_envelope_metrics, filter_metrics, oscillator_metrics,
-                     patch_metrics, read_audio, step_metrics)
+from metrics import (basic, click_events, direct_envelope_metrics, filter_metrics,
+                     oscillator_metrics, patch_metrics, read_audio, step_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -52,6 +52,30 @@ class MetricsTests(unittest.TestCase):
         metrics = patch_metrics(data)
         self.assertGreaterEqual(metrics["silence_segments"], 1)
         self.assertEqual(metrics["nonfinite_samples"], 0)
+
+    def test_click_detector_known_answer_sine_and_saw(self):
+        rate = 48000
+        time = np.arange(rate * 2) / rate
+        sine = .1 * np.sin(math.tau * 440 * time)
+        saw = .1 * (2 * ((440 * time + .5) % 1) - 1)
+        for label, clean in (("sine", sine), ("saw", saw)):
+            with self.subTest(shape=label):
+                self.assertEqual(click_events(clean, rate), [])
+                shifted = clean.copy()
+                shifted[int(rate * .31):] += .6
+                shifted[int(rate * 1.13):] -= .6
+                found = click_events(shifted, rate)
+                self.assertEqual(len(found), 2, found)
+                self.assertAlmostEqual(found[0]["time_s"], .31, delta=.003)
+                self.assertAlmostEqual(found[1]["time_s"], 1.13, delta=.003)
+                for event in found:
+                    self.assertAlmostEqual(event["size_fs"], .6, delta=.1)
+                    self.assertGreaterEqual(event["highpass_energy_ratio"], 3)
+                stereo = np.column_stack([shifted, shifted])
+                report = patch_metrics(stereo, rate)
+                self.assertEqual(report["click_count"], 2)
+                self.assertEqual(len(report["click_events"]), 2)
+                self.assertNotIn("click_delta_outliers", report)
 
     def test_direct_envelope_timing(self):
         rate = 48000
