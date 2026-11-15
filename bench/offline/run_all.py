@@ -244,7 +244,9 @@ def wav_run(renderer, patch, events, seconds, block, folder, seed=7, rate=RATE):
                    "--seconds", seconds, "--seed", seed], timeout=90)
     try:
         if result["exit_code"] != 0:
-            raise ValueError("renderer exit nonzero")
+            raise ValueError("renderer exit code %s: %s" % (
+                result.get("exit_code"),
+                (result.get("stderr") or result.get("error") or "no stderr")[:360]))
         metrics = [json.loads(line[len("render_metrics "):])
                    for line in result.get("stdout", "").splitlines()
                    if line.startswith("render_metrics ")]
@@ -562,31 +564,40 @@ def filter_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000
         "spectral_nperseg": 4096})
 
 
-def module_sections(renderer, desc, all_modules, meta, out, quick):
+def module_sections(renderer, desc, all_modules, meta, out, quick,
+                    rates=(44100, 48000, 96000)):
     module_rows, param_rows = [], []
     seconds = .5 if quick else 1.5
     for ident in all_modules:
         descriptor = desc.get(ident)
         patch, reason = build_module_patch(ident, descriptor)
-        base_row = {"module": ident}
-        if patch is None:
-            module_rows.append(dict(base_row, status="unavailable", reason=reason))
-        else:
-            audio, status = run_wav(renderer, patch, [], seconds)
-            if audio is not None:
-                module_rows.append(dict(base_row, status="measured", **basic(audio),
-                                        counters=status["counters"]))
+        for rate in rates:
+            entry = {"module": ident, "sample_rate_hz": rate}
+            if patch is None:
+                module_rows.append(dict(entry, status="unsupported_probe", reason=reason))
+            elif ident == "ports.macro_oscillator" and rate != 48000:
+                module_rows.append(dict(entry, status="unsupported_rate",
+                                       reason="Macro Oscillator prepare() requires 48000 Hz"))
             else:
-                module_rows.append(dict(base_row, **status))
+                audio, status = run_wav(renderer, patch, [], seconds, rate=rate)
+                if audio is not None:
+                    module_rows.append(dict(entry, status="measured", **basic(audio),
+                                            counters=status["counters"]))
+                else:
+                    module_rows.append(dict(entry, **status))
+        # Preserve the existing step-baseline section at its explicitly named
+        # 48-kHz rate; the separate slow-sweep work must not be mistaken for it.
         params = descriptor["parameters"] if descriptor else {}
+        base_row = {"module": ident, "sample_rate_hz": RATE}
         if not params:
-            param_rows.append(dict(base_row, status="not_applicable", reason="no parameter metadata"))
+            param_rows.append(dict(base_row, status="not_applicable",
+                                   reason="no parameter metadata"))
         else:
             key, bounds = next(iter(params.items()))
             changed, why = build_module_patch(ident, descriptor, {key: bounds["min"]})
             entry = dict(base_row, parameter=key, min=bounds["min"], max=bounds["max"])
             if changed is None:
-                param_rows.append(dict(entry, status="unavailable", reason=why))
+                param_rows.append(dict(entry, status="unsupported_probe", reason=why))
             else:
                 frame = round(seconds * RATE / 2)
                 audio, status = run_wav(renderer, changed, [
@@ -595,11 +606,14 @@ def module_sections(renderer, desc, all_modules, meta, out, quick):
                 param_rows.append(dict(entry, status="measured",
                                        **step_metrics(audio, frame)) if audio is not None
                                   else dict(entry, **status))
-    save(out, "dsp", "module_outputs", meta, module_rows,
-         {"measure": "direct output bus; VCO input feed only for audio-input modules"})
-    save(out, "dsp", "parameter_steps", meta, param_rows,
-         {"step": "first parameter min to max halfway through render",
-          "highpass": "2nd order Butterworth 2kHz"})
+    save(out, "dsp", "module_outputs", meta, module_rows, {
+        "sample_rates_hz": list(rates),
+        "measure": "direct output bus; VCO input feed only for audio-input modules"})
+    save(out, "dsp", "parameter_steps", meta, param_rows, {
+        "sample_rate_hz": RATE,
+        "status": "legacy single-parameter step; not the requested sweep-baseline metric",
+        "step": "first parameter min to max halfway through render",
+        "highpass": "2nd order Butterworth 2kHz"})
 
 
 def envelope_sections(renderer, meta, out, quick):
