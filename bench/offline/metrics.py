@@ -187,20 +187,94 @@ def oscillator_metrics(audio, target_hz, rate=RATE):
                 harmonic_bins_half_width=4)
 
 
-def filter_metrics(dry, wet, rate=RATE):
+def parabolic_peak_hz(frequency, magnitude, index):
+    """Three-bin vertex on an equally spaced frequency grid."""
+    if not 0 < index < len(magnitude) - 1:
+        return float(frequency[index])
+    left, center, right = map(float, magnitude[index - 1:index + 2])
+    denominator = left - 2 * center + right
+    offset = .5 * (left - right) / denominator if abs(denominator) > 1e-12 else 0.
+    return float(frequency[index] + np.clip(offset, -.5, .5) *
+                 (frequency[index + 1] - frequency[index]))
+
+
+def parabolic_crossing_hz(frequency, magnitude_db, reference_db, nominal_hz):
+    """Choose descending -3 dB crossing nearest nominal; quadratic interpolation."""
+    goal = reference_db - 10 * math.log10(2)
+    valid = ((magnitude_db[:-1] >= goal) & (magnitude_db[1:] < goal) &
+             (frequency[:-1] > 0))
+    crossings = np.flatnonzero(valid)
+    if not len(crossings):
+        return None
+    index = int(crossings[np.argmin(abs(frequency[crossings] - nominal_hz))])
+    lo, hi = float(frequency[index]), float(frequency[index + 1])
+    linear = lo + (goal - magnitude_db[index]) * (hi - lo) / max(
+        magnitude_db[index + 1] - magnitude_db[index], -1e-30)
+    if 0 < index < len(frequency) - 2:
+        # Three points around the crossing constrain a parabola, whose root
+        # must lie in the physically observed bracket or we use linear.
+        xs = np.asarray(frequency[index - 1:index + 2], dtype=float)
+        ys = np.asarray(magnitude_db[index - 1:index + 2], dtype=float)
+        coeff = np.polyfit(xs - lo, ys - goal, 2)
+        roots = np.roots(coeff)
+        valid_roots = [lo + float(root.real) for root in roots
+                       if abs(root.imag) < 1e-8 and 0 <= root.real <= hi - lo]
+        if valid_roots:
+            return min(valid_roots, key=lambda x: abs(x - linear))
+    return float(linear)
+
+
+def filter_metrics(dry, wet, rate=RATE, cutoff_hz=None, resonance=None, output_tap=None):
     if not np.isfinite(dry).all() or not np.isfinite(wet).all():
         return {"nonfinite_samples": int(np.size(wet) - np.count_nonzero(np.isfinite(wet)))}
     nperseg = min(4096, len(dry), len(wet))
     if nperseg < 64:
-        return {"frequency_hz": [], "magnitude_db": []}
+        return {"frequency_hz": [], "magnitude_db": [], "reason": "fewer than 64 frames"}
     f, p0 = signal.welch(dry[:, 0], rate, nperseg=nperseg)
     _, p1 = signal.welch(wet[:, 0], rate, nperseg=nperseg)
     db = 10 * np.log10(np.maximum(p1, 1e-30) / np.maximum(p0, 1e-30))
     samples = {f"gain_{hz}_hz_db": float(db[np.argmin(np.abs(f - hz))])
                for hz in (100, 1000, 5000)}
-    return {"frequency_hz": [float(v) for v in f],
-            "magnitude_db": [float(v) for v in db],
-            "nperseg": nperseg, **samples}
+    record = {"frequency_hz": [float(v) for v in f],
+              "magnitude_db": [float(v) for v in db],
+              "nperseg": nperseg, "output_tap": output_tap, **samples}
+    if cutoff_hz is not None:
+        low = (f >= max(f[1], .08 * cutoff_hz)) & (f < max(f[2], .3 * cutoff_hz))
+        reference_db = float(np.median(db[low])) if np.any(low) else float(db[1])
+        crossing = parabolic_crossing_hz(f, db, reference_db, cutoff_hz)
+        record.update(cutoff_reference_db=reference_db, cutoff_3db_hz=crossing,
+                      cutoff_error_hz=(crossing - cutoff_hz) if crossing is not None else None,
+                      cutoff_error_reason=None if crossing is not None
+                      else "no descending 3 dB crossing in measured frequency range")
+        if resonance and resonance > 0:
+            focus = np.flatnonzero((f >= .25 * cutoff_hz) &
+                                   (f <= min(.49 * rate, 3 * cutoff_hz)))
+            if len(focus):
+                peak = int(focus[np.argmax(db[focus])])
+                observed = parabolic_peak_hz(f, db, peak)
+                record.update(resonance_peak_hz=observed,
+                              resonance_peak_error_hz=observed - cutoff_hz,
+                              resonance_peak_gain_db=float(db[peak]))
+    return record
+
+
+def self_oscillation_metrics(audio, rate=RATE, impulse_end_s=.001, observe_after_s=2.0):
+    """RMS of the post-impulse tail, excluding the initial excitation."""
+    x = np.asarray(audio, dtype=np.float64)
+    if x.ndim == 2:
+        x = x[:, 0]
+    if not np.isfinite(x).all():
+        return {"status": "nonfinite", "reason": "nonfinite tail samples"}
+    start = int(round(rate * observe_after_s))
+    end = int(round(rate * impulse_end_s))
+    if len(x) <= start or end >= start:
+        return {"status": "insufficient_duration",
+                "reason": "render shorter than required post-2-second observation"}
+    tail = x[start:]
+    return {"status": "measured", "impulse_end_s": impulse_end_s,
+            "tail_begin_s": observe_after_s,
+            "tail_rms_fs": float(np.sqrt(np.mean(tail * tail))),
+            "tail_peak_fs": float(np.max(abs(tail)))}
 
 
 def step_metrics(audio, step_frame, rate=RATE):
