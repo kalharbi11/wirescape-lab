@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "commit": "b1d92befa36afca6165217fdb4e1480bbf0e791a",
+  "native_tests": {
+    "passed": 108,
+    "failed": 0
+  },
+  "device_harness_unit_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "comparison_harness_unit_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "test_time_s": 66.78
+}

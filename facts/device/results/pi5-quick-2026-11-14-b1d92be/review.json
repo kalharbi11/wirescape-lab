@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "completed": true,
+  "engine_exit_code": 0,
+  "acknowledged_commands": 27179,
+  "refused_replies": 0,
+  "engine_reported_dropouts": 0,
+  "ack_p50_ms": 0.149,
+  "ack_p95_ms": 0.25,
+  "ack_p99_ms": 0.758,
+  "engine_cpu_max_percent": 25.033443450927734,
+  "recorded_duration_s": 899.691,
+  "peak": 1.0,
+  "click_like_diagnostic_flags": 83,
+  "silence_gap_diagnostic_flags": [
+    {
+      "start_s": 124.981333,
+      "duration_ms": 546.125,
+      "near_scripted_action": "setBufferFrames at 125 s"
+    },
+    {
+      "start_s": 129.978667,
+      "duration_ms": 306.125,
+      "near_scripted_action": "panic at 130 s"
+    }
+  ],
+  "possible_stuck_note_step_flags": 1258,
+  "near_full_scale_channel_samples": 8652,
+  "total_channel_samples": 86370304,
+  "near_full_scale_percent": 0.010017,
+  "first_near_full_scale_s": 189.034542,
+  "interpretation_limits": [
+    "Click-like and whole-output stuck-note heuristics are diagnostic flags, not confirmed audible fault counts.",
+    "Scripted overlapping notes and effect tails limit whole-output stuck-note attribution.",
+    "The two silence gaps occur near intentional buffer-size and panic operations; timing does not prove a hardware xrun.",
+    "No physical round-trip latency was measured.",
+    "This is a local patched test build, not clean-main hardware evidence."
+  ]
+}

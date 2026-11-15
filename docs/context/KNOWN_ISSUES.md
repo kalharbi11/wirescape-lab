@@ -15,6 +15,12 @@ Numbers are issues/PRs in `kalharbi11/wirescape` (frozen). Open PRs there were n
 - **LAN-only OSC consent stays loopback without a warning** (#760; source PR #762; ported to the lab).
 - From the first owner test session, not verified fixed: basics-04 silence after a short envelope with
   high VCA; scene-07 clicks after panic; Echo knob clicks; Groove start/stop lag.
+- **Linux: virtual MIDI inputs are not listed.** The MIDI backend's libremidi observer uses the default
+  configuration (`track_virtual` off), so ALSA sequencer ports made by other software (such as the device
+  harness's "Wirescape Bench" port) don't appear (`native/io/midi/libremidi_backend.cpp:13`). The Pi quick
+  run of 2026-11-14 used a local one-line patch to enable them (`facts/device/results/pi5-quick-2026-11-14-b1d92be/source.patch`).
+- **Buffer-size change gap:** in that run, `setBufferFrames` was followed by 546 ms of silence and panic by 306 ms
+  (`review.json`, silence_gap_diagnostic_flags).
 - FlexASIO not listed on Windows (owner evidence pending).
 
 ## Not built yet
