@@ -34,13 +34,28 @@ class CompareTests(unittest.TestCase):
         after = facts([("a", "unavailable", None), ("c", "measured", 2)])
         self.assertEqual(len(compare(before, after)[1]), 3)
 
-    def test_previously_unavailable_can_remain_or_recover(self):
+    def test_previously_unavailable_never_passes_as_measured(self):
         before = facts([("a", "unavailable", None), ("b", "unavailable", None)])
         after = facts([("a", "unavailable", None), ("b", "measured", 100)])
         changes, errors = compare(before, after)
-        self.assertEqual(errors, [])
+        self.assertEqual(len(errors), 3)
+        self.assertTrue(any("a: baseline unavailable" in item for item in errors))
+        self.assertTrue(any("a: current unavailable" in item for item in errors))
+        self.assertTrue(any("b: baseline unavailable" in item for item in errors))
         self.assertEqual({r["status"] for r in changes},
                          {"unavailable", "newly_measured"})
+
+    def test_failed_baseline_and_current_are_not_false_green(self):
+        before = facts([("a", "failed", None)])
+        current = facts([("a", "failed", None)])
+        changes, errors = compare(before, current)
+        self.assertEqual(changes[0]["status"], "unavailable")
+        self.assertEqual(len(errors), 2)
+
+    def test_same_missing_row_cannot_be_silent(self):
+        before = facts([("a", "unavailable", None)])
+        current = facts([("a", "unavailable", None)])
+        self.assertTrue(compare(before, current)[1])
 
     def test_rejects_nonpositive_and_nonfinite(self):
         b = facts([("a", "measured", 100)])
