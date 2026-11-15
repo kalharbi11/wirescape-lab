@@ -24,6 +24,27 @@ class StageTests(unittest.TestCase):
         self.assertNotIn("/tmp", data["detail"])
         self.assertNotIn("bad", data["detail"])
 
+    def test_failed_suite_keeps_redacted_last_lines(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "raw"
+            destination = Path(tmp) / "facts"
+            (root / "tests").mkdir(parents=True)
+            (root / "tests/summary.json").write_text(json.dumps({
+                "suites": {"ctest": {"run": {
+                    "status": "failed", "exit_code": 8,
+                    "stderr_tail": "discard raw log",
+                    "failure_output_lines": [
+                        "Could not find configuration /tmp/ci/secret",
+                        "100% tests failed"]}}}}))
+            self.assertEqual(stage_collector(root, destination, "tests",
+                                             "tests", META, "windows-x64"), "recorded")
+            data = json.loads((destination / "tests/ci-windows-x64/tests.json").read_text())
+            result = data["measurements"]["suites"]["ctest"]["run"]
+            self.assertEqual(result["exit_code"], 8)
+            self.assertNotIn("stderr_tail", result)
+            self.assertIn("[path]", result["failure_output_lines"][0])
+            self.assertNotIn("/tmp/ci/secret", str(result))
+
     def test_stage_collector_and_missing_section(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "raw"
