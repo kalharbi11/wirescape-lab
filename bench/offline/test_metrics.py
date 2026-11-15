@@ -7,10 +7,11 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+from scipy import signal
 
 from metrics import (basic, click_events, direct_envelope_metrics, filter_metrics,
                      folded_alias_frequencies, oscillator_metrics, patch_metrics,
-                     read_audio, step_metrics)
+                     read_audio, self_oscillation_metrics, step_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -101,6 +102,35 @@ class MetricsTests(unittest.TestCase):
         record = direct_envelope_metrics(stereo, 0, 24000, .05, .1)
         self.assertAlmostEqual(record["rise_measured_s"], .05, delta=.001)
         self.assertAlmostEqual(record["fall_measured_s"], .1, delta=.002)
+
+    def test_filter_cutoff_and_resonance_interpolation(self):
+        rate = 48000
+        rng = np.random.default_rng(17)
+        dry = rng.normal(0, .1, rate * 3)
+        # Third-order lowpass IIR has an analytic -3.01 dB corner at 1k.
+        wet = signal.sosfilt(signal.butter(3, 1000, fs=rate, output="sos"), dry)
+        stereo = lambda x: np.column_stack([x, x])
+        record = filter_metrics(stereo(dry), stereo(wet), rate,
+                                cutoff_hz=1000, resonance=0, output_tap="test.lowpass")
+        self.assertEqual(record["output_tap"], "test.lowpass")
+        self.assertAlmostEqual(record["cutoff_3db_hz"], 1000, delta=80)
+        self.assertAlmostEqual(record["cutoff_error_hz"], 0, delta=80)
+        f = np.arange(0, 4000, 100, dtype=float)
+        response = -((f - 750) / 200) ** 2 + 2
+        from metrics import parabolic_peak_hz
+        self.assertAlmostEqual(parabolic_peak_hz(f, response, 7), 750, delta=1)
+
+    def test_post_impulse_tail_rms_known_answer(self):
+        rate = 48000
+        silent = np.zeros(rate * 3)
+        silent[0] = 1
+        measure = self_oscillation_metrics(silent, rate)
+        self.assertEqual(measure["status"], "measured")
+        self.assertEqual(measure["tail_rms_fs"], 0)
+        sustained = silent.copy()
+        sustained[rate * 2:] = .1
+        active = self_oscillation_metrics(sustained, rate)
+        self.assertAlmostEqual(active["tail_rms_fs"], .1, places=7)
 
     def test_response_and_step(self):
         t = np.arange(48000) / 48000
