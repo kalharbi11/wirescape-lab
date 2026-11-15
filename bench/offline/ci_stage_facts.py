@@ -87,10 +87,6 @@ def stage_collector(root, destination, name, section, meta, runner):
             reason = type(exc).__name__
     else:
         reason = "collector output absent"
-    if name == "memory" and platform.system() != "Linux":
-        reason = "Linux /proc VmRSS required"
-    if name == "startup" and platform.system() != "Linux":
-        reason = "Linux Xvfb and /proc Electron process-tree sampling required"
     write_json(path, {"SPDX-License-Identifier": "GPL-3.0-only",
                       "provenance": meta, "status": "unavailable", "reason": reason})
     return reason
@@ -130,9 +126,7 @@ def stage_full(root, destination, runner, meta):
             write_json(target / "unavailable.json",
                        {"SPDX-License-Identifier": "GPL-3.0-only", "provenance": meta,
                         "status": "unavailable",
-                        "reason": ("full L2 benchmark not executed on Windows"
-                                   if platform.system() == "Windows"
-                                   else "full benchmark output absent")})
+                        "reason": "full benchmark output absent"})
     return copied
 
 
