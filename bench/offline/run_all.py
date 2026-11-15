@@ -24,7 +24,8 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
-                     oscillator_metrics, patch_metrics, read_audio, step_metrics)
+                     oscillator_metrics, patch_metrics, read_audio,
+                     self_oscillation_metrics, step_metrics)
 from sidecar_probe import check_loads
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -484,37 +485,81 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
         "FFT": "Hann window; +/-4 bin harmonic exclusion; folded harmonics to 2*sample_rate"})
 
 
-def filter_sections(renderer, desc, meta, out, quick):
+def filter_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000)):
     rows = []
     seconds = .5 if quick else 2
-    for ident, port in (("essentials.vcf", "low12"), ("essentials.ladder", "audio")):
-        d = desc.get(ident)
-        if not d:
-            rows.append({"module": ident, "status": "unavailable"})
-            continue
-        for cutoff in (100, 1000, 5000):
-            for resonance in (0, .5, .9):
-                feed = mod(1, "essentials.noise", parameters={"level": .2})
-                outmod = mod(3, "essentials.output")
-                dry = patch_doc("filter reference", [feed, outmod],
-                                [edge(1, "audio", 3, "audio")], 3, "audio")
-                wet = patch_doc(ident, [feed, mod(2, ident, d["version"],
-                                                  {"cutoff": cutoff, "resonance": resonance}), outmod],
-                                [edge(1, "audio", 2, "audio"), edge(2, port, 3, "audio")],
-                                3, "audio")
-                reference, ref_status = run_wav(renderer, dry, [], seconds)
-                filtered, fil_status = run_wav(renderer, wet, [], seconds)
-                record = {"module": ident, "cutoff_hz": cutoff, "resonance": resonance}
-                if reference is not None and filtered is not None:
-                    record.update(status="measured", **filter_metrics(reference, filtered))
-                else:
-                    record.update(status="unavailable", reference=ref_status, filtered=fil_status)
-                rows.append(record)
-        rows.append({"module": ident, "status": "unavailable", "metric": "self_oscillation_hz",
-                     "reason": "no automated unexcited self-oscillation setup"})
-    save(out, "dsp", "filters", meta, rows,
-         {"method": "Welch PSD ratio; identical deterministic noise input and seed",
-          "spectral_nperseg": 4096})
+    for rate in rates:
+        for ident, port, max_resonance in (
+            ("essentials.vcf", "low12", .95),
+            ("essentials.ladder", "audio", 1)):
+            d = desc.get(ident)
+            if not d:
+                rows.append({"module": ident, "sample_rate_hz": rate,
+                             "status": "missing_descriptor", "reason": "descriptor absent"})
+                continue
+            for cutoff in (100, 1000, 5000):
+                for resonance in (0, .5, .9):
+                    feed = mod(1, "essentials.noise", parameters={"level": .2})
+                    outmod = mod(3, "essentials.output")
+                    dry = patch_doc("filter reference", [feed, outmod],
+                                    [edge(1, "audio", 3, "audio")], 3, "audio")
+                    wet = patch_doc(ident, [
+                        feed, mod(2, ident, d["version"],
+                                  {"cutoff": cutoff, "resonance": resonance}), outmod],
+                        [edge(1, "audio", 2, "audio"), edge(2, port, 3, "audio")],
+                        3, "audio")
+                    reference, ref_status = run_wav(renderer, dry, [], seconds, rate=rate)
+                    filtered, fil_status = run_wav(renderer, wet, [], seconds, rate=rate)
+                    record = {"module": ident, "sample_rate_hz": rate,
+                              "cutoff_hz": cutoff, "resonance": resonance,
+                              "output_tap": port, "metric": "frequency_response"}
+                    if reference is not None and filtered is not None:
+                        record.update(status="measured", **filter_metrics(
+                            reference, filtered, rate, cutoff, resonance, port))
+                    else:
+                        record.update(status="render_failed", reference=ref_status,
+                                      filtered=fil_status,
+                                      reason="reference or filtered render failed")
+                    rows.append(record)
+            # The event-script source is a clock pulse stopped after frame 1.
+            # Verify the actual excitation duration from its own render; do
+            # not mislabel a ramped gate as a one-sample impulse.
+            source = mod(1, "essentials.clock", parameters={
+                "bpm": 300, "ticks_per_beat": 24, "duty": .01, "run": 1})
+            output = mod(3, "essentials.output")
+            dry = patch_doc("impulse reference", [source, output],
+                            [edge(1, "clock", 3, "audio")], 3, "audio")
+            wet = patch_doc("impulse filter tail", [
+                source, mod(2, ident, d["version"],
+                            {"cutoff": 1000, "resonance": max_resonance}), output],
+                [edge(1, "clock", 2, "audio"), edge(2, port, 3, "audio")],
+                3, "audio")
+            stop = [{"frame": 1, "type": "setParam", "node": 1,
+                     "parameter": "run", "value": 0}]
+            excite, exc_status = run_wav(renderer, dry, stop, 3, rate=rate)
+            response, fil_status = run_wav(renderer, wet, stop, 3, rate=rate)
+            row = {"module": ident, "sample_rate_hz": rate,
+                   "metric": "self_oscillation", "output_tap": port,
+                   "resonance": max_resonance, "cutoff_hz": 1000}
+            if excite is not None and response is not None:
+                excited = np.flatnonzero(np.abs(excite[:, 0]) > 1e-6)
+                excitation_frames = int(len(excited))
+                row.update(self_oscillation_metrics(response, rate,
+                           impulse_end_s=(excitation_frames / rate)))
+                row["excitation_frames"] = excitation_frames
+                row["excitation_shape"] = ("single_sample_impulse"
+                                          if excitation_frames == 1
+                                          else "clock_gate_pulse_not_single_sample")
+            else:
+                row.update(status="render_failed",
+                           reason="impulse source or filtered tail render failed",
+                           source=exc_status, filtered=fil_status)
+            rows.append(row)
+    save(out, "dsp", "filters", meta, rows, {
+        "sample_rates_hz": list(rates),
+        "method": "Welch deterministic matched-noise PSD ratio, quadratic -3dB crossing and resonance peak",
+        "resonant_tail": "Clock gate halted at frame 1, actual excitation_frames checked; RMS after 2s",
+        "spectral_nperseg": 4096})
 
 
 def module_sections(renderer, desc, all_modules, meta, out, quick):
