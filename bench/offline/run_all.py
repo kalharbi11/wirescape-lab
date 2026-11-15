@@ -698,6 +698,7 @@ def sweep_sections(renderer, desc, meta, out, quick,
                    rates=(44100, 48000, 96000)):
     """Continuous-parameter zipper references plus fast cabled stimulation."""
     sweep_rows, cable_rows = [], []
+    runtime_modules = set(modules())
     for ident, descriptor in sorted(desc.items()):
         if not any(port["type"] == "WS2_AUDIO"
                    for port in descriptor["outputs"]):
@@ -710,6 +711,10 @@ def sweep_sections(renderer, desc, meta, out, quick,
                 entry = {"module": ident, "sample_rate_hz": rate,
                          "parameter": key, "min": bounds["min"], "max": bounds["max"],
                          "setpoints": 121, "effective_rate_hz": 120}
+                if ident not in runtime_modules:
+                    sweep_rows.append(dict(entry, status="unsupported_runtime_module",
+                        reason="descriptor is not registered in built-in runtime catalogue"))
+                    continue
                 if limited:
                     sweep_rows.append(dict(entry, status="unsupported_rate",
                         reason="Macro Oscillator requires 48000 Hz"))
@@ -746,6 +751,10 @@ def sweep_sections(renderer, desc, meta, out, quick,
             # modulation of a parameter lacking a dedicated CV input.
             entry = {"module": ident, "sample_rate_hz": rate,
                      "source": "essentials.vco", "source_frequency_hz": 3520}
+            if ident not in runtime_modules:
+                cable_rows.append(dict(entry, status="unsupported_runtime_module",
+                    reason="descriptor is not registered in built-in runtime catalogue"))
+                continue
             if limited:
                 cable_rows.append(dict(entry, status="unsupported_rate",
                                        reason="Macro Oscillator requires 48000 Hz"))
