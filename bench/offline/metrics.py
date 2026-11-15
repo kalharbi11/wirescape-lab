@@ -35,16 +35,67 @@ def basic(audio):
             "dc_fs": float(np.mean(audio))}
 
 
+def click_events(audio, rate=RATE, *, ratio_threshold=3.0):
+    """Broadband transient detector: 1 ms high-pass energy / adjacent 50 ms.
+
+    The surrounding reference excludes the transient window and its nearest
+    2 ms on either side. Recurrent saw resets raise the local reference rather
+    than yielding thousands of unqualified derivative outliers. Each clustered
+    event records a timestamp and a signed-level-independent size estimate.
+    """
+    x = np.asarray(audio, dtype=np.float64)
+    if x.ndim == 2:
+        x = np.mean(x, axis=1)
+    if x.ndim != 1 or not np.isfinite(x).all():
+        raise ValueError("click detector requires finite mono or stereo audio")
+    window = max(8, int(round(rate * .001)))
+    windows = len(x) // window
+    if windows < 60:
+        return []
+    sos = signal.butter(3, min(2000, rate * .2), btype="highpass",
+                        fs=rate, output="sos")
+    filtered = signal.sosfiltfilt(sos, x)
+    blocks = filtered[:windows * window].reshape(windows, window)
+    energy = np.mean(blocks ** 2, axis=1)
+    sums = np.r_[0., np.cumsum(energy)]
+    index = np.arange(windows)
+    left, right = np.maximum(0, index - 25), np.minimum(windows, index + 26)
+    near_left = np.maximum(left, index - 2)
+    near_right = np.minimum(right, index + 3)
+    count = (near_left - left) + (right - near_right)
+    reference = ((sums[near_left] - sums[left]) +
+                 (sums[right] - sums[near_right])) / np.maximum(count, 1)
+    ratio = np.sqrt(energy / np.maximum(reference, 1e-15))
+    valid = ((index >= 25) & (index < windows - 25) &
+             (ratio >= ratio_threshold) & (np.sqrt(energy) >= .002))
+    candidates = np.flatnonzero(valid)
+    events = []
+    for i in candidates:
+        center = int(i * window)
+        before = x[center - 20 * window:center]
+        after = x[center + window:center + 21 * window]
+        if not len(before) or not len(after):
+            continue
+        size = float(abs(np.mean(after) - np.mean(before)))
+        if size < .015:
+            continue
+        event = {"time_s": float((i + .5) * window / rate),
+                 "size_fs": size, "highpass_energy_ratio": float(ratio[i])}
+        if events and i - events[-1][0] <= 3:
+            if event["highpass_energy_ratio"] > events[-1][1]["highpass_energy_ratio"]:
+                events[-1] = (int(i), event)
+        else:
+            events.append((int(i), event))
+    return [event for _, event in events]
+
+
 def patch_metrics(audio, rate=RATE):
     values = basic(audio)
     if values["nonfinite_samples"]:
         return values
     mono = np.mean(audio, axis=1)
-    delta = np.abs(np.diff(mono))
-    median = float(np.median(delta)) if delta.size else 0.0
-    mad = float(np.median(np.abs(delta - median))) if delta.size else 0.0
-    limit = median + 10 * mad
-    windows = max(1, round(rate * 0.02))
+    events = click_events(mono, rate)
+    windows = max(1, round(rate * .02))
     n = len(mono) // windows
     powers = np.mean(mono[:n * windows].reshape(n, windows) ** 2, axis=1) if n else np.array([])
     quiet = powers < 1e-10
@@ -56,9 +107,12 @@ def patch_metrics(audio, rate=RATE):
             length += 1
         else:
             length = 0
-    values.update(click_delta_outliers=int(np.count_nonzero(delta > limit)) if mad else 0,
-                  click_delta_limit_fs=limit, silence_segments=runs,
-                  silence_window_ms=20, silence_rms_floor_fs=1e-5)
+    values.update(click_count=len(events), click_events=events,
+                  click_window_ms=1, click_reference_ms=50,
+                  click_highpass_hz=min(2000, rate * .2),
+                  click_energy_ratio_threshold=3.0,
+                  silence_segments=runs, silence_window_ms=20,
+                  silence_rms_floor_fs=1e-5)
     return values
 
 
