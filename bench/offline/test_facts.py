@@ -17,17 +17,22 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def run(argv, cwd, execute):
+def run(argv, cwd, execute, extra_env=None):
     started = time.perf_counter()
     if not execute:
         return {'command': argv, 'status': 'not executed', 'seconds': None, 'exit_code': None}
     try:
-        proc = subprocess.run(argv, cwd=cwd, text=True, capture_output=True,
-                              timeout=900, env={**os.environ, 'CI': '1', 'GITHUB_ACTIONS': '1'})
-        return {'command': argv, 'status': 'passed' if proc.returncode == 0 else 'failed',
-                'seconds': round(time.perf_counter() - started, 6),
-                'exit_code': proc.returncode, 'stdout_tail': proc.stdout[-100000:],
-                'stderr_tail': proc.stderr[-3000:]}
+        proc = subprocess.run(argv, cwd=cwd, text=True, capture_output=True, errors='replace',
+                              timeout=900, env={**os.environ, 'CI': '1', 'GITHUB_ACTIONS': '1',
+                                                **(extra_env or {})})
+        result = {'command': argv, 'status': 'passed' if proc.returncode == 0 else 'failed',
+                  'seconds': round(time.perf_counter() - started, 6),
+                  'exit_code': proc.returncode, 'stdout_tail': proc.stdout[-100000:],
+                  'stderr_tail': proc.stderr[-3000:]}
+        if proc.returncode:
+            # Staging redacts paths before keeping these 40 lines in committed facts.
+            result['failure_output_lines'] = (proc.stdout.splitlines() + proc.stderr.splitlines())[-40:]
+        return result
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {'command': argv, 'status': 'unavailable', 'seconds': None,
                 'exit_code': None, 'error': str(exc)}
@@ -45,10 +50,14 @@ def main():
                           'architecture': platform.machine(), 'audio_devices': 'not accessed'},
               'tests_executed': args.execute, 'suites': {}}
     build = ROOT / 'build/native'
-    ctest = run(['ctest', '--test-dir', str(build), '-N'], ROOT, build.joinpath('CTestTestfile.cmake').exists())
+    # A multi-config Visual Studio generator needs -C for both listing and execution.
+    config = ['-C', 'Release'] if os.name == 'nt' else []
+    ctest = run(['ctest', '--test-dir', str(build), *config, '-N'], ROOT,
+                build.joinpath('CTestTestfile.cmake').exists())
     count = len(re.findall(r'^\s*Test\s+#\d+:', ctest.get('stdout_tail', ''), re.MULTILINE)) if ctest.get('status') == 'passed' else None
     record['suites']['ctest'] = {'count': count, 'inventory': ctest,
-                                 'run': run(['ctest', '--test-dir', str(build), '--output-on-failure', '-j', '2'], ROOT,
+                                 'run': run(['ctest', '--test-dir', str(build), *config,
+                                             '--output-on-failure', '-j', '2'], ROOT,
                                             args.execute and count is not None)}
     # The sidecar protocol suite is a CTest subset; count it without re-running separately.
     if ctest.get('status') == 'passed':
@@ -76,7 +85,9 @@ def main():
             record['suites'][name] = {'count': int(total.group(1)) if total else None,
                 'inventory': listing,
                 'run': run(['node', str(pw), 'test', '--config', config], cwd,
-                           args.execute and listing.get('status') == 'passed')}
+                           args.execute and listing.get('status') == 'passed',
+                           {'WIRESCAPE_REAL_ENGINE': str(build / 'Release/wirescape-engine.exe')}
+                           if name == 'playwright_desktop' and os.name == 'nt' else None)}
     else:
         for name in ('playwright_studio', 'playwright_desktop'):
             record['suites'][name] = {'count': None, 'status': 'npm ci required in apps/studio'}

@@ -142,8 +142,14 @@ def parsed_command(command, prefix=None, timeout=120):
             return dict(status="measured", **json.loads(lines[0]))
         return dict(status="measured", **json.loads(raw))
     except (ValueError, TypeError, json.JSONDecodeError) as e:
+        reason = str(e)
+        # Preserve the probe's concrete failure message in published, sanitized facts;
+        # the separate raw stderr is intentionally stripped by ci_stage_facts.clean().
+        diagnostic = (result.get("stderr") or result.get("error") or "").strip().splitlines()
+        if reason == "process exit nonzero" and diagnostic:
+            reason = f"process exit {result.get('exit_code')}: {diagnostic[-1].strip()[:240]}"
         return {"status": "unavailable", "exit_code": result.get("exit_code"),
-                "reason": str(e), "stderr": result.get("stderr", result.get("error", ""))}
+                "reason": reason, "stderr": result.get("stderr", result.get("error", ""))}
 
 
 def markdown_rows(rows):
@@ -360,7 +366,13 @@ def cpu_sections(probes, mods, meta, out, quick):
                 cost_rows = [{"status": "unavailable", "stderr": result.get("stderr", ""),
                               "exit_code": result.get("exit_code")}]
     else:
-        cost_rows = [{"status": "unavailable", "reason": "valgrind or cost probe unavailable"}]
+        if not cost:
+            reason = "abi2_cost_probe binary unavailable"
+        elif os.name == "nt":
+            reason = "Valgrind Callgrind is unavailable on Windows"
+        else:
+            reason = "valgrind executable not found"
+        cost_rows = [{"status": "unavailable", "reason": reason}]
     save(out, "perf", "instruction_cost", meta, cost_rows,
          {"unit": "Ir per 256-frame block", "method": "subtract 2 callgrind run summaries"})
     patches = sorted(PATCHES.glob("*.json"))
