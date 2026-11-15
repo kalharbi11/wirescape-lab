@@ -22,6 +22,28 @@ python bench/compare/measure.py --dry-run
 
 Without `--engine`, the dry run launches a short-lived **synthetic sleeping Python process**, samples its CPU/RSS at 10 Hz for 1.2 s, writes a results folder and labels it `synthetic`. Add `--engine build/native/wirescape-engine` (Linux) or `--engine build/native/Release/wirescape-engine.exe` (Windows) with `--dry-run --tool wirescape` to measure the **actual idle Wirescape sidecar under `--null-audio`**, without any devices or owner authorization flags. This real-process sample is an idle-engine baseline, **not** a matched loaded-patch benchmark or hardware result. A live run without `--confirm-audio` exits before opening anything.
 
+## First real-device step: speaker/level check
+
+Before sampling any tool or attempting the mono comparison patch, verify the
+selected Wirescape output and speaker level:
+
+```sh
+python bench/device/run.py --speaker-check --confirm-audio --machine owner-device --device <selected-audio-id> --rate 48000 --block 256
+```
+
+The sidecar plays a 440 Hz tone at approximately **-18 dBFS RMS** for five
+seconds, with a short fade in/out, then prompts the owner to confirm audibility.
+The answer is saved to `owner-observations.json`. If there is no audible
+tone, diagnose device selection, driver, amp and speakers before benchmarking.
+The equivalent `--speaker-check --dry-run` uses the null sink without
+any audio or MIDI device and cannot verify loudness.
+
+The matched comparison fixtures retain their original gains: Wirescape mono
+was measured near **-62 dBFS RMS** offline at gain 0.02 and may sound silent
+even when the speaker path functions. See `bench/compare/patches.md` for
+each patch's level and MIDI prerequisites. Do not raise the reference gain
+independently of the other compared tools.
+
 ## 60-second run per tool and patch
 
 Start the named program manually, open the saved patch, set the same audio interface and 48 kHz / 256-frame settings, and identify its PID using Task Manager on Windows or `pgrep -af` on Linux. Record process version and host driver in the arguments; do not supply hostnames or personal identifiers as the machine label. Read `pw-top`'s **ERR** field or JACK xrun count on Pi before and after the run; use the tool's reported dropout counter on Windows. Enter only observed counts, not assumed zeros. Document the counter source if it resets during the run. The script prompts for the **initial** xrun counter before sampling, the final counter after sampling, and the tool's own CPU meter value.

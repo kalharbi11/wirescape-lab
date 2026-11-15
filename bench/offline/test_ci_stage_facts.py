@@ -5,8 +5,10 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 from ci_stage_facts import clean, copy_tables, stage_collector, stage_full
+from run_all import parsed_command
 
 
 META = {"commit": "0123456789abcdef", "date_et": "2026-11-14",
@@ -23,6 +25,45 @@ class StageTests(unittest.TestCase):
         self.assertEqual(data["count"], 3)
         self.assertNotIn("/tmp", data["detail"])
         self.assertNotIn("bad", data["detail"])
+
+    def test_failed_suite_keeps_redacted_last_lines(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "raw"
+            destination = Path(tmp) / "facts"
+            (root / "tests").mkdir(parents=True)
+            (root / "tests/summary.json").write_text(json.dumps({
+                "suites": {"ctest": {"run": {
+                    "status": "failed", "exit_code": 8,
+                    "stderr_tail": "discard raw log",
+                    "failure_output_lines": [
+                        "Could not find configuration /tmp/ci/secret",
+                        "100% tests failed"]}}}}))
+            self.assertEqual(stage_collector(root, destination, "tests",
+                                             "tests", META, "windows-x64"), "recorded")
+            data = json.loads((destination / "tests/ci-windows-x64/tests.json").read_text())
+            result = data["measurements"]["suites"]["ctest"]["run"]
+            self.assertEqual(result["exit_code"], 8)
+            self.assertNotIn("stderr_tail", result)
+            self.assertIn("[path]", result["failure_output_lines"][0])
+            self.assertNotIn("/tmp/ci/secret", str(result))
+
+    def test_probe_failure_diagnostic_is_sanitized_and_preserved(self):
+        for message in ("module_cpu_probe: create/prepare failed",
+                        "wirescape_soak: graph setup/render failed"):
+            with self.subTest(message=message), mock.patch(
+                    "run_all.call", return_value={
+                        "exit_code": 2, "stdout": "", "stderr": message + "\n"}):
+                raw = parsed_command(["synthetic-probe"])
+                self.assertEqual(raw["status"], "unavailable")
+                self.assertEqual(raw["reason"], "process exit 2: " + message)
+                staged = clean({"rows": [raw]})["rows"][0]
+                self.assertEqual(staged["reason"], raw["reason"])
+                self.assertNotIn("stderr", staged)
+        with mock.patch("run_all.call", return_value={
+                "exit_code": 1, "stdout": "", "stderr": "failure at /tmp/secret\n"}):
+            staged = clean(parsed_command(["synthetic-probe"]))
+        self.assertEqual(staged["reason"], "process exit 1: failure at [path]")
+        self.assertNotIn("/tmp/secret", str(staged))
 
     def test_stage_collector_and_missing_section(self):
         with tempfile.TemporaryDirectory() as tmp:
