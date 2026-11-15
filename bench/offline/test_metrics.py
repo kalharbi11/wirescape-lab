@@ -9,7 +9,8 @@ from pathlib import Path
 import numpy as np
 from scipy import signal
 
-from metrics import (basic, click_events, direct_envelope_metrics, filter_metrics,
+from metrics import (basic, click_events, direct_envelope_metrics,
+                     filter_impulse_evidence, filter_metrics,
                      folded_alias_frequencies, oscillator_metrics, patch_metrics,
                      read_audio, self_oscillation_metrics, step_metrics, sweep_residual_metrics)
 
@@ -131,6 +132,20 @@ class MetricsTests(unittest.TestCase):
         self.assertGreater(record["fast_to_slow_highpass_ratio"], 10)
         self.assertEqual(record["fast_duration_s"], 1)
         self.assertEqual(record["slow_duration_s"], 8)
+
+    def test_impulse_gate_pulse_not_misreported(self):
+        rate = 48000
+        signal = np.zeros(rate * 3)
+        signal[0:4] = 1
+        too_wide = filter_impulse_evidence(signal, rate, 4)
+        self.assertEqual(too_wide["status"], "not_exact_impulse")
+        self.assertIn("4 samples", too_wide["reason"])
+        self.assertNotIn("tail_rms_fs", too_wide)
+        self.assertEqual(too_wide["gate_pulse_tail_rms_fs"], 0)
+        exact = filter_impulse_evidence(signal, rate, 1)
+        self.assertEqual(exact["status"], "measured")
+        self.assertEqual(exact["excitation_shape"], "single_sample_impulse")
+        self.assertIn("tail_rms_fs", exact)
 
     def test_post_impulse_tail_rms_known_answer(self):
         rate = 48000
