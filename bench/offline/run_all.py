@@ -234,12 +234,12 @@ def direct_source(module, version, parameters, output_port, input_port=None,
     return patch_doc(module, parts, edges, 2, "audio")
 
 
-def wav_run(renderer, patch, events, seconds, block, folder, seed=7):
+def wav_run(renderer, patch, events, seconds, block, folder, seed=7, rate=RATE):
     patch_file, script_file, wav_file = (folder / n for n in ("patch.json", "script.json", "audio.wav"))
     patch_file.write_text(json.dumps(patch), encoding="utf-8")
     script_file.write_text(json.dumps(sorted(events, key=lambda x: x["frame"])), encoding="utf-8")
     result = call([renderer, "--patch", patch_file, "--script", script_file,
-                   "--out", wav_file, "--rate", RATE, "--block", block,
+                   "--out", wav_file, "--rate", rate, "--block", block,
                    "--seconds", seconds, "--seed", seed], timeout=90)
     try:
         if result["exit_code"] != 0:
@@ -249,16 +249,16 @@ def wav_run(renderer, patch, events, seconds, block, folder, seed=7):
                    if line.startswith("render_metrics ")]
         if len(metrics) != 1:
             raise ValueError("renderer metrics missing")
-        audio = read_audio(wav_file)
+        audio = read_audio(wav_file, rate=rate)
         return audio, {"status": "measured", "counters": metrics[0]}
     except (ValueError, OSError, TypeError, KeyError) as e:
         return None, {"status": "unavailable", "reason": str(e),
                       "stderr": result.get("stderr", result.get("error", ""))}
 
 
-def run_wav(renderer, patch, events, seconds, block=128, seed=7):
+def run_wav(renderer, patch, events, seconds, block=128, seed=7, rate=RATE):
     with tempfile.TemporaryDirectory(prefix="ws-offline-") as folder:
-        return wav_run(renderer, patch, events, seconds, block, Path(folder), seed)
+        return wav_run(renderer, patch, events, seconds, block, Path(folder), seed, rate)
 
 
 def build_module_patch(module_id, descriptor, override=None):
