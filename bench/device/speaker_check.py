@@ -101,10 +101,7 @@ def run_check(args, folder, log, engine_class):
             engine.send({"type": "setParam", "moduleId": 2, "paramId": "gain",
                          "value": round(TARGET_PEAK * fraction, 6)})
             time.sleep(ramp / 4)
-        engine.send({"type": "loadGraph", "patch": {
-            "format": "wirescape.native.patch", "version": 2,
-            "modules": [{"id": 3, "module": "essentials.output"}],
-            "connections": [], "outputs": []}})
+        # The gain ramp ends at zero; stopping the owned sidecar ends playback.
     except (RuntimeError, OSError, ValueError, TimeoutError) as error:
         playback_error = str(error)
         observation["error"] = playback_error
