@@ -573,7 +573,7 @@ def bundled_section(renderer, meta, out, quick):
         except (ValueError, OSError, KeyError, TypeError) as e:
             rows.append({"patch": path.name, "status": "unavailable", "reason": str(e)})
     save(out, "dsp", "bundled_patches", meta, rows,
-         {"clicks": "sample difference > median + 10 median absolute deviations",
+         {"clicks": "1 ms third-order 2 kHz high-pass residual RMS versus surrounding 50 ms (2 ms guard); threshold 3x; clustered events carry time, size, ratio",
           "silence": "contiguous 20ms windows with RMS under 1e-5 FS"})
 
 
