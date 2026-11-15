@@ -110,9 +110,13 @@ def patch_rows(build, valgrind):
                 document = json.loads(patch_path.read_text(encoding="utf-8"))
                 events = events_for_patch(document)
                 script = Path(temp) / "events.json"
-                script.write_text(json.dumps(events, sort_keys=True), encoding="utf-8")
                 seed = 37  # matches bench/golden/render.py
                 def command(n):
+                    # Renderer rejects events beyond its duration. Retain only
+                    # golden-script events inside both short measurement windows.
+                    events_in_window = [event for event in events if event["frame"] < n * FRAMES]
+                    script.write_text(json.dumps(events_in_window, sort_keys=True),
+                                      encoding="utf-8")
                     return [renderer, "--patch", patch_path.resolve(),
                             "--script", script, "--out", Path(temp) / "render.wav",
                             "--rate", RATE, "--block", FRAMES,
