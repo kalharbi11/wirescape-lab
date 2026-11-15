@@ -75,18 +75,29 @@ const priority={unattributed_busy:0,script:1,paint:2,style:3,layout:4};
 function traceSummary(trace) {
   const events=Array.isArray(trace)?trace:trace?.traceEvents;
   if (!Array.isArray(events)) return {status:'unavailable',reason:'no Chromium Tracing.traceEvents'};
-  const main=events.find(e=>e.ph==='M' && e.name==='thread_name' &&
+  const candidates=events.filter(e=>e.ph==='M' && e.name==='thread_name' &&
     /CrRendererMain|RendererMain/.test(String(e.args?.name||'')));
-  if (!main) return {status:'unavailable',reason:'renderer main-thread metadata not present'};
-  const thread=events.filter(e=>e.pid===main.pid && e.tid===main.tid);
+  if (!candidates.length) return {status:'unavailable',reason:'renderer main-thread metadata not present'};
+  // Several renderer processes may exist; prefer the page with explicit
+  // interaction markers instead of blindly using the first renderer thread.
+  let main=null,thread=[];
+  let bestScore=-1;
+  for(const candidate of candidates) {
+    const entries=events.filter(e=>e.pid===candidate.pid && e.tid===candidate.tid);
+    const marked=entries.some(e=>markerLabel(e).includes('WS_UI_PROFILE_START')) &&
+                 entries.some(e=>markerLabel(e).includes('WS_UI_PROFILE_END'));
+    const durations=entries.filter(e=>e.ph==='X' && Number.isFinite(e.dur) && e.dur>0).length;
+    const score=(marked?1000000:0)+durations;
+    if(score>bestScore){bestScore=score;main=candidate;thread=entries;}
+  }
   const starts=thread.filter(e=>markerLabel(e).includes('WS_UI_PROFILE_START') && Number.isFinite(e.ts));
   const ends=thread.filter(e=>markerLabel(e).includes('WS_UI_PROFILE_END') && Number.isFinite(e.ts));
   const windows=thread.filter(e=>e.ph==='X' && Number.isFinite(e.ts)
     && Number.isFinite(e.dur) && e.dur>0);
   if (!windows.length) return {status:'unavailable',reason:'no duration events on renderer main thread'};
   const marked=starts.length>0 && ends.length>0 && ends.at(-1).ts>starts[0].ts;
-  const start=marked?starts[0].ts:Math.min(...windows.map(e=>e.ts));
-  const end=marked?ends.at(-1).ts:Math.max(...windows.map(e=>e.ts+e.dur));
+  const start=marked?starts[0].ts:windows.reduce((v,e)=>Math.min(v,e.ts),Infinity);
+  const end=marked?ends.at(-1).ts:windows.reduce((v,e)=>Math.max(v,e.ts+e.dur),-Infinity);
   const transitions=[];
   for (const e of windows) {
     const a=Math.max(start,e.ts), b=Math.min(end,e.ts+e.dur);
