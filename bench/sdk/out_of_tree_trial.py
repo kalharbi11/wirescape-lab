@@ -233,6 +233,13 @@ def main():
     p.add_argument("--platform",required=True,choices=("linux-x64","windows-x64"))
     p.add_argument("--results",type=Path,default=ROOT/"bench/sdk/results")
     args=p.parse_args()
+    # The trial deliberately edits native/, apps/ and docs/ inside its working
+    # tree. Never permit accidental use against an owner's local checkout.
+    workspace=os.environ.get("GITHUB_WORKSPACE")
+    if os.environ.get("GITHUB_ACTIONS") != "true" or not workspace:
+        p.error("transient product edits are permitted only in a GitHub Actions checkout")
+    if Path(workspace).resolve() != ROOT.resolve():
+        p.error("GITHUB_WORKSPACE must match the CI checkout being modified")
     sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True,cwd=ROOT).strip()
     out=args.results.resolve()/args.platform
     if out.exists(): shutil.rmtree(out)
