@@ -68,7 +68,7 @@ jobs:
         run: python bench/sdk/out_of_tree_trial.py --platform ${{ matrix.name }}
       - name: Neutral facts vocabulary gate
         run: |
-          if grep -niE '\\b(should|better|worse|good|bad|best)\\b' facts/code/out_of_tree_trial.md; then exit 1; fi
+          if grep -niE '\b(should|better|worse|good|bad|best)\b' facts/code/out_of_tree_trial.md; then exit 1; fi
       - name: Verify per-step documentation and recorded run
         run: |
           python -c "import json, pathlib, sys; root=pathlib.Path('bench/sdk/results')/sys.argv[1]; rows=json.loads((root/'trial.json').read_text())['steps']; assert len(rows)>=10; assert all(row['doc_section'] and row['command'] and row['location'] and row['status'] in ('pass','fail') and row['duration_seconds']>=0 for row in rows); assert (root/'out_of_tree_trial.md').is_file()" ${{ matrix.name }}
