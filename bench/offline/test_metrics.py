@@ -11,7 +11,7 @@ from scipy import signal
 
 from metrics import (basic, click_events, direct_envelope_metrics, filter_metrics,
                      folded_alias_frequencies, oscillator_metrics, patch_metrics,
-                     read_audio, self_oscillation_metrics, step_metrics)
+                     read_audio, self_oscillation_metrics, step_metrics, sweep_residual_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -119,6 +119,18 @@ class MetricsTests(unittest.TestCase):
         response = -((f - 750) / 200) ** 2 + 2
         from metrics import parabolic_peak_hz
         self.assertAlmostEqual(parabolic_peak_hz(f, response, 7), 750, delta=1)
+
+    def test_sweep_residual_ratio_known_answer(self):
+        rate = 48000
+        fast_time = np.arange(rate) / rate
+        slow_time = np.arange(rate * 8) / rate
+        fast = .1 * np.sin(math.tau * 440 * fast_time)
+        fast += .08 * np.sin(math.tau * 8000 * fast_time)
+        slow = .1 * np.sin(math.tau * 440 * slow_time)
+        record = sweep_residual_metrics(fast, slow, rate)
+        self.assertGreater(record["fast_to_slow_highpass_ratio"], 10)
+        self.assertEqual(record["fast_duration_s"], 1)
+        self.assertEqual(record["slow_duration_s"], 8)
 
     def test_post_impulse_tail_rms_known_answer(self):
         rate = 48000
