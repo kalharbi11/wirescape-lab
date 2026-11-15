@@ -2,7 +2,8 @@
 """Catalogue probe metadata extraction tests."""
 import unittest
 
-from run_all import descriptors, markdown_rows, modules
+from run_all import (descriptors, linear_sweep_events, markdown_rows, modules,
+                     parameter_info, steady_module_patch)
 
 
 class CatalogueTests(unittest.TestCase):
@@ -18,6 +19,29 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(info["essentials.quantizer"]["parameters"]["scale"]["max"], 13)
         self.assertIn("run", info["example.step_sequencer"]["parameters"])
         self.assertEqual(info["example.step_sequencer"]["parameters"]["run"]["initial"], 1)
+
+    def test_continuous_and_stepped_parameters(self):
+        flags = ('ws::param("rate", "Rate", 1, 200, 20, "Hz", flags, WS2_LINEAR, 0),'
+                 'ws::param("shape", "Shape", 0, 3, 0, "", stepped, WS2_LINEAR, 1)')
+        parsed = parameter_info(flags)
+        self.assertFalse(parsed["rate"]["stepped"])
+        self.assertTrue(parsed["shape"]["stepped"])
+        self.assertTrue(descriptors()["ports.macro_oscillator"]["parameters"]["model"]["stepped"])
+        self.assertFalse(descriptors()["essentials.vcf"]["parameters"]["cutoff"]["stepped"])
+
+    def test_linear_sweep_endpoints_and_gate_fixture(self):
+        events = linear_sweep_events("cutoff", 20, 20000, 48000, 1)
+        self.assertEqual(events[0]["frame"], 0)
+        self.assertEqual(events[0]["value"], 20)
+        self.assertEqual(events[-1]["frame"], 47999)
+        self.assertEqual(events[-1]["value"], 20000)
+        self.assertTrue(all(x["frame"] < y["frame"] for x, y in zip(events, events[1:])))
+        descriptor = descriptors()["essentials.chaos_lite"]
+        patch, reason = steady_module_patch("essentials.chaos_lite", descriptor)
+        self.assertIsNone(reason)
+        incoming = [c["to"]["port"] for c in patch["connections"]]
+        self.assertIn("gate", incoming)
+        self.assertIn("velocity", incoming)
 
     def test_fact_table_attribution(self):
         lines = markdown_rows([{"module": "essentials.vco",
