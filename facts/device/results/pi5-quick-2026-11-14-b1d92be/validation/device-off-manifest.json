@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "machine": "pi5-patched-null",
+  "os": "Linux",
+  "os_version": "6.18.20-v8-16k+",
+  "cpu": "aarch64",
+  "commit": "b1d92befa36afca6165217fdb4e1480bbf0e791a",
+  "rate": 48000,
+  "block": 256,
+  "audio_device": "default",
+  "driver": "null",
+  "capture_backend": "none",
+  "dry_run": true,
+  "scenario": "all",
+  "engine_mode": "null-audio",
+  "warnings": [],
+  "offline_script_count": 238,
+  "planned_duration_s": 810.0,
+  "dry_run_clock_scale": 100.0,
+  "dry_run_min_command_interval_ms": 3.0,
+  "engine_exit_code": 0,
+  "completed": true
+}

@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "file": "engine-stderr.log",
+      "kind": "absolute_device_path",
+      "replacements": 10
+    }
+  ],
+  "raw_files_preserved": true,
+  "recording_unchanged": true,
+  "recording_sha256": "b45086b4ade3ea5637a44923c02781f52642c0d506a6912d955e77e70efff8bc"
+}

@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "source_sha": "cd9a6a5d447bf6c078df0c9b9f9f5df869e71ff2",
+  "architecture": "aarch64",
+  "platform": "Linux",
+  "versions": {
+    "python": "3.13.5",
+    "node": "v22.23.4",
+    "npm": "10.9.9",
+    "cmake": "cmake version 4.2.3",
+    "c++": "c++ (Debian 14.2.0-19) 14.2.0",
+    "git": "git version 2.47.3"
+  },
+  "display_backend": "xvfb",
+  "stages": [
+    {
+      "stage": "native-build",
+      "exit_code": 0,
+      "log": "native-build.log"
+    },
+    {
+      "stage": "studio-ci",
+      "exit_code": 0,
+      "log": "studio-ci.log"
+    },
+    {
+      "stage": "desktop-ci",
+      "exit_code": 0,
+      "log": "desktop-ci.log"
+    },
+    {
+      "stage": "desktop-build",
+      "exit_code": 0,
+      "log": "desktop-build.log"
+    },
+    {
+      "stage": "real-electron",
+      "exit_code": 0,
+      "log": "playwright.log"
+    }
+  ],
+  "reason": "Actual ARM64 Electron plus native device-off smoke passed (functional display only)",
+  "binary_sha256": {
+    "engine": "6b6099f2c3280bee7c8431ef0e4202950512d1494f92ee0e626b7578a57bc08c",
+    "electron": "a6731f11af8e40ec02821f8f032d66692982628ce7632f959ee981b1462526b7"
+  },
+  "test_counts": {
+    "expected": 1,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0
+  }
+}
