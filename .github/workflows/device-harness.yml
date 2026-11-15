@@ -102,6 +102,10 @@ jobs:
           ENGINE="$(python -c "import sys; sys.path.insert(0,'tools'); from dev import _sidecar_executable; p=_sidecar_executable('Release'); print(p.as_posix()) if p else sys.exit(2)")"
           test -f "$ENGINE"
           echo "BENCH_ENGINE=$ENGINE" >> "$GITHUB_ENV"
+      - name: Speaker check against actual null sink (no audio device)
+        run: |
+          python bench/device/run.py --dry-run --speaker-check --engine "$BENCH_ENGINE" --machine ci-speaker
+          python -c "import json,glob; f=glob.glob('bench/device/results/ci-speaker/*/owner-observations.json'); assert len(f)==1; x=json.load(open(f[0])); assert x['completed'] and x['mode']=='null-audio' and x['heard']=='not-applicable-null-sink' and x['engine_mode']=='null-audio'"
       - name: Real null-sink all-scenarios dry-run
         run: python bench/device/run.py --dry-run --scenario all --engine "$BENCH_ENGINE" --machine ci-all
       - name: Real null-sink per-scenario reports
@@ -125,6 +129,7 @@ jobs:
             bench/device/results/ci-*/**/analysis.json
             bench/device/results/ci-*/**/manifest.json
             bench/device/results/ci-*/**/events.ndjson
+            bench/device/results/ci-speaker/**/owner-observations.json
             bench/device/results/ci-*/**/engine-stderr.log
             bench/device/results/limits/**/*
             bench/compare/results/ci-null/**/report.md
