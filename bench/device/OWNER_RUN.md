@@ -95,58 +95,60 @@ Optional: use `--device <engine-device-id> --rate 48000 --block 256` to select t
 
 `quick` and `full` run 900 and 3600 *planned* seconds of scenario steps (startup and cleanup extra). `all` executes all four patch-family scenarios, the all-parameter extreme set, and a 600-second endurance scenario. A 50 ms ramp at 200 updates/s, randomized parameter walks, topology edits, patch switches, panic, note storms, stray note-offs and buffer changes are all scripted. The engine's native parameter bounds in the hello catalogue determine extrema; the pure simulator cannot validate those bounds. External MIDI actions require explicit `--confirm-midi` and a visible port.
 
-## Electrical round-trip latency (owner with physical loopback cable)
+## Electrical loopback: uncalibrated host-command-to-ADC diagnostic
 
-This probe measures **40 short clicks**, one every 500 ms for 20 seconds,
-through the real sidecar output into a physically connected audio input.
-Do not use a microphone, a monitor sink, or the Windows process-loopback
-helper: this test needs an **output-to-input cable**, an explicit engine output
-device ID and a PortAudio input device index/name. The capture uses the same
-input Recorder as run.py; the engine uses --confirm-audio and no MIDI.
-Start with speaker/amp level very low and raise it only as needed. The patch is
-**muted until armed**; each 1 kHz click is capped at **0.20 full-scale peak
-(-14.0 dBFS peak)** and lasts roughly 8 ms. Turn monitoring off to prevent
-feedback; connect only the intended interface output to its input.
+**Status against issue #54: blocked.** The current tool does **not**
+measure calibrated output-DAC-to-input-ADC round-trip latency. It records
+the input click's offset from a Python host-command midpoint. A physical
+cable only validates that audio traversed the intended output and input path;
+it does not supply the timestamp of the emitted DAC sample.
 
-List input device indices (devices off; query only) using:
+A real run requires an output-to-input cable, a selected engine output device ID,
+a selected PortAudio input device index/name, and explicit --confirm-audio.
+Never use a microphone, monitor sink or Windows process-loopback helper. This
+test does not use MIDI. Keep the amplifier low, direct monitoring disabled
+and feedback paths disconnected. The patch loads muted and only then starts
+40 brief 1 kHz clicks at <=0.20 full-scale peak (about -14 dBFS peak),
+one every 500 ms for 20 seconds.
+
+Query input IDs without opening a stream:
     python -c "import sounddevice as sd; print(sd.query_devices())"
-
-Obtain the actual **engine** output ID from the owner/engine's audio-device
-list; it is not necessarily the PortAudio input index. Verify the cable and
-input levels.
-
-Safe offline rehearsal (generated noisy clicks with exact known delay,
-**no engine, audio device, capture backend or MIDI**):
+Obtain the engine output ID from the engine/Studio audio-device list; it need
+not match the PortAudio input index. If either ID or the cable is missing,
+skip the physical run. The devices-off synthetic rehearsal:
     python bench/device/latency.py --dry-run --sweep --machine synthetic
-
-For a physical single-buffer run from the lab root on the owner machine:
-    python bench/device/latency.py --confirm-audio --device <engine-output-id> --input-device <input-id> --rate 48000 --block 128 --machine pi5
-
-For the requested 64/128/256 sweep:
+Real run, owner-confirmed only:
     python bench/device/latency.py --confirm-audio --device <engine-output-id> --input-device <input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-latency
+On Windows substitute --machine windows-laptop; --engine <binary> is optional.
 
-Use --machine windows-laptop on Windows. --engine <path> selects the built
-sidecar when auto-discovery fails. No real run starts without --confirm-audio
-and both device selections. --dry-run rejects authorization/device flags.
+Each of blocks 64, 128 and 256 produces a separate folder containing
+manifest.json, latency.json and report.md; a real run also produces capture.flac,
+events.ndjson and engine-stderr.log. Reported frame and millisecond
+median/min/max/population stddev are explicitly **uncalibrated host-command
+midpoint-to-input-click offsets**, not hardware latency. The 2 × buffer
+arithmetic is retained solely as a **non-interpretable nominal comparison**;
+it does not measure device or driver overhead. Runs are refused below
+-40 dBFS or fewer than 30/40 matched clicks.
 
-Each block gets a distinct results/<machine>/<date>-<sha7>-latency-<block>/
-directory with manifest.json, latency.json, report.md and, for real
-runs, events.ndjson, engine-stderr.log and capture.flac. Measurements
-show median, min, max and population standard deviation in **frames and ms**,
-observed engine rate/buffer, selected input channel RMS and median minus
-2 × buffer. The measurement **refuses** when fewer than 30/40 clicks match
-or the captured level is below -40 dBFS, recording the reason instead of
-publishing a latency statistic. A synthetic run additionally stores its known
-injected delay. Failed sweep blocks do not stop the remaining blocks.
+**Timing and clocks.** Python measures monotonic time immediately before
+the run=1 command is sent and immediately after its reply; the midpoint
+is a heuristic reference. The request-to-reply interval is observable but
+**does not bound when the first sample reaches the output DAC**. The recorder
+obtains PortAudio inputBufferAdcTime and currentTime, which belong to the
+input stream's PortAudio time base, and translates them using a Python
+monotonic clock reading in the callback. Scheduling delay and stream clock
+mapping are not calibrated. Output engine/DAC onset time, common input/output
+clock calibration and absolute error bounds are **unavailable**; neither
+the request/ack span nor one sample of synthetic correlation error bounds
+hardware latency. Even a high click-detection count does not fix that.
+True round-trip measurement requires an output sample/DAC timeline correlated
+to the input ADC on a proven shared clock, or an equivalent simultaneous
+physical reference. Refer the requirement to Fable instead of publishing an
+uncalibrated reading as a round-trip latency fact.
 
-**Timing scope:** the clock is armed through a host-side protocol command and
-capture is aligned to PortAudio's first ADC timestamp. Since there is no
-engine DAC callback timestamp in this harness, the result is a
-**command-to-ADC loopback estimate**, not a sample-accurate calibrated
-DAC-to-ADC figure. report.md notes the send/ack anchor uncertainty.
-Review this limitation when comparing the number to two engine buffers.
-Review recordings and stderr for private data before upload; neither belongs
-in git. A complete folder can be archived with bench/device/pack.py.
+No physical tests are part of automated runs. Review any recordings and engine
+stderr for private data; do not commit them. Archive complete folders only
+after owner review.
 
 ## Reports, offline references and transfer
 
