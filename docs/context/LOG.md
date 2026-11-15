@@ -8,8 +8,7 @@ named **Wire**; `docs/context/CODEX_LEAD.md` and `lead: run` trigger for a stand
 **Next for Fable (fresh session):** 1) review `status/review` PRs and the Codex device results; 2) T0.13
 edit-continuity design; 3) T2.0 live-edit design note with an Opus subagent drafting; 4) Phase 1 from T1.1
 once #55 is merged and T0.14 (local build) is solved.
-**Open for the owner:** T0.14 (allow `add_repo` or choose another way to get the two libraries); veto the
-name Wire if you dislike it.
+**Open for the owner:** T0.14 (allow `add_repo` or choose another way to get the two libraries).
 Signed: Fable, 2026-11-15
 
 ## 2026-11-15 — builder PRs merged, next issues queued, API v3 design note (Fable)
