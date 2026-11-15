@@ -24,9 +24,9 @@ from zoneinfo import ZoneInfo
 import numpy as np
 from scipy import signal
 
-from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
-                     oscillator_metrics, patch_metrics, read_audio,
-                     self_oscillation_metrics, step_metrics, sweep_residual_metrics)
+from metrics import (basic, direct_envelope_metrics, envelope_metrics,
+                     filter_impulse_evidence, filter_metrics, oscillator_metrics,
+                     patch_metrics, read_audio, step_metrics, sweep_residual_metrics)
 from sidecar_probe import check_loads
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -559,12 +559,8 @@ def filter_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000
             if excite is not None and response is not None:
                 excited = np.flatnonzero(np.abs(excite[:, 0]) > 1e-6)
                 excitation_frames = int(len(excited))
-                row.update(self_oscillation_metrics(response, rate,
-                           impulse_end_s=(excitation_frames / rate)))
-                row["excitation_frames"] = excitation_frames
-                row["excitation_shape"] = ("single_sample_impulse"
-                                          if excitation_frames == 1
-                                          else "clock_gate_pulse_not_single_sample")
+                row.update(filter_impulse_evidence(response, rate,
+                                                   excitation_frames))
             else:
                 row.update(status="render_failed",
                            reason="impulse source or filtered tail render failed",
