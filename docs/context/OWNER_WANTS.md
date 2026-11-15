@@ -8,6 +8,12 @@ things are done today.
 
 ---
 
+## What Wirescape is for
+Wirescape is meant to be a flexible, open-source platform where developers, professionals, DIY builders and
+beginners can all explore music making, multidisciplinary creative practice and physical computing, in one
+place and without friction. I want it raw, adaptable and customizable, without giving up high-quality sound
+engines, strong synthesis or a serious music workflow.
+
 ## Why this lab exists
 - I want a big-level review, restructuring and infrastructure pass over the whole app: efficiency, sound
   engine quality, integration, compatibility, organisation and setup.

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Constraints
 
-**Draft by Keel, 2026-11-14. The owner edits this file; agents don't.**
+**Drafted by Keel 2026-11-14; accepted by the owner as is, 2026-11-15. The owner edits this file; agents don't.**
 
 ## Fixed (changing any of these needs the owner)
 - Licences: GPL-3.0 product; MIT for the SDK, `module2.h` and `native/voice/`. Third-party licences kept.

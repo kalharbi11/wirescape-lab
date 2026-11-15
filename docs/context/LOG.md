@@ -1,6 +1,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — handover to Fable (Keel)
+Brief written (`docs/context/BRIEF.md`); owner accepted CONSTRAINTS as is; vision statement added to
+OWNER_WANTS. GUTTR: GPL-3.0-only, ID `guttr`, package in `future_modules/guttur/package/`. Open: lab #36
+(gpt-builder3, speaker check). Pending owner runs: Pi 60-min, Windows 15-min, comparisons.
+Signed: Keel, 2026-11-15
+
 ## 2026-11-15 — prep status (Keel)
 **On main:** hosted CI (Linux x64/ARM64, Windows, full sanitizers); bench harnesses (offline, device,
 cross-tool compare, out-of-tree SDK trial, facts workflow); ported fixes (OSC Out phantom gate, LAN warning,
