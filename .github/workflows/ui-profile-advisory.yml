@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: UI CPU attribution (advisory, devices off)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'bench/offline/ui_profile*.cjs'
+      - 'bench/offline/test_ui_profile_parse.cjs'
+      - 'facts/app/ui-attribution*.json'
+      - '.github/workflows/ui-profile-advisory.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ui-cpu-trace:
+    name: FakeEngine Chromium CPU/profile (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: Install Studio and Chromium (no audio or MIDI devices)
+        run: |
+          npm --prefix apps/studio ci --no-audit --no-fund
+          cd apps/studio
+          npx playwright install --with-deps chromium
+      - name: Build FakeEngine Studio preview
+        run: npm --prefix apps/studio run build
+      - name: Parser known-answer tests
+        run: |
+          node --check bench/offline/ui_profile_parse.cjs
+          node --check bench/offline/ui_profile.cjs
+          node bench/offline/test_ui_profile_parse.cjs
+      - name: Collect six repeated UI workloads with CDP CPU and performance traces
+        run: node bench/offline/ui_profile.cjs --repeats 6 --output build_reports/ui-profile
+      - name: Upload raw CPU/performance traces (noncommitted, short retention)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-cpu-profile-${{ github.run_id }}
+          path: |
+            build_reports/ui-profile/summary.json
+            build_reports/ui-profile/trials.json
+            build_reports/ui-profile/raw/*.cpuprofile
+            build_reports/ui-profile/raw/*.trace.json
+          if-no-files-found: warn
+          retention-days: 7
