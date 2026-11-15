@@ -61,8 +61,14 @@ jobs:
           $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
           if (!$dll) { throw 'PortAudio DLL unavailable' }
           "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Assert the trial refuses local-checkout execution
+        run: |
+          python -c 'import os,subprocess,sys; e=os.environ.copy(); e.pop("GITHUB_ACTIONS",None); p=subprocess.run([sys.executable,"bench/sdk/out_of_tree_trial.py","--platform","linux-x64"],env=e,text=True,capture_output=True); assert p.returncode!=0 and "permitted only in a GitHub Actions checkout" in p.stderr'
       - name: Execute documented external-first trial in disposable checkout
         run: python bench/sdk/out_of_tree_trial.py --platform ${{ matrix.name }}
+      - name: Neutral facts vocabulary gate
+        run: |
+          if grep -niE '\\b(should|better|worse|good|bad|best)\\b' facts/code/out_of_tree_trial.md; then exit 1; fi
       - name: Verify per-step documentation and recorded run
         run: |
           python -c "import json, pathlib, sys; root=pathlib.Path('bench/sdk/results')/sys.argv[1]; rows=json.loads((root/'trial.json').read_text())['steps']; assert len(rows)>=10; assert all(row['doc_section'] and row['command'] and row['location'] and row['status'] in ('pass','fail') and row['duration_seconds']>=0 for row in rows); assert (root/'out_of_tree_trial.md').is_file()" ${{ matrix.name }}
