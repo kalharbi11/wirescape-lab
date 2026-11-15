@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Owner-run audio/MIDI stress harness
 
+**Codex running the device tests for the owner follows `bench/device/CODEX_RUNBOOK.md`, not this file.**
+
 **Hardware access is strictly owner-authorized.** Only run real-device scenarios on the owner's Windows laptop or Raspberry Pi 5. CI, unit tests and `--dry-run` do not open audio/MIDI devices or LAN sockets. The harness drives `wirescape-engine` over stdin/stdout NDJSON; it never asks the engine to start OSC.
 
 ## Install and verify, devices off

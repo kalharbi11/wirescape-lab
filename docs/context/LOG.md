@@ -1,6 +1,22 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — decisions recorded, Codex device runbook (Fable)
+**Done:** owner decisions on the plan recorded in `proposals/0002-plan.md` (yes to all, with changes: no
+owner patches for golden renders; fast developer loop and developer mode for modules; developer test
+scripts brought forward; device testing through Codex; undo/restore as small edits into block 2 if cheap;
+Daisy/CLAP proofs first to postpone). `docs/context/CONSTRAINTS.md` carries the owner's devices-off change.
+Wrote `bench/device/CODEX_RUNBOOK.md` v1 (Pi: full run at 256 and 128, heavy patches at 128, 64-frame
+probe, GUTTR benchmark, app memory, health log; Windows: quick run at 256 and 128). The GUTTR benchmark
+build and run was verified in the cloud container; the device commands are from `run.py`'s options and
+were not executed.
+**State of main:** product tree unchanged. Builder PRs open: #45 (ready), #46, #47, #48 (drafts).
+**Next:** review and merge #45–#48; fold in device results when Codex files them; revise the plan's phase
+text for the decisions; Phase 0, then Phase 1.
+**Not covered by the runbook yet:** round-trip latency (no tool), device change during playback as an
+isolated test, GUTTR voice counts between 1 and 16 (needs GUTTR in the tree).
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — audit and plan (Fable)
 **Done:** read the brief, context docs and `facts/` (five subagent digests, key numbers re-checked).
 Wrote `proposals/0001-audit.md` (findings by area, each tied to a fact file) and `proposals/0002-plan.md`

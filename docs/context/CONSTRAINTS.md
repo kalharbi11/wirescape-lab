@@ -6,6 +6,10 @@
 ## Fixed (changing any of these needs the owner)
 - Licences: GPL-3.0 product; MIT for the SDK, `module2.h` and `native/voice/`. Third-party licences kept.
 - Devices off in tests, CI and agent runs; real devices only behind `--confirm-*`, run by the owner.
+  **Owner's change, 2026-11-15:** the owner may start Codex on the owner's laptop to run a Fable-written
+  device runbook on the Pi, using `--confirm-*`. Codex runs only the runbook's commands and doesn't
+  improvise or change code. Results go to the draft release, plus a PR with the small files to
+  `facts/device/`. (Runbook: `bench/device/CODEX_RUNBOOK.md`.)
 - Realtime rules in the audio path (no allocation, locks, I/O, exceptions, logging or JSON).
 - The owner's saved patches and the bundled patches keep loading and sounding the same
   (an intentional sound change is listed in the PR and measured).
