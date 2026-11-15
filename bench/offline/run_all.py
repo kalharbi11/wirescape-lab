@@ -399,42 +399,79 @@ def cpu_sections(probes, mods, meta, out, quick):
     return len(patches)
 
 
-def oscillator_sections(renderer, desc, meta, out, quick):
+def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000)):
     rows = []
     seconds = .5 if quick else 2
-    for ident, models in (("essentials.vco", [None]),
-                          ("ports.macro_oscillator", list(range(24)))):
-        d = desc.get(ident)
-        if not d:
-            rows.append({"module": ident, "status": "unavailable", "reason": "descriptor missing"})
-            continue
-        output = "audio" if models == [None] else "main"
-        for model in models:
-            for hz in (110, 440, 1760, 5000):
-                params = {"frequency": hz} if model is None else {
-                    "model": model, "coarse": 12 * math.log2(hz / 261.6255653005986)}
-                entry = {"module": ident, "model": model, "target_hz": hz}
-                if model is not None:
-                    # Plaits coarse is +/-48 semitones. Supply the residual via
-                    # a bounded constant CV connected to the pitch input.
-                    coarse = float(np.clip(params["coarse"], -48, 48))
-                    residual_cv = (params["coarse"] - coarse) / 12
-                    params["coarse"] = coarse
-                    patch = direct_source(ident, d["version"], params, output)
-                    if abs(residual_cv) > 1e-9:
-                        patch["modules"].append(mod(3, "essentials.scale_offset", parameters={
-                            "scale": 0, "offset": residual_cv}))
-                        patch["connections"].append(edge(3, "control", 1, "pitch"))
+    targets = (110, 440, 1760, 3520, 7040)
+    configurations = (
+        [("essentials.vco", None, "sine")] +
+        [("essentials.chaos_lite", shape, name)
+         for shape, name in ((0, "saw"), (1, "square"), (2, "sine"))] +
+        [("ports.macro_oscillator", model, "model_%02d" % model)
+         for model in range(24)]
+    )
+    for rate in rates:
+        for ident, model, waveform in configurations:
+            descriptor = desc.get(ident)
+            for hz in targets:
+                entry = {"module": ident, "model": model, "waveform": waveform,
+                         "target_hz": hz, "sample_rate_hz": rate}
+                if descriptor is None:
+                    rows.append(dict(entry, status="unsupported_descriptor",
+                                     reason="source descriptor absent"))
+                    continue
+                if ident == "ports.macro_oscillator" and rate != 48000:
+                    rows.append(dict(entry, status="unsupported_rate",
+                                     reason="Macro Oscillator prepare() requires 48000 Hz; "
+                                            "native/modules2/macro_oscillator/dsp.h"))
+                    continue
+                if ident == "essentials.vco":
+                    patch = direct_source(ident, descriptor["version"],
+                                          {"frequency": hz}, "audio")
+                elif ident == "essentials.chaos_lite":
+                    patch = direct_source(ident, descriptor["version"], {
+                        "shape_a": model, "level_a": 1, "level_b": 0,
+                        "body_mix": 0, "roughness": 0, "drift": 0,
+                        "jitter": 0, "fall": 0, "lfo_depth": 0,
+                        "cutoff": 20000, "level": 1, "pan_a": 0,
+                    }, "left")
+                    patch["modules"].extend([
+                        mod(3, "essentials.scale_offset",
+                            parameters={"scale": 0, "offset": math.log2(hz / 261.6255653)}),
+                        mod(4, "essentials.scale_offset",
+                            parameters={"scale": 0, "offset": 1}),
+                    ])
+                    patch["connections"].extend([
+                        edge(3, "control", 1, "pitch"),
+                        edge(4, "control", 1, "gate"),
+                        edge(4, "control", 1, "velocity")])
                 else:
-                    patch = direct_source(ident, d["version"], params, output)
-                audio, result = run_wav(renderer, patch, [], seconds)
+                    # Macro's coarse semitones are clamped to +/-48; the
+                    # remaining pitch offset is supplied by a CV source.
+                    note = 12 * math.log2(hz / 261.6255653005986)
+                    coarse = float(np.clip(note, -48, 48))
+                    patch = direct_source(ident, descriptor["version"],
+                                          {"model": model, "coarse": coarse}, "main")
+                    residual = (note - coarse) / 12
+                    if abs(residual) > 1e-9:
+                        patch["modules"].append(mod(3, "essentials.scale_offset",
+                                                    parameters={"scale": 0, "offset": residual}))
+                        patch["connections"].append(edge(3, "control", 1, "pitch"))
+                audio, result = run_wav(renderer, patch, [], seconds, rate=rate)
                 if audio is not None:
-                    result.update(oscillator_metrics(audio, hz))
+                    result.update(oscillator_metrics(audio, hz, rate))
+                else:
+                    result["reason"] = (result.get("reason") or
+                                        result.get("stderr") or "renderer failed")
                 rows.append(dict(entry, **result))
-    save(out, "dsp", "oscillators", meta, rows,
-         {"alias_floor_unit": "dBFS non-harmonic FFT energy", "thd_unit": "dB",
-          "pitch_unit": "cents", "vco_waveform": "sine",
-          "macro_models": "0..23", "FFT": "Hann window, harmonic exclusion +/-4 bins"})
+    save(out, "dsp", "oscillators", meta, rows, {
+        "sample_rates_hz": list(rates), "target_hz": list(targets),
+        "alias_floor_unit": "dBFS energy at expected folded-harmonic bins, excluding true harmonic bins",
+        "nonharmonic_floor_unit": "dBFS all nonharmonic FFT bins (not equivalent to aliasing)",
+        "thd_unit": "dB", "pitch_unit": "cents",
+        "chaos_waveforms": "A oscillator saw/square/sine; B level=0, gate and velocity held at 1",
+        "macro_models": "0..23 (48000 Hz only)",
+        "FFT": "Hann window; +/-4 bin harmonic exclusion; folded harmonics to 2*sample_rate"})
 
 
 def filter_sections(renderer, desc, meta, out, quick):
