@@ -114,7 +114,7 @@ kill "$(cat bench/device/pi-app-memory.pid)"
 ```
 *If the smoke fails:* keep the memory log anyway, report the failure text.
 
-### P7. 🔊 Electrical round-trip latency, Pi 5 (64/128/256 frames)
+### P7. 🔊 Uncalibrated electrical loopback diagnostic, Pi 5 (64/128/256 frames)
 **Only with an owner-confirmed output-to-input cable and both IDs.** No
 microphone/monitor sink; no MIDI. Turn speaker/amp gain down, disable direct
 monitoring and make sure the cable cannot create feedback. Before starting,
@@ -128,10 +128,15 @@ Then run the physical sweep:
 ```sh
 python bench/device/latency.py --confirm-audio --device <pi-output-id> --input-device <pi-input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
 ```
-The command writes a separate report/manifest per block. Read the median,
-min, max, standard deviation (ms and frames), observed engine rate/buffer,
-median minus 2×buffer, detected clicks and channel level from each report.
-Do not report any number for a refused run (<30 clicks or below -40 dBFS).
+The command writes a separate report/manifest per block. Record only
+**uncalibrated host-command-midpoint-to-ADC click offsets** (median/min/max/
+stddev in ms and frames), engine rate/buffer, detected clicks and level.
+The optional `offset - 2×buffer` arithmetic is not device overhead and cannot
+be interpreted as calibrated round-trip latency. Request/ack duration is
+**not** an error bound: output DAC sample onset, input/output clock mapping,
+and absolute timing error remain unmeasured. Do not report any offset for a
+refused run (<30 clicks or below -40 dBFS). Mark issue #54 calibrated
+DAC-to-ADC requirement blocked; do not submit these as that measurement.
 **If it fails:** keep all generated reports; note error and continue with §3.
 If no cable or either ID is missing, mark P7 skipped and why.
 
@@ -148,7 +153,7 @@ options with `--record input --input-device <input-id>`. With neither, use `--re
 ### W2. 🔊 15-minute quick run at 128 frames
 Same command with `--block 128 --results bench/device/results-w2-quick-128`.
 
-### W3. 🔊 Electrical round-trip latency, Windows laptop (64/128/256 frames)
+### W3. 🔊 Uncalibrated electrical loopback diagnostic, Windows laptop (64/128/256 frames)
 **Only with a physical output-to-input cable and both IDs, as for P7.**
 No process-loopback helper, monitor sink or MIDI. Tell the owner the patch
 starts muted and then plays short 1 kHz clicks at -14 dBFS peak for 20 seconds
@@ -157,8 +162,10 @@ per block. Wait for "go"; keep the amplifier low and disable direct monitoring.
 python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
 python bench/device/latency.py --confirm-audio --device <windows-output-id> --input-device <windows-input-id> --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
 ```
-For each block, record the same statistics and refusals as P7, plus the
-command-anchor uncertainty stated in the report. **If it fails:** keep reports,
+For each block, record the same **uncalibrated** offsets and refusals as P7,
+plus the request/ack span as a diagnostic (not timing uncertainty or error
+bound). The input PortAudio ADC clock is projected to Python monotonic at
+callback arrival; this is not a verified shared DAC/ADC clock. **If it fails:** keep reports,
 note the error and continue. If no physical cable or either ID is missing,
 mark W3 skipped and why.
 
@@ -199,7 +206,7 @@ PR title: `facts(device): Pi 5 and Windows runs, <YYYY-MM-DD> (<sha7>)`. Do not 
 **App memory (Pi):** max Electron total MB, max engine MB
 **What the owner heard:** (ask after each 🔊 run: any glitches, silence, distortion? write their words)
 **Loopback cable available:** Pi yes/no, laptop yes/no
-**Latency P7/W3 per block:** clicks detected/40, level dBFS, median/min/max/stddev (frames, ms), observed rate/buffer, median minus 2×buffer, anchor uncertainty; or REFUSED with exact reason
+**P7/W3 diagnostic per block (NOT calibrated DAC-to-ADC latency):** clicks detected/40, level dBFS, uncalibrated command-to-ADC offset median/min/max/stddev (frames, ms), rate/buffer, nominal offset-minus-2×buffer arithmetic (NOT driver overhead), request/ack span (NOT error bound); or REFUSED with exact reason. **Issue #54 hardware measurement:** blocked until DAC onset + common clock provenance are available.
 **Failures:** step, last lines of output
 **Large files:** uploaded to release … / left at …
 Signed: gpt-helper, <YYYY-MM-DD>
