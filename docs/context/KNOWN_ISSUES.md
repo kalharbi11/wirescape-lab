@@ -18,7 +18,7 @@ Numbers are issues/PRs in `kalharbi11/wirescape` (frozen). Open PRs there were n
 - **Linux: virtual MIDI inputs not listed — fixed in lab (#31).** The snapshot's libremidi observer
   used `track_virtual` off, so software ALSA sequencer ports (including "Wirescape Bench") were absent.
   The lab MIDI observer now enables `track_virtual`, matching the Pi quick run's temporary patch
-  (`facts/device/results/pi5-quick-2026-11-14-b1d92be/source.patch`).
+  (`facts/device/results/pi5/2026-11-14-b1d92be-quick/source.patch`).
   Device-free fake-backend tests cover virtual-port listing, stable system identities and unplug/reconnect;
   live ALSA behaviour remains subject to the owner's next device-authorized run.
 - **Buffer-size change gap:** in that run, `setBufferFrames` was followed by 546 ms of silence and panic by 306 ms
