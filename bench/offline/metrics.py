@@ -208,8 +208,9 @@ def parabolic_crossing_hz(frequency, magnitude_db, reference_db, nominal_hz):
         return None
     index = int(crossings[np.argmin(abs(frequency[crossings] - nominal_hz))])
     lo, hi = float(frequency[index]), float(frequency[index + 1])
-    linear = lo + (goal - magnitude_db[index]) * (hi - lo) / max(
-        magnitude_db[index + 1] - magnitude_db[index], -1e-30)
+    slope = float(magnitude_db[index + 1] - magnitude_db[index])
+    linear = (lo + (goal - magnitude_db[index]) * (hi - lo) / slope
+              if abs(slope) > 1e-12 else .5 * (lo + hi))
     if 0 < index < len(frequency) - 2:
         # Three points around the crossing constrain a parabola, whose root
         # must lie in the physically observed bracket or we use linear.
