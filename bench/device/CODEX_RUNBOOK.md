@@ -121,13 +121,13 @@ monitoring and make sure the cable cannot create feedback. Before starting,
 tell the owner the click patch starts muted, then delivers 40 short 1 kHz clicks
 at -14 dBFS **peak** (0.20 full scale), every 500 ms for 20 seconds per block.
 Wait for the owner's "go". Dry-run rehearsal, device-free:
-`
+```sh
 python bench/device/latency.py --dry-run --sweep --machine pi5 --results bench/device/results-p7-rehearsal
-`
+```
 Then run the physical sweep:
-`
+```sh
 python bench/device/latency.py --confirm-audio --device <pi-output-id> --input-device <pi-input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
-`
+```
 The command writes a separate report/manifest per block. Read the median,
 min, max, standard deviation (ms and frames), observed engine rate/buffer,
 median minus 2×buffer, detected clicks and channel level from each report.
@@ -146,17 +146,17 @@ options with `--record input --input-device <input-id>`. With neither, use `--re
 *If it fails on the capture helper:* rerun once with `--record none`.
 
 ### W2. 🔊 15-minute quick run at 128 frames
-Same command with --block 128 --results bench/device/results-w2-quick-128.
+Same command with `--block 128 --results bench/device/results-w2-quick-128`.
 
 ### W3. 🔊 Electrical round-trip latency, Windows laptop (64/128/256 frames)
 **Only with a physical output-to-input cable and both IDs, as for P7.**
 No process-loopback helper, monitor sink or MIDI. Tell the owner the patch
 starts muted and then plays short 1 kHz clicks at -14 dBFS peak for 20 seconds
 per block. Wait for "go"; keep the amplifier low and disable direct monitoring.
-`
+```powershell
 python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
 python bench/device/latency.py --confirm-audio --device <windows-output-id> --input-device <windows-input-id> --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
-`
+```
 For each block, record the same statistics and refusals as P7, plus the
 command-anchor uncertainty stated in the report. **If it fails:** keep reports,
 note the error and continue. If no physical cable or either ID is missing,
