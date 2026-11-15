@@ -83,7 +83,7 @@ class ScriptedSoakTests(unittest.TestCase):
     @mock.patch("run_all.call")
     def test_nonzero_returns_original_stderr_and_code(self, fake_call):
         fake_call.return_value = {"exit_code": 2, "stdout": "",
-                                  "stderr": "module_cpu_probe: create/prepare failed\\n"}
+                                  "stderr": "module_cpu_probe: create/prepare failed\n"}
         actual = parsed_command(["fake"], prefix="module_cpu_probe ")
         self.assertEqual(actual["status"], "unavailable")
         self.assertEqual(actual["exit_code"], 2)
