@@ -57,6 +57,7 @@ jobs:
             sudo apt-get install -y --no-install-recommends cloc graphviz xvfb
             sudo apt-get install -y --no-install-recommends valgrind || true
           else
+            python -m pip install psutil
             choco install cloc graphviz -y --no-progress
             echo 'C:\Program Files\Graphviz\bin' >> "$GITHUB_PATH"
           fi
@@ -113,19 +114,21 @@ jobs:
           fi
           python bench/offline/protocol_facts.py --binary "$BINARY"
 
-      - name: Linux idle and loaded engine RSS
-        if: runner.os == 'Linux'
+      - name: Null-sidecar idle and loaded process RSS
         run: python bench/offline/memory_facts.py
 
       - name: FakeEngine knob/cable traces for 50, 100 and 200 modules
         run: node bench/offline/ui_frames.cjs
 
-      - name: Linux ten-run Electron startup, paint and RSS
-        if: runner.os == 'Linux'
-        run: xvfb-run -a node bench/offline/electron_startup.cjs
+      - name: Ten-run Electron startup, paint and RSS
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a node bench/offline/electron_startup.cjs
+          else
+            node bench/offline/electron_startup.cjs
+          fi
 
       - name: Full L2 engine/module CPU, soak and DSP fact pack
-        if: runner.os == 'Linux'
         run: python bench/offline/run_all.py --out-dir build_reports/l4/full
 
       - name: Stage runner-scoped facts with missing-section records
