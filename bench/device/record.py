@@ -26,6 +26,8 @@ class Recorder:
         self.temp=None
         self.stream=None
         self.started=None
+        # First recorded ADC sample in the host monotonic domain (input mode only).
+        self.first_sample_monotonic=None
         self.file=self.directory/"capture.flac"
         self.queue=None
         self.writer=None
@@ -51,6 +53,11 @@ class Recorder:
         self.writer=threading.Thread(target=write,daemon=True)
         self.writer.start()
         def capture(samples,frames,timestamp,status):
+            if self.first_sample_monotonic is None:
+                # PortAudio times share a device clock; convert its relative ADC
+                # age to time.monotonic at callback entry, before copying samples.
+                self.first_sample_monotonic=(time.monotonic()
+                    - (timestamp.currentTime - timestamp.inputBufferAdcTime))
             try:self.queue.put_nowait(samples.copy())
             except queue.Full:self.overruns+=1
         self.stream=sd.InputStream(samplerate=self.rate,channels=2,
