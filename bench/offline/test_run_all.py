@@ -2,8 +2,8 @@
 """Catalogue probe metadata extraction tests."""
 import unittest
 
-from run_all import (descriptors, linear_sweep_events, markdown_rows, modules,
-                     parameter_info, steady_module_patch)
+from run_all import (cabled_module_patch, descriptors, linear_sweep_events,
+                     markdown_rows, modules, parameter_info, steady_module_patch)
 
 
 class CatalogueTests(unittest.TestCase):
@@ -42,6 +42,21 @@ class CatalogueTests(unittest.TestCase):
         incoming = [c["to"]["port"] for c in patch["connections"]]
         self.assertIn("gate", incoming)
         self.assertIn("velocity", incoming)
+
+    def test_cabled_fixture_does_not_duplicate_existing_input(self):
+        catalogue = descriptors()
+        for ident in ("essentials.vcf", "essentials.ladder", "fx.reverb"):
+            with self.subTest(module=ident):
+                patch, selected, reason = cabled_module_patch(ident, catalogue[ident])
+                self.assertIsNone(reason)
+                incoming = [edge for edge in patch["connections"]
+                            if edge["to"]["module"] == 1 and
+                               edge["to"]["port"] == selected["port"]]
+                self.assertEqual(len(incoming), 1)
+                origin = incoming[0]["from"]["module"]
+                source = next(node for node in patch["modules"] if node["id"] == origin)
+                self.assertEqual(source["module"], "essentials.vco")
+                self.assertEqual(source["parameters"]["frequency"], 3520)
 
     def test_fact_table_attribution(self):
         lines = markdown_rows([{"module": "essentials.vco",
