@@ -1,0 +1,204 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Generate device-off facts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['bench/**']
+  pull_request:
+    paths: ['bench/offline/**', '.github/workflows/facts.yml']
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: facts-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: facts / ${{ matrix.id }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { id: linux-x64, runner: ubuntu-latest }
+          - { id: linux-arm64, runner: ubuntu-24.04-arm }
+          - { id: windows-x64, runner: windows-latest }
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      CI: '1'
+      GITHUB_ACTIONS: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+
+      - name: Install analysis and DSP tooling
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0 lizard -r bench/offline/requirements.txt
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends cloc graphviz xvfb
+            sudo apt-get install -y --no-install-recommends valgrind || true
+          else
+            choco install cloc graphviz -y --no-progress
+            echo 'C:\Program Files\Graphviz\bin' >> "$GITHUB_PATH"
+          fi
+
+      - name: Verify fact staging on synthetic device-free records
+        run: python -m unittest discover -s bench/offline -p 'test_ci_stage_facts.py' -v
+
+      - name: Install Studio, Electron and Chromium
+        run: |
+          npm --prefix apps/studio ci --no-audit --no-fund
+          npm --prefix apps/desktop ci --no-audit --no-fund
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            (cd apps/studio && npx playwright install --with-deps chromium)
+          else
+            (cd apps/studio && npx playwright install chromium)
+          fi
+          CHROME="$(node -e "process.stdout.write(require('./apps/studio/node_modules/playwright').chromium.executablePath())")"
+          echo "WIRESCAPE_CHROMIUM=$CHROME" >> "$GITHUB_ENV"
+
+      - name: Regression test early Electron hello capture
+        run: |
+          node --check bench/offline/electron_stderr.cjs
+          node --check bench/offline/electron_startup.cjs
+          node bench/offline/test_electron_stderr.cjs
+
+      - name: Regression test UI tracing and cross-platform Vite launch
+        run: |
+          node --check bench/offline/ui_frames.cjs
+          node --check bench/offline/test_ui_frames.cjs
+          node bench/offline/test_ui_frames.cjs
+
+      - name: Build Release native and desktop
+        run: |
+          python tools/dev.py build --headless --config Release
+          npm --prefix apps/desktop run build
+
+      - name: Repository LOC, complexity, graph, residue and binaries
+        run: python bench/offline/repo_facts.py
+
+      - name: Native, Python, Studio, desktop and protocol suite inventory and timings
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a python bench/offline/test_facts.py --execute
+          else
+            python bench/offline/test_facts.py --execute
+          fi
+
+      - name: Null-sidecar protocol latency
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            BINARY="$PWD/build/native/Release/wirescape-engine.exe"
+          else
+            BINARY="$PWD/build/native/wirescape-engine"
+          fi
+          python bench/offline/protocol_facts.py --binary "$BINARY"
+
+      - name: Linux idle and loaded engine RSS
+        if: runner.os == 'Linux'
+        run: python bench/offline/memory_facts.py
+
+      - name: FakeEngine knob/cable traces for 50, 100 and 200 modules
+        run: node bench/offline/ui_frames.cjs
+
+      - name: Linux ten-run Electron startup, paint and RSS
+        if: runner.os == 'Linux'
+        run: xvfb-run -a node bench/offline/electron_startup.cjs
+
+      - name: Full L2 engine/module CPU, soak and DSP fact pack
+        if: runner.os == 'Linux'
+        run: python bench/offline/run_all.py --out-dir build_reports/l4/full
+
+      - name: Stage runner-scoped facts with missing-section records
+        if: always()
+        run: python bench/offline/ci_stage_facts.py --runner '${{ matrix.id }}' --output .facts-staged/facts
+
+      - name: Upload facts for publication
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: facts-staged-${{ matrix.id }}
+          path: .facts-staged/facts/
+          if-no-files-found: warn
+
+      - name: Upload raw Playwright traces and logs (not committed)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: facts-raw-${{ matrix.id }}
+          path: |
+            build_reports/l4/
+            build_reports/**/*.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  publish:
+    name: Publish facts-auto and fact PR
+    if: ${{ github.event_name != 'pull_request' && needs.collect.result == 'success' }}
+    needs: [collect]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Download runner-scoped facts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: facts-staged-*
+          path: ${{ runner.temp }}/facts-collected
+          merge-multiple: true
+      - name: Commit without history rewrite, then open/update PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git ls-remote --exit-code --heads origin facts-auto >/dev/null; then
+            git fetch origin facts-auto
+            git switch -c facts-auto --track origin/facts-auto
+            git merge --no-edit origin/main
+          else
+            git switch -c facts-auto origin/main
+          fi
+          mkdir -p facts
+          cp -R "$RUNNER_TEMP/facts-collected/." facts/
+          git add facts
+          if ! git diff --cached --quiet; then
+            git commit -m "facts: CI run $GITHUB_RUN_ID"
+          fi
+          git push origin facts-auto
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main --head facts-auto --json number --jq '.[0].number' || true)"
+          title="facts: CI run $GITHUB_RUN_ID"
+          body="Device-free CI measurements from $GITHUB_SHA. Linux x64/ARM64 and Windows facts. Missing measurements are recorded explicitly; raw traces are workflow artifacts."
+          if [[ -n "$existing" ]]; then
+            gh pr edit "$existing" --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body" ||
+              echo "::warning::facts-auto pushed, PR update unavailable (repository setting or permissions)"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head facts-auto \
+              --title "$title" --body "$body" ||
+              echo "::warning::facts-auto pushed, PR creation unavailable (repository setting or permissions)"
+          fi
