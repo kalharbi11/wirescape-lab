@@ -25,7 +25,7 @@ import numpy as np
 
 from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
                      oscillator_metrics, patch_metrics, read_audio,
-                     self_oscillation_metrics, step_metrics)
+                     self_oscillation_metrics, step_metrics, sweep_residual_metrics)
 from sidecar_probe import check_loads
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -628,6 +628,130 @@ def module_sections(renderer, desc, all_modules, meta, out, quick,
         "highpass": "2nd order Butterworth 2kHz"})
 
 
+
+def linear_sweep_events(parameter, low, high, rate, seconds, control_hz=200):
+    """Sustain a piecewise-linear parameter ramp, 200 setpoints/s.
+
+    The native engine performs its declared 5-ms base-parameter smoothing
+    between setpoints; this is not audio-rate parameter automation.
+    """
+    length = round(rate * seconds)
+    steps = max(1, round(control_hz * seconds))
+    return [{"frame": min(length - 1, round(i * (length - 1) / steps)),
+             "type": "setParam", "node": 1, "parameter": parameter,
+             "value": low + (high - low) * i / steps}
+            for i in range(steps + 1)]
+
+
+def steady_module_patch(ident, descriptor, override=None):
+    patch, reason = build_module_patch(ident, descriptor, override)
+    if patch is None:
+        return None, reason
+    if ident == "essentials.chaos_lite":
+        # CHAOS is gate/velocity controlled. Silence at zero gate would not
+        # establish a valid baseline for audio parameter sweeps.
+        next_id = max(m["id"] for m in patch["modules"]) + 1
+        patch["modules"].append(mod(next_id, "essentials.scale_offset",
+                                    parameters={"scale": 0, "offset": 1}))
+        patch["connections"].extend([
+            edge(next_id, "control", 1, "gate"),
+            edge(next_id, "control", 1, "velocity")])
+    return patch, None
+
+
+def sweep_sections(renderer, desc, meta, out, quick,
+                   rates=(44100, 48000, 96000)):
+    """Continuous-parameter zipper references plus fast cabled stimulation."""
+    sweep_rows, cable_rows = [], []
+    for ident, descriptor in sorted(desc.items()):
+        if not any(port["type"] == "WS2_AUDIO"
+                   for port in descriptor["outputs"]):
+            continue
+        params = {key: bounds for key, bounds in descriptor["parameters"].items()
+                  if not bounds["stepped"] and bounds["min"] != bounds["max"]}
+        for rate in rates:
+            limited = ident == "ports.macro_oscillator" and rate != 48000
+            for key, bounds in params.items():
+                entry = {"module": ident, "sample_rate_hz": rate,
+                         "parameter": key, "min": bounds["min"], "max": bounds["max"],
+                         "control_hz": 200}
+                if limited:
+                    sweep_rows.append(dict(entry, status="unsupported_rate",
+                        reason="Macro Oscillator requires 48000 Hz"))
+                    continue
+                if quick:
+                    sweep_rows.append(dict(entry, status="not_run_quick_mode",
+                        reason="1 s + 8 s full sweep skipped by --quick"))
+                    continue
+                patch, reason = steady_module_patch(ident, descriptor,
+                                                    {key: bounds["min"]})
+                if patch is None:
+                    sweep_rows.append(dict(entry, status="unsupported_probe",
+                                           reason=reason))
+                    continue
+                fast_events = linear_sweep_events(key, bounds["min"], bounds["max"],
+                                                  rate, 1)
+                slow_events = linear_sweep_events(key, bounds["min"], bounds["max"],
+                                                  rate, 8)
+                fast, fs = run_wav(renderer, patch, fast_events, 1, rate=rate)
+                slow, ss = run_wav(renderer, patch, slow_events, 8, rate=rate)
+                if fast is None or slow is None:
+                    sweep_rows.append(dict(entry, status="render_failed",
+                        reason="fast/slow sweep renderer failed",
+                        fast_source=fs, slow_source=ss))
+                    continue
+                metrics = sweep_residual_metrics(fast, slow, rate)
+                sound_level = float(max(basic(fast)["rms_fs"],
+                                        basic(slow)["rms_fs"]))
+                sweep_rows.append(dict(entry, status=("measured" if sound_level > 1e-9
+                                                      else "silent_output"),
+                                       source_rms_fs=sound_level, **metrics))
+            # A 3520-Hz audio oscillator provides direct *cabled* stimulation
+            # to a documented module signal port; it is not represented as a
+            # modulation of a parameter lacking a dedicated CV input.
+            entry = {"module": ident, "sample_rate_hz": rate,
+                     "source": "essentials.vco", "source_frequency_hz": 3520}
+            if limited:
+                cable_rows.append(dict(entry, status="unsupported_rate",
+                                       reason="Macro Oscillator requires 48000 Hz"))
+                continue
+            patch, reason = steady_module_patch(ident, descriptor)
+            if patch is None:
+                cable_rows.append(dict(entry, status="unsupported_probe",
+                                       reason=reason))
+                continue
+            ports = descriptor["inputs"]
+            selected = next((p for p in ports if p["type"] in
+                             ("WS2_CV_BI", "WS2_CV_UNI", "WS2_PITCH")), None)
+            selected = selected or next((p for p in ports if p["type"] == "WS2_AUDIO"), None)
+            if selected is None:
+                cable_rows.append(dict(entry, status="not_applicable",
+                          reason="module has no CV/pitch/audio signal input for a cable"))
+                continue
+            source_id = max(m["id"] for m in patch["modules"]) + 1
+            patch["modules"].append(mod(source_id, "essentials.vco",
+                                        parameters={"frequency": 3520}))
+            patch["connections"].append(edge(source_id, "audio", 1, selected["port"]))
+            audio, result = run_wav(renderer, patch, [], .25 if quick else 1, rate=rate)
+            if audio is None:
+                cable_rows.append(dict(entry, input_port=selected["port"],
+                                       status="render_failed", diagnostic=result))
+            else:
+                sos = signal.butter(2, 2000, btype="highpass", fs=rate, output="sos")
+                high = signal.sosfilt(sos, np.mean(audio, axis=1))
+                cable_rows.append(dict(entry, input_port=selected["port"],
+                    input_type=selected["type"], status="measured",
+                    highpass_rms_fs=float(np.sqrt(np.mean(high * high))),
+                    **basic(audio)))
+    save(out, "dsp", "parameter_sweeps", meta, sweep_rows, {
+         "rates_hz": list(rates), "fast_duration_s": 1, "slow_duration_s": 8,
+         "control_hz": 200, "method": "piecewise-linear min-to-max setParam with engine 5ms smoothing",
+         "baseline": "high-pass residual of 8x slower sweep",
+         "quick_mode": "sweep references explicitly skipped"})
+    save(out, "dsp", "audio_rate_cables", meta, cable_rows, {
+         "source": "3520 Hz VCO output into supported CV, pitch, or audio signal input",
+         "note": "Cabled signal probe; do not infer this is PARAM_MOD when no dedicated input exists"})
+
 def envelope_sections(renderer, meta, out, quick):
     seconds = 1 if quick else 2
     attack, release = .05, .1
@@ -742,6 +866,7 @@ def main(argv=None):
     oscillator_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
     filter_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
     module_sections(binaries["wirescape_render"], desc, mods, meta, out, args.quick, rates)
+    sweep_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
     envelope_sections(binaries["wirescape_render"], meta, out, args.quick)
     bundled_section(binaries["wirescape_render"], meta, out, args.quick, rates)
     print("Device-free fact pack complete: " + str(out))
