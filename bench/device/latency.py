@@ -315,6 +315,15 @@ def run_one(args, block, sha, date):
     finally:
         (folder / "latency.json").write_text(
             json.dumps(details, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+        # pack.py requires a completed manifest; keep per-click data in latency.json.
+        summary = {key: value for key, value in details.items()
+                   if key != "measurement"}
+        if "measurement" in details:
+            summary["measurement_summary"] = {
+                key: value for key, value in details["measurement"].items()
+                if key != "arrivals"}
+        (folder / "manifest.json").write_text(
+            json.dumps(summary, indent=2, allow_nan=False) + "\n", encoding="utf-8")
         lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->",
                  "# Electrical loopback latency", "",
                  f"Mode: {'synthetic (no hardware)' if args.dry_run else 'owner-authorized hardware'}",
