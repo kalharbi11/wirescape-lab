@@ -1,0 +1,29 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "runner": "windows-x64",
+      "runner_arch": "X64",
+      "runner_image": "win25-vs2026",
+      "runner_image_version": "20261103.298.1",
+      "runner_os": "Windows"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "sections": {
+    "l2": {},
+    "memory": "Linux /proc VmRSS required",
+    "protocol": "recorded",
+    "repo": "recorded",
+    "startup": "Linux Xvfb and /proc Electron process-tree sampling required",
+    "tests": "recorded",
+    "ui": "recorded"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "ci_provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "method": "subtract 2 callgrind run summaries",
+      "unit": "Ir per 256-frame block"
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "date_et": "2026-11-14",
+      "machine": {
+        "architecture": "x86_64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "Intel(R) Xeon(R) 6975P-C",
+        "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "ir_per_block": 78600.66,
+        "name": "abi1_mono",
+        "status": "measured",
+        "totals": [
+          6048261,
+          13908327
+        ]
+      },
+      {
+        "ir_per_block": 64142.62,
+        "name": "abi2_mono",
+        "status": "measured",
+        "totals": [
+          5472169,
+          11886431
+        ]
+      },
+      {
+        "ir_per_block": 186469.09,
+        "name": "abi2_modulated",
+        "status": "measured",
+        "totals": [
+          11501274,
+          30148183
+        ]
+      },
+      {
+        "ir_per_block": 487121.55,
+        "name": "abi2_poly8",
+        "status": "measured",
+        "totals": [
+          26969076,
+          75681231
+        ]
+      },
+      {
+        "ir_per_block": 1484467.55,
+        "name": "abi2_quad_vca_lpg8",
+        "status": "measured",
+        "totals": [
+          77260177,
+          225706932
+        ]
+      }
+    ],
+    "section": "instruction_cost"
+  }
+}

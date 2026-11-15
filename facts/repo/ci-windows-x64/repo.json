@@ -1,0 +1,85 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "binary_sizes": {
+      "files": 209,
+      "missing_roots": 0
+    },
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "complexity": {
+      "functions": 3817,
+      "lizard_version": "not exposed"
+    },
+    "date_et": "2026-11-14",
+    "dependencies": {
+      "entries": 146,
+      "note": "Native licences require the dependency licence files; npm lock licences may be absent."
+    },
+    "graph": {
+      "edges": 279,
+      "svg": true,
+      "targets": 175
+    },
+    "includes": {
+      "direct_includes": 374,
+      "files": 46
+    },
+    "loc": {
+      "cloc": "[path]",
+      "files": 524
+    },
+    "long_lines": {
+      "files": 259,
+      "over_120": 807,
+      "over_200": 220
+    },
+    "machine": {
+      "architecture": "AMD64",
+      "audio_devices": "not accessed",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "os": "Windows-2025Server-10.0.26100-SP0"
+    },
+    "methods": {
+      "complexity": "lizard function analyzer",
+      "includes": "literal #include directives",
+      "loc": "cloc --json --by-file",
+      "long_lines": "Python len of each physical line",
+      "residue": "Python regex patterns recorded below"
+    },
+    "residue": {
+      "matched_files": 164,
+      "patterns": {
+        "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
+        "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
+        "issue_refs": "(?<!\\w)#\\d+\\b",
+        "qt_mentions": "(?i)\\b(?:qt|qtcore|qml|qt-free|qt quick)\\b"
+      },
+      "scope": "native/, apps/, tools/ tracked text files",
+      "totals": {
+        "abi1_symbols": 789,
+        "agent_names": 9,
+        "issue_refs": 181,
+        "qt_mentions": 78
+      }
+    },
+    "source_files_tracked": 951
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "runner": "windows-x64",
+      "runner_arch": "X64",
+      "runner_image": "win25-vs2026",
+      "runner_image_version": "20261103.298.1",
+      "runner_os": "Windows"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "repo"
+}

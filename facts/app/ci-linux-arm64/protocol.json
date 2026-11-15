@@ -1,0 +1,93 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "audio": "--null-audio",
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "connect": {
+      "max_ms": 6.270424,
+      "n": 100,
+      "p50_ms": 5.325499,
+      "p95_ms": 5.785615,
+      "p99_ms": 6.076388
+    },
+    "date_et": "2026-11-14",
+    "disconnect": {
+      "max_ms": 5.753689,
+      "n": 100,
+      "p50_ms": 5.319987,
+      "p95_ms": 5.384839,
+      "p99_ms": 5.723067
+    },
+    "hello_ms": 7.816872,
+    "loadGraph": [
+      {
+        "code": "invalid",
+        "ms": 0.343875,
+        "ok": false,
+        "path": "native/examples/Six_Essentials_Demo.json"
+      },
+      {
+        "code": null,
+        "ms": 21.886128,
+        "ok": true,
+        "path": "native/examples/chaos_two.json"
+      },
+      {
+        "code": null,
+        "ms": 25.994232,
+        "ok": true,
+        "path": "native/examples/chaos_usb_midi.json"
+      },
+      {
+        "code": null,
+        "ms": 20.894478,
+        "ok": true,
+        "path": "native/examples/class_demo_1_chaos.json"
+      },
+      {
+        "code": null,
+        "ms": 20.142557,
+        "ok": true,
+        "path": "native/examples/class_demo_2_subtractive.json"
+      },
+      {
+        "code": null,
+        "ms": 21.852394,
+        "ok": true,
+        "path": "native/examples/class_demo_3_macro.json"
+      }
+    ],
+    "machine": {
+      "architecture": "aarch64",
+      "audio_devices": "not accessed",
+      "cpu": "aarch64",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+    },
+    "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
+    "setParam": {
+      "max_ms": 0.176173,
+      "n": 1000,
+      "p50_ms": 0.107153,
+      "p95_ms": 0.117096,
+      "p99_ms": 0.134472
+    }
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "protocol"
+}
