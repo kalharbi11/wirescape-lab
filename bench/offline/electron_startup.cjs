@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Requires Release sidecar, built Electron/Studio, Xvfb on headless Linux.
+// Requires Release sidecar and built Electron/Studio; Xvfb on headless Linux only.
 'use strict';
 const { _electron } = require('../../apps/studio/node_modules/playwright');
 const electronExecutable = require('../../apps/desktop/node_modules/electron');
@@ -11,7 +11,9 @@ const { createStderrWrapper, parseBootHello } = require('./electron_stderr.cjs')
 const ROOT = path.resolve(__dirname, '../..');
 const out = path.join(ROOT, 'build_reports/l4/startup');
 const main = path.join(ROOT, 'apps/desktop/build/main.js');
-const engine = path.join(ROOT, 'build/native/wirescape-engine');
+const engine = process.platform === 'win32'
+  ? path.join(ROOT, 'build/native/Release/wirescape-engine.exe')
+  : path.join(ROOT, 'build/native/wirescape-engine');
 function procTree(rootPid) {
   if (os.platform() !== 'linux') return null;
   const processes=[];
@@ -34,12 +36,26 @@ function procTree(rootPid) {
   const group=processes.filter(p=>selected.has(p.pid));
   return {rss_kib:group.reduce((sum,p)=>sum+p.rss_kib,0), processes:group};
 }
+async function processMetrics(app) {
+  if (process.platform === 'linux') return procTree(app.process().pid);
+  // Electron reports workingSetSize in KiB. It includes the browser, renderer
+  // and GPU helpers, not the separately measured native sidecar process.
+  const metrics = await app.evaluate(({app}) => app.getAppMetrics());
+  const processes = metrics.map(m => ({
+    pid:m.pid, process:m.type, rss_kib:m.memory?.workingSetSize ?? null
+  }));
+  const valid = processes.filter(p => Number.isFinite(p.rss_kib));
+  return {rss_kib:valid.length ? valid.reduce((n,p)=>n+p.rss_kib,0) : null,
+          processes, source:'electron.app.getAppMetrics (workingSetSize KiB)'};
+}
 const quant = (v,p) => v.length ? v.slice().sort((a,b)=>a-b)[Math.ceil(v.length*p/100)-1] : null;
 async function sample() {
   // Electron logs its first hello before _electron.launch() resolves. Capture from
   // process start while tee forwards stderr for Playwright's inspector handshake.
   const temp = mkdtempSync(path.join(os.tmpdir(), 'wirescape-l4-startup-'));
-  const {executablePath, logPath} = createStderrWrapper(electronExecutable, temp);
+  const {executablePath, logPath} = process.platform === 'linux'
+    ? createStderrWrapper(electronExecutable, temp)
+    : {executablePath:electronExecutable, logPath:null};
   const wall = Date.now();
   let app;
   try {
@@ -61,7 +77,7 @@ async function sample() {
               nav_start_epoch_ms:performance.timeOrigin,
               navigation_duration_ms:nav?.duration ?? null};
     });
-    const idle=procTree(app.process().pid);
+    const idle=await processMetrics(app);
     let loaded=null;
     try {
       const dir=path.join(ROOT,'native/examples');
@@ -72,13 +88,15 @@ async function sample() {
       if(candidates.length) {
         await page.evaluate(p => window.__wirescapeTest.load(p,'L4'),candidates[0].document);
         await page.waitForTimeout(500);
-        loaded={patch:path.relative(ROOT,candidates[0].file), ...procTree(app.process().pid)};
+        loaded={patch:path.relative(ROOT,candidates[0].file), ...await processMetrics(app)};
       }
     } catch(e) {loaded={error:String(e)};}
-    const earlyStderr = readFileSync(logPath, 'utf8');
+    const earlyStderr = logPath ? readFileSync(logPath, 'utf8') : '';
     const hello = parseBootHello(earlyStderr) ?? parseBootHello(stderr.join(''));
     return {electron_idle:idle,electron_loaded:loaded,
             hello_from_main_boot_ms:hello,
+            hello_unavailable_reason:hello === null && process.platform === 'win32'
+              ? 'Native boot timing emitted before Playwright stderr listener attached' : null,
             studio_first_paint_from_launch_ms:paint.paint_epoch_ms===null ? null : paint.paint_epoch_ms-wall,
             ...paint};
   } finally {
@@ -102,6 +120,11 @@ async function mainRun() {
   writeFileSync(path.join(out,'summary.json'),JSON.stringify(record,null,2)+'\n');
   console.log(path.join(out,'summary.json'));
   // A passing run must include actual engine-hello readings, not ten nulls.
-  if (hello.length !== records.length) throw new Error(`Missing engine hello timing in ${records.length-hello.length} of ${records.length} runs`);
+  if (process.platform === 'linux' && hello.length !== records.length)
+    throw new Error(`Missing engine hello timing in ${records.length-hello.length} of ${records.length} runs`);
+  if (process.platform === 'win32' &&
+      records.some(r => !Number.isFinite(r.electron_idle?.rss_kib) ||
+                        !Number.isFinite(r.studio_first_paint_from_launch_ms)))
+    throw new Error('Windows Electron RSS or first paint metric missing');
 }
 mainRun().catch(e=>{console.error(e);process.exitCode=1;});
