@@ -20,6 +20,10 @@ next to its summary as JSON/CSV. Quotes from other projects carry the URL and da
 
 ## L4 measurement coverage, 2026-11-14 (ET)
 
+**Superseded for most rows:** hosted CI measurements at lab commit `7d3842d` are in the `ci-linux-x64`,
+`ci-linux-arm64` and `ci-windows-x64` subfolders of `repo/`, `perf/`, `dsp/`, `app/` and `tests/`. The table
+below records the state at `660556f`, before those runs.
+
 Source: lab commit `660556fbfb6ef30f828c68e9a05afa38ce0ee957`. Measurement client: GitHub tree API; host: Linux x86_64 tool container, CPU model not identified; no audio/MIDI devices accessed.
 
 This execution environment had no repository checkout and outbound GitHub DNS resolution failed. Only the GitHub tree metadata was read remotely; the code, tools and binaries could not be executed on a single checked-out machine. The device-free collectors in `bench/offline/` have been syntax checked; their runtime results remain unmeasured here.
