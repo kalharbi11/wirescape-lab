@@ -2,57 +2,57 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
     "connect": {
-      "max_ms": 6.7212,
+      "max_ms": 5.6842,
       "n": 100,
-      "p50_ms": 5.4988,
-      "p95_ms": 5.5975,
-      "p99_ms": 5.6792
+      "p50_ms": 5.4821,
+      "p95_ms": 5.5919,
+      "p99_ms": 5.6515
     },
-    "date_et": "2026-11-14",
+    "date_et": "2026-11-15",
     "disconnect": {
-      "max_ms": 5.6462,
+      "max_ms": 5.9026,
       "n": 100,
-      "p50_ms": 5.4752,
-      "p95_ms": 5.5684,
-      "p99_ms": 5.6002
+      "p50_ms": 5.4866,
+      "p95_ms": 5.5759,
+      "p99_ms": 5.6071
     },
-    "hello_ms": 25.8554,
+    "hello_ms": 28.6471,
     "loadGraph": [
       {
         "code": null,
-        "ms": 21.4723,
+        "ms": 20.6025,
         "ok": true,
         "path": "native/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 21.8656,
+        "ms": 22.8954,
         "ok": true,
         "path": "native/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 24.9234,
+        "ms": 25.1653,
         "ok": true,
         "path": "native/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 21.6318,
+        "ms": 20.5548,
         "ok": true,
         "path": "native/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 26.365,
+        "ms": 20.6955,
         "ok": true,
         "path": "native/examples/class_demo_3_macro.json"
       },
       {
         "code": "invalid",
-        "ms": 10.994,
+        "ms": 0.8399,
         "ok": false,
         "path": "native/examples/Six_Essentials_Demo.json"
       }
@@ -60,24 +60,24 @@
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.1989,
+      "max_ms": 0.2086,
       "n": 1000,
-      "p50_ms": 0.1063,
-      "p95_ms": 0.1376,
-      "p99_ms": 0.1588
+      "p50_ms": 0.0756,
+      "p95_ms": 0.0962,
+      "p99_ms": 0.1228
     }
   },
   "provenance": {
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
-    "date_et": "2026-11-14",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

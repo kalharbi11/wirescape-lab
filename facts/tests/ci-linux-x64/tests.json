@@ -1,25 +1,25 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
-    "date_et": "2026-11-14",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "date_et": "2026-11-15",
     "machine": {
       "architecture": "x86_64",
       "audio_devices": "not accessed",
       "cpu": "x86_64",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
     },
     "suites": {
       "ctest": {
         "count": 108,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.091738,
+          "seconds": 0.120467,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 24.604848,
+          "seconds": 26.214883,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.670662,
+          "seconds": 0.777669,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 69.555451,
+          "seconds": 81.458058,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.028069,
+          "seconds": 1.149518,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 385.397354,
+          "seconds": 409.708137,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 17.064682,
+          "seconds": 16.006595,
           "status": "passed"
         }
       },
@@ -71,18 +71,18 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
-    "date_et": "2026-11-14",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.82.6",
+      "runner_image_version": "20261111.196.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

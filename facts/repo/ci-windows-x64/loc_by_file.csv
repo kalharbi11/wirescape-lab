@@ -74,6 +74,7 @@ native\io\net\osc_service.cpp,native,product,C++,275,6,0
 native\modules\clock\tests.cpp,native,product,C++,275,6,4
 native\modules2\chaos_lite\tests.cpp,native,product,C++,275,22,3
 apps\studio\tests\osc-editor.spec.ts,apps,tests,TypeScript,267,12,21
+bench\sdk\out_of_tree_trial.py,bench,tools,Python,263,10,22
 apps\studio\src\panels\PanelBuilder.ts,apps,product,TypeScript,262,21,13
 apps\studio\tests\midi-learn-ui.spec.ts,apps,tests,TypeScript,262,7,24
 apps\studio\tests\mock-bridge\real-engine.spec.ts,apps,tests,TypeScript,262,2,21
@@ -522,4 +523,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,76156,4320,4285
+SUM,SUM,product,unknown,76419,4330,4307

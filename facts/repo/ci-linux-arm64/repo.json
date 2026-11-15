@@ -5,12 +5,12 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
     "complexity": {
       "functions": 3817,
       "lizard_version": "not exposed"
     },
-    "date_et": "2026-11-14",
+    "date_et": "2026-11-15",
     "dependencies": {
       "entries": 146,
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 524
+      "files": 525
     },
     "long_lines": {
       "files": 259,
@@ -62,11 +62,11 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 951
+    "source_files_tracked": 981
   },
   "provenance": {
-    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
-    "date_et": "2026-11-14",
+    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",
