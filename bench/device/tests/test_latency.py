@@ -25,7 +25,7 @@ class LatencyTests(unittest.TestCase):
         for rate, block in ((44100, 64), (48000, 128), (96000, 256)):
             with self.subTest(rate=rate, block=block):
                 audio, first, delay = synthetic_capture(rate, block, noise=0.0015)
-                result = measure(audio, rate, first)
+                result = measure(audio, rate, first, phase_known=True)
                 self.assertEqual(result["clicks_found"], CLICKS)
                 self.assertLessEqual(abs(result["frames"]["median"] - delay), 1)
                 self.assertLessEqual(max(abs(a["delay_frames"] - delay)
