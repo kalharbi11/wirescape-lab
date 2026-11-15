@@ -1,6 +1,49 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — decisions recorded, Codex device runbook (Fable)
+**Done:** owner decisions on the plan recorded in `proposals/0002-plan.md` (yes to all, with changes: no
+owner patches for golden renders; fast developer loop and developer mode for modules; developer test
+scripts brought forward; device testing through Codex; undo/restore as small edits into block 2 if cheap;
+Daisy/CLAP proofs first to postpone). `docs/context/CONSTRAINTS.md` carries the owner's devices-off change.
+Wrote `bench/device/CODEX_RUNBOOK.md` v1 (Pi: full run at 256 and 128, heavy patches at 128, 64-frame
+probe, GUTTR benchmark, app memory, health log; Windows: quick run at 256 and 128). The GUTTR benchmark
+build and run was verified in the cloud container; the device commands are from `run.py`'s options and
+were not executed.
+**State of main:** product tree unchanged. Builder PRs open: #45 (ready), #46, #47, #48 (drafts).
+**Next:** review and merge #45–#48; fold in device results when Codex files them; revise the plan's phase
+text for the decisions; Phase 0, then Phase 1.
+**Not covered by the runbook yet:** round-trip latency (no tool), device change during playback as an
+isolated test, GUTTR voice counts between 1 and 16 (needs GUTTR in the tree).
+Signed: Fable, 2026-11-15
+
+## 2026-11-15 — audit and plan (Fable)
+**Done:** read the brief, context docs and `facts/` (five subagent digests, key numbers re-checked).
+Wrote `proposals/0001-audit.md` (findings by area, each tied to a fact file) and `proposals/0002-plan.md`
+(12 owner decisions at the top, targets, Phases 0–6, block mapping). Added `facts/code/audit_checks.md`
+(X5 settled: the SDK wrapper resets after prepare). Filed measurement-repair issues #41–#43 for the GPT
+builders (bench only, optional). No product code changed.
+**State of main:** product tree unchanged from the snapshot. Open issues: #36, #41, #42, #43.
+**Device results:** Pi 60-minute, Windows 15-minute and cross-tool runs were not in `facts/` at `7b334e5`;
+the audit's performance section and the plan's targets are provisional until they are.
+**Next (after the owner answers D1–D4):** Phase 0 (harness holes, golden renders, edit-continuity test,
+`facts/BASELINE.md`), then Phase 1 (delete ABI1, engine-native types, layout, transport). Fold new device
+results into the audit first.
+**Open for the owner:** decisions D1–D12 in `proposals/0002-plan.md`; drop saved patches into
+`bench/patches/owner/` for the sound-equality gate; optionally run the GPT builders on #41–#43.
+Signed: Fable, 2026-11-15
+
+## 2026-11-15 — Fable takes over (Keel)
+Owner: Fable leads the lab and decides its own process; GPT builder queue paused (open #36 stays parked).
+BRIEF updated: audit and plan first, then stop for the owner; phases are goals, order is Fable's.
+Signed: Keel, 2026-11-15
+
+## 2026-11-15 — handover to Fable (Keel)
+Brief written (`docs/context/BRIEF.md`); owner accepted CONSTRAINTS as is; vision statement added to
+OWNER_WANTS. GUTTR: GPL-3.0-only, ID `guttr`, package in `future_modules/guttur/package/`. Open: lab #36
+(gpt-builder3, speaker check). Pending owner runs: Pi 60-min, Windows 15-min, comparisons.
+Signed: Keel, 2026-11-15
+
 ## 2026-11-15 — prep status (Keel)
 **On main:** hosted CI (Linux x64/ARM64, Windows, full sanitizers); bench harnesses (offline, device,
 cross-tool compare, out-of-tree SDK trial, facts workflow); ported fixes (OSC Out phantom gate, LAN warning,
