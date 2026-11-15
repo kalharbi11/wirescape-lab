@@ -3,10 +3,11 @@
 'use strict';
 const { _electron } = require('../../apps/studio/node_modules/playwright');
 const electronExecutable = require('../../apps/desktop/node_modules/electron');
-const { mkdirSync, writeFileSync, readFileSync, readdirSync, statSync } = require('node:fs');
+const { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, readdirSync, statSync } = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const os = require('node:os');
+const { createStderrWrapper, parseBootHello } = require('./electron_stderr.cjs');
 const ROOT = path.resolve(__dirname, '../..');
 const out = path.join(ROOT, 'build_reports/l4/startup');
 const main = path.join(ROOT, 'apps/desktop/build/main.js');
@@ -35,14 +36,19 @@ function procTree(rootPid) {
 }
 const quant = (v,p) => v.length ? v.slice().sort((a,b)=>a-b)[Math.ceil(v.length*p/100)-1] : null;
 async function sample() {
+  // Electron logs its first hello before _electron.launch() resolves. Capture from
+  // process start while tee forwards stderr for Playwright's inspector handshake.
+  const temp = mkdtempSync(path.join(os.tmpdir(), 'wirescape-l4-startup-'));
+  const {executablePath, logPath} = createStderrWrapper(electronExecutable, temp);
   const wall = Date.now();
-  const app = await _electron.launch({
-    executablePath: electronExecutable,
-    args: ['--no-sandbox',main,'--engine',engine,'--null-audio'],
-    env: {...process.env, CI:'1', GITHUB_ACTIONS:'1'},
-  });
-  const stderr=[];
+  let app;
   try {
+    app = await _electron.launch({
+      executablePath,
+      args: ['--no-sandbox',main,'--engine',engine,'--null-audio'],
+      env: {...process.env, CI:'1', GITHUB_ACTIONS:'1'},
+    });
+    const stderr=[];
     app.process().stderr?.on('data', chunk=>stderr.push(chunk.toString('utf8')));
     const page = await app.firstWindow();
     await page.waitForFunction(() => document.body.dataset.ready === 'true');
@@ -55,7 +61,6 @@ async function sample() {
               nav_start_epoch_ms:performance.timeOrigin,
               navigation_duration_ms:nav?.duration ?? null};
     });
-    const boot=stderr.join('').match(/boot-to-first-hello-ms=(\d+(?:\.\d+)?)/);
     const idle=procTree(app.process().pid);
     let loaded=null;
     try {
@@ -70,11 +75,16 @@ async function sample() {
         loaded={patch:path.relative(ROOT,candidates[0].file), ...procTree(app.process().pid)};
       }
     } catch(e) {loaded={error:String(e)};}
+    const earlyStderr = readFileSync(logPath, 'utf8');
+    const hello = parseBootHello(earlyStderr) ?? parseBootHello(stderr.join(''));
     return {electron_idle:idle,electron_loaded:loaded,
-            hello_from_main_boot_ms:boot ? Number(boot[1]) : null,
+            hello_from_main_boot_ms:hello,
             studio_first_paint_from_launch_ms:paint.paint_epoch_ms===null ? null : paint.paint_epoch_ms-wall,
             ...paint};
-  } finally { await app.close(); }
+  } finally {
+    try { if (app) await app.close(); }
+    finally { rmSync(temp, {recursive:true, force:true}); }
+  }
 }
 async function mainRun() {
   mkdirSync(out,{recursive:true});
@@ -91,5 +101,7 @@ async function mainRun() {
     clocks:'hello value from Electron main boot stderr; paint epoch from renderer performance; launch wall clock Date.now()'};
   writeFileSync(path.join(out,'summary.json'),JSON.stringify(record,null,2)+'\n');
   console.log(path.join(out,'summary.json'));
+  // A passing run must include actual engine-hello readings, not ten nulls.
+  if (hello.length !== records.length) throw new Error(`Missing engine hello timing in ${records.length-hello.length} of ${records.length} runs`);
 }
 mainRun().catch(e=>{console.error(e);process.exitCode=1;});
