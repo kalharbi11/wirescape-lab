@@ -278,6 +278,36 @@ def self_oscillation_metrics(audio, rate=RATE, impulse_end_s=.001, observe_after
             "tail_peak_fs": float(np.max(abs(tail)))}
 
 
+
+def sweep_residual_metrics(fast, slow, rate=RATE):
+    """Compare high-pass energy of 1 s param sweep to an 8x slower sweep."""
+    fast = np.asarray(fast, dtype=np.float64)
+    slow = np.asarray(slow, dtype=np.float64)
+    if fast.ndim == 2:
+        fast = np.mean(fast, axis=1)
+    if slow.ndim == 2:
+        slow = np.mean(slow, axis=1)
+    if len(fast) < rate or len(slow) < 8 * rate:
+        raise ValueError("requires >=1-second fast and >=8-second slow sweeps")
+    if not np.isfinite(fast).all() or not np.isfinite(slow).all():
+        raise ValueError("nonfinite sweep samples")
+    sos = signal.butter(2, min(2000, rate * .2), btype="highpass",
+                        fs=rate, output="sos")
+    # Compare same fraction of each sweep after initial setup transient.
+    def residual(x):
+        filtered = signal.sosfilt(sos, x)
+        cut = max(1, int(round(rate * .025)))
+        tail = filtered[cut:]
+        return float(np.sqrt(np.mean(tail ** 2)))
+    fast_hp, slow_hp = residual(fast), residual(slow)
+    return {"fast_highpass_rms_fs": fast_hp, "slow_highpass_rms_fs": slow_hp,
+            "fast_to_slow_highpass_ratio": fast_hp / max(slow_hp, 1e-12),
+            "fast_to_slow_highpass_db": 20 * math.log10(
+                max(fast_hp, 1e-12) / max(slow_hp, 1e-12)),
+            "highpass_hz": min(2000, rate * .2),
+            "fast_duration_s": len(fast) / rate,
+            "slow_duration_s": len(slow) / rate}
+
 def step_metrics(audio, step_frame, rate=RATE):
     base = basic(audio)
     if base["nonfinite_samples"]:
