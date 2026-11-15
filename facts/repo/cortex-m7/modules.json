@@ -1,0 +1,1283 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": 1,
+  "commit": "9d04963daf664355c3596d63f2832ed582cf3e3f",
+  "date_et": "2026-11-15",
+  "machine": "cortex-m7",
+  "toolchain_version": "arm-none-eabi-g++ (Arm GNU Toolchain 14.2.Rel1 (Build arm-14.52)) 14.2.1 20241119",
+  "toolchain_archive_sha256": "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823",
+  "target_flags": "-mcpu=cortex-m7 -mthumb -mfloat-abi=hard -fno-exceptions -fno-rtti -Os",
+  "fpu_variants": [
+    "fpv5-d16",
+    "fpv5-sp-d16"
+  ],
+  "catalog_modules": 34,
+  "sdk_template_count": 1,
+  "modules": {
+    "native/modules2/adsr/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2564,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2612,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_dmul",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/blend/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3264,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [
+          "cosf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3380,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_dmul",
+          "__aeabi_f2d",
+          "round"
+        ],
+        "float_libm_symbols": [
+          "cosf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/chaos_lite/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 6640,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [
+          "cosf",
+          "exp2f",
+          "expf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 6724,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_dmul",
+          "__aeabi_f2d",
+          "ceil"
+        ],
+        "float_libm_symbols": [
+          "cosf",
+          "exp2f",
+          "expf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/chord/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3108,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3132,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/clock/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3738,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4002,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "floor"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/delay/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4270,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "cos",
+          "exp",
+          "pow",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4746,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2iz",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmple",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "ceil",
+          "cos",
+          "exp",
+          "pow",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/function_envelope/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3352,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "expm1"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3516,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "expm1"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/groove/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 7900,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 7974,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/host_keyboard/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4474,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4486,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/ladder/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3410,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3808,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/lfo/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2054,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "fmod",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2214,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "floor",
+          "fmod",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/macro_oscillator/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3822,
+        "data_bytes": 16,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3838,
+        "data_bytes": 16,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/midi_cc_to_cv/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2956,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3152,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/midi_in/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2158,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2186,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/midi_to_cv/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 7216,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 7260,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/mixer/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2832,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3018,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/monitor/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3578,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2ulz"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3584,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2ulz",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/noise/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2516,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2656,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/notes_to_cv/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3292,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3312,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/osc_in/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 8852,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2ulz",
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 9056,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_d2ulz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "ceil",
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/osc_out/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2294,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2322,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/output/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1384,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1408,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/quad_vca/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2962,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "exp",
+          "pow",
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3098,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "exp",
+          "pow",
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/quantizer/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3476,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3520,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2iz",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmple",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "ceil",
+          "floor"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/resonator/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3742,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [
+          "exp2f",
+          "expf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3798,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_f2d",
+          "ceil"
+        ],
+        "float_libm_symbols": [
+          "exp2f",
+          "expf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/reverb/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 4776,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "exp"
+        ],
+        "float_libm_symbols": [
+          "cosf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 5068,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "ceil",
+          "exp"
+        ],
+        "float_libm_symbols": [
+          "cosf",
+          "sinf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/scale_offset/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2776,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2974,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/slew/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2560,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2784,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/spectral/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 9750,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "cos",
+          "exp",
+          "log",
+          "sin"
+        ],
+        "float_libm_symbols": [
+          "powf",
+          "sqrtf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 10086,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "cos",
+          "exp",
+          "log",
+          "sin"
+        ],
+        "float_libm_symbols": [
+          "powf",
+          "sqrtf"
+        ],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/vca/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2356,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2384,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/vcf/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2326,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2638,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "tan"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/modules2/vco/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2046,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "pow",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2210,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "pow",
+          "sin"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/sdk/examples/random_source/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3424,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3660,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_dadd",
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmple",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "exp"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/sdk/examples/step_sequencer/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3410,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3438,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "native/sdk/template/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1446,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1474,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    }
+  }
+}

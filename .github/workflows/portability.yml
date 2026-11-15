@@ -1,0 +1,125 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Cortex-M7 portability facts (advisory)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/sdk/**"
+      - "native/modules2/**"
+      - "native/include/**"
+      - "bench/portability/**"
+      - ".github/workflows/portability.yml"
+  push:
+    branches: [main]
+    paths:
+      - "native/sdk/**"
+      - "native/modules2/**"
+      - "native/include/**"
+      - "bench/portability/**"
+      - ".github/workflows/portability.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cortex-m7:
+    name: Cortex-M7 source/object inventory (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Known compile failures are recorded as data, not gate failures.
+    steps:
+      - name: Checkout lab
+        uses: actions/checkout@v4
+        with:
+          # PR checkouts default to a synthetic merge ref; facts must name a real commit.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Device-free portability parser and inventory tests
+        run: python3 -m unittest discover -s bench/portability/tests -v
+      - name: Cache pinned Arm GNU toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: .tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi
+          key: arm-none-eabi-14.2.rel1-linux-x86_64-v1
+      - name: Install pinned Arm GNU 14.2.rel1 on cache miss
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/arm-gnu-toolchain-14.2.rel1.tar.xz"
+          url="https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz"
+          curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 "$url" -o "$archive"
+          echo "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823  $archive" | sha256sum -c -
+          mkdir -p .tools
+          tar -xJf "$archive" -C .tools
+      - name: Add cross tools to PATH
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin="$GITHUB_WORKSPACE/.tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin"
+          test -x "$bin/arm-none-eabi-g++"
+          echo "$bin" >> "$GITHUB_PATH"
+          "$bin/arm-none-eabi-g++" --version | head -1 >> "$GITHUB_STEP_SUMMARY"
+      - name: Prepare pinned Macro Oscillator source context (no devices)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          import re
+          import subprocess
+
+          source = Path("native/modules2/macro_oscillator/CMakeLists.txt").read_text()
+          root = Path(".tools/portability-context")
+          for dependency, directory in (("macro_eurorack", "eurorack"), ("macro_stmlib", "stmlib")):
+              name = "FetchContent_Declare(" + dependency + "\n"
+              if source.count(name) != 1:
+                  raise SystemExit(f"Expected one pinned {dependency} declaration")
+              block = source.split(name, 1)[1].split("DOWNLOAD_EXTRACT_TIMESTAMP TRUE)", 1)[0]
+              url = re.search(r"(?m)^\s*URL\s+(\S+)", block)
+              checksum = re.search(r"(?m)^\s*URL_HASH\s+SHA256=([0-9a-f]{64})", block)
+              if not url or not checksum:
+                  raise SystemExit(f"Missing immutable URL or SHA256 pin for {dependency}")
+              archive = root / (directory + ".tar.gz")
+              archive.parent.mkdir(parents=True, exist_ok=True)
+              subprocess.run(["curl", "--fail", "--location", "--retry", "3",
+                              "--connect-timeout", "30", "--max-time", "600",
+                              url.group(1), "-o", str(archive)], check=True)
+              if hashlib.sha256(archive.read_bytes()).hexdigest() != checksum.group(1):
+                  raise SystemExit(f"{dependency} SHA256 mismatch")
+              target = root / directory
+              target.mkdir(parents=True, exist_ok=True)
+              subprocess.run(["tar", "-xzf", str(archive), "-C", str(target),
+                              "--strip-components=1"], check=True)
+          PY
+          patch_dir="$GITHUB_WORKSPACE/native/modules2/macro_oscillator/patches"
+          upstream="$GITHUB_WORKSPACE/.tools/portability-context"
+          cmake -DSOURCE_DIR="$upstream/eurorack" -DGIT_EXECUTABLE="$(command -v git)" \
+            -DPATCH_DIR="$patch_dir" -P "$patch_dir/apply.cmake"
+          cmake -DSOURCE_DIR="$upstream/stmlib" -DGIT_EXECUTABLE="$(command -v git)" \
+            -DPATCH_FILE="$patch_dir/stmlib-msvc-inline.patch" -P "$patch_dir/apply.cmake"
+          test -f "$upstream/eurorack/plaits/dsp/voice.h"
+          test -f "$upstream/stmlib/stmlib.h"
+      - name: Compile catalog plus SDK template for both FPUs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/portability/probe.py --emit-chunks
+          cat build_reports/portability/README.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload measured JSON and fact table
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-m7-portability-facts
+          path: |
+            build_reports/portability/modules.json
+            build_reports/portability/README.md
+          retention-days: 7
+          if-no-files-found: warn
