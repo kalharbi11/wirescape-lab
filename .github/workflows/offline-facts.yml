@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,6 +31,8 @@ jobs:
         run: python tools/dev.py build --headless --config Release
       - name: Offline fact pack
         run: python bench/offline/run_all.py --quick --out-dir '${{ runner.temp }}/wirescape-offline-facts'
+      - name: Validate mandatory fact evidence
+        run: python bench/offline/verify_artifacts.py --out-dir '${{ runner.temp }}/wirescape-offline-facts'
       - name: Upload numeric measurements
         if: always()
         uses: actions/upload-artifact@v4

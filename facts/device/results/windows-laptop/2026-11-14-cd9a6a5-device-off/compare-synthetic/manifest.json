@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "mode": "synthetic",
+  "date_ny": "2026-11-14",
+  "commit": "cd9a6a5d447bf6c078df0c9b9f9f5df869e71ff2",
+  "machine": "windows-synthetic",
+  "os": "Windows",
+  "architecture": "AMD64",
+  "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "tool": "wirescape",
+  "tool_version": "unmeasured",
+  "patch": "mono",
+  "sample_rate_hz": 48000,
+  "buffer_frames": 256,
+  "audio_device": "unmeasured",
+  "driver": "unmeasured",
+  "sample_interval_s": 0.1,
+  "planned_duration_s": 1.2,
+  "recording_mode": "none",
+  "scope": "same-machine_process_tree_and_manual_device_observations",
+  "completed": true,
+  "measured": false
+}

@@ -25,6 +25,7 @@ import numpy as np
 
 from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
                      oscillator_metrics, patch_metrics, read_audio, step_metrics)
+from sidecar_probe import check_loads
 
 ROOT = Path(__file__).resolve().parents[2]
 RATE = 48000
@@ -153,8 +154,9 @@ def markdown_rows(rows):
                 for n, nested in v.items():
                     if isinstance(nested, (int, float)) or nested is None:
                         out[k + "_" + n] = nested
-            elif k in ("module", "patch", "parameter", "metric", "model",
-                       "status", "reason") or isinstance(v, (int, float)) or v is None:
+            elif k in ("module", "patch", "parameter", "metric", "model", "status",
+                       "reason", "stderr", "error_text", "sidecar_result", "sidecar_code",
+                       "sidecar_message", "sidecar_error", "input_mode") or isinstance(v, (int, float)) or v is None:
                 out[k] = v
         return out
     observed = [flatten(x) for x in rows]
@@ -170,7 +172,7 @@ def markdown_rows(rows):
             return "—"
         if isinstance(value, float):
             return f"{value:.8g}" if math.isfinite(value) else "—"
-        return str(value)
+        return str(value).replace("|", "\\|").replace("\r", "").replace("\n", "\\n")
     lines = ["| Index | " + " | ".join(columns) + " |",
              "|---:|" + "|".join("---:" for _ in columns) + "|"]
     for index, values in enumerate(observed, 1):
@@ -283,23 +285,64 @@ def cpu_sections(probes, mods, meta, out, quick):
                 entry.update(result)
                 entry["p99_ns_per_sample"] = ns / (block * channels) if ns is not None else None
                 rows.append(entry)
+    failures = [dict(module=row["module"], block_frames=row["block_frames"],
+                     channels=row["channels"], sample_rate_hz=RATE,
+                     instances=1, seconds=.1 if quick else 2,
+                     input_mode="normal", status=row["status"],
+                     reason=row.get("reason"), stderr=row.get("stderr"),
+                     exit_code=row.get("exit_code"))
+                for row in rows if row["status"] != "measured"]
+    save(out, "perf", "probe_failures", meta, failures,
+         {"source": "module_cpu_probe", "scope": "nonzero or invalid JSON responses"})
+    denorm = []
+    for ident in mods:
+        for block in BLOCKS:
+            args = [probe, "--module", ident, "--rate", RATE, "--block", block,
+                    "--channels", 1, "--instances", 1, "--seconds", .1 if quick else 2]
+            normal = parsed_command(args + ["--input-mode", "normal"],
+                                    prefix="module_cpu_probe ", timeout=45)
+            tiny = parsed_command(args + ["--input-mode", "denormal"],
+                                  prefix="module_cpu_probe ", timeout=45)
+            row = {"module": ident, "block_frames": block,
+                   "input_value": 1e-30, "normal": normal, "denormal": tiny}
+            if normal.get("status") == "measured" and tiny.get("status") == "measured":
+                base = normal["render_ns"]["p99"]
+                test = tiny["render_ns"]["p99"]
+                row.update(status="measured", normal_p99_ns=base,
+                           denormal_p99_ns=test, p99_ratio=test / base if base else None)
+            else:
+                row["status"] = "unavailable"
+                row["reason"] = "normal or denormal probe failed"
+            denorm.append(row)
+    save(out, "perf", "denormal_spikes", meta, denorm,
+         {"input": "1e-30 constant on first and second signal inputs",
+          "note": "1e-30f is normal binary32, not a subnormal input",
+          "metric": "tiny-input/normal-input p99 render duration ratio"})
     save(out, "perf", "module_cpu", meta, rows,
          {"input": "110-Hz saw first input; seeded noise second input; probe-defined inputs"})
+    engine_rows = []
     with tempfile.TemporaryDirectory(prefix="ws-engine-bench-") as temp:
-        artifact = Path(temp) / "benchmark.json"
-        result = call([bench, probes["modules_dir"], artifact], timeout=180)
-        if result["exit_code"] == 0 and artifact.is_file():
-            try:
-                data = json.loads(artifact.read_text())
-                engine_rows = data["rows"]
-                engine_rows = [dict(status="measured", **row) for row in engine_rows]
-            except (ValueError, KeyError, TypeError) as e:
-                engine_rows = [{"status": "unavailable", "reason": str(e)}]
-        else:
-            engine_rows = [{"status": "unavailable", "stderr": result.get("stderr", ""),
-                            "exit_code": result.get("exit_code")}]
+        for block in BLOCKS:
+            artifact = Path(temp) / ("benchmark_%d.json" % block)
+            result = call([bench, probes["modules_dir"], artifact,
+                           "--block", block], timeout=180)
+            if result["exit_code"] == 0 and artifact.is_file():
+                try:
+                    data = json.loads(artifact.read_text())
+                    if data["frames"] != block:
+                        raise ValueError("benchmark frame count does not match request")
+                    engine_rows.extend(dict(status="measured", block_frames=block, **row)
+                                       for row in data["rows"])
+                except (ValueError, KeyError, TypeError) as e:
+                    engine_rows.append({"status": "unavailable", "block_frames": block,
+                                        "reason": str(e)})
+            else:
+                engine_rows.append({"status": "unavailable", "block_frames": block,
+                                    "stderr": result.get("stderr", ""),
+                                    "exit_code": result.get("exit_code")})
     save(out, "perf", "engine_cpu", meta, engine_rows,
-         {"block_frames": 256, "rate_hz": 48000, "note": "Existing benchmark has fixed block size 256"})
+         {"block_frames": list(BLOCKS), "rate_hz": RATE,
+          "method": "one benchmark process per block size"})
     if shutil.which("valgrind") and cost:
         with tempfile.TemporaryDirectory(prefix="ws-callgrind-") as temp:
             artifact = Path(temp) / "ir.json"
@@ -329,6 +372,15 @@ def cpu_sections(probes, mods, meta, out, quick):
             row = {"patch": path.name, "block_frames": block}
             row.update(result)
             soak_rows.append(row)
+    soak_failures = [dict(patch=row["patch"], block_frames=row["block_frames"],
+                          status=row["status"], reason=row.get("reason"),
+                          stderr=row.get("stderr"), exit_code=row.get("exit_code"),
+                          error_text=(row.get("stderr") or row.get("reason") or "").strip())
+                     for row in soak_rows if row["status"] != "measured"]
+    soak_failures = check_loads(probes["wirescape-engine"], soak_failures, PATCHES, RATE)
+    save(out, "perf", "soak_failures", meta, soak_failures,
+         {"source": "wirescape_soak",
+          "sidecar": "real wirescape-engine --null-audio, isolated settings per block"})
     save(out, "perf", "patch_soak", meta, soak_rows,
          {"mode": "paced device-free document soak", "warmup_blocks": 256,
           "note": "Soak reports max, median and percentiles; arithmetic mean unavailable in existing probe"})
@@ -407,7 +459,7 @@ def filter_sections(renderer, desc, meta, out, quick):
 
 
 def module_sections(renderer, desc, all_modules, meta, out, quick):
-    module_rows, param_rows, denormal_rows = [], [], []
+    module_rows, param_rows = [], []
     seconds = .5 if quick else 1.5
     for ident in all_modules:
         descriptor = desc.get(ident)
@@ -439,15 +491,11 @@ def module_sections(renderer, desc, all_modules, meta, out, quick):
                 param_rows.append(dict(entry, status="measured",
                                        **step_metrics(audio, frame)) if audio is not None
                                   else dict(entry, **status))
-        denormal_rows.append(dict(base_row, status="unavailable",
-                                 reason="unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected"))
     save(out, "dsp", "module_outputs", meta, module_rows,
          {"measure": "direct output bus; VCO input feed only for audio-input modules"})
     save(out, "dsp", "parameter_steps", meta, param_rows,
          {"step": "first parameter min to max halfway through render",
           "highpass": "2nd order Butterworth 2kHz"})
-    save(out, "perf", "denormal_spikes", meta, denormal_rows,
-         {"requested_input": 1e-30, "normal_input": .1})
 
 
 def envelope_sections(renderer, meta, out, quick):
@@ -524,7 +572,8 @@ def main(argv=None):
     ap.add_argument("--out-dir", type=Path, default=ROOT / "facts")
     args = ap.parse_args(argv)
     build = args.build_dir.resolve()
-    required = ("abi2_module_cpu_probe", "abi2_benchmark", "wirescape_soak", "wirescape_render")
+    required = ("abi2_module_cpu_probe", "abi2_benchmark", "wirescape_soak",
+                "wirescape_render", "wirescape-engine")
     binaries = {name: executable(build, name) for name in required + ("abi2_cost_probe",)}
     missing = [name for name in required if binaries[name] is None]
     if missing:

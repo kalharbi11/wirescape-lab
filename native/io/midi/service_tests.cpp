@@ -2,6 +2,7 @@
 #include "midi_service.h"
 #include "../../sdk/examples/test_support.h"
 #include "../../tests2/allocation_watch.h"
+#include <algorithm>
 #include <map>
 using namespace wirescape::midi;
 struct Fake : Backend {
@@ -85,6 +86,83 @@ static void hotplug_identity_and_first_packet() {
     REQUIRE(first.items[1].event.type == WS2_NOTE_CHOKE && first.items[1].node == 11);
     REQUIRE(first.items[2].event.type == WS2_MIDI && first.items[2].node == 10);
     REQUIRE(first.items[0].event.source_id == first.items[2].event.source_id);
+}
+// Virtual ALSA sequencer inputs are emulated entirely in memory: no observer,
+// ALSA connection, MIDI device, or background worker is constructed.
+static void virtual_input_listing_and_hotplug() {
+    struct VirtualFake final : Fake {
+        bool track_virtual = false;
+        std::vector<Endpoint> virtual_ports{
+            {"Wirescape Bench", "alsa:virtual:128:0"},
+            {"Wirescape Bench", "alsa:virtual:129:0"}
+        };
+        std::vector<Endpoint> endpoints() override {
+            auto result = Fake::endpoints();
+            if (track_virtual)
+                result.insert(result.end(), virtual_ports.begin(), virtual_ports.end());
+            return result;
+        }
+    } backend;
+    Output out;
+    Service service(backend, out.sink());
+    const std::string system = "alsa:virtual:128:0";
+    REQUIRE(service.enable({"Wirescape Bench", system}));
+    REQUIRE(service.subscribe({42, {"Wirescape Bench", system}, false}));
+
+    // The default observer behaviour hides virtual ports.
+    service.poll();
+    REQUIRE(backend.opens == 0 && !service.endpoint_states()[0].online);
+    backend.track_virtual = true;
+    service.poll();
+    REQUIRE(backend.opens == 1 && backend.closes == 0);
+    auto states = service.endpoint_states();
+    REQUIRE(states[0].online && states[0].saved.system_name == system);
+    const auto source = states[0].source_id;
+    backend.bytes(system.c_str(), {0x90, 60, 100}, 7);
+    service.poll();
+    REQUIRE(out.items.size() == 1 && out.items[0].event.source_id == source);
+    REQUIRE(out.items[0].node == 42 && out.items[0].ns == 7);
+
+    // Refresh order and duplicate display names must not change the identity.
+    std::reverse(backend.virtual_ports.begin(), backend.virtual_ports.end());
+    service.poll();
+    states = service.endpoint_states();
+    REQUIRE(states[0].online && states[0].source_id == source);
+    REQUIRE(backend.opens == 1 && backend.closes == 0);
+
+    // Removing the selected virtual port acts exactly like unplugging a device.
+    // The other same-name virtual port must not take over its subscription.
+    backend.virtual_ports.erase(
+        std::remove_if(backend.virtual_ports.begin(), backend.virtual_ports.end(),
+            [&](const Endpoint& p) { return p.system_name == system; }),
+        backend.virtual_ports.end());
+    out.items.clear();
+    service.poll();
+    states = service.endpoint_states();
+    REQUIRE(!states[0].online && states[0].source_id == source);
+    REQUIRE(backend.opens == 1 && backend.closes == 1);
+    REQUIRE(backend.callbacks.count(system) == 0);
+    REQUIRE(service.counters().disconnects == 1);
+    REQUIRE(out.items.size() == 1 && out.items[0].node == 42);
+    REQUIRE(out.items[0].event.type == WS2_NOTE_CHOKE);
+    REQUIRE(out.items[0].event.source_id == source);
+    out.items.clear();
+    service.poll();
+    REQUIRE(out.items.empty() && backend.opens == 1 && backend.closes == 1);
+
+    // Reappearance with the same system identity restores the original source,
+    // even when the display name has changed.
+    backend.virtual_ports.push_back({"Wirescape Bench (renamed)", system});
+    service.poll();
+    states = service.endpoint_states();
+    REQUIRE(states[0].online && states[0].source_id == source);
+    REQUIRE(states[0].saved.name == "Wirescape Bench");
+    REQUIRE(backend.opens == 2 && backend.closes == 1);
+    backend.bytes(system.c_str(), {0x90, 64, 100}, 11);
+    service.poll();
+    REQUIRE(out.items.size() == 1 && out.items[0].node == 42);
+    REQUIRE(out.items[0].event.type == WS2_MIDI);
+    REQUIRE(out.items[0].event.source_id == source);
 }
 static void per_endpoint_counts() {
     Fake backend;
@@ -203,6 +281,7 @@ static void transactional_routes() {
 }
 int main() {
     hotplug_identity_and_first_packet();
+    virtual_input_listing_and_hotplug();
     transactional_routes();
     per_endpoint_counts();
     saturated_source_isolation();

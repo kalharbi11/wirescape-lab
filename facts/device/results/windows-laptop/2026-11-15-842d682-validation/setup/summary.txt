@@ -1,0 +1,5 @@
+source=842d68225fb44c167b8714cb4cfc36455138273a
+portaudio=147dd722548358763a8b649b3e4b41dfffbcfbb6
+portaudio_sha256=62E5724B00A26557746CF7E649ED7087501E4D977E1528DC923A783A883CB63D
+asio=True
+status=windows-device-off-smoke-passed

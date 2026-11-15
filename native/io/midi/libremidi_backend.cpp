@@ -10,7 +10,13 @@ constexpr auto platform = libremidi::API::WINDOWS_MM;
 constexpr auto platform = libremidi::API::ALSA_SEQ;
 #endif
 class RealBackend final : public Backend {
-    libremidi::observer observer{libremidi::observer_configuration{}, platform};
+    libremidi::observer observer{
+        [] {
+            libremidi::observer_configuration config;
+            // Enumerate ALSA sequencer virtual inputs, including software MIDI ports.
+            config.track_virtual = true;
+            return config;
+        }(), platform};
     std::map<std::string, std::unique_ptr<libremidi::midi_in>> opened;
     static Endpoint identity(const libremidi::input_port& port) {
         const auto name = port.display_name.empty() ? port.port_name : port.display_name;
