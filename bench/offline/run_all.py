@@ -22,6 +22,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import numpy as np
+from scipy import signal
 
 from metrics import (basic, direct_envelope_metrics, envelope_metrics, filter_metrics,
                      oscillator_metrics, patch_metrics, read_audio,
