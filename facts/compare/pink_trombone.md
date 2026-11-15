@@ -1,0 +1,36 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+# Pink Trombone: original implementation and publicly declared derivative licences
+
+Reference lab commit: `660556fbfb6ef30f828c68e9a05afa38ce0ee957` (2026-11-14). Desk research; measurement machine: not applicable. Entries identify only statements in the cited upstream materials; the existence of source code, a licence file, and an attribution statement are separate facts. Access dates are New York local (ET). No inference is made about Wirescape modules or their provenance.
+
+## Original work and code model
+
+| Item | Evidence | Source; read date (ET) |
+| --- | --- | --- |
+| Original authorship | Neil Thapen, original browser-based Pink Trombone; source document header identifies **version 1.1, March 2017** | [original index.html](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Original licence location | `IMAGINARY/pink-trombone` has no root standalone `LICENSE` file in inspected branch. The grant and warranty disclaimer appear under **License** in `README.md` and in the top HTML comment of `index.html`. Source text says: “Copyright 2017 Neil Thapen” | [original README](https://github.com/IMAGINARY/pink-trombone/blob/master/README.md), [original HTML](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Original licence classification | MIT/Expat-form permission grant; the IMAGINARY catalog independently labels source code “Expat (MIT)” | [IMAGINARY programme catalog](https://hub.imaginary.org/program/pink-trombone), [original README](https://github.com/IMAGINARY/pink-trombone/blob/master/README.md) · 2026-11-14 ET |
+| Original attribution / redistribution condition | The source grant requires inclusion of the copyright and permission notices in copies or substantial portions of the software; it contains an “AS IS” warranty disclaimer | [original README §License](https://github.com/IMAGINARY/pink-trombone/blob/master/README.md) · 2026-11-14 ET |
+| Original synthesis signal chain | `Glottis.runStep` produces the excitation; `Tract.runStep` processes it twice per output sample; `lipOutput + noseOutput` forms the vocal-tract contribution in the browser audio callback | [original HTML, audio callback](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Glottal excitation model | JavaScript `Glottis` maintains frequency, tenseness, waveform phase, intensity, and loudness and constructs a glottal waveform in `setupWaveform`; jitter/vibrato and voiced/unvoiced components are represented in the source | [original HTML, Glottis object](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Vocal tract waveguide | JavaScript `Tract` has **44** oral sections (`n : 44`), right-going `R` and left-going `L` wave arrays, section diameters/areas, reflection coefficients and a glottis/lip boundary | [original HTML, Tract object](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Nasal branch | `noseLength = floor(28 * n / 44)`, `noseStart = n - noseLength + 1`; nose arrays and a velum target regulate nasal branching | [original HTML, Tract.init](https://github.com/IMAGINARY/pink-trombone/blob/master/index.html) · 2026-11-14 ET |
+| Published mathematical description | IMAGINARY describes a vocal-tract tube with reflected waves, articulatory tongue/lips/nose controls and a discrete d'Alembert solution; the original README cites Smith, Story, Lu/Smith, and Mullen | [IMAGINARY Pink Trombone](https://hub.imaginary.org/program/pink-trombone), [original README bibliography](https://github.com/IMAGINARY/pink-trombone/blob/master/README.md) · 2026-11-14 ET |
+
+## Named derivatives / ports
+
+| Repository | Publicly described relationship and implementation | Licence declared in that repository (not inferred from original) | Source; read date (ET) |
+| --- | --- | --- | --- |
+| `chdh/pink-trombone-mod` | Refactored/modularized TypeScript version of the Pink Trombone speech synthesizer | MIT, `LICENSE.md` | [repository](https://github.com/chdh/pink-trombone-mod), [licence](https://github.com/chdh/pink-trombone-mod/blob/master/LICENSE.md) · 2026-11-14 ET |
+| `lostmsu/pink-trombone` | Rust translation after original was modularized and converted into TypeScript; README cites Neil Thapen | MIT, root licence metadata | [repository](https://github.com/lostmsu/pink-trombone) · 2026-11-14 ET |
+| `seleb/pink-trombone` | Headless JavaScript port exposing `Glottis` and `Tract` | MIT, root `LICENSE` metadata | [repository](https://github.com/seleb/pink-trombone), [licence](https://github.com/seleb/pink-trombone/blob/master/LICENSE) · 2026-11-14 ET |
+| `yonatanrozin/Modular-Pink-Trombone` | AudioWorklet-based modular implementation; README expressly attributes Neil Thapen and states original licence was copied | MIT, root `LICENSE` metadata | [repository and attribution](https://github.com/yonatanrozin/Modular-Pink-Trombone) · 2026-11-14 ET |
+| `cutelabnyc/pink-trombone-cpp` | C++ implementation of Pink Trombone, attributed by PinkTromboneVCV's README as its upstream | MIT, root `LICENSE` | [C++ repository](https://github.com/cutelabnyc/pink-trombone-cpp), [licence](https://github.com/cutelabnyc/pink-trombone-cpp/blob/main/LICENSE), [VCV attribution](https://github.com/VegaDeftwing/PinkTromboneVCV/blob/main/README.md) · 2026-11-14 ET |
+| `VegaDeftwing/PinkTromboneVCV` | VCV Rack port; its README attributes Neil Thapen (JavaScript) and cutelabnyc (C++) | GPL v3 for this repository according to `README.md` and mixed MIT/GPL notice in root `LICENSE`; GitHub auto-detected SPDX: `NOASSERTION` | [README](https://github.com/VegaDeftwing/PinkTromboneVCV/blob/main/README.md), [licence file](https://github.com/VegaDeftwing/PinkTromboneVCV/blob/main/LICENSE) · 2026-11-14 ET |
+| `bgola/supercollider-pinktrombone` | SuperCollider port with README attribution to multiple Pink Trombone ports including VCV | GPL v3, explicitly stated by its README and GitHub licence metadata | [README](https://github.com/bgola/supercollider-pinktrombone/blob/main/README.md), [licence](https://github.com/bgola/supercollider-pinktrombone/blob/main/LICENSE) · 2026-11-14 ET |
+| `zakaton/Pink-Trombone` | Programmable Web Audio / AudioWorklet version of Neil Thapen's work | GPL-3.0, root `LICENSE` | [repository](https://github.com/zakaton/Pink-Trombone), [licence](https://github.com/zakaton/Pink-Trombone/blob/master/LICENSE) · 2026-11-14 ET |
+| `vvolhejn/samuel` | README states a modified `zakaton/Pink-Trombone` copy in `Pink-Trombone/` for a model that learns to control the mouth | GPL-3.0 according to top-level `LICENSE` and README; separate `pocket-tts` dependency described as MIT | [README](https://github.com/vvolhejn/samuel), [licence](https://github.com/vvolhejn/samuel/blob/main/LICENSE) · 2026-11-14 ET |
+
+| Provenance field | Recorded state | Source; read date (ET) |
+| --- | --- | --- |
+| Source-tree correspondence of any separate GUTTUR implementation to original Pink Trombone or these named ports | **not found** in this desk-research file; no GUTTUR source was inspected or compared | [original source](https://github.com/IMAGINARY/pink-trombone), [port README](https://github.com/VegaDeftwing/PinkTromboneVCV/blob/main/README.md) · 2026-11-14 ET |
