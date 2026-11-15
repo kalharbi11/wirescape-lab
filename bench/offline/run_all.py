@@ -429,20 +429,30 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
                     patch = direct_source(ident, descriptor["version"],
                                           {"frequency": hz}, "audio")
                 elif ident == "essentials.chaos_lite":
+                    # Shape A is tuned around A4's C4=261.625565 Hz reference.
+                    # Pitch constant uses two Scale/Offset nodes: the first
+                    # supplies 1 CV, the second scales it to residual octaves
+                    # within its documented [-2, 2] parameter range.
+                    octaves = math.log2(hz / 261.6255653)
+                    octave_a = max(-3, min(3, math.floor(octaves)))
+                    pitch_residual = octaves - octave_a
                     patch = direct_source(ident, descriptor["version"], {
-                        "shape_a": model, "level_a": 1, "level_b": 0,
-                        "body_mix": 0, "roughness": 0, "drift": 0,
-                        "jitter": 0, "fall": 0, "lfo_depth": 0,
-                        "cutoff": 20000, "level": 1, "pan_a": 0,
+                        "shape_a": model, "octave_a": octave_a, "level_a": 1,
+                        "level_b": 0, "body_mix": 0, "roughness": 0,
+                        "drift": 0, "jitter": 0, "fall": 0,
+                        "lfo_depth": 0, "cutoff": 20000, "level": 1, "pan_a": 0,
                     }, "left")
                     patch["modules"].extend([
                         mod(3, "essentials.scale_offset",
-                            parameters={"scale": 0, "offset": math.log2(hz / 261.6255653)}),
+                            parameters={"scale": 0, "offset": 1}),
                         mod(4, "essentials.scale_offset",
                             parameters={"scale": 0, "offset": 1}),
+                        mod(5, "essentials.scale_offset",
+                            parameters={"scale": pitch_residual, "offset": 0}),
                     ])
                     patch["connections"].extend([
-                        edge(3, "control", 1, "pitch"),
+                        edge(3, "control", 5, "control"),
+                        edge(5, "control", 1, "pitch"),
                         edge(4, "control", 1, "gate"),
                         edge(4, "control", 1, "velocity")])
                 else:
