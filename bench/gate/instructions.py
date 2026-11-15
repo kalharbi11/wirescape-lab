@@ -48,7 +48,9 @@ def clean_reason(stderr, code):
     lines = [line.strip() for line in stderr.splitlines() if line.strip()]
     safe = next((line for line in reversed(lines)
                  if "failed" in line.lower() or "error" in line.lower()), "")
-    if safe and not any(c in safe for c in ("/", "\\", ":\\", "/home/", "D:")):
+    if "create/prepare failed" in safe:
+        safe = "module_cpu_probe: create/prepare failed"
+    elif safe and not any(c in safe for c in ("/", "\\", ":\\", "/home/", "D:")):
         safe = safe[:120]
     else:
         safe = "probe did not complete"
