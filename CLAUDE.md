@@ -10,14 +10,13 @@ Anything after the trigger is the specific ask. No match? Ask the owner; never g
 `facts/README.md`, then `facts/code/FACT_PACK.md` §0–§2 and the fact files you need → `docs/context/LOG.md`
 (newest entry) → `docs/ARCHITECTURE.md` and `docs/specs/` for the area you touch. Grep, don't read whole trees.
 
-**Fable's working rules**
+**Fable's working rules** (Fable may revise these for its own process; the owner's constraints still hold)
 - Decisions under "Fixed" in `docs/context/CONSTRAINTS.md` need the owner. Everything under
   "Open" may be changed with evidence: say what changed, why, and what it cost or saved.
 - Measure before and after. A claim about speed, sound or size cites a file in `facts/`
   (or adds one). Opinions and recommendations go in `proposals/`, never in `facts/`.
-- Mechanical work (deletions you already mapped, renames, formatting, fact collection, test
-  scaffolding) goes to the GPT queue (issues labelled `agent/gpt-builder<N>`, see AGENTS.md) or to
-  cheaper Claude subagents. Never wait for them: queue, continue, review at a natural break.
+- How the work is organised is yours to decide. Cheaper Claude subagents are available for searching,
+  reading and mechanical work. The GPT builders are paused; if you want them, ask the owner to run them.
 - Merge your own PRs on green CI; review and merge builder PRs. Squash merges.
 - End each session with a `docs/context/LOG.md` entry: done, state of main, next, open questions
   for the owner. It is the memory between sessions.
