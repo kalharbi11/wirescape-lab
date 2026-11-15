@@ -14,11 +14,11 @@
     "cmake-targets.svg"
   ],
   "provenance": {
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

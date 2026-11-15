@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -29,7 +29,7 @@
         128,
         256
       ],
-      "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+      "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "aarch64",
@@ -46,63 +46,63 @@
         "block_frames": 64,
         "exit_code": 1,
         "patch": "basics-01-first-tone.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "basics-01-first-tone.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "basics-01-first-tone.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "basics-02-fm-filter-lfo.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "basics-02-fm-filter-lfo.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "basics-02-fm-filter-lfo.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "basics-03-echo-and-reverb.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "basics-03-echo-and-reverb.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "basics-03-echo-and-reverb.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
@@ -112,11 +112,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 39560,
-          "median": 12600,
-          "min": 11664,
-          "p99": 21264,
-          "p99_9": 39560
+          "max": 21776,
+          "median": 12704,
+          "min": 11872,
+          "p99": 20384,
+          "p99_9": 21776
         },
         "faults": 0,
         "graph": "document",
@@ -128,11 +128,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 37846,
-          "median": 12168,
-          "min": 11240,
-          "p99": 20038,
-          "p99_9": 37846
+          "max": 20625,
+          "median": 12264.5,
+          "min": 11448,
+          "p99": 19088,
+          "p99_9": 20625
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -145,11 +145,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 52296,
-          "median": 22464,
-          "min": 21504,
-          "p99": 36552,
-          "p99_9": 52296
+          "max": 34488,
+          "median": 22592,
+          "min": 21520,
+          "p99": 28664,
+          "p99_9": 34488
         },
         "faults": 0,
         "graph": "document",
@@ -161,11 +161,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 50437,
-          "median": 21974,
-          "min": 21070,
-          "p99": 35198,
-          "p99_9": 50437
+          "max": 32721,
+          "median": 22160,
+          "min": 21096,
+          "p99": 28177,
+          "p99_9": 32721
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -178,11 +178,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 69880,
-          "median": 43196,
-          "min": 32760,
-          "p99": 62952,
-          "p99_9": 69880
+          "max": 62976,
+          "median": 41000,
+          "min": 33240,
+          "p99": 52392,
+          "p99_9": 62976
         },
         "faults": 0,
         "graph": "document",
@@ -194,11 +194,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 71947,
-          "median": 42710,
-          "min": 32302,
-          "p99": 68604,
-          "p99_9": 71947
+          "max": 60714,
+          "median": 40426,
+          "min": 32817,
+          "p99": 51394,
+          "p99_9": 60714
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -211,11 +211,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 28944,
-          "median": 18472,
+          "max": 37696,
+          "median": 20812,
           "min": 17896,
-          "p99": 25480,
-          "p99_9": 28944
+          "p99": 28312,
+          "p99_9": 37696
         },
         "faults": 0,
         "graph": "document",
@@ -227,11 +227,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 27750,
-          "median": 18039,
-          "min": 17471,
-          "p99": 24438,
-          "p99_9": 27750
+          "max": 35793,
+          "median": 20325,
+          "min": 17488,
+          "p99": 27193,
+          "p99_9": 35793
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -244,11 +244,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 60680,
-          "median": 34112,
-          "min": 33056,
-          "p99": 46328,
-          "p99_9": 60680
+          "max": 53176,
+          "median": 34248,
+          "min": 33272,
+          "p99": 44048,
+          "p99_9": 53176
         },
         "faults": 0,
         "graph": "document",
@@ -260,11 +260,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 58228,
-          "median": 33654,
-          "min": 32638,
-          "p99": 44413,
-          "p99_9": 58228
+          "max": 51354,
+          "median": 33793,
+          "min": 32849,
+          "p99": 42769,
+          "p99_9": 51354
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -277,11 +277,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 87528,
-          "median": 64960,
-          "min": 63344,
-          "p99": 85432,
-          "p99_9": 87528
+          "max": 87168,
+          "median": 65880,
+          "min": 63864,
+          "p99": 81280,
+          "p99_9": 87168
         },
         "faults": 0,
         "graph": "document",
@@ -293,11 +293,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 84347,
-          "median": 64408.5,
-          "min": 62908,
-          "p99": 83115,
-          "p99_9": 84347
+          "max": 84051,
+          "median": 65390,
+          "min": 63362,
+          "p99": 79610,
+          "p99_9": 84051
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -307,42 +307,42 @@
         "block_frames": 64,
         "exit_code": 1,
         "patch": "basics-06-chaos-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "basics-06-chaos-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "basics-06-chaos-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "basics-07-macro-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "basics-07-macro-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "basics-07-macro-keys.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
@@ -352,11 +352,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 37096,
-          "median": 11264,
-          "min": 10048,
-          "p99": 19824,
-          "p99_9": 37096
+          "max": 22640,
+          "median": 12128,
+          "min": 10136,
+          "p99": 17536,
+          "p99_9": 22640
         },
         "faults": 0,
         "graph": "document",
@@ -368,11 +368,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 34125,
-          "median": 10839,
-          "min": 9576,
-          "p99": 18543,
-          "p99_9": 34125
+          "max": 21064,
+          "median": 11704.5,
+          "min": 9656,
+          "p99": 16905,
+          "p99_9": 21064
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -385,11 +385,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 32840,
-          "median": 19752,
-          "min": 19152,
-          "p99": 24488,
-          "p99_9": 32840
+          "max": 56344,
+          "median": 20376,
+          "min": 19240,
+          "p99": 30944,
+          "p99_9": 56344
         },
         "faults": 0,
         "graph": "document",
@@ -401,11 +401,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 31694,
-          "median": 19319,
-          "min": 18743,
-          "p99": 23847,
-          "p99_9": 31694
+          "max": 53282,
+          "median": 19905,
+          "min": 18800,
+          "p99": 29577,
+          "p99_9": 53282
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -418,11 +418,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 57856,
-          "median": 36204,
-          "min": 32488,
-          "p99": 49992,
-          "p99_9": 57856
+          "max": 47808,
+          "median": 36152,
+          "min": 32112,
+          "p99": 46864,
+          "p99_9": 47808
         },
         "faults": 0,
         "graph": "document",
@@ -434,11 +434,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 55853,
-          "median": 35714,
-          "min": 32054,
-          "p99": 48965,
-          "p99_9": 55853
+          "max": 46185,
+          "median": 35597,
+          "min": 31682,
+          "p99": 45297,
+          "p99_9": 46185
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -448,42 +448,42 @@
         "block_frames": 64,
         "exit_code": 1,
         "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
@@ -493,11 +493,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 45560,
-          "median": 27568,
-          "min": 26728,
-          "p99": 36016,
-          "p99_9": 45560
+          "max": 52768,
+          "median": 27184,
+          "min": 26616,
+          "p99": 31704,
+          "p99_9": 52768
         },
         "faults": 0,
         "graph": "document",
@@ -509,11 +509,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 43405,
-          "median": 27110,
-          "min": 26311,
-          "p99": 34902,
-          "p99_9": 43405
+          "max": 50778,
+          "median": 26757,
+          "min": 26209,
+          "p99": 30969,
+          "p99_9": 50778
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -526,11 +526,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 68088,
-          "median": 52424,
-          "min": 50648,
-          "p99": 64992,
-          "p99_9": 68088
+          "max": 124648,
+          "median": 51600,
+          "min": 50512,
+          "p99": 64960,
+          "p99_9": 124648
         },
         "faults": 0,
         "graph": "document",
@@ -542,11 +542,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 66652,
-          "median": 51932,
-          "min": 50228,
-          "p99": 63772,
-          "p99_9": 66652
+          "max": 122148,
+          "median": 51122,
+          "min": 49906,
+          "p99": 63498,
+          "p99_9": 122148
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -559,11 +559,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 154096,
-          "median": 107312,
-          "min": 98472,
-          "p99": 125448,
-          "p99_9": 154096
+          "max": 126784,
+          "median": 105192,
+          "min": 98368,
+          "p99": 116936,
+          "p99_9": 126784
         },
         "faults": 0,
         "graph": "document",
@@ -575,11 +575,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 151719,
-          "median": 106785.5,
-          "min": 98017,
-          "p99": 124720,
-          "p99_9": 151719
+          "max": 124692,
+          "median": 103907.5,
+          "min": 97972,
+          "p99": 115731,
+          "p99_9": 124692
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -592,11 +592,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 53784,
-          "median": 24744,
-          "min": 23904,
-          "p99": 36976,
-          "p99_9": 53784
+          "max": 35176,
+          "median": 24588,
+          "min": 23856,
+          "p99": 33304,
+          "p99_9": 35176
         },
         "faults": 0,
         "graph": "document",
@@ -608,11 +608,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 51893,
-          "median": 24294,
-          "min": 23495,
-          "p99": 35814,
-          "p99_9": 51893
+          "max": 34297,
+          "median": 24145,
+          "min": 23440,
+          "p99": 32313,
+          "p99_9": 34297
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -625,11 +625,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 64056,
-          "median": 49752,
+          "max": 69648,
+          "median": 48616,
           "min": 45392,
-          "p99": 58896,
-          "p99_9": 64056
+          "p99": 57784,
+          "p99_9": 69648
         },
         "faults": 0,
         "graph": "document",
@@ -641,11 +641,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 62356,
-          "median": 49276,
-          "min": 44981,
-          "p99": 57924,
-          "p99_9": 62356
+          "max": 67643,
+          "median": 48169,
+          "min": 44977,
+          "p99": 56386,
+          "p99_9": 67643
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -658,11 +658,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 109488,
-          "median": 89304,
-          "min": 88240,
-          "p99": 107248,
-          "p99_9": 109488
+          "max": 123208,
+          "median": 90984,
+          "min": 88080,
+          "p99": 115776,
+          "p99_9": 123208
         },
         "faults": 0,
         "graph": "document",
@@ -674,11 +674,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 107601,
-          "median": 88766,
-          "min": 87835,
-          "p99": 106130,
-          "p99_9": 107601
+          "max": 121004,
+          "median": 90247,
+          "min": 87651,
+          "p99": 113451,
+          "p99_9": 121004
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -688,63 +688,63 @@
         "block_frames": 64,
         "exit_code": 1,
         "patch": "chaos-05-moonlit-drift-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "chaos-05-moonlit-drift-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "chaos-05-moonlit-drift-pad.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "osc-out-01.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "osc-out-01.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "osc-out-01.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "quad-vca-01-lpg-plucks.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "quad-vca-01-lpg-plucks.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "quad-vca-01-lpg-plucks.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
@@ -754,11 +754,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 23592,
-          "median": 8936,
-          "min": 8128,
-          "p99": 14376,
-          "p99_9": 23592
+          "max": 26352,
+          "median": 8920,
+          "min": 8176,
+          "p99": 13952,
+          "p99_9": 26352
         },
         "faults": 0,
         "graph": "document",
@@ -770,11 +770,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 21423,
+          "max": 24136,
           "median": 8512,
-          "min": 7744,
-          "p99": 13463,
-          "p99_9": 21423
+          "min": 7784,
+          "p99": 12928,
+          "p99_9": 24136
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -787,11 +787,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 23512,
-          "median": 16568,
-          "min": 15064,
-          "p99": 21504,
-          "p99_9": 23512
+          "max": 29376,
+          "median": 16424,
+          "min": 15168,
+          "p99": 22704,
+          "p99_9": 29376
         },
         "faults": 0,
         "graph": "document",
@@ -803,11 +803,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 21967,
-          "median": 16143,
-          "min": 14599,
-          "p99": 20775,
-          "p99_9": 21967
+          "max": 27321,
+          "median": 16000,
+          "min": 14553,
+          "p99": 21841,
+          "p99_9": 27321
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -820,11 +820,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 55696,
-          "median": 31352,
-          "min": 29552,
-          "p99": 47688,
-          "p99_9": 55696
+          "max": 42816,
+          "median": 31112,
+          "min": 29632,
+          "p99": 37144,
+          "p99_9": 42816
         },
         "faults": 0,
         "graph": "document",
@@ -836,11 +836,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 53636,
-          "median": 30834,
-          "min": 29150,
-          "p99": 46493,
-          "p99_9": 53636
+          "max": 40698,
+          "median": 30681,
+          "min": 29225,
+          "p99": 35537,
+          "p99_9": 40698
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -853,11 +853,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 53560,
-          "median": 45344,
-          "min": 44528,
-          "p99": 50640,
-          "p99_9": 53560
+          "max": 75152,
+          "median": 45368,
+          "min": 44456,
+          "p99": 55328,
+          "p99_9": 75152
         },
         "faults": 0,
         "graph": "document",
@@ -869,11 +869,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 52284,
-          "median": 44894,
-          "min": 44118,
-          "p99": 49741,
-          "p99_9": 52284
+          "max": 72738,
+          "median": 44913.5,
+          "min": 44017,
+          "p99": 54298,
+          "p99_9": 72738
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -886,11 +886,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 112112,
-          "median": 88720,
-          "min": 86304,
-          "p99": 107200,
-          "p99_9": 112112
+          "max": 112224,
+          "median": 86992,
+          "min": 85760,
+          "p99": 97024,
+          "p99_9": 112224
         },
         "faults": 0,
         "graph": "document",
@@ -902,11 +902,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 110785,
-          "median": 88178,
-          "min": 85818,
-          "p99": 105961,
-          "p99_9": 110785
+          "max": 110084,
+          "median": 86451,
+          "min": 85331,
+          "p99": 95675,
+          "p99_9": 110084
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -919,11 +919,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 197896,
-          "median": 172940,
-          "min": 169864,
-          "p99": 195440,
-          "p99_9": 197896
+          "max": 193040,
+          "median": 174352,
+          "min": 169608,
+          "p99": 192168,
+          "p99_9": 193040
         },
         "faults": 0,
         "graph": "document",
@@ -935,11 +935,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 197668,
-          "median": 172361.5,
-          "min": 169229,
-          "p99": 194828,
-          "p99_9": 197668
+          "max": 191646,
+          "median": 173833.5,
+          "min": 169126,
+          "p99": 191126,
+          "p99_9": 191646
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -952,11 +952,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 61584,
-          "median": 35592,
-          "min": 35088,
-          "p99": 42632,
-          "p99_9": 61584
+          "max": 58408,
+          "median": 35900,
+          "min": 35176,
+          "p99": 45328,
+          "p99_9": 58408
         },
         "faults": 0,
         "graph": "document",
@@ -968,11 +968,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 59156,
-          "median": 35153.5,
-          "min": 34654,
-          "p99": 41790,
-          "p99_9": 59156
+          "max": 56154,
+          "median": 35449,
+          "min": 34769,
+          "p99": 44122,
+          "p99_9": 56154
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -985,11 +985,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 98832,
-          "median": 68216,
-          "min": 66776,
-          "p99": 77096,
-          "p99_9": 98832
+          "max": 84736,
+          "median": 67736,
+          "min": 66888,
+          "p99": 75176,
+          "p99_9": 84736
         },
         "faults": 0,
         "graph": "document",
@@ -1001,11 +1001,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 96354,
-          "median": 67748,
-          "min": 66332,
-          "p99": 75780,
-          "p99_9": 96354
+          "max": 82626,
+          "median": 67274,
+          "min": 66458,
+          "p99": 73955,
+          "p99_9": 82626
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1018,11 +1018,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 143600,
-          "median": 132460,
-          "min": 130456,
-          "p99": 143040,
-          "p99_9": 143600
+          "max": 154912,
+          "median": 132300,
+          "min": 130440,
+          "p99": 154864,
+          "p99_9": 154912
         },
         "faults": 0,
         "graph": "document",
@@ -1034,11 +1034,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 141879,
-          "median": 131896,
-          "min": 130024,
-          "p99": 141559,
-          "p99_9": 141879
+          "max": 152613,
+          "median": 131820.5,
+          "min": 130012,
+          "p99": 152301,
+          "p99_9": 152613
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1048,42 +1048,42 @@
         "block_frames": 64,
         "exit_code": 1,
         "patch": "scene-03-black-ice-choir.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "scene-03-black-ice-choir.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "scene-03-black-ice-choir.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 64,
         "exit_code": 1,
         "patch": "scene-04-vowel-apparitions.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 128,
         "exit_code": 1,
         "patch": "scene-04-vowel-apparitions.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
         "block_frames": 256,
         "exit_code": 1,
         "patch": "scene-04-vowel-apparitions.json",
-        "reason": "process exit nonzero",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
         "status": "unavailable"
       },
       {
@@ -1093,11 +1093,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 79552,
-          "median": 53880,
-          "min": 52920,
-          "p99": 71208,
-          "p99_9": 79552
+          "max": 75568,
+          "median": 53764,
+          "min": 53008,
+          "p99": 62336,
+          "p99_9": 75568
         },
         "faults": 0,
         "graph": "document",
@@ -1109,11 +1109,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 78179,
-          "median": 53373,
-          "min": 52485,
-          "p99": 70372,
-          "p99_9": 78179
+          "max": 74515,
+          "median": 53326,
+          "min": 52585,
+          "p99": 61426,
+          "p99_9": 74515
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1126,11 +1126,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 133296,
-          "median": 106872,
-          "min": 103080,
-          "p99": 117992,
-          "p99_9": 133296
+          "max": 120752,
+          "median": 106632,
+          "min": 102904,
+          "p99": 116336,
+          "p99_9": 120752
         },
         "faults": 0,
         "graph": "document",
@@ -1142,11 +1142,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 130832,
-          "median": 106417,
-          "min": 102641,
-          "p99": 116585,
-          "p99_9": 130832
+          "max": 119068,
+          "median": 106171,
+          "min": 102483,
+          "p99": 114739,
+          "p99_9": 119068
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1159,11 +1159,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 233440,
-          "median": 210612,
-          "min": 206464,
-          "p99": 231768,
-          "p99_9": 233440
+          "max": 238896,
+          "median": 210004,
+          "min": 206656,
+          "p99": 235200,
+          "p99_9": 238896
         },
         "faults": 0,
         "graph": "document",
@@ -1175,11 +1175,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 231210,
-          "median": 210159,
-          "min": 205891,
-          "p99": 230377,
-          "p99_9": 231210
+          "max": 236944,
+          "median": 209415,
+          "min": 206151,
+          "p99": 232696,
+          "p99_9": 236944
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1192,11 +1192,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 62456,
-          "median": 29528,
-          "min": 27976,
-          "p99": 39392,
-          "p99_9": 62456
+          "max": 56560,
+          "median": 29104,
+          "min": 27872,
+          "p99": 38392,
+          "p99_9": 56560
         },
         "faults": 0,
         "graph": "document",
@@ -1208,11 +1208,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 59668,
-          "median": 29046,
-          "min": 27550,
-          "p99": 38046,
-          "p99_9": 59668
+          "max": 54146,
+          "median": 28637,
+          "min": 27465,
+          "p99": 37537,
+          "p99_9": 54146
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1225,11 +1225,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 82848,
-          "median": 54312,
-          "min": 51912,
-          "p99": 66840,
-          "p99_9": 82848
+          "max": 82968,
+          "median": 54472,
+          "min": 52080,
+          "p99": 65416,
+          "p99_9": 82968
         },
         "faults": 0,
         "graph": "document",
@@ -1241,11 +1241,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 80619,
-          "median": 53837,
-          "min": 51453,
-          "p99": 65604,
-          "p99_9": 80619
+          "max": 80715,
+          "median": 54002,
+          "min": 51561,
+          "p99": 64354,
+          "p99_9": 80715
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1258,11 +1258,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 127680,
-          "median": 102936,
-          "min": 100616,
-          "p99": 126904,
-          "p99_9": 127680
+          "max": 122872,
+          "median": 104608,
+          "min": 100920,
+          "p99": 120280,
+          "p99_9": 122872
         },
         "faults": 0,
         "graph": "document",
@@ -1274,11 +1274,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 124928,
-          "median": 102321.5,
-          "min": 100177,
-          "p99": 124208,
-          "p99_9": 124928
+          "max": 121372,
+          "median": 104015,
+          "min": 100451,
+          "p99": 118972,
+          "p99_9": 121372
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1291,11 +1291,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 56736,
-          "median": 24704,
-          "min": 23024,
-          "p99": 35320,
-          "p99_9": 56736
+          "max": 52672,
+          "median": 24352,
+          "min": 22872,
+          "p99": 28968,
+          "p99_9": 52672
         },
         "faults": 0,
         "graph": "document",
@@ -1307,11 +1307,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 54436,
-          "median": 24258.5,
-          "min": 22590,
-          "p99": 34190,
-          "p99_9": 54436
+          "max": 51346,
+          "median": 23913,
+          "min": 22433,
+          "p99": 28177,
+          "p99_9": 51346
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1324,11 +1324,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 70456,
-          "median": 45008,
-          "min": 42600,
-          "p99": 59560,
-          "p99_9": 70456
+          "max": 77872,
+          "median": 44576,
+          "min": 42512,
+          "p99": 56944,
+          "p99_9": 77872
         },
         "faults": 0,
         "graph": "document",
@@ -1340,11 +1340,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 68260,
-          "median": 44509,
-          "min": 42157,
-          "p99": 58908,
-          "p99_9": 68260
+          "max": 75826,
+          "median": 44058,
+          "min": 42066,
+          "p99": 55761,
+          "p99_9": 75826
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1357,11 +1357,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 103520,
-          "median": 84652,
+          "max": 109104,
+          "median": 85064,
           "min": 82616,
-          "p99": 99024,
-          "p99_9": 103520
+          "p99": 107144,
+          "p99_9": 109104
         },
         "faults": 0,
         "graph": "document",
@@ -1373,11 +1373,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 101706,
-          "median": 84130.5,
-          "min": 82195,
-          "p99": 97690,
-          "p99_9": 101706
+          "max": 106779,
+          "median": 84590,
+          "min": 82178,
+          "p99": 105131,
+          "p99_9": 106779
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1390,11 +1390,11 @@
         "blocks": 750,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 40808,
-          "median": 26440,
-          "min": 25600,
-          "p99": 35168,
-          "p99_9": 40808
+          "max": 50808,
+          "median": 26264,
+          "min": 25216,
+          "p99": 37288,
+          "p99_9": 50808
         },
         "faults": 0,
         "graph": "document",
@@ -1406,11 +1406,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 39206,
-          "median": 25934.5,
-          "min": 25174,
-          "p99": 33582,
-          "p99_9": 39206
+          "max": 48618,
+          "median": 25789,
+          "min": 24792,
+          "p99": 36161,
+          "p99_9": 48618
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1423,11 +1423,11 @@
         "blocks": 375,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 59856,
-          "median": 49000,
-          "min": 47288,
-          "p99": 58496,
-          "p99_9": 59856
+          "max": 85968,
+          "median": 49704,
+          "min": 47312,
+          "p99": 64904,
+          "p99_9": 85968
         },
         "faults": 0,
         "graph": "document",
@@ -1439,11 +1439,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 59013,
-          "median": 48493,
-          "min": 46813,
-          "p99": 57149,
-          "p99_9": 59013
+          "max": 83363,
+          "median": 49234,
+          "min": 46849,
+          "p99": 63714,
+          "p99_9": 83363
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1456,11 +1456,11 @@
         "blocks": 188,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 149952,
-          "median": 93952,
-          "min": 91848,
-          "p99": 109208,
-          "p99_9": 149952
+          "max": 125352,
+          "median": 95296,
+          "min": 92144,
+          "p99": 114808,
+          "p99_9": 125352
         },
         "faults": 0,
         "graph": "document",
@@ -1472,11 +1472,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 148558,
-          "median": 93418,
-          "min": 91418,
-          "p99": 107857,
-          "p99_9": 148558
+          "max": 122532,
+          "median": 94647,
+          "min": 91627,
+          "p99": 112595,
+          "p99_9": 122532
         },
         "sample_rate": 48000,
         "seconds": 1,

@@ -1,0 +1,407 @@
+{
+  "ci_provenance": {
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
+    "date_et": "2026-11-15",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Windows-2025Server-10.0.26100-SP0",
+      "runner": "windows-x64",
+      "runner_arch": "X64",
+      "runner_image": "win25-vs2026",
+      "runner_image_version": "20261103.298.1",
+      "runner_os": "Windows"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "sidecar": "real wirescape-engine --null-audio, isolated settings per block",
+      "source": "wirescape_soak"
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
+      "date_et": "2026-11-15",
+      "machine": {
+        "architecture": "AMD64",
+        "compiler": "unavailable",
+        "configuration": "multi-config/unavailable",
+        "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+        "os": "Windows-2025Server-10.0.26100-SP0"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-01-first-tone.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "1",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-01-first-tone.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "1",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-01-first-tone.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "1",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-02-fm-filter-lfo.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "2",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-02-fm-filter-lfo.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "2",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-02-fm-filter-lfo.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "2",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-03-echo-and-reverb.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "3",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-03-echo-and-reverb.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "3",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-03-echo-and-reverb.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "3",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-06-chaos-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "4",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-06-chaos-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "4",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-06-chaos-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "4",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-07-macro-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "5",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-07-macro-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "5",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "basics-07-macro-keys.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "5",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "6",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "6",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "6",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "7",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "7",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "7",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-05-moonlit-drift-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "8",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-05-moonlit-drift-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "8",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "chaos-05-moonlit-drift-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "8",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "osc-out-01.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "9",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "osc-out-01.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "9",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "osc-out-01.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "9",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "quad-vca-01-lpg-plucks.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "10",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "quad-vca-01-lpg-plucks.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "10",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "quad-vca-01-lpg-plucks.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "10",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-03-black-ice-choir.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "11",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-03-black-ice-choir.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "11",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-03-black-ice-choir.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "11",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-04-vowel-apparitions.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "12",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-04-vowel-apparitions.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "12",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "error_text": "wirescape_soak: graph setup/render failed",
+        "exit_code": 1,
+        "patch": "scene-04-vowel-apparitions.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "sidecar_generation": "12",
+        "sidecar_result": "ack",
+        "status": "unavailable"
+      }
+    ],
+    "section": "soak_failures"
+  }
+}

@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "suites": {
@@ -14,38 +14,38 @@
         "count": 114,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.371405,
+          "seconds": 0.239297,
           "status": "passed"
         },
         "run": {
-          "exit_code": 8,
-          "seconds": 0.36342,
-          "status": "failed"
+          "exit_code": 0,
+          "seconds": 30.699115,
+          "status": "passed"
         }
       },
       "playwright_desktop": {
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.436956,
+          "seconds": 1.033502,
           "status": "passed"
         },
         "run": {
-          "exit_code": 1,
-          "seconds": 22.058985,
-          "status": "failed"
+          "exit_code": 0,
+          "seconds": 21.247878,
+          "status": "passed"
         }
       },
       "playwright_studio": {
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 2.209725,
+          "seconds": 1.526609,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 648.399981,
+          "seconds": 543.792774,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 21.507574,
+          "seconds": 14.61363,
           "status": "passed"
         }
       },
@@ -71,11 +71,11 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

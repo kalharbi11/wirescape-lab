@@ -2,12 +2,12 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "clocks": "hello value from Electron main boot stderr; paint epoch from renderer performance; launch wall clock Date.now()",
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "arch": "x64",
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
       "os": "linux"
     },
     "mode": "--null-audio",
@@ -16,1189 +16,1199 @@
         "electron_idle": {
           "processes": [
             {
-              "pid": 20138,
-              "ppid": 20126,
+              "pid": 20153,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240588
+              "rss_kib": 237904
             },
             {
-              "pid": 20139,
-              "ppid": 20138,
+              "pid": 20154,
+              "ppid": 20153,
               "process": "tee",
-              "rss_kib": 8192
+              "rss_kib": 7404
             },
             {
-              "pid": 20141,
-              "ppid": 20138,
+              "pid": 20156,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 84472
+              "rss_kib": 84384
             },
             {
-              "pid": 20142,
-              "ppid": 20138,
+              "pid": 20157,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 84592
+              "rss_kib": 84300
             },
             {
-              "pid": 20171,
-              "ppid": 20138,
+              "pid": 20185,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 101700
+              "rss_kib": 102068
+            },
+            {
+              "pid": 20191,
+              "ppid": 20157,
+              "process": "electron",
+              "rss_kib": 170152
             },
             {
               "pid": 20192,
-              "ppid": 20142,
-              "process": "electron",
-              "rss_kib": 170660
-            },
-            {
-              "pid": 20193,
-              "ppid": 20138,
+              "ppid": 20153,
               "process": "wirescape-engin",
-              "rss_kib": 16436
+              "rss_kib": 16668
             },
             {
-              "pid": 20226,
-              "ppid": 20141,
+              "pid": 20240,
+              "ppid": 20156,
               "process": "electron",
-              "rss_kib": 79332
+              "rss_kib": 79464
             }
           ],
-          "rss_kib": 785972
+          "rss_kib": 782344
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20138,
-              "ppid": 20126,
+              "pid": 20153,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240724
+              "rss_kib": 238160
             },
             {
-              "pid": 20139,
-              "ppid": 20138,
+              "pid": 20154,
+              "ppid": 20153,
               "process": "tee",
-              "rss_kib": 8192
+              "rss_kib": 7404
             },
             {
-              "pid": 20141,
-              "ppid": 20138,
+              "pid": 20156,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 84472
+              "rss_kib": 84384
             },
             {
-              "pid": 20142,
-              "ppid": 20138,
+              "pid": 20157,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 84592
+              "rss_kib": 84300
             },
             {
-              "pid": 20171,
-              "ppid": 20138,
+              "pid": 20185,
+              "ppid": 20153,
               "process": "electron",
-              "rss_kib": 101700
+              "rss_kib": 102068
+            },
+            {
+              "pid": 20191,
+              "ppid": 20157,
+              "process": "electron",
+              "rss_kib": 183428
             },
             {
               "pid": 20192,
-              "ppid": 20142,
-              "process": "electron",
-              "rss_kib": 185684
-            },
-            {
-              "pid": 20193,
-              "ppid": 20138,
+              "ppid": 20153,
               "process": "wirescape-engin",
-              "rss_kib": 20788
+              "rss_kib": 20812
             },
             {
-              "pid": 20226,
-              "ppid": 20141,
+              "pid": 20240,
+              "ppid": 20156,
               "process": "electron",
-              "rss_kib": 82524
+              "rss_kib": 81164
             }
           ],
-          "rss_kib": 808676
+          "rss_kib": 801720
         },
-        "hello_from_main_boot_ms": 128.568148,
-        "nav_start_epoch_ms": 1794779732344,
-        "navigation_duration_ms": 294.80000000004657,
-        "paint_epoch_ms": 1794779732756,
-        "paint_since_navigation_ms": 412,
+        "hello_from_main_boot_ms": 53.929393,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780819950.9,
+        "navigation_duration_ms": 199.79999999993015,
+        "paint_epoch_ms": 1794780820222.9,
+        "paint_since_navigation_ms": 272,
         "run": 1,
-        "studio_first_paint_from_launch_ms": 760
+        "studio_first_paint_from_launch_ms": 497.89990234375
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20255,
-              "ppid": 20126,
+              "pid": 20269,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 242000
+              "rss_kib": 241724
             },
             {
-              "pid": 20256,
-              "ppid": 20255,
+              "pid": 20271,
+              "ppid": 20269,
               "process": "tee",
-              "rss_kib": 8448
+              "rss_kib": 7296
             },
             {
-              "pid": 20258,
-              "ppid": 20255,
+              "pid": 20274,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 84492
+              "rss_kib": 84156
             },
             {
-              "pid": 20259,
-              "ppid": 20255,
+              "pid": 20275,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 84464
+              "rss_kib": 84148
             },
             {
-              "pid": 20287,
-              "ppid": 20255,
+              "pid": 20303,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 102344
+              "rss_kib": 101836
             },
             {
-              "pid": 20302,
-              "ppid": 20259,
+              "pid": 20308,
+              "ppid": 20275,
               "process": "electron",
-              "rss_kib": 179500
+              "rss_kib": 178552
             },
             {
-              "pid": 20312,
-              "ppid": 20255,
+              "pid": 20313,
+              "ppid": 20269,
               "process": "wirescape-engin",
-              "rss_kib": 19340
+              "rss_kib": 19188
             },
             {
-              "pid": 20344,
-              "ppid": 20258,
+              "pid": 20356,
+              "ppid": 20274,
               "process": "electron",
-              "rss_kib": 80180
+              "rss_kib": 80456
             }
           ],
-          "rss_kib": 800768
+          "rss_kib": 797356
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20255,
-              "ppid": 20126,
+              "pid": 20269,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 241756
+              "rss_kib": 241932
             },
             {
-              "pid": 20256,
-              "ppid": 20255,
+              "pid": 20271,
+              "ppid": 20269,
               "process": "tee",
-              "rss_kib": 8448
+              "rss_kib": 7296
             },
             {
-              "pid": 20258,
-              "ppid": 20255,
+              "pid": 20274,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 84492
+              "rss_kib": 84156
             },
             {
-              "pid": 20259,
-              "ppid": 20255,
+              "pid": 20275,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 84464
+              "rss_kib": 84148
             },
             {
-              "pid": 20287,
-              "ppid": 20255,
+              "pid": 20303,
+              "ppid": 20269,
               "process": "electron",
-              "rss_kib": 102344
+              "rss_kib": 101836
             },
             {
-              "pid": 20302,
-              "ppid": 20259,
+              "pid": 20308,
+              "ppid": 20275,
               "process": "electron",
-              "rss_kib": 194072
+              "rss_kib": 192548
             },
             {
-              "pid": 20312,
-              "ppid": 20255,
+              "pid": 20313,
+              "ppid": 20269,
               "process": "wirescape-engin",
-              "rss_kib": 23520
+              "rss_kib": 23368
             },
             {
-              "pid": 20344,
-              "ppid": 20258,
+              "pid": 20356,
+              "ppid": 20274,
               "process": "electron",
-              "rss_kib": 81752
+              "rss_kib": 82096
             }
           ],
-          "rss_kib": 820848
+          "rss_kib": 817380
         },
-        "hello_from_main_boot_ms": 129.500785,
-        "nav_start_epoch_ms": 1794779733830.9,
-        "navigation_duration_ms": 305.5999999998603,
-        "paint_epoch_ms": 1794779734238.9,
-        "paint_since_navigation_ms": 408,
+        "hello_from_main_boot_ms": 81.871747,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780821099.9,
+        "navigation_duration_ms": 198.89999999990687,
+        "paint_epoch_ms": 1794780821375.9,
+        "paint_since_navigation_ms": 276,
         "run": 2,
-        "studio_first_paint_from_launch_ms": 747.89990234375
+        "studio_first_paint_from_launch_ms": 494.89990234375
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20371,
-              "ppid": 20126,
+              "pid": 20386,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 242116
+              "rss_kib": 241292
             },
             {
-              "pid": 20372,
-              "ppid": 20371,
+              "pid": 20388,
+              "ppid": 20386,
               "process": "tee",
-              "rss_kib": 8504
+              "rss_kib": 7420
             },
             {
-              "pid": 20376,
-              "ppid": 20371,
+              "pid": 20390,
+              "ppid": 20386,
               "process": "electron",
-              "rss_kib": 83140
+              "rss_kib": 84636
             },
             {
-              "pid": 20377,
-              "ppid": 20371,
+              "pid": 20391,
+              "ppid": 20386,
               "process": "electron",
-              "rss_kib": 83360
-            },
-            {
-              "pid": 20405,
-              "ppid": 20371,
-              "process": "electron",
-              "rss_kib": 102056
-            },
-            {
-              "pid": 20418,
-              "ppid": 20377,
-              "process": "electron",
-              "rss_kib": 171324
+              "rss_kib": 83936
             },
             {
               "pid": 20419,
-              "ppid": 20371,
-              "process": "wirescape-engin",
-              "rss_kib": 19100
+              "ppid": 20386,
+              "process": "electron",
+              "rss_kib": 100580
             },
             {
-              "pid": 20461,
-              "ppid": 20376,
+              "pid": 20426,
+              "ppid": 20391,
               "process": "electron",
-              "rss_kib": 74308
+              "rss_kib": 176488
+            },
+            {
+              "pid": 20431,
+              "ppid": 20386,
+              "process": "wirescape-engin",
+              "rss_kib": 19124
+            },
+            {
+              "pid": 20475,
+              "ppid": 20390,
+              "process": "electron",
+              "rss_kib": 80500
             }
           ],
-          "rss_kib": 783908
+          "rss_kib": 793976
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20371,
-              "ppid": 20126,
+              "pid": 20386,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 242076
+              "rss_kib": 241568
             },
             {
-              "pid": 20372,
-              "ppid": 20371,
+              "pid": 20388,
+              "ppid": 20386,
               "process": "tee",
-              "rss_kib": 8504
+              "rss_kib": 7420
             },
             {
-              "pid": 20376,
-              "ppid": 20371,
+              "pid": 20390,
+              "ppid": 20386,
               "process": "electron",
-              "rss_kib": 83140
+              "rss_kib": 84636
             },
             {
-              "pid": 20377,
-              "ppid": 20371,
+              "pid": 20391,
+              "ppid": 20386,
               "process": "electron",
-              "rss_kib": 83360
-            },
-            {
-              "pid": 20405,
-              "ppid": 20371,
-              "process": "electron",
-              "rss_kib": 102056
-            },
-            {
-              "pid": 20418,
-              "ppid": 20377,
-              "process": "electron",
-              "rss_kib": 190352
+              "rss_kib": 83936
             },
             {
               "pid": 20419,
-              "ppid": 20371,
-              "process": "wirescape-engin",
-              "rss_kib": 23296
+              "ppid": 20386,
+              "process": "electron",
+              "rss_kib": 100580
             },
             {
-              "pid": 20461,
-              "ppid": 20376,
+              "pid": 20426,
+              "ppid": 20391,
               "process": "electron",
-              "rss_kib": 80668
+              "rss_kib": 190660
+            },
+            {
+              "pid": 20431,
+              "ppid": 20386,
+              "process": "wirescape-engin",
+              "rss_kib": 23348
+            },
+            {
+              "pid": 20475,
+              "ppid": 20390,
+              "process": "electron",
+              "rss_kib": 82184
             }
           ],
-          "rss_kib": 813452
+          "rss_kib": 814332
         },
-        "hello_from_main_boot_ms": 117.459002,
-        "nav_start_epoch_ms": 1794779735334.5,
-        "navigation_duration_ms": 279,
-        "paint_epoch_ms": 1794779735578.5,
-        "paint_since_navigation_ms": 244,
+        "hello_from_main_boot_ms": 79.017294,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780822293.2,
+        "navigation_duration_ms": 201.20000000006985,
+        "paint_epoch_ms": 1794780822565.2,
+        "paint_since_navigation_ms": 272,
         "run": 3,
-        "studio_first_paint_from_launch_ms": 579.5
+        "studio_first_paint_from_launch_ms": 511.199951171875
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20489,
-              "ppid": 20126,
+              "pid": 20503,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 241452
+              "rss_kib": 241640
             },
             {
-              "pid": 20491,
-              "ppid": 20489,
+              "pid": 20506,
+              "ppid": 20503,
               "process": "tee",
-              "rss_kib": 8340
+              "rss_kib": 7484
             },
             {
-              "pid": 20494,
-              "ppid": 20489,
+              "pid": 20508,
+              "ppid": 20503,
               "process": "electron",
-              "rss_kib": 82752
+              "rss_kib": 84704
             },
             {
-              "pid": 20495,
-              "ppid": 20489,
+              "pid": 20509,
+              "ppid": 20503,
               "process": "electron",
-              "rss_kib": 83700
-            },
-            {
-              "pid": 20524,
-              "ppid": 20489,
-              "process": "electron",
-              "rss_kib": 101824
-            },
-            {
-              "pid": 20536,
-              "ppid": 20495,
-              "process": "electron",
-              "rss_kib": 179380
+              "rss_kib": 84832
             },
             {
               "pid": 20537,
-              "ppid": 20489,
-              "process": "wirescape-engin",
-              "rss_kib": 19156
+              "ppid": 20503,
+              "process": "electron",
+              "rss_kib": 102096
             },
             {
-              "pid": 20578,
-              "ppid": 20494,
+              "pid": 20558,
+              "ppid": 20509,
               "process": "electron",
-              "rss_kib": 79772
+              "rss_kib": 178788
+            },
+            {
+              "pid": 20559,
+              "ppid": 20503,
+              "process": "wirescape-engin",
+              "rss_kib": 19324
+            },
+            {
+              "pid": 20591,
+              "ppid": 20508,
+              "process": "electron",
+              "rss_kib": 80488
             }
           ],
-          "rss_kib": 796376
+          "rss_kib": 799356
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20489,
-              "ppid": 20126,
+              "pid": 20503,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 241388
+              "rss_kib": 241944
             },
             {
-              "pid": 20491,
-              "ppid": 20489,
+              "pid": 20506,
+              "ppid": 20503,
               "process": "tee",
-              "rss_kib": 8340
+              "rss_kib": 7484
             },
             {
-              "pid": 20494,
-              "ppid": 20489,
+              "pid": 20508,
+              "ppid": 20503,
               "process": "electron",
-              "rss_kib": 82752
+              "rss_kib": 84704
             },
             {
-              "pid": 20495,
-              "ppid": 20489,
+              "pid": 20509,
+              "ppid": 20503,
               "process": "electron",
-              "rss_kib": 83700
-            },
-            {
-              "pid": 20524,
-              "ppid": 20489,
-              "process": "electron",
-              "rss_kib": 101824
-            },
-            {
-              "pid": 20536,
-              "ppid": 20495,
-              "process": "electron",
-              "rss_kib": 193280
+              "rss_kib": 84832
             },
             {
               "pid": 20537,
-              "ppid": 20489,
-              "process": "wirescape-engin",
-              "rss_kib": 23316
+              "ppid": 20503,
+              "process": "electron",
+              "rss_kib": 102096
             },
             {
-              "pid": 20578,
-              "ppid": 20494,
+              "pid": 20558,
+              "ppid": 20509,
               "process": "electron",
-              "rss_kib": 81060
+              "rss_kib": 192572
+            },
+            {
+              "pid": 20559,
+              "ppid": 20503,
+              "process": "wirescape-engin",
+              "rss_kib": 23536
+            },
+            {
+              "pid": 20591,
+              "ppid": 20508,
+              "process": "electron",
+              "rss_kib": 82068
             }
           ],
-          "rss_kib": 815660
+          "rss_kib": 819236
         },
-        "hello_from_main_boot_ms": 124.006967,
-        "nav_start_epoch_ms": 1794779736800.4,
-        "navigation_duration_ms": 286.60000000009313,
-        "paint_epoch_ms": 1794779737208.4,
-        "paint_since_navigation_ms": 408,
+        "hello_from_main_boot_ms": 56.786083,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780823477.4,
+        "navigation_duration_ms": 202.29999999993015,
+        "paint_epoch_ms": 1794780823749.4,
+        "paint_since_navigation_ms": 272,
         "run": 4,
-        "studio_first_paint_from_launch_ms": 746.39990234375
+        "studio_first_paint_from_launch_ms": 498.39990234375
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20606,
-              "ppid": 20126,
+              "pid": 20621,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 241040
+              "rss_kib": 241740
             },
             {
-              "pid": 20607,
-              "ppid": 20606,
+              "pid": 20623,
+              "ppid": 20621,
               "process": "tee",
-              "rss_kib": 8432
+              "rss_kib": 7280
             },
             {
-              "pid": 20611,
-              "ppid": 20606,
+              "pid": 20626,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 83724
+              "rss_kib": 84868
             },
             {
-              "pid": 20612,
-              "ppid": 20606,
+              "pid": 20627,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 82780
+              "rss_kib": 84836
             },
             {
-              "pid": 20642,
-              "ppid": 20606,
+              "pid": 20659,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 101900
-            },
-            {
-              "pid": 20663,
-              "ppid": 20612,
-              "process": "electron",
-              "rss_kib": 176596
+              "rss_kib": 100204
             },
             {
               "pid": 20664,
-              "ppid": 20606,
+              "ppid": 20627,
+              "process": "electron",
+              "rss_kib": 178124
+            },
+            {
+              "pid": 20684,
+              "ppid": 20621,
               "process": "wirescape-engin",
               "rss_kib": 19292
             },
             {
-              "pid": 20696,
-              "ppid": 20611,
+              "pid": 20712,
+              "ppid": 20626,
               "process": "electron",
-              "rss_kib": 80272
+              "rss_kib": 80588
             }
           ],
-          "rss_kib": 794036
+          "rss_kib": 796932
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20606,
-              "ppid": 20126,
+              "pid": 20621,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240864
+              "rss_kib": 241932
             },
             {
-              "pid": 20607,
-              "ppid": 20606,
+              "pid": 20623,
+              "ppid": 20621,
               "process": "tee",
-              "rss_kib": 8432
+              "rss_kib": 7280
             },
             {
-              "pid": 20611,
-              "ppid": 20606,
+              "pid": 20626,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 83724
+              "rss_kib": 84868
             },
             {
-              "pid": 20612,
-              "ppid": 20606,
+              "pid": 20627,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 82780
+              "rss_kib": 84836
             },
             {
-              "pid": 20642,
-              "ppid": 20606,
+              "pid": 20659,
+              "ppid": 20621,
               "process": "electron",
-              "rss_kib": 101900
-            },
-            {
-              "pid": 20663,
-              "ppid": 20612,
-              "process": "electron",
-              "rss_kib": 191172
+              "rss_kib": 100204
             },
             {
               "pid": 20664,
-              "ppid": 20606,
-              "process": "wirescape-engin",
-              "rss_kib": 23456
+              "ppid": 20627,
+              "process": "electron",
+              "rss_kib": 192492
             },
             {
-              "pid": 20696,
-              "ppid": 20611,
+              "pid": 20684,
+              "ppid": 20621,
+              "process": "wirescape-engin",
+              "rss_kib": 23520
+            },
+            {
+              "pid": 20712,
+              "ppid": 20626,
               "process": "electron",
-              "rss_kib": 82008
+              "rss_kib": 82548
             }
           ],
-          "rss_kib": 814336
+          "rss_kib": 817680
         },
-        "hello_from_main_boot_ms": 123.913923,
-        "nav_start_epoch_ms": 1794779738297,
-        "navigation_duration_ms": 296.39999999990687,
-        "paint_epoch_ms": 1794779738709,
-        "paint_since_navigation_ms": 412,
+        "hello_from_main_boot_ms": 57.817027,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780824652.3,
+        "navigation_duration_ms": 200.70000000006985,
+        "paint_epoch_ms": 1794780824920.3,
+        "paint_since_navigation_ms": 268,
         "run": 5,
-        "studio_first_paint_from_launch_ms": 758
+        "studio_first_paint_from_launch_ms": 488.300048828125
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20724,
-              "ppid": 20126,
+              "pid": 20739,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240968
+              "rss_kib": 241056
             },
             {
-              "pid": 20725,
-              "ppid": 20724,
+              "pid": 20740,
+              "ppid": 20739,
               "process": "tee",
-              "rss_kib": 8540
+              "rss_kib": 7220
             },
             {
-              "pid": 20729,
-              "ppid": 20724,
+              "pid": 20744,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 83200
+              "rss_kib": 83968
             },
             {
-              "pid": 20730,
-              "ppid": 20724,
+              "pid": 20745,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 83840
+              "rss_kib": 84276
             },
             {
-              "pid": 20759,
-              "ppid": 20724,
+              "pid": 20773,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 101824
+              "rss_kib": 101932
             },
             {
-              "pid": 20777,
-              "ppid": 20730,
+              "pid": 20788,
+              "ppid": 20745,
               "process": "electron",
-              "rss_kib": 179188
+              "rss_kib": 176424
             },
             {
-              "pid": 20780,
-              "ppid": 20724,
+              "pid": 20789,
+              "ppid": 20739,
               "process": "wirescape-engin",
-              "rss_kib": 19160
+              "rss_kib": 19112
             },
             {
-              "pid": 20812,
-              "ppid": 20729,
+              "pid": 20830,
+              "ppid": 20744,
               "process": "electron",
-              "rss_kib": 81112
+              "rss_kib": 78932
             }
           ],
-          "rss_kib": 797832
+          "rss_kib": 792920
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20724,
-              "ppid": 20126,
+              "pid": 20739,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240764
+              "rss_kib": 241372
             },
             {
-              "pid": 20725,
-              "ppid": 20724,
+              "pid": 20740,
+              "ppid": 20739,
               "process": "tee",
-              "rss_kib": 8540
+              "rss_kib": 7220
             },
             {
-              "pid": 20729,
-              "ppid": 20724,
+              "pid": 20744,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 83200
+              "rss_kib": 83968
             },
             {
-              "pid": 20730,
-              "ppid": 20724,
+              "pid": 20745,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 83840
+              "rss_kib": 84276
             },
             {
-              "pid": 20759,
-              "ppid": 20724,
+              "pid": 20773,
+              "ppid": 20739,
               "process": "electron",
-              "rss_kib": 101824
+              "rss_kib": 101932
             },
             {
-              "pid": 20777,
-              "ppid": 20730,
+              "pid": 20788,
+              "ppid": 20745,
               "process": "electron",
-              "rss_kib": 193016
+              "rss_kib": 190956
             },
             {
-              "pid": 20780,
-              "ppid": 20724,
+              "pid": 20789,
+              "ppid": 20739,
               "process": "wirescape-engin",
-              "rss_kib": 23292
+              "rss_kib": 23320
             },
             {
-              "pid": 20812,
-              "ppid": 20729,
+              "pid": 20830,
+              "ppid": 20744,
               "process": "electron",
-              "rss_kib": 82172
+              "rss_kib": 80828
             }
           ],
-          "rss_kib": 816648
+          "rss_kib": 813872
         },
-        "hello_from_main_boot_ms": 123.117989,
-        "nav_start_epoch_ms": 1794779739766.6,
-        "navigation_duration_ms": 291.4000000001397,
-        "paint_epoch_ms": 1794779740178.6,
-        "paint_since_navigation_ms": 412,
+        "hello_from_main_boot_ms": 52.94138,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780825821.1,
+        "navigation_duration_ms": 203.80000000004657,
+        "paint_epoch_ms": 1794780826093.1,
+        "paint_since_navigation_ms": 272,
         "run": 6,
-        "studio_first_paint_from_launch_ms": 736.60009765625
+        "studio_first_paint_from_launch_ms": 507.10009765625
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 20845,
-              "ppid": 20126,
+              "pid": 20851,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240776
+              "rss_kib": 237584
             },
             {
-              "pid": 20846,
-              "ppid": 20845,
+              "pid": 20852,
+              "ppid": 20851,
               "process": "tee",
-              "rss_kib": 8608
+              "rss_kib": 7400
             },
             {
-              "pid": 20848,
-              "ppid": 20845,
+              "pid": 20856,
+              "ppid": 20851,
               "process": "electron",
-              "rss_kib": 84848
+              "rss_kib": 83524
             },
             {
-              "pid": 20849,
-              "ppid": 20845,
+              "pid": 20857,
+              "ppid": 20851,
               "process": "electron",
-              "rss_kib": 84692
+              "rss_kib": 83428
             },
             {
-              "pid": 20876,
-              "ppid": 20845,
+              "pid": 20885,
+              "ppid": 20851,
               "process": "electron",
-              "rss_kib": 100052
+              "rss_kib": 102288
             },
             {
-              "pid": 20888,
-              "ppid": 20849,
+              "pid": 20897,
+              "ppid": 20857,
               "process": "electron",
-              "rss_kib": 178664
+              "rss_kib": 176500
             },
             {
               "pid": 20898,
-              "ppid": 20845,
+              "ppid": 20851,
+              "process": "wirescape-engin",
+              "rss_kib": 19292
+            },
+            {
+              "pid": 20940,
+              "ppid": 20856,
+              "process": "electron",
+              "rss_kib": 79340
+            }
+          ],
+          "rss_kib": 789356
+        },
+        "electron_loaded": {
+          "patch": "native/examples/class_demo_1_chaos.json",
+          "processes": [
+            {
+              "pid": 20851,
+              "ppid": 20141,
+              "process": "electron",
+              "rss_kib": 237988
+            },
+            {
+              "pid": 20852,
+              "ppid": 20851,
+              "process": "tee",
+              "rss_kib": 7400
+            },
+            {
+              "pid": 20856,
+              "ppid": 20851,
+              "process": "electron",
+              "rss_kib": 83524
+            },
+            {
+              "pid": 20857,
+              "ppid": 20851,
+              "process": "electron",
+              "rss_kib": 83428
+            },
+            {
+              "pid": 20885,
+              "ppid": 20851,
+              "process": "electron",
+              "rss_kib": 102288
+            },
+            {
+              "pid": 20897,
+              "ppid": 20857,
+              "process": "electron",
+              "rss_kib": 191260
+            },
+            {
+              "pid": 20898,
+              "ppid": 20851,
+              "process": "wirescape-engin",
+              "rss_kib": 23436
+            },
+            {
+              "pid": 20940,
+              "ppid": 20856,
+              "process": "electron",
+              "rss_kib": 81144
+            }
+          ],
+          "rss_kib": 810468
+        },
+        "hello_from_main_boot_ms": 53.553543,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780826969.6,
+        "navigation_duration_ms": 191.09999999997672,
+        "paint_epoch_ms": 1794780827225.6,
+        "paint_since_navigation_ms": 256,
+        "run": 7,
+        "studio_first_paint_from_launch_ms": 468.60009765625
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 20969,
+              "ppid": 20141,
+              "process": "electron",
+              "rss_kib": 241844
+            },
+            {
+              "pid": 20971,
+              "ppid": 20969,
+              "process": "tee",
+              "rss_kib": 7496
+            },
+            {
+              "pid": 20973,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 83992
+            },
+            {
+              "pid": 20974,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 84540
+            },
+            {
+              "pid": 21002,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 102388
+            },
+            {
+              "pid": 21023,
+              "ppid": 20974,
+              "process": "electron",
+              "rss_kib": 177840
+            },
+            {
+              "pid": 21027,
+              "ppid": 20969,
+              "process": "wirescape-engin",
+              "rss_kib": 19268
+            },
+            {
+              "pid": 21057,
+              "ppid": 20973,
+              "process": "electron",
+              "rss_kib": 78724
+            }
+          ],
+          "rss_kib": 796092
+        },
+        "electron_loaded": {
+          "patch": "native/examples/class_demo_1_chaos.json",
+          "processes": [
+            {
+              "pid": 20969,
+              "ppid": 20141,
+              "process": "electron",
+              "rss_kib": 242052
+            },
+            {
+              "pid": 20971,
+              "ppid": 20969,
+              "process": "tee",
+              "rss_kib": 7496
+            },
+            {
+              "pid": 20973,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 83992
+            },
+            {
+              "pid": 20974,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 84540
+            },
+            {
+              "pid": 21002,
+              "ppid": 20969,
+              "process": "electron",
+              "rss_kib": 102388
+            },
+            {
+              "pid": 21023,
+              "ppid": 20974,
+              "process": "electron",
+              "rss_kib": 192420
+            },
+            {
+              "pid": 21027,
+              "ppid": 20969,
+              "process": "wirescape-engin",
+              "rss_kib": 23448
+            },
+            {
+              "pid": 21057,
+              "ppid": 20973,
+              "process": "electron",
+              "rss_kib": 80448
+            }
+          ],
+          "rss_kib": 816784
+        },
+        "hello_from_main_boot_ms": 89.860328,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780828143.3,
+        "navigation_duration_ms": 194.59999999997672,
+        "paint_epoch_ms": 1794780828407.3,
+        "paint_since_navigation_ms": 264,
+        "run": 8,
+        "studio_first_paint_from_launch_ms": 511.300048828125
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 21086,
+              "ppid": 20141,
+              "process": "electron",
+              "rss_kib": 237624
+            },
+            {
+              "pid": 21087,
+              "ppid": 21086,
+              "process": "tee",
+              "rss_kib": 7376
+            },
+            {
+              "pid": 21091,
+              "ppid": 21086,
+              "process": "electron",
+              "rss_kib": 84752
+            },
+            {
+              "pid": 21092,
+              "ppid": 21086,
+              "process": "electron",
+              "rss_kib": 84544
+            },
+            {
+              "pid": 21119,
+              "ppid": 21086,
+              "process": "electron",
+              "rss_kib": 101528
+            },
+            {
+              "pid": 21130,
+              "ppid": 21092,
+              "process": "electron",
+              "rss_kib": 178776
+            },
+            {
+              "pid": 21138,
+              "ppid": 21086,
               "process": "wirescape-engin",
               "rss_kib": 19148
             },
             {
-              "pid": 20931,
-              "ppid": 20848,
+              "pid": 21175,
+              "ppid": 21091,
               "process": "electron",
-              "rss_kib": 81008
+              "rss_kib": 80856
             }
           ],
-          "rss_kib": 797796
+          "rss_kib": 794604
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 20845,
-              "ppid": 20126,
+              "pid": 21086,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 240736
+              "rss_kib": 237792
             },
             {
-              "pid": 20846,
-              "ppid": 20845,
+              "pid": 21087,
+              "ppid": 21086,
               "process": "tee",
-              "rss_kib": 8608
+              "rss_kib": 7376
             },
             {
-              "pid": 20848,
-              "ppid": 20845,
+              "pid": 21091,
+              "ppid": 21086,
               "process": "electron",
-              "rss_kib": 84848
+              "rss_kib": 84752
             },
             {
-              "pid": 20849,
-              "ppid": 20845,
+              "pid": 21092,
+              "ppid": 21086,
               "process": "electron",
-              "rss_kib": 84692
+              "rss_kib": 84544
             },
             {
-              "pid": 20876,
-              "ppid": 20845,
+              "pid": 21119,
+              "ppid": 21086,
               "process": "electron",
-              "rss_kib": 100052
+              "rss_kib": 101528
             },
             {
-              "pid": 20888,
-              "ppid": 20849,
+              "pid": 21130,
+              "ppid": 21092,
               "process": "electron",
-              "rss_kib": 193092
+              "rss_kib": 192932
             },
             {
-              "pid": 20898,
-              "ppid": 20845,
-              "process": "wirescape-engin",
-              "rss_kib": 23376
-            },
-            {
-              "pid": 20931,
-              "ppid": 20848,
-              "process": "electron",
-              "rss_kib": 82736
-            }
-          ],
-          "rss_kib": 818140
-        },
-        "hello_from_main_boot_ms": 122.131072,
-        "nav_start_epoch_ms": 1794779741278.9,
-        "navigation_duration_ms": 293.39999999990687,
-        "paint_epoch_ms": 1794779741678.9,
-        "paint_since_navigation_ms": 400,
-        "run": 7,
-        "studio_first_paint_from_launch_ms": 732.89990234375
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 20962,
-              "ppid": 20126,
-              "process": "electron",
-              "rss_kib": 241784
-            },
-            {
-              "pid": 20963,
-              "ppid": 20962,
-              "process": "tee",
-              "rss_kib": 8248
-            },
-            {
-              "pid": 20967,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 84584
-            },
-            {
-              "pid": 20968,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 84428
-            },
-            {
-              "pid": 20996,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 101168
-            },
-            {
-              "pid": 21003,
-              "ppid": 20968,
-              "process": "electron",
-              "rss_kib": 179104
-            },
-            {
-              "pid": 21004,
-              "ppid": 20962,
-              "process": "wirescape-engin",
-              "rss_kib": 19144
-            },
-            {
-              "pid": 21052,
-              "ppid": 20967,
-              "process": "electron",
-              "rss_kib": 81632
-            }
-          ],
-          "rss_kib": 800092
-        },
-        "electron_loaded": {
-          "patch": "native/examples/class_demo_1_chaos.json",
-          "processes": [
-            {
-              "pid": 20962,
-              "ppid": 20126,
-              "process": "electron",
-              "rss_kib": 241584
-            },
-            {
-              "pid": 20963,
-              "ppid": 20962,
-              "process": "tee",
-              "rss_kib": 8248
-            },
-            {
-              "pid": 20967,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 84584
-            },
-            {
-              "pid": 20968,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 84428
-            },
-            {
-              "pid": 20996,
-              "ppid": 20962,
-              "process": "electron",
-              "rss_kib": 101168
-            },
-            {
-              "pid": 21003,
-              "ppid": 20968,
-              "process": "electron",
-              "rss_kib": 193120
-            },
-            {
-              "pid": 21004,
-              "ppid": 20962,
+              "pid": 21138,
+              "ppid": 21086,
               "process": "wirescape-engin",
               "rss_kib": 23344
             },
             {
-              "pid": 21052,
-              "ppid": 20967,
+              "pid": 21175,
+              "ppid": 21091,
               "process": "electron",
-              "rss_kib": 82804
+              "rss_kib": 82556
             }
           ],
-          "rss_kib": 819280
+          "rss_kib": 814824
         },
-        "hello_from_main_boot_ms": 76.80133,
-        "nav_start_epoch_ms": 1794779742727.8,
-        "navigation_duration_ms": 307,
-        "paint_epoch_ms": 1794779743147.8,
-        "paint_since_navigation_ms": 420,
-        "run": 8,
-        "studio_first_paint_from_launch_ms": 717.800048828125
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 21078,
-              "ppid": 20126,
-              "process": "electron",
-              "rss_kib": 242048
-            },
-            {
-              "pid": 21080,
-              "ppid": 21078,
-              "process": "tee",
-              "rss_kib": 8312
-            },
-            {
-              "pid": 21083,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 84316
-            },
-            {
-              "pid": 21084,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 84812
-            },
-            {
-              "pid": 21112,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 101964
-            },
-            {
-              "pid": 21118,
-              "ppid": 21084,
-              "process": "electron",
-              "rss_kib": 179404
-            },
-            {
-              "pid": 21129,
-              "ppid": 21078,
-              "process": "wirescape-engin",
-              "rss_kib": 19328
-            },
-            {
-              "pid": 21166,
-              "ppid": 21083,
-              "process": "electron",
-              "rss_kib": 81592
-            }
-          ],
-          "rss_kib": 801776
-        },
-        "electron_loaded": {
-          "patch": "native/examples/class_demo_1_chaos.json",
-          "processes": [
-            {
-              "pid": 21078,
-              "ppid": 20126,
-              "process": "electron",
-              "rss_kib": 241904
-            },
-            {
-              "pid": 21080,
-              "ppid": 21078,
-              "process": "tee",
-              "rss_kib": 8312
-            },
-            {
-              "pid": 21083,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 84316
-            },
-            {
-              "pid": 21084,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 84812
-            },
-            {
-              "pid": 21112,
-              "ppid": 21078,
-              "process": "electron",
-              "rss_kib": 101964
-            },
-            {
-              "pid": 21118,
-              "ppid": 21084,
-              "process": "electron",
-              "rss_kib": 193584
-            },
-            {
-              "pid": 21129,
-              "ppid": 21078,
-              "process": "wirescape-engin",
-              "rss_kib": 23472
-            },
-            {
-              "pid": 21166,
-              "ppid": 21083,
-              "process": "electron",
-              "rss_kib": 83220
-            }
-          ],
-          "rss_kib": 821584
-        },
-        "hello_from_main_boot_ms": 74.89227,
-        "nav_start_epoch_ms": 1794779744209.2,
-        "navigation_duration_ms": 300.4000000001397,
-        "paint_epoch_ms": 1794779744621.2,
-        "paint_since_navigation_ms": 412,
+        "hello_from_main_boot_ms": 54.406743,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780829288.6,
+        "navigation_duration_ms": 198.30000000004657,
+        "paint_epoch_ms": 1794780829556.6,
+        "paint_since_navigation_ms": 268,
         "run": 9,
-        "studio_first_paint_from_launch_ms": 728.199951171875
+        "studio_first_paint_from_launch_ms": 483.60009765625
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 21193,
-              "ppid": 20126,
+              "pid": 21204,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 242576
+              "rss_kib": 237308
             },
             {
-              "pid": 21196,
-              "ppid": 21193,
+              "pid": 21205,
+              "ppid": 21204,
               "process": "tee",
-              "rss_kib": 8156
+              "rss_kib": 7484
             },
             {
-              "pid": 21198,
-              "ppid": 21193,
+              "pid": 21209,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 84272
+              "rss_kib": 84604
             },
             {
-              "pid": 21199,
-              "ppid": 21193,
+              "pid": 21210,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 84356
+              "rss_kib": 84824
             },
             {
-              "pid": 21228,
-              "ppid": 21193,
+              "pid": 21238,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 101672
+              "rss_kib": 101936
             },
             {
-              "pid": 21234,
-              "ppid": 21199,
+              "pid": 21259,
+              "ppid": 21210,
               "process": "electron",
-              "rss_kib": 179004
+              "rss_kib": 178284
             },
             {
-              "pid": 21244,
-              "ppid": 21193,
+              "pid": 21262,
+              "ppid": 21204,
               "process": "wirescape-engin",
-              "rss_kib": 19196
+              "rss_kib": 19272
             },
             {
-              "pid": 21283,
-              "ppid": 21198,
+              "pid": 21295,
+              "ppid": 21209,
               "process": "electron",
-              "rss_kib": 79980
+              "rss_kib": 80544
             }
           ],
-          "rss_kib": 799212
+          "rss_kib": 794256
         },
         "electron_loaded": {
           "patch": "native/examples/class_demo_1_chaos.json",
           "processes": [
             {
-              "pid": 21193,
-              "ppid": 20126,
+              "pid": 21204,
+              "ppid": 20141,
               "process": "electron",
-              "rss_kib": 242408
+              "rss_kib": 237728
             },
             {
-              "pid": 21196,
-              "ppid": 21193,
+              "pid": 21205,
+              "ppid": 21204,
               "process": "tee",
-              "rss_kib": 8156
+              "rss_kib": 7484
             },
             {
-              "pid": 21198,
-              "ppid": 21193,
+              "pid": 21209,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 84272
+              "rss_kib": 84604
             },
             {
-              "pid": 21199,
-              "ppid": 21193,
+              "pid": 21210,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 84356
+              "rss_kib": 84824
             },
             {
-              "pid": 21228,
-              "ppid": 21193,
+              "pid": 21238,
+              "ppid": 21204,
               "process": "electron",
-              "rss_kib": 101672
+              "rss_kib": 101936
             },
             {
-              "pid": 21234,
-              "ppid": 21199,
+              "pid": 21259,
+              "ppid": 21210,
               "process": "electron",
-              "rss_kib": 193620
+              "rss_kib": 192496
             },
             {
-              "pid": 21244,
-              "ppid": 21193,
+              "pid": 21262,
+              "ppid": 21204,
               "process": "wirescape-engin",
-              "rss_kib": 23308
+              "rss_kib": 23468
             },
             {
-              "pid": 21283,
-              "ppid": 21198,
+              "pid": 21295,
+              "ppid": 21209,
               "process": "electron",
-              "rss_kib": 81944
+              "rss_kib": 82360
             }
           ],
-          "rss_kib": 819736
+          "rss_kib": 814900
         },
-        "hello_from_main_boot_ms": 77.654104,
-        "nav_start_epoch_ms": 1794779745679.7,
-        "navigation_duration_ms": 296.9000000001397,
-        "paint_epoch_ms": 1794779746083.7,
-        "paint_since_navigation_ms": 404,
+        "hello_from_main_boot_ms": 95.048674,
+        "hello_unavailable_reason": null,
+        "nav_start_epoch_ms": 1794780830440.9,
+        "navigation_duration_ms": 196.79999999993015,
+        "paint_epoch_ms": 1794780830700.9,
+        "paint_since_navigation_ms": 260,
         "run": 10,
-        "studio_first_paint_from_launch_ms": 714.699951171875
+        "studio_first_paint_from_launch_ms": 481.89990234375
       }
     ],
     "summary": {
       "first_paint": {
-        "max_ms": 760,
-        "median_ms": 732.89990234375,
+        "max_ms": 511.300048828125,
+        "median_ms": 494.89990234375,
         "n": 10
       },
       "hello": {
-        "max_ms": 129.500785,
-        "median_ms": 122.131072,
+        "max_ms": 95.048674,
+        "median_ms": 56.786083,
         "n": 10
       }
     }
   },
   "provenance": {
-    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
+    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.196.1",
+      "runner_image_version": "20261111.82.6",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
