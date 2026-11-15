@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Device runbook for Codex (Pi 5 and Windows laptop)
 
-**Version 1, 2026-11-15, written by Fable.** The owner starts Codex on the owner's laptop. Codex runs this
+**Version 2, 2026-11-15, updated for electrical loopback latency.** The owner starts Codex on the owner's laptop. Codex runs this
 runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner's change of 2026-11-15).
 
 ## Rules for Codex
@@ -19,7 +19,8 @@ runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner
 
 Values the owner gives you: `<pi-ssh>` (SSH alias or user@address of the Pi), `<pi-repo>` (path of the lab
 clone on the Pi), whether an output-to-input **loopback cable** is connected (Pi and/or laptop), and which
-parts to run (default: all of §2, then §3).
+parts to run (default: all of §2, then §3). For loopback, the owner also provides the engine
+output device ID and input-device index for each connected cable. Never guess either ID.
 
 ## 1. Prepare (both machines, devices off)
 
@@ -50,6 +51,12 @@ Discovery (write the answers in your notes):
 - Pi monitor node: `wpctl status` → the monitor of the USB audio output the owner uses = `<monitor-node>`.
   If unclear, ask the owner. If there is none, use `--record none` and say so.
 - Windows: confirm with the owner that loopMIDI has a port named `Wirescape Bench`.
+- Loopback input IDs, both machines (query only, no device opened):
+  `python -c "import sounddevice as sd; print(sd.query_devices())"`.
+  Identify the PortAudio input index for the physical cable, not a microphone.
+  For the engine output ID, use the owner-selected audio device ID from the engine/Studio
+  audio-device list, which may differ from the PortAudio index. Record both IDs.
+  Never guess: if the cable or either ID is missing, skip P7 or W3 and report it.
 
 ## 2. Raspberry Pi 5 runs
 
@@ -107,8 +114,26 @@ kill "$(cat bench/device/pi-app-memory.pid)"
 ```
 *If the smoke fails:* keep the memory log anyway, report the failure text.
 
-### P7. Round-trip latency — not available yet
-Skip. The measuring tool is not written. Report whether the owner has a loopback cable on the Pi.
+### P7. 🔊 Electrical round-trip latency, Pi 5 (64/128/256 frames)
+**Only with an owner-confirmed output-to-input cable and both IDs.** No
+microphone/monitor sink; no MIDI. Turn speaker/amp gain down, disable direct
+monitoring and make sure the cable cannot create feedback. Before starting,
+tell the owner the click patch starts muted, then delivers 40 short 1 kHz clicks
+at -14 dBFS **peak** (0.20 full scale), every 500 ms for 20 seconds per block.
+Wait for the owner's "go". Dry-run rehearsal, device-free:
+`
+python bench/device/latency.py --dry-run --sweep --machine pi5 --results bench/device/results-p7-rehearsal
+`
+Then run the physical sweep:
+`
+python bench/device/latency.py --confirm-audio --device <pi-output-id> --input-device <pi-input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
+`
+The command writes a separate report/manifest per block. Read the median,
+min, max, standard deviation (ms and frames), observed engine rate/buffer,
+median minus 2×buffer, detected clicks and channel level from each report.
+Do not report any number for a refused run (<30 clicks or below -40 dBFS).
+**If it fails:** keep all generated reports; note error and continue with §3.
+If no cable or either ID is missing, mark P7 skipped and why.
 
 ## 3. Windows laptop runs
 
@@ -121,7 +146,21 @@ options with `--record input --input-device <input-id>`. With neither, use `--re
 *If it fails on the capture helper:* rerun once with `--record none`.
 
 ### W2. 🔊 15-minute quick run at 128 frames
-Same command with `--block 128 --results bench/device/results-w2-quick-128`.
+Same command with --block 128 --results bench/device/results-w2-quick-128.
+
+### W3. 🔊 Electrical round-trip latency, Windows laptop (64/128/256 frames)
+**Only with a physical output-to-input cable and both IDs, as for P7.**
+No process-loopback helper, monitor sink or MIDI. Tell the owner the patch
+starts muted and then plays short 1 kHz clicks at -14 dBFS peak for 20 seconds
+per block. Wait for "go"; keep the amplifier low and disable direct monitoring.
+`
+python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
+python bench/device/latency.py --confirm-audio --device <windows-output-id> --input-device <windows-input-id> --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
+`
+For each block, record the same statistics and refusals as P7, plus the
+command-anchor uncertainty stated in the report. **If it fails:** keep reports,
+note the error and continue. If no physical cable or either ID is missing,
+mark W3 skipped and why.
 
 ## 4. File the results
 
@@ -139,8 +178,10 @@ does not exist). *If `gh` is missing or refuses:* leave the ZIPs where they are 
 facts/device/results/<machine>/<YYYY-MM-DD>-<sha7>-<scope>/
 ```
 with `<scope>` = `full-256`, `full-128`, `scene-128`, `chaos-128`, `basics-64`, `guttr`, `app-memory`,
-`quick-256`, `quick-128`. Copy from each run folder only: `manifest.json`, `analysis.json`, `report.md`,
-`settings.json`, `waveform.png`. Add `pi-health.log` to both `full-*` folders, the benchmark `.jsonl` to
+`quick-256`, `quick-128`, `latency-64`, `latency-128`, `latency-256` (P7/W3).
+For stress runs copy only: `manifest.json`, `analysis.json`, `report.md`,
+`settings.json`, `waveform.png`; for latency runs copy only: `manifest.json`,
+`latency.json`, `report.md` (successful or refused, keep the refusal explicit). Add `pi-health.log` to both `full-*` folders, the benchmark `.jsonl` to
 `guttr`, and `pi-app-memory.log` plus the smoke summary JSON to `app-memory`. Add one row per run to
 `facts/device/results/README.md`. Before committing, search the copied files for the machine's host name
 and user name and stop if either appears. No recordings, no `events.ndjson`, no ZIPs.
@@ -150,14 +191,15 @@ PR title: `facts(device): Pi 5 and Windows runs, <YYYY-MM-DD> (<sha7>)`. Do not 
 ## 5. Report to the owner (paste into the PR description too)
 
 ```
-**Runbook:** v1   **Commit:** <sha7>   **PR:** #…
+**Runbook:** v2   **Commit:** <sha7>   **PR:** #…
 | Run | Machine | Buffer | Ran (min) | Exit | Engine CPU max % | Dropouts | Longest silence ms | Notes |
-(one row per run P1–P6, W1–W2; "skipped" or "failed: <one line>" where it applies)
+(one row per run P1–P7, W1–W3; "skipped" or "failed: <one line>" where it applies)
 **GUTTR (Pi):** 1 throat p50/p95/worst µs; 16 throats p50/p95/worst µs
 **Pi health:** max temperature, any throttling flag other than 0x0, max memory used
 **App memory (Pi):** max Electron total MB, max engine MB
 **What the owner heard:** (ask after each 🔊 run: any glitches, silence, distortion? write their words)
 **Loopback cable available:** Pi yes/no, laptop yes/no
+**Latency P7/W3 per block:** clicks detected/40, level dBFS, median/min/max/stddev (frames, ms), observed rate/buffer, median minus 2×buffer, anchor uncertainty; or REFUSED with exact reason
 **Failures:** step, last lines of output
 **Large files:** uploaded to release … / left at …
 Signed: gpt-helper, <YYYY-MM-DD>
