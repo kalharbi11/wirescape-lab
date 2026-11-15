@@ -3,7 +3,7 @@
 """Device-off, architecture-specific Callgrind Ir per audio block.
 
 Profiles five existing ABI2 cost modes, every bundled golden-render patch,
-and each catalogued module at 1 and 8 probe voices (channels). Two lengths
+and all 34 catalogued modules at 1 and 8 probe voices (channels). Two lengths
 are subtracted to remove fixed startup, patch-loading and module-init cost.
 Audio devices, MIDI devices and LAN sockets are never opened.
 """
@@ -83,8 +83,21 @@ def difference(command_for_length, valgrind, lengths=COUNTS):
 
 
 def modules():
-    return sorted(line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
-                  if line.strip() and not line.startswith("#"))
+    # The historical known-ID compatibility fixture contains 33 entries, but
+    # native/control/module_catalog.inc registers 34. The extra built-in is
+    # osc.out, recorded by its own native/modules2/osc_out/module.json.
+    fixture = [line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
+               if line.strip() and not line.startswith("#")]
+    osc_manifest = ROOT / "native/modules2/osc_out/module.json"
+    osc_id = json.loads(osc_manifest.read_text(encoding="utf-8"))["id"]
+    catalog = ROOT / "native/control/module_catalog.inc"
+    entries = sum(line.strip().startswith("WS_APP_MODULE(")
+                  for line in catalog.read_text(encoding="utf-8").splitlines())
+    ids = fixture + [osc_id] if osc_id not in fixture else fixture
+    if len(ids) != len(set(ids)) or len(ids) != entries or entries != 34 or osc_id != "osc.out":
+        raise ValueError(f"catalogue coverage mismatch: fixture={len(fixture)}, "
+                         f"union={len(set(ids))}, native={entries}, osc={osc_id}")
+    return sorted(ids)
 
 
 def fixed_modes(build, valgrind):
@@ -196,7 +209,7 @@ def main(argv=None):
         raise RuntimeError("five fixed cost modes required")
     if len([r for r in rows if r["id"].startswith("bundled/")]) < 24:
         raise RuntimeError("all 24 bundled golden patches required")
-    if len([r for r in rows if r["id"].startswith("module/")]) != 2 * len(modules()):
+    if len([r for r in rows if r["id"].startswith("module/")]) != 68:
         raise RuntimeError("one- and eight-voice rows required for every module")
     record = {
         "SPDX-License-Identifier": "GPL-3.0-only", "schema": 1,
