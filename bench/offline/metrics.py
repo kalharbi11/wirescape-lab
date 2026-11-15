@@ -308,6 +308,28 @@ def sweep_residual_metrics(fast, slow, rate=RATE):
             "fast_duration_s": len(fast) / rate,
             "slow_duration_s": len(slow) / rate}
 
+def filter_impulse_evidence(audio, rate, excitation_frames):
+    """Never label a multi-frame gated pulse as the required exact impulse."""
+    measured = self_oscillation_metrics(
+        audio, rate, impulse_end_s=excitation_frames / rate)
+    result = {"excitation_frames": int(excitation_frames),
+              "excitation_shape": ("single_sample_impulse"
+                                   if excitation_frames == 1
+                                   else "clock_gate_pulse_not_single_sample")}
+    if excitation_frames != 1:
+        result.update(status="not_exact_impulse",
+                      reason="source emitted %d samples, not one" % excitation_frames)
+        if measured.get("status") == "measured":
+            result["gate_pulse_tail_rms_fs"] = measured["tail_rms_fs"]
+            result["gate_pulse_tail_peak_fs"] = measured["tail_peak_fs"]
+        else:
+            result["gate_pulse_tail_status"] = measured.get("status")
+        return result
+    result.update(measured)
+    return result
+
+
+
 def step_metrics(audio, step_frame, rate=RATE):
     base = basic(audio)
     if base["nonfinite_samples"]:
