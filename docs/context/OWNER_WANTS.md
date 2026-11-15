@@ -66,7 +66,7 @@ things are done today.
   important for studying what the app can host, because I want many different open-source projects, and
   anyone developing for this app, to find it easy to bring their work in.
 - Special modules shouldn't carry the `essentials` tag. GUTTR's ID is `guttr`. CHAOS is currently
-  `essentials.chaos_lite`, which it shouldn't be; fine for now, but fix it in the rebuild if it fits (it needs a
+  `essentials.chaos_lite`, which it shouldn't be. Low priority: only rename it if that area gets rewritten anyway (it needs a
   lossless patch migration, since saved and bundled patches use the old ID). Macro is `ports.macro_oscillator`.
 - The point of the complex modules isn't those modules themselves: it's to work out their **categories**, so
   that when similar new modules are added, most of the infrastructure is already there.

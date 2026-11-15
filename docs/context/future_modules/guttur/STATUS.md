@@ -10,8 +10,9 @@ beta 0.4 and the JS engine extraction review are superseded).
 tree, not run on the Pi or Windows, not listened to at length.** The owner tests it next.
 
 **In this folder:** the package's own docs (README, DESIGN, DEVIATIONS, TEST_RESULTS, CHANGELOG, NOTICE), its
-`module.json` and the proposed catalogue entry. **The source code is not in the lab yet**: it has no licence
-(NOTICE.txt), and its proposed module ID is still open (below).
+`module.json`, the proposed catalogue entry, and the full source package in `package/` (C++ core, ABI 2
+adapter, tests, offline render/benchmark tools, the JS reference and three short sample renders). It is not
+built by the lab's CI and not registered in the app.
 
 **Shape (from its docs):** one note-event input; `left`/`right` audio outputs, one channel each, stereo pair;
 37 parameters; 11 texture presets; 16 internal throat generators (up to 8 per note) and up to 16 tracked
@@ -33,4 +34,4 @@ module, not a stock one, so it doesn't go under `essentials`. (Every current ID 
 `essentials.`, `ports.`, `sound.`, `osc.`; whether special modules get their own namespace is part of the ID
 scheme the rebuild may revisit.)
 
-**Open owner decision:** licence.
+**Licence (owner, 2026-11-15): GPL-3.0-only**, matching Wirescape. SPDX headers added in `package/`.
