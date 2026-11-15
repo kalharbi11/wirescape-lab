@@ -1,0 +1,146 @@
+{
+  "ci_provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "block_frames": 256,
+      "note": "Existing benchmark has fixed block size 256",
+      "rate_hz": 48000
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "date_et": "2026-11-14",
+      "machine": {
+        "architecture": "x86_64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "Intel(R) Xeon(R) 6975P-C",
+        "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "mean_ns": 7509.021,
+        "name": "abi1_mono",
+        "p99_ns": 12007.0,
+        "repetition_means_ns": [
+          7448.159,
+          7882.681,
+          7509.021,
+          8354.062,
+          7455.294
+        ],
+        "status": "measured",
+        "worst_ns": 21241.0
+      },
+      {
+        "mean_ns": 8314.021,
+        "name": "abi2_mono",
+        "p99_ns": 12705.0,
+        "repetition_means_ns": [
+          8691.882,
+          7935.704,
+          8314.021,
+          8317.677,
+          7957.483
+        ],
+        "status": "measured",
+        "worst_ns": 19565.0
+      },
+      {
+        "mean_ns": 64241.264,
+        "name": "abi2_poly8",
+        "p99_ns": 82614.0,
+        "repetition_means_ns": [
+          69580.366,
+          65668.857,
+          64241.264,
+          63264.26,
+          62749.156
+        ],
+        "status": "measured",
+        "worst_ns": 101131.0
+      },
+      {
+        "mean_ns": 65535.466,
+        "name": "abi2_eight_mono",
+        "p99_ns": 84271.0,
+        "repetition_means_ns": [
+          71126.227,
+          66015.973,
+          64925.848,
+          63930.225,
+          65535.466
+        ],
+        "status": "measured",
+        "worst_ns": 140737.0
+      },
+      {
+        "mean_ns": 14196.509,
+        "name": "abi2_modulated",
+        "p99_ns": 21132.0,
+        "repetition_means_ns": [
+          15237.7,
+          14460.858,
+          14196.509,
+          13542.33,
+          13972.654
+        ],
+        "status": "measured",
+        "worst_ns": 36797.0
+      },
+      {
+        "mean_ns": 4687.238,
+        "name": "vcf_constant",
+        "p99_ns": 7330.0,
+        "repetition_means_ns": [
+          4755.379,
+          4628.132,
+          4687.238,
+          4477.892,
+          4779.504
+        ],
+        "status": "measured",
+        "worst_ns": 14606.0
+      },
+      {
+        "mean_ns": 4932.304,
+        "name": "vcf_audio_rate_cutoff",
+        "p99_ns": 7810.0,
+        "repetition_means_ns": [
+          4981.26,
+          5061.741,
+          4932.304,
+          4865.495,
+          4859.602
+        ],
+        "status": "measured",
+        "worst_ns": 18134.0
+      }
+    ],
+    "section": "engine_cpu"
+  }
+}

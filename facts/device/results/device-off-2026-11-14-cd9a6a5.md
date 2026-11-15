@@ -32,6 +32,19 @@ The Pi app smoke used Xvfb. It verifies functional ARM64 Electron/native integra
 
 The Windows checks and three Windows archives were supplied by the other agent's completed handoff and verified against the existing draft-release hashes. Tracked source files remain unchanged.
 
+## Unpacked files
+
+Small files from the archives above, by machine. Each archive is one subfolder holding `report.md`,
+`manifest.json`, `analysis.json` and the run's `settings.json`, `samples.ndjson` or
+`engine-protocol.ndjson`:
+
+- `pi5/2026-11-14-cd9a6a5-device-off/`: `dry-run/`, `compare-null/`, `source-build-summary.json`,
+  `app-smoke-summary.json`.
+- `windows-laptop/2026-11-14-cd9a6a5-device-off/`: `dry-run/`, `compare-null/`, `compare-synthetic/`.
+
+Left out of git: `events.ndjson` (15-17 MB per dry run), `offline_scripts/` and `engine-stderr.log`
+(`*.log` is gitignored). The full archives are attached to the draft release `bench-2026-11-14`.
+
 ## Pending owner-run sequence
 
 1. Pi 15-minute quick run.

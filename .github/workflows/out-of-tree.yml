@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Out-of-tree SDK documentation trial (advisory)
+
+on:
+  pull_request:
+    paths:
+      - "bench/sdk/**"
+      - "facts/code/out_of_tree_trial.md"
+      - ".github/workflows/out-of-tree.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  documentation-trial:
+    name: SDK trial / ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, runner: ubuntu-latest }
+          - { name: windows-x64, runner: windows-latest }
+    defaults:
+      run:
+        shell: bash
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+    steps:
+      - name: Checkout lab reference
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing pinned native build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Fetch existing pinned PortAudio prerequisite (Windows; never open a device)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build existing PortAudio prerequisite (Windows; no device access)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Assert the trial refuses local-checkout execution
+        run: |
+          python -c 'import os,subprocess,sys; e=os.environ.copy(); e.pop("GITHUB_ACTIONS",None); p=subprocess.run([sys.executable,"bench/sdk/out_of_tree_trial.py","--platform","linux-x64"],env=e,text=True,capture_output=True); assert p.returncode!=0 and "permitted only in a GitHub Actions checkout" in p.stderr'
+      - name: Execute documented external-first trial in disposable checkout
+        run: python bench/sdk/out_of_tree_trial.py --platform ${{ matrix.name }}
+      - name: Neutral facts vocabulary gate
+        run: |
+          if grep -niE '\b(should|better|worse|good|bad|best)\b' facts/code/out_of_tree_trial.md; then exit 1; fi
+      - name: Verify per-step documentation and recorded run
+        run: |
+          python -c "import json, pathlib, sys; root=pathlib.Path('bench/sdk/results')/sys.argv[1]; rows=json.loads((root/'trial.json').read_text())['steps']; assert len(rows)>=10; assert all(row['doc_section'] and row['command'] and row['location'] and row['status'] in ('pass','fail') and row['duration_seconds']>=0 for row in rows); assert (root/'out_of_tree_trial.md').is_file()" ${{ matrix.name }}
+      - name: Upload full trial report and error log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-out-of-tree-${{ matrix.name }}
+          path: |
+            bench/sdk/results/${{ matrix.name }}/trial.json
+            bench/sdk/results/${{ matrix.name }}/out_of_tree_trial.md
+          if-no-files-found: warn

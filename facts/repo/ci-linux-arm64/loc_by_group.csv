@@ -1,0 +1,26 @@
+top_level,section,language,files,code,comment,blank
+SUM,product,unknown,1,76156,4320,4285
+apps,product,Bourne Shell,2,104,7,2
+apps,product,CSS,12,1403,120,82
+apps,product,HTML,6,3712,6,108
+apps,product,JavaScript,5,309,14,10
+apps,product,TypeScript,70,13002,1094,1035
+apps,tests,JavaScript,10,1389,41,51
+apps,tests,TypeScript,56,8265,250,575
+bench,tests,JavaScript,2,77,4,4
+bench,tests,Python,9,462,18,89
+bench,tools,C++,1,194,6,2
+bench,tools,JavaScript,3,225,10,4
+bench,tools,Python,17,3030,91,324
+docs,product,HTML,2,634,1,0
+lab,product,Python,1,67,9,7
+native,product,C++,131,21847,761,403
+native,product,C/C++ Header,87,8199,1279,499
+native,product,CMake,2,150,5,3
+native,product,Python,5,1613,115,113
+native,tests,C,1,5,1,0
+native,tests,C++,29,3783,76,69
+native,tests,C/C++ Header,11,393,20,10
+tools,tests,Python,32,3455,217,470
+tools,tools,Bourne Shell,6,316,18,26
+tools,tools,Python,23,3522,157,399

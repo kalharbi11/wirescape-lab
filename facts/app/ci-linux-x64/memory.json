@@ -1,0 +1,43 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "electron_note": "Requires Electron process tree capture from desktop host",
+    "electron_process_rss_kib": null,
+    "engine_idle_rss_kib": 14300,
+    "largest_bundled_patch": {
+      "accepted": true,
+      "error_code": null,
+      "loadGraph_ms": 23.189305,
+      "patch": "native/examples/class_demo_1_chaos.json",
+      "patch_bytes": 3949,
+      "rss_kib": 19096
+    },
+    "machine": {
+      "architecture": "x86_64",
+      "audio_devices": "not accessed",
+      "cpu": "x86_64",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+    },
+    "method": "VmRSS Linux /proc/<pid>/status, 500 ms after null-audio startup/load"
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "memory"
+}

@@ -1,0 +1,212 @@
+{
+  "ci_provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "normal_input": 0.1,
+      "requested_input": 1e-30
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "date_et": "2026-11-14",
+      "machine": {
+        "architecture": "aarch64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "aarch64",
+        "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "module": "essentials.adsr",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.chaos_lite",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.chord",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.clock",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.function_envelope",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.ladder",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.lfo",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.mixer",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.noise",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.notes_to_cv",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.output",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.quad_vca",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.quantizer",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.resonator",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.scale_offset",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.slew",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.vca",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.vcf",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "essentials.vco",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "example.random_source",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "example.step_sequencer",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "fx.delay",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "fx.reverb",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "host.keyboard",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "midi.cc_to_cv",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "midi.in",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "midi.to_cv",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "monitor",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "osc.in",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "ports.macro_oscillator",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "sequencing.groove",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "sound.blend",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      },
+      {
+        "module": "sound.spectral",
+        "reason": "unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected",
+        "status": "unavailable"
+      }
+    ],
+    "section": "denormal_spikes"
+  }
+}

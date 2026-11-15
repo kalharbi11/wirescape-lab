@@ -1,0 +1,82 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "arch": "x64",
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "os": "linux"
+    },
+    "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
+    "results": [
+      {
+        "action": "knob",
+        "frames": 52,
+        "max_ms": 16.800000000000068,
+        "modules": 50,
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.799999999999955
+      },
+      {
+        "action": "cable",
+        "frames": 59,
+        "max_ms": 16.800000000000068,
+        "modules": 50,
+        "p50_ms": 16.69999999999999,
+        "p95_ms": 16.700000000000045
+      },
+      {
+        "action": "knob",
+        "frames": 58,
+        "max_ms": 16.799999999999955,
+        "modules": 100,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.700000000000045
+      },
+      {
+        "action": "cable",
+        "frames": 66,
+        "max_ms": 50,
+        "modules": 100,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.799999999999955
+      },
+      {
+        "action": "knob",
+        "frames": 70,
+        "max_ms": 33.39999999999998,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.799999999999955
+      },
+      {
+        "action": "cable",
+        "frames": 76,
+        "max_ms": 99.90000000000009,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 66.69999999999982
+      }
+    ]
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "ui"
+}

@@ -1,0 +1,34 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "copied_tables": [
+    "binary_sizes.csv",
+    "cmake-targets.csv",
+    "complexity_top30.csv",
+    "dependencies.csv",
+    "direct_includes.csv",
+    "length_top30.csv",
+    "loc_by_file.csv",
+    "loc_by_group.csv",
+    "native_long_lines.csv",
+    "residue_by_file.csv",
+    "cmake-targets.svg"
+  ],
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source": "bench/offline/repo_facts.py"
+}
