@@ -8,7 +8,7 @@ Anything after the trigger is the specific ask. No match? Ask the owner; never g
 **Fable's read map:** `AGENTS.md` → `docs/context/BRIEF.md` (the owner's brief, once written) →
 `docs/context/` (SNAPSHOT, CONSTRAINTS, OWNER_WANTS, HISTORY, RESIDUE, KNOWN_ISSUES, `future_modules/`) →
 `facts/README.md`, then `facts/code/FACT_PACK.md` §0–§2 and the fact files you need → `docs/context/LOG.md`
-(newest entry) → `proposals/` (audit `0001`, plan `0002` and its recorded owner decisions) → `docs/ARCHITECTURE.md` and `docs/specs/` for the area you touch. Grep, don't read whole trees.
+(newest entry) → `proposals/` (audit `0001`, plan `0002` and its owner decisions, module design `0003`, **task list `0004`: start here for what to do next**) → `docs/ARCHITECTURE.md` and `docs/specs/` for the area you touch. Grep, don't read whole trees.
 
 **Fable's working rules** (Fable may revise these for its own process; the owner's constraints still hold)
 - Decisions under "Fixed" in `docs/context/CONSTRAINTS.md` need the owner. Everything under
