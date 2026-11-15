@@ -63,7 +63,7 @@ jobs:
           fi
 
       - name: Verify fact staging on synthetic device-free records
-        run: python -m unittest discover -s bench/offline -p 'test_ci_stage_facts.py' -v
+        run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
 
       - name: Install Studio, Electron and Chromium
         run: |
