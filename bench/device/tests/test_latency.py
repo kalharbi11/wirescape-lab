@@ -6,12 +6,15 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
+import latency
 from latency import (CLICK_PEAK, CLICKS, MIN_CLICKS, click_patch,
                      measure, synthetic_capture)
 
@@ -69,6 +72,47 @@ class LatencyTests(unittest.TestCase):
             self.assertIn("requires both --device and --input-device", proc.stderr)
             self.assertFalse(list(Path(root).iterdir()))
 
+    def test_no_authorization_no_external_process_or_output(self):
+        with tempfile.TemporaryDirectory() as root:
+            with patch("subprocess.Popen", side_effect=AssertionError("spawn forbidden")):
+                with self.assertRaises(SystemExit):
+                    latency.main(["--machine", "gate", "--results", root])
+                with self.assertRaises(SystemExit):
+                    latency.main(["--dry-run", "--confirm-audio", "--results", root])
+            self.assertFalse(list(Path(root).iterdir()))
+
+    def test_live_shaped_fixture_is_not_reported_as_calibrated_latency(self):
+        rate, block = 48000, 128
+        audio, first, _ = synthetic_capture(rate, block, noise=0.001)
+        metadata = {
+            "rate_hz": rate, "buffer_frames": block,
+            "expected_first_frame": first,
+            "timing_model": {
+                "measurement_quantity": "uncalibrated_host_command_midpoint_to_input_click_onset",
+                "calibrated_dac_to_adc_round_trip": False,
+                "request_ack_window_ms": 7.0,
+                "absolute_error_bound_ms": None,
+            },
+        }
+        with tempfile.TemporaryDirectory() as root:
+            args = SimpleNamespace(dry_run=False, results=Path(root),
+                                   machine="fixture", rate=rate)
+            with patch.object(latency, "physical_capture", return_value=(audio, metadata)):
+                self.assertTrue(latency.run_one(args, block, "abcdef0123456", "2026-11-15"))
+            evidence = list(Path(root).rglob("latency.json"))
+            self.assertEqual(len(evidence), 1)
+            values = json.loads(evidence[0].read_text(encoding="utf-8"))
+            report = (evidence[0].parent / "report.md").read_text(encoding="utf-8")
+            self.assertTrue(values["completed"])
+            self.assertFalse(values["issue_54_calibrated_round_trip_requirement_met"])
+            self.assertFalse(values["measurement"]["calibrated_round_trip"])
+            self.assertFalse(values["uncalibrated_nominal_comparison"]["meaningful_device_overhead"])
+            self.assertIsNone(values["timing_model"]["absolute_error_bound_ms"])
+            self.assertNotIn("difference_from_2x_buffer_frames", values)
+            self.assertIn("NOT calibrated DAC-to-ADC", report)
+            self.assertIn("NOT an estimate of hardware/device overhead", report)
+            self.assertIn("not an error bound", report)
+
     def test_dry_run_sweep_is_synthetic_and_has_reports(self):
         with tempfile.TemporaryDirectory() as root:
             proc = self.call("--dry-run", "--sweep", "--machine", "synthetic",
@@ -82,6 +126,9 @@ class LatencyTests(unittest.TestCase):
                 result = json.loads(path.read_text())
                 self.assertTrue(result["dry_run"])
                 self.assertTrue(result["completed"])
+                self.assertEqual(result["kind"], "uncalibrated-command-to-adc-diagnostic")
+                self.assertEqual(result["measurement"]["quantity"], "synthetic_known_sample_delay")
+                self.assertFalse(result["measurement"]["calibrated_round_trip"])
                 self.assertEqual(result["measurement"]["clicks_found"], CLICKS)
                 self.assertLessEqual(abs(result["measurement"]["frames"]["median"]
                                          - result["synthetic_delay_frames"]), 1)
