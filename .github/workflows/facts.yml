@@ -76,6 +76,12 @@ jobs:
           CHROME="$(node -e "process.stdout.write(require('./apps/studio/node_modules/playwright').chromium.executablePath())")"
           echo "WIRESCAPE_CHROMIUM=$CHROME" >> "$GITHUB_ENV"
 
+      - name: Regression test early Electron hello capture
+        run: |
+          node --check bench/offline/electron_stderr.cjs
+          node --check bench/offline/electron_startup.cjs
+          node bench/offline/test_electron_stderr.cjs
+
       - name: Regression test UI tracing and cross-platform Vite launch
         run: |
           node --check bench/offline/ui_frames.cjs
