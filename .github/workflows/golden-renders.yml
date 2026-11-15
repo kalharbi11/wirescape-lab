@@ -78,6 +78,9 @@ jobs:
         run: python -m unittest discover -s bench/golden/tests -v
       - name: Render all bundled and owner patches twice without devices
         run: python bench/golden/render.py --machine ${{ matrix.name }} --out build_reports/golden/${{ matrix.name }}/golden.json
+      - name: Emit compact numeric baseline chunks for traceable fact staging
+        run: |
+          python -c 'import json,sys,pathlib; p=pathlib.Path("build_reports/golden")/sys.argv[1]/"golden.json"; compact=json.dumps(json.loads(p.read_text()),separators=(",",":"),allow_nan=False); [print("GOLDEN_CHUNK %d %s"%(i//1400,compact[i:i+1400])) for i in range(0,len(compact),1400)]' ${{ matrix.name }}
       - name: Compare architecture-matched committed golden (when available)
         run: |
           reference="facts/dsp/${{ matrix.name }}/golden.json"
