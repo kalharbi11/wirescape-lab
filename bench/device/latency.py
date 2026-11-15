@@ -234,7 +234,9 @@ def physical_capture(args, block, folder):
         engine.send({"type": "setParam", "moduleId": 1, "paramId": "run",
                      "value": 1})
         ack = time.monotonic()
-        time.sleep(DURATION_S + 0.3)
+        # Forty starts occur at 0 through 19.5 s. Stop before the 20 s
+        # boundary so an unintended forty-first pulse is not emitted.
+        time.sleep(DURATION_S - 0.2)
         engine.send({"type": "setParam", "moduleId": 1, "paramId": "run",
                      "value": 0})
         engine.send({"type": "setParam", "moduleId": 4, "paramId": "gain",
