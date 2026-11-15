@@ -1,0 +1,115 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "wirescape lab measured M4 DSP summary v1",
+  "source_workflow_run": 43769167450,
+  "source_head_commit": "6ebaac95b96112bdff30eb96520f5a852d513fd4",
+  "source_ci_checkout_commit": "d8acc794aa0b11d44d292339e097e32a700d9204",
+  "source_ci_checkout_parents": [
+    "b6c8c1d2c26cbd663194dc6baccc94399ff88067",
+    "6ebaac95b96112bdff30eb96520f5a852d513fd4"
+  ],
+  "measurement_date_et": "2026-11-15",
+  "source_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43769167450",
+  "sample_rates_hz": [
+    44100,
+    48000,
+    96000
+  ],
+  "method": "GitHub Actions full device-off run; verified raw/staged measured-row equality for oscillators, filters, bundled patches, module outputs and cabled input sections",
+  "machine": {
+    "runner": "linux-arm64",
+    "cpu": "aarch64",
+    "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+    "configuration": "Release",
+    "audio_devices": "not accessed",
+    "midi_devices": "not accessed",
+    "lan_sockets": "not accessed"
+  },
+  "staged_artifact_id": 14184314180,
+  "raw_artifact_id": 14184701280,
+  "sections": {
+    "oscillators": {
+      "source_path": "dsp/ci-linux-arm64/oscillators.json",
+      "source_sha256": "fc2aa289ca0c9da54bcb4ca7fc84afc281cdb6488a399282ac7fae0acebeb613",
+      "measured_rows": 180,
+      "measured_by_sample_rate_hz": {
+        "44100": 20,
+        "48000": 140,
+        "96000": 20
+      }
+    },
+    "filters": {
+      "source_path": "dsp/ci-linux-arm64/filters.json",
+      "source_sha256": "9532fc5323e984d4b4f313ffa38f592fe118dc68a16dc0a8321069da2ef1dc6c",
+      "measured_rows": 60,
+      "measured_by_sample_rate_hz": {
+        "44100": 20,
+        "48000": 20,
+        "96000": 20
+      }
+    },
+    "bundled_patches": {
+      "source_path": "dsp/ci-linux-arm64/bundled_patches.json",
+      "source_sha256": "147c2d78e07fbfb466d23ee540bf8d867059f1de2e4cce499f951b283521ba07",
+      "measured_rows": 64,
+      "measured_by_sample_rate_hz": {
+        "44100": 20,
+        "48000": 24,
+        "96000": 20
+      }
+    },
+    "module_outputs": {
+      "source_path": "dsp/ci-linux-arm64/module_outputs.json",
+      "source_sha256": "8af906679f7431a07382f30d3c26df5b3c2617276f2fea975a8fbc8d3d763dd8",
+      "measured_rows": 88,
+      "measured_by_sample_rate_hz": {
+        "44100": 29,
+        "48000": 30,
+        "96000": 29
+      }
+    },
+    "audio_rate_cables": {
+      "source_path": "dsp/ci-linux-arm64/audio_rate_cables.json",
+      "source_sha256": "15f8e785e992421276eb5b57f9f08476b82ad14318afd42e492fa71a22f74945",
+      "measured_rows": 40,
+      "measured_by_sample_rate_hz": {
+        "44100": 13,
+        "48000": 14,
+        "96000": 13
+      }
+    }
+  },
+  "observed_numeric_summary": {
+    "oscillator_alias_floor_dbfs_min": -300,
+    "oscillator_alias_floor_dbfs_max": -10.501823162766737,
+    "filter_frequency_response_cutoff_error_hz_min": -2578.583370373636,
+    "filter_frequency_response_cutoff_error_hz_max": 5184.87559808502,
+    "filter_frequency_response_resonance_peak_error_hz_min": -3261.610971562192,
+    "filter_frequency_response_resonance_peak_error_hz_max": -6.133261444203512,
+    "bundled_patch_click_events_total": 2,
+    "bundled_patch_click_events_by_rate_hz": {
+      "44100": 1,
+      "48000": 1,
+      "96000": 0
+    }
+  },
+  "separate_unvalidated_or_failed_records": {
+    "filter_tail_probe_rows": 6,
+    "filter_tail_clock_excitation_frames_by_rate_hz": {
+      "44100": 4,
+      "48000": 4,
+      "96000": 8
+    },
+    "parameter_sweep_measured_rows": 0,
+    "parameter_sweep_event_cap_failures": 246,
+    "parameter_sweep_unsupported_rate_rows": 18,
+    "cable_unknown_runtime_module_failures": 3
+  },
+  "notes": {
+    "source_rows": "The raw/staged measured entries are identical by parsed JSON. This summary preserves numeric values and archival content hashes, not the full underlying per-row result arrays.",
+    "filter_error_reference": "Cutoff and resonance ranges use frequency_response rows; pulse-tail rows excluded.",
+    "sweep": "Source head produced zero measured min/max sweeps due renderer 128-event cap; subsequent bench-only fixes require new CI measurement.",
+    "pulse": "Clock excitation lasted 4 or 8 frames; zero RMS after 2s is not a validated one-sample-impulse result.",
+    "denormal": "Constant tiny-input probe does not measure 1s driven plus 10s zero-input block decay."
+  }
+}
