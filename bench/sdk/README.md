@@ -8,6 +8,8 @@ The non-required `out-of-tree.yml` workflow runs on Linux x64 and Windows x64.
 and executes the documented CMake snippet without inventing an external SDK
 package. The first out-of-tree failure ends that phase.
 
+The runner refuses direct local execution unless GITHUB_ACTIONS=true and GITHUB_WORKSPACE matches the disposable checkout; it is not a command to run against a developer's working tree.
+
 The runner then reproduces the in-tree steps in the disposable CI checkout.
 Only the trial script, workflow, and evidence file are committed. A native
 engine or sidecar code change is never committed. No audio/MIDI device or LAN
