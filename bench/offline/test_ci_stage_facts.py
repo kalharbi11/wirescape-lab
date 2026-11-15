@@ -24,6 +24,16 @@ class StageTests(unittest.TestCase):
         self.assertNotIn("/tmp", data["detail"])
         self.assertNotIn("bad", data["detail"])
 
+    def test_preserve_bounded_diagnostic_and_clean_machine_paths(self):
+        staged = clean({"reason": "exit code 1: wirescape_soak: graph setup/render failed",
+                        "error_text": "module_cpu_probe: create/prepare failed",
+                        "source_patch_error": "wirescape_soak: graph setup/render failed",
+                        "stderr": "sensitive raw log"})
+        self.assertNotIn("stderr", staged)
+        self.assertIn("exit code 1", staged["reason"])
+        self.assertIn("create/prepare failed", staged["error_text"])
+        self.assertIn("graph setup/render failed", staged["source_patch_error"])
+
     def test_stage_collector_and_missing_section(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "raw"
