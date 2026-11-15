@@ -116,6 +116,25 @@ def patch_metrics(audio, rate=RATE):
     return values
 
 
+
+def folded_alias_frequencies(fundamental_hz, rate=RATE, *, max_harmonic=None):
+    """Aliased harmonic centers strictly above Nyquist, excluding true harmonics."""
+    if not (0 < fundamental_hz < rate * .5):
+        raise ValueError("fundamental must lie between DC and Nyquist")
+    limit = max_harmonic or min(4096, int(2 * rate / fundamental_hz))
+    base = int(math.floor((rate * .5) / fundamental_hz)) + 1
+    true_harmonics = np.arange(1, base, dtype=float) * fundamental_hz
+    aliases = []
+    for order in range(base, limit + 1):
+        folded = abs((order * fundamental_hz + rate * .5) % rate - rate * .5)
+        if folded <= 0 or folded >= rate * .5:
+            continue
+        if true_harmonics.size and np.min(abs(true_harmonics - folded)) < 1e-6:
+            continue
+        aliases.append(float(folded))
+    return sorted(set(round(hz, 6) for hz in aliases))
+
+
 def oscillator_metrics(audio, target_hz, rate=RATE):
     base = basic(audio)
     if base["nonfinite_samples"]:
@@ -149,11 +168,22 @@ def oscillator_metrics(audio, target_hz, rate=RATE):
         harmonic[lo:hi] = True
         component.append(float(np.sum(power[lo:hi])))
     residual = max(0.0, float(np.sum(power[1:][~harmonic[1:]])))
+    # Count energy only in predicted folded-harmonic bins that are not already
+    # occupied by the true below-Nyquist harmonics.
+    alias_bins = np.zeros(len(power), dtype=bool)
+    for predicted in folded_alias_frequencies(target_hz, rate):
+        center = int(round(predicted / width))
+        if 1 <= center < len(power):
+            alias_bins[max(1, center - 4):min(len(power), center + 5)] = True
+    alias_bins &= ~harmonic
+    aliased = max(0.0, float(np.sum(power[alias_bins])))
     thd = (10 * math.log10(max(sum(component[1:]), 1e-30) /
                            max(component[0], 1e-30))) if component else None
     return dict(base, observed_hz=observed,
                 pitch_cents=1200 * math.log2(observed / target_hz) if observed > 0 else None,
-                thd_db=thd, alias_floor_dbfs=10 * math.log10(max(residual, 1e-30)),
+                thd_db=thd, alias_floor_dbfs=10 * math.log10(max(aliased, 1e-30)),
+                nonharmonic_floor_dbfs=10 * math.log10(max(residual, 1e-30)),
+                alias_expected_bin_count=int(np.count_nonzero(alias_bins)),
                 harmonic_bins_half_width=4)
 
 
