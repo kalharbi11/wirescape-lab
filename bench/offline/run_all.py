@@ -296,6 +296,7 @@ def scripted_keyboard_patch(document):
         node["version"] = 2
         node["parameters"] = {"run": 1, "length": 8}
         node.pop("config", None)
+        node.pop("state", None)  # source module state is not a sequencer state
         next_id += 1
         derived["modules"].append({
             "id": next_id, "module": "essentials.clock", "version": 2,
