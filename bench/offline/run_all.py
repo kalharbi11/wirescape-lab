@@ -630,18 +630,21 @@ def module_sections(renderer, desc, all_modules, meta, out, quick,
 
 
 
-def linear_sweep_events(parameter, low, high, rate, seconds, control_hz=200):
-    """Sustain a piecewise-linear parameter ramp, 200 setpoints/s.
+def linear_sweep_events(parameter, low, high, rate, seconds, control_points=121):
+    """Piecewise-linear min->max sweep under the renderer's 128-event limit.
 
-    The native engine performs its declared 5-ms base-parameter smoothing
-    between setpoints; this is not audio-rate parameter automation.
+    The SAME 121 equally spaced values cover 1 second and 8 seconds. The
+    renderer's setParam changes are smoothed by the engine over about 5 ms.
+    This is a finite setpoint approximation, not true audio-rate automation.
     """
+    if not 2 <= control_points <= 128:
+        raise ValueError("control_points must lie in 2..128 (renderer event cap)")
     length = round(rate * seconds)
-    steps = max(1, round(control_hz * seconds))
+    steps = control_points - 1
     return [{"frame": min(length - 1, round(i * (length - 1) / steps)),
              "type": "setParam", "node": 1, "parameter": parameter,
              "value": low + (high - low) * i / steps}
-            for i in range(steps + 1)]
+            for i in range(control_points)]
 
 
 def steady_module_patch(ident, descriptor, override=None):
@@ -706,7 +709,7 @@ def sweep_sections(renderer, desc, meta, out, quick,
             for key, bounds in params.items():
                 entry = {"module": ident, "sample_rate_hz": rate,
                          "parameter": key, "min": bounds["min"], "max": bounds["max"],
-                         "control_hz": 200}
+                         "setpoints": 121, "effective_rate_hz": 120}
                 if limited:
                     sweep_rows.append(dict(entry, status="unsupported_rate",
                         reason="Macro Oscillator requires 48000 Hz"))
@@ -766,7 +769,7 @@ def sweep_sections(renderer, desc, meta, out, quick,
                     **basic(audio)))
     save(out, "dsp", "parameter_sweeps", meta, sweep_rows, {
          "rates_hz": list(rates), "fast_duration_s": 1, "slow_duration_s": 8,
-         "control_hz": 200, "method": "piecewise-linear min-to-max setParam with engine 5ms smoothing",
+         "setpoints": 121, "fast_setpoint_rate_hz": 120, "slow_setpoint_rate_hz": 15, "method": "piecewise-linear min-to-max setParam with engine 5ms smoothing; 121 setpoints at each duration",
          "baseline": "high-pass residual of 8x slower sweep",
          "quick_mode": "sweep references explicitly skipped"})
     save(out, "dsp", "audio_rate_cables", meta, cable_rows, {
