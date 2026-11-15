@@ -178,7 +178,8 @@ def main(argv=None):
         print(f"{name}: {row['status']}; largest band difference={delta}; "
               f"first differing sample index={index if index is not None else 'unavailable (hash only)'}; "
               f"time={row['first_differing_time_s'] if row['first_differing_time_s'] is not None else 'n/a'} s; "
-              f"peak sample difference={row['peak_sample_difference_fs']} FS")
+              f"peak sample difference={row['peak_sample_difference_fs']} FS" +
+              (f"; reason={row['reason']}" if row["reason"] else ""))
         different |= row["status"] == "different"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
