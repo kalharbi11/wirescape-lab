@@ -1,0 +1,43 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "electron_note": "Requires Electron process tree capture from desktop host",
+    "electron_process_rss_kib": null,
+    "engine_idle_rss_kib": 13588,
+    "largest_bundled_patch": {
+      "accepted": true,
+      "error_code": null,
+      "loadGraph_ms": 23.143202,
+      "patch": "native/examples/class_demo_1_chaos.json",
+      "patch_bytes": 3949,
+      "rss_kib": 18028
+    },
+    "machine": {
+      "architecture": "aarch64",
+      "audio_devices": "not accessed",
+      "cpu": "aarch64",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+    },
+    "method": "VmRSS Linux /proc/<pid>/status, 500 ms after null-audio startup/load"
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "memory"
+}

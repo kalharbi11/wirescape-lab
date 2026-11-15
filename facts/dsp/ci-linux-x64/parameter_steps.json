@@ -1,0 +1,380 @@
+{
+  "ci_provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "measurements": {
+    "SPDX-License-Identifier": "GPL-3.0-only",
+    "method_details": {
+      "highpass": "2nd order Butterworth 2kHz",
+      "step": "first parameter min to max halfway through render"
+    },
+    "provenance": {
+      "block_sizes_frames": [
+        64,
+        128,
+        256
+      ],
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "date_et": "2026-11-14",
+      "machine": {
+        "architecture": "x86_64",
+        "compiler": "c++",
+        "configuration": "Release",
+        "cpu": "Intel(R) Xeon(R) 6975P-C",
+        "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      },
+      "method": "python bench/offline/run_all.py",
+      "sample_rate_hz": 48000
+    },
+    "rows": [
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 30.0,
+        "min": 0.0001,
+        "module": "essentials.adsr",
+        "parameter": "attack",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.14024159850981424,
+        "highpass_rms_fs": 0.014315214360206345,
+        "max": 2.0,
+        "min": 0.0,
+        "module": "essentials.chaos_lite",
+        "parameter": "shape_a",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "max": 1.0,
+        "min": 0.0,
+        "module": "essentials.chord",
+        "parameter": "enable1",
+        "reason": "no audio or CV output available for renderer",
+        "status": "unavailable"
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 3.3306690738754696e-16,
+        "highpass_rms_fs": 2.830524433501838e-16,
+        "max": 300.0,
+        "min": 20.0,
+        "module": "essentials.clock",
+        "parameter": "bpm",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 30.0,
+        "min": 0.0001,
+        "module": "essentials.function_envelope",
+        "parameter": "rise",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.035001941715198326,
+        "highpass_rms_fs": 0.0067920146023511515,
+        "max": 20000.0,
+        "min": 20.0,
+        "module": "essentials.ladder",
+        "parameter": "cutoff",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.00016415315024944505,
+        "highpass_rms_fs": 6.75402850379085e-05,
+        "max": 20.0,
+        "min": 0.01,
+        "module": "essentials.lfo",
+        "parameter": "rate",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.029503778880014764,
+        "highpass_rms_fs": 0.01017936237783154,
+        "max": 2.0,
+        "min": 0.0,
+        "module": "essentials.mixer",
+        "parameter": "level_a",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 1.548606433886274,
+        "highpass_rms_fs": 0.34201513628938773,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "essentials.noise",
+        "parameter": "level",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 16.0,
+        "min": 1.0,
+        "module": "essentials.notes_to_cv",
+        "parameter": "voices",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "module": "essentials.output",
+        "reason": "no parameter metadata",
+        "status": "not_applicable"
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.01196758139848808,
+        "highpass_rms_fs": 0.005649614895467379,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "essentials.quad_vca",
+        "parameter": "level1",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 13.0,
+        "min": 0.0,
+        "module": "essentials.quantizer",
+        "parameter": "scale",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.22671355659713233,
+        "highpass_rms_fs": 0.03161980100043503,
+        "max": 24.0,
+        "min": -24.0,
+        "module": "essentials.resonator",
+        "parameter": "tune",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 2.0,
+        "min": -2.0,
+        "module": "essentials.scale_offset",
+        "parameter": "scale",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 10.0,
+        "min": 0.0,
+        "module": "essentials.slew",
+        "parameter": "rise",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.02393516279697616,
+        "highpass_rms_fs": 0.011299229790934758,
+        "max": 2.0,
+        "min": 0.0,
+        "module": "essentials.vca",
+        "parameter": "gain",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.02270951162004116,
+        "highpass_rms_fs": 0.006375677030287468,
+        "max": 20000.0,
+        "min": 20.0,
+        "module": "essentials.vcf",
+        "parameter": "cutoff",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 1.0348885256354916,
+        "highpass_rms_fs": 0.49442197116357856,
+        "max": 20000.0,
+        "min": 0.01,
+        "module": "essentials.vco",
+        "parameter": "frequency",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 16.0,
+        "min": 1.0,
+        "module": "example.random_source",
+        "parameter": "voices",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "example.step_sequencer",
+        "parameter": "run",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.011960567220622664,
+        "highpass_rms_fs": 0.007400345576213353,
+        "max": 2.0,
+        "min": 0.001,
+        "module": "fx.delay",
+        "parameter": "time",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.010816660957760349,
+        "highpass_rms_fs": 0.007320816133888645,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "fx.reverb",
+        "parameter": "size",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 16.0,
+        "min": 1.0,
+        "module": "host.keyboard",
+        "parameter": "voices",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "module": "midi.cc_to_cv",
+        "reason": "no parameter metadata",
+        "status": "not_applicable"
+      },
+      {
+        "max": 16.0,
+        "min": 0.0,
+        "module": "midi.in",
+        "parameter": "channel_filter",
+        "reason": "no audio or CV output available for renderer",
+        "status": "unavailable"
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 16.0,
+        "min": 1.0,
+        "module": "midi.to_cv",
+        "parameter": "voice_count",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "module": "monitor",
+        "reason": "no parameter metadata",
+        "status": "not_applicable"
+      },
+      {
+        "module": "osc.in",
+        "reason": "no parameter metadata",
+        "status": "not_applicable"
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.3267097109594065,
+        "highpass_rms_fs": 0.030212070027816118,
+        "max": 23.0,
+        "min": 0.0,
+        "module": "ports.macro_oscillator",
+        "parameter": "model",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.0,
+        "highpass_rms_fs": 0.0,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "sequencing.groove",
+        "parameter": "run",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.012049793741906512,
+        "highpass_rms_fs": 0.006364056422978441,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "sound.blend",
+        "parameter": "balance",
+        "status": "measured",
+        "window_ms": 50.0
+      },
+      {
+        "highpass_hz": 2000,
+        "highpass_peak_fs": 0.011964035400682693,
+        "highpass_rms_fs": 0.008073562766457777,
+        "max": 1.0,
+        "min": 0.0,
+        "module": "sound.spectral",
+        "parameter": "morph",
+        "status": "measured",
+        "window_ms": 50.0
+      }
+    ],
+    "section": "parameter_steps"
+  }
+}

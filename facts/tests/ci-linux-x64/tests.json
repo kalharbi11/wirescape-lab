@@ -1,0 +1,91 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "architecture": "x86_64",
+      "audio_devices": "not accessed",
+      "cpu": "x86_64",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+    },
+    "suites": {
+      "ctest": {
+        "count": 108,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 0.091738,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 24.604848,
+          "status": "passed"
+        }
+      },
+      "playwright_desktop": {
+        "count": 24,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 0.670662,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 69.555451,
+          "status": "passed"
+        }
+      },
+      "playwright_studio": {
+        "count": 344,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 1.028069,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 385.397354,
+          "status": "passed"
+        }
+      },
+      "protocol": {
+        "count": 4,
+        "method": "CTest test names containing sidecar or protocol",
+        "time": "included in ctest suite"
+      },
+      "unittest": {
+        "count": 207,
+        "method": "python -m unittest discover tools/foundation/tests",
+        "run": {
+          "exit_code": 0,
+          "seconds": 17.064682,
+          "status": "passed"
+        }
+      },
+      "vitest": {
+        "count": 0,
+        "status": "no Vitest suite configured in package.json"
+      }
+    },
+    "tests_executed": true
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "runner": "linux-x64",
+      "runner_arch": "X64",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.82.6",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "tests"
+}

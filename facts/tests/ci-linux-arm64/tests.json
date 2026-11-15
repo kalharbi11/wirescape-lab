@@ -1,0 +1,91 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "measurements": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "architecture": "aarch64",
+      "audio_devices": "not accessed",
+      "cpu": "aarch64",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39"
+    },
+    "suites": {
+      "ctest": {
+        "count": 108,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 0.122007,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 27.776865,
+          "status": "passed"
+        }
+      },
+      "playwright_desktop": {
+        "count": 24,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 0.902873,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 103.684256,
+          "status": "passed"
+        }
+      },
+      "playwright_studio": {
+        "count": 344,
+        "inventory": {
+          "exit_code": 0,
+          "seconds": 1.391556,
+          "status": "passed"
+        },
+        "run": {
+          "exit_code": 0,
+          "seconds": 475.484408,
+          "status": "passed"
+        }
+      },
+      "protocol": {
+        "count": 4,
+        "method": "CTest test names containing sidecar or protocol",
+        "time": "included in ctest suite"
+      },
+      "unittest": {
+        "count": 207,
+        "method": "python -m unittest discover tools/foundation/tests",
+        "run": {
+          "exit_code": 0,
+          "seconds": 21.504279,
+          "status": "passed"
+        }
+      },
+      "vitest": {
+        "count": 0,
+        "status": "no Vitest suite configured in package.json"
+      }
+    },
+    "tests_executed": true
+  },
+  "provenance": {
+    "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "date_et": "2026-11-14",
+    "machine": {
+      "audio_devices": "not accessed",
+      "cpu": "0xd49",
+      "lan_sockets": "not accessed",
+      "midi_devices": "not accessed",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "runner": "linux-arm64",
+      "runner_arch": "ARM64",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_os": "Linux"
+    },
+    "method": "GitHub Actions hosted runner; Python offline collectors"
+  },
+  "source_collector": "tests"
+}
