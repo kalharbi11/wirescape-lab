@@ -1,7 +1,33 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Owner-run audio/MIDI stress harness
 
+**Codex running the device tests for the owner follows `bench/device/CODEX_RUNBOOK.md`, not this file.**
+
 **Hardware access is strictly owner-authorized.** Only run real-device scenarios on the owner's Windows laptop or Raspberry Pi 5. CI, unit tests and `--dry-run` do not open audio/MIDI devices or LAN sockets. The harness drives `wirescape-engine` over stdin/stdout NDJSON; it never asks the engine to start OSC.
+
+## First owner hardware step: speaker/level check
+
+Before any stress scenario or comparison listening, check the **selected**
+audio output independently of the quiet comparison fixtures. Set your physical
+speaker/amp level conservatively, then on the owner's machine run:
+
+```sh
+python bench/device/run.py --speaker-check --confirm-audio --machine owner-device --device <selected-audio-id> --rate 48000 --block 256
+```
+
+This uses the actual sidecar output device, plays a 440 Hz sine at approximately
+**-18 dBFS RMS** for five seconds with short gain ramps, then asks whether it
+was clearly audible. The reply and selected device are written to
+`owner-observations.json` beside `manifest.json`. If it was not audible,
+check speaker power, master volume, driver, endpoint and cables before any
+performance run. A real run **refuses** without `--confirm-audio`.
+
+The safe rehearsal `python bench/device/run.py --speaker-check --dry-run`
+sends the same graph through the available engine with `--null-audio`
+(or a clearly labelled protocol simulation if no engine is built).
+It is not a hardware or audibility test; it makes no real audio/MIDI device
+calls. Keep the comparison patches unchanged; `bench/compare/patches.md`
+lists their expected output levels, including the quiet mono fixture.
 
 ## Install and verify, devices off
 

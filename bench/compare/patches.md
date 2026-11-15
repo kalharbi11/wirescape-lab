@@ -16,6 +16,28 @@ This is a **topology- and workload-matched** comparison, not sample-identical sy
 
 VCO waveform and output channel pan must be set to the closest stock equivalent and documented in the manifest notes. For spectral testing, temporarily bypass gate, VCF, VCA modulation, delay and reverb to record a continuous unmodulated oscillator at 110, 440, 1760 and 5000 Hz, with unchanged sample rate and output level. For filter response, drive the filter with equal-amplitude test tones at the same four frequencies and retain source-level evidence. Those probe recordings are separate from the workload measurements.
 
+## Expected output level and speaker-path prerequisite
+
+**Do the five-second speaker check before listening to any comparison patch.** Run
+`python bench/device/run.py --speaker-check --confirm-audio --machine <anonymous-label> --device <selected-audio-id>`
+on the owner's machine, and confirm the clearly audible 440 Hz, approximately
+-18 dBFS RMS calibration tone. For a device-free rehearsal use
+`python bench/device/run.py --speaker-check --dry-run`; its null sink cannot
+establish speaker audibility. The owner answer is recorded in
+`owner-observations.json`. Keep interface and amplifier level fixed after this check.
+
+| Patch | Expected level at the Wirescape output | Listening prerequisite |
+|---|---|---|
+| A / `mono` | Very quiet: approximately **-62 dBFS RMS** in the owner's offline validation at voice gain **0.02**. This is not a -18 dBFS calibration source. | LFO must open the ADSR gate; a functioning speaker may still make the signal difficult to hear. |
+| B / `poly8` | Per-voice VCA gain **0.02**; aggregate RMS is not a fixed value, since it depends on the eight held notes, oscillator phases, filter and envelope. It may be silent with no MIDI notes. | Enable MIDI and hold the fixed eight-note chord. |
+| C / `poly8-fx` | Same per-voice VCA gain **0.02** as B before delay/reverb. Output RMS and peaks vary with wet tails and MIDI state; no reference dBFS RMS has been established. | Enable MIDI, hold the chord and allow FX tails to build. |
+| D / `scaling` | Each source repeats A's **0.02** voice gain. Aggregate level changes with N and signal summing; there is no one fixed dBFS RMS for all N. | Check the N=1 graph first; verify each load and increase speaker volume cautiously. |
+
+The `0.02` gains are intentional matched-workload settings and **must not
+be altered** to make a patch audible. Record the actual output RMS/peak for
+each tested tool and condition; the speaker tone checks hardware routing,
+not performance or loudness equivalence between programs.
+
 ## Wirescape: bundled patch-v2 files
 
 Provided files: `patches/wirescape/mono.json`, `poly8.json`, `poly8-fx.json`. Import them through the Wirescape UI on the device under test. For patch B/C, enable the target MIDI input in the UI before beginning the fixed eight-note sequence. `midi.in` sends to `midi.to_cv` at eight voices and then to the common subtractive graph; runtime graph polyphony is supplied by the native modules. Confirm actual MIDI note response during the owner setup.
