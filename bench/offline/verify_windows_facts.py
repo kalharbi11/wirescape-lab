@@ -20,10 +20,10 @@ def verify(folder):
         if result.get("status") != "passed" or result.get("exit_code") != 0:
             raise ValueError(suite + " not passed: " + str(result.get("failure_output_lines", [])))
     memory = document(folder, "app", "memory")
-    if not memory.get("engine_idle_rss_kib", 0) > 0:
+    if not (memory.get("engine_idle_rss_kib") or 0) > 0:
         raise ValueError("Windows sidecar idle RSS absent")
     loaded = memory.get("largest_bundled_patch") or {}
-    if not loaded.get("rss_kib", 0) > 0:
+    if not (loaded.get("rss_kib") or 0) > 0:
         raise ValueError("Windows sidecar loaded RSS absent")
     startup = document(folder, "app", "startup")
     if startup["summary"]["first_paint"]["n"] != 10:
