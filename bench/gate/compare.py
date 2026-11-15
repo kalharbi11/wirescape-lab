@@ -89,7 +89,11 @@ def compare(baseline, current, threshold=3.0, required_ids=None,
             failures.append(f"{key}: baseline {old.get('status')} "
                             f"({old.get('reason', 'no numeric Ir baseline')})")
             if new.get("status") == "measured":
-                changes.append({"id": key, "percent": None, "status": "newly_measured"})
+                if valid_measured_row(new, verify_totals):
+                    changes.append({"id": key, "percent": None, "status": "newly_measured"})
+                else:
+                    changes.append({"id": key, "percent": None, "status": "invalid_measurement"})
+                    failures.append(f"{key}: invalid current Ir or Callgrind totals")
             else:
                 changes.append({"id": key, "percent": None, "status": "unavailable"})
                 failures.append(f"{key}: current {new.get('status')} "
