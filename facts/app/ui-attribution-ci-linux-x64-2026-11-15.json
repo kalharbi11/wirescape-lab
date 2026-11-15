@@ -1,0 +1,725 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": 1,
+  "status": "measured",
+  "source_kind": "GitHub Actions synthetic pull_request merge checkout (not branch-head checkout)",
+  "pull_request_head_at_capture": "9c9b460b349b98f88208db45ce0ddcbc5cf943ed",
+  "measurement_commit": "fe8404cadb6150c8ffffcca4abafa8eebac7fdc0",
+  "date_et": "2026-11-15",
+  "workflow_run_id": 43773743725,
+  "workflow_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43773743725",
+  "raw_artifact": {
+    "name": "ui-cpu-profile-43773743725",
+    "id": 14184773388,
+    "api_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14184773388",
+    "download_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14184773388/zip",
+    "created_at": "2026-11-15T23:16:37Z",
+    "expires_at": "2026-11-22T23:16:35Z",
+    "retention_days": 7,
+    "contents": "summary.json, trials.json, 36 CPU profiles and 36 Chromium performance traces"
+  },
+  "measurements": {
+    "schema": 1,
+    "source_commit": "fe8404cadb6150c8ffffcca4abafa8eebac7fdc0",
+    "date_et": "2026-11-15",
+    "machine": {
+      "runner": "GitHub Actions 1000033335",
+      "os": "linux",
+      "arch": "x64",
+      "cpu": "AMD EPYC 9V45 96-Core Processor",
+      "runner_image": "ubuntu26",
+      "runner_image_version": "20261111.196.1",
+      "devices": "audio/MIDI not opened",
+      "network": "127.0.0.1 only"
+    },
+    "chromium_version": "131.0.6778.33",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "workloads": {
+      "module_counts": [
+        50,
+        100,
+        200
+      ],
+      "actions": [
+        "knob",
+        "cable"
+      ],
+      "repetitions": 6,
+      "mouse_steps": 30,
+      "completed_interaction": "one full drag from mouse down to up per repetition"
+    },
+    "method": {
+      "frames": "rAF interval nearest-rank percentiles, measured during instrumented drag window",
+      "cpu": "Chromium CDP Profiler 1ms statistical samples, self-sample function/source locations",
+      "performance": "Chromium CDP Tracing renderer CrRendererMain nested duration categories",
+      "separate_from_playwright_trace": true,
+      "caveats": "Sampling bias, minified JS, overlapping tasks, profiler overhead, compositor/GPU excluded; unobserved time is not necessarily idle"
+    },
+    "results": [
+      {
+        "modules": 50,
+        "action": "knob",
+        "frame": {
+          "sample_count": 348,
+          "p50_ms": 16.699999999999932,
+          "p95_ms": 16.700000000000045,
+          "max_ms": 16.800000000000182
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 5878,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 5995.51,
+          "unattributed_ms": 430.464,
+          "top_self": [
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 12.048,
+              "samples": 12
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 11.716,
+              "samples": 11
+            },
+            {
+              "function": "refresh",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 7.387,
+              "samples": 7
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 6.675,
+              "samples": 6
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 5.449,
+              "samples": 5
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.37,
+              "samples": 4
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 1,
+              "self_sampled_ms": 4.275,
+              "samples": 4
+            },
+            {
+              "function": "requestAnimationFrame",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.256,
+              "samples": 4
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 4.105,
+              "samples": 4
+            },
+            {
+              "function": "getAttribute",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 3.213,
+              "samples": 3
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 98.099,
+            "style": 17.524,
+            "layout": 50.027,
+            "paint": 71.598,
+            "unattributed_busy": 213.394
+          },
+          "observed_busy_ms": 450.642,
+          "unobserved_window_ms": 5420.609,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 50,
+        "action": "cable",
+        "frame": {
+          "sample_count": 360,
+          "p50_ms": 16.699999999999932,
+          "p95_ms": 16.799999999999955,
+          "max_ms": 16.800000000000182
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 6104,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6221.982,
+          "unattributed_ms": 1089.148,
+          "top_self": [
+            {
+              "function": "elementFromPoint",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 101.382,
+              "samples": 96
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 22.284,
+              "samples": 21
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 14.596,
+              "samples": 16
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 9.685,
+              "samples": 9
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 7.615,
+              "samples": 7
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 6.028,
+              "samples": 6
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 5.337,
+              "samples": 5
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.272,
+              "samples": 4
+            },
+            {
+              "function": "getBoundingClientRect",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.27,
+              "samples": 4
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 4.251,
+              "samples": 4
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 229.124,
+            "style": 343.579,
+            "layout": 33.571,
+            "paint": 200.093,
+            "unattributed_busy": 427.896
+          },
+          "observed_busy_ms": 1234.263,
+          "unobserved_window_ms": 4862.259,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 100,
+        "action": "knob",
+        "frame": {
+          "sample_count": 350,
+          "p50_ms": 16.699999999999932,
+          "p95_ms": 16.799999999999955,
+          "max_ms": 49.89999999999998
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 5947,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6063.795,
+          "unattributed_ms": 666.31,
+          "top_self": [
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 26.788,
+              "samples": 26
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 25.022,
+              "samples": 29
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 7.723,
+              "samples": 9
+            },
+            {
+              "function": "refresh",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 7.413,
+              "samples": 7
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 1,
+              "self_sampled_ms": 5.491,
+              "samples": 5
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.278,
+              "samples": 4
+            },
+            {
+              "function": "focus",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.278,
+              "samples": 4
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.256,
+              "samples": 4
+            },
+            {
+              "function": "requestAnimationFrame",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 4.252,
+              "samples": 4
+            },
+            {
+              "function": "mark",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 3.374,
+              "samples": 3
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 168.639,
+            "style": 19.392,
+            "layout": 86.55,
+            "paint": 136.503,
+            "unattributed_busy": 303.339
+          },
+          "observed_busy_ms": 714.423,
+          "unobserved_window_ms": 5221.878,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 100,
+        "action": "cable",
+        "frame": {
+          "sample_count": 371,
+          "p50_ms": 16.699999999999932,
+          "p95_ms": 16.799999999999955,
+          "max_ms": 50.10000000000002
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 6500,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6617.119,
+          "unattributed_ms": 1923.257,
+          "top_self": [
+            {
+              "function": "elementFromPoint",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 263.03,
+              "samples": 247
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 52.688,
+              "samples": 58
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 32.76,
+              "samples": 36
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 11.888,
+              "samples": 13
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 10.674,
+              "samples": 10
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 6.482,
+              "samples": 6
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 5.334,
+              "samples": 5
+            },
+            {
+              "function": "highlightTargets",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 4.267,
+              "samples": 4
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 4.248,
+              "samples": 4
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 3.24,
+              "samples": 3
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 448.039,
+            "style": 722.095,
+            "layout": 54.142,
+            "paint": 447.678,
+            "unattributed_busy": 624.088
+          },
+          "observed_busy_ms": 2296.042,
+          "unobserved_window_ms": 4194.167,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 200,
+        "action": "knob",
+        "frame": {
+          "sample_count": 358,
+          "p50_ms": 16.700000000000045,
+          "p95_ms": 16.700000000000045,
+          "max_ms": 16.800000000000182
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 6047,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6178.024,
+          "unattributed_ms": 968.865,
+          "top_self": [
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 53.356,
+              "samples": 53
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 41.479,
+              "samples": 44
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 10.646,
+              "samples": 10
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 6.424,
+              "samples": 6
+            },
+            {
+              "function": "getAttribute",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 6.381,
+              "samples": 6
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 5.49,
+              "samples": 8
+            },
+            {
+              "function": "requestAnimationFrame",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 5.427,
+              "samples": 5
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 5.342,
+              "samples": 5
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 1,
+              "self_sampled_ms": 4.272,
+              "samples": 4
+            },
+            {
+              "function": "paintBase",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 4.259,
+              "samples": 4
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 156.585,
+            "style": 22.215,
+            "layout": 155.603,
+            "paint": 309.233,
+            "unattributed_busy": 413.961
+          },
+          "observed_busy_ms": 1057.597,
+          "unobserved_window_ms": 4977.947,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 200,
+        "action": "cable",
+        "frame": {
+          "sample_count": 418,
+          "p50_ms": 16.699999999999818,
+          "p95_ms": 16.799999999999955,
+          "max_ms": 100.10000000000002
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 7895,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 8023.246,
+          "unattributed_ms": 4103.96,
+          "top_self": [
+            {
+              "function": "elementFromPoint",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 684.72,
+              "samples": 640
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 2,
+              "self_sampled_ms": 122.058,
+              "samples": 130
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 64.859,
+              "samples": 67
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 48.105,
+              "samples": 71
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 27.659,
+              "samples": 26
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 1,
+              "self_sampled_ms": 8.532,
+              "samples": 8
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-07c-eMfP.js",
+              "line": 1,
+              "self_sampled_ms": 8.525,
+              "samples": 8
+            },
+            {
+              "function": "requestAnimationFrame",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 7.641,
+              "samples": 7
+            },
+            {
+              "function": "getAttribute",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 7.452,
+              "samples": 7
+            },
+            {
+              "function": "remove",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 6.383,
+              "samples": 6
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 978.689,
+            "style": 1536.311,
+            "layout": 83.941,
+            "paint": 1193.692,
+            "unattributed_busy": 1263.314
+          },
+          "observed_busy_ms": 5055.947,
+          "unobserved_window_ms": 2813.373,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      }
+    ],
+    "raw_artifacts": "raw/*.cpuprofile and raw/*.trace.json; CI upload only, never commit"
+  }
+}
