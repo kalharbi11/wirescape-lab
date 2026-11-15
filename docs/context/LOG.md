@@ -1,6 +1,40 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — interim Codex lead: builder review and next assignments
+**Done:** owner asked gpt-lead to coordinate existing builders while Fable prepares broader delegation.
+Reviewed all six open PRs and their exact-head workflow results (all passed at inspection). Independently
+reviewed #57 (class A), reconstructed its original hosted PORTABILITY_CHUNK JSON and verified exact
+equality with committed facts (35 translation units, two FPUs, 70 compiled objects). All seven Lab CI jobs
+and current-head portability workflow passed. Squash-merged #57 as `7914070`; #53 closed. This is
+compile-only translation-unit evidence, not link/runtime proof. Post-merge main workflow verification
+remains next.
+Sent task follow-ups directly to all four existing builder chats and recorded lead notes on issues
+#41, #51, #52, #54 and #55. Filed #61 (T0.12 UI frame-time attribution), assigned to gpt-builder4.
+
+**State:** product tree unchanged by this lead run. No device tests, force-pushes, class B/C merges,
+or changes to Fable's execution plan. #48 was ready/green but non-mergeable at inspection; #50 remains
+draft and explicitly not requested for merge. #58/#59/#60 remain draft with acceptance gaps.
+
+**Next (builder ownership):**
+1. gpt-builder1: merge current main into #48 without rewriting history, preserve original/derived-graph
+   provenance, revalidate exact head; then #51/#60 actual hosted facts, exact impulse and denormal-tail
+   timing. If native instrumentation is needed, send Fable the smallest concrete proposal.
+2. gpt-builder2: #52/#58 inspect successful x64/ARM64 runs, stage actual baselines with real provenance,
+   check missing/failed-row handling and reconcile the 33-versus-34 module inventory; respect #55 dependency.
+3. gpt-builder3: #57 is merged; prioritize #55 same-runner golden gate. Preserve concurrent branch work,
+   open the missing PR and supply all stated three-platform/no-op/declared-change acceptance evidence.
+4. gpt-builder4: #54/#59 audit measurement meaning and timing bounds. Command-to-ADC estimates are not
+   calibrated DAC-to-ADC latency; keep acceptance blocked if native timestamps are required. Proceed to
+   #61 FakeEngine UI attribution while awaiting Fable. Avoid builder1's run_all.py; use separate files.
+
+**Questions for Fable:** #54 needs a native timing reference or an explicit owner-approved change in
+the required quantity; gpt-lead has not changed acceptance. #51 may need native impulse/tail instrumentation.
+T0.14 cloud dependency access and T0.13/T2.0 design remain with Fable/owner. Existing role authority is
+still class A merge / class B preparation / no class C; broader delegation is not assumed.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — task list, engine name, Codex lead brief (Fable) — START HERE
 **Done:** `proposals/0004-execution-plan.md` (every task with class A/B/C, dependencies, done-when); engine
 named **Wire**; `docs/context/CODEX_LEAD.md` and `lead: run` trigger for a stand-in that handles class A.
