@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "ab7ce364e704d2a189717699b903a54daae3d579",
+    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
     "date_et": "2026-11-15",
     "machine": {
       "architecture": "x86_64",
@@ -14,12 +14,12 @@
         "count": 114,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.116633,
+          "seconds": 0.146539,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 27.189118,
+          "seconds": 29.134616,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.765504,
+          "seconds": 0.954775,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 78.795147,
+          "seconds": 92.544977,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.172682,
+          "seconds": 1.431273,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 407.124378,
+          "seconds": 454.258349,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 17.907035,
+          "seconds": 16.366838,
           "status": "passed"
         }
       },
@@ -71,11 +71,11 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "ab7ce364e704d2a189717699b903a54daae3d579",
+    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "cpu": "AMD EPYC 7763 64-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",

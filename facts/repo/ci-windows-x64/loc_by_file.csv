@@ -31,10 +31,10 @@ apps\studio\src\engine\RealEngine.ts,apps,product,TypeScript,492,20,16
 native\modules2\macro_oscillator\tests.cpp,native,product,C++,476,12,2
 native\sidecar\protocol_unit_tests.cpp,native,product,C++,454,26,13
 native\sidecar\golden_tests.py,native,product,Python,450,21,33
+bench\device\run.py,bench,tools,Python,448,9,32
 native\modules2\quantizer\tests.cpp,native,product,C++,448,11,20
 native\modules2\delay\tests.cpp,native,product,C++,444,27,8
 apps\desktop\tests\shell.spec.cjs,apps,tests,JavaScript,434,4,7
-bench\device\run.py,bench,tools,Python,418,9,32
 native\web\web_engine.cpp,native,product,C++,413,13,6
 native\document\runtime_module_config.h,native,product,C/C++ Header,409,14,3
 apps\studio\src\panels\widgets\Knob.ts,apps,product,TypeScript,383,30,38
@@ -219,6 +219,7 @@ apps\studio\tests\mobile-gestures.spec.ts,apps,tests,TypeScript,118,6,11
 native\include\wirescape\module2.h,native,product,C/C++ Header,117,3,1
 native\io\osc\tests.cpp,native,product,C++,117,3,0
 tools\foundation\tests\test_helpers.py,tools,tests,Python,117,1,15
+bench\device\speaker_check.py,bench,tools,Python,115,10,8
 apps\studio\src\patch\History.ts,apps,product,TypeScript,114,23,16
 apps\studio\tests\groove-g4b-roll.spec.ts,apps,tests,TypeScript,113,1,5
 apps\studio\tests\helpers.ts,apps,tests,TypeScript,113,8,14
@@ -353,6 +354,7 @@ tools\foundation\tests\test_golden.py,tools,tests,Python,53,2,7
 apps\studio\src\panels\widgets\Segmented.ts,apps,product,TypeScript,52,3,5
 apps\studio\src\patch\types.ts,apps,product,TypeScript,52,13,9
 apps\studio\tests\mock-bridge\audio-recovery.spec.ts,apps,tests,TypeScript,52,1,4
+bench\device\tests\test_speaker_check.py,bench,tests,Python,52,2,9
 bench\offline\test_ci_stage_facts.py,bench,tests,Python,52,2,9
 native\modules2\midi_in\dsp.h,native,product,C/C++ Header,52,1,0
 tools\foundation\tests\test_abi2_cost.py,tools,tests,Python,52,2,8
@@ -545,4 +547,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,79441,4510,4366
+SUM,SUM,product,unknown,79638,4522,4383

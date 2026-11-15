@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "ab7ce364e704d2a189717699b903a54daae3d579",
+    "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -29,7 +29,7 @@
         128,
         256
       ],
-      "commit": "ab7ce364e704d2a189717699b903a54daae3d579",
+      "commit": "ac799a4ccb9a1d05ca42e6b4c3d121fe9305a8ef",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "aarch64",
@@ -58,7 +58,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1888,
+            "max": 1592,
             "p99": 312
           },
           "sample_rate": 48000,
@@ -82,15 +82,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 25600,
-            "p99": 416
+            "max": 17591,
+            "p99": 432
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 416,
-        "p99_ratio": 0.75,
+        "normal_p99_ns": 432,
+        "p99_ratio": 0.7222222222222222,
         "status": "measured"
       },
       {
@@ -109,14 +109,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 2496,
-            "p99": 544
+            "max": 1536,
+            "p99": 552
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 544,
+        "denormal_p99_ns": 552,
         "input_value": 1e-30,
         "module": "essentials.adsr",
         "normal": {
@@ -133,7 +133,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 24089,
+            "max": 1280,
             "p99": 688
           },
           "sample_rate": 48000,
@@ -141,7 +141,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 688,
-        "p99_ratio": 0.7906976744186046,
+        "p99_ratio": 0.8023255813953488,
         "status": "measured"
       },
       {
@@ -160,14 +160,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 1712,
-            "p99": 1016
+            "max": 19430,
+            "p99": 1120
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1016,
+        "denormal_p99_ns": 1120,
         "input_value": 1e-30,
         "module": "essentials.adsr",
         "normal": {
@@ -184,15 +184,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 1696,
-            "p99": 1144
+            "max": 28895,
+            "p99": 1136
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1144,
-        "p99_ratio": 0.8881118881118881,
+        "normal_p99_ns": 1136,
+        "p99_ratio": 0.9859154929577465,
         "status": "measured"
       },
       {
@@ -211,14 +211,14 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 33537,
-            "p99": 12377
+            "max": 568462,
+            "p99": 12896
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 12377,
+        "denormal_p99_ns": 12896,
         "input_value": 1e-30,
         "module": "essentials.chaos_lite",
         "normal": {
@@ -235,15 +235,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 41217,
-            "p99": 12464
+            "max": 30238,
+            "p99": 12888
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 12464,
-        "p99_ratio": 0.9930198973042362,
+        "normal_p99_ns": 12888,
+        "p99_ratio": 1.000620732464308,
         "status": "measured"
       },
       {
@@ -262,14 +262,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 32193,
-            "p99": 23041
+            "max": 37854,
+            "p99": 25942
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 23041,
+        "denormal_p99_ns": 25942,
         "input_value": 1e-30,
         "module": "essentials.chaos_lite",
         "normal": {
@@ -286,15 +286,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 57065,
-            "p99": 25217
+            "max": 60621,
+            "p99": 25343
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 25217,
-        "p99_ratio": 0.9137090058294008,
+        "normal_p99_ns": 25343,
+        "p99_ratio": 1.0236357179497297,
         "status": "measured"
       },
       {
@@ -313,14 +313,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 64674,
-            "p99": 46769
+            "max": 68540,
+            "p99": 50109
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 46769,
+        "denormal_p99_ns": 50109,
         "input_value": 1e-30,
         "module": "essentials.chaos_lite",
         "normal": {
@@ -337,15 +337,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 59226,
-            "p99": 47185
+            "max": 70596,
+            "p99": 48061
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 47185,
-        "p99_ratio": 0.9911836388682844,
+        "normal_p99_ns": 48061,
+        "p99_ratio": 1.042612513264393,
         "status": "measured"
       },
       {
@@ -415,7 +415,7 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 11969,
+            "max": 41909,
             "p99": 632
           },
           "sample_rate": 48000,
@@ -439,15 +439,15 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 14217,
-            "p99": 624
+            "max": 6991,
+            "p99": 632
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 624,
-        "p99_ratio": 1.0128205128205128,
+        "normal_p99_ns": 632,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -466,14 +466,14 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 23169,
-            "p99": 1184
+            "max": 12079,
+            "p99": 1176
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1184,
+        "denormal_p99_ns": 1176,
         "input_value": 1e-30,
         "module": "essentials.clock",
         "normal": {
@@ -490,15 +490,15 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 6881,
-            "p99": 1184
+            "max": 12975,
+            "p99": 1200
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1184,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 1200,
+        "p99_ratio": 0.98,
         "status": "measured"
       },
       {
@@ -517,14 +517,14 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29641,
-            "p99": 2296
+            "max": 8119,
+            "p99": 2280
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2296,
+        "denormal_p99_ns": 2280,
         "input_value": 1e-30,
         "module": "essentials.clock",
         "normal": {
@@ -541,15 +541,15 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 8384,
-            "p99": 2281
+            "max": 21351,
+            "p99": 2335
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2281,
-        "p99_ratio": 1.006576063130206,
+        "normal_p99_ns": 2335,
+        "p99_ratio": 0.9764453961456103,
         "status": "measured"
       },
       {
@@ -568,7 +568,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 24376,
+            "max": 2672,
             "p99": 488
           },
           "sample_rate": 48000,
@@ -592,15 +592,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6496,
-            "p99": 481
+            "max": 1536,
+            "p99": 488
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 481,
-        "p99_ratio": 1.0145530145530146,
+        "normal_p99_ns": 488,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -619,14 +619,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 28377,
-            "p99": 904
+            "max": 17566,
+            "p99": 912
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 904,
+        "denormal_p99_ns": 912,
         "input_value": 1e-30,
         "module": "essentials.function_envelope",
         "normal": {
@@ -643,7 +643,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 39713,
+            "max": 18063,
             "p99": 904
           },
           "sample_rate": 48000,
@@ -651,6 +651,312 @@
           "status": "measured"
         },
         "normal_p99_ns": 904,
+        "p99_ratio": 1.008849557522124,
+        "status": "measured"
+      },
+      {
+        "block_frames": 256,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 256,
+          "blocks": 375,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.function_envelope",
+          "params": "",
+          "peak": 0,
+          "period_ns": 5333333,
+          "render_ns": {
+            "max": 31510,
+            "p99": 1736
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 1736,
+        "input_value": 1e-30,
+        "module": "essentials.function_envelope",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 256,
+          "blocks": 375,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.function_envelope",
+          "params": "",
+          "peak": 0,
+          "period_ns": 5333333,
+          "render_ns": {
+            "max": 9127,
+            "p99": 1752
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 1752,
+        "p99_ratio": 0.9908675799086758,
+        "status": "measured"
+      },
+      {
+        "block_frames": 64,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 64,
+          "blocks": 1500,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 1.43164e-35,
+          "period_ns": 1333333,
+          "render_ns": {
+            "max": 12511,
+            "p99": 1832
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 1832,
+        "input_value": 1e-30,
+        "module": "essentials.ladder",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 64,
+          "blocks": 1500,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 0.437866,
+          "period_ns": 1333333,
+          "render_ns": {
+            "max": 14239,
+            "p99": 1816
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 1816,
+        "p99_ratio": 1.0088105726872247,
+        "status": "measured"
+      },
+      {
+        "block_frames": 128,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 128,
+          "blocks": 750,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 1.43164e-35,
+          "period_ns": 2666667,
+          "render_ns": {
+            "max": 31142,
+            "p99": 3575
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 3575,
+        "input_value": 1e-30,
+        "module": "essentials.ladder",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 128,
+          "blocks": 750,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 0.437866,
+          "period_ns": 2666667,
+          "render_ns": {
+            "max": 54333,
+            "p99": 3592
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 3592,
+        "p99_ratio": 0.9952672605790646,
+        "status": "measured"
+      },
+      {
+        "block_frames": 256,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 256,
+          "blocks": 375,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 1.43164e-35,
+          "period_ns": 5333333,
+          "render_ns": {
+            "max": 42446,
+            "p99": 9776
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 9776,
+        "input_value": 1e-30,
+        "module": "essentials.ladder",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 256,
+          "blocks": 375,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.ladder",
+          "params": "",
+          "peak": 0.437866,
+          "period_ns": 5333333,
+          "render_ns": {
+            "max": 19903,
+            "p99": 7071
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 7071,
+        "p99_ratio": 1.382548437279027,
+        "status": "measured"
+      },
+      {
+        "block_frames": 64,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 64,
+          "blocks": 1500,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.lfo",
+          "params": "",
+          "peak": 1,
+          "period_ns": 1333333,
+          "render_ns": {
+            "max": 12607,
+            "p99": 1448
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 1448,
+        "input_value": 1e-30,
+        "module": "essentials.lfo",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 64,
+          "blocks": 1500,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.lfo",
+          "params": "",
+          "peak": 1,
+          "period_ns": 1333333,
+          "render_ns": {
+            "max": 7895,
+            "p99": 1440
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 1440,
+        "p99_ratio": 1.0055555555555555,
+        "status": "measured"
+      },
+      {
+        "block_frames": 128,
+        "denormal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 128,
+          "blocks": 750,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "denormal",
+          "instances": 1,
+          "module": "essentials.lfo",
+          "params": "",
+          "peak": 1,
+          "period_ns": 2666667,
+          "render_ns": {
+            "max": 7920,
+            "p99": 2824
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "denormal_p99_ns": 2824,
+        "input_value": 1e-30,
+        "module": "essentials.lfo",
+        "normal": {
+          "allocations": 0,
+          "alternate": "",
+          "block": 128,
+          "blocks": 750,
+          "channels": 1,
+          "faults": 0,
+          "input_mode": "normal",
+          "instances": 1,
+          "module": "essentials.lfo",
+          "params": "",
+          "peak": 1,
+          "period_ns": 2666667,
+          "render_ns": {
+            "max": 14407,
+            "p99": 2824
+          },
+          "sample_rate": 48000,
+          "seconds": 2,
+          "status": "measured"
+        },
+        "normal_p99_ns": 2824,
         "p99_ratio": 1.0,
         "status": "measured"
       },
@@ -665,325 +971,19 @@
           "faults": 0,
           "input_mode": "denormal",
           "instances": 1,
-          "module": "essentials.function_envelope",
-          "params": "",
-          "peak": 0,
-          "period_ns": 5333333,
-          "render_ns": {
-            "max": 2464,
-            "p99": 1744
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 1744,
-        "input_value": 1e-30,
-        "module": "essentials.function_envelope",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 256,
-          "blocks": 375,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.function_envelope",
-          "params": "",
-          "peak": 0,
-          "period_ns": 5333333,
-          "render_ns": {
-            "max": 16393,
-            "p99": 1736
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 1736,
-        "p99_ratio": 1.0046082949308757,
-        "status": "measured"
-      },
-      {
-        "block_frames": 64,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 64,
-          "blocks": 1500,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 1.43164e-35,
-          "period_ns": 1333333,
-          "render_ns": {
-            "max": 15776,
-            "p99": 1817
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 1817,
-        "input_value": 1e-30,
-        "module": "essentials.ladder",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 64,
-          "blocks": 1500,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 0.437866,
-          "period_ns": 1333333,
-          "render_ns": {
-            "max": 34673,
-            "p99": 1832
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 1832,
-        "p99_ratio": 0.9918122270742358,
-        "status": "measured"
-      },
-      {
-        "block_frames": 128,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 128,
-          "blocks": 750,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 1.43164e-35,
-          "period_ns": 2666667,
-          "render_ns": {
-            "max": 61834,
-            "p99": 3576
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 3576,
-        "input_value": 1e-30,
-        "module": "essentials.ladder",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 128,
-          "blocks": 750,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 0.437866,
-          "period_ns": 2666667,
-          "render_ns": {
-            "max": 31736,
-            "p99": 3561
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 3561,
-        "p99_ratio": 1.004212299915754,
-        "status": "measured"
-      },
-      {
-        "block_frames": 256,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 256,
-          "blocks": 375,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 1.43164e-35,
-          "period_ns": 5333333,
-          "render_ns": {
-            "max": 19160,
-            "p99": 7096
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 7096,
-        "input_value": 1e-30,
-        "module": "essentials.ladder",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 256,
-          "blocks": 375,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.ladder",
-          "params": "",
-          "peak": 0.437866,
-          "period_ns": 5333333,
-          "render_ns": {
-            "max": 25280,
-            "p99": 9481
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 9481,
-        "p99_ratio": 0.7484442569349224,
-        "status": "measured"
-      },
-      {
-        "block_frames": 64,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 64,
-          "blocks": 1500,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
-          "module": "essentials.lfo",
-          "params": "",
-          "peak": 1,
-          "period_ns": 1333333,
-          "render_ns": {
-            "max": 24521,
-            "p99": 1440
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 1440,
-        "input_value": 1e-30,
-        "module": "essentials.lfo",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 64,
-          "blocks": 1500,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.lfo",
-          "params": "",
-          "peak": 1,
-          "period_ns": 1333333,
-          "render_ns": {
-            "max": 6712,
-            "p99": 1448
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 1448,
-        "p99_ratio": 0.994475138121547,
-        "status": "measured"
-      },
-      {
-        "block_frames": 128,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 128,
-          "blocks": 750,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
-          "module": "essentials.lfo",
-          "params": "",
-          "peak": 1,
-          "period_ns": 2666667,
-          "render_ns": {
-            "max": 26953,
-            "p99": 2832
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "denormal_p99_ns": 2832,
-        "input_value": 1e-30,
-        "module": "essentials.lfo",
-        "normal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 128,
-          "blocks": 750,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "normal",
-          "instances": 1,
-          "module": "essentials.lfo",
-          "params": "",
-          "peak": 1,
-          "period_ns": 2666667,
-          "render_ns": {
-            "max": 21881,
-            "p99": 2824
-          },
-          "sample_rate": 48000,
-          "seconds": 2,
-          "status": "measured"
-        },
-        "normal_p99_ns": 2824,
-        "p99_ratio": 1.0028328611898016,
-        "status": "measured"
-      },
-      {
-        "block_frames": 256,
-        "denormal": {
-          "allocations": 0,
-          "alternate": "",
-          "block": 256,
-          "blocks": 375,
-          "channels": 1,
-          "faults": 0,
-          "input_mode": "denormal",
-          "instances": 1,
           "module": "essentials.lfo",
           "params": "",
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 9464,
-            "p99": 5568
+            "max": 23735,
+            "p99": 7816
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5568,
+        "denormal_p99_ns": 7816,
         "input_value": 1e-30,
         "module": "essentials.lfo",
         "normal": {
@@ -1000,15 +1000,15 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 32601,
-            "p99": 8337
+            "max": 22175,
+            "p99": 9311
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 8337,
-        "p99_ratio": 0.6678661388988845,
+        "normal_p99_ns": 9311,
+        "p99_ratio": 0.8394372247878853,
         "status": "measured"
       },
       {
@@ -1027,7 +1027,7 @@
           "peak": 1e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 31833,
+            "max": 18262,
             "p99": 456
           },
           "sample_rate": 48000,
@@ -1051,7 +1051,7 @@
           "peak": 0.398474,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 7160,
+            "max": 31350,
             "p99": 456
           },
           "sample_rate": 48000,
@@ -1078,14 +1078,14 @@
           "peak": 1e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 20208,
-            "p99": 856
+            "max": 19047,
+            "p99": 848
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 856,
+        "denormal_p99_ns": 848,
         "input_value": 1e-30,
         "module": "essentials.mixer",
         "normal": {
@@ -1102,15 +1102,15 @@
           "peak": 0.398474,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 7472,
-            "p99": 848
+            "max": 7048,
+            "p99": 840
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 848,
-        "p99_ratio": 1.009433962264151,
+        "normal_p99_ns": 840,
+        "p99_ratio": 1.0095238095238095,
         "status": "measured"
       },
       {
@@ -1129,14 +1129,14 @@
           "peak": 1e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 27497,
-            "p99": 1704
+            "max": 19887,
+            "p99": 1640
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1704,
+        "denormal_p99_ns": 1640,
         "input_value": 1e-30,
         "module": "essentials.mixer",
         "normal": {
@@ -1153,15 +1153,15 @@
           "peak": 0.398474,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 38961,
-            "p99": 1656
+            "max": 9392,
+            "p99": 1616
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1656,
-        "p99_ratio": 1.0289855072463767,
+        "normal_p99_ns": 1616,
+        "p99_ratio": 1.0148514851485149,
         "status": "measured"
       },
       {
@@ -1180,14 +1180,14 @@
           "peak": 0.199999,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6536,
-            "p99": 240
+            "max": 6696,
+            "p99": 232
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 240,
+        "denormal_p99_ns": 232,
         "input_value": 1e-30,
         "module": "essentials.noise",
         "normal": {
@@ -1204,7 +1204,7 @@
           "peak": 0.199999,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6968,
+            "max": 46550,
             "p99": 232
           },
           "sample_rate": 48000,
@@ -1212,7 +1212,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 232,
-        "p99_ratio": 1.0344827586206897,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -1231,14 +1231,14 @@
           "peak": 0.199999,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 7344,
-            "p99": 424
+            "max": 30254,
+            "p99": 408
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 424,
+        "denormal_p99_ns": 408,
         "input_value": 1e-30,
         "module": "essentials.noise",
         "normal": {
@@ -1255,7 +1255,7 @@
           "peak": 0.199999,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 20128,
+            "max": 10871,
             "p99": 408
           },
           "sample_rate": 48000,
@@ -1263,7 +1263,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 408,
-        "p99_ratio": 1.0392156862745099,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -1282,7 +1282,7 @@
           "peak": 0.199999,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 7240,
+            "max": 8576,
             "p99": 760
           },
           "sample_rate": 48000,
@@ -1306,7 +1306,7 @@
           "peak": 0.199999,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 7024,
+            "max": 35358,
             "p99": 760
           },
           "sample_rate": 48000,
@@ -1333,14 +1333,14 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6240,
-            "p99": 1216
+            "max": 25374,
+            "p99": 1248
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1216,
+        "denormal_p99_ns": 1248,
         "input_value": 1e-30,
         "module": "essentials.notes_to_cv",
         "normal": {
@@ -1357,15 +1357,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 18024,
-            "p99": 1240
+            "max": 19678,
+            "p99": 1216
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1240,
-        "p99_ratio": 0.9806451612903225,
+        "normal_p99_ns": 1216,
+        "p99_ratio": 1.0263157894736843,
         "status": "measured"
       },
       {
@@ -1384,14 +1384,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 8576,
-            "p99": 2400
+            "max": 16791,
+            "p99": 2376
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2400,
+        "denormal_p99_ns": 2376,
         "input_value": 1e-30,
         "module": "essentials.notes_to_cv",
         "normal": {
@@ -1408,15 +1408,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 25081,
-            "p99": 2424
+            "max": 19423,
+            "p99": 2368
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2424,
-        "p99_ratio": 0.9900990099009901,
+        "normal_p99_ns": 2368,
+        "p99_ratio": 1.0033783783783783,
         "status": "measured"
       },
       {
@@ -1435,14 +1435,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 25953,
-            "p99": 6865
+            "max": 28247,
+            "p99": 4743
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 6865,
+        "denormal_p99_ns": 4743,
         "input_value": 1e-30,
         "module": "essentials.notes_to_cv",
         "normal": {
@@ -1459,15 +1459,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 9192,
-            "p99": 4680
+            "max": 29583,
+            "p99": 8903
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 4680,
-        "p99_ratio": 1.4668803418803418,
+        "normal_p99_ns": 8903,
+        "p99_ratio": 0.5327417724362574,
         "status": "measured"
       },
       {
@@ -1486,7 +1486,7 @@
           "peak": 1e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 34721,
+            "max": 704,
             "p99": 192
           },
           "sample_rate": 48000,
@@ -1510,7 +1510,7 @@
           "peak": 0.5,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1056,
+            "max": 792,
             "p99": 192
           },
           "sample_rate": 48000,
@@ -1537,7 +1537,7 @@
           "peak": 1e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 937,
+            "max": 1856,
             "p99": 328
           },
           "sample_rate": 48000,
@@ -1561,7 +1561,7 @@
           "peak": 0.5,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 808,
+            "max": 23055,
             "p99": 328
           },
           "sample_rate": 48000,
@@ -1588,14 +1588,14 @@
           "peak": 1e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 18657,
-            "p99": 600
+            "max": 944,
+            "p99": 592
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 600,
+        "denormal_p99_ns": 592,
         "input_value": 1e-30,
         "module": "essentials.output",
         "normal": {
@@ -1612,15 +1612,15 @@
           "peak": 0.5,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 30368,
-            "p99": 616
+            "max": 936,
+            "p99": 624
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 616,
-        "p99_ratio": 0.974025974025974,
+        "normal_p99_ns": 624,
+        "p99_ratio": 0.9487179487179487,
         "status": "measured"
       },
       {
@@ -1639,7 +1639,7 @@
           "peak": 4e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 27545,
+            "max": 39086,
             "p99": 1312
           },
           "sample_rate": 48000,
@@ -1663,15 +1663,15 @@
           "peak": 1.39501,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 40329,
-            "p99": 1241
+            "max": 60172,
+            "p99": 1256
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1241,
-        "p99_ratio": 1.057211925866237,
+        "normal_p99_ns": 1256,
+        "p99_ratio": 1.0445859872611465,
         "status": "measured"
       },
       {
@@ -1690,14 +1690,14 @@
           "peak": 4e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 40369,
-            "p99": 2392
+            "max": 9191,
+            "p99": 2351
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2392,
+        "denormal_p99_ns": 2351,
         "input_value": 1e-30,
         "module": "essentials.quad_vca",
         "normal": {
@@ -1714,15 +1714,15 @@
           "peak": 1.39501,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 23217,
-            "p99": 2352
+            "max": 29734,
+            "p99": 2384
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2352,
-        "p99_ratio": 1.0170068027210883,
+        "normal_p99_ns": 2384,
+        "p99_ratio": 0.9861577181208053,
         "status": "measured"
       },
       {
@@ -1741,14 +1741,14 @@
           "peak": 4e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 28289,
-            "p99": 4608
+            "max": 15895,
+            "p99": 4592
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 4608,
+        "denormal_p99_ns": 4592,
         "input_value": 1e-30,
         "module": "essentials.quad_vca",
         "normal": {
@@ -1765,7 +1765,7 @@
           "peak": 1.39501,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 22353,
+            "max": 15623,
             "p99": 4624
           },
           "sample_rate": 48000,
@@ -1773,7 +1773,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 4624,
-        "p99_ratio": 0.9965397923875432,
+        "p99_ratio": 0.9930795847750865,
         "status": "measured"
       },
       {
@@ -1792,7 +1792,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 17560,
+            "max": 19119,
             "p99": 256
           },
           "sample_rate": 48000,
@@ -1816,7 +1816,7 @@
           "peak": 0.416667,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 22368,
+            "max": 8951,
             "p99": 328
           },
           "sample_rate": 48000,
@@ -1843,14 +1843,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 24064,
-            "p99": 376
+            "max": 19103,
+            "p99": 384
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 376,
+        "denormal_p99_ns": 384,
         "input_value": 1e-30,
         "module": "essentials.quantizer",
         "normal": {
@@ -1867,7 +1867,7 @@
           "peak": 0.416667,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 5256,
+            "max": 5096,
             "p99": 504
           },
           "sample_rate": 48000,
@@ -1875,7 +1875,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 504,
-        "p99_ratio": 0.746031746031746,
+        "p99_ratio": 0.7619047619047619,
         "status": "measured"
       },
       {
@@ -1894,7 +1894,7 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 5265,
+            "max": 5888,
             "p99": 616
           },
           "sample_rate": 48000,
@@ -1918,15 +1918,15 @@
           "peak": 0.416667,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 5792,
-            "p99": 840
+            "max": 5191,
+            "p99": 831
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 840,
-        "p99_ratio": 0.7333333333333333,
+        "normal_p99_ns": 831,
+        "p99_ratio": 0.7412755716004813,
         "status": "measured"
       },
       {
@@ -1945,14 +1945,14 @@
           "peak": 1.45826e-29,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 22872,
-            "p99": 4113
+            "max": 41829,
+            "p99": 4136
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 4113,
+        "denormal_p99_ns": 4136,
         "input_value": 1e-30,
         "module": "essentials.resonator",
         "normal": {
@@ -1969,15 +1969,15 @@
           "peak": 1.23292,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 40497,
-            "p99": 4120
+            "max": 35286,
+            "p99": 4112
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 4120,
-        "p99_ratio": 0.9983009708737864,
+        "normal_p99_ns": 4112,
+        "p99_ratio": 1.0058365758754864,
         "status": "measured"
       },
       {
@@ -1996,14 +1996,14 @@
           "peak": 1.45826e-29,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 28449,
-            "p99": 8320
+            "max": 51381,
+            "p99": 9416
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 8320,
+        "denormal_p99_ns": 9416,
         "input_value": 1e-30,
         "module": "essentials.resonator",
         "normal": {
@@ -2020,15 +2020,15 @@
           "peak": 1.23292,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 26328,
-            "p99": 10097
+            "max": 46533,
+            "p99": 9863
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 10097,
-        "p99_ratio": 0.8240071308309399,
+        "normal_p99_ns": 9863,
+        "p99_ratio": 0.9546791037209774,
         "status": "measured"
       },
       {
@@ -2047,14 +2047,14 @@
           "peak": 1.45826e-29,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 51714,
-            "p99": 21425
+            "max": 36294,
+            "p99": 19903
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 21425,
+        "denormal_p99_ns": 19903,
         "input_value": 1e-30,
         "module": "essentials.resonator",
         "normal": {
@@ -2071,15 +2071,15 @@
           "peak": 1.23292,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 35241,
-            "p99": 18968
+            "max": 39885,
+            "p99": 19135
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 18968,
-        "p99_ratio": 1.1295339519190215,
+        "normal_p99_ns": 19135,
+        "p99_ratio": 1.0401358766657958,
         "status": "measured"
       },
       {
@@ -2098,14 +2098,14 @@
           "peak": 1e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1936,
-            "p99": 432
+            "max": 17831,
+            "p99": 392
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 432,
+        "denormal_p99_ns": 392,
         "input_value": 1e-30,
         "module": "essentials.scale_offset",
         "normal": {
@@ -2122,7 +2122,7 @@
           "peak": 0.5,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 2104,
+            "max": 1464,
             "p99": 392
           },
           "sample_rate": 48000,
@@ -2130,7 +2130,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 392,
-        "p99_ratio": 1.1020408163265305,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -2149,7 +2149,7 @@
           "peak": 1e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 15649,
+            "max": 12064,
             "p99": 728
           },
           "sample_rate": 48000,
@@ -2173,15 +2173,15 @@
           "peak": 0.5,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 23569,
-            "p99": 705
+            "max": 19550,
+            "p99": 712
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 705,
-        "p99_ratio": 1.0326241134751772,
+        "normal_p99_ns": 712,
+        "p99_ratio": 1.0224719101123596,
         "status": "measured"
       },
       {
@@ -2200,14 +2200,14 @@
           "peak": 1e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 20449,
-            "p99": 3024
+            "max": 3648,
+            "p99": 1368
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 3024,
+        "denormal_p99_ns": 1368,
         "input_value": 1e-30,
         "module": "essentials.scale_offset",
         "normal": {
@@ -2224,15 +2224,15 @@
           "peak": 0.5,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 35705,
-            "p99": 1408
+            "max": 20767,
+            "p99": 1392
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1408,
-        "p99_ratio": 2.147727272727273,
+        "normal_p99_ns": 1392,
+        "p99_ratio": 0.9827586206896551,
         "status": "measured"
       },
       {
@@ -2251,7 +2251,7 @@
           "peak": 1e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 8481,
+            "max": 21342,
             "p99": 520
           },
           "sample_rate": 48000,
@@ -2275,15 +2275,15 @@
           "peak": 0.0454167,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1592,
-            "p99": 520
+            "max": 1416,
+            "p99": 528
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 520,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 528,
+        "p99_ratio": 0.9848484848484849,
         "status": "measured"
       },
       {
@@ -2302,7 +2302,7 @@
           "peak": 1e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 28281,
+            "max": 18975,
             "p99": 976
           },
           "sample_rate": 48000,
@@ -2326,15 +2326,15 @@
           "peak": 0.0454167,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 41233,
-            "p99": 976
+            "max": 3712,
+            "p99": 960
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 976,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 960,
+        "p99_ratio": 1.0166666666666666,
         "status": "measured"
       },
       {
@@ -2353,14 +2353,14 @@
           "peak": 1e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 17889,
-            "p99": 1896
+            "max": 2632,
+            "p99": 1880
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1896,
+        "denormal_p99_ns": 1880,
         "input_value": 1e-30,
         "module": "essentials.slew",
         "normal": {
@@ -2377,7 +2377,7 @@
           "peak": 0.0454167,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 2424,
+            "max": 2408,
             "p99": 1864
           },
           "sample_rate": 48000,
@@ -2385,7 +2385,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 1864,
-        "p99_ratio": 1.0171673819742488,
+        "p99_ratio": 1.0085836909871244,
         "status": "measured"
       },
       {
@@ -2404,7 +2404,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 984,
+            "max": 1176,
             "p99": 96
           },
           "sample_rate": 48000,
@@ -2428,15 +2428,15 @@
           "peak": 0.149725,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1584,
-            "p99": 88
+            "max": 36070,
+            "p99": 96
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 88,
-        "p99_ratio": 1.0909090909090908,
+        "normal_p99_ns": 96,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -2455,7 +2455,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 928,
+            "max": 1040,
             "p99": 120
           },
           "sample_rate": 48000,
@@ -2479,15 +2479,15 @@
           "peak": 0.149725,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 1016,
-            "p99": 176
+            "max": 768,
+            "p99": 120
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 176,
-        "p99_ratio": 0.6818181818181818,
+        "normal_p99_ns": 120,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -2506,14 +2506,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 1000,
-            "p99": 168
+            "max": 880,
+            "p99": 160
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 168,
+        "denormal_p99_ns": 160,
         "input_value": 1e-30,
         "module": "essentials.vca",
         "normal": {
@@ -2530,15 +2530,15 @@
           "peak": 0.149725,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 1120,
-            "p99": 168
+            "max": 784,
+            "p99": 176
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 168,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 176,
+        "p99_ratio": 0.9090909090909091,
         "status": "measured"
       },
       {
@@ -2557,7 +2557,7 @@
           "peak": 3.7837e-33,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 22097,
+            "max": 20063,
             "p99": 1328
           },
           "sample_rate": 48000,
@@ -2581,15 +2581,15 @@
           "peak": 0.464828,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 16657,
-            "p99": 1329
+            "max": 15407,
+            "p99": 1328
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1329,
-        "p99_ratio": 0.999247554552295,
+        "normal_p99_ns": 1328,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -2608,14 +2608,14 @@
           "peak": 3.7837e-33,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 35049,
-            "p99": 2600
+            "max": 21503,
+            "p99": 2608
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2600,
+        "denormal_p99_ns": 2608,
         "input_value": 1e-30,
         "module": "essentials.vcf",
         "normal": {
@@ -2632,15 +2632,15 @@
           "peak": 0.464828,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 20424,
-            "p99": 2608
+            "max": 27071,
+            "p99": 2600
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2608,
-        "p99_ratio": 0.9969325153374233,
+        "normal_p99_ns": 2600,
+        "p99_ratio": 1.003076923076923,
         "status": "measured"
       },
       {
@@ -2659,14 +2659,14 @@
           "peak": 3.7837e-33,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 32385,
-            "p99": 7624
+            "max": 11375,
+            "p99": 5176
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 7624,
+        "denormal_p99_ns": 5176,
         "input_value": 1e-30,
         "module": "essentials.vcf",
         "normal": {
@@ -2683,15 +2683,15 @@
           "peak": 0.464828,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 23145,
-            "p99": 10937
+            "max": 25743,
+            "p99": 5239
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 10937,
-        "p99_ratio": 0.6970832952363537,
+        "normal_p99_ns": 5239,
+        "p99_ratio": 0.9879748043519756,
         "status": "measured"
       },
       {
@@ -2710,14 +2710,14 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 9064,
-            "p99": 1568
+            "max": 18303,
+            "p99": 1575
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1568,
+        "denormal_p99_ns": 1575,
         "input_value": 1e-30,
         "module": "essentials.vco",
         "normal": {
@@ -2734,7 +2734,7 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 17321,
+            "max": 14295,
             "p99": 2576
           },
           "sample_rate": 48000,
@@ -2742,7 +2742,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 2576,
-        "p99_ratio": 0.6086956521739131,
+        "p99_ratio": 0.6114130434782609,
         "status": "measured"
       },
       {
@@ -2761,14 +2761,14 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 27113,
-            "p99": 2984
+            "max": 15183,
+            "p99": 2991
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2984,
+        "denormal_p99_ns": 2991,
         "input_value": 1e-30,
         "module": "essentials.vco",
         "normal": {
@@ -2785,15 +2785,15 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 32617,
-            "p99": 5016
+            "max": 41261,
+            "p99": 5031
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 5016,
-        "p99_ratio": 0.594896331738437,
+        "normal_p99_ns": 5031,
+        "p99_ratio": 0.5945140131186643,
         "status": "measured"
       },
       {
@@ -2812,14 +2812,14 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 35489,
-            "p99": 10560
+            "max": 41229,
+            "p99": 6056
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 10560,
+        "denormal_p99_ns": 6056,
         "input_value": 1e-30,
         "module": "essentials.vco",
         "normal": {
@@ -2836,15 +2836,15 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 21640,
-            "p99": 15072
+            "max": 24886,
+            "p99": 11143
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 15072,
-        "p99_ratio": 0.7006369426751592,
+        "normal_p99_ns": 11143,
+        "p99_ratio": 0.5434802117921566,
         "status": "measured"
       },
       {
@@ -2863,7 +2863,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6768,
+            "max": 22711,
             "p99": 432
           },
           "sample_rate": 48000,
@@ -2887,7 +2887,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 43225,
+            "max": 18791,
             "p99": 432
           },
           "sample_rate": 48000,
@@ -2914,7 +2914,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 6432,
+            "max": 7527,
             "p99": 784
           },
           "sample_rate": 48000,
@@ -2938,7 +2938,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 7480,
+            "max": 27823,
             "p99": 784
           },
           "sample_rate": 48000,
@@ -2965,14 +2965,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 12233,
-            "p99": 1520
+            "max": 20959,
+            "p99": 1504
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1520,
+        "denormal_p99_ns": 1504,
         "input_value": 1e-30,
         "module": "example.random_source",
         "normal": {
@@ -2989,15 +2989,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 7393,
-            "p99": 1488
+            "max": 16671,
+            "p99": 1576
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1488,
-        "p99_ratio": 1.021505376344086,
+        "normal_p99_ns": 1576,
+        "p99_ratio": 0.9543147208121827,
         "status": "measured"
       },
       {
@@ -3016,7 +3016,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 26817,
+            "max": 32126,
             "p99": 480
           },
           "sample_rate": 48000,
@@ -3040,15 +3040,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 3504,
-            "p99": 560
+            "max": 1976,
+            "p99": 568
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 560,
-        "p99_ratio": 0.8571428571428571,
+        "normal_p99_ns": 568,
+        "p99_ratio": 0.8450704225352113,
         "status": "measured"
       },
       {
@@ -3067,14 +3067,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 27921,
-            "p99": 801
+            "max": 1616,
+            "p99": 776
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 801,
+        "denormal_p99_ns": 776,
         "input_value": 1e-30,
         "module": "example.step_sequencer",
         "normal": {
@@ -3091,15 +3091,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 1905,
-            "p99": 904
+            "max": 18551,
+            "p99": 928
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 904,
-        "p99_ratio": 0.8860619469026548,
+        "normal_p99_ns": 928,
+        "p99_ratio": 0.8362068965517241,
         "status": "measured"
       },
       {
@@ -3118,14 +3118,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 17377,
-            "p99": 1352
+            "max": 5640,
+            "p99": 1344
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1352,
+        "denormal_p99_ns": 1344,
         "input_value": 1e-30,
         "module": "example.step_sequencer",
         "normal": {
@@ -3142,15 +3142,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 11576,
-            "p99": 1616
+            "max": 13719,
+            "p99": 1640
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1616,
-        "p99_ratio": 0.8366336633663366,
+        "normal_p99_ns": 1640,
+        "p99_ratio": 0.8195121951219512,
         "status": "measured"
       },
       {
@@ -3169,7 +3169,7 @@
           "peak": 1.37514e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 8609,
+            "max": 31862,
             "p99": 1400
           },
           "sample_rate": 48000,
@@ -3193,15 +3193,15 @@
           "peak": 0.568614,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 7713,
-            "p99": 1400
+            "max": 15191,
+            "p99": 1384
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1400,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 1384,
+        "p99_ratio": 1.0115606936416186,
         "status": "measured"
       },
       {
@@ -3220,14 +3220,14 @@
           "peak": 1.37514e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 19072,
-            "p99": 2688
+            "max": 29222,
+            "p99": 2704
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2688,
+        "denormal_p99_ns": 2704,
         "input_value": 1e-30,
         "module": "fx.delay",
         "normal": {
@@ -3244,14 +3244,14 @@
           "peak": 0.568614,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 19369,
-            "p99": 2688
+            "max": 22911,
+            "p99": 2704
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2688,
+        "normal_p99_ns": 2704,
         "p99_ratio": 1.0,
         "status": "measured"
       },
@@ -3271,14 +3271,14 @@
           "peak": 1.37514e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 22513,
-            "p99": 5360
+            "max": 20255,
+            "p99": 5352
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5360,
+        "denormal_p99_ns": 5352,
         "input_value": 1e-30,
         "module": "fx.delay",
         "normal": {
@@ -3295,15 +3295,15 @@
           "peak": 0.568614,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 9608,
-            "p99": 5296
+            "max": 27087,
+            "p99": 10336
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 5296,
-        "p99_ratio": 1.012084592145015,
+        "normal_p99_ns": 10336,
+        "p99_ratio": 0.5178018575851393,
         "status": "measured"
       },
       {
@@ -3322,14 +3322,14 @@
           "peak": 1.43359e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 29089,
-            "p99": 9072
+            "max": 26887,
+            "p99": 7439
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 9072,
+        "denormal_p99_ns": 7439,
         "input_value": 1e-30,
         "module": "fx.reverb",
         "normal": {
@@ -3346,15 +3346,15 @@
           "peak": 0.516555,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 23953,
-            "p99": 7360
+            "max": 26743,
+            "p99": 7375
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 7360,
-        "p99_ratio": 1.232608695652174,
+        "normal_p99_ns": 7375,
+        "p99_ratio": 1.008677966101695,
         "status": "measured"
       },
       {
@@ -3373,14 +3373,14 @@
           "peak": 1.43359e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 27289,
-            "p99": 16752
+            "max": 57933,
+            "p99": 17831
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 16752,
+        "denormal_p99_ns": 17831,
         "input_value": 1e-30,
         "module": "fx.reverb",
         "normal": {
@@ -3397,15 +3397,15 @@
           "peak": 0.516555,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 40489,
-            "p99": 20240
+            "max": 32598,
+            "p99": 16815
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 20240,
-        "p99_ratio": 0.8276679841897233,
+        "normal_p99_ns": 16815,
+        "p99_ratio": 1.0604222420457925,
         "status": "measured"
       },
       {
@@ -3424,14 +3424,14 @@
           "peak": 1.43359e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 49122,
-            "p99": 35145
+            "max": 41589,
+            "p99": 34702
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 35145,
+        "denormal_p99_ns": 34702,
         "input_value": 1e-30,
         "module": "fx.reverb",
         "normal": {
@@ -3448,15 +3448,15 @@
           "peak": 0.516555,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 42761,
-            "p99": 34433
+            "max": 48829,
+            "p99": 35829
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 34433,
-        "p99_ratio": 1.0206778381204078,
+        "normal_p99_ns": 35829,
+        "p99_ratio": 0.9685450333528706,
         "status": "measured"
       },
       {
@@ -3475,7 +3475,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 24345,
+            "max": 23430,
             "p99": 2952
           },
           "sample_rate": 48000,
@@ -3499,15 +3499,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 10264,
-            "p99": 2960
+            "max": 10135,
+            "p99": 2975
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2960,
-        "p99_ratio": 0.9972972972972973,
+        "normal_p99_ns": 2975,
+        "p99_ratio": 0.9922689075630252,
         "status": "measured"
       },
       {
@@ -3526,14 +3526,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 10873,
-            "p99": 5816
+            "max": 11079,
+            "p99": 5856
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5816,
+        "denormal_p99_ns": 5856,
         "input_value": 1e-30,
         "module": "host.keyboard",
         "normal": {
@@ -3550,15 +3550,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 33001,
-            "p99": 5840
+            "max": 22094,
+            "p99": 7895
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 5840,
-        "p99_ratio": 0.9958904109589041,
+        "normal_p99_ns": 7895,
+        "p99_ratio": 0.741735275490817,
         "status": "measured"
       },
       {
@@ -3577,14 +3577,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29288,
-            "p99": 14240
+            "max": 29534,
+            "p99": 13463
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 14240,
+        "denormal_p99_ns": 13463,
         "input_value": 1e-30,
         "module": "host.keyboard",
         "normal": {
@@ -3601,15 +3601,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 17169,
-            "p99": 15713
+            "max": 26815,
+            "p99": 15312
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 15713,
-        "p99_ratio": 0.9062559663972507,
+        "normal_p99_ns": 15312,
+        "p99_ratio": 0.8792450365726228,
         "status": "measured"
       },
       {
@@ -3628,14 +3628,14 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 8376,
-            "p99": 2673
+            "max": 23438,
+            "p99": 2680
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2673,
+        "denormal_p99_ns": 2680,
         "input_value": 1e-30,
         "module": "midi.cc_to_cv",
         "normal": {
@@ -3652,15 +3652,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 26129,
-            "p99": 2688
+            "max": 17527,
+            "p99": 2696
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2688,
-        "p99_ratio": 0.9944196428571429,
+        "normal_p99_ns": 2696,
+        "p99_ratio": 0.9940652818991098,
         "status": "measured"
       },
       {
@@ -3679,14 +3679,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 42674,
-            "p99": 5400
+            "max": 18687,
+            "p99": 7488
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5400,
+        "denormal_p99_ns": 7488,
         "input_value": 1e-30,
         "module": "midi.cc_to_cv",
         "normal": {
@@ -3703,15 +3703,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 27657,
-            "p99": 5400
+            "max": 21166,
+            "p99": 5367
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 5400,
-        "p99_ratio": 1.0,
+        "normal_p99_ns": 5367,
+        "p99_ratio": 1.3951928451648965,
         "status": "measured"
       },
       {
@@ -3730,14 +3730,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29056,
-            "p99": 15345
+            "max": 30006,
+            "p99": 16399
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 15345,
+        "denormal_p99_ns": 16399,
         "input_value": 1e-30,
         "module": "midi.cc_to_cv",
         "normal": {
@@ -3754,15 +3754,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 32664,
-            "p99": 13096
+            "max": 30022,
+            "p99": 13087
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 13096,
-        "p99_ratio": 1.171731826511912,
+        "normal_p99_ns": 13087,
+        "p99_ratio": 1.2530755711775043,
         "status": "measured"
       },
       {
@@ -3781,7 +3781,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 6377,
+            "max": 8760,
             "p99": 64
           },
           "sample_rate": 48000,
@@ -3805,7 +3805,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 9321,
+            "max": 9600,
             "p99": 64
           },
           "sample_rate": 48000,
@@ -3832,7 +3832,7 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 8033,
+            "max": 8327,
             "p99": 64
           },
           "sample_rate": 48000,
@@ -3856,15 +3856,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 6360,
-            "p99": 56
+            "max": 9271,
+            "p99": 64
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 56,
-        "p99_ratio": 1.1428571428571428,
+        "normal_p99_ns": 64,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -3883,14 +3883,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 8608,
-            "p99": 64
+            "max": 7656,
+            "p99": 72
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 64,
+        "denormal_p99_ns": 72,
         "input_value": 1e-30,
         "module": "midi.in",
         "normal": {
@@ -3907,7 +3907,7 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 8193,
+            "max": 8696,
             "p99": 80
           },
           "sample_rate": 48000,
@@ -3915,7 +3915,7 @@
           "status": "measured"
         },
         "normal_p99_ns": 80,
-        "p99_ratio": 0.8,
+        "p99_ratio": 0.9,
         "status": "measured"
       },
       {
@@ -3934,14 +3934,14 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 21465,
-            "p99": 2137
+            "max": 18127,
+            "p99": 2136
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 2137,
+        "denormal_p99_ns": 2136,
         "input_value": 1e-30,
         "module": "midi.to_cv",
         "normal": {
@@ -3958,15 +3958,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 25897,
-            "p99": 2136
+            "max": 22430,
+            "p99": 2152
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2136,
-        "p99_ratio": 1.0004681647940075,
+        "normal_p99_ns": 2152,
+        "p99_ratio": 0.9925650557620818,
         "status": "measured"
       },
       {
@@ -3985,14 +3985,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 13664,
-            "p99": 4120
+            "max": 57389,
+            "p99": 4104
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 4120,
+        "denormal_p99_ns": 4104,
         "input_value": 1e-30,
         "module": "midi.to_cv",
         "normal": {
@@ -4009,15 +4009,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 54042,
-            "p99": 4137
+            "max": 16359,
+            "p99": 4111
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 4137,
-        "p99_ratio": 0.9958907420836355,
+        "normal_p99_ns": 4111,
+        "p99_ratio": 0.9982972512770616,
         "status": "measured"
       },
       {
@@ -4036,14 +4036,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 32049,
-            "p99": 13849
+            "max": 26206,
+            "p99": 15687
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 13849,
+        "denormal_p99_ns": 15687,
         "input_value": 1e-30,
         "module": "midi.to_cv",
         "normal": {
@@ -4060,15 +4060,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 21361,
-            "p99": 10056
+            "max": 21551,
+            "p99": 8104
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 10056,
-        "p99_ratio": 1.3771877486077964,
+        "normal_p99_ns": 8104,
+        "p99_ratio": 1.93571076011846,
         "status": "measured"
       },
       {
@@ -4087,7 +4087,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1664,
+            "max": 1032,
             "p99": 112
           },
           "sample_rate": 48000,
@@ -4111,7 +4111,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 1424,
+            "max": 1151,
             "p99": 112
           },
           "sample_rate": 48000,
@@ -4138,14 +4138,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 752,
-            "p99": 136
+            "max": 768,
+            "p99": 120
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 136,
+        "denormal_p99_ns": 120,
         "input_value": 1e-30,
         "module": "monitor",
         "normal": {
@@ -4162,15 +4162,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 1072,
-            "p99": 112
+            "max": 816,
+            "p99": 120
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 112,
-        "p99_ratio": 1.2142857142857142,
+        "normal_p99_ns": 120,
+        "p99_ratio": 1.0,
         "status": "measured"
       },
       {
@@ -4189,14 +4189,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 920,
-            "p99": 136
+            "max": 672,
+            "p99": 152
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 136,
+        "denormal_p99_ns": 152,
         "input_value": 1e-30,
         "module": "monitor",
         "normal": {
@@ -4213,15 +4213,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 872,
-            "p99": 144
+            "max": 696,
+            "p99": 128
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 144,
-        "p99_ratio": 0.9444444444444444,
+        "normal_p99_ns": 128,
+        "p99_ratio": 1.1875,
         "status": "measured"
       },
       {
@@ -4240,7 +4240,7 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 13368,
+            "max": 7200,
             "p99": 2664
           },
           "sample_rate": 48000,
@@ -4264,15 +4264,15 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 37417,
-            "p99": 2657
+            "max": 40190,
+            "p99": 2656
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 2657,
-        "p99_ratio": 1.0026345502446368,
+        "normal_p99_ns": 2656,
+        "p99_ratio": 1.0030120481927711,
         "status": "measured"
       },
       {
@@ -4291,14 +4291,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 41697,
-            "p99": 5336
+            "max": 34814,
+            "p99": 5328
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5336,
+        "denormal_p99_ns": 5328,
         "input_value": 1e-30,
         "module": "osc.in",
         "normal": {
@@ -4315,15 +4315,15 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 31384,
-            "p99": 5312
+            "max": 25550,
+            "p99": 5319
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 5312,
-        "p99_ratio": 1.0045180722891567,
+        "normal_p99_ns": 5319,
+        "p99_ratio": 1.0016920473773265,
         "status": "measured"
       },
       {
@@ -4342,14 +4342,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29273,
-            "p99": 14017
+            "max": 69164,
+            "p99": 12959
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 14017,
+        "denormal_p99_ns": 12959,
         "input_value": 1e-30,
         "module": "osc.in",
         "normal": {
@@ -4366,15 +4366,15 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29641,
-            "p99": 13360
+            "max": 44733,
+            "p99": 14623
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 13360,
-        "p99_ratio": 1.0491766467065868,
+        "normal_p99_ns": 14623,
+        "p99_ratio": 0.8862066607399303,
         "status": "measured"
       },
       {
@@ -4393,14 +4393,14 @@
           "peak": 0.520874,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 25064,
-            "p99": 3097
+            "max": 21487,
+            "p99": 3104
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 3097,
+        "denormal_p99_ns": 3104,
         "input_value": 1e-30,
         "module": "ports.macro_oscillator",
         "normal": {
@@ -4417,15 +4417,15 @@
           "peak": 0.699982,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 26440,
-            "p99": 6456
+            "max": 31838,
+            "p99": 6367
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 6456,
-        "p99_ratio": 0.4797087980173482,
+        "normal_p99_ns": 6367,
+        "p99_ratio": 0.4875137427359824,
         "status": "measured"
       },
       {
@@ -4444,14 +4444,14 @@
           "peak": 0.520874,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 18369,
-            "p99": 5648
+            "max": 30710,
+            "p99": 5656
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 5648,
+        "denormal_p99_ns": 5656,
         "input_value": 1e-30,
         "module": "ports.macro_oscillator",
         "normal": {
@@ -4468,15 +4468,15 @@
           "peak": 0.699982,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 48009,
-            "p99": 12136
+            "max": 42382,
+            "p99": 11767
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 12136,
-        "p99_ratio": 0.4653922214897825,
+        "normal_p99_ns": 11767,
+        "p99_ratio": 0.4806662700773349,
         "status": "measured"
       },
       {
@@ -4495,14 +4495,14 @@
           "peak": 0.520874,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 25257,
-            "p99": 13800
+            "max": 19927,
+            "p99": 15103
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 13800,
+        "denormal_p99_ns": 15103,
         "input_value": 1e-30,
         "module": "ports.macro_oscillator",
         "normal": {
@@ -4519,15 +4519,15 @@
           "peak": 0.699982,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 33529,
-            "p99": 24529
+            "max": 43694,
+            "p99": 22038
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 24529,
-        "p99_ratio": 0.5625993721717151,
+        "normal_p99_ns": 22038,
+        "p99_ratio": 0.6853162718940012,
         "status": "measured"
       },
       {
@@ -4546,14 +4546,14 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 12752,
-            "p99": 3424
+            "max": 17319,
+            "p99": 3400
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 3424,
+        "denormal_p99_ns": 3400,
         "input_value": 1e-30,
         "module": "sequencing.groove",
         "normal": {
@@ -4570,15 +4570,15 @@
           "peak": 1,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 47609,
-            "p99": 3456
+            "max": 29094,
+            "p99": 3463
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 3456,
-        "p99_ratio": 0.9907407407407407,
+        "normal_p99_ns": 3463,
+        "p99_ratio": 0.9818076812012706,
         "status": "measured"
       },
       {
@@ -4597,14 +4597,14 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 12297,
-            "p99": 6640
+            "max": 33414,
+            "p99": 6616
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 6640,
+        "denormal_p99_ns": 6616,
         "input_value": 1e-30,
         "module": "sequencing.groove",
         "normal": {
@@ -4621,15 +4621,15 @@
           "peak": 1,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 28129,
-            "p99": 6688
+            "max": 18959,
+            "p99": 8871
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 6688,
-        "p99_ratio": 0.992822966507177,
+        "normal_p99_ns": 8871,
+        "p99_ratio": 0.745800924360275,
         "status": "measured"
       },
       {
@@ -4648,14 +4648,14 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 18745,
-            "p99": 15297
+            "max": 67203,
+            "p99": 14648
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 15297,
+        "denormal_p99_ns": 14648,
         "input_value": 1e-30,
         "module": "sequencing.groove",
         "normal": {
@@ -4672,15 +4672,15 @@
           "peak": 1,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 19161,
-            "p99": 14992
+            "max": 74732,
+            "p99": 17391
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 14992,
-        "p99_ratio": 1.0203441835645677,
+        "normal_p99_ns": 17391,
+        "p99_ratio": 0.8422747398079466,
         "status": "measured"
       },
       {
@@ -4699,14 +4699,14 @@
           "peak": 1.41421e-30,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 22160,
-            "p99": 1144
+            "max": 29942,
+            "p99": 1136
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 1144,
+        "denormal_p99_ns": 1136,
         "input_value": 1e-30,
         "module": "sound.blend",
         "normal": {
@@ -4723,14 +4723,14 @@
           "peak": 0.563527,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 20785,
-            "p99": 1144
+            "max": 22878,
+            "p99": 1136
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 1144,
+        "normal_p99_ns": 1136,
         "p99_ratio": 1.0,
         "status": "measured"
       },
@@ -4750,7 +4750,7 @@
           "peak": 1.41421e-30,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 21961,
+            "max": 25318,
             "p99": 2200
           },
           "sample_rate": 48000,
@@ -4774,7 +4774,7 @@
           "peak": 0.563527,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 22297,
+            "max": 15911,
             "p99": 2200
           },
           "sample_rate": 48000,
@@ -4801,14 +4801,14 @@
           "peak": 1.41421e-30,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 17465,
-            "p99": 4392
+            "max": 14399,
+            "p99": 4383
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 4392,
+        "denormal_p99_ns": 4383,
         "input_value": 1e-30,
         "module": "sound.blend",
         "normal": {
@@ -4825,15 +4825,15 @@
           "peak": 0.563527,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 29200,
-            "p99": 4505
+            "max": 22735,
+            "p99": 4335
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 4505,
-        "p99_ratio": 0.9749167591564928,
+        "normal_p99_ns": 4335,
+        "p99_ratio": 1.0110726643598615,
         "status": "measured"
       },
       {
@@ -4852,14 +4852,14 @@
           "peak": 0,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 88970,
-            "p99": 71786
+            "max": 94595,
+            "p99": 71620
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 71786,
+        "denormal_p99_ns": 71620,
         "input_value": 1e-30,
         "module": "sound.spectral",
         "normal": {
@@ -4876,15 +4876,15 @@
           "peak": 0.373509,
           "period_ns": 1333333,
           "render_ns": {
-            "max": 92603,
-            "p99": 77154
+            "max": 97938,
+            "p99": 77363
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 77154,
-        "p99_ratio": 0.9304248645566011,
+        "normal_p99_ns": 77363,
+        "p99_ratio": 0.9257655468376356,
         "status": "measured"
       },
       {
@@ -4903,14 +4903,14 @@
           "peak": 0,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 88770,
-            "p99": 72554
+            "max": 333059,
+            "p99": 77579
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 72554,
+        "denormal_p99_ns": 77579,
         "input_value": 1e-30,
         "module": "sound.spectral",
         "normal": {
@@ -4927,15 +4927,15 @@
           "peak": 0.373509,
           "period_ns": 2666667,
           "render_ns": {
-            "max": 92354,
-            "p99": 77778
+            "max": 92642,
+            "p99": 79699
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 77778,
-        "p99_ratio": 0.9328344776157782,
+        "normal_p99_ns": 79699,
+        "p99_ratio": 0.9733999171884214,
         "status": "measured"
       },
       {
@@ -4954,14 +4954,14 @@
           "peak": 0,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 79378,
-            "p99": 73354
+            "max": 85291,
+            "p99": 76731
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "denormal_p99_ns": 73354,
+        "denormal_p99_ns": 76731,
         "input_value": 1e-30,
         "module": "sound.spectral",
         "normal": {
@@ -4978,15 +4978,15 @@
           "peak": 0.373509,
           "period_ns": 5333333,
           "render_ns": {
-            "max": 87659,
-            "p99": 83162
+            "max": 88266,
+            "p99": 83331
           },
           "sample_rate": 48000,
           "seconds": 2,
           "status": "measured"
         },
-        "normal_p99_ns": 83162,
-        "p99_ratio": 0.882061518481999,
+        "normal_p99_ns": 83331,
+        "p99_ratio": 0.9207977823379054,
         "status": "measured"
       }
     ],
