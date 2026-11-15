@@ -660,6 +660,37 @@ def steady_module_patch(ident, descriptor, override=None):
     return patch, None
 
 
+
+def cabled_module_patch(ident, descriptor, frequency=3520):
+    """Drive one existing input without creating a forbidden second fan-in."""
+    patch, reason = steady_module_patch(ident, descriptor)
+    if patch is None:
+        return None, None, reason
+    ports = descriptor["inputs"]
+    selected = next((p for p in ports if p["type"] in
+                     ("WS2_CV_BI", "WS2_CV_UNI", "WS2_PITCH")), None)
+    selected = selected or next((p for p in ports if p["type"] == "WS2_AUDIO"), None)
+    if selected is None:
+        return None, None, "no CV/pitch/audio input for a cable"
+    existing = [c for c in patch["connections"]
+                if c["to"]["module"] == 1 and c["to"]["port"] == selected["port"]]
+    # If the steady-input fixture already has a VCO, retune that source.
+    # Inserting another edge to the same target input fails graph validation.
+    if existing:
+        source_id = existing[0]["from"]["module"]
+        source = next((node for node in patch["modules"]
+                       if node["id"] == source_id), None)
+        if source is not None and source["module"] == "essentials.vco":
+            source["parameters"]["frequency"] = frequency
+            return patch, selected, None
+        patch["connections"] = [c for c in patch["connections"] if c not in existing]
+    source_id = max(m["id"] for m in patch["modules"]) + 1
+    patch["modules"].append(mod(source_id, "essentials.vco",
+                                parameters={"frequency": frequency}))
+    patch["connections"].append(edge(source_id, "audio", 1, selected["port"]))
+    return patch, selected, None
+
+
 def sweep_sections(renderer, desc, meta, out, quick,
                    rates=(44100, 48000, 96000)):
     """Continuous-parameter zipper references plus fast cabled stimulation."""
@@ -716,23 +747,12 @@ def sweep_sections(renderer, desc, meta, out, quick,
                 cable_rows.append(dict(entry, status="unsupported_rate",
                                        reason="Macro Oscillator requires 48000 Hz"))
                 continue
-            patch, reason = steady_module_patch(ident, descriptor)
+            patch, selected, reason = cabled_module_patch(ident, descriptor)
             if patch is None:
-                cable_rows.append(dict(entry, status="unsupported_probe",
-                                       reason=reason))
+                cable_rows.append(dict(entry, status=("not_applicable" if
+                    reason == "no CV/pitch/audio input for a cable"
+                    else "unsupported_probe"), reason=reason))
                 continue
-            ports = descriptor["inputs"]
-            selected = next((p for p in ports if p["type"] in
-                             ("WS2_CV_BI", "WS2_CV_UNI", "WS2_PITCH")), None)
-            selected = selected or next((p for p in ports if p["type"] == "WS2_AUDIO"), None)
-            if selected is None:
-                cable_rows.append(dict(entry, status="not_applicable",
-                          reason="module has no CV/pitch/audio signal input for a cable"))
-                continue
-            source_id = max(m["id"] for m in patch["modules"]) + 1
-            patch["modules"].append(mod(source_id, "essentials.vco",
-                                        parameters={"frequency": 3520}))
-            patch["connections"].append(edge(source_id, "audio", 1, selected["port"]))
             audio, result = run_wav(renderer, patch, [], .25 if quick else 1, rate=rate)
             if audio is None:
                 cable_rows.append(dict(entry, input_port=selected["port"],
