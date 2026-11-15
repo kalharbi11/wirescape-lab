@@ -9,7 +9,8 @@ from pathlib import Path
 import numpy as np
 
 from metrics import (basic, click_events, direct_envelope_metrics, filter_metrics,
-                     oscillator_metrics, patch_metrics, read_audio, step_metrics)
+                     folded_alias_frequencies, oscillator_metrics, patch_metrics,
+                     read_audio, step_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -40,6 +41,21 @@ class MetricsTests(unittest.TestCase):
         self.assertLess(abs(result["pitch_cents"]), .1)
         self.assertLess(result["thd_db"], -60)
         self.assertTrue(math.isfinite(result["alias_floor_dbfs"]))
+
+    def test_folded_aliases_only_at_expected_harmonics(self):
+        rate, fundamental = 48000, 7040
+        predicted = folded_alias_frequencies(fundamental, rate, max_harmonic=8)
+        self.assertIn(12800., predicted)  # 5 * 7040 -> 12800
+        self.assertIn(19840., predicted)  # 4 * 7040 -> 19840
+        self.assertNotIn(7040., predicted)  # fundamental is not an alias
+        t = np.arange(rate, dtype=float) / rate
+        clean = .6 * np.sin(math.tau * fundamental * t)
+        alias = clean + .2 * np.sin(math.tau * 12800 * t)
+        metric = lambda x: oscillator_metrics(np.column_stack([x, x]), fundamental, rate)
+        a, b = metric(clean), metric(alias)
+        self.assertGreater(b["alias_floor_dbfs"], a["alias_floor_dbfs"] + 25)
+        self.assertGreater(b["alias_expected_bin_count"], 0)
+        self.assertGreater(b["nonharmonic_floor_dbfs"], a["nonharmonic_floor_dbfs"] + 25)
 
     def test_nonfinite(self):
         data = np.zeros((50, 2))
