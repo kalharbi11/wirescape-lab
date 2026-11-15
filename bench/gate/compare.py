@@ -60,7 +60,7 @@ def compare(baseline, current, threshold=3.0):
         percent = (b / a - 1.0) * 100.0
         changes.append({"id": key, "percent": percent, "status": "measured",
                         "baseline_ir": a, "current_ir": b})
-        if percent > threshold:
+        if percent - threshold > 1e-9:
             failures.append(f"{key}: +{percent:.2f}% > +{threshold:.2f}%")
     changes.sort(key=lambda r: abs(r["percent"]) if r["percent"] is not None else -1,
                  reverse=True)
