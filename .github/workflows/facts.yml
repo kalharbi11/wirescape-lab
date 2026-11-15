@@ -135,6 +135,10 @@ jobs:
         if: always()
         run: python bench/offline/ci_stage_facts.py --runner '${{ matrix.id }}' --output .facts-staged/facts
 
+      - name: Require measured Windows fact sections
+        if: runner.os == 'Windows'
+        run: python bench/offline/verify_windows_facts.py --facts .facts-staged/facts
+
       - name: Upload facts for publication
         if: always()
         uses: actions/upload-artifact@v4
