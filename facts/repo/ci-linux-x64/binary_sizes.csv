@@ -74,7 +74,7 @@ build/native/engine2/libwirescape_midi_host.a,374052,file
 build/native/engine2/libwirescape_audio_service.a,130240,file
 build/native/engine2/libwirescape_app_engine.a,958232,file
 build/native/document/libwirescape_runtime_document.a,435748,file
-build/native/engine2/midi_io/libwirescape_midi_backend.a,290104,file
+build/native/engine2/midi_io/libwirescape_midi_backend.a,290120,file
 build/native/engine2/midi_io/libwirescape_midi_service.a,31070,file
 build/native/engine2/macro_oscillator/libmacro_reference_upstream.a,487370,file
 build/native/engine2/macro_oscillator/libmacro_upstream.a,483602,file
@@ -195,9 +195,9 @@ build/native/engine2/CMakeFiles/abi2_template_tests.dir/__/sdk/template/tests.cp
 build/native/engine2/CMakeFiles/wirescape_soak.dir/tests/soak.cpp.o,126984,file
 build/native/engine2/CMakeFiles/wirescape_soak.dir/__/tests2/allocation_watch.cpp.o,10648,file
 build/native/engine2/midi_io/CMakeFiles/midi_backend_gate_tests.dir/backend_gate_tests.cpp.o,1600,file
-build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/service_tests.cpp.o,96304,file
+build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/service_tests.cpp.o,113128,file
 build/native/engine2/midi_io/CMakeFiles/wirescape_midi_service.dir/midi_service.cpp.o,29768,file
-build/native/engine2/midi_io/CMakeFiles/wirescape_midi_backend.dir/libremidi_backend.cpp.o,238520,file
+build/native/engine2/midi_io/CMakeFiles/wirescape_midi_backend.dir/libremidi_backend.cpp.o,238536,file
 build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/__/__/tests2/allocation_watch.cpp.o,10648,file
 build/native/engine2/midi_io/CMakeFiles/ws2_midi_cc_to_cv.dir/__/__/modules2/midi_cc_to_cv/module.cpp.o,23936,file
 build/native/engine2/midi_io/CMakeFiles/abi2_midi_in_tests.dir/__/__/tests2/allocation_watch.cpp.o,10648,file
@@ -422,10 +422,11 @@ apps/studio/dist/panels/essentials.output.json,51,file
 apps/studio/dist/panels/essentials.vco.json,20,file
 apps/studio/dist/panels/ports.macro_oscillator.json,1144,file
 apps/studio/dist/web/ws-processor.js,5560,file
+apps/studio/dist/assets/index-Conxx3pP.js.map,1056053,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff,13208,file
+apps/studio/dist/assets/index-Conxx3pP.js,409514,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff,23916,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2,24184,file
-apps/studio/dist/assets/index-_V21Jznb.js,409514,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff,13144,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2,22588,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2,15620,file
@@ -434,7 +435,6 @@ apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2,14888,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff,13156,file
 apps/studio/dist/assets/index-hcJRR-ZL.css,65403,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2,14708,file
-apps/studio/dist/assets/index-_V21Jznb.js.map,1056053,file
 apps/studio/dist/patches/index.json,86508,file
 apps/desktop/build/preload.js,5249,file
 apps/desktop/build/main.js,31459,file

@@ -16,7 +16,7 @@ build/native/libws2_osc_in.so,75488,file
 build/native/libws2_midi_to_cv.so,75464,file
 build/native/ws_vca.module.json,298,file
 build/native/libws2_test_notes.so,73960,file
-build/native/wirescape-engine,2348176,file
+build/native/wirescape-engine,2348248,file
 build/native/libws2_host_keyboard.so,74488,file
 build/native/libws_scale_offset.so,70488,file
 build/native/libws_lfo.so,70536,file
@@ -75,7 +75,7 @@ build/native/engine2/libwirescape_app_engine.a,843372,file
 build/native/engine2/libwirescape_voice2.a,10702,file
 build/native/document/libwirescape_runtime_document.a,448772,file
 build/native/engine2/midi_io/libwirescape_midi_service.a,29340,file
-build/native/engine2/midi_io/libwirescape_midi_backend.a,301146,file
+build/native/engine2/midi_io/libwirescape_midi_backend.a,301162,file
 build/native/engine2/macro_oscillator/libmacro_upstream.a,390116,file
 build/native/engine2/macro_oscillator/libmacro_reference_upstream.a,392644,file
 build/native/engine2/quantizer/CMakeFiles/ws2_quantizer.dir/module.cpp.o,29824,file
@@ -88,9 +88,9 @@ build/native/engine2/notes_to_cv/CMakeFiles/abi2_notes_to_cv_tests.dir/tests.cpp
 build/native/engine2/notes_to_cv/CMakeFiles/ws2_notes_to_cv.dir/module.cpp.o,23336,file
 build/native/engine2/notes_to_cv/CMakeFiles/abi2_notes_to_cv_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/midi_io/CMakeFiles/wirescape_midi_service.dir/midi_service.cpp.o,28040,file
-build/native/engine2/midi_io/CMakeFiles/wirescape_midi_backend.dir/libremidi_backend.cpp.o,248664,file
+build/native/engine2/midi_io/CMakeFiles/wirescape_midi_backend.dir/libremidi_backend.cpp.o,248680,file
 build/native/engine2/midi_io/CMakeFiles/midi_backend_gate_tests.dir/backend_gate_tests.cpp.o,1864,file
-build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/service_tests.cpp.o,116632,file
+build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/service_tests.cpp.o,139336,file
 build/native/engine2/midi_io/CMakeFiles/ws2_midi_to_cv.dir/__/__/modules2/midi_to_cv/module.cpp.o,51928,file
 build/native/engine2/midi_io/CMakeFiles/midi_service_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/midi_io/CMakeFiles/abi2_midi_in_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
@@ -403,9 +403,9 @@ apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2,14888,file
 apps/studio/dist/assets/index-hcJRR-ZL.css,65403,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2,14708,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2,15620,file
+apps/studio/dist/assets/index-Conxx3pP.js,409514,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2,24184,file
-apps/studio/dist/assets/index-_V21Jznb.js.map,1056053,file
-apps/studio/dist/assets/index-_V21Jznb.js,409514,file
+apps/studio/dist/assets/index-Conxx3pP.js.map,1056053,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2,22588,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff,13208,file
 apps/studio/dist/panels/fx.delay.json,20,file

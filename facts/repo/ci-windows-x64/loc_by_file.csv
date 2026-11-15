@@ -70,6 +70,7 @@ native\tests\golden_render.cpp,native,tests,C++,279,7,0
 apps\studio\tests\kit-controls.spec.ts,apps,tests,TypeScript,278,1,18
 apps\studio\tests\groove-g2b.spec.ts,apps,tests,TypeScript,277,12,13
 native\document\qt_free_patch_coverage_tests.cpp,native,product,C++,277,9,0
+native\io\midi\service_tests.cpp,native,product,C++,276,11,5
 native\io\net\osc_service.cpp,native,product,C++,275,6,0
 native\modules\clock\tests.cpp,native,product,C++,275,6,4
 native\modules2\chaos_lite\tests.cpp,native,product,C++,275,22,3
@@ -111,7 +112,6 @@ native\modules2\osc_in\dsp.h,native,product,C/C++ Header,212,7,0
 native\voice\note_to_cv.h,native,product,C/C++ Header,211,9,1
 apps\studio\src\app\ccLearn.ts,apps,product,TypeScript,209,44,20
 native\engine2\tests\port_behavior_tests.cpp,native,tests,C++,209,3,4
-native\io\midi\service_tests.cpp,native,product,C++,209,3,1
 native\modules2\chord\dsp.h,native,product,C/C++ Header,208,10,6
 native\modules2\quantizer\dsp.h,native,product,C/C++ Header,208,13,18
 tools\foundation\tests\test_sidecar_edit_soak.py,tools,tests,Python,204,80,27
@@ -334,6 +334,7 @@ native\control\osc_out_host.h,native,product,C/C++ Header,54,4,4
 native\io\osc\fuzz.cpp,native,product,C++,54,4,3
 native\tests2\integration_tests.cpp,native,tests,C++,54,1,0
 native\engine2\tests\sdk_tests.cpp,native,tests,C++,53,1,0
+native\io\midi\libremidi_backend.cpp,native,product,C++,53,2,0
 native\sdk\examples\test_support.h,native,tests,C/C++ Header,53,6,5
 tools\bench\compare_bench.py,tools,tools,Python,53,2,9
 tools\foundation\tests\test_golden.py,tools,tests,Python,53,2,7
@@ -354,7 +355,6 @@ apps\studio\patch-library.mjs,apps,product,JavaScript,48,1,1
 apps\studio\src\groove\GrooveSession.ts,apps,product,TypeScript,48,13,10
 apps\studio\src\panels\widgets\Toggle.ts,apps,product,TypeScript,48,4,5
 apps\studio\tests\mixer-output.spec.ts,apps,tests,TypeScript,48,1,3
-native\io\midi\libremidi_backend.cpp,native,product,C++,48,1,0
 native\modules\scale_offset\module.cpp,native,product,C++,48,1,4
 native\sidecar\protocol.h,native,product,C/C++ Header,48,3,1
 native\tests2\module_loader.h,native,tests,C/C++ Header,48,1,0
@@ -523,4 +523,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,76419,4330,4307
+SUM,SUM,product,unknown,76491,4339,4311

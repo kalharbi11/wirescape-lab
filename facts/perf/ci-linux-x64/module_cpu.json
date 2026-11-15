@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -27,7 +27,7 @@
         128,
         256
       ],
-      "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+      "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "x86_64",
@@ -55,7 +55,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 5959,
+          "max": 9494,
           "p99": 291
         },
         "sample_rate": 48000,
@@ -72,13 +72,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.adsr",
-        "p99_ns_per_sample": 3.853515625,
+        "p99_ns_per_sample": 3.63671875,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 17336,
-          "p99": 1973
+          "max": 12849,
+          "p99": 1862
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -94,13 +94,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.adsr",
-        "p99_ns_per_sample": 6.6484375,
+        "p99_ns_per_sample": 3.9921875,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 16995,
-          "p99": 851
+          "max": 5679,
+          "p99": 511
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -116,13 +116,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.adsr",
-        "p99_ns_per_sample": 3.7265625,
+        "p99_ns_per_sample": 6.69921875,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 18617,
-          "p99": 3816
+          "max": 30305,
+          "p99": 6860
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -138,13 +138,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.adsr",
-        "p99_ns_per_sample": 3.71875,
+        "p99_ns_per_sample": 3.63671875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 10756,
-          "p99": 952
+          "max": 10516,
+          "p99": 931
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -160,13 +160,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.adsr",
-        "p99_ns_per_sample": 9.48681640625,
+        "p99_ns_per_sample": 6.0537109375,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 27581,
-          "p99": 19429
+          "max": 22905,
+          "p99": 12398
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -182,13 +182,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 165.40625,
+        "p99_ns_per_sample": 198.109375,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 45036,
-          "p99": 10586
+          "max": 43756,
+          "p99": 12679
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -204,13 +204,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 196.208984375,
+        "p99_ns_per_sample": 156.5625,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 111194,
-          "p99": 100459
+          "max": 116334,
+          "p99": 80160
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -226,13 +226,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 175.265625,
+        "p99_ns_per_sample": 179.7265625,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 50585,
-          "p99": 22434
+          "max": 54752,
+          "p99": 23005
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -248,13 +248,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 134.6416015625,
+        "p99_ns_per_sample": 135.8974609375,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 156311,
-          "p99": 137873
+          "max": 184397,
+          "p99": 139159
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -270,13 +270,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 162.73828125,
+        "p99_ns_per_sample": 184.69140625,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 65987,
-          "p99": 41661
+          "max": 77707,
+          "p99": 47281
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -292,13 +292,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.chaos_lite",
-        "p99_ns_per_sample": 134.177734375,
+        "p99_ns_per_sample": 173.1357421875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 372280,
-          "p99": 274796
+          "max": 393230,
+          "p99": 354582
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -368,13 +368,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 11.578125,
+        "p99_ns_per_sample": 14.546875,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 20340,
-          "p99": 741
+          "max": 12568,
+          "p99": 931
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -390,13 +390,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 7.158203125,
+        "p99_ns_per_sample": 7.70703125,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 42502,
-          "p99": 3665
+          "max": 19429,
+          "p99": 3946
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -412,13 +412,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 7.5078125,
+        "p99_ns_per_sample": 7.75,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 11007,
-          "p99": 961
+          "max": 17476,
+          "p99": 992
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -434,13 +434,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 7.16796875,
+        "p99_ns_per_sample": 10.0146484375,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 36323,
-          "p99": 7340
+          "max": 20020,
+          "p99": 10255
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -456,13 +456,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 12.44140625,
+        "p99_ns_per_sample": 14.1640625,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 22824,
-          "p99": 3185
+          "max": 16605,
+          "p99": 3626
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -478,13 +478,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.clock",
-        "p99_ns_per_sample": 11.154296875,
+        "p99_ns_per_sample": 15.48681640625,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 34551,
-          "p99": 22844
+          "max": 41893,
+          "p99": 31717
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -500,13 +500,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 7.671875,
+        "p99_ns_per_sample": 13.765625,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 11387,
-          "p99": 491
+          "max": 25749,
+          "p99": 881
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -522,13 +522,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 7.12109375,
+        "p99_ns_per_sample": 8.46875,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 31146,
-          "p99": 3646
+          "max": 35393,
+          "p99": 4336
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -544,13 +544,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 11.8125,
+        "p99_ns_per_sample": 7.28125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 17436,
-          "p99": 1512
+          "max": 26660,
+          "p99": 932
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -566,13 +566,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 7.74609375,
+        "p99_ns_per_sample": 12.75390625,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 32729,
-          "p99": 7932
+          "max": 47130,
+          "p99": 13060
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -588,13 +588,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 7.12109375,
+        "p99_ns_per_sample": 12.5546875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 7000,
-          "p99": 1823
+          "max": 13440,
+          "p99": 3214
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -610,13 +610,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.function_envelope",
-        "p99_ns_per_sample": 10.75830078125,
+        "p99_ns_per_sample": 15.056640625,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 50034,
-          "p99": 22033
+          "max": 42524,
+          "p99": 30836
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -632,13 +632,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 22.703125,
+        "p99_ns_per_sample": 23.953125,
         "params": "",
         "peak": 0.437866,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 28172,
-          "p99": 1453
+          "max": 15003,
+          "p99": 1533
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -654,13 +654,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 34.798828125,
+        "p99_ns_per_sample": 35.5625,
         "params": "",
         "peak": 0.437866,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 42462,
-          "p99": 17817
+          "max": 40741,
+          "p99": 18208
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -676,13 +676,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 21.9921875,
+        "p99_ns_per_sample": 34.5859375,
         "params": "",
         "peak": 0.437866,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 21722,
-          "p99": 2815
+          "max": 15814,
+          "p99": 4427
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -698,13 +698,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 36.6943359375,
+        "p99_ns_per_sample": 32.3828125,
         "params": "",
         "peak": 0.437866,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 306532,
-          "p99": 37575
+          "max": 62533,
+          "p99": 33160
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -720,13 +720,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 30.43359375,
+        "p99_ns_per_sample": 48.31640625,
         "params": "",
         "peak": 0.437866,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 25568,
-          "p99": 7791
+          "max": 20822,
+          "p99": 12369
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -742,13 +742,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.ladder",
-        "p99_ns_per_sample": 31.3544921875,
+        "p99_ns_per_sample": 31.59521484375,
         "params": "",
         "peak": 0.437866,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 72557,
-          "p99": 64214
+          "max": 71838,
+          "p99": 64707
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -764,13 +764,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 25.046875,
+        "p99_ns_per_sample": 24.578125,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 16264,
-          "p99": 1603
+          "max": 15563,
+          "p99": 1573
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -786,13 +786,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 20.126953125,
+        "p99_ns_per_sample": 30.728515625,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 34551,
-          "p99": 10305
+          "max": 31277,
+          "p99": 15733
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -808,13 +808,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 24.3359375,
+        "p99_ns_per_sample": 17.453125,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 14271,
-          "p99": 3115
+          "max": 15032,
+          "p99": 2234
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -830,13 +830,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 27.2958984375,
+        "p99_ns_per_sample": 24.8037109375,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 34321,
-          "p99": 27951
+          "max": 51237,
+          "p99": 25399
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -852,13 +852,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 17.01953125,
+        "p99_ns_per_sample": 53.125,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 11287,
-          "p99": 4357
+          "max": 42824,
+          "p99": 13600
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -874,13 +874,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.lfo",
-        "p99_ns_per_sample": 24.05908203125,
+        "p99_ns_per_sample": 20.939453125,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 64155,
-          "p99": 49273
+          "max": 55643,
+          "p99": 42884
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -901,7 +901,7 @@
         "peak": 0.398474,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 10566,
+          "max": 11237,
           "p99": 401
         },
         "sample_rate": 48000,
@@ -918,13 +918,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.mixer",
-        "p99_ns_per_sample": 5.458984375,
+        "p99_ns_per_sample": 5.4765625,
         "params": "",
         "peak": 0.398474,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 18137,
-          "p99": 2795
+          "max": 22423,
+          "p99": 2804
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -940,13 +940,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.mixer",
-        "p99_ns_per_sample": 10.484375,
+        "p99_ns_per_sample": 11.109375,
         "params": "",
         "peak": 0.398474,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 14912,
-          "p99": 1342
+          "max": 14672,
+          "p99": 1422
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -962,13 +962,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.mixer",
-        "p99_ns_per_sample": 5.7314453125,
+        "p99_ns_per_sample": 5.8388671875,
         "params": "",
         "peak": 0.398474,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 40670,
-          "p99": 5869
+          "max": 33109,
+          "p99": 5979
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -984,13 +984,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.mixer",
-        "p99_ns_per_sample": 5.671875,
+        "p99_ns_per_sample": 10.2109375,
         "params": "",
         "peak": 0.398474,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 8943,
-          "p99": 1452
+          "max": 9885,
+          "p99": 2614
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1006,13 +1006,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.mixer",
-        "p99_ns_per_sample": 11.388671875,
+        "p99_ns_per_sample": 13.8486328125,
         "params": "",
         "peak": 0.398474,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 37425,
-          "p99": 23324
+          "max": 37647,
+          "p99": 28362
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1033,7 +1033,7 @@
         "peak": 0.199999,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 15603,
+          "max": 8854,
           "p99": 211
         },
         "sample_rate": 48000,
@@ -1050,13 +1050,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.noise",
-        "p99_ns_per_sample": 2.640625,
+        "p99_ns_per_sample": 2.642578125,
         "params": "",
         "peak": 0.2,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 19038,
-          "p99": 1352
+          "max": 15273,
+          "p99": 1353
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1072,13 +1072,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.noise",
-        "p99_ns_per_sample": 2.8984375,
+        "p99_ns_per_sample": 5.3203125,
         "params": "",
         "peak": 0.199999,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 7901,
-          "p99": 371
+          "max": 8362,
+          "p99": 681
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1094,13 +1094,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.noise",
-        "p99_ns_per_sample": 2.669921875,
+        "p99_ns_per_sample": 2.6611328125,
         "params": "",
         "peak": 0.2,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 19839,
-          "p99": 2734
+          "max": 45327,
+          "p99": 2725
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1116,78 +1116,12 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.noise",
-        "p99_ns_per_sample": 2.7421875,
+        "p99_ns_per_sample": 2.78125,
         "params": "",
         "peak": 0.199999,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 8202,
-          "p99": 702
-        },
-        "sample_rate": 48000,
-        "seconds": 2,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "alternate": "",
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 375,
-        "channels": 8,
-        "faults": 0,
-        "instances": 1,
-        "module": "essentials.noise",
-        "p99_ns_per_sample": 4.591796875,
-        "params": "",
-        "peak": 0.2,
-        "period_ns": 5333333,
-        "render_ns": {
-          "max": 29274,
-          "p99": 9404
-        },
-        "sample_rate": 48000,
-        "seconds": 2,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "alternate": "",
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 1500,
-        "channels": 1,
-        "faults": 0,
-        "instances": 1,
-        "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 11.109375,
-        "params": "",
-        "peak": 0,
-        "period_ns": 1333333,
-        "render_ns": {
-          "max": 20090,
-          "p99": 711
-        },
-        "sample_rate": 48000,
-        "seconds": 2,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "alternate": "",
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 1500,
-        "channels": 8,
-        "faults": 0,
-        "instances": 1,
-        "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 1.390625,
-        "params": "",
-        "peak": 0,
-        "period_ns": 1333333,
-        "render_ns": {
-          "max": 26509,
+          "max": 16214,
           "p99": 712
         },
         "sample_rate": 48000,
@@ -1197,6 +1131,72 @@
       {
         "allocations": 0,
         "alternate": "",
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 375,
+        "channels": 8,
+        "faults": 0,
+        "instances": 1,
+        "module": "essentials.noise",
+        "p99_ns_per_sample": 4.96875,
+        "params": "",
+        "peak": 0.2,
+        "period_ns": 5333333,
+        "render_ns": {
+          "max": 13310,
+          "p99": 10176
+        },
+        "sample_rate": 48000,
+        "seconds": 2,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "alternate": "",
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 1500,
+        "channels": 1,
+        "faults": 0,
+        "instances": 1,
+        "module": "essentials.notes_to_cv",
+        "p99_ns_per_sample": 18.78125,
+        "params": "",
+        "peak": 0,
+        "period_ns": 1333333,
+        "render_ns": {
+          "max": 10306,
+          "p99": 1202
+        },
+        "sample_rate": 48000,
+        "seconds": 2,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "alternate": "",
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 1500,
+        "channels": 8,
+        "faults": 0,
+        "instances": 1,
+        "module": "essentials.notes_to_cv",
+        "p99_ns_per_sample": 2.3671875,
+        "params": "",
+        "peak": 0,
+        "period_ns": 1333333,
+        "render_ns": {
+          "max": 11037,
+          "p99": 1212
+        },
+        "sample_rate": 48000,
+        "seconds": 2,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "alternate": "",
         "block": 128,
         "block_frames": 128,
         "blocks": 750,
@@ -1204,13 +1204,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 10.328125,
+        "p99_ns_per_sample": 16.2734375,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 18468,
-          "p99": 1322
+          "max": 7551,
+          "p99": 2083
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1226,13 +1226,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 1.33984375,
+        "p99_ns_per_sample": 2.0830078125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 9684,
-          "p99": 1372
+          "max": 15543,
+          "p99": 2133
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1248,13 +1248,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 15.8046875,
+        "p99_ns_per_sample": 17.33203125,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 10816,
-          "p99": 4046
+          "max": 8593,
+          "p99": 4437
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1270,13 +1270,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.notes_to_cv",
-        "p99_ns_per_sample": 2.1220703125,
+        "p99_ns_per_sample": 1.28125,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 8392,
-          "p99": 4346
+          "max": 8233,
+          "p99": 2624
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1292,13 +1292,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.output",
-        "p99_ns_per_sample": 2.671875,
+        "p99_ns_per_sample": 3.59375,
         "params": "",
         "peak": 0.5,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 2975,
-          "p99": 171
+          "max": 3586,
+          "p99": 230
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1314,13 +1314,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.output",
-        "p99_ns_per_sample": 2.955078125,
+        "p99_ns_per_sample": 2.1328125,
         "params": "",
         "peak": 0.5,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 16755,
-          "p99": 1513
+          "max": 35533,
+          "p99": 1092
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1341,7 +1341,7 @@
         "peak": 0.5,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 3164,
+          "max": 3064,
           "p99": 291
         },
         "sample_rate": 48000,
@@ -1358,13 +1358,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.output",
-        "p99_ns_per_sample": 2.1025390625,
+        "p99_ns_per_sample": 3.3935546875,
         "params": "",
         "peak": 0.5,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 26018,
-          "p99": 2153
+          "max": 15393,
+          "p99": 3475
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1380,13 +1380,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.output",
-        "p99_ns_per_sample": 2.11328125,
+        "p99_ns_per_sample": 2.58203125,
         "params": "",
         "peak": 0.5,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 3615,
-          "p99": 541
+          "max": 4026,
+          "p99": 661
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1402,13 +1402,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.output",
-        "p99_ns_per_sample": 2.03955078125,
+        "p99_ns_per_sample": 2.6259765625,
         "params": "",
         "peak": 0.5,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 14741,
-          "p99": 4177
+          "max": 15383,
+          "p99": 5378
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1429,7 +1429,7 @@
         "peak": 1.39501,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 17797,
+          "max": 5949,
           "p99": 1112
         },
         "sample_rate": 48000,
@@ -1446,13 +1446,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quad_vca",
-        "p99_ns_per_sample": 31.1796875,
+        "p99_ns_per_sample": 28.65625,
         "params": "",
         "peak": 1.39501,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 52257,
-          "p99": 15964
+          "max": 58027,
+          "p99": 14672
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1468,13 +1468,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quad_vca",
-        "p99_ns_per_sample": 17.1328125,
+        "p99_ns_per_sample": 16.6640625,
         "params": "",
         "peak": 1.39501,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 12899,
-          "p99": 2193
+          "max": 13370,
+          "p99": 2133
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1490,13 +1490,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quad_vca",
-        "p99_ns_per_sample": 29.28125,
+        "p99_ns_per_sample": 25.986328125,
         "params": "",
         "peak": 1.39501,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 48852,
-          "p99": 29984
+          "max": 46310,
+          "p99": 26610
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1512,13 +1512,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quad_vca",
-        "p99_ns_per_sample": 23.16015625,
+        "p99_ns_per_sample": 16.3515625,
         "params": "",
         "peak": 1.39501,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 22784,
-          "p99": 5929
+          "max": 8452,
+          "p99": 4186
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1534,13 +1534,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quad_vca",
-        "p99_ns_per_sample": 24.17626953125,
+        "p99_ns_per_sample": 23.9033203125,
         "params": "",
         "peak": 1.39501,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 62622,
-          "p99": 49513
+          "max": 62494,
+          "p99": 48954
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1556,13 +1556,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 6.265625,
+        "p99_ns_per_sample": 6.40625,
         "params": "",
         "peak": 0.416667,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 13320,
-          "p99": 401
+          "max": 12488,
+          "p99": 410
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1578,13 +1578,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 3.853515625,
+        "p99_ns_per_sample": 2.7578125,
         "params": "",
         "peak": 0.416667,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 15593,
-          "p99": 1973
+          "max": 15032,
+          "p99": 1412
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1600,13 +1600,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 4.9296875,
+        "p99_ns_per_sample": 6.7265625,
         "params": "",
         "peak": 0.416667,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 7671,
-          "p99": 631
+          "max": 8032,
+          "p99": 861
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1622,13 +1622,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 2.572265625,
+        "p99_ns_per_sample": 2.30859375,
         "params": "",
         "peak": 0.416667,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 10435,
-          "p99": 2634
+          "max": 13010,
+          "p99": 2364
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1644,13 +1644,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 4.22265625,
+        "p99_ns_per_sample": 3.98828125,
         "params": "",
         "peak": 0.416667,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 7941,
-          "p99": 1081
+          "max": 16946,
+          "p99": 1021
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1666,13 +1666,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.quantizer",
-        "p99_ns_per_sample": 7.12451171875,
+        "p99_ns_per_sample": 2.66015625,
         "params": "",
         "peak": 0.416667,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 36183,
-          "p99": 14591
+          "max": 18237,
+          "p99": 5448
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1688,13 +1688,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 55.234375,
+        "p99_ns_per_sample": 77.921875,
         "params": "",
         "peak": 1.23292,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 31036,
-          "p99": 3535
+          "max": 40691,
+          "p99": 4987
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1710,13 +1710,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 74.466796875,
+        "p99_ns_per_sample": 73.568359375,
         "params": "",
         "peak": 1.23292,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 54841,
-          "p99": 38127
+          "max": 53430,
+          "p99": 37667
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1732,13 +1732,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 55.2421875,
+        "p99_ns_per_sample": 71.046875,
         "params": "",
         "peak": 1.23292,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 35622,
-          "p99": 7071
+          "max": 48192,
+          "p99": 9094
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1754,13 +1754,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 60.2646484375,
+        "p99_ns_per_sample": 66.1826171875,
         "params": "",
         "peak": 1.23292,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 82221,
-          "p99": 61711
+          "max": 83144,
+          "p99": 67771
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1776,13 +1776,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 76.71484375,
+        "p99_ns_per_sample": 83.6015625,
         "params": "",
         "peak": 1.23292,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 30265,
-          "p99": 19639
+          "max": 51947,
+          "p99": 21402
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1798,13 +1798,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.resonator",
-        "p99_ns_per_sample": 61.10595703125,
+        "p99_ns_per_sample": 62.90673828125,
         "params": "",
         "peak": 1.23292,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 139505,
-          "p99": 125145
+          "max": 150005,
+          "p99": 128833
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1820,13 +1820,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 5.328125,
+        "p99_ns_per_sample": 5.484375,
         "params": "",
         "peak": 0.5,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 10966,
-          "p99": 341
+          "max": 11828,
+          "p99": 351
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1842,13 +1842,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 4.63671875,
+        "p99_ns_per_sample": 4.693359375,
         "params": "",
         "peak": 0.5,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 19098,
-          "p99": 2374
+          "max": 40450,
+          "p99": 2403
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1864,57 +1864,57 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 4.9296875,
+        "p99_ns_per_sample": 5.0078125,
         "params": "",
         "peak": 0.5,
         "period_ns": 2666667,
-        "render_ns": {
-          "max": 8513,
-          "p99": 631
-        },
-        "sample_rate": 48000,
-        "seconds": 2,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "alternate": "",
-        "block": 128,
-        "block_frames": 128,
-        "blocks": 750,
-        "channels": 8,
-        "faults": 0,
-        "instances": 1,
-        "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 4.6552734375,
-        "params": "",
-        "peak": 0.5,
-        "period_ns": 2666667,
-        "render_ns": {
-          "max": 37365,
-          "p99": 4767
-        },
-        "sample_rate": 48000,
-        "seconds": 2,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "alternate": "",
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 375,
-        "channels": 1,
-        "faults": 0,
-        "instances": 1,
-        "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 4.7734375,
-        "params": "",
-        "peak": 0.5,
-        "period_ns": 5333333,
         "render_ns": {
           "max": 8933,
-          "p99": 1222
+          "p99": 641
+        },
+        "sample_rate": 48000,
+        "seconds": 2,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "alternate": "",
+        "block": 128,
+        "block_frames": 128,
+        "blocks": 750,
+        "channels": 8,
+        "faults": 0,
+        "instances": 1,
+        "module": "essentials.scale_offset",
+        "p99_ns_per_sample": 5.5556640625,
+        "params": "",
+        "peak": 0.5,
+        "period_ns": 2666667,
+        "render_ns": {
+          "max": 18358,
+          "p99": 5689
+        },
+        "sample_rate": 48000,
+        "seconds": 2,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "alternate": "",
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 375,
+        "channels": 1,
+        "faults": 0,
+        "instances": 1,
+        "module": "essentials.scale_offset",
+        "p99_ns_per_sample": 9.5078125,
+        "params": "",
+        "peak": 0.5,
+        "period_ns": 5333333,
+        "render_ns": {
+          "max": 16484,
+          "p99": 2434
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1930,13 +1930,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.scale_offset",
-        "p99_ns_per_sample": 9.115234375,
+        "p99_ns_per_sample": 8.81689453125,
         "params": "",
         "peak": 0.5,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 41221,
-          "p99": 18668
+          "max": 28413,
+          "p99": 18057
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1957,7 +1957,7 @@
         "peak": 0.0454167,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 11728,
+          "max": 6369,
           "p99": 401
         },
         "sample_rate": 48000,
@@ -1974,13 +1974,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.slew",
-        "p99_ns_per_sample": 5.359375,
+        "p99_ns_per_sample": 5.3984375,
         "params": "",
         "peak": 0.0454167,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 32237,
-          "p99": 2744
+          "max": 28462,
+          "p99": 2764
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -1996,13 +1996,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.slew",
-        "p99_ns_per_sample": 9.625,
+        "p99_ns_per_sample": 5.7109375,
         "params": "",
         "peak": 0.0454167,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 16575,
-          "p99": 1232
+          "max": 6330,
+          "p99": 731
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2018,13 +2018,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.slew",
-        "p99_ns_per_sample": 5.349609375,
+        "p99_ns_per_sample": 6.6796875,
         "params": "",
         "peak": 0.0454167,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 31516,
-          "p99": 5478
+          "max": 27692,
+          "p99": 6840
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2040,13 +2040,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.slew",
-        "p99_ns_per_sample": 10.0546875,
+        "p99_ns_per_sample": 5.6328125,
         "params": "",
         "peak": 0.0454167,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 16324,
-          "p99": 2574
+          "max": 4126,
+          "p99": 1442
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2062,13 +2062,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.slew",
-        "p99_ns_per_sample": 11.38427734375,
+        "p99_ns_per_sample": 6.4111328125,
         "params": "",
         "peak": 0.0454167,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 27271,
-          "p99": 23315
+          "max": 30506,
+          "p99": 13130
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2084,13 +2084,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vca",
-        "p99_ns_per_sample": 1.25,
+        "p99_ns_per_sample": 1.109375,
         "params": "",
         "peak": 0.149725,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 3445,
-          "p99": 80
+          "max": 4206,
+          "p99": 71
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2106,13 +2106,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vca",
-        "p99_ns_per_sample": 0.431640625,
+        "p99_ns_per_sample": 0.568359375,
         "params": "",
         "peak": 0.149725,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 8953,
-          "p99": 221
+          "max": 5649,
+          "p99": 291
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2133,7 +2133,7 @@
         "peak": 0.149725,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 7842,
+          "max": 5308,
           "p99": 81
         },
         "sample_rate": 48000,
@@ -2150,13 +2150,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vca",
-        "p99_ns_per_sample": 0.2841796875,
+        "p99_ns_per_sample": 0.439453125,
         "params": "",
         "peak": 0.149725,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 5358,
-          "p99": 291
+          "max": 14992,
+          "p99": 450
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2172,13 +2172,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vca",
-        "p99_ns_per_sample": 0.82421875,
+        "p99_ns_per_sample": 0.43359375,
         "params": "",
         "peak": 0.149725,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 8042,
-          "p99": 211
+          "max": 2804,
+          "p99": 111
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2194,13 +2194,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vca",
-        "p99_ns_per_sample": 0.25927734375,
+        "p99_ns_per_sample": 0.35693359375,
         "params": "",
         "peak": 0.149725,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 3105,
-          "p99": 531
+          "max": 5569,
+          "p99": 731
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2221,7 +2221,7 @@
         "peak": 0.464828,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 30926,
+          "max": 13690,
           "p99": 1302
         },
         "sample_rate": 48000,
@@ -2238,13 +2238,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vcf",
-        "p99_ns_per_sample": 31.62890625,
+        "p99_ns_per_sample": 32.25390625,
         "params": "",
         "peak": 0.464828,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 33269,
-          "p99": 16194
+          "max": 56114,
+          "p99": 16514
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2260,13 +2260,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vcf",
-        "p99_ns_per_sample": 19.71875,
+        "p99_ns_per_sample": 21.59375,
         "params": "",
         "peak": 0.464828,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 12809,
-          "p99": 2524
+          "max": 16675,
+          "p99": 2764
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2282,13 +2282,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vcf",
-        "p99_ns_per_sample": 28.4111328125,
+        "p99_ns_per_sample": 28.783203125,
         "params": "",
         "peak": 0.464828,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 41190,
-          "p99": 29093
+          "max": 54581,
+          "p99": 29474
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2304,13 +2304,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vcf",
-        "p99_ns_per_sample": 19.8359375,
+        "p99_ns_per_sample": 46.0859375,
         "params": "",
         "peak": 0.464828,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 36844,
-          "p99": 5078
+          "max": 18177,
+          "p99": 11798
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2326,13 +2326,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vcf",
-        "p99_ns_per_sample": 25.45751953125,
+        "p99_ns_per_sample": 24.37744140625,
         "params": "",
         "peak": 0.464828,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 57255,
-          "p99": 52137
+          "max": 68042,
+          "p99": 49925
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2348,13 +2348,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 38.34375,
+        "p99_ns_per_sample": 36.0,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 18988,
-          "p99": 2454
+          "max": 17476,
+          "p99": 2304
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2370,13 +2370,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 39.6484375,
+        "p99_ns_per_sample": 40.4140625,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 40470,
-          "p99": 20300
+          "max": 49003,
+          "p99": 20692
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2392,13 +2392,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 32.546875,
+        "p99_ns_per_sample": 35.7578125,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 15203,
-          "p99": 4166
+          "max": 17927,
+          "p99": 4577
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2414,13 +2414,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 36.1279296875,
+        "p99_ns_per_sample": 38.4853515625,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 65807,
-          "p99": 36995
+          "max": 69564,
+          "p99": 39409
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2436,13 +2436,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 52.421875,
+        "p99_ns_per_sample": 50.26953125,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 22743,
-          "p99": 13420
+          "max": 20270,
+          "p99": 12869
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2458,13 +2458,13 @@
         "faults": 0,
         "instances": 1,
         "module": "essentials.vco",
-        "p99_ns_per_sample": 32.94873046875,
+        "p99_ns_per_sample": 32.490234375,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 88080,
-          "p99": 67479
+          "max": 94582,
+          "p99": 66540
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2485,7 +2485,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 11837,
+          "max": 14182,
           "p99": 501
         },
         "sample_rate": 48000,
@@ -2507,7 +2507,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 11136,
+          "max": 15864,
           "p99": 501
         },
         "sample_rate": 48000,
@@ -2529,7 +2529,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 11487,
+          "max": 11146,
           "p99": 911
         },
         "sample_rate": 48000,
@@ -2551,7 +2551,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 34632,
+          "max": 14051,
           "p99": 911
         },
         "sample_rate": 48000,
@@ -2568,13 +2568,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.random_source",
-        "p99_ns_per_sample": 7.3515625,
+        "p99_ns_per_sample": 8.21875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 18938,
-          "p99": 1882
+          "max": 29985,
+          "p99": 2104
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2590,13 +2590,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.random_source",
-        "p99_ns_per_sample": 0.88525390625,
+        "p99_ns_per_sample": 0.8603515625,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 11797,
-          "p99": 1813
+          "max": 19239,
+          "p99": 1762
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2617,7 +2617,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 10065,
+          "max": 4597,
           "p99": 631
         },
         "sample_rate": 48000,
@@ -2634,13 +2634,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.step_sequencer",
-        "p99_ns_per_sample": 1.486328125,
+        "p99_ns_per_sample": 1.232421875,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 3445,
-          "p99": 761
+          "max": 11046,
+          "p99": 631
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2656,13 +2656,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.step_sequencer",
-        "p99_ns_per_sample": 7.984375,
+        "p99_ns_per_sample": 7.828125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 9043,
-          "p99": 1022
+          "max": 47611,
+          "p99": 1002
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2678,13 +2678,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.step_sequencer",
-        "p99_ns_per_sample": 0.9873046875,
+        "p99_ns_per_sample": 1.0068359375,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 3926,
-          "p99": 1011
+          "max": 13520,
+          "p99": 1031
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2700,13 +2700,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.step_sequencer",
-        "p99_ns_per_sample": 11.1484375,
+        "p99_ns_per_sample": 6.92578125,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 4687,
-          "p99": 2854
+          "max": 17636,
+          "p99": 1773
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2722,13 +2722,13 @@
         "faults": 0,
         "instances": 1,
         "module": "example.step_sequencer",
-        "p99_ns_per_sample": 0.86083984375,
+        "p99_ns_per_sample": 0.8701171875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 11207,
-          "p99": 1763
+          "max": 37566,
+          "p99": 1782
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2744,13 +2744,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.delay",
-        "p99_ns_per_sample": 18.0,
+        "p99_ns_per_sample": 18.140625,
         "params": "",
         "peak": 0.568614,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 9684,
-          "p99": 1152
+          "max": 39919,
+          "p99": 1161
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2771,7 +2771,7 @@
         "peak": 0.568614,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 9304,
+          "max": 41212,
           "p99": 1172
         },
         "sample_rate": 48000,
@@ -2788,13 +2788,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.delay",
-        "p99_ns_per_sample": 17.921875,
+        "p99_ns_per_sample": 17.6796875,
         "params": "",
         "peak": 0.568614,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 20060,
-          "p99": 2294
+          "max": 23866,
+          "p99": 2263
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2810,13 +2810,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.delay",
-        "p99_ns_per_sample": 2.6015625,
+        "p99_ns_per_sample": 2.181640625,
         "params": "",
         "peak": 0.568614,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 18588,
-          "p99": 2664
+          "max": 15693,
+          "p99": 2234
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2832,13 +2832,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.delay",
-        "p99_ns_per_sample": 28.91015625,
+        "p99_ns_per_sample": 22.88671875,
         "params": "",
         "peak": 0.568614,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 22063,
-          "p99": 7401
+          "max": 17155,
+          "p99": 5859
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2854,13 +2854,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.delay",
-        "p99_ns_per_sample": 2.146484375,
+        "p99_ns_per_sample": 3.2470703125,
         "params": "",
         "peak": 0.568614,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 13189,
-          "p99": 4396
+          "max": 16966,
+          "p99": 6650
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2876,13 +2876,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 135.515625,
+        "p99_ns_per_sample": 108.921875,
         "params": "",
         "peak": 0.516555,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 34100,
-          "p99": 8673
+          "max": 40411,
+          "p99": 6971
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2898,13 +2898,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 18.033203125,
+        "p99_ns_per_sample": 14.064453125,
         "params": "",
         "peak": 0.516555,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 31386,
-          "p99": 9233
+          "max": 52920,
+          "p99": 7201
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2920,13 +2920,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 166.4921875,
+        "p99_ns_per_sample": 166.34375,
         "params": "",
         "peak": 0.516555,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 28922,
-          "p99": 21311
+          "max": 51497,
+          "p99": 21292
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2942,13 +2942,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 19.3447265625,
+        "p99_ns_per_sample": 21.251953125,
         "params": "",
         "peak": 0.516555,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 27761,
-          "p99": 19809
+          "max": 56034,
+          "p99": 21762
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2964,13 +2964,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 151.94140625,
+        "p99_ns_per_sample": 145.2578125,
         "params": "",
         "peak": 0.516555,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 56654,
-          "p99": 38897
+          "max": 67201,
+          "p99": 37186
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -2986,13 +2986,13 @@
         "faults": 0,
         "instances": 1,
         "module": "fx.reverb",
-        "p99_ns_per_sample": 17.8046875,
+        "p99_ns_per_sample": 18.18115234375,
         "params": "",
         "peak": 0.516555,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 47720,
-          "p99": 36464
+          "max": 56665,
+          "p99": 37235
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3008,13 +3008,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 30.828125,
+        "p99_ns_per_sample": 32.40625,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 13760,
-          "p99": 1973
+          "max": 16044,
+          "p99": 2074
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3030,13 +3030,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 3.873046875,
+        "p99_ns_per_sample": 6.513671875,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 31947,
-          "p99": 1983
+          "max": 15313,
+          "p99": 3335
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3052,13 +3052,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 34.34375,
+        "p99_ns_per_sample": 29.5703125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 33439,
-          "p99": 4396
+          "max": 16385,
+          "p99": 3785
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3074,13 +3074,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 3.931640625,
+        "p99_ns_per_sample": 3.78515625,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 15903,
-          "p99": 4026
+          "max": 21613,
+          "p99": 3876
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3096,13 +3096,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 56.21484375,
+        "p99_ns_per_sample": 57.4296875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 33089,
-          "p99": 14391
+          "max": 33290,
+          "p99": 14702
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3118,13 +3118,13 @@
         "faults": 0,
         "instances": 1,
         "module": "host.keyboard",
-        "p99_ns_per_sample": 6.6162109375,
+        "p99_ns_per_sample": 8.298828125,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 17786,
-          "p99": 13550
+          "max": 44857,
+          "p99": 16996
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3140,13 +3140,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.cc_to_cv",
-        "p99_ns_per_sample": 24.421875,
+        "p99_ns_per_sample": 24.578125,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 10376,
-          "p99": 1563
+          "max": 23605,
+          "p99": 1573
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3162,13 +3162,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.cc_to_cv",
-        "p99_ns_per_sample": 3.55859375,
+        "p99_ns_per_sample": 3.365234375,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 15884,
-          "p99": 1822
+          "max": 33330,
+          "p99": 1723
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3189,7 +3189,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 32067,
+          "max": 33941,
           "p99": 3145
         },
         "sample_rate": 48000,
@@ -3206,13 +3206,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.cc_to_cv",
-        "p99_ns_per_sample": 3.1875,
+        "p99_ns_per_sample": 3.0712890625,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 45517,
-          "p99": 3264
+          "max": 15503,
+          "p99": 3145
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3228,13 +3228,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.cc_to_cv",
-        "p99_ns_per_sample": 45.65625,
+        "p99_ns_per_sample": 46.359375,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 50414,
-          "p99": 11688
+          "max": 44066,
+          "p99": 11868
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3250,13 +3250,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.cc_to_cv",
-        "p99_ns_per_sample": 5.892578125,
+        "p99_ns_per_sample": 3.12939453125,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 17716,
-          "p99": 12068
+          "max": 40321,
+          "p99": 6409
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3277,7 +3277,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 7361,
+          "max": 6609,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3299,7 +3299,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 6719,
+          "max": 8894,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3321,7 +3321,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 5217,
+          "max": 6821,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3343,7 +3343,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 4307,
+          "max": 6731,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3365,7 +3365,7 @@
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 4536,
+          "max": 7311,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3387,7 +3387,7 @@
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 6901,
+          "max": 5118,
           "p99": 51
         },
         "sample_rate": 48000,
@@ -3404,13 +3404,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 25.515625,
+        "p99_ns_per_sample": 26.296875,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 49383,
-          "p99": 1633
+          "max": 45188,
+          "p99": 1683
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3426,13 +3426,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 3.345703125,
+        "p99_ns_per_sample": 3.912109375,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 17546,
-          "p99": 1713
+          "max": 38548,
+          "p99": 2003
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3448,13 +3448,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 25.4296875,
+        "p99_ns_per_sample": 26.5234375,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 16124,
-          "p99": 3255
+          "max": 21522,
+          "p99": 3395
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3470,13 +3470,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 4.5380859375,
+        "p99_ns_per_sample": 3.0126953125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 33279,
-          "p99": 4647
+          "max": 15072,
+          "p99": 3085
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3492,13 +3492,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 29.84765625,
+        "p99_ns_per_sample": 71.43359375,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 46108,
-          "p99": 7641
+          "max": 23064,
+          "p99": 18287
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3514,13 +3514,13 @@
         "faults": 0,
         "instances": 1,
         "module": "midi.to_cv",
-        "p99_ns_per_sample": 3.3349609375,
+        "p99_ns_per_sample": 7.56005859375,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 22684,
-          "p99": 6830
+          "max": 45539,
+          "p99": 15483
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3536,13 +3536,13 @@
         "faults": 0,
         "instances": 1,
         "module": "monitor",
-        "p99_ns_per_sample": 1.40625,
+        "p99_ns_per_sample": 1.5625,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 1252,
-          "p99": 90
+          "max": 4247,
+          "p99": 100
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3563,7 +3563,7 @@
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 470,
+          "max": 541,
           "p99": 91
         },
         "sample_rate": 48000,
@@ -3580,13 +3580,13 @@
         "faults": 0,
         "instances": 1,
         "module": "monitor",
-        "p99_ns_per_sample": 0.7890625,
+        "p99_ns_per_sample": 0.78125,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 3095,
-          "p99": 101
+          "max": 681,
+          "p99": 100
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3607,7 +3607,7 @@
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 2904,
+          "max": 3965,
           "p99": 101
         },
         "sample_rate": 48000,
@@ -3629,7 +3629,7 @@
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 3034,
+          "max": 531,
           "p99": 150
         },
         "sample_rate": 48000,
@@ -3646,13 +3646,13 @@
         "faults": 0,
         "instances": 1,
         "module": "monitor",
-        "p99_ns_per_sample": 0.068359375,
+        "p99_ns_per_sample": 0.0732421875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 2954,
-          "p99": 140
+          "max": 471,
+          "p99": 150
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3668,13 +3668,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 50.859375,
+        "p99_ns_per_sample": 48.984375,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 16224,
-          "p99": 3255
+          "max": 50085,
+          "p99": 3135
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3690,13 +3690,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 6.357421875,
+        "p99_ns_per_sample": 6.396484375,
         "params": "",
         "peak": 0,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 65146,
-          "p99": 3255
+          "max": 17025,
+          "p99": 3275
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3712,13 +3712,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 52.96875,
+        "p99_ns_per_sample": 55.859375,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 21102,
-          "p99": 6780
+          "max": 32478,
+          "p99": 7150
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3734,13 +3734,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 6.3759765625,
+        "p99_ns_per_sample": 6.3369140625,
         "params": "",
         "peak": 0,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 17696,
-          "p99": 6529
+          "max": 35263,
+          "p99": 6489
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3756,13 +3756,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 95.296875,
+        "p99_ns_per_sample": 84.97265625,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 48551,
-          "p99": 24396
+          "max": 29615,
+          "p99": 21753
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3778,13 +3778,13 @@
         "faults": 0,
         "instances": 1,
         "module": "osc.in",
-        "p99_ns_per_sample": 11.86328125,
+        "p99_ns_per_sample": 11.37451171875,
         "params": "",
         "peak": 0,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 49794,
-          "p99": 24296
+          "max": 27171,
+          "p99": 23295
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3800,13 +3800,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 97.953125,
+        "p99_ns_per_sample": 94.671875,
         "params": "",
         "peak": 0.699982,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 22323,
-          "p99": 6269
+          "max": 15803,
+          "p99": 6059
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3822,13 +3822,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 95.08203125,
+        "p99_ns_per_sample": 94.478515625,
         "params": "",
         "peak": 0.699982,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 69362,
-          "p99": 48682
+          "max": 88002,
+          "p99": 48373
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3844,13 +3844,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 87.078125,
+        "p99_ns_per_sample": 99.5234375,
         "params": "",
         "peak": 0.699982,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 37986,
-          "p99": 11146
+          "max": 39119,
+          "p99": 12739
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3866,13 +3866,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 83.6982421875,
+        "p99_ns_per_sample": 109.7841796875,
         "params": "",
         "peak": 0.699982,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 94209,
-          "p99": 85707
+          "max": 131718,
+          "p99": 112419
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3888,13 +3888,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 97.05859375,
+        "p99_ns_per_sample": 106.64453125,
         "params": "",
         "peak": 0.699982,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 27150,
-          "p99": 24847
+          "max": 37276,
+          "p99": 27301
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3910,13 +3910,13 @@
         "faults": 0,
         "instances": 1,
         "module": "ports.macro_oscillator",
-        "p99_ns_per_sample": 72.38232421875,
+        "p99_ns_per_sample": 73.3623046875,
         "params": "",
         "peak": 0.699982,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 159776,
-          "p99": 148239
+          "max": 156395,
+          "p99": 150246
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3932,13 +3932,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 41.9375,
+        "p99_ns_per_sample": 45.375,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 20961,
-          "p99": 2684
+          "max": 36165,
+          "p99": 2904
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3954,13 +3954,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 7.765625,
+        "p99_ns_per_sample": 5.1640625,
         "params": "",
         "peak": 1,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 21973,
-          "p99": 3976
+          "max": 13300,
+          "p99": 2644
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3976,13 +3976,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 41.625,
+        "p99_ns_per_sample": 38.1796875,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 23054,
-          "p99": 5328
+          "max": 45588,
+          "p99": 4887
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -3998,13 +3998,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 4.8798828125,
+        "p99_ns_per_sample": 6.328125,
         "params": "",
         "peak": 1,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 43654,
-          "p99": 4997
+          "max": 18829,
+          "p99": 6480
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4020,13 +4020,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 45.49609375,
+        "p99_ns_per_sample": 69.98828125,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 33830,
-          "p99": 11647
+          "max": 34993,
+          "p99": 17917
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4042,13 +4042,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sequencing.groove",
-        "p99_ns_per_sample": 7.76513671875,
+        "p99_ns_per_sample": 9.33056640625,
         "params": "",
         "peak": 1,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 26970,
-          "p99": 15903
+          "max": 51447,
+          "p99": 19109
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4064,13 +4064,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 16.421875,
+        "p99_ns_per_sample": 16.125,
         "params": "",
         "peak": 0.563527,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 13470,
-          "p99": 1051
+          "max": 15924,
+          "p99": 1032
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4086,13 +4086,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 2.0546875,
+        "p99_ns_per_sample": 2.11328125,
         "params": "",
         "peak": 0.563527,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 19168,
-          "p99": 1052
+          "max": 15213,
+          "p99": 1082
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4108,13 +4108,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 15.4921875,
+        "p99_ns_per_sample": 24.328125,
         "params": "",
         "peak": 0.563527,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 14842,
-          "p99": 1983
+          "max": 17136,
+          "p99": 3114
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4130,13 +4130,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 2.0537109375,
+        "p99_ns_per_sample": 2.904296875,
         "params": "",
         "peak": 0.563527,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 16424,
-          "p99": 2103
+          "max": 14712,
+          "p99": 2974
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4152,13 +4152,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 23.70703125,
+        "p99_ns_per_sample": 23.86328125,
         "params": "",
         "peak": 0.563527,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 17005,
-          "p99": 6069
+          "max": 16354,
+          "p99": 6109
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4174,13 +4174,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.blend",
-        "p99_ns_per_sample": 1.912109375,
+        "p99_ns_per_sample": 3.638671875,
         "params": "",
         "peak": 0.563527,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 35112,
-          "p99": 3916
+          "max": 19580,
+          "p99": 7452
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4196,13 +4196,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 1302.078125,
+        "p99_ns_per_sample": 1249.53125,
         "params": "",
         "peak": 0.373509,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 111425,
-          "p99": 83333
+          "max": 119860,
+          "p99": 79970
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4218,13 +4218,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 143.904296875,
+        "p99_ns_per_sample": 160.064453125,
         "params": "",
         "peak": 0.373509,
         "period_ns": 1333333,
         "render_ns": {
-          "max": 87639,
-          "p99": 73679
+          "max": 120060,
+          "p99": 81953
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4240,13 +4240,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 672.3203125,
+        "p99_ns_per_sample": 637.90625,
         "params": "",
         "peak": 0.373509,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 95942,
-          "p99": 86057
+          "max": 104436,
+          "p99": 81652
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4262,13 +4262,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 84.802734375,
+        "p99_ns_per_sample": 85.185546875,
         "params": "",
         "peak": 0.373509,
         "period_ns": 2666667,
         "render_ns": {
-          "max": 104414,
-          "p99": 86838
+          "max": 658817,
+          "p99": 87230
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4284,13 +4284,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 358.84765625,
+        "p99_ns_per_sample": 346.06640625,
         "params": "",
         "peak": 0.373509,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 102451,
-          "p99": 91865
+          "max": 115843,
+          "p99": 88593
         },
         "sample_rate": 48000,
         "seconds": 2,
@@ -4306,13 +4306,13 @@
         "faults": 0,
         "instances": 1,
         "module": "sound.spectral",
-        "p99_ns_per_sample": 44.25,
+        "p99_ns_per_sample": 47.39013671875,
         "params": "",
         "peak": 0.373509,
         "period_ns": 5333333,
         "render_ns": {
-          "max": 98485,
-          "p99": 90624
+          "max": 119630,
+          "p99": 97055
         },
         "sample_rate": 48000,
         "seconds": 2,

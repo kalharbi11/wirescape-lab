@@ -5,9 +5,9 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
     "complexity": {
-      "functions": 3817,
+      "functions": 3818,
       "lizard_version": "not exposed"
     },
     "date_et": "2026-11-15",
@@ -62,10 +62,10 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 981
+    "source_files_tracked": 1096
   },
   "provenance": {
-    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",

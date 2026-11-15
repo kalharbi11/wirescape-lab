@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+    "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -32,7 +32,7 @@
         128,
         256
       ],
-      "commit": "ea0867bd6833ed9a1062108b4bd23f052162c1cd",
+      "commit": "b730817db138eb8e85c4dd8419b59f24ae14e27c",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "aarch64",
