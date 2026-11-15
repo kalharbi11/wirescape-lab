@@ -81,6 +81,15 @@ class LatencyTests(unittest.TestCase):
                     latency.main(["--dry-run", "--confirm-audio", "--results", root])
             self.assertFalse(list(Path(root).iterdir()))
 
+    def test_direct_capture_helper_requires_authorization_before_backend(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = SimpleNamespace(dry_run=False, confirm_audio=False,
+                                   device="output-id", input_device="input-id")
+            with patch("subprocess.Popen", side_effect=AssertionError("spawn forbidden")):
+                with self.assertRaisesRegex(PermissionError, "--confirm-audio"):
+                    latency.physical_capture(args, 128, Path(root))
+            self.assertFalse(list(Path(root).iterdir()))
+
     def test_live_shaped_fixture_is_not_reported_as_calibrated_latency(self):
         rate, block = 48000, 128
         audio, first, _ = synthetic_capture(rate, block, noise=0.001)
