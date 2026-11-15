@@ -459,7 +459,7 @@ def filter_sections(renderer, desc, meta, out, quick):
 
 
 def module_sections(renderer, desc, all_modules, meta, out, quick):
-    module_rows, param_rows, denormal_rows = [], [], []
+    module_rows, param_rows = [], []
     seconds = .5 if quick else 1.5
     for ident in all_modules:
         descriptor = desc.get(ident)
@@ -491,15 +491,11 @@ def module_sections(renderer, desc, all_modules, meta, out, quick):
                 param_rows.append(dict(entry, status="measured",
                                        **step_metrics(audio, frame)) if audio is not None
                                   else dict(entry, **status))
-        denormal_rows.append(dict(base_row, status="unavailable",
-                                 reason="unmodified CPU probe input uses saw/noise; 1e-30 input cannot be selected"))
     save(out, "dsp", "module_outputs", meta, module_rows,
          {"measure": "direct output bus; VCO input feed only for audio-input modules"})
     save(out, "dsp", "parameter_steps", meta, param_rows,
          {"step": "first parameter min to max halfway through render",
           "highpass": "2nd order Butterworth 2kHz"})
-    save(out, "perf", "denormal_spikes", meta, denormal_rows,
-         {"requested_input": 1e-30, "normal_input": .1})
 
 
 def envelope_sections(renderer, meta, out, quick):
