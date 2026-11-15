@@ -159,6 +159,7 @@ native\modules2\blend\dsp.h,native,product,C/C++ Header,165,6,9
 apps\studio\src\app\OscOutEditor.ts,apps,product,TypeScript,163,4,5
 apps\studio\src\styles\groove.css,apps,product,CSS,162,9,9
 bench\device\record.py,bench,tools,Python,161,4,6
+bench\portability\probe.py,bench,tools,Python,161,5,20
 apps\studio\src\panels\widgets\Fader.ts,apps,product,TypeScript,160,6,14
 apps\studio\tests\codec-roundtrip.spec.cjs,apps,tests,JavaScript,160,3,7
 native\io\net\tests.cpp,native,product,C++,160,10,0
@@ -438,6 +439,7 @@ native\modules2\vcf\dsp.h,native,product,C/C++ Header,32,4,0
 native\modules2\vco\dsp.h,native,product,C/C++ Header,32,2,0
 tools\pi\install-autostart.sh,tools,tools,Bourne Shell,32,2,2
 apps\studio\tests\revision-keyboard.spec.ts,apps,tests,TypeScript,31,1,2
+bench\portability\tests\test_probe.py,bench,tests,Python,31,2,8
 bench\device\tests\test_model_bounds.py,bench,tests,Python,30,2,9
 bench\offline\test_run_all.py,bench,tests,Python,30,2,8
 native\tests2\guide_ringmod\ringmod.h,native,tests,C/C++ Header,30,1,4
@@ -553,4 +555,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,80159,4549,4452
+SUM,SUM,product,unknown,80351,4556,4480

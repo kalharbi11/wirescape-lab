@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
+    "commit": "791407084798dd480ea6468c403fd99f6dde0341",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -29,7 +29,7 @@
         128,
         256
       ],
-      "commit": "b832349352deda0fd088456a202e5fa5888e9b34",
+      "commit": "791407084798dd480ea6468c403fd99f6dde0341",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "AMD64",
@@ -114,7 +114,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 674,
+        "late_deadlines": 675,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-04-sequencer-and-quantizer.json",
@@ -122,11 +122,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 81100,
+          "max": 214300,
           "median": 12200,
           "min": 9800,
-          "p99": 39600,
-          "p99_9": 81100
+          "p99": 44200,
+          "p99_9": 214300
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -141,7 +141,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 294,
+        "late_deadlines": 297,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-04-sequencer-and-quantizer.json",
@@ -149,11 +149,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 109500,
+          "max": 137100,
           "median": 22400,
-          "min": 17500,
-          "p99": 77000,
-          "p99_9": 109500
+          "min": 17300,
+          "p99": 85000,
+          "p99_9": 137100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -168,7 +168,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 116,
+        "late_deadlines": 112,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-04-sequencer-and-quantizer.json",
@@ -176,11 +176,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 134300,
-          "median": 43650,
-          "min": 32300,
-          "p99": 126900,
-          "p99_9": 134300
+          "max": 174100,
+          "median": 44950,
+          "min": 32700,
+          "p99": 167600,
+          "p99_9": 174100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -195,7 +195,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 677,
+        "late_deadlines": 670,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-05-random-melody.json",
@@ -203,11 +203,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 72100,
-          "median": 19800,
+          "max": 99400,
+          "median": 19700,
           "min": 18900,
-          "p99": 52800,
-          "p99_9": 72100
+          "p99": 53500,
+          "p99_9": 99400
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -222,7 +222,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 303,
+        "late_deadlines": 296,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-05-random-melody.json",
@@ -230,11 +230,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 114900,
-          "median": 37900,
-          "min": 36200,
-          "p99": 77100,
-          "p99_9": 114900
+          "max": 281300,
+          "median": 38800,
+          "min": 36500,
+          "p99": 159000,
+          "p99_9": 281300
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -249,7 +249,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 116,
+        "late_deadlines": 111,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-05-random-melody.json",
@@ -257,11 +257,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 141100,
-          "median": 74400,
-          "min": 70500,
-          "p99": 139400,
-          "p99_9": 141100
+          "max": 174000,
+          "median": 75300,
+          "min": 71300,
+          "p99": 160300,
+          "p99_9": 174000
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -318,7 +318,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 681,
+        "late_deadlines": 676,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-08-clocked-groove.json",
@@ -326,11 +326,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 66500,
+          "max": 71700,
           "median": 10100,
           "min": 8800,
-          "p99": 35800,
-          "p99_9": 66500
+          "p99": 38600,
+          "p99_9": 71700
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -345,7 +345,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 299,
+        "late_deadlines": 300,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "basics-08-clocked-groove.json",
@@ -353,11 +353,134 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 73900,
-          "median": 18300,
-          "min": 15700,
-          "p99": 49600,
-          "p99_9": 73900
+          "max": 80200,
+          "median": 18900,
+          "min": 16400,
+          "p99": 54100,
+          "p99_9": 80200
+        },
+        "sample_rate": 48000,
+        "seconds": 1,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 188,
+        "cpu_clock": "unsupported",
+        "cpu_ns": null,
+        "faults": 0,
+        "graph": "document",
+        "late_deadlines": 117,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "basics-08-clocked-groove.json",
+        "peak": 0.459803343,
+        "period_ns": 5333333.33,
+        "preempted": null,
+        "render_ns": {
+          "max": 141300,
+          "median": 35000,
+          "min": 29500,
+          "p99": 109500,
+          "p99_9": 141300
+        },
+        "sample_rate": 48000,
+        "seconds": 1,
+        "status": "measured"
+      },
+      {
+        "block_frames": 64,
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "exit_code": 1,
+        "patch": "chaos-01-ember-veil-pad.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 64,
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 128,
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "block_frames": 256,
+        "exit_code": 1,
+        "patch": "chaos-02-wireglass-lead.json",
+        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
+        "status": "unavailable"
+      },
+      {
+        "allocations": 0,
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 750,
+        "cpu_clock": "unsupported",
+        "cpu_ns": null,
+        "faults": 0,
+        "graph": "document",
+        "late_deadlines": 675,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "chaos-03-orbiting-iron-fx.json",
+        "peak": 0.0690217689,
+        "period_ns": 1333333.33,
+        "preempted": null,
+        "render_ns": {
+          "max": 137100,
+          "median": 28200,
+          "min": 26800,
+          "p99": 85600,
+          "p99_9": 137100
+        },
+        "sample_rate": 48000,
+        "seconds": 1,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 128,
+        "block_frames": 128,
+        "blocks": 375,
+        "cpu_clock": "unsupported",
+        "cpu_ns": null,
+        "faults": 0,
+        "graph": "document",
+        "late_deadlines": 300,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "chaos-03-orbiting-iron-fx.json",
+        "peak": 0.0544613451,
+        "period_ns": 2666666.67,
+        "preempted": null,
+        "render_ns": {
+          "max": 251700,
+          "median": 55700,
+          "min": 51900,
+          "p99": 168300,
+          "p99_9": 251700
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -375,139 +498,16 @@
         "late_deadlines": 115,
         "over_100_percent": 0,
         "over_50_percent": 0,
-        "patch": "basics-08-clocked-groove.json",
-        "peak": 0.459803343,
-        "period_ns": 5333333.33,
-        "preempted": null,
-        "render_ns": {
-          "max": 95100,
-          "median": 37050,
-          "min": 29800,
-          "p99": 84200,
-          "p99_9": 95100
-        },
-        "sample_rate": 48000,
-        "seconds": 1,
-        "status": "measured"
-      },
-      {
-        "block_frames": 64,
-        "exit_code": 1,
-        "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "block_frames": 128,
-        "exit_code": 1,
-        "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "block_frames": 256,
-        "exit_code": 1,
-        "patch": "chaos-01-ember-veil-pad.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "block_frames": 64,
-        "exit_code": 1,
-        "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "block_frames": 128,
-        "exit_code": 1,
-        "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "block_frames": 256,
-        "exit_code": 1,
-        "patch": "chaos-02-wireglass-lead.json",
-        "reason": "process exit 1: wirescape_soak: graph setup/render failed",
-        "status": "unavailable"
-      },
-      {
-        "allocations": 0,
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 750,
-        "cpu_clock": "unsupported",
-        "cpu_ns": null,
-        "faults": 0,
-        "graph": "document",
-        "late_deadlines": 679,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "chaos-03-orbiting-iron-fx.json",
-        "peak": 0.0690217689,
-        "period_ns": 1333333.33,
-        "preempted": null,
-        "render_ns": {
-          "max": 94000,
-          "median": 28200,
-          "min": 27100,
-          "p99": 63400,
-          "p99_9": 94000
-        },
-        "sample_rate": 48000,
-        "seconds": 1,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 128,
-        "block_frames": 128,
-        "blocks": 375,
-        "cpu_clock": "unsupported",
-        "cpu_ns": null,
-        "faults": 0,
-        "graph": "document",
-        "late_deadlines": 306,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "chaos-03-orbiting-iron-fx.json",
-        "peak": 0.0544613451,
-        "period_ns": 2666666.67,
-        "preempted": null,
-        "render_ns": {
-          "max": 121200,
-          "median": 55400,
-          "min": 51600,
-          "p99": 104300,
-          "p99_9": 121200
-        },
-        "sample_rate": 48000,
-        "seconds": 1,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 188,
-        "cpu_clock": "unsupported",
-        "cpu_ns": null,
-        "faults": 0,
-        "graph": "document",
-        "late_deadlines": 121,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
         "patch": "chaos-03-orbiting-iron-fx.json",
         "peak": 0.0516897477,
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 191300,
-          "median": 108850,
-          "min": 104400,
-          "p99": 166000,
-          "p99_9": 191300
+          "max": 236800,
+          "median": 110300,
+          "min": 103900,
+          "p99": 227100,
+          "p99_9": 236800
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -522,7 +522,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 674,
+        "late_deadlines": 675,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "chaos-04-radio-static-fx.json",
@@ -530,11 +530,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 87100,
-          "median": 25600,
-          "min": 24100,
-          "p99": 68700,
-          "p99_9": 87100
+          "max": 113700,
+          "median": 25500,
+          "min": 24200,
+          "p99": 65100,
+          "p99_9": 113700
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -557,11 +557,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 150200,
-          "median": 50400,
-          "min": 47300,
-          "p99": 121600,
-          "p99_9": 150200
+          "max": 138400,
+          "median": 50500,
+          "min": 47100,
+          "p99": 114700,
+          "p99_9": 138400
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -576,7 +576,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 111,
+        "late_deadlines": 116,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "chaos-04-radio-static-fx.json",
@@ -584,11 +584,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 218200,
-          "median": 99600,
-          "min": 93000,
-          "p99": 204500,
-          "p99_9": 218200
+          "max": 287000,
+          "median": 99400,
+          "min": 94200,
+          "p99": 232900,
+          "p99_9": 287000
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -666,7 +666,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 676,
+        "late_deadlines": 671,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "quad-vca-02-four-gate-mix.json",
@@ -674,11 +674,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 49600,
+          "max": 49100,
           "median": 7100,
           "min": 6500,
-          "p99": 31800,
-          "p99_9": 49600
+          "p99": 35300,
+          "p99_9": 49100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -693,7 +693,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 298,
+        "late_deadlines": 307,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "quad-vca-02-four-gate-mix.json",
@@ -701,11 +701,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 72400,
-          "median": 13100,
+          "max": 51300,
+          "median": 13000,
           "min": 12100,
-          "p99": 48300,
-          "p99_9": 72400
+          "p99": 44800,
+          "p99_9": 51300
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -720,7 +720,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 115,
+        "late_deadlines": 102,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "quad-vca-02-four-gate-mix.json",
@@ -728,11 +728,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 133400,
-          "median": 25650,
+          "max": 126900,
+          "median": 28700,
           "min": 23200,
-          "p99": 111800,
-          "p99_9": 133400
+          "p99": 91000,
+          "p99_9": 126900
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -747,7 +747,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 673,
+        "late_deadlines": 675,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-01-hollow-chapel.json",
@@ -755,11 +755,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 172700,
-          "median": 43000,
-          "min": 41900,
-          "p99": 91200,
-          "p99_9": 172700
+          "max": 165300,
+          "median": 42900,
+          "min": 41800,
+          "p99": 108500,
+          "p99_9": 165300
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -774,7 +774,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 296,
+        "late_deadlines": 301,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-01-hollow-chapel.json",
@@ -782,11 +782,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 340800,
-          "median": 84700,
-          "min": 82200,
-          "p99": 208000,
-          "p99_9": 340800
+          "max": 211500,
+          "median": 84300,
+          "min": 82500,
+          "p99": 182900,
+          "p99_9": 211500
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -809,11 +809,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 307000,
-          "median": 166300,
-          "min": 161500,
-          "p99": 292300,
-          "p99_9": 307000
+          "max": 346600,
+          "median": 167450,
+          "min": 162200,
+          "p99": 318700,
+          "p99_9": 346600
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -836,11 +836,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 143100,
-          "median": 35000,
-          "min": 33800,
-          "p99": 85000,
-          "p99_9": 143100
+          "max": 133100,
+          "median": 35200,
+          "min": 33900,
+          "p99": 97300,
+          "p99_9": 133100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -855,7 +855,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 299,
+        "late_deadlines": 301,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-02-breathing-walls.json",
@@ -863,11 +863,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 180700,
-          "median": 68600,
-          "min": 65900,
-          "p99": 137000,
-          "p99_9": 180700
+          "max": 189400,
+          "median": 68700,
+          "min": 66600,
+          "p99": 167200,
+          "p99_9": 189400
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -882,19 +882,19 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 117,
+        "late_deadlines": 115,
         "over_100_percent": 0,
-        "over_50_percent": 0,
+        "over_50_percent": 1,
         "patch": "scene-02-breathing-walls.json",
         "peak": 0.359457165,
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 251600,
-          "median": 133700,
-          "min": 130200,
-          "p99": 212800,
-          "p99_9": 251600
+          "max": 3970800,
+          "median": 135000,
+          "min": 130700,
+          "p99": 231600,
+          "p99_9": 3970800
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -951,7 +951,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 671,
+        "late_deadlines": 675,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-05-glass-cathedrals.json",
@@ -959,11 +959,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 141100,
-          "median": 57600,
-          "min": 55400,
-          "p99": 109700,
-          "p99_9": 141100
+          "max": 533900,
+          "median": 57300,
+          "min": 55300,
+          "p99": 128200,
+          "p99_9": 533900
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -978,7 +978,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 298,
+        "late_deadlines": 302,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-05-glass-cathedrals.json",
@@ -986,11 +986,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 189300,
-          "median": 115700,
-          "min": 109300,
-          "p99": 180600,
-          "p99_9": 189300
+          "max": 314400,
+          "median": 117400,
+          "min": 111500,
+          "p99": 205100,
+          "p99_9": 314400
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1005,7 +1005,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 112,
+        "late_deadlines": 113,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-05-glass-cathedrals.json",
@@ -1013,11 +1013,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 348100,
-          "median": 229150,
-          "min": 222200,
-          "p99": 335500,
-          "p99_9": 348100
+          "max": 427100,
+          "median": 230650,
+          "min": 223200,
+          "p99": 380600,
+          "p99_9": 427100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1040,11 +1040,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 114500,
+          "max": 130200,
           "median": 29200,
           "min": 26300,
-          "p99": 75200,
-          "p99_9": 114500
+          "p99": 87900,
+          "p99_9": 130200
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1067,11 +1067,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 149400,
-          "median": 55900,
-          "min": 52300,
-          "p99": 115500,
-          "p99_9": 149400
+          "max": 140100,
+          "median": 56100,
+          "min": 52800,
+          "p99": 133100,
+          "p99_9": 140100
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1086,7 +1086,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 117,
+        "late_deadlines": 111,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-06-dust-reactor.json",
@@ -1094,11 +1094,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 183600,
-          "median": 106550,
-          "min": 102100,
-          "p99": 177300,
-          "p99_9": 183600
+          "max": 211500,
+          "median": 108350,
+          "min": 102600,
+          "p99": 205000,
+          "p99_9": 211500
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1113,7 +1113,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 674,
+        "late_deadlines": 678,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-07-witching-hour.json",
@@ -1121,11 +1121,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 129300,
-          "median": 24700,
-          "min": 21400,
-          "p99": 71700,
-          "p99_9": 129300
+          "max": 134900,
+          "median": 24500,
+          "min": 21800,
+          "p99": 76200,
+          "p99_9": 134900
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1140,7 +1140,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 304,
+        "late_deadlines": 297,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-07-witching-hour.json",
@@ -1148,11 +1148,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 170500,
-          "median": 46200,
+          "max": 205200,
+          "median": 46800,
           "min": 44000,
-          "p99": 103300,
-          "p99_9": 170500
+          "p99": 128200,
+          "p99_9": 205200
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1167,7 +1167,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 115,
+        "late_deadlines": 110,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-07-witching-hour.json",
@@ -1175,11 +1175,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 184900,
-          "median": 88300,
-          "min": 84700,
-          "p99": 179800,
-          "p99_9": 184900
+          "max": 217000,
+          "median": 90800,
+          "min": 85100,
+          "p99": 207400,
+          "p99_9": 217000
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1194,7 +1194,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 676,
+        "late_deadlines": 672,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-08-neon-elegy.json",
@@ -1202,11 +1202,11 @@
         "period_ns": 1333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 134000,
-          "median": 27100,
-          "min": 25300,
-          "p99": 58300,
-          "p99_9": 134000
+          "max": 141300,
+          "median": 27600,
+          "min": 25400,
+          "p99": 94100,
+          "p99_9": 141300
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1229,11 +1229,11 @@
         "period_ns": 2666666.67,
         "preempted": null,
         "render_ns": {
-          "max": 118000,
-          "median": 51900,
-          "min": 48900,
-          "p99": 101700,
-          "p99_9": 118000
+          "max": 220800,
+          "median": 52400,
+          "min": 49600,
+          "p99": 167900,
+          "p99_9": 220800
         },
         "sample_rate": 48000,
         "seconds": 1,
@@ -1248,7 +1248,7 @@
         "cpu_ns": null,
         "faults": 0,
         "graph": "document",
-        "late_deadlines": 110,
+        "late_deadlines": 115,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "scene-08-neon-elegy.json",
@@ -1256,11 +1256,11 @@
         "period_ns": 5333333.33,
         "preempted": null,
         "render_ns": {
-          "max": 177400,
-          "median": 103050,
-          "min": 98000,
-          "p99": 173800,
-          "p99_9": 177400
+          "max": 212200,
+          "median": 103400,
+          "min": 98600,
+          "p99": 186900,
+          "p99_9": 212200
         },
         "sample_rate": 48000,
         "seconds": 1,
