@@ -657,38 +657,59 @@ def envelope_sections(renderer, meta, out, quick):
           "target_attack_s": attack, "target_release_s": release})
 
 
-def bundled_section(renderer, meta, out, quick):
+def bundled_section(renderer, meta, out, quick, rates=(44100, 48000, 96000)):
     rows = []
     seconds = 1 if quick else 10
     for path in sorted(PATCHES.glob("*.json")):
-        try:
-            patch = json.loads(path.read_text())
-            keyboard = [m["id"] for m in patch.get("modules", [])
-                        if m.get("module") == "host.keyboard"]
-            events = []
-            for node in keyboard:
-                events.extend([{"frame": 0, "type": "noteOn", "node": node, "key": 60},
-                               {"frame": round(RATE * seconds / 2), "type": "noteOff",
-                                "node": node, "key": 60}])
-            seed = patch.get("settings", {}).get("seed", 42)
-            audio, status = run_wav(renderer, patch, events, seconds, seed=seed)
-            row = {"patch": path.name, "seconds": seconds}
-            row.update(dict(status="measured", **patch_metrics(audio),
-                            counters=status["counters"]) if audio is not None else status)
-            rows.append(row)
-        except (ValueError, OSError, KeyError, TypeError) as e:
-            rows.append({"patch": path.name, "status": "unavailable", "reason": str(e)})
-    save(out, "dsp", "bundled_patches", meta, rows,
-         {"clicks": "1 ms third-order 2 kHz high-pass residual RMS versus surrounding 50 ms (2 ms guard); threshold 3x; clustered events carry time, size, ratio",
-          "silence": "contiguous 20ms windows with RMS under 1e-5 FS"})
+        for rate in rates:
+            entry = {"patch": path.name, "seconds": seconds,
+                     "sample_rate_hz": rate}
+            try:
+                patch = json.loads(path.read_text())
+                members = [m.get("module") for m in patch.get("modules", [])]
+                if "ports.macro_oscillator" in members and rate != 48000:
+                    rows.append(dict(entry, status="unsupported_rate",
+                                     reason="Macro Oscillator prepare() requires 48000 Hz"))
+                    continue
+                keyboard = [m["id"] for m in patch.get("modules", [])
+                            if m.get("module") == "host.keyboard"]
+                events = []
+                for node in keyboard:
+                    events.extend([{"frame": 0, "type": "noteOn", "node": node, "key": 60},
+                                   {"frame": round(rate * seconds / 2),
+                                    "type": "noteOff", "node": node, "key": 60}])
+                seed = patch.get("settings", {}).get("seed", 42)
+                audio, status = run_wav(renderer, patch, events, seconds,
+                                        seed=seed, rate=rate)
+                record = (dict(status="measured", **patch_metrics(audio, rate),
+                               counters=status["counters"])
+                          if audio is not None else status)
+                rows.append(dict(entry, **record))
+            except (ValueError, OSError, KeyError, TypeError) as exc:
+                rows.append(dict(entry, status="fixture_error",
+                                 reason="%s: %s" % (type(exc).__name__, exc)))
+    save(out, "dsp", "bundled_patches", meta, rows, {
+        "sample_rates_hz": list(rates),
+        "clicks": "1 ms high-pass residual RMS vs surrounding 50 ms with 2 ms guard; event time and amplitude",
+        "silence": "contiguous 20ms windows with RMS under 1e-5 FS"})
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--quick", action="store_true", help="short measurement windows")
+    ap.add_argument("--sample-rates", default="44100,48000,96000",
+                    help="DSP sample rates as comma-separated Hz values")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build/native")
     ap.add_argument("--out-dir", type=Path, default=ROOT / "facts")
     args = ap.parse_args(argv)
+    try:
+        rates = tuple(int(t.strip()) for t in args.sample_rates.split(","))
+        if not rates or any(rate < 8000 or rate > 192000 for rate in rates):
+            raise ValueError("unsupported sample-rate range")
+        if len(set(rates)) != len(rates):
+            raise ValueError("sample rates must be unique")
+    except ValueError as exc:
+        ap.error("--sample-rates: " + str(exc))
     build = args.build_dir.resolve()
     required = ("abi2_module_cpu_probe", "abi2_benchmark", "wirescape_soak",
                 "wirescape_render", "wirescape-engine")
@@ -698,6 +719,7 @@ def main(argv=None):
         ap.error("Release headless binaries not found: " + ", ".join(missing) +
                  "; run python tools/dev.py build --headless")
     meta = provenance(build)
+    meta["dsp_sample_rates_hz"] = list(rates)
     mods = modules()
     desc = descriptors()
     out = args.out_dir.resolve()
@@ -705,11 +727,11 @@ def main(argv=None):
     probes["build_dir"] = build
     probes["modules_dir"] = binaries["abi2_benchmark"].parent
     cpu_sections(probes, mods, meta, out, args.quick)
-    oscillator_sections(binaries["wirescape_render"], desc, meta, out, args.quick)
-    filter_sections(binaries["wirescape_render"], desc, meta, out, args.quick)
-    module_sections(binaries["wirescape_render"], desc, mods, meta, out, args.quick)
+    oscillator_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
+    filter_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
+    module_sections(binaries["wirescape_render"], desc, mods, meta, out, args.quick, rates)
     envelope_sections(binaries["wirescape_render"], meta, out, args.quick)
-    bundled_section(binaries["wirescape_render"], meta, out, args.quick)
+    bundled_section(binaries["wirescape_render"], meta, out, args.quick, rates)
     print("Device-free fact pack complete: " + str(out))
     return 0
 
