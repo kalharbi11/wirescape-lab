@@ -142,8 +142,14 @@ def parsed_command(command, prefix=None, timeout=120):
             return dict(status="measured", **json.loads(lines[0]))
         return dict(status="measured", **json.loads(raw))
     except (ValueError, TypeError, json.JSONDecodeError) as e:
+        reason = str(e)
+        # Preserve the probe's concrete failure message in published, sanitized facts;
+        # the separate raw stderr is intentionally stripped by ci_stage_facts.clean().
+        diagnostic = (result.get("stderr") or result.get("error") or "").strip().splitlines()
+        if reason == "process exit nonzero" and diagnostic:
+            reason = f"process exit {result.get('exit_code')}: {diagnostic[-1].strip()[:240]}"
         return {"status": "unavailable", "exit_code": result.get("exit_code"),
-                "reason": str(e), "stderr": result.get("stderr", result.get("error", ""))}
+                "reason": reason, "stderr": result.get("stderr", result.get("error", ""))}
 
 
 def markdown_rows(rows):
