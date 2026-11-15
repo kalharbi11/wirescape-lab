@@ -440,6 +440,10 @@ def cpu_sections(probes, mods, meta, out, quick, soak_seconds=None):
             else:
                 row["status"] = "unavailable"
                 row["reason"] = "normal or denormal probe failed"
+                if ident == "essentials.chord":
+                    row["reason"] += (
+                        "; Chord requires four config bytes, but the direct probe"
+                        " passes zero (native/modules2/chord/dsp.h:54-56)")
             denorm.append(row)
     save(out, "perf", "denormal_spikes", meta, denorm,
          {"input": "1e-30 constant on first and second signal inputs",
