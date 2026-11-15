@@ -68,16 +68,15 @@ things are done today.
 - The point of the complex modules isn't those modules themselves: it's to work out their **categories**, so
   that when similar new modules are added, most of the infrastructure is already there.
 
-## GUTTUR (planned module; plan for compatibility now)
-- I want a version of my GUTTUR throat voice in Wirescape: the full throat voice, stripped of the app UI,
-  the chant sequencer, gestures and percussion. A multi-voice synth where I can modulate the voices
-  independently, based on the throat instrument.
-- An agent extracted the engine and reviewed how it could fit: `docs/context/future_modules/guttur/`.
-  (This replaces the GUTTR beta 0.4 Surge-based version I sent earlier; ignore that one.)
-- It's a sketch and can be built completely differently if that's better or more compatible.
+## GUTTUR (module in the works)
+- I've made a headless C++17 version of GUTTUR with a Wirescape ABI 2 adapter: the full throat voice
+  (LF glottal source, 34-section tract, throat groups, room), no chant sequencer, no UI. It still needs
+  more testing by me; treat it as a module in the works: `docs/context/future_modules/guttur/STATUS.md`.
+  (Everything earlier about GUTTR/GUTTUR is replaced by this.)
+- I want a multi-voice synth where I can modulate the voices independently, based on the throat instrument.
 - The point isn't GUTTUR itself: I want the infrastructure for its kind of module (model-based voices with
   large tables, voices inside voices, groups, shared space, many per-voice controls) to be there, so similar
-  modules are easy later.
+  modules are easy later. GUTTUR is a good test of that.
 
 ## Stock modules that add capabilities
 - That's how the app has been growing: many stock modules brought a new capability with them (Chord →
