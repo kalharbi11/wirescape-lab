@@ -41,12 +41,13 @@
     "filters": {
       "source_path": "dsp/ci-linux-arm64/filters.json",
       "source_sha256": "9532fc5323e984d4b4f313ffa38f592fe118dc68a16dc0a8321069da2ef1dc6c",
-      "measured_rows": 60,
+      "measured_rows": 54,
       "measured_by_sample_rate_hz": {
-        "44100": 20,
-        "48000": 20,
-        "96000": 20
-      }
+        "44100": 18,
+        "48000": 18,
+        "96000": 18
+      },
+      "excluded_non_impulse_tail_rows": 6
     },
     "bundled_patches": {
       "source_path": "dsp/ci-linux-arm64/bundled_patches.json",
@@ -107,7 +108,7 @@
   },
   "notes": {
     "source_rows": "The raw/staged measured entries are identical by parsed JSON. This summary preserves numeric values and archival content hashes, not the full underlying per-row result arrays.",
-    "filter_error_reference": "Cutoff and resonance ranges use frequency_response rows; pulse-tail rows excluded.",
+    "filter_error_reference": "Cutoff and resonance ranges use 54 frequency_response rows; six multi-sample clock-pulse tail rows are excluded.",
     "sweep": "Source head produced zero measured min/max sweeps due renderer 128-event cap; subsequent bench-only fixes require new CI measurement.",
     "pulse": "Clock excitation lasted 4 or 8 frames; zero RMS after 2s is not a validated one-sample-impulse result.",
     "denormal": "Constant tiny-input probe does not measure 1s driven plus 10s zero-input block decay."
