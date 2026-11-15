@@ -80,7 +80,7 @@ def check_loads(executable, rows, patches_dir, sample_rate):
                         else:
                             raise RuntimeError("matched loadGraph reply not received")
             except (OSError, ValueError, TypeError, RuntimeError, TimeoutError,
-                    UnicodeError, json.JSONDecodeError) as exc:
+                    UnicodeError, queue.Empty, json.JSONDecodeError) as exc:
                 for row in group:
                     if "sidecar_result" not in row:
                         row.update(sidecar_result="unavailable",
