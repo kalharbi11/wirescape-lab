@@ -114,6 +114,7 @@ jobs:
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
         if: github.event_name == 'pull_request'
         run: |
+          set +e
           set -uo pipefail
           python head/bench/golden/compare.py \
             "$RUNNER_TEMP/golden/before.json" "$RUNNER_TEMP/golden/after.json" \
@@ -124,6 +125,7 @@ jobs:
             --json-out "$RUNNER_TEMP/golden/primary.json" \
             > "$RUNNER_TEMP/golden/primary.txt" 2>&1
           result=$?
+          set -e
           cat "$RUNNER_TEMP/golden/primary.txt"
           {
             echo "### Primary: exact base/head comparison on same runner"
@@ -165,7 +167,24 @@ jobs:
       - name: Publish reference candidate with real SHA and CPU model
         if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
         run: |
-          python -c 'import json,os; d=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"golden","after.json"))); print("REFERENCE_CANDIDATE",d["machine"],d["commit"],d["cpu"],len(d["patches"])); assert len(d["commit"])==40 and len(d["patches"])>=24'
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          source=Path(os.environ["RUNNER_TEMP"])/"golden"/"after.json"
+          d=json.loads(source.read_text(encoding="utf-8"))
+          if len(d["commit"]) != 40 or len(d["patches"]) < 24:
+              raise SystemExit("invalid reference SHA or bundled patch inventory")
+          print("REFERENCE_CANDIDATE",d["machine"],d["commit"],d["cpu"],len(d["patches"]))
+          compact=json.dumps(d,separators=(",",":"),allow_nan=False)
+          for i in range(0,len(compact),1400):
+              print(f"GOLDEN_CHUNK {i//1400:04d} {compact[i:i+1400]}",flush=True)
+          print("GOLDEN_END",flush=True)
+          if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+              target=source.parent/"reference-candidate"/"facts"/"dsp"/d["machine"]/"golden.json"
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(json.dumps(d,indent=2,allow_nan=False)+"\n",encoding="utf-8")
+          PY
       - name: Upload machine JSON and numeric diagnostics (no ordinary WAVs)
         if: always()
         uses: actions/upload-artifact@v4
@@ -174,6 +193,14 @@ jobs:
           path: |
             ${{ runner.temp }}/golden/*.json
             ${{ runner.temp }}/golden/*.txt
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Upload regenerated architecture reference candidate (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-reference-candidate-${{ matrix.name }}
+          path: ${{ runner.temp }}/golden/reference-candidate/facts
           retention-days: 7
           if-no-files-found: warn
       - name: Upload only differing before/after WAVs, short retention
