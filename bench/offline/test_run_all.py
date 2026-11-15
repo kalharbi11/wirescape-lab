@@ -36,6 +36,14 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(events[-1]["frame"], 47999)
         self.assertEqual(events[-1]["value"], 20000)
         self.assertTrue(all(x["frame"] < y["frame"] for x, y in zip(events, events[1:])))
+        slower = linear_sweep_events("cutoff", 20, 20000, 48000, 8)
+        self.assertEqual(len(events), 121)
+        self.assertEqual(len(slower), 121)
+        self.assertLessEqual(len(slower), 128)
+        self.assertEqual(slower[-1]["frame"], 8 * 48000 - 1)
+        self.assertEqual([e["value"] for e in slower], [e["value"] for e in events])
+        with self.assertRaisesRegex(ValueError, "renderer event cap"):
+            linear_sweep_events("cutoff", 20, 20000, 48000, 8, control_points=129)
         descriptor = descriptors()["essentials.chaos_lite"]
         patch, reason = steady_module_patch("essentials.chaos_lite", descriptor)
         self.assertIsNone(reason)
