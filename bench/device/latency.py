@@ -96,11 +96,12 @@ def synthetic_capture(rate: int, block: int, noise: float = 0.001,
     return audio, first, delay
 
 
-def measure(audio, rate: int, expected_first_frame: float):
+def measure(audio, rate: int, expected_first_frame: float, phase_known: bool = False):
     """Quadrature matched filtering; detect clicks separately near each expected edge.
 
-    The two quadratures tolerate unknown oscillator phase and cable polarity.
-    The expected anchor is the host-clock start command, not an inferred peak.
+    Live captures use both quadratures for unknown oscillator phase and polarity.
+    Synthetic captures use the exact known-phase reference for sample-level
+    accuracy. The expected anchor is the clock command, not an inferred peak.
     """
     audio = np.asarray(audio, dtype=np.float64)
     if audio.ndim == 1:
@@ -124,7 +125,8 @@ def measure(audio, rate: int, expected_first_frame: float):
             continue
         sin_corr = fftconvolve(signal, s[::-1], mode="valid")
         cos_corr = fftconvolve(signal, c[::-1], mode="valid")
-        magnitude = np.hypot(sin_corr, cos_corr)
+        magnitude = (np.abs(sin_corr) if phase_known
+                     else np.hypot(sin_corr, cos_corr))
         arrivals = []
         for k in range(CLICKS):
             expected = expected_first_frame + interval * k
@@ -136,7 +138,9 @@ def measure(audio, rate: int, expected_first_frame: float):
             local_energy = float(np.dot(signal[pos:pos + len(s)],
                                         signal[pos:pos + len(s)]))
             score = float(magnitude[pos]) / max(math.sqrt(energy * local_energy), 1e-15)
-            if score >= 0.35:
+            # Require absolute click energy as well as a normalized shape
+            # match: FFT roundoff in a silent window can otherwise score 1.0.
+            if score >= 0.35 and magnitude[pos] >= 0.03 * energy:
                 arrivals.append({"click": k, "start_frame": pos,
                                  "delay_frames": round(pos - expected, 4),
                                  "match": round(score, 4)})
@@ -305,7 +309,8 @@ def run_one(args, block, sha, date):
         else:
             audio, meta = physical_capture(args, block, folder)
         details.update(meta)
-        results = measure(audio, meta["rate_hz"], meta["expected_first_frame"])
+        results = measure(audio, meta["rate_hz"], meta["expected_first_frame"],
+                          phase_known=args.dry_run)
         details["measurement"] = results
         details["difference_from_2x_buffer_frames"] = (
             results["frames"]["median"] - 2 * meta["buffer_frames"])
