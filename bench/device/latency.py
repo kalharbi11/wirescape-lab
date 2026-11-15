@@ -209,6 +209,11 @@ def observed_audio(log, initial):
 
 def physical_capture(args, block, folder):
     """Return captured frames and host-command timing; must never run in dry mode."""
+    # Guard the helper itself, not merely the CLI entry point. Reject before
+    # importing backends, opening files, spawning the engine or opening devices.
+    if (getattr(args, "dry_run", False) or not getattr(args, "confirm_audio", False)
+            or not getattr(args, "device", None) or not getattr(args, "input_device", None)):
+        raise PermissionError("physical_capture requires --confirm-audio and both device IDs")
     from record import Recorder
     import soundfile as sf
 
