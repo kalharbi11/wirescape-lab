@@ -172,7 +172,7 @@ def markdown_rows(rows):
             return "—"
         if isinstance(value, float):
             return f"{value:.8g}" if math.isfinite(value) else "—"
-        return str(value).replace("|", "\\|").replace("\\r", "").replace("\\n", "\\\\n")
+        return str(value).replace("|", "\\|").replace("\r", "").replace("\n", "\\n")
     lines = ["| Index | " + " | ".join(columns) + " |",
              "|---:|" + "|".join("---:" for _ in columns) + "|"]
     for index, values in enumerate(observed, 1):
