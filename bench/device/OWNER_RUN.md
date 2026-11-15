@@ -95,6 +95,59 @@ Optional: use `--device <engine-device-id> --rate 48000 --block 256` to select t
 
 `quick` and `full` run 900 and 3600 *planned* seconds of scenario steps (startup and cleanup extra). `all` executes all four patch-family scenarios, the all-parameter extreme set, and a 600-second endurance scenario. A 50 ms ramp at 200 updates/s, randomized parameter walks, topology edits, patch switches, panic, note storms, stray note-offs and buffer changes are all scripted. The engine's native parameter bounds in the hello catalogue determine extrema; the pure simulator cannot validate those bounds. External MIDI actions require explicit `--confirm-midi` and a visible port.
 
+## Electrical round-trip latency (owner with physical loopback cable)
+
+This probe measures **40 short clicks**, one every 500 ms for 20 seconds,
+through the real sidecar output into a physically connected audio input.
+Do not use a microphone, a monitor sink, or the Windows process-loopback
+helper: this test needs an **output-to-input cable**, an explicit engine output
+device ID and a PortAudio input device index/name. The capture uses the same
+input Recorder as run.py; the engine uses --confirm-audio and no MIDI.
+Start with speaker/amp level very low and raise it only as needed. The patch is
+**muted until armed**; each 1 kHz click is capped at **0.20 full-scale peak
+(-14.0 dBFS peak)** and lasts roughly 8 ms. Turn monitoring off to prevent
+feedback; connect only the intended interface output to its input.
+
+List input device indices (devices off; query only) using:
+    python -c "import sounddevice as sd; print(sd.query_devices())"
+
+Obtain the actual **engine** output ID from the owner/engine's audio-device
+list; it is not necessarily the PortAudio input index. Verify the cable and
+input levels.
+
+Safe offline rehearsal (generated noisy clicks with exact known delay,
+**no engine, audio device, capture backend or MIDI**):
+    python bench/device/latency.py --dry-run --sweep --machine synthetic
+
+For a physical single-buffer run from the lab root on the owner machine:
+    python bench/device/latency.py --confirm-audio --device <engine-output-id> --input-device <input-id> --rate 48000 --block 128 --machine pi5
+
+For the requested 64/128/256 sweep:
+    python bench/device/latency.py --confirm-audio --device <engine-output-id> --input-device <input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-latency
+
+Use --machine windows-laptop on Windows. --engine <path> selects the built
+sidecar when auto-discovery fails. No real run starts without --confirm-audio
+and both device selections. --dry-run rejects authorization/device flags.
+
+Each block gets a distinct results/<machine>/<date>-<sha7>-latency-<block>/
+directory with manifest.json, latency.json, report.md and, for real
+runs, events.ndjson, engine-stderr.log and capture.flac. Measurements
+show median, min, max and population standard deviation in **frames and ms**,
+observed engine rate/buffer, selected input channel RMS and median minus
+2 × buffer. The measurement **refuses** when fewer than 30/40 clicks match
+or the captured level is below -40 dBFS, recording the reason instead of
+publishing a latency statistic. A synthetic run additionally stores its known
+injected delay. Failed sweep blocks do not stop the remaining blocks.
+
+**Timing scope:** the clock is armed through a host-side protocol command and
+capture is aligned to PortAudio's first ADC timestamp. Since there is no
+engine DAC callback timestamp in this harness, the result is a
+**command-to-ADC loopback estimate**, not a sample-accurate calibrated
+DAC-to-ADC figure. report.md notes the send/ack anchor uncertainty.
+Review this limitation when comparing the number to two engine buffers.
+Review recordings and stderr for private data before upload; neither belongs
+in git. A complete folder can be archived with bench/device/pack.py.
+
 ## Reports, offline references and transfer
 
 Results are generated under `bench/device/results/<machine>/<YYYY-MM-DD>-<sha7>/` with `manifest.json`, monotonic protocol `events.ndjson`, `analysis.json`, `report.md`, `offline_scripts/`, and optional `capture.flac` and `waveform.png` (PNG limited to 200 kB). Provide `--render <path-to-wirescape_render>` to render exported `--script` files into audio references. Such scripts reproduce **only parameter and note-only spans**; real MIDI, graph edits, and hardware jitter are excluded from exact offline comparison. Use aligned differences only when a reference is actually rendered and available.
