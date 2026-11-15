@@ -28,5 +28,9 @@ internal control clock; 2.5 ms look-ahead limiter reported as latency; versioned
 - Its 16-throat worst block on a desktop x86 container was above the 50 %-of-period target for heavy modules;
   no Pi numbers yet.
 
-**Open owner decisions:** licence; module ID (the package proposes `essentials.guttur`; IDs can't change once
-patches use them, and the owner treats GUTTUR as a special module, not a stock one).
+**Module ID (owner, 2026-11-15): `guttr`**, not `essentials.guttur` as the package proposes. GUTTR is a special
+module, not a stock one, so it doesn't go under `essentials`. (Every current ID has a namespace prefix such as
+`essentials.`, `ports.`, `sound.`, `osc.`; whether special modules get their own namespace is part of the ID
+scheme the rebuild may revisit.)
+
+**Open owner decision:** licence.
