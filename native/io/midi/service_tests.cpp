@@ -2,6 +2,7 @@
 #include "midi_service.h"
 #include "../../sdk/examples/test_support.h"
 #include "../../tests2/allocation_watch.h"
+#include <algorithm>
 #include <map>
 using namespace wirescape::midi;
 struct Fake : Backend {
