@@ -1,6 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — Fable takes over (Keel)
+Owner: Fable leads the lab and decides its own process; GPT builder queue paused (open #36 stays parked).
+BRIEF updated: audit and plan first, then stop for the owner; phases are goals, order is Fable's.
+Signed: Keel, 2026-11-15
+
 ## 2026-11-15 — handover to Fable (Keel)
 Brief written (`docs/context/BRIEF.md`); owner accepted CONSTRAINTS as is; vision statement added to
 OWNER_WANTS. GUTTR: GPL-3.0-only, ID `guttr`, package in `future_modules/guttur/package/`. Open: lab #36

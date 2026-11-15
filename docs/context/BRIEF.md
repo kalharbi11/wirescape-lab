@@ -39,12 +39,17 @@ opinions.
   will use it.
 
 ## How I'd like the work to go
-- Start with an audit from the facts and a proposal, and bring the big decisions to me before building.
-- My usage is limited, so work in phases with a clear checkpoint after each, and keep `docs/context/LOG.md`
-  current so a new session can pick up. A suggested order (change it if the evidence says so): audit and
-  proposal → engine core → live editing and sound → module format, SDK, protocols, tests and the directions above.
-- Mechanical work can go to the GPT builders (AGENTS.md) or cheaper subagents.
-- Not in scope: agent workflow and process; I'll research that separately.
+- **You lead.** The lab's earlier agent workflow is paused; how the work is organised, ordered and checked
+  is up to you. You may change the lab's AGENTS.md and CLAUDE.md for your own process.
+- **Start with an audit and a plan, then stop.** Audit the app from the facts, write your plan, and bring it
+  to me with the big decisions before building anything.
+- **After that, the phases and steps are yours.** What I listed before (engine core, live editing and sound,
+  module format/SDK/protocols/tests, the directions above) are goals, not an order.
+- **Usage:** over the next couple of days I have roughly 130 % of a week's usage for you, in three blocks
+  (about 30 % now, then about 50 % after my reset in about 17 hours, then about 50 % after a second reset).
+  The breaks between blocks are where I'll check in and adjust the plan with you. Plan so each block ends at
+  a clean state, and keep `docs/context/LOG.md` current so a new session can pick up.
+- Not in scope: researching agent workflow for the main project; I'll do that separately.
 
 ## Still arriving
 The Pi 5 60-minute run, the Windows 15-minute run and the cross-tool comparison runs land in `facts/device/`

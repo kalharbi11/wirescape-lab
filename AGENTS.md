@@ -2,7 +2,10 @@
 # AGENTS.md: rules for every agent in the lab
 
 This repo is a lab copy of Wirescape (see README). It has no tiers, board or merge gate.
-Work arrives as GitHub issues; results leave as pull requests.
+
+**Status (owner, 2026-11-15): Fable leads the lab and decides how work is done.** The GPT builder queue
+below is paused: builders don't run unless the owner starts them, and Fable may ask the owner for that.
+Fable may change this file and CLAUDE.md to suit its own process. The engineering rules below still apply.
 
 ## Who's who
 | Name | Family | Does |
