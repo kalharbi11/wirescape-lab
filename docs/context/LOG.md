@@ -1,6 +1,23 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — builder PRs merged, next issues queued, API v3 design note (Fable)
+**Done:** reviewed (subagents) and merged #45 speaker check, #46 Windows facts collection, #47 golden
+renders (24 of 24 bundled patches, references for Linux x64, ARM64 and Windows). Filed #51 (sound metrics),
+#52 (instruction-count gate), #53 (Cortex-M7 compile facts), #54 (round-trip latency), #55 (golden gate:
+same-job base/head comparison, the gate Phase 1 will rely on). Wrote
+`proposals/0003-module-api-v3-and-dev-loop.md` (interface changes, drop-in, developer loop levels, module
+tools).
+**State of main:** product tree unchanged. Open PRs: #48 (soak repair, draft), #50 (bench MIDI port names,
+draft). Codex device runs in progress (Windows nearly done, Pi running).
+**Blocked:** no local native build in the cloud container: the build downloads source tarballs from
+`codeload.github.com`, which the session's GitHub proxy refuses for repositories not attached to the
+session; attaching `nlohmann/json` and `celtera/libremidi` was denied by the permission system. Until the
+owner allows that (or the build gets another source for them), engine work is built only by CI.
+**Next:** review #48/#50 and the Codex results PR; revise the phase text in `0002` for the decisions; live
+edit design note (`0004`); Phase 1 once #55 is in and a local build works.
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — decisions recorded, Codex device runbook (Fable)
 **Done:** owner decisions on the plan recorded in `proposals/0002-plan.md` (yes to all, with changes: no
 owner patches for golden renders; fast developer loop and developer mode for modules; developer test
