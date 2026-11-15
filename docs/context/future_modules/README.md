@@ -12,4 +12,4 @@ none of it is a module contract.
 | **Macro Oscillator** (in the product, Plaits port) | Third-party DSP library brought in as a module | `docs/design/ports/PLAITS_STUDY.md`, `native/modules2/macro_oscillator/` |
 
 GUTTUR folder: `STATUS.md` first, then the package's own README, DESIGN, DEVIATIONS and TEST_RESULTS.
-Source code is held back until the owner picks a licence and module ID.
+Source (GPL-3.0-only) is in `guttur/package/`; module ID `guttr`.

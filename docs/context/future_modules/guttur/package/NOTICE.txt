@@ -1,0 +1,24 @@
+GUTTUR C++17 headless synthesizer — provenance
+
+This is a C++ translation and refinement of the owner's GUTTUR JavaScript
+synthesis core (`guttur-worklet.js`), supplied by the owner for this work.
+The earlier Throat v.2 C++ project was consulted as an API/build pattern only;
+its different synthesis algorithms were not copied.
+
+This standalone implementation uses the C++17 standard library only. No Pink
+Trombone, JUCE, third-party FFT, WAVE, VCV Rack, or other DSP library code is
+included. The Wirescape ABI2 adapter uses that project's MIT-licensed SDK
+headers when built inside Wirescape; they are not copied into this archive.
+
+The underlying published acoustic methods include the Liljencrants–Fant
+(LF) model of glottal excitation (Fant, Liljencrants and Lin), Fant's Rd
+parameterization, and the Hawks–Miller bandwidth fit. Use of these published
+methods is not a claim that their authors endorsed or authored this code.
+
+No LICENSE file is supplied. Copyright and licence selection are reserved to
+the owner. Before public distribution or incorporation into the GPL-licensed
+Wirescape application, the owner should choose a compatible licence and add
+the appropriate SPDX headers and complete notices.
+
+Licence chosen by the owner (2026-11-15): GPL-3.0-only, matching Wirescape. SPDX headers were added to the
+source files when the package was placed in the wirescape-lab repository (SHA256SUMS dropped as a result).
