@@ -360,7 +360,13 @@ def cpu_sections(probes, mods, meta, out, quick):
                 cost_rows = [{"status": "unavailable", "stderr": result.get("stderr", ""),
                               "exit_code": result.get("exit_code")}]
     else:
-        cost_rows = [{"status": "unavailable", "reason": "valgrind or cost probe unavailable"}]
+        if not cost:
+            reason = "abi2_cost_probe binary unavailable"
+        elif os.name == "nt":
+            reason = "Valgrind Callgrind is unavailable on Windows"
+        else:
+            reason = "valgrind executable not found"
+        cost_rows = [{"status": "unavailable", "reason": reason}]
     save(out, "perf", "instruction_cost", meta, cost_rows,
          {"unit": "Ir per 256-frame block", "method": "subtract 2 callgrind run summaries"})
     patches = sorted(PATCHES.glob("*.json"))
