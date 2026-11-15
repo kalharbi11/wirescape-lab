@@ -1,6 +1,22 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — audit and plan (Fable)
+**Done:** read the brief, context docs and `facts/` (five subagent digests, key numbers re-checked).
+Wrote `proposals/0001-audit.md` (findings by area, each tied to a fact file) and `proposals/0002-plan.md`
+(12 owner decisions at the top, targets, Phases 0–6, block mapping). Added `facts/code/audit_checks.md`
+(X5 settled: the SDK wrapper resets after prepare). Filed measurement-repair issues #41–#43 for the GPT
+builders (bench only, optional). No product code changed.
+**State of main:** product tree unchanged from the snapshot. Open issues: #36, #41, #42, #43.
+**Device results:** Pi 60-minute, Windows 15-minute and cross-tool runs were not in `facts/` at `7b334e5`;
+the audit's performance section and the plan's targets are provisional until they are.
+**Next (after the owner answers D1–D4):** Phase 0 (harness holes, golden renders, edit-continuity test,
+`facts/BASELINE.md`), then Phase 1 (delete ABI1, engine-native types, layout, transport). Fold new device
+results into the audit first.
+**Open for the owner:** decisions D1–D12 in `proposals/0002-plan.md`; drop saved patches into
+`bench/patches/owner/` for the sound-equality gate; optionally run the GPT builders on #41–#43.
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — Fable takes over (Keel)
 Owner: Fable leads the lab and decides its own process; GPT builder queue paused (open #36 stays parked).
 BRIEF updated: audit and plan first, then stop for the owner; phases are goals, order is Fable's.
