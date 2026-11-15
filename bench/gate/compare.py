@@ -43,14 +43,21 @@ def compare(baseline, current, threshold=3.0):
             failures.append(f"{key}: missing {'baseline' if old is None else 'current'} row")
             continue
         if old.get("status") != "measured":
-            # Previously unavailable cases are explicitly tracked, not synthesized.
+            # Incomplete baseline coverage is a gate failure, even if the
+            # current probe is still unavailable or has newly recovered.
+            # Do not silently treat missing measurements as zero regression.
+            failures.append(f"{key}: baseline {old.get('status')} "
+                            f"({old.get('reason', 'no numeric Ir baseline')})")
             if new.get("status") == "measured":
                 changes.append({"id": key, "percent": None, "status": "newly_measured"})
             else:
                 changes.append({"id": key, "percent": None, "status": "unavailable"})
+                failures.append(f"{key}: current {new.get('status')} "
+                                f"({new.get('reason', 'no numeric Ir measurement')})")
             continue
         if new.get("status") != "measured":
-            failures.append(f"{key}: measurement regressed to {new.get('status')}")
+            failures.append(f"{key}: measurement regressed to {new.get('status')} "
+                            f"({new.get('reason', 'no numeric Ir measurement')})")
             continue
         a, b = old.get("ir_per_block"), new.get("ir_per_block")
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
