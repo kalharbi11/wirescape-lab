@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Owner-gated electrical loopback latency probe. --dry-run never opens a device."""
+"""Owner-gated command-to-ADC diagnostic; not calibrated DAC-to-ADC latency."""
 from __future__ import annotations
 
 import argparse
@@ -101,7 +101,7 @@ def measure(audio, rate: int, expected_first_frame: float, phase_known: bool = F
 
     Live captures use both quadratures for unknown oscillator phase and polarity.
     Synthetic captures use the exact known-phase reference for sample-level
-    accuracy. The expected anchor is the clock command, not an inferred peak.
+    accuracy. The expected anchor is a host command midpoint, not DAC output.
     """
     audio = np.asarray(audio, dtype=np.float64)
     if audio.ndim == 1:
@@ -259,11 +259,30 @@ def physical_capture(args, block, folder):
             "rate_hz": rate, "buffer_frames": reported_block,
             "device_id": after.get("deviceId"),
             "input_device": args.input_device,
-            "anchor_uncertainty_ms": 500 * (ack - sent),
             "expected_first_frame": ((sent + ack) / 2
                                      - recorder.first_sample_monotonic) * rate,
             "capture_file": str(capture_path.name),
-            "anchor": "host-command-midpoint / PortAudio ADC timestamp",
+            "anchor": "host-command-midpoint / estimated PortAudio ADC start",
+            "timing_model": {
+                "measurement_quantity": "uncalibrated_host_command_midpoint_to_input_click_onset",
+                "dac_output_timestamp_available": False,
+                "input_adc_timestamp_available": True,
+                "request_ack_window_ms": (ack - sent) * 1000.0,
+                "request_ack_is_dac_onset_bound": False,
+                "calibrated_host_to_portaudio_clock": False,
+                "calibrated_dac_to_adc_round_trip": False,
+                "absolute_error_bound_ms": None,
+                "host_reference": "Python time.monotonic midpoint of run=1 send/ack; NOT audio onset",
+                "adc_reference": "PortAudio inputBufferAdcTime translated into host time at callback arrival",
+                "clock_relationship": "Input PortAudio currentTime/inputBufferAdcTime share the input stream clock; callback arrival is sampled on Python monotonic; input-output clock offset and drift are not calibrated",
+                "unbounded_error_sources": [
+                    "host scheduling and wire control latency",
+                    "engine event and first output block boundary",
+                    "DAC output path and driver buffering",
+                    "callback scheduling latency during PortAudio-to-monotonic translation",
+                    "input/output sample clock offset or drift"
+                ],
+            },
         }
     finally:
         if recorder and recorder.started is not None:
@@ -293,29 +312,43 @@ def run_one(args, block, sha, date):
         suffix += 1
     folder.mkdir(parents=True)
     details = {
-        "schema": 1, "kind": "round-trip-latency", "machine": args.machine,
+        "schema": 2, "kind": "uncalibrated-command-to-adc-diagnostic", "machine": args.machine,
         "date": date, "commit": sha, "dry_run": args.dry_run,
         "requested_rate_hz": args.rate, "requested_block_frames": block,
         "clicks_expected": CLICKS, "interval_s": INTERVAL_S,
         "duration_s": DURATION_S, "click_peak_dbfs": 20 * math.log10(CLICK_PEAK),
         "completed": False,
+        "issue_54_calibrated_round_trip_requirement_met": False,
     }
     try:
         if args.dry_run:
             audio, first, known = synthetic_capture(args.rate, block)
             meta = {"rate_hz": args.rate, "buffer_frames": block,
                     "expected_first_frame": first, "synthetic_delay_frames": known,
-                    "anchor": "exact synthetic sample index"}
+                    "anchor": "exact synthetic sample index",
+                    "timing_model": {
+                        "measurement_quantity": "synthetic_known_sample_delay",
+                        "calibrated_dac_to_adc_round_trip": False,
+                        "absolute_error_bound_ms": 0.0,
+                        "clock_relationship": "same generated discrete sample timeline",
+                    }}
         else:
             audio, meta = physical_capture(args, block, folder)
         details.update(meta)
         results = measure(audio, meta["rate_hz"], meta["expected_first_frame"],
                           phase_known=args.dry_run)
+        # The command-timed offset is not a hardware round-trip measurement.
+        # Keep the issue-requested 2x-buffer arithmetic strictly diagnostic.
+        results["quantity"] = details["timing_model"]["measurement_quantity"]
+        results["calibrated_round_trip"] = False
         details["measurement"] = results
-        details["difference_from_2x_buffer_frames"] = (
-            results["frames"]["median"] - 2 * meta["buffer_frames"])
-        details["difference_from_2x_buffer_ms"] = (
-            details["difference_from_2x_buffer_frames"] * 1000 / meta["rate_hz"])
+        nominal_delta = results["frames"]["median"] - 2 * meta["buffer_frames"]
+        details["uncalibrated_nominal_comparison"] = {
+            "median_offset_minus_2x_buffer_frames": nominal_delta,
+            "median_offset_minus_2x_buffer_ms": nominal_delta * 1000 / meta["rate_hz"],
+            "meaningful_device_overhead": False,
+            "interpretation": "arithmetic only, different time origins; NOT device or driver overhead",
+        }
         details["completed"] = True
     except (RuntimeError, ValueError, OSError, ImportError, TimeoutError) as exc:
         details["error"] = str(exc)
@@ -332,7 +365,7 @@ def run_one(args, block, sha, date):
         (folder / "manifest.json").write_text(
             json.dumps(summary, indent=2, allow_nan=False) + "\n", encoding="utf-8")
         lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->",
-                 "# Electrical loopback latency", "",
+                 "# Uncalibrated electrical loopback diagnostic", "",
                  f"Mode: {'synthetic (no hardware)' if args.dry_run else 'owner-authorized hardware'}",
                  f"Rate: {details.get('rate_hz', args.rate)} Hz; "
                  f"engine buffer: {details.get('buffer_frames', block)} frames",
@@ -341,21 +374,34 @@ def run_one(args, block, sha, date):
                  ""]
         if details["completed"]:
             r = details["measurement"]
+            lines.append(f"Quantity: {r['quantity']} (NOT calibrated DAC-to-ADC round-trip)")
             for unit in ("frames", "ms"):
                 numbers = r[unit]
-                lines.append(f"{unit}: median={numbers['median']:.3f}, "
+                lines.append(f"{unit} (uncalibrated offset): median={numbers['median']:.3f}, "
                              f"min={numbers['min']:.3f}, max={numbers['max']:.3f}, "
                              f"stddev={numbers['stddev']:.3f}")
-            lines.append(f"Median minus 2 × buffer: "
-                         f"{details['difference_from_2x_buffer_frames']:.3f} frames "
-                         f"({details['difference_from_2x_buffer_ms']:.3f} ms)")
+            comp = details["uncalibrated_nominal_comparison"]
+            lines.append(f"Arithmetic only: median offset - 2 × buffer = "
+                         f"{comp['median_offset_minus_2x_buffer_frames']:.3f} frames "
+                         f"({comp['median_offset_minus_2x_buffer_ms']:.3f} ms); "
+                         f"NOT an estimate of hardware/device overhead")
             lines.append(f"Selected input channel RMS: {r['rms_dbfs']:.2f} dBFS")
         if not args.dry_run:
-            lines += ["", "Timing limitation: the source is armed by a host command, "
-                      "not a DAC timestamp. This is a command-to-ADC loopback "
-                      "estimate; the request/ack bracket and driver clocks contribute "
-                      "uncertainty. Do not call this a sample-accurate DAC-to-ADC latency. "
-                      f"Protocol anchor half-width: {details.get('anchor_uncertainty_ms', 0):.3f} ms."]
+            lines += [
+                "",
+                "Timing contract: NOT the issue's calibrated DAC-to-ADC round-trip quantity.",
+                "Output sample onset has no DAC timestamp. The run=1 request/ack "
+                "does not bound first output sample time. PortAudio input ADC "
+                "timestamps are relative to their own stream clock, projected "
+                "to Python monotonic using callback arrival; callback scheduling "
+                "and output/input clock alignment are uncalibrated.",
+                "Absolute error bound: unavailable (not estimated). "
+                f"Request/ack span (not an error bound): "
+                f"{details.get('timing_model', {}).get('request_ack_window_ms', 0):.3f} ms.",
+                "The nominal 2 × buffer comparison cannot be interpreted as residual "
+                "device/driver overhead. True round-trip latency awaits an output "
+                "timestamp or a synchronized output reference.",
+            ]
         (folder / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(folder / "report.md")
     return bool(details["completed"])
