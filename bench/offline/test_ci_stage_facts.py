@@ -65,14 +65,14 @@ class StageTests(unittest.TestCase):
                         "exit_code": 2, "stdout": "", "stderr": message + "\n"}):
                 raw = parsed_command(["synthetic-probe"])
                 self.assertEqual(raw["status"], "unavailable")
-                self.assertEqual(raw["reason"], "process exit 2: " + message)
+                self.assertEqual(raw["reason"], "exit code 2: " + message)
                 staged = clean({"rows": [raw]})["rows"][0]
                 self.assertEqual(staged["reason"], raw["reason"])
                 self.assertNotIn("stderr", staged)
         with mock.patch("run_all.call", return_value={
                 "exit_code": 1, "stdout": "", "stderr": "failure at /tmp/secret\n"}):
             staged = clean(parsed_command(["synthetic-probe"]))
-        self.assertEqual(staged["reason"], "process exit 1: failure at [path]")
+        self.assertEqual(staged["reason"], "exit code 1: failure at [path]")
         self.assertNotIn("/tmp/secret", str(staged))
 
     def test_stage_collector_and_missing_section(self):
