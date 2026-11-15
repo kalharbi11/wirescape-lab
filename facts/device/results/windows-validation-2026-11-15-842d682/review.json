@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "commit": "842d68225fb44c167b8714cb4cfc36455138273a",
+  "scope": "Windows build/device-off validation and owner-confirmed speaker check",
+  "device_off": {
+    "completed": true,
+    "acknowledged_commands": 23874,
+    "refused_replies": 0,
+    "engine_exit_code": 0,
+    "hardware_evidence": false
+  },
+  "sound_check_offline_metrics": {
+    "original-quiet": {
+      "rate_hz": 48000,
+      "duration_s": 4.0,
+      "peak": 0.002655029296875,
+      "rms": 0.0008271944689261957,
+      "rms_dbfs": -61.64784756340843,
+      "scope": "offline render; not a live recording"
+    },
+    "louder-diagnostic": {
+      "rate_hz": 48000,
+      "duration_s": 4.0,
+      "peak": 0.05328369140625,
+      "rms": 0.01653999986605157,
+      "rms_dbfs": -35.62928996601172,
+      "scope": "offline render; not a live recording"
+    }
+  },
+  "owner_observations": "owner-observations.json",
+  "timed_stress_run": "not performed",
+  "real_capture": "not recorded"
+}
