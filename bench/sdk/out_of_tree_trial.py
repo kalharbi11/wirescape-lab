@@ -11,7 +11,25 @@ import sys
 import tempfile
 import threading
 import time
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+def new_york_date():
+    """New York date without adding tzdata on stock Windows Python.
+
+    US DST since 2007: second Sunday of March 07:00 UTC until the first
+    Sunday of November 06:00 UTC. Unix runner dates are post-2007.
+    """
+    try:
+        return dt.datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    except ZoneInfoNotFoundError:
+        utc = dt.datetime.now(dt.timezone.utc)
+        year = utc.year
+        start_day = 8 + (6 - dt.date(year, 3, 1).weekday()) % 7
+        end_day = 1 + (6 - dt.date(year, 11, 1).weekday()) % 7
+        start = dt.datetime(year, 3, start_day, 7, tzinfo=dt.timezone.utc)
+        end = dt.datetime(year, 11, end_day, 6, tzinfo=dt.timezone.utc)
+        hours = -4 if start <= utc < end else -5
+        return (utc + dt.timedelta(hours=hours)).date().isoformat()
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE = ["native/engine2/CMakeLists.txt", "native/control/module_catalog.h",
@@ -60,12 +78,13 @@ class Trial:
         oot = [s for s in self.rows if s["location"] == "out-of-tree"]
         passed = sum(s["status"] == "pass" for s in oot)
         modified = list(dict.fromkeys(self.modified))
-        record = dict(date_ny=dt.datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d"),
+        core = [path for path in modified if path != MODULE]
+        record = dict(date_ny=new_york_date(),
                       commit=sha, os=self.platform, architecture=os.environ.get("RUNNER_ARCH","unknown"),
                       audio_device="none", rate_hz=48000, block_frames=256, total_steps=len(self.rows),
                       outside_passed=passed, outside_attempted=len(oot),
                       first_outside_failure=next((s["n"] for s in oot if s["status"]=="fail"),None),
-                      ephemeral_files=modified, steps=self.rows)
+                      ephemeral_files=modified, core_files=core, module_folder_created=MODULE, steps=self.rows)
         (self.output/"trial.json").write_text(json.dumps(record,indent=2)+"\n",encoding="utf-8")
         lines=["<!-- SPDX-License-Identifier: GPL-3.0-only -->","# SDK out-of-tree module trial","",
                "| Field | Result |","|---|---|",
@@ -74,8 +93,9 @@ class Trial:
                f"| Total steps | {len(self.rows)} |",
                f"| Out-of-tree completed | {passed}/{len(oot)} |",
                f"| First out-of-tree failure step | {record['first_outside_failure']} |",
-               f"| Core files edited in disposable checkout | {len(modified)} |",
-               "| Edited file paths | "+", ".join(modified)+" |",
+               f"| Existing core files edited in disposable checkout | {len(core)} |",
+               "| Core file paths | "+", ".join(core)+" |",
+               "| New module folder staged | "+MODULE+" |",
                "| Audio and MIDI devices | none |","",
                "## Steps (wall-clock durations from CI log)","",
                "| Step | Doc section | Location | Result | Seconds | Repository files needed | Command |",
