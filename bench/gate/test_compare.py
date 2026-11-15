@@ -99,6 +99,13 @@ class CompareTests(unittest.TestCase):
         a["rows"][0]["totals"] = [1000, 3001]
         self.assertTrue(compare(a, a, verify_totals=True)[1])
 
+    def test_newly_recovered_row_requires_real_numeric_measurement(self):
+        baseline = facts([("module/essentials.chord/voices1", "unavailable", None)])
+        current = facts([("module/essentials.chord/voices1", "measured", None)])
+        changes, failures = compare(baseline, current, verify_totals=True)
+        self.assertEqual(changes[0]["status"], "invalid_measurement")
+        self.assertTrue(any("invalid current Ir" in failure for failure in failures))
+
     def test_valgrind_version_mismatch_rejected(self):
         a = facts([("fixed/abi1_mono", "measured", 100)])
         b = facts([("fixed/abi1_mono", "measured", 100)])
