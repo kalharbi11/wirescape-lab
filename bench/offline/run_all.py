@@ -390,7 +390,7 @@ def soak_patches(soak, patches, meta, out, seconds, engine):
     return len(patches)
 
 
-def cpu_sections(probes, mods, meta, out, quick):
+def cpu_sections(probes, mods, meta, out, quick, soak_seconds=None):
     probe, bench, cost, soak = probes["abi2_module_cpu_probe"], probes["abi2_benchmark"], probes["abi2_cost_probe"], probes["wirescape_soak"]
     rows = []
     for ident in mods:
@@ -400,6 +400,14 @@ def cpu_sections(probes, mods, meta, out, quick):
                 args = [probe, "--module", ident, "--rate", RATE, "--block", block,
                         "--channels", channels, "--instances", 1, "--seconds", .1 if quick else 2]
                 result = parsed_command(args, prefix="module_cpu_probe ", timeout=45)
+                if ident == "essentials.chord" and result["status"] != "measured":
+                    # The standalone probe passes a zero-byte ws2_config. Chord
+                    # requires the document adapter's four-byte instance tag.
+                    result["reason"] += (
+                        "; direct probe passes zero config bytes; Chord needs four"
+                        " (native/modules2/chord/dsp.h:54-56,"
+                        " native/document/runtime_module_config.h:35-38)")
+                    result["input_mode"] = "direct_descriptor_without_chord_instance_tag"
                 ns = result.get("render_ns", {}).get("p99") if result.get("status") == "measured" else None
                 entry.update(result)
                 entry["p99_ns_per_sample"] = ns / (block * channels) if ns is not None else None
@@ -407,7 +415,7 @@ def cpu_sections(probes, mods, meta, out, quick):
     failures = [dict(module=row["module"], block_frames=row["block_frames"],
                      channels=row["channels"], sample_rate_hz=RATE,
                      instances=1, seconds=.1 if quick else 2,
-                     input_mode="normal", status=row["status"],
+                     input_mode=row.get("input_mode", "normal"), status=row["status"],
                      reason=row.get("reason"), stderr=row.get("stderr"),
                      exit_code=row.get("exit_code"))
                 for row in rows if row["status"] != "measured"]
@@ -482,28 +490,8 @@ def cpu_sections(probes, mods, meta, out, quick):
         cost_rows = [{"status": "unavailable", "reason": "valgrind or cost probe unavailable"}]
     save(out, "perf", "instruction_cost", meta, cost_rows,
          {"unit": "Ir per 256-frame block", "method": "subtract 2 callgrind run summaries"})
-    patches = sorted(PATCHES.glob("*.json"))
-    soak_rows = []
-    for path in patches:
-        for block in BLOCKS:
-            result = parsed_command([soak, "--patch", path, "--rate", RATE, "--block",
-                                     block, "--seconds", .05 if quick else 1], timeout=45)
-            row = {"patch": path.name, "block_frames": block}
-            row.update(result)
-            soak_rows.append(row)
-    soak_failures = [dict(patch=row["patch"], block_frames=row["block_frames"],
-                          status=row["status"], reason=row.get("reason"),
-                          stderr=row.get("stderr"), exit_code=row.get("exit_code"),
-                          error_text=(row.get("stderr") or row.get("reason") or "").strip())
-                     for row in soak_rows if row["status"] != "measured"]
-    soak_failures = check_loads(probes["wirescape-engine"], soak_failures, PATCHES, RATE)
-    save(out, "perf", "soak_failures", meta, soak_failures,
-         {"source": "wirescape_soak",
-          "sidecar": "real wirescape-engine --null-audio, isolated settings per block"})
-    save(out, "perf", "patch_soak", meta, soak_rows,
-         {"mode": "paced device-free document soak", "warmup_blocks": 256,
-          "note": "Soak reports max, median and percentiles; arithmetic mean unavailable in existing probe"})
-    return len(patches)
+    return soak_patches(soak, sorted(PATCHES.glob("*.json")), meta, out,
+                        soak_seconds_for(quick, soak_seconds), probes["wirescape-engine"])
 
 
 def oscillator_sections(renderer, desc, meta, out, quick):
@@ -687,9 +675,15 @@ def bundled_section(renderer, meta, out, quick):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--quick", action="store_true", help="short measurement windows")
+    ap.add_argument("--soak-seconds", type=float, default=None,
+                    help="duration per patch and block; default 30 s (0.05 s in --quick)")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build/native")
     ap.add_argument("--out-dir", type=Path, default=ROOT / "facts")
     args = ap.parse_args(argv)
+    try:
+        soak_seconds_for(args.quick, args.soak_seconds)
+    except ValueError as exc:
+        ap.error(str(exc))
     build = args.build_dir.resolve()
     required = ("abi2_module_cpu_probe", "abi2_benchmark", "wirescape_soak",
                 "wirescape_render", "wirescape-engine")
@@ -705,7 +699,7 @@ def main(argv=None):
     probes = dict(binaries)
     probes["build_dir"] = build
     probes["modules_dir"] = binaries["abi2_benchmark"].parent
-    cpu_sections(probes, mods, meta, out, args.quick)
+    cpu_sections(probes, mods, meta, out, args.quick, args.soak_seconds)
     oscillator_sections(binaries["wirescape_render"], desc, meta, out, args.quick)
     filter_sections(binaries["wirescape_render"], desc, meta, out, args.quick)
     module_sections(binaries["wirescape_render"], desc, mods, meta, out, args.quick)
