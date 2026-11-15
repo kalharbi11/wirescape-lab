@@ -49,6 +49,20 @@ def modules():
             if line.strip() and not line.startswith("#")]
 
 
+def parameter_info(text):
+    fields = {}
+    for match in PARAM.finditer(text):
+        remainder = text[match.end():]
+        flags = re.match(r'\s*,\s*"[^"]*"\s*,\s*([^,]+)', remainder)
+        token = flags.group(1).strip() if flags else ""
+        fields[match.group(1)] = {
+            "min": num(match.group(2)), "max": num(match.group(3)),
+            "initial": num(match.group(4)),
+            "stepped": "WS2_STEPPED" in token or token == "stepped",
+            "declared_flags": token}
+    return fields
+
+
 def descriptors():
     result = {}
     for path in sorted((ROOT / "native").rglob("*.h")):
@@ -65,9 +79,7 @@ def descriptors():
         outputs = re.search(r'\boutputs\s*\{(.*?)\};', text, re.S)
         result[found.group(1)] = {
             "version": int(found.group(2)), "source": path.relative_to(ROOT).as_posix(),
-            "parameters": {m.group(1): {"min": num(m.group(2)), "max": num(m.group(3)),
-                                            "initial": num(m.group(4))}
-                           for m in PARAM.finditer(params.group(1) if params else "")},
+            "parameters": parameter_info(params.group(1) if params else ""),
             "inputs": [dict(port=a, type=b) for a, b in
                        PORT.findall(inputs.group(1) if inputs else "")],
             "outputs": [dict(port=a, type=b) for a, b in
