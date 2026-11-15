@@ -1,0 +1,184 @@
+# SPDX-License-Identifier: GPL-3.0-only
+"""Deterministic, device-free golden rendering of all bundled and owner patches.
+
+The renderer runs twice per patch in temporary directories; no WAV/PCM is
+committed. The output JSON holds numeric facts and SHA-256 of raw float32 PCM.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import re
+import struct
+import subprocess
+import sys
+import tempfile
+from zoneinfo import ZoneInfo
+
+import numpy as np
+from scipy import signal
+
+ROOT = Path(__file__).resolve().parents[2]
+PATCHES = ROOT / "apps/studio/patches"
+OWNER = ROOT / "bench/patches/owner"
+RATE = 48000
+BLOCK = 128
+SECONDS = 10
+SEED = 37
+CENTERS_HZ = [20.0 * 2**(i/3) for i in range(31)]
+BAND_FLOOR_DBFS = -300.0
+
+
+def binary():
+    name = "wirescape_render" + (".exe" if os.name == "nt" else "")
+    for p in (ROOT/"build/native"/name, ROOT/"build/native/Release"/name,
+              ROOT/"build"/name, ROOT/"build/Release"/name):
+        if p.is_file():
+            return p
+    return None
+
+
+def sources():
+    bundled = sorted(PATCHES.glob("*.json"))
+    owner = sorted(OWNER.glob("*.json"))
+    if not bundled:
+        raise RuntimeError("No bundled patch files found")
+    return [("bundled", p) for p in bundled] + [("owner", p) for p in owner]
+
+
+def events_for_patch(patch):
+    # Match bench/offline/run_all.py bundled_section: one identical C4 key-on
+    # and half-window key-off for every host.keyboard node.
+    keyboard = sorted(m["id"] for m in patch.get("modules", [])
+                      if m.get("module") == "host.keyboard")
+    return sorted([{"frame": frame, "type": typ, "node": node, "key": 60}
+                   for node in keyboard
+                   for frame, typ in ((0, "noteOn"), (RATE*SECONDS//2, "noteOff"))],
+                  key=lambda e: (e["frame"], e["node"], e["type"]))
+
+
+def read_pcm(path):
+    raw = path.read_bytes()
+    if (len(raw) < 44 or raw[:4] != b"RIFF" or raw[8:16] != b"WAVEfmt "
+            or raw[36:40] != b"data"):
+        raise ValueError("expected 44-byte float32 WAV header")
+    fmt = struct.unpack_from("<IHHIIHH", raw, 16)
+    if fmt != (16, 3, 2, RATE, RATE*8, 8, 32):
+        raise ValueError(f"unexpected WAV format {fmt}")
+    size = struct.unpack_from("<I", raw, 40)[0]
+    pcm = raw[44:]
+    if size != len(pcm) or size != RATE*SECONDS*8:
+        raise ValueError(f"unexpected PCM length: {len(pcm)}")
+    audio = np.frombuffer(pcm, dtype="<f4").reshape(-1, 2)
+    if not np.isfinite(audio).all():
+        raise ValueError("nonfinite float32 output")
+    return pcm, audio
+
+
+def levels(audio):
+    x = audio.astype(np.float64)
+    # Welch one-sided density, averaged across two output channels; integrated
+    # per 1/3-octave band into mean square FS.
+    hz, psd = signal.welch(x, fs=RATE, nperseg=65536, axis=0,
+                           detrend="constant", scaling="density")
+    power = psd.mean(axis=1)
+    bin_width = hz[1] - hz[0]
+    table = []
+    for center in CENTERS_HZ:
+        lower, upper = center/2**(1/6), center*2**(1/6)
+        energy = float(np.sum(power[(hz >= lower) & (hz < upper)]) * bin_width)
+        table.append({"center_hz": round(center, 6),
+                      "level_dbfs": round(10*np.log10(energy), 6) if energy>1e-30
+                      else BAND_FLOOR_DBFS})
+    return {
+        "peak_fs": float(np.max(np.abs(x))),
+        "rms_fs": float(np.sqrt(np.mean(x*x))),
+        "dc_fs": float(np.mean(x)),
+        "third_octave_bands": table,
+    }
+
+
+def render_one(exe, patch, script, wav):
+    cmd = [str(exe), "--patch", str(patch), "--script", str(script),
+           "--out", str(wav), "--rate", str(RATE), "--block", str(BLOCK),
+           "--seconds", str(SECONDS), "--seed", str(SEED)]
+    result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                            timeout=150, check=False)
+    if result.returncode:
+        raise RuntimeError(f"renderer exit {result.returncode} for {patch.name}: "
+                           + result.stderr[-1500:])
+    return read_pcm(wav)
+
+
+def measure(exe, path, scope):
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("format") != "wirescape.native.patch" or data.get("version") != 2:
+        raise ValueError(f"{path.name}: requires native patch v2")
+    events = events_for_patch(data)
+    with tempfile.TemporaryDirectory(prefix="ws-golden-") as tmp:
+        work = Path(tmp)
+        script = work/"events.json"
+        script.write_text(json.dumps(events), encoding="utf-8")
+        pcm1, a1 = render_one(exe, path, script, work/"render-a.wav")
+        pcm2, _ = render_one(exe, path, script, work/"render-b.wav")
+        if pcm1 != pcm2:
+            # Determine exact first divergent frame for this repeated-run pair.
+            idx = next(i for i in range(0, len(pcm1), 8) if pcm1[i:i+8] != pcm2[i:i+8])
+            raise AssertionError(f"{scope}/{path.name}: two renders differ at frame {idx//8}")
+        out = {
+            "sha256_float32_pcm": hashlib.sha256(pcm1).hexdigest(),
+            "frames": int(a1.shape[0]), "channels": 2,
+            "repeat_identical": True,
+            "scripted_note_count": len(events),
+            "script_note_key": 60 if events else None,
+            "source": f"{scope}/{path.name}",
+        }
+        out.update(levels(a1))
+        return out
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--renderer", type=Path)
+    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--machine", required=True, choices=("linux-x64","linux-arm64","windows-x64"))
+    args = p.parse_args(argv)
+    exe = args.renderer or binary()
+    if not exe or not exe.is_file():
+        p.error("wirescape_render binary unavailable: build native headless first or pass --renderer")
+    version = subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,
+                             capture_output=True,check=True).stdout.strip()
+    meta = {
+        "schema": 1, "commit": version,
+        "date_et": dt.datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
+        "machine": args.machine,
+        "architecture": platform.machine(),
+        "os": platform.system(),
+        "cpu": platform.processor() or platform.machine(),
+        "sample_rate_hz": RATE, "block_frames": BLOCK,
+        "seconds": SECONDS, "seed": SEED, "channels": 2,
+        "encoding": "little-endian IEEE754 float32 PCM; SHA-256 excludes 44-byte WAV header",
+        "spectrum_method": "scipy.signal.welch nperseg=65536 one-sided density, average channel PSD, integrate per band",
+        "band_floor_dbfs": BAND_FLOOR_DBFS,
+        "notes": "C4 noteOn at frame 0 and noteOff at frame 240000 on every host.keyboard",
+        "patches": {},
+    }
+    for scope, path in sources():
+        key = f"{scope}/{path.name}"
+        meta["patches"][key] = measure(exe.resolve(), path.resolve(), scope)
+        print(f"golden {key}: {meta['patches'][key]['sha256_float32_pcm'][:12]} "
+              f"peak={meta['patches'][key]['peak_fs']:.6g} "
+              f"rms={meta['patches'][key]['rms_fs']:.6g}", flush=True)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(meta, indent=2, allow_nan=False)+"\n",encoding="utf-8")
+    print(f"golden summary: {len(meta['patches'])} patches, all repeated renders byte-identical")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
