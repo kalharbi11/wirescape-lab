@@ -363,7 +363,6 @@ def soak_patches(soak, patches, meta, out, seconds, engine):
                     row["source_patch_error"] = source_probe.get("error_text")
                     if scripted_probe and scripted_probe["status"] != "measured":
                         row["scripted_source_error"] = scripted_probe.get("error_text")
-                        row["reason"] = "scripted source preflight failed"
                 row.update(result)
                 if row["status"] == "unavailable":
                     row["error_text"] = result.get("error_text", result.get("reason", ""))
