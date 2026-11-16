@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q3 answered (M0 r2). Queue empty. The lead appends only genuinely
+**State:** Q1–Q3 answered (M0 r2); Q4, Q5 open. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -36,3 +36,17 @@ and records the stop/replan instruction in `CURRENT.md`.
   phase reset, silent interval and maximum discontinuity without defining pass thresholds yet.
 - **Blocked:** issuing implementation authority for T0.13.
 - **Fable answer (2026-11-16):** see [proposals/0005](../../proposals/0005-edits-without-restart.md) section 4 and ruling R6 in M0 r2. End-to-end through the sidecar on the null sink, one capture flag, witness signals, six metrics, no thresholds.
+
+## Q4 — refused edits in protocol v1 (0010 P5)
+- **Question:** Should Studio, after a refusal, drop all later unacknowledged structural edits (P5 as
+  written) or keep those still valid without the refused one, and retry `busy` refusals instead of dropping?
+- **Evidence:** [issue #90](https://github.com/kalharbi11/wirescape-lab/issues/90) part 1 (reviewer
+  opinion, not a ruling).
+- **Blocked:** contracting protocol stage PV3 (client convergence).
+
+## Q5 — owner allows bundled patches and presets to be reset (2026-11-16)
+- **Question:** How to record the owner's decision in CONSTRAINTS, and what it changes for the golden
+  gate, 0006 decision 6 / D3 (v1 reading), 0008 and 0003. Macro Oscillator models are kept; the
+  owner's own patches are not covered.
+- **Evidence:** [issue #90](https://github.com/kalharbi11/wirescape-lab/issues/90) part 2 (owner's words quoted).
+- **Blocked:** nothing in flight; affects later contracts.
