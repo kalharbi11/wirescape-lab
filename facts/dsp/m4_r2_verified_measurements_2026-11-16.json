@@ -1,0 +1,408 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "Wirescape M0 r2 R2 verified Linux numerical summary v1",
+  "source_task": "#51 / PR #60",
+  "source_branch_head": "7ed7c54fa00babc4b5b9342eefad84cdec78070a",
+  "actual_runner_checkout_merge": "72163bbee6752a2fd25b6bc034388f08704c82f2",
+  "checkout_parent_proving_branch_head": "7ed7c54fa00babc4b5b9342eefad84cdec78070a",
+  "date_et": "2026-11-16",
+  "source_workflow": {
+    "name": "Generate device-off facts",
+    "run_id": 43930176728,
+    "attempt": 1,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "full_source": {
+    "probe_path": "bench/offline/r2_engine_probe.cpp",
+    "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
+    "render_path": "actual production Engine::render with deterministic bench-only test source and existing Release libwirescape_engine2.a",
+    "sample_rates_hz": [
+      44100,
+      48000,
+      96000
+    ],
+    "block_frames": 128,
+    "impulse": "one 1.0 sample following 1 second exact silence; 2 seconds captured from target audio output",
+    "decay_metric": "first suffix abs-peak no larger than 0.001 of full response peak (-60 dB re peak); null means not reached within 2 seconds",
+    "tail": "1 second bounded 440 Hz signal then 5 seconds bitwise-zero source input; 5 fresh engine instances",
+    "timing_units": "full-block active/silent median wall nanoseconds around Engine::render; reported dimensionless ratio is median of 5 silent/active ratios, advisory only",
+    "limits": "output timing is hosted-runner advisory data, no acceptance threshold or gate"
+  },
+  "source_artifacts": {
+    "linux-x64": {
+      "machine": {
+        "runner": "linux-x64",
+        "architecture": "x86_64",
+        "cpu": "Intel(R) Xeon(R) 6975P-C",
+        "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+        "runner_image": "ubuntu26"
+      },
+      "artifacts": {
+        "raw_id": 14261949672,
+        "staged_id": 14263970069
+      },
+      "raw_json_sha256": {
+        "impulse": "4771d588f5ad3ab586c7d0f9e7a711ee0db9885faf0ae880b6a3ae66d590fa23",
+        "tail": "15908671a636f04af08f4e7e893a41863de58bfb836315d5b7e370adc6910ae1"
+      },
+      "staged_json_sha256": {
+        "impulse": "9efc6ade922b5a549a2fef3cd30f1258d357794f1f7e88b3efe2a2a29b3cec3c",
+        "tail": "afe18d12d5b0e87c8b9e30694a927860f1dc23a0b66928e8fd07019f156cc4f3"
+      },
+      "engine2_archive_sha256": "a63ad7fce45dc69c8d38e67e024796b6435e1dc07b16edef4508a1c2cb673df2",
+      "ftz_mode": "engine_render_mxcsr_ftz_daz"
+    },
+    "linux-arm64": {
+      "machine": {
+        "runner": "linux-arm64",
+        "architecture": "aarch64",
+        "cpu": "0xd49",
+        "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+        "runner_image": "ubuntu24-arm64"
+      },
+      "artifacts": {
+        "raw_id": 14263003702,
+        "staged_id": 14263133440
+      },
+      "raw_json_sha256": {
+        "impulse": "86ced07b566c944cda516cbd29be0225bf63647e6b61ae73f45b72bdf28b92cb",
+        "tail": "df8ab76b10c65dd899efd0a6b228609070a70fb555b3302cc72037d5bdb737fa"
+      },
+      "staged_json_sha256": {
+        "impulse": "c6d1ccea403d8894d959bdbdf1d31c0cc551f04fdf640bf91cef145f33f08c98",
+        "tail": "de932dd83b3f22702ac15ea1b9a7911cb920a3f598e882809ea75fb8860e66d5"
+      },
+      "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+      "ftz_mode": "engine_render_fpcr_fz"
+    }
+  },
+  "measured_case_count_per_arch_per_metric": 36,
+  "sampled_modules": 12,
+  "status_counts_per_arch_per_metric": {
+    "measured": 36,
+    "not_applicable": 69,
+    "not_built_runtime_module": 3
+  },
+  "named_nonmeasurement_reasons": {
+    "not_applicable": "descriptor has no WS2_AUDIO input (69 module/rate cases per metric/architecture)",
+    "not_built_runtime_module": "expected unique libws2_ringmod2.so not found (3 module/rate cases per metric/architecture)"
+  },
+  "validated_all_measured_cases": {
+    "engine_process": "production_Engine_render",
+    "impulse_pre_silence_frames": "rate_hz",
+    "impulse_nonzero_input_samples": 1,
+    "impulse_capture_frames": "2 * rate_hz",
+    "impulse_nan_inf_count": 0,
+    "tail_active_frames": "rate_hz",
+    "tail_zero_input_frames": "5 * rate_hz",
+    "tail_zero_input_verified": true,
+    "tail_fresh_instance_repeats": 5,
+    "tail_faults_per_repeat": 0,
+    "tail_nonfinite_output_samples_per_repeat": 0,
+    "tail_subnormal_output_samples_per_repeat": 0,
+    "impulse_engine_faults": 0,
+    "device_and_midi_and_lan": "not accessed"
+  },
+  "numerical_columns": [
+    "module_id",
+    "sample_rate_hz",
+    "impulse_peak_fs_identical_both_architectures",
+    "time_to_minus60_db_ms_or_null_identical_both_architectures",
+    "tail_median_silent_over_active_ratio_linux_x64",
+    "tail_median_silent_over_active_ratio_linux_arm64"
+  ],
+  "numerical_rows": [
+    [
+      "essentials.ladder",
+      44100,
+      0.05568225681781769,
+      3.8095238095238093,
+      0.994154119,
+      1.01022495
+    ],
+    [
+      "essentials.ladder",
+      48000,
+      0.051154978573322296,
+      3.7916666666666665,
+      0.997502676,
+      1.01022495
+    ],
+    [
+      "essentials.ladder",
+      96000,
+      0.025435825809836388,
+      3.75,
+      1.00046125,
+      1.01021356
+    ],
+    [
+      "essentials.mixer",
+      44100,
+      1,
+      0.022675736961451247,
+      0.997029703,
+      1.03472222
+    ],
+    [
+      "essentials.mixer",
+      48000,
+      1,
+      0.020833333333333332,
+      0.993089832,
+      1.03448276
+    ],
+    [
+      "essentials.mixer",
+      96000,
+      1,
+      0.010416666666666666,
+      0.997014925,
+      1.03448276
+    ],
+    [
+      "essentials.output",
+      44100,
+      1,
+      0.022675736961451247,
+      0.990059642,
+      1.0625
+    ],
+    [
+      "essentials.output",
+      48000,
+      1,
+      0.020833333333333332,
+      0.980314961,
+      1.0625
+    ],
+    [
+      "essentials.output",
+      96000,
+      1,
+      0.010416666666666666,
+      0.992063492,
+      1.0625
+    ],
+    [
+      "essentials.quad_vca",
+      44100,
+      1,
+      0.022675736961451247,
+      1.00620347,
+      1.01381215
+    ],
+    [
+      "essentials.quad_vca",
+      48000,
+      1,
+      0.020833333333333332,
+      0.965148515,
+      1.01101928
+    ],
+    [
+      "essentials.quad_vca",
+      96000,
+      1,
+      0.010416666666666666,
+      1.02474351,
+      1.01381215
+    ],
+    [
+      "essentials.resonator",
+      44100,
+      0.022968629375100136,
+      881.9047619047618,
+      1.00020829,
+      1.00186938
+    ],
+    [
+      "essentials.resonator",
+      48000,
+      0.020571349188685417,
+      889.2916666666667,
+      1.00027778,
+      1.00198436
+    ],
+    [
+      "essentials.resonator",
+      96000,
+      0.007483318913727999,
+      930.5,
+      1.00041661,
+      1.00268441
+    ],
+    [
+      "essentials.vca",
+      44100,
+      1,
+      0.022675736961451247,
+      0.997032641,
+      1.08928571
+    ],
+    [
+      "essentials.vca",
+      48000,
+      1,
+      0.020833333333333332,
+      1.00301205,
+      1.08928571
+    ],
+    [
+      "essentials.vca",
+      96000,
+      1,
+      0.010416666666666666,
+      1.003003,
+      1.08928571
+    ],
+    [
+      "essentials.vcf",
+      44100,
+      0.050909701734781265,
+      20.294784580498867,
+      0.476657513,
+      1.01340483
+    ],
+    [
+      "essentials.vcf",
+      48000,
+      0.04696354269981384,
+      20.291666666666668,
+      0.477067817,
+      1.01069519
+    ],
+    [
+      "essentials.vcf",
+      96000,
+      0.023523880168795586,
+      20.270833333333332,
+      0.476657513,
+      1.01340483
+    ],
+    [
+      "essentials.vco",
+      44100,
+      0.9999998211860657,
+      null,
+      0.997903014,
+      1.01382097
+    ],
+    [
+      "essentials.vco",
+      48000,
+      1,
+      null,
+      1.00210526,
+      1.01663823
+    ],
+    [
+      "essentials.vco",
+      96000,
+      1,
+      null,
+      1.00078472,
+      1.01646176
+    ],
+    [
+      "fx.delay",
+      44100,
+      0.8526401519775391,
+      1875.0566893424036,
+      1.00282586,
+      1.00748069
+    ],
+    [
+      "fx.delay",
+      48000,
+      0.8526401519775391,
+      1875.0208333333333,
+      1.00047483,
+      1.0052356
+    ],
+    [
+      "fx.delay",
+      96000,
+      0.8526401519775391,
+      1875.0104166666665,
+      0.999047165,
+      1.01025132
+    ],
+    [
+      "fx.reverb",
+      44100,
+      0.8910065293312073,
+      295.8049886621315,
+      1.07364525,
+      1.01906448
+    ],
+    [
+      "fx.reverb",
+      48000,
+      0.8910065293312073,
+      245.35416666666669,
+      1.06603684,
+      1.01849963
+    ],
+    [
+      "fx.reverb",
+      96000,
+      0.8910065293312073,
+      208.53125,
+      1.06816891,
+      1.0173736
+    ],
+    [
+      "sound.blend",
+      44100,
+      1.4142135381698608,
+      0.022675736961451247,
+      0.99751861,
+      1.0154321
+    ],
+    [
+      "sound.blend",
+      48000,
+      1.4142135381698608,
+      0.020833333333333332,
+      0.997037037,
+      1.01538462
+    ],
+    [
+      "sound.blend",
+      96000,
+      1.4142135381698608,
+      0.010416666666666666,
+      0.998756528,
+      1.0154321
+    ],
+    [
+      "sound.spectral",
+      44100,
+      1.000068187713623,
+      46.46258503401361,
+      1.00721649,
+      1.02649007
+    ],
+    [
+      "sound.spectral",
+      48000,
+      1.0000684261322021,
+      42.6875,
+      1.00816327,
+      1.02649007
+    ],
+    [
+      "sound.spectral",
+      96000,
+      1.0001364946365356,
+      42.67708333333333,
+      1.01359833,
+      1.06164384
+    ]
+  ],
+  "five_repeat_detail": "Complete per-repeat active/silent median nanoseconds, ratios, 0 fault counts, probe/module/archive SHA-256 and all 108 status rows for each metric/architecture are retained in the pinned raw and staged GitHub Actions artifacts. This is a compact numerical summary, not a substitute for those raw rows.",
+  "verification": "Both Linux runner raw 108-row JSON files per metric match the corresponding staged measurements; 36 distinct module/rate cases measured per metric per architecture, five valid tail repeats each; 3 VCO cases have null decay on each architecture because -60 dB is not reached within 2 s."
+}
