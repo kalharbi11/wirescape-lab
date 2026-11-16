@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Edit-continuity harness (devices off)
+on:
+  pull_request:
+    paths:
+      - "bench/continuity/**"
+      - ".github/workflows/continuity.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-continuity:
+    name: Continuity synthetic / ubuntu-24.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Synthetic tests (stdlib only; no audio or MIDI)
+        run: python -m unittest discover -s bench/continuity/tests -v

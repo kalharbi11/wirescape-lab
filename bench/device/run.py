@@ -272,6 +272,14 @@ class MidiSource:
         if self.port:self.port.close()
 
 
+def engine_midi_device(devices, wanted):
+    matches=[d for d in devices if wanted in (d.get("id"),d.get("name"),d.get("system_name"))
+             or wanted in str(d.get("name",""))]
+    if len(matches)!=1:
+        raise RuntimeError("MIDI input is not uniquely visible to engine; verify --engine-midi-port")
+    return matches[0]
+
+
 def parser():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--scenario",choices=["all","quick","full",*FAMILIES],default="quick")
@@ -282,6 +290,7 @@ def parser():
     p.add_argument("--confirm-midi",action="store_true")
     p.add_argument("--device",help="owner-selected real audio device ID")
     p.add_argument("--midi-port",help="existing loopMIDI output (Windows) or manual input")
+    p.add_argument("--engine-midi-port",help="engine MIDI input name or ID; defaults to --midi-port")
     p.add_argument("--manual-midi",action="store_true")
     p.add_argument("--record",choices=["none","monitor","process-loopback","input"],default="none")
     p.add_argument("--monitor-target")
@@ -386,12 +395,9 @@ def main(argv=None):
         engine.start()
         if has_midi and not args.dry_run and not args.manual_midi:
             devices=engine.send({"type":"listMidiDevices"}).get("result",{}).get("devices",[])
-            wanted=args.midi_port or "Wirescape Bench"
-            matches=[d for d in devices if wanted in (d.get("id"),d.get("name"),d.get("system_name"))
-                     or wanted in str(d.get("name",""))]
-            if len(matches)!=1:
-                raise RuntimeError("MIDI output is not uniquely visible to engine; verify --midi-port")
-            engine.send({"type":"setMidiEnabled","deviceId":matches[0]["id"],"on":True})
+            wanted=args.engine_midi_port or args.midi_port or "Wirescape Bench"
+            device=engine_midi_device(devices,wanted)
+            engine.send({"type":"setMidiEnabled","deviceId":device["id"],"on":True})
         planner=Planner(engine.hello.get("catalogue",{}))
         total=choose_scenarios(args,planner)
         timeline=planner.timeline
