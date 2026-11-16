@@ -593,4 +593,105 @@ Each row is an actual condition, event translation, ABI1 descriptor callback, or
 **Facade/loader identity distinction:** ABI1 v1 libraries live behind a `ws_engine` owner (`native/control/app_engine.cpp:18-19,36,96-99`); metadata for built-in ABI2 modules is projected into ABI1 descriptor structs (`native/control/app_engine.cpp:42-71`) without implying that built-ins are linked ABI1 shared modules. Staged graph replans rebind borrowed ABI1 descriptors (`native/control/app_engine.cpp:111-129`).
 
 
+## Direct ABI1-shaped uses by runtime layer: sidecar, web, CLI, tools and capture
+
+| Source file:line | Observed v1-shaped type, facade call, direct engine-symbol reference or build/capture path |
+| --- | --- |
+| `native/sidecar/session.cpp:155` | `for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {` |
+| `native/sidecar/session.cpp:156` | `auto *meta = app_engine_module(engine, i);` |
+| `native/sidecar/session.cpp:157` | `auto *d = app_engine_native_descriptor(engine, meta->id);` |
+| `native/sidecar/session.cpp:264` | `catalogue_(app_engine_create(&config_), app_engine_destroy), engine_(nullptr, app_engine_destroy) {` |
+| `native/sidecar/session.cpp:267` | `token_ = std::to_string(random()) + "-" + std::to_string(app_engine_clock_ns());` |
+| `native/sidecar/session.cpp:406` | `const int render = app_engine_render_live(live, rows, 2, options_.block, app_engine_clock_ns());` |
+| `native/sidecar/session.cpp:408` | `bench_.observe_faults(app_engine_native(live).meter().faults);` |
+| `native/sidecar/session.cpp:447` | `ws_engine_config next_config = config_;` |
+| `native/sidecar/session.cpp:454` | `app_engine_destroy);` |
+| `native/sidecar/session.cpp:457` | `app_engine_prepare_master_fade_in(prepared.get());` |
+| `native/sidecar/session.cpp:614` | `auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());` |
+| `native/sidecar/session.cpp:684` | `app_engine_destroy);` |
+| `native/sidecar/session.cpp:744` | `app_engine_begin_master_fade_out(active_);` |
+| `native/sidecar/session.cpp:750` | `while (!app_engine_master_fade_silent(active_)) {` |
+| `native/sidecar/session.cpp:755` | `app_engine_resume_master_fade(active_);` |
+| `native/sidecar/session.cpp:760` | `if (app_engine_master_fade_silent(active_)) {` |
+| `native/sidecar/session.cpp:761` | `const auto first_fade_ns = app_engine_master_fade_out_started_ns(active_);` |
+| `native/sidecar/session.cpp:763` | `app_engine_resume_master_fade(active_);` |
+| `native/sidecar/session.cpp:769` | `app_engine_prepare_master_fade_in(candidate.get());` |
+| `native/sidecar/session.cpp:772` | `app_engine_panic(active_);` |
+| `native/sidecar/session.cpp:774` | `app_engine_resume_master_fade(active_);` |
+| `native/sidecar/session.cpp:784` | `app_engine_resume_master_fade(active_);` |
+| `native/sidecar/session.cpp:792` | `while (!app_engine_master_fade_in_started(active_)) {` |
+| `native/sidecar/session.cpp:800` | `app_engine_prepare_master_fade_in(previous);` |
+| `native/sidecar/session.cpp:822` | `while (!app_engine_master_fade_in_started(active_)) {` |
+| `native/sidecar/session.cpp:834` | `app_engine_prepare_master_fade_in(active_);` |
+| `native/sidecar/session.cpp:921` | `app_engine_panic(active_); // release held notes before replacing DSP state` |
+| `native/sidecar/session.cpp:925` | `ws_engine_config next_config = config_;` |
+| `native/sidecar/session.cpp:932` | `app_engine_destroy);` |
+| `native/sidecar/session.cpp:934` | `app_engine_prepare_master_fade_in(prepared.get());` |
+| `native/sidecar/session.cpp:964` | `app_engine_prepare_master_fade_in(active_);` |
+| `native/sidecar/session.cpp:1057` | `app_engine_panic(active_);` |
+| `native/sidecar/session.cpp:1073` | `auto result = app_engine_native(active_).enqueue(0, integer(m.at("id")), WS2_DIRECT_PORT, event, 0,` |
+| `native/sidecar/session.cpp:1076` | `if (type == "noteOff") app_engine_panic(active_);` |
+| `native/sidecar/session.cpp:1086` | `auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());` |
+| `native/sidecar/session.cpp:1099` | `auto result = app_engine_native(active_).enqueue(0, id, WS2_DIRECT_PORT, native, 0, engine2::Timing::Immediate);` |
+| `native/sidecar/session.cpp:1251` | `if (active_) app_engine_native(active_).refresh_latency();` |
+| `native/sidecar/session.cpp:1303` | `ws_meter meter{};` |
+| `native/sidecar/session.cpp:1304` | `app_engine_get_meter(active_, &meter);` |
+| `native/sidecar/session.cpp:1314` | `const float level = app_engine_channel_peak(active_, static_cast<uint32_t>(channel));` |
+| `native/sidecar/session.h:67` | `ws_engine_config config_;` |
+| `native/web/web_engine.cpp:70` | `ws_engine_config config{};` |
+| `native/web/web_engine.cpp:71` | `Owner catalogue{nullptr, app_engine_destroy}, live{nullptr, app_engine_destroy}, old{nullptr, app_engine_destroy};` |
+| `native/web/web_engine.cpp:83` | `auto *d = app_engine_native_descriptor(catalogue.get(), type.c_str());` |
+| `native/web/web_engine.cpp:143` | `app_engine_destroy);` |
+| `native/web/web_engine.cpp:164` | `app_engine_panic(live.get());` |
+| `native/web/web_engine.cpp:184` | `need(app_engine_native(live.get())` |
+| `native/web/web_engine.cpp:195` | `if (live) app_engine_panic(live.get());` |
+| `native/web/web_engine.cpp:217` | `need(app_engine_native(live.get())` |
+| `native/web/web_engine.cpp:271` | `if (live && app_engine_render_channels(live.get(), rows, 2, frames) != WS_OK) {` |
+| `native/web/web_engine.cpp:277` | `if (app_engine_render_channels(old.get(), prior, 2, frames) != WS_OK) {` |
+| `native/web/web_engine.cpp:305` | `for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {` |
+| `native/web/web_engine.cpp:306` | `auto *meta = app_engine_module(engine, i);` |
+| `native/web/web_engine.cpp:307` | `auto *d = app_engine_native_descriptor(engine, meta->id);` |
+| `native/web/web_engine.cpp:357` | `w->config = {sizeof(ws_engine_config), sample_rate, 128, 64, 2048};` |
+| `native/web/web_engine.cpp:358` | `w->catalogue.reset(app_engine_create(&w->config));` |
+| `native/web/web_engine.cpp:401` | `auto &engine = app_engine_native(web->live.get());` |
+| `native/cli/main.cpp:17` | `using Engine = std::unique_ptr<AppEngine, decltype(&app_engine_destroy)>;` |
+| `native/cli/main.cpp:19` | `ws_engine_config c{sizeof(c), rate, block, 32, 8192};` |
+| `native/cli/main.cpp:20` | `Engine e(app_engine_create(&c), app_engine_destroy);` |
+| `native/cli/main.cpp:21` | `if (!e \|\| app_engine_build_essentials(e.get(), dir.c_str()))` |
+| `native/cli/main.cpp:22` | `throw std::runtime_error(e ? app_engine_error(e.get()) : "Cannot create engine");` |
+| `native/cli/main.cpp:27` | `ws_event ev{sizeof(ev), frame, node, type, parameter, value, 1, note, app_engine_generation(e)};` |
+| `native/cli/main.cpp:28` | `if (app_engine_enqueue(e, &ev))` |
+| `native/cli/main.cpp:68` | `if (app_engine_render(e.get(), buffer.data(), n))` |
+| `native/cli/main.cpp:124` | `app_engine_render(e.get(), buffer.data(), block);` |
+| `native/cli/main.cpp:138` | `if (app_engine_render(e.get(), buffer.data(), block))` |
+| `native/cli/play.cpp:111` | `ws_engine_config config{sizeof(config),double(rate),block,64,2048};` |
+| `native/cli/play.cpp:112` | `wirescape::audio::EngineOwner catalog(app_engine_create(&config),app_engine_destroy);` |
+| `native/cli/play.cpp:121` | `if(module&&app_engine_load_module(catalog.get(),entry.path().string().c_str())!=WS_OK)throw std::runtime_error("Cannot load ABI1 module: "+name);` |
+| `native/cli/play.cpp:123` | `std::string error;wirescape::audio::EngineOwner engine(wirescape::document::load_runtime_patch(bytes,catalog.get(),config,error),app_engine_destroy);` |
+| `native/cli/play.cpp:137` | `if(app_engine_render_channels(engine.get(),rows,2,n)!=WS_OK)throw std::runtime_error("Offline render failed");` |
+| `native/tools/render/main.cpp:20` | `using App = std::unique_ptr<AppEngine, decltype(&app_engine_destroy)>;` |
+| `native/tools/render/main.cpp:98` | `ws_engine_config cfg{sizeof(cfg), double(rate), uint32_t(block), 64, 2048};` |
+| `native/tools/render/main.cpp:99` | `App catalog(app_engine_create(&cfg), app_engine_destroy);` |
+| `native/tools/render/main.cpp:103` | `app_engine_destroy);` |
+| `native/tools/render/main.cpp:113` | `ws_event event{};` |
+| `native/tools/render/main.cpp:118` | `event.generation = app_engine_generation(engine.get());` |
+| `native/tools/render/main.cpp:140` | `for (uint32_t i = 0; i < app_engine_module_count(engine.get()); ++i) {` |
+| `native/tools/render/main.cpp:141` | `const auto *descriptor = app_engine_module(engine.get(), i);` |
+| `native/tools/render/main.cpp:144` | `if (parameter == app_engine_parameter_id(engine.get(), module.c_str(), p)) {` |
+| `native/tools/render/main.cpp:156` | `need(app_engine_enqueue(engine.get(), &event) == WS_OK,` |
+| `native/tools/render/main.cpp:166` | `ws_event late{};` |
+| `native/tools/render/main.cpp:171` | `late.generation = app_engine_generation(engine.get());` |
+| `native/tools/render/main.cpp:175` | `need(app_engine_enqueue(engine.get(), &late) == WS_OK, "late fixture enqueue failed");` |
+| `native/tools/render/main.cpp:177` | `need(app_engine_render_channels(engine.get(), rows, 2, n) == WS_OK,` |
+| `native/tools/render/main.cpp:184` | `const auto meter = app_engine_native(engine.get()).meter();` |
+| `tools/capture/reference.py:2` | `"""Offline ABI1 rendering of native patch v1; never creates a device stream."""` |
+| `tools/capture/run.py:103` | `engine = args.engine or base / ('wirescape_engine.dll' if is_windows() else 'libwirescape_engine.so')` |
+| `tools/dev.py:51` | `names = {"wirescape_cli", "wirescape_engine", "wirescape-engine", "native_engine_tests", "native_module_tests", "audio_device_tests", "controller_failure_tests", "native_scale_offset_tests", "native_provider_bridge_tests", "native_lfo_tests", "returned_filter_` |
+| `tools/dev.py:565` | `name = "wirescape-engine" + (".exe" if os.name == "nt" else "")` |
+| `bench/offline/repo_facts.py:138` | `rules = {'abi1_symbols': re.compile(r'\b(?:ws_engine\|ws_module\|ws_port\|ws_parameter\|ws_engine_config\|ws_module_descriptor)\w*\b'),` |
+| `bench/offline/repo_facts.py:194` | `if (base.name != 'native' or p.name == 'wirescape-engine' or 'wirescape_engine' in p.name` |
+
+The sidecar and web rows above use the app facade; a `ws_engine_config`, `ws_event`, `ws_meter`, or projected v1 descriptor is a **type/layout dependency** and does not by itself show a call to `ws_engine_render` on the legacy engine. Direct `ws_engine_*` calls are explicitly distinguished from `app_engine_*` facade calls in the source cells.
+
+
 <!-- Further source/loader/facade/scheduler/layer/test and full-token use indexes follow. -->
