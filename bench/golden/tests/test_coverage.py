@@ -89,7 +89,7 @@ class CoverageTests(unittest.TestCase):
             self.assertEqual([scope for scope,_ in entries],
                              ["bundled","coverage","coverage","coverage"])
             self.assertEqual([path.name for scope,path in entries if scope=="coverage"],
-                             list(CASES))
+                             [row["fixture"] for row in coverage_manifest()["cases"]])
             self.assertTrue(all(path.is_relative_to(head)
                                 for scope,path in entries if scope=="coverage"))
 
