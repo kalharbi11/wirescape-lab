@@ -102,14 +102,14 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/golden"
           python head/bench/golden/render.py --root base --machine ${{ matrix.name }} \
-            --keep-wavs "$RUNNER_TEMP/golden/wavs/before" \
+            --keep-wavs "$RUNNER_TEMP/golden/wavs/before" \n            --coverage-root head \\
             --out "$RUNNER_TEMP/golden/before.json"
       - name: Render head twice, retain job-local float32 WAVs
         id: render_head
         run: |
           mkdir -p "$RUNNER_TEMP/golden"
           python head/bench/golden/render.py --root head --machine ${{ matrix.name }} \
-            --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \n            --coverage-root head \\
             --out "$RUNNER_TEMP/golden/after.json"
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
         if: github.event_name == 'pull_request'
