@@ -1,6 +1,82 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — owner-requested pause after builder round and review
+**Status:** handoff-ready; owner is deploying a new workflow. Do not resume builders, dispatch new
+tasks, or continue the 15–20-minute in-chat checks until the owner resumes/replaces this workflow.
+No recurring app automation was created. Active builders were told to finish their current run only;
+builder1 saved its final checkpoint and stopped. Builder3's last run ended with a system error after
+saving its draft/facts; do not restart it automatically. Builder4 completed its read-only review.
+
+| Work | Head reviewed | Review / remaining work |
+| --- | --- | --- |
+| #66 / PR #69 (class A) | 66a1f1b | Three-machine source facts at 919f047 show 28/34 causal contributions, not full acceptance. Six MIDI/OSC/monitor paths need Fable instrumentation/coverage decisions. Current-head CI queued at inspection. |
+| #67 / PR #70 (class B) | 0aa4683 | Allowed test/reference/fixture/CMake/facts scope. Linux x64/ARM64 each have source-attributed 983-case captures; frozen-data conversion is unfinished and integration still links ABI1. Only Fable reviews technical acceptance/merges. Current-head checks pending/queued. |
+| #61 / PR #63 (class A) | c9da84b | Implementation and corrected-parser facts reviewed; committed measurement JSON exactly equals source 87aa3ec's hosted summary. Lab CI, UI advisory and Offline facts passed; latest full facts run still running, so no merge. |
+| #51 / PR #60 | 6556a2a | Corrected sweep evidence retained; exact impulse and production-FTZ decay timing remain Fable-owned blockers. |
+| #52 / PR #58 | cf46a0d | Real 97-row architecture baselines, two explicit unavailable Chord rows; native config/event probe decision needed. |
+| #54 / PR #59 | ed7db5f | Uncalibrated command-to-ADC diagnostic only; no accepted calibrated round-trip measurement. |
+
+**Peer review finding to fix under the new workflow:** #69's golden workflow lacks
+bench/patches/coverage/** in both pull-request and main-push path filters. A future fixture-only change
+can avoid the gate. Builder4 posted the signed finding on PR #69 (comment 6905029767); lead recorded
+the follow-up without starting another implementation round. Keep PR #69 draft.
+
+**CI queue action:** verified PR/branch/head/workflow identity and cancelled only obsolete #63 full-facts
+run 43781482187 at 87aa3ec, releasing current-head run 43784223829. Accepted profiler capture
+43781482219 / artifact 14187674511 was separate and preserved. Cancelled old runs are not passes.
+Running/queued hosted jobs may finish while agents are paused; inspect exact heads when resuming.
+
+**Merged this oversight session:** #64/#55 as 76ec785; log handoffs #65 as c8335a0 and #68 as 71daa1c.
+Earlier lead merges #48/#41 b8190f9 and #57/#53 7914070 remain on main. No class B/C merge,
+engine/DSP implementation change, real-device test, gate weakening, role-file edit or history rewrite.
+
+**Local setup preserved:** ignored .tools/lead-review has pinned synthetic reviewer suites (golden
+13/13 and UI CPU/timeline tests passed), plus a metadata-only inventory separating one completed
+Windows run from two aborted attempts. It opens no recordings/devices; the active device-test branch
+and untracked result folders were not changed.
+
+Signed: gpt-lead, 2026-11-15
+
+## 2026-11-15 — periodic lead oversight: golden gate merged, next work dispatched
+**Owner instruction:** continue authorized setup work and recheck builders about every 15–20 minutes.
+This is in-chat oversight, not a recurring app automation. Existing class A/B/C authority is unchanged.
+
+**Done:** reviewed #64 integrity fixes at `128e5b6`; all 13 comparator tests and all 24 bundled
+same-runner comparisons passed on Linux x64, ARM64 and Windows. Each current-head uncommitted DSP
+experiment detected sample 2/frame 1, peak delta 0.027496248483657837, then declared it; all seven Lab CI
+jobs passed. Squash-merged #64/#55 as `76ec785`. Merged previous handoff #65 as `c8335a0`.
+
+**Next assignments dispatched directly:**
+- #66 / gpt-builder3: T0.11 deterministic coverage fixtures for all 34 runtime modules. New coverage
+  inputs must be identical for both tested engine revisions, with separate input/engine provenance;
+  bundled/owner missing-fixture failures remain intact. Bench/facts/advisory workflow only, class A.
+- #67 / gpt-builder1: T1.1 freeze live ABI1 reference outputs, then independent ABI2 comparison tests.
+  Class B, only Fable merges; relevant test/fixture/CMake wiring only, no engine/DSP/shim deletion.
+  #51/#60 retains its exact-impulse and production-FTZ-tail instrumentation blockers.
+- gpt-builder4: #63 parser fixes reviewed; the corrected-parser head `87aa3ec` completed all 36
+  CPU/trace captures with explicit markers in advisory run 43781482219. Refresh committed facts from
+  that real source/artifact (14187674511), then validate the resulting exact head. Latest Lab CI passed,
+  including Windows; retain the prior native-test failure and cancelled rerun history.
+- #52/#58: corrected 97-row baselines and osc.out source audit are recorded and exact-head workflows
+  passed at `cf46a0d`. Two chord rows remain unavailable because the native direct probe supplies no
+  required four-byte config tag. Keep draft; Fable owns the native probe/config/event-stimulation decision.
+- #54/#59 remains blocked for Fable's calibrated output/input clock/timestamp design.
+
+**Local reviewer setup:** isolated ignored scratch contains pinned golden comparator and UI parser
+copies. Existing bench-venv Python 3.12.10 has NumPy/SciPy; no package installation was needed.
+Local golden synthetic suite: 13/13 passed. Local UI CPU/timeline known-answer suite: passed.
+These checks open no audio/MIDI devices, native engine processes or LAN sockets; active device-test
+branch and its untracked results were left untouched.
+
+**Bootstrap observations for Fable (read-only):** cloud setup already has a git-source fallback and
+headless build warmup. The documented HTTPS allowlist omits codeload.github.com, although native
+FetchContent URLs use it. git_deps.py enumerates five pinned repositories (json, eurorack, stmlib,
+alsa-lib, libremidi); attachment/access and toolchain preparation must survive a fresh cloud task.
+No session permissions, tools/ files, product code, role instructions or protected constraints changed.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — Codex lead follow-up: soak repair merged, gate integrity review
 **Done:** merged the previous lead handoff #62 as `5b040ee`. Reviewed all eight changed paths in #48,
 including the main-integration diagnostic tests and the two 72-row, 30-second Linux fact projections.
