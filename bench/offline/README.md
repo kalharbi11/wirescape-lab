@@ -76,7 +76,14 @@ workflow artifact when staged in `facts/app/`.
 `ui_profile_parse.cjs` computes nearest-rank rAF frame p50/p95/max;
 CDP CPU self-time by sampled function/URL/line; and disjoint
 renderer-main-thread Trace Event duration in script, style, layout,
-paint and unattributed busy categories. Chromium trace markers define
+paint and unattributed busy categories. Empty CPU profiles or profiles
+without positive-duration samples with valid call frames are **unavailable**,
+not measured zero. The parser saves every per-trial function's raw sampled
+microseconds in the short-retention `trials.json`, sums **all** such entries
+across trials, and only then truncates the displayed aggregate top ten.
+The collector fails its advisory job when any workload lacks a completed
+drag, measured CPU samples or a measured renderer trace, preserving
+diagnostic records rather than claiming successful attribution. Chromium trace markers define
 the measurement window when available; otherwise the summary explicitly
 states the imprecise fallback. The CPU sampler is statistical (1 ms interval);
 trace nesting is resolved by category priority and does not account for
