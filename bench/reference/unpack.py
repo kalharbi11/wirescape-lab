@@ -204,7 +204,7 @@ def unpack_frozen(manifest_path, corpus_dir, destination, machine):
     for name, data in sorted(raw_by_case.items()):
         (destination / (name + ".f32le")).write_bytes(data)
     for name, entry in sorted(descriptors.items()):
-        (destination / (name + ".desc")).write_text(entry["utf8"], encoding="utf-8")
+        (destination / (name + ".desc")).write_bytes(entry["utf8"].encode("utf-8"))
     result = {"machine": machine, "source_commit": source, "cases":len(raw_by_case),
               "bytes":sum(len(x) for x in raw_by_case.values()),
               "source_artifact_id":captures[machine]["artifact_id"]}
