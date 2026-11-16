@@ -34,7 +34,7 @@
       "module": "essentials.vco",
       "version": 2,
       "parameters": {
-        "frequency": 330
+        "frequency": 220
       }
     },
     {
@@ -46,7 +46,7 @@
   ],
   "connections": [
     {
-      "kind": "signal",
+      "kind": "event",
       "from": {
         "module": 1,
         "port": "notes"
