@@ -181,14 +181,18 @@ class Recorder:
             if self.writer.is_alive():
                 raise RuntimeError("input FLAC writer stalled")
             if self.write_error:raise RuntimeError("input FLAC writer: "+str(self.write_error))
-            if self.overruns:raise RuntimeError(f"input capture lost {self.overruns} blocks (writer queue full)")
+            losses=[]
+            if self.overruns:
+                losses.append(f"input capture lost {self.overruns} blocks (writer queue full)")
             if self.callback_status_count:
                 first=self.callback_statuses[0]
-                raise RuntimeError(
+                losses.append(
                     f"input capture callback status/data loss: "
                     f"{self.callback_status_count} flagged callback(s); "
                     f"first at capture frame {first['start_frame']}, "
                     f"{first['frames']} frames: {first['flags']}")
+            if losses:
+                raise RuntimeError("; ".join(losses))
         else:
             self._stop_proc()
             if not self.temp or not self.temp.is_file():
