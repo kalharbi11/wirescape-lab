@@ -193,3 +193,31 @@ target_link_libraries(sidecar_audio_recovery_tests PRIVATE wirescape_runtime_doc
   wirescape_midi_host wirescape_osc_host nlohmann_json::nlohmann_json Threads::Threads)
 add_test(NAME abi2_sidecar_audio_recovery_tests COMMAND sidecar_audio_recovery_tests)
 set_tests_properties(abi2_sidecar_audio_recovery_tests PROPERTIES TIMEOUT 30)
+
+# M1 S0: snapshot the real Session serializer with a test-only fixed token.
+# Do NOT add a production token option or change any runtime/protocol source.
+# The generated translation unit differs only in that constructor assignment
+# and its include resolution from the binary directory.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/sidecar/session.cpp" _s0_session_source)
+set(_s0_random_token "token_ = std::to_string(random()) + \"-\" + std::to_string(app_engine_clock_ns());")
+string(FIND "${_s0_session_source}" "${_s0_random_token}" _s0_token_pos)
+if(_s0_token_pos LESS 0)
+  message(FATAL_ERROR "M1 S0 test-only token seam drifted: cannot freeze the session")
+endif()
+string(REPLACE "${_s0_random_token}" "token_ = \"s0-fixture-session\";"
+  _s0_session_source "${_s0_session_source}")
+string(REPLACE "#include \"../document/runtime_module_config.h\""
+  "#include \"runtime_module_config.h\"" _s0_session_source "${_s0_session_source}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp" "${_s0_session_source}")
+add_executable(sidecar_s0_snapshot_tests
+  sidecar/snapshot_tests.cpp "${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp"
+  sidecar/protocol.cpp sidecar/devices.cpp)
+target_include_directories(sidecar_s0_snapshot_tests PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/sidecar" "${CMAKE_CURRENT_SOURCE_DIR}/document"
+  "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(sidecar_s0_snapshot_tests PRIVATE WIRESCAPE_ENGINE_SHA="s0-fixture-build")
+target_link_libraries(sidecar_s0_snapshot_tests PRIVATE wirescape_runtime_document wirescape_audio_service
+  wirescape_midi_host wirescape_osc_host nlohmann_json::nlohmann_json Threads::Threads)
+add_test(NAME abi2_sidecar_snapshot_tests COMMAND sidecar_s0_snapshot_tests
+  "${CMAKE_CURRENT_SOURCE_DIR}/sidecar/testdata")
+set_tests_properties(abi2_sidecar_snapshot_tests PROPERTIES TIMEOUT 90)
