@@ -1,0 +1,37 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "abi1-reference-capture-verification-v1",
+  "source_commit": "6d5f7bf8c93e1187fe3e2af3cefce808328332f5",
+  "source_git_ref": "task/67-freeze-abi1-reference",
+  "source_workflow_run": 43785980265,
+  "source_workflow_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785980265",
+  "source_artifact_id": 14190557270,
+  "source_artifact_name": "golden-diagnostics-linux-x64",
+  "source_archive_sha256": "56cc4fb4ed4ff0084fb3eb67f327fe99a3002949dabed85b882424569217c7b0",
+  "capture_date_et": "2026-11-15",
+  "runner": "linux-x64",
+  "cpu": "AMD EPYC 9V45 96-Core Processor",
+  "compiler_id": "GNU",
+  "compiler_version": "15.2.0",
+  "build_config": "Release",
+  "compiler_flags": " -O3 -DNDEBUG",
+  "byte_order": "little",
+  "sample_encoding": "IEEE binary32, zlib9+b64 candidates",
+  "json_candidate_files": 38,
+  "cases_total": 983,
+  "cases_by_suite": {
+    "integration_shim": 2,
+    "module": 117,
+    "utility": 864
+  },
+  "decompressed_total_bytes": 45400064,
+  "per_case_hash_aggregation": "SHA-256 of lexicographically sorted case_name + space + lowercase case_SHA256 + newline for all 983 cases",
+  "per_case_hash_aggregation_sha256": "9d30b2a30746fba15e4578eb9ac669fb7cb859aa26c2c6386430b128ce787ba6",
+  "integration_case_sha256": {
+    "shim_steady": "5450d48c4bb85e490fc28eeadf8a23fffd1640c181ad7c9582dcf70e1aec9963",
+    "shim_scripted": "fdc0cdd23d253a08888aadc709352671b9a44dce9310064b2da97ad6d6aaedda"
+  },
+  "capture_result": "all 983 captured reference byte streams decoded and validated against their own SHA256; hosted same-runner Golden linux-x64 job conclusion success",
+  "descriptor_capture_present": false,
+  "descriptor_capture_source": "descriptor metadata added in later branch head 0e80b917; not present in source commit 6d5f7bf"
+}
