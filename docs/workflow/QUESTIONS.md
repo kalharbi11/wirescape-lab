@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1 and Q2 answered 2026-11-15 (M0 r1); Q3 open. The lead appends only genuinely
+**State:** Q1–Q3 answered (M0 r2). Queue empty. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -35,4 +35,4 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Lead's proposed answer:** capture deterministic engine output around each edit and report
   phase reset, silent interval and maximum discontinuity without defining pass thresholds yet.
 - **Blocked:** issuing implementation authority for T0.13.
-- **Fable answer (2026-11-15):** deferred to Fable's next usage block. Needs inventory P2 first; T0.13 stays held and blocks nothing else in M0.
+- **Fable answer (2026-11-16):** see [proposals/0005](../../proposals/0005-edits-without-restart.md) section 4 and ruling R6 in M0 r2. End-to-end through the sidecar on the null sink, one capture flag, witness signals, six metrics, no thresholds.

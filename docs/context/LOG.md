@@ -1,6 +1,18 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — Phase 2 designed: 0005, M2 contracted, T0.13 released (Fable)
+**Done:** `proposals/0005` from a read of the engine's render/replan/reconfigure code and the sidecar's
+commit path. Findings: the live replan already keeps unchanged instances, but `loadGraph` never uses
+it, and every replan is a master dip of at least three blocks because routing lives inside `Node`.
+Design: `applyGraph` on the existing replan now (M2); then topology moved into an immutable layout
+adopted at a block boundary, per-edge ramps, module data slots, instance replacement with a realtime
+`adopt` hook or ring-out. T0.13 harness designed (0005 section 4, M0 r2 ruling R6). M1 r2: sidecar
+ordering only.
+**State of main:** no product change. **Next:** lead runs M0, M1, M2. Fable: T1.6 split design.
+**Open for the owner:** none new.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — M1 contracted: one-engine design 0006 (Fable)
 **Done:** design note `proposals/0006` (ABI1 removal and engine-native types in serial stages plus the
 rename, invariants I1–I8, evidence per stage) and contract `M1 r1`. `legacy_index` stays in
