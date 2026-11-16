@@ -128,6 +128,9 @@ jobs:
   # Notes-only PRs use the same successful-scope skip as native.
   linux-x64:
     name: linux-x64
+    permissions:
+      contents: read
+      actions: read
     needs: [scope, native]
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     runs-on: ubuntu-latest
@@ -141,6 +144,7 @@ jobs:
           python-version: '3.12'
       - name: Verify real native build linux-x64 in current run attempt
         env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
           NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
           SCOPE_RESULT: ${{ needs.scope.result }}
           SCOPE_CODE: ${{ needs.scope.outputs.code }}
@@ -148,6 +152,9 @@ jobs:
 
   linux-arm64:
     name: linux-arm64
+    permissions:
+      contents: read
+      actions: read
     needs: [scope, native]
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     runs-on: ubuntu-latest
@@ -161,6 +168,7 @@ jobs:
           python-version: '3.12'
       - name: Verify real native build linux-arm64 in current run attempt
         env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
           NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
           SCOPE_RESULT: ${{ needs.scope.result }}
           SCOPE_CODE: ${{ needs.scope.outputs.code }}
@@ -168,6 +176,9 @@ jobs:
 
   windows-x64:
     name: windows-x64
+    permissions:
+      contents: read
+      actions: read
     needs: [scope, native]
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     runs-on: ubuntu-latest
@@ -181,6 +192,7 @@ jobs:
           python-version: '3.12'
       - name: Verify real native build windows-x64 in current run attempt
         env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
           NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
           SCOPE_RESULT: ${{ needs.scope.result }}
           SCOPE_CODE: ${{ needs.scope.outputs.code }}
@@ -270,59 +282,27 @@ jobs:
   # so also validate the three per-job conclusions from this public run.
   studio:
     name: studio
+    permissions:
+      contents: read
+      actions: read
     needs: [scope, studio_shards]
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Verify every Studio shard passed
         env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
           STUDIO_MATRIX_RESULT: ${{ needs.studio_shards.result }}
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import re
-          from urllib.request import Request, urlopen
-
-          matrix_result = os.environ['STUDIO_MATRIX_RESULT']
-          if matrix_result != 'success':
-              raise SystemExit(f'Studio matrix did not succeed: {matrix_result}')
-
-          repo = os.environ['GITHUB_REPOSITORY']
-          run_id = os.environ['GITHUB_RUN_ID']
-          if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) or not run_id.isdecimal():
-              raise SystemExit('Invalid GitHub run identity')
-
-          # Public read-only endpoint: no token, added permissions, or retries.
-          url = f'https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100'
-          request = Request(url, headers={
-              'Accept': 'application/vnd.github+json',
-              'User-Agent': 'wirescape-studio-required-check',
-          })
-          try:
-              with urlopen(request, timeout=20) as response:
-                  payload = json.load(response)
-          except Exception as exc:
-              raise SystemExit(f'Unable to verify Studio jobs (fail closed): {exc}') from exc
-
-          jobs = payload.get('jobs')
-          if not isinstance(jobs, list) or payload.get('total_count') != len(jobs):
-              raise SystemExit('Incomplete job inventory (fail closed)')
-          shards = [job for job in jobs
-                    if isinstance(job.get('name'), str) and job['name'].startswith('studio shard ')]
-          expected = {f'studio shard {i}/3' for i in (1, 2, 3)}
-          names = [job['name'] for job in shards]
-          if len(shards) != 3 or set(names) != expected or len(names) != len(set(names)):
-              raise SystemExit(f'Expected exactly three distinct Studio shards; got {names}')
-          for job in shards:
-              status, conclusion = job.get('status'), job.get('conclusion')
-              if status != 'completed' or conclusion != 'success':
-                  raise SystemExit(
-                      f"{job['name']} did not pass: status={status}, conclusion={conclusion}"
-                  )
-          print('All three Studio shard jobs completed successfully; required studio check passed')
-          PY
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --studio
   desktop:
     needs: scope
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
