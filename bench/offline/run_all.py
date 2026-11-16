@@ -28,6 +28,7 @@ from metrics import (basic, direct_envelope_metrics, envelope_metrics,
                      filter_impulse_evidence, filter_metrics, oscillator_metrics,
                      patch_metrics, read_audio, step_metrics, sweep_residual_metrics)
 from sidecar_probe import check_loads
+from r2_probe import collect_r2
 
 ROOT = Path(__file__).resolve().parents[2]
 RATE = 48000
@@ -1005,6 +1006,20 @@ def main(argv=None):
     cpu_sections(probes, mods, meta, out, args.quick, args.soak_seconds)
     oscillator_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
     filter_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
+    r2_impulses, r2_tails = collect_r2(build, desc, args.quick, rates)
+    save(out, "dsp", "impulse_response_r2", meta, r2_impulses, {
+        "contract": "M0 r2 R2",
+        "source": "one sample at frame=rate after reset and 1s silence; 2s captured",
+        "decay": "suffix peak falls below -60 dB re absolute response peak",
+        "rates_hz": list(rates), "test_only_source": "bench/offline/r2_engine_probe.cpp",
+    })
+    save(out, "perf", "denormal_tail_r2", meta, r2_tails, {
+        "contract": "M0 r2 R2",
+        "source": "1s deterministic signal then 5s bitwise zero, Engine::render FTZ guard",
+        "timing": "wall ns surrounding Engine::render; median full blocks",
+        "repeats": 5, "advisory_only": True, "has_threshold_or_gate": False,
+        "rates_hz": list(rates), "test_only_source": "bench/offline/r2_engine_probe.cpp",
+    })
     module_sections(binaries["wirescape_render"], desc, mods, meta, out, args.quick, rates)
     sweep_sections(binaries["wirescape_render"], desc, meta, out, args.quick, rates)
     envelope_sections(binaries["wirescape_render"], meta, out, args.quick)
