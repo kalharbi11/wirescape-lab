@@ -97,6 +97,7 @@ class Session {
     std::atomic<uint64_t> dropouts_{0};
     RenderHistogram bench_; // only sink thread records; joined before shutdown reads
     NullSinkCapture capture_; // opened before, written only by, closed after the sink thread
+    CaptureMarks marks_;      // <capture>.marks; control thread only (reply())
     bool capture_reported_ = false;
     bool bench_reported_ = false;
     std::chrono::steady_clock::time_point started_ = std::chrono::steady_clock::now();

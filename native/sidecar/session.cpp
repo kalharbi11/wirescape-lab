@@ -309,8 +309,10 @@ Session::Session(Options options)
     refresh_devices();
     device_ = options_.device.empty() ? preferences_.value("audioDeviceId", std::string{}) : options_.device;
     if (options_.audio) audio_state_ = "starting";
-    if (!options_.capture_null_sink.empty())
+    if (!options_.capture_null_sink.empty()) {
         need(capture_.open(options_.capture_null_sink), "unavailable", "Cannot open --capture-null-sink file");
+        need(marks_.open(options_.capture_null_sink + ".marks"), "unavailable", "Cannot open capture marks file");
+    }
 }
 void Session::start(std::chrono::steady_clock::time_point now) {
     try {
@@ -341,8 +343,9 @@ void Session::shutdown() {
     if (capture_.enabled() && !capture_reported_) {
         capture_reported_ = true;
         capture_.close(); // the sink thread has joined
+        marks_.close();
         std::cerr << "capture segments=" << capture_.segments() << " blocks=" << capture_.blocks()
-                  << " failed=" << (capture_.failed() ? 1 : 0) << '\n';
+                  << " failed=" << (capture_.failed() || marks_.failed() ? 1 : 0) << '\n';
     }
     if (options_.bench_summary && !bench_reported_) {
         bench_reported_ = true;
@@ -1194,6 +1197,8 @@ Json Session::apply(const Json &command) {
 }
 Json Session::base() const { return {{"v", 0}, {"session", token_}, {"gen", std::to_string(generation_)}}; }
 Json Session::reply(const Request &request) {
+    // Marks bracket (R7): blocks appended before the command is applied.
+    const uint64_t b0 = marks_.enabled() ? capture_.appended() : 0;
     auto result = base();
     result["re"] = nullptr;
     result["ok"] = false;
@@ -1226,6 +1231,15 @@ Json Session::reply(const Request &request) {
         result["message"] = "Engine operation unavailable";
     }
     result["gen"] = std::to_string(generation_);
+    if (marks_.enabled()) {
+        // ...and after the reply is built. The reply itself is unchanged by marking.
+        const uint64_t b1 = capture_.appended();
+        Json mark = {{"re", result["re"]}, {"type", nullptr}, {"ok", result["ok"]},
+                     {"gen", result["gen"]}, {"b0", b0}, {"b1", b1}};
+        if (request.value.is_object() && request.value.contains("type") && request.value["type"].is_string())
+            mark["type"] = request.value["type"];
+        marks_.write(mark.dump());
+    }
     return result;
 }
 Json Session::audio_status() const {

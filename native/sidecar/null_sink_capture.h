@@ -13,6 +13,12 @@
 // Only the null-sink thread writes after open(); the control thread opens
 // before the thread starts and closes after it has joined. Nothing here is
 // called from Engine::render or a device callback.
+//
+// <file>.marks (M0 r3 / R7, proposals/0005 section 4): one JSON line per handled
+// command, {"re","type","ok","gen","b0","b1"}, written by the control thread only.
+// b0/b1 are appended() read just before the command is applied and just after its
+// reply is built. The sink thread's only part is one atomic increment per block.
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -36,7 +42,7 @@ class NullSinkCapture {
         file_ = std::fopen(path.c_str(), "wb");
         failed_ = false;
         segments_ = 0;
-        blocks_ = 0;
+        blocks_.store(0, std::memory_order_relaxed);
         return file_ != nullptr;
     }
     bool enabled() const noexcept { return file_ != nullptr; }
@@ -80,7 +86,7 @@ class NullSinkCapture {
             return;
         }
         ++segment_blocks_;
-        ++blocks_;
+        blocks_.fetch_add(1, std::memory_order_release); // after the block is appended
     }
     // Sink thread: close the segment by recording the number of complete blocks.
     void end() noexcept {
@@ -97,13 +103,16 @@ class NullSinkCapture {
     // Read on the control thread only after the sink thread has joined.
     bool failed() const noexcept { return failed_; }
     uint32_t segments() const noexcept { return segments_; }
-    uint64_t blocks() const noexcept { return blocks_; }
+    uint64_t blocks() const noexcept { return appended(); }
+    // Any thread: total blocks appended across all segments so far.
+    uint64_t appended() const noexcept { return blocks_.load(std::memory_order_acquire); }
 
   private:
     std::FILE *file_ = nullptr;
     bool failed_ = false, open_segment_ = false;
     uint32_t segments_ = 0;
-    uint64_t blocks_ = 0, segment_blocks_ = 0;
+    std::atomic<uint64_t> blocks_{0};
+    uint64_t segment_blocks_ = 0;
     int64_t segment_offset_ = 0;
 
     static void put32(unsigned char *p, uint32_t v) noexcept {
@@ -126,5 +135,37 @@ class NullSinkCapture {
         return fseeko(file_, static_cast<off_t>(at), SEEK_SET);
 #endif
     }
+};
+
+// Control thread only: the <capture>.marks companion file.
+class CaptureMarks {
+  public:
+    CaptureMarks() = default;
+    CaptureMarks(const CaptureMarks &) = delete;
+    CaptureMarks &operator=(const CaptureMarks &) = delete;
+    ~CaptureMarks() { close(); }
+    bool open(const std::string &path) {
+        close();
+        file_ = std::fopen(path.c_str(), "wb");
+        return file_ != nullptr;
+    }
+    bool enabled() const noexcept { return file_ != nullptr; }
+    // One complete line, flushed so a killed engine still leaves every handled mark.
+    void write(const std::string &line) noexcept {
+        if (!file_ || failed_) return;
+        if (std::fwrite(line.data(), 1, line.size(), file_) != line.size() || std::fputc('\n', file_) == EOF ||
+            std::fflush(file_) != 0)
+            failed_ = true;
+    }
+    bool failed() const noexcept { return failed_; }
+    void close() noexcept {
+        if (!file_) return;
+        if (std::fclose(file_) != 0) failed_ = true;
+        file_ = nullptr;
+    }
+
+  private:
+    std::FILE *file_ = nullptr;
+    bool failed_ = false;
 };
 } // namespace wirescape::sidecar

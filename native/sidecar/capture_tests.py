@@ -35,8 +35,8 @@ class Engine:
                                         stderr=subprocess.PIPE)
         self.messages = queue.Queue()
         self.stderr_bytes = bytearray()
-        threading.Thread(target=lambda: [self.messages.put(json.loads(line)) for line in self.process.stdout],
-                         daemon=True).start()
+        threading.Thread(target=lambda: [self.messages.put(dict(json.loads(line), _raw=line))
+                                         for line in self.process.stdout], daemon=True).start()
         self.drain = threading.Thread(target=lambda: [self.stderr_bytes.extend(chunk) for chunk in
                                                       iter(lambda: self.process.stderr.read1(4096), b'')],
                                       daemon=True)
@@ -46,7 +46,8 @@ class Engine:
         self.serial = 0
         self.pushes = []
 
-    def call(self, method, **payload):
+    def call(self, method, ok=True, **payload):
+        """Send one command; `ok` is the expected outcome (refusals are asserted, not ignored)."""
         self.serial += 1
         request = f'c{self.serial}'
         self.process.stdin.write(json.dumps(dict(v=0, id=request, type=method, **payload)).encode() + b'\n')
@@ -54,7 +55,7 @@ class Engine:
         while True:
             message = self.messages.get(timeout=10)
             if message.get('re') == request:
-                assert message['ok'], message
+                assert message['ok'] is ok, message
                 return message
             self.pushes.append(message)
 
@@ -124,6 +125,7 @@ with tempfile.TemporaryDirectory() as directory:
     engine = Engine('--null-audio', '--settings', str(settings), '--rate', '48000', '--block', '256')
     engine.statuses(3)
     assert 'capture' not in engine.close()
+    assert not list(root.glob('*.marks')) and not list(root.glob('*.f32')), 'flag absent: no capture or marks file'
 
     # 3. Capture: real rendered blocks, every bus channel, one segment per sink start.
     capture = root / 'capture.f32'
@@ -166,5 +168,51 @@ with tempfile.TemporaryDirectory() as directory:
     silent = [c for c in range(16) if c not in (0, 1, 5)]
     assert all(not any(rows[c]) for c in silent), 'unrouted bus channels are exactly zero'
     assert all(math.isfinite(x) for x in left + other)
+
+    # 4. Marks (M0 r3 / R7): one line per handled command, refusals included, in command order,
+    #    each bracketing the capture's total block count before apply (b0) and after the reply (b1).
+    marks = [json.loads(line) for line in (root / 'capture.f32.marks').read_text().splitlines()]
+    assert [(m['re'], m['type'], m['ok']) for m in marks] == [('c1', 'loadGraph', True), ('c2', 'setBufferFrames', True)], marks
+    for m in marks:
+        assert set(m) == {'re', 'type', 'ok', 'gen', 'b0', 'b1'}, m
+        assert isinstance(m['b0'], int) and isinstance(m['b1'], int) and 0 <= m['b0'] <= m['b1'] <= total, (m, total)
+        assert isinstance(m['gen'], str), m
+    assert marks[0]['b1'] <= marks[1]['b0'], 'marks are in command order'
+    # setBufferFrames restarts the sink: its bracket contains the first segment's end.
+    assert marks[1]['b0'] <= found[0]['blocks'] <= marks[1]['b1'] + 1, (marks[1], found[0]['blocks'])
+
+    # 5. setParam, panic and a refused command are each marked; replies are byte-identical with
+    #    and without the flag. The only per-process field is the random `session` token, checked
+    #    against each engine's own hello and then set aside.
+    script = [('loadGraph', True, dict(patch=patch)),
+              ('setParam', True, dict(moduleId=1, paramId='frequency', value=440)),
+              ('panic', True, {}),
+              ('setParam', False, dict(moduleId=999, paramId='frequency', value=440)),
+              ('noteOn', True, dict(note=60, velocity=0.5))]
+    def replies(*extra):
+        run = Engine('--null-audio', '--settings', str(settings), '--rate', '48000', '--block', '256', *extra)
+        run.statuses(2)
+        out = []
+        for method, ok, payload in script:
+            raw = run.call(method, ok=ok, **payload)['_raw']
+            token = json.dumps(run.hello['session']).encode()
+            assert raw.count(token) == 1, raw
+            out.append(raw.replace(token, b'"<session>"'))
+            run.statuses(2)
+        run.close()
+        return out
+    marked = root / 'marked.f32'
+    plain_replies = replies()
+    marked_replies = replies('--capture-null-sink', str(marked))
+    assert plain_replies == marked_replies, list(zip(plain_replies, marked_replies))
+    marks = [json.loads(line) for line in (root / 'marked.f32.marks').read_text().splitlines()]
+    assert [(m['re'], m['type'], m['ok']) for m in marks] == \
+        [(f'c{i + 1}', method, ok) for i, (method, ok, _) in enumerate(script)], marks
+    assert all(m['b0'] <= m['b1'] for m in marks) and \
+        all(a['b1'] <= b['b0'] for a, b in zip(marks, marks[1:])), marks
+    assert marks[1]['b1'] > marks[0]['b1'] and marks[2]['b1'] > marks[1]['b1'], 'status pacing lets blocks pass between marks'
+    assert marks[1]['gen'] == marks[2]['gen'] == marks[0]['gen'], 'setParam and panic do not change gen'
+    marked_total = sum(s['blocks'] for s in segments(marked.read_bytes()))
+    assert marks[-1]['b1'] <= marked_total, (marks[-1], marked_total)
 
 print('capture tests passed')
