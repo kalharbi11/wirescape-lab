@@ -1,0 +1,37 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "abi1-reference-capture-verification-v1",
+  "source_commit": "f80c17c040c15f107585a02b1ee2872f42678aad",
+  "source_git_ref": "task/67-freeze-abi1-reference",
+  "source_workflow_run": 43786206352,
+  "source_workflow_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43786206352",
+  "source_artifact_id": 14190588680,
+  "source_artifact_name": "golden-diagnostics-linux-arm64",
+  "source_archive_sha256": "d234433175cc3509481f9674d384c2b5994d87008fa80169a1b98630d67b3536",
+  "capture_date_et": "2026-11-15",
+  "runner": "linux-arm64",
+  "cpu": "0x41",
+  "compiler_id": "GNU",
+  "compiler_version": "13.3.0",
+  "build_config": "Release",
+  "compiler_flags": " -O3 -DNDEBUG",
+  "byte_order": "little",
+  "sample_encoding": "IEEE binary32, zlib9+b64 candidates",
+  "json_candidate_files": 38,
+  "cases_total": 983,
+  "cases_by_suite": {
+    "integration_shim": 2,
+    "module": 117,
+    "utility": 864
+  },
+  "decompressed_total_bytes": 45400064,
+  "per_case_hash_aggregation": "SHA-256 of lexicographically sorted case_name + space + lowercase case_SHA256 + newline for all 983 cases",
+  "per_case_hash_aggregation_sha256": "9d30b2a30746fba15e4578eb9ac669fb7cb859aa26c2c6386430b128ce787ba6",
+  "integration_case_sha256": {
+    "shim_steady": "5450d48c4bb85e490fc28eeadf8a23fffd1640c181ad7c9582dcf70e1aec9963",
+    "shim_scripted": "fdc0cdd23d253a08888aadc709352671b9a44dce9310064b2da97ad6d6aaedda"
+  },
+  "capture_result": "983 captured reference byte streams decoded and matched SHA256; hosted same-runner Golden linux-arm64 job conclusion success",
+  "descriptor_capture_present": false,
+  "descriptor_capture_source": "descriptor metadata added later in branch head 0e80b917; not part of source commit f80c17c"
+}
