@@ -2,8 +2,8 @@
 import type { Page } from '@playwright/test';
 
 /** Electron's five-member bridge, injected before any Studio module runs. */
-export async function mockBridge(page: Page): Promise<void> {
-  await page.addInitScript(() => {
+export async function mockBridge(page: Page, options: { applyGraph?: boolean } = {}): Promise<void> {
+  await page.addInitScript((options) => {
     type Message = Record<string, any>;
     const listeners = new Set<(m: Message) => void>();
     const audio = [{ id: 'USB Stereo', name: 'USB Stereo', kind: 'audio', sampleRates: [48000], index: 3 }];
@@ -16,6 +16,7 @@ export async function mockBridge(page: Page): Promise<void> {
     let delay = 0, saved = '', openText: { text: string; name: string } | null = null;
     const refused: { type: string; code: string }[] = [];
     const held: { cmd: Message; session: string; gen: string }[] = [];
+    let nextUnapplied: { moduleId: number; paramId: string }[] = [];
     const sent: Message[] = [];
     let learnArmed = false, learnSeq = 0, learnPacket: Message | null = null;
     const session = () => 's' + sessionNo;
@@ -33,7 +34,7 @@ export async function mockBridge(page: Page): Promise<void> {
         catalogue = await (await fetch('/wirescape_modules.json')).json();
       }
       emit({ v: 0, type: 'hello', session: session(), protocol: 0,
-        engine: { version: 'test', sha: 'abc1234' }, capabilities: ['midiLearn', 'telemetry.playhead'],
+        engine: { version: 'test', sha: 'abc1234' }, capabilities: ['midiLearn', 'telemetry.playhead', ...(options.applyGraph ? ['applyGraph'] : [])],
         catalogue, audio: audioStatus,
         midi: midiStatus() });
     };
@@ -47,13 +48,36 @@ export async function mockBridge(page: Page): Promise<void> {
       }
       switch (cmd.type) {
         case 'loadGraph':
+        case 'applyGraph': {
+          if (cmd.type === 'applyGraph' && !options.applyGraph) {
+            reply(cmd, false, { code: 'unavailable', message: 'No applyGraph capability' }, s); break;
+          }
           if (cmd.patch.modules.some((m: Message) =>
             !catalogue.modules.some((d: Message) => d.id === m.module))) {
             reply(cmd, false, { code: 'unknown-module', message: 'Module not installed' }, s);
             return;
           }
-          graph = copy(cmd.patch); gen++; reply(cmd, true, {}, s);
+          const previous = graph, next = copy(cmd.patch);
+          const oldById = new Map(previous.modules.map((m: Message) => [m.id, m]));
+          const replaced = next.modules.filter((m: Message) => {
+            const old = oldById.get(m.id) as Message | undefined;
+            return old && (old.module !== m.module ||
+              JSON.stringify(old.config ?? {}) !== JSON.stringify(m.config ?? {}));
+          }).map((m: Message) => m.id);
+          const unapplied = cmd.type === 'applyGraph' ? nextUnapplied.splice(0) : [];
+          for (const item of unapplied) {
+            const before = oldById.get(item.moduleId) as Message | undefined;
+            const module = next.modules.find((m: Message) => m.id === item.moduleId);
+            if (!module || !before) continue;
+            const oldValue = before.parameters?.[item.paramId];
+            if (oldValue === undefined) delete module.parameters?.[item.paramId];
+            else (module.parameters ??= {})[item.paramId] = oldValue;
+          }
+          graph = next; gen++;
+          reply(cmd, true, cmd.type === 'applyGraph'
+            ? { result: { path: 'live', replaced, unapplied } } : {}, s);
           break;
+        }
         case 'addModule':
           if (!catalogue.modules.some((d: Message) => d.id === cmd.moduleType)) {
             reply(cmd, false, { code: 'unknown-module', message: 'Module not installed' }, s);
@@ -167,6 +191,7 @@ export async function mockBridge(page: Page): Promise<void> {
         reply(h.cmd, false, { code, message: 'Scripted ' + code }, h.session, h.gen); },
       setOpen: (value: { text: string; name: string } | null) => { openText = value; },
       setDelay: (ms: number) => { delay = ms; },
+      setUnapplied: (items: { moduleId: number; paramId: string }[]) => { nextUnapplied = copy(items); },
       refuseNext: (type: string, code = 'refused') => { refused.push({ type, code }); },
       holdNext: (type: string) => { holdType = type; },
       releaseHeld: () => { for (const h of held.splice(0)) reply(h.cmd, true, {}, h.session, h.gen); },
@@ -187,5 +212,5 @@ export async function mockBridge(page: Page): Promise<void> {
         gen: atGen, telemetry: { tick: 12, time: 0.4, effective: {}, phase: {},
           envelope: {}, meters: {}, scope: {}, eventActivity: {}, heldNotes: [], ...data } }),
     };
-  });
+  }, options);
 }

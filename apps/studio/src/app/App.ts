@@ -124,7 +124,9 @@ export class App {
     this.draftEngine = new FakeEngine(registry);
     // Unapplied Groove drafts never ride along with a reload, an undo or an engine restart.
     const load = this.engine.loadGraph.bind(this.engine);
+    const apply = this.engine.applyGraph.bind(this.engine);
     this.engine.loadGraph = (patch: PatchV2) => load(this.grooves.project(patch));
+    this.engine.applyGraph = (patch: PatchV2) => apply(this.grooves.project(patch));
     this.root = el('div', 'app');
     this.root.dataset.testid = 'app';
   }
@@ -405,6 +407,21 @@ export class App {
       this.statusBar.update(s); this.canvas.updateOscStatus(s.osc);
     });
     this.engine.onRefusal?.(r => this.toasts.show(r.detail.message, 'error'));
+    this.engine.onUnapplied?.(items => {
+      // Live graph committed, but these parameter events were not queued.
+      // Restore the actual old values to the editable document and panel.
+      for (const { moduleId, paramId, previous } of items) {
+        const module = this.doc.modules.get(moduleId);
+        if (!module) continue;
+        if (previous === undefined) {
+          if (module.parameters) delete module.parameters[paramId];
+          this.doc.markDirty();
+        } else this.doc.setParam(moduleId, paramId, previous);
+        this.canvas.cardFor(moduleId)?.panel?.refreshParam(paramId);
+      }
+      this.refreshDirty();
+      this.toasts.show('Some parameter values were not applied; previous values were kept.', 'error');
+    });
     if (this.engine instanceof RealEngine) {
       this.engine.onConnection(state => {
         this.statusBar.setEngineState(state);
@@ -762,7 +779,7 @@ export class App {
     this.canvas.select({ kind: 'none' });
     this.ticker.resetTelemetry();
     this.doc.replace({ ...p, ui: { ...(p.ui ?? {}), view } });
-    void this.editEngine().loadGraph(this.doc.toJSON()).catch(e =>
+    void this.editEngine().applyGraph(this.doc.toJSON()).catch(e =>
       this.toasts.show(e instanceof Error ? e.message : 'The snapshot could not run.', 'error'));
     requestAnimationFrame(() => this.canvas.invalidateAnchors());
     this.refreshDirty();
@@ -954,7 +971,7 @@ export class App {
     this.history.flush();
     this.doc.setModuleConfig(id, config);
     try {
-      await this.editEngine().loadGraph(this.doc.toJSON());
+      await this.editEngine().applyGraph(this.doc.toJSON());
       if (epoch !== this.viewEpoch) return false;
       this.history.flush();
       this.toasts.show(`${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
@@ -1017,7 +1034,7 @@ export class App {
     if (this.documentBusy || this.draftVisible || !this.engine.canApplyGroove(id)) return false;
     const unstage = this.grooves.stage(id);
     try {
-      await this.engine.loadGraph(this.doc.toJSON());
+      await this.engine.applyGraph(this.doc.toJSON());
       this.toasts.show('Pattern loaded · press play to start from step 1.');
       return true;
     } catch (e) {
@@ -1165,7 +1182,7 @@ export class App {
         if (state === 'restarting' && phase !== 'applied' && phase !== 'not-applied') requireRestart();
       });
     }
-    const pending = engine.loadGraph(submitted).then(() => {
+    const pending = engine.applyGraph(submitted).then(() => {
       if (phase !== 'not-applied' && phase !== 'restart-required' && phase !== 'restart') {
         phase = 'applied';
         this.toasts.show(result.message);
@@ -1197,9 +1214,13 @@ export class App {
     if (this.documentBusy) return;
     const previous = this.doc.toJSON();
     this.doc.setModuleEndpoint(moduleId, endpoint, systemName);
-    void this.editEngine().loadGraph(this.doc.toJSON()).catch(err => {
+    void this.editEngine().applyGraph(this.doc.toJSON()).catch(err => {
       this.doc.replace(previous);
-      void this.editEngine().loadGraph(previous);
+      // applyGraph refusal did not swap the running graph; the old full-load
+      // compensator is retained only for engines without that capability.
+      const running = this.editEngine();
+      if (!(running instanceof RealEngine && running.hasApplyGraph()))
+        void running.loadGraph(previous);
       this.toasts.show(err instanceof Error ? err.message : 'MIDI endpoint change was refused.', 'error');
     });
   }
@@ -1896,6 +1917,9 @@ export class App {
       canEdit: () => !this.documentBusy,
       engine: this.engine,
       commitParam: (m: number, p: string, v: number, commit = true) => this.commitParam(m, p, v, commit),
+      commitOscConfig: (id: number, cfg: OscConfig, type: 'osc.in' | 'osc.out') => this.commitOscConfig(id, cfg, type),
+      restoreSnapshot: (p: PatchV2) => this.restoreSnapshot(p),
+      setMidiEndpoint: (id: number, endpoint: string, systemName?: string) => this.setMidiEndpoint(id, endpoint, systemName),
       ticker: this.ticker,
       canvas: this.canvas,
       registry: this.registry,

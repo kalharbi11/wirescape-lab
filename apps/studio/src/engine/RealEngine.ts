@@ -3,7 +3,7 @@ import type { PatchV2, Connection } from '../patch/types';
 import { connKey } from '../patch/types';
 import type { ModuleDescriptor } from '../modules/types';
 import type { ModuleRegistry } from '../modules/registry';
-import { EngineRefusal, type EngineClient, type EngineError, type Device, type SystemStatus, type Telemetry } from './EngineClient';
+import { EngineRefusal, type EngineClient, type EngineError, type Device, type SystemStatus, type Telemetry, type UnappliedParameter } from './EngineClient';
 
 /** The complete five-member Electron preload surface; never expose Node to the renderer. */
 export interface WirescapeBridge {
@@ -29,7 +29,7 @@ type Pending = {
   revision?: number; edit?: Edit; timeout?: number;
 };
 type Load = {
-  id: string; patch: PatchV2; revision: number;
+  id: string; patch: PatchV2; revision: number; type: 'loadGraph' | 'applyGraph';
   resolve: () => void; reject: (reason: EngineRefusal) => void; sent: boolean;
 };
 
@@ -53,6 +53,8 @@ export class RealEngine implements EngineClient {
   private gen = '0';
   private playheadEnabled = false;
   private monitorEnabled = false;
+  private applyGraphEnabled = false;
+  private unappliedCbs = new Set<(items: UnappliedParameter[]) => void>();
   private playhead: Telemetry['playhead'] = {};
   private statusGen = '';
   private serial = 0;
@@ -112,6 +114,10 @@ export class RealEngine implements EngineClient {
     if (this.status) cb(this.status);
     return () => this.statusCbs.delete(cb);
   }
+  onUnapplied(cb: (items: UnappliedParameter[]) => void): () => void {
+    this.unappliedCbs.add(cb); return () => this.unappliedCbs.delete(cb);
+  }
+  hasApplyGraph(): boolean { return this.applyGraphEnabled; }
   onRefusal(cb: (r: { requestId: string; type: string; detail: EngineError; gen: string }) => void): () => void {
     this.refusalCbs.add(cb); return () => this.refusalCbs.delete(cb);
   }
@@ -221,6 +227,7 @@ export class RealEngine implements EngineClient {
       this.playhead = {}; this.statusGen = '';
       this.playheadEnabled = false;
       this.monitorEnabled = false;
+      this.applyGraphEnabled = false;
       this.ready = false;
       this.confirmed = null;
       this.setState('restarting');
@@ -244,6 +251,7 @@ export class RealEngine implements EngineClient {
       const capabilities = Array.isArray(message.capabilities) ? message.capabilities : [];
       this.playheadEnabled = capabilities.includes('telemetry.playhead');
       this.monitorEnabled = capabilities.includes('telemetry.monitor');
+      this.applyGraphEnabled = capabilities.includes('applyGraph');
       this.setSampleRate = capabilities.includes('setSampleRate')
         ? hz => this.control('setSampleRate', { hz }) : undefined;
       this.setBufferFrames = capabilities.includes('setBufferFrames')
@@ -331,12 +339,56 @@ export class RealEngine implements EngineClient {
     }
     if (p.kind === 'load') {
       if (p.revision === this.revision && this.load) {
-        this.confirmed = copy(this.load.patch);
-        this.usedIds = new Set(this.confirmed.modules.map(m => m.id));
+        const load = this.load;
+        const committed = copy(load.patch);
+        const unapplied: UnappliedParameter[] = [];
+        if (load.type === 'applyGraph') {
+          const result = message.result;
+          if (!isRecord(result) || !['live', 'restart'].includes(String(result.path)) ||
+              !Array.isArray(result.replaced) || !Array.isArray(result.unapplied) ||
+              !result.replaced.every(x => Number.isSafeInteger(x) && (x as number) > 0)) {
+            this.load = undefined; this.ready = false;
+            load.reject(refusal('invalid', 'Malformed applyGraph acknowledgement.'));
+            this.notifySettled();
+            return;
+          }
+          const seen = new Set<string>();
+          for (const item of result.unapplied) {
+            if (!isRecord(item) || !Number.isSafeInteger(item.moduleId) ||
+                typeof item.paramId !== 'string' || !item.paramId ||
+                seen.has(String(item.moduleId) + ':' + item.paramId)) {
+              this.load = undefined; this.ready = false;
+              load.reject(refusal('invalid', 'Malformed unapplied parameter list.'));
+              this.notifySettled();
+              return;
+            }
+            seen.add(String(item.moduleId) + ':' + item.paramId);
+            const old = this.confirmed?.modules.find(m => m.id === item.moduleId);
+            const next = committed.modules.find(m => m.id === item.moduleId);
+            if (!old || !next || old.module !== next.module ||
+                JSON.stringify(old.config ?? {}) !== JSON.stringify(next.config ?? {})) {
+              this.load = undefined; this.ready = false;
+              load.reject(refusal('invalid', 'Unapplied parameter is not a continuing instance.'));
+              this.notifySettled();
+              return;
+            }
+            const previous = old.parameters?.[item.paramId as string];
+            if (previous === undefined) delete next.parameters?.[item.paramId as string];
+            else (next.parameters ??= {})[item.paramId as string] = previous;
+            unapplied.push({ moduleId: item.moduleId as number, paramId: item.paramId as string, previous });
+          }
+        }
+        this.confirmed = committed;
+        // applyGraph retains the namespace; an ID removed by a graph replan
+        // remains barred from incremental addModule but can return in applyGraph.
+        this.usedIds = load.type === 'loadGraph'
+          ? new Set(committed.modules.map(m => m.id))
+          : new Set([...this.usedIds, ...committed.modules.map(m => m.id)]);
         this.ready = true;
         this.loadedOnce = true;
-        this.load!.resolve();
         this.load = undefined;
+        if (unapplied.length) for (const cb of this.unappliedCbs) cb(unapplied);
+        load.resolve();
         this.setState('real');
         this.pumpEdits();
         this.notifySettled();
@@ -350,7 +402,14 @@ export class RealEngine implements EngineClient {
     } else p.resolve?.(message);
   }
 
-  async loadGraph(patch: PatchV2): Promise<void> {
+  loadGraph(patch: PatchV2): Promise<void> {
+    return this.submitGraph(patch, 'loadGraph');
+  }
+  applyGraph(patch: PatchV2): Promise<void> {
+    return this.applyGraphEnabled && this.ready
+      ? this.submitGraph(patch, 'applyGraph') : this.loadGraph(patch);
+  }
+  private submitGraph(patch: PatchV2, type: 'loadGraph' | 'applyGraph'): Promise<void> {
     this.playhead = {};
     this.loadedOnce = true;
     this.ready = false;
@@ -360,7 +419,7 @@ export class RealEngine implements EngineClient {
     if (this.load) this.load.reject(refusal('unavailable', 'Patch load superseded.'));
     const revision = ++this.revision;
     return new Promise<void>((resolve, reject) => {
-      this.load = { id: this.id(), patch: copy(patch), revision, resolve, reject, sent: false };
+      this.load = { id: this.id(), patch: copy(patch), revision, type, resolve, reject, sent: false };
       this.dispatchLoad();
     });
   }
@@ -368,9 +427,9 @@ export class RealEngine implements EngineClient {
     const l = this.load;
     if (!l || !this.session || l.sent) return;
     l.sent = true;
-    this.pending.set(l.id, { session: this.session, type: 'loadGraph', kind: 'load',
+    this.pending.set(l.id, { session: this.session, type: l.type, kind: 'load',
       revision: l.revision });
-    try { this.send(l.id, 'loadGraph', { patch: l.patch }); }
+    try { this.send(l.id, l.type, { patch: l.patch }); }
     catch { this.pending.delete(l.id); l.reject(refusal('unavailable', 'Bridge unavailable.')); this.load = undefined; this.notifySettled(); }
   }
 
