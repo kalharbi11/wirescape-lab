@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Device runbook for Codex (Pi 5 and Windows laptop)
 
-**Version 2, 2026-11-15, updated for electrical loopback latency.** The owner starts Codex on the owner's laptop. Codex runs this
+**Version 3, 2026-11-16, M0 r2 R1 separate duplex/command/range quantities.** The owner starts Codex on the owner's laptop. Codex runs this
 runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner's change of 2026-11-15).
 
 ## Rules for Codex
@@ -19,8 +19,8 @@ runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner
 
 Values the owner gives you: `<pi-ssh>` (SSH alias or user@address of the Pi), `<pi-repo>` (path of the lab
 clone on the Pi), whether an output-to-input **loopback cable** is connected (Pi and/or laptop), and which
-parts to run (default: all of §2, then §3). For loopback, the owner also provides the engine
-output device ID and input-device index for each connected cable. Never guess either ID.
+parts to run (default: all of §2, then §3). For R1 loopback, the owner also supplies engine output ID, matching PortAudio
+harness output ID, physical input ID, and device class. Never guess an ID.
 
 ## 1. Prepare (both machines, devices off)
 
@@ -55,8 +55,9 @@ Discovery (write the answers in your notes):
   `python -c "import sounddevice as sd; print(sd.query_devices())"`.
   Identify the PortAudio input index for the physical cable, not a microphone.
   For the engine output ID, use the owner-selected audio device ID from the engine/Studio
-  audio-device list, which may differ from the PortAudio index. Record both IDs.
-  Never guess: if the cable or either ID is missing, skip P7 or W3 and report it.
+  audio-device list. Also collect the *matching physical PortAudio output ID*,
+  input ID, and anonymous device class for a full-duplex stream. Record
+  all three IDs privately. If any is missing, skip P7 or W3.
 
 ## 2. Raspberry Pi 5 runs
 
@@ -114,31 +115,47 @@ kill "$(cat bench/device/pi-app-memory.pid)"
 ```
 *If the smoke fails:* keep the memory log anyway, report the failure text.
 
-### P7. 🔊 Uncalibrated electrical loopback diagnostic, Pi 5 (64/128/256 frames)
-**Only with an owner-confirmed output-to-input cable and both IDs.** No
-microphone/monitor sink; no MIDI. Turn speaker/amp gain down, disable direct
-monitoring and make sure the cable cannot create feedback. Before starting,
-tell the owner the click patch starts muted, then delivers 40 short 1 kHz clicks
-at -14 dBFS **peak** (0.20 full scale), every 500 ms for 20 seconds per block.
-Wait for the owner's "go". Dry-run rehearsal, device-free:
-```sh
-python bench/device/latency.py --dry-run --sweep --machine pi5 --results bench/device/results-p7-rehearsal
-```
-Then run the physical sweep:
-```sh
-python bench/device/latency.py --confirm-audio --device <pi-output-id> --input-device <pi-input-id> --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
-```
-The command writes a separate report/manifest per block. Record only
-**uncalibrated host-command-midpoint-to-ADC click offsets** (median/min/max/
-stddev in ms and frames), engine rate/buffer, detected clicks and level.
-The optional `offset - 2×buffer` arithmetic is not device overhead and cannot
-be interpreted as calibrated round-trip latency. Request/ack duration is
-**not** an error bound: output DAC sample onset, input/output clock mapping,
-and absolute timing error remain unmeasured. Do not report any offset for a
-refused run (<30 clicks or below -40 dBFS). Mark issue #54 calibrated
-DAC-to-ADC requirement blocked; do not submit these as that measurement.
-**If it fails:** keep all generated reports; note error and continue with §3.
-If no cable or either ID is missing, mark P7 skipped and why.
+### P7. 🔊 R1 three-quantity electrical loopback, Pi 5 (64/128/256 frames)
+**Only with owner-confirmed output-to-input cable, engine output ID,
+PortAudio output ID, PortAudio input ID, and anonymous device class.** The
+PortAudio pair must be the *same* full-duplex physical interface and the
+harness output must be the engine's selected physical output endpoint.
+Neither a microphone, monitor sink nor a substitute separate stream is
+valid. No MIDI. Disable direct monitoring and any feedback, lower the
+amplifier gain. Warn the owner: each leg plays 40 short 1 kHz clicks at
+0.20 full scale (about -14 dBFS **peak**) separated by 500 ms; the click
+source is muted until armed. The calibration duplex leg is followed by a
+separate 40-command engine leg for each block size. Await "go".
+
+PortAudio indices can be listed *without opening an input/output stream*:
+
+    python -c "import sounddevice as sd; print(sd.query_devices())"
+
+Device-free rehearsal:
+
+    python bench/device/latency.py --dry-run --sweep --machine pi5 --results bench/device/results-p7-rehearsal
+
+After the owner confirms the cable, IDs, class, volume and "go":
+
+    python bench/device/latency.py --confirm-audio --device <pi-engine-output-id> --harness-output-device <pi-portaudio-output-id> --input-device <pi-portaudio-input-id> --device-class usb-interface --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
+
+**Record three separate quantities for each block:** harness_loopback_ms
+= one duplex stream click output/input **sample-index** difference divided by
+rate (no wall clock); command_to_capture_ms = monotonic time at each *actual
+command write* to onset ADC buffer time plus index/rate; command_to_sound_ms
+= **range only** [command_to_capture_ms - harness_loopback_ms,
+command_to_capture_ms]. Report rate, duplex/engine/capture buffers, device
+class, detected repetitions (>=20, tool requires >=30/40), median/p95,
+and number of input callbacks without ADC timestamp. If ADC missing, the
+fallback uses callback time and adds **one capture buffer duration** to
+the reported additional uncertainty; absolute host-to-PortAudio clock
+mapping error remains uncalibrated. No old midpoint or 2×buffer residual
+is a hardware-overhead result. Refuse <30 matched pulses or level
+below -40 dBFS, without publishing numeric run as measured.
+
+If this step fails, keep reports, note exact failure, proceed to §3.
+If the cable, duplex endpoint or any ID is unavailable, skip with reason.
+Only the owner runs this command on their physical machine.
 
 ## 3. Windows laptop runs
 
@@ -153,21 +170,27 @@ options with `--record input --input-device <input-id>`. With neither, use `--re
 ### W2. 🔊 15-minute quick run at 128 frames
 Same command with `--block 128 --results bench/device/results-w2-quick-128`.
 
-### W3. 🔊 Uncalibrated electrical loopback diagnostic, Windows laptop (64/128/256 frames)
-**Only with a physical output-to-input cable and both IDs, as for P7.**
-No process-loopback helper, monitor sink or MIDI. Tell the owner the patch
-starts muted and then plays short 1 kHz clicks at -14 dBFS peak for 20 seconds
-per block. Wait for "go"; keep the amplifier low and disable direct monitoring.
-```powershell
-python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
-python bench/device/latency.py --confirm-audio --device <windows-output-id> --input-device <windows-input-id> --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
-```
-For each block, record the same **uncalibrated** offsets and refusals as P7,
-plus the request/ack span as a diagnostic (not timing uncertainty or error
-bound). The input PortAudio ADC clock is projected to Python monotonic at
-callback arrival; this is not a verified shared DAC/ADC clock. **If it fails:** keep reports,
-note the error and continue. If no physical cable or either ID is missing,
-mark W3 skipped and why.
+### W3. 🔊 R1 three-quantity electrical loopback, Windows (64/128/256 frames)
+Same owner-gated procedure and definitions as P7; select the same physical
+full-duplex output/input interface and explicit matching Windows engine and
+PortAudio output IDs. No OS process-loopback, microphone, monitor or MIDI.
+Warn the owner that there are two ~20-second click legs per block, peak
+-14 dBFS (0.20 FS), and wait for "go"; lower volume and disable monitoring.
+
+    python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
+
+After cable/IDs/class/volume confirmation:
+
+    python bench/device/latency.py --confirm-audio --device <windows-engine-output-id> --harness-output-device <windows-portaudio-output-id> --input-device <windows-portaudio-input-id> --device-class usb-interface --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
+
+For each block, record harness_loopback_ms median/p95 (one duplex
+sample-index timeline), command_to_capture_ms median/p95 (per-command
+write to ADC onset, callback fallback with one-buffer added uncertainty
+if no ADC), and command_to_sound_ms **range endpoints only** at
+median/p95. Record observed input/engine/duplex buffers, class,
+repeats >=20 (tool requires >=30/40), and any refusal. Do not report
+a physically unmeasured value from a synthetic rehearsal or infer
+driver overhead. If failed/skipped, keep the reason and proceed.
 
 ## 4. File the results
 
