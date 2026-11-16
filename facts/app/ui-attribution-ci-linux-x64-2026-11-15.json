@@ -728,5 +728,11 @@
       }
     ],
     "raw_artifacts": "raw/*.cpuprofile and raw/*.trace.json; CI upload only, never commit"
+  },
+  "cpu_top_self_aggregation_provenance": {
+    "method_at_measurement_commit": "Per-trial top 12 functions retained, then lists summed across six trials and aggregate top 10 selected",
+    "limitation": "Function self-time observed outside a trial's top 12 was omitted from the combined top_self totals; reported combined function self-time may be undercounted",
+    "effects": "Frame interval samples and Chromium timeline categories were aggregated independently of the per-trial CPU top-12 truncation",
+    "raw_cpu_profiles_available_in_artifact_id": 14186276267
   }
 }
