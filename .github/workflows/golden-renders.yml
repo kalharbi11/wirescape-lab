@@ -113,12 +113,20 @@ jobs:
             --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \
             --coverage-root head \
             --out "$RUNNER_TEMP/golden/after.json"
+      - name: Probe causal bundled-module output via temporary disabled-cable controls
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/probe_bundled.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --out "$RUNNER_TEMP/golden/bundled-interventions.json"
       - name: Record full 34-module registry and rendered contribution facts
         if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
         run: |
           python head/bench/golden/inventory.py --root head \
             --render "$RUNNER_TEMP/golden/after.json" \
             --out "$RUNNER_TEMP/golden/coverage-inventory.json" \
+            --probes "$RUNNER_TEMP/golden/bundled-interventions.json" \
             --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
         if: github.event_name == 'pull_request'
