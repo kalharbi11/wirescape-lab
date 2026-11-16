@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
     "date_et": "2026-11-16",
     "machine": {
       "architecture": "aarch64",
@@ -14,12 +14,12 @@
         "count": 117,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.117627,
+          "seconds": 0.116888,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 31.366865,
+          "seconds": 31.202874,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.855003,
+          "seconds": 0.805269,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 100.145487,
+          "seconds": 95.660933,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.2752,
+          "seconds": 1.453756,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 462.321715,
+          "seconds": 449.244864,
           "status": "passed"
         }
       },
@@ -55,11 +55,11 @@
         "time": "included in ctest suite"
       },
       "unittest": {
-        "count": 236,
+        "count": 239,
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 20.97909,
+          "seconds": 20.64301,
           "status": "passed"
         }
       },
@@ -71,7 +71,7 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

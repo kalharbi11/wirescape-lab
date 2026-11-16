@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
@@ -20,6 +20,8 @@
     "SPDX-License-Identifier": "GPL-3.0-only",
     "method_details": {
       "highpass": "2nd order Butterworth 2kHz",
+      "sample_rate_hz": 48000,
+      "status": "legacy single-parameter step; not the requested sweep-baseline metric",
       "step": "first parameter min to max halfway through render"
     },
     "provenance": {
@@ -28,8 +30,13 @@
         128,
         256
       ],
-      "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+      "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
       "date_et": "2026-11-16",
+      "dsp_sample_rates_hz": [
+        44100,
+        48000,
+        96000
+      ],
       "machine": {
         "architecture": "aarch64",
         "compiler": "c++",
@@ -49,6 +56,7 @@
         "min": 0.0001,
         "module": "essentials.adsr",
         "parameter": "attack",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -60,6 +68,7 @@
         "min": 0.0,
         "module": "essentials.chaos_lite",
         "parameter": "shape_a",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -69,7 +78,8 @@
         "module": "essentials.chord",
         "parameter": "enable1",
         "reason": "no audio or CV output available for renderer",
-        "status": "unavailable"
+        "sample_rate_hz": 48000,
+        "status": "unsupported_probe"
       },
       {
         "highpass_hz": 2000,
@@ -79,6 +89,7 @@
         "min": 20.0,
         "module": "essentials.clock",
         "parameter": "bpm",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -90,6 +101,7 @@
         "min": 0.0001,
         "module": "essentials.function_envelope",
         "parameter": "rise",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -101,6 +113,7 @@
         "min": 20.0,
         "module": "essentials.ladder",
         "parameter": "cutoff",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -112,6 +125,7 @@
         "min": 0.01,
         "module": "essentials.lfo",
         "parameter": "rate",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -123,6 +137,7 @@
         "min": 0.0,
         "module": "essentials.mixer",
         "parameter": "level_a",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -134,6 +149,7 @@
         "min": 0.0,
         "module": "essentials.noise",
         "parameter": "level",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -145,12 +161,14 @@
         "min": 1.0,
         "module": "essentials.notes_to_cv",
         "parameter": "voices",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
       {
         "module": "essentials.output",
         "reason": "no parameter metadata",
+        "sample_rate_hz": 48000,
         "status": "not_applicable"
       },
       {
@@ -161,6 +179,7 @@
         "min": 0.0,
         "module": "essentials.quad_vca",
         "parameter": "level1",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -172,6 +191,7 @@
         "min": 0.0,
         "module": "essentials.quantizer",
         "parameter": "scale",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -183,6 +203,7 @@
         "min": -24.0,
         "module": "essentials.resonator",
         "parameter": "tune",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -194,6 +215,7 @@
         "min": -2.0,
         "module": "essentials.scale_offset",
         "parameter": "scale",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -205,6 +227,7 @@
         "min": 0.0,
         "module": "essentials.slew",
         "parameter": "rise",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -216,6 +239,7 @@
         "min": 0.0,
         "module": "essentials.vca",
         "parameter": "gain",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -227,6 +251,7 @@
         "min": 20.0,
         "module": "essentials.vcf",
         "parameter": "cutoff",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -238,6 +263,7 @@
         "min": 0.01,
         "module": "essentials.vco",
         "parameter": "frequency",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -249,6 +275,7 @@
         "min": 1.0,
         "module": "example.random_source",
         "parameter": "voices",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -260,6 +287,7 @@
         "min": 0.0,
         "module": "example.step_sequencer",
         "parameter": "run",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -271,6 +299,7 @@
         "min": 0.001,
         "module": "fx.delay",
         "parameter": "time",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -282,6 +311,7 @@
         "min": 0.0,
         "module": "fx.reverb",
         "parameter": "size",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -293,12 +323,14 @@
         "min": 1.0,
         "module": "host.keyboard",
         "parameter": "voices",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
       {
         "module": "midi.cc_to_cv",
         "reason": "no parameter metadata",
+        "sample_rate_hz": 48000,
         "status": "not_applicable"
       },
       {
@@ -307,7 +339,8 @@
         "module": "midi.in",
         "parameter": "channel_filter",
         "reason": "no audio or CV output available for renderer",
-        "status": "unavailable"
+        "sample_rate_hz": 48000,
+        "status": "unsupported_probe"
       },
       {
         "highpass_hz": 2000,
@@ -317,17 +350,20 @@
         "min": 1.0,
         "module": "midi.to_cv",
         "parameter": "voice_count",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
       {
         "module": "monitor",
         "reason": "no parameter metadata",
+        "sample_rate_hz": 48000,
         "status": "not_applicable"
       },
       {
         "module": "osc.in",
         "reason": "no parameter metadata",
+        "sample_rate_hz": 48000,
         "status": "not_applicable"
       },
       {
@@ -338,6 +374,7 @@
         "min": 0.0,
         "module": "ports.macro_oscillator",
         "parameter": "model",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -349,6 +386,7 @@
         "min": 0.0,
         "module": "sequencing.groove",
         "parameter": "run",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -360,6 +398,7 @@
         "min": 0.0,
         "module": "sound.blend",
         "parameter": "balance",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       },
@@ -371,6 +410,7 @@
         "min": 0.0,
         "module": "sound.spectral",
         "parameter": "morph",
+        "sample_rate_hz": 48000,
         "status": "measured",
         "window_ms": 50.0
       }

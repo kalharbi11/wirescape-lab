@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "provenance": {
-    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
@@ -19,16 +19,20 @@
   },
   "sections": {
     "l2": {
+      "audio_rate_cables.json": "recorded",
       "bundled_patches.json": "recorded",
       "denormal_spikes.json": "recorded",
+      "denormal_tail_r2.json": "recorded",
       "engine_cpu.json": "recorded",
       "envelopes.json": "recorded",
       "filters.json": "recorded",
+      "impulse_response_r2.json": "recorded",
       "instruction_cost.json": "recorded",
       "module_cpu.json": "recorded",
       "module_outputs.json": "recorded",
       "oscillators.json": "recorded",
       "parameter_steps.json": "recorded",
+      "parameter_sweeps.json": "recorded",
       "patch_soak.json": "recorded",
       "probe_failures.json": "recorded",
       "soak_failures.json": "recorded"

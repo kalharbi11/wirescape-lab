@@ -1,10 +1,10 @@
 {
   "ci_provenance": {
-    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
@@ -19,7 +19,12 @@
   "measurements": {
     "SPDX-License-Identifier": "GPL-3.0-only",
     "method_details": {
-      "measure": "direct output bus; VCO input feed only for audio-input modules"
+      "measure": "direct output bus; VCO input feed only for audio-input modules",
+      "sample_rates_hz": [
+        44100,
+        48000,
+        96000
+      ]
     },
     "provenance": {
       "block_sizes_frames": [
@@ -27,13 +32,18 @@
         128,
         256
       ],
-      "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
+      "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
       "date_et": "2026-11-16",
+      "dsp_sample_rates_hz": [
+        44100,
+        48000,
+        96000
+      ],
       "machine": {
         "architecture": "AMD64",
         "compiler": "unavailable",
         "configuration": "multi-config/unavailable",
-        "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+        "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
         "os": "Windows-2025Server-10.0.26100-SP0"
       },
       "method": "python bench/offline/run_all.py",
@@ -50,11 +60,66 @@
           "stale_events": 0
         },
         "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.adsr",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
         "finite_samples": 144000,
         "module": "essentials.adsr",
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.adsr",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -8.401951961562384e-06,
+        "finite_samples": 132300,
+        "module": "essentials.chaos_lite",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.09230178594589233,
+        "rms_fs": 0.03785336938916234,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -72,12 +137,62 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.09191247075796127,
         "rms_fs": 0.03753657018451505,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 3.4121373944844024e-05,
+        "finite_samples": 288000,
+        "module": "essentials.chaos_lite",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.08929058164358139,
+        "rms_fs": 0.03577151877878779,
+        "sample_rate_hz": 96000,
         "status": "measured"
       },
       {
         "module": "essentials.chord",
         "reason": "no audio or CV output available for renderer",
-        "status": "unavailable"
+        "sample_rate_hz": 44100,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "essentials.chord",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 48000,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "essentials.chord",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 96000,
+        "status": "unsupported_probe"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.5,
+        "finite_samples": 132300,
+        "module": "essentials.clock",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067811865476,
+        "sample_rate_hz": 44100,
+        "status": "measured"
       },
       {
         "counters": {
@@ -94,6 +209,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0,
         "rms_fs": 0.7071067811865476,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.5,
+        "finite_samples": 288000,
+        "module": "essentials.clock",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067811865476,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.function_envelope",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -111,6 +263,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.function_envelope",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.00020275783286160937,
+        "finite_samples": 132300,
+        "module": "essentials.ladder",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9111918210983276,
+        "rms_fs": 0.6434712845870822,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -128,6 +317,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.9111752510070801,
         "rms_fs": 0.6434416914250817,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.00020036503348469934,
+        "finite_samples": 288000,
+        "module": "essentials.ladder",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9110833406448364,
+        "rms_fs": 0.6433218770931379,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.21220659045548151,
+        "finite_samples": 132300,
+        "module": "essentials.lfo",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067812528679,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -145,6 +371,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0,
         "rms_fs": 0.7071067811624713,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.21220659072056283,
+        "finite_samples": 288000,
+        "module": "essentials.lfo",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067811810197,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -4.1182476929769073e-16,
+        "finite_samples": 132300,
+        "module": "essentials.mixer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.49999988079071045,
+        "rms_fs": 0.3535533906629541,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -162,6 +425,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.5,
         "rms_fs": 0.3535533901111447,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -3.532976380584943e-17,
+        "finite_samples": 288000,
+        "module": "essentials.mixer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.5,
+        "rms_fs": 0.35355339033679856,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.00014662398047147115,
+        "finite_samples": 132300,
+        "module": "essentials.noise",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.1999926120042801,
+        "rms_fs": 0.1157079062349717,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -179,6 +479,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.1999926120042801,
         "rms_fs": 0.11557226839845186,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -6.637809198230748e-05,
+        "finite_samples": 288000,
+        "module": "essentials.noise",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.19999897480010986,
+        "rms_fs": 0.11548218392877273,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.notes_to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -196,6 +533,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.notes_to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -8.236495385953815e-16,
+        "finite_samples": 132300,
+        "module": "essentials.output",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9999997615814209,
+        "rms_fs": 0.7071067813259082,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -213,6 +587,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0,
         "rms_fs": 0.7071067802222895,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -7.065952761169886e-17,
+        "finite_samples": 288000,
+        "module": "essentials.output",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067806735971,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -8.236495385953815e-16,
+        "finite_samples": 132300,
+        "module": "essentials.quad_vca",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9999997615814209,
+        "rms_fs": 0.7071067813259082,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -230,6 +641,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0,
         "rms_fs": 0.7071067802222895,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -7.065952761169886e-17,
+        "finite_samples": 288000,
+        "module": "essentials.quad_vca",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067806735971,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.quantizer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -247,6 +695,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.quantizer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 1.8228046579991802e-05,
+        "finite_samples": 132300,
+        "module": "essentials.resonator",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0743530988693237,
+        "rms_fs": 0.35694316643037227,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -264,6 +749,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0463836193084717,
         "rms_fs": 0.3551161296517105,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -1.5026060064302429e-05,
+        "finite_samples": 288000,
+        "module": "essentials.resonator",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.7888625264167786,
+        "rms_fs": 0.33481165874888963,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.scale_offset",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -281,6 +803,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.scale_offset",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "essentials.slew",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -298,6 +857,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "essentials.slew",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -8.236495385953815e-16,
+        "finite_samples": 132300,
+        "module": "essentials.vca",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9999997615814209,
+        "rms_fs": 0.7071067813259082,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -315,6 +911,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0,
         "rms_fs": 0.7071067802222895,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -7.065952761169886e-17,
+        "finite_samples": 288000,
+        "module": "essentials.vca",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0,
+        "rms_fs": 0.7071067806735971,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 6.756361101233792e-05,
+        "finite_samples": 132300,
+        "module": "essentials.vcf",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9542192220687866,
+        "rms_fs": 0.6745599415328228,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -332,6 +965,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.9541172981262207,
         "rms_fs": 0.6745443968095983,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 6.608736900624813e-05,
+        "finite_samples": 288000,
+        "module": "essentials.vcf",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9541188478469849,
+        "rms_fs": 0.6744813824603588,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -0.002272350437196819,
+        "finite_samples": 132300,
+        "module": "essentials.vco",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9999999403953552,
+        "rms_fs": 0.7071104312699522,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -349,6 +1019,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.9999998211860657,
         "rms_fs": 0.7071104309372414,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -0.002272584427828805,
+        "finite_samples": 288000,
+        "module": "essentials.vco",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.9999998211860657,
+        "rms_fs": 0.7071104326980974,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "example.random_source",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -366,6 +1073,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "example.random_source",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "example.step_sequencer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -383,6 +1127,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "example.step_sequencer",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0004434060706649371,
+        "finite_samples": 132300,
+        "module": "fx.delay",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.8526399731636047,
+        "rms_fs": 0.40836051955434266,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -400,6 +1181,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.8526401519775391,
         "rms_fs": 0.4083581826003487,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0004434602758111762,
+        "finite_samples": 288000,
+        "module": "fx.delay",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.8526401519775391,
+        "rms_fs": 0.40834499418084547,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0001815925839864624,
+        "finite_samples": 132300,
+        "module": "fx.reverb",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.1159377098083496,
+        "rms_fs": 0.7365092914021599,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -417,6 +1235,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 1.0993895530700684,
         "rms_fs": 0.7221113697052937,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.00019510984423969506,
+        "finite_samples": 288000,
+        "module": "fx.reverb",
+        "nonfinite_samples": 0,
+        "peak_fs": 1.0868738889694214,
+        "rms_fs": 0.7194882114539655,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "host.keyboard",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -434,6 +1289,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "host.keyboard",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "midi.cc_to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -451,12 +1343,62 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "midi.cc_to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
         "status": "measured"
       },
       {
         "module": "midi.in",
         "reason": "no audio or CV output available for renderer",
-        "status": "unavailable"
+        "sample_rate_hz": 44100,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "midi.in",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 48000,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "midi.in",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 96000,
+        "status": "unsupported_probe"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "midi.to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
+        "status": "measured"
       },
       {
         "counters": {
@@ -473,12 +1415,62 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "midi.to_cv",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
         "status": "measured"
       },
       {
         "module": "monitor",
         "reason": "no audio or CV output available for renderer",
-        "status": "unavailable"
+        "sample_rate_hz": 44100,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "monitor",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 48000,
+        "status": "unsupported_probe"
+      },
+      {
+        "module": "monitor",
+        "reason": "no audio or CV output available for renderer",
+        "sample_rate_hz": 96000,
+        "status": "unsupported_probe"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "osc.in",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
+        "status": "measured"
       },
       {
         "counters": {
@@ -495,7 +1487,32 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
         "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "osc.in",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "module": "ports.macro_oscillator",
+        "reason": "Macro Oscillator prepare() requires 48000 Hz",
+        "sample_rate_hz": 44100,
+        "status": "unsupported_rate"
       },
       {
         "counters": {
@@ -512,6 +1529,31 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.395477294921875,
         "rms_fs": 0.36007923199439146,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "module": "ports.macro_oscillator",
+        "reason": "Macro Oscillator prepare() requires 48000 Hz",
+        "sample_rate_hz": 96000,
+        "status": "unsupported_rate"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 132300,
+        "module": "sequencing.groove",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -529,6 +1571,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0,
         "rms_fs": 0.0,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 0.0,
+        "finite_samples": 288000,
+        "module": "sequencing.groove",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.0,
+        "rms_fs": 0.0,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -5.822905775594109e-16,
+        "finite_samples": 132300,
+        "module": "sound.blend",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.7071065902709961,
+        "rms_fs": 0.49999999062543604,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -546,6 +1625,43 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.7071067690849304,
         "rms_fs": 0.4999999903901077,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": -5.003405097644039e-17,
+        "finite_samples": 288000,
+        "module": "sound.blend",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.7071067690849304,
+        "rms_fs": 0.4999999912906891,
+        "sample_rate_hz": 96000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 6.714142856177468e-07,
+        "finite_samples": 132300,
+        "module": "sound.spectral",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.00181608647108078,
+        "rms_fs": 0.0002531406853150548,
+        "sample_rate_hz": 44100,
         "status": "measured"
       },
       {
@@ -563,6 +1679,25 @@
         "nonfinite_samples": 0,
         "peak_fs": 0.0017784592928364873,
         "rms_fs": 0.0002534329321547772,
+        "sample_rate_hz": 48000,
+        "status": "measured"
+      },
+      {
+        "counters": {
+          "arena_full_events": 0,
+          "dropped_events": 0,
+          "faults": 0,
+          "late_events": 0,
+          "ring_full_events": 0,
+          "stale_events": 0
+        },
+        "dc_fs": 7.973790360919136e-07,
+        "finite_samples": 288000,
+        "module": "sound.spectral",
+        "nonfinite_samples": 0,
+        "peak_fs": 0.002089963061735034,
+        "rms_fs": 0.0002534353553418983,
+        "sample_rate_hz": 96000,
         "status": "measured"
       }
     ],
