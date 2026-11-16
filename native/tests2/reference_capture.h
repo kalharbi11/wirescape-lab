@@ -44,19 +44,19 @@ inline void abi1_reference_capture_descriptor(const std::string& name,
     const auto path = (std::filesystem::path(root) / (name + ".desc")).string();
     std::FILE* output = std::fopen(path.c_str(), "wb");
     VERIFY(output);
-    std::fprintf(output, "id\\t%s\\n", desc->id);
-    std::fprintf(output, "counts\\t%u\\t%u\\t%u\\n",
+    std::fprintf(output, "id\t%s\n", desc->id);
+    std::fprintf(output, "counts\t%u\t%u\t%u\n",
                  desc->input_count, desc->output_count, desc->parameter_count);
     for (uint32_t p = 0; p < desc->input_count; ++p)
-        std::fprintf(output, "input\\t%u\\t%s\\n", p, desc->inputs[p].id);
+        std::fprintf(output, "input\t%u\t%s\n", p, desc->inputs[p].id);
     for (uint32_t p = 0; p < desc->output_count; ++p)
-        std::fprintf(output, "output\\t%u\\t%s\\n", p, desc->outputs[p].id);
+        std::fprintf(output, "output\t%u\t%s\n", p, desc->outputs[p].id);
     for (uint32_t p = 0; p < desc->parameter_count; ++p) {
         uint32_t low, high, initial;
         std::memcpy(&low, &desc->parameters[p].minimum, 4);
         std::memcpy(&high, &desc->parameters[p].maximum, 4);
         std::memcpy(&initial, &desc->parameters[p].initial, 4);
-        std::fprintf(output, "param\\t%u\\t%u\\t%08x\\t%08x\\t%08x\\n",
+        std::fprintf(output, "param\t%u\t%u\t%08x\t%08x\t%08x\n",
                      p, desc->parameters[p].id, low, high, initial);
     }
     VERIFY(std::fclose(output) == 0);
