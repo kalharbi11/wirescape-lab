@@ -6,6 +6,8 @@
 #include "../modules2/osc_out/config.h"
 #include <cstring>
 #include <map>
+#include <new>
+#include <type_traits>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
@@ -24,6 +26,28 @@ class ScopedOutBuses {
     ~ScopedOutBuses() { staged_out_buses = previous_; }
     ScopedOutBuses(const ScopedOutBuses &) = delete;
     ScopedOutBuses &operator=(const ScopedOutBuses &) = delete;
+};
+// Canonical config bytes (M2 E0): each encoded config struct lives in storage that is
+// zero-filled before the struct is constructed and its fields are written, so padding
+// bytes are always zero and equal JSON yields equal bytes regardless of prior memory.
+// No config here can use has_unique_object_representations instead: all hold floats.
+template <class T> class ZeroFilledConfig {
+    static_assert(std::is_trivially_destructible_v<T> && std::is_trivially_copyable_v<T>,
+                  "Config POD must be trivially copyable and destructible");
+    alignas(T) unsigned char raw_[sizeof(T)];
+    T *object_;
+
+  public:
+    ZeroFilledConfig() {
+        std::memset(raw_, 0, sizeof(raw_));
+        object_ = ::new (static_cast<void *>(raw_)) T;
+    }
+    ZeroFilledConfig(const ZeroFilledConfig &) = delete;
+    ZeroFilledConfig &operator=(const ZeroFilledConfig &) = delete;
+    T &get() noexcept { return *object_; }
+    std::vector<uint8_t> bytes() const {
+        return std::vector<uint8_t>(raw_, raw_ + sizeof(raw_));
+    }
 };
 // Quiescent JSON-to-module adapter. The JSON shape, not struct padding, is saved.
 inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, const nlohmann::json &value,
@@ -51,7 +75,8 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
                 "Groove BPM outside range");
         const auto &tracks = value.at("tracks");
         require(tracks.is_array() && tracks.size() >= 1 && tracks.size() <= 2, "Groove requires one or two tracks");
-        Config config;
+        ZeroFilledConfig<Config> storage;
+        Config &config = storage.get();
         config.bpm = static_cast<float>(value.at("bpm").get<double>());
         config.track_count = static_cast<uint32_t>(tracks.size());
         // v1 had no chance conditions; preserving its old render seed is intentional.
@@ -180,14 +205,17 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
         Config validated;
         require(decode(reinterpret_cast<const uint8_t *>(&config), sizeof(config), validated),
                 "Invalid Groove configuration");
-        std::vector<uint8_t> bytes(sizeof(config));
-        std::memcpy(bytes.data(), &config, sizeof(config));
-        return bytes;
+        return storage.bytes();
     }
     if (type == "osc.out") {
         using wirescape::osc::OutConfiguration;
-        OutConfiguration config;
-        require(wirescape::osc::out_configuration(nullptr, 0, config), "OSC Out defaults invalid");
+        {
+            // The defaults path assigns a temporary whole; validate it apart from the canonical copy.
+            OutConfiguration defaults;
+            require(wirescape::osc::out_configuration(nullptr, 0, defaults), "OSC Out defaults invalid");
+        }
+        ZeroFilledConfig<OutConfiguration> storage;
+        OutConfiguration &config = storage.get();
         auto record = [&](std::string name) {
             if (!ignored_keys || ignored_keys->size() >= 16) return;
             for (char &ch : name)
@@ -258,14 +286,13 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
         if (value.contains("notes")) row(value.at("notes"), config.notes, "notes", true);
         require(wirescape::osc::out_configuration(reinterpret_cast<const uint8_t *>(&config), sizeof(config), config),
                 "Invalid OSC Out configuration");
-        std::vector<uint8_t> bytes(sizeof(config));
-        std::memcpy(bytes.data(), &config, sizeof(config));
-        return bytes;
+        return storage.bytes();
     }
     if (type == "osc.in") {
         // All authored OSC configuration is validated on the control owner,
         // then copied as bounded private POD for the module's prepare() call.
-        wirescape::osc::Configuration config;
+        ZeroFilledConfig<wirescape::osc::Configuration> storage;
+        wirescape::osc::Configuration &config = storage.get();
         // This authored JSON version is not the private POD version. Restrictive
         // future keys must bump it so older engines refuse instead of broadening behavior.
         if (value.contains("version")) {
@@ -344,9 +371,7 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
             }
         }
         require(wirescape::osc::configuration(nullptr, 0, config), "Invalid OSC module configuration");
-        std::vector<uint8_t> bytes(sizeof(config));
-        std::memcpy(bytes.data(), &config, sizeof(config));
-        return bytes;
+        return storage.bytes();
     }
     if (type == "midi.in") {
         for (auto it = value.begin(); it != value.end(); ++it)
@@ -359,7 +384,8 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
     require(type == "midi.cc_to_cv", "Module config needs a module-specific adapter");
     require(value.size() == 1 && value.contains("rows") && value.at("rows").is_array() && value.at("rows").size() <= 8,
             "CC configuration requires at most eight rows");
-    wirescape::midi::CcConfiguration config;
+    ZeroFilledConfig<wirescape::midi::CcConfiguration> storage;
+    wirescape::midi::CcConfiguration &config = storage.get();
     size_t index = 0;
     for (const auto &row : value.at("rows")) {
         require(row.is_object(), "CC row must be an object");
@@ -397,9 +423,7 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
         }
     }
     require(wirescape::midi::cc_configuration(nullptr, 0, config), "Invalid CC row combination");
-    std::vector<uint8_t> bytes(sizeof(config));
-    std::memcpy(bytes.data(), &config, sizeof(config));
-    return bytes;
+    return storage.bytes();
 }
 
 // Preserve the original conversion signature and validation for all callers.
