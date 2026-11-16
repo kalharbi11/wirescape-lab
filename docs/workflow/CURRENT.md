@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `042454de51a739ed4cf39324baa07028c42acc9f`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `c6cd8fc0e8a789d6cfce0f78b99df636e301ede4`.
 
-**Active lead: gpt-lead** (owner resumed this local chat, 2026-11-16). Claude-lead has stepped down. One lead at a time. Existing local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843 and wlab-lead-review retain sole dispatch/timer ownership. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; current state below supersedes its old queue.
+**Active lead: gpt-lead** (owner resumed local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843, 2026-11-16). Claude-lead stepped down. One lead/one existing45-minute heartbeat. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; this queue supersedes old snapshots.
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: every task is merged except **T0.10** (#113 / PR #118, final pass
@@ -11,7 +11,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `042454de51a739ed4cf
 - **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** belongs to claude-builder2
   and has no branch yet. One writer owns S2–S6; S3 staffing is decided when S2 merges.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
-  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 waits for Q13 (Fable) and carries the `applyGraph`
+  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 has its Q13 ruling (one final packet) and carries the `applyGraph`
   schema-corpus obligation, because it merges after E1a.
 - **[CI1 r3](milestones/CI1.md)**: CI1.1, CI1.2 and CI1.4 are merged (CI1.4 `49747bd`: authenticated
   required aggregates). **CI1.3** #109 is released and is the single writer of `ci.yml`.
@@ -23,13 +23,13 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | E1b #125 | E1a merged; build and test, then mark ready |
-| gpt-builder2 | CI1.3 #109 | released after CI1.4; integrate `main`, K7/K8 |
-| gpt-builder3 | PV1 #86 / PR #105 | branch updated with `main` for the Q12 full re-run; waits for the Q13 ruling before any edit |
-| gpt-builder4 | T0.10 #113 / PR #118 | final pass: replace the `pending` rows with T0.5/T0.9 facts; last M0 task |
-| claude-builder1 | — | T0.13a/b merged; stopped, no new task |
-| claude-builder2 | M1 S2 #111 | no branch yet; owner decides whether to start current S2 task |
-| claude-builder3 | — | E1a merged `e0d4437`; stopped, no new task |
+| gpt-builder1 | E1b #125 / PR #130 | actual implementation f4da114 delivered; review signed Result/current CI |
+| gpt-builder2 | CI1.3 #109 / PR #129 | actual implementation21bc87c; lead reviews K7/K8 evidence; sole ci.yml writer |
+| gpt-builder3 | PV1 #86 / PR #105 | FINAL round3/3 Q13 dispatched; max15/boundaryparity,D08facts,applyGraph corpus; samebranch |
+| gpt-builder4 | T0.10 #113 / PR #118 | finalpass ea4dd03 delivered; source/criterion review before merge; last M0 builder task |
+| claude-builder1 | — | finished/stopped; no new assignments |
+| claude-builder2 | M1 S2 #111 | no branch yet; owner decides current S2 start and later staffing |
+| claude-builder3 | — | finished/stopped; no new assignments |
 
 ## Merged this session (2026-11-16, after 18:30 ET)
 - CI1.4 #123 → `49747bd`
@@ -52,24 +52,34 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   After editing `session.cpp`, re-run `cmake build/native` before building locally. CI is unaffected.
 
 ## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q12 answered. **Q13 (PV1 bounded packet) is
-  open for Fable.**
+- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q13 answered; queue empty. Q13: PV1 gets
+  one final packet on PR #105; M2 stays r3, nothing stops or replans.
 - Q5: bundled patches and presets may be reset after the rebuild. The owner has no personal patches
   (Q5 point 8). Golden "24 identical" stays through M1 and M2.
 
 ## Next action by role
 - **gpt-lead:**
   - merge #118 when its final pass is green, then file the M0 acceptance report;
+  - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
   - review #125 and #109;
   - decide S3 staffing with the owner when S2 merges.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** `fable: run questions` for Q13. Then `fable: run accept M0` once T0.10 merges and the
+- **Fable:** `fable: run accept M0` once T0.10 merges and the
   lead's acceptance report is filed. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 
-## GPT lead return checkpoint
-All four latest builder Results were read. B1/B4 still reported completed60/123, so125 and113finalpass packets were sent to existing chats. B2 acknowledged109release but had no branch/PR in liveinventory; focused continuation sent. B3 correctly holds105/Q13, no duplicateprompt. Do not infer execution from prompt delivery or activeflag. GPT builders regularChat only. Claude builders finish current tasks only; no newClaude assignments. Existing45minutetimer refreshed, no duplicatelead. Sharedusage98percentused; preserve reserve until actualreset16:49ET, no reset/credits spent.
+## Current coordination and review policy
+Owner returned gpt-lead and explicitly authorized removing artificial Fable run limits from CLAUDE.md.
+Fable chooses question count, reading/delegation, scope and stopping point; creating a PR does not end a run.
+Fable does not do PR reviews or review monitoring. Lead reviews delegated work; if a contract requires
+Claude-specific review, tell the owner to assign a Claude reviewer. Milestone acceptance remains Fable's.
+No new Claude builder tasks after current branches finish. GPT builders remain regular Chat, not Work/Codex.
+Q13 merged via131 atc6cd8fc, explicit86/105 finaldispatch sent. No fourth PV1 correction: follow Fable's
+revert/factsdisagreement disposition if finalpacket fails review; no redcheck waiver.
+The five-hour usage window reset was verified (0percent); existing timer can resume substantive review.
+Preserve ringmod2 unmeasured, rawcontinuitycaptures notuploaded, T0.14open and hostedtimingadvisory
+exceptions in M0 acceptance. No acceptance claim before complete report and Fable's decision.
 
 Signed: gpt-lead, 2026-11-16
