@@ -33,6 +33,8 @@
 #endif
 namespace wirescape::sidecar {
 namespace {
+// Every bus channel an output route may name (routes validate bus_channel 0..15).
+constexpr uint32_t kCaptureChannels = 16;
 // D5 budgets: 100 ms mute, 150 ms gap (stretched only when one block period is longer).
 // Sanitizer builds run several times slower, so they get a liveness allowance instead;
 // release builds (Linux, Pi, Windows) keep the D5 budget as a hard refusal.
@@ -208,7 +210,11 @@ Options parse_options(int argc, char **argv) {
         else if (arg == "--confirm-lan") o.lan = true;
         else if (arg == "--null-audio") o.null_audio = true;
         else if (arg == "--bench-summary") o.bench_summary = true;
-        else if (arg == "--device" || arg == "--settings" || arg == "--rate" || arg == "--block") {
+        else if (arg == "--capture-null-sink") {
+            need(++i < argc);
+            o.capture_null_sink = argv[i];
+            need(!o.capture_null_sink.empty());
+        } else if (arg == "--device" || arg == "--settings" || arg == "--rate" || arg == "--block") {
             need(++i < argc);
             std::string v = argv[i];
             need(!v.empty());
@@ -256,6 +262,7 @@ Options parse_options(int argc, char **argv) {
         }
     }
     need(!o.bench_summary || o.null_audio, "invalid", "--bench-summary requires --null-audio");
+    need(o.capture_null_sink.empty() || o.null_audio, "invalid", "--capture-null-sink requires --null-audio");
     if (o.null_audio) o.audio = o.midi = false;
     return o;
 }
@@ -302,6 +309,10 @@ Session::Session(Options options)
     refresh_devices();
     device_ = options_.device.empty() ? preferences_.value("audioDeviceId", std::string{}) : options_.device;
     if (options_.audio) audio_state_ = "starting";
+    if (!options_.capture_null_sink.empty()) {
+        need(capture_.open(options_.capture_null_sink), "unavailable", "Cannot open --capture-null-sink file");
+        need(marks_.open(options_.capture_null_sink + ".marks"), "unavailable", "Cannot open capture marks file");
+    }
 }
 void Session::start(std::chrono::steady_clock::time_point now) {
     try {
@@ -329,6 +340,13 @@ void Session::shutdown() {
     osc_->stop(); // stop/join packet acquisition before audio or engine teardown
     midi_->stop();
     stop_audio();
+    if (capture_.enabled() && !capture_reported_) {
+        capture_reported_ = true;
+        capture_.close(); // the sink thread has joined
+        marks_.close();
+        std::cerr << "capture segments=" << capture_.segments() << " blocks=" << capture_.blocks()
+                  << " failed=" << (capture_.failed() || marks_.failed() ? 1 : 0) << '\n';
+    }
     if (options_.bench_summary && !bench_reported_) {
         bench_reported_ = true;
         std::cerr << "bench blocks=" << bench_.blocks << " p50=" << bench_.percentile(50)
@@ -392,24 +410,34 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
         sink_stop_event_ = CreateEventW(nullptr, TRUE, FALSE, nullptr);
 #endif
         try {
-            sink_ = std::thread([this, live = active_, left = std::vector<float>(options_.block),
-                                 right = std::vector<float>(options_.block)]() mutable {
-                float *rows[] = {left.data(), right.data()};
+            // Without capture the sink renders the stereo pair exactly as before. With
+            // --capture-null-sink it renders every bus channel a route may name (0..15);
+            // rows 0 and 1 are produced identically either way.
+            const uint32_t channels = capture_.enabled() ? kCaptureChannels : 2;
+            sink_ = std::thread([this, live = active_, channels,
+                                 storage = std::vector<float>(size_t(options_.block) * channels),
+                                 scratch = std::vector<float>(capture_.enabled() ? size_t(options_.block) * channels : 0),
+                                 rows = std::vector<float *>(channels)]() mutable {
+                for (uint32_t c = 0; c < channels; ++c) rows[c] = storage.data() + size_t(c) * options_.block;
 #ifdef _WIN32
                 SinkScheduling scheduling;
 #endif
+                capture_.begin(options_.rate, channels, options_.block); // no-op without the flag
                 auto next = std::chrono::steady_clock::now();
                 sink_rendering_.store(true, std::memory_order_release);
                 while (!stop_sink_.load()) {
                     live = sink_slot_.adopt(live); // same block-boundary handoff as the PortAudio callback
                     auto before = std::chrono::steady_clock::now();
-                    const int render = app_engine_render_live(live, rows, 2, options_.block, app_engine_clock_ns());
+                    const int render =
+                        app_engine_render_live(live, rows.data(), channels, options_.block, app_engine_clock_ns());
                     if (options_.bench_summary) {
                         bench_.observe_faults(app_engine_native(live).meter().faults);
                         if (render != WS_OK) ++bench_.faults;
                     }
                     if (render != WS_OK) break;
                     auto after = std::chrono::steady_clock::now();
+                    // Null-sink thread only (not Engine::render, not a device callback).
+                    capture_.append(rows.data(), channels, options_.block, scratch.data());
                     double percent =
                         std::chrono::duration<double>(after - before).count() * options_.rate / options_.block * 100;
                     cpu_.store(percent);
@@ -425,6 +453,7 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
                     sink_wake_.wait_until(lock, next, [this] { return stop_sink_.load(); });
 #endif
                 }
+                capture_.end();
                 sink_rendering_.store(false, std::memory_order_release);
             });
         } catch (...) {
@@ -1264,6 +1293,8 @@ Json Session::apply(const Json &command) {
 }
 Json Session::base() const { return {{"v", 0}, {"session", token_}, {"gen", std::to_string(generation_)}}; }
 Json Session::reply(const Request &request) {
+    // Marks bracket (R7): blocks appended before the command is applied.
+    const uint64_t b0 = marks_.enabled() ? capture_.appended() : 0;
     auto result = base();
     result["re"] = nullptr;
     result["ok"] = false;
@@ -1296,6 +1327,15 @@ Json Session::reply(const Request &request) {
         result["message"] = "Engine operation unavailable";
     }
     result["gen"] = std::to_string(generation_);
+    if (marks_.enabled()) {
+        // ...and after the reply is built. The reply itself is unchanged by marking.
+        const uint64_t b1 = capture_.appended();
+        Json mark = {{"re", result["re"]}, {"type", nullptr}, {"ok", result["ok"]},
+                     {"gen", result["gen"]}, {"b0", b0}, {"b1", b1}};
+        if (request.value.is_object() && request.value.contains("type") && request.value["type"].is_string())
+            mark["type"] = request.value["type"];
+        marks_.write(mark.dump());
+    }
     return result;
 }
 Json Session::audio_status() const {

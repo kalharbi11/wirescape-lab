@@ -179,6 +179,9 @@ set_tests_properties(abi2_sidecar_protocol_tests PROPERTIES TIMEOUT 90)
 add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/apply_graph_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_sidecar_apply_graph_tests PROPERTIES TIMEOUT 120)
+add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/capture_tests.py
+  $<TARGET_FILE:wirescape_engine_sidecar>)
+set_tests_properties(abi2_sidecar_capture_tests PROPERTIES TIMEOUT 90)
 add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/golden_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar> ${CMAKE_CURRENT_SOURCE_DIR}/../tests/protocol/golden_v0.ndjson)
 set_tests_properties(sidecar_golden PROPERTIES TIMEOUT 180)

@@ -6,6 +6,7 @@
 #include "../io/audio/portaudio_service.h"
 #include "devices.h"
 #include "midi_host.h"
+#include "null_sink_capture.h"
 #include "osc_host.h"
 #include <array>
 #include <chrono>
@@ -15,6 +16,7 @@ namespace wirescape::sidecar {
 struct Options {
     bool audio = false, midi = false, lan = false, null_audio = false, bench_summary = false;
     std::string device, settings = "user_data/settings.json", directory;
+    std::string capture_null_sink; // empty: no capture (unchanged behaviour)
     uint32_t rate = 48000, block = 256;
 };
 // The sink thread is the sole writer. Read only after it has joined.
@@ -94,6 +96,9 @@ class Session {
     std::atomic<double> cpu_{0};
     std::atomic<uint64_t> dropouts_{0};
     RenderHistogram bench_; // only sink thread records; joined before shutdown reads
+    NullSinkCapture capture_; // opened before, written only by, closed after the sink thread
+    CaptureMarks marks_;      // <capture>.marks; control thread only (reply())
+    bool capture_reported_ = false;
     bool bench_reported_ = false;
     std::chrono::steady_clock::time_point started_ = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point audio_retry_{};
