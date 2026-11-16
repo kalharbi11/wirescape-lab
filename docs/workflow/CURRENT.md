@@ -13,7 +13,7 @@ check exact head SHA and CI before every merge.
   Owner accepted the proposed WP0 authority defaults; Fable must confirm each actual contract.
 
 ## Phase 0 issue / PR snapshot (2026-11-15 ET)
-- **Merged evidence:** T0.1 [#41](../../issues/41) / [PR #48](https://github.com/kalharbi11/wirescape-lab/pull/48);
+- **Merged evidence:** T0.1 [#41](https://github.com/kalharbi11/wirescape-lab/issues/41) / [PR #48](https://github.com/kalharbi11/wirescape-lab/pull/48);
   T0.2 [#42](https://github.com/kalharbi11/wirescape-lab/issues/42) / PR #46;
   T0.3 #43 / PR #47; T0.4 #55 / PR #64; T0.7 #53 / PR #57.
 - **Open:** T0.5 [#51](https://github.com/kalharbi11/wirescape-lab/issues/51) / [PR #60](https://github.com/kalharbi11/wirescape-lab/pull/60);
