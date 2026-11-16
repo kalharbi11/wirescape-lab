@@ -103,7 +103,7 @@ for (const example of idCases) {
 // still use Unicode-codepoint minLength/maxLength, never byte length.
 for (const scalar of ['é', '🙂']) {
   const other = { v: 0, id: 'ascii', type: 'selectAudioDevice',
-    deviceId: scalar.repeat(128) };
+    deviceId: scalar.repeat(129) };
   check(new TextEncoder().encode(other.deviceId).length > 256,
     'generic Unicode fixture does not exceed 256 UTF-8 bytes');
   check(validateProtocolV0(other), 'generic Unicode string must count codepoints');
