@@ -61,7 +61,7 @@ Whichever of #105 and #116 merges second must update the applyGraph schema corpu
   before configuring, and the configure then passes. Local runs are not acceptance evidence.
 
 ## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q11 answered; Q12/#117 open.
+- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q12 answered, queue empty. Q12/#117 (Fable, 2026-11-16): **CI1 is r3.** CI1.4 (job-scoped `actions: read` and token for the four aggregate jobs) is authorized and is the next `ci.yml` writer; **CI1.3/#109 pushes no `ci.yml` change until CI1.4 merges, then rebases.** A failed aggregate is repaired by re-running all jobs, not failed jobs only. No red check is waived.
 - Q5: bundled patches and presets may be reset after the rebuild. Nothing moves now, and golden
   "24 identical" stays through M1 and M2.
 
