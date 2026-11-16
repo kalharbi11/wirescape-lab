@@ -136,7 +136,7 @@ def package(capture_dir, artifact_dir, metadata, emit_chunks=False):
         if not body or len(body) > 16384:
             raise ValueError("invalid descriptor length for " + key)
         desc = body.decode("utf-8")
-        if not desc.startswith("id\\t") or "\\ncounts\\t" not in desc:
+        if not desc.startswith("id\t") or "\ncounts\t" not in desc:
             raise ValueError("invalid descriptor header: " + key)
         descriptors[key] = {"utf8": desc, "sha256": hashlib.sha256(body).hexdigest()}
     groups = {}
