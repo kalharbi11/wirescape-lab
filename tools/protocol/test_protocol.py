@@ -7,6 +7,7 @@ import json
 import re
 import unittest
 
+from generate import PRINTABLE_ASCII_PATTERN, validate_schema_patterns
 from validate import ROOT, check_schema_subset, json_equal, parse_line, read_schema, validate
 
 
@@ -23,6 +24,11 @@ class ProtocolV0Tests(unittest.TestCase):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
         self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 20)
+        self.assertEqual(self.schema["$defs"]["requestId"], {
+            "type": "string", "minLength": 1, "maxLength": 64,
+            "pattern": PRINTABLE_ASCII_PATTERN,
+        })
+        validate_schema_patterns(self.schema)
 
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(
@@ -105,15 +111,42 @@ class ProtocolV0Tests(unittest.TestCase):
         self.assertFalse(validate(True, custom))
         self.assertTrue(validate(1.0, custom))
 
-    def test_schema_length_counts_unicode_codepoints_not_utf8_bytes(self):
-        # The sidecar additionally restricts request IDs to ASCII bytes;
-        # PV1's restricted schema subset cannot express that transport rule.
-        for sample in ("é" * 33, "é" * 64, "🙂" * 33, "🙂" * 64):
-            self.assertGreater(len(sample.encode("utf-8")), 64)
-            self.assertTrue(validate({"v": 0, "id": sample, "type": "panic"}, self.schema))
-        for sample in ("é" * 65, "🙂" * 65, "a" * 65):
-            self.assertFalse(validate({"v": 0, "id": sample, "type": "panic"}, self.schema))
-        self.assertTrue(validate({"v": 0, "id": "a" * 64, "type": "panic"}, self.schema))
+    def test_non_ascii_length_counts_codepoints_for_other_strings(self):
+        generic_string = {"type": "string", "minLength": 1, "maxLength": 64}
+        for scalar in ("é", "🙂"):
+            self.assertTrue(validate(scalar * 33, generic_string))
+            self.assertTrue(validate(scalar * 64, generic_string))
+            self.assertFalse(validate(scalar * 65, generic_string))
+        self.assertTrue(validate("a" * 64, generic_string))
+        self.assertFalse(validate("a" * 65, generic_string))
+
+    def test_q8_printable_ascii_request_id_corpus(self):
+        cases = json.loads((ROOT / "tools/protocol/request_id_cases.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(cases), 10)
+        for case in cases:
+            with self.subTest(case=case["name"]):
+                cmd = {"v": 0, "id": case["id"], "type": "panic"}
+                self.assertIs(validate(cmd, self.schema), case["valid"])
+                raw = json.dumps(cmd, ensure_ascii=False)
+                if case["valid"]:
+                    self.assertEqual(parse_line(raw, self.schema), cmd)
+                else:
+                    with self.assertRaises(ValueError):
+                        parse_line(raw, self.schema)
+
+    def test_generator_rejects_every_other_pattern_value(self):
+        bad = copy.deepcopy(self.schema)
+        bad["$defs"]["requestId"]["pattern"] = "^.*$"
+        with self.assertRaisesRegex(ValueError, "Unsupported protocol schema pattern"):
+            validate_schema_patterns(bad)
+        bad = copy.deepcopy(self.schema)
+        bad["$defs"]["requestId"]["pattern"] = PRINTABLE_ASCII_PATTERN + " "
+        with self.assertRaisesRegex(ValueError, "Unsupported protocol schema pattern"):
+            validate_schema_patterns(bad)
+        bad = copy.deepcopy(self.schema)
+        bad["$defs"]["requestId"]["type"] = "number"
+        with self.assertRaisesRegex(ValueError, "Unsupported protocol schema pattern"):
+            validate_schema_patterns(bad)
 
     def test_connection_identity_ignores_nested_amount_only_for_identity_operations(self):
         identity = {
