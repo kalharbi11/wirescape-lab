@@ -931,7 +931,8 @@ Json Session::reconcile_graph(const Json &before, bool live) {
         }
     }
     // Rule 5: live parameter events after the swap, in document order. A queue that stays full
-    // for three block periods returns the rest in `unapplied`; the document keeps their old value.
+    // for three block periods without draining returns that parameter and every later one in
+    // `unapplied`; the document keeps their old value.
     const auto period = std::chrono::microseconds(int64_t(1e6 * double(options_.block) / double(options_.rate)));
     std::chrono::steady_clock::time_point deadline{};
     bool full = false, exhausted = false;
@@ -946,6 +947,7 @@ Json Session::reconcile_graph(const Json &before, bool live) {
             if (app_engine_native(active_).enqueue(0, c.id, WS2_DIRECT_PORT, native, 0, engine2::Timing::Immediate) ==
                 WS2_OK) {
                 sent = true;
+                full = false; // the queue drained: the next stall gets its own three periods
                 break;
             }
             const auto now = std::chrono::steady_clock::now();

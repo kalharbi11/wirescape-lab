@@ -173,7 +173,8 @@ with tempfile.TemporaryDirectory() as directory:
     assert 'result' not in reply, reply
     engine.telemetry_when(reply['gen'], lambda t: t.get('playhead', {}).get('1') == [-1, -1])
     engine.close()
-    # One commit line per accepted applyGraph, every one through the live replan.
-    commits = [line for line in engine.stderr().splitlines() if line.startswith('commit path=')]
-    assert all('path=live' in line for line in commits[1:-1]), commits
+    # Exactly one commit line per accepted graph change: loadGraph (d5), six applyGraph and one
+    # addModule (all live), then loadGraph (d5). Refusals log nothing.
+    commits = [line.split(' gen=')[0] for line in engine.stderr().splitlines() if line.startswith('commit path=')]
+    assert commits == ['commit path=d5'] + ['commit path=live'] * 7 + ['commit path=d5'], commits
 print('applyGraph tests passed')
