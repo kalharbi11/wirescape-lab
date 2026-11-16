@@ -40,7 +40,7 @@ add_test(NAME abi2_engine_tests COMMAND abi2_engine_tests)
 target_sources(abi2_engine_tests PRIVATE ../tests2/allocation_watch.cpp)
 add_executable(abi2_module_tests ../tests2/module_tests.cpp ../tests2/allocation_watch.cpp)
 target_link_libraries(abi2_module_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
-add_test(NAME abi2_module_tests COMMAND abi2_module_tests $<TARGET_FILE_DIR:ws_vco> ${CMAKE_BINARY_DIR}/abi2_equivalence.json)
+add_test(NAME abi2_module_tests COMMAND abi2_module_tests ${CMAKE_BINARY_DIR}/abi2_equivalence.json)
 foreach(mode scalar portable)
   add_executable(abi2_${mode}_ports ../tests2/module_tests.cpp)
   target_compile_definitions(abi2_${mode}_ports PRIVATE WS2_PORTABLE_TEST)
@@ -66,7 +66,7 @@ foreach(frames IN ITEMS 64 128 256)
     $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})
 endforeach()
 add_executable(abi2_integration_tests ../tests2/integration_tests.cpp ../tests2/allocation_watch.cpp)
-target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 ${CMAKE_DL_LIBS})
 add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
 foreach(module notes rows)
   add_library(ws2_test_${module} SHARED ../tests2/${module}_module.cpp)
@@ -147,8 +147,8 @@ set_tests_properties(abi2_live_replan_tests PROPERTIES TIMEOUT 15)
 foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
   add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)
   target_link_libraries(abi2_${module}_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
-  add_dependencies(abi2_${module}_tests ws2_${module} ws_${module})
-  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests $<TARGET_FILE_DIR:ws_${module}>)
+  add_dependencies(abi2_${module}_tests ws2_${module})
+  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests $<TARGET_FILE_DIR:ws2_${module}>)
 endforeach()
 
 target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
@@ -158,66 +158,44 @@ add_test(NAME abi2_reference_freezer_tests COMMAND ${Python3_EXECUTABLE}
   -m unittest discover -s ${CMAKE_SOURCE_DIR}/../bench/reference
   -p "test_*.py" -v)
 
-# T1.1 test-only ABI1 reference capture. This runs *the unchanged live comparisons*
-# on a disposable CI build and produces provenance-bearing fixture candidates.
-# It is a capture phase only; no shipping ABI1 code is removed here.
-if(DEFINED ENV{GITHUB_ACTIONS} AND DEFINED ENV{RUNNER_TEMP}
-   AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYPES))
-  set(ABI1_REFERENCE_CAPTURE_DIR "$ENV{RUNNER_TEMP}/abi1-t11-capture")
-  set(ABI1_REFERENCE_ARTIFACT_DIR "$ENV{RUNNER_TEMP}/golden")
-  set(ABI1_REFERENCE_MODULES
-      vco lfo vcf adsr vca clock function_envelope ladder mixer noise output scale_offset slew)
-  set(ABI1_REFERENCE_UTILITIES
-      clock function_envelope ladder mixer noise output scale_offset slew)
-  set(ABI1_REFERENCE_DEPENDENCIES abi2_integration_tests abi2_module_tests)
-  set(ABI1_REFERENCE_UTILITY_COMMANDS)
-  foreach(module IN LISTS ABI1_REFERENCE_UTILITIES)
-    list(APPEND ABI1_REFERENCE_DEPENDENCIES abi2_${module}_tests)
-    list(APPEND ABI1_REFERENCE_UTILITY_COMMANDS
-      COMMAND ${CMAKE_COMMAND} -E env
-        "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
-        $<TARGET_FILE:abi2_${module}_tests>
-        $<TARGET_FILE_DIR:ws_${module}>)
-  endforeach()
-  foreach(module IN LISTS ABI1_REFERENCE_MODULES)
-    list(APPEND ABI1_REFERENCE_DEPENDENCIES ws_${module})
-  endforeach()
-  set(ABI1_REFERENCE_EMIT_FLAG)
-  if("$ENV{GITHUB_WORKFLOW}" MATCHES "^Golden patch renders")
-    set(ABI1_REFERENCE_EMIT_FLAG --emit-chunks)
-  endif()
-  add_custom_target(abi2_reference_capture ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-      "${ABI1_REFERENCE_CAPTURE_DIR}" "${ABI1_REFERENCE_ARTIFACT_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E env
-      "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
-      $<TARGET_FILE:abi2_integration_tests>
-      $<TARGET_FILE_DIR:ws_vco>
-      "${ABI1_REFERENCE_CAPTURE_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E env
-      "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
-      $<TARGET_FILE:abi2_module_tests>
-      $<TARGET_FILE_DIR:ws_vco>
-      "${ABI1_REFERENCE_CAPTURE_DIR}/abi2_equivalence.json"
-    ${ABI1_REFERENCE_UTILITY_COMMANDS}
-    COMMAND ${Python3_EXECUTABLE}
-      "${CMAKE_SOURCE_DIR}/../bench/reference/freeze.py"
-      --capture-dir "${ABI1_REFERENCE_CAPTURE_DIR}"
-      --artifact-dir "${ABI1_REFERENCE_ARTIFACT_DIR}"
-      --repo-root "${CMAKE_SOURCE_DIR}/.."
-      --compiler-id "${CMAKE_CXX_COMPILER_ID}"
-      --compiler-version "${CMAKE_CXX_COMPILER_VERSION}"
-      --build-config Release
-      "--cxx-flags=${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}"
-      ${ABI1_REFERENCE_EMIT_FLAG}
-    DEPENDS ${ABI1_REFERENCE_DEPENDENCIES}
-    COMMENT "Capture ABI1 reference data from unchanged passing comparison tests (no devices)"
-    VERBATIM)
+# T1.1: every ABI2 comparison consumes committed, source-verified ABI1
+# fixture words; no comparison target links the original ABI1 engine.
+if(WIN32)
+  set(ABI1_FROZEN_MACHINE windows-x64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+  set(ABI1_FROZEN_MACHINE linux-arm64)
+else()
+  set(ABI1_FROZEN_MACHINE linux-x64)
 endif()
-
+set(ABI1_FROZEN_DIR "${CMAKE_BINARY_DIR}/abi1_frozen")
+set(ABI1_REFERENCE_MANIFEST
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json")
+set(ABI1_REFERENCE_CORPUS
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs")
+add_custom_target(abi2_frozen_reference_unpack ALL
+  COMMAND ${Python3_EXECUTABLE}
+    "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+    --manifest "${ABI1_REFERENCE_MANIFEST}"
+    --corpus-dir "${ABI1_REFERENCE_CORPUS}"
+    --destination "${ABI1_FROZEN_DIR}"
+    --machine "${ABI1_FROZEN_MACHINE}"
+  BYPRODUCTS "${ABI1_FROZEN_DIR}/capture_source.json"
+  COMMENT "Unpack and SHA-256-verify committed, frozen ABI1 reference words"
+  VERBATIM)
+target_compile_definitions(abi2_module_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+target_compile_definitions(abi2_integration_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(abi2_module_tests abi2_frozen_reference_unpack)
+add_dependencies(abi2_integration_tests abi2_frozen_reference_unpack)
+foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
+  target_compile_definitions(abi2_${module}_tests PRIVATE
+    ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+  add_dependencies(abi2_${module}_tests abi2_frozen_reference_unpack)
+endforeach()
 
 add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)
-target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
 add_dependencies(abi2_returned_filter_stress ws2_ladder ws_ladder)
 add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws_ladder>)
 
