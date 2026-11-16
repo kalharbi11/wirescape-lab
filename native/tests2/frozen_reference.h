@@ -13,13 +13,26 @@
 #include <string>
 #include <vector>
 
+// The fixture integrity gate is intentionally self-contained: some test
+// translation units include this header without dsp_fixture.h (where VERIFY
+// is normally defined). Failure is fatal, as with the existing test checks.
+inline void abi1_frozen_require(bool valid, const char* expression,
+                                const char* file, int line) {
+    if (valid) return;
+    std::fprintf(stderr, "ABI1 frozen fixture failure: %s (%s:%d)\n",
+                 expression, file, line);
+    std::abort();
+}
+#define ABI1_FROZEN_VERIFY(condition) \
+    abi1_frozen_require(static_cast<bool>(condition), #condition, __FILE__, __LINE__)
+
 #ifndef ABI1_FROZEN_DIR
 #error "ABI1_FROZEN_DIR must name the verified build-local fixture directory"
 #endif
 
 inline std::filesystem::path abi1_frozen_path(const std::string& id,
                                              const char* extension) {
-    VERIFY(!id.empty() && id.find('/') == std::string::npos &&
+    ABI1_FROZEN_VERIFY(!id.empty() && id.find('/') == std::string::npos &&
            id.find('\\') == std::string::npos && id.find("..") == std::string::npos);
     return std::filesystem::path(ABI1_FROZEN_DIR) / (id + extension);
 }
@@ -27,12 +40,12 @@ inline std::filesystem::path abi1_frozen_path(const std::string& id,
 inline std::vector<float> abi1_frozen_samples(const std::string& id) {
     const auto path = abi1_frozen_path(id, ".f32le");
     std::ifstream file(path, std::ios::binary | std::ios::ate);
-    VERIFY(file);
+    ABI1_FROZEN_VERIFY(file);
     const std::streamoff length = file.tellg();
-    VERIFY(length > 0 && length % 4 == 0 && length <= 1024 * 1024);
+    ABI1_FROZEN_VERIFY(length > 0 && length % 4 == 0 && length <= 1024 * 1024);
     std::vector<unsigned char> bytes(static_cast<size_t>(length));
     file.seekg(0);
-    VERIFY(static_cast<bool>(file.read(reinterpret_cast<char*>(bytes.data()), length)));
+    ABI1_FROZEN_VERIFY(static_cast<bool>(file.read(reinterpret_cast<char*>(bytes.data()), length)));
     std::vector<float> samples(bytes.size() / 4);
     for(size_t i=0;i<samples.size();++i) {
         const unsigned char* p=bytes.data()+i*4;
@@ -56,19 +69,19 @@ struct Abi1FrozenDescriptor {
 
 inline Abi1FrozenDescriptor abi1_frozen_descriptor(const std::string& module) {
     std::ifstream file(abi1_frozen_path("utility_"+module, ".desc"));
-    VERIFY(file);
+    ABI1_FROZEN_VERIFY(file);
     Abi1FrozenDescriptor d;
     std::string line;
     while(std::getline(file,line)) {
         if(line.empty())continue;
         std::istringstream row(line);
         std::string key;
-        VERIFY(static_cast<bool>(std::getline(row,key,'\t')));
+        ABI1_FROZEN_VERIFY(static_cast<bool>(std::getline(row,key,'\t')));
         if(key=="id") {
-            VERIFY(static_cast<bool>(std::getline(row,d.id)) && !d.id.empty());
+            ABI1_FROZEN_VERIFY(static_cast<bool>(std::getline(row,d.id)) && !d.id.empty());
         } else if(key=="counts") {
             std::string a,b,c;
-            VERIFY(static_cast<bool>(std::getline(row,a,'\t')) &&
+            ABI1_FROZEN_VERIFY(static_cast<bool>(std::getline(row,a,'\t')) &&
                    static_cast<bool>(std::getline(row,b,'\t')) &&
                    static_cast<bool>(std::getline(row,c)));
             d.input_count=static_cast<uint32_t>(std::stoul(a));
@@ -76,33 +89,33 @@ inline Abi1FrozenDescriptor abi1_frozen_descriptor(const std::string& module) {
             d.parameter_count=static_cast<uint32_t>(std::stoul(c));
         } else if(key=="input"||key=="output") {
             std::string pos,value;
-            VERIFY(static_cast<bool>(std::getline(row,pos,'\t')) &&
+            ABI1_FROZEN_VERIFY(static_cast<bool>(std::getline(row,pos,'\t')) &&
                    static_cast<bool>(std::getline(row,value)));
             auto& list=(key=="input")?d.inputs:d.outputs;
-            VERIFY(std::stoul(pos)==list.size());
+            ABI1_FROZEN_VERIFY(std::stoul(pos)==list.size());
             list.push_back(value);
         } else if(key=="param") {
             std::string pos,id,lo,hi,init;
-            VERIFY(static_cast<bool>(std::getline(row,pos,'\t')) &&
+            ABI1_FROZEN_VERIFY(static_cast<bool>(std::getline(row,pos,'\t')) &&
                    static_cast<bool>(std::getline(row,id,'\t')) &&
                    static_cast<bool>(std::getline(row,lo,'\t')) &&
                    static_cast<bool>(std::getline(row,hi,'\t')) &&
                    static_cast<bool>(std::getline(row,init)));
-            VERIFY(std::stoul(pos)==d.parameters.size());
+            ABI1_FROZEN_VERIFY(std::stoul(pos)==d.parameters.size());
             Abi1FrozenParam p;
             p.legacy_index=static_cast<uint32_t>(std::stoul(id));
             auto decode=[](const std::string& hex) {
-                VERIFY(hex.size()==8);
+                ABI1_FROZEN_VERIFY(hex.size()==8);
                 uint32_t bits=static_cast<uint32_t>(std::stoul(hex,nullptr,16));
                 float value;std::memcpy(&value,&bits,4);return value;
             };
             p.minimum=decode(lo);p.maximum=decode(hi);p.initial=decode(init);
             d.parameters.push_back(p);
         } else {
-            VERIFY(false);
+            ABI1_FROZEN_VERIFY(false);
         }
     }
-    VERIFY(!d.id.empty() && d.inputs.size()==d.input_count &&
+    ABI1_FROZEN_VERIFY(!d.id.empty() && d.inputs.size()==d.input_count &&
            d.outputs.size()==d.output_count &&
            d.parameters.size()==d.parameter_count);
     return d;
