@@ -41,7 +41,17 @@ const refused: ProtocolReply = {
 const event: ProtocolPush = {
   v: 0, type: 'app.engineExited', exitCode: 0, signal: null, expected: true,
 };
-const union: ProtocolV0[] = [note, panic, loaded, connected, identity, accepted, refused, event];
+const statusPush: ProtocolPush = {
+  v: 0, session: 's1', type: 'status', gen: '1',
+  status: {
+    audio: { state: 'no-device', deviceId: null, deviceName: null,
+      sampleRate: 48000, bufferFrames: 256, latencyMs: 10.67,
+      cpuPercent: 0, dropouts: 0 },
+    midi: { devices: [], activity: {}, futureMidi: { unknown: true } },
+    futureStatus: { unknown: 'preserved' },
+  },
+};
+const union: ProtocolV0[] = [note, panic, loaded, connected, identity, accepted, refused, event, statusPush];
 for (const wire of union) check(validateProtocolV0(wire), 'valid generated payload rejected');
 
 // Compile-time negative cases MUST produce TS errors; removing required
@@ -54,6 +64,10 @@ const invalidVersion: ProtocolCommand = { v: false, id: 'bad', type: 'panic' };
 const numericOk: ProtocolReply = { v: 0, re: 'bad', ok: 1, gen: '0' };
 // @ts-expect-error patch requires connections, not merely modules
 const incompletePatch: ProtocolPatch = { format: 'wirescape.native.patch', version: 2, modules: [] };
+// @ts-expect-error ProtocolV0 union cannot accept an incomplete noteOn command
+const missingUnionCommand: ProtocolV0 = { v: 0, id: 'bad', type: 'noteOn' };
+// @ts-expect-error status push requires a typed status payload
+const missingPushStatus: ProtocolPush = { v: 0, session: 's', type: 'status', gen: '1' };
 // @ts-expect-error a real connection endpoint must reference numeric module id
 const invalidConnection: ProtocolConnection = { kind: 'signal', from: { module: 'str', port: 'audio' }, to: { module: 7, port: 'audio' } };
 void missingNoteAndVelocity;
@@ -61,6 +75,8 @@ void invalidVersion;
 void numericOk;
 void incompletePatch;
 void invalidConnection;
+void missingUnionCommand;
+void missingPushStatus;
 
 check(!validateProtocolV0({ v: false, id: 'x', type: 'panic' }), 'Boolean false must not equal JSON zero');
 check(!validateProtocolV0({ v: 0, re: 'x', ok: 1, gen: '0' }), 'Number 1 must not equal Boolean true');
