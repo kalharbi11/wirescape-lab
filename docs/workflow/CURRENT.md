@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `2a02874`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `cacf9ea`.
 
 ## Active contract
 **[M0 r2](milestones/M0.md), accepted and active.** Phase 0 remainder, T1.1, and four fact
@@ -24,31 +24,47 @@ can be filed now; ruling R6.
 
 [Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82), coordination base `edb16274f0f7b456e3e17e33f1899a820661059c`.
 Result-or-blocked checkpoint: **2026-11-16 05:30 ET**. Builder1 owns #67/#70 (R5),
-builder2 #52/#58 (R4), builder3 #66/#69 (R3), builder4 #54/#59 (R1).
+builder2 #52/#58 (R4 plus lead correction round 1), builder3 P1/#78 after #69 merged,
+builder4 #54/#59 (R1).
 One task/branch/PR per builder; no automatic queue pickup. Existing WLAB chats are the dispatch
 route; delivery/turn completion is checked separately. Cloud worker is environment/build support,
-not another product writer. Root uses a focused independent reviewer for #63.
+not another product writer. Focused independent reviewers checked #63, #69, #58 and the device facts.
 
 The owner resumed work in the local lead chat and requested 15-minute scheduled review checks.
 The thread heartbeat is active; unchanged results end promptly, with no duplicate dispatch or
 expensive rerun. Usage limits remain shared. Preserve the local device-results branch and its
 untracked captures; repository coordination uses separate GitHub branches.
 
-Next dependency-ready dispatch: P1–P4, then M1 S0, M2 E0/PV1 and M0 T0.13a as writers free up.
+Next dependency-ready dispatch: remaining inventories #79–#81, M1 S0/#84, M2 E0/#85 and PV1/#86,
+then M0 T0.13a as writers free up. Do not dispatch queued tasks before the current result.
 T0.5/#60 waits for builder1's current task to return to review; apply R2 before acceptance.
 The M1 S5 sidecar ordering and all contract-review requirements remain in force.
+
+## Current review findings
+
+- #58: native module probe can print nonzero `faults` yet exit zero. Collector accepted the exit/Ir
+  totals without checking that JSON. Round 1 requests bench-only validation and mocked fault,
+  malformed/missing and healthy evidence tests, followed by real hosted evidence. No native change.
+- #73/#75: both had green checks at review; preserve raw evidence and add required licensing metadata,
+  place appended README rows inside the table, integrate #73 before #75. Never run devices here.
+- Cloud worker received an isolated **baseline `cacf9ea`** checkout/build/test support package using
+  existing tools and pinned public dependencies. No package installation or persistent setting change.
+  Tool delivery is not build/start success; inspect its result separately.
+- Builder1 active after reminder; builder2 correction delivered with one concise start retry;
+  builder4 activation remains unconfirmed after owner manual start and reminders. Inspect actual
+  assistant activity before further retries or reassignment. Avoid duplicate work.
 
 ## Open work (verify heads live; this is a snapshot)
 | Task | Issue / PR | Next |
 |---|---|---|
 | T0.5 | #51 / PR #60 | apply ruling R2, then lead review |
-| T0.6 | #52 / PR #58 | apply R4, then lead review |
+| T0.6 | #52 / PR #58 | round 1: reject module probe JSON faults/malformed evidence; keep R4 exceptions/thresholds; revalidate actual evidence |
 | T0.8 | #54 / PR #59 | apply R1, then lead review |
-| T0.9 | PR #73, PR #50 | lead review |
-| T0.11 | #66 / PR #69 | apply R3 (rows + workflow path filters), then lead review |
+| T0.9 | PR #73, #75, #50 | #73/#75 factual review found no material inflation/privacy issue; fix README table placement and artifact SPDX metadata before merge |
+| T0.11 | #66 / PR #69 | merged `cacf9ea`; reviewed head `44e31258e2e2784a1d1dc8d301dd3f248e2d982b`, 3-platform Golden and 7-job Lab CI passed |
 | T0.12 | #61 / PR #63 | merged `2a02874`; reviewed head `c9da84bd23ac20ed4a1de55327447d01117c7e7c`, all four workflows passed |
 | T1.1 | #67 / PR #70 | finish frozen-data conversion, drop the ABI1 link; R5 |
-| P1–P4 | #78, #79, #80, #81 | queued, one new factual file each; assign after a builder returns its current result |
+| P1–P4 | #78, #79, #80, #81 | #78 active on builder3; others queued, one new factual file each |
 | T0.10 | to file | after the rows above merge |
 
 ## Decisions
