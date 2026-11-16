@@ -37,17 +37,17 @@ class FreezeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             src, dest = Path(tmp) / "samples", Path(tmp) / "out"
             src.mkdir()
-            (src / "shim_steady.f32le").write_bytes(b"\\x00\\x01\\x02")
+            (src / "shim_steady.f32le").write_bytes(b"\x00\x01\x02")
             metadata = {"machine": "synthetic"}
             with self.assertRaisesRegex(ValueError, "invalid binary32"):
                 freeze.package(src, dest, metadata)
-            (src / "shim_steady.f32le").write_bytes(b"\\x00" * (16384 * 4))
+            (src / "shim_steady.f32le").write_bytes(b"\x00" * (16384 * 4))
             with self.assertRaisesRegex(ValueError, "inventory mismatch"):
                 freeze.package(src, dest, metadata)
             self.assertFalse(dest.exists())
 
     def test_crc_not_substituted_for_cryptographic_source_digest(self):
-        samples = b"\\x00\\x00\\x80\\x3f"  # binary32 1.0 in LE
+        samples = b"\x00\x00\x80\x3f"  # binary32 1.0 in LE
         digest = hashlib.sha256(samples).hexdigest()
         self.assertEqual(len(digest), 64)
         self.assertEqual(digest,
