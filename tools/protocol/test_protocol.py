@@ -7,7 +7,7 @@ import json
 import re
 import unittest
 
-from validate import ROOT, check_schema_subset, parse_line, read_schema, validate
+from validate import ROOT, check_schema_subset, json_equal, parse_line, read_schema, validate
 
 
 SPEC = ROOT / "docs" / "specs" / "ENGINE_PROTOCOL.md"
@@ -89,6 +89,31 @@ class ProtocolV0Tests(unittest.TestCase):
             {"v": 0, "re": "x", "ok": False, "gen": "0"},
         ]:
             self.assertFalse(validate(bad, self.schema), bad)
+
+    def test_json_semantic_equality_for_const_and_enum(self):
+        # Python bool is a subclass of int; JSON does not equate them.
+        self.assertFalse(json_equal(False, 0))
+        self.assertFalse(json_equal(True, 1))
+        self.assertFalse(json_equal({"nested": [1, False]}, {"nested": [1, 0]}))
+        self.assertTrue(json_equal(1, 1.0))
+        self.assertTrue(json_equal({"b": True, "a": [1.0]}, {"a": [1], "b": True}))
+        self.assertFalse(validate({"v": False, "id": "x", "type": "panic"}, self.schema))
+        self.assertFalse(validate({"v": 0, "re": "x", "ok": 1, "gen": "0"}, self.schema))
+        self.assertTrue(validate({"v": 0, "re": "x", "ok": True, "gen": "0"}, self.schema))
+        custom = {"$defs": {}, "enum": [0, 1]}
+        self.assertFalse(validate(False, custom))
+        self.assertFalse(validate(True, custom))
+        self.assertTrue(validate(1.0, custom))
+
+    def test_schema_length_counts_unicode_codepoints_not_utf8_bytes(self):
+        # The sidecar additionally restricts request IDs to ASCII bytes;
+        # PV1's restricted schema subset cannot express that transport rule.
+        for sample in ("é" * 33, "é" * 64, "🙂" * 33, "🙂" * 64):
+            self.assertGreater(len(sample.encode("utf-8")), 64)
+            self.assertTrue(validate({"v": 0, "id": sample, "type": "panic"}, self.schema))
+        for sample in ("é" * 65, "🙂" * 65, "a" * 65):
+            self.assertFalse(validate({"v": 0, "id": sample, "type": "panic"}, self.schema))
+        self.assertTrue(validate({"v": 0, "id": "a" * 64, "type": "panic"}, self.schema))
 
     def test_connection_identity_ignores_nested_amount_only_for_identity_operations(self):
         identity = {
