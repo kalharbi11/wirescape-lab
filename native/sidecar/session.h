@@ -115,7 +115,8 @@ class Session {
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
     Json execution(Json);
-    void commit(Json, bool);
+    bool commit(Json, bool); // true: live replan; false: D5 replacement
+    Json reconcile_graph(const Json &before, bool live);
     Json apply(const Json &);
     Json audio_status() const;
     Json midi_status() const;
