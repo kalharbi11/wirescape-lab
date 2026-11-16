@@ -1,6 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+**Replacement local lead:** read [LEAD_STARTUP.md](LEAD_STARTUP.md) for chat IDs, tool route,
+startup verification, cloud cache, current checkpoints and safe heartbeat takeover.
+
 Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `cacf9ea`.
 
 ## Active contract
@@ -25,7 +28,7 @@ can be filed now; ruling R6.
 
 [Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82), coordination base `edb16274f0f7b456e3e17e33f1899a820661059c`.
 Result-or-blocked checkpoint: **2026-11-16 05:30 ET**. Builder1 owns #67/#70 (R5),
-builder2 #52/#58 (R4 plus lead correction round 1), builder3 P1/#78 after #69 merged,
+builder2 #52/#58 (R4 plus lead correction round 1), builder3 P2/#79 after P1/#89 entered review,
 builder4 #54/#59 (R1).
 One task/branch/PR per builder; no automatic queue pickup. Existing WLAB chats are the dispatch
 route; delivery/turn completion is checked separately. Cloud worker is environment/build support,
@@ -51,25 +54,24 @@ The M1 S5 sidecar ordering and all contract-review requirements remain in force.
 - Cloud worker received an isolated **baseline `cacf9ea`** checkout/build/test support package using
   existing tools and pinned public dependencies. No package installation or persistent setting change.
   Tool delivery is not build/start success; inspect its result separately.
-- Builder1 active after reminder; builder2 correction delivered with one concise start retry;
-  builder4 activation remains unconfirmed after owner manual start and reminders. Inspect actual
-  assistant activity before further retries or reassignment. Avoid duplicate work.
+- Actual starts were verified for all four builders. Inspect latest assistant activity before any
+  new dispatch or retry. The startup guide records current corrections and the temporary reset-aware timer.
 
 ## Open work (verify heads live; this is a snapshot)
 | Task | Issue / PR | Next |
 |---|---|---|
 | T0.5 | #51 / PR #60 | apply ruling R2, then lead review |
 | T0.6 | #52 / PR #58 | round 1: reject module probe JSON faults/malformed evidence; keep R4 exceptions/thresholds; revalidate actual evidence |
-| T0.8 | #54 / PR #59 | apply R1, then lead review |
+| T0.8 | #54 / PR #59 | correction round 1: onset detector bias; S0/#84 paused until result returns review |
 | T0.9 | PR #73, #75, #50 | #73/#75 factual review found no material inflation/privacy issue; fix README table placement and artifact SPDX metadata before merge |
 | T0.11 | #66 / PR #69 | merged `cacf9ea`; reviewed head `44e31258e2e2784a1d1dc8d301dd3f248e2d982b`, 3-platform Golden and 7-job Lab CI passed |
 | T0.12 | #61 / PR #63 | merged `2a02874`; reviewed head `c9da84bd23ac20ed4a1de55327447d01117c7e7c`, all four workflows passed |
 | T1.1 | #67 / PR #70 | finish frozen-data conversion, drop the ABI1 link; R5 |
-| P1–P4 | #78, #79, #80, #81 | #78 active on builder3; others queued, one new factual file each |
+| P1–P4 | #78, #79, #80, #81 | #89 lead addendum head f94b324 requires fresh CI; #79 active; #80/#81 queued |
 | T0.10 | to file | after the rows above merge |
 
 ## Decisions
-- Rulings R1–R6 are in M0. [QUESTIONS](QUESTIONS.md): empty.
+- Rulings R1–R6 are in M0. [QUESTIONS](QUESTIONS.md): Q4/Q5 open for Fable.
 - The old pause in the 2026-11-15 LOG entry is lifted by this contract.
 
 ## Next action by role
