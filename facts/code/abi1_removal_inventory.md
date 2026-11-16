@@ -425,4 +425,172 @@ The legacy implementation and its C export/function definitions remain in the pi
 Each module's `module.json` is copied to its shared-library output location by `native/CMakeLists.txt:20-21`; it is metadata, not a separate source or ABI function. Exact module source and target binding is enumerated in the preceding build catalogue.
 
 
+## Facade, provider bridge, document loader and ABI2 scheduler compatibility
+
+| Source file:line | ABI1 field, branch, loader call or bridging usage |
+| --- | --- |
+| `native/control/app_engine.cpp:15` | `const ws2_descriptor* native=nullptr;ws_module_descriptor metadata{};` |
+| `native/control/app_engine.cpp:16` | `std::vector<ws_port_descriptor> inputs,outputs;std::vector<ws_parameter_descriptor> params;` |
+| `native/control/app_engine.cpp:18` | `std::shared_ptr<ws_engine> legacy{nullptr,ws_engine_destroy};` |
+| `native/control/app_engine.cpp:19` | `std::vector<std::shared_ptr<ws_engine>> library_owners;` |
+| `native/control/app_engine.cpp:36` | `explicit AppEngine(const ws_engine_config& c,const wirescape::engine2::Config* override=nullptr):legacy(ws_engine_create(&c),ws_engine_destroy),engine(override?*override:config(c)){` |
+| `native/control/app_engine.cpp:48` | `static_cast<uint32_t>(d->inputs[i].hint == WS2_AUDIO ? WS_AUDIO : WS_CONTROL)});` |
+| `native/control/app_engine.cpp:51` | `static_cast<uint32_t>(d->outputs[i].hint == WS2_AUDIO ? WS_AUDIO : WS_CONTROL)});` |
+| `native/control/app_engine.cpp:54` | `e.params.push_back({p.legacy_index, p.name, p.minimum, p.maximum, p.initial, p.unit});` |
+| `native/control/app_engine.cpp:56` | `e.metadata = {sizeof(ws_module_descriptor),` |
+| `native/control/app_engine.cpp:57` | `WS_ABI_VERSION,` |
+| `native/control/app_engine.cpp:74` | `static wirescape::engine2::Config config(const ws_engine_config& c){wirescape::engine2::Config r;r.sample_rate=c.sample_rate;r.max_block=c.max_block_frames;r.max_nodes=c.max_nodes;r.event_budget=c.max_events;return r;}` |
+| `native/control/app_engine.cpp:77` | `AppEngine* app_engine_create(const ws_engine_config*c){` |
+| `native/control/app_engine.cpp:81` | `wirescape::engine2::Config AppEngineConfig(const ws_engine_config&c){return AppEngine::config(c);}` |
+| `native/control/app_engine.cpp:82` | `AppEngine* app_engine_create_config(const ws_engine_config*c,const wirescape::engine2::Config*n){` |
+| `native/control/app_engine.cpp:90` | `int app_engine_register_module(AppEngine*e,const ws_module_descriptor*d){if(!d)return WS_INVALID;if(e->find(d->id))return WS_OK;e->entries.emplace_back();e->entries.back().metadata=*d;return WS_OK;}` |
+| `native/control/app_engine.cpp:96` | `e->library_owners.push_back(source->legacy);` |
+| `native/control/app_engine.cpp:99` | `int app_engine_load_module(AppEngine*e,const char*path){int r=ws_engine_load_module(e->legacy.get(),path);if(r!=WS_OK)return r;for(uint32_t i=0;i<ws_engine_module_count(e->legacy.get());++i)app_engine_register_module(e,ws_engine_module(e->legacy.get(),i));return WS_OK;}` |
+| `native/control/app_engine.cpp:101` | `const ws_module_descriptor* app_engine_module(const AppEngine*e,uint32_t i){return i<e->entries.size()?&e->entries[i].metadata:nullptr;}` |
+| `native/control/app_engine.cpp:108` | `int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS_NOT_FOUND;bool ok=d->native?e->engine.add_node(id,d->native,config):(config.empty()&&e->engine.add_abi1(id,&d->metadata));if(ok)e->nodes[` |
+| `native/control/app_engine.cpp:123` | `if (!entry->native && !candidate->engine.rebind_abi1_descriptor(item.first, &entry->metadata)) {` |
+| `native/control/app_engine.cpp:139` | `int app_engine_enqueue(AppEngine*e,const ws_event*v){` |
+| `native/control/app_engine.cpp:142` | `if(v->type==WS_PARAMETER){` |
+| `native/control/app_engine.cpp:147` | `else if(v->type==WS_GATE){` |
+| `native/control/app_engine.cpp:154` | `}else x.type=v->type==WS_NOTE_ON?WS2_NOTE_ON:WS2_NOTE_OFF;` |
+| `native/control/app_engine.cpp:254` | `int app_engine_get_meter(const AppEngine*e,ws_meter*m){auto x=e->engine.meter();*m={sizeof(*m),x.frame,e->blocks.load(),x.late,e->peak.load(),0,x.generation,x.dropped,0,0};return WS_OK;}` |
+| `native/control/app_engine.h:3` | `#include "wirescape/engine.h"` |
+| `native/control/app_engine.h:7` | `AppEngine* app_engine_create(const ws_engine_config*);` |
+| `native/control/app_engine.h:8` | `wirescape::engine2::Config AppEngineConfig(const ws_engine_config&);` |
+| `native/control/app_engine.h:9` | `AppEngine* app_engine_create_config(const ws_engine_config*,const wirescape::engine2::Config*);` |
+| `native/control/app_engine.h:14` | `int app_engine_register_module(AppEngine*,const ws_module_descriptor*);` |
+| `native/control/app_engine.h:17` | `const ws_module_descriptor* app_engine_module(const AppEngine*,uint32_t);` |
+| `native/control/app_engine.h:27` | `int app_engine_enqueue(AppEngine*,const ws_event*);` |
+| `native/control/app_engine.h:49` | `int app_engine_get_meter(const AppEngine*,ws_meter*);` |
+| `native/control/provider_bridge.cpp:15` | `ProviderBridge::ProviderBridge(ws_engine *engine, Config config) noexcept` |
+| `native/control/provider_bridge.cpp:18` | `generation_ = ws_engine_generation(engine_);` |
+| `native/control/provider_bridge.cpp:30` | `ws_meter meter{sizeof(ws_meter)};` |
+| `native/control/provider_bridge.cpp:31` | `return ws_engine_get_meter(engine_, &meter) == WS_OK &&` |
+| `native/control/provider_bridge.cpp:73` | `ws_engine_panic(engine_);` |
+| `native/control/provider_bridge.cpp:78` | `if (ws_engine_generation(engine_) == generation_) return true;` |
+| `native/control/provider_bridge.cpp:85` | `if ((input.type != WS_PARAMETER && input.type != WS_NOTE_ON &&` |
+| `native/control/provider_bridge.cpp:86` | `input.type != WS_NOTE_OFF && input.type != WS_GATE) \|\|` |
+| `native/control/provider_bridge.cpp:88` | `if (input.type == WS_NOTE_OFF \|\| input.type == WS_GATE) stop_with_panic();` |
+| `native/control/provider_bridge.cpp:93` | `if (input.type == WS_NOTE_OFF \|\| input.type == WS_GATE) stop_with_panic();` |
+| `native/control/provider_bridge.cpp:96` | `ws_meter meter{sizeof(ws_meter)};` |
+| `native/control/provider_bridge.cpp:97` | `if (ws_engine_get_meter(engine_, &meter) != WS_OK) { stop_generation(); return false; }` |
+| `native/control/provider_bridge.cpp:106` | `if (input.type == WS_NOTE_OFF \|\| input.type == WS_GATE) stop_with_panic();` |
+| `native/control/provider_bridge.cpp:109` | `ws_event event{sizeof(ws_event), frame, input.node_id, input.type,` |
+| `native/control/provider_bridge.cpp:112` | `if (input.type == WS_PARAMETER) {` |
+| `native/control/provider_bridge.cpp:115` | `if (old.type == WS_PARAMETER && old.node_id == event.node_id &&` |
+| `native/control/provider_bridge.cpp:137` | `ws_meter meter{sizeof(ws_meter)};` |
+| `native/control/provider_bridge.cpp:138` | `if (ws_engine_get_meter(engine_, &meter) != WS_OK) { stop_generation(); break; }` |
+| `native/control/provider_bridge.cpp:150` | `if (event.type == WS_PARAMETER) {` |
+| `native/control/provider_bridge.cpp:153` | `} else if (event.type == WS_NOTE_ON) {` |
+| `native/control/provider_bridge.cpp:162` | `const int result = ws_engine_enqueue(engine_, &event);` |
+| `native/control/provider_bridge.cpp:163` | `if (result == WS_STATE \|\| ws_engine_generation(engine_) != generation_) {` |
+| `native/control/provider_bridge.cpp:178` | `generation_ = ws_engine_generation(engine_);` |
+| `native/control/provider_bridge.h:4` | `#include "wirescape/engine.h"` |
+| `native/control/provider_bridge.h:38` | `ProviderBridge(ws_engine *engine, Config config) noexcept;` |
+| `native/control/provider_bridge.h:50` | `struct Pending { ws_event event; uint64_t serial; };` |
+| `native/control/provider_bridge.h:58` | `ws_engine *engine_;` |
+| `native/control/app_legacy_fixture.cpp:2` | `#include "wirescape/module.h"` |
+| `native/control/app_legacy_fixture.cpp:6` | `static int WS_CALL prepare(void*,const ws_module_config*){return 0;}` |
+| `native/control/app_legacy_fixture.cpp:8` | `static void WS_CALL event(void*p,const ws_module_event*e){if(e->type==WS_PARAMETER&&e->parameter_id==7)*static_cast<float*>(p)=e->value;}` |
+| `native/control/app_legacy_fixture.cpp:9` | `static void WS_CALL process(void*p,const float*const*,float*const*out,const ws_process_context*c){std::fill_n(out[0],c->frames,*static_cast<float*>(p));}` |
+| `native/control/app_legacy_fixture.cpp:10` | `static const ws_port_descriptor output{"out","Out",WS_AUDIO};` |
+| `native/control/app_legacy_fixture.cpp:11` | `static const ws_parameter_descriptor parameter{7,"Level",0,1,.25f,""};` |
+| `native/control/app_legacy_fixture.cpp:12` | `static const ws_module_descriptor descriptor{sizeof(descriptor),WS_ABI_VERSION,"test.app_legacy","Legacy",0,1,1,nullptr,&output,&parameter,create,destroy,prepare,reset,event,process};` |
+| `native/control/app_legacy_fixture.cpp:13` | `WS_EXPORT const ws_module_descriptor* WS_CALL ws_module_entry(void){return &descriptor;}` |
+| `native/document/runtime_patch.cpp:29` | `AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const ws_engine_config&config,std::string&error,const std::vector<engine2::Tap>*telemetry_taps){` |
+| `native/document/runtime_patch.cpp:50` | `std::map<uint32_t,const ws_module_descriptor*> nodes;` |
+| `native/document/runtime_patch.cpp:54` | `const ws_module_descriptor *descriptor = nullptr;` |
+| `native/document/runtime_patch.h:10` | `const ws_engine_config& config,std::string& error,` |
+| `native/engine2/engine2.cpp:4` | `#include "wirescape/module.h"` |
+| `native/engine2/engine2.cpp:102` | `const ws_module_descriptor*legacy=nullptr;void*instance=nullptr;` |
+| `native/engine2/engine2.cpp:130` | `if(instance){if(legacy)legacy->destroy(instance);else if(d)d->destroy(instance);instance=nullptr;}` |
+| `native/engine2/engine2.cpp:145` | `if (!node \|\| node->legacy) return false;` |
+| `native/engine2/engine2.cpp:168` | `if (tap.kind == Tap::Param) return !node->legacy && tap.index < node->parameters.size();` |
+| `native/engine2/engine2.cpp:243` | `if(n->legacy)n->legacy->reset(n->instance);else n->d->reset(n->instance);` |
+| `native/engine2/engine2.cpp:278` | `if(n.legacy){` |
+| `native/engine2/engine2.cpp:279` | `n.instance=n.legacy->create(cfg.sample_rate);` |
+| `native/engine2/engine2.cpp:280` | `ws_module_config old{sizeof(old),cfg.max_block,cfg.sample_rate,generation.load()};` |
+| `native/engine2/engine2.cpp:281` | `if(!n.instance\|\|n.legacy->prepare(n.instance,&old))return fail("ABI1 shim prepare failed");` |
+| `native/engine2/engine2.cpp:282` | `for(auto&p:n.state)if(p.requested){ws_module_event e{WS_PARAMETER,p.info.legacy_index,static_cast<float>(ws::to_plain(p.info,p.base.value())),0,0};n.legacy->event(n.instance,&e);}` |
+| `native/engine2/engine2.cpp:555` | `const bool direct=!n.loop&&!n.legacy;` |
+| `native/engine2/engine2.cpp:572` | `if(!n.legacy)for(const auto*edge:n.signal_edges){const auto&e=*edge;if(e.kind==2?(n.parameters[e.input].flags&WS2_PER_VOICE)!=0:n.inputs[e.input].poly==WS2_POLY)channels=std::max(channels,raw_channels(e));}` |
+| `native/engine2/engine2.cpp:595` | `if(!n.legacy)for(uint32_t j=0;j<n.parameters.size();++j){` |
+| `native/engine2/engine2.cpp:627` | `else if(n.legacy){` |
+| `native/engine2/engine2.cpp:632` | `ws_process_context c{sizeof(c),end-cursor,block_start+start+cursor,generation.load()};` |
+| `native/engine2/engine2.cpp:633` | `n.legacy->process(n.instance,n.legacy_in.data(),n.legacy_out.data(),&c);cursor=end;` |
+| `native/engine2/engine2.cpp:636` | `ws_module_event old{};old.source_id=e.source_id;old.note_id=static_cast<uint32_t>(e.note_id);old.parameter_id=e.index;old.value=e.value;` |
+| `native/engine2/engine2.cpp:637` | `if(e.type==WS2_PARAM){old.type=WS_PARAMETER;if(e.index<n.state.size()){auto&v=n.state[e.index];old.parameter_id=v.info.legacy_index;v.base.jump(ws::to_normal(v.info,e.value));v.requested=true;}}` |
+| `native/engine2/engine2.cpp:638` | `else if(e.type==WS2_NOTE_ON){old.type=WS_NOTE_ON;old.value=static_cast<float>(e.key);}` |
+| `native/engine2/engine2.cpp:639` | `else if(e.type==WS2_NOTE_OFF\|\|e.type==WS2_NOTE_CHOKE)old.type=WS_NOTE_OFF;` |
+| `native/engine2/engine2.cpp:641` | `n.legacy->event(n.instance,&old);` |
+| `native/engine2/engine2.cpp:749` | `bool Engine::add_abi1(uint32_t id,const ws_module_descriptor*d){` |
+| `native/engine2/engine2.cpp:750` | `auto&p=*p_;if(p.prepared\|\|!id\|\|p.find(id)\|\|p.nodes.size()>=p.cfg.max_nodes\|\|!d\|\|d->struct_size<sizeof(ws_module_descriptor)\|\|d->abi_version!=WS_ABI_VERSION\|\|!d->create\|\|!d->prepare\|\|!d->process\|\|!d->reset\|\|!d->destroy\|\|!d->event)return p.fail("Invalid ABI1` |
+| `native/engine2/engine2.cpp:751` | `auto n=std::make_unique<Node>();n->id=id;n->legacy=d;n->legacy_ids.resize(d->parameter_count);` |
+| `native/engine2/engine2.cpp:752` | `for(uint32_t i=0;i<d->input_count;++i){auto&v=d->inputs[i];n->inputs.push_back(ws::port(v.id,v.name,v.kind==WS_AUDIO?WS2_AUDIO:WS2_ANY,WS2_FIRST,!std::strcmp(v.id,"gain_cv")?1.f:0.f));}` |
+| `native/engine2/engine2.cpp:753` | `for(uint32_t i=0;i<d->output_count;++i){auto&v=d->outputs[i];n->outputs.push_back(ws::port(v.id,v.name,v.kind==WS_AUDIO?WS2_AUDIO:WS2_ANY));}` |
+| `native/engine2/engine2.cpp:821` | `if(n->legacy&&n->instance){ws_module_event e{WS_PARAMETER,v.info.legacy_index,plain,0,0};n->legacy->event(n->instance,&e);}return true;` |
+| `native/engine2/engine2.cpp:823` | `bool Engine::set_channels(uint32_t node,uint32_t channels){auto*n=p_->find(node);if(!n\|\|channels>p_->cfg.max_channels\|\|(n->legacy&&channels!=1))return false;n->forced_channels=static_cast<int>(channels);return true;}` |
+| `native/engine2/engine2.cpp:1015` | `auto*n=p_->find(node);if(!n\|\|n->legacy)return {};` |
+| `native/engine2/engine2.cpp:1021` | `auto*n=p_->find(node);if(!n\|\|n->legacy\|\|bytes.size()>1024*1024)return WS2_INVALID;` |
+| `native/engine2/engine2.cpp:1036` | `if(!(n->legacy?next.add_abi1(n->id,n->legacy):next.add_node(n->id,n->d,config)))return old.fail("Cannot stage reconfiguration");` |
+| `native/engine2/engine2.cpp:1040` | `if(n->legacy&&!fresh.setup(*target))return old.fail("Staged shim prepare failed");` |
+| `native/engine2/engine2.cpp:1042` | `auto target=std::make_unique<Node>();target->id=n->id;target->d=n->d;target->legacy=n->legacy;` |
+| `native/engine2/engine2.cpp:1076` | `if(!changed->legacy){auto bytes=save_state(node);if(!bytes.empty()){int r=next.load_state(node,bytes);if(r!=WS2_OK&&r!=WS2_UNSUPPORTED)return old.fail("Staged state restore failed");}}` |
+| `native/engine2/engine2.cpp:1107` | `bool Engine::rebind_abi1_descriptor(uint32_t node, const ws_module_descriptor *d) {` |
+| `native/engine2/engine2.cpp:1109` | `if (!n \|\| !n->legacy \|\| !d \|\| !d->id \|\| std::string_view(n->legacy->id) != d->id \|\|` |
+| `native/engine2/engine2.cpp:1110` | `n->legacy->create != d->create \|\| n->legacy->destroy != d->destroy \|\| n->legacy->prepare != d->prepare \|\|` |
+| `native/engine2/engine2.cpp:1111` | `n->legacy->process != d->process \|\| n->legacy->event != d->event \|\| n->legacy->input_count != d->input_count \|\|` |
+| `native/engine2/engine2.cpp:1112` | `n->legacy->output_count != d->output_count \|\| n->legacy->parameter_count != d->parameter_count)` |
+| `native/engine2/engine2.cpp:1114` | `n->legacy = d;` |
+| `native/engine2/engine2.cpp:1142` | `if (prior && prior->d == n.d && prior->legacy == n.legacy && prior->config == n.config) {` |
+| `native/engine2/engine2.h:8` | `struct ws_module_descriptor;` |
+| `native/engine2/engine2.h:56` | `bool add_abi1(uint32_t id,const ws_module_descriptor*);` |
+| `native/engine2/engine2.h:100` | `bool rebind_abi1_descriptor(uint32_t node, const ws_module_descriptor *);` |
+| `native/include/wirescape/module2.h:43` | `float minimum,maximum,initial; uint32_t legacy_index,taper; float curve,step;` |
+| `native/tests2/module_loader.h:3` | `#include "wirescape/module.h"` |
+| `native/tests2/module_loader.h:47` | `const ws_module_descriptor*abi1(const std::string&name){auto h=library("ws_"+name);auto entry=reinterpret_cast<ws_module_entry_fn>(symbol(h,"ws_module_entry"));if(!entry)throw std::runtime_error("Missing ABI1 entry");return entry();}` |
+
+### Scheduler shim branch inventory (`native/engine2/engine2.cpp`)
+
+Each row is an actual condition, event translation, ABI1 descriptor callback, or legacy-node ownership branch in the ABI2 scheduler. `legacy_index` stores numeric ABI1 parameter identity in ABI2 `ws2_param` metadata (`native/include/wirescape/module2.h:43`).
+
+| Branch site | Observed ABI1-specific condition/callback |
+| --- | --- |
+| `native/engine2/engine2.cpp:102` | `const ws_module_descriptor*legacy=nullptr;void*instance=nullptr;` |
+| `native/engine2/engine2.cpp:130` | `if(instance){if(legacy)legacy->destroy(instance);else if(d)d->destroy(instance);instance=nullptr;}` |
+| `native/engine2/engine2.cpp:145` | `if (!node \|\| node->legacy) return false;` |
+| `native/engine2/engine2.cpp:168` | `if (tap.kind == Tap::Param) return !node->legacy && tap.index < node->parameters.size();` |
+| `native/engine2/engine2.cpp:243` | `if(n->legacy)n->legacy->reset(n->instance);else n->d->reset(n->instance);` |
+| `native/engine2/engine2.cpp:278` | `if(n.legacy){` |
+| `native/engine2/engine2.cpp:279` | `n.instance=n.legacy->create(cfg.sample_rate);` |
+| `native/engine2/engine2.cpp:281` | `if(!n.instance\|\|n.legacy->prepare(n.instance,&old))return fail("ABI1 shim prepare failed");` |
+| `native/engine2/engine2.cpp:282` | `for(auto&p:n.state)if(p.requested){ws_module_event e{WS_PARAMETER,p.info.legacy_index,static_cast<float>(ws::to_plain(p.info,p.base.value())),0,0};n.legacy->event(n.instance,&e);}` |
+| `native/engine2/engine2.cpp:555` | `const bool direct=!n.loop&&!n.legacy;` |
+| `native/engine2/engine2.cpp:572` | `if(!n.legacy)for(const auto*edge:n.signal_edges){const auto&e=*edge;if(e.kind==2?(n.parameters[e.input].flags&WS2_PER_VOICE)!=0:n.inputs[e.input].poly==WS2_POLY)channels=std::max(channels,raw_channels(e));}` |
+| `native/engine2/engine2.cpp:595` | `if(!n.legacy)for(uint32_t j=0;j<n.parameters.size();++j){` |
+| `native/engine2/engine2.cpp:627` | `else if(n.legacy){` |
+| `native/engine2/engine2.cpp:633` | `n.legacy->process(n.instance,n.legacy_in.data(),n.legacy_out.data(),&c);cursor=end;` |
+| `native/engine2/engine2.cpp:637` | `if(e.type==WS2_PARAM){old.type=WS_PARAMETER;if(e.index<n.state.size()){auto&v=n.state[e.index];old.parameter_id=v.info.legacy_index;v.base.jump(ws::to_normal(v.info,e.value));v.requested=true;}}` |
+| `native/engine2/engine2.cpp:641` | `n.legacy->event(n.instance,&old);` |
+| `native/engine2/engine2.cpp:749` | `bool Engine::add_abi1(uint32_t id,const ws_module_descriptor*d){` |
+| `native/engine2/engine2.cpp:751` | `auto n=std::make_unique<Node>();n->id=id;n->legacy=d;n->legacy_ids.resize(d->parameter_count);` |
+| `native/engine2/engine2.cpp:821` | `if(n->legacy&&n->instance){ws_module_event e{WS_PARAMETER,v.info.legacy_index,plain,0,0};n->legacy->event(n->instance,&e);}return true;` |
+| `native/engine2/engine2.cpp:823` | `bool Engine::set_channels(uint32_t node,uint32_t channels){auto*n=p_->find(node);if(!n\|\|channels>p_->cfg.max_channels\|\|(n->legacy&&channels!=1))return false;n->forced_channels=static_cast<int>(channels);return true;}` |
+| `native/engine2/engine2.cpp:1015` | `auto*n=p_->find(node);if(!n\|\|n->legacy)return {};` |
+| `native/engine2/engine2.cpp:1021` | `auto*n=p_->find(node);if(!n\|\|n->legacy\|\|bytes.size()>1024*1024)return WS2_INVALID;` |
+| `native/engine2/engine2.cpp:1036` | `if(!(n->legacy?next.add_abi1(n->id,n->legacy):next.add_node(n->id,n->d,config)))return old.fail("Cannot stage reconfiguration");` |
+| `native/engine2/engine2.cpp:1040` | `if(n->legacy&&!fresh.setup(*target))return old.fail("Staged shim prepare failed");` |
+| `native/engine2/engine2.cpp:1042` | `auto target=std::make_unique<Node>();target->id=n->id;target->d=n->d;target->legacy=n->legacy;` |
+| `native/engine2/engine2.cpp:1076` | `if(!changed->legacy){auto bytes=save_state(node);if(!bytes.empty()){int r=next.load_state(node,bytes);if(r!=WS2_OK&&r!=WS2_UNSUPPORTED)return old.fail("Staged state restore failed");}}` |
+| `native/engine2/engine2.cpp:1107` | `bool Engine::rebind_abi1_descriptor(uint32_t node, const ws_module_descriptor *d) {` |
+| `native/engine2/engine2.cpp:1109` | `if (!n \|\| !n->legacy \|\| !d \|\| !d->id \|\| std::string_view(n->legacy->id) != d->id \|\|` |
+| `native/engine2/engine2.cpp:1110` | `n->legacy->create != d->create \|\| n->legacy->destroy != d->destroy \|\| n->legacy->prepare != d->prepare \|\|` |
+| `native/engine2/engine2.cpp:1111` | `n->legacy->process != d->process \|\| n->legacy->event != d->event \|\| n->legacy->input_count != d->input_count \|\|` |
+| `native/engine2/engine2.cpp:1112` | `n->legacy->output_count != d->output_count \|\| n->legacy->parameter_count != d->parameter_count)` |
+| `native/engine2/engine2.cpp:1114` | `n->legacy = d;` |
+| `native/engine2/engine2.cpp:1142` | `if (prior && prior->d == n.d && prior->legacy == n.legacy && prior->config == n.config) {` |
+
+**Facade/loader identity distinction:** ABI1 v1 libraries live behind a `ws_engine` owner (`native/control/app_engine.cpp:18-19,36,96-99`); metadata for built-in ABI2 modules is projected into ABI1 descriptor structs (`native/control/app_engine.cpp:42-71`) without implying that built-ins are linked ABI1 shared modules. Staged graph replans rebind borrowed ABI1 descriptors (`native/control/app_engine.cpp:111-129`).
+
+
 <!-- Further source/loader/facade/scheduler/layer/test and full-token use indexes follow. -->
