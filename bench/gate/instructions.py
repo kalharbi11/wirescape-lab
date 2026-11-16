@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -57,7 +58,65 @@ def clean_reason(stderr, code):
     return f"exit {code}: {safe}"
 
 
-def callgrind(command, output, valgrind, timeout=75):
+# The native probe may report process failures and invalid output through its
+# JSON faults count while exiting zero. Callgrind Ir is not a valid observation
+# unless each of the two length-specific probe invocations reports healthy work.
+MAX_PROBE_STDOUT = 4096
+
+
+def verify_module_probe(stdout, expected):
+    """Reject incomplete, foreign, malformed or faulty native probe evidence."""
+    if not isinstance(stdout, str) or not 0 < len(stdout) <= MAX_PROBE_STDOUT:
+        raise RuntimeError("module_cpu_probe: missing or oversized JSON evidence")
+    line = stdout.strip()
+    prefix = "module_cpu_probe "
+    if not line.startswith(prefix) or len(line.splitlines()) != 1:
+        raise RuntimeError("module_cpu_probe: missing or malformed JSON evidence")
+    try:
+        payload = json.loads(line[len(prefix):])
+    except (ValueError, TypeError) as exc:
+        raise RuntimeError("module_cpu_probe: malformed JSON evidence") from exc
+    if not isinstance(payload, dict):
+        raise RuntimeError("module_cpu_probe: JSON evidence is not an object")
+
+    for name in ("module", "input_mode", "params", "alternate"):
+        target = {"module": expected["module"], "input_mode": "normal",
+                  "params": "", "alternate": ""}[name]
+        if payload.get(name) != target or not isinstance(payload.get(name), str):
+            raise RuntimeError(f"module_cpu_probe: incorrect {name} evidence")
+    for name in ("instances", "channels", "blocks", "block", "sample_rate"):
+        value = payload.get(name)
+        if type(value) is not int or value != expected[name]:
+            raise RuntimeError(f"module_cpu_probe: incorrect {name} evidence")
+    seconds = payload.get("seconds")
+    if (type(seconds) not in (int, float) or not math.isfinite(seconds)
+            or not math.isclose(seconds, expected["seconds"], rel_tol=0,
+                                abs_tol=1e-6)):
+        raise RuntimeError("module_cpu_probe: incorrect seconds evidence")
+
+    faults = payload.get("faults")
+    if type(faults) is not int or faults < 0:
+        raise RuntimeError("module_cpu_probe: invalid faults evidence")
+    if faults:
+        raise RuntimeError(f"module_cpu_probe: faults={faults}")
+    # Check that the reported work/timing is well-formed; do not treat an
+    # empty or truncated object with only faults=0 as a successful measurement.
+    allocations = payload.get("allocations")
+    times = payload.get("render_ns")
+    if type(allocations) is not int or allocations < 0:
+        raise RuntimeError("module_cpu_probe: invalid allocations evidence")
+    if (not isinstance(times, dict)
+            or any(type(times.get(k)) is not int or times[k] < 0
+                   for k in ("max", "p99"))):
+        raise RuntimeError("module_cpu_probe: invalid render timing evidence")
+    for name in ("period_ns", "peak"):
+        value = payload.get(name)
+        if (type(value) not in (int, float) or not math.isfinite(value)
+                or value < 0 or (name == "period_ns" and value == 0)):
+            raise RuntimeError(f"module_cpu_probe: invalid {name} evidence")
+
+
+def callgrind(command, output, valgrind, timeout=75, expected_probe=None):
     args = [valgrind, "--quiet", "--tool=callgrind", "--error-exitcode=77",
             "--callgrind-out-file=" + str(output), *map(str, command)]
     try:
@@ -67,15 +126,22 @@ def callgrind(command, output, valgrind, timeout=75):
         raise RuntimeError(type(exc).__name__) from exc
     if result.returncode:
         raise RuntimeError(clean_reason(result.stderr, result.returncode))
+    if expected_probe is not None:
+        verify_module_probe(result.stdout, expected_probe)
     return read_ir(output)
 
 
-def difference(command_for_length, valgrind, lengths=COUNTS):
+def difference(command_for_length, valgrind, lengths=COUNTS, module_probe=None):
     with tempfile.TemporaryDirectory(prefix="ws-ir-") as temp:
         totals = []
         for index, n in enumerate(lengths):
             out = Path(temp) / f"{index}.callgrind"
-            totals.append(callgrind(command_for_length(n), out, valgrind))
+            expected = None
+            if module_probe is not None:
+                expected = {**module_probe, "blocks": n,
+                            "seconds": n * module_probe["block"] / module_probe["sample_rate"]}
+            totals.append(callgrind(command_for_length(n), out, valgrind,
+                                    expected_probe=expected))
     delta = totals[1] - totals[0]
     if delta <= 0:
         raise ValueError("nonpositive instruction difference")
@@ -155,7 +221,9 @@ def module_rows(build, valgrind):
                         "--block", FRAMES, "--channels", voices,
                         "--instances", 1, "--seconds", n * FRAMES / RATE]
             try:
-                metrics = difference(command, valgrind)
+                metrics = difference(command, valgrind, module_probe={
+                    "module": ident, "channels": voices, "instances": 1,
+                    "sample_rate": RATE, "block": FRAMES})
                 rows.append({"id": key, "status": "measured", "block_frames": FRAMES,
                              "module": ident, "voices": voices, **metrics})
             except (RuntimeError, ValueError) as exc:
