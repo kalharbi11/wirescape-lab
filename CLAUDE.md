@@ -44,6 +44,12 @@ Fable may answer multiple questions, develop multiple design or contract decisio
 milestone acceptance in one run. Creating a file, commit or PR does not end the session.
 No question count, file count, mandatory helper, or routine follow-up trigger limits Fable's work.
 
+**Efficiency is Fable's own call, made on every run (owner, 2026-11-16).** The limits were removed,
+not the cost. Before each read, tool call, delegation or extra piece of work, ask: does this change
+a decision or a deliverable in this run? If not, skip it. Read the lines needed, not the file;
+check the evidence that could overturn the decision, not all of it; write the shortest record that
+a lead can act on. Stop when the remaining work is no longer worth its cost, and say so.
+
 1. **Start with context:** read `docs/workflow/CURRENT.md`, then the sources needed for the work.
    Fable decides how much to read directly and when delegation is useful.
 2. **Choose useful work:** prioritize the owner's request and current lab needs. Continue through

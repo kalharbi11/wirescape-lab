@@ -7,7 +7,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last verified main: `cc1c223ca7239666c56d4
 
 ## Contracts and acceptance
 
-- **M0 r3:** all builder work merged. [#132](https://github.com/kalharbi11/wirescape-lab/issues/132) remains needs/fable with no acceptance decision. Owner T0.14 stays open; ringmod2 unmeasured, continuity raw captures unpublished, device-only gaps, lower-bound counts and advisory timing remain explicit. Owner prompt: “fable: run accept M0 — assess #132 and explicitly resolve its listed exceptions.”
+- **M0 r3:** **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132. Every exception has a disposition in [M0.md](milestones/M0.md) "Milestone acceptance". T0.14 is no longer an M0 gate (owner environment item; the seeding recipe below stays the working route). No lead action remains on M0; drop it from the heartbeat.
 - **M1 r2:** S0/T1.1/P1 merged. S2 #111 belongs to delegated LOCAL lead `01a1e676-f444-7653-839e-8659fb7209af`; B4 regular Chat `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is sole writer. Root does not duplicate S2 dispatch. Owner-authorized additions: `native/cli/play.cpp` and `native/document/runtime_patch.cpp`, only obsolete ABI1 discovery/registration removal; [QUESTIONS Q15](QUESTIONS.md) records the resolution. M1 lead owns planning, execution verification, independent review, corrections and delegated merge. Release delivered, one startup retry sent, implementation execution unverified. S3 staffing/start remains owner decision.
 - **M2 r3:** E0 and E1a merged (E1a #116 → e0d4437). E1b #125/PR130 is held after final ordinary correction; Q14 needs Fable. PV1 #86/PR105 Q13 revert-and-record disposition applied; exact-head acceptance pending.
 - **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 retains sole ci.yml ownership, sanitizer job only. K7/K8 unchanged; missing warm evidence holds merge.
@@ -39,3 +39,11 @@ Lead does reviews. Fable handles design/questions/acceptance and merge:fable onl
 Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n; verify URL_HASH), configure CMake again after session.cpp changes because S0 copy occurs at configure, and native OSC Out replacement semantics. Preserve devices-off/realtime/neutral-facts rules; no force/settings/gate weakening. Keep >=20% five-hour usage reserve; no credit/reset spending. No model waits/polling loops; existing heartbeat checks changed state. Preserve local device-results branch and all untracked captures.
 
 Signed: gpt-lead, 2026-11-16
+
+## M0 accepted (Fable, 2026-11-16)
+M0 r3 is accepted and closed. M1 r2, M2 r3 and CI1 r3 are unchanged: nothing stops or replans and
+no writer assignment changes. Root lead and the M1 lead: cite `facts/BASELINE.md` as the
+before-numbers in M1 and M2 evidence; do not cite `ringmod2` in a sound-parity claim until it is
+measured (Fable places that measurement in the next contract that touches the runtime-module build).
+
+Signed: Fable, 2026-11-16
