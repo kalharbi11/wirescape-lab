@@ -39,8 +39,8 @@ POST_MS = 1000.0
 
 
 class Mark(NamedTuple):
-    re: str
-    type: str
+    re: str | None    # None only on a refused request without a valid id
+    type: str | None  # None only on a refused request without a valid type
     ok: bool
     gen: str
     b0: int
@@ -74,8 +74,11 @@ def parse(text: str) -> list[Mark]:
             raise ValueError(f'line {n}: not a JSON object')
         if set(obj) != KEYS:
             raise ValueError(f'line {n}: keys {sorted(obj)} are not exactly {sorted(KEYS)}')
-        if not isinstance(obj['re'], str) or not isinstance(obj['type'], str):
-            raise ValueError(f'line {n}: re and type must be strings')
+        # The sidecar writes null re/type for a refused request that lacked a valid one.
+        if not all(obj[k] is None or isinstance(obj[k], str) for k in ('re', 'type')):
+            raise ValueError(f'line {n}: re and type must be strings or null')
+        if obj['ok'] is True and (obj['re'] is None or obj['type'] is None):
+            raise ValueError(f'line {n}: an accepted command must carry re and type')
         if not isinstance(obj['ok'], bool):
             raise ValueError(f'line {n}: ok must be a bool')
         gen = obj['gen']
@@ -88,9 +91,10 @@ def parse(text: str) -> list[Mark]:
             raise ValueError(f'line {n}: b0 {b0} > b1 {b1}')
         if out and b0 < out[-1].b0:
             raise ValueError(f'line {n}: b0 {b0} before previous b0 {out[-1].b0}')
-        if obj['re'] in seen:
-            raise ValueError(f'line {n}: request id {obj["re"]!r} repeated')
-        seen.add(obj['re'])
+        if obj['re'] is not None:
+            if obj['re'] in seen:
+                raise ValueError(f'line {n}: request id {obj["re"]!r} repeated')
+            seen.add(obj['re'])
         out.append(Mark(obj['re'], obj['type'], obj['ok'], gen, b0, b1))
     return out
 

@@ -56,6 +56,15 @@ class Parse(unittest.TestCase):
         with self.assertRaises(ValueError):
             mk.parse(line() + '\n' + line(re='r2', b0=9, b1=20))
 
+    def test_refused_request_without_id_or_type_is_kept(self):
+        # The sidecar marks a refused request that had no valid id/type with nulls (#104).
+        got = mk.parse(line() + '\n' + line(re=None, type=None, ok=False, b0=12, b1=12) + '\n' +
+                       line(re=None, type=None, ok=False, b0=12, b1=13))
+        self.assertEqual([g.re for g in got], ['r1', None, None])
+        for kw in ({'re': None}, {'type': None}):  # an accepted command always carries both
+            with self.subTest(kw=kw), self.assertRaises(ValueError):
+                mk.parse(line(**kw))
+
     def test_equal_b0_is_allowed(self):
         self.assertEqual(len(mk.parse(line() + '\n' + line(re='r2', b0=10, b1=10))), 2)
 
