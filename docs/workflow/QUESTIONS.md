@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q13 answered; Q14 OPEN for Fable. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 answered; queue empty. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -309,7 +309,7 @@ Signed: gpt-lead, 2026-11-16
 
 Signed: Fable, 2026-11-16
 
-## Q14 — E1b after final ordinary correction (lead, 2026-11-16; OPEN)
+## Q14 — E1b after final ordinary correction (lead, 2026-11-16; ANSWERED)
 
 - **Decision requested:** authorize one bounded final packet on existing #125 / PR #130 to repair overlapping-refusal document/history rollback and the OSC Out test observation, or defer/close E1b. No third ordinary correction is dispatched.
 - **Pinned evidence:** head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, base `042454de51a739ed4cf39324baa07028c42acc9f`; builder Result [6931108549](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6931108549). Final ordinary round 2/2 is spent. Worker 2's final source review and independent root source tracing agree.
@@ -319,6 +319,40 @@ Signed: Fable, 2026-11-16
 - **Required revalidation:** meaningful refusal/unapplied regressions plus the six capability-on/off flows, old assertions intact, independent lead review and fresh full exact-head Lab/Playwright green. PR stays draft, status/blocked and needs/fable until a ruling; no source edits or reruns requested.
 
 Signed: gpt-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** one final packet is authorized on #125 / PR #130. Same branch, same
+writer, `apps/studio/` only. M2 stays r3; nothing stops or replans.
+
+1. **Rule the fix must implement.** A refused graph transaction returns the document, its dirty
+   flag and the history position to the **last state the engine confirmed**, whatever the number of
+   requests in flight. Keep one rollback anchor for the pending chain instead of one predecessor per
+   snapshot: take it when a request starts with nothing pending; move it forward each time a
+   request is confirmed; on refusal restore it once and clear it, so the other rejections of the
+   same chain do nothing. Any equivalent mechanism is acceptable if the tests in point 2 pass; the
+   per-revision "only the latest may roll back" rule at `App.ts:788–802` is not, because it restores
+   an optimistic state that never ran.
+2. **Tests, all new, none replacing an existing assertion.** With engine and document at 220:
+   (a) A→440 and B→660 both refused: document, dirty flag, undo/redo availability end at 220;
+   (b) A confirmed, B refused: all three end at 440; (c) the same two cases through the
+   partial-application path the lead names (`RealEngine.ts:403–407`). Each asserts document and
+   engine-confirmed graph are equal at the end.
+3. **OSC Out test.** Copy the counters before the later mutation (the lead's alias diagnosis at
+   `fake-apply-graph.spec.ts:216–217`). Every assertion stays. If the copy does not make the test
+   pass, the alias diagnosis was wrong: stop and report, do not edit `FakeEngine` behaviour to fit.
+4. **Out of scope:** retry or convergence design (PV3), `native/`, Desktop, workflows, any change
+   to a tolerance or to which flows are capability-gated.
+5. **Done when:** points 2 and 3, the six capability-on/off flows, the lead's own source review,
+   and a fresh fully green exact-head Lab and Playwright run. One push.
+6. **If it fails review or CI:** no further round. The lead closes PR #130 unmerged, keeps the
+   branch, and reports; Fable re-contracts E1b as a new task in M2 r4. M2 acceptance is not claimed
+   without E1b.
+
+Cost: one more builder round and one CI run. Evidence that would overturn point 1: a flow where
+the engine's confirmed graph legitimately differs from the anchor at refusal time (for example a
+confirmed edit that arrives outside the graph-transaction path); if the builder finds one, stop
+and bring the trace.
+
+Signed: Fable, 2026-11-16
 
 ## Q15 — S2 bounded caller paths (owner-directed; RESOLVED, 2026-11-16)
 

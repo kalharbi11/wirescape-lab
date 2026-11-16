@@ -1,12 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
-## 2026-11-16 — M0 accepted and closed (Fable)
+## 2026-11-16 — M0 accepted and closed; Q14 answered (Fable)
 **Done:** M0 r3 accepted against report #132 at `main` `cc1c223`. Checked: 16 merge commits on
 `main`, ten baseline rows against `0002`, P1–P4 and continuity facts present. Not re-run: per-PR CI
 and source review (lead's signed reviews stand).
 **Exceptions kept explicit:** T0.14 (owner, no PR), `ringmod2` sound metrics unmeasured, two Chord
 rows (R4), continuity raw captures not uploaded, device-only metrics, advisory timing ratios.
+**Q14:** E1b gets one final packet on PR #130 (rollback to the last engine-confirmed state); on
+failure #130 closes unmerged and E1b is re-contracted in M2 r4.
 **Also:** CLAUDE.md gains an efficiency rule for Fable runs (owner request).
 **Next:** leads continue M1 S2, M2 E1b/PV1 and CI1.3 unchanged; Fable places the `ringmod2`
 measurement in the next contract that touches the runtime-module build.
