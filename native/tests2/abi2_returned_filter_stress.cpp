@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Execute the existing stress functions unchanged through an ABI2 C-callback bridge.
-#define main abi1_stress_original_main
-#include "../tests/returned_filter_stress.cpp"
-#undef main
+#include "returned_filter_cases.h"
 #include "module_loader.h"
 #include "wirescape_sdk.h"
 #include "frozen_reference.h"

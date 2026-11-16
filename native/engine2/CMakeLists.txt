@@ -196,20 +196,8 @@ endforeach()
 
 add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)
 target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
-# Its test-only bridge includes the original ABI1 stress source for the
-# unchanged impulse/modulation functions. The renamed original main is never
-# called; discard that isolated function section rather than linking ABI1.
-if(MSVC)
-  target_compile_options(abi2_returned_filter_stress PRIVATE /Gy)
-  target_link_options(abi2_returned_filter_stress PRIVATE /OPT:REF)
-elseif(APPLE)
-  target_compile_options(abi2_returned_filter_stress PRIVATE -ffunction-sections)
-  target_link_options(abi2_returned_filter_stress PRIVATE -Wl,-dead_strip)
-else()
-  target_compile_options(abi2_returned_filter_stress PRIVATE -ffunction-sections)
-  target_link_options(abi2_returned_filter_stress PRIVATE -Wl,--gc-sections)
-endif()
-
+# The stress cases are compiled from a test-only helper that has no ABI1
+# engine loader. No dead-code stripping workaround or ABI1 link is needed.
 add_dependencies(abi2_returned_filter_stress ws2_ladder abi2_frozen_reference_unpack)
 target_compile_definitions(abi2_returned_filter_stress PRIVATE
   ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")

@@ -199,6 +199,11 @@ static void equivalence(const char*report){
    std::snprintf(reference_name,sizeof(reference_name),"module_%s_%u_%u",
                  names[m],static_cast<unsigned>(rate),block);
    const auto frozen=abi1_frozen_samples(reference_name);
+   // The legacy capture emitted exactly 2048 samples per ABI1 output port.
+   // ABI2 may expose additional ports (e.g. LFO phase); never invent ABI1 data.
+   const size_t frozen_output_count=frozen.size()/2048;
+   VERIFY(frozen.size()%2048==0 && frozen_output_count>0 &&
+          frozen_output_count<=descriptors[m]->output_count);
    size_t reference_pos=0;
    // ABI1 VCO had no pitch/FM inputs: preserve the original input conditions.
    if(m==0){f->ins[0].flags=WS2_CONSTANT;f->ins[1].flags=WS2_CONSTANT;f->input[0][0][0]=f->input[1][0][0]=0;}
@@ -207,7 +212,7 @@ static void equivalence(const char*report){
    for(uint32_t pos=0;pos<2048;){
     uint32_t n=std::min(block,2048-pos);
     f->run(n);
-    for(uint32_t p=0;p<descriptors[m]->output_count;++p)
+    for(uint32_t p=0;p<frozen_output_count;++p)
      for(uint32_t i=0;i<n;++i){
       VERIFY(reference_pos<frozen.size());
       worst=std::max(worst,double(std::abs(frozen[reference_pos++]-f->output[p][0][(f->outs[p].flags&WS2_CONSTANT)?0:i])));
