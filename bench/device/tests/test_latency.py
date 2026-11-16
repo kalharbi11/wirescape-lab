@@ -15,6 +15,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 import latency
+import latency_r1
 from latency import (CLICK_PEAK, CLICKS, MIN_CLICKS, click_patch,
                      measure, synthetic_capture)
 
@@ -135,13 +136,115 @@ class LatencyTests(unittest.TestCase):
                 result = json.loads(path.read_text())
                 self.assertTrue(result["dry_run"])
                 self.assertTrue(result["completed"])
-                self.assertEqual(result["kind"], "uncalibrated-command-to-adc-diagnostic")
+                self.assertEqual(result["kind"], "M0-r2-three-quantity-latency")
+                self.assertTrue(result["completed"])
+                self.assertEqual(result["harness_loopback_ms"]["statistics"]["repeats"], CLICKS)
+                self.assertEqual(result["command_to_capture_ms"]["statistics"]["repeats"], CLICKS)
+                self.assertEqual(result["command_to_sound_ms"]["representation"], "range_only")
+                self.assertEqual(set(result["command_to_sound_ms"]["range_ms"]), {"median", "p95"})
+                self.assertFalse(result["owner_physical_measurement"])
                 self.assertEqual(result["measurement"]["quantity"], "synthetic_known_sample_delay")
                 self.assertFalse(result["measurement"]["calibrated_round_trip"])
                 self.assertEqual(result["measurement"]["clicks_found"], CLICKS)
                 self.assertLessEqual(abs(result["measurement"]["frames"]["median"]
                                          - result["synthetic_delay_frames"]), 1)
                 self.assertFalse((path.parent / "capture.flac").exists())
+
+
+class R1ContractTests(unittest.TestCase):
+    def test_sample_index_only_duplex_loopback_without_wall_clock(self):
+        rate = 48000
+        outs = [rate // 4 + i * (rate // 2) for i in range(40)]
+        captured = [i + 267 for i in outs]
+        with patch.object(latency_r1.time, "monotonic",
+                          side_effect=AssertionError("wall clock forbidden")):
+            result = latency_r1.harness_loopback_ms(outs, captured, rate)
+        self.assertEqual(result["quantity"], "harness_loopback_ms")
+        self.assertEqual(result["statistics"]["repeats"], 40)
+        self.assertAlmostEqual(result["statistics"]["median"], 267 * 1000 / rate)
+        self.assertAlmostEqual(result["statistics"]["p95"], 267 * 1000 / rate)
+        with self.assertRaisesRegex(ValueError, "precedes output"):
+            latency_r1.harness_loopback_ms(outs, [i - 1 for i in outs], rate)
+
+    def test_adc_timestamp_plus_index_rate_and_callback_fallback_uncertainty(self):
+        rate, block = 48000, 128
+        epoch = 10.0
+        blocks = [{
+            "start_frame": k * block, "frames": block,
+            "adc_monotonic_s": epoch + k * block / rate,
+            "callback_monotonic_s": epoch + (k + 1) * block / rate,
+        } for k in range(40)]
+        onsets = [k * block + 64 for k in range(40)]
+        writes = [epoch + (index - 48) / rate for index in onsets]
+        result = latency_r1.command_to_capture_ms(writes, onsets, blocks, rate)
+        self.assertEqual(result["statistics"]["repeats"], 40)
+        self.assertAlmostEqual(result["statistics"]["median"], 1.0, places=5)
+        self.assertAlmostEqual(result["statistics"]["p95"], 1.0, places=5)
+        self.assertEqual(result["timestamp_sources"], {"adc": 40, "callback_fallback": 0})
+        self.assertEqual(result["additional_capture_buffer_uncertainty_ms"]["max"], 0)
+        self.assertIsNone(result["absolute_clock_mapping_error_bound_ms"])
+        fallback_blocks = [dict(b) for b in blocks]
+        fallback_blocks[-1]["adc_monotonic_s"] = None
+        fallback = latency_r1.command_to_capture_ms(writes, onsets, fallback_blocks, rate)
+        self.assertEqual(fallback["timestamp_sources"], {"adc": 39, "callback_fallback": 1})
+        self.assertAlmostEqual(
+            fallback["additional_capture_buffer_uncertainty_ms"]["max"],
+            block * 1000 / rate)
+        self.assertAlmostEqual(fallback["statistics"]["p95"], 1.0, places=5)
+        self.assertGreater(fallback["statistics"]["max"], result["statistics"]["max"])
+
+    def test_range_arithmetic_never_single_sound_latency(self):
+        captured = {
+            "statistics": {"median": 9.0, "p95": 13.0}
+        }
+        harness = {
+            "statistics": {"median": 3.0, "p95": 5.0}
+        }
+        result = latency_r1.command_to_sound_ms(captured, harness)
+        self.assertEqual(set(result), {"quantity", "representation", "range_ms",
+                                       "method", "caveat"})
+        self.assertEqual(result["representation"], "range_only")
+        self.assertEqual(result["range_ms"]["median"],
+                         {"lower_ms": 6.0, "upper_ms": 9.0})
+        self.assertEqual(result["range_ms"]["p95"],
+                         {"lower_ms": 8.0, "upper_ms": 13.0})
+
+    def test_command_onset_detector_synthetic_clicks_with_noise(self):
+        rate, buffer = 8000, 128
+        epoch = 20.0
+        rng = np.random.default_rng(13)
+        audio = rng.normal(0, .0001, (rate * 22, 2)).astype(np.float32)
+        first = rate // 4
+        expected_frames = [first + k * (rate // 2) for k in range(40)]
+        for start in expected_frames:
+            click = .18 * np.sin(np.arange(160) * 2*np.pi*1000/rate)
+            audio[start:start+len(click), 0] += click
+            audio[start:start+len(click), 1] += click
+        writes = [epoch + (start-48)/rate for start in expected_frames]
+        blocks = [{"start_frame":i, "frames":min(buffer,len(audio)-i),
+                   "adc_monotonic_s":epoch+i/rate,
+                   "callback_monotonic_s":epoch+(i+buffer)/rate}
+                  for i in range(0,len(audio),buffer)]
+        found = latency_r1.find_command_onsets(audio,rate,writes,blocks)
+        self.assertEqual(len(found), 40)
+        self.assertTrue(all(abs(a["start_frame"]-expected_frames[a["click"]]) <= 12
+                            for a in found))
+        too_few = audio.copy()
+        too_few[expected_frames[18]:] = 0
+        with self.assertRaisesRegex(ValueError, "at least 30"):
+            latency_r1.find_command_onsets(too_few, rate, writes, blocks)
+
+    def test_malformed_or_fewer_than_20_samples_refused(self):
+        with self.assertRaisesRegex(ValueError, "at least 20"):
+            latency_r1.summary([1.0]*19)
+        with self.assertRaisesRegex(ValueError, "at least 20"):
+            latency_r1.summary([1.0]*19 + [float("nan")])
+        with self.assertRaisesRegex(ValueError, "counts differ"):
+            latency_r1.command_to_capture_ms([1.0]*21, [5]*20, [], 48000)
+
+    def test_physical_duplex_helper_requires_owner_gate_before_backend(self):
+        with self.assertRaisesRegex(PermissionError, "--confirm-audio"):
+            latency_r1.duplex_harness(SimpleNamespace(dry_run=True),48000,128,latency)
 
 
 if __name__ == "__main__":
