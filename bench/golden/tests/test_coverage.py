@@ -77,6 +77,22 @@ class CoverageTests(unittest.TestCase):
             self.assertTrue(set(row["targets"]) <= {m["module"] for m in data["modules"]})
             self.assertNotEqual(data["connections"],control["connections"])
 
+    def test_manifest_cannot_remove_required_coverage_case(self):
+        from unittest.mock import patch
+        import render
+        with tempfile.TemporaryDirectory() as temp:
+            fake=Path(temp)
+            folder=fake/"bench/golden"
+            folder.mkdir(parents=True)
+            original=coverage_manifest()
+            broken=copy.deepcopy(original)
+            broken["cases"]=[case for case in broken["cases"]
+                             if case["fixture"]!="chord-notes.json"]
+            (folder/"coverage_manifest.json").write_text(json.dumps(broken),encoding="utf-8")
+            with patch.object(render,"ROOT",fake):
+                with self.assertRaisesRegex(ValueError,"removes required fixtures"):
+                    render.coverage_manifest()
+
     def test_sources_fail_on_missing_or_extra_fixture(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
