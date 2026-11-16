@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Owner-gated command-to-ADC diagnostic; not calibrated DAC-to-ADC latency."""
+"""Owner-gated M0 R1 three-quantity probe. Historical midpoint helpers retained."""
 from __future__ import annotations
 
 import argparse
@@ -170,6 +170,8 @@ def parser():
                    help="explicit owner authorization for real output and input devices")
     p.add_argument("--device", help="engine output audio device ID (required for hardware)")
     p.add_argument("--input-device", help="PortAudio input index/name (required for hardware)")
+    p.add_argument("--harness-output-device", help="PortAudio OUTPUT index/name on the same physical endpoint as engine output, required for one duplex calibration stream")
+    p.add_argument("--device-class", help="anonymous device class e.g. usb-interface, built-in (no host/serial number)")
     p.add_argument("--engine", type=Path, help="wirescape-engine path (auto-detected if omitted)")
     p.add_argument("--rate", type=int, choices=(44100, 48000, 96000), default=48000)
     p.add_argument("--block", type=int, choices=(64, 128, 256, 512, 1024), default=256)
@@ -183,12 +185,16 @@ def check_options(p, args):
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,48}", args.machine):
         p.error("--machine must be an anonymous 1-48 character label")
     if args.dry_run:
-        if args.confirm_audio or args.device or args.input_device:
+        if args.confirm_audio or args.device or args.input_device or args.harness_output_device:
             p.error("--dry-run prohibits authorization flags and device selection")
     elif not args.confirm_audio:
         p.error("--confirm-audio is required; no device has been opened")
     elif not args.device or not args.input_device:
         p.error("hardware latency requires both --device and --input-device")
+    elif not args.harness_output_device or not args.device_class:
+        p.error("R1 requires --harness-output-device and --device-class for one full-duplex stream")
+    if args.device_class and not re.fullmatch(r"[a-zA-Z0-9_-]{1,48}", args.device_class):
+        p.error("--device-class must be an anonymous 1-48 character class")
     if args.engine and not args.engine.is_file():
         p.error("--engine path does not exist")
     if not args.dry_run and not args.engine:
@@ -419,9 +425,10 @@ def main(argv=None):
     sha = commit_sha()
     date = dt.datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
     blocks = (64, 128, 256) if args.sweep else (args.block,)
+    from latency_r1 import run_one as r1_run_one
     success = True
     for block in blocks:
-        if not run_one(args, block, sha, date):
+        if not r1_run_one(args, block, sha, date, sys.modules[__name__]):
             success = False
     return 0 if success else 1
 
