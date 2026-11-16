@@ -20,10 +20,10 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | CI1.2 #108, P3 #80 | **both merged** (`371c177`, `65a365e`). Next: T0.5 #60 once its `main` merge is pushed |
-| gpt-builder2 | CI1.3 #109 | released 2026-11-16; single `ci.yml` writer; K7/K8 |
-| gpt-builder3 | PV1 #86 / PR #105 | Q8 replan at `ffc353e`; exact-head Lab CI and PV1 drift pending |
-| gpt-builder4 | — | free; next is E1b once E1a merges, or T0.10 once T0.5/T0.9 merge |
+| gpt-builder1 | T0.5 #51 / PR #60 | R2 packet on integrated head `afd244a`; CI1.2/P3 already merged |
+| gpt-builder2 | CI1.3 #109 | ownership re-confirmed; single `ci.yml` writer, K7/K8; prepare evidence but coordinate pushes with Q12/#117 |
+| gpt-builder3 | PV1 #86 / PR #105 | head `569e187`; drift/Q8 passed, required aggregate API403 blocked by #117 |
+| gpt-builder4 | T0.10 #113 | draft baseline now; final pass/merge only after T0.5/T0.9 inputs merge |
 | claude-builder1 | T0.13b #100 / PR #106 | T0.13a merged `35a6ef2`; #106 end-to-end facts now unblocked |
 | claude-builder2 | M1 S2 #111 | new; then S3–S6 serially, each filed when the prior stage merges |
 | claude-builder3 | M2 E1a #112 / PR #116 | head `ea27e2a`; `needs/fable` contract-review requested (J1–J5); CI pending |
@@ -32,14 +32,22 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | Task | Issue / PR | Next |
 |---|---|---|
 | CI1.3 | #109 | gpt-builder2 |
-| T0.5 | #51 / PR #60 | needs an ordinary `main` merge for the current Golden harness. A clean merge is prepared, with only #60's 10 files differing from `main`. Push it, then fresh CI |
-| T0.9 | PR #50 | `main` merged at `55cf2d8` (runbook conflict: both sections kept); fresh CI, then lead review |
+| T0.5 | #51 / PR #60 | ordinary integration is already pushed at `afd244a`; finish R2 evidence and review latest head |
+| T0.9 | PR #50 | merged `1918cf75c1223b4a7b83b640b64fce595016468f` after independent review and green exact-head Device/Lab CI |
 | T0.13b | #100 / PR #106 | end-to-end facts on merged capture and marks |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
 | E1a | #112 / PR #116 | `review #116` (owner to a Claude session); B1/B2 recorded true in the PR |
-| T0.10 | to file | after T0.5 and T0.9 merge |
+| T0.10 | #113 / PR #118 | draft assigned to gpt-builder4; T0.9/#50 merged, final pass still waits for T0.5/#60 |
 | T0.14 | owner | see the cloud build note below |
+
+## Resumed lead checkpoint
+
+The interim lead stopped lead actions. Batch #82's latest dispatch table is the ownership record;
+verify live PRs and claims before new assignments. #117 blocks required aggregate verification through
+anonymous API rate limits; no permission change or red-check waiver is authorized yet. Q12 is queued
+for Fable. E1a #116 requires a Claude contract review against J1–J5 plus exact-head CI and Golden x3.
+Whichever of #105 and #116 merges second must update the applyGraph schema corpus or record a PV1 disagreement.
 
 ## Notes for every builder
 - **CI queue time dominates.** In run 43919414792 the `native build linux-x64` job waited 11 min for a
@@ -53,13 +61,13 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   before configuring, and the configure then passes. Local runs are not acceptance evidence.
 
 ## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q11 answered, queue empty.
+- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q11 answered; Q12/#117 open.
 - Q5: bundled patches and presets may be reset after the rebuild. Nothing moves now, and golden
   "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **gpt-lead:** push the prepared #60 integration merge;
-  review #104, then #106, #105 and #50; post the E1a and S3 contract-review requests when ready; file
+- **gpt-lead:** prioritize Q12/#117 coordination with the CI1.3 writer; review #50 and R2 evidence on #60;
+  review #106/#105 and E1a contract-review results without bypassing required CI; file
   S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
 - **Builders:** one task each, result comment on the PR, one push per round.
 - **Contract-review (`review #<PR>` to a Claude session):** E1a **#116 now**; later M1 S3, S5b, S6.
