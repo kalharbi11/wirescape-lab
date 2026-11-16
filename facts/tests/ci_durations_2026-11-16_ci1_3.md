@@ -158,15 +158,108 @@ The complete 91-row per-job source-field table appears below; the separate stagi
 | 43901746509 | 133419966825 | matrix.name | 15:55:43 | 15:55:43 | null | skipped | null | skipped_no_runner |
 | 43901746509 | 133419967006 | studio | 15:55:43 | 15:55:43 | null | skipped | null | skipped_no_runner |
 
-## Cache K7/K8 evidence (pending execution)
+## K7 exact ABI2 name equality from hosted CTest inventories
 
-| Required field | Value / status |
+- **Main base:** `042454de51a739ed4cf39324baa07028c42acc9f`, [Lab CI run 43961005460](https://github.com/kalharbi11/wirescape-lab/actions/runs/43961005460), sanitizer job `133628142310`, `ctest --test-dir build/asan -N -R abi2` log.
+- **PR head before compiler-content-check correction:** `a8b88b3f3d5d54cad421ddeb587ade627e60d759`, [Lab CI run 43961945146](https://github.com/kalharbi11/wirescape-lab/actions/runs/43961945146), sanitizer job `133631415374`, same `ctest -N -R abi2` command and log.
+- **Observed lists:** each 82 distinct names, same order, 0 added and 0 removed. The historic 78-name reference is not the active merged baseline. The correction-head exact inventory remains unverified until its run.
+
+| Index | Base test name | PR head test name |
+|---:|---|---|
+| 1 | `abi2_osc_host_service_tests` | `abi2_osc_host_service_tests` |
+| 2 | `abi2_osc_graph_ingress_tests` | `abi2_osc_graph_ingress_tests` |
+| 3 | `abi2_sidecar_protocol_tests` | `abi2_sidecar_protocol_tests` |
+| 4 | `abi2_sidecar_apply_graph_tests` | `abi2_sidecar_apply_graph_tests` |
+| 5 | `abi2_sidecar_capture_tests` | `abi2_sidecar_capture_tests` |
+| 6 | `abi2_sidecar_unit_tests` | `abi2_sidecar_unit_tests` |
+| 7 | `abi2_sidecar_audio_recovery_tests` | `abi2_sidecar_audio_recovery_tests` |
+| 8 | `abi2_sidecar_snapshot_tests` | `abi2_sidecar_snapshot_tests` |
+| 9 | `abi2_runtime_patch_tests` | `abi2_runtime_patch_tests` |
+| 10 | `abi2_builtin_source_tests` | `abi2_builtin_source_tests` |
+| 11 | `abi2_offline_play` | `abi2_offline_play` |
+| 12 | `abi2_header_c99` | `abi2_header_c99` |
+| 13 | `abi2_sdk_tests` | `abi2_sdk_tests` |
+| 14 | `abi2_sdk_scalar_tests` | `abi2_sdk_scalar_tests` |
+| 15 | `abi2_voice_tests` | `abi2_voice_tests` |
+| 16 | `abi2_note_identity_tests` | `abi2_note_identity_tests` |
+| 17 | `abi2_template_tests` | `abi2_template_tests` |
+| 18 | `abi2_engine_tests` | `abi2_engine_tests` |
+| 19 | `abi2_module_tests` | `abi2_module_tests` |
+| 20 | `abi2_scalar_ports` | `abi2_scalar_ports` |
+| 21 | `abi2_portable_ports` | `abi2_portable_ports` |
+| 22 | `abi2_benchmark` | `abi2_benchmark` |
+| 23 | `abi2_benchmark_64` | `abi2_benchmark_64` |
+| 24 | `abi2_benchmark_128` | `abi2_benchmark_128` |
+| 25 | `abi2_benchmark_256` | `abi2_benchmark_256` |
+| 26 | `abi2_integration_tests` | `abi2_integration_tests` |
+| 27 | `abi2_guide_tests` | `abi2_guide_tests` |
+| 28 | `abi2_example_random_source_tests` | `abi2_example_random_source_tests` |
+| 29 | `abi2_example_step_sequencer_tests` | `abi2_example_step_sequencer_tests` |
+| 30 | `abi2_osc_codec_tests` | `abi2_osc_codec_tests` |
+| 31 | `abi2_osc_in_tests` | `abi2_osc_in_tests` |
+| 32 | `abi2_osc_out_tests` | `abi2_osc_out_tests` |
+| 33 | `abi2_monitor_tests` | `abi2_monitor_tests` |
+| 34 | `abi2_panic_stress` | `abi2_panic_stress` |
+| 35 | `abi2_feedback_tests` | `abi2_feedback_tests` |
+| 36 | `abi2_banned_includes` | `abi2_banned_includes` |
+| 37 | `abi2_soak_smoke` | `abi2_soak_smoke` |
+| 38 | `abi2_soak_stats_tests` | `abi2_soak_stats_tests` |
+| 39 | `abi2_soak_cli` | `abi2_soak_cli` |
+| 40 | `abi2_port_behavior_tests` | `abi2_port_behavior_tests` |
+| 41 | `abi2_staged_tests` | `abi2_staged_tests` |
+| 42 | `abi2_live_replan_tests` | `abi2_live_replan_tests` |
+| 43 | `abi2_clock_tests` | `abi2_clock_tests` |
+| 44 | `abi2_function_envelope_tests` | `abi2_function_envelope_tests` |
+| 45 | `abi2_ladder_tests` | `abi2_ladder_tests` |
+| 46 | `abi2_mixer_tests` | `abi2_mixer_tests` |
+| 47 | `abi2_noise_tests` | `abi2_noise_tests` |
+| 48 | `abi2_output_tests` | `abi2_output_tests` |
+| 49 | `abi2_scale_offset_tests` | `abi2_scale_offset_tests` |
+| 50 | `abi2_slew_tests` | `abi2_slew_tests` |
+| 51 | `abi2_reference_freezer_tests` | `abi2_reference_freezer_tests` |
+| 52 | `abi2_returned_filter_stress` | `abi2_returned_filter_stress` |
+| 53 | `abi2_module_cpu_probe_output_tests` | `abi2_module_cpu_probe_output_tests` |
+| 54 | `abi2_module_cpu_probe_smoke` | `abi2_module_cpu_probe_smoke` |
+| 55 | `abi2_module_cpu_probe_tiny_64` | `abi2_module_cpu_probe_tiny_64` |
+| 56 | `abi2_module_cpu_probe_tiny_128` | `abi2_module_cpu_probe_tiny_128` |
+| 57 | `abi2_module_cpu_probe_tiny_256` | `abi2_module_cpu_probe_tiny_256` |
+| 58 | `abi2_module_cpu_probe_stress_smoke` | `abi2_module_cpu_probe_stress_smoke` |
+| 59 | `abi2_module_cpu_probe_poly_smoke` | `abi2_module_cpu_probe_poly_smoke` |
+| 60 | `abi2_module_cpu_probe_spectral_smoke` | `abi2_module_cpu_probe_spectral_smoke` |
+| 61 | `abi2_module_cpu_probe_unit` | `abi2_module_cpu_probe_unit` |
+| 62 | `abi2_host_keyboard_tests` | `abi2_host_keyboard_tests` |
+| 63 | `abi2_audio_callback_live_midi_tests` | `abi2_audio_callback_live_midi_tests` |
+| 64 | `abi2_midi_release_tests` | `abi2_midi_release_tests` |
+| 65 | `abi2_midi_live_host_tests` | `abi2_midi_live_host_tests` |
+| 66 | `abi2_midi_backend_gate_tests` | `abi2_midi_backend_gate_tests` |
+| 67 | `abi2_midi_service_tests` | `abi2_midi_service_tests` |
+| 68 | `abi2_midi_in_tests` | `abi2_midi_in_tests` |
+| 69 | `abi2_midi_to_cv_tests` | `abi2_midi_to_cv_tests` |
+| 70 | `abi2_midi_cc_to_cv_tests` | `abi2_midi_cc_to_cv_tests` |
+| 71 | `abi2_macro_oscillator_tests` | `abi2_macro_oscillator_tests` |
+| 72 | `abi2_macro_reference_guards` | `abi2_macro_reference_guards` |
+| 73 | `abi2_chaos_lite_tests` | `abi2_chaos_lite_tests` |
+| 74 | `abi2_blend_tests` | `abi2_blend_tests` |
+| 75 | `abi2_resonator_tests` | `abi2_resonator_tests` |
+| 76 | `abi2_spectral_tests` | `abi2_spectral_tests` |
+| 77 | `abi2_delay_tests` | `abi2_delay_tests` |
+| 78 | `abi2_reverb_tests` | `abi2_reverb_tests` |
+| 79 | `abi2_quantizer_tests` | `abi2_quantizer_tests` |
+| 80 | `abi2_quad_vca_tests` | `abi2_quad_vca_tests` |
+| 81 | `abi2_notes_to_cv_tests` | `abi2_notes_to_cv_tests` |
+| 82 | `abi2_chord_tests` | `abi2_chord_tests` |
+
+## K7 and K8 cache provenance, acceptance pending
+
+| Field | Evidence |
 |---|---|
-| Cold main-style run ID, head SHA, runner, compiler version, flags, cache key, `ccache -s` | **PENDING**; no cold run executed |
-| Warm PR run ID, head SHA, restored key, `ccache -s` hits/misses, sanitizer job duration | **PENDING**; no warm run executed |
-| ABI2 `ctest -N -R abi2` exact-name equivalence (merged baseline versus candidate head) | **UNVERIFIED** on candidate head; commands preserved; merged tasks may have changed the original 78-name baseline |
-| Baseline longest sanitizer job | 7.30 min = 438 seconds (Fable Q9 accepted baseline) |
-| Required K8 warm job duration | at most 5.30 min = 318 seconds, with matched cache provenance |
-| K8 acceptance | **UNTESTED**; no measurement invented |
+| CI1.3 sanitizer job | PR head `a8b88b3f3d5d54cad421ddeb587ade627e60d759`, Lab CI run `43961945146`, sanitizer job `133631415374` completed `success`, started `2026-11-16T21:37:31Z`, completed `2026-11-16T21:43:17Z`, **346 seconds = 5.77 min**. |
+| Cache restoration | `actions/cache/restore@v4` logged **Cache not found**. The job printed `PR: no matching cache; cold build (not warm evidence)`. Thus no matched warm restore. |
+| ccache statistics | `ccache -s` after the build: **49/274 hits (17.88%)**, **225/274 misses (82.12%)**. These hits do **not** demonstrate restoration of a warm cache. |
+| Compiler fingerprint | SHA-256 `0471e1e6607848e88fd22945e0ac38d7ec63d5edd8e82904d3a268599e7d7be9` printed at this PR head; compiler paths, compiler-version text, build settings, and sanitizer flags feed the key. Correction adds `CCACHE_COMPILERCHECK=content`; no measured corrected-head result yet. |
+| Cold main/manual save | **Not demonstrated** with CI1.3 workflow. Main baseline run predates CI1.3; branch-dispatch caches need not be visible to pull-request runs. No invented main save provenance. |
+| Warm PR run | **Not demonstrated**. A successful cold PR run is not a warm PR run even with 49 ccache hits. |
+| K8 reference | Fable's 7.30-minute longest-job baseline = 438 seconds. Required warm sanitizer runtime **≤318 seconds (5.30 minutes)**. |
+| K8 result | **Blocked / untested**: a genuine matched warm PR cache hit and its runtime are required before merging. Do not claim success or change the threshold. |
 
-Source trust limitation: run metadata was read from GitHub, but the candidate cache implementation has not been CI-tested. A cache saved from workflow_dispatch on a non-default branch is not automatically usable by a PR; no warm-cache claim without a real matched cache key from an eligible branch.
+This is a fixed historical queue sample plus identified hosted test/cache observations, not a fresh queue sample for the new PR date. No pipeline rerun or warm-cache benefit is asserted for the correction head.
