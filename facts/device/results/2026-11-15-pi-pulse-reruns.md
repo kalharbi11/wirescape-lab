@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-**Runbook:** v1 with owner-authorized explicit audio route   **Commit:** ab7ce36 (Pi); 156af4b (prior Windows runs)   **PR:** see PR description
+**Runbook:** v1 with owner-authorized explicit audio route   **Commit:** ab7ce36 (Pi); 156af4b (prior Windows runs)   **PR:** #75
 
 The original default-route Pi runs failed before opening an audio device. Saved audio status showed `Sample format not supported`, `state=reconnecting`, and no selected device; the harness later stopped on `busy Event queue full`. Those failures remain in PR #73. These separately authorized reruns use the already-enumerated `--device 'ALSA|pulse'`, reaching the desktop audio route to the USB output. No Pi source code or persistent system settings were changed. All five rerun manifests report completed=true, engine exit 0 and no warnings.
 
@@ -33,4 +33,4 @@ The patch-start pop has an unconfirmed cause and no identified patch or timestam
 
 **Large files:** five uniquely named pi5-2026-11-15-ab7ce36-p*-pulse.zip archives uploaded to draft release bench-2026-11-15. Full analysis files over 1 MB remain in the ZIPs; small derived summaries are committed here. No recordings, archives or events.ndjson are committed. No merges requested.
 
-Signed: gpt-helper, 2026-11-15
+Signed: gpt-helper, 2026-11-16
