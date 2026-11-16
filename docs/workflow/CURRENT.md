@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead, replacement local lead. Last reviewed `main`: `3ae712b4dc2af05f2aee18208aa2bbb5c7a629cc`.
+Updated: 2026-11-16 (ET) by gpt-lead, replacement local lead. Last reviewed `main`: `64c1c6b466ffb2d135c5b95dc72923712d815996`.
 
 ## Active contract
 **[M0 r2](milestones/M0.md), accepted and active.** Phase 0 remainder, T1.1, and four fact
@@ -29,72 +29,79 @@ can be filed now; ruling R6.
 
 ## Active batch B1
 
-[Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82) continues with a CI1 priority packet.
+[Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82) continues.
 **Owner priority: CI/CLI test turnaround FIRST, before new feature dispatch.**
-[CI1.1 #95](https://github.com/kalharbi11/wirescape-lab/issues/95) is assigned to builder3 after
-P2/#91 returned its Result. One cohesive PR; `.github/workflows/ci.yml` has one writer.
-Result-or-blocked checkpoint: **2026-11-16 07:00 ET**; this is not an acceptance deadline.
+[CI1.1 #95](https://github.com/kalharbi11/wirescape-lab/issues/95) is builder3's one active task.
+It exclusively owns `.github/workflows/ci.yml`. Baseline counts and K4 pre-edit source search
+were returned, confirming substantive startup. Result-or-blocked checkpoint: **2026-11-16 07:00 ET**;
+this is not an acceptance deadline. Existing baseline skips are unchanged, no new skips allowed.
 
 | Writer | Current task | Lead-owned review / next |
 |---|---|---|
-| builder1 | #67 / PR #70: resolve actual Lab/Golden failures at `72df7c5` under R5 | #60 remains queued |
-| builder2 | #52 / PR #58: inspect real profiling artifacts at `9b857485` after green hosted runs | lead review follows signed evidence |
-| builder3 | CI1.1 / #95, accepted CI1 r1 | P1/#89 merged; P2/#91 with lead |
-| builder4 | no active implementation during PR #59 independent review | S0/#84 remains assigned but paused |
-| Worker 2 Cloud | pinned read-only PR #59 review at `0c465529` | support only, no product edits |
+| builder1 | #51 / PR #60 R2 metrics packet | #70 corrected `2c464fb`, signed Result; new CI/evidence pending |
+| builder2 | #80 / P3 module build and registry inventory | #58 merged `64c1c6b` after root artifact audit |
+| builder3 | CI1.1 / #95, accepted CI1 r1 | P1 merged; P2 corrected by lead, no concurrent builder edits |
+| builder4 | #59 round2 returned `3e485dff`; no active implementation during review | S0/#84 remains assigned but paused |
+| Worker 2 Cloud | PR #59 read-only delta review at `3e485dff` | earlier onset oracle and P2 source audit complete |
 
-Actual active ChatGPT statuses were observed after dispatch; substantive execution/results still
-require verification. Existing chats are retained while owned PRs/corrections remain open.
-Regular Chat replacements are required; available `create_thread` exposes Work Cloud only, so no
-unsupported replacement or mode claim is made.
+One task/writer; a next nonoverlapping task may start after the prior signed Result enters lead review.
+A chat rotates only after all its owned PRs close with signed dispositions. Existing chats/history
+are retained: regular Chat replacements are required, but supported create_thread only offers Work
+Cloud, and list/read report backing kind without a Chat/Work mode field. No substitution/mode claim.
+Active statuses after dispatch are separate from substantive execution proof; inspect actual results.
 
-The sole local lead is **WLAB | LEAD | delivery 2**, thread
-`01a1e3ca-c0d2-7d80-b1bc-6bcb93692b9a`. The existing `wlab-lead-review` was read back ACTIVE,
-targeting this thread every **45 minutes**; the previous lead stopped dispatch.
-No model waits/rechecks unchanged state, no duplicate CI reruns or dispatch.
-Preserve the stale local device-results checkout and untracked captures; use GitHub branches.
+Sole local lead: **WLAB | LEAD | delivery 2**, thread `01a1e3ca-c0d2-7d80-b1bc-6bcb93692b9a`.
+Existing `wlab-lead-review` read back ACTIVE, target this thread, **45-minute** interval; old lead
+stopped dispatch. No duplicate schedules, model waits/rechecks of unchanged state or expensive reruns.
+The local stale device-results checkout and untracked captures remain untouched.
 
-Queued work: #80/#81 inventories, S0/#84, E0/#85, PV1/#86, then M0 T0.13a with explicit packets.
-Keep accepted single-writer/dependency rules. CI1 gets priority; PV1's drift check uses a new workflow.
-One active task per builder; a next nonoverlapping task may start after the previous Result enters
-lead review, but a chat is rotated only after all its owned PRs close with signed dispositions.
+Queued: #81/P4, S0/#84 paused, E0/#85, PV1/#86, then explicit T0.13a/b packets. CI1 first.
+PV1's drift check uses a new workflow; respect M1 r2/M2 r2 sidecar ordering.
 
 ## Current review findings
 
-- #58: strict probe-JSON correction has green Lab `43835691687` and instruction
-  `43835691748`; builder2 must verify actual 97-row artifacts (95 numeric, two accepted Chord
-  exceptions), unchanged provenance/advisory gate/+3% threshold before acceptance.
-- #59: onset-bias correction `0c46552974997de4510978c10ae73a9cde5796e4` has green Lab
-  `43837270217` and devices-off harness `43837270229`. Worker 2 independently checks R1
-  definitions, sample-onset oracles, timing arithmetic and device gates; no physical measurements.
-- #70: `72df7c5bc615038379b40143cffd41257d75e975` has failed Lab `43840632035` and
-  Golden `43840631960`; returned to builder1. Offline facts `43840631942` passed.
-- #73 merged `e559634d2d1ee1a4597984e5c16bcd2013e413f1` after exact-head CI and the recorded
-  independent factual/privacy/raw-blob metadata review. #75 now needs main integration, five
-  report headers, 25 adjacent license sidecars and README table integration; raw bytes preserved.
-- P1/#89 merged `3ae712b4dc2af05f2aee18208aa2bbb5c7a629cc` after exact-head CI
-  `43837338789`, recorded semantic review and citation audit. P2/#91 `b0fdff5` has green
-  `43838139339`, awaiting independent content review.
-- Worker 2's actual environment has a clean reference checkout, no lab checkout. GCC14.2,
-  Python3.12.14, CMake4.2.3/Ninja1.13 in an existing tool venv; reference cache is not lab
-  baseline evidence. New support only goes to Worker 2; old cloud history/artifacts are retained.
+- #58 merged `64c1c6b466ffb2d135c5b95dc72923712d815996`. Root reviewed bounded JSON validation,
+  both-length call sites, mocks/comparator/advisory workflow and independently opened both actual
+  profiling ZIPs. Each has 97 unique rows, 95 finite positive numeric measurements with exact
+  two-length arithmetic and two reason-bearing Chord exceptions. ZIP/JSON hashes, historical
+  baseline blobs and head/run linkage matched; zero numeric rows exceeded +3%. Lab `43835691687`
+  and instruction `43835691748` passed. Main post-merge outcome remains to verify.
+- #59: Worker2 accepted onset fix `0c465529` (16 tests, independent 720-pulse oracle), then found
+  ignored callback status. Round 2 of 2 returned `3e485dffbd2ac79c334554b8a21fc53b90e0aa37`:
+  refuse flagged capture, preserve diagnostic reasons, five mocked regressions. Fresh Lab
+  `43847088024` and Device `43847088206` pending; Worker2 reviews only the delta. No hardware claim.
+- #70 corrected `2c464fb378de1c1594d53cef565f7f76ed53b13c`: undeclared VERIFY in the frozen
+  fixture header replaced with independent fatal integrity checks, comparison assertions unchanged.
+  Signed Result awaits exact-head native/Golden/dependency evidence. Earlier Offline workflow
+  conclusion masked failed build children and is not accepted native evidence. Lead owns review.
+- #73 merged `e559634d2d1ee1a4597984e5c16bcd2013e413f1` after exact-head CI and recorded
+  independent factual/privacy/raw-blob metadata review. #75 corrected
+  `09a7cf3701db4cdd3bd9dcb559dbe00cca98061c`: main integrated, five headers/25 licenses/18-row
+  table; all 25 raw blob SHAs unchanged. Fresh Lab `43846491720` / Device `43846491709` pending.
+- P1/#89 merged `3ae712b4dc2af05f2aee18208aa2bbb5c7a629cc`, exact-head `43837338789`,
+  recorded semantic/citation review. Worker2 audited P2/#91: 184 citations, 231 ranges, 25 source
+  files, 19 commands. Root confirmed App.ts:505–508 and added refused-draft qualification plus an
+  editorial reference fix in `38057f3`; fresh CI required. Builder3 stays on CI1.
+- Worker2 has a clean reference checkout at44da1e4, no lab checkout; GCC14.2, Python3.12.14,
+  existing tool-venv CMake4.2.3/Ninja1.13. Reference cache is not lab evidence. New support only goes
+  to Worker2; old cloud history/artifacts retained. Tool messaging back is unavailable there.
 
 ## Open work (verify heads live; this is a snapshot)
 
 | Task | Issue / PR | Next |
 |---|---|---|
-| CI1.1 | #95 / PR to open | builder3, first priority; CI1 r1 evidence K1–K5 |
-| T0.5 | #51 / PR #60 | queued for builder1, apply R2 |
-| T0.6 | #52 / PR #58 | final actual profiling-artifact verification and lead review |
-| T0.8 | #54 / PR #59 | independent correction review on Worker 2 |
-| T0.9 | PR #73, #75, #50 | #73 merged; #75 metadata/integration next; #50 review remains |
+| CI1.1 | #95 / PR to open | builder3 first priority, K1–K5 evidence |
+| T0.5 | #51 / PR #60 | builder1 active R2 packet |
+| T0.6 | #52 / PR #58 | merged `64c1c6b`, post-merge workflow outcome pending |
+| T0.8 | #54 / PR #59 | round2 `3e485dff`, delta review and fresh CI |
+| T0.9 | PR #73, #75, #50 | #73 merged; #75 `09a7cf3` CI pending; #50 review remains |
 | T0.11 | #66 / PR #69 | merged `cacf9ea` |
 | T0.12 | #61 / PR #63 | merged `2a02874` |
-| T1.1 | #67 / PR #70 | frozen-data conversion committed; repair CI, prove R5 |
-| P1–P4 | #78–#81 | #89/P1 merged; #91/P2 review; #80/P3 and #81/P4 queued |
+| T1.1 | #67 / PR #70 | corrected `2c464fb`, lead review/new CI |
+| P1–P4 | #78–#81 | P1 merged; P2 corrected `38057f3`; P3/#80 active; P4 queued |
 | M1 S0 | #84 | builder4 paused until corrected #59 review |
-| M2 E0 / PV1 | #85 / #86 | queued behind owner CI1 priority, M2 r2 order |
-| T0.13a/b | to file | explicit implementation packets still required |
+| M2 E0 / PV1 | #85 / #86 | queued behind CI1, M2 r2 order |
+| T0.13a/b | to file | explicit implementation packets needed |
 | T0.10 | to file | after required measurement tasks merge |
 
 ## Decisions

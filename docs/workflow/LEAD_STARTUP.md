@@ -54,24 +54,25 @@ Follow each accepted task's lead/contract-review/Fable merge authority, not its 
 
 ## Delivery snapshot (verify live)
 
-Accepted: M0 r2, M1 r2, M2 r2, CI1 r1. Questions Q1–Q6 are answered on main.
-See CURRENT for live assignments and accepted sidecar ordering. Existing PR result comments and
-exact current-head runs are authoritative over this snapshot.
-- CI1/#95: builder3's first-priority single-writer packet, after P2/#91 returned Result.
-- B1 #67/70: head72df7c5, converted983 frozen cases including18 Windows cases, Lab/Golden failed;
-  builder1 correcting failures under R5, #60 remains queued.
-- B2 #52/58: strict JSON correction9b857485, Lab43835691687 and instruction43835691748 green;
-  verifying actual95numeric+2Chord rows/provenance. No threshold/baseline weakening.
-- B3 P1/#89 merged3ae712b after exact-head43837338789 and recorded semantic/citation review.
-  P2/#91 b0fdff5 has green43838139339; lead owns content review, builder3 does not edit it.
-- B4 #59 onset fix0c465529 has green Lab43837270217/Device43837270229, independently reviewed
-  by Worker2; S0/#84 remains paused until corrected review. No physical latency claimed.
-- #73 merged e559634 after exact-head CI and recorded factual/privacy/raw-blob review.
-  #75 needs main integration,5 report headers,25 license sidecars and README table integration,
-  with all raw bytes preserved. #50 review remains.
-- Completed earlier:63=2a02874,83=389ed265,69=cacf9ea,88=e0a1185d.
-- Queued:80/81 inventories,84 paused,85 E0/86 PV1, then explicit T0.13a/b packets. CI1 first.
-  E0 and sidecar work merge before M1 S5a or wait until S5b. No arbitrary queue pickup.
+Accepted M0 r2, M1 r2, M2 r2, CI1 r1. Q1–Q6 answered on main. Live CURRENT, PR results and
+exact current-head runs supersede snapshots.
+- CI1/#95: builder3 first priority, baseline counts and pre-edit K4 search returned.
+- B1 now #51/PR60 R2; #70 corrected2c464fb, 983 frozen cases including18 Windows cases,
+  signed Result awaiting current-head native/Golden/dependency evidence with lead.
+- B2 now P3/#80; #58 merged64c1c6b after root code review and independent downloaded-artifact
+  audit:95numeric+2Chord each architecture, hashes/provenance/arithmetic, zero>+3percent.
+- B3 P1/#89 merged3ae712b after semantic/citation review and exact-head43837338789.
+  P2/#91 independently audited184citations/231ranges/25files/19commands; root added refused-draft
+  qualification and editorial fix as38057f3, fresh CI needed. Builder3 stays exclusively onCI1.
+- B4 #59 round2 returned3e485dff to refuse callback-status capture damage (five new mocks);
+  fresh Lab43847088024/Device43847088206 and Worker2 delta review pending. Earlier onsetfix
+  passed independent720pulse oracle. Two rounds used; #84paused, no physical latency claimed.
+- #73 merged e559634 after recorded independent factual/privacy/raw-blob review and exactheadCI.
+  #75 corrected09a7cf3: main integration,5 reportheaders,25 license sidecars,18-row table;
+  all25rawblobSHAs unchanged. Lab43846491720/Device43846491709 pending. #50 review remains.
+- Earlier completed63=2a02874,83=389ed265,69=cacf9ea,88=e0a1185d.
+- Queued81,84paused,85E0/86PV1, explicitT0.13a/b packets. CI1 first. E0/sidecar work before
+  M1S5a or afterS5b. No arbitrary queue pickup. Facts/source pins remain historical evidence.
 
 ## Cloud support
 
@@ -79,7 +80,7 @@ The current support destination is Worker2 (ID in routing table), hostdurable, C
 Actual inventory: clean reference checkout at44da1e4, no lab checkout; GCC14.2/Python3.12.14 and
 CMake4.2.3/Ninja1.13 in an existing tool venv. Its reference build cache is not lab evidence.
 It has GitHub reads but cannot message back; local lead reads its result. Do not assume shared
-artifacts/cache with the old worker. PR59 read-only support is pinned to0c465529; no tracked edits,
+artifacts/cache with the old worker. PR59 read-only delta support is pinned to3e485dff; no tracked edits,
 native builds, package installs, settings changes, devices or LAN are authorized by that package.
 
 Old worker history/cache are retained but receive no new tasks. Recorded old-worker baseline
@@ -96,7 +97,8 @@ The existing automation **wlab-lead-review** was read back ACTIVE, targeting thi
 **45 minutes**. Previous lead01a1e370-1e2a-79c0-a439-f0ac099e433a stopped dispatch.
 Do not create a duplicate schedule. Local scheduled work requires the computer/app running.
 
-At takeover the usage tool reported five-hour4percent used, weekly84percent used. These shared
+At takeover usage was five-hour4percent/weekly84percent used; later checkpoint31percent/88percent.
+These are snapshots, not current availability. These shared
 account windows do not reset when chats rotate. Check actual usage before substantial work;
 no reset-credit redemption or credit purchase. Missing context percentage is unavailable, not zero.
 Keep changed-state checks brief, no model waiting loops or duplicate expensive CI runs.
