@@ -3,6 +3,8 @@
 Claude here runs under the name the first message gives:
 - `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
   (or an explicit `fable: run` request) → **Fable**, design authority.
+- `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
+  same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
 Anything after the trigger is the specific ask. No match? Ask the owner; never guess a name.
 
@@ -21,6 +23,7 @@ and relevant `docs/specs/`. Grep; don't read whole trees.
 |---|---|---|
 | Fable | Design notes, milestone contracts, answers to queued questions, milestone acceptance | Decision or contract is written to a file |
 | gpt-lead | Delivery of one contracted milestone: dispatch, evidence review, corrections and delegated merges | Acceptance report filed or a real escalation |
+| claude-lead | Same as gpt-lead, when the owner assigns the lead to Claude | Same as gpt-lead |
 | gpt-builder1..4 | One substantive task: implementation, tests, CI, corrections | PR ready with a result comment, or blocked |
 
 **Fable's working rules**
