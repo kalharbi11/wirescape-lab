@@ -65,3 +65,5 @@ jobs:
       - name: Validate every emitted sidecar protocol-test line (null audio; no device/LAN)
         run: |
           python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples
+      - name: Q8 compare exact request-ID boundaries with real null-audio sidecar
+        run: python tools/protocol/check_sidecar_request_ids.py build/pv1/wirescape-engine
