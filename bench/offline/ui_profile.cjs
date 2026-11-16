@@ -152,7 +152,7 @@ async function main(argv=process.argv.slice(2)){
     }
     await context.close();
     const summary={
-      schema:1,source_commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),
+      schema:2,source_commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),
       date_et:new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York'}).format(new Date()),
       machine:{runner:process.env.RUNNER_NAME||'local',os:os.platform(),arch:os.arch(),
         cpu:os.cpus()[0]?.model||'unknown',runner_image:process.env.ImageOS||null,
@@ -162,7 +162,7 @@ async function main(argv=process.argv.slice(2)){
         actions:['knob','cable'],repetitions:options.repeats,
         mouse_steps:30, completed_interaction:'one full drag from mouse down to up per repetition'},
       method:{frames:'rAF interval nearest-rank percentiles, measured during instrumented drag window',
-        cpu:'Chromium CDP Profiler 1ms statistical samples, self-sample function/source locations',
+        cpu:'Chromium CDP Profiler 1ms statistical positive-duration CPU samples; all per-trial function/source self times merged before top-10 truncation; missing or empty samples unavailable',
         performance:'Chromium CDP Tracing renderer CrRendererMain nested duration categories',
         separate_from_playwright_trace:true,
         caveats:'Sampling bias, minified JS, overlapping tasks, profiler overhead, compositor/GPU excluded; unobserved time is not necessarily idle'},
@@ -171,8 +171,14 @@ async function main(argv=process.argv.slice(2)){
     writeFileSync(path.join(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');
     writeFileSync(path.join(out,'trials.json'),JSON.stringify(trials,null,2)+'\n');
     console.log('WS_PROFILE_FACTS_JSON='+JSON.stringify(summary));
-    // Deliberately fail if no completed gestures: an unavailable measurement is explicit.
-    if(records.some(r=>r.completed_interactions<3))process.exitCode=1;
+    // A finished mouse gesture without valid CPU/timeline evidence is NOT a
+    // successful attribution. Keep summary/artifacts for diagnosis, fail the
+    // advisory job, and never publish an unavailable capture as measured.
+    if(records.some(r=>r.completed_interactions!==options.repeats
+      || r.cpu_attribution.status!=='measured'
+      || r.trace_attribution.status!=='measured'
+      || r.frame.sample_count<options.repeats))
+      process.exitCode=1;
   }finally{
     if(browser)await browser.close();
     server.kill('SIGTERM');
