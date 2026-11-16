@@ -1,12 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by claude-lead. Last reviewed `main`: `e0d443760c6858f09e9d178d891ebc30cb317b22`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `c6cd8fc0e8a789d6cfce0f78b99df636e301ede4`.
 
-**Active lead: claude-lead** (owner, 2026-11-16). It has the same role and authority as gpt-lead
-(`AGENTS.md`, `docs/context/CODEX_LEAD.md`). One lead at a time: gpt-lead resumes only when the owner
-says so, and then reads this file first. Codex's local-lead notes stay in
-[LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) for history.
+**Active lead: gpt-lead** (owner resumed local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843, 2026-11-16). Claude-lead stepped down. One lead/one existing45-minute heartbeat. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; this queue supersedes old snapshots.
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: every task is merged except **T0.10** (#113 / PR #118, final pass
@@ -26,13 +23,13 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | E1b #125 | E1a merged; build and test, then mark ready |
-| gpt-builder2 | CI1.3 #109 | released after CI1.4; integrate `main`, K7/K8 |
-| gpt-builder3 | PV1 #86 / PR #105 | Q13 answered: one final packet (schema `bus_channel` maximum 15, disagreement row D08, no runtime or Desktop edit); lead dispatches it |
-| gpt-builder4 | T0.10 #113 / PR #118 | final pass: replace the `pending` rows with T0.5/T0.9 facts; last M0 task |
-| claude-builder1 | — | T0.13a/b merged; free |
-| claude-builder2 | M1 S2 #111 | start now; no branch yet |
-| claude-builder3 | — | E1a merged `e0d4437`; free |
+| gpt-builder1 | E1b #125 / PR #130 | actual implementation f4da114 delivered; review signed Result/current CI |
+| gpt-builder2 | CI1.3 #109 / PR #129 | actual implementation21bc87c; lead reviews K7/K8 evidence; sole ci.yml writer |
+| gpt-builder3 | PV1 #86 / PR #105 | FINAL round3/3 Q13 dispatched; max15/boundaryparity,D08facts,applyGraph corpus; samebranch |
+| gpt-builder4 | T0.10 #113 / PR #118 | finalpass ea4dd03 delivered; source/criterion review before merge; last M0 builder task |
+| claude-builder1 | — | finished/stopped; no new assignments |
+| claude-builder2 | M1 S2 #111 | no branch yet; owner decides current S2 start and later staffing |
+| claude-builder3 | — | finished/stopped; no new assignments |
 
 ## Merged this session (2026-11-16, after 18:30 ET)
 - CI1.4 #123 → `49747bd`
@@ -61,7 +58,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   (Q5 point 8). Golden "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **claude-lead:**
+- **gpt-lead:**
   - merge #118 when its final pass is green, then file the M0 acceptance report;
   - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
   - review #125 and #109;
@@ -73,4 +70,16 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 
-Signed: claude-lead, 2026-11-16
+## Current coordination and review policy
+Owner returned gpt-lead and explicitly authorized removing artificial Fable run limits from CLAUDE.md.
+Fable chooses question count, reading/delegation, scope and stopping point; creating a PR does not end a run.
+Fable does not do PR reviews or review monitoring. Lead reviews delegated work; if a contract requires
+Claude-specific review, tell the owner to assign a Claude reviewer. Milestone acceptance remains Fable's.
+No new Claude builder tasks after current branches finish. GPT builders remain regular Chat, not Work/Codex.
+Q13 merged via131 atc6cd8fc, explicit86/105 finaldispatch sent. No fourth PV1 correction: follow Fable's
+revert/factsdisagreement disposition if finalpacket fails review; no redcheck waiver.
+The five-hour usage window reset was verified (0percent); existing timer can resume substantive review.
+Preserve ringmod2 unmeasured, rawcontinuitycaptures notuploaded, T0.14open and hostedtimingadvisory
+exceptions in M0 acceptance. No acceptance claim before complete report and Fable's decision.
+
+Signed: gpt-lead, 2026-11-16
