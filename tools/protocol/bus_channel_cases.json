@@ -1,0 +1,32 @@
+[
+  {
+    "name": "first-valid-0",
+    "value": 0,
+    "valid": true
+  },
+  {
+    "name": "last-valid-15",
+    "value": 15,
+    "valid": true
+  },
+  {
+    "name": "first-invalid-16",
+    "value": 16,
+    "valid": false
+  },
+  {
+    "name": "old-pv1-maximum-63",
+    "value": 63,
+    "valid": false
+  },
+  {
+    "name": "negative-minus-1",
+    "value": -1,
+    "valid": false
+  },
+  {
+    "name": "noninteger-1point5",
+    "value": 1.5,
+    "valid": false
+  }
+]
