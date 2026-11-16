@@ -160,7 +160,7 @@ function aggregateTrials(trials) {
     categories[key]+=report.categories_ms[key]||0;
   return {frame,...{repetitions:trials.length,completed_interactions:trials.reduce((a,t)=>a+(t.interactions||0),0),
       observed_duration_ms:round(trials.reduce((a,t)=>a+(t.observed_duration_ms||0),0))},
-    cpu_attribution:{status:cpu.length===trials.length?'measured':cpu.length?'partial':'unavailable',
+    cpu_attribution:{status:trials.length>0 && cpu.length===trials.length?'measured':cpu.length?'partial':'unavailable',
       measured_trials:cpu.length,total_trials:trials.length,
       sampled_ms:round(cpu.reduce((a,r)=>a+r.sampled_ms,0)),
       unattributed_ms:round(cpu.reduce((a,r)=>a+r.unattributed_ms,0)),
@@ -168,7 +168,7 @@ function aggregateTrials(trials) {
       top_self:[...top.values()].sort((a,b)=>b.sampled_us-a.sampled_us).slice(0,10)
         .map(row=>({function:row.function,source:row.source,line:row.line,
           self_sampled_ms:round(row.sampled_us/1000),samples:row.samples}))},
-    trace_attribution:{status:trace.length===trials.length?'measured':trace.length?'partial':'unavailable',
+    trace_attribution:{status:trials.length>0 && trace.length===trials.length?'measured':trace.length?'partial':'unavailable',
       measured_trials:trace.length,total_trials:trials.length,
       categories_ms:Object.fromEntries(Object.entries(categories).map(([k,v])=>[k,round(v)])),
       observed_busy_ms:round(trace.reduce((a,r)=>a+r.observed_busy_ms,0)),
