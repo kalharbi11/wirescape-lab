@@ -1,72 +1,72 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "791407084798dd480ea6468c403fd99f6dde0341",
+    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
     "date_et": "2026-11-15",
     "machine": {
       "arch": "x64",
       "audio_devices": "not accessed",
-      "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+      "cpu": "AMD EPYC 9V45 96-Core Processor",
       "os": "linux"
     },
     "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
     "results": [
       {
         "action": "knob",
-        "frames": 57,
-        "max_ms": 16.799999999999955,
+        "frames": 53,
+        "max_ms": 16.800000000000068,
+        "modules": 50,
+        "p50_ms": 16.69999999999999,
+        "p95_ms": 16.799999999999955
+      },
+      {
+        "action": "cable",
+        "frames": 61,
+        "max_ms": 16.80000000000001,
         "modules": 50,
         "p50_ms": 16.699999999999932,
         "p95_ms": 16.700000000000045
       },
       {
+        "action": "knob",
+        "frames": 59,
+        "max_ms": 16.800000000000068,
+        "modules": 100,
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.799999999999955
+      },
+      {
         "action": "cable",
-        "frames": 63,
-        "max_ms": 33.40000000000009,
-        "modules": 50,
+        "frames": 69,
+        "max_ms": 66.59999999999991,
+        "modules": 100,
         "p50_ms": 16.699999999999932,
         "p95_ms": 33.299999999999955
       },
       {
         "action": "knob",
-        "frames": 63,
-        "max_ms": 16.800000000000068,
-        "modules": 100,
-        "p50_ms": 16.699999999999932,
-        "p95_ms": 16.700000000000045
-      },
-      {
-        "action": "cable",
-        "frames": 68,
-        "max_ms": 83.39999999999986,
-        "modules": 100,
-        "p50_ms": 16.699999999999932,
-        "p95_ms": 50
-      },
-      {
-        "action": "knob",
         "frames": 72,
-        "max_ms": 66.60000000000014,
+        "max_ms": 33.399999999999864,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 33.40000000000009
+        "p95_ms": 33.30000000000007
       },
       {
         "action": "cable",
-        "frames": 109,
-        "max_ms": 133.39999999999964,
+        "frames": 86,
+        "max_ms": 133.30000000000018,
         "modules": 200,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 50
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 83.29999999999995
       }
     ]
   },
   "provenance": {
-    "commit": "791407084798dd480ea6468c403fd99f6dde0341",
+    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+      "cpu": "AMD EPYC 9V45 96-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",

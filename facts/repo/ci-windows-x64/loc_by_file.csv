@@ -15,6 +15,7 @@ apps\studio\ui\groove-r3-chords.html,apps,product,HTML,721,1,25
 apps\studio\src\engine\FakeEngine.ts,apps,product,TypeScript,699,57,80
 native\document\groove_observation_tests.cpp,native,product,C++,653,30,26
 apps\studio\ui\groove-r2-final.html,apps,product,HTML,652,1,25
+bench\offline\run_all.py,bench,tools,Python,644,18,61
 apps\studio\tests\session.spec.ts,apps,tests,TypeScript,621,21,70
 apps\studio\src\canvas\ModuleCard.ts,apps,product,TypeScript,611,49,45
 apps\studio\src\styles\app.css,apps,product,CSS,605,38,34
@@ -22,7 +23,6 @@ docs\context\future_modules\guttur\package\src\engine.cpp,docs,product,C++,595,2
 apps\desktop\main.ts,apps,product,TypeScript,561,17,5
 native\src\engine.cpp,native,product,C++,555,0,0
 native\tests2\live_replan_tests.cpp,native,tests,C++,550,10,0
-bench\offline\run_all.py,bench,tools,Python,547,11,54
 tools\dev.py,tools,tools,Python,540,10,41
 native\modules2\groove\dsp.h,native,product,C/C++ Header,523,40,9
 native\modules2\spectral\dsp.h,native,product,C/C++ Header,519,33,12
@@ -228,6 +228,7 @@ apps\studio\tests\groove-g4b-roll.spec.ts,apps,tests,TypeScript,113,1,5
 apps\studio\tests\helpers.ts,apps,tests,TypeScript,113,8,14
 apps\studio\src\panels\widgets\StepsPane.ts,apps,product,TypeScript,110,5,10
 apps\studio\src\app\QuickAdd.ts,apps,product,TypeScript,107,4,13
+bench\offline\test_run_all.py,bench,tests,Python,107,2,15
 native\document\ui_patch_conformance.cpp,native,product,C++,107,4,4
 native\tests\module_tests.cpp,native,tests,C++,107,1,0
 apps\studio\src\app\Library.ts,apps,product,TypeScript,106,3,15
@@ -246,6 +247,7 @@ apps\studio\src\styles\controls.css,apps,product,CSS,100,9,7
 apps\studio\tests-node\groove-study.test.mjs,apps,product,JavaScript,100,3,3
 apps\studio\tests\crash-recovery.spec.ts,apps,tests,TypeScript,100,2,9
 apps\studio\tests\starters.spec.ts,apps,tests,TypeScript,100,4,4
+bench\offline\test_ci_stage_facts.py,bench,tests,Python,100,2,12
 tools\capture\reference.py,tools,tools,Python,100,2,12
 tools\foundation\tests\test_doc_links.py,tools,tests,Python,99,4,22
 apps\studio\src\panels\panes.ts,apps,product,TypeScript,98,10,5
@@ -265,7 +267,6 @@ apps\studio\src\runtime\Ticker.ts,apps,product,TypeScript,92,18,16
 bench\golden\compare.py,bench,tools,Python,92,3,10
 apps\studio\src\app\Modal.ts,apps,product,TypeScript,91,3,8
 apps\studio\src\panels\widgets\RandomHistory.ts,apps,product,TypeScript,91,7,5
-bench\offline\test_ci_stage_facts.py,bench,tests,Python,91,2,11
 native\io\audio\fake_portaudio_stream_tests.cpp,native,product,C++,91,3,0
 native\io\net\graph_tests.cpp,native,product,C++,91,2,0
 native\tools\render\library_smoke.py,native,product,Python,91,8,11
@@ -441,7 +442,6 @@ tools\pi\install-autostart.sh,tools,tools,Bourne Shell,32,2,2
 apps\studio\tests\revision-keyboard.spec.ts,apps,tests,TypeScript,31,1,2
 bench\portability\tests\test_probe.py,bench,tests,Python,31,2,8
 bench\device\tests\test_model_bounds.py,bench,tests,Python,30,2,9
-bench\offline\test_run_all.py,bench,tests,Python,30,2,8
 native\tests2\guide_ringmod\ringmod.h,native,tests,C/C++ Header,30,1,4
 bench\device\pack.py,bench,tools,Python,28,2,4
 native\include\wirescape\linear_ramp.h,native,product,C/C++ Header,28,2,0
@@ -555,4 +555,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,80351,4556,4480
+SUM,SUM,product,unknown,80534,4563,4495
