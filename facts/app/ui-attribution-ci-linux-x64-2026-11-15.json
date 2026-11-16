@@ -1,22 +1,35 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
-  "schema": 1,
+  "schema": 2,
   "status": "measured",
   "source_kind": "GitHub Actions pull_request exact head checkout",
-  "pull_request_head_at_capture": "a93fd380b1960d63fe27c569a7bea304b3c71571",
-  "measurement_commit": "a93fd380b1960d63fe27c569a7bea304b3c71571",
+  "pull_request_head_at_capture": "87aa3ec2c3e752f9f0510a2b8b40895192f48884",
+  "measurement_commit": "87aa3ec2c3e752f9f0510a2b8b40895192f48884",
   "date_et": "2026-11-15",
-  "workflow_run_id": 43774289315,
-  "workflow_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43774289315",
+  "workflow_run_id": 43781482219,
+  "workflow_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43781482219",
   "raw_artifact": {
-    "name": "ui-cpu-profile-43774289315",
-    "id": 14186276267,
-    "api_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14186276267",
-    "download_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14186276267/zip",
-    "created_at": "2026-11-15T23:32:18Z",
-    "expires_at": "2026-11-22T23:32:15Z",
+    "name": "ui-cpu-profile-43781482219",
+    "id": 14187674511,
+    "api_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14187674511",
+    "download_url": "https://api.github.com/repos/kalharbi11/wirescape-lab/actions/artifacts/14187674511/zip",
+    "created_at": "2026-11-16T00:39:59Z",
+    "expires_at": "2026-11-23T00:39:57Z",
     "retention_days": 7,
     "contents": "summary.json, trials.json, 36 CDP CPU profiles and 36 Chromium performance traces"
+  },
+  "cpu_top_self_aggregation_provenance": {
+    "method_at_measurement_commit": "All per-trial positive-duration function/source CPU self samples combined before aggregate top-ten truncation",
+    "complete_self_sample_contributions_included": true,
+    "source": "Chromium CDP Profiler 1ms statistical samples"
+  },
+  "previous_head_pinned_capture": {
+    "workflow_run_id": 43774289315,
+    "measurement_commit": "a93fd380b1960d63fe27c569a7bea304b3c71571",
+    "raw_artifact_id": 14186276267,
+    "method_at_measurement_commit": "Per-trial top 12 functions retained, then lists summed across six trials and aggregate top 10 selected",
+    "limitation_at_measurement_commit": "Function self-time observed outside a trial's top 12 was omitted from the combined top_self totals; reported combined function self-time may be undercounted",
+    "note": "historical separate head-pinned capture, not combined with latest samples"
   },
   "prior_capture": {
     "workflow_run_id": 43773743725,
@@ -26,11 +39,11 @@
     "note": "separately measured synthetic PR merge checkout; not combined with exact-head samples"
   },
   "measurements": {
-    "schema": 1,
-    "source_commit": "a93fd380b1960d63fe27c569a7bea304b3c71571",
+    "schema": 2,
+    "source_commit": "87aa3ec2c3e752f9f0510a2b8b40895192f48884",
     "date_et": "2026-11-15",
     "machine": {
-      "runner": "GitHub Actions 1000033468",
+      "runner": "GitHub Actions 1000033600",
       "os": "linux",
       "arch": "x64",
       "cpu": "AMD EPYC 9V74 80-Core Processor",
@@ -60,7 +73,7 @@
     },
     "method": {
       "frames": "rAF interval nearest-rank percentiles, measured during instrumented drag window",
-      "cpu": "Chromium CDP Profiler 1ms statistical samples, self-sample function/source locations",
+      "cpu": "Chromium CDP Profiler 1ms statistical positive-duration CPU samples; all per-trial function/source self times merged before top-10 truncation; missing or empty samples unavailable",
       "performance": "Chromium CDP Tracing renderer CrRendererMain nested duration categories",
       "separate_from_playwright_trace": true,
       "caveats": "Sampling bias, minified JS, overlapping tasks, profiler overhead, compositor/GPU excluded; unobserved time is not necessarily idle"
@@ -70,90 +83,91 @@
         "modules": 50,
         "action": "knob",
         "frame": {
-          "sample_count": 351,
+          "sample_count": 349,
           "p50_ms": 16.699999999999932,
           "p95_ms": 16.700000000000045,
           "max_ms": 16.800000000000182
         },
         "repetitions": 6,
         "completed_interactions": 6,
-        "observed_duration_ms": 5921,
+        "observed_duration_ms": 5923,
         "cpu_attribution": {
           "status": "measured",
           "measured_trials": 6,
           "total_trials": 6,
-          "sampled_ms": 6066.069,
-          "unattributed_ms": 709.639,
+          "sampled_ms": 6066.857,
+          "unattributed_ms": 723.936,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
           "top_self": [
             {
               "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 2,
-              "self_sampled_ms": 27.316,
-              "samples": 26
+              "self_sampled_ms": 35.312,
+              "samples": 33
             },
             {
               "function": "query",
               "source": "[native/anonymous]",
               "line": 3443,
-              "self_sampled_ms": 22.965,
-              "samples": 23
+              "self_sampled_ms": 23.989,
+              "samples": 26
             },
             {
-              "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 9.534,
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 9.668,
               "samples": 9
             },
             {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
+              "function": "step",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 1,
-              "self_sampled_ms": 8.729,
-              "samples": 8
-            },
-            {
-              "function": "k",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 8.626,
-              "samples": 8
-            },
-            {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 7.584,
+              "self_sampled_ms": 7.539,
               "samples": 7
             },
             {
-              "function": "refresh",
-              "source": "/assets/index-Dk01nGzr.js",
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 1,
-              "self_sampled_ms": 6.421,
+              "self_sampled_ms": 6.453,
               "samples": 6
             },
             {
-              "function": "requestAnimationFrame",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 5.457,
-              "samples": 5
-            },
-            {
               "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 1,
-              "self_sampled_ms": 5.348,
-              "samples": 5
+              "self_sampled_ms": 6.411,
+              "samples": 6
             },
             {
-              "function": "focus",
+              "function": "paintBase",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 4.442,
+              "samples": 6
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 4.351,
+              "samples": 4
+            },
+            {
+              "function": "setAttribute",
               "source": "[native/anonymous]",
               "line": 0,
-              "self_sampled_ms": 4.363,
+              "self_sampled_ms": 4.27,
               "samples": 4
+            },
+            {
+              "function": "param",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 4.189,
+              "samples": 8
             }
           ]
         },
@@ -162,14 +176,14 @@
           "measured_trials": 6,
           "total_trials": 6,
           "categories_ms": {
-            "script": 167.168,
-            "style": 29.439,
-            "layout": 90.307,
-            "paint": 156.977,
-            "unattributed_busy": 343.856
+            "script": 158.664,
+            "style": 29.081,
+            "layout": 87.643,
+            "paint": 162.744,
+            "unattributed_busy": 342.095
           },
-          "observed_busy_ms": 787.747,
-          "unobserved_window_ms": 5119.424,
+          "observed_busy_ms": 780.227,
+          "unobserved_window_ms": 5131.606,
           "boundary_modes": [
             "explicit Chromium trace markers"
           ]
@@ -180,90 +194,91 @@
         "modules": 50,
         "action": "cable",
         "frame": {
-          "sample_count": 374,
+          "sample_count": 367,
           "p50_ms": 16.699999999999932,
           "p95_ms": 16.799999999999955,
-          "max_ms": 16.800000000000182
+          "max_ms": 166.69999999999982
         },
         "repetitions": 6,
         "completed_interactions": 6,
-        "observed_duration_ms": 6329,
+        "observed_duration_ms": 6342,
         "cpu_attribution": {
           "status": "measured",
           "measured_trials": 6,
           "total_trials": 6,
-          "sampled_ms": 6471.655,
-          "unattributed_ms": 1639.848,
+          "sampled_ms": 6487.333,
+          "unattributed_ms": 1552.366,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
           "top_self": [
             {
               "function": "elementFromPoint",
               "source": "[native/anonymous]",
               "line": 0,
-              "self_sampled_ms": 246.137,
-              "samples": 229
-            },
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 36.16,
-              "samples": 38
+              "self_sampled_ms": 232.346,
+              "samples": 216
             },
             {
               "function": "query",
               "source": "[native/anonymous]",
               "line": 3443,
-              "self_sampled_ms": 26.693,
-              "samples": 25
-            },
-            {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 12.172,
-              "samples": 12
-            },
-            {
-              "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 11.921,
-              "samples": 12
+              "self_sampled_ms": 30.376,
+              "samples": 30
             },
             {
               "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 10.882,
-              "samples": 10
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 24.546,
+              "samples": 26
             },
             {
               "function": "[anonymous]",
               "source": "[native/anonymous]",
               "line": 0,
-              "self_sampled_ms": 6.425,
+              "self_sampled_ms": 8.698,
+              "samples": 8
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 7.64,
+              "samples": 7
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 6.394,
               "samples": 6
             },
             {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
+              "function": "step",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 1,
-              "self_sampled_ms": 5.425,
-              "samples": 5
+              "self_sampled_ms": 5.501,
+              "samples": 6
             },
             {
-              "function": "remove",
+              "function": "toggle",
               "source": "[native/anonymous]",
               "line": 0,
-              "self_sampled_ms": 5.371,
+              "self_sampled_ms": 5.383,
               "samples": 5
             },
             {
-              "function": "evaluate",
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 5.361,
+              "samples": 5
+            },
+            {
+              "function": "setAttribute",
               "source": "[native/anonymous]",
-              "line": 228,
-              "self_sampled_ms": 4.531,
-              "samples": 4
+              "line": 0,
+              "self_sampled_ms": 5.348,
+              "samples": 5
             }
           ]
         },
@@ -272,14 +287,14 @@
           "measured_trials": 6,
           "total_trials": 6,
           "categories_ms": {
-            "script": 422.959,
-            "style": 511.483,
-            "layout": 40.797,
-            "paint": 346.675,
-            "unattributed_busy": 647.845
+            "script": 397.313,
+            "style": 499.906,
+            "layout": 38.166,
+            "paint": 316.931,
+            "unattributed_busy": 597.632
           },
-          "observed_busy_ms": 1969.759,
-          "unobserved_window_ms": 4348.654,
+          "observed_busy_ms": 1849.948,
+          "unobserved_window_ms": 4482.516,
           "boundary_modes": [
             "explicit Chromium trace markers"
           ]
@@ -290,420 +305,91 @@
         "modules": 100,
         "action": "knob",
         "frame": {
-          "sample_count": 358,
+          "sample_count": 360,
           "p50_ms": 16.699999999999932,
           "p95_ms": 16.700000000000045,
-          "max_ms": 16.800000000000068
-        },
-        "repetitions": 6,
-        "completed_interactions": 6,
-        "observed_duration_ms": 6051,
-        "cpu_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "sampled_ms": 6207.161,
-          "unattributed_ms": 1081.015,
-          "top_self": [
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 61.64,
-              "samples": 59
-            },
-            {
-              "function": "query",
-              "source": "[native/anonymous]",
-              "line": 3443,
-              "self_sampled_ms": 36.295,
-              "samples": 40
-            },
-            {
-              "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 15.051,
-              "samples": 16
-            },
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 9.829,
-              "samples": 9
-            },
-            {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 8.708,
-              "samples": 8
-            },
-            {
-              "function": "evaluate",
-              "source": "[native/anonymous]",
-              "line": 228,
-              "self_sampled_ms": 8.6,
-              "samples": 8
-            },
-            {
-              "function": "refresh",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 8.596,
-              "samples": 8
-            },
-            {
-              "function": "setupDragListeners",
-              "source": "[native/anonymous]",
-              "line": 1,
-              "self_sampled_ms": 4.326,
-              "samples": 4
-            },
-            {
-              "function": "paintBase",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 4.298,
-              "samples": 4
-            },
-            {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 4.275,
-              "samples": 4
-            }
-          ]
-        },
-        "trace_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "categories_ms": {
-            "script": 219.865,
-            "style": 35.343,
-            "layout": 156.127,
-            "paint": 321.835,
-            "unattributed_busy": 481.061
-          },
-          "observed_busy_ms": 1214.231,
-          "unobserved_window_ms": 4824.21,
-          "boundary_modes": [
-            "explicit Chromium trace markers"
-          ]
-        },
-        "unavailable_reasons": []
-      },
-      {
-        "modules": 100,
-        "action": "cable",
-        "frame": {
-          "sample_count": 387,
-          "p50_ms": 16.699999999999932,
-          "p95_ms": 16.800000000000068,
-          "max_ms": 66.69999999999993
-        },
-        "repetitions": 6,
-        "completed_interactions": 6,
-        "observed_duration_ms": 7014,
-        "cpu_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "sampled_ms": 7165.875,
-          "unattributed_ms": 3101.021,
-          "top_self": [
-            {
-              "function": "elementFromPoint",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 617.056,
-              "samples": 575
-            },
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 71.411,
-              "samples": 75
-            },
-            {
-              "function": "query",
-              "source": "[native/anonymous]",
-              "line": 3443,
-              "self_sampled_ms": 54.389,
-              "samples": 57
-            },
-            {
-              "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 27.011,
-              "samples": 28
-            },
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 15.181,
-              "samples": 14
-            },
-            {
-              "function": "querySelectorAll",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 13.841,
-              "samples": 13
-            },
-            {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 13.61,
-              "samples": 13
-            },
-            {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 13.279,
-              "samples": 12
-            },
-            {
-              "function": "highlightTargets",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 8.596,
-              "samples": 8
-            },
-            {
-              "function": "evaluate",
-              "source": "[native/anonymous]",
-              "line": 228,
-              "self_sampled_ms": 6.158,
-              "samples": 5
-            }
-          ]
-        },
-        "trace_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "categories_ms": {
-            "script": 869.337,
-            "style": 1071.865,
-            "layout": 65.5,
-            "paint": 781.673,
-            "unattributed_busy": 1108.743
-          },
-          "observed_busy_ms": 3897.118,
-          "unobserved_window_ms": 3107.465,
-          "boundary_modes": [
-            "explicit Chromium trace markers"
-          ]
-        },
-        "unavailable_reasons": []
-      },
-      {
-        "modules": 200,
-        "action": "knob",
-        "frame": {
-          "sample_count": 368,
-          "p50_ms": 16.699999999999932,
-          "p95_ms": 16.799999999999955,
           "max_ms": 16.800000000000182
         },
         "repetitions": 6,
         "completed_interactions": 6,
-        "observed_duration_ms": 6268,
+        "observed_duration_ms": 6070,
         "cpu_attribution": {
           "status": "measured",
           "measured_trials": 6,
           "total_trials": 6,
-          "sampled_ms": 6434.128,
-          "unattributed_ms": 1820.212,
+          "sampled_ms": 6226.994,
+          "unattributed_ms": 981.429,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
           "top_self": [
             {
               "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 2,
-              "self_sampled_ms": 125.055,
-              "samples": 118
+              "self_sampled_ms": 51.236,
+              "samples": 48
             },
             {
               "function": "query",
               "source": "[native/anonymous]",
               "line": 3443,
-              "self_sampled_ms": 63.943,
-              "samples": 66
+              "self_sampled_ms": 32.049,
+              "samples": 36
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 12.978,
+              "samples": 12
             },
             {
               "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
+              "source": "/assets/index-BM4cE9FC.js",
               "line": 1,
-              "self_sampled_ms": 17.176,
-              "samples": 18
-            },
-            {
-              "function": "refresh",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 12.896,
-              "samples": 13
-            },
-            {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
-              "line": 1,
-              "self_sampled_ms": 9.847,
-              "samples": 9
-            },
-            {
-              "function": "evaluate",
-              "source": "[native/anonymous]",
-              "line": 228,
-              "self_sampled_ms": 8.702,
-              "samples": 8
-            },
-            {
-              "function": "[anonymous]",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 8.604,
-              "samples": 8
-            },
-            {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 8.564,
-              "samples": 8
-            },
-            {
-              "function": "querySelectorAll",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 8.516,
-              "samples": 8
-            },
-            {
-              "function": "getAttribute",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 8.508,
-              "samples": 8
-            }
-          ]
-        },
-        "trace_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "categories_ms": {
-            "script": 285.298,
-            "style": 40.395,
-            "layout": 266.346,
-            "paint": 672.883,
-            "unattributed_busy": 774.727
-          },
-          "observed_busy_ms": 2039.649,
-          "unobserved_window_ms": 4218.597,
-          "boundary_modes": [
-            "explicit Chromium trace markers"
-          ]
-        },
-        "unavailable_reasons": []
-      },
-      {
-        "modules": 200,
-        "action": "cable",
-        "frame": {
-          "sample_count": 651,
-          "p50_ms": 16.699999999999818,
-          "p95_ms": 33.299999999999955,
-          "max_ms": 116.70000000000005
-        },
-        "repetitions": 6,
-        "completed_interactions": 6,
-        "observed_duration_ms": 12425,
-        "cpu_attribution": {
-          "status": "measured",
-          "measured_trials": 6,
-          "total_trials": 6,
-          "sampled_ms": 12591.593,
-          "unattributed_ms": 8130.413,
-          "top_self": [
-            {
-              "function": "elementFromPoint",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 1326.032,
-              "samples": 1243
-            },
-            {
-              "function": "[anonymous]",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 219.785,
-              "samples": 217
-            },
-            {
-              "function": "query",
-              "source": "[native/anonymous]",
-              "line": 3443,
-              "self_sampled_ms": 94.886,
-              "samples": 95
-            },
-            {
-              "function": "step",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 59.11,
-              "samples": 78
-            },
-            {
-              "function": "querySelectorAll",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 30.429,
-              "samples": 29
-            },
-            {
-              "function": "getAttribute",
-              "source": "[native/anonymous]",
-              "line": 0,
-              "self_sampled_ms": 18.148,
-              "samples": 17
-            },
-            {
-              "function": "t",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 1,
-              "self_sampled_ms": 15.043,
-              "samples": 14
-            },
-            {
-              "function": "highlightTargets",
-              "source": "/assets/index-Dk01nGzr.js",
-              "line": 2,
-              "self_sampled_ms": 11.737,
+              "self_sampled_ms": 9.795,
               "samples": 11
             },
             {
               "function": "[anonymous]",
               "source": "[native/anonymous]",
               "line": 1,
-              "self_sampled_ms": 10.788,
-              "samples": 10
+              "self_sampled_ms": 8.663,
+              "samples": 8
             },
             {
-              "function": "[anonymous]",
+              "function": "querySelectorAll",
               "source": "[native/anonymous]",
               "line": 0,
-              "self_sampled_ms": 10.745,
-              "samples": 10
+              "self_sampled_ms": 8.526,
+              "samples": 8
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 8.184,
+              "samples": 8
+            },
+            {
+              "function": "evaluate",
+              "source": "[native/anonymous]",
+              "line": 228,
+              "self_sampled_ms": 7.511,
+              "samples": 7
+            },
+            {
+              "function": "paintBase",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 7.508,
+              "samples": 7
+            },
+            {
+              "function": "refresh",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 7.466,
+              "samples": 7
             }
           ]
         },
@@ -712,14 +398,347 @@
           "measured_trials": 6,
           "total_trials": 6,
           "categories_ms": {
-            "script": 1821.407,
-            "style": 2936.57,
-            "layout": 105.648,
-            "paint": 2732.717,
-            "unattributed_busy": 2351.47
+            "script": 189.251,
+            "style": 27.555,
+            "layout": 129.598,
+            "paint": 250.161,
+            "unattributed_busy": 473.796
           },
-          "observed_busy_ms": 9947.812,
-          "unobserved_window_ms": 2465.05,
+          "observed_busy_ms": 1070.361,
+          "unobserved_window_ms": 4989.351,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 100,
+        "action": "cable",
+        "frame": {
+          "sample_count": 379,
+          "p50_ms": 16.700000000000045,
+          "p95_ms": 16.800000000000182,
+          "max_ms": 66.70000000000005
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 6822,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6968.37,
+          "unattributed_ms": 2890.592,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
+          "top_self": [
+            {
+              "function": "elementFromPoint",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 533.401,
+              "samples": 499
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 65.848,
+              "samples": 71
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 44.869,
+              "samples": 48
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 26.923,
+              "samples": 28
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 14.939,
+              "samples": 14
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 10.77,
+              "samples": 10
+            },
+            {
+              "function": "highlightTargets",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 9.618,
+              "samples": 9
+            },
+            {
+              "function": "requestAnimationFrame",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 6.408,
+              "samples": 6
+            },
+            {
+              "function": "remove",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 6.386,
+              "samples": 6
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 5.38,
+              "samples": 6
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 779.832,
+            "style": 1025.323,
+            "layout": 64.407,
+            "paint": 708.59,
+            "unattributed_busy": 1008.876
+          },
+          "observed_busy_ms": 3587.028,
+          "unobserved_window_ms": 3224.343,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 200,
+        "action": "knob",
+        "frame": {
+          "sample_count": 367,
+          "p50_ms": 16.700000000000045,
+          "p95_ms": 16.700000000000045,
+          "max_ms": 16.800000000000182
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 6230,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 6392.931,
+          "unattributed_ms": 1747.555,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
+          "top_self": [
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 121.766,
+              "samples": 114
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 58.732,
+              "samples": 61
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 16.743,
+              "samples": 18
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 14.949,
+              "samples": 14
+            },
+            {
+              "function": "getAttribute",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 12.808,
+              "samples": 12
+            },
+            {
+              "function": "refresh",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 11.718,
+              "samples": 11
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 8.565,
+              "samples": 8
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 7.87,
+              "samples": 7
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 1,
+              "self_sampled_ms": 6.412,
+              "samples": 6
+            },
+            {
+              "function": "param",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 5.622,
+              "samples": 7
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 265.531,
+            "style": 36.043,
+            "layout": 250.78,
+            "paint": 628.045,
+            "unattributed_busy": 754.393
+          },
+          "observed_busy_ms": 1934.792,
+          "unobserved_window_ms": 4281.846,
+          "boundary_modes": [
+            "explicit Chromium trace markers"
+          ]
+        },
+        "unavailable_reasons": []
+      },
+      {
+        "modules": 200,
+        "action": "cable",
+        "frame": {
+          "sample_count": 619,
+          "p50_ms": 16.699999999999818,
+          "p95_ms": 33.200000000000045,
+          "max_ms": 116.79999999999995
+        },
+        "repetitions": 6,
+        "completed_interactions": 6,
+        "observed_duration_ms": 11928,
+        "cpu_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "sampled_ms": 12094.653,
+          "unattributed_ms": 7820.05,
+          "self_time_aggregation": "all per-trial positive-duration function samples, merged before top-10 truncation",
+          "top_self": [
+            {
+              "function": "elementFromPoint",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 1274.824,
+              "samples": 1197
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 217.48,
+              "samples": 213
+            },
+            {
+              "function": "query",
+              "source": "[native/anonymous]",
+              "line": 3443,
+              "self_sampled_ms": 91.653,
+              "samples": 92
+            },
+            {
+              "function": "step",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 54.67,
+              "samples": 77
+            },
+            {
+              "function": "querySelectorAll",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 30.963,
+              "samples": 29
+            },
+            {
+              "function": "[anonymous]",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 22.844,
+              "samples": 21
+            },
+            {
+              "function": "getAttribute",
+              "source": "[native/anonymous]",
+              "line": 0,
+              "self_sampled_ms": 18.129,
+              "samples": 17
+            },
+            {
+              "function": "t",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 17.098,
+              "samples": 16
+            },
+            {
+              "function": "highlightTargets",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 2,
+              "self_sampled_ms": 13.901,
+              "samples": 13
+            },
+            {
+              "function": "[anonymous]",
+              "source": "/assets/index-BM4cE9FC.js",
+              "line": 1,
+              "self_sampled_ms": 12.857,
+              "samples": 12
+            }
+          ]
+        },
+        "trace_attribution": {
+          "status": "measured",
+          "measured_trials": 6,
+          "total_trials": 6,
+          "categories_ms": {
+            "script": 1743.165,
+            "style": 2824.511,
+            "layout": 100.754,
+            "paint": 2546.618,
+            "unattributed_busy": 2317.744
+          },
+          "observed_busy_ms": 9532.792,
+          "unobserved_window_ms": 2379.82,
           "boundary_modes": [
             "explicit Chromium trace markers"
           ]
@@ -728,11 +747,5 @@
       }
     ],
     "raw_artifacts": "raw/*.cpuprofile and raw/*.trace.json; CI upload only, never commit"
-  },
-  "cpu_top_self_aggregation_provenance": {
-    "method_at_measurement_commit": "Per-trial top 12 functions retained, then lists summed across six trials and aggregate top 10 selected",
-    "limitation": "Function self-time observed outside a trial's top 12 was omitted from the combined top_self totals; reported combined function self-time may be undercounted",
-    "effects": "Frame interval samples and Chromium timeline categories were aggregated independently of the per-trial CPU top-12 truncation",
-    "raw_cpu_profiles_available_in_artifact_id": 14186276267
   }
 }
