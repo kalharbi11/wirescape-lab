@@ -153,6 +153,64 @@ endforeach()
 
 target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
 
+# T1.1 test-only ABI1 reference capture. This runs *the unchanged live comparisons*
+# on a disposable CI build and produces provenance-bearing fixture candidates.
+# It is a capture phase only; no shipping ABI1 code is removed here.
+if(DEFINED ENV{GITHUB_ACTIONS} AND DEFINED ENV{RUNNER_TEMP}
+   AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYPES))
+  set(ABI1_REFERENCE_CAPTURE_DIR "$ENV{RUNNER_TEMP}/abi1-t11-capture")
+  set(ABI1_REFERENCE_ARTIFACT_DIR "$ENV{RUNNER_TEMP}/golden")
+  set(ABI1_REFERENCE_MODULES
+      vco lfo vcf adsr vca clock function_envelope ladder mixer noise output scale_offset slew)
+  set(ABI1_REFERENCE_UTILITIES
+      clock function_envelope ladder mixer noise output scale_offset slew)
+  set(ABI1_REFERENCE_DEPENDENCIES abi2_integration_tests abi2_module_tests)
+  set(ABI1_REFERENCE_UTILITY_COMMANDS)
+  foreach(module IN LISTS ABI1_REFERENCE_UTILITIES)
+    list(APPEND ABI1_REFERENCE_DEPENDENCIES abi2_${module}_tests)
+    list(APPEND ABI1_REFERENCE_UTILITY_COMMANDS
+      COMMAND ${CMAKE_COMMAND} -E env
+        "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
+        $<TARGET_FILE:abi2_${module}_tests>
+        $<TARGET_FILE_DIR:ws_${module}>)
+  endforeach()
+  foreach(module IN LISTS ABI1_REFERENCE_MODULES)
+    list(APPEND ABI1_REFERENCE_DEPENDENCIES ws_${module})
+  endforeach()
+  set(ABI1_REFERENCE_EMIT_FLAG)
+  if("$ENV{GITHUB_WORKFLOW}" MATCHES "^Golden patch renders")
+    set(ABI1_REFERENCE_EMIT_FLAG --emit-chunks)
+  endif()
+  add_custom_target(abi2_reference_capture ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+      "${ABI1_REFERENCE_CAPTURE_DIR}" "${ABI1_REFERENCE_ARTIFACT_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E env
+      "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
+      $<TARGET_FILE:abi2_integration_tests>
+      $<TARGET_FILE_DIR:ws_vco>
+      "${ABI1_REFERENCE_CAPTURE_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E env
+      "ABI1_REF_CAPTURE_DIR=${ABI1_REFERENCE_CAPTURE_DIR}"
+      $<TARGET_FILE:abi2_module_tests>
+      $<TARGET_FILE_DIR:ws_vco>
+      "${ABI1_REFERENCE_CAPTURE_DIR}/abi2_equivalence.json"
+    ${ABI1_REFERENCE_UTILITY_COMMANDS}
+    COMMAND ${Python3_EXECUTABLE}
+      "${CMAKE_SOURCE_DIR}/../bench/reference/freeze.py"
+      --capture-dir "${ABI1_REFERENCE_CAPTURE_DIR}"
+      --artifact-dir "${ABI1_REFERENCE_ARTIFACT_DIR}"
+      --repo-root "${CMAKE_SOURCE_DIR}/.."
+      --compiler-id "${CMAKE_CXX_COMPILER_ID}"
+      --compiler-version "${CMAKE_CXX_COMPILER_VERSION}"
+      --build-config Release
+      --cxx-flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}"
+      ${ABI1_REFERENCE_EMIT_FLAG}
+    DEPENDS ${ABI1_REFERENCE_DEPENDENCIES}
+    COMMENT "Capture ABI1 reference data from unchanged passing comparison tests (no devices)"
+    VERBATIM)
+endif()
+
+
 add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)
 target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 wirescape_engine ${CMAKE_DL_LIBS})
 add_dependencies(abi2_returned_filter_stress ws2_ladder ws_ladder)
