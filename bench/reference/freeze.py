@@ -124,6 +124,21 @@ def package(capture_dir, artifact_dir, metadata, emit_chunks=False):
             raise ValueError("incomplete utility reference " + name)
         raw[name] = (kind, group, body)
     verify_inventory(set(raw))
+    expected_descriptors = {"utility_" + name for name in UTILITIES}
+    observed_descriptors = {p.stem for p in capture_dir.glob("utility_*.desc")}
+    if observed_descriptors != expected_descriptors:
+        raise ValueError("legacy descriptor inventory mismatch: missing %s, unexpected %s" %
+                         (sorted(expected_descriptors - observed_descriptors),
+                          sorted(observed_descriptors - expected_descriptors)))
+    descriptors = {}
+    for key in sorted(expected_descriptors):
+        body = (capture_dir / (key + ".desc")).read_bytes()
+        if not body or len(body) > 16384:
+            raise ValueError("invalid descriptor length for " + key)
+        desc = body.decode("utf-8")
+        if not desc.startswith("id\\t") or "\\ncounts\\t" not in desc:
+            raise ValueError("invalid descriptor header: " + key)
+        descriptors[key] = {"utf8": desc, "sha256": hashlib.sha256(body).hexdigest()}
     groups = {}
     for name, (kind, group, body) in raw.items():
         key = (kind, group)
@@ -147,6 +162,9 @@ def package(capture_dir, artifact_dir, metadata, emit_chunks=False):
             "case_count": len(samples),
             "cases": samples,
         }
+        if kind == "utility":
+            name = "utility_" + group.rsplit("_", 1)[0]
+            doc["descriptor"] = {"name": name, **descriptors[name]}
         content = json.dumps(doc, sort_keys=True, separators=(",", ":"), allow_nan=False)
         digest = hashlib.sha256(content.encode()).hexdigest()
         (artifact_dir / filename).write_text(content + "\n", encoding="utf-8")
