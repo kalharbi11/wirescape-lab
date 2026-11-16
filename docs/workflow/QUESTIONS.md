@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q3 answered (M0 r2); Q4, Q5 open. The lead appends only genuinely
+**State:** Q1–Q3 answered (M0 r2); Q4, Q5, Q6 open. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -50,3 +50,23 @@ and records the stop/replan instruction in `CURRENT.md`.
   owner's own patches are not covered.
 - **Evidence:** [issue #90](https://github.com/kalharbi11/wirescape-lab/issues/90) part 2 (owner's words quoted).
 - **Blocked:** nothing in flight; affects later contracts.
+
+## Q6 — CI time per merge (owner request, 2026-11-16)
+- **Question:** The owner asked for ways to cut CI testing time where a run is not needed, so work merges
+  faster. Which changes to `.github/workflows/ci.yml` and the test configs should be contracted, under
+  which milestone, and with what guard so coverage is not lost? CI jobs are "Open" in CONSTRAINTS.
+- **Evidence:** [facts/tests/ci_durations_2026-11-16.md](../../facts/tests/ci_durations_2026-11-16.md):
+  Lab CI median 9.78 min per `main` run, 37.21 runner-min; sanitizers 9.48 (8.27 compile) and studio 9.42
+  (8.68 serial Playwright) set the critical path; unchanged since 2026-11-14.
+- **Reviewer's proposed answer (claude-reviewer, estimates, not measured):**
+  1. Sanitizers: build only the ABI2 test targets that `ctest -R abi2` runs, parallel 4 (est. −4 to −6 min).
+  2. Studio: shard Playwright across 2–3 jobs or raise workers where tests are independent; drop the linked
+     desktop suite from Studio's CI `test`, since the `desktop` job runs it (est. −4 to −5 min).
+  3. A changes job: PRs touching only `docs/`, `facts/`, `proposals/`, `*.md` skip native, sanitizer,
+     Studio and desktop jobs, reporting success so required checks do not hang; `main` pushes always run all
+     (est. ~35 runner-min saved per docs/facts PR; 5 of 10 open PRs are of this kind).
+  4. ccache/sccache keyed on toolchain for native jobs; cache the pinned PortAudio build (est. −1 to −3 min
+     per platform).
+  Expected result after 1–2: about 5 min per merge, Windows on the critical path. Each change re-measured
+  into `facts/tests/` before and after.
+- **Blocked:** nothing in flight; owner wants it soon.
