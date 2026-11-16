@@ -207,7 +207,10 @@ export class FakeEngine implements EngineClient {
     const nextDocument = structuredClone(patch);
     for (const module of nextDocument.modules) {
       const old = oldModules.get(module.id);
-      const sameConfig = old?.module === module.module && this.sameConfig(old?.config, module.config);
+      // E1a treats OSC Out's staged bus pointer as execution config:
+      // every structural replan replaces that instance even with identical JSON.
+      const sameConfig = old?.module === module.module && module.module !== 'osc.out' &&
+        this.sameConfig(old?.config, module.config);
       const existing = this.nodes.get(module.id);
       if (sameConfig && existing) {
         retained.add(module.id);
@@ -244,8 +247,10 @@ export class FakeEngine implements EngineClient {
       this.phases.delete(id); this.randomHold.delete(id); this.clockEdge.delete(id);
       this.seqStep.delete(id); this.meterPeak.delete(id);
     }
-    // A removed note source releases held notes; continuing sources keep theirs.
-    if ([...this.nodes].some(([id, node]) => !nextNodes.has(id) &&
+    // Notes belong to their source instance, not merely its numeric ID.
+    // Removal *or replacement* of a keyboard/MIDI In releases its held notes;
+    // a continuing source retains them across unrelated graph replans.
+    if ([...this.nodes].some(([id, node]) => !retained.has(id) &&
         (node.type === 'host.keyboard' || node.type === 'midi.in'))) {
       this.voices = []; this.lastNote = null;
     }

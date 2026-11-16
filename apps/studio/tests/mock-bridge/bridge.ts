@@ -15,8 +15,9 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
     let catalogue: Message = { modules: [] };
     let delay = 0, saved = '', openText: { text: string; name: string } | null = null;
     const refused: { type: string; code: string }[] = [];
-    const held: { cmd: Message; session: string; gen: string }[] = [];
+    const held: { cmd: Message; session: string; gen: string; result?: Message; applied?: boolean }[] = [];
     let nextUnapplied: { moduleId: number; paramId: string }[] = [];
+    let nextReplaced: number[] | undefined;
     const sent: Message[] = [];
     let learnArmed = false, learnSeq = 0, learnPacket: Message | null = null;
     const session = () => 's' + sessionNo;
@@ -38,6 +39,37 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
         catalogue, audio: audioStatus,
         midi: midiStatus() });
     };
+    const canonical = (value: any): string => JSON.stringify((function ordered(v: any): any {
+      if (Array.isArray(v)) return v.map(ordered);
+      if (v !== null && typeof v === 'object')
+        return Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, child]) => [key, ordered(child)]));
+      return v;
+    })(value ?? {}));
+    const commitGraph = (cmd: Message): Message => {
+      const oldById = new Map(graph.modules.map((m: Message) => [m.id, m]));
+      const next = copy(cmd.patch);
+      const computed = next.modules.filter((m: Message) => {
+        const previous = oldById.get(m.id) as Message | undefined;
+        return previous && (previous.module !== m.module ||
+          m.module === 'osc.out' || canonical(previous.config) !== canonical(m.config));
+      }).map((m: Message) => m.id);
+      // Explicit simulated native canonical-config result; authoring JSON
+      // may differ while runtime bytes are equal (e.g. ignored/default keys).
+      const replaced = nextReplaced ?? computed;
+      nextReplaced = undefined;
+      const unapplied = cmd.type === 'applyGraph' ? nextUnapplied.splice(0) : [];
+      for (const item of unapplied) {
+        const before = oldById.get(item.moduleId) as Message | undefined;
+        const module = next.modules.find((m: Message) => m.id === item.moduleId);
+        if (!module || !before) continue;
+        const oldValue = before.parameters?.[item.paramId];
+        if (oldValue === undefined) delete module.parameters?.[item.paramId];
+        else (module.parameters ??= {})[item.paramId] = oldValue;
+      }
+      graph = next; gen++;
+      return cmd.type === 'applyGraph' ? { result: { path: 'live', replaced, unapplied } } : {};
+    };
     const accept = (cmd: Message, s: string) => {
       if (s !== session()) return;
       const rejectAt = refused.findIndex(x => x.type === cmd.type);
@@ -57,25 +89,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
             reply(cmd, false, { code: 'unknown-module', message: 'Module not installed' }, s);
             return;
           }
-          const previous = graph, next = copy(cmd.patch);
-          const oldById = new Map(previous.modules.map((m: Message) => [m.id, m]));
-          const replaced = next.modules.filter((m: Message) => {
-            const old = oldById.get(m.id) as Message | undefined;
-            return old && (old.module !== m.module ||
-              JSON.stringify(old.config ?? {}) !== JSON.stringify(m.config ?? {}));
-          }).map((m: Message) => m.id);
-          const unapplied = cmd.type === 'applyGraph' ? nextUnapplied.splice(0) : [];
-          for (const item of unapplied) {
-            const before = oldById.get(item.moduleId) as Message | undefined;
-            const module = next.modules.find((m: Message) => m.id === item.moduleId);
-            if (!module || !before) continue;
-            const oldValue = before.parameters?.[item.paramId];
-            if (oldValue === undefined) delete module.parameters?.[item.paramId];
-            else (module.parameters ??= {})[item.paramId] = oldValue;
-          }
-          graph = next; gen++;
-          reply(cmd, true, cmd.type === 'applyGraph'
-            ? { result: { path: 'live', replaced, unapplied } } : {}, s);
+          reply(cmd, true, commitGraph(cmd), s);
           break;
         }
         case 'addModule':
@@ -177,21 +191,31 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
       getSaved: () => saved, getSaves: () => copy(saves), openCount: () => opens, restartCount: () => restarts,
       dropNextRestartReply: () => { dropRestartReply = true; },
       loseHeldWithPush: (applied: boolean) => {
-        if (applied) for (const h of held) if (h.cmd.type === 'loadGraph' && h.session === session()) {
-          graph = copy(h.cmd.patch); gen++;
+        if (applied) for (const h of held) if (!h.applied && h.session === session() &&
+          (h.cmd.type === 'loadGraph' || h.cmd.type === 'applyGraph')) {
+          h.result = commitGraph(h.cmd);
+          h.applied = true;
         }
         emitStatus();
       },
-      replyHeldLate: () => { for (const h of held.splice(0)) reply(h.cmd, true, {}, h.session, String(gen)); },
+      replyHeldLate: () => { for (const h of held.splice(0))
+        reply(h.cmd, true, h.result ?? {}, h.session, String(gen)); },
+      lateReply: (id: string, g = String(gen)) =>
+        emit({ v: 0, session: session(), re: id, ok: true, gen: g,
+          result: { path: 'live', replaced: [], unapplied: [] } }),
       holdOpen: () => { holdOpen = true; },
       releaseOpen: () => { pendingOpen?.(); pendingOpen = undefined; },
       menu: (type: string) => emit({ v: 0, type }),
-      acceptHeld: () => { for (const h of held.splice(0)) accept(h.cmd, h.session); },
+      acceptHeld: () => { for (const h of held.splice(0)) {
+        if (h.applied) reply(h.cmd, true, h.result ?? {}, h.session, String(gen));
+        else accept(h.cmd, h.session);
+      } },
       refuseHeld: (code = 'refused') => { for (const h of held.splice(0))
         reply(h.cmd, false, { code, message: 'Scripted ' + code }, h.session, h.gen); },
       setOpen: (value: { text: string; name: string } | null) => { openText = value; },
       setDelay: (ms: number) => { delay = ms; },
       setUnapplied: (items: { moduleId: number; paramId: string }[]) => { nextUnapplied = copy(items); },
+      setNativeReplaced: (items: number[]) => { nextReplaced = copy(items); },
       refuseNext: (type: string, code = 'refused') => { refused.push({ type, code }); },
       holdNext: (type: string) => { holdType = type; },
       releaseHeld: () => { for (const h of held.splice(0)) reply(h.cmd, true, {}, h.session, h.gen); },

@@ -1197,10 +1197,13 @@ export class App {
       removeGen = real.onGeneration(gen => {
         if (phase !== 'wait-gen') return;
         const applied = BigInt(gen) > BigInt(gen0);
+        // A generation push proves a swap occurred, not that all live
+        // parameter events were accepted. applyGraph must await its exact
+        // correlated ACK (including 'unapplied'), or require recovery.
+        if (!real.settleUnansweredLoad(applied)) return;
         phase = applied ? 'applied' : 'not-applied';
         window.clearTimeout(genTimer); window.clearTimeout(pushTimer); removeGen();
         if (!applied) restore();
-        real.settleUnansweredLoad(applied);
       });
       removeConnection = real.onConnection(state => {
         if (state === 'restarting' && phase !== 'applied' && phase !== 'not-applied') requireRestart();

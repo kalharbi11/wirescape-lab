@@ -65,6 +65,8 @@ export class RealEngine implements EngineClient {
   private unsubscribe?: () => void;
   private pending = new Map<string, Pending>();
   private load?: Load;
+  /** Live whole-document edits are sent in order, one correlated ACK at a time. */
+  private graphQueue: Load[] = [];
   private queue: Edit[] = [];
   private active?: Edit;
   private lastEdit?: Edit;
@@ -134,9 +136,11 @@ export class RealEngine implements EngineClient {
   onGeneration(cb: (gen: string) => void): () => void {
     this.generationCbs.add(cb); return () => this.generationCbs.delete(cb);
   }
-  settleUnansweredLoad(applied: boolean): void {
+  /** Legacy loadGraph can settle from a generation push. applyGraph cannot:
+   * a successful swap may still report unapplied parameter events in its ACK. */
+  settleUnansweredLoad(applied: boolean): boolean {
     const load = this.load;
-    if (!load) return;
+    if (!load || load.type !== 'loadGraph') return false;
     this.pending.delete(load.id);
     this.load = undefined;
     if (applied) {
@@ -149,6 +153,7 @@ export class RealEngine implements EngineClient {
       load.reject(refusal('unavailable', 'Load was not applied.'));
     }
     this.notifySettled();
+    return true;
   }
   private waitForSessionReady(session: string, timeout: number): Promise<void> {
     if (this.session !== session && this.ready && this.state === 'real') return Promise.resolve();
@@ -182,11 +187,11 @@ export class RealEngine implements EngineClient {
   }
   /** A document switch must keep its owner visible until all inverses have settled. */
   async whenEditsSettled(): Promise<void> {
-    while (this.active || this.queue.length || this.load)
+    while (this.active || this.queue.length || this.load || this.graphQueue.length)
       await new Promise<void>(resolve => this.settledWaiters.add(resolve));
   }
   private notifySettled(): void {
-    if (this.active || this.queue.length || this.load) return;
+    if (this.active || this.queue.length || this.load || this.graphQueue.length) return;
     for (const resolve of this.settledWaiters) resolve();
     this.settledWaiters.clear();
   }
@@ -217,6 +222,8 @@ export class RealEngine implements EngineClient {
     this.lastEdit = undefined;
     this.load?.reject(error);
     this.load = undefined;
+    for (const queued of this.graphQueue) queued.reject(error);
+    this.graphQueue = [];
     this.notifySettled();
   }
 
@@ -314,6 +321,12 @@ export class RealEngine implements EngineClient {
     if (typeof message.re !== 'string') return;
     const p = this.pending.get(message.re);
     if (!p || (p.kind !== 'restart' && (message.session !== p.session || message.session !== this.session))) return;
+    // A superseded load's late ACK must not change gen or confirm a newer graph.
+    if (p.kind === 'load' && (!this.load || this.load.id !== message.re ||
+        p.revision !== this.load.revision)) {
+      this.pending.delete(message.re);
+      return;
+    }
     const g = generation(message.gen);
     if (p.kind !== 'restart' && (g === null || g < BigInt(this.gen))) return;
     this.pending.delete(message.re);
@@ -327,10 +340,12 @@ export class RealEngine implements EngineClient {
       if (p.kind === 'load') {
         // A refused loadGraph leaves the engine on its previous graph (sidecar rollback).
         (err.detail as { engine?: true }).engine = true;
-        if (p.revision === this.revision) {
+        if (this.load && p.revision === this.load.revision) {
           this.ready = this.confirmed !== null; // the atomic refusal leaves the confirmed graph untouched
           this.queue = []; this.active = undefined;
           this.load?.reject(err); this.load = undefined;
+          for (const queued of this.graphQueue) queued.reject(err);
+          this.graphQueue = [];
           this.notifySettled();
         }
       } else if (p.kind === 'edit' && p.edit) this.failEdit(p.edit, err);
@@ -338,7 +353,7 @@ export class RealEngine implements EngineClient {
       return;
     }
     if (p.kind === 'load') {
-      if (p.revision === this.revision && this.load) {
+      if (this.load && p.revision === this.load.revision) {
         const load = this.load;
         const committed = copy(load.patch);
         const unapplied: UnappliedParameter[] = [];
@@ -346,10 +361,9 @@ export class RealEngine implements EngineClient {
           const result = message.result;
           if (!isRecord(result) || !['live', 'restart'].includes(String(result.path)) ||
               !Array.isArray(result.replaced) || !Array.isArray(result.unapplied) ||
-              !result.replaced.every(x => Number.isSafeInteger(x) && (x as number) > 0)) {
-            this.load = undefined; this.ready = false;
-            load.reject(refusal('invalid', 'Malformed applyGraph acknowledgement.'));
-            this.notifySettled();
+              !result.replaced.every(x => Number.isSafeInteger(x) && (x as number) > 0) ||
+              new Set(result.replaced).size !== result.replaced.length) {
+            this.failGraphAck(load, 'Malformed applyGraph acknowledgement.');
             return;
           }
           const seen = new Set<string>();
@@ -357,19 +371,18 @@ export class RealEngine implements EngineClient {
             if (!isRecord(item) || !Number.isSafeInteger(item.moduleId) ||
                 typeof item.paramId !== 'string' || !item.paramId ||
                 seen.has(String(item.moduleId) + ':' + item.paramId)) {
-              this.load = undefined; this.ready = false;
-              load.reject(refusal('invalid', 'Malformed unapplied parameter list.'));
-              this.notifySettled();
+              this.failGraphAck(load, 'Malformed unapplied parameter list.');
               return;
             }
             seen.add(String(item.moduleId) + ':' + item.paramId);
             const old = this.confirmed?.modules.find(m => m.id === item.moduleId);
             const next = committed.modules.find(m => m.id === item.moduleId);
+            // Native E1a compares canonical runtime config bytes, which can
+            // ignore authored key order and non-execution/defaulted fields.
+            // Its 'replaced' IDs authoritatively identify non-continuing instances.
             if (!old || !next || old.module !== next.module ||
-                JSON.stringify(old.config ?? {}) !== JSON.stringify(next.config ?? {})) {
-              this.load = undefined; this.ready = false;
-              load.reject(refusal('invalid', 'Unapplied parameter is not a continuing instance.'));
-              this.notifySettled();
+                result.replaced.includes(item.moduleId)) {
+              this.failGraphAck(load, 'Unapplied parameter is not a continuing instance.');
               return;
             }
             const previous = old.parameters?.[item.paramId as string];
@@ -387,11 +400,21 @@ export class RealEngine implements EngineClient {
         this.ready = true;
         this.loadedOnce = true;
         this.load = undefined;
-        if (unapplied.length) for (const cb of this.unappliedCbs) cb(unapplied);
+        // A newer authored applyGraph already supersedes intermediate UI values.
+        // Reconcile only the final acknowledged document, not an earlier
+        // request whose unapplied values the next request can change again.
+        if (!this.graphQueue.length && unapplied.length)
+          for (const cb of this.unappliedCbs) cb(unapplied);
         load.resolve();
-        this.setState('real');
-        this.pumpEdits();
-        this.notifySettled();
+        if (this.graphQueue.length) {
+          this.load = this.graphQueue.shift()!;
+          this.ready = false;
+          this.dispatchLoad();
+        } else {
+          this.setState('real');
+          this.pumpEdits();
+          this.notifySettled();
+        }
       }
     } else if (p.kind === 'edit' && p.edit) {
       if (this.confirmed) applyMutation(this.confirmed, p.edit.mutation, this.usedIds);
@@ -406,18 +429,44 @@ export class RealEngine implements EngineClient {
     return this.submitGraph(patch, 'loadGraph');
   }
   applyGraph(patch: PatchV2): Promise<void> {
-    return this.applyGraphEnabled && this.ready
+    // A pending live replan is not grounds to silently restart untouched
+    // instances. Queue a second live replan behind its correlated ACK.
+    return this.applyGraphEnabled && (this.ready || this.load?.type === 'applyGraph')
       ? this.submitGraph(patch, 'applyGraph') : this.loadGraph(patch);
   }
+  /** Used only on a success reply whose metadata cannot be trusted. */
+  private failGraphAck(load: Load, message: string): void {
+    const error = refusal('invalid', message);
+    this.ready = false;
+    this.load = undefined;
+    load.reject(error);
+    for (const queued of this.graphQueue) queued.reject(error);
+    this.graphQueue = [];
+    this.notifySettled();
+  }
   private submitGraph(patch: PatchV2, type: 'loadGraph' | 'applyGraph'): Promise<void> {
+    const revision = ++this.revision;
+    if (type === 'applyGraph' && this.load?.type === 'applyGraph') {
+      return new Promise<void>((resolve, reject) => {
+        this.graphQueue.push({ id: this.id(), patch: copy(patch),
+          revision, type, resolve, reject, sent: false });
+      });
+    }
+    // A deliberate open/new/recovery load replaces any pending graph edits;
+    // only that explicit load may reset the native ID namespace.
     this.playhead = {};
     this.loadedOnce = true;
     this.ready = false;
     this.active = undefined;
     this.queue = [];
     this.lastEdit = undefined;
-    if (this.load) this.load.reject(refusal('unavailable', 'Patch load superseded.'));
-    const revision = ++this.revision;
+    if (this.load) {
+      this.pending.delete(this.load.id);
+      this.load.reject(refusal('unavailable', 'Patch load superseded.'));
+    }
+    for (const queued of this.graphQueue)
+      queued.reject(refusal('unavailable', 'Patch load superseded.'));
+    this.graphQueue = [];
     return new Promise<void>((resolve, reject) => {
       this.load = { id: this.id(), patch: copy(patch), revision, type, resolve, reject, sent: false };
       this.dispatchLoad();
@@ -430,7 +479,16 @@ export class RealEngine implements EngineClient {
     this.pending.set(l.id, { session: this.session, type: l.type, kind: 'load',
       revision: l.revision });
     try { this.send(l.id, l.type, { patch: l.patch }); }
-    catch { this.pending.delete(l.id); l.reject(refusal('unavailable', 'Bridge unavailable.')); this.load = undefined; this.notifySettled(); }
+    catch {
+      this.pending.delete(l.id);
+      this.load = undefined;
+      const err = refusal('unavailable', 'Bridge unavailable.');
+      l.reject(err);
+      for (const queued of this.graphQueue) queued.reject(err);
+      this.graphQueue = [];
+      this.ready = false;
+      this.notifySettled();
+    }
   }
 
   private enqueue(type: string, payload: Wire): void {

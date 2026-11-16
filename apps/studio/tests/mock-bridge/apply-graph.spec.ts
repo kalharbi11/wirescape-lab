@@ -129,3 +129,139 @@ test('opening a different patch remains loadGraph even when applyGraph is suppor
   await page.evaluate(p => window.__wirescapeTest.load(p, 'Opened patch'), patch([{ id: 8, module: 'essentials.vco' }]));
   await expectGraphCommands(page, ['loadGraph']);
 });
+
+
+test('generation-only push cannot confirm applyGraph until delayed ACK reports unapplied parameters', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'frequency' }]);
+    (window as any).__mockBridge.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 440 } }],
+      connections: [],
+    });
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.loseHeldWithPush(true));
+  const afterPush = await page.evaluate(() => {
+    const real = window.__wirescapeTest.engine as any;
+    return { settled: real.settleUnansweredLoad(true),
+      confirmed: real.confirmed.modules[0].parameters.frequency,
+      visible: window.__wirescapeTest.state().modules[0].parameters.frequency };
+  });
+  expect(afterPush).toEqual({ settled: false, confirmed: 220, visible: 440 });
+  await page.evaluate(() => (window as any).__mockBridge.replyHeldLate());
+  await expect.poll(async () => (await state(page)).modules[0].parameters.frequency).toBe(220);
+  expect(await page.evaluate(() => (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency))
+    .toBe(220);
+  expect(await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].parameters.frequency))
+    .toBe(220);
+});
+
+test('CC Learn generation push after delayed ACK threshold is not false success', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vcf' }]);
+  await page.getByTestId('knob-2-cutoff').click({ button: 'right' });
+  await page.getByTestId('context-midi').click();
+  await expect(async () => {
+    await page.evaluate(() => (window as any).__mockBridge.captureCc(
+      'M8 MIDI 1|M8:M8 MIDI 1', 3, 74, 64));
+    await expect(page.getByTestId('learn-message')).toContainText('CC 74', { timeout: 600 });
+  }).toPass({ timeout: 10_000 });
+  await page.evaluate(() => (window as any).__mockBridge.holdNext('applyGraph'));
+  await page.getByTestId('learn-confirm').click();
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.loseHeldWithPush(true));
+  // App's legacy-load recovery timer checks the gen after 3 seconds. A
+  // generation push must not release the Learn busy gate without applyGraph ACK.
+  await page.waitForTimeout(3150);
+  await page.evaluate(() => (window as any).__mockBridge.status());
+  await expect(page.getByTestId('midi-learn-applying')).toBeVisible();
+  await page.evaluate(() => (window as any).__mockBridge.replyHeldLate());
+  await expect(page.getByTestId('midi-learn-applying')).toBeHidden();
+  expect((await state(page)).modules.some((m: any) => m.module === 'midi.cc_to_cv')).toBe(true);
+});
+
+test('two overlapping snapshot replans serialize as applyGraph; stale ACK cannot alter doc or gen', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.holdNext('applyGraph');
+    for (const frequency of [440, 660]) {
+      window.__wirescapeTest.restoreSnapshot({
+        format: 'wirescape.native.patch', version: 2,
+        modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency } }],
+        connections: [],
+      });
+    }
+  });
+  await expectGraphCommands(page, ['applyGraph']); // second queued, not demoted to loadGraph
+  const first = (await wires(page))[0] as any;
+  await page.evaluate(() => (window as any).__mockBridge.acceptHeld());
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].parameters.frequency))
+    .toBe(660);
+  const beforeLate = await page.evaluate(() => ({
+    gen: (window.__wirescapeTest.engine as any).generation(),
+    committed: (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency,
+    authored: window.__wirescapeTest.state().modules[0].parameters.frequency,
+  }));
+  expect(beforeLate.committed).toBe(660);
+  expect(beforeLate.authored).toBe(660);
+  await page.evaluate(id => (window as any).__mockBridge.lateReply(id, '999'), first.id);
+  const afterLate = await page.evaluate(() => ({
+    gen: (window.__wirescapeTest.engine as any).generation(),
+    committed: (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency,
+    authored: window.__wirescapeTest.state().modules[0].parameters.frequency,
+  }));
+  expect(afterLate).toEqual(beforeLate);
+});
+
+test('reordered equivalent config and native-ignored config fields allow valid unapplied ACK', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    config: { first: 1, second: 2 }, parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'frequency' }]);
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        config: { second: 2, first: 1 }, parameters: { frequency: 440 } }],
+      connections: [],
+    });
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await expect.poll(async () => (await state(page)).modules[0].parameters.frequency).toBe(220);
+  expect((await page.evaluate(() => (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency)))
+    .toBe(220);
+  // Native canonical config may ignore a source-authored key. The native
+  // replaced list (not JSON.stringify of authoring config) is authoritative.
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setNativeReplaced([]);
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'frequency' }]);
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        config: { first: 1, second: 2, ignoredDefault: 0 }, parameters: { frequency: 880 } }],
+      connections: [],
+    });
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await state(page)).modules[0].parameters.frequency).toBe(220);
+});
+
+test('native replaced ID in unapplied list still fails closed', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setNativeReplaced([2]);
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'frequency' }]);
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        config: { newMode: 1 }, parameters: { frequency: 440 } }],
+      connections: [],
+    });
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await expect.poll(() => page.evaluate(() => (window.__wirescapeTest.engine as any).ready)).toBe(false);
+  const confirmed = await page.evaluate(() => (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency);
+  expect(confirmed).toBe(220);
+});
