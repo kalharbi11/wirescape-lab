@@ -41,6 +41,12 @@ jobs:
         run: |
           npm ci
           npm run typecheck
+      - name: Compile TS payload examples and execute generated validator regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          apps/studio/node_modules/.bin/tsc --strict --skipLibCheck --target es2022 --module commonjs --moduleResolution node --rootDir . --outDir build/pv1/ts tools/protocol/test_generated.ts
+          node build/pv1/ts/tools/protocol/test_generated.js
       - name: Configure and compile device-free sidecar
         run: |
           python -m pip install cmake==4.2.3 ninja==1.13.0
