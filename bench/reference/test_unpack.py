@@ -10,7 +10,7 @@ import tempfile
 import unittest
 import zlib
 
-from unpack import decode_case, unpack
+from unpack import decode_case, unpack, unpack_frozen
 
 
 def encode(body):
@@ -60,6 +60,48 @@ class UnpackTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "inventory mismatch"):
                 unpack([filename], root / "out", "linux-x64")
             self.assertFalse((root / "out").exists())
+
+
+
+class FrozenCorpusTests(unittest.TestCase):
+    @staticmethod
+    def locations():
+        root = Path(__file__).resolve().parents[2]
+        fixtures = root / "native/tests/fixtures/abi2"
+        return fixtures / "abi1_reference_hash_manifest.json", fixtures / "refs"
+
+    def test_all_983_source_verified_cases_and_windows_overrides(self):
+        manifest, corpus = self.locations()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            linux = unpack_frozen(manifest, corpus, root / "linux", "linux-x64")
+            windows = unpack_frozen(manifest, corpus, root / "windows", "windows-x64")
+            self.assertEqual(linux["cases"], 983)
+            self.assertEqual(windows["cases"], 983)
+            self.assertEqual(linux["bytes"], 45400064)
+            self.assertEqual(windows["bytes"], 45400064)
+            self.assertEqual(linux["source_commit"], "0aa468346ed1f3260b7efe8748ff181e22a64674")
+            self.assertEqual(
+                (root / "linux/shim_steady.f32le").read_bytes(),
+                (root / "windows/shim_steady.f32le").read_bytes())
+            self.assertNotEqual(
+                (root / "linux/module_vcf_48000_256.f32le").read_bytes(),
+                (root / "windows/module_vcf_48000_256.f32le").read_bytes())
+            self.assertEqual(
+                (root / "linux/utility_clock.desc").read_bytes(),
+                (root / "windows/utility_clock.desc").read_bytes())
+
+    def test_changed_source_checksum_is_rejected(self):
+        manifest, corpus = self.locations()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            data = json.loads(manifest.read_text())
+            data["corpus"]["lzma_sha256"] = "0" * 64
+            bad = root / "changed.json"
+            bad.write_text(json.dumps(data))
+            with self.assertRaisesRegex(ValueError, "compressed corpus digest mismatch"):
+                unpack_frozen(bad, corpus, root / "rejected", "linux-x64")
+            self.assertFalse((root / "rejected").exists())
 
 
 if __name__ == "__main__":
