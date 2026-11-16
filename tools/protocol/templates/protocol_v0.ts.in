@@ -7,7 +7,22 @@ type Shape = Record<string, unknown>;
 const schema: Shape = __SCHEMA_JSON__ as Shape;
 
 const record = (x: unknown): x is Shape => typeof x === 'object' && x !== null && !Array.isArray(x);
-const equal = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+// JSON Schema equality is structural; object key order is immaterial, and
+// Number 1 must never equal Boolean true (nor Number 0 Boolean false).
+const equal = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length
+      && a.every((item, index) => equal(item, b[index]));
+  }
+  if (record(a) || record(b)) {
+    if (!record(a) || !record(b)) return false;
+    const keys = Object.keys(a);
+    return keys.length === Object.keys(b).length
+      && keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && equal(a[key], b[key]));
+  }
+  return false;
+};
 
 function matches(shape: Shape, value: unknown, depth: number): boolean {
   if (depth > 64) return false;
