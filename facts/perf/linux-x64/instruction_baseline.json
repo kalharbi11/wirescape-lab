@@ -1,0 +1,1141 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "architecture": "x86_64",
+  "commit": "d5ba23e1af128d689f9be3bd14c5bcb9b0961699",
+  "configuration": "Release plus -g",
+  "date_et": "2026-11-15",
+  "elapsed_seconds": 73.417,
+  "lengths_blocks": [
+    12,
+    24
+  ],
+  "machine": "linux-x64",
+  "measurement_block_frames": 128,
+  "method": "callgrind-Ir-two-length-difference-v1",
+  "note_source": "bench/golden/render.py events_for_patch; C4 on frame 0, off frame 240000",
+  "rows": [
+    {
+      "block_frames": 256,
+      "id": "fixed/abi1_mono",
+      "ir_per_block": 87889.65,
+      "status": "measured",
+      "totals": [
+        3125123,
+        4882916
+      ]
+    },
+    {
+      "block_frames": 256,
+      "id": "fixed/abi2_mono",
+      "ir_per_block": 72056.65,
+      "status": "measured",
+      "totals": [
+        4534030,
+        5975163
+      ]
+    },
+    {
+      "block_frames": 256,
+      "id": "fixed/abi2_modulated",
+      "ir_per_block": 199061.45,
+      "status": "measured",
+      "totals": [
+        5805450,
+        9786679
+      ]
+    },
+    {
+      "block_frames": 256,
+      "id": "fixed/abi2_poly8",
+      "ir_per_block": 554065.2,
+      "status": "measured",
+      "totals": [
+        9708516,
+        20789820
+      ]
+    },
+    {
+      "block_frames": 256,
+      "id": "fixed/abi2_quad_vca_lpg8",
+      "ir_per_block": 1672275.2,
+      "status": "measured",
+      "totals": [
+        21357492,
+        54802996
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-01-first-tone.json",
+      "ir_per_block": 311362,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        10356989,
+        14093333
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-02-fm-filter-lfo.json",
+      "ir_per_block": 632100.5833333334,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        15428357,
+        23013564
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-03-echo-and-reverb.json",
+      "ir_per_block": 725543.8333333334,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        20450716,
+        29157242
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-04-sequencer-and-quantizer.json",
+      "ir_per_block": 282361,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        16772362,
+        20160694
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-05-random-melody.json",
+      "ir_per_block": 511537.75,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        19848884,
+        25987337
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-06-chaos-keys.json",
+      "ir_per_block": 1433505,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        27484582,
+        44686642
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-07-macro-keys.json",
+      "ir_per_block": 747230.8333333334,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        19615516,
+        28582286
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/basics-08-clocked-groove.json",
+      "ir_per_block": 336332,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        16735683,
+        20771667
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/chaos-01-ember-veil-pad.json",
+      "ir_per_block": 1661195,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        31898535,
+        51832875
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/chaos-02-wireglass-lead.json",
+      "ir_per_block": 1338135.9166666667,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        30904173,
+        46961804
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/chaos-03-orbiting-iron-fx.json",
+      "ir_per_block": 769815.8333333334,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        23914189,
+        33151979
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/chaos-04-radio-static-fx.json",
+      "ir_per_block": 705551,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        22236079,
+        30702691
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/chaos-05-moonlit-drift-pad.json",
+      "ir_per_block": 1493053.5833333333,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        28514132,
+        46430775
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/osc-out-01.json",
+      "ir_per_block": 364812.3333333333,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        12032793,
+        16410541
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/quad-vca-01-lpg-plucks.json",
+      "ir_per_block": 535559.3333333334,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        13745977,
+        20172689
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/quad-vca-02-four-gate-mix.json",
+      "ir_per_block": 268015.75,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        11077925,
+        14294114
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-01-hollow-chapel.json",
+      "ir_per_block": 1146838.1666666667,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        27807210,
+        41569268
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-02-breathing-walls.json",
+      "ir_per_block": 928189.25,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        23758158,
+        34896429
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-03-black-ice-choir.json",
+      "ir_per_block": 1684722.25,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        35043646,
+        55260313
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-04-vowel-apparitions.json",
+      "ir_per_block": 948775.1666666666,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        26523381,
+        37908683
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-05-glass-cathedrals.json",
+      "ir_per_block": 1299324.5,
+      "scripted_note_count": 2,
+      "status": "measured",
+      "totals": [
+        30360674,
+        45952568
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-06-dust-reactor.json",
+      "ir_per_block": 750358.1666666666,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        24681571,
+        33685869
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-07-witching-hour.json",
+      "ir_per_block": 591566,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        23620092,
+        30718884
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "bundled/scene-08-neon-elegy.json",
+      "ir_per_block": 602320.9166666666,
+      "scripted_note_count": 0,
+      "status": "measured",
+      "totals": [
+        24947823,
+        32175674
+      ]
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.adsr/voices1",
+      "ir_per_block": 13725.25,
+      "module": "essentials.adsr",
+      "status": "measured",
+      "totals": [
+        3274551,
+        3439254
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.adsr/voices8",
+      "ir_per_block": 84994.75,
+      "module": "essentials.adsr",
+      "status": "measured",
+      "totals": [
+        4129064,
+        5149001
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.chaos_lite/voices1",
+      "ir_per_block": 257775.41666666666,
+      "module": "essentials.chaos_lite",
+      "status": "measured",
+      "totals": [
+        7397592,
+        10490897
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.chaos_lite/voices8",
+      "ir_per_block": 2030789.1666666667,
+      "module": "essentials.chaos_lite",
+      "status": "measured",
+      "totals": [
+        28668027,
+        53037497
+      ],
+      "voices": 8
+    },
+    {
+      "id": "module/essentials.chord/voices1",
+      "module": "essentials.chord",
+      "reason": "exit 2: module_cpu_probe: create/prepare failed",
+      "status": "unavailable",
+      "voices": 1
+    },
+    {
+      "id": "module/essentials.chord/voices8",
+      "module": "essentials.chord",
+      "reason": "exit 2: module_cpu_probe: create/prepare failed",
+      "status": "unavailable",
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.clock/voices1",
+      "ir_per_block": 24840,
+      "module": "essentials.clock",
+      "status": "measured",
+      "totals": [
+        3410833,
+        3708913
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.clock/voices8",
+      "ir_per_block": 174582,
+      "module": "essentials.clock",
+      "status": "measured",
+      "totals": [
+        5207685,
+        7302669
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.function_envelope/voices1",
+      "ir_per_block": 21203.583333333332,
+      "module": "essentials.function_envelope",
+      "status": "measured",
+      "totals": [
+        3367004,
+        3621447
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.function_envelope/voices8",
+      "ir_per_block": 145878.75,
+      "module": "essentials.function_envelope",
+      "status": "measured",
+      "totals": [
+        4862947,
+        6613492
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.ladder/voices1",
+      "ir_per_block": 42702.25,
+      "module": "essentials.ladder",
+      "status": "measured",
+      "totals": [
+        3627006,
+        4139433
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.ladder/voices8",
+      "ir_per_block": 317838.4166666667,
+      "module": "essentials.ladder",
+      "status": "measured",
+      "totals": [
+        6928651,
+        10742712
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.lfo/voices1",
+      "ir_per_block": 34600.083333333336,
+      "module": "essentials.lfo",
+      "status": "measured",
+      "totals": [
+        3506299,
+        3921500
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.lfo/voices8",
+      "ir_per_block": 251668.33333333334,
+      "module": "essentials.lfo",
+      "status": "measured",
+      "totals": [
+        5922314,
+        8942334
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.mixer/voices1",
+      "ir_per_block": 19904.666666666668,
+      "module": "essentials.mixer",
+      "status": "measured",
+      "totals": [
+        3351819,
+        3590675
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.mixer/voices8",
+      "ir_per_block": 135541.5,
+      "module": "essentials.mixer",
+      "status": "measured",
+      "totals": [
+        4739265,
+        6365763
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.noise/voices1",
+      "ir_per_block": 12639.166666666666,
+      "module": "essentials.noise",
+      "status": "measured",
+      "totals": [
+        3261617,
+        3413287
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.noise/voices8",
+      "ir_per_block": 78047.58333333333,
+      "module": "essentials.noise",
+      "status": "measured",
+      "totals": [
+        4046671,
+        4983242
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.notes_to_cv/voices1",
+      "ir_per_block": 46837.25,
+      "module": "essentials.notes_to_cv",
+      "status": "measured",
+      "totals": [
+        3726754,
+        4288801
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.notes_to_cv/voices8",
+      "ir_per_block": 46844.75,
+      "module": "essentials.notes_to_cv",
+      "status": "measured",
+      "totals": [
+        3726785,
+        4288922
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.output/voices1",
+      "ir_per_block": 9523.25,
+      "module": "essentials.output",
+      "status": "measured",
+      "totals": [
+        3223535,
+        3337814
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.output/voices8",
+      "ir_per_block": 53491.833333333336,
+      "module": "essentials.output",
+      "status": "measured",
+      "totals": [
+        3750907,
+        4392809
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.quad_vca/voices1",
+      "ir_per_block": 53357.083333333336,
+      "module": "essentials.quad_vca",
+      "status": "measured",
+      "totals": [
+        3905586,
+        4545871
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.quad_vca/voices8",
+      "ir_per_block": 395673.8333333333,
+      "module": "essentials.quad_vca",
+      "status": "measured",
+      "totals": [
+        8013396,
+        12761482
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.quantizer/voices1",
+      "ir_per_block": 11740.583333333334,
+      "module": "essentials.quantizer",
+      "status": "measured",
+      "totals": [
+        3266439,
+        3407326
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.quantizer/voices8",
+      "ir_per_block": 62652.166666666664,
+      "module": "essentials.quantizer",
+      "status": "measured",
+      "totals": [
+        3878764,
+        4630590
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.resonator/voices1",
+      "ir_per_block": 95362.91666666667,
+      "module": "essentials.resonator",
+      "status": "measured",
+      "totals": [
+        4951480,
+        6095835
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.resonator/voices8",
+      "ir_per_block": 737097.6666666666,
+      "module": "essentials.resonator",
+      "status": "measured",
+      "totals": [
+        12652252,
+        21497424
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.scale_offset/voices1",
+      "ir_per_block": 17710.75,
+      "module": "essentials.scale_offset",
+      "status": "measured",
+      "totals": [
+        3324583,
+        3537112
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.scale_offset/voices8",
+      "ir_per_block": 118054.08333333333,
+      "module": "essentials.scale_offset",
+      "status": "measured",
+      "totals": [
+        4528961,
+        5945610
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.slew/voices1",
+      "ir_per_block": 18951.416666666668,
+      "module": "essentials.slew",
+      "status": "measured",
+      "totals": [
+        3336399,
+        3563816
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.slew/voices8",
+      "ir_per_block": 128151.58333333333,
+      "module": "essentials.slew",
+      "status": "measured",
+      "totals": [
+        4649033,
+        6186852
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vca/voices1",
+      "ir_per_block": 5458.666666666667,
+      "module": "essentials.vca",
+      "status": "measured",
+      "totals": [
+        3175403,
+        3240907
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vca/voices8",
+      "ir_per_block": 20055.083333333332,
+      "module": "essentials.vca",
+      "status": "measured",
+      "totals": [
+        3350428,
+        3591089
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vcf/voices1",
+      "ir_per_block": 21123.75,
+      "module": "essentials.vcf",
+      "status": "measured",
+      "totals": [
+        3372867,
+        3626352
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vcf/voices8",
+      "ir_per_block": 144419.08333333334,
+      "module": "essentials.vcf",
+      "status": "measured",
+      "totals": [
+        4853189,
+        6586218
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vco/voices1",
+      "ir_per_block": 41250.583333333336,
+      "module": "essentials.vco",
+      "status": "measured",
+      "totals": [
+        3602621,
+        4097628
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/essentials.vco/voices8",
+      "ir_per_block": 305923,
+      "module": "essentials.vco",
+      "status": "measured",
+      "totals": [
+        6768475,
+        10439551
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/example.random_source/voices1",
+      "ir_per_block": 13523.583333333334,
+      "module": "example.random_source",
+      "status": "measured",
+      "totals": [
+        3284090,
+        3446373
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/example.random_source/voices8",
+      "ir_per_block": 13524.833333333334,
+      "module": "example.random_source",
+      "status": "measured",
+      "totals": [
+        3284064,
+        3446362
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/example.step_sequencer/voices1",
+      "ir_per_block": 19036.166666666668,
+      "module": "example.step_sequencer",
+      "status": "measured",
+      "totals": [
+        3376410,
+        3604844
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/example.step_sequencer/voices8",
+      "ir_per_block": 19027,
+      "module": "example.step_sequencer",
+      "status": "measured",
+      "totals": [
+        3376411,
+        3604735
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/fx.delay/voices1",
+      "ir_per_block": 47345.333333333336,
+      "module": "fx.delay",
+      "status": "measured",
+      "totals": [
+        5993094,
+        6561238
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/fx.delay/voices8",
+      "ir_per_block": 47333.25,
+      "module": "fx.delay",
+      "status": "measured",
+      "totals": [
+        5993143,
+        6561142
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/fx.reverb/voices1",
+      "ir_per_block": 215839.58333333334,
+      "module": "fx.reverb",
+      "status": "measured",
+      "totals": [
+        6238801,
+        8828876
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/fx.reverb/voices8",
+      "ir_per_block": 215835.5,
+      "module": "fx.reverb",
+      "status": "measured",
+      "totals": [
+        6238802,
+        8828828
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/host.keyboard/voices1",
+      "ir_per_block": 124647.25,
+      "module": "host.keyboard",
+      "status": "measured",
+      "totals": [
+        4673766,
+        6169533
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/host.keyboard/voices8",
+      "ir_per_block": 124672.75,
+      "module": "host.keyboard",
+      "status": "measured",
+      "totals": [
+        4673745,
+        6169818
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.cc_to_cv/voices1",
+      "ir_per_block": 59532.75,
+      "module": "midi.cc_to_cv",
+      "status": "measured",
+      "totals": [
+        3902977,
+        4617370
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.cc_to_cv/voices8",
+      "ir_per_block": 59523.583333333336,
+      "module": "midi.cc_to_cv",
+      "status": "measured",
+      "totals": [
+        3902990,
+        4617273
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.in/voices1",
+      "ir_per_block": 3350.1666666666665,
+      "module": "midi.in",
+      "status": "measured",
+      "totals": [
+        3196808,
+        3237010
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.in/voices8",
+      "ir_per_block": 3348.9166666666665,
+      "module": "midi.in",
+      "status": "measured",
+      "totals": [
+        3196799,
+        3236986
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.to_cv/voices1",
+      "ir_per_block": 116091.58333333333,
+      "module": "midi.to_cv",
+      "status": "measured",
+      "totals": [
+        4710803,
+        6103902
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/midi.to_cv/voices8",
+      "ir_per_block": 116103,
+      "module": "midi.to_cv",
+      "status": "measured",
+      "totals": [
+        4710778,
+        6104014
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/monitor/voices1",
+      "ir_per_block": 3266.4166666666665,
+      "module": "monitor",
+      "status": "measured",
+      "totals": [
+        3509276,
+        3548473
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/monitor/voices8",
+      "ir_per_block": 3257.3333333333335,
+      "module": "monitor",
+      "status": "measured",
+      "totals": [
+        3509290,
+        3548378
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/osc.in/voices1",
+      "ir_per_block": 53874.5,
+      "module": "osc.in",
+      "status": "measured",
+      "totals": [
+        4219348,
+        4865842
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/osc.in/voices8",
+      "ir_per_block": 53870.75,
+      "module": "osc.in",
+      "status": "measured",
+      "totals": [
+        4219378,
+        4865827
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/osc.out/voices1",
+      "module": "osc.out",
+      "status": "measured",
+      "voices": 1,
+      "totals": [
+        3156107,
+        3200000
+      ],
+      "ir_per_block": 3657.75
+    },
+    {
+      "block_frames": 128,
+      "id": "module/osc.out/voices8",
+      "module": "osc.out",
+      "status": "measured",
+      "voices": 8,
+      "totals": [
+        3156127,
+        3200038
+      ],
+      "ir_per_block": 3659.25
+    },
+    {
+      "block_frames": 128,
+      "id": "module/ports.macro_oscillator/voices1",
+      "ir_per_block": 117939.33333333333,
+      "module": "ports.macro_oscillator",
+      "status": "measured",
+      "totals": [
+        5617512,
+        7032784
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/ports.macro_oscillator/voices8",
+      "ir_per_block": 915249.75,
+      "module": "ports.macro_oscillator",
+      "status": "measured",
+      "totals": [
+        14830500,
+        25813497
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sequencing.groove/voices1",
+      "ir_per_block": 128579.33333333333,
+      "module": "sequencing.groove",
+      "status": "measured",
+      "totals": [
+        4890342,
+        6433294
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sequencing.groove/voices8",
+      "ir_per_block": 128575.83333333333,
+      "module": "sequencing.groove",
+      "status": "measured",
+      "totals": [
+        4890308,
+        6433218
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sound.blend/voices1",
+      "ir_per_block": 37966.166666666664,
+      "module": "sound.blend",
+      "status": "measured",
+      "totals": [
+        3565537,
+        4021131
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sound.blend/voices8",
+      "ir_per_block": 37973.5,
+      "module": "sound.blend",
+      "status": "measured",
+      "totals": [
+        3565523,
+        4021205
+      ],
+      "voices": 8
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sound.spectral/voices1",
+      "ir_per_block": 239455.58333333334,
+      "module": "sound.spectral",
+      "status": "measured",
+      "totals": [
+        6633600,
+        9507067
+      ],
+      "voices": 1
+    },
+    {
+      "block_frames": 128,
+      "id": "module/sound.spectral/voices8",
+      "ir_per_block": 239459.91666666666,
+      "module": "sound.spectral",
+      "status": "measured",
+      "totals": [
+        6633582,
+        9507101
+      ],
+      "voices": 8
+    }
+  ],
+  "sample_rate_hz": 48000,
+  "schema": 1,
+  "valgrind_version": "valgrind-3.22.0"
+}
