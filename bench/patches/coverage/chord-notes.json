@@ -1,0 +1,99 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Coverage: Chord note event to VCO",
+  "description": "Device-free deterministic module contribution fixture",
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 37,
+    "timing_mode": "immediate"
+  },
+  "modules": [
+    {
+      "id": 1,
+      "module": "host.keyboard",
+      "version": 1,
+      "parameters": {
+        "voices": 4
+      }
+    },
+    {
+      "id": 2,
+      "module": "essentials.chord",
+      "version": 1,
+      "parameters": {
+        "enable1": 1,
+        "shift1": 12,
+        "enable2": 1,
+        "shift2": -12,
+        "enable3": 1,
+        "shift3": 7
+      }
+    },
+    {
+      "id": 3,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 4,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    }
+  ],
+  "connections": [
+    {
+      "kind": "event",
+      "from": {
+        "module": 1,
+        "port": "notes"
+      },
+      "to": {
+        "module": 2,
+        "port": "notes"
+      }
+    },
+    {
+      "kind": "event",
+      "from": {
+        "module": 2,
+        "port": "notes"
+      },
+      "to": {
+        "module": 3,
+        "port": "notes"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 3,
+        "port": "audio"
+      },
+      "to": {
+        "module": 4,
+        "port": "audio"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ]
+}

@@ -112,6 +112,10 @@ def compare(before, after, tolerance_db=0.0, raw_before=None, raw_after=None,
             status = "different"
             reason = "patch missing from one reference"
         else:
+            if name.startswith("coverage/") and (not a.get("fixture_sha256") or
+                    a.get("fixture_sha256") != b.get("fixture_sha256") or
+                    not a.get("control_sha256") or a.get("control_sha256") != b.get("control_sha256")):
+                raise ValueError(f"{name}: base/head coverage fixture or bypass-control bytes differ")
             ab, bb = a["third_octave_bands"], b["third_octave_bands"]
             if len(ab) != 31 or len(bb) != 31:
                 raise ValueError(f"{name}: expected 31 one-third-octave bands")

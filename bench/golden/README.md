@@ -84,3 +84,13 @@ Sound-change: declaration classifies the same measurement as declared.
 The script restores the source even on failure. No native change is committed.
 
 No physical audio/MIDI devices or LAN sockets are accessed.
+
+## T0.11: explicit coverage scope and source provenance
+
+Supply --coverage-root head on **both** base and head invocations. The `bench/golden/coverage_manifest.json` fixture inventory is mandatory; a missing or extra top-level coverage fixture and any missing bypass control fail the render. The three top-level native-v2 coverage patches currently target NotesToCV, Chord, and Spectral, with source-control bypass patches stored under `bench/patches/coverage/controls/`. They are keyed by `coverage/` rather than `bundled/` or `owner/`, so the original 24 bundled rows remain individually visible and missing bundled/owner patches still fail.
+
+Each coverage patch must render non-silent float32 PCM and differ from its linked bypass control. The measured per-patch record contains its exact fixture and bypass-control byte SHA-256 plus output RMS/peak and observed peak sample delta. The comparator rejects mismatched coverage fixture/control bytes between base and head before applying sound declarations or dB tolerance. The metadata records engine_source_commit from the checkout whose binary runs, and fixture_source_commit independently from the fixture checkout. These may legitimately differ on the base render; they must never be silently conflated.
+
+The hosted head also renders **25 bundled-module cable-ablation controls** with `bench/golden/probe_bundled.py`. They are generated into temporary directories from byte-hashed original bundled JSON without changing product files. Each intervention removes only cables from the specified module (or cables into Output). These results measure causal output differences; a silent original, zero output delta, invalid control or renderer error remains explicitly `unavailable`. On every runner, `bench/golden/inventory.py` records all 34 registry IDs, the original bundled node/pair inventory, and measured or unverified per-module evidence, with actual engine/fixture SHAs, CPU model and CI run URL.
+
+Current renderer limitations for raw MIDI, OSC ingress and non-PCM outbound/monitor taps are documented with reproduction in `bench/patches/coverage/README.md`. Do not interpret successful 24+3 golden comparisons alone as proof all 34 modules contribute. CI artifacts include numeric `coverage-inventory.json` and `bundled-interventions.json`; keep the final PR draft until the all-34 acceptance criterion is truly met or Fable explicitly handles instrumentability blockers.
