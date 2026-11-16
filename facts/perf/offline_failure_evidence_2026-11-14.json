@@ -1,0 +1,69 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "source": {
+    "lab_commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+    "workflow_run": 43675998104,
+    "artifact_id": 14146489517,
+    "artifact_name": "facts-raw-linux-x64",
+    "url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43675998104",
+    "archive_paths": [
+      "l4/full/perf/patch_soak.json",
+      "l4/full/perf/module_cpu.json"
+    ],
+    "measured_date_et": "2026-11-14"
+  },
+  "inspection": {
+    "date_et": "2026-11-15",
+    "lab_main_commit": "84bd0fe947aeba096b81039d973f1c60cf6dd4dc",
+    "method": "group by patch/status, read raw stderr and exit_code, compare with source at current main; no new benchmark numbers generated"
+  },
+  "machine": {
+    "runner": "linux-x64",
+    "cpu": "Intel(R) Xeon(R) 6975P-C",
+    "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+    "sample_rate_hz": 48000,
+    "blocks_frames": [
+      64,
+      128,
+      256
+    ],
+    "soak_duration_seconds": 1,
+    "audio_devices": "not accessed",
+    "midi_devices": "not accessed",
+    "lan_sockets": "not accessed"
+  },
+  "soak": {
+    "total_rows": 72,
+    "unavailable_rows": 36,
+    "unavailable_distinct_patches": 12,
+    "rows_per_unavailable_patch": 3,
+    "exit_code": 1,
+    "stderr": "wirescape_soak: graph setup/render failed",
+    "failing_patches": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "osc-out-01.json",
+      "quad-vca-01-lpg-plucks.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json"
+    ],
+    "remaining_measured_rows": 36,
+    "keyboard_module_in_all_failing_patches": true,
+    "runtime_check": "native/engine2/tests/soak.cpp: require(allocations==0 && e->meter().faults==0 && peak>0); error line does not identify the failed conjunct"
+  },
+  "chord_cpu": {
+    "module": "essentials.chord",
+    "unavailable_rows": 6,
+    "exit_code": 2,
+    "stderr": "module_cpu_probe: create/prepare failed",
+    "direct_probe": "native/engine2/tests/module_cpu_probe.cpp: ws2_config data=nullptr, bytes=0",
+    "module_requirement": "native/modules2/chord/dsp.h:54-56: four config bytes",
+    "document_adapter": "native/document/runtime_module_config.h:35-38 supplies instance ID as four bytes"
+  }
+}

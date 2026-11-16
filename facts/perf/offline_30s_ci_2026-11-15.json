@@ -1,0 +1,1503 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "source_type": "CI staged and raw measurement projection",
+  "method": "Parsed the staged and raw artifact patch_soak.json from workflow 43745119473; compared all 72 rows for equality on both Linux runners and retained the indicated row fields. Full measurements remain in the linked artifacts.",
+  "measurement_date_et": "2026-11-15",
+  "lab_branch_head": "72c3e876fcdc0bafebeb32b5807134537b166300",
+  "ci_checkout_commit": "cfdd3770cb8ecedc2cf8c2119b9888545c4ec74d",
+  "source_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43745119473",
+  "sample_rate_hz": 48000,
+  "block_sizes_frames": [
+    64,
+    128,
+    256
+  ],
+  "seconds_per_patch_block": 30,
+  "measurement_fields": "status, patch, block_frames, seconds, input_mode, render_ns.p99 (as render_p99_ns); derived graph source preflight and substitution",
+  "machines": {
+    "linux-x64": {
+      "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "staged_artifact_id": 14176496297,
+      "raw_artifact_id": 14175669984,
+      "staged_patch_soak_sha256": "764afa93478efa37b0a03f42dd1600baa2f7e3010bc813679545abf60dace280",
+      "rows": [
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 9954,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 12062,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 25809,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 15187,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 31042,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 46090,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 25240,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 43868,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 87075,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 19234
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 38333
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 65578
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 36081
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 46359
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 97161
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 29245,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 64940,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 115099,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 29561,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 45882,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 98800,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 16401
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 31737
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 59440
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 38186,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 85159,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 143770,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 54164,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 65378,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 123789,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 36632
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 65507
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 135563
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 30722
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 77309
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 116582
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 31815,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 53110,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 104704,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 11820,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 28811,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 34438,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 11815,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 17424,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 39732,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 11620
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 19085
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 41630
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 54323
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 117759
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 196590
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 44680
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 93272
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 160302
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 40719,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 72448,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 139553,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 33181,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 65699,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 116238,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 73089
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 126277
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 259933
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 38280
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 90790
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 137604
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 32617
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 72324
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 107347
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 55216
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 70850
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 129944
+        }
+      ],
+      "late_deadlines_total": 2
+    },
+    "linux-arm64": {
+      "cpu": "0xd49",
+      "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+      "staged_artifact_id": 14176446765,
+      "raw_artifact_id": 14176182712,
+      "staged_patch_soak_sha256": "201116a61eef937f43bb937c477e673139465cad4b8d297440c39d5d693de2f8",
+      "rows": [
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 10967,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 14519,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-01-first-tone.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 21415,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 16727,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 26622,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 49613,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 22998,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 37502,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 74468,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 19095
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 31270
+        },
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 52293
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 24678
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 41933
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 78019
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 31743,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 51269,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 99098,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 22583,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 37982,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 68916,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 17607
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 29022
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 47645
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 36749,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 66148,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 124952,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 35254,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 64413,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 122424,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 36022
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 63404
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 116801
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 30894
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 59373
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 109466
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 28782,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 54877,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 94618,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 12759,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 18750,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 30766,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 13952,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 19254,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 35022,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 12735
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 20703
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 37550
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 51885
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 98794
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 191748
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 42029
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 79363
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 152631
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 37598,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 64452,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 123913,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 32406,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 54237,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "clocked_step_sequencer_for_host_keyboard",
+          "render_p99_ns": 103313,
+          "source_patch_status": "unavailable",
+          "source_patch_exit_code": 1,
+          "source_patch_error": "wirescape_soak: graph setup/render failed",
+          "scripted_source": "essentials.clock -> example.step_sequencer"
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 59604
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 117369
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 224339
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 39493
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 65996
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 128056
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 31574
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 55957
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 103210
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 64,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 33238
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 128,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 59957
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "block_frames": 256,
+          "seconds": 30,
+          "status": "measured",
+          "input_mode": "original",
+          "render_p99_ns": 109650
+        }
+      ],
+      "late_deadlines_total": 0
+    }
+  },
+  "soak_validation": {
+    "per_runner_patch_count": 24,
+    "per_runner_row_count": 72,
+    "per_runner_measured_rows": 72,
+    "per_runner_original_graph_rows": 36,
+    "per_runner_derived_graph_rows": 36,
+    "per_runner_soak_failure_rows": 0,
+    "per_runner_allocations_sum": 0,
+    "per_runner_faults_sum": 0
+  },
+  "chord_direct_cpu_probe": {
+    "module": "essentials.chord",
+    "per_runner_unavailable_rows": 6,
+    "per_runner_measured_rows": 0,
+    "exit_code": 2,
+    "stderr": "module_cpu_probe: create/prepare failed",
+    "reason": "direct CPU probe passes zero config bytes; Chord requires the four-byte instance tag supplied by native/document/runtime_module_config.h:35-38",
+    "source": "staged perf/ci-linux-{x64,arm64}/module_cpu.json and raw l4/full/perf/module_cpu.json"
+  },
+  "device_scope": {
+    "audio_devices": "not accessed",
+    "midi_devices": "not accessed",
+    "lan_sockets": "not accessed"
+  }
+}
