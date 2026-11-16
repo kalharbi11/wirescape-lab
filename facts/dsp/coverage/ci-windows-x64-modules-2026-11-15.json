@@ -1,0 +1,1704 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": 1,
+  "source_commit": "919f047b3c9f64eebbd04e0f3b072f5cb5f2049f",
+  "fixture_source_commit": "919f047b3c9f64eebbd04e0f3b072f5cb5f2049f",
+  "date_et": "2026-11-15",
+  "machine": "windows-x64",
+  "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+  "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733",
+  "bundled_patch_count": 24,
+  "coverage_fixture_count": 3,
+  "modules": {
+    "essentials.adsr": {
+      "descriptor_source": "native/modules2/adsr/dsp.h",
+      "translation_unit": "native/modules2/adsr/module.cpp",
+      "bundled_patch_names": [
+        "basics-01-first-tone.json",
+        "basics-02-fm-filter-lfo.json",
+        "basics-03-echo-and-reverb.json",
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-06-chaos-keys.json",
+        "basics-07-macro-keys.json",
+        "basics-08-clocked-groove.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "osc-out-01.json",
+        "quad-vca-01-lpg-plucks.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.adsr.envelope -> essentials.chaos_lite.depth",
+        "essentials.adsr.envelope -> essentials.quad_vca.cv1",
+        "essentials.adsr.envelope -> essentials.vca.gain_cv",
+        "essentials.clock.clock -> essentials.adsr.gate",
+        "example.step_sequencer.gate -> essentials.adsr.gate",
+        "example.step_sequencer.velocity -> essentials.adsr.sustain",
+        "host.keyboard.gate -> essentials.adsr.gate",
+        "sequencing.groove.t1_gate -> essentials.adsr.gate"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.adsr",
+        "fixture": "bundled/basics-01-first-tone.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.8799999952316284,
+        "fixture_sha256": "1491fca9bb9fdb9dab114e7cea93c724e9c02f0e3b849add3bf24041d3499b86",
+        "control_sha256": "c9121cdf503a9047ac661e9b5708e5fb291cde1adc0d5dab4119340c8db0c270",
+        "output_peak_fs": 0.2199699431657791,
+        "output_rms_fs": 0.06865050245577684,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.chaos_lite": {
+      "descriptor_source": "native/modules2/chaos_lite/dsp.h",
+      "translation_unit": "native/modules2/chaos_lite/module.cpp",
+      "bundled_patch_names": [
+        "basics-06-chaos-keys.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-03-black-ice-choir.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.adsr.envelope -> essentials.chaos_lite.depth",
+        "essentials.chaos_lite.left -> essentials.mixer.a",
+        "essentials.chaos_lite.left -> essentials.mixer.b",
+        "essentials.chaos_lite.left -> essentials.vca.audio",
+        "essentials.chaos_lite.right -> essentials.mixer.a",
+        "essentials.chaos_lite.right -> essentials.mixer.b",
+        "essentials.chaos_lite.right -> essentials.vca.audio",
+        "essentials.function_envelope.envelope -> essentials.chaos_lite.feedback",
+        "essentials.lfo.control -> essentials.chaos_lite.body_mix",
+        "essentials.lfo.control -> essentials.chaos_lite.body_tune",
+        "essentials.lfo.control -> essentials.chaos_lite.cutoff",
+        "essentials.lfo.control -> essentials.chaos_lite.depth",
+        "essentials.lfo.control -> essentials.chaos_lite.feedback",
+        "essentials.lfo.control -> essentials.chaos_lite.roughness",
+        "example.random_source.smooth -> essentials.chaos_lite.body_tune",
+        "example.random_source.smooth -> essentials.chaos_lite.detune",
+        "example.random_source.smooth -> essentials.chaos_lite.rough_rate",
+        "host.keyboard.pitch -> essentials.chaos_lite.pitch",
+        "host.keyboard.velocity -> essentials.chaos_lite.velocity"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.chaos_lite",
+        "fixture": "bundled/basics-06-chaos-keys.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.3039048910140991,
+        "fixture_sha256": "ca9b233a680e65e2ee3be9ac9fb78b32f7d1cfbe860483f1b033fc72107c0e2e",
+        "control_sha256": "6f554bb7dd229bf4a41498457607249e934949106a3e8e22189bb61f00ded333",
+        "output_peak_fs": 0.3039048910140991,
+        "output_rms_fs": 0.07723726909227643,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.chord": {
+      "descriptor_source": "native/modules2/chord/dsp.h",
+      "translation_unit": "native/modules2/chord/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [
+        "coverage/chord-notes.json"
+      ],
+      "coverage_measurements": [
+        {
+          "fixture": "coverage/chord-notes.json",
+          "control": "controls/chord-notes-bypass.json",
+          "fixture_sha256": "43551b77c16ad073df362576bae81f28b7d2cfc3939a9ae8a45f5ded179ffddc",
+          "control_sha256": "ffd20e666a6aecf85a82f2afcc4dd83d03e045e008ceb327b126bb6e50743600",
+          "output_peak_fs": 1,
+          "output_rms_fs": 0.7071106232043862,
+          "control_peak_difference_fs": 1.9999960660934448,
+          "contribution_verified": true,
+          "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+        }
+      ],
+      "contribution_status": "measured_audio_bypass_intervention"
+    },
+    "essentials.clock": {
+      "descriptor_source": "native/modules2/clock/dsp.h",
+      "translation_unit": "native/modules2/clock/module.cpp",
+      "bundled_patch_names": [
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-08-clocked-groove.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "osc-out-01.json",
+        "scene-02-breathing-walls.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> essentials.adsr.gate",
+        "essentials.clock.clock -> essentials.function_envelope.gate",
+        "essentials.clock.clock -> essentials.quantizer.trigger",
+        "essentials.clock.clock -> example.random_source.clock",
+        "essentials.clock.clock -> example.step_sequencer.clock",
+        "essentials.clock.clock -> fx.delay.clock",
+        "essentials.clock.clock -> osc.out.row2",
+        "essentials.clock.clock -> sequencing.groove.clock"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.clock",
+        "fixture": "bundled/basics-04-sequencer-and-quantizer.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.5415873527526855,
+        "fixture_sha256": "30bd1a3ae3b6d946dc85f2c29aa33d94cf4a9058c2f905197ee5053155b2181d",
+        "control_sha256": "74a580bc6398736459796ab09fff917d7eec215dcbc79ba40c171419e5260eaa",
+        "output_peak_fs": 0.5415873527526855,
+        "output_rms_fs": 0.18241763739721592,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.function_envelope": {
+      "descriptor_source": "native/modules2/function_envelope/dsp.h",
+      "translation_unit": "native/modules2/function_envelope/module.cpp",
+      "bundled_patch_names": [
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> essentials.function_envelope.gate",
+        "essentials.function_envelope.envelope -> essentials.chaos_lite.feedback",
+        "essentials.function_envelope.envelope -> essentials.vca.gain_cv"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.function_envelope",
+        "fixture": "bundled/chaos-03-orbiting-iron-fx.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 3,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.10885263979434967,
+        "fixture_sha256": "b995e9a099e72ea0aaac8777c22c62250061e4bb7b91edf23e0849d0fec58ed4",
+        "control_sha256": "9b76cd798a4f4303fd298f4246c3e591c4238fa24aa61fd1438160f622566082",
+        "output_peak_fs": 0.10861940681934357,
+        "output_rms_fs": 0.018286022432446102,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.ladder": {
+      "descriptor_source": "native/modules2/ladder/dsp.h",
+      "translation_unit": "native/modules2/ladder/module.cpp",
+      "bundled_patch_names": [
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.ladder.audio -> essentials.mixer.a",
+        "essentials.ladder.audio -> essentials.vca.audio",
+        "essentials.ladder.audio -> fx.delay.left",
+        "essentials.ladder.audio -> sound.blend.a",
+        "essentials.lfo.control -> essentials.ladder.cutoff",
+        "essentials.mixer.audio -> essentials.ladder.audio",
+        "essentials.slew.control -> essentials.ladder.cutoff",
+        "essentials.vcf.low24 -> essentials.ladder.audio",
+        "ports.macro_oscillator.main -> essentials.ladder.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.ladder",
+        "fixture": "bundled/scene-01-hollow-chapel.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.6574429869651794,
+        "fixture_sha256": "a85a7d252bd3e5b161cb188b6b3c93a93ac77defa8fa475adddb16f4df0391e0",
+        "control_sha256": "e3c1e6fa533661426997ab42ef331d30149b5d29b5b93386c3a577b5901f7575",
+        "output_peak_fs": 0.6574429869651794,
+        "output_rms_fs": 0.23028949113260352,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.lfo": {
+      "descriptor_source": "native/modules2/lfo/dsp.h",
+      "translation_unit": "native/modules2/lfo/module.cpp",
+      "bundled_patch_names": [
+        "basics-02-fm-filter-lfo.json",
+        "basics-07-macro-keys.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "osc-out-01.json",
+        "quad-vca-02-four-gate-mix.json",
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.lfo.control -> essentials.chaos_lite.body_mix",
+        "essentials.lfo.control -> essentials.chaos_lite.body_tune",
+        "essentials.lfo.control -> essentials.chaos_lite.cutoff",
+        "essentials.lfo.control -> essentials.chaos_lite.depth",
+        "essentials.lfo.control -> essentials.chaos_lite.feedback",
+        "essentials.lfo.control -> essentials.chaos_lite.roughness",
+        "essentials.lfo.control -> essentials.ladder.cutoff",
+        "essentials.lfo.control -> essentials.mixer.level_a",
+        "essentials.lfo.control -> essentials.quad_vca.cv1",
+        "essentials.lfo.control -> essentials.quad_vca.cv2",
+        "essentials.lfo.control -> essentials.quad_vca.cv3",
+        "essentials.lfo.control -> essentials.quad_vca.cv4",
+        "essentials.lfo.control -> essentials.vcf.cutoff",
+        "essentials.lfo.control -> essentials.vco.frequency",
+        "essentials.lfo.control -> osc.out.row1",
+        "essentials.lfo.control -> ports.macro_oscillator.morph",
+        "essentials.lfo.control -> ports.macro_oscillator.timbre"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.lfo",
+        "fixture": "bundled/basics-02-fm-filter-lfo.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.17940597981214523,
+        "fixture_sha256": "5d5edda1658923c21b234fbe1c9129986acb566c395aea45405fc3891c22b6c8",
+        "control_sha256": "051b11c7790d4ec1cce457e5967b3f2ff0229841fb43c8dab75bf2f4486a93ec",
+        "output_peak_fs": 0.2016621083021164,
+        "output_rms_fs": 0.04864412436245839,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.mixer": {
+      "descriptor_source": "native/modules2/mixer/dsp.h",
+      "translation_unit": "native/modules2/mixer/module.cpp",
+      "bundled_patch_names": [
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.chaos_lite.left -> essentials.mixer.a",
+        "essentials.chaos_lite.left -> essentials.mixer.b",
+        "essentials.chaos_lite.right -> essentials.mixer.a",
+        "essentials.chaos_lite.right -> essentials.mixer.b",
+        "essentials.ladder.audio -> essentials.mixer.a",
+        "essentials.lfo.control -> essentials.mixer.level_a",
+        "essentials.mixer.audio -> essentials.ladder.audio",
+        "essentials.mixer.audio -> essentials.vcf.audio",
+        "essentials.mixer.audio -> fx.delay.left",
+        "essentials.mixer.audio -> fx.reverb.left",
+        "essentials.mixer.audio -> fx.reverb.right",
+        "essentials.noise.audio -> essentials.mixer.b",
+        "essentials.resonator.audio -> essentials.mixer.b",
+        "essentials.slew.control -> essentials.mixer.level_a",
+        "essentials.vco.audio -> essentials.mixer.a",
+        "ports.macro_oscillator.aux -> essentials.mixer.b",
+        "ports.macro_oscillator.main -> essentials.mixer.a",
+        "sound.blend.audio -> essentials.mixer.a"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.mixer",
+        "fixture": "bundled/scene-01-hollow-chapel.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 4,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.6574429869651794,
+        "fixture_sha256": "a85a7d252bd3e5b161cb188b6b3c93a93ac77defa8fa475adddb16f4df0391e0",
+        "control_sha256": "d510882173c9f7a0b6558d76cfc65e1be791b0668de750cc70d1b95ffe8d8fb4",
+        "output_peak_fs": 0.6574429869651794,
+        "output_rms_fs": 0.23028949113260352,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.noise": {
+      "descriptor_source": "native/modules2/noise/dsp.h",
+      "translation_unit": "native/modules2/noise/module.cpp",
+      "bundled_patch_names": [
+        "basics-05-random-melody.json",
+        "scene-02-breathing-walls.json",
+        "scene-06-dust-reactor.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.noise.audio -> essentials.mixer.b",
+        "essentials.noise.audio -> essentials.vca.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.noise",
+        "fixture": "bundled/basics-05-random-melody.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.5851230621337891,
+        "fixture_sha256": "4f414b7e5d23b2e98666045803aff64cf8a8952eb54e6e923596a93e5c856016",
+        "control_sha256": "c046220330437f19648b089db83b0cf79b48d1b58c6349592fd4bdf22eff6dc5",
+        "output_peak_fs": 0.5851230621337891,
+        "output_rms_fs": 0.042235812351864015,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.notes_to_cv": {
+      "descriptor_source": "native/modules2/notes_to_cv/dsp.h",
+      "translation_unit": "native/modules2/notes_to_cv/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [
+        "coverage/notes-to-cv.json"
+      ],
+      "coverage_measurements": [
+        {
+          "fixture": "coverage/notes-to-cv.json",
+          "control": "controls/notes-to-cv-bypass.json",
+          "fixture_sha256": "258e44b3648eca572bf9c3747e50961390fb4aff0fd605e8ff8c53256957a0d7",
+          "control_sha256": "d636f8a582c53fc02f6e49327751fee0a5b61181bdf4ab904529d488e3a3a564",
+          "output_peak_fs": 1,
+          "output_rms_fs": 0.7071068085428109,
+          "control_peak_difference_fs": 1.9999993443489075,
+          "contribution_verified": true,
+          "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+        }
+      ],
+      "contribution_status": "measured_audio_bypass_intervention"
+    },
+    "essentials.output": {
+      "descriptor_source": "native/modules2/output/dsp.h",
+      "translation_unit": "native/modules2/output/module.cpp",
+      "bundled_patch_names": [
+        "basics-01-first-tone.json",
+        "basics-02-fm-filter-lfo.json",
+        "basics-03-echo-and-reverb.json",
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-06-chaos-keys.json",
+        "basics-07-macro-keys.json",
+        "basics-08-clocked-groove.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "osc-out-01.json",
+        "quad-vca-01-lpg-plucks.json",
+        "quad-vca-02-four-gate-mix.json",
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.quad_vca.mix -> essentials.output.audio",
+        "essentials.quad_vca.out1 -> essentials.output.audio",
+        "essentials.vca.audio -> essentials.output.audio",
+        "fx.delay.left -> essentials.output.audio",
+        "fx.delay.right -> essentials.output.audio",
+        "fx.reverb.left -> essentials.output.audio",
+        "fx.reverb.right -> essentials.output.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.output",
+        "fixture": "bundled/basics-01-first-tone.json",
+        "intervention": "disconnect_inputs_to_output",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2199699431657791,
+        "fixture_sha256": "1491fca9bb9fdb9dab114e7cea93c724e9c02f0e3b849add3bf24041d3499b86",
+        "control_sha256": "eed9756ae3ac741254216078558ea723f639db7a4e98f4cf15803ea3e7ba6cc9",
+        "output_peak_fs": 0.2199699431657791,
+        "output_rms_fs": 0.06865050245577684,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.quad_vca": {
+      "descriptor_source": "native/modules2/quad_vca/dsp.h",
+      "translation_unit": "native/modules2/quad_vca/module.cpp",
+      "bundled_patch_names": [
+        "quad-vca-01-lpg-plucks.json",
+        "quad-vca-02-four-gate-mix.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.adsr.envelope -> essentials.quad_vca.cv1",
+        "essentials.lfo.control -> essentials.quad_vca.cv1",
+        "essentials.lfo.control -> essentials.quad_vca.cv2",
+        "essentials.lfo.control -> essentials.quad_vca.cv3",
+        "essentials.lfo.control -> essentials.quad_vca.cv4",
+        "essentials.quad_vca.mix -> essentials.output.audio",
+        "essentials.quad_vca.out1 -> essentials.output.audio",
+        "essentials.vco.audio -> essentials.quad_vca.in1"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.quad_vca",
+        "fixture": "bundled/quad-vca-01-lpg-plucks.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.568375825881958,
+        "fixture_sha256": "3f77eb516f55cb4f97f72d80c74ddfdf130deda2acfba63525f183bdb49d2c3d",
+        "control_sha256": "1f284f2f0ad2e513113bfb9ea44b08e3eafe318d228074105fefd3f2f6198308",
+        "output_peak_fs": 0.568375825881958,
+        "output_rms_fs": 0.055449670615828416,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.quantizer": {
+      "descriptor_source": "native/modules2/quantizer/dsp.h",
+      "translation_unit": "native/modules2/quantizer/module.cpp",
+      "bundled_patch_names": [
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-08-clocked-groove.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> essentials.quantizer.trigger",
+        "essentials.quantizer.pitch -> essentials.resonator.pitch",
+        "essentials.quantizer.pitch -> essentials.vco.pitch",
+        "essentials.quantizer.pitch -> ports.macro_oscillator.pitch",
+        "example.random_source.step -> essentials.quantizer.pitch",
+        "example.step_sequencer.gate -> essentials.quantizer.trigger",
+        "example.step_sequencer.pitch -> essentials.quantizer.pitch",
+        "sequencing.groove.t1_pitch -> essentials.quantizer.pitch"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.quantizer",
+        "fixture": "bundled/basics-04-sequencer-and-quantizer.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 1.031440556049347,
+        "fixture_sha256": "30bd1a3ae3b6d946dc85f2c29aa33d94cf4a9058c2f905197ee5053155b2181d",
+        "control_sha256": "f2d251abfef79f51f0299cca8937b97f502beeb13e6909d610aa1332e0107ada",
+        "output_peak_fs": 0.5415873527526855,
+        "output_rms_fs": 0.18241763739721592,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.resonator": {
+      "descriptor_source": "native/modules2/resonator/dsp.h",
+      "translation_unit": "native/modules2/resonator/module.cpp",
+      "bundled_patch_names": [
+        "basics-05-random-melody.json",
+        "scene-06-dust-reactor.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.quantizer.pitch -> essentials.resonator.pitch",
+        "essentials.resonator.audio -> essentials.mixer.b",
+        "essentials.resonator.audio -> fx.delay.left",
+        "essentials.resonator.audio -> sound.blend.b",
+        "essentials.vca.audio -> essentials.resonator.audio",
+        "example.random_source.step -> essentials.resonator.pitch"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.resonator",
+        "fixture": "bundled/basics-05-random-melody.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.5851230621337891,
+        "fixture_sha256": "4f414b7e5d23b2e98666045803aff64cf8a8952eb54e6e923596a93e5c856016",
+        "control_sha256": "f3b40432f7a804716c951eb35e7ce2b1b41d0f7901778c7719991200b0a103ab",
+        "output_peak_fs": 0.5851230621337891,
+        "output_rms_fs": 0.042235812351864015,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.scale_offset": {
+      "descriptor_source": "native/modules2/scale_offset/dsp.h",
+      "translation_unit": "native/modules2/scale_offset/module.cpp",
+      "bundled_patch_names": [
+        "basics-08-clocked-groove.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.scale_offset.control -> sequencing.groove.run"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.scale_offset",
+        "fixture": "bundled/basics-08-clocked-groove.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.47179949283599854,
+        "fixture_sha256": "abef4c2574907e4c985850f2989a72920bb9c40ae8e30ec9547f5e38c2f31850",
+        "control_sha256": "36284f6576276eede4d0e7e8e4795da3bd6c3a5826a76c01d12d3af6159b31a0",
+        "output_peak_fs": 0.47179949283599854,
+        "output_rms_fs": 0.1267351324145451,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.slew": {
+      "descriptor_source": "native/modules2/slew/dsp.h",
+      "translation_unit": "native/modules2/slew/module.cpp",
+      "bundled_patch_names": [
+        "scene-02-breathing-walls.json",
+        "scene-05-glass-cathedrals.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.slew.control -> essentials.ladder.cutoff",
+        "essentials.slew.control -> essentials.mixer.level_a",
+        "example.random_source.smooth -> essentials.slew.control",
+        "host.keyboard.velocity -> essentials.slew.control"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.slew",
+        "fixture": "bundled/scene-02-breathing-walls.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 3,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.1826983354985714,
+        "fixture_sha256": "d04ac763bdcd7b76c81a0a72a2a7a175c61c601c96a92c6b7a1e22bdfd77ebad",
+        "control_sha256": "30ce9e8eb8206a41544fea286083250ae6ef783fe642fabe77ffbc1ac13990de",
+        "output_peak_fs": 0.38393422961235046,
+        "output_rms_fs": 0.09021574863709989,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.vca": {
+      "descriptor_source": "native/modules2/vca/dsp.h",
+      "translation_unit": "native/modules2/vca/module.cpp",
+      "bundled_patch_names": [
+        "basics-01-first-tone.json",
+        "basics-02-fm-filter-lfo.json",
+        "basics-03-echo-and-reverb.json",
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-06-chaos-keys.json",
+        "basics-07-macro-keys.json",
+        "basics-08-clocked-groove.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "osc-out-01.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.adsr.envelope -> essentials.vca.gain_cv",
+        "essentials.chaos_lite.left -> essentials.vca.audio",
+        "essentials.chaos_lite.right -> essentials.vca.audio",
+        "essentials.function_envelope.envelope -> essentials.vca.gain_cv",
+        "essentials.ladder.audio -> essentials.vca.audio",
+        "essentials.noise.audio -> essentials.vca.audio",
+        "essentials.vca.audio -> essentials.output.audio",
+        "essentials.vca.audio -> essentials.resonator.audio",
+        "essentials.vca.audio -> essentials.vco.fm",
+        "essentials.vca.audio -> essentials.vco.frequency",
+        "essentials.vca.audio -> fx.delay.left",
+        "essentials.vca.audio -> fx.delay.right",
+        "essentials.vca.audio -> fx.reverb.left",
+        "essentials.vca.audio -> fx.reverb.right",
+        "essentials.vcf.low12 -> essentials.vca.audio",
+        "essentials.vcf.low24 -> essentials.vca.audio",
+        "essentials.vco.audio -> essentials.vca.audio",
+        "ports.macro_oscillator.main -> essentials.vca.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.vca",
+        "fixture": "bundled/basics-01-first-tone.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2199699431657791,
+        "fixture_sha256": "1491fca9bb9fdb9dab114e7cea93c724e9c02f0e3b849add3bf24041d3499b86",
+        "control_sha256": "eed9756ae3ac741254216078558ea723f639db7a4e98f4cf15803ea3e7ba6cc9",
+        "output_peak_fs": 0.2199699431657791,
+        "output_rms_fs": 0.06865050245577684,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.vcf": {
+      "descriptor_source": "native/modules2/vcf/dsp.h",
+      "translation_unit": "native/modules2/vcf/module.cpp",
+      "bundled_patch_names": [
+        "basics-02-fm-filter-lfo.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.lfo.control -> essentials.vcf.cutoff",
+        "essentials.mixer.audio -> essentials.vcf.audio",
+        "essentials.vcf.low12 -> essentials.vca.audio",
+        "essentials.vcf.low24 -> essentials.ladder.audio",
+        "essentials.vcf.low24 -> essentials.vca.audio",
+        "essentials.vco.audio -> essentials.vcf.audio",
+        "example.random_source.smooth -> essentials.vcf.cutoff",
+        "ports.macro_oscillator.main -> essentials.vcf.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.vcf",
+        "fixture": "bundled/basics-02-fm-filter-lfo.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2016621083021164,
+        "fixture_sha256": "5d5edda1658923c21b234fbe1c9129986acb566c395aea45405fc3891c22b6c8",
+        "control_sha256": "704ddfe13c646429143ae7dcf5b534844b7882d1d7a7dc6adce3949b58d4c74d",
+        "output_peak_fs": 0.2016621083021164,
+        "output_rms_fs": 0.04864412436245839,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "essentials.vco": {
+      "descriptor_source": "native/modules2/vco/dsp.h",
+      "translation_unit": "native/modules2/vco/module.cpp",
+      "bundled_patch_names": [
+        "basics-01-first-tone.json",
+        "basics-02-fm-filter-lfo.json",
+        "basics-03-echo-and-reverb.json",
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-08-clocked-groove.json",
+        "osc-out-01.json",
+        "quad-vca-01-lpg-plucks.json",
+        "quad-vca-02-four-gate-mix.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.lfo.control -> essentials.vco.frequency",
+        "essentials.quantizer.pitch -> essentials.vco.pitch",
+        "essentials.vca.audio -> essentials.vco.fm",
+        "essentials.vca.audio -> essentials.vco.frequency",
+        "essentials.vco.audio -> essentials.mixer.a",
+        "essentials.vco.audio -> essentials.quad_vca.in1",
+        "essentials.vco.audio -> essentials.vca.audio",
+        "essentials.vco.audio -> essentials.vcf.audio",
+        "essentials.vco.audio -> essentials.vco.frequency",
+        "host.keyboard.pitch -> essentials.vco.pitch"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "essentials.vco",
+        "fixture": "bundled/basics-01-first-tone.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2199699431657791,
+        "fixture_sha256": "1491fca9bb9fdb9dab114e7cea93c724e9c02f0e3b849add3bf24041d3499b86",
+        "control_sha256": "77735b885051848c11187687edd7791d9e7c9065a580f1827f7c1fc15a141de9",
+        "output_peak_fs": 0.2199699431657791,
+        "output_rms_fs": 0.06865050245577684,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "example.random_source": {
+      "descriptor_source": "native/sdk/examples/random_source/dsp.h",
+      "translation_unit": "native/sdk/examples/random_source/module.cpp",
+      "bundled_patch_names": [
+        "basics-05-random-melody.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "scene-02-breathing-walls.json",
+        "scene-06-dust-reactor.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> example.random_source.clock",
+        "example.random_source.smooth -> essentials.chaos_lite.body_tune",
+        "example.random_source.smooth -> essentials.chaos_lite.detune",
+        "example.random_source.smooth -> essentials.chaos_lite.rough_rate",
+        "example.random_source.smooth -> essentials.slew.control",
+        "example.random_source.smooth -> essentials.vcf.cutoff",
+        "example.random_source.step -> essentials.quantizer.pitch",
+        "example.random_source.step -> essentials.resonator.pitch"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "example.random_source",
+        "fixture": "bundled/basics-05-random-melody.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.41522245947271585,
+        "fixture_sha256": "4f414b7e5d23b2e98666045803aff64cf8a8952eb54e6e923596a93e5c856016",
+        "control_sha256": "847a33a62d0de3565c01ca3d192f1393fbe8e1302b1c0458288074faada3b442",
+        "output_peak_fs": 0.5851230621337891,
+        "output_rms_fs": 0.042235812351864015,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "example.step_sequencer": {
+      "descriptor_source": "native/sdk/examples/step_sequencer/dsp.h",
+      "translation_unit": "native/sdk/examples/step_sequencer/module.cpp",
+      "bundled_patch_names": [
+        "basics-04-sequencer-and-quantizer.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> example.step_sequencer.clock",
+        "example.step_sequencer.gate -> essentials.adsr.gate",
+        "example.step_sequencer.gate -> essentials.quantizer.trigger",
+        "example.step_sequencer.gate -> ports.macro_oscillator.gate",
+        "example.step_sequencer.gate -> ports.macro_oscillator.trigger",
+        "example.step_sequencer.pitch -> essentials.quantizer.pitch",
+        "example.step_sequencer.velocity -> essentials.adsr.sustain",
+        "example.step_sequencer.velocity -> ports.macro_oscillator.level"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "example.step_sequencer",
+        "fixture": "bundled/basics-04-sequencer-and-quantizer.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 3,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.5415873527526855,
+        "fixture_sha256": "30bd1a3ae3b6d946dc85f2c29aa33d94cf4a9058c2f905197ee5053155b2181d",
+        "control_sha256": "ce073c68ca69bb80342fe63060c89e60a3fd4d6f1f76153c71ea73933994f0a8",
+        "output_peak_fs": 0.5415873527526855,
+        "output_rms_fs": 0.18241763739721592,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "fx.delay": {
+      "descriptor_source": "native/modules2/delay/dsp.h",
+      "translation_unit": "native/modules2/delay/module.cpp",
+      "bundled_patch_names": [
+        "basics-03-echo-and-reverb.json",
+        "basics-04-sequencer-and-quantizer.json",
+        "basics-05-random-melody.json",
+        "basics-08-clocked-groove.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> fx.delay.clock",
+        "essentials.ladder.audio -> fx.delay.left",
+        "essentials.mixer.audio -> fx.delay.left",
+        "essentials.resonator.audio -> fx.delay.left",
+        "essentials.vca.audio -> fx.delay.left",
+        "essentials.vca.audio -> fx.delay.right",
+        "fx.delay.left -> essentials.output.audio",
+        "fx.delay.left -> fx.reverb.left",
+        "fx.delay.right -> essentials.output.audio",
+        "fx.delay.right -> fx.reverb.right"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "fx.delay",
+        "fixture": "bundled/basics-03-echo-and-reverb.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2558436095714569,
+        "fixture_sha256": "37ffdb4aab5e899039324c6ab6c0d9b34194d81d84522a9d00ab14fd290f6ff9",
+        "control_sha256": "82d88b224bb68d9ac387809eff33f259a22440b0bbba212e5424fa9f2a996a66",
+        "output_peak_fs": 0.2558436095714569,
+        "output_rms_fs": 0.024339048987277085,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "fx.reverb": {
+      "descriptor_source": "native/modules2/reverb/dsp.h",
+      "translation_unit": "native/modules2/reverb/module.cpp",
+      "bundled_patch_names": [
+        "basics-03-echo-and-reverb.json",
+        "basics-05-random-melody.json",
+        "basics-06-chaos-keys.json",
+        "basics-07-macro-keys.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-03-orbiting-iron-fx.json",
+        "chaos-04-radio-static-fx.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "scene-01-hollow-chapel.json",
+        "scene-02-breathing-walls.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-06-dust-reactor.json",
+        "scene-07-witching-hour.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.mixer.audio -> fx.reverb.left",
+        "essentials.mixer.audio -> fx.reverb.right",
+        "essentials.vca.audio -> fx.reverb.left",
+        "essentials.vca.audio -> fx.reverb.right",
+        "fx.delay.left -> fx.reverb.left",
+        "fx.delay.right -> fx.reverb.right",
+        "fx.reverb.left -> essentials.output.audio",
+        "fx.reverb.right -> essentials.output.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "fx.reverb",
+        "fixture": "bundled/basics-03-echo-and-reverb.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2558436095714569,
+        "fixture_sha256": "37ffdb4aab5e899039324c6ab6c0d9b34194d81d84522a9d00ab14fd290f6ff9",
+        "control_sha256": "d38740a52b86c695a625aa4f5d6559b6d107af973cea0941dd88db12068234ae",
+        "output_peak_fs": 0.2558436095714569,
+        "output_rms_fs": 0.024339048987277085,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "host.keyboard": {
+      "descriptor_source": "native/modules2/host_keyboard/dsp.h",
+      "translation_unit": "native/modules2/host_keyboard/module.cpp",
+      "bundled_patch_names": [
+        "basics-01-first-tone.json",
+        "basics-02-fm-filter-lfo.json",
+        "basics-03-echo-and-reverb.json",
+        "basics-06-chaos-keys.json",
+        "basics-07-macro-keys.json",
+        "chaos-01-ember-veil-pad.json",
+        "chaos-02-wireglass-lead.json",
+        "chaos-05-moonlit-drift-pad.json",
+        "osc-out-01.json",
+        "quad-vca-01-lpg-plucks.json",
+        "scene-03-black-ice-choir.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json"
+      ],
+      "bundled_connected_pair_names": [
+        "host.keyboard.gate -> essentials.adsr.gate",
+        "host.keyboard.gate -> ports.macro_oscillator.gate",
+        "host.keyboard.gate -> ports.macro_oscillator.trigger",
+        "host.keyboard.notes -> osc.out.notes",
+        "host.keyboard.pitch -> essentials.chaos_lite.pitch",
+        "host.keyboard.pitch -> essentials.vco.pitch",
+        "host.keyboard.pitch -> ports.macro_oscillator.pitch",
+        "host.keyboard.velocity -> essentials.chaos_lite.velocity",
+        "host.keyboard.velocity -> essentials.slew.control",
+        "host.keyboard.velocity -> ports.macro_oscillator.level"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "host.keyboard",
+        "fixture": "bundled/basics-01-first-tone.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2199699431657791,
+        "fixture_sha256": "1491fca9bb9fdb9dab114e7cea93c724e9c02f0e3b849add3bf24041d3499b86",
+        "control_sha256": "47f5cb89e23d3d07a8febbd2ed4de9138826dd9d4ad92dbe031060bcc5d70c3a",
+        "output_peak_fs": 0.2199699431657791,
+        "output_rms_fs": 0.06865050245577684,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "midi.cc_to_cv": {
+      "descriptor_source": "native/modules2/midi_cc_to_cv/dsp.h",
+      "translation_unit": "native/modules2/midi_cc_to_cv/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "not_exercised_offline"
+    },
+    "midi.in": {
+      "descriptor_source": "native/modules2/midi_in/dsp.h",
+      "translation_unit": "native/modules2/midi_in/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "not_exercised_offline"
+    },
+    "midi.to_cv": {
+      "descriptor_source": "native/modules2/midi_to_cv/dsp.h",
+      "translation_unit": "native/modules2/midi_to_cv/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "not_exercised_offline"
+    },
+    "monitor": {
+      "descriptor_source": "native/modules2/monitor/dsp.h",
+      "translation_unit": "native/modules2/monitor/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "not_exercised_offline"
+    },
+    "osc.in": {
+      "descriptor_source": "native/modules2/osc_in/dsp.h",
+      "translation_unit": "native/modules2/osc_in/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "not_exercised_offline"
+    },
+    "osc.out": {
+      "descriptor_source": "native/modules2/osc_out/dsp.h",
+      "translation_unit": "native/modules2/osc_out/module.cpp",
+      "bundled_patch_names": [
+        "osc-out-01.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> osc.out.row2",
+        "essentials.lfo.control -> osc.out.row1",
+        "host.keyboard.notes -> osc.out.notes"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "bundled_presence_unverified"
+    },
+    "ports.macro_oscillator": {
+      "descriptor_source": "native/modules2/macro_oscillator/dsp.h",
+      "translation_unit": "native/modules2/macro_oscillator/module.cpp",
+      "bundled_patch_names": [
+        "basics-07-macro-keys.json",
+        "scene-04-vowel-apparitions.json",
+        "scene-05-glass-cathedrals.json",
+        "scene-08-neon-elegy.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.lfo.control -> ports.macro_oscillator.morph",
+        "essentials.lfo.control -> ports.macro_oscillator.timbre",
+        "essentials.quantizer.pitch -> ports.macro_oscillator.pitch",
+        "example.step_sequencer.gate -> ports.macro_oscillator.gate",
+        "example.step_sequencer.gate -> ports.macro_oscillator.trigger",
+        "example.step_sequencer.velocity -> ports.macro_oscillator.level",
+        "host.keyboard.gate -> ports.macro_oscillator.gate",
+        "host.keyboard.gate -> ports.macro_oscillator.trigger",
+        "host.keyboard.pitch -> ports.macro_oscillator.pitch",
+        "host.keyboard.velocity -> ports.macro_oscillator.level",
+        "ports.macro_oscillator.aux -> essentials.mixer.b",
+        "ports.macro_oscillator.main -> essentials.ladder.audio",
+        "ports.macro_oscillator.main -> essentials.mixer.a",
+        "ports.macro_oscillator.main -> essentials.vca.audio",
+        "ports.macro_oscillator.main -> essentials.vcf.audio"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "ports.macro_oscillator",
+        "fixture": "bundled/basics-07-macro-keys.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.2687370777130127,
+        "fixture_sha256": "84d6e387e6fab93d5eb12c86b7c2118658a21450cbc651421a49d1f1b4514a62",
+        "control_sha256": "9383e67d8c1de25b368dcf33f330eab5735a583e18d549be5eca10eabcdf909b",
+        "output_peak_fs": 0.2687370777130127,
+        "output_rms_fs": 0.06504964559447197,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "sequencing.groove": {
+      "descriptor_source": "native/modules2/groove/dsp.h",
+      "translation_unit": "native/modules2/groove/module.cpp",
+      "bundled_patch_names": [
+        "basics-08-clocked-groove.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.clock.clock -> sequencing.groove.clock",
+        "essentials.scale_offset.control -> sequencing.groove.run",
+        "sequencing.groove.t1_gate -> essentials.adsr.gate",
+        "sequencing.groove.t1_pitch -> essentials.quantizer.pitch"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "sequencing.groove",
+        "fixture": "bundled/basics-08-clocked-groove.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 2,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.47179949283599854,
+        "fixture_sha256": "abef4c2574907e4c985850f2989a72920bb9c40ae8e30ec9547f5e38c2f31850",
+        "control_sha256": "a48554174aba8f993b45f63074c02b1a6d09205f14c0a1362ddbcf4fdbf81ab2",
+        "output_peak_fs": 0.47179949283599854,
+        "output_rms_fs": 0.1267351324145451,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "sound.blend": {
+      "descriptor_source": "native/modules2/blend/dsp.h",
+      "translation_unit": "native/modules2/blend/module.cpp",
+      "bundled_patch_names": [
+        "scene-06-dust-reactor.json"
+      ],
+      "bundled_connected_pair_names": [
+        "essentials.ladder.audio -> sound.blend.a",
+        "essentials.resonator.audio -> sound.blend.b",
+        "sound.blend.audio -> essentials.mixer.a"
+      ],
+      "coverage_fixture_names": [],
+      "coverage_measurements": [],
+      "contribution_status": "measured_pcm_intervention",
+      "bundled_intervention": {
+        "module_id": "sound.blend",
+        "fixture": "bundled/scene-06-dust-reactor.json",
+        "intervention": "disconnect_module_output_edges",
+        "removed_cables": 1,
+        "status": "measured_pcm_intervention",
+        "reason": null,
+        "control_peak_difference_fs": 0.3956187963485718,
+        "fixture_sha256": "984be83d761eeac630c4a77bf4af6fcb8843fae8d921c6a5a220fd279ac34054",
+        "control_sha256": "a60f9afcbe504ebd744ff913b1a12d9d39004d1b626f9675ab5651820ea8a0c3",
+        "output_peak_fs": 0.6083230972290039,
+        "output_rms_fs": 0.09548055029433135,
+        "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+      }
+    },
+    "sound.spectral": {
+      "descriptor_source": "native/modules2/spectral/dsp.h",
+      "translation_unit": "native/modules2/spectral/module.cpp",
+      "bundled_patch_names": [],
+      "bundled_connected_pair_names": [],
+      "coverage_fixture_names": [
+        "coverage/spectral-cross.json"
+      ],
+      "coverage_measurements": [
+        {
+          "fixture": "coverage/spectral-cross.json",
+          "control": "controls/spectral-cross-bypass.json",
+          "fixture_sha256": "42af9307f858a1d6d4d7ff1d82a5224984afcbfabd58e47c07ee1225b34e0acc",
+          "control_sha256": "176368771064b20331f152097276c9050046d9a5bc6f0a4106926b11d644f52e",
+          "output_peak_fs": 0.10042327642440796,
+          "output_rms_fs": 0.04330302200490891,
+          "control_peak_difference_fs": 1.0660228878259659,
+          "contribution_verified": true,
+          "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43785858733"
+        }
+      ],
+      "contribution_status": "measured_audio_bypass_intervention"
+    }
+  },
+  "bundled_connected_pairs": {
+    "essentials.adsr.envelope -> essentials.chaos_lite.depth": [
+      "chaos-02-wireglass-lead.json"
+    ],
+    "essentials.adsr.envelope -> essentials.quad_vca.cv1": [
+      "quad-vca-01-lpg-plucks.json"
+    ],
+    "essentials.adsr.envelope -> essentials.vca.gain_cv": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-05-random-melody.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "basics-08-clocked-groove.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "osc-out-01.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.chaos_lite.left -> essentials.mixer.a": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.chaos_lite.left -> essentials.mixer.b": [
+      "scene-01-hollow-chapel.json"
+    ],
+    "essentials.chaos_lite.left -> essentials.vca.audio": [
+      "basics-06-chaos-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.chaos_lite.right -> essentials.mixer.a": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.chaos_lite.right -> essentials.mixer.b": [
+      "scene-01-hollow-chapel.json"
+    ],
+    "essentials.chaos_lite.right -> essentials.vca.audio": [
+      "basics-06-chaos-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.clock.clock -> essentials.adsr.gate": [
+      "basics-05-random-melody.json",
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.clock.clock -> essentials.function_envelope.gate": [
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json"
+    ],
+    "essentials.clock.clock -> essentials.quantizer.trigger": [
+      "basics-05-random-melody.json"
+    ],
+    "essentials.clock.clock -> example.random_source.clock": [
+      "basics-05-random-melody.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "scene-02-breathing-walls.json",
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.clock.clock -> example.step_sequencer.clock": [
+      "basics-04-sequencer-and-quantizer.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.clock.clock -> fx.delay.clock": [
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-05-random-melody.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.clock.clock -> osc.out.row2": [
+      "osc-out-01.json"
+    ],
+    "essentials.clock.clock -> sequencing.groove.clock": [
+      "basics-08-clocked-groove.json"
+    ],
+    "essentials.function_envelope.envelope -> essentials.chaos_lite.feedback": [
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json"
+    ],
+    "essentials.function_envelope.envelope -> essentials.vca.gain_cv": [
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json"
+    ],
+    "essentials.ladder.audio -> essentials.mixer.a": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.ladder.audio -> essentials.vca.audio": [
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.ladder.audio -> fx.delay.left": [
+      "scene-05-glass-cathedrals.json"
+    ],
+    "essentials.ladder.audio -> sound.blend.a": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.body_mix": [
+      "chaos-01-ember-veil-pad.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.body_tune": [
+      "chaos-02-wireglass-lead.json",
+      "scene-01-hollow-chapel.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.cutoff": [
+      "chaos-01-ember-veil-pad.json",
+      "scene-01-hollow-chapel.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.depth": [
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.feedback": [
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.lfo.control -> essentials.chaos_lite.roughness": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.lfo.control -> essentials.ladder.cutoff": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.lfo.control -> essentials.mixer.level_a": [
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.lfo.control -> essentials.quad_vca.cv1": [
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.lfo.control -> essentials.quad_vca.cv2": [
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.lfo.control -> essentials.quad_vca.cv3": [
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.lfo.control -> essentials.quad_vca.cv4": [
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.lfo.control -> essentials.vcf.cutoff": [
+      "basics-02-fm-filter-lfo.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.lfo.control -> essentials.vco.frequency": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.lfo.control -> osc.out.row1": [
+      "osc-out-01.json"
+    ],
+    "essentials.lfo.control -> ports.macro_oscillator.morph": [
+      "scene-04-vowel-apparitions.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.lfo.control -> ports.macro_oscillator.timbre": [
+      "basics-07-macro-keys.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json"
+    ],
+    "essentials.mixer.audio -> essentials.ladder.audio": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-05-glass-cathedrals.json"
+    ],
+    "essentials.mixer.audio -> essentials.vcf.audio": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.mixer.audio -> fx.delay.left": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.mixer.audio -> fx.reverb.left": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.mixer.audio -> fx.reverb.right": [
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.noise.audio -> essentials.mixer.b": [
+      "scene-02-breathing-walls.json",
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.noise.audio -> essentials.vca.audio": [
+      "basics-05-random-melody.json",
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.quad_vca.mix -> essentials.output.audio": [
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.quad_vca.out1 -> essentials.output.audio": [
+      "quad-vca-01-lpg-plucks.json"
+    ],
+    "essentials.quantizer.pitch -> essentials.resonator.pitch": [
+      "basics-05-random-melody.json"
+    ],
+    "essentials.quantizer.pitch -> essentials.vco.pitch": [
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-08-clocked-groove.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.quantizer.pitch -> ports.macro_oscillator.pitch": [
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.resonator.audio -> essentials.mixer.b": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.resonator.audio -> fx.delay.left": [
+      "basics-05-random-melody.json"
+    ],
+    "essentials.resonator.audio -> sound.blend.b": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.scale_offset.control -> sequencing.groove.run": [
+      "basics-08-clocked-groove.json"
+    ],
+    "essentials.slew.control -> essentials.ladder.cutoff": [
+      "scene-02-breathing-walls.json",
+      "scene-05-glass-cathedrals.json"
+    ],
+    "essentials.slew.control -> essentials.mixer.level_a": [
+      "scene-02-breathing-walls.json"
+    ],
+    "essentials.vca.audio -> essentials.output.audio": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "osc-out-01.json"
+    ],
+    "essentials.vca.audio -> essentials.resonator.audio": [
+      "basics-05-random-melody.json",
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.vca.audio -> essentials.vco.fm": [
+      "basics-04-sequencer-and-quantizer.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.vca.audio -> essentials.vco.frequency": [
+      "basics-02-fm-filter-lfo.json"
+    ],
+    "essentials.vca.audio -> fx.delay.left": [
+      "basics-03-echo-and-reverb.json",
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-08-clocked-groove.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "essentials.vca.audio -> fx.delay.right": [
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "essentials.vca.audio -> fx.reverb.left": [
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-05-moonlit-drift-pad.json"
+    ],
+    "essentials.vca.audio -> fx.reverb.right": [
+      "basics-06-chaos-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-05-moonlit-drift-pad.json"
+    ],
+    "essentials.vcf.low12 -> essentials.vca.audio": [
+      "scene-04-vowel-apparitions.json"
+    ],
+    "essentials.vcf.low24 -> essentials.ladder.audio": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.vcf.low24 -> essentials.vca.audio": [
+      "basics-02-fm-filter-lfo.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.vco.audio -> essentials.mixer.a": [
+      "scene-06-dust-reactor.json"
+    ],
+    "essentials.vco.audio -> essentials.quad_vca.in1": [
+      "quad-vca-01-lpg-plucks.json",
+      "quad-vca-02-four-gate-mix.json"
+    ],
+    "essentials.vco.audio -> essentials.vca.audio": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-08-clocked-groove.json",
+      "osc-out-01.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.vco.audio -> essentials.vcf.audio": [
+      "basics-02-fm-filter-lfo.json",
+      "scene-07-witching-hour.json"
+    ],
+    "essentials.vco.audio -> essentials.vco.frequency": [
+      "basics-03-echo-and-reverb.json"
+    ],
+    "example.random_source.smooth -> essentials.chaos_lite.body_tune": [
+      "chaos-01-ember-veil-pad.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "scene-02-breathing-walls.json"
+    ],
+    "example.random_source.smooth -> essentials.chaos_lite.detune": [
+      "chaos-01-ember-veil-pad.json"
+    ],
+    "example.random_source.smooth -> essentials.chaos_lite.rough_rate": [
+      "chaos-03-orbiting-iron-fx.json"
+    ],
+    "example.random_source.smooth -> essentials.slew.control": [
+      "scene-02-breathing-walls.json"
+    ],
+    "example.random_source.smooth -> essentials.vcf.cutoff": [
+      "scene-06-dust-reactor.json"
+    ],
+    "example.random_source.step -> essentials.quantizer.pitch": [
+      "basics-05-random-melody.json"
+    ],
+    "example.random_source.step -> essentials.resonator.pitch": [
+      "scene-06-dust-reactor.json"
+    ],
+    "example.step_sequencer.gate -> essentials.adsr.gate": [
+      "basics-04-sequencer-and-quantizer.json",
+      "scene-07-witching-hour.json"
+    ],
+    "example.step_sequencer.gate -> essentials.quantizer.trigger": [
+      "scene-08-neon-elegy.json"
+    ],
+    "example.step_sequencer.gate -> ports.macro_oscillator.gate": [
+      "scene-08-neon-elegy.json"
+    ],
+    "example.step_sequencer.gate -> ports.macro_oscillator.trigger": [
+      "scene-08-neon-elegy.json"
+    ],
+    "example.step_sequencer.pitch -> essentials.quantizer.pitch": [
+      "basics-04-sequencer-and-quantizer.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "example.step_sequencer.velocity -> essentials.adsr.sustain": [
+      "basics-04-sequencer-and-quantizer.json"
+    ],
+    "example.step_sequencer.velocity -> ports.macro_oscillator.level": [
+      "scene-08-neon-elegy.json"
+    ],
+    "fx.delay.left -> essentials.output.audio": [
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-08-clocked-groove.json"
+    ],
+    "fx.delay.left -> fx.reverb.left": [
+      "basics-03-echo-and-reverb.json",
+      "basics-05-random-melody.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "fx.delay.right -> essentials.output.audio": [
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-08-clocked-groove.json"
+    ],
+    "fx.delay.right -> fx.reverb.right": [
+      "basics-03-echo-and-reverb.json",
+      "basics-05-random-melody.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "fx.reverb.left -> essentials.output.audio": [
+      "basics-03-echo-and-reverb.json",
+      "basics-05-random-melody.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "fx.reverb.right -> essentials.output.audio": [
+      "basics-03-echo-and-reverb.json",
+      "basics-05-random-melody.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "host.keyboard.gate -> essentials.adsr.gate": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "osc-out-01.json",
+      "quad-vca-01-lpg-plucks.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json"
+    ],
+    "host.keyboard.gate -> ports.macro_oscillator.gate": [
+      "basics-07-macro-keys.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json"
+    ],
+    "host.keyboard.gate -> ports.macro_oscillator.trigger": [
+      "basics-07-macro-keys.json"
+    ],
+    "host.keyboard.notes -> osc.out.notes": [
+      "osc-out-01.json"
+    ],
+    "host.keyboard.pitch -> essentials.chaos_lite.pitch": [
+      "basics-06-chaos-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "host.keyboard.pitch -> essentials.vco.pitch": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "osc-out-01.json",
+      "quad-vca-01-lpg-plucks.json"
+    ],
+    "host.keyboard.pitch -> ports.macro_oscillator.pitch": [
+      "basics-07-macro-keys.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json"
+    ],
+    "host.keyboard.velocity -> essentials.chaos_lite.velocity": [
+      "basics-06-chaos-keys.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "scene-03-black-ice-choir.json"
+    ],
+    "host.keyboard.velocity -> essentials.slew.control": [
+      "scene-05-glass-cathedrals.json"
+    ],
+    "host.keyboard.velocity -> ports.macro_oscillator.level": [
+      "basics-07-macro-keys.json",
+      "scene-04-vowel-apparitions.json"
+    ],
+    "ports.macro_oscillator.aux -> essentials.mixer.b": [
+      "scene-05-glass-cathedrals.json"
+    ],
+    "ports.macro_oscillator.main -> essentials.ladder.audio": [
+      "scene-08-neon-elegy.json"
+    ],
+    "ports.macro_oscillator.main -> essentials.mixer.a": [
+      "scene-05-glass-cathedrals.json"
+    ],
+    "ports.macro_oscillator.main -> essentials.vca.audio": [
+      "basics-07-macro-keys.json"
+    ],
+    "ports.macro_oscillator.main -> essentials.vcf.audio": [
+      "scene-04-vowel-apparitions.json"
+    ],
+    "sequencing.groove.t1_gate -> essentials.adsr.gate": [
+      "basics-08-clocked-groove.json"
+    ],
+    "sequencing.groove.t1_pitch -> essentials.quantizer.pitch": [
+      "basics-08-clocked-groove.json"
+    ],
+    "sound.blend.audio -> essentials.mixer.a": [
+      "scene-06-dust-reactor.json"
+    ]
+  }
+}

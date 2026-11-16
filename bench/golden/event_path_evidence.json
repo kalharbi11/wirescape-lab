@@ -1,0 +1,69 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": 1,
+  "contract": "M0 r2 R3",
+  "test_source_commit": "919f047b3c9f64eebbd04e0f3b072f5cb5f2049f",
+  "lab_ci_run": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43787517893",
+  "rows": [
+    {
+      "module_id": "midi.in",
+      "classification": "event-path",
+      "test_target": "abi2_midi_in_tests",
+      "test_file": "native/modules2/midi_in/tests.cpp",
+      "line_start": 5,
+      "line_end": 15,
+      "assertion": "REQUIRE(r.emitted[0].ump[0] == 0x20903c7fu)",
+      "exercise": "MIDI UMP note forwarding, filtered channel, source/offset and choke"
+    },
+    {
+      "module_id": "midi.to_cv",
+      "classification": "event-path",
+      "test_target": "abi2_midi_to_cv_tests",
+      "test_file": "native/modules2/midi_to_cv/tests.cpp",
+      "line_start": 18,
+      "line_end": 27,
+      "assertion": "REQUIRE(r.sample(0, 0) == 0",
+      "exercise": "MIDI1 note events produce pitch and velocity CV, note ID and steal/release events"
+    },
+    {
+      "module_id": "midi.cc_to_cv",
+      "classification": "event-path",
+      "test_target": "abi2_midi_cc_to_cv_tests",
+      "test_file": "native/modules2/midi_cc_to_cv/tests.cpp",
+      "line_start": 5,
+      "line_end": 24,
+      "assertion": "REQUIRE(r.sample(0) == float(17. / 16383.))",
+      "exercise": "MIDI CC UMP events alter 14-bit CV across endpoint/channel matrix"
+    },
+    {
+      "module_id": "osc.in",
+      "classification": "event-path",
+      "test_target": "abi2_osc_in_tests",
+      "test_file": "native/modules2/osc_in/tests.cpp",
+      "line_start": 68,
+      "line_end": 95,
+      "assertion": "REQUIRE(r.outputs[0].channels == 2",
+      "exercise": "Encoded OSC messages populate CV and trigger outputs and forward message events"
+    },
+    {
+      "module_id": "osc.out",
+      "classification": "event-path",
+      "test_target": "abi2_osc_out_tests",
+      "test_file": "native/modules2/osc_out/tests.cpp",
+      "line_start": 127,
+      "line_end": 149,
+      "assertion": "REQUIRE(bus.rows[0].rises == 2 && bus.rows[0].falls == 2)",
+      "exercise": "OSC output module publishes gate edge counts, blocks and CV values to internal OutBus without network"
+    },
+    {
+      "module_id": "monitor",
+      "classification": "event-path",
+      "test_target": "abi2_monitor_tests",
+      "test_file": "native/modules2/monitor/tests.cpp",
+      "line_start": 25,
+      "line_end": 38,
+      "assertion": "REQUIRE(count == 30 && tap->received == 100 && tap->rate_limited == 70)",
+      "exercise": "Monitor consumes MIDI events into an observable Tap with rate limiting"
+    }
+  ]
+}

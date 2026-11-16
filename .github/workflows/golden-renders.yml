@@ -7,6 +7,7 @@ on:
     paths:
       - "native/**"
       - "bench/golden/**"
+      - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
       - "facts/dsp/**"
       - ".github/workflows/golden-renders.yml"
@@ -15,6 +16,7 @@ on:
     paths:
       - "native/**"
       - "bench/golden/**"
+      - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
       - "facts/dsp/**"
       - ".github/workflows/golden-renders.yml"
@@ -103,6 +105,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/golden"
           python head/bench/golden/render.py --root base --machine ${{ matrix.name }} \
             --keep-wavs "$RUNNER_TEMP/golden/wavs/before" \
+            --coverage-root head \
             --out "$RUNNER_TEMP/golden/before.json"
       - name: Render head twice, retain job-local float32 WAVs
         id: render_head
@@ -110,9 +113,25 @@ jobs:
           mkdir -p "$RUNNER_TEMP/golden"
           python head/bench/golden/render.py --root head --machine ${{ matrix.name }} \
             --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --coverage-root head \
             --out "$RUNNER_TEMP/golden/after.json"
+      - name: Probe causal bundled-module output via temporary disabled-cable controls
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/probe_bundled.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --out "$RUNNER_TEMP/golden/bundled-interventions.json"
+      - name: Record full 34-module registry and rendered contribution facts
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/inventory.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --out "$RUNNER_TEMP/golden/coverage-inventory.json" \
+            --probes "$RUNNER_TEMP/golden/bundled-interventions.json" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
-        if: github.event_name == 'pull_request'
+        if: ${{ always() && github.event_name == 'pull_request' && steps.render_head.outcome == 'success' }}
         run: |
           set +e
           set -uo pipefail
@@ -135,7 +154,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$result"
       - name: One-line uncommitted DSP perturbation acceptance experiment
-        if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'task/55-same-runner-golden-gate') || (github.event_name == 'workflow_dispatch' && inputs.exercise_sound_change) }}
+        if: ${{ always() && steps.render_head.outcome == 'success' && ((github.event_name == 'pull_request' && github.head_ref == 'task/55-same-runner-golden-gate') || (github.event_name == 'workflow_dispatch' && inputs.exercise_sound_change)) }}
         run: |
           python head/bench/golden/experiment.py --root head \
             --baseline "$RUNNER_TEMP/golden/after.json" \

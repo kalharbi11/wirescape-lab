@@ -33,6 +33,8 @@ SECONDS = 10
 SEED = 37
 CENTERS_HZ = [20.0 * 2**(i/3) for i in range(31)]
 BAND_FLOOR_DBFS = -300.0
+# Initial strict coverage contracts: deleting manifest entries cannot erase both A/B rows.
+REQUIRED_COVERAGE_FIXTURES = frozenset({"notes-to-cv.json", "chord-notes.json", "spectral-cross.json"})
 
 
 def binary(root=ROOT):
@@ -44,12 +46,40 @@ def binary(root=ROOT):
     return None
 
 
-def sources(root=ROOT):
+def sources(root=ROOT, coverage_root=None):
     bundled = sorted((root / "apps/studio/patches").glob("*.json"))
     owner = sorted((root / "bench/patches/owner").glob("*.json"))
     if not bundled:
         raise RuntimeError("No bundled patch files found")
-    return [("bundled", p) for p in bundled] + [("owner", p) for p in owner]
+    result = [("bundled", p) for p in bundled] + [("owner", p) for p in owner]
+    if coverage_root is not None:
+        manifest = coverage_manifest()
+        directory = coverage_root / "bench/patches/coverage"
+        expected = {row["fixture"] for row in manifest["cases"]}
+        existing = {p.name for p in directory.glob("*.json")}
+        if expected != existing:
+            raise RuntimeError(f"coverage fixture inventory mismatch: missing={sorted(expected-existing)}, "
+                               f"extra={sorted(existing-expected)}")
+        for row in manifest["cases"]:
+            control = directory / row["control"]
+            if not control.is_file():
+                raise RuntimeError(f"missing coverage intervention control: {control}")
+            result.append(("coverage", directory / row["fixture"]))
+    return result
+
+
+def coverage_manifest():
+    manifest_path = ROOT / "bench/golden/coverage_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("schema") != 1 or not manifest.get("cases"):
+        raise ValueError("invalid golden coverage manifest")
+    names = [r["fixture"] for r in manifest["cases"]]
+    if len(set(names)) != len(names):
+        raise ValueError("duplicate coverage fixture")
+    if not REQUIRED_COVERAGE_FIXTURES.issubset(names):
+        raise ValueError(f"coverage manifest removes required fixtures: "
+                         f"{sorted(REQUIRED_COVERAGE_FIXTURES-set(names))}")
+    return manifest
 
 
 def events_for_patch(patch):
@@ -116,7 +146,7 @@ def render_one(exe, patch, script, wav, root=ROOT):
     return read_pcm(wav)
 
 
-def measure(exe, path, scope, root=ROOT, wav_folder=None):
+def measure(exe, path, scope, root=ROOT, wav_folder=None, control_patch=None):
     data = json.loads(path.read_text(encoding="utf-8"))
     if data.get("format") != "wirescape.native.patch" or data.get("version") != 2:
         raise ValueError(f"{path.name}: requires native patch v2")
@@ -144,6 +174,17 @@ def measure(exe, path, scope, root=ROOT, wav_folder=None):
             "source": f"{scope}/{path.name}",
         }
         out.update(levels(a1))
+        if control_patch is not None:
+            if not out["rms_fs"] > 1e-8:
+                raise AssertionError(f"{scope}/{path.name}: covered path is silent")
+            _, control_audio = render_one(exe, control_patch, script, work/"control.wav", root)
+            delta = float(np.max(np.abs(a1.astype(np.float64) - control_audio.astype(np.float64))))
+            if not delta > 1e-8:
+                raise AssertionError(f"{scope}/{path.name}: no observable contribution vs bypass control")
+            out["fixture_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+            out["control_sha256"] = hashlib.sha256(control_patch.read_bytes()).hexdigest()
+            out["control_peak_difference_fs"] = delta
+            out["contribution_verified"] = True
         return out
 
 
@@ -165,6 +206,7 @@ def main(argv=None):
     p.add_argument("--renderer", type=Path)
     p.add_argument("--root", type=Path, default=ROOT, help="checkout whose patches and renderer are measured")
     p.add_argument("--keep-wavs", type=Path, help="job-local WAV tree for same-runner A/B; never commit")
+    p.add_argument("--coverage-root", type=Path, help="fixture checkout; same exact bytes for base and head")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--machine", required=True, choices=("linux-x64","linux-arm64","windows-x64"))
     args = p.parse_args(argv)
@@ -176,8 +218,17 @@ def main(argv=None):
         p.error("wirescape_render binary unavailable: build native headless first or pass --renderer")
     version = subprocess.run(["git","rev-parse","HEAD"],cwd=root,text=True,
                              capture_output=True,check=True).stdout.strip()
+    fixture_root = args.coverage_root.resolve() if args.coverage_root else None
+    fixture_sha = None
+    manifest = None
+    if fixture_root is not None:
+        manifest = coverage_manifest()
+        fixture_sha = subprocess.run(["git","rev-parse","HEAD"],cwd=fixture_root,text=True,
+                                     capture_output=True,check=True).stdout.strip()
     meta = {
         "schema": 1, "commit": version,
+        "engine_source_commit": version,
+        "fixture_source_commit": fixture_sha,
         "date_et": dt.datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
         "machine": args.machine,
         "architecture": platform.machine(),
@@ -191,9 +242,15 @@ def main(argv=None):
         "notes": "C4 noteOn at frame 0 and noteOff at frame 240000 on every host.keyboard",
         "patches": {},
     }
-    for scope, path in sources(root):
+    cases = {r["fixture"]: r for r in manifest["cases"]} if manifest is not None else {}
+    for scope, path in sources(root, fixture_root):
         key = f"{scope}/{path.name}"
-        meta["patches"][key] = measure(exe.resolve(), path.resolve(), scope, root, args.keep_wavs.resolve() if args.keep_wavs else None)
+        control = (fixture_root / "bench/patches/coverage" / cases[path.name]["control"]
+                   if scope == "coverage" else None)
+        meta["patches"][key] = measure(exe.resolve(), path.resolve(), scope, root,
+                                      args.keep_wavs.resolve() if args.keep_wavs else None, control)
+        if scope == "coverage":
+            meta["patches"][key]["target_ids"] = cases[path.name]["targets"]
         print(f"golden {key}: {meta['patches'][key]['sha256_float32_pcm'][:12]} "
               f"peak={meta['patches'][key]['peak_fs']:.6g} "
               f"rms={meta['patches'][key]['rms_fs']:.6g}", flush=True)
