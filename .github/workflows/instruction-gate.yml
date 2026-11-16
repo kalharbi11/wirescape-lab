@@ -56,6 +56,7 @@ jobs:
             --machine '${{ matrix.machine }}' \
             --output 'build_reports/instructions/${{ matrix.machine }}.json'
       - name: Compare architecture baseline (advisory)
+        id: instruction_compare
         continue-on-error: true
         shell: bash
         run: |
@@ -67,6 +68,20 @@ jobs:
             exit 2
           fi
           python bench/gate/compare.py "$baseline" "$current" --threshold 3 --markdown | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Surface advisory comparison verdict
+        if: always()
+        shell: bash
+        run: |
+          outcome='${{ steps.instruction_compare.outcome }}'
+          if [[ "$outcome" == 'failure' ]]; then
+            echo '::warning title=Callgrind comparison failed::Instruction regression evidence is incomplete or exceeded threshold; see advisory summary.'
+            echo '**ADVISORY COMPARISON FAILED — a green collection job is not complete baseline coverage.**' >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$outcome" != 'success' ]]; then
+            echo "::warning title=Callgrind comparison not executed::Comparison outcome: $outcome"
+            echo "**ADVISORY COMPARISON NOT EXECUTED — outcome: $outcome.**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '**Advisory comparison succeeded on all expected rows.**' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Upload measured facts (no audio)
         if: always()
         uses: actions/upload-artifact@v4
