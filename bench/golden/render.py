@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import platform
 import re
+import shutil
 import struct
 import subprocess
 import sys
@@ -34,18 +35,18 @@ CENTERS_HZ = [20.0 * 2**(i/3) for i in range(31)]
 BAND_FLOOR_DBFS = -300.0
 
 
-def binary():
+def binary(root=ROOT):
     name = "wirescape_render" + (".exe" if os.name == "nt" else "")
-    for p in (ROOT/"build/native"/name, ROOT/"build/native/Release"/name,
-              ROOT/"build"/name, ROOT/"build/Release"/name):
+    for p in (root/"build/native"/name, root/"build/native/Release"/name,
+              root/"build"/name, root/"build/Release"/name):
         if p.is_file():
             return p
     return None
 
 
-def sources():
-    bundled = sorted(PATCHES.glob("*.json"))
-    owner = sorted(OWNER.glob("*.json"))
+def sources(root=ROOT):
+    bundled = sorted((root / "apps/studio/patches").glob("*.json"))
+    owner = sorted((root / "bench/patches/owner").glob("*.json"))
     if not bundled:
         raise RuntimeError("No bundled patch files found")
     return [("bundled", p) for p in bundled] + [("owner", p) for p in owner]
@@ -103,11 +104,11 @@ def levels(audio):
     }
 
 
-def render_one(exe, patch, script, wav):
+def render_one(exe, patch, script, wav, root=ROOT):
     cmd = [str(exe), "--patch", str(patch), "--script", str(script),
            "--out", str(wav), "--rate", str(RATE), "--block", str(BLOCK),
            "--seconds", str(SECONDS), "--seed", str(SEED)]
-    result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+    result = subprocess.run(cmd, cwd=root, capture_output=True, text=True,
                             timeout=150, check=False)
     if result.returncode:
         raise RuntimeError(f"renderer exit {result.returncode} for {patch.name}: "
@@ -115,7 +116,7 @@ def render_one(exe, patch, script, wav):
     return read_pcm(wav)
 
 
-def measure(exe, path, scope):
+def measure(exe, path, scope, root=ROOT, wav_folder=None):
     data = json.loads(path.read_text(encoding="utf-8"))
     if data.get("format") != "wirescape.native.patch" or data.get("version") != 2:
         raise ValueError(f"{path.name}: requires native patch v2")
@@ -124,12 +125,16 @@ def measure(exe, path, scope):
         work = Path(tmp)
         script = work/"events.json"
         script.write_text(json.dumps(events), encoding="utf-8")
-        pcm1, a1 = render_one(exe, path, script, work/"render-a.wav")
-        pcm2, _ = render_one(exe, path, script, work/"render-b.wav")
+        pcm1, a1 = render_one(exe, path, script, work/"render-a.wav", root)
+        pcm2, _ = render_one(exe, path, script, work/"render-b.wav", root)
         if pcm1 != pcm2:
             # Determine exact first divergent frame for this repeated-run pair.
             idx = next(i for i in range(0, len(pcm1), 8) if pcm1[i:i+8] != pcm2[i:i+8])
             raise AssertionError(f"{scope}/{path.name}: two renders differ at frame {idx//8}")
+        if wav_folder is not None:
+            destination = wav_folder / scope / (path.stem + ".wav")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(work/"render-a.wav", destination)
         out = {
             "sha256_float32_pcm": hashlib.sha256(pcm1).hexdigest(),
             "frames": int(a1.shape[0]), "channels": 2,
@@ -142,16 +147,34 @@ def measure(exe, path, scope):
         return out
 
 
+def cpu_model():
+    """Record the actual runner CPU rather than architecture alone."""
+    if platform.system() == "Linux":
+        try:
+            completed = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=5, check=False)
+            for line in completed.stdout.splitlines():
+                if line.startswith("Model name:"):
+                    return line.split(":", 1)[1].strip()
+        except OSError:
+            pass
+    return platform.processor() or platform.machine()
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--renderer", type=Path)
+    p.add_argument("--root", type=Path, default=ROOT, help="checkout whose patches and renderer are measured")
+    p.add_argument("--keep-wavs", type=Path, help="job-local WAV tree for same-runner A/B; never commit")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--machine", required=True, choices=("linux-x64","linux-arm64","windows-x64"))
     args = p.parse_args(argv)
-    exe = args.renderer or binary()
+    root = args.root.resolve()
+    if not (root / "apps/studio/patches").is_dir():
+        p.error("--root is not a lab checkout with bundled patches")
+    exe = args.renderer or binary(root)
     if not exe or not exe.is_file():
         p.error("wirescape_render binary unavailable: build native headless first or pass --renderer")
-    version = subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,
+    version = subprocess.run(["git","rev-parse","HEAD"],cwd=root,text=True,
                              capture_output=True,check=True).stdout.strip()
     meta = {
         "schema": 1, "commit": version,
@@ -159,7 +182,7 @@ def main(argv=None):
         "machine": args.machine,
         "architecture": platform.machine(),
         "os": platform.system(),
-        "cpu": platform.processor() or platform.machine(),
+        "cpu": cpu_model(),
         "sample_rate_hz": RATE, "block_frames": BLOCK,
         "seconds": SECONDS, "seed": SEED, "channels": 2,
         "encoding": "little-endian IEEE754 float32 PCM; SHA-256 excludes 44-byte WAV header",
@@ -168,9 +191,9 @@ def main(argv=None):
         "notes": "C4 noteOn at frame 0 and noteOff at frame 240000 on every host.keyboard",
         "patches": {},
     }
-    for scope, path in sources():
+    for scope, path in sources(root):
         key = f"{scope}/{path.name}"
-        meta["patches"][key] = measure(exe.resolve(), path.resolve(), scope)
+        meta["patches"][key] = measure(exe.resolve(), path.resolve(), scope, root, args.keep_wavs.resolve() if args.keep_wavs else None)
         print(f"golden {key}: {meta['patches'][key]['sha256_float32_pcm'][:12]} "
               f"peak={meta['patches'][key]['peak_fs']:.6g} "
               f"rms={meta['patches'][key]['rms_fs']:.6g}", flush=True)

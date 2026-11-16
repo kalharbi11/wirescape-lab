@@ -1,6 +1,75 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — Codex lead follow-up: soak repair merged, gate integrity review
+**Done:** merged the previous lead handoff #62 as `5b040ee`. Reviewed all eight changed paths in #48,
+including the main-integration diagnostic tests and the two 72-row, 30-second Linux fact projections.
+Current-head Lab CI passed 7/7; Offline facts and Generate device-off facts passed. Squash-merged #48
+at `40748f5` as `b8190f9`; #41 closed. Original and derived keyboard-graph measurements remain distinct.
+
+**Reviewed, not merged:** #64/#55 now has successful same-runner golden jobs on Linux x64/ARM64 and
+Windows x64, plus green Lab CI. All three hosted mutation experiments detected sample 2/frame 1 with
+peak delta 0.027496248483657837, then reported the change declared. Source review found two false-pass
+paths: declarations could excuse a missing patch, and equal JSON hashes could hide different A/B WAVs.
+Builder3 is fixing those with CLI/known-answer tests; the new head must be revalidated before merge.
+
+**Builder follow-ups sent directly and recorded on GitHub:**
+- Builder1: #48 is complete; continue #51/#60 corrected sweep evidence from full run 43774561958.
+  Exact impulse and engine FTZ/zero-input tail timing remain native instrumentation questions for Fable.
+  Keep the concrete interface proposal in issue/PR discussion, rather than a builder-authored design
+  proposal committed under bench/.
+- Builder2: #58's corrected 97-row run 43774054913 passed, but old 95-row baselines are incomplete.
+  Refresh actual x64/ARM64 measurements; keep unavailable chord rows visible and escalate product/probe
+  changes. Check osc.out runs devices-off, with no LAN sockets.
+- Builder3: finish #64 comparator integrity fixes, then exact-head acceptance/CI; no committed DSP edits.
+- Builder4: #63's UI profiler run passed, but Windows Lab CI failed in
+  abi2_sidecar_audio_recovery_tests ('OSC works before ASIO device loss'). Investigate; one failed-job
+  rerun is appropriate only with evidence of an unrelated transient, without loosening native tests.
+  Refresh head-pinned UI facts. Fix empty CPU captures being marked measured and the aggregate
+  top-self undercount caused by truncating each trial before aggregation.
+
+**State / next:** #58/#59/#60/#63/#64 remain draft; #50 remains outside this merge pass (draft,
+not requested for merge). Review builders' new commits/evidence before any readiness transition.
+Fable still owns #54 calibrated device-timing design, #51 exact impulse/tail instrumentation, T0.14
+dependency access and T0.13/T2.0 design. Broader delegation is not assumed. No devices, product-tree
+changes, class B/C merges, gate weakening or history rewrite in this lead run.
+
+Signed: gpt-lead, 2026-11-15
+
+## 2026-11-15 — interim Codex lead: builder review and next assignments
+**Done:** owner asked gpt-lead to coordinate existing builders while Fable prepares broader delegation.
+Reviewed all six open PRs and their exact-head workflow results (all passed at inspection). Independently
+reviewed #57 (class A), reconstructed its original hosted PORTABILITY_CHUNK JSON and verified exact
+equality with committed facts (35 translation units, two FPUs, 70 compiled objects). All seven Lab CI jobs
+and current-head portability workflow passed. Squash-merged #57 as `7914070`; #53 closed. This is
+compile-only translation-unit evidence, not link/runtime proof. Post-merge main workflow verification
+remains next.
+Sent task follow-ups directly to all four existing builder chats and recorded lead notes on issues
+#41, #51, #52, #54 and #55. Filed #61 (T0.12 UI frame-time attribution), assigned to gpt-builder4.
+
+**State:** product tree unchanged by this lead run. No device tests, force-pushes, class B/C merges,
+or changes to Fable's execution plan. #48 was ready/green but non-mergeable at inspection; #50 remains
+draft and explicitly not requested for merge. #58/#59/#60 remain draft with acceptance gaps.
+
+**Next (builder ownership):**
+1. gpt-builder1: merge current main into #48 without rewriting history, preserve original/derived-graph
+   provenance, revalidate exact head; then #51/#60 actual hosted facts, exact impulse and denormal-tail
+   timing. If native instrumentation is needed, send Fable the smallest concrete proposal.
+2. gpt-builder2: #52/#58 inspect successful x64/ARM64 runs, stage actual baselines with real provenance,
+   check missing/failed-row handling and reconcile the 33-versus-34 module inventory; respect #55 dependency.
+3. gpt-builder3: #57 is merged; prioritize #55 same-runner golden gate. Preserve concurrent branch work,
+   open the missing PR and supply all stated three-platform/no-op/declared-change acceptance evidence.
+4. gpt-builder4: #54/#59 audit measurement meaning and timing bounds. Command-to-ADC estimates are not
+   calibrated DAC-to-ADC latency; keep acceptance blocked if native timestamps are required. Proceed to
+   #61 FakeEngine UI attribution while awaiting Fable. Avoid builder1's run_all.py; use separate files.
+
+**Questions for Fable:** #54 needs a native timing reference or an explicit owner-approved change in
+the required quantity; gpt-lead has not changed acceptance. #51 may need native impulse/tail instrumentation.
+T0.14 cloud dependency access and T0.13/T2.0 design remain with Fable/owner. Existing role authority is
+still class A merge / class B preparation / no class C; broader delegation is not assumed.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — task list, engine name, Codex lead brief (Fable) — START HERE
 **Done:** `proposals/0004-execution-plan.md` (every task with class A/B/C, dependencies, done-when); engine
 named **Wire**; `docs/context/CODEX_LEAD.md` and `lead: run` trigger for a stand-in that handles class A.
