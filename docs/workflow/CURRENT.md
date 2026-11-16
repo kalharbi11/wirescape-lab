@@ -10,7 +10,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `35a6ef2ce299a143a9e
   dispatched** (#111). One writer owns S2–S6.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 is merged. PV1 is in PR #105 under Q8. **E1a is
   dispatched** (#112).
-- **[CI1 r2](milestones/CI1.md)**: CI1.1 and CI1.2 are merged. CI1.3 (#109) is released and owns `ci.yml`.
+- **CI1 r3 accepted at [PR #119 head fbbf771](https://github.com/kalharbi11/wirescape-lab/pull/119)**: CI1.4/#122 is next exclusive `ci.yml` writer; CI1.3/#109 prepares only until #122 merges. Fable permits dispatch before #119 merges.
 
 Fable's Q7–Q11 answers (CI1 r2, M0 r3, M2 r3) merged with #107 (`6702d6a`).
 
@@ -20,13 +20,13 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | T0.5 #51 / PR #60 | R2 packet on integrated head `afd244a`; CI1.2/P3 already merged |
-| gpt-builder2 | CI1.3 #109 | ownership re-confirmed; single `ci.yml` writer, K7/K8; prepare evidence but coordinate pushes with Q12/#117 |
-| gpt-builder3 | PV1 #86 / PR #105 | head `569e187`; drift/Q8 passed, required aggregate API403 blocked by #117 |
-| gpt-builder4 | T0.10 #113 | draft baseline now; final pass/merge only after T0.5/T0.9 inputs merge |
+| gpt-builder1 | T0.5 #51 / PR #60 | head `7ed7c54` fixes probe prepare(); Lab/Golden green, actual R2 facts run still pending |
+| gpt-builder2 | CI1.3 #109 | staging Result verified; no push before #122 merges, then integrate latest main; K7/K8 unchanged |
+| gpt-builder3 | PV1 #86 / PR #105 | head `569e187`; CI403 plus bus-channel/client disagreement findings; Q13 disposition before another correction |
+| gpt-builder4 | CI1.4 #122 | dispatched; exclusive four-aggregate/verifier writer. #113/118 parked pending #60 |
 | claude-builder1 | T0.13b #100 / PR #106 | T0.13a merged `35a6ef2`; #106 end-to-end facts now unblocked |
-| claude-builder2 | M1 S2 #111 | new; then S3–S6 serially, each filed when the prior stage merges |
-| claude-builder3 | M2 E1a #112 / PR #116 | head `ea27e2a`; `needs/fable` contract-review requested (J1–J5); CI pending |
+| claude-builder2 | M1 S2 #111 | finish S2 only; owner stopped new Claude assignments after current tasks |
+| claude-builder3 | M2 E1a #112 / PR #116 | completed Claude review; current rule6/spec correction, then stop |
 
 ## Open work (verify heads live; this is a snapshot)
 | Task | Issue / PR | Next |
@@ -37,17 +37,24 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | T0.13b | #100 / PR #106 | end-to-end facts on merged capture and marks |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
-| E1a | #112 / PR #116 | `review #116` (owner to a Claude session); B1/B2 recorded true in the PR |
+| E1a | #112 / PR #116 | review DONE, nothing High; apply existing correction packet; exact corrected-head CI/Golden x3 required |
 | T0.10 | #113 / PR #118 | draft assigned to gpt-builder4; T0.9/#50 merged, final pass still waits for T0.5/#60 |
 | T0.14 | owner | see the cloud build note below |
 
-## Resumed lead checkpoint
+## Local lead takeover, 2026-11-16
 
-The interim lead stopped lead actions. Batch #82's latest dispatch table is the ownership record;
-verify live PRs and claims before new assignments. #117 blocks required aggregate verification through
-anonymous API rate limits; no permission change or red-check waiver is authorized yet. Q12 is queued
-for Fable. E1a #116 requires a Claude contract review against J1–J5 plus exact-head CI and Golden x3.
-Whichever of #105 and #116 merges second must update the applyGraph schema corpus or record a PV1 disagreement.
+Sole local lead is thread `01a1e5ad-ea43-7b12-bc15-85ff572f1843`; app host and Windows cwd verified.
+Existing `wlab-lead-review` retargeted and read back ACTIVE every 45 minutes. No duplicate timer.
+Q12 is answered in accepted PR119/fbbf771, not yet merged: CI1.4/#122 GPT-B4 first, then109.
+PR119 Lab43931737998 failed only windows-x64 aggregate133530240036 with API403; no waiver.
+After CI1.4 lands, integrate it and fully rerun105 and other affected PRs; no failed-only repair.
+#116 review5925370959 is DONE: current branch needs fake-stream D5 rule6 test and spec clarifications,
+not another identical review. #106 head818ec673 supersedes02e1513; Worker2 audits reset-reference delta.
+#105 has exhausted the two original correction rounds; Q13 asks Fable for the bounded remaining packet.
+Whichever105/116 merges second must add applyGraph corpus or record PV1 disagreement.
+**Owner steering:** Claude builders finish current tasks/branches and existing corrections, then stop.
+No new Claude tasks or automatic S3/E1b dispatch. Keep existing owners/branches until disposition.
+See [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) for heads, evidence, routing and execution limits.
 
 ## Notes for every builder
 - **CI queue time dominates.** In run 43919414792 the `native build linux-x64` job waited 11 min for a
@@ -61,16 +68,14 @@ Whichever of #105 and #116 merges second must update the applyGraph schema corpu
   before configuring, and the configure then passes. Local runs are not acceptance evidence.
 
 ## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q11 answered; Q12/#117 open.
+- Rulings R1–R7 are in M0. Q12 answered at accepted PR119/fbbf771 (merge pending); Q13 PV1 correction disposition is queued in [QUESTIONS](QUESTIONS.md).
 - Q5: bundled patches and presets may be reset after the rebuild. Nothing moves now, and golden
   "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **gpt-lead:** prioritize Q12/#117 coordination with the CI1.3 writer; review #50 and R2 evidence on #60;
-  review #106/#105 and E1a contract-review results without bypassing required CI; file
-  S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
+- **gpt-lead:** deliver/review122 first; preserve109 hold, review60 R2/106 delta and116 corrections; obtain Q13 disposition. Leave S3/E1b unassigned under owner steering.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Contract-review (`review #<PR>` to a Claude session):** E1a **#116 now**; later M1 S3, S5b, S6.
+- **Contract-review:** #116 DONE; no duplicate request. Future M1 reviews are not dispatched.
 - **Fable:** M0 acceptance needs T0.5, T0.9, T0.10 and T0.13b. Record the owner's Q5 item 7 answer (comment on #107, 2026-11-16): no owner patches, none to be added, so the ID migration and v1 conversion in Q5 points 4 and 6 are not needed. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
   PV2 waits on M1 S5b; T1.6/T1.7 on S5b; T1.8 on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). Q5 point 7 answered: no owner patches.

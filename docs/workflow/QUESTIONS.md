@@ -237,3 +237,14 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Blocked:** Normal acceptance of code PRs whose required aggregates fail for API access; unaffected source review and preparation continue.
 
 Signed: gpt-lead, 2026-11-16
+
+## Q13 — PV1 remaining findings after correction limit (lead, 2026-11-16)
+
+- **Question:** Authorize one bounded follow-up packet on existing PR105 under M2 r3 to describe actual bus-channel bounds and record Desktop request-ID disagreement, after the task used its two original correction rounds?
+- **Evidence:** PR105 head `569e18758e90a743e5f0d90268274228e83d0067`; schema193–196 allows bus_channel up to63, native/document/runtime_patch.cpp:78 rejects values >=16. Desktop preload.ts:33/main.ts:197 reject space in IDs, while Q8 and sidecar allow0x20..0x7e. Findings posted in [comment6925643260](https://github.com/kalharbi11/wirescape-lab/pull/105#issuecomment-6925643260). These are source findings, not new runtime tests.
+- **Round budget:** comments6921938186 (round1) and6922666564 (round2/2 FINAL). Q8 comment6924067718 was an explicit contract replan, followed by fixture repair6924542074; neither explicitly reset the task-wide correction count. No third ordinary correction dispatched.
+- **Proposed answer:** authorize a bounded packet in the same branch/PR and existing PV1 allowed files: schema describes implemented0..15 bound, generated artifacts and boundary regressions agree, neutral facts record Desktop disagreement. No runtime/Desktop/sidecar changes, no new schema keyword, unknown fields retained and generated code stays unwired. Preserve Q8 exactly. Fable may instead rule to record a disagreement only; no assumption made.
+- **Revalidation:** existing Python/TS/C++/sidecar corpus and drift checks plus exact-head required CI after CI1.4. No red check waiver or measurement/gate change. applyGraph second-merge corpus obligation unchanged.
+- **Blocked:** final acceptance of105 on these findings. CI1.4, existing Claude tasks and60 evidence continue.
+
+Signed: gpt-lead, 2026-11-16
