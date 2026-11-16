@@ -12,6 +12,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/"bench/golden"))
 from render import coverage_manifest, sources, CENTERS_HZ
 from compare import compare, parse_sound_changes
+from inventory import registry, render_inventory
 
 CASES=("chord-notes.json","notes-to-cv.json","spectral-cross.json")
 
@@ -70,6 +71,44 @@ class CoverageTests(unittest.TestCase):
             (coverage/"rogue.json").write_text("{}",encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError,"fixture inventory mismatch"):
                 sources(base,root)
+
+    def test_registry_and_bundled_patch_inventory_is_all_34(self):
+        from inventory import registry, render_inventory
+        modules=registry(ROOT)
+        self.assertEqual(len(modules),34)
+        self.assertIn("osc.out",modules)
+        self.assertIn("midi.in",modules)
+        self.assertIn("monitor",modules)
+        self.assertIn("sound.spectral",modules)
+        render={"engine_source_commit":"test-engine-sha",
+                "fixture_source_commit":"test-fixture-sha",
+                "machine":"linux-x64","cpu":"synthetic-known-answer",
+                "patches":{}}
+        for path in (ROOT/"apps/studio/patches").glob("*.json"):
+            render["patches"]["bundled/"+path.name]={"rms_fs":0.0}
+        for case in coverage_manifest()["cases"]:
+            folder=ROOT/"bench/patches/coverage"
+            render["patches"]["coverage/"+case["fixture"]]={
+                "fixture_sha256":hashlib.sha256((folder/case["fixture"]).read_bytes()).hexdigest(),
+                "control_sha256":hashlib.sha256((folder/case["control"]).read_bytes()).hexdigest(),
+                "rms_fs":0.2,"peak_fs":0.3,
+                "control_peak_difference_fs":0.1,"contribution_verified":True}
+        facts=render_inventory(ROOT,render,"https://example.test/known-answer")
+        self.assertEqual(facts["source_commit"],"test-engine-sha")
+        self.assertEqual(facts["fixture_source_commit"],"test-fixture-sha")
+        self.assertEqual(len(facts["modules"]),34)
+        self.assertEqual(facts["bundled_patch_count"],24)
+        self.assertEqual(facts["coverage_fixture_count"],3)
+        self.assertEqual(facts["modules"]["essentials.chord"]["contribution_status"],
+                         "measured_audio_bypass_intervention")
+        self.assertEqual(facts["modules"]["essentials.notes_to_cv"]["contribution_status"],
+                         "measured_audio_bypass_intervention")
+        self.assertEqual(facts["modules"]["sound.spectral"]["contribution_status"],
+                         "measured_audio_bypass_intervention")
+        self.assertEqual(facts["modules"]["midi.in"]["contribution_status"],
+                         "not_exercised_offline")
+        self.assertEqual(facts["modules"]["osc.out"]["contribution_status"],
+                         "bundled_presence_unverified")
 
     def test_missing_bundled_and_coverage_remain_failures_with_all_declared(self):
         for key in ("bundled/basics-01-first-tone.json","coverage/chord-notes.json"):
