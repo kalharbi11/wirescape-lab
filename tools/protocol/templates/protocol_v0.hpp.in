@@ -9,6 +9,8 @@
 
 namespace wirescape::protocol_v0 {
 using Json = nlohmann::json;
+// Literal from Fable Q8; the generator validates it before substitutions.
+inline constexpr const char *q8_printable_ascii_pattern = __PRINTABLE_ASCII_PATTERN__;
 
 inline const Json &schema() {
     static const Json value = Json::parse(R"WS_V0_SCHEMA(__SCHEMA_JSON__)WS_V0_SCHEMA");
@@ -16,8 +18,8 @@ inline const Json &schema() {
 }
 
 // JSON Schema 2020-12 minLength/maxLength count Unicode code points, not
-// UTF-8 bytes. Native wire/session request-ID byte and ASCII limits are a
-// separate transport rule and deliberately do not alter this schema validator.
+// UTF-8 bytes. Q8's exact request-ID pattern independently restricts its
+// bytes to printable ASCII; generic strings retain correct codepoint lengths.
 inline bool utf8_codepoints(const std::string &input, std::size_t &length) {
     length = 0;
     for (std::size_t offset = 0; offset < input.size();) {
@@ -122,10 +124,20 @@ inline bool matches(const Json &shape, const Json &value, unsigned depth = 0) {
         if (shape.contains("maximum") && number > shape["maximum"].get<double>()) return false;
     }
     if (value.is_string()) {
+        const auto &bytes = value.get_ref<const std::string &>();
         std::size_t length = 0;
-        if (!utf8_codepoints(value.get_ref<const std::string &>(), length)) return false;
+        if (!utf8_codepoints(bytes, length)) return false;
         if (shape.contains("minLength") && length < shape["minLength"].get<std::size_t>()) return false;
         if (shape.contains("maxLength") && length > shape["maxLength"].get<std::size_t>()) return false;
+        if (shape.contains("pattern")) {
+            if (!shape["pattern"].is_string() ||
+                shape["pattern"].get<std::string>() != q8_printable_ascii_pattern) return false;
+            // Equivalent to the one permitted Q8 pattern; no regex engine.
+            for (const unsigned char byte : bytes)
+                if (byte < 0x20 || byte > 0x7e) return false;
+        }
+    } else if (shape.contains("pattern")) {
+        return false;
     }
     if (value.is_array()) {
         if (shape.contains("minItems") && value.size() < shape["minItems"].get<std::size_t>()) return false;
