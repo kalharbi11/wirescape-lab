@@ -84,6 +84,8 @@ def base() -> dict:
 
 WITNESS = {0: 'tone', 1: 'slip_tone', 2: 'tail', 3: 'held_note', 4: 'clock'}
 TONE_HZ, SLIP_HZ = 1000.0, 10.0
+# Channels whose reset state is silence: the held note sounds only after its noteOn.
+IDLE_SILENT = {3}
 # Which earlier mark each witness's no-edit reference is aligned on (R7: shared earlier commands).
 # All use `load`: every oscillator's phase runs from the load, and by the steady region the held
 # note is at its constant sustain, so its samples match exactly on the load mark; on the `note` mark

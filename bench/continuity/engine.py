@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import queue
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -90,7 +91,7 @@ class Engine:
         return stderr
 
 
-def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256) -> Run:
+def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256, keep: str | None = None) -> Run:
     with tempfile.TemporaryDirectory(prefix='continuity-') as d:
         work = Path(d)
         engine = Engine(binary, work, rate, block)
@@ -108,4 +109,10 @@ def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256) -> 
             stderr = engine.close()
         if 'failed=0' not in stderr:
             raise RuntimeError(f'capture reported a failure: {stderr[-300:]}')
-        return Run(replies, mk.read(work / 'capture.f32.marks'), capture.read(engine.capture_path), stderr)
+        result = Run(replies, mk.read(work / 'capture.f32.marks'), capture.read(engine.capture_path), stderr)
+        if keep:  # raw evidence for audit: the capture and its marks, byte for byte
+            dest = Path(keep)
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(engine.capture_path, dest / 'capture.f32')
+            shutil.copyfile(work / 'capture.f32.marks', dest / 'capture.f32.marks')
+        return result

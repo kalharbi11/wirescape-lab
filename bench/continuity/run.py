@@ -89,6 +89,35 @@ def finite(v):
     return v
 
 
+def reset_reference(x, geo: mk.Geometry, marks, subject: int, edit: int) -> list[float]:
+    """The subject's own reset output, the reference `restarted` compares against.
+    Channels whose reset state is silence (probe.IDLE_SILENT: the held note sounds only after its
+    noteOn) use the silent stretch just before the `note` mark. All others start at their first
+    sounding sample after the `load` mark: from b0 itself the silent lead would include however
+    many blocks passed before the graph swapped in, an arbitrary length no later reset repeats."""
+    floor = 10 ** (m.SILENCE_DBFS / 20)
+    if subject in probe.IDLE_SILENT:
+        note_at = mk.block_sample(geo, mk.locate(marks, 'note').b0)
+        idle = x[max(0, note_at - RATE // 4):note_at]
+        if len(idle) < RATE // 4 or any(abs(v) >= floor for v in idle):
+            raise ValueError('held-note subject is not silent before its noteOn: no idle reference')
+        return list(idle)
+    load_at = mk.block_sample(geo, mk.locate(marks, 'load').b0)
+    start_at = next((i for i in range(load_at, edit) if abs(x[i]) >= floor), load_at)
+    return list(x[start_at:start_at + RATE])
+
+
+def subject_restart(x, cont, geo, marks, subject, edit, late, changes_subject=False) -> tuple:
+    """(restarted, note) for the subject. A False where the edit changes the subject's own sound is
+    not evidence (a reset could not repeat the old output), so it becomes None with the reason;
+    None from the metric (silent reset reference: reset and mute look the same) is kept."""
+    r = m.restarted(x, reset_reference(x, geo, marks, subject, edit), cont, RATE, edit, late=late)
+    if r.state is False and changes_subject:
+        return None, ('not testable: the edit changes the subject\'s own sound, so a reset cannot '
+                      'repeat its reset output (' + r.note + ')')
+    return r.state, r.note
+
+
 def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False) -> dict:
     mark = mk.locate(run.marks, 'edit')
     geo = mk.Geometry.of(run.segments)
@@ -97,6 +126,7 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
     edit, late = win.edit, win.late
     reply = run.replies['edit']
     out = dict(ok=reply['ok'], code=reply.get('code'), message=reply.get('message'),
+               all_marks=[m_._asdict() for m_ in run.marks], reference_marks=[m_._asdict() for m_ in ref.marks],
                gen_before=mk.locate(run.marks, 'note').gen, gen_after=mark.gen,
                b0=mark.b0, b1=mark.b1, bracket_blocks=win.width_blocks,
                segments=[[s.block, s.blocks] for s in run.segments], witnesses={})
@@ -121,24 +151,12 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
         if name == 'slip_tone':
             put('time_slip_ms', m.time_slip_tone_ms, x, RATE, edit, probe.SLIP_HZ, late)
         elif name == 'subject':
-            load = mk.locate(run.marks, 'load')
-            # Start-of-load reference: from the subject's first sounding sample after the load mark.
-            # From b0 itself, the silent lead would include however many blocks passed before the
-            # graph swapped in, an arbitrary length a later reset cannot repeat.
-            floor = 10 ** (m.SILENCE_DBFS / 20)
-            load_at = mk.block_sample(geo, load.b0)
-            start_at = next((i for i in range(load_at, edit) if abs(x[i]) >= floor), load_at)
             if cont is not None:
-                r, e = safe(m.restarted, x, x[start_at:start_at + RATE], cont, RATE, edit, late=late)
+                r, e = safe(subject_restart, x, cont, geo, run.marks, subject, edit, late, changes_subject)
                 if e:
                     errors['restarted'] = e
-                elif r.state is False and changes_subject:
-                    row['restarted'] = None
-                    row['restarted_note'] = ('not testable: the edit changes the subject\'s own sound, so a '
-                                             'reset cannot repeat its start-of-load output (' + r.note + ')')
                 else:
-                    row['restarted'] = r.state
-                    row['restarted_note'] = r.note
+                    row['restarted'], row['restarted_note'] = r
                 level = m.rms(x[edit - RATE // 2:edit])
                 limit = level * 1e-3 if level > 0 else 10 ** (m.SILENCE_DBFS / 20)
                 lo, hi = win.lo, win.hi
@@ -217,14 +235,16 @@ def main(argv=None):
     ap.add_argument('--repeats', type=int, default=3)
     ap.add_argument('--only', nargs='*')
     ap.add_argument('--out', default=str(ROOT / 'facts' / 'dsp' / 'edit_continuity'))
+    ap.add_argument('--keep', help='directory to keep every raw capture and marks file (for an artifact)')
     a = ap.parse_args(argv)
     edits = [e for e in probe.edits() if not a.only or e['name'] in a.only]
     per_edit = {e['name']: [] for e in edits}
     for rep in range(a.repeats):
-        ref = eng.run(a.engine, script(None, None))
+        keep = lambda tag: str(Path(a.keep) / f'r{rep + 1}-{tag}') if a.keep else None
+        ref = eng.run(a.engine, script(None, None), keep=keep('reference'))
         for e in edits:
             print(f'repeat {rep + 1}/{a.repeats}: {e["name"]}', flush=True)
-            run = eng.run(a.engine, script(e, e.get('setup')))
+            run = eng.run(a.engine, script(e, e.get('setup')), keep=keep(e['name'].replace(' ', '_')))
             per_edit[e['name']].append(analyse(run, ref, e['subject'], e.get('changes_subject', False)))
     rows = []
     for e in edits:
@@ -240,7 +260,8 @@ def main(argv=None):
                        worst={k: worst([r['witnesses'][w].get(k) for r in reps], k) for k in keys},
                        repeats=[r['witnesses'][w] for r in reps],
                        marks=[dict(b0=r['b0'], b1=r['b1'], gen_before=r['gen_before'], gen_after=r['gen_after'],
-                                   segments=r['segments']) for r in reps])
+                                   segments=r['segments'], run=r['all_marks'], reference=r['reference_marks'])
+                              for r in reps])
             rows.append(row)
     doc = dict(provenance=provenance(), repeats=a.repeats,
                method='proposals/0005 section 4 as amended by M0 r3 ruling R7; bench/continuity/DESIGN.md',
