@@ -37,7 +37,7 @@ int main() {
     // JSON Schema 2020-12 lengths count Unicode scalar values, not UTF-8 bytes.
     // The actual sidecar separately requires ASCII request IDs <= 64 bytes;
     // this independent schema test must not add a sidecar waiver or change it.
-    for (const std::string scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
+    for (const std::string& scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
         for (std::size_t count : {std::size_t(33), std::size_t(64)}) {
             std::string unicode_id;
             for (std::size_t i = 0; i < count; ++i) unicode_id += scalar;
