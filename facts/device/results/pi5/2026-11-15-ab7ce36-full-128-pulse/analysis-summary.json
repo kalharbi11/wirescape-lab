@@ -1,0 +1,19 @@
+{
+  "source_sha": "ab7ce364e704d2a189717699b903a54daae3d579",
+  "device": "ALSA|pulse",
+  "initial_block_frames": 128,
+  "planned_duration_s": 3600.0,
+  "recorded_duration_s": 3599.275,
+  "engine_exit_code": 0,
+  "cpu_max_percent": 26.97661781311035,
+  "engine_dropouts": 0,
+  "signal_click_candidates": 270,
+  "signal_dropout_candidates": 10,
+  "longest_signal_dropout_candidate_ms": 1114.771,
+  "recorded_signal": {
+    "rms": 0.033608262,
+    "peak": 1.0,
+    "dc": 1.8379e-05
+  },
+  "note": "Signal detector candidates are not equivalent to engine dropouts. Scenario scripts change buffers; initial block is not a steady-buffer guarantee."
+}

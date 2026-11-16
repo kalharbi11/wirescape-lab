@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `cacf9ea`.
+Updated: 2026-11-16 (ET) by gpt-lead, replacement local lead. Last reviewed `main`: `64c1c6b466ffb2d135c5b95dc72923712d815996`.
 
 ## Active contract
 **[M0 r2](milestones/M0.md), accepted and active.** Phase 0 remainder, T1.1, and four fact
@@ -29,50 +29,80 @@ can be filed now; ruling R6.
 
 ## Active batch B1
 
-[Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82), coordination base `edb16274f0f7b456e3e17e33f1899a820661059c`.
-Result-or-blocked checkpoint: **2026-11-16 05:30 ET**. Builder1 owns #67/#70 (R5),
-builder2 #52/#58 (R4 plus lead correction round 1), builder3 P1/#78 after #69 merged,
-builder4 #54/#59 (R1).
-One task/branch/PR per builder; no automatic queue pickup. Existing WLAB chats are the dispatch
-route; delivery/turn completion is checked separately. Cloud worker is environment/build support,
-not another product writer. Focused independent reviewers checked #63, #69, #58 and the device facts.
+[Batch #82](https://github.com/kalharbi11/wirescape-lab/issues/82) continues.
+**Owner priority: CI/CLI test turnaround FIRST, before new feature dispatch.**
+[CI1.1 #95](https://github.com/kalharbi11/wirescape-lab/issues/95) is builder3's one active task.
+It exclusively owns `.github/workflows/ci.yml`. Baseline counts and K4 pre-edit source search
+were returned, confirming substantive startup. Result-or-blocked checkpoint: **2026-11-16 07:00 ET**;
+this is not an acceptance deadline. Existing baseline skips are unchanged, no new skips allowed.
 
-The owner resumed work in the local lead chat and requested 15-minute scheduled review checks.
-The thread heartbeat is active; unchanged results end promptly, with no duplicate dispatch or
-expensive rerun. Usage limits remain shared. Preserve the local device-results branch and its
-untracked captures; repository coordination uses separate GitHub branches.
+| Writer | Current task | Lead-owned review / next |
+|---|---|---|
+| builder1 | #51 / PR #60 R2 metrics packet | #70 corrected `2c464fb`, signed Result; new CI/evidence pending |
+| builder2 | #80 / P3 module build and registry inventory | #58 merged `64c1c6b` after root artifact audit |
+| builder3 | CI1.1 / #95, accepted CI1 r1 | P1 merged; P2 corrected by lead, no concurrent builder edits |
+| builder4 | #59 round2 returned `3e485dff`; no active implementation during review | S0/#84 remains assigned but paused |
+| Worker 2 Cloud | PR #59 read-only delta review at `3e485dff` | earlier onset oracle and P2 source audit complete |
 
-Next dependency-ready dispatch: remaining inventories #79–#81, M1 S0/#84, M2 E0/#85 and PV1/#86,
-then M0 T0.13a as writers free up. Do not dispatch queued tasks before the current result.
-T0.5/#60 waits for builder1's current task to return to review; apply R2 before acceptance.
-The M1 S5 sidecar ordering and all contract-review requirements remain in force.
+One task/writer; a next nonoverlapping task may start after the prior signed Result enters lead review.
+A chat rotates only after all its owned PRs close with signed dispositions. Existing chats/history
+are retained: regular Chat replacements are required, but supported create_thread only offers Work
+Cloud, and list/read report backing kind without a Chat/Work mode field. No substitution/mode claim.
+Active statuses after dispatch are separate from substantive execution proof; inspect actual results.
+
+Sole local lead: **WLAB | LEAD | delivery 2**, thread `01a1e3ca-c0d2-7d80-b1bc-6bcb93692b9a`.
+Existing `wlab-lead-review` read back ACTIVE, target this thread, **45-minute** interval; old lead
+stopped dispatch. No duplicate schedules, model waits/rechecks of unchanged state or expensive reruns.
+The local stale device-results checkout and untracked captures remain untouched.
+
+Queued: #81/P4, S0/#84 paused, E0/#85, PV1/#86, then explicit T0.13a/b packets. CI1 first.
+PV1's drift check uses a new workflow; respect M1 r2/M2 r2 sidecar ordering.
 
 ## Current review findings
 
-- #58: native module probe can print nonzero `faults` yet exit zero. Collector accepted the exit/Ir
-  totals without checking that JSON. Round 1 requests bench-only validation and mocked fault,
-  malformed/missing and healthy evidence tests, followed by real hosted evidence. No native change.
-- #73/#75: both had green checks at review; preserve raw evidence and add required licensing metadata,
-  place appended README rows inside the table, integrate #73 before #75. Never run devices here.
-- Cloud worker received an isolated **baseline `cacf9ea`** checkout/build/test support package using
-  existing tools and pinned public dependencies. No package installation or persistent setting change.
-  Tool delivery is not build/start success; inspect its result separately.
-- Builder1 active after reminder; builder2 correction delivered with one concise start retry;
-  builder4 activation remains unconfirmed after owner manual start and reminders. Inspect actual
-  assistant activity before further retries or reassignment. Avoid duplicate work.
+- #58 merged `64c1c6b466ffb2d135c5b95dc72923712d815996`. Root reviewed bounded JSON validation,
+  both-length call sites, mocks/comparator/advisory workflow and independently opened both actual
+  profiling ZIPs. Each has 97 unique rows, 95 finite positive numeric measurements with exact
+  two-length arithmetic and two reason-bearing Chord exceptions. ZIP/JSON hashes, historical
+  baseline blobs and head/run linkage matched; zero numeric rows exceeded +3%. Lab `43835691687`
+  and instruction `43835691748` passed. Main post-merge outcome remains to verify.
+- #59: Worker2 accepted onset fix `0c465529` (16 tests, independent 720-pulse oracle), then found
+  ignored callback status. Round 2 of 2 returned `3e485dffbd2ac79c334554b8a21fc53b90e0aa37`:
+  refuse flagged capture, preserve diagnostic reasons, five mocked regressions. Fresh Lab
+  `43847088024` and Device `43847088206` pending; Worker2 reviews only the delta. No hardware claim.
+- #70 corrected `2c464fb378de1c1594d53cef565f7f76ed53b13c`: undeclared VERIFY in the frozen
+  fixture header replaced with independent fatal integrity checks, comparison assertions unchanged.
+  Signed Result awaits exact-head native/Golden/dependency evidence. Earlier Offline workflow
+  conclusion masked failed build children and is not accepted native evidence. Lead owns review.
+- #73 merged `e559634d2d1ee1a4597984e5c16bcd2013e413f1` after exact-head CI and recorded
+  independent factual/privacy/raw-blob metadata review. #75 corrected
+  `09a7cf3701db4cdd3bd9dcb559dbe00cca98061c`: main integrated, five headers/25 licenses/18-row
+  table; all 25 raw blob SHAs unchanged. Fresh Lab `43846491720` / Device `43846491709` pending.
+- P1/#89 merged `3ae712b4dc2af05f2aee18208aa2bbb5c7a629cc`, exact-head `43837338789`,
+  recorded semantic/citation review. Worker2 audited P2/#91: 184 citations, 231 ranges, 25 source
+  files, 19 commands. Root confirmed App.ts:505–508 and added refused-draft qualification plus an
+  editorial reference fix in `38057f3`; fresh CI required. Builder3 stays on CI1.
+- Worker2 has a clean reference checkout at44da1e4, no lab checkout; GCC14.2, Python3.12.14,
+  existing tool-venv CMake4.2.3/Ninja1.13. Reference cache is not lab evidence. New support only goes
+  to Worker2; old cloud history/artifacts retained. Tool messaging back is unavailable there.
 
 ## Open work (verify heads live; this is a snapshot)
+
 | Task | Issue / PR | Next |
 |---|---|---|
-| T0.5 | #51 / PR #60 | apply ruling R2, then lead review |
-| T0.6 | #52 / PR #58 | round 1: reject module probe JSON faults/malformed evidence; keep R4 exceptions/thresholds; revalidate actual evidence |
-| T0.8 | #54 / PR #59 | apply R1, then lead review |
-| T0.9 | PR #73, #75, #50 | #73/#75 factual review found no material inflation/privacy issue; fix README table placement and artifact SPDX metadata before merge |
-| T0.11 | #66 / PR #69 | merged `cacf9ea`; reviewed head `44e31258e2e2784a1d1dc8d301dd3f248e2d982b`, 3-platform Golden and 7-job Lab CI passed |
-| T0.12 | #61 / PR #63 | merged `2a02874`; reviewed head `c9da84bd23ac20ed4a1de55327447d01117c7e7c`, all four workflows passed |
-| T1.1 | #67 / PR #70 | finish frozen-data conversion, drop the ABI1 link; R5 |
-| P1–P4 | #78, #79, #80, #81 | #78 active on builder3; others queued, one new factual file each |
-| T0.10 | to file | after the rows above merge |
+| CI1.1 | #95 / PR to open | builder3 first priority, K1–K5 evidence |
+| T0.5 | #51 / PR #60 | builder1 active R2 packet |
+| T0.6 | #52 / PR #58 | merged `64c1c6b`, post-merge workflow outcome pending |
+| T0.8 | #54 / PR #59 | round2 `3e485dff`, delta review and fresh CI |
+| T0.9 | PR #73, #75, #50 | #73 merged; #75 `09a7cf3` CI pending; #50 review remains |
+| T0.11 | #66 / PR #69 | merged `cacf9ea` |
+| T0.12 | #61 / PR #63 | merged `2a02874` |
+| T1.1 | #67 / PR #70 | corrected `2c464fb`, lead review/new CI |
+| P1–P4 | #78–#81 | P1 merged; P2 corrected `38057f3`; P3/#80 active; P4 queued |
+| M1 S0 | #84 | builder4 paused until corrected #59 review |
+| M2 E0 / PV1 | #85 / #86 | queued behind CI1, M2 r2 order |
+| T0.13a/b | to file | explicit implementation packets needed |
+| T0.10 | to file | after required measurement tasks merge |
 
 ## Decisions
 - Rulings R1–R6 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q6 answered, queue empty (Fable, 2026-11-16).
@@ -83,8 +113,9 @@ The M1 S5 sidecar ordering and all contract-review requirements remain in force.
 - The old pause in the 2026-11-15 LOG entry is lifted by this contract.
 
 ## Next action by role
-- **gpt-lead:** `lead: run B1`. Verify dispatch/results for #82, review changed heads and merge per
-  contract. Queue design exceptions in QUESTIONS.md; dispatch inventories when builders return.
+- **gpt-lead:** prioritize CI1/#95 and verify actual builder execution. Review changed results/heads
+  under #82 and the live contracts; merge only exact-head evidence. Queue unresolved design exceptions
+  in QUESTIONS.md, update this handoff at batch boundaries, preserve one 45-minute heartbeat.
 - **Builders:** one task each, result comment on the PR.
 - **Designed, not yet contracted (Fable contracts each when its dependency is near):**
   [0007](../../proposals/0007-engine-file-split.md) engine split T1.6 (after M1 S5b);

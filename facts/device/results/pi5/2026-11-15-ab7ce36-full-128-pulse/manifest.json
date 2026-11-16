@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "machine": "pi5",
+  "os": "Linux",
+  "os_version": "6.18.20-v8-16k+",
+  "cpu": "aarch64",
+  "commit": "ab7ce364e704d2a189717699b903a54daae3d579",
+  "rate": 48000,
+  "block": 128,
+  "audio_device": "ALSA|pulse",
+  "driver": "ALSA",
+  "capture_backend": "monitor",
+  "dry_run": false,
+  "scenario": "full",
+  "engine_mode": "device",
+  "warnings": [],
+  "offline_script_count": 1115,
+  "planned_duration_s": 3600.0,
+  "engine_exit_code": 0,
+  "completed": true
+}
