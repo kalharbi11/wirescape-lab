@@ -51,6 +51,30 @@ inline bool utf8_codepoints(const std::string &input, std::size_t &length) {
     return true;
 }
 
+// Compare JSON data models, never coerce Boolean and Number scalars.
+inline bool json_equal(const Json &left, const Json &right) {
+    if (left.is_number() || right.is_number()) {
+        return left.is_number() && right.is_number() && left == right;
+    }
+    if (left.is_boolean() || right.is_boolean()) {
+        return left.is_boolean() && right.is_boolean() && left == right;
+    }
+    if (left.is_array() || right.is_array()) {
+        if (!left.is_array() || !right.is_array() || left.size() != right.size()) return false;
+        for (std::size_t i = 0; i < left.size(); ++i)
+            if (!json_equal(left[i], right[i])) return false;
+        return true;
+    }
+    if (left.is_object() || right.is_object()) {
+        if (!left.is_object() || !right.is_object() || left.size() != right.size()) return false;
+        for (auto it = left.begin(); it != left.end(); ++it) {
+            if (!right.contains(it.key()) || !json_equal(it.value(), right.at(it.key()))) return false;
+        }
+        return true;
+    }
+    return left == right;
+}
+
 inline bool matches(const Json &shape, const Json &value, unsigned depth = 0) {
     if (depth > 64 || !shape.is_object()) return false;
     if (shape.contains("$ref")) {
@@ -85,10 +109,10 @@ inline bool matches(const Json &shape, const Json &value, unsigned depth = 0) {
         } else ok = type_matches(shape["type"]);
         if (!ok) return false;
     }
-    if (shape.contains("const") && value != shape["const"]) return false;
+    if (shape.contains("const") && !json_equal(value, shape["const"])) return false;
     if (shape.contains("enum")) {
         bool ok = false;
-        for (const auto &entry : shape["enum"]) ok |= entry == value;
+        for (const auto &entry : shape["enum"]) ok |= json_equal(entry, value);
         if (!ok) return false;
     }
     if (value.is_number()) {
