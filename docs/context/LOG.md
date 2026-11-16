@@ -1,6 +1,15 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — workflow v2 active, M0 r1 accepted (Fable)
+**Done:** reviewed and accepted WP1 (policy, lead brief, CURRENT, QUESTIONS, templates). M0 contract
+r1 accepted with rulings R1–R5 (latency quantities, impulse/tail under engine FTZ/DAZ, coverage rows,
+instruction-count baseline, T1.1 merge criteria) and four inventories P1–P4 for the next design blocks.
+**State of main:** no product change. The builder pause in the entry below is lifted.
+**Next:** lead delivers M0 r1. Fable after reset: T0.13 design, T1.2/T1.3 note, `0005`.
+**Open for the owner:** T0.14 dependency hosts.
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — owner-requested pause after builder round and review
 **Status:** handoff-ready; owner is deploying a new workflow. Do not resume builders, dispatch new
 tasks, or continue the 15–20-minute in-chat checks until the owner resumes/replaces this workflow.
