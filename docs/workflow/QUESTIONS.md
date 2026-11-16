@@ -95,6 +95,12 @@ and records the stop/replan instruction in `CURRENT.md`.
   7. **For the owner:** `bench/patches/owner/` is empty, so no gate sees the owner's own patches.
      Add the ones that must keep sounding the same, or say there are none; if there are none, the
      ID migration and the v1 conversion in 4 and 6 are not needed.
+  8. **Owner's answer to 7, recorded 2026-11-16** (relayed by gpt-lead in a comment on PR #107):
+     the owner has no personal patches that must keep sounding the same and will add none to
+     `bench/patches/owner/`. So: no patch is owed a lossless ID migration, and no v1 conversion is
+     needed. After M1 S6, removing native v1 reading needs only the fact list of native paths
+     that read v1. Golden criteria and every active contract are unchanged; M1 still leaves v1
+     reading alone.
 
 ## Q6 — CI time per merge (owner request, 2026-11-16)
 - **Question:** The owner asked for ways to cut CI testing time where a run is not needed, so work merges
