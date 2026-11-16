@@ -319,7 +319,8 @@ def restarted(x: Sequence[float], start: Sequence[float], continuation: Sequence
     is its sample-aligned no-edit capture. A restart at `at` (from edit - search_ms to
     late + search_ms) needs x[at:] to repeat `start` (including any silent lead) to within -60 dB
     of the reference RMS over match_ms of sounding samples, to differ there from the continuation
-    by more than that, and to begin where x first leaves the continuation, with only silence (< -80 dBFS) in between.
+    by more than that, and to begin where x first leaves the continuation, with only silence (< -80 dBFS)
+    or a mute fade (|x| never above |continuation|) in between.
     """
     floor = 10.0 ** (SILENCE_DBFS / 20.0)
     n = _n(match_ms, rate)
@@ -356,8 +357,10 @@ def restarted(x: Sequence[float], start: Sequence[float], continuation: Sequence
     ref = list(start[:lead + n])
     m = len(ref)
     for at in range(max(0, edit - reach), min(len(x) - m, late + reach) + 1):
-        if any(abs(v) >= floor for v in x[d:at]):
-            break  # sound between the departure and here: later matches are displacements
+        # Between the departure and the repeat only silence or a mute fade (never louder than the
+        # continuation) is allowed; anything else means later matches are displacements.
+        if any(abs(v) >= floor and abs(v) > abs(c) + floor for v, c in zip(x[d:at], continuation[d:at])):
+            break
         seg = x[at:at + m]
         if rms([a - b for a, b in zip(seg, ref)]) <= limit and \
                 rms([a - b for a, b in zip(seg, continuation[at:at + m])]) > limit:

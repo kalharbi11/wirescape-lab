@@ -5,7 +5,7 @@ Bus channels (one witness each; see DESIGN.md):
   0 tone 1 kHz      VCO 1 -> Output 2                          never edited
   1 slip tone 10 Hz VCO 3 -> Output 4                          never edited
   2 tail            clock 8 -> function env 7 -> VCA 6 (noise 5) -> delay 9 -> Output 10
-  3 held note       keyboard 11 -> VCO 12 / ADSR 13 -> VCA 14 -> Output 15 (noteOn before the edit)
+  3 held note       keyboard 11 gate -> ADSR 13 -> VCA 14 on VCO 12 (fixed 440 Hz) -> Output 15
   4 clock           clock 16 -> function env 17 -> VCA 18 (VCO 19, 2 kHz) -> Output 20
   5 subject         VCO 50 (330 Hz, modulated by VCO 52 at 0.05) -> Output 51
   6 subject 2       VCO 54 (550 Hz) -> Output 55
@@ -47,7 +47,7 @@ def base() -> dict:
         m(7, 'essentials.function_envelope', rise=0.0001, fall=0.01),
         m(8, 'essentials.clock', bpm=20, duty=0.05),
         m(9, 'fx.delay', time=0.25, feedback=0.9, mix=1.0), m(10, 'essentials.output'),
-        m(11, 'host.keyboard'), m(12, 'essentials.vco'),
+        m(11, 'host.keyboard'), m(12, 'essentials.vco', frequency=440),
         m(13, 'essentials.adsr', attack=0.005, decay=0.05, sustain=0.7, release=0.2),
         m(14, 'essentials.vca', gain=1), m(15, 'essentials.output'),
         m(16, 'essentials.clock', bpm=240, duty=0.1),
@@ -67,7 +67,7 @@ def base() -> dict:
         sig(1, 'audio', 2, 'audio'), sig(3, 'audio', 4, 'audio'),
         sig(5, 'audio', 6, 'audio'), sig(8, 'clock', 7, 'gate'), sig(7, 'envelope', 6, 'gain_cv'),
         sig(6, 'audio', 9, 'left'), sig(9, 'left', 10, 'audio'),
-        sig(11, 'pitch', 12, 'pitch'), sig(11, 'gate', 13, 'gate'), sig(12, 'audio', 14, 'audio'),
+        sig(11, 'gate', 13, 'gate'), sig(12, 'audio', 14, 'audio'),
         sig(13, 'envelope', 14, 'gain_cv'), sig(14, 'audio', 15, 'audio'),
         sig(16, 'clock', 17, 'gate'), sig(17, 'envelope', 18, 'gain_cv'), sig(19, 'audio', 18, 'audio'),
         sig(18, 'audio', 20, 'audio'),

@@ -67,7 +67,7 @@ These are in the `metrics.py` docstring and are listed here so a reviewer can ov
 | 0 | tone | VCO, 1 kHz sine, straight to output. Never edited. 1 ms is one period, so the 1 ms RMS is flat. |
 | 1 | slip tone | VCO, 10 Hz sine, straight to output, used for `time_slip_ms` only. Never edited. |
 | 2 | tail | 20 BPM clock → 10 ms function envelope → VCA on noise → delay 0.25 s, feedback 0.9, mix 1 |
-| 3 | held note | `host.keyboard` → VCO pitch and ADSR (sustain 0.7) → VCA; `noteOn` 69 sent before the edit, held |
+| 3 | held note | `host.keyboard` gate → ADSR (sustain 0.7) → VCA on a fixed 440 Hz VCO; `noteOn` 69 sent before the edit, held. The VCO is not pitch-driven: a pitch-driven phase depends on note timing and matched no single mark (residuals 0.04–0.08) |
 | 4 | clock | 240 BPM clock → 20 ms function envelope → VCA on a 2 kHz VCO. `silence_ms`/`dip_db` are not reported: it is silent between hits by design |
 | 5 | subject | VCO 330 Hz, modulated by a 2 Hz VCO at 0.05 |
 | 6 | subject 2 | VCO 550 Hz (target of the event and modulation connects) |
@@ -81,6 +81,8 @@ the shared earlier command that starts every oscillator's phase. Within the offs
 (0.0 = bit-exact) and the exactly matching offsets are in the JSON. The held note is aligned on
 `load` too. By the steady region it is at constant sustain, and on the `note` mark its samples
 differed whenever the load-to-note spacing differed between runs (a measured 0.21 residual).
+`restarted` counts a mute fade (never louder than the continuation) between departure and
+repeat like silence: a `loadGraph` restart fades out before the subject starts again.
 
 ## Procedure and edits
 48 kHz, 256 frames, null sink with `--capture-null-sink`. The steps are load, wait 2 s, edit,

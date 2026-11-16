@@ -229,6 +229,25 @@ class Restarted(unittest.TestCase):
         x = start[:EDIT] + [0.0] * BLOCK + start[:TOTAL - EDIT - BLOCK]
         self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT)[:2], (True, EDIT + BLOCK))
 
+    def test_fade_out_then_reset_is_a_restart(self):
+        # A loadGraph-style restart: a 10 ms linear fade-out, one block of silence, then the subject
+        # repeats its start-of-load output. The fade is never louder than the continuation.
+        f = 110.3
+        start, cont = sine(freq=f), sine(freq=f)
+        fade = 480
+        x = start[:EDIT] + [cont[EDIT + i] * (1 - i / fade) for i in range(fade)] + [0.0] * BLOCK
+        x += start[:TOTAL - len(x)]
+        self.assertEqual(m.restarted(x, start, cont, RATE, EDIT)[:2], (True, EDIT + fade + BLOCK))
+
+    def test_louder_departure_then_start_match_is_not_a_restart(self):
+        # Same timing but the gap holds a displaced (phase-shifted) sine, not a fade: not a reset.
+        f = 110.3
+        start, cont = sine(freq=f), sine(freq=f)
+        moved = sine(math.pi / 2, 0, freq=f)
+        x = start[:EDIT] + moved[EDIT:EDIT + 480 + BLOCK]
+        x += start[:TOTAL - len(x)]
+        self.assertEqual(m.restarted(x, start, cont, RATE, EDIT)[0], False)
+
     def test_silent_start_envelope_reset(self):
         # Start-of-load output is 25 ms of silence, then a 10 ms attack of a 200 Hz carrier.
         # A reset at the edit repeats that silence and attack; the held note would have continued.
