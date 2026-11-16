@@ -12,7 +12,7 @@ from [proposals/0006](../../proposals/0006-one-engine-migration.md). S0 can star
 builder. S2 starts when T1.1 and inventory P1 are merged; one builder owns S2–S6 serially.
 
 **[M2 r1](milestones/M2.md), accepted and active, in parallel.** `applyGraph`: undo, redo, restore
-and config edits stop restarting untouched modules. E1a (sidecar) then E1b (Studio). Design and the
+and config edits stop restarting untouched modules. E0 (canonical config bytes, small, can start now), then E1a (sidecar), then E1b (Studio). Design and the
 rest of Phase 2: [proposals/0005](../../proposals/0005-edits-without-restart.md).
 
 **Changed in M0 r2:** T0.13 is no longer held. T0.13a (sidecar capture flag) and T0.13b (harness)

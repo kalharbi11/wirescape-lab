@@ -247,7 +247,8 @@ covers the cases known today.
 |---|---|---|---|---|
 | T0.13a | Null-sink capture flag in the sidecar | — | B | M0 r2 |
 | T0.13b | Harness, probe patches, facts | T0.13a | A | M0 r2 |
-| E1a | `applyGraph` in the sidecar, protocol spec, protocol tests | — | C, from this note | M2 |
+| E0 | Canonical config bytes: zero-fill before field writes, test that two encodings of one config are byte-equal | — | C, small | M2 |
+| E1a | `applyGraph` in the sidecar, protocol spec, protocol tests | E0 | C, from this note | M2 |
 | E1b | Studio: client, call sites, `FakeEngine`, Playwright | E1a | B | M2 |
 | E6 | Live modulation amount (D8) | M1 S3 | C | later |
 | T1.6 | Split `engine2.cpp` along section 5's seams: instance, layout build, render, edit. No behaviour change | M1 S5 | C | later |
@@ -280,7 +281,12 @@ E1 alone is expected to pass `restarted` and `time_slip` for witnesses and fail 
 - **B3** The null sink can be the only output for a whole sidecar run, and `setBufferFrames`
   works on it.
 - **B4** The config bytes compared by replan are a canonical encoding, so an unchanged module in
-  a re-sent document always compares equal. If not, E1 needs canonicalisation first.
+  a re-sent document always compares equal. **Checked while writing, and it is doubtful:** the
+  bytes are a raw copy of a C++ struct (`runtime_module_config.h:183, 261, 347, 400`), and four of
+  the structs are declared without value-initialisation (`:54, :189, :268, :362`). If any has
+  padding, those bytes are indeterminate and an unchanged module can compare unequal. That would
+  already cause needless restarts of config-bearing modules on any structural edit today. Task E0
+  settles it before E1a.
 
 A false B1, B2 or B4 goes to `QUESTIONS.md` before code is written.
 
