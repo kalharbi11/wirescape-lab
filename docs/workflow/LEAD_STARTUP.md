@@ -128,3 +128,29 @@ Snapshot: B1 #70 (and queued #60), B2 #58, B3 #89/#91, B4 #59 (and paused #84); 
 publication maintenance #73/#75 and existing #50 review. A fresh builder must reuse the same branch
 and PR, read the signed result and latest lead findings, and prove actual startup before the old chat
 is retired. Record each replacement thread ID here. Do not reset all chats mid-task.
+
+
+## Explicit owner instruction: agent manages all chat rotation
+
+Owner confirmation (2026-11-16): the lead, not the owner, creates the new local lead and takes care
+of replacing ChatGPT builder chats after they close their PRs. No further routine confirmation is
+needed for these named WLAB replacements and their task prompts.
+
+The replacement lead must preserve the single existing heartbeat at a 45-minute cadence after
+reset. It owns future timer updates, builder dispatch, delayed startup verification, result review,
+correction routing and dependency-ready work. Timer creation/update must succeed before claiming it
+is scheduled. Local scheduled work requires the machine and app running.
+
+For each builder, first verify all PRs that old chat owns are merged or otherwise closed with an
+explicit signed handoff/disposition; finish active correction rounds and account for queued tasks.
+Do not close a PR merely to rotate its chat. Then create a fresh ChatGPT chat in the existing WLAB
+ChatGPT project using supported app tools, read back its actual ID/project, update this routing table
+and CURRENT, and dispatch the next contracted task with scope, branch/PR, evidence requirements and
+result template. Verify an actual active/tool-backed run shortly afterward and again after 30–60
+seconds; send success alone is insufficient. Mark the old chat superseded after the new route works;
+preserve its history and never delete chats. If supported tools cannot create a ChatGPT replacement,
+report the exact capability gap and keep unaffected work moving instead of substituting a cloud
+Codex task or claiming creation succeeded. The local Codex lead must remain local.
+
+The owner does not need to manually create chats or add takeover timers. Maintain one lead and one
+lead heartbeat, with no duplicate writers or simultaneous old/new dispatch.
