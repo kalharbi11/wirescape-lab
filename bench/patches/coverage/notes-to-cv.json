@@ -46,7 +46,7 @@
   ],
   "connections": [
     {
-      "kind": "signal",
+      "kind": "event",
       "from": {
         "module": 1,
         "port": "notes"
