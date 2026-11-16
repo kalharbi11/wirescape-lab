@@ -198,10 +198,13 @@ class CoverageTests(unittest.TestCase):
                         self.assertEqual(intervention,"disconnect_module_output_edges")
 
     def test_missing_bundled_and_coverage_remain_failures_with_all_declared(self):
-        for key in ("bundled/basics-01-first-tone.json","coverage/chord-notes.json"):
+        for key in ("bundled/basics-01-first-tone.json",
+                    "coverage/chord-notes.json","owner/owner-demo.json"):
             for side in ("before","after"):
                 with self.subTest(key=key,side=side):
                     before=fixture()
+                    before["patches"]["owner/owner-demo.json"] = copy.deepcopy(
+                        before["patches"]["bundled/basics-01-first-tone.json"])
                     after=copy.deepcopy(before)
                     del (before if side=="before" else after)["patches"][key]
                     names=set(before["patches"])|set(after["patches"])
