@@ -196,3 +196,13 @@ explicit signed handoff and old writer stops. Never abandon uncommitted work for
 For regular ChatGPT builders, rotate after the current round and all owned PRs close, unless the
 owner explicitly authorizes a controlled mid-task transfer. Keep old histories. Update routing IDs.
 Codex capacity resets remain shared across chats; preserve reported reset timing and weekly budget.
+
+
+## Completed local lead transition
+
+Created **WLAB | LEAD | delivery 2**, ready thread `01a1e3ca-c0d2-7d80-b1bc-6bcb93692b9a`,
+verified returned host `local`, using the saved local lab project. The existing `wlab-lead-review`
+heartbeat was retargeted to that thread with a45-minute interval. The previous local lead
+`01a1e370-1e2a-79c0-a439-f0ac099e433a` stops dispatch after this transfer. Do not create another
+lead heartbeat. Worker2 was sent its cloud-support role/introduction; actual startup/capabilities
+must still be verified separately. Latest guide edits require current-headCI before PR92merge.
