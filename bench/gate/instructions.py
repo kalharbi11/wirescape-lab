@@ -72,8 +72,20 @@ def verify_module_probe(stdout, expected):
     prefix = "module_cpu_probe "
     if not line.startswith(prefix) or len(line.splitlines()) != 1:
         raise RuntimeError("module_cpu_probe: missing or malformed JSON evidence")
+    def unique_fields(pairs):
+        fields = {}
+        for name, value in pairs:
+            if name in fields:
+                raise ValueError("duplicate probe JSON field")
+            fields[name] = value
+        return fields
+
+    def reject_nonfinite(_value):
+        raise ValueError("nonfinite probe JSON value")
+
     try:
-        payload = json.loads(line[len(prefix):])
+        payload = json.loads(line[len(prefix):], object_pairs_hook=unique_fields,
+                             parse_constant=reject_nonfinite)
     except (ValueError, TypeError) as exc:
         raise RuntimeError("module_cpu_probe: malformed JSON evidence") from exc
     if not isinstance(payload, dict):
