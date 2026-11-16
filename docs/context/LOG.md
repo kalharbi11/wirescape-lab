@@ -1,6 +1,43 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — owner-requested pause after builder round and review
+**Status:** handoff-ready; owner is deploying a new workflow. Do not resume builders, dispatch new
+tasks, or continue the 15–20-minute in-chat checks until the owner resumes/replaces this workflow.
+No recurring app automation was created. Active builders were told to finish their current run only;
+builder1 saved its final checkpoint and stopped. Builder3's last run ended with a system error after
+saving its draft/facts; do not restart it automatically. Builder4 completed its read-only review.
+
+| Work | Head reviewed | Review / remaining work |
+| --- | --- | --- |
+| #66 / PR #69 (class A) | 66a1f1b | Three-machine source facts at 919f047 show 28/34 causal contributions, not full acceptance. Six MIDI/OSC/monitor paths need Fable instrumentation/coverage decisions. Current-head CI queued at inspection. |
+| #67 / PR #70 (class B) | 0aa4683 | Allowed test/reference/fixture/CMake/facts scope. Linux x64/ARM64 each have source-attributed 983-case captures; frozen-data conversion is unfinished and integration still links ABI1. Only Fable reviews technical acceptance/merges. Current-head checks pending/queued. |
+| #61 / PR #63 (class A) | c9da84b | Implementation and corrected-parser facts reviewed; committed measurement JSON exactly equals source 87aa3ec's hosted summary. Lab CI, UI advisory and Offline facts passed; latest full facts run still running, so no merge. |
+| #51 / PR #60 | 6556a2a | Corrected sweep evidence retained; exact impulse and production-FTZ decay timing remain Fable-owned blockers. |
+| #52 / PR #58 | cf46a0d | Real 97-row architecture baselines, two explicit unavailable Chord rows; native config/event probe decision needed. |
+| #54 / PR #59 | ed7db5f | Uncalibrated command-to-ADC diagnostic only; no accepted calibrated round-trip measurement. |
+
+**Peer review finding to fix under the new workflow:** #69's golden workflow lacks
+bench/patches/coverage/** in both pull-request and main-push path filters. A future fixture-only change
+can avoid the gate. Builder4 posted the signed finding on PR #69 (comment 6905029767); lead recorded
+the follow-up without starting another implementation round. Keep PR #69 draft.
+
+**CI queue action:** verified PR/branch/head/workflow identity and cancelled only obsolete #63 full-facts
+run 43781482187 at 87aa3ec, releasing current-head run 43784223829. Accepted profiler capture
+43781482219 / artifact 14187674511 was separate and preserved. Cancelled old runs are not passes.
+Running/queued hosted jobs may finish while agents are paused; inspect exact heads when resuming.
+
+**Merged this oversight session:** #64/#55 as 76ec785; log handoffs #65 as c8335a0 and #68 as 71daa1c.
+Earlier lead merges #48/#41 b8190f9 and #57/#53 7914070 remain on main. No class B/C merge,
+engine/DSP implementation change, real-device test, gate weakening, role-file edit or history rewrite.
+
+**Local setup preserved:** ignored .tools/lead-review has pinned synthetic reviewer suites (golden
+13/13 and UI CPU/timeline tests passed), plus a metadata-only inventory separating one completed
+Windows run from two aborted attempts. It opens no recordings/devices; the active device-test branch
+and untracked result folders were not changed.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — periodic lead oversight: golden gate merged, next work dispatched
 **Owner instruction:** continue authorized setup work and recheck builders about every 15–20 minutes.
 This is in-chat oversight, not a recurring app automation. Existing class A/B/C authority is unchanged.
