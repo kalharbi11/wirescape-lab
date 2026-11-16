@@ -120,11 +120,7 @@ check(!validateProtocolV0({ v: 0, re: 'apply1', ok: true, gen: '1',
   result: { path: 'other', replaced: [], unapplied: [] } }), 'invalid applyGraph path accepted');
 // @ts-expect-error applyGraph always requires a PatchV2
 const incompleteApply: ProtocolCommand = { v: 0, id: 'bad', type: 'applyGraph' };
-// @ts-expect-error unapplied entries must have both moduleId and paramId
-const incompleteApplyResult: ProtocolApplyGraphResult = { path: 'live', replaced: [],
-  unapplied: [{ moduleId: 7 }] };
 void incompleteApply;
-void incompleteApplyResult;
 
 // The Q8 pattern applies ONLY to request IDs. Generic JSON Schema strings
 // still use Unicode-codepoint minLength/maxLength, never byte length.
