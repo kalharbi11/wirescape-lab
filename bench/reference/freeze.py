@@ -7,7 +7,7 @@ comparison tests, not generated from ABI2 results. This does not run a device.
 """
 import argparse
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -17,7 +17,7 @@ import re
 import subprocess
 import sys
 import zlib
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 MODULES = ("vco", "lfo", "vcf", "adsr", "vca", "clock",
            "function_envelope", "ladder", "mixer", "noise",
@@ -68,6 +68,24 @@ def cpu_model():
     return platform.processor() or os.environ.get("PROCESSOR_IDENTIFIER") or platform.machine()
 
 
+def eastern_date():
+    """US Eastern date, including Windows runners without the tzdata wheel."""
+    utc = datetime.now(timezone.utc)
+    try:
+        return utc.astimezone(ZoneInfo("America/New_York")).date().isoformat()
+    except ZoneInfoNotFoundError:
+        def sunday(year, month, ordinal):
+            first = datetime(year, month, 1, tzinfo=timezone.utc)
+            return 1 + (6 - first.weekday()) % 7 + 7 * (ordinal - 1)
+        # DST starts 02:00 EST on second March Sunday (07:00 UTC)
+        # and ends 02:00 EDT on first November Sunday (06:00 UTC).
+        start = datetime(utc.year, 3, sunday(utc.year, 3, 2), 7,
+                         tzinfo=timezone.utc)
+        end = datetime(utc.year, 11, sunday(utc.year, 11, 1), 6,
+                       tzinfo=timezone.utc)
+        return (utc - timedelta(hours=4 if start <= utc < end else 5)).date().isoformat()
+
+
 def capture_metadata(repo_root, machine, compiler_id, compiler_version, build_config):
     commit = subprocess.check_output(
         ["git", "-C", str(repo_root), "rev-parse", "HEAD"], text=True).strip()
@@ -76,7 +94,7 @@ def capture_metadata(repo_root, machine, compiler_id, compiler_version, build_co
     return {
         "source_commit": commit,
         "reference_origin": "passing live ABI1 calls; not ABI2-generated samples",
-        "capture_date_et": datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
+        "capture_date_et": eastern_date(),
         "machine": machine,
         "platform": platform.platform(),
         "cpu": cpu_model(),
