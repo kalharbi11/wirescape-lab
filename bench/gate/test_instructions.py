@@ -13,12 +13,12 @@ PROBE = {"module": "essentials.vco", "instances": 1, "channels": 1,
          "sample_rate": RATE, "block": FRAMES}
 
 
-def evidence(blocks, *, module="essentials.vco", channels=1, faults=0, **overrides):
+def evidence(nblocks, *, module="essentials.vco", channels=1, faults=0, **overrides):
     report = {
         "module": module, "instances": 1, "sample_rate": RATE,
         "block": FRAMES, "channels": channels,
-        "seconds": blocks * FRAMES / RATE, "input_mode": "normal",
-        "blocks": blocks, "render_ns": {"max": 300, "p99": 200},
+        "seconds": nblocks * FRAMES / RATE, "input_mode": "normal",
+        "blocks": nblocks, "render_ns": {"max": 300, "p99": 200},
         "period_ns": 1e9 * FRAMES / RATE, "allocations": 0,
         "faults": faults, "peak": 0.5, "params": "", "alternate": "",
     }
