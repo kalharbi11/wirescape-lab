@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "runtime_module_config.h"
 #include <cstdio>
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
+#include <cstring>
 using namespace wirescape::document;
 #define CHECK(x) do{if(!(x))std::abort();}while(0)
 static void instance_config_union() {
@@ -157,7 +160,75 @@ static void osc_out_config_validation() {
     CHECK(binary_defaults.rows[0].enabled == 1 && binary_defaults.notes.enabled == 0);
     CHECK(std::strcmp(binary_defaults.rows[0].address, "/ws/row/1") == 0);
 }
+// M2 E0: canonical bytes. Each config-bearing branch is encoded twice after the stack and
+// heap were dirtied with different patterns; every byte, padding included, must match.
+// Branch/type coverage: sequencing.groove v1 and v2 (groove::Config, Step has 3 padding
+// bytes), osc.in (osc::Configuration, padding before the statistics pointer on 64-bit),
+// osc.out with and without a staged bus (osc::OutConfiguration), midi.cc_to_cv
+// (midi::CcConfiguration, CcRow has 6 tail bytes and 4 after version), essentials.chord
+// (instance id bytes, no struct). Empty JSON for non-OSC-Out types and midi.in encode no
+// bytes at all, so they have nothing to canonicalize.
+#if defined(__GNUC__) || defined(__clang__)
+#define E0_NOINLINE __attribute__((noinline))
+#else
+#define E0_NOINLINE __declspec(noinline)
+#endif
+E0_NOINLINE static std::vector<uint8_t> encode_dirty(unsigned char pattern, const std::string &type,
+                                                     const nlohmann::json &value, uint32_t instance) {
+    {
+        volatile unsigned char stack[64 * 1024];
+        for (auto &b : stack) b = pattern;
+    }
+    for (size_t size : {sizeof(groove::Config), sizeof(wirescape::osc::Configuration),
+                        sizeof(wirescape::osc::OutConfiguration), sizeof(wirescape::midi::CcConfiguration)}) {
+        auto *heap = static_cast<unsigned char *>(std::malloc(size));
+        CHECK(heap);
+        std::memset(heap, pattern, size);
+        std::free(heap);
+    }
+    std::vector<std::string> ignored;
+    return runtime_module_config(type, value, instance, &ignored);
+}
+static void canonical_bytes() {
+    using Json = nlohmann::json;
+    const std::vector<std::pair<std::string, Json>> cases = {
+        {"essentials.chord", Json::object()},
+        {"sequencing.groove", Json::parse(R"({"version":1,"bpm":97.5,"tracks":[{"steps":[{"kind":"note","key":64,
+            "velocity":0.5,"mod1":0.25},{"kind":"tie"},{"kind":"rest"}]},{"mute":true,"steps":[{"kind":"rest"}]}]})")},
+        {"sequencing.groove", Json::parse(R"({"version":2,"bpm":140,"tracks":[{"length":16,"div":2,"steps":[
+            {"kind":"note","key":60,"velocity":1,"keys":[60,64,67],"gate":0.5,"cond":{"type":"ab","a":1,"b":3}},
+            {"kind":"note","key":62,"velocity":0.75,"cond":{"type":"chance","p":40}},{"kind":"tie","gate":0.25}]}]})")},
+        {"osc.in", Json::parse(R"({"port":9011,"lan":true,"future":1,"rows":[{"pattern":"/a","kind":"gate",
+            "argument":3,"smoothing_ms":2,"stale":"zero"},{"pattern":"/b","enabled":false}]})")},
+        {"osc.out", Json::parse(R"({"version":1,"port":9100,"rate_hz":50,"rows":[{"address":"/x","kind":"gate",
+            "deadband":0.25}],"notes":{"address":"/n","enabled":true}})")},
+        {"osc.out", Json::object()},
+        {"midi.cc_to_cv", Json::parse(R"({"rows":[{"channel":3,"controller":7,"fourteen_bit":true,"min":-2,"max":5},
+            {"bipolar":true,"smoothing_ms":10}]})")},
+    };
+    for (const auto &[type, value] : cases) {
+        const auto a = encode_dirty(0xA5, type, value, 21);
+        const auto b = encode_dirty(0x5A, type, value, 21);
+        const auto c = encode_dirty(0xFF, type, value, 21);
+        CHECK(!a.empty() && a == b && b == c);
+    }
+    // Padding bytes are zero, not merely equal between runs.
+    const auto cc = encode_dirty(0xC3, "midi.cc_to_cv", cases.back().second, 0);
+    for (size_t i = offsetof(wirescape::midi::CcRow, has_max) + 1; i < sizeof(wirescape::midi::CcRow); ++i)
+        CHECK(cc[offsetof(wirescape::midi::CcConfiguration, rows) + i] == 0);
+    for (size_t i = sizeof(uint32_t); i < offsetof(wirescape::midi::CcConfiguration, rows); ++i) CHECK(cc[i] == 0);
+    const auto groove_bytes = encode_dirty(0xC3, "sequencing.groove", cases[2].second, 0);
+    const size_t step0 = offsetof(groove::Config, tracks) + offsetof(groove::Track, steps);
+    for (size_t i = offsetof(groove::Step, key_count) + 1; i < offsetof(groove::Step, keys); ++i)
+        CHECK(groove_bytes[step0 + i] == 0);
+    // A staged bus is spliced in after encoding; bytes stay canonical and equal.
+    wirescape::osc::OutBus *fake = reinterpret_cast<wirescape::osc::OutBus *>(uintptr_t(0x1000));
+    const std::map<uint32_t, wirescape::osc::OutBus *> buses{{21u, fake}};
+    ScopedOutBuses scope(buses);
+    CHECK(encode_dirty(0x11, "osc.out", cases[4].second, 21) == encode_dirty(0xEE, "osc.out", cases[4].second, 21));
+}
 int main() try {
+ canonical_bytes();
  auto encode=[](const char*s){return runtime_module_config("midi.cc_to_cv",nlohmann::json::parse(s));};
  auto bytes=encode(R"({"rows":[{"channel":16,"controller":31,"fourteen_bit":true,"bipolar":true,"smoothing_ms":0}]})");
  wirescape::midi::CcConfiguration config;CHECK(wirescape::midi::cc_configuration(bytes.data(),static_cast<uint32_t>(bytes.size()),config));

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Device runbook for Codex (Pi 5 and Windows laptop)
 
-**Version 1, 2026-11-15, written by Fable.** The owner starts Codex on the owner's laptop. Codex runs this
+**Version 3, 2026-11-16, M0 r2 R1 separate duplex/command/range quantities.** The owner starts Codex on the owner's laptop. Codex runs this
 runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner's change of 2026-11-15).
 
 ## Rules for Codex
@@ -19,7 +19,8 @@ runbook and nothing else (`docs/context/CONSTRAINTS.md`, devices-off rule, owner
 
 Values the owner gives you: `<pi-ssh>` (SSH alias or user@address of the Pi), `<pi-repo>` (path of the lab
 clone on the Pi), whether an output-to-input **loopback cable** is connected (Pi and/or laptop), and which
-parts to run (default: all of §2, then §3).
+parts to run (default: all of §2, then §3). For R1 loopback, the owner also supplies engine output ID, matching PortAudio
+harness output ID, physical input ID, and device class. Never guess an ID.
 
 ## 1. Prepare (both machines, devices off)
 
@@ -53,6 +54,13 @@ Discovery (write the answers in your notes):
   Windows may expose different numbered names for its output and input. Use the actual output
   name for `--midi-port` and the actual engine input name for `--engine-midi-port` in W1/W2
   (for example, `--midi-port "Wirescape Bench 2" --engine-midi-port "Wirescape Bench 1"`).
+- Loopback input IDs, both machines (query only, no device opened):
+  `python -c "import sounddevice as sd; print(sd.query_devices())"`.
+  Identify the PortAudio input index for the physical cable, not a microphone.
+  For the engine output ID, use the owner-selected audio device ID from the engine/Studio
+  audio-device list. Also collect the *matching physical PortAudio output ID*,
+  input ID, and anonymous device class for a full-duplex stream. Record
+  all three IDs privately. If any is missing, skip P7 or W3.
 
 ## 2. Raspberry Pi 5 runs
 
@@ -110,8 +118,47 @@ kill "$(cat bench/device/pi-app-memory.pid)"
 ```
 *If the smoke fails:* keep the memory log anyway, report the failure text.
 
-### P7. Round-trip latency — not available yet
-Skip. The measuring tool is not written. Report whether the owner has a loopback cable on the Pi.
+### P7. 🔊 R1 three-quantity electrical loopback, Pi 5 (64/128/256 frames)
+**Only with owner-confirmed output-to-input cable, engine output ID,
+PortAudio output ID, PortAudio input ID, and anonymous device class.** The
+PortAudio pair must be the *same* full-duplex physical interface and the
+harness output must be the engine's selected physical output endpoint.
+Neither a microphone, monitor sink nor a substitute separate stream is
+valid. No MIDI. Disable direct monitoring and any feedback, lower the
+amplifier gain. Warn the owner: each leg plays 40 short 1 kHz clicks at
+0.20 full scale (about -14 dBFS **peak**) separated by 500 ms; the click
+source is muted until armed. The calibration duplex leg is followed by a
+separate 40-command engine leg for each block size. Await "go".
+
+PortAudio indices can be listed *without opening an input/output stream*:
+
+    python -c "import sounddevice as sd; print(sd.query_devices())"
+
+Device-free rehearsal:
+
+    python bench/device/latency.py --dry-run --sweep --machine pi5 --results bench/device/results-p7-rehearsal
+
+After the owner confirms the cable, IDs, class, volume and "go":
+
+    python bench/device/latency.py --confirm-audio --device <pi-engine-output-id> --harness-output-device <pi-portaudio-output-id> --input-device <pi-portaudio-input-id> --device-class usb-interface --rate 48000 --sweep --machine pi5 --results bench/device/results-p7-latency
+
+**Record three separate quantities for each block:** harness_loopback_ms
+= one duplex stream click output/input **sample-index** difference divided by
+rate (no wall clock); command_to_capture_ms = monotonic time at each *actual
+command write* to onset ADC buffer time plus index/rate; command_to_sound_ms
+= **range only** [command_to_capture_ms - harness_loopback_ms,
+command_to_capture_ms]. Report rate, duplex/engine/capture buffers, device
+class, detected repetitions (>=20, tool requires >=30/40), median/p95,
+and number of input callbacks without ADC timestamp. If ADC missing, the
+fallback uses callback time and adds **one capture buffer duration** to
+the reported additional uncertainty; absolute host-to-PortAudio clock
+mapping error remains uncalibrated. No old midpoint or 2×buffer residual
+is a hardware-overhead result. Refuse <30 matched pulses or level
+below -40 dBFS, without publishing numeric run as measured.
+
+If this step fails, keep reports, note exact failure, proceed to §3.
+If the cable, duplex endpoint or any ID is unavailable, skip with reason.
+Only the owner runs this command on their physical machine.
 
 ## 3. Windows laptop runs
 
@@ -125,6 +172,28 @@ options with `--record input --input-device <input-id>`. With neither, use `--re
 
 ### W2. 🔊 15-minute quick run at 128 frames
 Same command with `--block 128 --results bench/device/results-w2-quick-128`.
+
+### W3. 🔊 R1 three-quantity electrical loopback, Windows (64/128/256 frames)
+Same owner-gated procedure and definitions as P7; select the same physical
+full-duplex output/input interface and explicit matching Windows engine and
+PortAudio output IDs. No OS process-loopback, microphone, monitor or MIDI.
+Warn the owner that there are two ~20-second click legs per block, peak
+-14 dBFS (0.20 FS), and wait for "go"; lower volume and disable monitoring.
+
+    python bench/device/latency.py --dry-run --sweep --machine windows-laptop --results bench/device/results-w3-rehearsal
+
+After cable/IDs/class/volume confirmation:
+
+    python bench/device/latency.py --confirm-audio --device <windows-engine-output-id> --harness-output-device <windows-portaudio-output-id> --input-device <windows-portaudio-input-id> --device-class usb-interface --rate 48000 --sweep --machine windows-laptop --results bench/device/results-w3-latency
+
+For each block, record harness_loopback_ms median/p95 (one duplex
+sample-index timeline), command_to_capture_ms median/p95 (per-command
+write to ADC onset, callback fallback with one-buffer added uncertainty
+if no ADC), and command_to_sound_ms **range endpoints only** at
+median/p95. Record observed input/engine/duplex buffers, class,
+repeats >=20 (tool requires >=30/40), and any refusal. Do not report
+a physically unmeasured value from a synthetic rehearsal or infer
+driver overhead. If failed/skipped, keep the reason and proceed.
 
 ## 4. File the results
 
@@ -142,8 +211,10 @@ does not exist). *If `gh` is missing or refuses:* leave the ZIPs where they are 
 facts/device/results/<machine>/<YYYY-MM-DD>-<sha7>-<scope>/
 ```
 with `<scope>` = `full-256`, `full-128`, `scene-128`, `chaos-128`, `basics-64`, `guttr`, `app-memory`,
-`quick-256`, `quick-128`. Copy from each run folder only: `manifest.json`, `analysis.json`, `report.md`,
-`settings.json`, `waveform.png`. Add `pi-health.log` to both `full-*` folders, the benchmark `.jsonl` to
+`quick-256`, `quick-128`, `latency-64`, `latency-128`, `latency-256` (P7/W3).
+For stress runs copy only: `manifest.json`, `analysis.json`, `report.md`,
+`settings.json`, `waveform.png`; for latency runs copy only: `manifest.json`,
+`latency.json`, `report.md` (successful or refused, keep the refusal explicit). Add `pi-health.log` to both `full-*` folders, the benchmark `.jsonl` to
 `guttr`, and `pi-app-memory.log` plus the smoke summary JSON to `app-memory`. Add one row per run to
 `facts/device/results/README.md`. Before committing, search the copied files for the machine's host name
 and user name and stop if either appears. No recordings, no `events.ndjson`, no ZIPs.
@@ -153,14 +224,21 @@ PR title: `facts(device): Pi 5 and Windows runs, <YYYY-MM-DD> (<sha7>)`. Do not 
 ## 5. Report to the owner (paste into the PR description too)
 
 ```
-**Runbook:** v1   **Commit:** <sha7>   **PR:** #…
+**Runbook:** v3 (M0 r2 R1)   **Commit:** <sha7>   **PR:** #…
 | Run | Machine | Buffer | Ran (min) | Exit | Engine CPU max % | Dropouts | Longest silence ms | Notes |
-(one row per run P1–P6, W1–W2; "skipped" or "failed: <one line>" where it applies)
+(one row per run P1–P7, W1–W3; "skipped" or "failed: <one line>" where it applies)
 **GUTTR (Pi):** 1 throat p50/p95/worst µs; 16 throats p50/p95/worst µs
 **Pi health:** max temperature, any throttling flag other than 0x0, max memory used
 **App memory (Pi):** max Electron total MB, max engine MB
 **What the owner heard:** (ask after each 🔊 run: any glitches, silence, distortion? write their words)
 **Loopback cable available:** Pi yes/no, laptop yes/no
+**P7/W3 three-quantity evidence per block (owner physical run only):**
+- harness_loopback_ms: one duplex stream, input click index minus emitted output click index / sample rate, median/p95 ms (no wall clock).
+- command_to_capture_ms: monotonic time of actual engine command write to captured onset ADC buffer timestamp + within-buffer sample index/rate, median/p95 ms; if ADC unavailable, record callback-time fallback count and add one full capture-buffer duration to explicitly stated additional uncertainty.
+- command_to_sound_ms: median and p95 **ranges only** [command_to_capture_ms - harness_loopback_ms, command_to_capture_ms], not a scalar DAC-onset time.
+- Provenance: actual source commit, New York date, machine label, device **class**, sample rate, engine output / duplex output / duplex input / command capture buffer sizes, detected repeats for both legs (at least 20; tool requires 30 of 40), level dBFS, raw artifact/report path or REFUSED reason. State that host-to-PortAudio absolute clock mapping error is uncalibrated and no physical DAC presentation timestamp was measured.
+**Historical non-R1 diagnostic (only if comparing old captures):** previous command/ack midpoint-to-ADC and offset-minus-2×buffer values are uncalibrated, not harness_loopback_ms or device/driver overhead. Do not substitute them for the three R1 quantities.
+**Not verified:** if no owner cable/device run, explicitly state physical latency values not measured; the accepted M0 R1 milestone covers tool, synthetic tests and runbook first.
 **Failures:** step, last lines of output
 **Large files:** uploaded to release … / left at …
 Signed: gpt-helper, <YYYY-MM-DD>

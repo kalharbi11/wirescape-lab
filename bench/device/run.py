@@ -116,7 +116,7 @@ class Engine:
         with (self.folder/"engine-stderr.log").open("wb") as f:
             for line in self.process.stderr:f.write(line)
 
-    def send(self,payload,timeout=25):
+    def send(self,payload,timeout=25,*,on_write=None):
         self.counter+=1
         request={"v":0,"id":f"b{self.counter}","type":payload["type"],
                  **{k:v for k,v in payload.items() if k!="type"}}
@@ -127,6 +127,8 @@ class Engine:
         with self.lock:self.pending[request["id"]]={"sent":started}
         self.log.add("in",request)
         if self.fake:
+            if on_write is not None:
+                on_write(time.monotonic())
             if request["type"] in ("loadGraph","addModule","removeModule","connect",
                                    "disconnect","setModAmount"):
                 self.generation+=1
@@ -145,6 +147,9 @@ class Engine:
             return answer
         with self.lock:
             if self.closed:raise RuntimeError("engine closed stdout")
+            if on_write is not None:
+                # Timestamp the physical command write, not send() entry or ack.
+                on_write(time.monotonic())
             self.process.stdin.write(line.encode("utf-8")+b"\n")
             self.process.stdin.flush()
             deadline=time.monotonic()+timeout
@@ -279,6 +284,7 @@ def parser():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--scenario",choices=["all","quick","full",*FAMILIES],default="quick")
     p.add_argument("--dry-run",action="store_true",help="null sink + fake MIDI; no device access")
+    p.add_argument("--speaker-check",action="store_true",help="play an owner-confirmed 440 Hz calibration tone for five seconds; real playback requires --confirm-audio")
     p.add_argument("--engine",type=Path,help="sidecar executable; if absent in dry-run, simulate protocol")
     p.add_argument("--confirm-audio",action="store_true")
     p.add_argument("--confirm-midi",action="store_true")
@@ -309,6 +315,8 @@ def main(argv=None):
         p.error("--dry-run prohibits authorization flags, manual MIDI and recording")
     if args.manual_midi and not args.confirm_midi:
         p.error("--manual-midi requires --confirm-midi")
+    if args.speaker_check and (args.confirm_midi or args.manual_midi or args.record!="none"):
+        p.error("--speaker-check does not use MIDI or capture; pass only --confirm-audio for real playback")
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,48}",args.machine):
         p.error("--machine must be an anonymous 1-48 character label (letters, digits, _ or -)")
     if args.engine and not args.engine.is_file():
@@ -345,6 +353,33 @@ def main(argv=None):
     if manifest["engine_mode"]=="simulation":
         manifest["warnings"].append(
             "No engine binary: simulated acknowledgements, not actual sidecar validation")
+    if args.speaker_check:
+        from speaker_check import run_check
+        manifest["scenario"]="speaker-check"
+        error=None
+        try:
+            observation=run_check(args,folder,log,Engine)
+            manifest["speaker_check"]=observation
+        except (RuntimeError, OSError, ValueError, TimeoutError) as exc:
+            error=str(exc)
+            log.add("speaker-check-error",message=error)
+            manifest["warnings"].append("Speaker check incomplete: "+error)
+        finally:
+            manifest["completed"]=error is None
+            (folder/"manifest.json").write_text(
+                json.dumps(manifest,indent=2,allow_nan=False)+"\n",encoding="utf-8")
+            (folder/"report.md").write_text(
+                "<!-- SPDX-License-Identifier: GPL-3.0-only -->\n# Speaker check\n\n"
+                + "Mode: "+manifest["engine_mode"]+"\n\n"
+                + "Owner observation: owner-observations.json\n\n"
+                + ("Status: complete\n" if error is None else "Status: incomplete: "+error+"\n"),
+                encoding="utf-8")
+            log.close()
+            print(folder/"report.md")
+        if error:
+            print("speaker check: "+error,file=sys.stderr)
+            return 1
+        return 0
     analysis={"recording":None,"signal_metrics":"not measured"}
     try:
         source=MidiSource(args,log)

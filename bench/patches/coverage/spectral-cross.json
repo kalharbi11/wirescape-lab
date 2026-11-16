@@ -1,0 +1,97 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Coverage: Spectral two-input STFT to output",
+  "description": "Device-free deterministic module contribution fixture",
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 37,
+    "timing_mode": "immediate"
+  },
+  "modules": [
+    {
+      "id": 1,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 2,
+      "module": "essentials.noise",
+      "version": 2,
+      "parameters": {
+        "level": 0.15
+      }
+    },
+    {
+      "id": 3,
+      "module": "sound.spectral",
+      "version": 1,
+      "parameters": {
+        "mode": 0,
+        "size": 0,
+        "morph": 0.5,
+        "level": 0.6
+      }
+    },
+    {
+      "id": 4,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    }
+  ],
+  "connections": [
+    {
+      "kind": "signal",
+      "from": {
+        "module": 1,
+        "port": "audio"
+      },
+      "to": {
+        "module": 3,
+        "port": "a"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "audio"
+      },
+      "to": {
+        "module": 3,
+        "port": "b"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 3,
+        "port": "audio"
+      },
+      "to": {
+        "module": 4,
+        "port": "audio"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ]
+}

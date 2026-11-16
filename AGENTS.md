@@ -3,29 +3,34 @@
 
 This repo is a lab copy of Wirescape (see README). It has no tiers, board or merge gate.
 
-**Status (owner, 2026-11-15): Fable leads the lab and decides how work is done.** The GPT builder queue
-below is paused: builders don't run unless the owner starts them, and Fable may ask the owner for that.
-Fable may change this file and CLAUDE.md to suit its own process. The engineering rules below still apply.
+**Status (owner, 2026-11-15): Fable leads design and milestone acceptance.** The gpt-lead delivers
+milestones under a Fable-accepted written contract in `docs/workflow/milestones/`, dispatches builders,
+reviews their evidence and merges only tasks delegated by that contract. Builders no longer wait for
+routine owner approval. Without an accepted contract, the fallback authority in `proposals/0004-execution-plan.md`
+still applies. The engineering constraints below still apply.
 
 ## Who's who
 | Name | Family | Does |
 |---|---|---|
-| **Fable** | Claude | lab lead: reviews, architecture, restructuring, writes issues, merges |
-| `gpt-builder1` … `gpt-builder4`, `gpt-helper` | GPT | build queued issues |
-| `claude-builder1` | Claude | builds queued issues when the owner runs it |
-| `gpt-reviewer`, `claude-reviewer` | either | review only, when asked |
+| **Fable** | Claude | design authority: design notes, milestone contracts, queued rulings, milestone acceptance |
+| `gpt-lead` | GPT | delivery lead: runs a contracted milestone end to end (`docs/context/CODEX_LEAD.md`); trigger `lead: run` |
+| `gpt-builder1` … `gpt-builder4` | GPT | build one contracted task each, fix CI and review corrections, leave a PR result |
+| `claude-builder1` | Claude | optional builder for an explicitly assigned task |
+| `gpt-reviewer`, `claude-reviewer` | either | review only, when assigned |
 
-Triggers: `1:run` → builder 1 of your family (`gpt-builder1` in ChatGPT, `claude-builder1` in Claude).
-`fable: run` → Fable. The owner may add a specific ask after the trigger; it goes first.
+Triggers: `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
+→ Fable. `lead: run` or `lead: run B<n>` → gpt-lead. `1:run` → the builder identified by the
+active chat's family and assigned task. A trigger never grants authority beyond the accepted contract.
 
-## A builder run = your whole queue, not one issue
-1. List open issues labelled `agent/<your-name>`, lowest `Order:` line first. Then unlabelled
-   `agent/any` issues if your queue is empty.
-2. For each: comment `Claimed: <name>, <date>`, set `status/in-progress`, branch `task/<issue#>-<slug>`,
-   one PR with `Closes #<issue#>`, draft until CI is green, then mark it ready and set `status/review`.
-3. **Don't stop after one issue.** While CI runs, start the next. Stop only when the queue is empty or
-   your usage is nearly spent.
-4. Before stopping, post a handoff comment on every issue you touched (template below).
+## A builder run = one task and one PR
+1. Read the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
+   relevant files named in the task. Do not pick up the next queued task on your own.
+2. Work on one branch `task/<issue#>-<slug>` and one PR with `Closes #<issue#>`. Reuse that same
+   branch and PR for corrections. Respect allowed paths and single-writer areas.
+3. Implement, test, resolve CI failures and review feedback. Do not merge.
+4. Finish with a **result comment on the PR**, using the template in `docs/workflow/README.md`;
+   set `status/review` or `status/blocked`. Stop when ready or blocked. The lead owns subsequent
+   dispatch and merge decisions.
 
 ## Rules
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
@@ -39,7 +44,7 @@ Triggers: `1:run` → builder 1 of your family (`gpt-builder1` in ChatGPT, `clau
   `build*/`, or audio files over 1 MB (see `bench/README.md` for where recordings go).
 - SPDX header on new files: MIT under `native/sdk/` and `native/voice/`, GPL-3.0-only elsewhere.
 - No force-push, no history rewrite, no commits to `main`.
-- Never sleep or poll on CI or a reply.
+- No model run waits on or re-checks unchanged state. Scripts and GitHub Actions may watch CI and events.
 
 ## Handoff template
 ```

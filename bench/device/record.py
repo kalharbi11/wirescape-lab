@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Authorized owner recording. No recorder is instantiated during a dry run."""
 import platform
+import math
 import os
 import queue
 import shutil
@@ -14,11 +15,15 @@ from pathlib import Path
 
 class Recorder:
     def __init__(self,mode,directory,rate=48000,input_device=None,
-                 monitor_target=None,process_helper=None,engine_pid=None):
+                 monitor_target=None,process_helper=None,engine_pid=None,
+                 capture_buffer_frames=None):
         self.mode=mode
         self.directory=Path(directory)
         self.rate=rate
         self.input_device=input_device
+        self.capture_buffer_frames=capture_buffer_frames
+        self.timing_blocks=[]  # Per-callback capture sample indices and clock provenance.
+        self.captured_frame_count=0
         self.monitor_target=monitor_target
         self.process_helper=process_helper
         self.engine_pid=engine_pid
@@ -26,11 +31,17 @@ class Recorder:
         self.temp=None
         self.stream=None
         self.started=None
+        # First recorded ADC sample in the host monotonic domain (input mode only).
+        self.first_sample_monotonic=None
         self.file=self.directory/"capture.flac"
         self.queue=None
         self.writer=None
         self.write_error=None
         self.overruns=0
+        # PortAudio may drop input before our writer queue fills. Record its
+        # callback status separately from queue.Full and refuse damaged captures.
+        self.callback_status_count=0
+        self.callback_statuses=[]
 
     def _start_input(self):
         import sounddevice as sd
@@ -51,10 +62,39 @@ class Recorder:
         self.writer=threading.Thread(target=write,daemon=True)
         self.writer.start()
         def capture(samples,frames,timestamp,status):
+            callback_now=time.monotonic()
+            if status:
+                self.callback_status_count+=1
+                if len(self.callback_statuses)<8:
+                    # Only bounded, anonymous PortAudio status and sample index
+                    # are retained for an actionable REFUSED report.
+                    self.callback_statuses.append({
+                        "start_frame":self.captured_frame_count,
+                        "frames":frames,
+                        "flags":str(status).strip() or repr(status),
+                    })
+            adc=getattr(timestamp,"inputBufferAdcTime",None)
+            current=getattr(timestamp,"currentTime",None)
+            if (adc is not None and current is not None and
+                    all(map(math.isfinite,(float(adc),float(current))))):
+                # Both PortAudio values share the input stream clock.
+                # Host mapping via callback arrival has unknown scheduling offset.
+                adc_host=callback_now-(float(current)-float(adc))
+            else:
+                adc_host=None
+            self.timing_blocks.append({
+                "start_frame":self.captured_frame_count,
+                "frames":frames,"adc_monotonic_s":adc_host,
+                "callback_monotonic_s":callback_now})
+            self.captured_frame_count+=frames
+            if self.first_sample_monotonic is None:
+                self.first_sample_monotonic=adc_host if adc_host is not None else callback_now
             try:self.queue.put_nowait(samples.copy())
             except queue.Full:self.overruns+=1
         self.stream=sd.InputStream(samplerate=self.rate,channels=2,
-                                   dtype="float32",device=self.input_device,callback=capture)
+                                   dtype="float32",device=self.input_device,
+                                   blocksize=self.capture_buffer_frames or 0,
+                                   callback=capture)
         self.stream.start()
 
     def start(self):
@@ -141,7 +181,18 @@ class Recorder:
             if self.writer.is_alive():
                 raise RuntimeError("input FLAC writer stalled")
             if self.write_error:raise RuntimeError("input FLAC writer: "+str(self.write_error))
-            if self.overruns:raise RuntimeError(f"input capture lost {self.overruns} blocks")
+            losses=[]
+            if self.overruns:
+                losses.append(f"input capture lost {self.overruns} blocks (writer queue full)")
+            if self.callback_status_count:
+                first=self.callback_statuses[0]
+                losses.append(
+                    f"input capture callback status/data loss: "
+                    f"{self.callback_status_count} flagged callback(s); "
+                    f"first at capture frame {first['start_frame']}, "
+                    f"{first['frames']} frames: {first['flags']}")
+            if losses:
+                raise RuntimeError("; ".join(losses))
         else:
             self._stop_proc()
             if not self.temp or not self.temp.is_file():

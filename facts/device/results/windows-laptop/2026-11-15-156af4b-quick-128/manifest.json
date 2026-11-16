@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "machine": "windows-laptop",
+  "os": "Windows",
+  "os_version": "11",
+  "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "commit": "156af4b84ee52665f379a3d56222eda330ebcb96",
+  "rate": 48000,
+  "block": 128,
+  "audio_device": "MME|Speakers (Realtek(R) Audio)",
+  "driver": "MME",
+  "capture_backend": "process-loopback",
+  "dry_run": false,
+  "scenario": "quick",
+  "engine_mode": "device",
+  "warnings": [],
+  "offline_script_count": 266,
+  "planned_duration_s": 900.0,
+  "engine_exit_code": 0,
+  "completed": true
+}

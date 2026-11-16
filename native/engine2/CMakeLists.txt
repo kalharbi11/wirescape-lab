@@ -40,7 +40,7 @@ add_test(NAME abi2_engine_tests COMMAND abi2_engine_tests)
 target_sources(abi2_engine_tests PRIVATE ../tests2/allocation_watch.cpp)
 add_executable(abi2_module_tests ../tests2/module_tests.cpp ../tests2/allocation_watch.cpp)
 target_link_libraries(abi2_module_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
-add_test(NAME abi2_module_tests COMMAND abi2_module_tests $<TARGET_FILE_DIR:ws_vco> ${CMAKE_BINARY_DIR}/abi2_equivalence.json)
+add_test(NAME abi2_module_tests COMMAND abi2_module_tests ${CMAKE_BINARY_DIR}/abi2_equivalence.json)
 foreach(mode scalar portable)
   add_executable(abi2_${mode}_ports ../tests2/module_tests.cpp)
   target_compile_definitions(abi2_${mode}_ports PRIVATE WS2_PORTABLE_TEST)
@@ -66,7 +66,7 @@ foreach(frames IN ITEMS 64 128 256)
     $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})
 endforeach()
 add_executable(abi2_integration_tests ../tests2/integration_tests.cpp ../tests2/allocation_watch.cpp)
-target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 ${CMAKE_DL_LIBS})
 add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
 foreach(module notes rows)
   add_library(ws2_test_${module} SHARED ../tests2/${module}_module.cpp)
@@ -147,16 +147,91 @@ set_tests_properties(abi2_live_replan_tests PROPERTIES TIMEOUT 15)
 foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
   add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)
   target_link_libraries(abi2_${module}_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
-  add_dependencies(abi2_${module}_tests ws2_${module} ws_${module})
-  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests $<TARGET_FILE_DIR:ws_${module}>)
+  add_dependencies(abi2_${module}_tests ws2_${module})
+  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests $<TARGET_FILE_DIR:ws2_${module}>)
 endforeach()
 
 target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
 
+# Test the source-freezing parser with known-answer/synthetic byte streams.
+add_test(NAME abi2_reference_freezer_tests COMMAND ${Python3_EXECUTABLE}
+  -m unittest discover -s ${CMAKE_SOURCE_DIR}/../bench/reference
+  -p "test_*.py" -v)
+
+# T1.1: every ABI2 comparison consumes committed, source-verified ABI1
+# fixture words; no comparison target links the original ABI1 engine.
+if(WIN32)
+  set(ABI1_FROZEN_MACHINE windows-x64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+  set(ABI1_FROZEN_MACHINE linux-arm64)
+else()
+  set(ABI1_FROZEN_MACHINE linux-x64)
+endif()
+set(ABI1_FROZEN_DIR "${CMAKE_BINARY_DIR}/abi1_frozen")
+set(ABI1_REFERENCE_MANIFEST
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json")
+set(ABI1_REFERENCE_CORPUS
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs")
+add_custom_target(abi2_frozen_reference_unpack ALL
+  COMMAND ${Python3_EXECUTABLE}
+    "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+    --manifest "${ABI1_REFERENCE_MANIFEST}"
+    --corpus-dir "${ABI1_REFERENCE_CORPUS}"
+    --destination "${ABI1_FROZEN_DIR}"
+    --machine "${ABI1_FROZEN_MACHINE}"
+  BYPRODUCTS "${ABI1_FROZEN_DIR}/capture_source.json"
+  COMMENT "Unpack and SHA-256-verify committed, frozen ABI1 reference words"
+  VERBATIM)
+target_compile_definitions(abi2_module_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+target_compile_definitions(abi2_integration_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(abi2_module_tests abi2_frozen_reference_unpack)
+add_dependencies(abi2_integration_tests abi2_frozen_reference_unpack)
+foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
+  target_compile_definitions(abi2_${module}_tests PRIVATE
+    ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+  add_dependencies(abi2_${module}_tests abi2_frozen_reference_unpack)
+endforeach()
+
 add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)
-target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 wirescape_engine ${CMAKE_DL_LIBS})
-add_dependencies(abi2_returned_filter_stress ws2_ladder ws_ladder)
-add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws_ladder>)
+target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
+# The stress cases are compiled from a test-only helper that has no ABI1
+# engine loader. No dead-code stripping workaround or ABI1 link is needed.
+add_dependencies(abi2_returned_filter_stress ws2_ladder abi2_frozen_reference_unpack)
+target_compile_definitions(abi2_returned_filter_stress PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws2_ladder>)
+
+# Inspect direct AND interface/transitive links, not just the visible -l token.
+# These are comparison targets; separate ABI1 production/bench targets remain
+# Fable-owned T1.2 and are not removed.
+function(abi2_assert_no_abi1_engine target_name)
+  get_property(already GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}")
+  if(already)
+    return()
+  endif()
+  set_property(GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}" TRUE)
+  get_target_property(direct_links "${target_name}" LINK_LIBRARIES)
+  get_target_property(interface_links "${target_name}" INTERFACE_LINK_LIBRARIES)
+  message(STATUS "T1.1 comparison links ${target_name}: ${direct_links}")
+  foreach(link_item IN LISTS direct_links interface_links)
+    if(link_item MATCHES "(^|[^a-zA-Z0-9_])wirescape_engine($|[^a-zA-Z0-9_])")
+      message(FATAL_ERROR "T1.1 comparison ${target_name} resolves the ABI1 engine: ${link_item}")
+    endif()
+    if(TARGET "${link_item}")
+      abi2_assert_no_abi1_engine("${link_item}")
+    endif()
+  endforeach()
+endfunction()
+foreach(compare_target IN ITEMS abi2_integration_tests abi2_module_tests
+        abi2_returned_filter_stress
+        abi2_clock_tests abi2_function_envelope_tests abi2_ladder_tests
+        abi2_mixer_tests abi2_noise_tests abi2_output_tests
+        abi2_scale_offset_tests abi2_slew_tests)
+  abi2_assert_no_abi1_engine("${compare_target}")
+endforeach()
+
 
 add_subdirectory(../io/midi midi_io)
 add_subdirectory(../modules2/macro_oscillator macro_oscillator)

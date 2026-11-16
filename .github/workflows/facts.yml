@@ -57,12 +57,13 @@ jobs:
             sudo apt-get install -y --no-install-recommends cloc graphviz xvfb
             sudo apt-get install -y --no-install-recommends valgrind || true
           else
+            python -m pip install psutil
             choco install cloc graphviz -y --no-progress
             echo 'C:\Program Files\Graphviz\bin' >> "$GITHUB_PATH"
           fi
 
       - name: Verify fact staging on synthetic device-free records
-        run: python -m unittest discover -s bench/offline -p 'test_ci_stage_facts.py' -v
+        run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
 
       - name: Install Studio, Electron and Chromium
         run: |
@@ -113,24 +114,30 @@ jobs:
           fi
           python bench/offline/protocol_facts.py --binary "$BINARY"
 
-      - name: Linux idle and loaded engine RSS
-        if: runner.os == 'Linux'
+      - name: Null-sidecar idle and loaded process RSS
         run: python bench/offline/memory_facts.py
 
       - name: FakeEngine knob/cable traces for 50, 100 and 200 modules
         run: node bench/offline/ui_frames.cjs
 
-      - name: Linux ten-run Electron startup, paint and RSS
-        if: runner.os == 'Linux'
-        run: xvfb-run -a node bench/offline/electron_startup.cjs
+      - name: Ten-run Electron startup, paint and RSS
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a node bench/offline/electron_startup.cjs
+          else
+            node bench/offline/electron_startup.cjs
+          fi
 
       - name: Full L2 engine/module CPU, soak and DSP fact pack
-        if: runner.os == 'Linux'
         run: python bench/offline/run_all.py --out-dir build_reports/l4/full
 
       - name: Stage runner-scoped facts with missing-section records
         if: always()
         run: python bench/offline/ci_stage_facts.py --runner '${{ matrix.id }}' --output .facts-staged/facts
+
+      - name: Require measured Windows fact sections
+        if: runner.os == 'Windows'
+        run: python bench/offline/verify_windows_facts.py --facts .facts-staged/facts
 
       - name: Upload facts for publication
         if: always()
