@@ -6,6 +6,7 @@
 #ifndef WS2_PORTABLE_TEST
 #include "module_loader.h"
 #include "allocation_watch.h"
+#include "reference_capture.h"
 #endif
 static const ws2_descriptor*descriptors[]={ws::Module<ws2ports::Vco>::descriptor(),ws::Module<ws2ports::Lfo>::descriptor(),ws::Module<ws2ports::Vcf>::descriptor(),ws::Module<ws2ports::Adsr>::descriptor(),ws::Module<ws2ports::Vca>::descriptor(),ws::Module<ws2ports::Clock>::descriptor(),ws::Module<ws2ports::FunctionEnvelope>::descriptor(),ws::Module<ws2ports::Ladder>::descriptor(),ws::Module<ws2ports::Mixer>::descriptor(),ws::Module<ws2ports::Noise>::descriptor(),ws::Module<ws2ports::Output>::descriptor(),ws::Module<ws2ports::ScaleOffset>::descriptor(),ws::Module<ws2ports::Slew>::descriptor()};
 static const char*names[]={"vco","lfo","vcf","adsr","vca","clock","function_envelope","ladder","mixer","noise","output","scale_offset","slew"};
@@ -195,6 +196,8 @@ static void equivalence(const char*directory,const char*report){
  for(uint32_t m=0;m<std::size(descriptors);++m){auto*old=loader.abi1(names[m]);double worst=0;
   for(double rate:{44100.,48000.,96000.})for(uint32_t block:{1u,17u,256u}){
    auto f=std::make_unique<DspFixture>(descriptors[m],rate,1);void*state=old->create(rate);VERIFY(state);ws_module_config cfg{sizeof(cfg),256,rate,1};VERIFY(old->prepare(state,&cfg)==0);
+   std::vector<float> legacy_samples;
+   legacy_samples.reserve(2048 * old->output_count);
    // ABI1 VCO has no pitch/FM inputs; match its unmodulated frequency path.
    if(m==0){f->ins[0].flags=WS2_CONSTANT;f->ins[1].flags=WS2_CONSTANT;f->input[0][0][0]=f->input[1][0][0]=0;}
    // Event gating equivalence, with no connected gate cable.
@@ -202,9 +205,13 @@ static void equivalence(const char*directory,const char*report){
    if(m==3){f->ins[0].flags=WS2_CONSTANT;f->input[0][0][0]=0;f->process.events={sizeof(ws2_event_list),1,&on};ws_module_event e{WS_NOTE_ON,0,60,1,1};old->event(state,&e);}
    alignas(32)float out[6][256]{};float*op[6];const float*ip[6];for(int p=0;p<6;++p){op[p]=out[p];ip[p]=f->input[p][0];}
    for(uint32_t pos=0;pos<2048;){uint32_t n=std::min(block,2048-pos);ws_process_context context{sizeof(context),n,pos,1};old->process(state,ip,op,&context);f->run(n);
-    for(uint32_t p=0;p<old->output_count;++p)for(uint32_t i=0;i<n;++i)worst=std::max(worst,double(std::abs(out[p][i]-f->output[p][0][(f->outs[p].flags&WS2_CONSTANT)?0:i])));
+    for(uint32_t p=0;p<old->output_count;++p)for(uint32_t i=0;i<n;++i){legacy_samples.push_back(out[p][i]);worst=std::max(worst,double(std::abs(out[p][i]-f->output[p][0][(f->outs[p].flags&WS2_CONSTANT)?0:i])));}
     f->process.events.count=0;pos+=n;
    }old->destroy(state);
+   char capture_name[128];
+   std::snprintf(capture_name,sizeof capture_name,"module_%s_%u_%u",
+                 names[m],static_cast<unsigned>(rate),block);
+   abi1_reference_capture(capture_name,legacy_samples);
   }
   std::printf("equivalence %s max_abs_error %.9g\n",names[m],worst);std::fprintf(file,"%s{\"name\":\"%s\",\"max_abs_error\":%.12g,\"passed\":%s}",m?",":"",names[m],worst,worst<=1e-6?"true":"false");VERIFY(m<5?worst<=1e-6:worst==0);
  }std::fputs("]}\n",file);std::fclose(file);
