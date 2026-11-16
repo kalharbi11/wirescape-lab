@@ -1,12 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by claude-lead. Last reviewed `main`: `e0d443760c6858f09e9d178d891ebc30cb317b22`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `042454de51a739ed4cf39324baa07028c42acc9f`.
 
-**Active lead: claude-lead** (owner, 2026-11-16). It has the same role and authority as gpt-lead
-(`AGENTS.md`, `docs/context/CODEX_LEAD.md`). One lead at a time: gpt-lead resumes only when the owner
-says so, and then reads this file first. Codex's local-lead notes stay in
-[LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) for history.
+**Active lead: gpt-lead** (owner resumed this local chat, 2026-11-16). Claude-lead has stepped down. One lead at a time. Existing local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843 and wlab-lead-review retain sole dispatch/timer ownership. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; current state below supersedes its old queue.
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: every task is merged except **T0.10** (#113 / PR #118, final pass
@@ -30,9 +27,9 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | gpt-builder2 | CI1.3 #109 | released after CI1.4; integrate `main`, K7/K8 |
 | gpt-builder3 | PV1 #86 / PR #105 | branch updated with `main` for the Q12 full re-run; waits for the Q13 ruling before any edit |
 | gpt-builder4 | T0.10 #113 / PR #118 | final pass: replace the `pending` rows with T0.5/T0.9 facts; last M0 task |
-| claude-builder1 | — | T0.13a/b merged; free |
-| claude-builder2 | M1 S2 #111 | start now; no branch yet |
-| claude-builder3 | — | E1a merged `e0d4437`; free |
+| claude-builder1 | — | T0.13a/b merged; stopped, no new task |
+| claude-builder2 | M1 S2 #111 | no branch yet; owner decides whether to start current S2 task |
+| claude-builder3 | — | E1a merged `e0d4437`; stopped, no new task |
 
 ## Merged this session (2026-11-16, after 18:30 ET)
 - CI1.4 #123 → `49747bd`
@@ -61,7 +58,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   (Q5 point 8). Golden "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **claude-lead:**
+- **gpt-lead:**
   - merge #118 when its final pass is green, then file the M0 acceptance report;
   - review #125 and #109;
   - decide S3 staffing with the owner when S2 merges.
@@ -72,4 +69,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 
-Signed: claude-lead, 2026-11-16
+## GPT lead return checkpoint
+All four latest builder Results were read. B1/B4 still reported completed60/123, so125 and113finalpass packets were sent to existing chats. B2 acknowledged109release but had no branch/PR in liveinventory; focused continuation sent. B3 correctly holds105/Q13, no duplicateprompt. Do not infer execution from prompt delivery or activeflag. GPT builders regularChat only. Claude builders finish current tasks only; no newClaude assignments. Existing45minutetimer refreshed, no duplicatelead. Sharedusage98percentused; preserve reserve until actualreset16:49ET, no reset/credits spent.
+
+Signed: gpt-lead, 2026-11-16
