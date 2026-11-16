@@ -1368,3 +1368,17 @@ Zero-result exact code searches: `ws_param_descriptor` and `ws_legacy` (`repo:ka
 
 Static inspection does not establish whether a target is built in a given CI configuration, nor runtime execution of devices. Direct target links in CMake are separate from transitive links through `wirescape_app_engine`, `wirescape_runtime_document` and the web static core.
 
+
+
+## Additional line anchors from source validation
+
+The following sites use the same pinned examined commit `389ed265de5fc81cf72fb165ae361d3c7eec64ac`. Source inspection date: 2026-11-16 (New York). These entries extend the line inventory without changing the earlier source observations.
+
+| Evidence site | Observed source expression |
+| --- | --- |
+| `native/CMakeLists.txt:13` | `target_compile_options(wirescape_engine PRIVATE /W4 /permissive-)` |
+| `native/CMakeLists.txt:15` | `target_compile_options(wirescape_engine PRIVATE -Wall -Wextra -Wpedantic)` |
+| `native/include/wirescape/module.h:52` | `const ws_port_descriptor *outputs;` |
+| `native/include/wirescape/module.h:60` | `const ws_process_context *);` |
+| `native/src/engine.cpp:99` | `std::vector<ws_event> events;` |
+| `native/engine2/tests/soak.cpp:66` | `for(uint32_t i=0;i<8;++i)require(e->add_abi1(i+1,loader.abi1(names[i])));` |
