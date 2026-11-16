@@ -93,6 +93,10 @@ assert.equal(totalTail.self_sampled_ms,4); // 1 ms omitted from c1 top12 + 3 ms 
 assert.equal(totalTail.samples,2);
 assert.equal(summed.cpu_attribution.status,'measured');
 assert.match(summed.cpu_attribution.self_time_aggregation,/before top-10 truncation/);
+const zeroTrials=aggregateTrials([]);
+assert.equal(zeroTrials.cpu_attribution.status,'unavailable');
+assert.equal(zeroTrials.trace_attribution.status,'unavailable');
+assert.equal(zeroTrials.frame.sample_count,0);
 assert.equal(cpuSummary({}).status,'unavailable');
 // A stale 'measured' object without its full self-time map is ineligible
 // for complete aggregation. Never silently sum a truncated leaderboard.
