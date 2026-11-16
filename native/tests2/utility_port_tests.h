@@ -13,6 +13,7 @@ static int utility_port_tests(const char*name,int argc,char**argv){
  VERIFY(argc==2);ModuleLoader loader(argv[1]);auto*old=loader.abi1(name);auto*d=loader.abi2(name);VERIFY(!std::strcmp(d->id,old->id));VERIFY(d->input_count==old->input_count&&d->output_count==old->output_count&&d->param_count==old->parameter_count);
  for(uint32_t p=0;p<d->input_count;++p)VERIFY(!std::strcmp(d->inputs[p].id,old->inputs[p].id));for(uint32_t p=0;p<d->output_count;++p)VERIFY(!std::strcmp(d->outputs[p].id,old->outputs[p].id));
  for(uint32_t p=0;p<d->param_count;++p){VERIFY(d->params[p].legacy_index==old->parameters[p].id);VERIFY(d->params[p].initial==old->parameters[p].initial);VERIFY(d->params[p].minimum==old->parameters[p].minimum&&d->params[p].maximum==old->parameters[p].maximum);VERIFY(d->params[p].flags&WS2_MODULATABLE);}
+ abi1_reference_capture_descriptor(std::string("utility_")+name,old);
  for(double rate:{44100.,48000.,96000.})for(uint32_t channels:{1u,4u,16u})for(uint32_t frames:{1u,17u,256u})for(int pattern=0;pattern<4;++pattern){
   auto f=std::make_unique<DspFixture>(d,rate,channels);std::vector<void*>states(channels);ws_module_config cfg{sizeof(cfg),256,rate,1};for(auto&state:states){state=old->create(rate);VERIFY(state&&old->prepare(state,&cfg)==0);}
   const bool capture_reference = std::getenv("ABI1_REF_CAPTURE_DIR") != nullptr;
