@@ -269,22 +269,49 @@ class NativeRequiredTests(unittest.TestCase):
                    ".github/workflows/ci.yml").read_text(encoding="utf-8")
         gate = ("if: " + chr(36) + "{{ always() && (github.event_name != 'pull_request' || "
                 "needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}")
+        # Split only at two-space job headings, not four-space job fields.
+        # A search for "\n  " also matches the prefix of "    name:" and
+        # silently truncates permission and verification-step assertions.
+        import re
+        match_jobs = list(re.finditer(r"(?m)^  ([a-z][a-z0-9_-]*):\s*$", content))
+        sections = {
+            m.group(1): content[m.start():match_jobs[i + 1].start()
+                                      if i + 1 < len(match_jobs) else len(content)]
+            for i, m in enumerate(match_jobs)
+        }
+        token_binding = "ACTIONS_READ_TOKEN: " + chr(36) + "{{ github.token }}"
         for platform in native.PLATFORMS:
             with self.subTest(platform=platform):
-                self.assertIn(f"  {platform}:\n    name: {platform}\n    needs: [scope, native]\n    {gate}", content)
-                self.assertIn(f"python tools/ci/verify_native_required.py --platform {platform}", content)
+                section = sections[platform]
+                self.assertIn(f"    name: {platform}\n", section)
+                self.assertIn("    needs: [scope, native]\n", section)
+                self.assertIn(f"    {gate}\n", section)
+                self.assertIn(f"python tools/ci/verify_native_required.py --platform {platform}", section)
         self.assertEqual(content.count("needs: [scope, native]"), 3)
         self.assertIn("name: native build " + chr(36) + "{{ matrix.name }}", content)
         for jobname in (*native.PLATFORMS, "studio"):
-            beginning = content.index(f"  {jobname}:\n")
-            ending = content.index("\n  ", beginning + 3)
-            section = content[beginning:ending]
-            self.assertIn("permissions:\n      contents: read\n      actions: read", section)
-            self.assertEqual(section.count("ACTIONS_READ_TOKEN: " + chr(36) + "{{ github.token }}"), 1)
-        self.assertIn("run: python tools/ci/verify_native_required.py --studio", content)
+            with self.subTest(job=jobname):
+                section = sections[jobname]
+                self.assertIn(f"    name: {jobname}\n", section)
+                self.assertIn("    permissions:\n      contents: read\n      actions: read\n", section)
+                self.assertEqual(section.count(token_binding), 1)
+                self.assertIn("      - name: Verify ", section)
+                self.assertEqual(section.count("      - name: Verify "), 1)
+                if jobname == "studio":
+                    self.assertIn("    needs: [scope, studio_shards]\n", section)
+                    self.assertIn(f"    {gate}\n", section)
+                    self.assertIn("run: python tools/ci/verify_native_required.py --studio", section)
+                    self.assertIn("persist-credentials: false", section)
+                else:
+                    self.assertIn(f"run: python tools/ci/verify_native_required.py --platform {jobname}", section)
         self.assertNotIn("python - <<'PY'", content)
         self.assertEqual(content.count("actions: read"), 4)
-        self.assertIn("permissions:\n  contents: read", content)
+        self.assertIn("permissions:\n  contents: read\n", content)
+        # No other job obtains Actions API read permission or a token binding.
+        for jobname, section in sections.items():
+            if jobname not in (*native.PLATFORMS, "studio"):
+                self.assertNotIn("actions: read", section, jobname)
+                self.assertNotIn(token_binding, section, jobname)
 
 
 if __name__ == "__main__":
