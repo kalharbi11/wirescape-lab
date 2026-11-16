@@ -99,6 +99,8 @@ export class App {
   private learnEpoch = -1;
   private fileInput!: HTMLInputElement;
   private history!: History;
+  private snapshotRollback?: () => void;
+  private snapshotRevision = 0;
   private undoBtn!: HTMLButtonElement;
   private redoBtn!: HTMLButtonElement;
   private clip: Clip | null = null;
@@ -764,23 +766,45 @@ export class App {
 
   undo(): void {
     if (this.documentBusy) return;
-    if (!this.history.undo()) { this.toasts.show('Nothing to undo.'); return; }
+    this.snapshotRollback = this.history.checkpoint();
+    if (!this.history.undo()) {
+      this.snapshotRollback = undefined;
+      this.toasts.show('Nothing to undo.');
+    }
   }
 
   redo(): void {
     if (this.documentBusy) return;
-    if (!this.history.redo()) { this.toasts.show('Nothing to redo.'); return; }
+    this.snapshotRollback = this.history.checkpoint();
+    if (!this.history.redo()) {
+      this.snapshotRollback = undefined;
+      this.toasts.show('Nothing to redo.');
+    }
   }
 
   /** Put a history snapshot back, keeping the view where it is. */
   private restoreSnapshot(p: PatchV2): void {
     if (this.documentBusy) return;
+    const previous = this.doc.toJSON(), wasDirty = this.doc.dirty;
+    const rollbackHistory = this.snapshotRollback;
+    this.snapshotRollback = undefined;
+    const epoch = this.viewEpoch, revision = ++this.snapshotRevision;
     const view = this.doc.ui.view;
     this.canvas.select({ kind: 'none' });
     this.ticker.resetTelemetry();
     this.doc.replace({ ...p, ui: { ...(p.ui ?? {}), view } });
-    void this.editEngine().applyGraph(this.doc.toJSON()).catch(e =>
-      this.toasts.show(e instanceof Error ? e.message : 'The snapshot could not run.', 'error'));
+    void this.editEngine().applyGraph(this.doc.toJSON()).catch(e => {
+      // A refused whole-document replan never changes the running graph.
+      // Restore both the displayed patch and the history position.
+      if (revision === this.snapshotRevision && epoch === this.viewEpoch) {
+        this.doc.replace(previous);
+        if (!wasDirty) this.doc.markClean();
+        rollbackHistory?.();
+        this.canvas.invalidateAnchors();
+        this.refreshDirty();
+      }
+      this.toasts.show(e instanceof Error ? e.message : 'The snapshot could not run.', 'error');
+    });
     requestAnimationFrame(() => this.canvas.invalidateAnchors());
     this.refreshDirty();
   }

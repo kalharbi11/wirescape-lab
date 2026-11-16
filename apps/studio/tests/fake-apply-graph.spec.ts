@@ -26,11 +26,13 @@ test('FakeEngine E1b rules 1-5: preserved phase, ignored state, params, replaced
     same.modules[0].state = { resetMe: true };
     await e.applyGraph(same);
     const kept = { gen: e.graphGeneration, phase: e.phases.get(1), step: e.seqStep.get(1),
+      replaced: e.lastApplyResult?.replaced,
       frequency: e.nodes.get(1).params.frequency };
     const changed = structuredClone(same);
     changed.modules[0].config.voicing = 2;
     await e.applyGraph(changed);
-    const replaced = { phase: e.phases.get(1), frequency: e.nodes.get(1).params.frequency };
+    const replaced = { phase: e.phases.get(1), frequency: e.nodes.get(1).params.frequency,
+      ids: e.lastApplyResult?.replaced };
     const removed = structuredClone(changed);
     removed.modules = removed.modules.filter((m: any) => m.id !== 1);
     await e.applyGraph(removed);
@@ -41,8 +43,9 @@ test('FakeEngine E1b rules 1-5: preserved phase, ignored state, params, replaced
       capability: e.capabilities.includes('applyGraph') };
   });
   expect(evidence.capability).toBe(true);
-  expect(evidence.kept).toMatchObject({ gen: evidence.gen0 + 1, phase: 0.37, step: 5, frequency: 440 });
+  expect(evidence.kept).toMatchObject({ gen: evidence.gen0 + 1, phase: 0.37, step: 5, frequency: 440, replaced: [] });
   expect(evidence.replaced.phase).toBeUndefined();
+  expect(evidence.replaced.ids).toEqual([1]);
   expect(evidence.replaced.frequency).toBe(440);
   expect(evidence.absent).toBe(true);
   expect(evidence.restored).toBe(true);
@@ -103,9 +106,41 @@ test('FakeEngine web-preview fallback preserves legacy full reset when capabilit
     e.phases.set(1, 0.91);
     e.capabilities.splice(e.capabilities.indexOf('applyGraph'), 1);
     await e.applyGraph(doc);
-    return { phase: e.phases.get(1), cap: e.capabilities.includes('applyGraph') };
+    return { phaseWasReset: e.phases.get(1) === undefined, cap: e.capabilities.includes('applyGraph') };
   });
-  expect(result).toEqual({ cap: false });
+  expect(result).toEqual({ cap: false, phaseWasReset: true });
+});
+
+
+test('FakeEngine reconciles prior document after incremental addModule and ignores config key order', async ({ page }) => {
+  await boot(page);
+  const result = await page.evaluate(async () => {
+    const e = window.__wirescapeTest.engine as any;
+    e.stop();
+    await e.loadGraph({ format: 'wirescape.native.patch', version: 2,
+      modules: [], connections: [] });
+    e.addModule(9, 'essentials.vco', { frequency: 330 });
+    e.phases.set(9, 0.625);
+    const afterAdd = { format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 9, module: 'essentials.vco', parameters: { frequency: 440 } }],
+      connections: [] };
+    await e.applyGraph(afterAdd);
+    const firstReplaced = [...e.lastApplyResult.replaced];
+    const continuedPhase = e.phases.get(9);
+    const configured = { ...afterAdd, modules: [{ ...afterAdd.modules[0],
+      config: { first: 1, second: 2 } }] };
+    await e.applyGraph(configured); // real config replacement must reset this instance
+    const changedConfigReplaced = [...e.lastApplyResult.replaced];
+    e.phases.set(9, 0.25);
+    const reordered = { ...configured, modules: [{ ...configured.modules[0],
+      config: { second: 2, first: 1 }, parameters: { frequency: 550 } }] };
+    await e.applyGraph(reordered);
+    return { firstReplaced, continuedPhase, changedConfigReplaced,
+      secondReplaced: e.lastApplyResult.replaced,
+      phase: e.phases.get(9), value: e.nodes.get(9).params.frequency };
+  });
+  expect(result).toEqual({ firstReplaced: [], continuedPhase: 0.625,
+    changedConfigReplaced: [9], secondReplaced: [], phase: 0.25, value: 550 });
 });
 
 test('opening a patch always resets FakeEngine while live replans retain continuing state', async ({ page }) => {

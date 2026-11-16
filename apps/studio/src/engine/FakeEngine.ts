@@ -39,6 +39,7 @@ export class FakeEngine implements EngineClient {
   private document: PatchV2 | null = null;
   private unappliedCbs = new Set<(items: UnappliedParameter[]) => void>();
   private nextUnapplied: { moduleId: number; paramId: string }[] = [];
+  lastApplyResult?: { path: 'live'; replaced: number[]; unapplied: { moduleId: number; paramId: string }[] };
   private voices: Voice[] = [];
   private lastNote: number | null = null;
   private telemetryCbs = new Set<(t: Telemetry) => void>();
@@ -120,6 +121,7 @@ export class FakeEngine implements EngineClient {
 
   async loadGraph(patch: PatchV2): Promise<void> {
     this.document = structuredClone(patch);
+    this.lastApplyResult = undefined;
     this.graphGeneration++;
     this.nodes.clear(); this.conns = []; this.voices = []; this.lastNote = null;
     this.phases.clear(); this.randomHold.clear(); this.seqStep.clear();
@@ -182,6 +184,18 @@ export class FakeEngine implements EngineClient {
     this.nextUnapplied = items.map(item => ({ ...item }));
   }
 
+  private sameConfig(left: unknown, right: unknown): boolean {
+    // Canonical execution values, not authoring object key insertion order.
+    const normal = (v: unknown): unknown => {
+      if (Array.isArray(v)) return v.map(normal);
+      if (v && typeof v === 'object')
+        return Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, value]) => [key, normal(value)]));
+      return v;
+    };
+    return JSON.stringify(normal(left ?? {})) === JSON.stringify(normal(right ?? {}));
+  }
+
   async applyGraph(patch: PatchV2): Promise<void> {
     // Browser preview stays on the original full-load path.
     if (!this.capabilities.includes('applyGraph') || !this.document) return this.loadGraph(patch);
@@ -189,17 +203,18 @@ export class FakeEngine implements EngineClient {
     const oldModules = new Map(this.document.modules.map(module => [module.id, module]));
     const nextNodes = new Map<number, Node>();
     const retained = new Set<number>();
+    const replaced: number[] = [];
     const nextDocument = structuredClone(patch);
     for (const module of nextDocument.modules) {
       const old = oldModules.get(module.id);
-      const sameConfig = old?.module === module.module &&
-        JSON.stringify(old?.config ?? {}) === JSON.stringify(module.config ?? {});
+      const sameConfig = old?.module === module.module && this.sameConfig(old?.config, module.config);
       const existing = this.nodes.get(module.id);
       if (sameConfig && existing) {
         retained.add(module.id);
         // Keep all simulated time/phase/tail state; new document.state is ignored.
         nextNodes.set(module.id, { ...existing, params: { ...(module.parameters ?? {}) } });
       } else {
+        if (old) replaced.push(module.id);
         const rows = (module.config as { rows?: unknown } | undefined)?.rows;
         nextNodes.set(module.id, { id: module.id, type: module.module,
           params: { ...(module.parameters ?? {}) },
@@ -241,6 +256,7 @@ export class FakeEngine implements EngineClient {
     this.eventActivity.clear();
     this.monitorEntries = {};
     this.refreshGraphStatus(nextDocument);
+    this.lastApplyResult = { path: 'live', replaced, unapplied: unapplied.map(({ moduleId, paramId }) => ({ moduleId, paramId })) };
     if (unapplied.length) for (const cb of this.unappliedCbs) cb(unapplied);
   }
 
@@ -291,6 +307,7 @@ export class FakeEngine implements EngineClient {
       throw new EngineRefusal({ code: 'unknown-module', message: `Unknown module type "${type}"` });
     }
     this.nodes.set(id, { id, type, params: { ...params } });
+    this.document?.modules.push({ id, module: type, parameters: { ...params } });
     this.pushStatus();
   }
 
@@ -298,6 +315,10 @@ export class FakeEngine implements EngineClient {
     this.nodes.delete(id);
     for (const k of this.eventActivity.keys()) if (k.startsWith(`${id}:`)) this.eventActivity.delete(k);
     this.conns = this.conns.filter(c => c.from.module !== id && c.to.module !== id);
+    if (this.document) {
+      this.document.modules = this.document.modules.filter(m => m.id !== id);
+      this.document.connections = this.document.connections.filter(c => c.from.module !== id && c.to.module !== id);
+    }
     this.pushStatus();
   }
 
@@ -305,11 +326,13 @@ export class FakeEngine implements EngineClient {
     this.guardRefusal();
     this.validateConnection(c);
     this.conns.push({ ...c });
+    this.document?.connections.push(structuredClone(c));
   }
 
   disconnect(c: Connection): void {
     const k = key(c);
     this.conns = this.conns.filter(x => key(x) !== k);
+    if (this.document) this.document.connections = this.document.connections.filter(x => key(x) !== k);
   }
 
   setParam(moduleId: number, paramId: string, value: number): void {
@@ -325,6 +348,8 @@ export class FakeEngine implements EngineClient {
     const k = key(c);
     const found = this.conns.find(x => key(x) === k);
     if (found) found.amount = amount;
+    const committed = this.document?.connections.find(x => key(x) === k);
+    if (committed) committed.amount = amount;
   }
 
   /** Test hook: the rows the running fake graph holds for a CC module. */

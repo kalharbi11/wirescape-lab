@@ -6,7 +6,7 @@ import { mockBridge } from './bridge';
 type Wire = { type: string; patch?: any };
 const patch = (modules: any[]) => ({
   format: 'wirescape.native.patch' as const, version: 2 as const, modules,
-  connections: [], ui: { positions: Object.fromEntries(modules.map(m => [m.id, [70, 50]])),
+  connections: [], ui: { positions: Object.fromEntries(modules.map((m, i) => [m.id, [70 + i * 600, 50]])),
     view: { x: 0, y: 0, zoom: 1 }, labels: {} },
 });
 const wires = (page: Page) => page.evaluate(() =>
@@ -103,6 +103,25 @@ test('successful applyGraph with unapplied values reconciles engine and visible 
   await expectGraphCommands(page, ['applyGraph']);
   await expect.poll(async () => (await state(page)).modules[0].parameters.frequency).toBe(220);
   expect(await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].parameters.frequency)).toBe(220);
+});
+
+
+test('refused undo restores history position and authored document without a compensating reload', async ({ page }) => {
+  await setup(page, true, [{ id: 1, module: 'osc.in' }]);
+  await page.evaluate(() => window.__wirescapeTest.commitOscConfig(1,
+    { port: 9021, lan: false, rows: [] }, 'osc.in'));
+  await expectGraphCommands(page, ['applyGraph']);
+  const depth = await page.evaluate(() => window.__wirescapeTest.historyDepth());
+  const before = await state(page);
+  const gen = await page.evaluate(() => (window as any).__mockBridge.generation());
+  await page.evaluate(() => (window as any).__mockBridge.refuseNext('applyGraph', 'refused'));
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await state(page)).modules[0].config.port).toBe(9021);
+  expect(await page.evaluate(() => window.__wirescapeTest.historyDepth())).toEqual(depth);
+  expect(await page.evaluate(() => (window as any).__mockBridge.generation())).toBe(gen);
+  expect(await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].config.port)).toBe(9021);
+  expect((await state(page)).modules[0]).toEqual(before.modules[0]);
 });
 
 test('opening a different patch remains loadGraph even when applyGraph is supported', async ({ page }) => {
