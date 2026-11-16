@@ -142,7 +142,12 @@ def unpack_frozen(manifest_path, corpus_dir, destination, machine):
         for name in chunks:
             if not isinstance(name, str) or not re.fullmatch("abi1_(?:common|windows)_[0-9]{3}\\.b64", name):
                 raise ValueError("invalid frozen chunk filename")
-            packed += (corpus_dir / name).read_text(encoding="ascii").strip()
+            lines = (corpus_dir / name).read_text(encoding="ascii").splitlines()
+            if len(lines) != 2 or lines[0] != "# SPDX-License-Identifier: GPL-3.0-only":
+                raise ValueError("invalid frozen-reference SPDX/payload lines: " + name)
+            if not re.fullmatch("[A-Za-z0-9+/=]+", lines[1]):
+                raise ValueError("invalid base64 payload: " + name)
+            packed += lines[1]
         compressed = base64.b64decode(packed, validate=True)
         if len(compressed) != info.get("lzma_bytes"):
             raise ValueError("compressed corpus length mismatch")
