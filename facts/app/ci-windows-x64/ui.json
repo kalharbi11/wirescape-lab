@@ -1,8 +1,8 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
-    "date_et": "2026-11-15",
+    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "date_et": "2026-11-16",
     "machine": {
       "arch": "x64",
       "audio_devices": "not accessed",
@@ -13,57 +13,57 @@
     "results": [
       {
         "action": "knob",
-        "frames": 57,
-        "max_ms": 16.799999999999955,
+        "frames": 56,
+        "max_ms": 16.799999999999727,
         "modules": 50,
-        "p50_ms": 16.699999999999932,
-        "p95_ms": 16.700000000000045
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.700000000000273
       },
       {
         "action": "cable",
-        "frames": 63,
-        "max_ms": 33.40000000000009,
+        "frames": 65,
+        "max_ms": 49.89999999999998,
         "modules": 50,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 16.800000000000068
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.799999999999955
       },
       {
         "action": "knob",
-        "frames": 63,
-        "max_ms": 16.800000000000182,
+        "frames": 66,
+        "max_ms": 16.799999999999955,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 16.700000000000045
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 80,
-        "max_ms": 83.29999999999995,
+        "frames": 90,
+        "max_ms": 83.30000000000018,
         "modules": 100,
-        "p50_ms": 16.699999999999932,
+        "p50_ms": 16.699999999999818,
         "p95_ms": 33.299999999999955
       },
       {
         "action": "knob",
-        "frames": 74,
-        "max_ms": 66.70000000000005,
+        "frames": 73,
+        "max_ms": 83.30000000000018,
         "modules": 200,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 33.399999999999864
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 49.899999999999864
       },
       {
         "action": "cable",
-        "frames": 126,
-        "max_ms": 133.39999999999986,
+        "frames": 142,
+        "max_ms": 150.0999999999999,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.69999999999982
+        "p95_ms": 50
       }
     ]
   },
   "provenance": {
-    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
-    "date_et": "2026-11-15",
+    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
