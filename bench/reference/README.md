@@ -1,60 +1,70 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# T1.1: ABI1 reference capture for frozen ABI2 comparisons
+# T1.1: Frozen actual ABI1 reference outputs for independent ABI2 comparisons
 
-Issue [#67](https://github.com/kalharbi11/wirescape-lab/issues/67) is class B.
-This directory contains test-only capture/fixture-validation helpers. It does
-not modify the engine or change the original live ABI1 comparison assertions.
+Issue [#67](https://github.com/kalharbi11/wirescape-lab/issues/67), M0 r2 R5, class B.
+Source captures were produced by passing live ABI1-vs-ABI2 tests at
+**`0aa468346ed1f3260b7efe8748ff181e22a64674`**, not by the later fixture
+commits. Their actual numeric outputs were compared and source-hashed on three
+GitHub-hosted architectures. The legacy ABI1 engine and module source trees
+remain intact; this task does not implement T1.2.
 
-## Source comparisons inventoried
+## Comparison matrix and preserved assertions
 
-| Test / target | ABI1 reference input | Compared output | Original check |
-|---|---|---|---|
-| `abi2_integration_tests` | ABI1 `ws_engine` with 8 legacy nodes, steady and 4 scheduled changes (777, 2011, 3245, 4479 frames), 48 kHz, 256 frames/block | 16,384 binary32 mono samples per case; engine2's ABI1 shim as actual | Complete bitwise `memcmp==0`, no tolerance |
-| `abi2_module_tests` | 13 legacy module descriptors, 44.1/48/96 kHz, blocks 1/17/256, 2,048 frames per case, one channel | Every output port/sample from the legacy module versus ABI2 `DspFixture` | Modules vco/lfo/vcf/adsr/vca max absolute difference ≤1e-6; remaining 8 exactly 0 |
-| `abi2_{clock,function_envelope,ladder,mixer,noise,output,scale_offset,slew}_tests` | Legacy module per channel, 3 rates × 3 channel counts × 3 blocks × 4 patterns × 2 resets, 1,024 frames per reset | Every original exact-equality output from ABI1 versus ABI2 (noise excluded for voices beyond channel 0) | `actual == legacy` at every compared sample; descriptor IDs, bounds and counts also exact |
-| `abi2_returned_filter_stress` | ABI1-shaped descriptor bridge backed by ABI2 ladder; unchanged `native/tests/returned_filter_stress.cpp` cases | Impulse/modulation stress on ABI2 returned-filter adapter | Original stress assertions (not one of the module-loop sample comparators) |
+| Comparison target | Frozen capture | Unchanged strength |
+| --- | --- | --- |
+| `abi2_integration_tests` | 2 steady/scripted 16,384-frame mono renders, 48 kHz, 256/block; actual ABI1 engine 8-node graph | Entire raw `memcmp==0` against current engine2 ABI1-module shim, plus untouched polyphony, pitch, event, release, stereo, and allocations |
+| `abi2_module_tests` | 13 original legacy modules × 3 rates × 3 blocks × 2,048 samples (117 cases) | Modules 0–4 retain `worst<=1e-6`; other eight retain `worst==0`. Matrix/reset, scalar VCA, LFO phase, coefficient and noallocation assertions unchanged |
+| Eight `abi2_*_tests` utility ports | 8 modules × 3 rates × 3 channel counts × 3 blocks × 4 impulse/sine/sweep/unpatched patterns (864 cases), 2 reset passes | Each formerly compared sample now checks `actual==frozen` (noise poly-channel exception retained), with unchanged descriptor ID/bounds, reset/state, noalloc and finite/extreme tests |
+| `abi2_returned_filter_stress` | Unchanged impulse and modulation/release test functions applied to the ABI2 ladder bridge | Original filter stress validations remain; its renamed legacy entrypoint is discarded by test-target-only linker section GC, not linked to ABI1 engine |
 
-The same test files independently check polyphonic stealing and release, frame-
-accurate event timing, pitch, state save/load refusal/roundtrip, deterministic
-reset, transport, coefficient updates, finite values, VCA signed-zero and exact
-scalar behavior, zero allocations during DSP processing and unwinding. These
-unrelated tests remain active and are **not** replaced by fixture hashes.
+The noncomparative original assertions remain in the same test files. The
+independent ABI1 library is **not** linked to the comparison executables.
+A CMake configuration-time check recursively traverses `LINK_LIBRARIES` and
+`INTERFACE_LINK_LIBRARIES` for all 11 comparison targets and fails if
+`wirescape_engine` is reachable. Runtime engine2 compatibility testing
+still uses ABI1 **module descriptors**, intentionally; T1.2 owns their removal.
 
-**Current build dependencies:** the original `abi2_integration_tests` CMake
-target directly links `wirescape_engine`; `abi2_returned_filter_stress` also
-links it. The ordinary module and utility targets dynamically load ABI1 module
-descriptors but do not link that engine library. Separate
-`abi2_benchmark`/`abi2_cost_probe` targets also link the ABI1 engine, and
-remain outside the T1.1 comparison-target scope.
+## Frozen data and provenance
 
-## Capture protocol (temporary)
+- `native/tests/fixtures/abi2/abi1_reference_hash_manifest.json`: 983
+  source case names, SHA-256s, lengths, 8 descriptor snapshots, capture
+  Git SHA, runner/compiler/OS/flags and original artifact IDs.
+- `native/tests/fixtures/abi2/refs/`: 13 SPDX-header, base64-wrapped common
+  LZMA corpus fragments and one Windows override fragment. The common
+  source comprises 45,400,064 bytes before compression; Windows overrides
+  carry only the **18** differing module block-256 cases (172,032 bytes).
+  The same 983 captured reference streams matched on Linux x64 and ARM64;
+  Windows differs in precisely those 18 cases, which are preserved as measured.
+- `bench/reference/unpack.py`: verifies the LZMA SHA-256, uncompressed corpus
+  SHA-256 and every one of 983 original-case SHA-256s; rejects missing,
+  corrupt, unexpected or platform-mixed data; validates original descriptor
+  hashes. Writes temporary `.f32le` and `.desc` under the build directory
+  for native test readers.
+- `native/tests2/frozen_reference.h`: decodes raw little-endian IEEE 754
+  32-bit words and parses the recorded legacy descriptor IDs and binary32
+  parameter bounds at test startup; it never calls ABI1 engine functions.
+- `bench/reference/test_unpack.py` and `test_freeze.py`: synthetic
+  integrity tests and full corpus hash/Windows-difference regression tests.
+  No audio/MIDI hardware or LAN is used.
 
-During CI Release builds, `abi2_reference_capture` invokes the *passing live
-comparison tests* with the opt-in `ABI1_REF_CAPTURE_DIR` test environment set.
-The legacy output words are serialized explicitly in little-endian order;
-the source tests' exact comparison/tolerance checks still execute. No
-device-facing paths are used.
+Capture sources and archival runs: GitHub Golden workflow
+[43787767786](https://github.com/kalharbi11/wirescape-lab/actions/runs/43787767786),
+actual source commit `0aa4683`, x64 artifact `14191511302`, ARM64
+`14191288653`, Windows `14191418554`. Numeric source facts for earlier
+independent Linux captures remain under `facts/dsp/abi1_t11_capture_*.json`;
+they retain their own older measured source hashes, not the frozen corpus
+commit. The fixture manifest, rather than those earlier summaries, identifies
+the three inputs that generated the final committed data.
 
-`freeze.py` requires 983 case files: 2 integration, 117 module, 864 utility.
-It verifies case names, alignment and lengths, then emits machine-scoped
-`abi1_<machine>_<suite>_<group>.json` candidates. Each candidate records
-the Git source commit actually checked out, CPU, OS, compiler ID/version,
-release build flags, rate/channel/block/pattern metadata, exact source byte
-count, SHA-256, and `zlib9+b64` IEEE binary32 little-endian content.
-The Golden same-runner workflow retains candidates as `golden-diagnostics`
-JSON without retaining large WAVs; the golden build prints machine-scoped
-`ABI1_FREEZE_BEGIN/CHUNK/END` records for promotion after verification.
+## Devices-off validation
 
-`unpack.py` verifies the committed source SHA and every per-case digest
-before writing build-local binary32 words. Missing, truncated, mixed-machine,
-duplicate or corrupted data are fatal. The pack/unpack synthetic tests are
-registered as a device-free CTest case.
+The build's `abi2_frozen_reference_unpack` target verifies all source hashes
+before comparing PCM; `abi2_reference_freezer_tests` exercises the integrity
+loader and tamper refusal. The existing native CTest suites and the same-runner
+Golden workflow are unchanged. Review must verify actual **exact-head** CI
+and 24 unchanged golden renders per platform, plus printed
+`T1.1 comparison links` dependency lists; no result is presumed by this
+document.
 
-## Readiness
-
-These are **capture candidates**, not accepted frozen fixture comparisons,
-until CI has provided real, per-platform data and the tests are converted to
-load that frozen data. The final T1.1 tests must run with their reference side
-not linked to or calling the ABI1 engine; retain all original tolerances and
-unrelated assertions. No ABI1 engine or module deletion is authorized.
-Only Fable merges this class B task.
+Only the lead/Fable can merge within the accepted M0 contract. ABI1 engine,
+library, legacy module and benchmark targets have not been deleted.
