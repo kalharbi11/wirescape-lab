@@ -33,6 +33,8 @@ SECONDS = 10
 SEED = 37
 CENTERS_HZ = [20.0 * 2**(i/3) for i in range(31)]
 BAND_FLOOR_DBFS = -300.0
+# Initial strict coverage contracts: deleting manifest entries cannot erase both A/B rows.
+REQUIRED_COVERAGE_FIXTURES = frozenset({"notes-to-cv.json", "chord-notes.json", "spectral-cross.json"})
 
 
 def binary(root=ROOT):
@@ -74,6 +76,9 @@ def coverage_manifest():
     names = [r["fixture"] for r in manifest["cases"]]
     if len(set(names)) != len(names):
         raise ValueError("duplicate coverage fixture")
+    if not REQUIRED_COVERAGE_FIXTURES.issubset(names):
+        raise ValueError(f"coverage manifest removes required fixtures: "
+                         f"{sorted(REQUIRED_COVERAGE_FIXTURES-set(names))}")
     return manifest
 
 
