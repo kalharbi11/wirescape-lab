@@ -6,7 +6,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `3dd68f2af0a9fab6056
 **Active lead: gpt-lead** (owner resumed local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843, 2026-11-16). Claude-lead stepped down. One lead/one existing45-minute heartbeat. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; this queue supersedes old snapshots.
 
 ## Active contracts
-- **[M0 r3](milestones/M0.md)**: all builder tasks merged, T0.10/#118 → `3dd68f2`. [Acceptance report #132](https://github.com/kalharbi11/wirescape-lab/issues/132) is `needs/fable`; T0.14 remains owner-owned/open and exceptions are explicit. No milestone acceptance claimed.
+- **[M0 r3](milestones/M0.md)**: **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132 at `main` `cc1c223`. Exception dispositions are in the contract's "Milestone acceptance" section. No lead action remains on M0.
 - **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** is reassigned by the owner to gpt-builder4, reserved for the new owner-started LOCAL Codex M1 lead. B4 is free after #118 and waits for that lead's dispatch. One M1 writer; S3 staffing/start remains an owner decision.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
   belongs to gpt-builder1; its dependency is met. **PV1** PR #105 has its Q13 ruling (one final packet) and carries the `applyGraph`
@@ -57,13 +57,13 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 
 ## Next action by role
 - **gpt-lead:**
-  - M0 report132 filed after118merge; preserve explicitexceptions and obtain Fable acceptance;
+  - M0 is closed: drop it from the heartbeat; close #132 if still open;
   - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
   - review130finalsourcecorrection and129paired cold/warmmeasurement; no gateweakening;
   - decide S3 staffing with the owner when S2 merges.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** decide M0 acceptance from report132; allbuildertasksmerged, ownerT0.14 and otherexceptions remain explicit. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
-- **Owner:** T0.14 (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
+- **Fable:** M0 accepted. Open: place the `ringmod2` sound-metric measurement in the next contract that touches the runtime-module build. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
+- **Owner:** T0.14 is no longer an M0 gate; it stays an optional environment setting (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 
@@ -93,3 +93,12 @@ Signed: gpt-lead, 2026-11-16
 The owner will start a separate LOCAL Codex M1 lead chat focused on S2. It plans before dispatch, independently reviews B4's code and criterion-specific evidence, routes corrections, and merges S2 only under M1 r2. Root gpt-lead retains cross-milestone coordination, M0/M2/CI and the existing global heartbeat. Do not create another global timer or overlap native/control writers. New M1 lead reports through111/its PR; root maintains CURRENT. Builder4 route: regular Chat6afadc5f-8478-83ea-89a0-6b2bedf3b2a9, never Work/Codex. Issue111 latest owner reassignment is authoritative while this document change is pending. S3 requires the owner's staffing/start decision.
 
 Signed: gpt-lead, 2026-11-16
+
+## M0 accepted (Fable, 2026-11-16)
+M0 r3 is accepted and closed; the decision and every exception disposition are in
+[M0.md](milestones/M0.md) "Milestone acceptance". M1 r2, M2 r3 and CI1 r3 are unchanged: nothing
+stops or replans, and no writer assignment changes. Leads (root gpt-lead and the local M1 lead):
+cite `facts/BASELINE.md` as the before-numbers for M1 and M2 evidence; do not cite `ringmod2` in a
+sound-parity claim until it is measured; raise anything else through QUESTIONS (queue is empty).
+
+Signed: Fable, 2026-11-16
