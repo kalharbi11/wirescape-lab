@@ -229,10 +229,86 @@ class R1ContractTests(unittest.TestCase):
         self.assertEqual(len(found), 40)
         self.assertTrue(all(abs(a["start_frame"]-expected_frames[a["click"]]) <= 12
                             for a in found))
+        # The old <=12-sample check permitted a double half-window shift.
+        # For this known 1 kHz click, phase 0 starts at zero and the first
+        # above-threshold captured sample must be at N+1, never before N.
+        for observed in found:
+            delta = observed["start_frame"] - expected_frames[observed["click"]]
+            self.assertGreaterEqual(delta, 0)
+            self.assertLessEqual(delta, 1)
         too_few = audio.copy()
         too_few[expected_frames[18]:] = 0
         with self.assertRaisesRegex(ValueError, "at least 30"):
             latency_r1.find_command_onsets(too_few, rate, writes, blocks)
+
+    def test_command_onset_sample_oracle_at_44100_48000_96000_hz(self):
+        # Regression oracle for the centered RMS lookahead: a clean pulse has
+        # exact zeros before sample N. Reported onset must never precede N,
+        # even though the coarse envelope already sees the upcoming pulse.
+        # Three phases and a noise case exercise the raw-sample refinement.
+        for rate in (44100, 48000, 96000):
+            for phase, noise in ((0.0, 0.0), (math.pi / 2, 0.0),
+                                 (0.37, 0.0002)):
+                with self.subTest(rate=rate, phase=phase, noise=noise):
+                    buffer = 128
+                    epoch = 20.0
+                    first = rate // 4
+                    starts = [first + k * (rate // 2) for k in range(40)]
+                    frames = starts[-1] + rate // 8
+                    rng = np.random.default_rng(84 + rate)
+                    audio = rng.normal(0.0, noise, (frames, 2)).astype(np.float32)
+                    t = np.arange(round(rate * .016), dtype=np.float64) / rate
+                    pulse = (.18 * np.sin(2 * np.pi * 1000 * t + phase)).astype(np.float32)
+                    for start in starts:
+                        audio[start:start + len(pulse), 0] += pulse
+                        audio[start:start + len(pulse), 1] -= pulse * .8
+                        if noise == 0:
+                            self.assertFalse(np.any(audio[start - 128:start]))
+                    writes = [epoch + start / rate - .001 for start in starts]
+                    blocks = []
+                    for index in range(0, frames, buffer):
+                        count = min(buffer, frames - index)
+                        blocks.append({
+                            "start_frame": index, "frames": count,
+                            "adc_monotonic_s": epoch + index / rate,
+                            "callback_monotonic_s": epoch + (index + count) / rate,
+                        })
+                    arrivals = latency_r1.find_command_onsets(
+                        audio, rate, writes, blocks)
+                    self.assertEqual([row["click"] for row in arrivals],
+                                     list(range(40)))
+                    onsets = [row["start_frame"] for row in arrivals]
+                    for start, onset in zip(starts, onsets):
+                        self.assertGreaterEqual(onset, start,
+                            "onset cannot be in the exact-zero pre-click region")
+                        self.assertLessEqual(onset, start + 1,
+                            "1 kHz known onset must resolve within one sample")
+                    measured = latency_r1.command_to_capture_ms(
+                        writes, onsets, blocks, rate)
+                    self.assertEqual(measured["statistics"]["repeats"], 40)
+                    self.assertEqual(measured["timestamp_sources"],
+                                     {"adc": 40, "callback_fallback": 0})
+                    for start, onset, elapsed in zip(
+                            starts, onsets, measured["observations_ms"]):
+                        self.assertAlmostEqual(
+                            elapsed, 1.0 + (onset - start) * 1000 / rate,
+                            places=6)
+                        self.assertGreaterEqual(elapsed, 1.0 - 1e-8)
+                        self.assertLessEqual(elapsed, 1.0 + 1000 / rate + 1e-8)
+                    offset = round(.0004 * rate)
+                    loopback = latency_r1.harness_loopback_ms(
+                        starts, [start + offset for start in starts], rate)
+                    sound = latency_r1.command_to_sound_ms(measured, loopback)
+                    self.assertEqual(sound["representation"], "range_only")
+                    self.assertNotIn("statistics", sound)
+                    for quantile in ("median", "p95"):
+                        self.assertAlmostEqual(
+                            sound["range_ms"][quantile]["lower_ms"],
+                            measured["statistics"][quantile] -
+                            loopback["statistics"][quantile], places=8)
+                        self.assertAlmostEqual(
+                            sound["range_ms"][quantile]["upper_ms"],
+                            measured["statistics"][quantile], places=8)
 
     def test_malformed_or_fewer_than_20_samples_refused(self):
         with self.assertRaisesRegex(ValueError, "at least 20"):
