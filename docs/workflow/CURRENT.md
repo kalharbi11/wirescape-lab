@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `6702d6ac7356c89f45e2c32928d2f41ce11a0e47`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `35a6ef2ce299a143a9eaddce5a6bccd0e35611ea`.
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: Phase 0 remainder, T1.1, P1–P4 (all four inventories merged; P3 `65a365e`). R7 (Q10/Q11) adds the marks file to
@@ -14,7 +14,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `6702d6ac7356c89f45e
 
 Fable's Q7–Q11 answers (CI1 r2, M0 r3, M2 r3) merged with #107 (`6702d6a`).
 
-**Sidecar ordering (M1 r2):** T0.13a (#104), E1a (#112) and PV1's `native/sidecar/generated/` files
+**Sidecar ordering (M1 r2):** T0.13a (#104, merged `35a6ef2`), E1a (#112 / PR #116) and PV1's `native/sidecar/generated/` files
 merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidecar/`.
 
 ## Writers (one task each)
@@ -24,9 +24,9 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | gpt-builder2 | CI1.3 #109 | released 2026-11-16; single `ci.yml` writer; K7/K8 |
 | gpt-builder3 | PV1 #86 / PR #105 | Q8 replan at `ffc353e`; exact-head Lab CI and PV1 drift pending |
 | gpt-builder4 | — | free; next is E1b once E1a merges, or T0.10 once T0.5/T0.9 merge |
-| claude-builder1 | T0.13a #99 / PR #104, then T0.13b #100 / PR #106 | R7 marks at `56739f5` (CI queued); #106 mark-based location at `5151a9c` |
+| claude-builder1 | T0.13b #100 / PR #106 | T0.13a merged `35a6ef2`; #106 end-to-end facts now unblocked |
 | claude-builder2 | M1 S2 #111 | new; then S3–S6 serially, each filed when the prior stage merges |
-| claude-builder3 | M2 E1a #112 | draft until #104 merges (shared `session.cpp`); contract-review before merge |
+| claude-builder3 | M2 E1a #112 / PR #116 | head `ea27e2a`; `needs/fable` contract-review requested (J1–J5); CI pending |
 
 ## Open work (verify heads live; this is a snapshot)
 | Task | Issue / PR | Next |
@@ -34,10 +34,10 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | CI1.3 | #109 | gpt-builder2 |
 | T0.5 | #51 / PR #60 | needs an ordinary `main` merge for the current Golden harness. A clean merge is prepared, with only #60's 10 files differing from `main`. Push it, then fresh CI |
 | T0.9 | PR #50 | `main` merged at `55cf2d8` (runbook conflict: both sections kept); fresh CI, then lead review |
-| T0.13a / b | #99 / PR #104, #100 / PR #106 | exact-head CI; #104 merges first |
+| T0.13b | #100 / PR #106 | end-to-end facts on merged capture and marks |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
-| E1a | #112 | claude-builder3; B1/B2 recorded first |
+| E1a | #112 / PR #116 | `review #116` (owner to a Claude session); B1/B2 recorded true in the PR |
 | T0.10 | to file | after T0.5 and T0.9 merge |
 | T0.14 | owner | see the cloud build note below |
 
@@ -62,8 +62,8 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   review #104, then #106, #105 and #50; post the E1a and S3 contract-review requests when ready; file
   S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Contract-review (`review #<PR>` to a Claude session):** E1a; M1 S3, S5b, S6.
-- **Fable:** record the owner's Q5 item 7 answer (comment on #107, 2026-11-16): no owner patches, none to be added, so the ID migration and v1 conversion in Q5 points 4 and 6 are not needed. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
+- **Contract-review (`review #<PR>` to a Claude session):** E1a **#116 now**; later M1 S3, S5b, S6.
+- **Fable:** M0 acceptance needs T0.5, T0.9, T0.10 and T0.13b. Record the owner's Q5 item 7 answer (comment on #107, 2026-11-16): no owner patches, none to be added, so the ID migration and v1 conversion in Q5 points 4 and 6 are not needed. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
   PV2 waits on M1 S5b; T1.6/T1.7 on S5b; T1.8 on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). Q5 point 7 answered: no owner patches.
 
