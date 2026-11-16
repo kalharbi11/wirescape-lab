@@ -75,7 +75,7 @@ def unpack(files, destination, machine):
                 raise ValueError("missing ABI1 utility descriptor " + key)
             value = desc.get("utf8")
             digest = desc.get("sha256")
-            if not isinstance(value, str) or not value.startswith("id\\t"):
+            if not isinstance(value, str) or not value.startswith("id\t"):
                 raise ValueError("invalid legacy descriptor content " + key)
             if hashlib.sha256(value.encode("utf-8")).hexdigest() != digest:
                 raise ValueError("legacy descriptor SHA-256 mismatch " + key)
