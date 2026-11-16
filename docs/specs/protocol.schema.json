@@ -696,7 +696,7 @@
               "const": "disconnect"
             },
             "connection": {
-              "$ref": "#/$defs/connection"
+              "$ref": "#/$defs/connectionIdentity"
             }
           }
         },
@@ -753,7 +753,7 @@
               "const": "setModAmount"
             },
             "connection": {
-              "$ref": "#/$defs/connection"
+              "$ref": "#/$defs/connectionIdentity"
             },
             "amount": {
               "type": "number",
@@ -1427,6 +1427,29 @@
           }
         }
       ]
+    },
+    "connectionIdentity": {
+      "type": "object",
+      "required": [
+        "kind",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "signal",
+            "event",
+            "modulation"
+          ]
+        },
+        "from": {
+          "$ref": "#/$defs/endpoint"
+        },
+        "to": {
+          "$ref": "#/$defs/endpoint"
+        }
+      }
     }
   }
 }
