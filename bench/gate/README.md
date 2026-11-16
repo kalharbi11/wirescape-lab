@@ -68,27 +68,98 @@ a deliberate +4% slowdown without modifying or committing product code.
 The two Linux platforms use separate baselines: instruction sets differ,
 and the comparator rejects a cross-architecture comparison.
 
-## Existing hosted measurements and coverage boundary
+## Verified 97-row hosted measurements and provenance
 
-The original successful hosted [run 43767649579](https://github.com/kalharbi11/wirescape-lab/actions/runs/43767649579)
-produced x64 artifact 14183261928 and ARM64 artifact 14183227333, each with
-95 rows: five fixed modes, 24 bundled patch rows and 66 module/channel rows
-(33 module IDs). Of these, 93 are numeric measurements; `essentials.chord`
-for both one and eight channels reports `module_cpu_probe: create/prepare
-failed` with process exit 2. The artifact `commit` is the real GitHub PR
-merge commit `95fd429a73bc98417efe4f6e09833569e25731c2`, which merges
-source head `4fcb1e65ebfe8217de49c0eef41d903d01dabd26`. The baseline
-files preserve that original run/method provenance and both Callgrind Ir
-totals; calculated per-block values are the original differences divided
-by the original count windows. They do not claim a measurement on a later
-commit.
+[Instruction gate run 43774054913](https://github.com/kalharbi11/wirescape-lab/actions/runs/43774054913)
+tested source branch head `23d9de760e8809d6a90b2552abd078d1d104b6c7`
+at actual GitHub PR merge commit
+`d5ba23e1af128d689f9be3bd14c5bcb9b0961699`.
+The matching artifact files are [x64 14185614245](https://github.com/kalharbi11/wirescape-lab/actions/runs/43774054913/artifacts/14185614245)
+and [ARM64 14186240813](https://github.com/kalharbi11/wirescape-lab/actions/runs/43774054913/artifacts/14186240813).
+Each has **97 rows**: 5 fixed modes, 24 bundled patches, 68 module
+configurations (34 IDs × 1 and 8 signal channels). Each has **95 measured
+numeric results** and **two explicitly unavailable `essentials.chord` rows**
+(1 and 8 channels), with precise `exit 2: module_cpu_probe: create/prepare
+failed` reasons. Both newly included `osc.out` rows are measured in each
+artifact. The provenance fields report `callgrind-Ir-two-length-difference-v1`,
+`valgrind-3.22.0`, 2026-11-15 ET, the architecture, and the original merge
+commit above. The committed architecture baseline files were refreshed from
+those exact artifacts, retaining the original Ir run totals and reason strings.
 
-The current 34-module collector requires 97 rows. The old baseline lacks
-the two `osc.out` probe rows, and both chord rows are unavailable. This
-is incomplete coverage, so the advisory comparator reports failures until
-new validated architecture-specific measurements and any needed product/probe
-triage are resolved. No excluded or failed row is treated as measured.
+The previous run 43767649579 had 95 rows (5 fixed + 24 bundled + 66 module
+configurations) because the historical known-ID fixture omitted `osc.out`.
+Those older measurements are **not** the accepted 34-module baseline; the
+two missing rows were not fabricated.
 
-Same-runner sound comparison depends separately on unmerged issue #55. These
-instruction measurements do not assert Phase 0 acceptance or merge readiness
-for the engine restructuring.
+The exact artifact/committed-row equality was checked with row ID, both
+Callgrind totals, and failure reason for every row. Per-architecture
+FNV-1a-32 evidence fingerprints of the ASCII joined row representations
+`id|total0,total1` (or `id|U:reason` for unavailable rows) are
+`d84fb1f2` for x64 and `680c1fe0` for ARM64. These are verification
+fingerprints, not cryptographic signatures.
+
+## Why the chord rows cannot be measured with the current standalone probe
+
+The failure is a specific **probe/configuration-interface gap**, not an
+instruction count of zero. `native/modules2/chord/dsp.h` defines
+`Chord::prepare(const ws::Setup&)` and refuses setup unless
+`s.config.data` is non-null and `s.config.bytes == 4`. Those four bytes
+are the little-endian `uint32_t` graph-instance identity tag; the normal
+control-side adapter
+`native/document/runtime_module_config.h::runtime_module_config_impl`
+returns exactly those four bytes for `essentials.chord`.
+
+The existing `native/engine2/tests/module_cpu_probe.cpp` constructs
+`ws2_config{sizeof(ws2_config),rate,block,capacity,seed,nullptr,0}`
+for every module, before calling `d->prepare()`. Its CLI accepts
+`--module`, `--instances`, `--rate`, `--block`, `--channels`,
+`--seconds`, `--seed`, `--input-mode`, `--param` and `--alternate`,
+but **no** option to supply configuration bytes or a graph instance ID.
+Changing the Python invocation, channel count, note script, or `--param`
+cannot fix the null configuration. The benchmark retains both rows as
+`status: unavailable`, and the comparator reports failure, not success.
+
+**Smallest proposal for Fable (product-owned; not implemented here):**
+In `native/engine2/tests/module_cpu_probe.cpp`, support a test-only
+`--config-instance-id N` option for `essentials.chord`, encode `N`
+as four little-endian bytes in stable storage that survives the call to
+`d->prepare()`, and set the `ws2_config.data` and `.bytes` fields to
+that storage and 4. Add a native device-free fixture that verifies rejection
+without the config, successful prepare with it, and positive measured
+Callgrind deltas at 1 and 8 channels. Then determine whether Chord's
+event-only input/output also needs an event fixture to profile meaningful
+note transformations: the current module CPU probe supplies zero event lists,
+so it would otherwise measure idle Chord processing. No native changes are
+permitted in this benchmark PR; resolve ownership/acceptance before replacing
+the unavailable readings.
+
+## Isolated `osc.out` measurement: no socket path
+
+`bench/gate/instructions.py::module_rows` launches only the native
+`abi2_module_cpu_probe` through Valgrind; it does not create a sidecar or
+the network-capable `OutHost`. The standalone probe
+(`native/engine2/tests/module_cpu_probe.cpp`) directly invokes the module
+descriptor's create/prepare/process/destroy methods from
+`native/control/module_catalog.h`, without constructing
+`native/control/osc_out_host.cpp::OutHost`. The module implementation
+(`native/modules2/osc_out/dsp.h`) defaults to a local `OutBus`
+(`config.bus ? config.bus : &local_bus`) and only updates atomic counters
+and event records. Its default config parser in
+`native/modules2/osc_out/config.h` accepts zero bytes, and does not open
+sockets. Only the separate sidecar-owned `OutHost::start()` /
+`OutHost::loop()` creates and binds UDP sockets; it is **not used** by
+this isolated benchmark path. These facts follow direct source inspection;
+no live socket tracer was run. Do not substitute the sidecar OSC-Out host
+or any device/network service for this probe. This measurement includes
+only DSP-side bus updates, not UDP send or loopback transport cost.
+
+## Dependency and gate interpretation
+
+Because `essentials.chord` is unavailable in **both** the baseline and
+current rows, the comparator intentionally exits nonzero. The workflow
+`continue-on-error` makes that comparison advisory, so an overall green
+collection job **does not** mean complete baseline coverage or a passing
+comparison. No threshold reduction, replacement zeros, or exclusion of rows
+is permitted. Same-runner golden A/B issue #55 (draft PR #64 at the time
+of this documentation) is a separate unmerged dependency. Neither this
+measurement nor the green collection jobs establishes Phase 0 acceptance.
