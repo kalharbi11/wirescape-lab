@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Instruction count gate (advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'native/**'
+      - 'bench/gate/**'
+      - 'facts/perf/linux-*/instruction_baseline.json'
+      - '.github/workflows/instruction-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'native/**'
+      - 'bench/gate/**'
+      - 'facts/perf/linux-*/instruction_baseline.json'
+      - '.github/workflows/instruction-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  callgrind:
+    name: Instruction gate / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { machine: linux-x64, runner: ubuntu-24.04 }
+          - { machine: linux-arm64, runner: ubuntu-24.04-arm }
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      CXXFLAGS: '-g'
+      CFLAGS: '-g'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install device-free profiling dependencies
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0 numpy scipy
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends valgrind
+          valgrind --version
+      - name: Comparator unit tests (synthetic, no devices)
+        run: python -m unittest discover -s bench/gate -p 'test_*.py' -v
+      - name: Build Release with symbols and measure Callgrind Ir
+        run: |
+          python bench/gate/instructions.py \
+            --machine '${{ matrix.machine }}' \
+            --output 'build_reports/instructions/${{ matrix.machine }}.json'
+      - name: Compare architecture baseline (advisory)
+        id: instruction_compare
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          baseline='facts/perf/${{ matrix.machine }}/instruction_baseline.json'
+          current='build_reports/instructions/${{ matrix.machine }}.json'
+          if [[ ! -f "$baseline" ]]; then
+            printf '### Instruction gate\nBaseline missing: %s\n' "$baseline" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 2
+          fi
+          python bench/gate/compare.py "$baseline" "$current" --threshold 3 --markdown | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Surface advisory comparison verdict
+        if: always()
+        shell: bash
+        run: |
+          outcome='${{ steps.instruction_compare.outcome }}'
+          if [[ "$outcome" == 'failure' ]]; then
+            echo '::warning title=Callgrind comparison failed::Instruction regression evidence is incomplete or exceeded threshold; see advisory summary.'
+            echo '**ADVISORY COMPARISON FAILED — a green collection job is not complete baseline coverage.**' >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$outcome" != 'success' ]]; then
+            echo "::warning title=Callgrind comparison not executed::Comparison outcome: $outcome"
+            echo "**ADVISORY COMPARISON NOT EXECUTED — outcome: $outcome.**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '**Advisory comparison succeeded on all expected rows.**' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload measured facts (no audio)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instruction-current-${{ matrix.machine }}
+          path: build_reports/instructions/${{ matrix.machine }}.json
+          if-no-files-found: warn

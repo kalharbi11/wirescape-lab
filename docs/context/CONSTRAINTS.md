@@ -13,6 +13,11 @@
 - Realtime rules in the audio path (no allocation, locks, I/O, exceptions, logging or JSON).
 - The owner's saved patches and the bundled patches keep loading and sounding the same
   (an intentional sound change is listed in the PR and measured).
+  **Owner's change, 2026-11-16:** the bundled patches (`apps/studio/patches/`) and all module
+  presets, CHAOS included, may be reset and made again from scratch after the rebuild; they no
+  longer have to keep loading or sounding the same across it. Macro Oscillator models are kept.
+  The owner's own saved patches are not covered and stay under this rule. (Owner's words: issue #90
+  part 2. What it changes: `docs/workflow/QUESTIONS.md` Q5.)
 - Targets: Raspberry Pi 5 (ARM64 Linux) first, Windows x64 second; module DSP stays portable C++17.
 - Renderer isolation: `contextIsolation` on, `nodeIntegration` off, OSC/LAN off by default.
 

@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-only
-name: Golden patch renders (advisory)
+name: Golden patch renders (same-runner base/head gate)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     paths:
       - "native/**"
       - "bench/golden/**"
+      - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
       - "facts/dsp/**"
       - ".github/workflows/golden-renders.yml"
@@ -14,19 +16,26 @@ on:
     paths:
       - "native/**"
       - "bench/golden/**"
+      - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
       - "facts/dsp/**"
       - ".github/workflows/golden-renders.yml"
   workflow_dispatch:
+    inputs:
+      exercise_sound_change:
+        description: "Demonstrate uncommitted one-line VCO change and declaration (no push)"
+        type: boolean
+        default: false
+        required: false
 
 permissions:
   contents: read
 
 jobs:
   golden:
-    name: Golden render / ${{ matrix.name }}
+    name: Same-runner golden / ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -40,16 +49,25 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Checkout lab only
+      - name: Checkout actual head commit
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: head
+          persist-credentials: false
+      - name: Checkout actual base commit (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
           persist-credentials: false
       - name: Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install existing pinned build tools and offline requirements
-        run: python -m pip install cmake==4.2.3 ninja==1.13.0 -r bench/offline/requirements.txt
+      - name: Install pinned build tools and existing offline requirements
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0 -r head/bench/offline/requirements.txt
       - name: Fetch pinned PortAudio for Windows (build only)
         if: runner.os == 'Windows'
         uses: actions/checkout@v4
@@ -58,12 +76,12 @@ jobs:
           ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
           path: .tools/portaudio-src
           persist-credentials: false
-      - name: Build pinned PortAudio for Windows without opening a device
+      - name: Build pinned PortAudio without opening devices (Windows only)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          $generator = python -c "import sys; sys.path.insert(0, 'head/tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
           if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
           cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
           if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
@@ -72,28 +90,151 @@ jobs:
           $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
           if (!$dll) { throw 'PortAudio DLL unavailable' }
           "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
-      - name: Build native headless Release renderer
-        run: python tools/dev.py build --headless --config Release
-      - name: Altered-render comparator unit tests (no devices)
-        run: python -m unittest discover -s bench/golden/tests -v
-      - name: Render all bundled and owner patches twice without devices
-        run: python bench/golden/render.py --machine ${{ matrix.name }} --out build_reports/golden/${{ matrix.name }}/golden.json
-      - name: Emit compact numeric baseline chunks for traceable fact staging
+      - name: Missing/within-tolerance/declared-change and PCM comparator tests (devices off)
+        run: python -m unittest discover -s head/bench/golden/tests -v
+      # CMake build artifacts contain paths; rendered PCM is machine-specific.
+      # Never cache WAV/PCM by SHA across different hosted CPUs.
+      - name: Build base Release renderer (PR only)
+        if: github.event_name == 'pull_request'
+        run: (cd base && python tools/dev.py build --headless --config Release)
+      - name: Build head Release renderer
+        run: (cd head && python tools/dev.py build --headless --config Release)
+      - name: Render base twice, retain job-local float32 WAVs (PR only)
+        if: github.event_name == 'pull_request'
         run: |
-          python -c 'import json,sys,pathlib; p=pathlib.Path("build_reports/golden")/sys.argv[1]/"golden.json"; compact=json.dumps(json.loads(p.read_text()),separators=(",",":"),allow_nan=False); [print("GOLDEN_CHUNK %d %s"%(i//1400,compact[i:i+1400])) for i in range(0,len(compact),1400)]' ${{ matrix.name }}
-      - name: Compare architecture-matched committed golden (when available)
+          mkdir -p "$RUNNER_TEMP/golden"
+          python head/bench/golden/render.py --root base --machine ${{ matrix.name }} \
+            --keep-wavs "$RUNNER_TEMP/golden/wavs/before" \
+            --coverage-root head \
+            --out "$RUNNER_TEMP/golden/before.json"
+      - name: Render head twice, retain job-local float32 WAVs
+        id: render_head
         run: |
-          reference="facts/dsp/${{ matrix.name }}/golden.json"
-          measured="build_reports/golden/${{ matrix.name }}/golden.json"
+          mkdir -p "$RUNNER_TEMP/golden"
+          python head/bench/golden/render.py --root head --machine ${{ matrix.name }} \
+            --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --coverage-root head \
+            --out "$RUNNER_TEMP/golden/after.json"
+      - name: Probe causal bundled-module output via temporary disabled-cable controls
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/probe_bundled.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --out "$RUNNER_TEMP/golden/bundled-interventions.json"
+      - name: Record full 34-module registry and rendered contribution facts
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/inventory.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --out "$RUNNER_TEMP/golden/coverage-inventory.json" \
+            --probes "$RUNNER_TEMP/golden/bundled-interventions.json" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
+        if: ${{ always() && github.event_name == 'pull_request' && steps.render_head.outcome == 'success' }}
+        run: |
+          set +e
+          set -uo pipefail
+          python head/bench/golden/compare.py \
+            "$RUNNER_TEMP/golden/before.json" "$RUNNER_TEMP/golden/after.json" \
+            --tolerance-db 0 --before-wavs "$RUNNER_TEMP/golden/wavs/before" \
+            --after-wavs "$RUNNER_TEMP/golden/wavs/after" --require-wavs \
+            --pr-event "$GITHUB_EVENT_PATH" \
+            --difference-wavs "$RUNNER_TEMP/golden/changed" \
+            --json-out "$RUNNER_TEMP/golden/primary.json" \
+            > "$RUNNER_TEMP/golden/primary.txt" 2>&1
+          result=$?
+          set -e
+          cat "$RUNNER_TEMP/golden/primary.txt"
+          {
+            echo "### Primary: exact base/head comparison on same runner"
+            echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+            echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+            sed 's/^/    /' "$RUNNER_TEMP/golden/primary.txt"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$result"
+      - name: One-line uncommitted DSP perturbation acceptance experiment
+        if: ${{ always() && steps.render_head.outcome == 'success' && ((github.event_name == 'pull_request' && github.head_ref == 'task/55-same-runner-golden-gate') || (github.event_name == 'workflow_dispatch' && inputs.exercise_sound_change)) }}
+        run: |
+          python head/bench/golden/experiment.py --root head \
+            --baseline "$RUNNER_TEMP/golden/after.json" \
+            --baseline-wavs "$RUNNER_TEMP/golden/wavs/after" \
+            --changed-wavs "$RUNNER_TEMP/golden/experiment-wavs" \
+            --report "$RUNNER_TEMP/golden/experiment.json"
+          git -C head diff --exit-code -- native/modules2/vco/dsp.h
+          echo "### Uncommitted DSP change detected, then explicitly declared" >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,sys; x=json.load(open(sys.argv[1])); print("first interleaved sample", x["primary_undeclared"]["first_differing_sample_index"], "time_s",x["primary_undeclared"]["first_differing_time_s"], "peak delta",x["primary_undeclared"]["peak_sample_difference_fs"], "declaration", x["primary_declared"]["status"])' "$RUNNER_TEMP/golden/experiment.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Secondary committed architecture reference (0.01 dB warning only)
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          reference="head/facts/dsp/${{ matrix.name }}/golden.json"
           if test -f "$reference"; then
-            python bench/golden/compare.py "$reference" "$measured"
+            if python head/bench/golden/compare.py "$reference" "$RUNNER_TEMP/golden/after.json" \
+                --tolerance-db 0.01 > "$RUNNER_TEMP/golden/secondary.txt" 2>&1; then
+              echo "Secondary archive within 0.01 dB or identical"
+            else
+              echo "::warning::Secondary committed ${{ matrix.name }} reference changed (advisory only; hosted CPU can differ)"
+            fi
+            cat "$RUNNER_TEMP/golden/secondary.txt"
+            {
+              echo "### Secondary architecture reference: warning only"
+              sed 's/^/    /' "$RUNNER_TEMP/golden/secondary.txt"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "BASELINE_PENDING: no committed $reference yet; measured candidate emitted"
+            echo "::warning::Secondary reference $reference unavailable; generate via workflow_dispatch"
           fi
-      - name: Upload per-architecture JSON and diagnostics (no audio files)
+      - name: Publish reference candidate with real SHA and CPU model
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          source=Path(os.environ["RUNNER_TEMP"])/"golden"/"after.json"
+          d=json.loads(source.read_text(encoding="utf-8"))
+          if len(d["commit"]) != 40 or len(d["patches"]) < 24:
+              raise SystemExit("invalid reference SHA or bundled patch inventory")
+          print("REFERENCE_CANDIDATE",d["machine"],d["commit"],d["cpu"],len(d["patches"]))
+          compact=json.dumps(d,separators=(",",":"),allow_nan=False)
+          for i in range(0,len(compact),1400):
+              print(f"GOLDEN_CHUNK {i//1400:04d} {compact[i:i+1400]}",flush=True)
+          print("GOLDEN_END",flush=True)
+          if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+              target=source.parent/"reference-candidate"/"facts"/"dsp"/d["machine"]/"golden.json"
+              target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_text(json.dumps(d,indent=2,allow_nan=False)+"\n",encoding="utf-8")
+          PY
+      - name: Upload machine JSON and numeric diagnostics (no ordinary WAVs)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: golden-${{ matrix.name }}
-          path: build_reports/golden/${{ matrix.name }}/golden.json
+          name: golden-diagnostics-${{ matrix.name }}
+          path: |
+            ${{ runner.temp }}/golden/*.json
+            ${{ runner.temp }}/golden/*.txt
+          retention-days: 7
           if-no-files-found: warn
+      - name: Upload regenerated architecture reference candidate (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-reference-candidate-${{ matrix.name }}
+          path: ${{ runner.temp }}/golden/reference-candidate/facts
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Upload only differing before/after WAVs, short retention
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-differences-${{ matrix.name }}
+          path: ${{ runner.temp }}/golden/changed
+          retention-days: 2
+          if-no-files-found: ignore
+      - name: Upload uncommitted DSP experiment before/after WAVs, short retention
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-experiment-${{ matrix.name }}
+          path: ${{ runner.temp }}/golden/experiment-wavs
+          retention-days: 2
+          if-no-files-found: ignore

@@ -8,7 +8,7 @@ lead works from.
 ## Name
 The rebuilt engine is **Wire** (the owner's name, 2026-11-15; changeable until
 task T1.4 lands). "Wirescape" stays the product. Use: *Wire engine* (`wire/engine`), *Wire modules*,
-*Wire module API* (what `0003` calls "module API v3"), header `wire/module.h`, tool `wirescape module …`.
+*Wire module API* (formerly "module API v3"; `0003`), header `wire/module.h`, tool `wirescape module …`.
 ABI1, "ABI 2", `engine2`, `modules2` and Qt are the experiments that came before.
 
 ## Who may do what
@@ -17,6 +17,11 @@ ABI1, "ABI 2", `engine2`, `modules2` and Qt are the experiments that came before
 | **A** | Safe without Fable. Touches only `bench/`, `facts/`, advisory workflows under `.github/workflows/`, `docs/context/LOG.md`. A Codex lead may assign it, review it against its issue and **merge on green CI**. |
 | **B** | A builder may build it from a written issue; **only Fable merges** (it touches the product tree). A Codex lead may assign it and check CI, then leave it labelled `status/review`. |
 | **C** | Fable only (engine design, realtime code, protocol, module API, proposals, CONSTRAINTS, AGENTS/CLAUDE). |
+
+A/B/C classify task *risk*. **Merge authority is set per task by the accepted active milestone
+contract in `docs/workflow/milestones/`; without an accepted contract, the table above applies.**
+A contract may delegate eligible work to the lead but cannot override the owner's Fixed constraints
+or Fable-reserved architecture and measurement decisions.
 
 Rules for every task: one issue, one PR, `Closes #n`; main stays green; the golden render gate (#47/#55)
 shows 24 identical unless the PR declares a sound change; no force-push; devices off.
@@ -66,9 +71,14 @@ shows 24 identical unless the PR declares a sound change; no force-push; devices
 
 Phase 3 onward: `0002` and `0003`; tasks are written when Phase 2's design exists.
 
-## If Fable is unavailable
-A Codex lead (`lead: run`, brief in `docs/context/CODEX_LEAD.md`) keeps class A moving and prepares class B.
-It never starts class C. When Fable returns it reads the newest LOG entry and reviews everything labelled
-`status/review`.
+## Contract-driven delivery and fallback
+Follow the active revision named by `docs/workflow/CURRENT.md` in
+`docs/workflow/milestones/`. The gpt-lead delivers the assigned milestone, starts builders
+and merges only the tasks explicitly delegated in that contract. Escalations go to
+`docs/workflow/QUESTIONS.md` with evidence and a proposed resolution.
+
+If no Fable-accepted milestone contract is active, the "Who may do what" table above is the
+fallback: the lead cannot merge class B or start class C. The lead must not infer authority
+from a draft contract.
 
 Signed: Fable, 2026-11-15

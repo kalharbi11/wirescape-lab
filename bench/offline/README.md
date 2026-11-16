@@ -62,6 +62,55 @@ The UI collector records `requestAnimationFrame` interval percentiles, not GPU c
 
 Results must be produced on the same machine from the same commit before comparing run times or binary sizes. Outputs under `build_reports/` may contain local paths; do not commit them. No measurement has been run by the author in a local checkout for this issue.
 
+## T0.12 UI CPU/performance attribution (FakeEngine, devices off)
+
+The separate `ui_profile.cjs` collector reuses the 50/100/200-module
+patches and knob/cable gesture shapes from `ui_frames.cjs`; it does not
+modify `run_all.py`. Each workload uses **six independent repetitions**,
+one complete 30-step mouse drag per repetition in a fresh preview page, with
+rAF interval samples only during the instrumented window. It records a real
+Chromium CDP `Profiler` CPU sample profile and a separate `Tracing`
+renderer-main-thread performance trace, **not** a Playwright ZIP interaction
+trace. A missing browser/timeline signal is recorded as unavailable.
+
+From a checked-out commit with Studio dependencies, built `apps/studio/dist`
+and Chromium installed:
+
+```sh
+node bench/offline/test_ui_profile_parse.cjs
+node bench/offline/ui_profile.cjs --repeats 6 --output build_reports/ui-profile
+```
+
+The preview server binds **127.0.0.1** only and Studio uses FakeEngine.
+No audio/MIDI device, sidecar, process-loopback or LAN socket is used.
+The collector writes `summary.json`, per-trial `trials.json`, and raw
+`*.cpuprofile` and `*.trace.json` in `build_reports/ui-profile/`.
+These raw files are not committed: the advisory
+`.github/workflows/ui-profile-advisory.yml` uploads them with 7-day retention.
+Each summary gives source SHA, New York date, runner, CPU, Chromium version,
+viewport, sample count, gesture repetitions, and a link to the exact
+workflow artifact when staged in `facts/app/`.
+
+`ui_profile_parse.cjs` computes nearest-rank rAF frame p50/p95/max;
+CDP CPU self-time by sampled function/URL/line; and disjoint
+renderer-main-thread Trace Event duration in script, style, layout,
+paint and unattributed busy categories. Empty CPU profiles or profiles
+without positive-duration samples with valid call frames are **unavailable**,
+not measured zero. The parser saves every per-trial function's raw sampled
+microseconds in the short-retention `trials.json`, sums **all** such entries
+across trials, and only then truncates the displayed aggregate top ten.
+The collector fails its advisory job when any workload lacks a completed
+drag, measured CPU samples or a measured renderer trace, preserving
+diagnostic records rather than claiming successful attribution. Chromium trace markers define
+the measurement window when available; otherwise the summary explicitly
+states the imprecise fallback. The CPU sampler is statistical (1 ms interval);
+trace nesting is resolved by category priority and does not account for
+compositor/GPU threads. Unobserved time is not necessarily idle.
+Instrumenting a page alters its performance; attribute rather than
+compare uninstrumented baseline absolute frame timings. The standalone
+`test_ui_profile_parse.cjs` uses synthetic known-answer CDP objects
+and does not start a browser, process or network connection.
+
 ## Hosted CI fact generation
 
 The dedicated `.github/workflows/facts.yml` uses three GitHub-hosted runners: `ubuntu-latest` (x64), `ubuntu-24.04-arm` (ARM64), and `windows-latest` (x64). It installs Python 3.12, Node 22, pinned CMake/Ninja, `cloc`, `lizard`, Graphviz, Studio/Electron and Chromium, builds Release native/desktop and runs the L4 collectors. Linux app measurements use `xvfb-run` and a null-audio sidecar. Linux x64, ARM64 and Windows x64 run the complete `python bench/offline/run_all.py --out-dir build_reports/l4/full` command, **without** `--quick`. Windows uses native Electron process metrics and `psutil` RSS instead of Linux `/proc`; Callgrind remains unavailable on Windows and is reported in its own `instruction_cost` row. The Windows matrix verifies that test suites, startup, RSS, DSP and CPU sections contain measured results.
