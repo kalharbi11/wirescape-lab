@@ -1288,7 +1288,77 @@ The detailed occurrence tables above are the line-by-line source index. The foll
 | Scheduler shim | `native/engine2/engine2.cpp:102-145`, `native/engine2/engine2.cpp:275-283`, `native/engine2/engine2.cpp:627-646`, `native/engine2/engine2.cpp:749-755`, `native/engine2/engine2.cpp:1107-1115` | ABI1 node ownership, create/prepare/callback translation, process/event bridge, descriptor rebind |
 | Sidecar | `native/sidecar/session.h:67`, `native/sidecar/session.cpp:447-454`, `native/sidecar/session.cpp:925-934`, `native/sidecar/session.cpp:1303-1304` | ABI1-shaped config and meter around ABI2 facade/session |
 | Web | `native/web/CMakeLists.txt:40-45`, `native/web/web_engine.cpp:70-71`, `native/web/web_engine.cpp:357-358` | Static ABI1 `src/engine.cpp` in web_core, `ws_engine_config` for web app facade |
-| Tools and CLI | `native/cli/main.cpp:19-28`, `native/tools/render/main.cpp:98-118`, `native/tools/capture/CMakeLists.txt:3-6`, `tools/capture/reference.py:1`, `tools/capture/run.py:1` | v1 config/event structs used by facade CLI/render; capture offline test points to ABI1 shared engine file; Python capture/reference source paths indexed above |
+| Tools and CLI | `native/cli/main.cpp:19-28`, `native/tools/render/main.cpp:98-118`, `native/tools/capture/CMakeLists.txt:3-6`, `tools/capture/reference.py:7-25,40-58`, `tools/capture/run.py:94,103` | v1 config/event structs used by facade CLI/render; capture offline test points to ABI1 shared engine file; Python capture/reference source paths indexed above |
+
+### ABI1 offline capture's dynamic C-API bindings
+
+The Python offline reference loader looks up `ws_engine_` + each short function name at runtime, so literal code-token searches for names such as `ws_engine_render` do not list its call sites. The following lines identify its ctypes layout, exported-symbol lookup, function pointer binding, module shared-library discovery and source/reference execution.
+
+| Exact source | Python ABI1 field, bound symbol, module loader or callback call |
+| --- | --- |
+| `tools/capture/reference.py:2` | `"""Offline ABI1 rendering of native patch v1; never creates a device stream."""` |
+| `tools/capture/reference.py:7` | `class Config(C.Structure):` |
+| `tools/capture/reference.py:8` | `_fields_ = [('size', C.c_uint32), ('rate', C.c_double), ('block', C.c_uint32),` |
+| `tools/capture/reference.py:9` | `('nodes', C.c_uint32), ('events', C.c_uint32)]` |
+| `tools/capture/reference.py:12` | `class Event(C.Structure):` |
+| `tools/capture/reference.py:13` | `_fields_ = [('size', C.c_uint32), ('frame', C.c_uint64), ('node', C.c_uint32),` |
+| `tools/capture/reference.py:14` | `('type', C.c_uint32), ('parameter', C.c_uint32), ('value', C.c_float),` |
+| `tools/capture/reference.py:15` | `('source', C.c_uint32), ('note', C.c_uint32), ('generation', C.c_uint64)]` |
+| `tools/capture/reference.py:18` | `class Port(C.Structure):` |
+| `tools/capture/reference.py:19` | `_fields_ = [('id', C.c_char_p), ('name', C.c_char_p), ('kind', C.c_uint32)]` |
+| `tools/capture/reference.py:22` | `class Descriptor(C.Structure):` |
+| `tools/capture/reference.py:23` | `_fields_ = [('size', C.c_uint32), ('abi', C.c_uint32), ('id', C.c_char_p), ('name', C.c_char_p),` |
+| `tools/capture/reference.py:24` | `('inputs', C.c_uint32), ('outputs', C.c_uint32), ('parameters', C.c_uint32),` |
+| `tools/capture/reference.py:25` | `('in_ports', C.POINTER(Port)), ('out_ports', C.POINTER(Port))]` |
+| `tools/capture/reference.py:28` | `def tone_patch():` |
+| `tools/capture/reference.py:29` | `return dict(format='wirescape.native.patch', version=1, outputNode=2,` |
+| `tools/capture/reference.py:35` | `def render(engine, modules, patch, events=(), seconds=2):` |
+| `tools/capture/reference.py:36` | `if patch.get('format') != 'wirescape.native.patch' or patch.get('version') != 1:` |
+| `tools/capture/reference.py:40` | `lib = C.CDLL(str(Path(engine).resolve()))` |
+| `tools/capture/reference.py:41` | `def bind(name, result, *args):` |
+| `tools/capture/reference.py:42` | `f = getattr(lib, 'ws_engine_' + name)` |
+| `tools/capture/reference.py:45` | `ptr, u32 = C.c_void_p, C.c_uint32` |
+| `tools/capture/reference.py:46` | `create = bind('create', ptr, C.POINTER(Config))` |
+| `tools/capture/reference.py:47` | `destroy = bind('destroy', None, ptr)` |
+| `tools/capture/reference.py:48` | `load = bind('load_module', C.c_int, ptr, C.c_char_p)` |
+| `tools/capture/reference.py:49` | `count = bind('module_count', u32, ptr)` |
+| `tools/capture/reference.py:50` | `descriptor = bind('module', C.POINTER(Descriptor), ptr, u32)` |
+| `tools/capture/reference.py:51` | `add = bind('add_node', C.c_int, ptr, u32, C.c_char_p)` |
+| `tools/capture/reference.py:52` | `connect = bind('connect', C.c_int, ptr, u32, u32, u32, u32)` |
+| `tools/capture/reference.py:53` | `prepare = bind('prepare', C.c_int, ptr, u32, u32)` |
+| `tools/capture/reference.py:54` | `parameter = bind('initialize_parameter', C.c_int, ptr, u32, u32, C.c_float)` |
+| `tools/capture/reference.py:55` | `enqueue = bind('enqueue', C.c_int, ptr, C.POINTER(Event))` |
+| `tools/capture/reference.py:56` | `generation = bind('generation', C.c_uint64, ptr)` |
+| `tools/capture/reference.py:57` | `process = bind('render', C.c_int, ptr, C.POINTER(C.c_float), u32)` |
+| `tools/capture/reference.py:58` | `error = bind('error', C.c_char_p, ptr)` |
+| `tools/capture/reference.py:59` | `e = create(C.byref(Config(C.sizeof(Config), 48000, 512, 32, 2048)))` |
+| `tools/capture/reference.py:69` | `for node in nodes.values():` |
+| `tools/capture/reference.py:75` | `candidates = [Path(modules) / name for name in` |
+| `tools/capture/reference.py:76` | `(f'ws_{suffix}.dll', f'libws_{suffix}.so', f'libws_{suffix}.dylib')]` |
+| `tools/capture/reference.py:80` | `check(load(e, str(file.resolve()).encode('utf-8')))` |
+| `tools/capture/reference.py:81` | `d = descriptor(e, count(e) - 1).contents` |
+| `tools/capture/reference.py:86` | `check(add(e, node['id'], identity.encode()))` |
+| `tools/capture/reference.py:87` | `def port(node, name, output):` |
+| `tools/capture/reference.py:88` | `d = loaded[nodes[node]['type']]` |
+| `tools/capture/reference.py:89` | `ports, size = (d.out_ports, d.outputs) if output else (d.in_ports, d.inputs)` |
+| `tools/capture/reference.py:90` | `return next(i for i in range(size) if ports[i].id.decode() == name)` |
+| `tools/capture/reference.py:93` | `check(connect(e, a, port(a, wire['fromPort'], True), b, port(b, wire['toPort'], False)))` |
+| `tools/capture/reference.py:94` | `check(prepare(e, patch['outputNode'], 0))` |
+| `tools/capture/reference.py:95` | `for node in nodes.values():` |
+| `tools/capture/reference.py:96` | `for key, value in node.get('values', {}).items():` |
+| `tools/capture/reference.py:97` | `check(parameter(e, node['id'], int(key), float(value)))` |
+| `tools/capture/reference.py:99` | `for ev in events:` |
+| `tools/capture/reference.py:104` | `value = Event(C.sizeof(Event), frame, ev['node'], ev['type'], ev.get('parameter', 0),` |
+| `tools/capture/reference.py:105` | `ev.get('value', 0), ev.get('source', 1), ev.get('note', 1), generation(e))` |
+| `tools/capture/reference.py:106` | `check(enqueue(e, C.byref(value)))` |
+| `tools/capture/reference.py:107` | `samples, buffer = [], (C.c_float * 512)()` |
+| `tools/capture/reference.py:108` | `while len(samples) < round(seconds * 48000):` |
+| `tools/capture/reference.py:110` | `check(process(e, buffer, n))` |
+| `tools/capture/reference.py:113` | `finally:` |
+| `tools/capture/reference.py:114` | `destroy(e)` |
+
+The manual capture runner selects `libwirescape_engine.so` or `wirescape_engine.dll` by default (`tools/capture/run.py:103`); the test target supplies `$<TARGET_FILE:wirescape_engine>` to offline self-tests (`native/tools/capture/CMakeLists.txt:3-6`). No device test was executed during this inventory.
+
 
 ## Literal token search / absence scope
 
