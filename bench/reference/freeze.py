@@ -58,6 +58,16 @@ def verify_inventory(names):
     return len(expected)
 
 
+def cpu_model():
+    if platform.system() == "Linux":
+        path = Path("/proc/cpuinfo")
+        if path.is_file():
+            for line in path.read_text(errors="replace").splitlines():
+                if line.startswith(("model name", "Hardware", "CPU implementer")):
+                    return line.split(":", 1)[-1].strip()
+    return platform.processor() or os.environ.get("PROCESSOR_IDENTIFIER") or platform.machine()
+
+
 def capture_metadata(repo_root, machine, compiler_id, compiler_version, build_config):
     commit = subprocess.check_output(
         ["git", "-C", str(repo_root), "rev-parse", "HEAD"], text=True).strip()
@@ -69,7 +79,7 @@ def capture_metadata(repo_root, machine, compiler_id, compiler_version, build_co
         "capture_date_et": datetime.now(ZoneInfo("America/New_York")).date().isoformat(),
         "machine": machine,
         "platform": platform.platform(),
-        "cpu": platform.processor() or platform.machine(),
+        "cpu": cpu_model(),
         "compiler_id": compiler_id,
         "compiler_version": compiler_version,
         "build_config": build_config,
@@ -173,11 +183,13 @@ def main(argv=None):
     parser.add_argument("--compiler-id", required=True)
     parser.add_argument("--compiler-version", required=True)
     parser.add_argument("--build-config", default="Release")
+    parser.add_argument("--cxx-flags", default="")
     parser.add_argument("--emit-chunks", action="store_true")
     args = parser.parse_args(argv)
     metadata = capture_metadata(args.repo_root, machine_name(),
                                 args.compiler_id, args.compiler_version,
                                 args.build_config)
+    metadata["cxx_flags"] = args.cxx_flags
     files = package(args.capture_dir, args.artifact_dir, metadata, args.emit_chunks)
     print("ABI1_FREEZE_SUMMARY", json.dumps(
         {"source_commit": metadata["source_commit"], "machine": metadata["machine"],
