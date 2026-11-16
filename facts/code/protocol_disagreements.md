@@ -1,0 +1,24 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+# Protocol v0 descriptions and observed differences — PV1
+
+- **Observation date:** 2026-11-16 (America/New_York).
+- **Examined source revision:** `7df3331e344b0c9c1951f304fd2e72f711f5da10` (live `main` at PV1 branch creation); all file:line ranges below refer to that revision.
+- **Environment:** GitHub repository source read through connected GitHub API; no physical audio/MIDI devices or LAN.
+- **Comparison scope:** `docs/specs/ENGINE_PROTOCOL.md` (especially §§2–4, 6–7 and §10 T01–T16), `native/sidecar/session.cpp`, `native/sidecar/protocol_tests.py`, `apps/studio/src/engine/EngineClient.ts`, `RealEngine.ts` and `FakeEngine.ts`. This table records specific observed mismatches or illustrative-value differences; absence claims are limited to the listed implementation method declarations/call sites.
+- **Classification:** Direct source comparison only. Illustrative fixtures are not live-device evidence; generated PV1 files are not wired into either implementation.
+
+| ID | Source observation | Comparison | Difference / scope |
+| --- | --- | --- | --- |
+| D01 | `docs/specs/ENGINE_PROTOCOL.md:206-209,303-309` emits `hello.engine.version: "0.1"` for T01/T15. | `native/sidecar/session.cpp:1236-1247` emits `"1.0.0"`; `native/sidecar/protocol_tests.py:70-75` expects `"1.0.0"`. | Normative example literal and current source/test release-version literals differ. Both are shape-valid strings. |
+| D02 | `docs/specs/ENGINE_PROTOCOL.md:206-209,303-309` lists example hello capabilities `midiLearn`, `telemetry.playhead`, `setSampleRate`, `setBufferFrames`, `osc`. | `native/sidecar/session.cpp:1236-1247` also emits `telemetry.monitor`, `osc.out` and `audioDevices`. | The current hello object has additive fields/capabilities absent from the T01/T15 example literal. The schema leaves optional/additive fields available. |
+| D03 | `docs/specs/ENGINE_PROTOCOL.md:90-93` defines `ccMap.set`, and `native/sidecar/session.cpp:1146-1165` handles it; `native/sidecar/protocol_tests.py:211-214` exercises success and refusals. | `apps/studio/src/engine/EngineClient.ts:173-208` declares no `ccMap.set` method; `apps/studio/src/engine/RealEngine.ts:446-488` declares no corresponding method. | A wire command exists in the sidecar and spec but is not exposed by the inspected Studio client method list. |
+| D04 | `docs/specs/ENGINE_PROTOCOL.md:90` says `setOsc` is unavailable in v0; `native/sidecar/session.cpp:868` refuses it with `unavailable`; `native/sidecar/protocol_tests.py:224` asserts that refusal. | `apps/studio/src/engine/FakeEngine.ts:360-367` implements `setOsc` by updating fake status; `apps/studio/src/engine/EngineClient.ts:204-207` declares it optional, and `native/sidecar/session.cpp:1236-1237` does not advertise `setOsc`. | Fake-engine optional behavior and current sidecar refusal differ; the sidecar behavior agrees with the v0 spec. |
+| D05 | `docs/specs/ENGINE_PROTOCOL.md:116-122` describes host-API-qualified persistent audio device IDs, while the §10 T09 illustrative `Device.id` is `"USB Stereo"`. | `native/sidecar/protocol_tests.py:225-229` asserts a null-sink/fake audio device with `id == name == "USB Stereo"`. | Illustrative/fake device identities differ from the host-qualified production identity rule. The example explicitly labels device values illustrative (`docs/specs/ENGINE_PROTOCOL.md:202-204`). |
+
+## Validation corpus boundary
+
+`tools/protocol/test_protocol.py` parses each JSON wire line in §10 T01–T16 and recognizes the deliberately malformed T14 request separately. The new `tools/protocol/validate_sidecar.py` runs existing `native/sidecar/protocol_tests.py` source in memory, validating every decoded stdout wire object and every successful `Engine.call` request; expected-refusal requests retain their existing negative-test oracle. It does not rewrite `native/sidecar/protocol_tests.py` or make its originally malformed input valid.
+
+The schema checks known command, reply, push and patch fields. A strict parser rejects duplicate object keys and nonfinite JSON. Unknown document fields are not removed or rejected. Existing lexical/transport constraints (2 MiB physical line, nesting and queue length) remain the original sidecar protocol-test responsibility; no runtime behavior changed.
+
+No fact row above asserts that the observed implementation or example was corrected. Any resolution is outside PV1.
