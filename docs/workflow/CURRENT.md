@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `371c1778f2b4f028817c06a695cd488f718fcefe`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `65a365e6330ed7d4f643f6ce2175aa15427a7708`.
 
 ## Active contracts
-- **[M0 r3](milestones/M0.md)**: Phase 0 remainder, T1.1, P1–P4. R7 (Q10/Q11) adds the marks file to
+- **[M0 r3](milestones/M0.md)**: Phase 0 remainder, T1.1, P1–P4 (all four inventories merged; P3 `65a365e`). R7 (Q10/Q11) adds the marks file to
   T0.13a and mark-based edit location plus `.github/workflows/continuity.yml` to T0.13b.
 - **[M1 r2](milestones/M1.md)**: one engine, S0 and S2–S6. S0, T1.1 and P1 are merged, so **S2 is
   dispatched** (#111). One writer owns S2–S6.
@@ -21,7 +21,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | CI1.2 #108 | **merged `371c177`.** Free. P3 #97 waits on its re-run, then the lead merges it |
+| gpt-builder1 | CI1.2 #108, P3 #80 | **both merged** (`371c177`, `65a365e`). Next: T0.5 #60 once its `main` merge is pushed |
 | gpt-builder2 | CI1.3 #109 | released 2026-11-16; single `ci.yml` writer; K7/K8 |
 | gpt-builder3 | PV1 #86 / PR #105 | Q8 replan at `ffc353e`; exact-head Lab CI and PV1 drift pending |
 | gpt-builder4 | — | free; next is E1b once E1a merges, or T0.10 once T0.5/T0.9 merge |
@@ -36,7 +36,6 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | T0.5 | #51 / PR #60 | needs an ordinary `main` merge for the current Golden harness. A clean merge is prepared, with only #60's 10 files differing from `main`. Push it, then fresh CI |
 | T0.9 | PR #50 | lead review |
 | T0.13a / b | #99 / PR #104, #100 / PR #106 | exact-head CI; #104 merges first |
-| P3 | #80 / PR #97 | updated with `main`; merge when the seven required checks report |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
 | E1a | #112 | claude-builder3; B1/B2 recorded first |
@@ -60,14 +59,14 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **gpt-lead:** merge #97 and #107 on green required checks; push the prepared #60 integration merge;
+- **gpt-lead:** merge #107 on green required checks (the seven names now report on notes-only PRs, CI1 acceptance 5 shown on #97); push the prepared #60 integration merge;
   review #104, then #106, #105 and #50; post the E1a and S3 contract-review requests when ready; file
   S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
 - **Builders:** one task each, result comment on the PR, one push per round.
 - **Contract-review (`review #<PR>` to a Claude session):** E1a; M1 S3, S5b, S6.
-- **Fable:** nothing queued. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
+- **Fable:** record the owner's Q5 item 7 answer (comment on #107, 2026-11-16): no owner patches, none to be added, so the ID migration and v1 conversion in Q5 points 4 and 6 are not needed. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
   PV2 waits on M1 S5b; T1.6/T1.7 on S5b; T1.8 on S6.
-- **Owner:** T0.14 (or adopt the byte-identical seeding above); `bench/patches/owner/` (Q5 point 7).
+- **Owner:** T0.14 (or adopt the byte-identical seeding above). Q5 point 7 answered: no owner patches.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 
