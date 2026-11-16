@@ -153,6 +153,11 @@ endforeach()
 
 target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
 
+# Test the source-freezing parser with known-answer/synthetic byte streams.
+add_test(NAME abi2_reference_freezer_tests COMMAND ${Python3_EXECUTABLE}
+  -m unittest discover -s ${CMAKE_SOURCE_DIR}/../bench/reference
+  -p test_freeze.py -v)
+
 # T1.1 test-only ABI1 reference capture. This runs *the unchanged live comparisons*
 # on a disposable CI build and produces provenance-bearing fixture candidates.
 # It is a capture phase only; no shipping ABI1 code is removed here.
@@ -203,7 +208,7 @@ if(DEFINED ENV{GITHUB_ACTIONS} AND DEFINED ENV{RUNNER_TEMP}
       --compiler-id "${CMAKE_CXX_COMPILER_ID}"
       --compiler-version "${CMAKE_CXX_COMPILER_VERSION}"
       --build-config Release
-      --cxx-flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}"
+      "--cxx-flags=${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}"
       ${ABI1_REFERENCE_EMIT_FLAG}
     DEPENDS ${ABI1_REFERENCE_DEPENDENCIES}
     COMMENT "Capture ABI1 reference data from unchanged passing comparison tests (no devices)"
