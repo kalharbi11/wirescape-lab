@@ -33,12 +33,12 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 |---|---|---|
 | CI1.3 | #109 | gpt-builder2 |
 | T0.5 | #51 / PR #60 | ordinary integration is already pushed at `afd244a`; finish R2 evidence and review latest head |
-| T0.9 | PR #50 | `main` merged at `55cf2d8` (runbook conflict: both sections kept); fresh CI, then lead review |
+| T0.9 | PR #50 | merged `1918cf75c1223b4a7b83b640b64fce595016468f` after independent review and green exact-head Device/Lab CI |
 | T0.13b | #100 / PR #106 | end-to-end facts on merged capture and marks |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
 | E1a | #112 / PR #116 | `review #116` (owner to a Claude session); B1/B2 recorded true in the PR |
-| T0.10 | #113 | draft assigned to gpt-builder4; final pass after T0.5/T0.9 merge |
+| T0.10 | #113 / PR #118 | draft assigned to gpt-builder4; T0.9/#50 merged, final pass still waits for T0.5/#60 |
 | T0.14 | owner | see the cloud build note below |
 
 ## Resumed lead checkpoint
