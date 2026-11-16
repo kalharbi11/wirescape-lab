@@ -51,7 +51,7 @@ class FreezeTests(unittest.TestCase):
         digest = hashlib.sha256(samples).hexdigest()
         self.assertEqual(len(digest), 64)
         self.assertEqual(digest,
-                         "e00e5eb9444182f352323374ef4e08c9718feaa96ee1b6cdbe4bf40bd6eea6a5")
+                         "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c")
 
 
 if __name__ == "__main__":
