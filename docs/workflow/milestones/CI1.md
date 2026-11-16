@@ -1,8 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CI1 — shorter Lab CI per merge
 
-**Revision:** r1 — **ACTIVE.** Written and accepted by Fable, 2026-11-16 (ET), answering
-[QUESTIONS](../QUESTIONS.md) Q6 (owner request). Runs alongside M0, M1 and M2 and revises none of them.
+**Revision:** r2 — **ACTIVE.** r2 (Fable, 2026-11-16, QUESTIONS Q7 and Q9) adds tasks CI1.2 and
+CI1.3 and invariants K6–K8. CI1.1 is merged (PR #96) and unaffected; nothing stops. r1 was written and
+accepted by Fable, 2026-11-16 (ET), answering [QUESTIONS](../QUESTIONS.md) Q6 (owner request).
+Runs alongside M0, M1 and M2.
 **Baseline commit:** `320576c`.
 **Outcome:** the longest Lab CI job on a pull request drops from 9.48 min to about 5 min, and a pull
 request that changes only notes and facts runs one job. The set of tests that runs on code is the same.
@@ -13,8 +15,22 @@ The 5 min figure is an estimate, not a pass mark.
 | Task | Class | Allowed paths | Depends on | Merge |
 |---|---|---|---|---|
 | CI1.1 Lab CI time | B | `.github/workflows/ci.yml`; `apps/studio/package.json` (`test` script only); `tools/ci/changed_scope.py` (new); `tools/foundation/tests/test_changed_scope.py` (new); one new `facts/tests/ci_durations_*.md` | — | lead |
+| CI1.2 required native check names | B | `.github/workflows/ci.yml`; `tools/ci/` (check script, new); `tools/foundation/tests/` (its tests, new) | CI1.1 | lead |
+| CI1.3 sanitizer compiler cache | B | `.github/workflows/ci.yml` (`sanitizers` job only); one new `facts/tests/ci_durations_*.md` | CI1.2 merged | lead, only under K8 |
 
-**Do, in one PR:**
+**CI1.2 (r2).** Seven check names are required by the repository: `foundation`, `linux-x64`,
+`linux-arm64`, `windows-x64`, `sanitizers`, `studio`, `desktop`. Rename the `native` matrix legs to
+`native build <platform>`. Add three literal jobs `linux-x64`, `linux-arm64`, `windows-x64`, each
+with `needs: [scope, native]` and the same job-level condition as the other gated jobs. When one
+runs, it passes only if exactly one job named `native build <its platform>` exists in this run
+attempt and concluded `success`. The logic is a script with unit tests, as the `studio` aggregate does it.
+
+**CI1.3 (r2).** `ccache` on the `sanitizers` job through `CMAKE_C_COMPILER_LAUNCHER` and
+`CMAKE_CXX_COMPILER_LAUNCHER` on the configure line, compiler checked by content, cache capped at
+500 MB, key from runner OS and architecture, compiler version text and the sanitizer flag string.
+Print `ccache -s` after the build. File queue time per job for the 20 most recent pull-request runs.
+
+**CI1.1, in one PR (merged):**
 1. **Build parallelism.** Replace the fixed `2` (`CMAKE_BUILD_PARALLEL_LEVEL`, `--parallel 2`) on the
    `native` and `sanitizers` jobs with the runner's core count. Print the core count in the log.
 2. **Studio shards.** Run the Studio Playwright suite as a three-way job matrix with
@@ -40,6 +56,14 @@ The 5 min figure is an estimate, not a pass mark.
   files for reads of the skipped directories and lists the result in the PR. A directory that a
   native, Studio or desktop test reads comes off the skip list.
 - **K5** No other workflow file, Playwright config or test file changes.
+- **K6** (CI1.2) No repository setting changes, no bypass, no job that succeeds without checking.
+  An aggregate is skipped only when scope succeeded with `code=false` on a pull request; if scope
+  failed it runs. Missing, duplicate, failed, cancelled or skipped platform job: the aggregate fails.
+- **K7** (CI1.3) Pushes to `main` and manual runs do not restore the cache; they build cold and
+  save. Pull requests restore and never save. Sanitizer flags, options and the 78 `-R abi2` test
+  names are unchanged. No CMake file changes.
+- **K8** (CI1.3) Merged only if a warm pull-request run of `sanitizers` is at least 2.0 min shorter
+  than 7.30 min. Otherwise the PR is closed and its numbers are filed as facts.
 
 ## Acceptance
 1. CI1.1 merged with K1 shown as a table in the result comment (base and head lists or counts,
@@ -53,12 +77,18 @@ The 5 min figure is an estimate, not a pass mark.
    longest job, the lead queues a question for a compiler-cache task; this contract gives no
    authority for one.
 
+5. CI1.2: its own run shows the seven required names green with the three platform legs under
+   their new names; unit tests cover each failing case in K6; PR #97, re-run after the merge,
+   shows seven of seven with the native aggregates skipped and merges by the normal route.
+6. CI1.3: K7 shown by one `main`-style cold run and one warm pull-request run with `ccache -s`
+   output; the before and after table; the queue-time table; K8 applied.
+
 ## Single-writer area
-`.github/workflows/ci.yml` belongs to CI1.1 while its PR is open. M2 PV1 places its drift check in a
+`.github/workflows/ci.yml` belongs to CI1.2, then CI1.3, one open PR at a time. M2 PV1 places its drift check in a
 new workflow file, which M2 r2 already allows.
 
 ## Out of scope
-Compiler caches; the PortAudio build; `workers` above 1; the golden, facts and portability
+Compiler caches on any job but `sanitizers`; the PortAudio build; `workers` above 1; the golden, facts and portability
 workflows; required checks or any repository setting.
 
 ## Escalate
