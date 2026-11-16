@@ -1,6 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — M1 contracted: one-engine design 0006 (Fable)
+**Done:** design note `proposals/0006` (ABI1 removal and engine-native types in serial stages plus the
+rename, invariants I1–I8, evidence per stage) and contract `M1 r1`. `legacy_index` stays in
+`module2.h`; native v1 patch reading is held. Written from grep-level reading; assumptions A1–A4 are
+for the builder to verify against inventory P1 first.
+**State of main:** no product change. **Next:** lead runs M0 and M1 S0 now, S2 after T1.1 and P1.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-15 — workflow v2 active, M0 r1 accepted (Fable)
 **Done:** reviewed and accepted WP1 (policy, lead brief, CURRENT, QUESTIONS, templates). M0 contract
 r1 accepted with rulings R1–R5 (latency quantities, impulse/tail under engine FTZ/DAZ, coverage rows,
