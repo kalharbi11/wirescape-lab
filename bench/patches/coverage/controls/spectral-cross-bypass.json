@@ -55,28 +55,6 @@
         "port": "audio"
       },
       "to": {
-        "module": 3,
-        "port": "a"
-      }
-    },
-    {
-      "kind": "signal",
-      "from": {
-        "module": 3,
-        "port": "audio"
-      },
-      "to": {
-        "module": 4,
-        "port": "audio"
-      }
-    },
-    {
-      "kind": "signal",
-      "from": {
-        "module": 1,
-        "port": "audio"
-      },
-      "to": {
         "module": 4,
         "port": "audio"
       }
