@@ -56,6 +56,33 @@ class Dip(unittest.TestCase):
         self.assertAlmostEqual(m.dip_db(x, RATE, EDIT), 20 * math.log10(0.5), delta=0.05)
 
 
+PERIOD = 12000  # clock: 250 ms, i.e. 240 BPM quarter notes; EDIT is grid event 4
+
+
+def clicks(shift, drop=()):
+    x = [0.0] * TOTAL
+    for k in range(0, TOTAL // PERIOD + 1):
+        at = k * PERIOD + (shift if k * PERIOD >= EDIT else 0)
+        if at < TOTAL and k * PERIOD not in drop:
+            for j in range(48):
+                if at + j < TOTAL:
+                    x[at + j] = 0.8 * (1 - j / 48)
+    return x
+
+
+def slow(delay=0, start=None, end=None, f=10.0, mute=None):
+    """10 Hz slip tone, delayed by `delay` samples over [start, end), zero over `mute`."""
+    w = 2 * math.pi * f / RATE
+    out = []
+    for t in range(TOTAL):
+        d = delay if start is not None and start <= t < (end if end is not None else TOTAL) else 0
+        out.append(AMP * math.sin(w * (t - d)))
+    if mute:
+        for t in range(*mute):
+            out[t] = 0.0
+    return out
+
+
 class TimeSlip(unittest.TestCase):
     def test_clean_sine_has_no_slip(self):
         self.assertAlmostEqual(m.time_slip_tone_ms(sine(), RATE, EDIT, FREQ), 0.0, delta=1e-6)
@@ -75,19 +102,45 @@ class TimeSlip(unittest.TestCase):
         self.assertAlmostEqual(m.time_slip_tone_ms(x, RATE, EDIT, f), 16.0, delta=1e-3)
 
     def test_clock_grid(self):
-        period = 12000  # 250 ms, i.e. 240 BPM quarter notes
-        def clicks(shift):
-            x = [0.0] * TOTAL
-            for k in range(0, TOTAL // period + 1):
-                at = k * period + (shift if k * period >= EDIT else 0)
-                if at < TOTAL:
-                    for j in range(48):
-                        if at + j < TOTAL:
-                            x[at + j] = 0.8 * (1 - j / 48)
-            return x
         self.assertEqual(m.time_slip_clock_ms(clicks(0), RATE, EDIT, 0.1), 0.0)
         self.assertAlmostEqual(m.time_slip_clock_ms(clicks(GAP), RATE, EDIT, 0.1), 16.0)
         self.assertAlmostEqual(m.time_slip_clock_ms(clicks(-480), RATE, EDIT, 0.1), -10.0)
+
+    def test_missing_next_onset_keeps_its_identity(self):
+        # The pulse due at the edit (grid event 4) never sounds; later pulses are on the grid.
+        # Nearest-grid matching would renumber pulse 5 as "on time" and read 0 ms. The next
+        # expected event is reported missing, and the next onset is one period late.
+        r = m.clock_slip(clicks(0, drop=(EDIT,)), RATE, EDIT, 0.1)
+        self.assertEqual(r['missing'], [EDIT])
+        self.assertEqual(r['next_offset_ms'], 250.0)
+        self.assertEqual(r['slip_ms'], 250.0)
+        self.assertEqual(r['extra'], [])
+
+    def test_clean_clock_reports_nothing_missing(self):
+        r = m.clock_slip(clicks(0), RATE, EDIT, 0.1)
+        self.assertEqual((r['slip_ms'], r['next_offset_ms'], r['missing'], r['extra']), (0.0, 0.0, [], []))
+
+    def test_no_onset_after_the_edit_is_unavailable(self):
+        x = clicks(0)
+        for i in range(EDIT - 100, TOTAL):
+            x[i] = 0.0
+        r = m.clock_slip(x, RATE, EDIT, 0.1)
+        self.assertIsNone(r['slip_ms'])
+        self.assertEqual(len(r['missing']), 4)  # events at 1.0, 1.25, 1.5, 1.75 s inside the window
+
+    def test_temporary_displacement_is_measured(self):
+        # Delayed by 16 ms from the edit, recovered 300 ms later: a fit at the window's end would
+        # read 0; the contracted 50 ms after the edit reads the displacement.
+        x = slow(GAP, EDIT, EDIT + 300 * RATE // 1000)
+        self.assertAlmostEqual(m.time_slip_tone_ms(x, RATE, EDIT, 10.0), 16.0, delta=1e-3)
+
+    def test_muted_tone_has_no_phase(self):
+        self.assertIsNone(m.time_slip_tone_ms(slow(mute=(EDIT, TOTAL)), RATE, EDIT, 10.0))
+
+    def test_short_dropout_on_continuing_phase_is_no_slip(self):
+        # A 3-block mute with the oscillator running underneath: phase kept, slip 0.
+        x = slow(mute=(EDIT, EDIT + GAP))
+        self.assertAlmostEqual(m.time_slip_tone_ms(x, RATE, EDIT, 10.0), 0.0, delta=1e-3)
 
 
 class Jump(unittest.TestCase):
@@ -140,19 +193,19 @@ class Restarted(unittest.TestCase):
         # 110 Hz completes whole cycles at 1.0 s, so the start-of-load waveform recurs exactly at the
         # edit; a continuing subject must still not count as restarted.
         x = sine(freq=110.0)
-        self.assertEqual(m.restarted(x, x, x, RATE, EDIT), (False, None))
+        self.assertEqual(m.restarted(x, x, x, RATE, EDIT)[:2], (False, None))
 
     def test_reset_phase_is_found_at_the_edit(self):
         f = 110.3  # not whole cycles at 1.0 s, so restart and continuation differ
         start = sine(freq=f)
         x = start[:EDIT] + start[:TOTAL - EDIT]  # oscillator restarted from phase 0 at the edit
-        self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT), (True, EDIT))
+        self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT)[:2], (True, EDIT))
 
     def test_restart_one_block_late_is_found(self):
         f = 110.3  # not whole cycles at 1.0 s, so restart and continuation differ
         start = sine(freq=f)
         x = start[:EDIT + BLOCK] + start[:TOTAL - EDIT - BLOCK]
-        self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT), (True, EDIT + BLOCK))
+        self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT)[:2], (True, EDIT + BLOCK))
 
     def test_gap_is_not_a_restart(self):
         f = 110.0
@@ -160,6 +213,46 @@ class Restarted(unittest.TestCase):
         for i in range(EDIT, EDIT + GAP):
             x[i] = 0.0
         self.assertEqual(m.restarted(x, sine(freq=f), sine(freq=f), RATE, EDIT)[0], False)
+
+
+    def test_phase_jump_without_reset_is_not_a_restart(self):
+        # 100 Hz (480 samples a period), +pi/2 at the edit, no reset: the displaced sine reaches the
+        # start-of-load phase 7.5 ms later, inside the search span. That is not a return to reset.
+        f = 100.0
+        x = sine(math.pi / 2, EDIT, freq=f)
+        r = m.restarted(x, sine(freq=f), sine(freq=f), RATE, EDIT)
+        self.assertEqual(r[:2], (False, None))
+
+    def test_mute_then_reset_is_a_restart(self):
+        f = 110.3
+        start = sine(freq=f)
+        x = start[:EDIT] + [0.0] * BLOCK + start[:TOTAL - EDIT - BLOCK]
+        self.assertEqual(m.restarted(x, start, sine(freq=f), RATE, EDIT)[:2], (True, EDIT + BLOCK))
+
+    def test_silent_start_envelope_reset(self):
+        # Start-of-load output is 25 ms of silence, then a 10 ms attack of a 200 Hz carrier.
+        # A reset at the edit repeats that silence and attack; the held note would have continued.
+        w = 2 * math.pi * 200.0 / RATE
+        def env(t):
+            return 0.0 if t < 1200 else 0.5 * min(1.0, (t - 1200) / 480) * math.sin(w * (t - 1200))
+        start = [env(t) for t in range(TOTAL)]
+        x = start[:EDIT] + start[:TOTAL - EDIT]
+        r = m.restarted(x, start, start, RATE, EDIT)
+        self.assertEqual(r[:2], (True, EDIT))
+
+    def test_silent_reference_mute_is_unobservable(self):
+        # Subject silent at load (envelope idle); at the edit its held note goes silent and stays.
+        # A reset to idle and a mute give the same output: reported as unavailable, not guessed.
+        held = sine(freq=200.0)
+        x = held[:EDIT] + [0.0] * (TOTAL - EDIT)
+        r = m.restarted(x, [0.0] * RATE, held, RATE, EDIT)
+        self.assertEqual(r[:2], (None, EDIT + 1))  # 200 Hz crosses zero at the edit sample
+
+    def test_silent_reference_mute_that_resumes_is_not_a_restart(self):
+        held = sine(freq=200.0)
+        x = held[:EDIT] + [0.0] * GAP + held[EDIT + GAP:]
+        r = m.restarted(x, [0.0] * RATE, held, RATE, EDIT)
+        self.assertEqual(r[:2], (False, None))
 
 
 class Window(unittest.TestCase):

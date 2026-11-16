@@ -11,7 +11,7 @@ Status: metrics and capture reader are built and unit-tested. Probe patches, the
 |---|---|
 | `capture.py` | reads `--capture-null-sink` files: segments, header, deinterleaved channels |
 | `metrics.py` | the six §4 metrics on one witness channel; numbers only, no thresholds |
-| `tests/test_metrics.py` | known-answer tests: clean sine, 3-block gap, phase jump, step, clock grid, restart |
+| `tests/test_metrics.py` | known-answer tests: clean sine, 3-block gap, phase jump, step, clock grid and missing pulse, temporary displacement, muted tone, restart, phase jump without reset, silent-start envelope |
 | `run.py` (after #99) | drives the sidecar over the protocol on the null sink, three repeats per edit |
 | `../patches/continuity/*.json` (after #99) | the probe patches |
 
@@ -23,20 +23,35 @@ These are in the `metrics.py` docstring and are listed here so a reviewer can ov
 - **`silence_ms`:** consecutive samples with |x| < −80 dBFS, counted at sample level.
 - **`dip_db`:** sliding 1 ms RMS with a hop of one sample, in dB against the steady RMS. A full
   gap reads −∞; the facts file writes `"-inf"`.
-- **`time_slip_ms`, tone:** a sine of the known frequency is fitted over the 50 ms before the
-  window and over the window's last 50 ms, on one absolute time base. The phase difference is
-  converted to time and wrapped to ±half a period. Positive means late. Slip is read from its
-  own 10 Hz tone (unambiguous to ±50 ms); a 1 kHz tone would read a 16 ms gap as 0.
+- **`time_slip_ms`, tone:** a sine of the known frequency is fitted over [edit − 50 ms, edit) and
+  [edit, edit + 50 ms), on one absolute time base, so a displacement that recovers later in the
+  window is still read. The phase difference is converted to time and wrapped to ±half a period.
+  Positive means late. Slip is read from its own 10 Hz tone (unambiguous to ±50 ms); a 1 kHz
+  tone would read a 16 ms gap as 0. Dropout runs (≥ 1 ms below −80 dBFS) are left out of each
+  fit, so a mute over a running oscillator reads 0 and a paused one reads its pause. If either
+  side has under 5 ms of sounding samples, the value is `null` (a muted tone has no phase).
 - **`time_slip_ms`, clock:** the grid comes from onsets before the window (median interval,
-  last onset as anchor). The reported value is the largest-magnitude signed offset of the onsets
-  after the edit.
+  last onset as anchor). The expected events are the grid events from the first one at or after
+  the edit. The observed events are the onsets after the midpoint between the last grid event
+  before the edit and that first one. The i-th observed onset is paired with the i-th expected
+  event. The value is the largest-magnitude signed offset over those pairs; `null` if no onset
+  follows. The row also carries `next_offset_ms`, `missing` (expected events with no onset
+  within half a period) and `extra`. A missing next pulse therefore shows as one period late and
+  as missing, never renumbered to 0. For an isochronous clock a dropped pulse and a one-period
+  delay look the same; both fields are reported so the reader sees which events are absent.
 - **`disturbed_ms`:** first-to-last sample span where |witness − continuation| exceeds −60 dB re
   the steady RMS. Continuation is the fitted sine for the tone and a no-edit capture for the tail
   and the held note. It is sample-level, because 1 ms framing smeared the span by one frame per edge.
-- **`restarted`:** the subject repeats its start-of-load samples within ±30 ms of the edit and
-  differs there from its no-edit continuation. The second condition is needed because a
-  free-running oscillator repeats its start every period. Without it, a continuing VCO whose
-  phase happens to be back at zero would count as restarted (see the test).
+- **`restarted`:** `true` when the subject repeats its start-of-load samples within ±30 ms of the
+  edit, differs there from its no-edit continuation, and the repeat begins where the subject
+  first leaves its continuation, with only silence (< −80 dBFS) in between. The second
+  condition is needed because a free-running oscillator repeats its start every period. The
+  third is needed because a phase-displaced oscillator reaches its start phase within one
+  period (+π/2 at 100 Hz matches 7.5 ms later; see the test). A start-of-load reference that
+  opens silent (an envelope before its attack) is matched together with its silent lead. If the
+  reference is silent throughout, the reset value is silence. Then a subject that goes silent
+  and stays silent is `null`: a reset and a mute give the same output, and the reason is stored.
+  A subject that goes silent and then comes back on its continuation is `false`.
 
 ## Probe patch (one patch, separate bus channels)
 | Bus channel | Witness | Build |
