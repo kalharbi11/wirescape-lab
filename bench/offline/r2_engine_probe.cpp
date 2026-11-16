@@ -25,6 +25,16 @@ constexpr double pi = 3.14159265358979323846;
 uint32_t source_rate = 48000;
 bool source_tail = false;
 
+uint64_t emitted_pre_silence=0;
+uint64_t emitted_impulse=0;
+uint64_t emitted_active=0;
+uint64_t emitted_tail_zero=0;
+uint64_t emitted_bad_tail=0;
+void reset_source_counters() {
+    emitted_pre_silence=0;emitted_impulse=0;emitted_active=0;
+    emitted_tail_zero=0;emitted_bad_tail=0;
+}
+
 // Fully deterministic source for the engine graph, never a direct descriptor
 // process() call. Engine::render installs the production FTZ/DAZ/FZ guard.
 struct SignalSource {
@@ -41,11 +51,21 @@ struct SignalSource {
         for(uint32_t i=0; i<b.frames(); ++i) {
             const uint64_t frame = b.frame_position()+i;
             if(source_tail) {
-                samples[i] = frame < source_rate
-                    ? static_cast<float>(.5*std::sin((2.*pi*440.*frame)/source_rate))
-                    : 0.f;
+                if(frame < source_rate) {
+                    samples[i]=static_cast<float>(
+                        .5*std::sin((2.*pi*440.*frame)/source_rate));
+                    ++emitted_active;
+                } else {
+                    samples[i]=0.f;
+                    uint32_t bits=0;
+                    std::memcpy(&bits,&samples[i],4);
+                    if(bits==0)++emitted_tail_zero;
+                    else ++emitted_bad_tail;
+                }
             } else {
                 samples[i] = frame == source_rate ? 1.f : 0.f;
+                if(frame<source_rate)++emitted_pre_silence;
+                if(samples[i]!=0.f)++emitted_impulse;
             }
         }
     }
@@ -140,7 +160,7 @@ std::string mode_name() {
 }
 void impulse(const Case& c,const std::string& name,uint32_t rate,
              uint32_t block,const std::string& filename) {
-    source_rate=rate;source_tail=false;
+    source_rate=rate;source_tail=false;reset_source_counters();
     auto engine=new_engine(c,rate,block,true);
     std::vector<float> capture;
     capture.reserve(2ull*rate);
@@ -157,7 +177,9 @@ void impulse(const Case& c,const std::string& name,uint32_t rate,
         }
         frame+=frames;
     }
-    need(nonzero_input==1 && capture.size()==2ull*rate,"invalid impulse frame accounting");
+    need(nonzero_input==1 && emitted_impulse==1 &&
+         emitted_pre_silence==rate && capture.size()==2ull*rate,
+         "invalid emitted source sample or impulse frame accounting");
     std::ofstream out(filename,std::ios::binary|std::ios::trunc);
     need(static_cast<bool>(out),"cannot write impulse capture");
     out.write(reinterpret_cast<const char*>(capture.data()),
@@ -181,6 +203,7 @@ void tail(const Case& c,const std::string& name,uint32_t rate,uint32_t block) {
       escaped(name).c_str(),rate,block,rate,
       static_cast<unsigned long long>(5ull*rate),mode_name().c_str());
     for(int repeat=0;repeat<5;++repeat) {
+        reset_source_counters();
         auto engine=new_engine(c,rate,block,false);
         std::array<float,256> samples{};
         float* bus[]={samples.data()};
@@ -207,8 +230,10 @@ void tail(const Case& c,const std::string& name,uint32_t rate,uint32_t block) {
             }
             frame+=frames;
         }
-        need(source_count==rate && zero_input_count==5ull*rate,
-             "tail source/silence boundary accounting mismatch");
+        need(source_count==rate && zero_input_count==5ull*rate &&
+             emitted_active==rate && emitted_tail_zero==5ull*rate &&
+             emitted_bad_tail==0,
+             "tail source emitted nonzero data during required exact silence");
         const double active_ns=median(active),silent_ns=median(silent);
         need(active_ns>0 && std::isfinite(silent_ns),"invalid block duration");
         std::printf("%s{\"repeat\":%d,\"active_median_ns\":%.9g,"
