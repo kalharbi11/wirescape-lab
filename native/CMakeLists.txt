@@ -220,3 +220,27 @@ target_link_libraries(sidecar_s0_snapshot_tests PRIVATE wirescape_runtime_docume
 add_test(NAME abi2_sidecar_snapshot_tests COMMAND sidecar_s0_snapshot_tests
   "${CMAKE_CURRENT_SOURCE_DIR}/sidecar/testdata")
 set_tests_properties(abi2_sidecar_snapshot_tests PROPERTIES TIMEOUT 90)
+ 
+# M1 S2: fail closed on ABI1 links, recursively following direct and INTERFACE
+# dependencies of the app facade and the production sidecar at configure time.
+# Generated link commands on each CI platform remain required acceptance proof.
+function(s2_assert_native_only target_name)
+  get_property(_checked GLOBAL PROPERTY "S2_NATIVE_LINK_CHECKED_${target_name}")
+  if(_checked)
+    return()
+  endif()
+  set_property(GLOBAL PROPERTY "S2_NATIVE_LINK_CHECKED_${target_name}" TRUE)
+  get_target_property(_direct "${target_name}" LINK_LIBRARIES)
+  get_target_property(_interface "${target_name}" INTERFACE_LINK_LIBRARIES)
+  message(STATUS "S2 link audit ${target_name}: direct=${_direct}; interface=${_interface}")
+  foreach(_item IN LISTS _direct _interface)
+    if(_item MATCHES "(^|[^a-zA-Z0-9_])wirescape_engine($|[^a-zA-Z0-9_])")
+      message(FATAL_ERROR "S2 native-only target ${target_name} links ABI1: ${_item}")
+    endif()
+    if(TARGET "${_item}")
+      s2_assert_native_only("${_item}")
+    endif()
+  endforeach()
+endfunction()
+s2_assert_native_only(wirescape_app_engine)
+s2_assert_native_only(wirescape_engine_sidecar)

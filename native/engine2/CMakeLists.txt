@@ -318,6 +318,8 @@ target_link_libraries(app_engine_tests PRIVATE wirescape_app_engine)
 target_compile_definitions(app_engine_tests PRIVATE
   WS_KNOWN_MODULE_IDS="${CMAKE_CURRENT_SOURCE_DIR}/../../tools/foundation/fixtures/known_module_ids.txt")
 add_test(NAME app_engine_tests COMMAND app_engine_tests)
+# The sanitizer workflow runs -R abi2; execute the real facade test under ASan/UBSan too.
+add_test(NAME abi2_app_engine_sanitizer_tests COMMAND app_engine_tests)
 # Document soak uses the same Qt-free execution copy as the sidecar.
 target_link_libraries(wirescape_soak PRIVATE wirescape_runtime_document)
 add_test(NAME app_document_soak COMMAND wirescape_soak --patch
