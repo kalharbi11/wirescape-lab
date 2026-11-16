@@ -29,7 +29,7 @@ Read summaries are sometimes delayed; tool success and an appended user message 
 | WLAB &#124; B2 &#124; #52 instruction gate | 6af9f4ea-01f8-83ea-b4b4-1cb7911b99db | ChatGPT |
 | WLAB &#124; B3 &#124; #66 golden coverage | 6af9f4fb-1a94-83e9-a01e-f29873521c61 | ChatGPT |
 | WLAB &#124; B4 &#124; #61 UI profiling | 6afa2bbc-169c-83ea-af54-c20821d3eee6 | ChatGPT |
-| WLAB &#124; WORKER &#124; CLOUD | 6afa6fc7-50e8-8191-a754-714000ff902e | durable |
+| WLAB &#124; WORKER 2 &#124; Cloud | 6afad0f1-55a8-8191-975f-f008479ba02f | durable |
 
 Names can lag task changes. B3/B4 titles do not define their current assignments.
 
@@ -154,3 +154,45 @@ Codex task or claiming creation succeeded. The local Codex lead must remain loca
 
 The owner does not need to manually create chats or add takeover timers. Maintain one lead and one
 lead heartbeat, with no duplicate writers or simultaneous old/new dispatch.
+
+
+## Worker 2 and regular ChatGPT Chat mode (owner steering)
+
+The active cloud support destination is **WLAB | WORKER 2 | Cloud**, thread
+`6afad0f1-55a8-8191-975f-f008479ba02f`, host `durable`, backing kind Codex. The old cloud
+worker `6afa6fc7-50e8-8191-a754-714000ff902e` is superseded for new tasks; retain its history and
+artifacts, not further assignments. Its S0 capture task finished. Do not assume Worker 2 shares that
+worker's checkout/cache: inspect its environment and retrieve needed artifacts before relying on them.
+Old worker S0 evidence: clean baseline cacf9ea; catalogue56001bytes hash
+`e409cfd907dd5e6ff7c480060da47f32ce41eac373afb4df79d9f9e591012b56` matched two processes;
+status/ACK differed in random session tokens, telemetry in time. No normalization. Exact envelope
+snapshot needs test-only deterministic session control; existing CLI has no control; parameter ACK
+has no value echo. This is support evidence, not implemented S0 tests.
+
+**Every ChatGPT builder/reviewer replacement must use regular Chat mode.** Not ChatGPT Work mode,
+Codex, or Codex Cloud. The Codex local lead and Codex cloud support are separate explicit exceptions.
+This is the owner's intended subscription allocation, not a verified guarantee of unlimited usage.
+Verify backing kind and actual mode in supported tools/UI; project membership alone does not prove
+Chat mode. Current create_thread ChatGPT target exposes Work Cloud, so do not misuse it as a Chat
+replacement. If no supported regular-Chat creation route exists, report that specific capability gap
+and keep existing regular Chat builders working; do not silently substitute a metered Codex task.
+
+## Criteria for rotating long chats
+
+Codex lead/cloud chats have priority for rotation to limit repeated context and usage. At every
+batch/task boundary, prefer a fresh Codex chat when any of these is true:
+- Context usage is reported at70percent or more, or repeated compaction has occurred.
+- The thread spans two completed delivery batches or about four hours of active coordination.
+- It repeatedly rereads old results, loses current ownership/state, confuses source/head evidence,
+  or spends more context recovering history than executing the current packet.
+These are operational heuristics, not claims that a fresh chat resets account quotas or always costs
+less. If context metrics are unavailable, use elapsed batches and observed recovery friction; don't
+fabricate a percentage. An owner request to rotate takes precedence.
+
+Before rotation, commit/push a safe checkpoint, record exact heads/CI/results/remaining work and
+capabilities in repository handoffs, then verify the replacement's actual host and tools. Transfer
+one heartbeat and one task owner; no duplicate writers. A long active task may move only after an
+explicit signed handoff and old writer stops. Never abandon uncommitted work for a fresh context.
+For regular ChatGPT builders, rotate after the current round and all owned PRs close, unless the
+owner explicitly authorizes a controlled mid-task transfer. Keep old histories. Update routing IDs.
+Codex capacity resets remain shared across chats; preserve reported reset timing and weekly budget.
