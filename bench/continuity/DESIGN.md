@@ -2,8 +2,8 @@
 # Edit-continuity harness (T0.13b, #100): probe design
 
 Design source: [proposals/0005 §4](../../proposals/0005-edits-without-restart.md). This file
-records how the harness meets it, and the one point §4 leaves to evidence: locating the edit.
-Status: metrics and capture reader are built and unit-tested. Probe patches, the runner and
+records how the harness meets it, including how the edit is located (ruling R7).
+Status: metrics, capture reader and marks reader are built and unit-tested. Probe patches, the runner and
 `facts/dsp/edit_continuity.*` wait for #99 to merge.
 
 ## Files
@@ -11,20 +11,23 @@ Status: metrics and capture reader are built and unit-tested. Probe patches, the
 |---|---|
 | `capture.py` | reads `--capture-null-sink` files: segments, header, deinterleaved channels |
 | `metrics.py` | the six §4 metrics on one witness channel; numbers only, no thresholds |
+| `marks.py` | reads `<capture>.marks`; bracket, block→sample mapping, window, first divergence, alignment |
+| `tests/test_marks.py` | known-answer tests: marks refusal, two-segment mapping, window from a bracket, divergence inside/outside, alignment |
 | `tests/test_metrics.py` | known-answer tests: clean sine, 3-block gap, phase jump, step, clock grid and missing pulse, temporary displacement, muted tone, restart, phase jump without reset, silent-start envelope |
 | `run.py` (after #99) | drives the sidecar over the protocol on the null sink, three repeats per edit |
 | `../patches/continuity/*.json` (after #99) | the probe patches |
 
-Run the tests with `python -m unittest discover -s bench/continuity/tests` (stdlib only).
+Run the tests with `python -m unittest discover -s bench/continuity/tests` (stdlib only). CI: `.github/workflows/continuity.yml`.
 
 ## Metric choices §4 leaves open
 These are in the `metrics.py` docstring and are listed here so a reviewer can overturn them:
-- **Steady reference:** the 500 ms before the window, i.e. [edit − 600 ms, edit − 100 ms).
+- **Steady reference:** the 500 ms before the window, i.e. [edit − 600 ms, edit − 100 ms), where
+  edit is `start(b0)` of the command's mark.
 - **`silence_ms`:** consecutive samples with |x| < −80 dBFS, counted at sample level.
 - **`dip_db`:** sliding 1 ms RMS with a hop of one sample, in dB against the steady RMS. A full
   gap reads −∞; the facts file writes `"-inf"`.
 - **`time_slip_ms`, tone:** a sine of the known frequency is fitted over [edit − 50 ms, edit) and
-  [edit, edit + 50 ms), on one absolute time base, so a displacement that recovers later in the
+  [late, late + 50 ms) (late = `start(b1 + 1)`), on one absolute time base, so a displacement that recovers later in the
   window is still read. The phase difference is converted to time and wrapped to ±half a period.
   Positive means late. Slip is read from its own 10 Hz tone (unambiguous to ±50 ms); a 1 kHz
   tone would read a 16 ms gap as 0. Dropout runs (≥ 1 ms below −80 dBFS) are left out of each
@@ -73,30 +76,29 @@ single-change `loadGraph` (Groove steps, Groove length, voice count, OSC In row,
 one deleted and restored module), `setBufferFrames` and `panic`. `applyGraph` rows are added once
 M2 E1 lands. Until then they are listed as not supported, not left out silently.
 
-## Locating the edit in the capture: evidence and open question
-§4 says the edit is found "from the reply's `gen` change and the status stream, not assumed".
-Here is what the code provides, read on the #99 branch and not yet run:
-- Replies carry `gen` but no block, frame or time position (`session.cpp` `base()`/`reply()`).
-- `status` (100 ms) and `telemetry` (34 ms) are pushed unasked. `telemetry.time` is control-thread
-  steady-clock seconds, and `tick` counts emissions. Neither counts rendered blocks.
-- The engine has `rendered_blocks` and `frame_position` (`engine.h`), but the protocol uses
-  `rendered_blocks` only as a boolean, to decide when meters are emitted.
-- The capture file has no `gen` or timestamp markers. A `loadGraph`/swap does not start a new
-  segment, but `setBufferFrames` does, which locates that edit exactly.
-- `gen` is bumped after the D5 fade-in has started, or after a live replan. `setParam`,
-  `noteOn` and `panic` do not bump it.
-- The null sink is steady-clock paced, one block per `block/rate` with no catch-up.
-
-So `gen` orders edits but cannot place one at a block index. Only a wall-clock bracket is
-available: block ≈ (t − sink start) × rate / block, between the edit's send and the reply. The
-bracket's width is real uncertainty.
-
-**Question for the lead/Fable (smallest form):** may the harness locate each edit as the first
-block where the subject channel departs from its no-edit capture, searched only inside the
-send→reply wall-clock bracket, and report the bracket width in blocks beside every row? For edits
-with no subject change (identical `loadGraph`, `panic` with no notes), it would report the
-bracket alone and widen the analysis window by the bracket. **If not,** the alternative is a
-product change: the capture records `gen` per block (a T0.13a follow-up under `native/sidecar/`,
-outside #100's paths).
-**Assumption until answered:** the harness is built for the landmark-plus-bracket method, and no
-facts are published until the method is ruled on.
+## Locating the edit in the capture (ruling R7, QUESTIONS Q10)
+Wall-clock bracketing is not used. The edit is located from the sidecar's marks file
+(`<capture>.marks`, PR #104; amended 0005 §4), read and validated by `marks.py`:
+- **Marks:** one JSON line per handled command, keys exactly `re`, `type`, `ok`, `gen` (decimal
+  string, gen after), `b0`, `b1` (the capture's total block count over all segments, read just
+  before apply and just after the reply is built). A file with other keys or types, `b0 > b1`,
+  `b0` decreasing in file order or a repeated request ID is refused.
+- **Bracket:** the command took effect at a block boundary no earlier than block `b0` and no later
+  than block `b1 + 1`, i.e. in samples between `start(b0)` and `start(b1 + 1)`. Every row
+  reports the **bracket width as `b1 + 1 − b0` blocks** (always ≥ 1).
+- **Block to sample:** a total block index is mapped to (segment, sample offset) by walking each
+  segment's block count and block size, so a bracket after `setBufferFrames` uses the new block
+  size. Samples are counted on the concatenation of all segments; all segments share one rate.
+- **Window:** [`start(b0)` − 100 ms, `start(b1 + 1)` + 1 s). `metrics.py` takes the two bracket
+  edges (`edit`, `late`); the steady reference stays the 500 ms before the window, and the tone
+  slip fits run over 50 ms before `start(b0)` and 50 ms from `start(b1 + 1)`.
+- **First divergence** from the aligned no-edit capture may narrow the position: inside blocks
+  `b0` to `b1 + 1` it is reported as the narrowed bracket (`b0`, block of the divergence). Outside
+  them it is reported as a finding and is never used as the edit position. Edits with no audible
+  change (identical `loadGraph`, `panic` with no notes) report the bracket alone.
+- **Aligning two captures:** an edit run and its no-edit reference are aligned on the marks of
+  one shared earlier command with the same request ID in both scripts (the `noteOn`, else the
+  `loadGraph`). Each mark is a bracket, so the block offset is only known to lie in
+  [`b0_a − (b1_b + 1)`, `(b1_a + 1) − b0_b`]. The harness uses `b0_a − b0_b` and reports the
+  interval's width (`width_a + width_b` blocks) as the alignment uncertainty beside the row.
+  The two widths are reported separately from the edit's own bracket.
