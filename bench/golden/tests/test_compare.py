@@ -164,6 +164,89 @@ class GoldenCompareTests(unittest.TestCase):
             self.assertEqual(json.loads((root/"report.json").read_text())["declared_count"],1)
             self.assertEqual(parse_sound_changes(event.read_text(),{name}),set())
 
+    def test_missing_patch_is_unconditionally_different_even_when_declared(self):
+        """Named or all declarations must never conceal removed or newly added patches."""
+        from compare import parse_sound_changes
+        name="bundled/fixture.json"
+        for missing in ("before", "after"):
+            for declaration in (
+                    "Sound-change: fixture.json — intentional sound update",
+                    "Sound-change: all — intentional global sound update"):
+                with self.subTest(missing=missing,declaration=declaration):
+                    before=fixture()
+                    after=copy.deepcopy(before)
+                    del (before if missing=="before" else after)["patches"][name]
+                    declared=parse_sound_changes(declaration,{name})
+                    row=compare(before,after,declared=declared)[name]
+                    self.assertEqual(row["status"],"different")
+                    self.assertEqual(row["reason"],"patch missing from one reference")
+                    with tempfile.TemporaryDirectory() as temp:
+                        root=Path(temp)
+                        a,b,event,report=(root/"before.json",root/"after.json",
+                                          root/"event.json",root/"result.json")
+                        a.write_text(json.dumps(before),encoding="utf-8")
+                        b.write_text(json.dumps(after),encoding="utf-8")
+                        event.write_text(json.dumps({"pull_request":{"body":declaration}}),
+                                         encoding="utf-8")
+                        output=subprocess.run(
+                            [sys.executable,str(HERE/"compare.py"),str(a),str(b),
+                             "--pr-event",str(event),"--json-out",str(report)],
+                            capture_output=True,text=True)
+                        self.assertEqual(output.returncode,1,output.stderr)
+                        self.assertIn(f"{name}: different;",output.stdout)
+                        data=json.loads(report.read_text(encoding="utf-8"))
+                        self.assertEqual(data["different_count"],1)
+                        self.assertEqual(data["declared_count"],0)
+                        self.assertEqual(data["patches"][name]["status"],"different")
+
+    def test_wav_and_json_hashes_must_agree_in_both_directions_cli(self):
+        """Known-answer bytes disallow both inconsistent hash/WAV combinations."""
+        name="bundled/fixture.json"
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            wa=root/"before"/"bundled/fixture.wav"
+            wb=root/"after"/"bundled/fixture.wav"
+            a,b=root/"a.json",root/"b.json"
+            for case in ("same_hash_different_wavs","different_hash_same_wavs"):
+                with self.subTest(case=case):
+                    before=fixture()
+                    after=copy.deepcopy(before)
+                    if case=="same_hash_different_wavs":
+                        # Hashes claim identical, actual sample 2 disagrees.
+                        wav(wa,[0.0,0.0,0.0,0.0])
+                        wav(wb,[0.0,0.0,0.25,0.0])
+                        expected="hashes are identical but WAVs differ"
+                    else:
+                        # Hashes claim changed, actual four samples are identical.
+                        after["patches"][name]["sha256_float32_pcm"]="b"*64
+                        wav(wa,[0.0,0.0,0.0,0.0])
+                        wav(wb,[0.0,0.0,0.0,0.0])
+                        expected="hashes differ but WAVs are identical"
+                    a.write_text(json.dumps(before),encoding="utf-8")
+                    b.write_text(json.dumps(after),encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError,expected):
+                        compare(before,after,raw_before=root/"before",
+                                raw_after=root/"after",require_wavs=True)
+                    output=subprocess.run(
+                        [sys.executable,str(HERE/"compare.py"),str(a),str(b),
+                         "--before-wavs",str(root/"before"),
+                         "--after-wavs",str(root/"after"),"--require-wavs"],
+                        capture_output=True,text=True)
+                    self.assertEqual(output.returncode,2,output.stdout+output.stderr)
+                    self.assertIn(expected,output.stderr)
+
+    def test_consistent_json_and_wav_equality_is_identical(self):
+        before=fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            for side in ("before","after"):
+                wav(root/side/"bundled/fixture.wav",[0.0,0.0,0.25,0.0])
+            row=compare(before,copy.deepcopy(before),
+                        raw_before=root/"before",raw_after=root/"after",
+                        require_wavs=True)["bundled/fixture.json"]
+            self.assertEqual(row["status"],"identical")
+            self.assertIsNone(row["first_differing_sample_index"])
+
     def test_require_wavs_rejects_missing_file(self):
         before=fixture()
         after=copy.deepcopy(before)
