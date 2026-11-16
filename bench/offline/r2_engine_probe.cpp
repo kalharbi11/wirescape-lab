@@ -24,6 +24,7 @@ namespace {
 constexpr double pi = 3.14159265358979323846;
 uint32_t source_rate = 48000;
 bool source_tail = false;
+std::vector<float> source_tone; // Filled quiescently before any render.
 
 uint64_t emitted_pre_silence=0;
 uint64_t emitted_impulse=0;
@@ -52,8 +53,8 @@ struct SignalSource {
             const uint64_t frame = b.frame_position()+i;
             if(source_tail) {
                 if(frame < source_rate) {
-                    samples[i]=static_cast<float>(
-                        .5*std::sin((2.*pi*440.*frame)/source_rate));
+                    // No trigonometry, allocations or logging in timed DSP.
+                    samples[i]=source_tone[static_cast<size_t>(frame)];
                     ++emitted_active;
                 } else {
                     samples[i]=0.f;
@@ -195,6 +196,10 @@ void impulse(const Case& c,const std::string& name,uint32_t rate,
 }
 void tail(const Case& c,const std::string& name,uint32_t rate,uint32_t block) {
     source_rate=rate;source_tail=true;
+    source_tone.resize(rate);
+    for(uint32_t frame=0;frame<rate;++frame)
+        source_tone[frame]=static_cast<float>(
+            .5*std::sin((2.*pi*440.*frame)/rate));
     std::printf("{\"status\":\"measured\",\"module\":\"%s\",\"mode\":\"tail\","
       "\"rate_hz\":%u,\"block_frames\":%u,\"active_frames\":%u,"
       "\"zero_frames\":%llu,\"zero_input_verified\":true,"
