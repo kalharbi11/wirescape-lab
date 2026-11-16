@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
     "date_et": "2026-11-16",
     "machine": {
       "arch": "arm64",
@@ -13,7 +13,7 @@
     "results": [
       {
         "action": "knob",
-        "frames": 60,
+        "frames": 61,
         "max_ms": 16.799999999999955,
         "modules": 50,
         "p50_ms": 16.699999999999932,
@@ -21,48 +21,48 @@
       },
       {
         "action": "cable",
-        "frames": 63,
-        "max_ms": 66.59999999999991,
+        "frames": 62,
+        "max_ms": 50,
         "modules": 50,
-        "p50_ms": 16.699999999999932,
-        "p95_ms": 16.799999999999955
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 16.800000000000182
       },
       {
         "action": "knob",
-        "frames": 65,
-        "max_ms": 16.800000000000182,
+        "frames": 67,
+        "max_ms": 50,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
+        "p50_ms": 16.699999999999818,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 70,
+        "frames": 71,
         "max_ms": 116.59999999999991,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 50.09999999999991
+      },
+      {
+        "action": "knob",
+        "frames": 71,
+        "max_ms": 66.59999999999991,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
         "p95_ms": 33.40000000000009
       },
       {
-        "action": "knob",
-        "frames": 72,
-        "max_ms": 66.70000000000005,
-        "modules": 200,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 50
-      },
-      {
         "action": "cable",
-        "frames": 97,
-        "max_ms": 216.69999999999982,
+        "frames": 88,
+        "max_ms": 200,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.70000000000027
+        "p95_ms": 66.69999999999982
       }
     ]
   },
   "provenance": {
-    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

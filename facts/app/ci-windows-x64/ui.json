@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
     "date_et": "2026-11-16",
     "machine": {
       "arch": "x64",
@@ -14,55 +14,55 @@
       {
         "action": "knob",
         "frames": 56,
-        "max_ms": 16.799999999999727,
+        "max_ms": 16.80000000000001,
         "modules": 50,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 16.700000000000273
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
         "frames": 65,
-        "max_ms": 49.89999999999998,
+        "max_ms": 33.40000000000009,
         "modules": 50,
         "p50_ms": 16.699999999999932,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "knob",
-        "frames": 66,
-        "max_ms": 16.799999999999955,
+        "frames": 63,
+        "max_ms": 16.800000000000182,
         "modules": 100,
         "p50_ms": 16.699999999999932,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 90,
-        "max_ms": 83.30000000000018,
+        "frames": 73,
+        "max_ms": 66.70000000000005,
         "modules": 100,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 33.299999999999955
+        "p95_ms": 33.399999999999864
       },
       {
         "action": "knob",
         "frames": 73,
-        "max_ms": 83.30000000000018,
+        "max_ms": 66.69999999999982,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 49.899999999999864
+        "p95_ms": 33.40000000000009
       },
       {
         "action": "cable",
-        "frames": 142,
-        "max_ms": 150.0999999999999,
+        "frames": 111,
+        "max_ms": 150,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 50
+        "p95_ms": 66.59999999999991
       }
     ]
   },
   "provenance": {
-    "commit": "2a02874d2f68b764fe143ee0a705d38b584f833a",
+    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
