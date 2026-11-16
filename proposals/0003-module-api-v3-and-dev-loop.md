@@ -1,5 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# 0003 — Module API v3, the developer loop and module tools (design note)
+# 0003 — Wire module API, the developer loop and module tools (design note)
+
+*Naming (2026-11-16):* this note was written as "module API v3". The engine is now **Wire**
+(`0004` § Name), so this is the **Wire module API**. The file name keeps `v3` so links still work.
 
 **Author:** Fable · **Date:** 2026-11-15 (ET) · **Status:** design, for the owner to read; details settle as
 Phase 1–3 are built · **Rests on:** `proposals/0001-audit.md` §1, §5, §7; owner decisions in `0002`
@@ -7,10 +10,10 @@ Phase 1–3 are built · **Rests on:** `proposals/0001-audit.md` §1, §5, §7; 
 `facts/code/capability_map.md`.
 
 The current interface ("ABI 2") is a sound base: a plain-C descriptor of ports and parameters, host-owned
-memory, block processing with sample-accurate events, per-voice channels. v3 keeps that and changes what
+memory, block processing with sample-accurate events, per-voice channels. The Wire module API keeps that and changes what
 the audit found wrong. One break, while no outside modules exist.
 
-## 1. What a module is, after v3
+## 1. What a module is, in the Wire module API
 
 A module is **one folder** that nothing else has to know about:
 
@@ -48,7 +51,7 @@ Not changed: block processing, event structs, port kinds and hints, host allocat
 ### What the basic module looks like
 
 The VCA today is 34 lines, of which 5 are arithmetic; the rest handles constant inputs, scratch rows and
-SIMD by hand. In v3 the SDK supplies those as helpers, so a basic module is its maths:
+SIMD by hand. In the Wire module API the SDK supplies those as helpers, so a basic module is its maths:
 
 ```cpp
 struct Vca {
@@ -123,11 +126,11 @@ metrics), so an author sees what the project's gate sees.
 1. Phase 1 removes `legacy_index` from loader paths and gives each module its own library target with a
    generated registry (drop-in at build time; level 1 loop).
 2. Phase 2 adds module data (change 4) and state transfer (change 5), because live editing needs them.
-3. Phase 3 freezes the v3 header with capabilities and services, adds the loader, tools and level 2.
+3. Phase 3 freezes the Wire module header (`wire/module.h`) with capabilities and services, adds the loader, tools and level 2.
 4. Phase 5 adds telemetry-driven and custom panels and developer mode layers.
 
 Open until built against GUTTR, Macro Oscillator and CHAOS: the exact shape of the voice-owner capability;
 whether tables are shared by a host cache or stay per-instance; how a module declares sub-block control
-rates. v3 is called stable only after those three are ported.
+rates. The Wire module API is called stable only after those three are ported.
 
 Signed: Fable, 2026-11-15
