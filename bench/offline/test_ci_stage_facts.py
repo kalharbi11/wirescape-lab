@@ -26,6 +26,16 @@ class StageTests(unittest.TestCase):
         self.assertNotIn("/tmp", data["detail"])
         self.assertNotIn("bad", data["detail"])
 
+    def test_preserve_bounded_diagnostic_and_clean_machine_paths(self):
+        staged = clean({"reason": "exit code 1: wirescape_soak: graph setup/render failed",
+                        "error_text": "module_cpu_probe: create/prepare failed",
+                        "source_patch_error": "wirescape_soak: graph setup/render failed",
+                        "stderr": "sensitive raw log"})
+        self.assertNotIn("stderr", staged)
+        self.assertIn("exit code 1", staged["reason"])
+        self.assertIn("create/prepare failed", staged["error_text"])
+        self.assertIn("graph setup/render failed", staged["source_patch_error"])
+
     def test_failed_suite_keeps_redacted_last_lines(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "raw"
@@ -55,14 +65,14 @@ class StageTests(unittest.TestCase):
                         "exit_code": 2, "stdout": "", "stderr": message + "\n"}):
                 raw = parsed_command(["synthetic-probe"])
                 self.assertEqual(raw["status"], "unavailable")
-                self.assertEqual(raw["reason"], "process exit 2: " + message)
+                self.assertEqual(raw["reason"], "exit code 2: " + message)
                 staged = clean({"rows": [raw]})["rows"][0]
                 self.assertEqual(staged["reason"], raw["reason"])
                 self.assertNotIn("stderr", staged)
         with mock.patch("run_all.call", return_value={
                 "exit_code": 1, "stdout": "", "stderr": "failure at /tmp/secret\n"}):
             staged = clean(parsed_command(["synthetic-probe"]))
-        self.assertEqual(staged["reason"], "process exit 1: failure at [path]")
+        self.assertEqual(staged["reason"], "exit code 1: failure at [path]")
         self.assertNotIn("/tmp/secret", str(staged))
 
     def test_stage_collector_and_missing_section(self):
