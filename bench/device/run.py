@@ -116,7 +116,7 @@ class Engine:
         with (self.folder/"engine-stderr.log").open("wb") as f:
             for line in self.process.stderr:f.write(line)
 
-    def send(self,payload,timeout=25):
+    def send(self,payload,timeout=25,*,on_write=None):
         self.counter+=1
         request={"v":0,"id":f"b{self.counter}","type":payload["type"],
                  **{k:v for k,v in payload.items() if k!="type"}}
@@ -127,6 +127,8 @@ class Engine:
         with self.lock:self.pending[request["id"]]={"sent":started}
         self.log.add("in",request)
         if self.fake:
+            if on_write is not None:
+                on_write(time.monotonic())
             if request["type"] in ("loadGraph","addModule","removeModule","connect",
                                    "disconnect","setModAmount"):
                 self.generation+=1
@@ -145,6 +147,9 @@ class Engine:
             return answer
         with self.lock:
             if self.closed:raise RuntimeError("engine closed stdout")
+            if on_write is not None:
+                # Timestamp the physical command write, not send() entry or ack.
+                on_write(time.monotonic())
             self.process.stdin.write(line.encode("utf-8")+b"\n")
             self.process.stdin.flush()
             deadline=time.monotonic()+timeout

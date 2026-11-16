@@ -20,7 +20,14 @@ to the draft release `bench-<date>`.
 | `pi5` | [`2026-11-15-ab7ce36-chaos-128`](pi5/2026-11-15-ab7ce36-chaos-128/) | ab7ce36 | p3-chaos-128: failed, unsupported sample format then queue full | attempted; no sound reported |
 | `pi5` | [`2026-11-15-ab7ce36-basics-64`](pi5/2026-11-15-ab7ce36-basics-64/) | ab7ce36 | p4-basics-64: failed, unsupported sample format then queue full | attempted; no sound reported |
 | `windows-laptop` | [`2026-11-15-156af4b-quick-128`](windows-laptop/2026-11-15-156af4b-quick-128/) | 156af4b | W2 completed; zero engine dropouts | yes, process-loopback |
+| `pi5` | [`2026-11-15-ab7ce36-full-256-pulse`](pi5/2026-11-15-ab7ce36-full-256-pulse/) | ab7ce36 | p1-full-256 completed via explicit ALSA pulse route | yes, monitor capture |
+| `pi5` | [`2026-11-15-ab7ce36-full-128-pulse`](pi5/2026-11-15-ab7ce36-full-128-pulse/) | ab7ce36 | p2-full-128 completed via explicit ALSA pulse route | yes, monitor capture |
+| `pi5` | [`2026-11-15-ab7ce36-scene-128-pulse`](pi5/2026-11-15-ab7ce36-scene-128-pulse/) | ab7ce36 | p3-scene-128 completed via explicit ALSA pulse route | yes, monitor capture |
+| `pi5` | [`2026-11-15-ab7ce36-chaos-128-pulse`](pi5/2026-11-15-ab7ce36-chaos-128-pulse/) | ab7ce36 | p3-chaos-128 completed via explicit ALSA pulse route | yes, monitor capture |
+| `pi5` | [`2026-11-15-ab7ce36-basics-64-pulse`](pi5/2026-11-15-ab7ce36-basics-64-pulse/) | ab7ce36 | p4-basics-64 completed via explicit ALSA pulse route | yes, monitor capture |
 
 Cross-machine summary of the cd9a6a5 device-off runs: [`device-off-2026-11-14-cd9a6a5.md`](device-off-2026-11-14-cd9a6a5.md).
 
 Session report: [2026-11-15](2026-11-15-device-session.md). MIDI naming fix: PR #50.
+
+Explicit-route Pi rerun report: [2026-11-15](2026-11-15-pi-pulse-reruns.md). Original failures and Windows results: [PR #73](https://github.com/kalharbi11/wirescape-lab/pull/73).
