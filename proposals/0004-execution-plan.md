@@ -114,7 +114,7 @@ a task with a design that is not on `main` does not start. Classes as above.
 | T5.1 | Category: model-based multi-voice (GUTTR): voice-owner capability, per-voice modulation and telemetry, shared tables | C | T3.4 | `0014` | M11 |
 | T5.2 | Category: ported library (Macro Oscillator): rate and block adaptation, third-party pin and licence handling | B | T3.5 | `0014` | M11 |
 | T5.3 | Category: multi-part instrument (CHAOS): sections, internal routing, presets | B | T3.5 | `0014` | M11 |
-| T5.4 | Stock modules that bring a capability, basic versions: Transport, Stereo Out and Bus, MIDI Out, Scope, Sampler, Wavetable, Logic and Math, Sub-patch, Recorder | B each, C for the service each needs | T3.4 | `0014` | M11 |
+| T5.4 | Stock modules that bring a capability, basic versions: Transport, Stereo Out and Bus, MIDI Out, Scope, Sampler, Wavetable, Logic and Math, Sub-patch, Recorder, and a device bridge for physical computing (OSC to the LAN with consent, serial to a microcontroller) | B each, C for the service each needs | T3.4 | `0014` | M11 |
 | T5.5 | Panel package: `panel.json`, the HTML panel host API, sandbox; examples for CHAOS and GUTTR; Groove and OSC editors move onto it | C host API, B panels | T3.2 for telemetry; the declarative part needs nothing | `0015` | M12 |
 | T5.6 | Developer mode layers 1 and 2 | B | T5.5, T3.9 | `0003` §4 | M12 |
 | T5.7 | Raise the 64-module limit | B | T6.5 | — | later |
@@ -125,6 +125,7 @@ a task with a design that is not on `main` does not start. Classes as above.
 | T6.4 | Engine cost: profile the 8-voice reference graph, file where the time goes, then propose. The −20 % target of `0002` has no design yet | A facts, then C | M4 E4b | lead may file the facts part (SR18) |
 | T6.5 | Studio rendering at 200 modules to the 20 ms target, from the T0.12 profile | B | M2 E1b | later |
 | T6.6 | Pi and Windows runs against the targets, by the owner's device runbook | owner | M4 | — |
+| T6.8 | Behaviour bugs listed in `docs/context/KNOWN_ISSUES.md` (MIDI to CV on Windows, ASIO list while playing, LAN OSC consent warning, panic and buffer-change gaps): one device-free regression test and fix each; the owner confirms on the device | B | M1 S6 | later; lead may file the regression tests as facts (SR18) |
 | T6.7 | Packaged build and installer; AudioWorklet web demo on the shared engine path | B | M3 MB2 | later |
 
 Design notes `0011` to `0015` are written by Fable (2026-11-16, runs 1 and 2). Where one is
