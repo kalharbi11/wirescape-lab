@@ -10,6 +10,11 @@ import {
   type ProtocolConnection,
 } from '../../apps/studio/src/engine/generated/protocol_v0';
 
+// Test-only Node reader, no new dependency or runtime import.
+declare const require: (id: string) => {
+  readFileSync: (path: string, encoding: string) => string
+};
+
 function check(observed: boolean, message: string): void {
   if (!observed) throw new Error(message);
 }
@@ -85,20 +90,25 @@ check(!validateProtocolV0({ v: 0, id: 'x', type: 'noteOn' }), 'Absent note/veloc
 check(!validateProtocolV0({ v: 0, id: 'x', type: 'connect',
   connection: { ...connection, amount: 'ignored' } }), 'Connect typed amount improperly relaxed');
 check(validateProtocolV0(identity), 'Identity nested amount must be ignored by schema');
-for (const scalar of ['é', '🙂']) {
-  for (const count of [33, 64]) {
-    const id = scalar.repeat(count);
-    check(new TextEncoder().encode(id).length > 64, 'Non-ASCII test lacks byte overflow');
-    check(validateProtocolV0({ v: 0, id, type: 'panic' }),
-      'JSON Schema maxLength counts Unicode codepoints, not UTF-8 bytes');
-  }
-  check(!validateProtocolV0({ v: 0, id: scalar.repeat(65), type: 'panic' }),
-    '65 Unicode codepoints must exceed schema maxLength 64');
+type RequestIdCase = { name: string; id: string; valid: boolean };
+const idCases = JSON.parse(
+  require('node:fs').readFileSync('tools/protocol/request_id_cases.json', 'utf8')
+) as RequestIdCase[];
+check(idCases.length >= 10, 'missing shared Q8 corpus');
+for (const example of idCases) {
+  check(validateProtocolV0({ v: 0, id: example.id, type: 'panic' }) === example.valid,
+    'Q8 TS request-ID disagreement: ' + example.name);
 }
-check(!validateProtocolV0({ v: 0, id: 'a'.repeat(65), type: 'panic' }),
-  '65 ASCII characters must exceed maxLength');
-check(validateProtocolV0({ v: 0, id: 'a'.repeat(64), type: 'panic' }),
-  '64 ASCII characters must pass shape validation');
-// The production native sidecar separately rejects non-ASCII request IDs.
-// PV1 schema validation does not authorize sending Unicode IDs on the wire.
-console.log('generated TS discriminated types and runtime JSON/Unicode regressions passed');
+// The Q8 pattern applies ONLY to request IDs. Generic JSON Schema strings
+// still use Unicode-codepoint minLength/maxLength, never byte length.
+for (const scalar of ['é', '🙂']) {
+  const other = { v: 0, id: 'ascii', type: 'selectAudioDevice',
+    deviceId: scalar.repeat(128) };
+  check(new TextEncoder().encode(other.deviceId).length > 256,
+    'generic Unicode fixture does not exceed 256 UTF-8 bytes');
+  check(validateProtocolV0(other), 'generic Unicode string must count codepoints');
+  check(!validateProtocolV0({ ...other, deviceId: scalar.repeat(257) }),
+    'generic Unicode 257 codepoints must exceed maxLength 256');
+}
+console.log('generated TS discriminated types, Q8 ASCII and Unicode regressions passed');
+
