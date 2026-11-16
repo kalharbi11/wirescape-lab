@@ -30,6 +30,32 @@ def fixture():
 
 
 class CoverageTests(unittest.TestCase):
+    def test_measured_coverage_rejects_silence_and_unrelated_audio(self):
+        from unittest.mock import patch
+        import numpy as np
+        import render
+        path=ROOT/"bench/patches/coverage/spectral-cross.json"
+        control=ROOT/"bench/patches/coverage/controls/spectral-cross-bypass.json"
+        sound=np.array([[0.0,0.0],[0.25,0.25],[0.0,0.0]],dtype=np.float32)
+        changed=np.array([[0.0,0.0],[0.1,0.1],[0.0,0.0]],dtype=np.float32)
+        unchanged=[(b"one",sound),(b"one",sound),(b"control",sound)]
+        with patch.object(render,"render_one",side_effect=unchanged), \
+             patch.object(render,"levels",return_value={"rms_fs":0.1,"peak_fs":0.25}):
+            with self.assertRaisesRegex(AssertionError,"no observable contribution"):
+                render.measure(Path("/unused/renderer"),path,"coverage",ROOT,control_patch=control)
+        with patch.object(render,"render_one",side_effect=[(b"one",sound),(b"one",sound)]), \
+             patch.object(render,"levels",return_value={"rms_fs":0.0,"peak_fs":0.0}):
+            with self.assertRaisesRegex(AssertionError,"covered path is silent"):
+                render.measure(Path("/unused/renderer"),path,"coverage",ROOT,control_patch=control)
+        with patch.object(render,"render_one",
+                          side_effect=[(b"one",sound),(b"one",sound),(b"control",changed)]), \
+             patch.object(render,"levels",return_value={"rms_fs":0.1,"peak_fs":0.25}):
+            row=render.measure(Path("/unused/renderer"),path,"coverage",ROOT,control_patch=control)
+            self.assertTrue(row["contribution_verified"])
+            self.assertAlmostEqual(row["control_peak_difference_fs"],0.15,places=6)
+            self.assertEqual(row["fixture_sha256"],hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertEqual(row["control_sha256"],hashlib.sha256(control.read_bytes()).hexdigest())
+
     def test_current_fixture_manifest_and_native_v2_event_cables(self):
         manifest=coverage_manifest()
         self.assertEqual(sorted(r["fixture"] for r in manifest["cases"]),list(CASES))
