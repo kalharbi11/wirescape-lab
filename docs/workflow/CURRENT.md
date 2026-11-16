@@ -1,104 +1,49 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `3dd68f2af0a9fab6056af4b2119987fe842434f0`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last verified main: `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
 
-**Active lead: gpt-lead** (owner resumed local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843, 2026-11-16). Claude-lead stepped down. One lead/one existing45-minute heartbeat. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; this queue supersedes old snapshots.
+**Sole LOCAL root lead:** WLAB | LEAD | 5, `01a1e688-a40c-7273-ab2a-3100d5731573`. Local app inventory and CODEX_THREAD_ID agree. Lead 4 is idle/stepped down. The existing `wlab-lead-review` heartbeat is ACTIVE every 45 minutes on this verified ID; no new timer. Scoped M1 delivery is delegated below.
 
-## Active contracts
-- **[M0 r3](milestones/M0.md)**: **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132 at `main` `cc1c223`. Exception dispositions are in the contract's "Milestone acceptance" section. No lead action remains on M0.
-- **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** is reassigned by the owner to gpt-builder4, reserved for the new owner-started LOCAL Codex M1 lead. B4 is free after #118 and waits for that lead's dispatch. One M1 writer; S3 staffing/start remains an owner decision.
-- **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
-  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 has its Q13 ruling (one final packet) and carries the `applyGraph`
-  schema-corpus obligation, because it merges after E1a.
-- **[CI1 r3](milestones/CI1.md)**: CI1.1, CI1.2 and CI1.4 are merged (CI1.4 `49747bd`: authenticated
-  required aggregates). **CI1.3** #109 is released and is the single writer of `ci.yml`.
+## Contracts and acceptance
 
-**Sidecar ordering (M1 r2):** T0.13a and E1a are merged. PV1's `native/sidecar/generated/` files
-merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidecar/`. PV1 (#105) adds
-`applyGraph` to its schema corpus or records it as a disagreement.
+- **M0 r3:** **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132. Every exception has a disposition in [M0.md](milestones/M0.md) "Milestone acceptance". T0.14 is no longer an M0 gate (owner environment item; the seeding recipe below stays the working route). No lead action remains on M0; drop it from the heartbeat.
+- **M1 r2:** S0/T1.1/P1 merged. S2 #111 belongs to delegated LOCAL lead `01a1e676-f444-7653-839e-8659fb7209af`; B4 regular Chat `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is sole writer. Root does not duplicate S2 dispatch. Owner-authorized additions: `native/cli/play.cpp` and `native/document/runtime_patch.cpp`, only obsolete ABI1 discovery/registration removal; [QUESTIONS Q15](QUESTIONS.md) records the resolution. M1 lead owns planning, execution verification, independent review, corrections and delegated merge. Release delivered, one startup retry sent, implementation execution unverified. S3 staffing/start remains owner decision.
+- **M2 r3:** E0 and E1a merged (E1a #116 → e0d4437). E1b #125/PR130 is held after final ordinary correction; Q14 needs Fable. PV1 #86/PR105 Q13 revert-and-record disposition applied; exact-head acceptance pending.
+- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 retains sole ci.yml ownership, sanitizer job only. K7/K8 unchanged; missing warm evidence holds merge.
 
-## Writers (one task each)
-| Writer | Task | State / next |
+## Writers and next actions
+
+| Writer | Task / branch / head | Verified disposition |
 |---|---|---|
-| gpt-builder1 | E1b #125 / PR #130 | f4da114 CI green; source review3High/1Medium, final correction2/2 sent6930813610 |
-| gpt-builder2 | CI1.3 #109 / PR #129 |21bc87c paired evidence: manualcold43966200132 then fullPRrerun after verifiedsave; K8<=318s, sole ci.ymlwriter |
-| gpt-builder3 | PV1 #86 / PR #105 | FINAL round3/3 Q13 dispatched; max15/boundaryparity,D08facts,applyGraph corpus; samebranch |
-| gpt-builder4 | M1 S2 #111 | reserved; wait for new LOCAL M1 lead dispatch; previous118 merged |
-| claude-builder1 | — | finished/stopped; no new assignments |
-| claude-builder2 | — | S2 reassigned to GPT-B4; no M1 implementation ownership |
-| claude-builder3 | — | finished/stopped; no new assignments |
+| B1 | #125 / #130, task/125-studio-apply-graph, `8d0bd29467d1b505c8ac9838fc267301e4537cc0` | final ordinary 2/2 spent; Lab43968790557 red Studio1/3 + aggregate; independently confirmed overlap/refusal rollback HIGH; Q14 proposed bounded final packet, no redispatch before ruling |
+| B2 | #109 / #129, task/109-sanitizer-ccache, `21bc87c405be6813cdbc9bb382c9058d3f4b35c8` | full43964380415 attempt2 green; sanitizer133653972206 cacheMISS/428s/49 of274 hits is cold, K8 unmeasured; branch stable, no blind rerun |
+| B3 | #86 / #105, task/86-pv1-protocol-v0, `8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35` | Q13 3/3 spent; lead reverted only new missing-paramId negative fixture to prior absence and recorded D09; normalized duplicated D08 text; fresh Lab43973824231 + drift43973824173 in progress at inspection |
+| B4 | #111, task/111-s2-native-catalogue planned | delegated M1 lead owns startup check; latest implementation release has no substantive assistant result yet; do not claim execution |
+| Claude builders1–3 | finished/stopped | no new tasks |
 
-## Merged this session (2026-11-16, after 18:30 ET)
-- CI1.4 #123 → `49747bd`
-- Q12 #119 → `9f883a1`
-- T0.5 #60 → `2c4d3d0` (`ringmod2` unmeasured, written down)
-- M2 E1a #116 → `e0d4437`; claude-lead role #126 → `57f866b`
-- Earlier: T0.9 #50 → `1918cf7`; T0.13b #106 → `7bf71ae`
+## Review evidence and holds
 
-## Notes for every builder
-- **CI queue time dominates.** Push each correction round as **one push**. Per-file API commits queue a
-  full run each.
-- **Failed required aggregate:** repair it with "re-run all jobs", never failed-only (Q12 point 5).
-- **Native build in a Claude cloud container:** the proxy refuses `codeload.github.com` tarballs.
-  `git fetch --depth 1 https://github.com/<owner>/<repo> <sha>`, then
-  `git archive --format=tar --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n`, reproduces each pinned tarball
-  byte-identically (SHA-256 equals `URL_HASH`). Copy it to
-  `build/native/_deps/<name>-subbuild/<name>-populate-prefix/src/archive.tar` before configuring.
-  Local runs are not acceptance evidence.
-- **S0 snapshot copy:** `native/CMakeLists.txt` writes a copy of `session.cpp` only at configure time.
-  After editing `session.cpp`, re-run `cmake build/native` before building locally. CI is unaffected.
+**PV1:** previous8b23600 Lab43967315210 passed all14 jobs, drift43967315137 failed TS2578 at test_generated.ts123 and intended TS2741 at125. The new incompleteApplyResult fixture and void reference were absent at prior e984561; Q13 point5 authorized reverting this item. D09 neutrally states the unretained compile-time coverage. applyGraph schema/type/corpus, bus_channel0..15, Q8 and unknown-field preservation remain; generators unwired. D08 factual Desktop-space discrepancy preserved after removing duplicated embedded document text. Require NEW exact-head corpus/TS/C++/drift/null-sidecar Q8/Q13, full required CI and M2 acceptance4. No fourth builder round or red waiver.
 
-## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q13 answered; queue empty. Q13: PV1 gets
-  one final packet on PR #105; M2 stays r3, nothing stops or replans.
-- Q5: bundled patches and presets may be reset after the rebuild. The owner has no personal patches
-  (Q5 point 8). Golden "24 identical" stays through M1 and M2.
+**E1b:** from confirmed220, queued snapshots440 then660 both reject, but latest revision restores optimistic440 while engine stays220. Root independently traced App.ts788–802 and RealEngine.ts338–348 after Worker2 review. Separate OSC test failure is a live counter-reference alias (test216–217, setter286–290), not proven runtime replacement failure. Q14 asks Fable for one bounded final packet or defer/close; hold draft/blocked. No third ordinary correction.
 
-## Next action by role
-- **gpt-lead:**
-  - M0 is closed: drop it from the heartbeat; close #132 if still open;
-  - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
-  - review130finalsourcecorrection and129paired cold/warmmeasurement; no gateweakening;
-  - decide S3 staffing with the owner when S2 merges.
-- **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** M0 accepted. Open: place the `ringmod2` sound-metric measurement in the next contract that touches the runtime-module build. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
-- **Owner:** T0.14 is no longer an M0 gate; it stays an optional environment setting (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
+**CI1.3:** manual43966200132/head21bc87c cold-saved cache10628646155 at refs/heads/task/109-sanitizer-ccache; key fingerprint0471e1e.../run43966200132-1, version b97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a, size102097945. PR attempt2 explicitly missed this prefix. Official cache docs permit feature-branch restores; cause remains unproved, not assumed merge-ref isolation. Same image/action/path/cross-OS inputs observed. Worker2 read-only diagnosis complete; compare exact bundled version inputs/lookup before any further run, no blind timing retry. K7 independently compared hosted base133628142310 and exact-head133653972206 ordered ctest -N -R abi2 inventories:82 names each, equal/zero additions/deletions. K8 needs genuine restored warm <=318s; cold428s establishes neither warm pass nor warm failure. No bootstrap merge, PR cache save or settings change.
 
-The lead updates this file at each batch boundary; Fable after contract revisions.
+## Operating rules and routes
 
-## Current coordination and review policy
-Owner returned gpt-lead and explicitly authorized removing artificial Fable run limits from CLAUDE.md.
-Fable chooses question count, reading/delegation, scope and stopping point; creating a PR does not end a run.
-Fable does not do PR reviews or review monitoring. Lead reviews delegated work; if a contract requires
-Claude-specific review, tell the owner to assign a Claude reviewer. Milestone acceptance remains Fable's.
-No new Claude builder tasks after current branches finish. GPT builders remain regular Chat, not Work/Codex.
-Q13 merged via131 atc6cd8fc, explicit86/105 finaldispatch sent. No fourth PV1 correction: follow Fable's
-revert/factsdisagreement disposition if finalpacket fails review; no redcheck waiver.
-The five-hour usage window reset was verified; existing timer resumes substantive review and preserves20percent reserve.
-Preserve ringmod2 unmeasured, rawcontinuitycaptures notuploaded, T0.14open and hostedtimingadvisory
-exceptions in M0 acceptance. No acceptance claim before complete report and Fable's decision.
+B1 regular Chat `6afadca6-071c-83ea-a029-b22c1560a794`; B2 `6afadc8d-5138-83ea-bb36-88048b6bf54d`; B3 `6afadc7c-9b44-83ea-be32-dbd465646ce0`; B4 new route above (old6afadc5f superseded). Worker2 cloud support `6afad0f1-55a8-8191-975f-f008479ba02f`, host durable. Verify actual execution/results before one supported retry; delivery/active flags alone do not prove execution. Keep GPT builders in regular Chat, never Work/Codex substitutes.
 
-Signed: gpt-lead, 2026-11-16
+Lead does reviews. Fable handles design/questions/acceptance and merge:fable only; Fable does no PR monitoring. Notify owner if a contract requires a Claude reviewer; owner assigns one. S2 requires none; later S3/S5b/S6 require contract review. No new Claude builder tasks. Preserve one writer per task, existing branches, full rerun-all for failed aggregates, one cohesive push per round; two ordinary corrections then QUESTIONS except explicitly authorized Q13.
 
-## Review and cache measurement checkpoint
-131Q13 mergedc6cd8fc and128Fableautonomy/activelead merged2b632ee. Fable does no PRreviews; lead reviews, owner assigns Claude-specific reviewer only if contract requires it.130 packet: gen-onlyACK settlement must not confirm unapplied; overlappingapplyGraph must not fall backtoloadGraph; valid reorderedconfig/unapplied accepted; FakeEngine replacedsource/OSCOutparity. Samebranch/finalround, no unsolicitednewtasks.
-129 oldassumption thatsamebranchmanualcache is invisible toPR was corrected using officialGitHubcacheaccess docs. K7 permitsmanualcoldsave; lead launched43966200132 on21bc87c. After actualsuccessfulcacheSAVE/key/compilerflags/stats, leadFULLrerunsPR43964380415 for genuine matchedwarmrestore, then K8<=318s. No mainbootstrapmerge, PRcachewrite, settingschange or prematureclosefromcold346s. No extraexperiment/triggers bybuilder. PendingCI is not polled by model loops.
-
-Latest cache pair: manualcold43966200132/head21bc87c completedSUCCESS and sanitizer133646255526 saved matching compilerflag cache; fullPR43964380415 rerun requested for genuinewarm/K8measurement. Observeactualkeyrestore andduration beforeacceptance; no modelpolling or watcher.
-
-Signed: gpt-lead, 2026-11-16
-
-## Delegated M1 lead (owner request)
-The owner will start a separate LOCAL Codex M1 lead chat focused on S2. It plans before dispatch, independently reviews B4's code and criterion-specific evidence, routes corrections, and merges S2 only under M1 r2. Root gpt-lead retains cross-milestone coordination, M0/M2/CI and the existing global heartbeat. Do not create another global timer or overlap native/control writers. New M1 lead reports through111/its PR; root maintains CURRENT. Builder4 route: regular Chat6afadc5f-8478-83ea-89a0-6b2bedf3b2a9, never Work/Codex. Issue111 latest owner reassignment is authoritative while this document change is pending. S3 requires the owner's staffing/start decision.
+Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n; verify URL_HASH), configure CMake again after session.cpp changes because S0 copy occurs at configure, and native OSC Out replacement semantics. Preserve devices-off/realtime/neutral-facts rules; no force/settings/gate weakening. Keep >=20% five-hour usage reserve; no credit/reset spending. No model waits/polling loops; existing heartbeat checks changed state. Preserve local device-results branch and all untracked captures.
 
 Signed: gpt-lead, 2026-11-16
 
 ## M0 accepted (Fable, 2026-11-16)
-M0 r3 is accepted and closed; the decision and every exception disposition are in
-[M0.md](milestones/M0.md) "Milestone acceptance". M1 r2, M2 r3 and CI1 r3 are unchanged: nothing
-stops or replans, and no writer assignment changes. Leads (root gpt-lead and the local M1 lead):
-cite `facts/BASELINE.md` as the before-numbers for M1 and M2 evidence; do not cite `ringmod2` in a
-sound-parity claim until it is measured; raise anything else through QUESTIONS (queue is empty).
+M0 r3 is accepted and closed. M1 r2, M2 r3 and CI1 r3 are unchanged: nothing stops or replans and
+no writer assignment changes. Root lead and the M1 lead: cite `facts/BASELINE.md` as the
+before-numbers in M1 and M2 evidence; do not cite `ringmod2` in a sound-parity claim until it is
+measured (Fable places that measurement in the next contract that touches the runtime-module build).
 
 Signed: Fable, 2026-11-16
