@@ -13,3 +13,9 @@ to the draft release `bench-<date>`.
 | `windows-laptop` | [`2026-11-15-842d682-validation`](windows-laptop/2026-11-15-842d682-validation/) | 842d682 | build, app smoke, dry run, speaker check; 15-minute quick run not performed | speaker check only |
 
 Cross-machine summary of the cd9a6a5 device-off runs: [`device-off-2026-11-14-cd9a6a5.md`](device-off-2026-11-14-cd9a6a5.md).
+| `pi5` | [`2026-11-15-ab7ce36-full-256`](pi5/2026-11-15-ab7ce36-full-256/) | ab7ce36 | P1 partial: event queue full | attempted; owner heard no |
+| `pi5` | [`2026-11-15-ab7ce36-guttr`](pi5/2026-11-15-ab7ce36-guttr/) | ab7ce36 | GUTTR 1/16-throat benchmark | no |
+| `pi5` | [`2026-11-15-ab7ce36-app-memory`](pi5/2026-11-15-ab7ce36-app-memory/) | ab7ce36 | P6 passed ARM64 app smoke; sampled memory | no |
+| `windows-laptop` | [`2026-11-15-156af4b-quick-256`](windows-laptop/2026-11-15-156af4b-quick-256/) | 156af4b | W1 completed; 25 engine dropouts | yes, process-loopback |
+
+Session report: [2026-11-15](2026-11-15-device-session.md). MIDI naming fix: PR #50.
