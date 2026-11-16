@@ -129,7 +129,7 @@ jobs:
             --probes "$RUNNER_TEMP/golden/bundled-interventions.json" \
             --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
-        if: github.event_name == 'pull_request'
+        if: ${{ always() && github.event_name == 'pull_request' && steps.render_head.outcome == 'success' }}
         run: |
           set +e
           set -uo pipefail
@@ -152,7 +152,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$result"
       - name: One-line uncommitted DSP perturbation acceptance experiment
-        if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'task/55-same-runner-golden-gate') || (github.event_name == 'workflow_dispatch' && inputs.exercise_sound_change) }}
+        if: ${{ always() && steps.render_head.outcome == 'success' && ((github.event_name == 'pull_request' && github.head_ref == 'task/55-same-runner-golden-gate') || (github.event_name == 'workflow_dispatch' && inputs.exercise_sound_change)) }}
         run: |
           python head/bench/golden/experiment.py --root head \
             --baseline "$RUNNER_TEMP/golden/after.json" \
