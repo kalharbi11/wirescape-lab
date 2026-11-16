@@ -1,0 +1,10 @@
+{
+  "source_sha": "ab7ce364e704d2a189717699b903a54daae3d579",
+  "sample_count": 5413,
+  "samples_with_engine_rss": 1,
+  "observed_electron_peak_kib": 455056,
+  "observed_engine_peak_kib": 237024,
+  "observed_electron_peak_mib": 444.390625,
+  "observed_engine_peak_mib": 231.46875,
+  "method": "Sum of process RSS matching command names, sampled approximately every 2 seconds. Includes matching processes; shared pages may be counted more than once. Only one sample caught nonzero engine RSS. Not a sustained-memory measurement."
+}

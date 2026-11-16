@@ -1,6 +1,49 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — questions Q4–Q6 answered, CI1 contracted (Fable)
+**Done:** Q4: `busy` refusals retry and drop nothing, other refusals keep the simple drop; `0010` P5
+amended. Q5: owner's patch and preset reset recorded in CONSTRAINTS; no file moves and the golden
+gate is unchanged through M1 and M2; the six Macro Oscillator `patches/` files are build-time source
+diffs, not sound patches. Q6: one-task contract `milestones/CI1.md` from
+`facts/tests/ci_durations_2026-11-16.md`; compiler cache and target trimming held back until measured.
+**Not measured here:** every CI saving is an estimate until CI1.1 files its after-table.
+**Next:** lead dispatches CI1.1; owner answers Q5 point 7; Fable contracts PV3.
+Signed: Fable, 2026-11-16
+
+## 2026-11-16 — Phase 2 designed: 0005, M2 contracted, T0.13 released (Fable)
+**Done:** `proposals/0005` from a read of the engine's render/replan/reconfigure code and the sidecar's
+commit path. Findings: the live replan already keeps unchanged instances, but `loadGraph` never uses
+it, and every replan is a master dip of at least three blocks because routing lives inside `Node`.
+Design: `applyGraph` on the existing replan now (M2); then topology moved into an immutable layout
+adopted at a block boundary, per-edge ramps, module data slots, instance replacement with a realtime
+`adopt` hook or ring-out. T0.13 harness designed (0005 section 4, M0 r2 ruling R6). M1 r2: sidecar
+ordering only.
+Also designed, not contracted: `0007` engine file split (T1.6), `0008` one transport (T1.7; found
+`Engine::transport` is never called and races with render), `0009` module build and generated registry (T1.8),
+`0010` protocol v1 (schema-generated, pipelining with a poisoned queue, convergence through `applyGraph`,
+heartbeat); its first stage PV1 is in M2.
+**State of main:** no product change. **Next:** lead runs M0, M1, M2. Fable: questions, M0 acceptance, protocol v1.
+**Open for the owner:** none new.
+Signed: Fable, 2026-11-16
+
+## 2026-11-16 — M1 contracted: one-engine design 0006 (Fable)
+**Done:** design note `proposals/0006` (ABI1 removal and engine-native types in serial stages plus the
+rename, invariants I1–I8, evidence per stage) and contract `M1 r1`. `legacy_index` stays in
+`module2.h`; native v1 patch reading is held. Written from grep-level reading; assumptions A1–A4 are
+for the builder to verify against inventory P1 first.
+**State of main:** no product change. **Next:** lead runs M0 and M1 S0 now, S2 after T1.1 and P1.
+Signed: Fable, 2026-11-16
+
+## 2026-11-15 — workflow v2 active, M0 r1 accepted (Fable)
+**Done:** reviewed and accepted WP1 (policy, lead brief, CURRENT, QUESTIONS, templates). M0 contract
+r1 accepted with rulings R1–R5 (latency quantities, impulse/tail under engine FTZ/DAZ, coverage rows,
+instruction-count baseline, T1.1 merge criteria) and four inventories P1–P4 for the next design blocks.
+**State of main:** no product change. The builder pause in the entry below is lifted.
+**Next:** lead delivers M0 r1. Fable after reset: T0.13 design, T1.2/T1.3 note, `0005`.
+**Open for the owner:** T0.14 dependency hosts.
+Signed: Fable, 2026-11-15
+
 ## 2026-11-15 — owner-requested pause after builder round and review
 **Status:** handoff-ready; owner is deploying a new workflow. Do not resume builders, dispatch new
 tasks, or continue the 15–20-minute in-chat checks until the owner resumes/replaces this workflow.

@@ -1,0 +1,15 @@
+{
+  "elapsed_s": 16.000816,
+  "last_audio": {
+    "bufferFrames": 128,
+    "cpuPercent": 0.0,
+    "deviceId": null,
+    "deviceName": null,
+    "dropouts": 0,
+    "error": "Sample format not supported",
+    "latencyMs": 5.333333333333333,
+    "sampleRate": 48000,
+    "state": "reconnecting"
+  },
+  "cpu_max": 0.0
+}
