@@ -1,10 +1,10 @@
 {
   "ci_provenance": {
-    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
+    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
@@ -32,13 +32,13 @@
         128,
         256
       ],
-      "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
+      "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
       "date_et": "2026-11-16",
       "machine": {
         "architecture": "AMD64",
         "compiler": "unavailable",
         "configuration": "multi-config/unavailable",
-        "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+        "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
         "os": "Windows-2025Server-10.0.26100-SP0"
       },
       "method": "python bench/offline/run_all.py",

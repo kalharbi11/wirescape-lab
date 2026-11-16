@@ -30,13 +30,16 @@ native/sdk/examples/step_sequencer/tests.cpp,native,product,C++,493,21,36
 apps/studio/src/engine/RealEngine.ts,apps,product,TypeScript,492,20,16
 native/modules2/macro_oscillator/tests.cpp,native,product,C++,476,12,2
 native/sidecar/protocol_unit_tests.cpp,native,product,C++,454,26,13
+bench/device/run.py,bench,tools,Python,452,10,32
 native/sidecar/golden_tests.py,native,product,Python,450,21,33
-bench/device/run.py,bench,tools,Python,448,9,32
 native/modules2/quantizer/tests.cpp,native,product,C++,448,11,20
 native/modules2/delay/tests.cpp,native,product,C++,444,27,8
 apps/desktop/tests/shell.spec.cjs,apps,tests,JavaScript,434,4,7
 native/web/web_engine.cpp,native,product,C++,413,13,6
 native/document/runtime_module_config.h,native,product,C/C++ Header,409,14,3
+bench/device/tests/test_latency.py,bench,tests,Python,407,19,44
+bench/device/latency_r1.py,bench,tools,Python,400,36,36
+bench/device/latency.py,bench,tools,Python,389,20,28
 apps/studio/src/panels/widgets/Knob.ts,apps,product,TypeScript,383,30,38
 native/modules2/midi_to_cv/tests.cpp,native,product,C++,378,16,3
 native/engine2/tests/engine_tests.cpp,native,tests,C++,373,6,6
@@ -120,6 +123,7 @@ apps/studio/src/app/ccLearn.ts,apps,product,TypeScript,209,44,20
 native/engine2/tests/port_behavior_tests.cpp,native,tests,C++,209,3,4
 native/modules2/chord/dsp.h,native,product,C/C++ Header,208,10,6
 native/modules2/quantizer/dsp.h,native,product,C/C++ Header,208,13,18
+bench/device/record.py,bench,tools,Python,205,11,6
 tools/foundation/tests/test_sidecar_edit_soak.py,tools,tests,Python,204,80,27
 apps/studio/tests/mock-bridge/groove-apply.spec.ts,apps,tests,TypeScript,203,7,13
 native/engine2/tests/module_cpu_probe.cpp,native,tests,C++,203,8,6
@@ -165,7 +169,6 @@ apps/studio/tests/chaos-presets.spec.ts,apps,tests,TypeScript,165,14,10
 native/modules2/blend/dsp.h,native,product,C/C++ Header,165,6,9
 apps/studio/src/app/OscOutEditor.ts,apps,product,TypeScript,163,4,5
 apps/studio/src/styles/groove.css,apps,product,CSS,162,9,9
-bench/device/record.py,bench,tools,Python,161,4,6
 bench/portability/probe.py,bench,tools,Python,161,5,20
 apps/studio/src/panels/widgets/Fader.ts,apps,product,TypeScript,160,6,14
 apps/studio/tests/codec-roundtrip.spec.cjs,apps,tests,JavaScript,160,3,7
@@ -567,4 +570,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,82574,4654,4662
+SUM,SUM,product,unknown,83818,4737,4770
