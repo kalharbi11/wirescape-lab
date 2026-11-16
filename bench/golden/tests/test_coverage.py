@@ -110,6 +110,30 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(facts["modules"]["osc.out"]["contribution_status"],
                          "bundled_presence_unverified")
 
+    def test_bundled_probe_inventory_and_only_target_cables_removed(self):
+        from probe_bundled import CASES,disable_module_edges
+        modules=registry(ROOT)
+        self.assertEqual(len(CASES),25)
+        self.assertEqual(set(CASES)-set(modules),set())
+        self.assertFalse({"osc.out","monitor"}&set(CASES))
+        for target,name in CASES.items():
+            with self.subTest(target=target,name=name):
+                doc=json.loads((ROOT/"apps/studio/patches"/name).read_text())
+                new,intervention,removed=disable_module_edges(doc,target)
+                self.assertGreater(removed,0)
+                self.assertEqual(doc["modules"],new["modules"])
+                self.assertEqual(doc["outputs"],new["outputs"])
+                target_nodes={m["id"] for m in doc["modules"] if m["module"]==target}
+                removed_edges=[c for c in doc["connections"] if c not in new["connections"]]
+                self.assertEqual(len(removed_edges),removed)
+                for edge in removed_edges:
+                    if target=="essentials.output":
+                        self.assertIn(edge["to"]["module"],target_nodes)
+                        self.assertEqual(intervention,"disconnect_inputs_to_output")
+                    else:
+                        self.assertIn(edge["from"]["module"],target_nodes)
+                        self.assertEqual(intervention,"disconnect_module_output_edges")
+
     def test_missing_bundled_and_coverage_remain_failures_with_all_declared(self):
         for key in ("bundled/basics-01-first-tone.json","coverage/chord-notes.json"):
             for side in ("before","after"):
