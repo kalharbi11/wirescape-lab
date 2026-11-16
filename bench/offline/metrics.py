@@ -330,6 +330,83 @@ def filter_impulse_evidence(audio, rate, excitation_frames):
 
 
 
+
+def r2_impulse_metrics(capture, rate):
+    """R2 after 1 s engine silence: analyze exactly 2 s after one input pulse.
+
+    Time to -60 dB re peak is the first point whose entire remaining
+    2-second capture is at or below 0.001 * measured absolute peak.
+    This suffix-peak definition does not mistake a sine zero crossing
+    for actual decay. A value not reached inside the capture is null.
+    """
+    samples = np.asarray(capture, dtype=np.float64).reshape(-1)
+    if samples.size != 2 * rate:
+        raise ValueError("R2 impulse capture must contain exactly two seconds")
+    finite = np.isfinite(samples)
+    invalid = int(np.count_nonzero(~finite))
+    valid = np.abs(samples[finite])
+    peak = float(np.max(valid)) if valid.size else None
+    result = {
+        "capture_frames": int(samples.size), "peak_fs": peak,
+        "nan_count": int(np.count_nonzero(np.isnan(samples))),
+        "inf_count": int(np.count_nonzero(np.isinf(samples))),
+        "nonfinite_samples": invalid,
+        "time_to_minus60_db_re_peak_ms": None,
+        "decay_status": "not_reached_within_2s",
+        "method": "first suffix-maximum abs(sample) <= peak * 1e-3",
+    }
+    if invalid:
+        result["decay_status"] = "nonfinite_response"
+        return result
+    if peak is None or peak == 0:
+        result["decay_status"] = "zero_response"
+        return result
+    absolute = np.abs(samples)
+    threshold = peak * 1e-3
+    peak_frame = int(np.argmax(absolute))
+    suffix_peak = np.maximum.accumulate(absolute[::-1])[::-1]
+    crossings = np.flatnonzero(suffix_peak[peak_frame:] <= threshold)
+    if crossings.size:
+        result["time_to_minus60_db_re_peak_ms"] = (
+            float(peak_frame + crossings[0]) / rate * 1000.0)
+        result["decay_status"] = "reached"
+    return result
+
+
+def r2_tail_metrics(repeats):
+    """Validate five engine FTZ/DAZ five-second tail timing measurements."""
+    if not isinstance(repeats, list) or len(repeats) != 5:
+        raise ValueError("R2 requires exactly five tail repeats")
+    ratios = []
+    subnormals = 0
+    nonfinite = 0
+    for index, row in enumerate(repeats):
+        if row.get("repeat") != index:
+            raise ValueError("R2 tail repeat index mismatch")
+        active = float(row["active_median_ns"])
+        silent = float(row["silent_median_ns"])
+        observed = float(row["silent_over_active"])
+        if not (np.isfinite(active) and np.isfinite(silent)
+                and active > 0 and silent > 0
+                and row["active_full_blocks"] > 0
+                and row["silent_full_blocks"] > 0
+                and np.isclose(observed, silent / active, rtol=2e-6)):
+            raise ValueError("R2 invalid block timing or ratio")
+        if row["subnormal_output_samples"] < 0 or row["nonfinite_output_samples"] < 0:
+            raise ValueError("R2 invalid output category count")
+        ratios.append(observed)
+        subnormals += row["subnormal_output_samples"]
+        nonfinite += row["nonfinite_output_samples"]
+    return {
+        "repeat_count": 5,
+        "median_silent_over_active_block_cost": float(np.median(ratios)),
+        "individual_silent_over_active_ratios": [float(x) for x in ratios],
+        "subnormal_output_samples_all_repeats": int(subnormals),
+        "nonfinite_output_samples_all_repeats": int(nonfinite),
+        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
+    }
+
+
 def step_metrics(audio, step_frame, rate=RATE):
     base = basic(audio)
     if base["nonfinite_samples"]:
