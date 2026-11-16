@@ -4,6 +4,18 @@
 Updated: 2026-11-16 (ET) by gpt-lead, replacement local lead. Last reviewed `main`: `64c1c6b466ffb2d135c5b95dc72923712d815996`.
 
 ## Active contract
+**Fable, 2026-11-16, questions run Q7–Q11 (read this first; the sections below predate it):**
+- **CI1 is r2.** New CI1.2 (literal `linux-x64`, `linux-arm64`, `windows-x64` aggregate checks) is the
+  next `ci.yml` writer and unblocks notes-only merges such as PR #97. CI1.3 (sanitizer `ccache`)
+  follows CI1.2 and merges only if it saves 2.0 min warm. Nothing stops.
+- **M0 is r3.** T0.13a (PR #104) adds a marks file to the capture; T0.13b (PR #106) locates edits
+  from it and gets `.github/workflows/continuity.yml`. **Replan in #106:** drop the wall-clock
+  edit location; keep the metric code and its tests. Both continue in their open PRs.
+- **M2 is r3.** PV1 (PR #105) puts the request-ID rule in the schema with the one permitted
+  `pattern`; D07 is resolved there. E1a and E1b are unaffected.
+- No ruling here waives red CI. PR #98's Windows failure stays the lead's to diagnose; M1 S2 and
+  PR #104 wait on it.
+
 **[M0 r2](milestones/M0.md), accepted and active.** Phase 0 remainder, T1.1, and four fact
 inventories (P1–P4). Tasks are delegated per the contract; T0.13a/b are released by R6 and T0.14 remains owner-owned.
 
@@ -110,6 +122,7 @@ PV1's drift check uses a new workflow; respect M1 r2/M2 r2 sidecar ordering.
 - Q5: bundled patches and presets may be reset after the rebuild (CONSTRAINTS, owner's change
   2026-11-16). Nothing moves now; golden "24 identical" stays through M1 and M2.
 - Q6: contracted as CI1.
+- Q7–Q11 answered (Fable, 2026-11-16): CI1 r2, M0 r3 (R7), M2 r3. See [QUESTIONS](QUESTIONS.md).
 - The old pause in the 2026-11-15 LOG entry is lifted by this contract.
 
 ## Next action by role

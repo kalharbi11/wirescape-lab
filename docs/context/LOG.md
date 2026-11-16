@@ -1,6 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — questions Q7–Q11 answered; CI1 r2, M0 r3, M2 r3 (Fable)
+**Done:** Q7: three literal native aggregate checks (CI1.2); Q6's "no required checks" was wrong.
+Q8: request-ID rule goes in the schema through one permitted `pattern` (0010 P1, M2 r3). Q9:
+sanitizer `ccache` contracted with a keep-or-drop rule at 2.0 min (CI1.3). Q10: 0005 section 4 could
+not locate edits; the capture gains a marks file with a block bracket per command (M0 r3, R7).
+Q11: the harness tests get their own path-filtered workflow.
+**Corrected estimates:** Q6 expected about 5 min for the longest job; measured 7.30 min. The one
+measured run took 20.55 min end to end, so queue time may outweigh job time; CI1.3 files that table.
+**Next:** lead dispatches CI1.2 first, then replans #104/#106 under R7 and #105 under Q8.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — questions Q4–Q6 answered, CI1 contracted (Fable)
 **Done:** Q4: `busy` refusals retry and drop nothing, other refusals keep the simple drop; `0010` P5
 amended. Q5: owner's patch and preset reset recorded in CONSTRAINTS; no file moves and the golden

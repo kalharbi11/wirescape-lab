@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q6 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q11 answered; queue empty. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -136,3 +136,93 @@ and records the stop/replan instruction in `CURRENT.md`.
   retried; before and after go in `facts/tests/`. **Expected (estimate):** longest job about 5 min,
   Windows, against 9.48 now. **Assumptions:** the hosted Linux runners have 4 cores; no test file depends
   on another having run first. **Overturned by:** `nproc` of 2, or a test that fails only when sharded.
+
+## Q7 — required checks hang on notes-only pull requests (lead, 2026-11-16)
+- **Question:** A notes-only pull request (PR #97, head `8066639`) cannot merge: the skipped `native`
+  matrix reports the unexpanded name, so the required checks `linux-x64`, `linux-arm64` and
+  `windows-x64` never appear (merge refused, 3 of 7 expected). Q6 assumed no required checks.
+  May three literal aggregate jobs carry those names?
+- **Evidence:** Lab run 43901746509 (scope `code=false`, `foundation` success); the `studio`
+  aggregate already in `.github/workflows/ci.yml` on `main`.
+- **Fable answer (2026-11-16):** authorized as task CI1.2 in [CI1 r2](milestones/CI1.md), first in
+  line for `ci.yml`. Q6's statement that the lab has no required checks was wrong; seven are enforced.
+  1. The matrix legs are renamed `native build <platform>`. Three literal jobs `linux-x64`,
+     `linux-arm64`, `windows-x64` are added, built like the existing `studio` aggregate.
+  2. Each uses the same job-level condition as the other gated jobs, so it is skipped only when
+     scope succeeded with `code=false` on a pull request, and runs when scope failed. When it runs
+     it passes only if exactly one job named for its own platform exists in this run attempt and
+     concluded `success`; missing, duplicate, failed, cancelled or skipped all fail.
+  3. No repository setting, bypass or always-green job. The check logic is a script under
+     `tools/ci/` with unit tests for each failing case, run by `foundation`.
+  4. Evidence to merge: CI1.2's own run with seven required names green; then PR #97 re-run
+     showing seven of seven and merging by the normal route.
+
+## Q8 — PV1 request-ID rule and "exactly v0" (lead, 2026-11-16)
+- **Question:** v0 accepts request IDs of 1 to 64 printable-ASCII bytes
+  (`native/sidecar/session.cpp`, `Session::reply`). The P1 schema subset has length limits, which
+  count code points, and no character rule, so PV1 records the gap as disagreement D07 (PR #105,
+  head `2918781`). Is an ID check outside the schema acceptable, or must the schema carry it?
+- **Fable answer (2026-11-16):** the schema carries it. [0010](../../proposals/0010-protocol-v1.md)
+  P1 is amended and [M2 is r3](milestones/M2.md); only PV1 is affected and it continues in PR #105.
+  1. The subset gains `pattern`, with one permitted value: `^[\\x20-\\x7E]*$` (as written in
+     JSON). The generator matches that string exactly and emits a byte-range loop in Python,
+     TypeScript and C++; any other pattern value is a generator error. No regex engine is added.
+  2. `id` is `minLength: 1`, `maxLength: 64` and that pattern. Under the pattern, code points and
+     bytes are the same count, so the schema is exact and a stock validator agrees with the sidecar.
+  3. D07 is closed as resolved, not waived. Tests: 64 and 65 characters, empty, a control
+     character, `0x7F`, one non-ASCII character of 1 code point and 2 bytes; all three generated
+     validators and the sidecar give the same verdict.
+  4. No runtime change; the generated code stays unwired (invariant Q1).
+
+## Q9 — compiler cache for the sanitizer job (lead, issue #103, 2026-11-16)
+- **Question:** After CI1.1 the sanitizer job is still the longest at 7.30 min (9.48 before);
+  runner-minutes 29.12 (37.21 before). Should a compiler-cache task be contracted?
+- **Evidence:** [facts/tests/ci_durations_2026-11-16_ci1.md](../../facts/tests/ci_durations_2026-11-16_ci1.md).
+  Same file: the measured run took 20.55 min from start to finish, so about 13 min of it was not
+  the longest job.
+- **Fable answer (2026-11-16):** yes, as CI1.3 in [CI1 r2](milestones/CI1.md), after CI1.2 merges,
+  sanitizer job only, with a keep-or-drop rule.
+  1. `ccache` through the CMake compiler-launcher variables on the configure line; no CMake file
+     changes; compiler identity checked by content; sanitizer flags unchanged.
+  2. Pushes to `main` build cold and save the cache. Pull requests only restore. So every merge
+     gets one uncached sanitizer build, and no pull request can write what another reads.
+  3. The 78 `ctest -N -R abi2` names stay identical.
+  4. **Keep-or-drop:** merged only if a warm pull-request run is at least 2.0 min shorter than
+     7.30 min; otherwise the PR is closed and the numbers filed.
+  5. The same task files queue time per job (start minus creation) for the 20 most recent
+     pull-request runs. My 5 min estimate in Q6 was wrong for this job: 4 cores cut its compile
+     only from 8.27 to 6.17 min. **Assumption:** job length, not runner queueing, is what the
+     owner feels. **Overturned by:** that table showing median queue time above the longest job;
+     then the next step is fewer jobs, not faster ones, and I decide it from the table.
+
+## Q10 — T0.13b: where is the edit in the capture? (lead, 2026-11-16)
+- **Question:** 0005 section 4 says the edit is located from the reply's `gen` and the status
+  stream. The capture (PR #104) has no frame or generation marks, `gen` does not name a block,
+  and `panic` and `setParam` do not change it. The builder (PR #106, head `6e7376e`) proposes
+  first divergence from a no-edit capture inside a wall-clock bracket. Rule on a method.
+- **Fable answer (2026-11-16):** the design was wrong on this point; 0005 section 4 is amended and
+  [M0 is r3](milestones/M0.md), ruling R7. Wall-clock bracketing alone is not accepted.
+  1. **T0.13a adds a marks file.** With `--capture-null-sink <file>`, the sidecar also writes
+     `<file>.marks`: one JSON line per command the control executor handles, with the request ID,
+     command type, `ok`, `gen` after, and `b0`/`b1`, the capture's total block count read just before
+     the command is applied and just after its reply is built. The count is one atomic that the
+     null-sink thread increments after appending a block. The control thread writes the line.
+  2. **What a mark proves.** The command took effect no earlier than block `b0` and no later than
+     block `b1 + 1` (a live event queued during block `b1` is read at the next one). This holds
+     for every command, with or without a `gen` change or an audible effect.
+  3. **T0.13b uses it.** The metric window runs from 100 ms before `b0` to 1 s after `b1 + 1`.
+     Each row reports the bracket width. First divergence from the no-edit capture may narrow the
+     position inside the bracket and is reported as such; outside the bracket it is a finding, not
+     an edit position. Captures compared against each other are aligned on the marks of their
+     shared earlier commands (the `noteOn`), not on wall-clock.
+  4. Nothing is added to `Engine::render` or a device callback; replies stay byte-identical with
+     and without the flag; flag absent, no file and no behaviour change.
+
+## Q11 — CI wiring for the T0.13b metric tests (lead, 2026-11-16)
+- **Question:** PR #106 has 26 synthetic tests under `bench/continuity/tests`; its task allows
+  `bench/` and `facts/dsp/`, not workflows. Which hook runs them?
+- **Fable answer (2026-11-16):** a new file `.github/workflows/continuity.yml`, added to T0.13b's
+  allowed paths in M0 r3. It follows `compare-offline.yml`: runs on pull requests that touch
+  `bench/continuity/**` or the workflow itself and on manual runs, one Ubuntu job,
+  `python -m unittest discover -s bench/continuity/tests -v`, without `continue-on-error`.
+  It is not a required check and `ci.yml` is not touched, so it does not wait on CI1.

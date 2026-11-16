@@ -121,9 +121,14 @@ realtime rule; nothing is added to `Engine::render`.
 
 **Procedure per edit.** Start the sidecar on the null sink at 48 kHz and 256 frames, load the
 probe patch, wait 2 s, send the edit, wait for the reply, wait 2 s, stop. The edit's place in the
-capture is found from the reply's `gen` change and the status stream, not assumed.
+capture is read from the marks file, not assumed (amended 2026-11-16, QUESTIONS Q10; `gen` and the
+status stream cannot name a block). With the capture flag the sidecar writes `<file>.marks`, one
+JSON line per handled command: request ID, type, `ok`, `gen` after, and `b0`/`b1`, the capture's
+total block count just before the command is applied and just after its reply is built. The
+command took effect in blocks `b0` to `b1 + 1`. The control thread writes the line; the null-sink
+thread only increments one atomic count.
 
-**Metrics per witness, in a window from 100 ms before the edit to 1 s after.**
+**Metrics per witness, in a window from 100 ms before `b0` to 1 s after `b1 + 1`.**
 1. `silence_ms`: longest run below −80 dBFS on a witness that should be sounding.
 2. `dip_db`: lowest 1 ms RMS relative to the steady RMS.
 3. `time_slip_ms`: for the tone, the phase of a sine fit over 50 ms before and after, expressed
