@@ -85,3 +85,7 @@ Signed: gpt-lead, 2026-11-16
 ## Review and cache measurement checkpoint
 131Q13 mergedc6cd8fc and128Fableautonomy/activelead merged2b632ee. Fable does no PRreviews; lead reviews, owner assigns Claude-specific reviewer only if contract requires it.130 packet: gen-onlyACK settlement must not confirm unapplied; overlappingapplyGraph must not fall backtoloadGraph; valid reorderedconfig/unapplied accepted; FakeEngine replacedsource/OSCOutparity. Samebranch/finalround, no unsolicitednewtasks.
 129 oldassumption thatsamebranchmanualcache is invisible toPR was corrected using officialGitHubcacheaccess docs. K7 permitsmanualcoldsave; lead launched43966200132 on21bc87c. After actualsuccessfulcacheSAVE/key/compilerflags/stats, leadFULLrerunsPR43964380415 for genuine matchedwarmrestore, then K8<=318s. No mainbootstrapmerge, PRcachewrite, settingschange or prematureclosefromcold346s. No extraexperiment/triggers bybuilder. PendingCI is not polled by model loops.
+
+Latest cache pair: manualcold43966200132/head21bc87c completedSUCCESS and sanitizer133646255526 saved matching compilerflag cache; fullPR43964380415 rerun requested for genuinewarm/K8measurement. Observeactualkeyrestore andduration beforeacceptance; no modelpolling or watcher.
+
+Signed: gpt-lead, 2026-11-16
