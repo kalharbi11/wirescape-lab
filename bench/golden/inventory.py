@@ -152,6 +152,11 @@ def main():
           "bundled",data["bundled_patch_count"],"fixture",data["coverage_fixture_count"],
           "measured",sum(v["contribution_status"].startswith("measured_")
                          for v in data["modules"].values()),flush=True)
+    measured=[module for module,row in data["modules"].items() if row["contribution_status"].startswith("measured_")]
+    if len(measured)!=34:
+        missing=sorted(set(data["modules"])-set(measured))
+        print(f"::warning::T0.11 contribution coverage incomplete: {len(measured)}/34 measured; "
+              f"unverified IDs: {', '.join(missing)}",flush=True)
     compact=json.dumps(data,separators=(",",":"),allow_nan=False)
     for i in range(0,len(compact),1400):
         print(f"COVERAGE_CHUNK {i//1400:04d} {compact[i:i+1400]}",flush=True)
