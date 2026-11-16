@@ -53,7 +53,7 @@ jobs:
   native:
     needs: scope
     if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
-    name: ${{ matrix.name }}
+    name: native build ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
     strategy:
@@ -123,6 +123,68 @@ jobs:
             build_reports/**/*.log
             build/native/Testing/Temporary/LastTest.log
           if-no-files-found: ignore
+
+  # Required literal check names are backed by real native matrix jobs.
+  # Notes-only PRs use the same successful-scope skip as native.
+  linux-x64:
+    name: linux-x64
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build linux-x64 in current run attempt
+        env:
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform linux-x64
+
+  linux-arm64:
+    name: linux-arm64
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build linux-arm64 in current run attempt
+        env:
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform linux-arm64
+
+  windows-x64:
+    name: windows-x64
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build windows-x64 in current run attempt
+        env:
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform windows-x64
 
   sanitizers:
     needs: scope

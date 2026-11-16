@@ -236,3 +236,15 @@ ChatGPT desktop UI or substitute Work/Codex. Existing builders remain in place w
 open ownership persist. Record any later supported regular-Chat route before rotation.
 
 Signed: gpt-lead, 2026-11-16
+
+## Active takeover superseding historical snapshots — 2026-11-16
+
+Sole local lead: WLAB | LEAD | 4, thread01a1e5ad-ea43-7b12-bc15-85ff572f1843.
+Existing wlab-lead-review ACTIVE every45minutes on that thread; previous leads idle.
+Read CURRENT and LOCAL_LEAD_HANDOFF for current routes/heads, not older tables above.
+CI1r3 Q12 accepted PR119/fbbf771; CI1.4/#122 GPT-B4 before cache109/GPT-B2.
+GPT regular Chat routes: B1 6afadca6-071c-83ea-a029-b22c1560a794;
+B2 6afadc8d-5138-83ea-bb36-88048b6bf54d; B3 6afadc7c-9b44-83ea-be32-dbd465646ce0;
+B4 6afadc5f-8478-83ea-89a0-6b2bedf3b2a9. Worker2 unchanged, hostdurable.
+Owner now says Claude builders finish current tasks/corrections then stop; no new Claude work.
+No automatic S3/E1b dispatch. Review116 is done, correct its current branch. Preserve local captures.
