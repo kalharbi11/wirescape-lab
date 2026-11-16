@@ -90,6 +90,26 @@ class ProtocolV0Tests(unittest.TestCase):
         ]:
             self.assertFalse(validate(bad, self.schema), bad)
 
+    def test_connection_identity_ignores_nested_amount_only_for_identity_operations(self):
+        identity = {
+            "kind": "modulation",
+            "from": {"module": 10, "port": "control"},
+            "to": {"module": 9, "port": "frequency"},
+            "amount": "ignored",
+        }
+        for command_type, extra in [
+            ("disconnect", {}),
+            ("setModAmount", {"amount": -0.5}),
+        ]:
+            command = {"v": 0, "id": "x", "type": command_type,
+                       "connection": identity, **extra}
+            self.assertTrue(validate(command, self.schema), command)
+        # A newly created connection does have a meaningful modulation amount.
+        self.assertFalse(validate(
+            {"v": 0, "id": "x", "type": "connect", "connection": identity},
+            self.schema,
+        ))
+
     def test_unknown_fields_do_not_disable_known_field_validation(self):
         command = {"v": 0, "id": "x", "type": "loadGraph",
                    "patch": {"format": "wirescape.native.patch", "version": 2,
