@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "engine2.h"
 #include "dsp_fixture.h"
+#include "reference_capture.h"
 #include "test_modules.h"
 #include "module_loader.h"
 #include "allocation_watch.h"
@@ -50,6 +51,7 @@ static void shim(const char*directory,const std::string&reports){
   std::vector<float>baseline(16384),actual(16384);for(uint32_t pos=0;pos<16384;pos+=256){VERIFY(ws_engine_render(old.get(),baseline.data()+pos,256)==WS_OK);float*out[]={actual.data()+pos};VERIFY(e.render(out,1,256)==WS2_OK);}
   double worst=0;for(size_t i=0;i<actual.size();++i)worst=std::max(worst,double(std::abs(actual[i]-baseline[i])));std::printf("shim %s max_abs_error %.12g bit_equal %d\n",scripted?"scripted":"steady",worst,int(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0));VERIFY(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0);
   wav(reports+(scripted?"/shim_scripted.wav":"/shim_steady.wav"),baseline,48000);
+  abi1_reference_capture(scripted?"shim_scripted":"shim_steady",baseline);
  }
 }
 int main(int argc,char**argv){std::setvbuf(stdout,nullptr,_IONBF,0);VERIFY(argc==3);shim(argv[1],argv[2]);poly(argv[2]);}
