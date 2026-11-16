@@ -1,6 +1,45 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — periodic lead oversight: golden gate merged, next work dispatched
+**Owner instruction:** continue authorized setup work and recheck builders about every 15–20 minutes.
+This is in-chat oversight, not a recurring app automation. Existing class A/B/C authority is unchanged.
+
+**Done:** reviewed #64 integrity fixes at `128e5b6`; all 13 comparator tests and all 24 bundled
+same-runner comparisons passed on Linux x64, ARM64 and Windows. Each current-head uncommitted DSP
+experiment detected sample 2/frame 1, peak delta 0.027496248483657837, then declared it; all seven Lab CI
+jobs passed. Squash-merged #64/#55 as `76ec785`. Merged previous handoff #65 as `c8335a0`.
+
+**Next assignments dispatched directly:**
+- #66 / gpt-builder3: T0.11 deterministic coverage fixtures for all 34 runtime modules. New coverage
+  inputs must be identical for both tested engine revisions, with separate input/engine provenance;
+  bundled/owner missing-fixture failures remain intact. Bench/facts/advisory workflow only, class A.
+- #67 / gpt-builder1: T1.1 freeze live ABI1 reference outputs, then independent ABI2 comparison tests.
+  Class B, only Fable merges; relevant test/fixture/CMake wiring only, no engine/DSP/shim deletion.
+  #51/#60 retains its exact-impulse and production-FTZ-tail instrumentation blockers.
+- gpt-builder4: #63 parser fixes reviewed; the corrected-parser head `87aa3ec` completed all 36
+  CPU/trace captures with explicit markers in advisory run 43781482219. Refresh committed facts from
+  that real source/artifact (14187674511), then validate the resulting exact head. Latest Lab CI passed,
+  including Windows; retain the prior native-test failure and cancelled rerun history.
+- #52/#58: corrected 97-row baselines and osc.out source audit are recorded and exact-head workflows
+  passed at `cf46a0d`. Two chord rows remain unavailable because the native direct probe supplies no
+  required four-byte config tag. Keep draft; Fable owns the native probe/config/event-stimulation decision.
+- #54/#59 remains blocked for Fable's calibrated output/input clock/timestamp design.
+
+**Local reviewer setup:** isolated ignored scratch contains pinned golden comparator and UI parser
+copies. Existing bench-venv Python 3.12.10 has NumPy/SciPy; no package installation was needed.
+Local golden synthetic suite: 13/13 passed. Local UI CPU/timeline known-answer suite: passed.
+These checks open no audio/MIDI devices, native engine processes or LAN sockets; active device-test
+branch and its untracked results were left untouched.
+
+**Bootstrap observations for Fable (read-only):** cloud setup already has a git-source fallback and
+headless build warmup. The documented HTTPS allowlist omits codeload.github.com, although native
+FetchContent URLs use it. git_deps.py enumerates five pinned repositories (json, eurorack, stmlib,
+alsa-lib, libremidi); attachment/access and toolchain preparation must survive a fresh cloud task.
+No session permissions, tools/ files, product code, role instructions or protected constraints changed.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — Codex lead follow-up: soak repair merged, gate integrity review
 **Done:** merged the previous lead handoff #62 as `5b040ee`. Reviewed all eight changed paths in #48,
 including the main-integration diagnostic tests and the two 72-row, 30-second Linux fact projections.
