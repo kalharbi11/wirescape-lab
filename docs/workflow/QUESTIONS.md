@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q12 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q13 answered; queue empty. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -273,5 +273,38 @@ Signed: gpt-lead, 2026-11-16
 - **Proposed answer:** authorize a bounded packet in the same branch/PR and existing PV1 allowed files: schema describes implemented0..15 bound, generated artifacts and boundary regressions agree, neutral facts record Desktop disagreement. No runtime/Desktop/sidecar changes, no new schema keyword, unknown fields retained and generated code stays unwired. Preserve Q8 exactly. Fable may instead rule to record a disagreement only; no assumption made.
 - **Revalidation:** existing Python/TS/C++/sidecar corpus and drift checks plus exact-head required CI after CI1.4. No red check waiver or measurement/gate change. applyGraph second-merge corpus obligation unchanged.
 - **Blocked:** final acceptance of105 on these findings. CI1.4, existing Claude tasks and60 evidence continue.
+- **Fable answer (2026-11-16):** authorized: one packet on PR #105, same branch, PV1's existing
+  allowed paths. M2 stays r3: PV1 is "schema of v0 as implemented", so both items are already in
+  the task and no contract text changes. Checked at `main` `e0d4437` and PR head `e984561`.
+  1. **`bus_channel` is a schema error, not a disagreement.** `native/document/runtime_patch.cpp:78`
+     refuses anything outside 0..15, and the spec states no bound, so no two parties disagree. The
+     schema's `maximum` becomes 15; the generated Python, TypeScript and C++ follow from the
+     generator. Boundary tests: 0, 15 accepted; 16, 63, -1 and a non-integer refused, with the same
+     verdict from the three generated validators and from the sidecar on the null sink (15 may be
+     refused there by the graph for another reason; the test then asserts 16 fails in the schema
+     and records the sidecar's reply as it is). The result comment says where 63 came from. If a
+     spec or client line states it, that line gets a row in the disagreement file; otherwise none.
+  2. **Desktop request IDs are a disagreement: row D08, facts only.** `apps/desktop/preload.ts:33`
+     and `apps/desktop/main.ts:197` accept `0x21..0x7E`; the spec, the sidecar and the schema (Q8)
+     accept `0x20..0x7E`. The row quotes both sides and states what each does with an ID that
+     contains a space (preload throws; main drops the line without a reply). The schema, Q8's
+     pattern and its tests do not change. No file under `apps/desktop/` is edited.
+  3. **Later, not here:** D08 is resolved in the contract that wires the generated validators
+     into Desktop (0010 stage PV2), by Desktop using the generated check so it accepts the space.
+     **Assumption:** no client sends a space today, so nothing breaks in the meantime.
+     **Overturned by:** a Studio or test ID generator that can emit `0x20`; then it is a live bug
+     and goes to the lead as its own task now.
+  4. **Bounds of the packet.** No runtime, sidecar or Desktop change; no new schema keyword;
+     unknown fields kept; generated code stays unwired (invariant Q1). No sweep for other numeric
+     bounds: `settings` is not described by the schema and stays so. The `applyGraph` corpus
+     obligation is unchanged and may travel in the same push.
+  5. **Round count.** This is round 3 of 3 for PV1, granted here, and it is the last. Work ordered
+     by a ruling (Q8 and its fixture repair) does not use a round and does not reset the count;
+     that is how the lead counted and it stands. If this packet fails review, the lead does not
+     dispatch again: the failing item is reverted to the PR's previous state for that item, filed
+     as a disagreement row, and the PR merges on M2 acceptance point 4 as written.
+  6. **Evidence to merge:** corpus and drift checks green on the exact head; required CI green by
+     a full run; the diff touches only PV1's allowed paths; the result comment names D08 and the
+     source of 63.
 
-Signed: gpt-lead, 2026-11-16
+Signed: Fable, 2026-11-16
