@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "engine2.h"
 #include "dsp_fixture.h"
-#include "reference_capture.h"
 #include "test_modules.h"
 #include "module_loader.h"
 #include "allocation_watch.h"
-#include "wirescape/engine.h"
+#include "frozen_reference.h"
 #include <memory>
 #include <vector>
 #include <cstring>
@@ -38,20 +37,46 @@ static void poly(const std::string&dir){
  std::puts("PASS offline eight-voice synth: pitch, one-sample envelope boundaries, stealing/release, stereo, zero allocations");
 }
 static void shim(const char*directory,const std::string&reports){
- ModuleLoader loader(directory);const char*names[]={"noise","clock","function_envelope","slew","vcf","ladder","vca","output"};const ws_module_descriptor*d[8];for(int i=0;i<8;++i)d[i]=loader.abi1(names[i]);
+ ModuleLoader loader(directory);
+ const char*names[]={"noise","clock","function_envelope","slew","vcf","ladder","vca","output"};
+ const ws_module_descriptor*d[8];
+ for(int i=0;i<8;++i)d[i]=loader.abi1(names[i]);
  for(bool scripted:{false,true}){
-  ws_engine_config oldcfg{sizeof(oldcfg),48000,256,32,1024};std::unique_ptr<ws_engine,decltype(&ws_engine_destroy)>old(ws_engine_create(&oldcfg),ws_engine_destroy);VERIFY(old);Config c;c.max_block=256;Engine e(c);
-  for(uint32_t i=0;i<8;++i){VERIFY(ws_engine_register_module(old.get(),d[i])==WS_OK);VERIFY(ws_engine_add_node(old.get(),i+1,d[i]->id)==WS_OK);VERIFY(e.add_abi1(i+1,d[i]));}
+  const auto baseline=abi1_frozen_samples(scripted?"shim_scripted":"shim_steady");
+  VERIFY(baseline.size()==16384);
+  Config c;c.max_block=256;Engine e(c);
+  for(uint32_t i=0;i<8;++i)VERIFY(e.add_abi1(i+1,d[i]));
   const uint32_t cables[][4]={{1,0,5,0},{5,1,6,0},{6,0,7,0},{2,0,3,0},{3,0,4,0},{4,0,7,1},{7,0,8,0}};
-  for(auto&v:cables){VERIFY(ws_engine_connect(old.get(),v[0],v[1],v[2],v[3])==WS_OK);VERIFY(e.connect(v[0],v[1],v[2],v[3]));}
-  VERIFY(e.output(8,0,0));VERIFY(e.register_producer()==0);VERIFY(ws_engine_prepare(old.get(),8,0)==WS_OK);VERIFY(e.prepare());
-  struct Init {uint32_t node,param;float value;};const Init initial[]={{1,0,.2f},{2,0,137},{2,1,1},{2,2,.5f},{2,3,1},{3,0,.01f},{3,1,.1f},{3,2,0},{4,0,.02f},{4,1,.02f},{5,0,1800},{5,1,.2f},{6,0,3500},{6,1,.2f},{6,2,.5f},{7,0,1}};
-  for(auto&v:initial){VERIFY(ws_engine_initialize_parameter(old.get(),v.node,v.param,v.value)==WS_OK);VERIFY(e.set_parameter(v.node,v.param,v.value));}
-  if(scripted){const Init changes[]={{5,0,3000},{7,0,.4f},{2,0,91},{6,0,1500}};uint64_t frame=777;for(auto&v:changes){ws_event o{sizeof(o),frame,v.node,WS_PARAMETER,v.param,v.value,1,1,ws_engine_generation(old.get())};VERIFY(ws_engine_enqueue(old.get(),&o)==WS_OK);auto n=ev(WS2_PARAM,60,1,v.value);n.index=v.param;VERIFY(e.enqueue(0,v.node,WS2_DIRECT_PORT,n,frame)==WS2_OK);frame+=1234;}}
-  std::vector<float>baseline(16384),actual(16384);for(uint32_t pos=0;pos<16384;pos+=256){VERIFY(ws_engine_render(old.get(),baseline.data()+pos,256)==WS_OK);float*out[]={actual.data()+pos};VERIFY(e.render(out,1,256)==WS2_OK);}
-  double worst=0;for(size_t i=0;i<actual.size();++i)worst=std::max(worst,double(std::abs(actual[i]-baseline[i])));std::printf("shim %s max_abs_error %.12g bit_equal %d\n",scripted?"scripted":"steady",worst,int(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0));VERIFY(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0);
+  for(auto&v:cables)VERIFY(e.connect(v[0],v[1],v[2],v[3]));
+  VERIFY(e.output(8,0,0));VERIFY(e.register_producer()==0);VERIFY(e.prepare());
+  struct Init {uint32_t node,param;float value;};
+  const Init initial[]={{1,0,.2f},{2,0,137},{2,1,1},{2,2,.5f},{2,3,1},
+    {3,0,.01f},{3,1,.1f},{3,2,0},{4,0,.02f},{4,1,.02f},{5,0,1800},
+    {5,1,.2f},{6,0,3500},{6,1,.2f},{6,2,.5f},{7,0,1}};
+  for(auto&v:initial)VERIFY(e.set_parameter(v.node,v.param,v.value));
+  if(scripted){
+   const Init changes[]={{5,0,3000},{7,0,.4f},{2,0,91},{6,0,1500}};
+   uint64_t frame=777;
+   for(auto&v:changes){
+    auto n=ev(WS2_PARAM,60,1,v.value);n.index=v.param;
+    VERIFY(e.enqueue(0,v.node,WS2_DIRECT_PORT,n,frame)==WS2_OK);
+    frame+=1234;
+   }
+  }
+  std::vector<float>actual(16384);
+  for(uint32_t pos=0;pos<16384;pos+=256){
+   float*out[]={actual.data()+pos};
+   VERIFY(e.render(out,1,256)==WS2_OK);
+  }
+  double worst=0;
+  for(size_t i=0;i<actual.size();++i)
+   worst=std::max(worst,double(std::abs(actual[i]-baseline[i])));
+  const bool equal=std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0;
+  std::printf("shim %s max_abs_error %.12g bit_equal %d\n",
+              scripted?"scripted":"steady",worst,int(equal));
+  VERIFY(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0);
   wav(reports+(scripted?"/shim_scripted.wav":"/shim_steady.wav"),baseline,48000);
-  abi1_reference_capture(scripted?"shim_scripted":"shim_steady",baseline);
  }
 }
+
 int main(int argc,char**argv){std::setvbuf(stdout,nullptr,_IONBF,0);VERIFY(argc==3);shim(argv[1],argv[2]);poly(argv[2]);}
