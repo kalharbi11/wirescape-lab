@@ -30,6 +30,29 @@ def check_schema_subset(node: object, *, map_keys: bool = False) -> None:
             check_schema_subset(value, map_keys=key in ("$defs", "properties"))
 
 
+
+def json_equal(left: object, right: object) -> bool:
+    """JSON Schema equality: booleans are not numbers; 1 and 1.0 are equal."""
+    if left is None or right is None:
+        return left is None and right is None
+    if type(left) is bool or type(right) is bool:
+        return type(left) is bool and type(right) is bool and left is right
+    if type(left) in (int, float) or type(right) in (int, float):
+        return (type(left) in (int, float) and type(right) in (int, float)
+                and math.isfinite(left) and math.isfinite(right) and left == right)
+    if type(left) is str or type(right) is str:
+        return type(left) is str and type(right) is str and left == right
+    if type(left) is list or type(right) is list:
+        return (type(left) is list and type(right) is list
+                and len(left) == len(right)
+                and all(json_equal(a, b) for a, b in zip(left, right)))
+    if type(left) is dict or type(right) is dict:
+        return (type(left) is dict and type(right) is dict
+                and left.keys() == right.keys()
+                and all(json_equal(left[key], right[key]) for key in left))
+    return False
+
+
 def validate(value: object, schema: dict | None = None) -> bool:
     root = read_schema() if schema is None else schema
 
@@ -66,9 +89,9 @@ def validate(value: object, schema: dict | None = None) -> bool:
         if kinds is not None:
             if not any(has_type(k) for k in (kinds if isinstance(kinds, list) else [kinds])):
                 return False
-        if "const" in shape and instance != shape["const"]:
+        if "const" in shape and not json_equal(instance, shape["const"]):
             return False
-        if "enum" in shape and instance not in shape["enum"]:
+        if "enum" in shape and not any(json_equal(instance, item) for item in shape["enum"]):
             return False
         if type(instance) in (int, float):
             if not math.isfinite(instance):
