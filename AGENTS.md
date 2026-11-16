@@ -12,6 +12,7 @@ Fable may change this file and CLAUDE.md to suit its own process. The engineerin
 |---|---|---|
 | **Fable** | Claude | lab lead: reviews, architecture, restructuring, writes issues, merges |
 | `gpt-builder1` … `gpt-builder4`, `gpt-helper` | GPT | build queued issues |
+| `gpt-lead` | GPT | stand-in when Fable is out of usage: assigns and merges class A work only (`docs/context/CODEX_LEAD.md`); trigger `lead: run` |
 | `claude-builder1` | Claude | builds queued issues when the owner runs it |
 | `gpt-reviewer`, `claude-reviewer` | either | review only, when asked |
 
