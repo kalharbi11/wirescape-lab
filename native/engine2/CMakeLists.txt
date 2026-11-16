@@ -210,8 +210,10 @@ else()
   target_link_options(abi2_returned_filter_stress PRIVATE -Wl,--gc-sections)
 endif()
 
-add_dependencies(abi2_returned_filter_stress ws2_ladder ws_ladder)
-add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws_ladder>)
+add_dependencies(abi2_returned_filter_stress ws2_ladder abi2_frozen_reference_unpack)
+target_compile_definitions(abi2_returned_filter_stress PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws2_ladder>)
 
 # Inspect direct AND interface/transitive links, not just the visible -l token.
 # These are comparison targets; separate ABI1 production/bench targets remain
