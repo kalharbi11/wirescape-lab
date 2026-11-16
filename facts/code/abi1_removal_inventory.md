@@ -198,4 +198,231 @@ Each target below invokes the root `wirescape_add_module` function, which builds
 | `native/include/wirescape/engine.h:73` | `WS_API int WS_CALL ws_engine_get_meter(const ws_engine *, ws_meter *);` |
 | `native/include/wirescape/engine.h:76` | `WS_API int WS_CALL ws_engine_build_essentials(ws_engine *, const char *module_directory);` |
 
+## ABI1 engine implementation, dynamic loader and module source exports
+
+The legacy implementation and its C export/function definitions remain in the pinned tree. `ws_module_entry` and `WS_MODULE_ENTRY_NAME` are the shared-library discovery surface; `ws_module_descriptor` is the returned ABI1 structure.
+
+| Source file:line | Literal ABI1 source evidence |
+| --- | --- |
+| `native/src/engine.cpp:1` | `#include "wirescape/engine.h"` |
+| `native/src/engine.cpp:18` | `return LoadLibraryW(std::filesystem::u8path(p).c_str());` |
+| `native/src/engine.cpp:21` | `static ws_module_entry_fn entry(Library p) {` |
+| `native/src/engine.cpp:22` | `return reinterpret_cast<ws_module_entry_fn>(GetProcAddress(p, "ws_module_entry"));` |
+| `native/src/engine.cpp:27` | `static Library open_library(const char *p) { return dlopen(p, RTLD_NOW \| RTLD_LOCAL); }` |
+| `native/src/engine.cpp:29` | `static ws_module_entry_fn entry(Library p) {` |
+| `native/src/engine.cpp:30` | `return reinterpret_cast<ws_module_entry_fn>(dlsym(p, "ws_module_entry"));` |
+| `native/src/engine.cpp:47` | `const ws_module_descriptor *descriptor;` |
+| `native/src/engine.cpp:54` | `bool valid_descriptor(const ws_module_descriptor *d) {` |
+| `native/src/engine.cpp:55` | `if (!d \|\| d->struct_size != sizeof(*d) \|\| d->abi_version != WS_ABI_VERSION \|\| !d->id \|\|` |
+| `native/src/engine.cpp:93` | `struct ws_engine {` |
+| `native/src/engine.cpp:94` | `ws_engine_config config;` |
+| `native/src/engine.cpp:96` | `std::vector<const ws_module_descriptor *> modules;` |
+| `native/src/engine.cpp:109` | `explicit ws_engine(ws_engine_config c) : config(c), events(c.max_events) {` |
+| `native/src/engine.cpp:114` | `~ws_engine() {` |
+| `native/src/engine.cpp:132` | `uint32_t WS_CALL ws_engine_abi_version() { return WS_ABI_VERSION; }` |
+| `native/src/engine.cpp:133` | `ws_engine *WS_CALL ws_engine_create(const ws_engine_config *c) {` |
+| `native/src/engine.cpp:140` | `return new ws_engine(*c);` |
+| `native/src/engine.cpp:145` | `void WS_CALL ws_engine_destroy(ws_engine *e) { delete e; }` |
+| `native/src/engine.cpp:146` | `const char *WS_CALL ws_engine_error(const ws_engine *e) { return e ? e->error : "Invalid engine"; }` |
+| `native/src/engine.cpp:147` | `int WS_CALL ws_engine_register_module(ws_engine *e, const ws_module_descriptor *d) {` |
+| `native/src/engine.cpp:166` | `int WS_CALL ws_engine_load_module(ws_engine *e, const char *path) {` |
+| `native/src/engine.cpp:178` | `auto result = ws_engine_register_module(e, f());` |
+| `native/src/engine.cpp:193` | `uint32_t WS_CALL ws_engine_module_count(const ws_engine *e) {` |
+| `native/src/engine.cpp:196` | `const ws_module_descriptor *WS_CALL ws_engine_module(const ws_engine *e, uint32_t i) {` |
+| `native/src/engine.cpp:199` | `int WS_CALL ws_engine_add_node(ws_engine *e, uint32_t id, const char *module) {` |
+| `native/src/engine.cpp:208` | `const ws_module_descriptor *d = nullptr;` |
+| `native/src/engine.cpp:238` | `int WS_CALL ws_engine_connect(ws_engine *e, uint32_t src, uint32_t sp, uint32_t dst, uint32_t dp) {` |
+| `native/src/engine.cpp:258` | `int WS_CALL ws_engine_prepare(ws_engine *e, uint32_t output, uint32_t port) {` |
+| `native/src/engine.cpp:286` | `ws_module_config config{sizeof(ws_module_config), e->config.max_block_frames,` |
+| `native/src/engine.cpp:301` | `uint64_t WS_CALL ws_engine_generation(const ws_engine *e) {` |
+| `native/src/engine.cpp:304` | `int WS_CALL ws_engine_enqueue(ws_engine *e, const ws_event *event) {` |
+| `native/src/engine.cpp:352` | `int WS_CALL ws_engine_initialize_parameter(ws_engine *e, uint32_t node, uint32_t parameter, float value) {` |
+| `native/src/engine.cpp:366` | `ws_module_event event{WS_PARAMETER, parameter, value, 0, 0};` |
+| `native/src/engine.cpp:376` | `int WS_CALL ws_engine_render(ws_engine *e, float *output, uint32_t frames) {` |
+| `native/src/engine.cpp:426` | `ws_module_event me{ev.type, ev.parameter_id, ev.value, ev.source_id, ev.note_id};` |
+| `native/src/engine.cpp:446` | `ws_process_context context{sizeof(ws_process_context), count, now, gen};` |
+| `native/src/engine.cpp:465` | `int WS_CALL ws_engine_reset(ws_engine *e) {` |
+| `native/src/engine.cpp:484` | `int WS_CALL ws_engine_activate(ws_engine *e) {` |
+| `native/src/engine.cpp:490` | `int WS_CALL ws_engine_deactivate(ws_engine *e) {` |
+| `native/src/engine.cpp:496` | `int WS_CALL ws_engine_panic(ws_engine *e) {` |
+| `native/src/engine.cpp:502` | `int WS_CALL ws_engine_get_meter(const ws_engine *e, ws_meter *m) {` |
+| `native/src/engine.cpp:518` | `int WS_CALL ws_engine_build_essentials(ws_engine *e, const char *directory) {` |
+| `native/src/engine.cpp:534` | `int r = ws_engine_load_module(e, path.c_str());` |
+| `native/src/engine.cpp:537` | `r = ws_engine_add_node(e, i + 1, ids[i]);` |
+| `native/src/engine.cpp:541` | `int r = ws_engine_connect(e, 1, 0, 3, 0);` |
+| `native/src/engine.cpp:544` | `r = ws_engine_connect(e, 2, 0, 3, 1);` |
+| `native/src/engine.cpp:547` | `r = ws_engine_connect(e, 3, 0, 4, 0);` |
+| `native/src/engine.cpp:550` | `return ws_engine_prepare(e, 4, 0);` |
+| `native/modules/adsr/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/adsr/module.cpp:27` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/adsr/module.cpp:39` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/adsr/module.cpp:64` | `const ws_process_context *c) {` |
+| `native/modules/adsr/module.cpp:95` | `const ws_port_descriptor outputs[] = {{"envelope", "Envelope", WS_CONTROL}};` |
+| `native/modules/adsr/module.cpp:96` | `const ws_parameter_descriptor parameters[] = {{0, "Attack", .0001f, 30, .01f, "s"},` |
+| `native/modules/adsr/module.cpp:100` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor),` |
+| `native/modules/adsr/module.cpp:101` | `WS_ABI_VERSION,` |
+| `native/modules/adsr/module.cpp:117` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/adsr/module.cpp:118` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/adsr/module.cpp:120` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/clock/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/clock/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/clock/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/clock/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/clock/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/clock/module.cpp:30` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/clock/module.cpp:40` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/clock/module.cpp:51` | `void WS_CALL process(void *p, const float *const *in, float *const *out, const ws_process_context *c) {` |
+| `native/modules/clock/module.cpp:67` | `const ws_port_descriptor inputs[] = {{"reset", "Reset", WS_CONTROL}};` |
+| `native/modules/clock/module.cpp:68` | `const ws_port_descriptor outputs[] = {{"clock", "Clock", WS_CONTROL}};` |
+| `native/modules/clock/module.cpp:69` | `const ws_parameter_descriptor parameters[] = {{0, "BPM", 20.0f, 300.0f, 120.0f, "BPM"}, {1, "Ticks per beat", 1.0f, 24.0f, 1.0f, ""}, {2, "Duty", 0.01f, 0.99f, 0.5f, ""}, {3, "Run", 0.0f, 1.0f, 1.0f, ""}};` |
+| `native/modules/clock/module.cpp:70` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/clock/module.cpp:74` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/clock/module.cpp:75` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/clock/module.cpp:77` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/function_envelope/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/function_envelope/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/function_envelope/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/function_envelope/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/function_envelope/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/function_envelope/module.cpp:31` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/function_envelope/module.cpp:37` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/function_envelope/module.cpp:54` | `void WS_CALL process(void *p, const float *const *in, float *const *out, const ws_process_context *c) {` |
+| `native/modules/function_envelope/module.cpp:74` | `const ws_port_descriptor inputs[] = {{"gate", "Gate", WS_CONTROL}};` |
+| `native/modules/function_envelope/module.cpp:75` | `const ws_port_descriptor outputs[] = {{"envelope", "Envelope", WS_CONTROL}};` |
+| `native/modules/function_envelope/module.cpp:76` | `const ws_parameter_descriptor parameters[] = {{0, "Rise", 0.0001f, 30.0f, 0.01f, "s"}, {1, "Fall", 0.0001f, 30.0f, 0.1f, "s"}, {2, "Curve", -1.0f, 1.0f, 0.0f, ""}};` |
+| `native/modules/function_envelope/module.cpp:77` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/function_envelope/module.cpp:81` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/function_envelope/module.cpp:82` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/function_envelope/module.cpp:84` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/ladder/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/ladder/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/ladder/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/ladder/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/ladder/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/ladder/module.cpp:48` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/ladder/module.cpp:59` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/ladder/module.cpp:66` | `void WS_CALL process(void *p, const float *const *in, float *const *out, const ws_process_context *c) {` |
+| `native/modules/ladder/module.cpp:85` | `const ws_port_descriptor inputs[] = {{"audio", "Audio", WS_AUDIO}};` |
+| `native/modules/ladder/module.cpp:86` | `const ws_port_descriptor outputs[] = {{"audio", "Audio", WS_AUDIO}};` |
+| `native/modules/ladder/module.cpp:87` | `const ws_parameter_descriptor parameters[] = {{0, "Cutoff", 20.0f, 20000.0f, 1000.0f, "Hz"}, {1, "Resonance", 0.0f, 1.0f, 0.0f, ""}, {2, "Drive", 0.0f, 2.0f, 0.0f, ""}};` |
+| `native/modules/ladder/module.cpp:88` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/ladder/module.cpp:92` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/ladder/module.cpp:93` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/ladder/module.cpp:95` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/lfo/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/lfo/module.cpp:27` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/lfo/module.cpp:36` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/lfo/module.cpp:44` | `const ws_process_context *c) {` |
+| `native/modules/lfo/module.cpp:54` | `const ws_port_descriptor outputs[] = {{"control", "Control", WS_CONTROL}};` |
+| `native/modules/lfo/module.cpp:55` | `const ws_parameter_descriptor parameters[] = {{0, "Rate", .01f, 20, 1, "Hz"},` |
+| `native/modules/lfo/module.cpp:58` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/lfo/module.cpp:63` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/lfo/module.cpp:64` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/lfo/module.cpp:66` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/mixer/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/mixer/module.cpp:23` | `int WS_CALL prepare(void *p, const ws_module_config *config) {` |
+| `native/modules/mixer/module.cpp:24` | `if (!p \|\| !config \|\| config->struct_size < sizeof(ws_module_config) \|\|` |
+| `native/modules/mixer/module.cpp:38` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/mixer/module.cpp:50` | `const ws_process_context *c) {` |
+| `native/modules/mixer/module.cpp:63` | `const ws_port_descriptor inputs[] = {` |
+| `native/modules/mixer/module.cpp:67` | `const ws_port_descriptor outputs[] = {` |
+| `native/modules/mixer/module.cpp:70` | `const ws_parameter_descriptor parameters[] = {` |
+| `native/modules/mixer/module.cpp:74` | `const ws_module_descriptor descriptor = {` |
+| `native/modules/mixer/module.cpp:75` | `sizeof(ws_module_descriptor),` |
+| `native/modules/mixer/module.cpp:76` | `WS_ABI_VERSION,` |
+| `native/modules/mixer/module.cpp:95` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/mixer/module.cpp:96` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/mixer/module.cpp:98` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/noise/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/noise/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/noise/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/noise/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/noise/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/noise/module.cpp:26` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/noise/module.cpp:34` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/noise/module.cpp:39` | `void WS_CALL process(void *p, const float *const *, float *const *out, const ws_process_context *c) {` |
+| `native/modules/noise/module.cpp:49` | `const ws_port_descriptor *inputs = nullptr;` |
+| `native/modules/noise/module.cpp:50` | `const ws_port_descriptor outputs[] = {{"audio", "Audio", WS_AUDIO}};` |
+| `native/modules/noise/module.cpp:51` | `const ws_parameter_descriptor parameters[] = {{0, "Level", 0.0f, 1.0f, 0.2f, ""}};` |
+| `native/modules/noise/module.cpp:52` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/noise/module.cpp:56` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/noise/module.cpp:57` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/noise/module.cpp:59` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/output/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/output/module.cpp:9` | `int WS_CALL prepare(void *, const ws_module_config *) { return 0; }` |
+| `native/modules/output/module.cpp:10` | `void WS_CALL event(void *, const ws_module_event *) {}` |
+| `native/modules/output/module.cpp:12` | `const ws_process_context *c) {` |
+| `native/modules/output/module.cpp:16` | `const ws_port_descriptor inputs[] = {{"audio", "Audio", WS_AUDIO}},` |
+| `native/modules/output/module.cpp:18` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor),` |
+| `native/modules/output/module.cpp:19` | `WS_ABI_VERSION,` |
+| `native/modules/output/module.cpp:35` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/output/module.cpp:36` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/output/module.cpp:38` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/scale_offset/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/scale_offset/module.cpp:19` | `int WS_CALL prepare(void *state, const ws_module_config *config) {` |
+| `native/modules/scale_offset/module.cpp:25` | `void WS_CALL event(void *state, const ws_module_event *event) {` |
+| `native/modules/scale_offset/module.cpp:32` | `const ws_process_context *context) {` |
+| `native/modules/scale_offset/module.cpp:39` | `const ws_port_descriptor inputs[] = {{"control", "Control", WS_CONTROL}};` |
+| `native/modules/scale_offset/module.cpp:40` | `const ws_port_descriptor outputs[] = {{"control", "Control", WS_CONTROL}};` |
+| `native/modules/scale_offset/module.cpp:41` | `const ws_parameter_descriptor parameters[] = {{0, "Scale", -2, 2, 1, ""},` |
+| `native/modules/scale_offset/module.cpp:43` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/scale_offset/module.cpp:48` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/scale_offset/module.cpp:49` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/scale_offset/module.cpp:51` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/slew/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/slew/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/slew/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/slew/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/slew/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/slew/module.cpp:24` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/slew/module.cpp:30` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/slew/module.cpp:37` | `void WS_CALL process(void *p, const float *const *in, float *const *out, const ws_process_context *c) {` |
+| `native/modules/slew/module.cpp:56` | `const ws_port_descriptor inputs[] = {{"control", "Control", WS_CONTROL}};` |
+| `native/modules/slew/module.cpp:57` | `const ws_port_descriptor outputs[] = {{"control", "Control", WS_CONTROL}};` |
+| `native/modules/slew/module.cpp:58` | `const ws_parameter_descriptor parameters[] = {{0, "Rise", 0.0f, 10.0f, 0.1f, "s/unit"}, {1, "Fall", 0.0f, 10.0f, 0.1f, "s/unit"}};` |
+| `native/modules/slew/module.cpp:59` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/slew/module.cpp:63` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/slew/module.cpp:64` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/slew/module.cpp:66` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/vca/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/vca/module.cpp:16` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/vca/module.cpp:19` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/vca/module.cpp:26` | `const ws_process_context *c) {` |
+| `native/modules/vca/module.cpp:32` | `const ws_port_descriptor inputs[] = {{"audio", "Audio", WS_AUDIO},` |
+| `native/modules/vca/module.cpp:35` | `const ws_parameter_descriptor parameters[] = {{0, "Gain", 0, 2, 1, ""}};` |
+| `native/modules/vca/module.cpp:36` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor),` |
+| `native/modules/vca/module.cpp:37` | `WS_ABI_VERSION,` |
+| `native/modules/vca/module.cpp:53` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/vca/module.cpp:54` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/vca/module.cpp:56` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+| `native/modules/vcf/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/vcf/module.cpp:12` | `bool valid_config(const ws_module_config *c) noexcept {` |
+| `native/modules/vcf/module.cpp:13` | `return c && c->struct_size >= sizeof(ws_module_config) && std::isfinite(c->sample_rate) &&` |
+| `native/modules/vcf/module.cpp:16` | `bool valid_process(const void *p, float *const *out, const ws_process_context *c, uint32_t count, uint32_t max_frames) noexcept {` |
+| `native/modules/vcf/module.cpp:17` | `if (!p \|\| !out \|\| !c \|\| c->struct_size < sizeof(ws_process_context) \|\| c->frames > max_frames) return false;` |
+| `native/modules/vcf/module.cpp:47` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/vcf/module.cpp:57` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/vcf/module.cpp:63` | `void WS_CALL process(void *p, const float *const *in, float *const *out, const ws_process_context *c) {` |
+| `native/modules/vcf/module.cpp:85` | `const ws_port_descriptor inputs[] = {{"audio", "Audio", WS_AUDIO}};` |
+| `native/modules/vcf/module.cpp:86` | `const ws_port_descriptor outputs[] = {{"low12", "Low12", WS_AUDIO}, {"low24", "Low24", WS_AUDIO}};` |
+| `native/modules/vcf/module.cpp:87` | `const ws_parameter_descriptor parameters[] = {{0, "Cutoff", 20.0f, 20000.0f, 1000.0f, "Hz"}, {1, "Resonance", 0.0f, 0.95f, 0.0f, ""}};` |
+| `native/modules/vcf/module.cpp:88` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor), WS_ABI_VERSION,` |
+| `native/modules/vcf/module.cpp:92` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/vcf/module.cpp:93` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/vcf/module.cpp:95` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() { return &descriptor; }` |
+| `native/modules/vco/module.cpp:2` | `#include "wirescape/module.h"` |
+| `native/modules/vco/module.cpp:19` | `int WS_CALL prepare(void *p, const ws_module_config *c) {` |
+| `native/modules/vco/module.cpp:25` | `void WS_CALL event(void *p, const ws_module_event *e) {` |
+| `native/modules/vco/module.cpp:35` | `const ws_process_context *c) {` |
+| `native/modules/vco/module.cpp:44` | `const ws_port_descriptor outputs[] = {{"audio", "Audio", WS_AUDIO}};` |
+| `native/modules/vco/module.cpp:45` | `const ws_parameter_descriptor parameters[] = {{0, "Frequency", .01f, 20000, 220, "Hz"}};` |
+| `native/modules/vco/module.cpp:46` | `const ws_module_descriptor descriptor = {sizeof(ws_module_descriptor),` |
+| `native/modules/vco/module.cpp:47` | `WS_ABI_VERSION,` |
+| `native/modules/vco/module.cpp:63` | `#ifndef WS_MODULE_ENTRY_NAME` |
+| `native/modules/vco/module.cpp:64` | `#define WS_MODULE_ENTRY_NAME ws_module_entry` |
+| `native/modules/vco/module.cpp:66` | `extern "C" WS_EXPORT const ws_module_descriptor *WS_CALL WS_MODULE_ENTRY_NAME() {` |
+
+Each module's `module.json` is copied to its shared-library output location by `native/CMakeLists.txt:20-21`; it is metadata, not a separate source or ABI function. Exact module source and target binding is enumerated in the preceding build catalogue.
+
+
 <!-- Further source/loader/facade/scheduler/layer/test and full-token use indexes follow. -->
