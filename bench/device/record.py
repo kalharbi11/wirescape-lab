@@ -38,6 +38,10 @@ class Recorder:
         self.writer=None
         self.write_error=None
         self.overruns=0
+        # PortAudio may drop input before our writer queue fills. Record its
+        # callback status separately from queue.Full and refuse damaged captures.
+        self.callback_status_count=0
+        self.callback_statuses=[]
 
     def _start_input(self):
         import sounddevice as sd
@@ -59,6 +63,16 @@ class Recorder:
         self.writer.start()
         def capture(samples,frames,timestamp,status):
             callback_now=time.monotonic()
+            if status:
+                self.callback_status_count+=1
+                if len(self.callback_statuses)<8:
+                    # Only bounded, anonymous PortAudio status and sample index
+                    # are retained for an actionable REFUSED report.
+                    self.callback_statuses.append({
+                        "start_frame":self.captured_frame_count,
+                        "frames":frames,
+                        "flags":str(status).strip() or repr(status),
+                    })
             adc=getattr(timestamp,"inputBufferAdcTime",None)
             current=getattr(timestamp,"currentTime",None)
             if (adc is not None and current is not None and
@@ -167,7 +181,14 @@ class Recorder:
             if self.writer.is_alive():
                 raise RuntimeError("input FLAC writer stalled")
             if self.write_error:raise RuntimeError("input FLAC writer: "+str(self.write_error))
-            if self.overruns:raise RuntimeError(f"input capture lost {self.overruns} blocks")
+            if self.overruns:raise RuntimeError(f"input capture lost {self.overruns} blocks (writer queue full)")
+            if self.callback_status_count:
+                first=self.callback_statuses[0]
+                raise RuntimeError(
+                    f"input capture callback status/data loss: "
+                    f"{self.callback_status_count} flagged callback(s); "
+                    f"first at capture frame {first['start_frame']}, "
+                    f"{first['frames']} frames: {first['flags']}")
         else:
             self._stop_proc()
             if not self.temp or not self.temp.is_file():
