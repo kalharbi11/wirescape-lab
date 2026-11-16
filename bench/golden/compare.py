@@ -127,9 +127,13 @@ def compare(before, after, tolerance_db=0.0, raw_before=None, raw_after=None,
         if path_a is not None and path_b is not None:
             if path_a.is_file() and path_b.is_file():
                 pcm = wav_difference_metrics(path_a, path_b)
-                # Hash mismatch but identical local WAV is an invalid artifact set.
-                if not identical and a is not None and b is not None and pcm["first_differing_sample_index"] is None:
-                    raise ValueError(f"{name}: hashes differ but WAVs are identical")
+                # JSON and retained same-runner WAVs must agree in both directions.
+                # Equal hashes with divergent WAV samples would silently bypass the gate.
+                if a is not None and b is not None:
+                    if identical and pcm["first_differing_sample_index"] is not None:
+                        raise ValueError(f"{name}: hashes are identical but WAVs differ")
+                    if not identical and pcm["first_differing_sample_index"] is None:
+                        raise ValueError(f"{name}: hashes differ but WAVs are identical")
             elif require_wavs and a is not None and b is not None:
                 raise ValueError(f"{name}: A/B WAV missing for existing patch")
         if difference_wavs and status != "identical" and status != "within tolerance":
@@ -138,7 +142,8 @@ def compare(before, after, tolerance_db=0.0, raw_before=None, raw_after=None,
                     dest = Path(difference_wavs) / folder / wav_name
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(path, dest)
-        if status == "different" and name in declared:
+        # Sound-change declarations permit audio differences, never missing patches.
+        if status == "different" and a is not None and b is not None and name in declared:
             status = "declared"
         result[name] = dict(status=status,
                             largest_band_difference_db=round(largest, 6) if largest is not None else None,
