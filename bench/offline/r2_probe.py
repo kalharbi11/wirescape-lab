@@ -56,7 +56,7 @@ def build_probe(build, destination):
         detail = " ".join(result.stderr.split())[-1500:]
         raise RuntimeError("R2 bench-only probe compile failed: " + detail)
     return binary, {
-        "compiler": compiler,
+        "compiler": Path(compiler).name,
         "probe_sha256": sha256(PROBE_SOURCE),
         "engine2_archive_sha256": sha256(library[0]),
         "compile_flags": "-std=c++17 -O2 -pthread -ldl",
