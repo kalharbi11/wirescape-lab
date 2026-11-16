@@ -196,7 +196,7 @@ def unpack_frozen(manifest_path, corpus_dir, destination, machine):
         raise ValueError("missing captured descriptor metadata")
     for name, entry in descriptors.items():
         value = entry.get("utf8")
-        if not isinstance(value, str) or not value.startswith("id\\t"):
+        if not isinstance(value, str) or not value.startswith("id\t"):
             raise ValueError("invalid ABI1 descriptor: " + name)
         if hashlib.sha256(value.encode("utf-8")).hexdigest() != entry.get("sha256"):
             raise ValueError("ABI1 descriptor digest mismatch: " + name)
@@ -208,7 +208,7 @@ def unpack_frozen(manifest_path, corpus_dir, destination, machine):
     result = {"machine": machine, "source_commit": source, "cases":len(raw_by_case),
               "bytes":sum(len(x) for x in raw_by_case.values()),
               "source_artifact_id":captures[machine]["artifact_id"]}
-    (destination / "capture_source.json").write_text(json.dumps(result,sort_keys=True)+"\\n")
+    (destination / "capture_source.json").write_text(json.dumps(result,sort_keys=True)+"\n")
     return result
 
 
