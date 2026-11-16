@@ -5,6 +5,7 @@
 #undef main
 #include "module_loader.h"
 #include "wirescape_sdk.h"
+#include "frozen_reference.h"
 static const ws2_descriptor*stress_descriptor=nullptr;
 struct Adapter {
  alignas(64)std::array<uint8_t,65536>arena{};size_t used=0;void*instance=nullptr;double rate;float values[3]{};
@@ -24,4 +25,24 @@ struct Adapter {
   require(stress_descriptor->process(s.instance,&context)==WS2_OK,"ABI2 ladder process failed");
  }
 };
-int main(int argc,char**argv){try{require(argc==2,"expected module directory");ModuleLoader loader(argv[1]);stress_descriptor=loader.abi2("ladder");auto bridge=*loader.abi1("ladder");bridge.create=Adapter::create;bridge.destroy=Adapter::destroy;bridge.prepare=Adapter::prepare;bridge.reset=Adapter::reset;bridge.event=Adapter::event;bridge.process=Adapter::process;for(double rate:{44100.,48000.,96000.}){impulse_cases(&bridge,false,rate);modulation_case(&bridge,false,rate);}std::puts("PASS unchanged returned_filter_stress cases against ABI2 ladder");return 0;}catch(const std::exception&e){std::fprintf(stderr,"FAIL ABI2 returned filter stress: %s\n",e.what());return 1;}}
+int main(int argc,char**argv){try{require(argc==2,"expected module directory");ModuleLoader loader(argv[1]);stress_descriptor=loader.abi2("ladder");const auto frozen=abi1_frozen_descriptor("ladder");
+ require(frozen.id==stress_descriptor->id,"frozen ladder module ID differs from ABI2");
+ require(frozen.input_count==1&&frozen.output_count==1&&frozen.parameter_count==3,
+         "frozen ABI1 ladder descriptor shape differs");
+ ws_port_descriptor input[1]{{frozen.inputs[0].c_str(),"Audio",WS_AUDIO}};
+ ws_port_descriptor output[1]{{frozen.outputs[0].c_str(),"Audio",WS_AUDIO}};
+ ws_parameter_descriptor parameters[3]{};
+ for(uint32_t i=0;i<3;++i){
+  parameters[i].id=frozen.parameters[i].legacy_index;
+  parameters[i].name=stress_descriptor->params[i].id;
+  parameters[i].minimum=frozen.parameters[i].minimum;
+  parameters[i].maximum=frozen.parameters[i].maximum;
+  parameters[i].initial=frozen.parameters[i].initial;
+  parameters[i].unit="";
+ }
+ ws_module_descriptor bridge{};
+ bridge.struct_size=sizeof(bridge);bridge.abi_version=WS_ABI_VERSION;
+ bridge.id=frozen.id.c_str();bridge.name="Frozen legacy ladder bridge";
+ bridge.input_count=1;bridge.output_count=1;bridge.parameter_count=3;
+ bridge.inputs=input;bridge.outputs=output;bridge.parameters=parameters;
+ bridge.create=Adapter::create;bridge.destroy=Adapter::destroy;bridge.prepare=Adapter::prepare;bridge.reset=Adapter::reset;bridge.event=Adapter::event;bridge.process=Adapter::process;for(double rate:{44100.,48000.,96000.}){impulse_cases(&bridge,false,rate);modulation_case(&bridge,false,rate);}std::puts("PASS unchanged returned_filter_stress cases against ABI2 ladder");return 0;}catch(const std::exception&e){std::fprintf(stderr,"FAIL ABI2 returned filter stress: %s\n",e.what());return 1;}}
