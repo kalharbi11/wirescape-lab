@@ -29,34 +29,45 @@ function cpuSummary(profile) {
       || !Array.isArray(profile.timeDeltas) ||
       profile.samples.length !== profile.timeDeltas.length)
     return {status:'unavailable',reason:'missing CDP Profiler nodes/samples/timeDeltas'};
-  const nodes = new Map(profile.nodes.map(n => [n.id,n]));
+  if (!profile.nodes.length || !profile.samples.length)
+    return {status:'unavailable',reason:'no CDP CPU sample observations'};
+  const nodes = new Map(profile.nodes.filter(n => n && n.id != null).map(n => [n.id,n]));
   const totals = new Map();
-  let totalUs=0, unattributedUs=0, idleUs=0;
+  let totalUs=0, unattributedUs=0, idleUs=0, validSamples=0;
   for (let i=0;i<profile.samples.length;i++) {
     const sample=nodes.get(profile.samples[i]);
     const delta=profile.timeDeltas[i];
-    if (!Number.isFinite(delta) || delta<0) continue;
+    // Zero/negative/nonfinite durations cannot establish a CPU observation.
+    if (!Number.isFinite(delta) || delta<=0) continue;
     totalUs += delta;
-    if (!sample) {unattributedUs+=delta;continue;}
-    const frame=sample.callFrame || {};
+    if (!sample || !sample.callFrame) {unattributedUs+=delta;continue;}
+    validSamples++;
+    const frame=sample.callFrame;
     const fn=frame.functionName || '[anonymous]';
     const url=sanitizedSource(frame.url);
     const line=Number.isFinite(frame.lineNumber)?frame.lineNumber+1:null;
     const key=JSON.stringify([fn,url,line]);
     if (/^\((idle|program|garbage collector)\)$/i.test(fn)) {
-      if (fn==='(idle)') idleUs+=delta;
+      if (fn.toLowerCase()==='(idle)') idleUs+=delta;
       else unattributedUs+=delta;
       continue;
     }
     const prior=totals.get(key) || {function:fn,source:url,line,sampled_us:0,samples:0};
     prior.sampled_us+=delta; prior.samples++; totals.set(key,prior);
   }
-  const top=[...totals.values()].sort((a,b)=>b.sampled_us-a.sampled_us)
-    .slice(0,12).map(x=>({function:x.function,source:x.source,line:x.line,
-      self_sampled_ms:round(x.sampled_us/1000),samples:x.samples}));
-  return {status:'measured',sample_count:profile.samples.length,
+  if (!validSamples)
+    return {status:'unavailable',reason:'no valid positive-duration CDP CPU samples with call frames'};
+  // Preserve ALL self samples at microsecond precision until the cross-trial
+  // merge is finished. Per-trial and aggregate leaderboards are views, not
+  // input to aggregation; top-12 truncation would silently lose small stacks.
+  const self_samples_all=[...totals.values()].sort((a,b)=>b.sampled_us-a.sampled_us);
+  const top=self_samples_all.slice(0,12).map(x=>({function:x.function,source:x.source,line:x.line,
+    self_sampled_ms:round(x.sampled_us/1000),samples:x.samples}));
+  return {status:'measured',sample_count:validSamples,
+    invalid_or_unattributed_samples:profile.samples.length-validSamples,
     sampled_ms:round(totalUs/1000),idle_ms:round(idleUs/1000),
-    unattributed_ms:round(unattributedUs/1000),top_self:top,
+    unattributed_ms:round(unattributedUs/1000),
+    self_samples_all,top_self:top,
     sampling_limit:'CDP statistical CPU self-samples; excludes or blurs sub-sample work; not inclusive call-stack totals'};
 }
 function markerLabel(event) {
@@ -135,13 +146,14 @@ function traceSummary(trace) {
 function aggregateTrials(trials) {
   const intervals=trials.flatMap(t=>t.frame_intervals_ms||[]);
   const frame=frameSummary(intervals);
-  const cpu=trials.map(t=>t.cpu).filter(t=>t?.status==='measured');
+  const cpu=trials.map(t=>t.cpu).filter(r=>r?.status==='measured'
+    && Array.isArray(r.self_samples_all));
   const trace=trials.map(t=>t.trace).filter(t=>t?.status==='measured');
   const top=new Map();
-  for (const report of cpu) for(const row of report.top_self) {
+  for (const report of cpu) for(const row of report.self_samples_all) {
     const key=JSON.stringify([row.function,row.source,row.line]);
-    const p=top.get(key)||{function:row.function,source:row.source,line:row.line,self_sampled_ms:0,samples:0};
-    p.self_sampled_ms+=row.self_sampled_ms;p.samples+=row.samples;top.set(key,p);
+    const p=top.get(key)||{function:row.function,source:row.source,line:row.line,sampled_us:0,samples:0};
+    p.sampled_us+=row.sampled_us;p.samples+=row.samples;top.set(key,p);
   }
   const categories={script:0,style:0,layout:0,paint:0,unattributed_busy:0};
   for (const report of trace)for(const key of Object.keys(categories))
@@ -152,14 +164,19 @@ function aggregateTrials(trials) {
       measured_trials:cpu.length,total_trials:trials.length,
       sampled_ms:round(cpu.reduce((a,r)=>a+r.sampled_ms,0)),
       unattributed_ms:round(cpu.reduce((a,r)=>a+r.unattributed_ms,0)),
-      top_self:[...top.values()].sort((a,b)=>b.self_sampled_ms-a.self_sampled_ms).slice(0,10)
-        .map(row=>({...row,self_sampled_ms:round(row.self_sampled_ms)}))},
+      self_time_aggregation:'all per-trial positive-duration function samples, merged before top-10 truncation',
+      top_self:[...top.values()].sort((a,b)=>b.sampled_us-a.sampled_us).slice(0,10)
+        .map(row=>({function:row.function,source:row.source,line:row.line,
+          self_sampled_ms:round(row.sampled_us/1000),samples:row.samples}))},
     trace_attribution:{status:trace.length===trials.length?'measured':trace.length?'partial':'unavailable',
       measured_trials:trace.length,total_trials:trials.length,
       categories_ms:Object.fromEntries(Object.entries(categories).map(([k,v])=>[k,round(v)])),
       observed_busy_ms:round(trace.reduce((a,r)=>a+r.observed_busy_ms,0)),
       unobserved_window_ms:round(trace.reduce((a,r)=>a+r.unobserved_window_ms,0)),
       boundary_modes:[...new Set(trace.map(t=>t.boundary))] },
-    unavailable_reasons:trials.flatMap(t=>[t.cpu,t.trace].filter(x=>x?.status!=='measured').map(x=>x?.reason||'missing profile'))};
+    unavailable_reasons:trials.flatMap(t=>[t.cpu,t.trace].filter(x=>x?.status!=='measured')
+      .map(x=>x?.reason||'missing profile')).concat(
+        trials.filter(t=>t.cpu?.status==='measured' && !Array.isArray(t.cpu.self_samples_all))
+          .map(()=>'missing complete CPU self-sample map; excluded from aggregate attribution'))};
 }
 module.exports={frameSummary,sanitizedSource,cpuSummary,traceSummary,aggregateTrials};
