@@ -23,7 +23,9 @@ rest is contracted later.
 
 **P1. One schema file is the protocol.** `docs/specs/protocol.schema.json`: JSON Schema
 2020-12, restricted to objects with `required`, `enum`/`const`, numeric bounds, string and array
-length limits, `$ref`, and `oneOf` discriminated on `type`. A Python generator under
+length limits, `$ref`, and `oneOf` discriminated on `type`. One more keyword since 2026-11-16
+(QUESTIONS Q8): `pattern`, with the single permitted value `^[\\x20-\\x7E]*$` (as written in JSON), which the generator
+matches as a literal string and turns into a byte-range check; any other value is a generator error. A Python generator under
 `tools/protocol/` produces: TypeScript types and validators (plain generated code, no new runtime
 dependency), a C++ header of validation functions over the JSON library already in use, and the
 command and error tables of the spec. Generated files are committed and checked for drift in CI.

@@ -16,6 +16,25 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  scope:
+    name: changed-scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Classify PR paths (fail closed)
+        id: classify
+        env:
+          CI_EVENT_NAME: ${{ github.event_name }}
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python tools/ci/changed_scope.py
+
   foundation:
     name: foundation
     runs-on: ubuntu-latest
@@ -32,7 +51,9 @@ jobs:
         run: python -m unittest discover -s tools/foundation/tests -v -b
 
   native:
-    name: ${{ matrix.name }}
+    needs: scope
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    name: native build ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
     strategy:
@@ -42,8 +63,6 @@ jobs:
           - { name: linux-x64, runner: ubuntu-latest }
           - { name: linux-arm64, runner: ubuntu-24.04-arm }
           - { name: windows-x64, runner: windows-latest }
-    env:
-      CMAKE_BUILD_PARALLEL_LEVEL: '2'
     defaults:
       run:
         shell: bash
@@ -56,6 +75,17 @@ jobs:
           python-version: '3.12'
       - name: Install pinned CMake and Ninja
         run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Record native runner core count
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cores="$NUMBER_OF_PROCESSORS"
+          else
+            cores="$(nproc)"
+          fi
+          if ! [[ "$cores" =~ ^[1-9][0-9]*$ ]]; then echo "Invalid runner core count" >&2; exit 1; fi
+          echo "Runner cores: $cores"
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$cores" >> "$GITHUB_ENV"
       - name: Fetch pinned PortAudio for Windows
         if: runner.os == 'Windows'
         uses: actions/checkout@v4
@@ -82,6 +112,8 @@ jobs:
         run: python tools/dev.py build --headless
       - name: Native tests (devices off)
         run: python tools/dev.py test
+      - name: Native CTest inventory (K1)
+        run: ctest --test-dir build/native -C Release -N
       - name: Upload native failure logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -92,12 +124,87 @@ jobs:
             build/native/Testing/Temporary/LastTest.log
           if-no-files-found: ignore
 
+  # Required literal check names are backed by real native matrix jobs.
+  # Notes-only PRs use the same successful-scope skip as native.
+  linux-x64:
+    name: linux-x64
+    permissions:
+      contents: read
+      actions: read
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build linux-x64 in current run attempt
+        env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform linux-x64
+
+  linux-arm64:
+    name: linux-arm64
+    permissions:
+      contents: read
+      actions: read
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build linux-arm64 in current run attempt
+        env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform linux-arm64
+
+  windows-x64:
+    name: windows-x64
+    permissions:
+      contents: read
+      actions: read
+    needs: [scope, native]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real native build windows-x64 in current run attempt
+        env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
+          NATIVE_MATRIX_RESULT: ${{ needs.native.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --platform windows-x64
+
   sanitizers:
+    needs: scope
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     name: sanitizers
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      CMAKE_BUILD_PARALLEL_LEVEL: '2'
       ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
       UBSAN_OPTIONS: halt_on_error=1
     steps:
@@ -108,12 +215,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Record sanitizer runner core count
+        run: |
+          cores="$(nproc)"
+          if ! [[ "$cores" =~ ^[1-9][0-9]*$ ]]; then echo "Invalid runner core count" >&2; exit 1; fi
+          echo "Runner cores: $cores"
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$cores" >> "$GITHUB_ENV"
       - name: Compile with ASan and UBSan
         run: |
           cmake -S native -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"
-          cmake --build build/asan --parallel 2
+          cmake --build build/asan --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
       - name: Run all ABI2 sanitizer tests
         run: ctest --test-dir build/asan -R abi2 --output-on-failure
+      - name: Sanitizer ABI2 CTest inventory (K1)
+        run: ctest --test-dir build/asan -N -R abi2
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -121,9 +236,15 @@ jobs:
           path: build/asan/Testing/Temporary/LastTest.log
           if-no-files-found: ignore
 
-  studio:
-    name: studio
+  studio_shards:
+    needs: scope
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    name: studio shard ${{ matrix.shard }}/3
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     timeout-minutes: 40
     defaults:
       run:
@@ -145,18 +266,46 @@ jobs:
           echo "WIRESCAPE_CHROMIUM=$(node -e "console.log(require('playwright').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Typecheck Studio
         run: npm run typecheck
-      - name: Studio Playwright and linked desktop tests
-        run: npm test
+      - name: Studio test inventory (shard ${{ matrix.shard }}/3; K1)
+        run: npx playwright test --list --shard=${{ matrix.shard }}/3
+      - name: Studio Playwright (shard ${{ matrix.shard }}/3)
+        run: npm test -- --shard=${{ matrix.shard }}/3
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: studio-failures
-          path: |
-            apps/studio/test-results/
-            apps/desktop/test-results/
+          name: studio-failures-shard-${{ matrix.shard }}
+          path: apps/studio/test-results/
           if-no-files-found: ignore
 
+  # Preserve the required check name while retaining each real Playwright shard.
+  # `needs.studio_shards.result` alone can miss an individual matrix-leg cancellation,
+  # so also validate the three per-job conclusions from this public run.
+  studio:
+    name: studio
+    permissions:
+      contents: read
+      actions: read
+    needs: [scope, studio_shards]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify every Studio shard passed
+        env:
+          ACTIONS_READ_TOKEN: ${{ github.token }}
+          STUDIO_MATRIX_RESULT: ${{ needs.studio_shards.result }}
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SCOPE_CODE: ${{ needs.scope.outputs.code }}
+        run: python tools/ci/verify_native_required.py --studio
   desktop:
+    needs: scope
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
     name: desktop
     runs-on: ubuntu-latest
     timeout-minutes: 40
