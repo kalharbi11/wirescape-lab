@@ -5,6 +5,8 @@ export type ErrorCode = __ERROR_CODES__;
 __SCHEMA_TYPES__
 type Shape = Record<string, unknown>;
 const schema: Shape = __SCHEMA_JSON__ as Shape;
+// Approved by Fable Q8. The generator rejects every other pattern literal.
+const q8PrintableAsciiPattern = __PRINTABLE_ASCII_PATTERN__;
 
 const record = (x: unknown): x is Shape => typeof x === 'object' && x !== null && !Array.isArray(x);
 // JSON Schema equality is structural; object key order is immaterial, and
@@ -57,8 +59,17 @@ function matches(shape: Shape, value: unknown, depth: number): boolean {
     if (typeof shape.maximum === 'number' && value > shape.maximum) return false;
   }
   if (typeof value === 'string') {
+    // Generic JSON Schema lengths count Unicode code points.
     if (typeof shape.minLength === 'number' && [...value].length < shape.minLength) return false;
     if (typeof shape.maxLength === 'number' && [...value].length > shape.maxLength) return false;
+    if (shape.pattern !== undefined) {
+      if (shape.pattern !== q8PrintableAsciiPattern) return false;
+      // Q8's one approved pattern is equivalent to printable ASCII bytes.
+      // Never evaluate arbitrary regular expressions here.
+      if (new TextEncoder().encode(value).some(byte => byte < 0x20 || byte > 0x7e)) return false;
+    }
+  } else if (shape.pattern !== undefined) {
+    return false;
   }
   if (Array.isArray(value)) {
     if (typeof shape.minItems === 'number' && value.length < shape.minItems) return false;
