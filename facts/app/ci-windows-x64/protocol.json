@@ -2,57 +2,57 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "connect": {
-      "max_ms": 6.3547,
+      "max_ms": 5.6336,
       "n": 100,
-      "p50_ms": 5.49,
-      "p95_ms": 5.5936,
-      "p99_ms": 6.2387
+      "p50_ms": 5.503,
+      "p95_ms": 5.6025,
+      "p99_ms": 5.624
     },
     "date_et": "2026-11-16",
     "disconnect": {
-      "max_ms": 5.7096,
+      "max_ms": 5.7402,
       "n": 100,
-      "p50_ms": 5.4754,
-      "p95_ms": 5.5772,
-      "p99_ms": 5.6957
+      "p50_ms": 5.4557,
+      "p95_ms": 5.5603,
+      "p99_ms": 5.5987
     },
-    "hello_ms": 12.9763,
+    "hello_ms": 17.8766,
     "loadGraph": [
       {
         "code": null,
-        "ms": 22.1673,
+        "ms": 21.7354,
         "ok": true,
         "path": "native/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 25.0278,
+        "ms": 27.0619,
         "ok": true,
         "path": "native/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 26.9892,
+        "ms": 25.5881,
         "ok": true,
         "path": "native/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 25.2635,
+        "ms": 25.0534,
         "ok": true,
         "path": "native/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 27.1629,
+        "ms": 27.304,
         "ok": true,
         "path": "native/examples/class_demo_3_macro.json"
       },
       {
         "code": "invalid",
-        "ms": 0.3793,
+        "ms": 0.4744,
         "ok": false,
         "path": "native/examples/Six_Essentials_Demo.json"
       }
@@ -65,15 +65,15 @@
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.2139,
+      "max_ms": 0.2571,
       "n": 1000,
-      "p50_ms": 0.108,
-      "p95_ms": 0.1414,
-      "p99_ms": 0.1647
+      "p50_ms": 0.1398,
+      "p95_ms": 0.1833,
+      "p99_ms": 0.2191
     }
   },
   "provenance": {
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "date_et": "2026-11-16",
     "machine": {
       "arch": "arm64",
@@ -21,48 +21,48 @@
       },
       {
         "action": "cable",
-        "frames": 62,
-        "max_ms": 50,
+        "frames": 65,
+        "max_ms": 66.60000000000014,
         "modules": 50,
         "p50_ms": 16.700000000000045,
-        "p95_ms": 16.800000000000182
+        "p95_ms": 33.299999999999955
       },
       {
         "action": "knob",
-        "frames": 67,
-        "max_ms": 50,
+        "frames": 69,
+        "max_ms": 16.799999999999955,
         "modules": 100,
         "p50_ms": 16.699999999999818,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 71,
-        "max_ms": 116.59999999999991,
+        "frames": 76,
+        "max_ms": 133.4000000000001,
         "modules": 100,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 50.09999999999991
-      },
-      {
-        "action": "knob",
-        "frames": 71,
-        "max_ms": 66.59999999999991,
-        "modules": 200,
         "p50_ms": 16.699999999999818,
         "p95_ms": 33.40000000000009
       },
       {
-        "action": "cable",
-        "frames": 88,
-        "max_ms": 200,
+        "action": "knob",
+        "frames": 71,
+        "max_ms": 66.70000000000027,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.69999999999982
+        "p95_ms": 50.09999999999991
+      },
+      {
+        "action": "cable",
+        "frames": 132,
+        "max_ms": 233.30000000000018,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 83.30000000000018
       }
     ]
   },
   "provenance": {
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

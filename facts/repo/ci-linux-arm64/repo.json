@@ -5,7 +5,7 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "complexity": {
       "functions": 3818,
       "lizard_version": "not exposed"
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 564
+      "files": 569
     },
     "long_lines": {
       "files": 259,
@@ -62,10 +62,10 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1200
+    "source_files_tracked": 1276
   },
   "provenance": {
-    "commit": "cacf9ea1bd9b2e36499c7c1500dcb4c6e7fa41f7",
+    "commit": "64c1c6b466ffb2d135c5b95dc72923712d815996",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
