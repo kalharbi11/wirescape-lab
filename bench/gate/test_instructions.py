@@ -65,7 +65,9 @@ class ModuleEvidenceTests(unittest.TestCase):
     def test_missing_malformed_oversized_and_duplicate_lines_rejected(self):
         bad = ("", "  ", "not module JSON",
                "module_cpu_probe {oops}", "module_cpu_probe {}",
-               evidence(12) + evidence(12), "x" * 4097)
+               evidence(12) + evidence(12), "x" * 4097,
+               evidence(12).replace('"faults": 0', '"faults": 24, "faults": 0'),
+               evidence(12).replace('"faults": 0', '"faults": NaN'))
         expected = {**PROBE, "blocks": 12, "seconds": 12 * FRAMES / RATE}
         for stdout in bad:
             with self.subTest(stdout=repr(stdout[:35])):
