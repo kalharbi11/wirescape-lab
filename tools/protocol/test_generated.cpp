@@ -2,6 +2,7 @@
 // Standalone generated-header compilation and validation; not wired to runtime.
 #include "native/sidecar/generated/protocol_v0.hpp"
 #include <cassert>
+#include <fstream>
 #include <iostream>
 
 int main() {
@@ -34,22 +35,30 @@ int main() {
     assert(validate(Json{{"v", 0}, {"re", "x"}, {"ok", true}, {"gen", "0"}}));
     assert(!validate(Json{{"v", 0}, {"id", "x"}, {"type", "noteOn"}}));
 
-    // JSON Schema 2020-12 lengths count Unicode scalar values, not UTF-8 bytes.
-    // The actual sidecar separately requires ASCII request IDs <= 64 bytes;
-    // this independent schema test must not add a sidecar waiver or change it.
-    for (const std::string& scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
-        for (std::size_t count : {std::size_t(33), std::size_t(64)}) {
-            std::string unicode_id;
-            for (std::size_t i = 0; i < count; ++i) unicode_id += scalar;
-            assert(unicode_id.size() > 64);
-            assert(validate(Json{{"v", 0}, {"id", unicode_id}, {"type", "panic"}}));
+    // Single source of truth for Python/TS/C++ and real sidecar Q8 verdicts.
+    std::ifstream source("tools/protocol/request_id_cases.json");
+    assert(source.good());
+    Json cases = Json::parse(source);
+    assert(cases.is_array() && cases.size() >= 10);
+    for (const auto &item : cases) {
+        const Json command = {{"v", 0}, {"id", item.at("id")}, {"type", "panic"}};
+        const bool expected = item.at("valid").get<bool>();
+        if (validate(command) != expected) {
+            std::cerr << "Q8 C++ request ID mismatch: " << item.at("name") << "\\n";
+            return 1;
         }
-        std::string overlong;
-        for (int i = 0; i < 65; ++i) overlong += scalar;
-        assert(!validate(Json{{"v", 0}, {"id", overlong}, {"type", "panic"}}));
     }
-    assert(validate(Json{{"v", 0}, {"id", std::string(64, 'a')}, {"type", "panic"}}));
-    assert(!validate(Json{{"v", 0}, {"id", std::string(65, 'a')}, {"type", "panic"}}));
+    // Generic non-request-ID strings retain Unicode-codepoint semantics.
+    for (const std::string& scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
+        std::string device;
+        for (int i = 0; i < 128; ++i) device += scalar;
+        assert(device.size() > 256);
+        assert(validate(Json{{"v", 0}, {"id", "ascii"},
+                             {"type", "selectAudioDevice"}, {"deviceId", device}}));
+        for (int i = 128; i < 257; ++i) device += scalar;
+        assert(!validate(Json{{"v", 0}, {"id", "ascii"},
+                              {"type", "selectAudioDevice"}, {"deviceId", device}}));
+    }
 
     std::cout << "unwired generated C++ protocol v0 validator passed\n";
 }
