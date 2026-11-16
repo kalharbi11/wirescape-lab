@@ -133,6 +133,7 @@ native/sidecar/protocol_tests.py,0,0,4,0
 native/sidecar/protocol_unit_tests.cpp,1,1,0,0
 native/sidecar/session.cpp,2,0,2,1
 native/sidecar/session.h,1,0,0,0
+native/sidecar/testdata/S0_PROVENANCE.md,0,0,0,1
 native/src/engine.cpp,71,0,0,0
 native/tests/engine_tests.cpp,88,0,0,0
 native/tests/golden_render.cpp,1,2,0,0

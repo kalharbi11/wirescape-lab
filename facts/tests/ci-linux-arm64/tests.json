@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
+    "commit": "1918cf75c1223b4a7b83b640b64fce595016468f",
     "date_et": "2026-11-16",
     "machine": {
       "architecture": "aarch64",
@@ -11,15 +11,15 @@
     },
     "suites": {
       "ctest": {
-        "count": 115,
+        "count": 117,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.116024,
+          "seconds": 0.119347,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 28.00445,
+          "seconds": 31.266365,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.798372,
+          "seconds": 0.833521,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 95.851014,
+          "seconds": 96.275987,
           "status": "passed"
         }
       },
@@ -40,26 +40,26 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.467067,
+          "seconds": 1.289354,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 441.99131,
+          "seconds": 456.575876,
           "status": "passed"
         }
       },
       "protocol": {
-        "count": 4,
+        "count": 6,
         "method": "CTest test names containing sidecar or protocol",
         "time": "included in ctest suite"
       },
       "unittest": {
-        "count": 222,
+        "count": 236,
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 18.762535,
+          "seconds": 19.407609,
           "status": "passed"
         }
       },
@@ -71,7 +71,7 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
+    "commit": "1918cf75c1223b4a7b83b640b64fce595016468f",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

@@ -1,6 +1,6 @@
 path,top_level,section,language,code,comment,blank
 apps\studio\src\app\App.ts,apps,product,TypeScript,1742,79,115
-native\sidecar\session.cpp,native,product,C++,1319,76,5
+native\sidecar\session.cpp,native,product,C++,1352,83,5
 native\engine2\engine2.cpp,native,product,C++,1222,29,20
 docs\context\future_modules\guttur\package\reference\guttur-worklet.js,docs,product,JavaScript,1158,104,30
 apps\studio\src\canvas\PatchCanvas.ts,apps,product,TypeScript,1068,91,95
@@ -8,8 +8,8 @@ apps\studio\ui\wirescape-ui-kit.html,apps,product,HTML,1050,1,10
 native\document\groove_runtime_tests.cpp,native,product,C++,1013,33,13
 apps\studio\src\panels\widgets\GroovePane.ts,apps,product,TypeScript,1010,52,36
 apps\studio\ui\groove-r1-concepts.html,apps,product,HTML,932,1,43
+native\sidecar\audio_recovery_tests.cpp,native,product,C++,838,38,6
 native\sidecar\protocol_tests.py,native,product,Python,838,80,49
-native\sidecar\audio_recovery_tests.cpp,native,product,C++,800,36,6
 native\modules2\spectral\tests.cpp,native,product,C++,766,34,34
 apps\studio\ui\groove-r3-chords.html,apps,product,HTML,721,1,25
 apps\studio\src\engine\FakeEngine.ts,apps,product,TypeScript,699,57,80
@@ -29,14 +29,14 @@ native\modules2\spectral\dsp.h,native,product,C/C++ Header,519,33,12
 native\sdk\examples\step_sequencer\tests.cpp,native,product,C++,493,21,36
 apps\studio\src\engine\RealEngine.ts,apps,product,TypeScript,492,20,16
 native\modules2\macro_oscillator\tests.cpp,native,product,C++,476,12,2
+bench\device\run.py,bench,tools,Python,456,10,34
 native\sidecar\protocol_unit_tests.cpp,native,product,C++,454,26,13
-bench\device\run.py,bench,tools,Python,452,10,32
 native\sidecar\golden_tests.py,native,product,Python,450,21,33
 native\modules2\quantizer\tests.cpp,native,product,C++,448,11,20
 native\modules2\delay\tests.cpp,native,product,C++,444,27,8
 apps\desktop\tests\shell.spec.cjs,apps,tests,JavaScript,434,4,7
+native\document\runtime_module_config.h,native,product,C/C++ Header,427,19,4
 native\web\web_engine.cpp,native,product,C++,413,13,6
-native\document\runtime_module_config.h,native,product,C/C++ Header,409,14,3
 bench\device\tests\test_latency.py,bench,tests,Python,407,19,44
 bench\device\latency_r1.py,bench,tools,Python,400,36,36
 bench\device\latency.py,bench,tools,Python,389,20,28
@@ -50,6 +50,7 @@ apps\studio\src\app\OscEditor.ts,apps,product,TypeScript,350,6,11
 native\tests\engine_tests.cpp,native,tests,C++,350,0,1
 apps\studio\tests\mock-bridge\midi-learn.spec.ts,apps,tests,TypeScript,348,6,27
 tools\foundation\helpers.py,tools,tools,Python,348,13,38
+native\document\runtime_module_config_tests.cpp,native,product,C++,345,12,3
 apps\studio\ui\groove-s1-study.html,apps,product,HTML,343,1,5
 native\io\audio\portaudio_service.cpp,native,product,C++,333,11,1
 tools\foundation\tests\test_accept.py,tools,tests,Python,325,3,39
@@ -65,7 +66,6 @@ apps\studio\src\patch\PatchDoc.ts,apps,product,TypeScript,288,32,38
 tools\ci\test_static_checks.py,tools,tests,Python,287,3,33
 apps\studio\src\app\curated.ts,apps,product,TypeScript,286,4,2
 bench\device\analyse.py,bench,tools,Python,284,6,26
-native\document\runtime_module_config_tests.cpp,native,product,C++,284,2,3
 native\control\midi_host_tests.cpp,native,product,C++,282,6,0
 native\sidecar\protocol.cpp,native,product,C++,282,6,2
 apps\desktop\tests\app-e2e.spec.cjs,apps,tests,JavaScript,281,14,15
@@ -160,9 +160,11 @@ native\modules2\osc_in\tests.cpp,native,product,C++,177,7,0
 apps\studio\src\panels\layouts.ts,apps,product,TypeScript,176,44,26
 native\io\osc\codec.h,native,product,C/C++ Header,176,7,0
 bench\device\model.py,bench,tools,Python,175,6,19
+tools\foundation\tests\test_verify_native_required.py,tools,tests,Python,174,2,24
 bench\offline\ui_profile_parse.cjs,bench,tools,JavaScript,173,8,1
 tools\foundation\tests\test_pi_app_smoke.py,tools,tests,Python,173,5,16
 apps\studio\tests\osc-range.spec.ts,apps,tests,TypeScript,172,1,10
+native\sidecar\capture_tests.py,native,product,Python,172,21,25
 native\control\provider_bridge.cpp,native,product,C++,171,3,11
 native\io\midi\midi_service.cpp,native,product,C++,171,6,1
 tools\foundation\tests\test_pi_preflight.py,tools,tests,Python,170,3,21
@@ -204,6 +206,7 @@ native\control\midi_host.cpp,native,product,C++,139,3,1
 native\io\osc\pattern.h,native,product,C/C++ Header,137,2,1
 apps\studio\tests\patch-browser.spec.ts,apps,tests,TypeScript,136,4,7
 native\modules2\monitor\dsp.h,native,product,C/C++ Header,134,1,0
+native\sidecar\null_sink_capture.h,native,product,C/C++ Header,134,28,9
 apps\studio\src\groove\chords.ts,apps,product,TypeScript,132,33,14
 apps\studio\src\app\oscCapture.ts,apps,product,TypeScript,131,7,6
 apps\studio\src\engine\EngineClient.ts,apps,product,TypeScript,131,61,16
@@ -219,6 +222,7 @@ bench\compare\analyse.py,bench,tools,Python,127,13,17
 native\modules2\macro_oscillator\patches\compare_reference.cmake,native,product,CMake,127,3,3
 apps\studio\tests\osc-monitor.spec.ts,apps,tests,TypeScript,125,2,11
 bench\compare\tests\test_compare.py,bench,tests,Python,125,2,21
+native\sidecar\session.h,native,product,C/C++ Header,125,11,3
 tools\pi\demo.sh,tools,tools,Bourne Shell,124,3,9
 bench\offline\electron_startup.cjs,bench,tools,JavaScript,123,7,0
 docs\context\future_modules\guttur\package\dsp.h,docs,product,C/C++ Header,123,5,0
@@ -229,7 +233,6 @@ apps\studio\public\web\ws-processor.js,apps,product,JavaScript,121,8,3
 native\modules\adsr\module.cpp,native,product,C++,121,1,0
 apps\studio\tests-web\web-audio-parity.spec.ts,apps,tests,TypeScript,120,8,8
 apps\studio\ui\groove-s1-study.css,apps,product,CSS,120,2,0
-native\sidecar\session.h,native,product,C/C++ Header,120,11,3
 tools\foundation\tests\test_patch_library.py,tools,tests,Python,120,3,19
 native\modules2\groove\config.h,native,product,C/C++ Header,119,5,4
 apps\studio\tests\mobile-gestures.spec.ts,apps,tests,TypeScript,118,6,11
@@ -291,6 +294,7 @@ native\io\audio\fake_portaudio_stream_tests.cpp,native,product,C++,91,3,0
 native\io\net\graph_tests.cpp,native,product,C++,91,2,0
 native\tools\render\library_smoke.py,native,product,Python,91,8,11
 native\voice\allocator.h,native,product,C/C++ Header,91,5,14
+tools\ci\verify_native_required.py,tools,tools,Python,91,4,14
 native\modules\ladder\module.cpp,native,product,C++,90,4,1
 native\modules\vcf\module.cpp,native,product,C++,90,4,1
 native\modules2\osc_out\dsp.h,native,product,C/C++ Header,90,3,4
@@ -320,6 +324,7 @@ native\modules\clock\module.cpp,native,product,C++,75,1,1
 native\io\midi\midi_service.h,native,product,C/C++ Header,74,6,0
 tools\pi\update-and-build.sh,tools,tools,Bourne Shell,74,5,9
 apps\studio\src\canvas\Viewport.ts,apps,product,TypeScript,73,12,16
+native\sidecar\snapshot_tests.cpp,native,product,C++,72,11,5
 tools\bench\abi2_cost.py,tools,tools,Python,72,2,9
 apps\desktop\tests\windows-setup.spec.cjs,apps,tests,JavaScript,71,3,1
 apps\studio\src\web\share.ts,apps,product,TypeScript,71,10,6
@@ -448,6 +453,7 @@ tools\foundation\tests\test_acceptance_preflight.py,tools,tests,Python,35,1,13
 tools\foundation\tests\test_osc_out_receiver.py,tools,tests,Python,35,1,13
 apps\studio\src\panels\widgets\ChannelMeters.ts,apps,product,TypeScript,34,2,3
 apps\studio\tests-node\patch-library.test.mjs,apps,product,JavaScript,34,1,3
+bench\device\tests\test_midi_ports.py,bench,tests,Python,34,2,8
 tools\foundation\tests\test_pi_autostart.py,tools,tests,Python,34,3,3
 apps\studio\playwright.config.ts,apps,product,TypeScript,33,5,2
 apps\studio\tools\pi-ui-preflight.sh,apps,product,Bourne Shell,33,4,0
@@ -579,4 +585,4 @@ native\tests2\guide_ringmod\module.cpp,native,tests,C++,2,1,1
 native\tests2\notes_module.cpp,native,tests,C++,2,1,0
 native\tests2\rows_module.cpp,native,tests,C++,2,1,0
 tools\foundation\__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,84948,4780,4877
+SUM,SUM,product,unknown,85784,4872,4965

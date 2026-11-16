@@ -311,6 +311,11 @@ sidecar,native/sidecar/devices.h,protocol.h
 sidecar,native/sidecar/main.cpp,csignal
 sidecar,native/sidecar/main.cpp,iostream
 sidecar,native/sidecar/main.cpp,session.h
+sidecar,native/sidecar/null_sink_capture.h,atomic
+sidecar,native/sidecar/null_sink_capture.h,cstdint
+sidecar,native/sidecar/null_sink_capture.h,cstdio
+sidecar,native/sidecar/null_sink_capture.h,cstring
+sidecar,native/sidecar/null_sink_capture.h,string
 sidecar,native/sidecar/null_sink_wait.h,chrono
 sidecar,native/sidecar/null_sink_wait.h,cstdint
 sidecar,native/sidecar/protocol.cpp,algorithm
@@ -372,6 +377,14 @@ sidecar,native/sidecar/session.h,array
 sidecar,native/sidecar/session.h,chrono
 sidecar,native/sidecar/session.h,devices.h
 sidecar,native/sidecar/session.h,midi_host.h
+sidecar,native/sidecar/session.h,null_sink_capture.h
 sidecar,native/sidecar/session.h,optional
 sidecar,native/sidecar/session.h,osc_host.h
 sidecar,native/sidecar/session.h,set
+sidecar,native/sidecar/snapshot_tests.cpp,filesystem
+sidecar,native/sidecar/snapshot_tests.cpp,fstream
+sidecar,native/sidecar/snapshot_tests.cpp,iostream
+sidecar,native/sidecar/snapshot_tests.cpp,iterator
+sidecar,native/sidecar/snapshot_tests.cpp,session.h
+sidecar,native/sidecar/snapshot_tests.cpp,stdexcept
+sidecar,native/sidecar/snapshot_tests.cpp,string

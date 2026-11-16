@@ -1,13 +1,13 @@
 path,name,start_line,end_line,length,nloc,cyclomatic_complexity
-native/document/runtime_module_config.h,"wirescape::document::runtime_module_config_impl( const std :: string & type , const nlohmann :: json & value , uint32_t instance_id , std :: vector<std::string> * ignored_keys)",29,403,375,367,223
+native/document/runtime_module_config.h,"wirescape::document::runtime_module_config_impl( const std :: string & type , const nlohmann :: json & value , uint32_t instance_id , std :: vector<std::string> * ignored_keys)",53,427,375,366,223
+native/sidecar/audio_recovery_tests.cpp,main(),285,881,597,571,136
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::Impl::process_node( Node & n , uint32_t start , uint32_t frames)",554,731,178,173,135
-native/sidecar/audio_recovery_tests.cpp,main(),249,841,593,567,133
 native/document/groove_runtime_tests.cpp,test_v2_config_and_conditions( AppEngine * cat),726,991,266,252,89
 native/modules2/groove/dsp.h,groove::Sequencer::process( ws :: Block & b),393,566,174,164,84
 native/modules2/midi_to_cv/dsp.h,wirescape::midi::MidiToCv::process( ws :: Block & b),54,177,124,122,77
 apps/studio/src/engine/RealEngine.ts,receive ( message ),217,351,135,129,75
 native/cli/play.cpp,"wirescape_play( int argc , char ** argv)",28,148,121,114,74
-native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),849,1168,320,310,72
+native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),878,1197,320,310,72
 native/engine2/engine2.cpp,wirescape::engine2::Engine::Impl::topology(),369,424,56,55,72
 native/engine2/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,217,159,157,71
 native/document/runtime_patch.cpp,"wirescape::document::load_runtime_patch( const std :: string & bytes , AppEngine * catalog , const ws_engine_config & config , std :: string & error , const std :: vector<engine2::Tap> * telemetry_taps)",29,95,67,67,70
