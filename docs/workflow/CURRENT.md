@@ -71,7 +71,7 @@ Whichever of #105 and #116 merges second must update the applyGraph schema corpu
   S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
 - **Builders:** one task each, result comment on the PR, one push per round.
 - **Contract-review (`review #<PR>` to a Claude session):** E1a **#116 now**; later M1 S3, S5b, S6.
-- **Fable:** M0 acceptance needs T0.5, T0.9, T0.10 and T0.13b. Record the owner's Q5 item 7 answer (comment on #107, 2026-11-16): no owner patches, none to be added, so the ID migration and v1 conversion in Q5 points 4 and 6 are not needed. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
+- **Fable:** M0 acceptance needs T0.5, T0.9, T0.10 and T0.13b. The owner's Q5 item 7 answer (no owner patches) is recorded as Q5 point 8. Next: `fable: run accept M0` once T0.5, T0.9, T0.10 and T0.13a/b merge.
   PV2 waits on M1 S5b; T1.6/T1.7 on S5b; T1.8 on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). Q5 point 7 answered: no owner patches.
 
