@@ -5,6 +5,13 @@ Updated 2026-11-16 (New York). This is operational context, not a milestone cont
 The owner asked for autonomous delivery, existing ChatGPT builder dispatch, focused subagents,
 cloud build support and scheduled reviews, with verification that dispatched work actually starts.
 
+## Owner priority now
+
+CI/CLI test turnaround is first. CI1 r1 is accepted on live main; CI1.1 issue #95 is assigned to
+builder3 after #91 Result entered review. It exclusively owns ci.yml. Read its K1–K5 invariants;
+no feature dispatch ahead of this packet, no test removal, retries, gate weakening or cache work.
+The approximate five-minute target is an estimate. Result-or-blocked checkpoint: 07:00 ET.
+
 ## Start here
 1. Read live main AGENTS.md, docs/context/CODEX_LEAD.md, CURRENT.md, QUESTIONS.md and the accepted
    contracts named by CURRENT. The local device-results checkout may be stale: do not change its
@@ -46,57 +53,66 @@ Two correction rounds maximum, then QUESTIONS; keep unaffected work moving. Buil
 Follow each accepted task's lead/contract-review/Fable merge authority, not its historical A/B/C alone.
 
 ## Delivery snapshot (verify live)
-- Accepted contracts: M0 r2, M1 r2, M2 r2. PR87 scope/naming changes are now merged.
-- Completed: PR63=2a02874, PR83=389ed265, PR69=cacf9ea, PR88=e0a1185d.
-- B1: #67/70 frozen ABI1 data conversion. 983 cases staged; 18 Windows-specific module cases
-  must stay distinct. Completion still needs committed reader data, ABI1 link removal and exact-head evidence.
-- B2: #52/58 correction round1 at 9b8574854d6c90313b4036a8801862ed57d5dd08. Validate probe JSON
-  faults/missing/malformed evidence despite exit0. Mocked tests pass; actual new profiling evidence pending.
-  Runs 43835691748 instruction and 43835691687 Lab. Preserve 97 rows, 2 accepted Chord exceptions,
-  original baselines/provenance, advisory gate and +3% threshold.
-- B3: P2/#79 edit paths active. P1/#89 reviewed; source389ed265, 1317 expanded anchors/1245 excerpts
-  checked by cloud. Lead added six anchors as f94b324e9b546037094ab9097133c824aa3ace86: fresh CI required.
-- B4: #59 latency correction round1 active; S0/#84 assigned but paused until corrected59 returns review.
-  Centered-envelope plus extra half-window offset advanced clean onset 41/44/90 samples at44.1/48/96k.
-  Require independent known-start, phase/noise and timing-interval tests. No physical tests.
-- Device73 metadata corrected to fa7c297b961fd78fa74060c5a5c318ec034c0003: 7 report headers,
-  28 adjacent license sidecars, README table placement. Root checked zero raw artifacts changed.
-  Await fresh CI then merge73 before fixing75 (5 headers/25 sidecars/table integration, raw bytes preserved).
-- Queued: inventories80/81; S0/#84 paused; E0/#85 and PV1/#86 queued. Reconcile with M2r2 ordering:
-  E0 and sidecar-related work merge before M1S5a or wait until S5b. No task dispatched merely by filing it.
-- T0.5/#51/60 remains queued for R2 work. T0.13a/b still need explicit implementation packets.
+
+Accepted: M0 r2, M1 r2, M2 r2, CI1 r1. Questions Q1–Q6 are answered on main.
+See CURRENT for live assignments and accepted sidecar ordering. Existing PR result comments and
+exact current-head runs are authoritative over this snapshot.
+- CI1/#95: builder3's first-priority single-writer packet, after P2/#91 returned Result.
+- B1 #67/70: head72df7c5, converted983 frozen cases including18 Windows cases, Lab/Golden failed;
+  builder1 correcting failures under R5, #60 remains queued.
+- B2 #52/58: strict JSON correction9b857485, Lab43835691687 and instruction43835691748 green;
+  verifying actual95numeric+2Chord rows/provenance. No threshold/baseline weakening.
+- B3 P1/#89 merged3ae712b after exact-head43837338789 and recorded semantic/citation review.
+  P2/#91 b0fdff5 has green43838139339; lead owns content review, builder3 does not edit it.
+- B4 #59 onset fix0c465529 has green Lab43837270217/Device43837270229, independently reviewed
+  by Worker2; S0/#84 remains paused until corrected review. No physical latency claimed.
+- #73 merged e559634 after exact-head CI and recorded factual/privacy/raw-blob review.
+  #75 needs main integration,5 report headers,25 license sidecars and README table integration,
+  with all raw bytes preserved. #50 review remains.
+- Completed earlier:63=2a02874,83=389ed265,69=cacf9ea,88=e0a1185d.
+- Queued:80/81 inventories,84 paused,85 E0/86 PV1, then explicit T0.13a/b packets. CI1 first.
+  E0 and sidecar work merge before M1 S5a or wait until S5b. No arbitrary queue pickup.
 
 ## Cloud support
-Fresh isolated baseline cacf9ea Release build passed 468 steps and 114/114 devices-off CTests.
-Five fresh codeload dependency archives matched pinned SHA256. Toolchain: GCC14.2, Python3.12,
-CMake4.2.3, Ninja1.13.0. This proves this Codex cloud environment, not Fable's separate Claude environment.
-The cloud worker retains its isolated baseline checkout/build cache and support logs. Ask it for exact
-current paths; do not commit machine-specific paths or copy builds from the older reference checkout.
-Supported commands used: git_deps.py, headless CMake UI/Osc-fuzz OFF, tools/dev.py build --headless/test
-with parallelism2 and existing toolchain PATH. No package install/settings changes were made.
-Cloud finished citation validation and is collecting bounded null-sink S0 protocol transcripts under
-build/support. It is support, not a fifth product writer; no tracked edits unless explicitly reassigned.
+
+The current support destination is Worker2 (ID in routing table), hostdurable, Codex backing.
+Actual inventory: clean reference checkout at44da1e4, no lab checkout; GCC14.2/Python3.12.14 and
+CMake4.2.3/Ninja1.13 in an existing tool venv. Its reference build cache is not lab evidence.
+It has GitHub reads but cannot message back; local lead reads its result. Do not assume shared
+artifacts/cache with the old worker. PR59 read-only support is pinned to0c465529; no tracked edits,
+native builds, package installs, settings changes, devices or LAN are authorized by that package.
+
+Old worker history/cache are retained but receive no new tasks. Recorded old-worker baseline
+cacf9ea build:468 steps,114/114 devices-off tests,5 pinned dependency hashes verified. This proves
+that old Codex environment, not Worker2 or Fable's Claude environment. Its S0 capture task finished;
+the catalogue hash matched two processes, status/ACK random tokens and telemetry times differed.
+Those are support observations, not implemented S0 tests or normalized snapshots.
 
 ## Timers, usage, and replacement-lead handoff
-Automation ID: wlab-lead-review. Existing target thread: 01a1e370-1e2a-79c0-a439-f0ac099e433a.
-Normal cadence after reset: **45 minutes** (owner steering, 2026-11-16). At09:12UTC five-hour usage reached90%; next check temporarily scheduled
-04:57 New York (09:57UTC), after reported09:55:41UTC reset. Recheck actual usage then use 45-minute intervals.
-Do not redeem reset credits or buy credits automatically. Weekly quota is shared too.
-Use brief changed-state checks; no CI/model waiting loops or duplicate expensive reruns.
-When a new lead takes over: finish this chat's active turn, inspect automation and builders, then use
-automation_update to retarget this existing heartbeat to the new local thread (or stop old before creating
-one replacement). Preserve prompt/cadence/status intentionally. Do not leave two lead schedules active.
-A new chat must verify its own messaging tools; access does not follow from its name.
-Keep the computer on and desktop app running for local scheduled work.
+
+Exactly one lead owns dispatch. Current local lead: **WLAB | LEAD | delivery 2**, thread
+`01a1e3ca-c0d2-7d80-b1bc-6bcb93692b9a`, hostlocal, verified by actual app tools.
+The existing automation **wlab-lead-review** was read back ACTIVE, targeting this thread every
+**45 minutes**. Previous lead01a1e370-1e2a-79c0-a439-f0ac099e433a stopped dispatch.
+Do not create a duplicate schedule. Local scheduled work requires the computer/app running.
+
+At takeover the usage tool reported five-hour4percent used, weekly84percent used. These shared
+account windows do not reset when chats rotate. Check actual usage before substantial work;
+no reset-credit redemption or credit purchase. Missing context percentage is unavailable, not zero.
+Keep changed-state checks brief, no model waiting loops or duplicate expensive CI runs.
+Optional15-minute CI-only timers need a verified supported watcher, one owner and stop condition.
+At any future handoff, save checkpoint/heads/results, verify new host/tools and retarget this
+same existing heartbeat; old lead stops. Never claim successful scheduling from an unconfirmed call.
 
 ## Fable timing
-QUESTIONS has Q4 (protocol refusal/convergence behavior) and Q5 (owner bundled patch/preset reset
-decision and protected constraints). Run **fable: run questions** at the next available Fable session:
-those decisions matter for future contracts, not a reason to stop unaffected current work.
-Use explicit Fable design work on the next needed contract while Codex builds. Do not schedule
-milestone acceptance just because time elapsed: run **fable: run accept M0** after the lead publishes
-the complete criterion-to-evidence acceptance report. Required Claude contract reviews are separate
-base/head/invariant-pinned requests; queue them when those PRs are ready.
+
+Q1–Q6 have been answered. Q4 busy retry/convergence and Q5 bundled reset decisions are in
+QUESTIONS; Q6 is accepted CI1. No new question is implied by old startup snapshots.
+Keep M0/M1/M2 and golden24-identical criteria unchanged. The owner's own patches still need
+the owner's disposition, as CURRENT records. CI1 implementation is the current first priority.
+Run fable:run questions only for newly unresolved questions. Milestone acceptance follows a complete
+criterion-to-evidence report, not elapsed time. Required Claude contract reviews remain separate
+base/head/invariant-pinned requests; never merge merge:fable work by assumption.
 
 ## Minimal owner prompt for a replacement local chat
 > lead: run. Read docs/workflow/LEAD_STARTUP.md and live CURRENT/contracts. You are the replacement
@@ -206,3 +222,15 @@ heartbeat was retargeted to that thread with a45-minute interval. The previous l
 `01a1e370-1e2a-79c0-a439-f0ac099e433a` stops dispatch after this transfer. Do not create another
 lead heartbeat. Worker2 was sent its cloud-support role/introduction; actual startup/capabilities
 must still be verified separately. Latest guide edits require current-headCI before PR92merge.
+
+
+## Replacement lead verification checkpoint
+
+The replacement read live main policies/contracts/questions, verified the transferred heartbeat and
+local host/tools, and retained the local device checkout/captures. Regular Chat creation/mode
+verification is unavailable in the current supported thread schema: create_thread offers WorkCloud
+only for ChatGPT and list/read return backing kind but no Chat/Work mode field. Do not automate the
+ChatGPT desktop UI or substitute Work/Codex. Existing builders remain in place while this gap and
+open ownership persist. Record any later supported regular-Chat route before rotation.
+
+Signed: gpt-lead, 2026-11-16

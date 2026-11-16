@@ -41,6 +41,9 @@ T1.2, T1.3 and T1.4 so one builder can deliver them under contract `M1`.
    which native paths read v1 and that Studio migrates every bundled v1 patch without loss. Patch
    loading is a Fixed constraint. Until then stage 5 leaves v1 reading alone. This is the one part
    of T1.3 that is held.
+   *Note, 2026-11-16 (QUESTIONS Q5):* the owner allows bundled patches to be reset. The hold
+   stays through M1; after S6 removal needs only the fact list of native v1 readers and an
+   offline conversion of any owner patch in v1, not the bundled-migration proof.
 7. **Namespace and directory names stay** (`wirescape::engine2`, `native/engine2`) until stage 6.
 
 ## Stages
