@@ -46,7 +46,8 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const ws
    if(settings.contains("seed")){need(settings.at("seed").is_number_unsigned(),"Invalid seed");native.seed=settings.at("seed").get<uint64_t>();}
   }
   std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>engine(app_engine_create_config(&config,&native),app_engine_destroy);need(bool(engine),"Cannot create engine2");
-  for(uint32_t i=0;i<app_engine_module_count(catalog);++i)need(app_engine_register_module(engine.get(),app_engine_module(catalog,i))==WS_OK,"Cannot register module");
+  // Each AppEngine owns the same built-in native catalogue; no ABI1 copying.
+  (void)catalog;
   std::map<uint32_t,const ws_module_descriptor*> nodes;
   std::vector<std::string> ignored_osc_keys;
   for(const auto&m:modules){need(m.is_object(),"Invalid module");const uint32_t node=id(m.at("id"));need(!nodes.count(node),"Duplicate module ID");

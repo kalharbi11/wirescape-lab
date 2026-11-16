@@ -15,8 +15,6 @@ struct AppEngine {
   const ws2_descriptor* native=nullptr;ws_module_descriptor metadata{};
   std::vector<ws_port_descriptor> inputs,outputs;std::vector<ws_parameter_descriptor> params;
  };
- std::shared_ptr<ws_engine> legacy{nullptr,ws_engine_destroy};
- std::vector<std::shared_ptr<ws_engine>> library_owners;
  std::deque<Entry> entries;std::map<uint32_t,const Entry*> nodes;
  // Destroy the scheduler before the metadata and libraries its nodes borrow.
  wirescape::engine2::Engine engine;
@@ -33,7 +31,7 @@ struct AppEngine {
  std::atomic<uint64_t> master_fade_out_requested_ns{0};
  float master_gain = 1.0f, master_step = 1.0f;
  std::string error;
- explicit AppEngine(const ws_engine_config& c,const wirescape::engine2::Config* override=nullptr):legacy(ws_engine_create(&c),ws_engine_destroy),engine(override?*override:config(c)){
+ explicit AppEngine(const ws_engine_config& c,const wirescape::engine2::Config* override=nullptr):engine(override?*override:config(c)){
      // A linear 1.0 -> 0.0 edge completes in no more than 10 ms of samples.
      master_step = 1.0f / float(std::max(1.0, std::floor(c.sample_rate * 0.01)));
      engine.register_producer();
@@ -87,16 +85,6 @@ void app_engine_destroy(AppEngine*e){delete e;}
 uint32_t app_engine_abi_version(){return 2;}
 const char* app_engine_error(const AppEngine*e){return e->error.empty()?e->engine.error().c_str():e->error.c_str();}
 wirescape::engine2::Engine& app_engine_native(AppEngine*e){return e->engine;}
-int app_engine_register_module(AppEngine*e,const ws_module_descriptor*d){if(!d)return WS_INVALID;if(e->find(d->id))return WS_OK;e->entries.emplace_back();e->entries.back().metadata=*d;return WS_OK;}
-int app_engine_copy_modules(AppEngine*e,const AppEngine*source){
- if(e==source)return WS_OK;
- for(auto&entry:source->entries)if(app_engine_register_module(e,&entry.metadata)!=WS_OK)return WS_INVALID;
- // ABI1 descriptor/callback pointers live in loaded libraries, not in metadata.
- // A replacement graph must retain those libraries after its catalogue dies.
- e->library_owners.push_back(source->legacy);
- e->library_owners.insert(e->library_owners.end(),source->library_owners.begin(),source->library_owners.end());return WS_OK;
-}
-int app_engine_load_module(AppEngine*e,const char*path){int r=ws_engine_load_module(e->legacy.get(),path);if(r!=WS_OK)return r;for(uint32_t i=0;i<ws_engine_module_count(e->legacy.get());++i)app_engine_register_module(e,ws_engine_module(e->legacy.get(),i));return WS_OK;}
 uint32_t app_engine_module_count(const AppEngine*e){return static_cast<uint32_t>(e->entries.size());}
 const ws_module_descriptor* app_engine_module(const AppEngine*e,uint32_t i){return i<e->entries.size()?&e->entries[i].metadata:nullptr;}
 const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const char *module) {
@@ -105,7 +93,7 @@ const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const cha
     return entry ? entry->native : nullptr;
 }
 int app_engine_add_node(AppEngine*e,uint32_t id,const char*type){return app_engine_add_node_config(e,id,type,{});}
-int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS_NOT_FOUND;bool ok=d->native?e->engine.add_node(id,d->native,config):(config.empty()&&e->engine.add_abi1(id,&d->metadata));if(ok)e->nodes[id]=d;return ok?WS_OK:WS_GRAPH;}
+int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS_NOT_FOUND;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS_OK:WS_GRAPH;}
 int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS_OK:WS_GRAPH;}
 int app_engine_prepare(AppEngine*e,uint32_t n,uint32_t p){return e->engine.output(n,p,0)&&e->engine.prepare()?WS_OK:WS_GRAPH;}
 int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns) {
@@ -116,12 +104,6 @@ int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns
             const auto *entry = live->find(item.second->metadata.id);
             if (!entry || entry->native != item.second->native) {
                 live->error = "Module catalogue differs from live graph";
-                return WS_GRAPH;
-            }
-            // ABI1 nodes must borrow the stable live catalogue, never a retiring
-            // candidate's copied descriptor. Native descriptors are static.
-            if (!entry->native && !candidate->engine.rebind_abi1_descriptor(item.first, &entry->metadata)) {
-                live->error = "Cannot retain live module metadata";
                 return WS_GRAPH;
             }
             nodes.emplace(item.first, entry);

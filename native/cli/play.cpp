@@ -111,15 +111,6 @@ int wirescape_play(int argc,char**argv){
  ws_engine_config config{sizeof(config),double(rate),block,64,2048};
  wirescape::audio::EngineOwner catalog(app_engine_create(&config),app_engine_destroy);
  if(!catalog)throw std::runtime_error("Cannot create catalogue");
- if(std::filesystem::is_directory(directory))for(const auto&entry:std::filesystem::directory_iterator(directory)){
-  auto name=entry.path().filename().string();
-#ifdef _WIN32
-  bool module=name.rfind("ws_",0)==0&&entry.path().extension()==".dll";
-#else
-  bool module=name.rfind("libws_",0)==0&&entry.path().extension()==".so";
-#endif
-  if(module&&app_engine_load_module(catalog.get(),entry.path().string().c_str())!=WS_OK)throw std::runtime_error("Cannot load ABI1 module: "+name);
- }
  std::string error;wirescape::audio::EngineOwner engine(wirescape::document::load_runtime_patch(bytes,catalog.get(),config,error),app_engine_destroy);
  if(!engine)throw std::runtime_error(error);
  wirescape::midi::Host midi(confirmMidi);
