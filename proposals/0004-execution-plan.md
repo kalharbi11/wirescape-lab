@@ -8,7 +8,7 @@ lead works from.
 ## Name
 The rebuilt engine is **Wire** (the owner's name, 2026-11-15; changeable until
 task T1.4 lands). "Wirescape" stays the product. Use: *Wire engine* (`wire/engine`), *Wire modules*,
-*Wire module API* (what `0003` calls "module API v3"), header `wire/module.h`, tool `wirescape module …`.
+*Wire module API* (formerly "module API v3"; `0003`), header `wire/module.h`, tool `wirescape module …`.
 ABI1, "ABI 2", `engine2`, `modules2` and Qt are the experiments that came before.
 
 ## Who may do what
