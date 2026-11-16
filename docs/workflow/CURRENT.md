@@ -12,7 +12,7 @@ from [proposals/0006](../../proposals/0006-one-engine-migration.md). S0 can star
 builder. S2 starts when T1.1 and inventory P1 are merged; one builder owns S2–S6 serially.
 
 **[M2 r1](milestones/M2.md), accepted and active, in parallel.** `applyGraph`: undo, redo, restore
-and config edits stop restarting untouched modules. E0 (canonical config bytes, small, can start now), then E1a (sidecar), then E1b (Studio). Design and the
+and config edits stop restarting untouched modules. E0 (canonical config bytes, small, can start now), PV1 (protocol schema and generator, can start now), then E1a (sidecar), then E1b (Studio). Design and the
 rest of Phase 2: [proposals/0005](../../proposals/0005-edits-without-restart.md).
 
 **Changed in M0 r2:** T0.13 is no longer held. T0.13a (sidecar capture flag) and T0.13b (harness)
@@ -45,9 +45,9 @@ can be filed now; ruling R6.
   [0007](../../proposals/0007-engine-file-split.md) engine split T1.6 (after M1 S5b);
   [0008](../../proposals/0008-transport.md) transport T1.7 (after M1 S5b);
   [0009](../../proposals/0009-module-build-and-registry.md) module build T1.8 (after M1 S6);
-  0005 sections 5–7 (after T1.6).
+  0005 sections 5–7 (after T1.6); [0010](../../proposals/0010-protocol-v1.md) protocol v1 stages PV2–PV5.
 - **Fable next:** `fable: run questions` when the queue has entries; `fable: run accept M0`;
-  `fable: run design protocol v1` (T2.5) once inventory P2 is merged.
+  module API v3 details (0003) once M1 is through S5.
 - **Owner:** T0.14 dependency hosts; device runs when the lead asks.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
