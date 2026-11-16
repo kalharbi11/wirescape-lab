@@ -16,6 +16,75 @@ OUTPUTS = {
 }
 
 
+def ts_alias(name: str) -> str:
+    """Preserve existing schema names in stable exported TypeScript aliases."""
+    return "Protocol" + name[0].upper() + name[1:]
+
+
+def ts_type(shape: dict) -> str:
+    """Emit the supported JSON Schema subset as structural TypeScript types.
+
+    Bounds, integer-ness and UTF-8 transport rules remain runtime validation,
+    not an invented compile-time constraint. Known required properties stay
+    mandatory, and permissive Q3 document additions remain indexable.
+    """
+    if "$ref" in shape:
+        prefix = "#/$defs/"
+        ref = shape["$ref"]
+        if not isinstance(ref, str) or not ref.startswith(prefix):
+            raise ValueError(f"Unrepresentable schema reference: {ref!r}")
+        return ts_alias(ref[len(prefix):])
+    if "oneOf" in shape:
+        return " | ".join("(" + ts_type(item) + ")" for item in shape["oneOf"])
+    if "const" in shape:
+        return json.dumps(shape["const"], ensure_ascii=False)
+    if "enum" in shape:
+        return " | ".join(json.dumps(value, ensure_ascii=False) for value in shape["enum"])
+    kind = shape.get("type")
+    if isinstance(kind, list):
+        return " | ".join("(" + ts_type({**shape, "type": item}) + ")" for item in kind)
+    if kind == "object":
+        props = shape.get("properties", {})
+        if not props:
+            return "Record<string, unknown>"
+        required = set(shape.get("required", []))
+        fields = ["{"]  # Unknown document/push fields are intentionally permitted.
+        for key, child in props.items():
+            label = json.dumps(key, ensure_ascii=False)
+            fields.append(f"  {label}{'' if key in required else '?'}: {ts_type(child)};")
+        fields.append("  [key: string]: unknown;")
+        fields.append("}")
+        return "\n".join(fields)
+    if kind == "array":
+        item = shape.get("items")
+        return "Array<" + (ts_type(item) if item is not None else "unknown") + ">"
+    if kind in ("integer", "number"):
+        return "number"
+    if kind == "string":
+        return "string"
+    if kind == "boolean":
+        return "boolean"
+    if kind == "null":
+        return "null"
+    if kind is None:
+        # Known shapes may specify only oneOf/const/enum/$ref above.
+        raise ValueError(f"Cannot derive TS type from schema: {shape!r}")
+    raise ValueError(f"Unsupported JSON Schema type: {kind!r}")
+
+
+def ts_definitions(schema: dict) -> str:
+    defs = schema["$defs"]
+    output = [
+        "// Generated from the schema, not hand-written payload approximations.",
+        "// TypeScript cannot encode integer ranges, JSON physical line bytes, or",
+        "// valid UTF-8 scalar sequences: the runtime validators enforce those.",
+    ]
+    for name, shape in defs.items():
+        output.append(f"export type {ts_alias(name)} = {ts_type(shape)};")
+    output.append("export type ProtocolV0 = ProtocolCommand | ProtocolReply | ProtocolPush;")
+    return "\n\n".join(output)
+
+
 def render() -> dict[str, str]:
     source = json.loads(SCHEMA.read_text(encoding="utf-8"))
     variants = source["$defs"]["command"]["oneOf"]
@@ -28,6 +97,7 @@ def render() -> dict[str, str]:
         "__SCHEMA_JSON__": inline_schema,
         "__COMMAND_TYPES__": command_union,
         "__ERROR_CODES__": error_union,
+        "__SCHEMA_TYPES__": ts_definitions(source),
     }
     results = {}
     for name, template in [
@@ -37,7 +107,7 @@ def render() -> dict[str, str]:
         result = template.read_text(encoding="utf-8")
         for needle, value in substitutions.items():
             result = result.replace(needle, value)
-        if "__SCHEMA_JSON__" in result or "__COMMAND_TYPES__" in result or "__ERROR_CODES__" in result:
+        if any(key in result for key in substitutions):
             raise ValueError(f"Unresolved template substitution in {template}")
         results[name] = result
     table = [
