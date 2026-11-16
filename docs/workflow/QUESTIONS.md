@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q13 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q13 answered; Q14 OPEN for Fable. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -308,3 +308,23 @@ Signed: gpt-lead, 2026-11-16
      source of 63.
 
 Signed: Fable, 2026-11-16
+
+## Q14 — E1b after final ordinary correction (lead, 2026-11-16; OPEN)
+
+- **Decision requested:** authorize one bounded final packet on existing #125 / PR #130 to repair overlapping-refusal document/history rollback and the OSC Out test observation, or defer/close E1b. No third ordinary correction is dispatched.
+- **Pinned evidence:** head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, base `042454de51a739ed4cf39324baa07028c42acc9f`; builder Result [6931108549](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6931108549). Final ordinary round 2/2 is spent. Worker 2's final source review and independent root source tracing agree.
+- **HIGH source defect:** `App.ts:788–802` captures each snapshot's optimistic predecessor and permits only the latest revision to roll back. `RealEngine.ts:338–348` rejects the active graph request and every queued request on refusal. With engine/document at 220, A requests 440 and B requests 660 before A's ACK. Refusing A rejects both; A's rollback is suppressed, B restores its captured 440 although neither request committed. Confirmed graph remains 220. The success/stale-ACK overlap regression does not cover refusal. The analogous partial-application/queued-refusal path also needs coverage; intermediate unapplied callbacks are suppressed at RealEngine.ts:403–407.
+- **Separate CI defect:** Lab [43968790557](https://github.com/kalharbi11/wirescape-lab/actions/runs/43968790557), shard 1/3 job `133655235003`, failed the test declared at `fake-apply-graph.spec.ts:201`, assertion line 226: observed counters sent=7/dropped=1, expected 0/0. Independent source inspection finds `repeated.counters = e.osc.out[0]` at line 216 is a live reference; `setOscOutStatus(5,7,1)` at line 217 mutates it via Object.assign (FakeEngine.ts:286–290). refreshGraphStatus builds fresh zero counters at lines 158–168. This points to a test-observation alias, distinct from the rollback defect; no passing rerun is inferred.
+- **Proposed bounded answer:** permit a single explicit final packet, same branch/writer and apps/studio-only paths, anchored to the last acknowledged/reconciled document and matching history for a pending graph transaction. Cover both-all-refused and first-partial/second-refused cases, retaining engine/UI consistency and legacy fallback/new/open behavior. Snapshot the OSC test's observed counters before later mutation; retain all assertions. No PV3 retry/convergence redesign, native/Desktop/workflow changes or acceptance weakening. If the repair requires architectural expansion, stop for a precise ruling.
+- **Required revalidation:** meaningful refusal/unapplied regressions plus the six capability-on/off flows, old assertions intact, independent lead review and fresh full exact-head Lab/Playwright green. PR stays draft, status/blocked and needs/fable until a ruling; no source edits or reruns requested.
+
+Signed: gpt-lead, 2026-11-16
+
+## Q15 — S2 bounded caller paths (owner-directed; RESOLVED, 2026-11-16)
+
+- **Original gap:** S2 deletes app_engine_load_module and app_engine_register_module, but production callers at `native/cli/play.cpp:121` and `native/document/runtime_patch.cpp:49` lie outside its original path list. M1 lead preflight [6931391213](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931391213) pinned main `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
+- **Owner-directed resolution:** the owner authorized the delegated M1 lead to fix the concrete blockers; release [6931470917](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931470917) permits ONLY `native/cli/play.cpp` for obsolete ABI1 discovery/loader removal and `native/document/runtime_patch.cpp` for obsolete ABI1 registration removal into the already populated static native catalogue. The owner repeated those additions in the root takeover instruction. This records additional owner authority; it does not claim M1 r2 originally listed them.
+- No protocol, native v1 patch reader, module2.h, sound, acceptance/tolerance, architecture or later-stage change follows. Other M1 r2 requirements and false-A1/A2 escalation remain.
+- LOCAL scoped M1 lead `01a1e676-f444-7653-839e-8659fb7209af` owns S2 planning, startup verification, independent review, corrections and delegated merge. Regular-Chat B4 `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is the sole writer. Release delivered but implementation execution remains unverified after one supported startup retry; M1 lead owns that check. S3 staffing/start remains the owner’s decision. Root retains cross-milestone coordination and the one heartbeat.
+
+Signed: gpt-lead, 2026-11-16
