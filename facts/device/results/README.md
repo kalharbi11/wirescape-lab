@@ -19,3 +19,8 @@ Cross-machine summary of the cd9a6a5 device-off runs: [`device-off-2026-11-14-cd
 | `windows-laptop` | [`2026-11-15-156af4b-quick-256`](windows-laptop/2026-11-15-156af4b-quick-256/) | 156af4b | W1 completed; 25 engine dropouts | yes, process-loopback |
 
 Session report: [2026-11-15](2026-11-15-device-session.md). MIDI naming fix: PR #50.
+| `pi5` | [`2026-11-15-ab7ce36-full-128`](pi5/2026-11-15-ab7ce36-full-128/) | ab7ce36 | p2-full-128: failed, unsupported sample format then queue full | attempted; no sound reported |
+| `pi5` | [`2026-11-15-ab7ce36-scene-128`](pi5/2026-11-15-ab7ce36-scene-128/) | ab7ce36 | p3-scene-128: failed, unsupported sample format then queue full | attempted; no sound reported |
+| `pi5` | [`2026-11-15-ab7ce36-chaos-128`](pi5/2026-11-15-ab7ce36-chaos-128/) | ab7ce36 | p3-chaos-128: failed, unsupported sample format then queue full | attempted; no sound reported |
+| `pi5` | [`2026-11-15-ab7ce36-basics-64`](pi5/2026-11-15-ab7ce36-basics-64/) | ab7ce36 | p4-basics-64: failed, unsupported sample format then queue full | attempted; no sound reported |
+| `windows-laptop` | [`2026-11-15-156af4b-quick-128`](windows-laptop/2026-11-15-156af4b-quick-128/) | 156af4b | W2 completed; zero engine dropouts | yes, process-loopback |

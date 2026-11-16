@@ -4,9 +4,10 @@
 | Run | Machine | Buffer | Ran (min) | Exit | Engine CPU max % | Dropouts | Longest silence ms | Notes |
 |---|---|---|---:|---|---:|---|---|---|
 | P1 | pi5 | 256 | 0.27 | 1 | 0.0 reported | 0 reported | unavailable | Failed: engine refused setParam: busy Event queue full. No signal metrics. |
-| P2 | pi5 | 128 | skipped | — | — | — | — | Not run this session. |
-| P3 | pi5 | 128 | skipped | — | — | — | — | Scene and chaos not run this session. |
-| P4 | pi5 | 64 | skipped | — | — | — | — | Not run this session. |
+| P2 | pi5 | 128 | 0.267 | 1 | 0.0 reported | 0 reported | unavailable | Failed: event queue full; audio reconnecting, Sample format not supported. |
+| P3 scene | pi5 | 128 | 0.237 | 1 | 0.0 reported | 0 reported | unavailable | Failed: event queue full; audio reconnecting, Sample format not supported. |
+| P3 chaos | pi5 | 128 | 0.214 | 1 | 0.0 reported | 0 reported | unavailable | Failed: event queue full; audio reconnecting, Sample format not supported. |
+| P4 | pi5 | 64 | 0.230 | 1 | 0.0 reported | 0 reported | unavailable | Failed: event queue full; audio reconnecting, Sample format not supported. |
 | P5 | pi5 | 128 benchmark | not timed | 0, owner transcript | — | — | — | 30,000 blocks per configuration; no devices. |
 | P6 | pi5 | devices off | smoke test 0.05; builds not timed | 0 | — | — | — | Five stages passed, one expected test; functional display only. |
 | W1 | windows-laptop | initially 256 | 15 planned; 14.98 recorded | 0 | 81.4556 | 25 engine; 18 signal candidates | 1116.083 candidate | MME Realtek speakers; 154 detected clicks, no refused commands. Scenario changes buffers internally. |
@@ -54,3 +55,9 @@ Failure outputs above contain all relevant emitted diagnostic lines (fewer than 
 **Large files:** completed W1 ZIP uploaded to draft release bench-2026-11-15. Its 4.7 MB analysis.json exceeds the 1 MB small-file limit and is included only in the ZIP. P1 packer refused the incomplete run; original partial files remain in bench/device/results-p1-full-256/pi5/2026-11-15-ab7ce36 on pi5. No recordings, ZIPs or events.ndjson are committed.
 
 Signed: gpt-helper, 2026-11-15
+
+Additional owner-authorized original-route attempts: P2, P3 scene, P3 chaos and P4 all exited with `device harness: engine refused setParam: busy Event queue full`. Their final audio status was reconnecting with `Sample format not supported`, no selected device and zero CPU; these are not successful audio-performance measurements. Each pack attempt refused the incomplete run; partial files remain on pi5. A separate owner-authorized rerun series explicitly selects the already-enumerated `ALSA|pulse` route; those results will be filed separately.
+
+Owner observations: P2: "Im hearing windows but not pi"; P3 scene: "nothing from the pi so far"; P3 chaos: "no"; P4: "no sound".
+
+W2 completed successfully on source 156af4b. Owner post-run response: "no" (unqualified). Archive: windows-laptop-2026-11-15-156af4b-quick-128.zip in draft release bench-2026-11-15. Full analysis exceeds the small-file size limit and is included only in the archive.
