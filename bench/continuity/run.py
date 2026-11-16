@@ -89,7 +89,7 @@ def finite(v):
     return v
 
 
-def analyse(run: eng.Run, ref: eng.Run, subject: int | None) -> dict:
+def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False) -> dict:
     mark = mk.locate(run.marks, 'edit')
     geo = mk.Geometry.of(run.segments)
     win = mk.edit_window(geo, mark)
@@ -122,11 +122,20 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None) -> dict:
             put('time_slip_ms', m.time_slip_tone_ms, x, RATE, edit, probe.SLIP_HZ, late)
         elif name == 'subject':
             load = mk.locate(run.marks, 'load')
-            start_at = mk.block_sample(geo, load.b0)
+            # Start-of-load reference: from the subject's first sounding sample after the load mark.
+            # From b0 itself, the silent lead would include however many blocks passed before the
+            # graph swapped in, an arbitrary length a later reset cannot repeat.
+            floor = 10 ** (m.SILENCE_DBFS / 20)
+            load_at = mk.block_sample(geo, load.b0)
+            start_at = next((i for i in range(load_at, edit) if abs(x[i]) >= floor), load_at)
             if cont is not None:
                 r, e = safe(m.restarted, x, x[start_at:start_at + RATE], cont, RATE, edit, late=late)
                 if e:
                     errors['restarted'] = e
+                elif r.state is False and changes_subject:
+                    row['restarted'] = None
+                    row['restarted_note'] = ('not testable: the edit changes the subject\'s own sound, so a '
+                                             'reset cannot repeat its start-of-load output (' + r.note + ')')
                 else:
                     row['restarted'] = r.state
                     row['restarted_note'] = r.note
@@ -216,7 +225,7 @@ def main(argv=None):
         for e in edits:
             print(f'repeat {rep + 1}/{a.repeats}: {e["name"]}', flush=True)
             run = eng.run(a.engine, script(e, e.get('setup')))
-            per_edit[e['name']].append(analyse(run, ref, e['subject']))
+            per_edit[e['name']].append(analyse(run, ref, e['subject'], e.get('changes_subject', False)))
     rows = []
     for e in edits:
         reps = per_edit[e['name']]

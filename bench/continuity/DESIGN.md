@@ -81,7 +81,11 @@ the shared earlier command that starts every oscillator's phase. Within the offs
 (0.0 = bit-exact) and the exactly matching offsets are in the JSON. The held note is aligned on
 `load` too. By the steady region it is at constant sustain, and on the `note` mark its samples
 differed whenever the load-to-note spacing differed between runs (a measured 0.21 residual).
-`restarted` counts a mute fade (never louder than the continuation) between departure and
+The subject's start-of-load reference starts at its first sounding sample after the `load` mark.
+From `b0` itself the silent lead would be an arbitrary number of blocks that no later reset
+repeats. Where an edit changes the subject's own sound (`changes_subject` in `probe.py`), a reset
+cannot repeat the start-of-load output, so `restarted` there is reported only when True. Otherwise
+it is "not testable", with the reason. `restarted` counts a mute fade (never louder than the continuation) between departure and
 repeat like silence: a `loadGraph` restart fades out before the subject starts again.
 
 ## Procedure and edits

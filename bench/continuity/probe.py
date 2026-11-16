@@ -110,7 +110,9 @@ def _variant(change):
 
 
 def edits() -> list[dict]:
-    """Each edit: name, command (method, payload), subject bus channel or None, optional setup patch."""
+    """Each edit: name, command (method, payload), subject bus channel or None, optional setup patch.
+    changes_subject: the edit changes the subject's own sound, so a reset cannot repeat its
+    start-of-load output and `restarted` can only be confirmed (True), never ruled out."""
     B = base()
     groove_steps = lambda p: _module(p, 60)['config']['tracks'][0]['steps'].__setitem__(
         1, {'kind': 'note', 'key': 64, 'velocity': 0.9, 'gate': 0.5})
@@ -122,27 +124,27 @@ def edits() -> list[dict]:
         dict(name='addModule unconnected', cmd=('addModule', dict(moduleId=91, moduleType='essentials.vco')),
              subject=None),
         dict(name='removeModule unconnected', cmd=('removeModule', dict(moduleId=90)), subject=None),
-        dict(name='removeModule connected', cmd=('removeModule', dict(moduleId=50)), subject=5),
+        dict(name='removeModule connected', changes_subject=True, cmd=('removeModule', dict(moduleId=50)), subject=5),
         dict(name='connect signal', cmd=('connect', dict(connection=sig(90, 'audio', 56, 'audio'))), subject=8),
-        dict(name='disconnect signal', cmd=('disconnect', dict(connection=sig(50, 'audio', 51, 'audio'))),
+        dict(name='disconnect signal', changes_subject=True, cmd=('disconnect', dict(connection=sig(50, 'audio', 51, 'audio'))),
              subject=5),
         dict(name='connect event', cmd=('connect', dict(connection=ev(11, 'notes', 54, 'notes'))), subject=6),
-        dict(name='disconnect event', cmd=('disconnect', dict(connection=ev(60, 't1_notes', 61, 'notes'))),
+        dict(name='disconnect event', changes_subject=True, cmd=('disconnect', dict(connection=ev(60, 't1_notes', 61, 'notes'))),
              subject=7),
-        dict(name='connect modulation', cmd=('connect', dict(connection=mod(52, 'audio', 54, 'frequency', 0.1))),
+        dict(name='connect modulation', changes_subject=True, cmd=('connect', dict(connection=mod(52, 'audio', 54, 'frequency', 0.1))),
              subject=6),
-        dict(name='disconnect modulation',
+        dict(name='disconnect modulation', changes_subject=True,
              cmd=('disconnect', dict(connection=mod(52, 'audio', 50, 'frequency', 0.05))), subject=5),
-        dict(name='setModAmount', cmd=('setModAmount', dict(connection=mod(52, 'audio', 50, 'frequency', 0.05),
+        dict(name='setModAmount', changes_subject=True, cmd=('setModAmount', dict(connection=mod(52, 'audio', 50, 'frequency', 0.05),
                                                             amount=0.2)), subject=5),
         dict(name='ccMap.set', cmd=('ccMap.set', dict(moduleId=71, row=0,
                                                       mapping=dict(channel=0, controller=22))), subject=None),
         dict(name='loadGraph identical', cmd=('loadGraph', dict(patch=B)), subject=5),
-        dict(name='loadGraph Groove steps', cmd=('loadGraph', dict(patch=_variant(groove_steps))), subject=7),
-        dict(name='loadGraph Groove length', cmd=('loadGraph', dict(patch=_variant(groove_length))), subject=7),
+        dict(name='loadGraph Groove steps', changes_subject=True, cmd=('loadGraph', dict(patch=_variant(groove_steps))), subject=7),
+        dict(name='loadGraph Groove length', changes_subject=True, cmd=('loadGraph', dict(patch=_variant(groove_length))), subject=7),
         dict(name='loadGraph voice count', cmd=('loadGraph', dict(patch=_variant(voices))), subject=3),
         dict(name='loadGraph OSC In row', cmd=('loadGraph', dict(patch=_variant(osc_row))), subject=None),
-        dict(name='loadGraph one parameter', cmd=('loadGraph', dict(patch=_variant(param))), subject=5),
+        dict(name='loadGraph one parameter', changes_subject=True, cmd=('loadGraph', dict(patch=_variant(param))), subject=5),
         dict(name='loadGraph deleted module', cmd=('loadGraph', dict(patch=_without(B, 90))), subject=None),
         dict(name='loadGraph restored module', cmd=('loadGraph', dict(patch=B)), subject=None,
              setup=_without(B, 90)),
