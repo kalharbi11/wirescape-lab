@@ -10,7 +10,7 @@ import sys
 import unittest
 from pathlib import Path
 from unittest import mock
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "ci"))
 import verify_native_required as native  # noqa: E402
@@ -151,27 +151,108 @@ class NativeRequiredTests(unittest.TestCase):
             with self.subTest(case=case):
                 self.assertTrue(native.should_run(*case))
 
-    def test_attempt_scoped_url_and_api_failure(self):
+    def test_authenticated_attempt_scoped_url_and_no_redirect(self):
         class Response:
             def __enter__(self):
                 return io.BytesIO(json.dumps(fixture()).encode())
             def __exit__(self, *args):
                 return False
-        with mock.patch.object(native, "urlopen", return_value=Response()) as called:
-            self.assertEqual(native.fetch_jobs(REPO, RUN, ATTEMPT), fixture())
-            self.assertIn(f"/runs/{RUN}/attempts/{ATTEMPT}/jobs?per_page=100",
-                          called.call_args.args[0].full_url)
-            self.assertEqual(called.call_args.kwargs["timeout"], 20)
-        with mock.patch.object(native, "urlopen", side_effect=URLError("API unavailable")):
-            with self.assertRaises(URLError):
-                native.fetch_jobs(REPO, RUN, ATTEMPT)
+        sentinel = "LOCAL_FAKE_TOKEN_SENTINEL"
+        with mock.patch.object(native, "build_opener") as build:
+            build.return_value.open.return_value = Response()
+            self.assertEqual(native.fetch_jobs(REPO, RUN, ATTEMPT, sentinel), fixture())
+            request = build.return_value.open.call_args.args[0]
+            self.assertEqual(request.get_header("Authorization"), "Bearer " + sentinel)
+            self.assertEqual(request.host, "api.github.com")
+            self.assertIn(f"/runs/{RUN}/attempts/{ATTEMPT}/jobs?per_page=100", request.full_url)
+            self.assertEqual(build.return_value.open.call_args.kwargs["timeout"], 20)
+            self.assertIsInstance(build.call_args.args[0], native._NoRedirect)
+            self.assertIsNone(native._NoRedirect().redirect_request(
+                request, None, 302, "Redirect", {}, "https://elsewhere.example/"))
+            self.assertEqual(build.return_value.open.call_count, 1)
+        with self.assertRaisesRegex(ValueError, "token"):
+            native.fetch_jobs(REPO, RUN, ATTEMPT, "")
 
-    def test_cli_api_failure_and_unexpected_notes_only_execution(self):
+    def test_http_401_403_429_fail_without_fallback(self):
+        token = "MOCK_TOKEN_SENSITIVE"
+        for code in (401, 403, 429):
+            with mock.patch.object(native, "build_opener") as build:
+                build.return_value.open.side_effect = HTTPError(
+                    "https://api.github.com/", code, token, {}, None)
+                with self.subTest(code=code), self.assertRaises(HTTPError):
+                    native.fetch_jobs(REPO, RUN, ATTEMPT, token)
+                self.assertEqual(build.return_value.open.call_count, 1)
+
+    def test_studio_shards_malformed_stale_duplicate_missing_failing(self):
+        valid = fixture()
+        valid["jobs"].extend(
+            {"id": 10 + i, "name": f"studio shard {i + 1}/3",
+             "run_id": RUN, "run_attempt": ATTEMPT, "run_url": URL,
+             "status": "completed", "conclusion": "success"}
+            for i in range(3))
+        valid["total_count"] = len(valid["jobs"])
+        native.verify_studio(valid, repo=REPO, run=RUN, attempt=ATTEMPT,
+                             matrix_result="success")
+        for mode in ("missing", "duplicate", "failed", "cancelled", "skipped",
+                     "incomplete", "stale", "wrong_repository", "wrong_run",
+                     "malformed", "incomplete_inventory", "unexpected"):
+            p = copy.deepcopy(valid)
+            if mode == "missing":
+                p["jobs"].pop()
+            elif mode == "duplicate":
+                p["jobs"].append({**p["jobs"][-1], "id": 40})
+            elif mode in ("failed", "cancelled", "skipped"):
+                p["jobs"][-1]["conclusion"] = mode if mode != "failed" else "failure"
+            elif mode == "incomplete":
+                p["jobs"][-1].update(status="queued", conclusion=None)
+            elif mode == "stale":
+                p["jobs"][-1]["run_attempt"] = ATTEMPT - 1
+            elif mode == "wrong_repository":
+                p["jobs"][-1]["run_url"] = "https://api.github.com/repos/else/repo/actions/runs/123456"
+            elif mode == "wrong_run":
+                p["jobs"][-1]["run_id"] = RUN + 1
+            elif mode == "malformed":
+                p["jobs"][-1] = None
+            elif mode == "incomplete_inventory":
+                p["total_count"] -= 1
+            elif mode == "unexpected":
+                p["jobs"].append({**p["jobs"][-1], "id": 40, "name": "studio shard 4/3"})
+            if mode not in ("incomplete_inventory",):
+                p["total_count"] = len(p["jobs"])
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                native.verify_studio(p, repo=REPO, run=RUN, attempt=ATTEMPT,
+                                     matrix_result="success")
+        for value in ("failure", "cancelled", "skipped"):
+            with self.assertRaisesRegex(ValueError, "matrix"):
+                native.verify_studio(valid, repo=REPO, run=RUN, attempt=ATTEMPT,
+                                     matrix_result=value)
+
+    def test_cli_error_does_not_expose_token(self):
+        secret = "MOCK_TOKEN_NOT_REAL"
+        for is_studio in (False, True):
+            env = {"GITHUB_REPOSITORY": REPO, "GITHUB_RUN_ID": str(RUN),
+                   "GITHUB_RUN_ATTEMPT": str(ATTEMPT), "GITHUB_EVENT_NAME": "push",
+                   "SCOPE_RESULT": "success", "SCOPE_CODE": "true",
+                   "NATIVE_MATRIX_RESULT": "success", "STUDIO_MATRIX_RESULT": "success",
+                   "ACTIONS_READ_TOKEN": secret}
+            argv = ["check", "--studio"] if is_studio else ["check", "--platform", "linux-x64"]
+            stderr = io.StringIO()
+            with mock.patch.dict(os.environ, env, clear=True), \
+                 mock.patch.object(sys, "argv", argv), \
+                 mock.patch.object(native, "fetch_jobs", side_effect=HTTPError(
+                     "https://api.github.com/", 403, secret, {}, None)) as called, \
+                 mock.patch("sys.stderr", stderr):
+                self.assertEqual(native.main(), 1)
+                self.assertEqual(called.call_count, 1)
+            self.assertNotIn(secret, stderr.getvalue())
+            self.assertNotIn("Authorization", stderr.getvalue())
+
+    def test_cli_unavailable_and_unexpected_notes_only_execution(self):
         env = {
             "GITHUB_REPOSITORY": REPO, "GITHUB_RUN_ID": str(RUN),
             "GITHUB_RUN_ATTEMPT": str(ATTEMPT), "GITHUB_EVENT_NAME": "pull_request",
             "SCOPE_RESULT": "success", "SCOPE_CODE": "true",
-            "NATIVE_MATRIX_RESULT": "success",
+            "NATIVE_MATRIX_RESULT": "success", "ACTIONS_READ_TOKEN": "MOCK_TOKEN",
         }
         with mock.patch.dict(os.environ, env, clear=True), \
              mock.patch.object(sys, "argv", ["check", "--platform", "linux-x64"]), \
@@ -188,12 +269,49 @@ class NativeRequiredTests(unittest.TestCase):
                    ".github/workflows/ci.yml").read_text(encoding="utf-8")
         gate = ("if: " + chr(36) + "{{ always() && (github.event_name != 'pull_request' || "
                 "needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}")
+        # Split only at two-space job headings, not four-space job fields.
+        # A search for "\n  " also matches the prefix of "    name:" and
+        # silently truncates permission and verification-step assertions.
+        import re
+        match_jobs = list(re.finditer(r"(?m)^  ([a-z][a-z0-9_-]*):\s*$", content))
+        sections = {
+            m.group(1): content[m.start():match_jobs[i + 1].start()
+                                      if i + 1 < len(match_jobs) else len(content)]
+            for i, m in enumerate(match_jobs)
+        }
+        token_binding = "ACTIONS_READ_TOKEN: " + chr(36) + "{{ github.token }}"
         for platform in native.PLATFORMS:
             with self.subTest(platform=platform):
-                self.assertIn(f"  {platform}:\n    name: {platform}\n    needs: [scope, native]\n    {gate}", content)
-                self.assertIn(f"python tools/ci/verify_native_required.py --platform {platform}", content)
+                section = sections[platform]
+                self.assertIn(f"    name: {platform}\n", section)
+                self.assertIn("    needs: [scope, native]\n", section)
+                self.assertIn(f"    {gate}\n", section)
+                self.assertIn(f"python tools/ci/verify_native_required.py --platform {platform}", section)
         self.assertEqual(content.count("needs: [scope, native]"), 3)
         self.assertIn("name: native build " + chr(36) + "{{ matrix.name }}", content)
+        for jobname in (*native.PLATFORMS, "studio"):
+            with self.subTest(job=jobname):
+                section = sections[jobname]
+                self.assertIn(f"    name: {jobname}\n", section)
+                self.assertIn("    permissions:\n      contents: read\n      actions: read\n", section)
+                self.assertEqual(section.count(token_binding), 1)
+                self.assertIn("      - name: Verify ", section)
+                self.assertEqual(section.count("      - name: Verify "), 1)
+                if jobname == "studio":
+                    self.assertIn("    needs: [scope, studio_shards]\n", section)
+                    self.assertIn(f"    {gate}\n", section)
+                    self.assertIn("run: python tools/ci/verify_native_required.py --studio", section)
+                    self.assertIn("persist-credentials: false", section)
+                else:
+                    self.assertIn(f"run: python tools/ci/verify_native_required.py --platform {jobname}", section)
+        self.assertNotIn("python - <<'PY'", content)
+        self.assertEqual(content.count("actions: read"), 4)
+        self.assertIn("permissions:\n  contents: read\n", content)
+        # No other job obtains Actions API read permission or a token binding.
+        for jobname, section in sections.items():
+            if jobname not in (*native.PLATFORMS, "studio"):
+                self.assertNotIn("actions: read", section, jobname)
+                self.assertNotIn(token_binding, section, jobname)
 
 
 if __name__ == "__main__":

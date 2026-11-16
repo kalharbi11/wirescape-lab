@@ -44,6 +44,8 @@ T1.2, T1.3 and T1.4 so one builder can deliver them under contract `M1`.
    *Note, 2026-11-16 (QUESTIONS Q5):* the owner allows bundled patches to be reset. The hold
    stays through M1; after S6 removal needs only the fact list of native v1 readers and an
    offline conversion of any owner patch in v1, not the bundled-migration proof.
+   *Owner, 2026-11-16 (Q5 point 8):* there are no owner patches, so no conversion is needed either;
+   the fact list alone is the condition.
 7. **Namespace and directory names stay** (`wirescape::engine2`, `native/engine2`) until stage 6.
 
 ## Stages
