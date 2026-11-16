@@ -434,7 +434,7 @@ int main() {
             };
             auto hello = s.hello();
             const auto caps = Json::array({"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate",
-                                           "setBufferFrames", "osc", "osc.out"});
+                                           "setBufferFrames", "osc", "osc.out", "applyGraph"});
             check(hello["audioDevices"].size() == 2 && hello["capabilities"] == caps,
                   "hello must expose the supported device catalogue and methods");
             auto listed = call("list", "listAudioDevices")["result"]["devices"];
@@ -628,6 +628,67 @@ int main() {
             if (edit["ok"] != true)
                 throw std::runtime_error("the previous document remains editable after rollback: " + edit.dump());
             check(s.telemetry()["telemetry"]["phase"].contains("2"), "previous telemetry storage survives rollback");
+        }
+        // M2 E1a, 0005 section 3 rule 6: with the output lost, applyGraph takes the D5 path in the
+        // same ID namespace and reports `restart`; `replaced` lists only type/config changes.
+        fake::outputs = {output("USB Stereo", 3, true)};
+        options.settings = (root / "apply-graph-restart.json").string();
+        std::ofstream(options.settings) << "{}";
+        {
+            Session s(options);
+            s.start();
+            auto send = [&](const char *id, const char *type, const Json &payload) {
+                Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+                cmd.update(payload);
+                return s.reply({cmd, {}, {}});
+            };
+            auto groove = [](int bpm) {
+                return Json{{"id", 2},
+                            {"module", "sequencing.groove"},
+                            {"config",
+                             {{"version", 1},
+                              {"bpm", bpm},
+                              {"tracks", Json::array({{{"steps", Json::array({{{"kind", "note"}, {"key", 60}, {"velocity", 1}}})}}})}}}};
+            };
+            Json patch = {{"format", "wirescape.native.patch"},
+                          {"version", 2},
+                          {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}}, groove(300),
+                                                   {{"id", 3}, {"module", "essentials.lfo"}}})},
+                          {"connections", Json::array()}};
+            auto base = send("rg-load", "loadGraph", {{"patch", patch}});
+            check(base["ok"] == true, ("load the applyGraph base graph: " + base.dump()).c_str());
+            const auto rendered = fake::completed_blocks.load(std::memory_order_acquire);
+            const auto ready = std::chrono::steady_clock::now() + 1s;
+            while (fake::completed_blocks.load(std::memory_order_acquire) == rendered &&
+                   std::chrono::steady_clock::now() < ready)
+                std::this_thread::yield();
+            // While rendering, removing the LFO is a live replan.
+            Json without_lfo = patch;
+            without_lfo["modules"].erase(2);
+            auto live = send("rg-live", "applyGraph", {{"patch", without_lfo}});
+            check(live["ok"] == true && live["result"] == Json{{"path", "live"},
+                                                               {"replaced", Json::array()},
+                                                               {"unapplied", Json::array()}},
+                  ("a rendering output takes the live replan: " + live.dump()).c_str());
+            // Output lost: the next applyGraph cannot replan live and restarts through D5.
+            const int exchanges = fake::exchanges, stopped = fake::stopped;
+            const int gen = std::stoi(live["gen"].get<std::string>());
+            fake::active = false;
+            Json slower = without_lfo;
+            slower["modules"][1] = groove(240);
+            auto restart = send("rg-restart", "applyGraph", {{"patch", slower}});
+            check(restart["ok"] == true && restart["gen"] == std::to_string(gen + 1) &&
+                      restart["result"] == Json{{"path", "restart"},
+                                                {"replaced", Json::array({2})},
+                                                {"unapplied", Json::array()}},
+                  ("rule 6: a lost output restarts with path restart and lists only the changed config: " +
+                      restart.dump()).c_str());
+            check(fake::exchanges == exchanges && fake::stopped == stopped + 1,
+                  "rule 6 replaces the graph by restarting the stream, not by a live exchange");
+            // Same namespace as before the restart, unlike loadGraph: the removed LFO ID stays used.
+            auto reused = send("rg-reuse", "addModule", {{"moduleId", 3}, {"moduleType", "essentials.lfo"}});
+            check(reused["ok"] == false && reused["code"] == "duplicate",
+                  ("rule 6 keeps the session ID namespace: " + reused.dump()).c_str());
         }
         fake::render = false;
         // Windows lists one endpoint per host API and repeats names inside one host API.

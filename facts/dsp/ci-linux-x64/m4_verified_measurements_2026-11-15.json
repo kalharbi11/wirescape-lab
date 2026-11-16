@@ -1,0 +1,161 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "wirescape lab measured M4 DSP summary v2",
+  "source_workflow_run": 43774561958,
+  "source_head_commit": "155d5a88ad27f0326ec8825dbd1a06aedd6a71af",
+  "source_ci_checkout_commit": "7177b368b74d28ca11bd6fd29b435b0082347243",
+  "source_ci_checkout_parents": [
+    "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "155d5a88ad27f0326ec8825dbd1a06aedd6a71af"
+  ],
+  "measurement_date_et": "2026-11-15",
+  "source_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/43774561958",
+  "sample_rates_hz": [
+    44100,
+    48000,
+    96000
+  ],
+  "method": "Release device-off Python fact pack; raw and staged JSON rows compared as parsed objects for oscillators, filters, bundled patches, module outputs, cables, and parameter sweeps",
+  "machine": {
+    "runner": "linux-x64",
+    "cpu": "AMD EPYC 9V45 96-Core Processor",
+    "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+    "configuration": "Release",
+    "audio_devices": "not accessed",
+    "midi_devices": "not accessed",
+    "lan_sockets": "not accessed"
+  },
+  "staged_artifact_id": 14187050580,
+  "raw_artifact_id": 14186133633,
+  "sections": {
+    "oscillators": {
+      "source_path": "dsp/ci-linux-x64/oscillators.json",
+      "source_sha256": "bbda034009abafa10879a5027bbb5d84c4d148af3a50079efa309709f568d452",
+      "measured_rows": 180,
+      "measured_by_sample_rate_hz": {
+        "44100": 20,
+        "48000": 140,
+        "96000": 20
+      },
+      "raw_source_path": "l4/full/dsp/oscillators.json",
+      "raw_source_sha256": "4e43313b4482d2211c01f91c73f82dfa28acd7dc2eea156df5a1d974565a7a2c"
+    },
+    "filters": {
+      "source_path": "dsp/ci-linux-x64/filters.json",
+      "source_sha256": "3ae45c1afa6ae923907627a596f65085da9113ebeaad2ab085e798feda108d08",
+      "measured_rows": 54,
+      "measured_by_sample_rate_hz": {
+        "44100": 18,
+        "48000": 18,
+        "96000": 18
+      },
+      "excluded_non_impulse_tail_rows": 6,
+      "raw_source_path": "l4/full/dsp/filters.json",
+      "raw_source_sha256": "df840daf1ef1d971beaa729ddfd9bb14c85297aed94bb59e3fd2485460d467a8",
+      "not_exact_impulse_rows": 6
+    },
+    "bundled_patches": {
+      "source_path": "dsp/ci-linux-x64/bundled_patches.json",
+      "source_sha256": "e72153446bcd50d3deab58aec746895fdd0f06e68349e0fc8e251b6ca39f0b1c",
+      "measured_rows": 64,
+      "measured_by_sample_rate_hz": {
+        "44100": 20,
+        "48000": 24,
+        "96000": 20
+      },
+      "raw_source_path": "l4/full/dsp/bundled_patches.json",
+      "raw_source_sha256": "53db6bfedbf1769fd7e2a07bb58df546658cb1f198a17f28b61441df4ab173c2"
+    },
+    "module_outputs": {
+      "source_path": "dsp/ci-linux-x64/module_outputs.json",
+      "source_sha256": "68eab9936e0289792538cbe200f23cbc07326229b86b366b35fd747aa799f44c",
+      "measured_rows": 88,
+      "measured_by_sample_rate_hz": {
+        "44100": 29,
+        "48000": 30,
+        "96000": 29
+      },
+      "raw_source_path": "l4/full/dsp/module_outputs.json",
+      "raw_source_sha256": "6cb28c6bad5f7d1fa78cc8173a1ac50196c9422b35303225cb12c0d5c5fc094c"
+    },
+    "audio_rate_cables": {
+      "source_path": "dsp/ci-linux-x64/audio_rate_cables.json",
+      "source_sha256": "dc44a6b217e0346317eb9295a3f315c4287bf55dbf57e0af26591d722d404451",
+      "measured_rows": 40,
+      "measured_by_sample_rate_hz": {
+        "44100": 13,
+        "48000": 14,
+        "96000": 13
+      },
+      "raw_source_path": "l4/full/dsp/audio_rate_cables.json",
+      "raw_source_sha256": "ca256f9c69cb7433d8dd817c2da297d7ca9818ae866ee709f66b1f9f601a0c84"
+    },
+    "parameter_sweeps": {
+      "source_path": "dsp/ci-linux-x64/parameter_sweeps.json",
+      "source_sha256": "64d6744d601b650d7726b6330466c78ff75efcc36c48d3c631a2708c2ecd3a40",
+      "raw_source_path": "l4/full/dsp/parameter_sweeps.json",
+      "raw_source_sha256": "0582830bbb6e8cd7a888045538ad008ab74b501084fb49d88ca2e825e3bad8be",
+      "total_rows": 264,
+      "measured_rows": 243,
+      "measured_by_sample_rate_hz": {
+        "44100": 78,
+        "48000": 87,
+        "96000": 78
+      },
+      "statuses": {
+        "measured": 243,
+        "unsupported_rate": 18,
+        "unsupported_runtime_module": 3
+      },
+      "measured_distinct_modules": 14,
+      "measured_distinct_module_parameter_pairs": 87,
+      "fast_duration_s": 1,
+      "slow_duration_s": 8,
+      "setpoints_per_sweep": 121,
+      "highpass_hz": 2000
+    }
+  },
+  "observed_numeric_summary": {
+    "oscillator_alias_floor_dbfs_min": -300,
+    "oscillator_alias_floor_dbfs_max": -10.501823162766735,
+    "filter_frequency_response_cutoff_error_hz_min": -2578.583370373636,
+    "filter_frequency_response_cutoff_error_hz_max": 5184.87559808502,
+    "filter_frequency_response_resonance_peak_error_hz_min": -3261.6109715621915,
+    "filter_frequency_response_resonance_peak_error_hz_max": -6.133261444203512,
+    "bundled_patch_click_events_total": 2,
+    "bundled_patch_click_events_by_rate_hz": {
+      "44100": 1,
+      "48000": 1,
+      "96000": 0
+    },
+    "sweep_fast_to_slow_highpass_ratio_min": 0.8222170102955425,
+    "sweep_fast_to_slow_highpass_ratio_median": 1.0039152835820693,
+    "sweep_fast_to_slow_highpass_ratio_max": 2.0612020153853448,
+    "sweep_fast_to_slow_highpass_db_min": -1.700270852717082,
+    "sweep_fast_to_slow_highpass_db_median": 0.033941319424031134,
+    "sweep_fast_to_slow_highpass_db_max": 6.282411168603431
+  },
+  "separate_unvalidated_or_failed_records": {
+    "filter_tail_probe_rows": 6,
+    "filter_tail_status": "not_exact_impulse",
+    "filter_tail_clock_excitation_frames_by_rate_hz": {
+      "44100": 4,
+      "48000": 4,
+      "96000": 8
+    },
+    "parameter_sweep_measured_rows": 243,
+    "parameter_sweep_event_cap_failures": 0,
+    "parameter_sweep_unsupported_rate_rows": 18,
+    "parameter_sweep_unregistered_runtime_module_rows": 3,
+    "cable_unregistered_runtime_module_rows": 3,
+    "exact_one_sample_filter_impulse_rows": 0,
+    "ten_second_zero_input_denormal_timed_rows": 0
+  },
+  "notes": {
+    "source_rows": "All raw/staged rows for each of six indicated sections are identical as parsed JSON; this summary preserves measured numeric aggregates, section counts and source archive SHA-256, not full per-row arrays.",
+    "filter_error_reference": "Cutoff and resonance ranges use 54 measured frequency-response rows; six multiple-sample clock-tail rows have status not_exact_impulse.",
+    "sweep": "243 measured 1s/8s parameter sweep pairs at 121 setpoints per sweep, 14 modules / 87 unique module-parameter pairs; 18 unsupported-rate rows (Macro) and 3 unregistered example.ringmod2 rows.",
+    "pulse": "Clock excitation was 4 or 8 frames; zero post-2s tail RMS is not evidence from a one-sample impulse.",
+    "denormal": "Current probe's fixed tiny-input measurement does not supply a 1-second driven/10-second exact-zero timed decay under engine FTZ."
+  }
+}

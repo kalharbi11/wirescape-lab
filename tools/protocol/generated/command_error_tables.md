@@ -6,6 +6,7 @@ Source: `docs/specs/protocol.schema.json`; regenerate with `python tools/protoco
 | Command type | Required payload fields |
 | --- | --- |
 | `loadGraph` | `patch` |
+| `applyGraph` | `patch` |
 | `addModule` | `moduleId`, `moduleType` |
 | `removeModule` | `moduleId` |
 | `connect` | `connection` |

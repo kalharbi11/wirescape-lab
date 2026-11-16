@@ -8,6 +8,7 @@ import {
   type ProtocolV0,
   type ProtocolPatch,
   type ProtocolConnection,
+  type ProtocolApplyGraphResult,
 } from '../../apps/studio/src/engine/generated/protocol_v0';
 
 // Test-only Node reader, no new dependency or runtime import.
@@ -33,6 +34,8 @@ const editable: ProtocolPatch = {
 };
 const loaded: ProtocolCommand = { v: 0, id: 'load1', type: 'loadGraph', patch: editable };
 const connected: ProtocolCommand = { v: 0, id: 'connect1', type: 'connect', connection };
+const applyGraph: ProtocolCommand = { v: 0, id: 'apply1', type: 'applyGraph', patch: editable };
+const applyResult: ProtocolApplyGraphResult = { path: 'live', replaced: [], unapplied: [] };
 const identity: ProtocolCommand = {
   v: 0, id: 'mod1', type: 'setModAmount',
   connection: { kind: 'modulation', from: { module: 10, port: 'control' },
@@ -56,7 +59,7 @@ const statusPush: ProtocolPush = {
     futureStatus: { unknown: 'preserved' },
   },
 };
-const union: ProtocolV0[] = [note, panic, loaded, connected, identity, accepted, refused, event, statusPush];
+const union: ProtocolV0[] = [note, panic, loaded, connected, applyGraph, identity, accepted, refused, event, statusPush];
 for (const wire of union) check(validateProtocolV0(wire), 'valid generated payload rejected');
 
 // Compile-time negative cases MUST produce TS errors; removing required
@@ -99,6 +102,30 @@ for (const example of idCases) {
   check(validateProtocolV0({ v: 0, id: example.id, type: 'panic' }) === example.valid,
     'Q8 TS request-ID disagreement: ' + example.name);
 }
+type BusChannelCase = { name: string; value: number; valid: boolean };
+const busCases = JSON.parse(
+  require('node:fs').readFileSync('tools/protocol/bus_channel_cases.json', 'utf8')
+) as BusChannelCase[];
+check(busCases.length === 6, 'missing Q13 bus-channel corpus');
+for (const sample of busCases) {
+  const patch = { ...editable, outputs: [{ module: 7, port: 'audio', bus_channel: sample.value }] };
+  for (const type of ['loadGraph', 'applyGraph']) {
+    check(validateProtocolV0({ v: 0, id: 'bus', type, patch }) === sample.valid,
+      'Q13 TS output-channel mismatch: ' + sample.name + '/' + type);
+  }
+}
+check(validateProtocolV0({ v: 0, re: 'apply1', ok: true, gen: '1', result: applyResult }),
+  'applyGraph result envelope rejected');
+check(!validateProtocolV0({ v: 0, re: 'apply1', ok: true, gen: '1',
+  result: { path: 'other', replaced: [], unapplied: [] } }), 'invalid applyGraph path accepted');
+// @ts-expect-error applyGraph always requires a PatchV2
+const incompleteApply: ProtocolCommand = { v: 0, id: 'bad', type: 'applyGraph' };
+// @ts-expect-error unapplied entries must have both moduleId and paramId
+const incompleteApplyResult: ProtocolApplyGraphResult = { path: 'live', replaced: [],
+  unapplied: [{ moduleId: 7 }] };
+void incompleteApply;
+void incompleteApplyResult;
+
 // The Q8 pattern applies ONLY to request IDs. Generic JSON Schema strings
 // still use Unicode-codepoint minLength/maxLength, never byte length.
 for (const scalar of ['é', '🙂']) {

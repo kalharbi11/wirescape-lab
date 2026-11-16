@@ -48,6 +48,38 @@ int main() {
             return 1;
         }
     }
+    // Q13 shared bus_channel boundaries. 63 was the old PV1 schema limit,
+    // not a runtime/document/spec limit (native runtime accepts 0..15).
+    std::ifstream bus_source("tools/protocol/bus_channel_cases.json");
+    assert(bus_source.good());
+    Json bus_cases = Json::parse(bus_source);
+    assert(bus_cases.is_array() && bus_cases.size() == 6);
+    for (const auto &item : bus_cases) {
+        Json routed = patch;
+        routed["outputs"] = Json::array({{{"module", 7}, {"port", "audio"},
+                                          {"bus_channel", item.at("value")}}});
+        for (const auto &method : {"loadGraph", "applyGraph"}) {
+            const Json wire = {{"v", 0}, {"id", "bus"}, {"type", method}, {"patch", routed}};
+            const bool expected = item.at("valid").get<bool>();
+            if (validate(wire) != expected) {
+                std::cerr << "Q13 C++ bus_channel mismatch: " << item.at("name")
+                          << "/" << method << "\n";
+                return 1;
+            }
+        }
+    }
+    const Json apply_result = {{"path", "live"}, {"replaced", Json::array()},
+                               {"unapplied", Json::array()}};
+    const auto &result_shape = wirescape::protocol_v0::schema()["$defs"]["applyGraphResult"];
+    assert(wirescape::protocol_v0::matches(result_shape, apply_result));
+    assert(!wirescape::protocol_v0::matches(
+        result_shape, Json{{"path", "unknown"}, {"replaced", Json::array()},
+                           {"unapplied", Json::array()}}));
+    assert(validate(Json{{"v", 0}, {"re", "apply"}, {"ok", true}, {"gen", "1"},
+                         {"result", apply_result}}));
+    assert(!validate(Json{{"v", 0}, {"re", "apply"}, {"ok", true}, {"gen", "1"},
+                          {"result", Json{{"path", "unknown"}}}}));
+
     // Generic non-request-ID strings retain Unicode-codepoint semantics.
     for (const std::string& scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
         std::string device;

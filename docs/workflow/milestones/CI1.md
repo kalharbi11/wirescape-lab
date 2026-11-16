@@ -1,7 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CI1 — shorter Lab CI per merge
 
-**Revision:** r2 — **ACTIVE.** r2 (Fable, 2026-11-16, QUESTIONS Q7 and Q9) adds tasks CI1.2 and
+**Revision:** r3 — **ACTIVE.** r3 (Fable, 2026-11-16, QUESTIONS Q12, issue #117) adds task CI1.4 and
+invariant K9 and puts CI1.4 ahead of CI1.3 for `ci.yml`. Affected: CI1.3 (#109) keeps preparing but
+pushes no `ci.yml` change until CI1.4 is merged, then rebases. CI1.1 and CI1.2 are merged and unaffected.
+r2 (Fable, 2026-11-16, QUESTIONS Q7 and Q9) added tasks CI1.2 and
 CI1.3 and invariants K6–K8. CI1.1 is merged (PR #96) and unaffected; nothing stops. r1 was written and
 accepted by Fable, 2026-11-16 (ET), answering [QUESTIONS](../QUESTIONS.md) Q6 (owner request).
 Runs alongside M0, M1 and M2.
@@ -16,7 +19,13 @@ The 5 min figure is an estimate, not a pass mark.
 |---|---|---|---|---|
 | CI1.1 Lab CI time | B | `.github/workflows/ci.yml`; `apps/studio/package.json` (`test` script only); `tools/ci/changed_scope.py` (new); `tools/foundation/tests/test_changed_scope.py` (new); one new `facts/tests/ci_durations_*.md` | — | lead |
 | CI1.2 required native check names | B | `.github/workflows/ci.yml`; `tools/ci/` (check script, new); `tools/foundation/tests/` (its tests, new) | CI1.1 | lead |
-| CI1.3 sanitizer compiler cache | B | `.github/workflows/ci.yml` (`sanitizers` job only); one new `facts/tests/ci_durations_*.md` | CI1.2 merged | lead, only under K8 |
+| CI1.3 sanitizer compiler cache | B | `.github/workflows/ci.yml` (`sanitizers` job only); one new `facts/tests/ci_durations_*.md` | CI1.4 merged | lead, only under K8 |
+| CI1.4 authenticated aggregate checks | B | `.github/workflows/ci.yml` (the four aggregate jobs only); `tools/ci/` verifier and its tests | CI1.2 | lead |
+
+**CI1.4 (r3).** The four aggregate jobs (`linux-x64`, `linux-arm64`, `windows-x64`, `studio`) get
+job-level `permissions: { contents: read, actions: read }` and send `github.token` as the
+`Authorization` header on their one jobs-list request. The Studio inline check moves into the
+`tools/ci/` verifier. Details and evidence: QUESTIONS Q12.
 
 **CI1.2 (r2).** Seven check names are required by the repository: `foundation`, `linux-x64`,
 `linux-arm64`, `windows-x64`, `sanitizers`, `studio`, `desktop`. Rename the `native` matrix legs to
@@ -62,6 +71,10 @@ Print `ccache -s` after the build. File queue time per job for the 20 most recen
 - **K7** (CI1.3) Pushes to `main` and manual runs do not restore the cache; they build cold and
   save. Pull requests restore and never save. Sanitizer flags, options and the 78 `-R abi2` test
   names are unchanged. No CMake file changes.
+- **K9** (CI1.4) Workflow-level permissions stay `contents: read`; only the four aggregate jobs add
+  `actions: read`. The token goes to one step as an environment variable and to `api.github.com`
+  only; it is never printed, stored or output. Every HTTP error fails the job. No retry, no
+  anonymous fallback. K6 holds unchanged.
 - **K8** (CI1.3) Merged only if a warm pull-request run of `sanitizers` is at least 2.0 min shorter
   than 7.30 min. Otherwise the PR is closed and its numbers are filed as facts.
 
@@ -84,7 +97,7 @@ Print `ccache -s` after the build. File queue time per job for the 20 most recen
    output; the before and after table; the queue-time table; K8 applied.
 
 ## Single-writer area
-`.github/workflows/ci.yml` belongs to CI1.2, then CI1.3, one open PR at a time. M2 PV1 places its drift check in a
+`.github/workflows/ci.yml` belongs to CI1.4, then CI1.3, one open PR at a time. M2 PV1 places its drift check in a
 new workflow file, which M2 r2 already allows.
 
 ## Out of scope

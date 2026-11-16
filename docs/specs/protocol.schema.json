@@ -193,7 +193,7 @@
               "bus_channel": {
                 "type": "integer",
                 "minimum": 0,
-                "maximum": 63
+                "maximum": 15
               }
             }
           },
@@ -594,6 +594,29 @@
             },
             "type": {
               "const": "loadGraph"
+            },
+            "patch": {
+              "$ref": "#/$defs/patch"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "patch"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "applyGraph"
             },
             "patch": {
               "$ref": "#/$defs/patch"
@@ -1135,7 +1158,41 @@
               "maxLength": 128
             },
             "result": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "path": {
+                  "enum": [
+                    "live",
+                    "restart"
+                  ]
+                },
+                "replaced": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/moduleId"
+                  }
+                },
+                "unapplied": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "moduleId",
+                      "paramId"
+                    ],
+                    "properties": {
+                      "moduleId": {
+                        "$ref": "#/$defs/moduleId"
+                      },
+                      "paramId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -1449,6 +1506,48 @@
         },
         "to": {
           "$ref": "#/$defs/endpoint"
+        }
+      }
+    },
+    "applyGraphResult": {
+      "type": "object",
+      "required": [
+        "path",
+        "replaced",
+        "unapplied"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "live",
+            "restart"
+          ]
+        },
+        "replaced": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/moduleId"
+          }
+        },
+        "unapplied": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "moduleId",
+              "paramId"
+            ],
+            "properties": {
+              "moduleId": {
+                "$ref": "#/$defs/moduleId"
+              },
+              "paramId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            }
+          }
         }
       }
     }

@@ -23,7 +23,7 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 20)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 21)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
@@ -95,6 +95,53 @@ class ProtocolV0Tests(unittest.TestCase):
             {"v": 0, "re": "x", "ok": False, "gen": "0"},
         ]:
             self.assertFalse(validate(bad, self.schema), bad)
+
+    def test_q13_bus_channel_boundaries_and_applygraph_corpus(self):
+        cases = json.loads((ROOT / "tools/protocol/bus_channel_cases.json").read_text(encoding="utf-8"))
+        self.assertEqual([case["value"] for case in cases], [0, 15, 16, 63, -1, 1.5])
+        self.assertEqual([case["valid"] for case in cases], [True, True, False, False, False, False])
+        for case in cases:
+            with self.subTest(case=case["name"]):
+                patch = {"format": "wirescape.native.patch", "version": 2,
+                         "modules": [{"id": 7, "module": "essentials.output"}],
+                         "connections": [], "future": {"preserve": [1, None, True]},
+                         "outputs": [{"module": 7, "port": "audio",
+                                      "bus_channel": case["value"]}]}
+                untouched = copy.deepcopy(patch)
+                for method in ("loadGraph", "applyGraph"):
+                    wire = {"v": 0, "id": "q13", "type": method, "patch": patch}
+                    self.assertIs(validate(wire, self.schema), case["valid"])
+                self.assertEqual(patch, untouched)
+
+    def test_applygraph_reply_result_and_hello_capability(self):
+        patch = {"format": "wirescape.native.patch", "version": 2,
+                 "modules": [], "connections": [], "future": {"retained": True}}
+        self.assertTrue(validate({"v": 0, "id": "apply", "type": "applyGraph",
+                                  "patch": patch}, self.schema))
+        self.assertFalse(validate({"v": 0, "id": "apply", "type": "applyGraph"}, self.schema))
+        shape = {"$defs": self.schema["$defs"], "$ref": "#/$defs/applyGraphResult"}
+        result = {"path": "live", "replaced": [], "unapplied": [], "future": {"kept": 1}}
+        self.assertTrue(validate(result, shape))
+        self.assertTrue(validate({"v": 0, "re": "apply", "ok": True, "gen": "1",
+                                  "result": result}, self.schema))
+        for bad in ({"path": "unknown", "replaced": [], "unapplied": []},
+                    {"path": "live", "replaced": []},
+                    {"path": "live", "replaced": ["7"], "unapplied": []},
+                    {"path": "restart", "replaced": [], "unapplied": [{"moduleId": 7}]}):
+            self.assertFalse(validate(bad, shape), bad)
+        self.assertFalse(validate({"v": 0, "re": "apply", "ok": True, "gen": "1",
+                                   "result": {"path": "unknown"}}, self.schema))
+        self.assertIn("applyGraph", [variant["properties"]["type"]["const"]
+                      for variant in self.schema["$defs"]["command"]["oneOf"]])
+        self.assertTrue(validate({"v": 0, "type": "hello", "session": "s1", "protocol": 0,
+                                  "engine": {"version": "1", "sha": "a"},
+                                  "capabilities": ["applyGraph"],
+                                  "catalogue": {"modules": []},
+                                  "audio": {"state": "no-device", "sampleRate": 48000,
+                                            "bufferFrames": 256, "latencyMs": 0,
+                                            "cpuPercent": 0, "dropouts": 0,
+                                            "deviceId": None, "deviceName": None},
+                                  "midi": {"devices": [], "activity": {}}}, self.schema))
 
     def test_json_semantic_equality_for_const_and_enum(self):
         # Python bool is a subclass of int; JSON does not equate them.

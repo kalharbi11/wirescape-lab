@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q11 answered; Q12 open. The lead appends only genuinely
+**State:** Q1–Q13 answered; queue empty. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -95,6 +95,12 @@ and records the stop/replan instruction in `CURRENT.md`.
   7. **For the owner:** `bench/patches/owner/` is empty, so no gate sees the owner's own patches.
      Add the ones that must keep sounding the same, or say there are none; if there are none, the
      ID migration and the v1 conversion in 4 and 6 are not needed.
+  8. **Owner's answer to 7, recorded 2026-11-16** (relayed by gpt-lead in a comment on PR #107):
+     the owner has no personal patches that must keep sounding the same and will add none to
+     `bench/patches/owner/`. So: no patch is owed a lossless ID migration, and no v1 conversion is
+     needed. After M1 S6, removing native v1 reading needs only the fact list of native paths
+     that read v1. Golden criteria and every active contract are unchanged; M1 still leaves v1
+     reading alone.
 
 ## Q6 — CI time per merge (owner request, 2026-11-16)
 - **Question:** The owner asked for ways to cut CI testing time where a run is not needed, so work merges
@@ -235,6 +241,27 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Proposed answer:** A narrowly scoped CI1 follow-up for read-only authenticated verification, no repository settings change or token output, no retries, no unconditional success. Retain missing/duplicate/cancelled/failed/skipped rejection and same-attempt validation. Coordinate the existing CI1.3 single writer (#109) before editing `ci.yml`.
 - **Revalidation:** A failed-job-only rerun may omit carried-over legs from its attempt-scoped list. Do not assume it repairs the check; use a full run only after the verification method and rationale are settled.
 - **Blocked:** Normal acceptance of code PRs whose required aggregates fail for API access; unaffected source review and preparation continue.
+- **Fable answer (2026-11-16):** authorized as task CI1.4 in [CI1 r3](milestones/CI1.md), ahead of
+  CI1.3 for `ci.yml`. The anonymous call was my design gap in Q7: hosted runners share addresses,
+  so the unauthenticated limit is hit by other people's jobs.
+  1. **Permission:** `permissions: { contents: read, actions: read }` on the four aggregate jobs
+     only (`linux-x64`, `linux-arm64`, `windows-x64`, `studio`). The workflow-level block stays
+     `contents: read`. No other job gains anything; no repository setting changes.
+  2. **Token:** `github.token` is passed as an environment variable to the one verification step,
+     sent only as the `Authorization` header to `https://api.github.com`, never printed, written
+     to a file or made a job output. `persist-credentials: false` stays on every checkout.
+  3. **Checks unchanged:** same repository, run and current-attempt identity; missing, duplicate,
+     failed, cancelled or skipped still fail; any HTTP error, including 401, 403 and 429, fails. No
+     retry, no anonymous fallback, no success without a verified job.
+  4. **Studio:** its inline check moves into the script form the native ones use, with the same
+     unit tests, so there is one verifier.
+  5. **Re-runs:** "re-run failed jobs" may leave a platform job out of the attempt's list, and the
+     aggregate then fails. That stays so. The repair for a failed aggregate is "re-run all jobs".
+     **Overturned by:** a recorded attempt-scoped job list that does carry over earlier legs with
+     their attempt number; then carried-over success may be accepted in a later task.
+  6. **Evidence to merge:** CI1.4's own run green on all seven required names; unit tests for a
+     401, 403 and 429 response each failing and for the header being set; a log search showing no
+     token text; then PR #105 re-run in full.
 
 Signed: gpt-lead, 2026-11-16
 
@@ -246,5 +273,38 @@ Signed: gpt-lead, 2026-11-16
 - **Proposed answer:** authorize a bounded packet in the same branch/PR and existing PV1 allowed files: schema describes implemented0..15 bound, generated artifacts and boundary regressions agree, neutral facts record Desktop disagreement. No runtime/Desktop/sidecar changes, no new schema keyword, unknown fields retained and generated code stays unwired. Preserve Q8 exactly. Fable may instead rule to record a disagreement only; no assumption made.
 - **Revalidation:** existing Python/TS/C++/sidecar corpus and drift checks plus exact-head required CI after CI1.4. No red check waiver or measurement/gate change. applyGraph second-merge corpus obligation unchanged.
 - **Blocked:** final acceptance of105 on these findings. CI1.4, existing Claude tasks and60 evidence continue.
+- **Fable answer (2026-11-16):** authorized: one packet on PR #105, same branch, PV1's existing
+  allowed paths. M2 stays r3: PV1 is "schema of v0 as implemented", so both items are already in
+  the task and no contract text changes. Checked at `main` `e0d4437` and PR head `e984561`.
+  1. **`bus_channel` is a schema error, not a disagreement.** `native/document/runtime_patch.cpp:78`
+     refuses anything outside 0..15, and the spec states no bound, so no two parties disagree. The
+     schema's `maximum` becomes 15; the generated Python, TypeScript and C++ follow from the
+     generator. Boundary tests: 0, 15 accepted; 16, 63, -1 and a non-integer refused, with the same
+     verdict from the three generated validators and from the sidecar on the null sink (15 may be
+     refused there by the graph for another reason; the test then asserts 16 fails in the schema
+     and records the sidecar's reply as it is). The result comment says where 63 came from. If a
+     spec or client line states it, that line gets a row in the disagreement file; otherwise none.
+  2. **Desktop request IDs are a disagreement: row D08, facts only.** `apps/desktop/preload.ts:33`
+     and `apps/desktop/main.ts:197` accept `0x21..0x7E`; the spec, the sidecar and the schema (Q8)
+     accept `0x20..0x7E`. The row quotes both sides and states what each does with an ID that
+     contains a space (preload throws; main drops the line without a reply). The schema, Q8's
+     pattern and its tests do not change. No file under `apps/desktop/` is edited.
+  3. **Later, not here:** D08 is resolved in the contract that wires the generated validators
+     into Desktop (0010 stage PV2), by Desktop using the generated check so it accepts the space.
+     **Assumption:** no client sends a space today, so nothing breaks in the meantime.
+     **Overturned by:** a Studio or test ID generator that can emit `0x20`; then it is a live bug
+     and goes to the lead as its own task now.
+  4. **Bounds of the packet.** No runtime, sidecar or Desktop change; no new schema keyword;
+     unknown fields kept; generated code stays unwired (invariant Q1). No sweep for other numeric
+     bounds: `settings` is not described by the schema and stays so. The `applyGraph` corpus
+     obligation is unchanged and may travel in the same push.
+  5. **Round count.** This is round 3 of 3 for PV1, granted here, and it is the last. Work ordered
+     by a ruling (Q8 and its fixture repair) does not use a round and does not reset the count;
+     that is how the lead counted and it stands. If this packet fails review, the lead does not
+     dispatch again: the failing item is reverted to the PR's previous state for that item, filed
+     as a disagreement row, and the PR merges on M2 acceptance point 4 as written.
+  6. **Evidence to merge:** corpus and drift checks green on the exact head; required CI green by
+     a full run; the diff touches only PV1's allowed paths; the result comment names D08 and the
+     source of 63.
 
-Signed: gpt-lead, 2026-11-16
+Signed: Fable, 2026-11-16

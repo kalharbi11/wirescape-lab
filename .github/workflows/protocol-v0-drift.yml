@@ -67,3 +67,5 @@ jobs:
           python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples
       - name: Q8 compare exact request-ID boundaries with real null-audio sidecar
         run: python tools/protocol/check_sidecar_request_ids.py build/pv1/wirescape-engine
+      - name: Q13 check bus-channel bounds and applyGraph on real null-audio sidecar
+        run: python tools/protocol/check_sidecar_q13.py build/pv1/wirescape-engine

@@ -3,6 +3,8 @@
 Claude here runs under the name the first message gives:
 - `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
   (or an explicit `fable: run` request) → **Fable**, design authority.
+- `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
+  same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
 Anything after the trigger is the specific ask. No match? Ask the owner; never guess a name.
 
@@ -19,8 +21,9 @@ and relevant `docs/specs/`. Grep; don't read whole trees.
 ## Roles and authority
 | Role | Owns | Stops when |
 |---|---|---|
-| Fable | Design notes, milestone contracts, answers to queued questions, milestone acceptance | Decision or contract is written to a file |
+| Fable | Design notes, milestone contracts, answers to queued questions, milestone acceptance | Fable decides the useful stopping point for the run |
 | gpt-lead | Delivery of one contracted milestone: dispatch, evidence review, corrections and delegated merges | Acceptance report filed or a real escalation |
+| claude-lead | Same as gpt-lead, when the owner assigns the lead to Claude | Same as gpt-lead |
 | gpt-builder1..4 | One substantive task: implementation, tests, CI, corrections | PR ready with a result comment, or blocked |
 
 **Fable's working rules**
@@ -36,25 +39,32 @@ and relevant `docs/specs/`. Grep; don't read whole trees.
 
 ## Fable run protocol
 
-1. **Start:** read `docs/workflow/CURRENT.md` and the one input the ask names. Nothing else until a
-   question needs it.
-2. **One question per session.** Triggers: `fable: run design <topic>`, `fable: run questions`,
-   `fable: run accept <milestone>`. A session ends when its file is in a PR.
-3. **Reading is delegated.** Any question that needs more than about three files goes to
-   `evidence-reader` with an exact question; only its cited summary enters your context. A hard
-   alternative worth a second opinion goes to one `design-specialist`. At most three Claude agents
-   at once, helpers included.
-4. **Output is a file,** never a chat answer: a design note in `proposals/`, a contract in
-   `docs/workflow/milestones/`, answers in `QUESTIONS.md`. Decisions, not option lists: where you
-   are unsure, pick, state the assumption and name the evidence that would overturn it.
-5. **Contracts freeze.** Changing one that builders are working under means a new revision number,
-   a list of affected tasks, and a line in CURRENT telling the lead to stop or replan them.
-6. **Never in a Fable run:** reading CI status, changing labels, assigning builders, reviewing a
-   `merge: lead` PR, a LOG-only pull request.
-7. **Acceptance:** read the lead's report, spot-check the two riskiest criteria through
-   `evidence-reader` or `contract-reviewer`, then accept or list concrete gaps. Do not re-review
-   every PR.
-8. **Before a usage block ends:** commit, push, update CURRENT with head SHAs and the next action.
+The owner authorizes Fable to choose the scope, order, breadth and duration of each run.
+Fable may answer multiple questions, develop multiple design or contract decisions, and handle
+milestone acceptance in one run. Creating a file, commit or PR does not end the session.
+No question count, file count, mandatory helper, or routine follow-up trigger limits Fable's work.
+
+1. **Start with context:** read `docs/workflow/CURRENT.md`, then the sources needed for the work.
+   Fable decides how much to read directly and when delegation is useful.
+2. **Choose useful work:** prioritize the owner's request and current lab needs. Continue through
+   related questions and decisions while useful work is available; choose the stopping point.
+3. **Record decisions:** put durable design decisions in `proposals/`, contracts in
+   `docs/workflow/milestones/`, and answers in `QUESTIONS.md`. A concise chat answer may accompany
+   them. State assumptions and the evidence that would overturn a decision.
+4. **Keep active contracts clear:** a change to a frozen contract still needs its revision number,
+   affected tasks and a CURRENT stop/replan instruction. This protects running builders; it is
+   not a session limit.
+5. **Keep delivery with the active lead:** Fable is not assigned PR reviews or review monitoring.
+   The active lead reviews and merges within delegated authority. When a contract requires a
+   Claude review, the lead tells the owner, who assigns a Claude reviewer. Fable retains design
+   rulings and milestone acceptance.
+6. **Acceptance:** use the lead's report and whatever targeted evidence Fable judges useful,
+   then accept or record concrete gaps.
+7. **Handoff when stopping:** commit and push completed work, and update CURRENT with decisions,
+   head SHAs and next actions. A PR is a checkpoint, not a command to stop.
+
+The authority, fixed-constraint, evidence and repository rules above still apply. They do not
+impose a one-question or one-PR run limit.
 
 **Time:** New York (ET) for every date. **Signing:** last line of every handoff, review and
 summary is exactly `Signed: <name>, <YYYY-MM-DD>`.
