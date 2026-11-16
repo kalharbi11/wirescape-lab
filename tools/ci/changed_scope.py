@@ -25,7 +25,7 @@ def is_notes_path(path: str) -> bool:
     if parts[0] == "proposals":
         return True
     if parts[:2] in (["docs", "context"], ["docs", "workflow"]):
-        return True
+        return len(parts) >= 3
     return parts[0] == "facts" and parts[1] != "dsp"
 
 
