@@ -43,7 +43,7 @@ def registry(root):
     return result
 
 
-def render_inventory(root, rendered, run_url):
+def render_inventory(root, rendered, run_url, probes=None):
     modules=registry(root)
     patches=sorted((root/"apps/studio/patches").glob("*.json"))
     if len(patches)!=24:
@@ -104,6 +104,14 @@ def render_inventory(root, rendered, run_url):
             if (record["contribution_verified"] and record["output_rms_fs"]>1e-8
                     and record["control_peak_difference_fs"]>1e-8):
                 modules[module_id]["contribution_status"]="measured_audio_bypass_intervention"
+    for module_id, record in (probes or {}).items():
+        if module_id not in modules:
+            raise ValueError(f"probe refers to unregistered module {module_id}")
+        modules[module_id]["bundled_intervention"] = dict(record, run_url=run_url)
+        if (record["status"] == "measured_pcm_intervention" and
+                record.get("output_rms_fs",0)>1e-8 and
+                record.get("control_peak_difference_fs",0)>1e-8):
+            modules[module_id]["contribution_status"] = "measured_pcm_intervention"
     for row in modules.values():
         row["bundled_patch_names"].sort()
         row["bundled_connected_pair_names"]=sorted(set(row["bundled_connected_pair_names"]))
@@ -132,15 +140,17 @@ def main():
     p.add_argument("--root",type=Path,default=ROOT)
     p.add_argument("--render",required=True,type=Path)
     p.add_argument("--out",required=True,type=Path)
+    p.add_argument("--probes",type=Path,help="measured temporary cable-ablation records")
     p.add_argument("--run-url",required=True)
     args=p.parse_args()
+    probes=json.loads(args.probes.read_text(encoding="utf-8")) if args.probes else None
     data=render_inventory(args.root.resolve(),
-                          json.loads(args.render.read_text(encoding="utf-8")),args.run_url)
+                          json.loads(args.render.read_text(encoding="utf-8")),args.run_url,probes)
     args.out.parent.mkdir(parents=True,exist_ok=True)
     args.out.write_text(json.dumps(data,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     print("COVERAGE_SUMMARY",data["machine"],"registry",len(data["modules"]),
           "bundled",data["bundled_patch_count"],"fixture",data["coverage_fixture_count"],
-          "measured",sum(v["contribution_status"]=="measured_audio_bypass_intervention"
+          "measured",sum(v["contribution_status"].startswith("measured_")
                          for v in data["modules"].values()),flush=True)
     compact=json.dumps(data,separators=(",",":"),allow_nan=False)
     for i in range(0,len(compact),1400):
