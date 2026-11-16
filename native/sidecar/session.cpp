@@ -670,7 +670,7 @@ Json Session::execution(Json patch) {
     need(patch.dump().size() <= LineLimit, "limit", "Patch exceeds byte limit");
     return patch;
 }
-void Session::commit(Json patch, bool new_namespace) {
+bool Session::commit(Json patch, bool new_namespace) {
     patch = execution(std::move(patch));
     std::string error;
     const auto patch_bytes = patch.dump();
@@ -714,7 +714,7 @@ void Session::commit(Json patch, bool new_namespace) {
                 telemetry_.swap(next_telemetry); // Engine2 counts restart at every replan.
                 ++generation_;
                 std::cerr << "commit path=live gen=" << generation_ << '\n';
-                return;
+                return true;
             }
             if (error != "MIDI worker busy") break;
             if (attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
@@ -845,6 +845,95 @@ void Session::commit(Json patch, bool new_namespace) {
     monitor_->configure(patch_);
     telemetry_.swap(next_telemetry); // D5 also resets all last-seen event counts.
     std::cerr << "commit path=d5 gen=" << generation_ << '\n';
+    return false;
+}
+// applyGraph (0005 section 3, M2 E1a). Runs after a successful commit, so it never throws:
+// the graph and gen have already advanced and the reply must be ok.
+Json Session::reconcile_graph(const Json &before, bool live) {
+    Json replaced = Json::array(), unapplied = Json::array();
+    std::map<uint32_t, const Json *> prior;
+    for (const auto &m : before["modules"]) prior.emplace(m["id"].get<uint32_t>(), &m);
+    // The engine keeps an instance only when ID, descriptor and config bytes are unchanged
+    // (engine2.cpp replan). Compare the same canonical bytes (E0). An OSC Out instance gets a
+    // freshly staged bus pointer in its config on every commit, so it is never kept.
+    auto same_instance = [](const Json &a, const Json &b) {
+        const auto type = a["module"].get<std::string>();
+        if (type != b["module"].get<std::string>() || type == "osc.out") return false;
+        try {
+            const auto id = a["id"].get<uint32_t>();
+            return document::runtime_module_config(type, a.value("config", Json::object()), id) ==
+                   document::runtime_module_config(type, b.value("config", Json::object()), id);
+        } catch (...) {
+            return false; // unreachable for committed documents; report as replaced
+        }
+    };
+    struct Change {
+        uint32_t id;
+        const ws2_param *param;
+        uint32_t index;
+        float value;
+        Json previous; // the committed value, or null when it was the module's initial value
+    };
+    std::vector<Change> changes;
+    for (const auto &m : patch_["modules"]) {
+        const auto id = m["id"].get<uint32_t>();
+        const auto found = prior.find(id);
+        if (found == prior.end()) continue; // created (rule 4)
+        const Json &old = *found->second;
+        if (!same_instance(old, m)) {
+            replaced.push_back(id); // rule 3
+            continue;
+        }
+        if (!live) continue; // D5 rebuilt every instance from the document (rule 6)
+        auto *d = app_engine_native_descriptor(catalogue_.get(), m["module"].get<std::string>().c_str());
+        if (!d) continue;
+        const auto old_values = old.value("parameters", Json::object());
+        const auto new_values = m.value("parameters", Json::object());
+        for (uint32_t i = 0; i < d->param_count; ++i) {
+            const auto &p = d->params[i];
+            auto value_of = [&](const Json &values) {
+                const auto it = values.find(p.id);
+                return it != values.end() && it->is_number() ? it->get<float>() : p.initial;
+            };
+            const float from = value_of(old_values), to = value_of(new_values);
+            if (from == to) continue;
+            const auto it = old_values.find(p.id);
+            changes.push_back({id, &p, i, to, it != old_values.end() ? *it : Json(nullptr)});
+        }
+    }
+    // Rule 5: live parameter events after the swap, in document order. A queue that stays full
+    // for three block periods returns the rest in `unapplied`; the document keeps their old value.
+    const auto period = std::chrono::microseconds(int64_t(1e6 * double(options_.block) / double(options_.rate)));
+    std::chrono::steady_clock::time_point deadline{};
+    bool full = false, exhausted = false;
+    for (const auto &c : changes) {
+        bool sent = false;
+        while (!exhausted) {
+            ws2_event native{};
+            native.struct_size = sizeof(native);
+            native.type = WS2_PARAM;
+            native.index = c.index;
+            native.value = c.value;
+            if (app_engine_native(active_).enqueue(0, c.id, WS2_DIRECT_PORT, native, 0, engine2::Timing::Immediate) ==
+                WS2_OK) {
+                sent = true;
+                break;
+            }
+            const auto now = std::chrono::steady_clock::now();
+            if (!full) {
+                full = true;
+                deadline = now + 3 * period;
+            }
+            if (now >= deadline) exhausted = true;
+            else std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (sent) continue;
+        unapplied.push_back({{"moduleId", c.id}, {"paramId", c.param->id}});
+        auto &parameters = node(patch_, c.id)["parameters"];
+        if (c.previous.is_null()) parameters.erase(c.param->id);
+        else parameters[c.param->id] = c.previous;
+    }
+    return {{"path", live ? "live" : "restart"}, {"replaced", std::move(replaced)}, {"unapplied", std::move(unapplied)}};
 }
 Json Session::apply(const Json &command) {
     auto refuse_rate = [&]() {
@@ -1106,6 +1195,13 @@ Json Session::apply(const Json &command) {
         commit(command.at("patch"), true);
         return nullptr;
     }
+    if (type == "applyGraph") {
+        // Same validation and execution copy as loadGraph, but in the current ID namespace and
+        // through the live replan: unchanged modules keep their instances (0005 section 3).
+        const Json before = patch_;
+        const bool live = commit(command.at("patch"), false);
+        return reconcile_graph(before, live);
+    }
     if (type == "addModule") {
         auto id = integer(command.at("moduleId"));
         need(!used_ids_.count(id), "duplicate", "Module ID was already used");
@@ -1234,7 +1330,8 @@ Json Session::midi_status() const {
 }
 Json Session::hello() const {
     Json capabilities = Json::array(
-        {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out"});
+        {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
+         "applyGraph"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},
