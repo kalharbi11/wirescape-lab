@@ -5,7 +5,7 @@
       "files": 209,
       "missing_roots": 0
     },
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "complexity": {
       "functions": 3818,
       "lizard_version": "not exposed"
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 557
+      "files": 558
     },
     "long_lines": {
       "files": 259,
@@ -36,7 +36,7 @@
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "methods": {
@@ -62,14 +62,14 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1165
+    "source_files_tracked": 1166
   },
   "provenance": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

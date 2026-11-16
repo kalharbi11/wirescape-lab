@@ -1,72 +1,72 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "arch": "x64",
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V45 96-Core Processor                ",
+      "cpu": "AMD EPYC 9V74 80-Core Processor                ",
       "os": "win32"
     },
     "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
     "results": [
       {
         "action": "knob",
-        "frames": 53,
-        "max_ms": 16.800000000000182,
-        "modules": 50,
-        "p50_ms": 16.69999999999999,
-        "p95_ms": 16.700000000000045
-      },
-      {
-        "action": "cable",
-        "frames": 60,
-        "max_ms": 16.800000000000068,
-        "modules": 50,
-        "p50_ms": 16.69999999999999,
-        "p95_ms": 16.700000000000045
-      },
-      {
-        "action": "knob",
-        "frames": 58,
+        "frames": 57,
         "max_ms": 16.799999999999955,
-        "modules": 100,
+        "modules": 50,
         "p50_ms": 16.699999999999932,
         "p95_ms": 16.700000000000045
       },
       {
         "action": "cable",
-        "frames": 70,
-        "max_ms": 50,
-        "modules": 100,
-        "p50_ms": 16.699999999999932,
-        "p95_ms": 33.30000000000007
+        "frames": 63,
+        "max_ms": 33.40000000000009,
+        "modules": 50,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 16.800000000000068
       },
       {
         "action": "knob",
-        "frames": 78,
-        "max_ms": 33.40000000000009,
+        "frames": 63,
+        "max_ms": 16.800000000000182,
+        "modules": 100,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 16.700000000000045
+      },
+      {
+        "action": "cable",
+        "frames": 80,
+        "max_ms": 83.29999999999995,
+        "modules": 100,
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 33.299999999999955
+      },
+      {
+        "action": "knob",
+        "frames": 74,
+        "max_ms": 66.70000000000005,
         "modules": 200,
         "p50_ms": 16.700000000000045,
-        "p95_ms": 33.200000000000045
+        "p95_ms": 33.399999999999864
       },
       {
         "action": "cable",
-        "frames": 97,
-        "max_ms": 100,
+        "frames": 126,
+        "max_ms": 133.39999999999986,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.70000000000005
+        "p95_ms": 66.69999999999982
       }
     ]
   },
   "provenance": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

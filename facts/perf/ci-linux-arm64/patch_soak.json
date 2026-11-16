@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
@@ -31,7 +31,7 @@
         128,
         256
       ],
-      "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+      "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
       "date_et": "2026-11-15",
       "machine": {
         "architecture": "aarch64",
@@ -51,11 +51,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 53016,
-          "median": 6960,
-          "min": 4680,
-          "p99": 13360,
-          "p99_9": 23840
+          "max": 31488,
+          "median": 4904,
+          "min": 4576,
+          "p99": 10720,
+          "p99_9": 19240
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -70,11 +70,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 52226,
-          "median": 6536,
-          "min": 4264,
-          "p99": 12448,
-          "p99_9": 20880
+          "max": 29454,
+          "median": 4487,
+          "min": 4175,
+          "p99": 9927,
+          "p99_9": 16871
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -91,11 +91,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 52472,
-          "median": 8944,
-          "min": 7600,
-          "p99": 17096,
-          "p99_9": 30784
+          "max": 44152,
+          "median": 7592,
+          "min": 7312,
+          "p99": 14712,
+          "p99_9": 23808
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -110,11 +110,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 51281,
-          "median": 8472,
-          "min": 7144,
-          "p99": 15904,
-          "p99_9": 28161
+          "max": 41398,
+          "median": 7175,
+          "min": 6920,
+          "p99": 13831,
+          "p99_9": 21671
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -131,11 +131,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 49056,
-          "median": 13432,
-          "min": 12720,
-          "p99": 27472,
-          "p99_9": 44248
+          "max": 38728,
+          "median": 13120,
+          "min": 12672,
+          "p99": 22488,
+          "p99_9": 30632
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -150,11 +150,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 44817,
-          "median": 12976,
-          "min": 12265,
-          "p99": 25905,
-          "p99_9": 40793
+          "max": 35902,
+          "median": 12680,
+          "min": 12263,
+          "p99": 21367,
+          "p99_9": 28598
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -171,11 +171,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 94024,
-          "median": 11392,
-          "min": 10480,
-          "p99": 17976,
-          "p99_9": 31944
+          "max": 40336,
+          "median": 11360,
+          "min": 10392,
+          "p99": 17800,
+          "p99_9": 32408
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -190,11 +190,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 92842,
-          "median": 10944,
-          "min": 10024,
-          "p99": 17096,
-          "p99_9": 29809
+          "max": 37685,
+          "median": 10928,
+          "min": 9968,
+          "p99": 16911,
+          "p99_9": 29767
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -211,11 +211,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 56480,
-          "median": 20288,
-          "min": 18576,
-          "p99": 29664,
-          "p99_9": 45360
+          "max": 46424,
+          "median": 19960,
+          "min": 18480,
+          "p99": 26920,
+          "p99_9": 40616
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -230,11 +230,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 54234,
-          "median": 19816,
-          "min": 18073,
-          "p99": 28544,
-          "p99_9": 42570
+          "max": 44246,
+          "median": 19519,
+          "min": 18055,
+          "p99": 26015,
+          "p99_9": 38310
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -251,11 +251,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 78304,
-          "median": 38040,
-          "min": 34616,
-          "p99": 50992,
-          "p99_9": 68432
+          "max": 68888,
+          "median": 37504,
+          "min": 34528,
+          "p99": 49824,
+          "p99_9": 62208
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -270,11 +270,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 84884,
-          "median": 37570,
-          "min": 34152,
-          "p99": 49833,
-          "p99_9": 66729
+          "max": 66925,
+          "median": 37037,
+          "min": 34102,
+          "p99": 47950,
+          "p99_9": 60357
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -291,11 +291,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 65240,
-          "median": 16560,
-          "min": 15840,
-          "p99": 24048,
-          "p99_9": 43080
+          "max": 64208,
+          "median": 16408,
+          "min": 15776,
+          "p99": 23608,
+          "p99_9": 40664
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -310,11 +310,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 65981,
-          "median": 16097,
-          "min": 15417,
-          "p99": 23114,
-          "p99_9": 40056
+          "max": 61900,
+          "median": 15975,
+          "min": 15359,
+          "p99": 22663,
+          "p99_9": 38406
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -331,11 +331,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 104784,
-          "median": 30400,
-          "min": 28928,
-          "p99": 40536,
-          "p99_9": 61480
+          "max": 64824,
+          "median": 29808,
+          "min": 28752,
+          "p99": 38504,
+          "p99_9": 54984
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -350,11 +350,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 102117,
-          "median": 29906,
-          "min": 28449,
-          "p99": 39442,
-          "p99_9": 56275
+          "max": 62484,
+          "median": 29358,
+          "min": 28326,
+          "p99": 37406,
+          "p99_9": 52877
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -371,11 +371,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 104864,
-          "median": 57992,
-          "min": 55352,
-          "p99": 71224,
-          "p99_9": 94360
+          "max": 88056,
+          "median": 56712,
+          "min": 54760,
+          "p99": 69432,
+          "p99_9": 82288
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -390,11 +390,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 101727,
-          "median": 57468,
-          "min": 54931,
-          "p99": 69916,
-          "p99_9": 91374
+          "max": 85419,
+          "median": 56181,
+          "min": 54349,
+          "p99": 68196,
+          "p99_9": 80139
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -411,11 +411,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 58336,
-          "median": 12576,
-          "min": 10064,
-          "p99": 19488,
-          "p99_9": 35272
+          "max": 50576,
+          "median": 12568,
+          "min": 10024,
+          "p99": 20216,
+          "p99_9": 35680
         },
         "faults": 0,
         "graph": "document",
@@ -428,11 +428,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 57459,
-          "median": 12129,
-          "min": 9625,
-          "p99": 18521,
-          "p99_9": 32642
+          "max": 48861,
+          "median": 12143,
+          "min": 9623,
+          "p99": 19015,
+          "p99_9": 33238
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -445,11 +445,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 64264,
-          "median": 22040,
-          "min": 17152,
-          "p99": 33112,
-          "p99_9": 51160
+          "max": 54568,
+          "median": 21960,
+          "min": 17224,
+          "p99": 30568,
+          "p99_9": 46512
         },
         "faults": 0,
         "graph": "document",
@@ -462,11 +462,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 59891,
-          "median": 21569,
-          "min": 16721,
-          "p99": 32025,
-          "p99_9": 48643
+          "max": 52181,
+          "median": 21511,
+          "min": 16815,
+          "p99": 29454,
+          "p99_9": 43926
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -479,11 +479,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 84768,
-          "median": 41144,
-          "min": 31728,
-          "p99": 55400,
-          "p99_9": 80096
+          "max": 76008,
+          "median": 40280,
+          "min": 31408,
+          "p99": 55704,
+          "p99_9": 69944
         },
         "faults": 0,
         "graph": "document",
@@ -496,11 +496,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 81820,
-          "median": 40633,
-          "min": 31305,
-          "p99": 54194,
-          "p99_9": 76235
+          "max": 73403,
+          "median": 39830,
+          "min": 30990,
+          "p99": 53788,
+          "p99_9": 67116
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -513,11 +513,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 126536,
-          "median": 18400,
-          "min": 17808,
-          "p99": 27384,
-          "p99_9": 43504
+          "max": 52696,
+          "median": 18336,
+          "min": 17744,
+          "p99": 25920,
+          "p99_9": 43664
         },
         "faults": 0,
         "graph": "document",
@@ -530,11 +530,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 122564,
-          "median": 17945,
-          "min": 17369,
-          "p99": 26313,
-          "p99_9": 40890
+          "max": 49846,
+          "median": 17910,
+          "min": 17327,
+          "p99": 24935,
+          "p99_9": 40917
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -547,11 +547,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 105216,
-          "median": 35856,
-          "min": 32952,
-          "p99": 49176,
-          "p99_9": 65136
+          "max": 66920,
+          "median": 33832,
+          "min": 32880,
+          "p99": 45032,
+          "p99_9": 60480
         },
         "faults": 0,
         "graph": "document",
@@ -564,11 +564,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 103629,
-          "median": 35365.5,
-          "min": 32498,
-          "p99": 48106,
-          "p99_9": 62347
+          "max": 64253,
+          "median": 33382,
+          "min": 32446,
+          "p99": 43909,
+          "p99_9": 57909
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -581,11 +581,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 181968,
-          "median": 65520,
-          "min": 63296,
-          "p99": 81848,
-          "p99_9": 98016
+          "max": 93200,
+          "median": 64560,
+          "min": 62904,
+          "p99": 76104,
+          "p99_9": 90536
         },
         "faults": 0,
         "graph": "document",
@@ -598,11 +598,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 178263,
-          "median": 64995,
-          "min": 62834,
-          "p99": 80355,
-          "p99_9": 96028
+          "max": 91314,
+          "median": 64100,
+          "min": 62485,
+          "p99": 74812,
+          "p99_9": 88747
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -615,11 +615,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 102312,
-          "median": 23960,
-          "min": 21968,
-          "p99": 32096,
-          "p99_9": 48840
+          "max": 54472,
+          "median": 22184,
+          "min": 21728,
+          "p99": 29032,
+          "p99_9": 43136
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -634,11 +634,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 100427,
-          "median": 23505,
-          "min": 21505,
-          "p99": 31161,
-          "p99_9": 45753
+          "max": 51493,
+          "median": 21758,
+          "min": 21319,
+          "p99": 28095,
+          "p99_9": 41278
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -655,11 +655,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 78328,
-          "median": 41616,
-          "min": 40480,
-          "p99": 53104,
-          "p99_9": 69440
+          "max": 73456,
+          "median": 41240,
+          "min": 40432,
+          "p99": 50736,
+          "p99_9": 63680
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -674,11 +674,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 75387,
-          "median": 41129,
-          "min": 40041,
-          "p99": 51938,
-          "p99_9": 66875
+          "max": 71116,
+          "median": 40798,
+          "min": 39974,
+          "p99": 49597,
+          "p99_9": 61661
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -695,11 +695,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 164984,
-          "median": 80416,
-          "min": 78424,
-          "p99": 95168,
-          "p99_9": 113456
+          "max": 114592,
+          "median": 79184,
+          "min": 77936,
+          "p99": 89152,
+          "p99_9": 101728
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -714,11 +714,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 163164,
-          "median": 79899,
-          "min": 78010,
-          "p99": 93531,
-          "p99_9": 115452
+          "max": 112769,
+          "median": 78731,
+          "min": 77523,
+          "p99": 88098,
+          "p99_9": 99546
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -735,11 +735,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 69896,
-          "median": 16416,
-          "min": 15648,
-          "p99": 23816,
-          "p99_9": 41840
+          "max": 62816,
+          "median": 16424,
+          "min": 15688,
+          "p99": 24216,
+          "p99_9": 40952
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -754,11 +754,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 66793,
-          "median": 15945,
-          "min": 15208,
-          "p99": 22920,
-          "p99_9": 39057
+          "max": 60420,
+          "median": 15983,
+          "min": 15279,
+          "p99": 23223,
+          "p99_9": 38606
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -775,11 +775,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 83648,
-          "median": 30184,
-          "min": 28624,
-          "p99": 40872,
-          "p99_9": 64128
+          "max": 74056,
+          "median": 30416,
+          "min": 28720,
+          "p99": 44176,
+          "p99_9": 56056
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -794,11 +794,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 80890,
-          "median": 29713,
-          "min": 28208,
-          "p99": 39537,
-          "p99_9": 61386
+          "max": 71908,
+          "median": 29854,
+          "min": 28286,
+          "p99": 43173,
+          "p99_9": 53373
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -815,11 +815,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 119136,
-          "median": 57408,
-          "min": 54840,
-          "p99": 73008,
-          "p99_9": 93488
+          "max": 87048,
+          "median": 56464,
+          "min": 54392,
+          "p99": 71824,
+          "p99_9": 84160
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -834,11 +834,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 115562,
-          "median": 56889,
-          "min": 54409,
-          "p99": 71330,
-          "p99_9": 89626
+          "max": 84330,
+          "median": 55989,
+          "min": 53950,
+          "p99": 70603,
+          "p99_9": 81571
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -855,11 +855,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 47704,
-          "median": 11128,
-          "min": 9792,
-          "p99": 18160,
-          "p99_9": 34568
+          "max": 53288,
+          "median": 11136,
+          "min": 9832,
+          "p99": 19496,
+          "p99_9": 34416
         },
         "faults": 0,
         "graph": "document",
@@ -872,11 +872,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 43969,
-          "median": 10688,
-          "min": 9376,
-          "p99": 17144,
-          "p99_9": 31953
+          "max": 51149,
+          "median": 10704,
+          "min": 9407,
+          "p99": 18511,
+          "p99_9": 31870
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -889,11 +889,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 80128,
-          "median": 20664,
-          "min": 17552,
-          "p99": 30552,
-          "p99_9": 48416
+          "max": 66368,
+          "median": 19504,
+          "min": 17104,
+          "p99": 29352,
+          "p99_9": 45216
         },
         "faults": 0,
         "graph": "document",
@@ -906,11 +906,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 79018,
-          "median": 20192,
-          "min": 17121,
-          "p99": 29401,
-          "p99_9": 45849
+          "max": 63748,
+          "median": 19071,
+          "min": 16695,
+          "p99": 28254,
+          "p99_9": 42925
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -923,11 +923,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 76800,
-          "median": 36720,
-          "min": 32024,
-          "p99": 51904,
-          "p99_9": 67552
+          "max": 63640,
+          "median": 36416,
+          "min": 31896,
+          "p99": 48616,
+          "p99_9": 61344
         },
         "faults": 0,
         "graph": "document",
@@ -940,11 +940,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 73297,
-          "median": 36264,
-          "min": 31609,
-          "p99": 50522,
-          "p99_9": 65017
+          "max": 61484,
+          "median": 35958,
+          "min": 31470,
+          "p99": 47573,
+          "p99_9": 59149
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -957,11 +957,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 297488,
-          "median": 29984,
-          "min": 29192,
-          "p99": 38112,
-          "p99_9": 60232
+          "max": 66640,
+          "median": 29848,
+          "min": 29136,
+          "p99": 36136,
+          "p99_9": 50616
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -976,11 +976,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 293436,
-          "median": 29513,
-          "min": 28713,
-          "p99": 37094,
-          "p99_9": 57249
+          "max": 80675,
+          "median": 29398,
+          "min": 28711,
+          "p99": 35398,
+          "p99_9": 48526
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -997,11 +997,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 114184,
-          "median": 56256,
-          "min": 54552,
-          "p99": 68904,
-          "p99_9": 91360
+          "max": 114280,
+          "median": 55944,
+          "min": 54592,
+          "p99": 66664,
+          "p99_9": 86728
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1016,11 +1016,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 113171,
-          "median": 55738,
-          "min": 54081,
-          "p99": 67586,
-          "p99_9": 88794
+          "max": 111657,
+          "median": 55477,
+          "min": 54181,
+          "p99": 65564,
+          "p99_9": 83715
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1037,11 +1037,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 164328,
-          "median": 108976,
-          "min": 105416,
-          "p99": 132272,
-          "p99_9": 157336
+          "max": 149392,
+          "median": 107768,
+          "min": 105296,
+          "p99": 121864,
+          "p99_9": 136336
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1056,11 +1056,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 161267,
-          "median": 108388,
-          "min": 104850,
-          "p99": 129274,
-          "p99_9": 154652
+          "max": 146727,
+          "median": 107266,
+          "min": 104794,
+          "p99": 120496,
+          "p99_9": 133704
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1077,11 +1077,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 134984,
-          "median": 28656,
-          "min": 27696,
-          "p99": 37144,
-          "p99_9": 57776
+          "max": 90456,
+          "median": 28568,
+          "min": 27712,
+          "p99": 37464,
+          "p99_9": 57232
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1096,11 +1096,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 73753,
-          "median": 28201,
-          "min": 27249,
-          "p99": 36161,
-          "p99_9": 54745
+          "max": 89546,
+          "median": 28102,
+          "min": 27278,
+          "p99": 36342,
+          "p99_9": 54669
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1117,11 +1117,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 119104,
-          "median": 53400,
-          "min": 51736,
-          "p99": 64896,
-          "p99_9": 85280
+          "max": 92840,
+          "median": 53392,
+          "min": 51864,
+          "p99": 62720,
+          "p99_9": 80072
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1136,11 +1136,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 118027,
-          "median": 52929,
-          "min": 51313,
-          "p99": 63609,
-          "p99_9": 82257
+          "max": 90610,
+          "median": 52885,
+          "min": 51413,
+          "p99": 61509,
+          "p99_9": 77443
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1157,11 +1157,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 166840,
-          "median": 104528,
-          "min": 100736,
-          "p99": 125304,
-          "p99_9": 155968
+          "max": 147408,
+          "median": 103232,
+          "min": 99800,
+          "p99": 121136,
+          "p99_9": 130816
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1176,11 +1176,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 165404,
-          "median": 103962,
-          "min": 100187,
-          "p99": 123643,
-          "p99_9": 152772
+          "max": 144895,
+          "median": 102706,
+          "min": 99370,
+          "p99": 119753,
+          "p99_9": 128928
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1197,11 +1197,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 91528,
-          "median": 28464,
-          "min": 26632,
-          "p99": 36640,
-          "p99_9": 56176
+          "max": 67888,
+          "median": 28240,
+          "min": 26656,
+          "p99": 35288,
+          "p99_9": 51152
         },
         "faults": 0,
         "graph": "document",
@@ -1214,11 +1214,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 90859,
-          "median": 27937,
-          "min": 26153,
-          "p99": 35545,
-          "p99_9": 53163
+          "max": 101082,
+          "median": 27746,
+          "min": 26222,
+          "p99": 34446,
+          "p99_9": 48605
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1231,11 +1231,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 105208,
-          "median": 54920,
-          "min": 50496,
-          "p99": 65448,
-          "p99_9": 85008
+          "max": 88728,
+          "median": 52488,
+          "min": 50208,
+          "p99": 61352,
+          "p99_9": 72288
         },
         "faults": 0,
         "graph": "document",
@@ -1248,11 +1248,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 104027,
-          "median": 54433.5,
-          "min": 50050,
-          "p99": 64466,
-          "p99_9": 82058
+          "max": 85947,
+          "median": 51989,
+          "min": 49757,
+          "p99": 60348,
+          "p99_9": 70284
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1265,11 +1265,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 175368,
-          "median": 107784,
-          "min": 98216,
-          "p99": 133144,
-          "p99_9": 154336
+          "max": 153560,
+          "median": 105832,
+          "min": 97376,
+          "p99": 119024,
+          "p99_9": 135408
         },
         "faults": 0,
         "graph": "document",
@@ -1282,11 +1282,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 172085,
-          "median": 107243,
-          "min": 97763,
-          "p99": 131492,
-          "p99_9": 151573
+          "max": 150583,
+          "median": 105362,
+          "min": 96954,
+          "p99": 117777,
+          "p99_9": 133176
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1299,11 +1299,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 63120,
-          "median": 24616,
-          "min": 23760,
-          "p99": 31952,
-          "p99_9": 50144
+          "max": 70256,
+          "median": 24472,
+          "min": 23672,
+          "p99": 31744,
+          "p99_9": 44736
         },
         "faults": 0,
         "graph": "document",
@@ -1316,11 +1316,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 60002,
-          "median": 24135,
-          "min": 23352,
-          "p99": 30945,
-          "p99_9": 47241
+          "max": 70732,
+          "median": 24023,
+          "min": 23262,
+          "p99": 31007,
+          "p99_9": 42893
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1333,11 +1333,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 103408,
-          "median": 46872,
-          "min": 45072,
-          "p99": 58720,
-          "p99_9": 75320
+          "max": 87088,
+          "median": 49808,
+          "min": 45048,
+          "p99": 61936,
+          "p99_9": 73656
         },
         "faults": 0,
         "graph": "document",
@@ -1350,11 +1350,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 102603,
-          "median": 46333.5,
-          "min": 44601,
-          "p99": 57617,
-          "p99_9": 72427
+          "max": 86131,
+          "median": 49365,
+          "min": 44509,
+          "p99": 60820,
+          "p99_9": 72668
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1367,11 +1367,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 137072,
-          "median": 95600,
-          "min": 87824,
-          "p99": 110368,
-          "p99_9": 124392
+          "max": 121232,
+          "median": 89328,
+          "min": 87392,
+          "p99": 105600,
+          "p99_9": 116376
         },
         "faults": 0,
         "graph": "document",
@@ -1384,11 +1384,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 137092,
-          "median": 94955,
-          "min": 87386,
-          "p99": 109571,
-          "p99_9": 124667
+          "max": 119329,
+          "median": 88763,
+          "min": 86962,
+          "p99": 104522,
+          "p99_9": 114049
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1401,11 +1401,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 62128,
-          "median": 22840,
-          "min": 22320,
-          "p99": 30832,
-          "p99_9": 47088
+          "max": 66416,
+          "median": 22808,
+          "min": 22288,
+          "p99": 28648,
+          "p99_9": 43088
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1420,11 +1420,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 59745,
-          "median": 22377,
-          "min": 21889,
-          "p99": 29801,
-          "p99_9": 44553
+          "max": 63812,
+          "median": 22374,
+          "min": 21871,
+          "p99": 27951,
+          "p99_9": 41502
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1441,11 +1441,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 140784,
-          "median": 43048,
-          "min": 41824,
-          "p99": 55136,
-          "p99_9": 74416
+          "max": 72776,
+          "median": 42552,
+          "min": 41704,
+          "p99": 52560,
+          "p99_9": 66408
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1460,11 +1460,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 125523,
-          "median": 42553,
-          "min": 41385,
-          "p99": 54041,
-          "p99_9": 72122
+          "max": 70124,
+          "median": 42102,
+          "min": 41293,
+          "p99": 51405,
+          "p99_9": 64229
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1481,18 +1481,18 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 145384,
-          "median": 83320,
-          "min": 80800,
-          "p99": 98912,
-          "p99_9": 120288
+          "max": 117808,
+          "median": 82080,
+          "min": 80432,
+          "p99": 99328,
+          "p99_9": 109144
         },
         "derived_modules_added": 1,
         "faults": 0,
         "graph": "document",
         "input_mode": "clocked_step_sequencer_for_host_keyboard",
         "keyboard_sources_replaced": 1,
-        "late_deadlines": 1,
+        "late_deadlines": 0,
         "over_100_percent": 0,
         "over_50_percent": 0,
         "patch": "chaos-05-moonlit-drift-pad.json",
@@ -1500,11 +1500,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 143716,
-          "median": 82778,
-          "min": 80378,
-          "p99": 97514,
-          "p99_9": 116699
+          "max": 116185,
+          "median": 81572,
+          "min": 79995,
+          "p99": 98178,
+          "p99_9": 107538
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1521,11 +1521,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 39088,
-          "median": 7312,
-          "min": 6728,
-          "p99": 13936,
-          "p99_9": 27872
+          "max": 46432,
+          "median": 7216,
+          "min": 6680,
+          "p99": 13840,
+          "p99_9": 27896
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1540,11 +1540,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 35858,
-          "median": 6873,
-          "min": 6296,
-          "p99": 13033,
-          "p99_9": 25430
+          "max": 44605,
+          "median": 6791,
+          "min": 6256,
+          "p99": 13000,
+          "p99_9": 25031
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1561,11 +1561,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 51592,
-          "median": 12304,
-          "min": 11104,
-          "p99": 27632,
-          "p99_9": 38376
+          "max": 49000,
+          "median": 11840,
+          "min": 10952,
+          "p99": 19048,
+          "p99_9": 32000
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1580,11 +1580,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 49099,
-          "median": 11865,
-          "min": 10665,
-          "p99": 26746,
-          "p99_9": 35874
+          "max": 46781,
+          "median": 11415,
+          "min": 10536,
+          "p99": 18167,
+          "p99_9": 29854
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1601,11 +1601,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 61656,
-          "median": 21416,
-          "min": 19560,
-          "p99": 41328,
-          "p99_9": 60432
+          "max": 62920,
+          "median": 21264,
+          "min": 19512,
+          "p99": 34856,
+          "p99_9": 48368
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1620,11 +1620,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 58163,
-          "median": 20953,
-          "min": 19113,
-          "p99": 40154,
-          "p99_9": 57243
+          "max": 49997,
+          "median": 20823,
+          "min": 19103,
+          "p99": 33134,
+          "p99_9": 44101
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1641,11 +1641,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 47856,
-          "median": 8136,
-          "min": 6976,
-          "p99": 14000,
-          "p99_9": 25184
+          "max": 42032,
+          "median": 7520,
+          "min": 6792,
+          "p99": 14192,
+          "p99_9": 25720
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1660,11 +1660,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 45347,
-          "median": 7689,
-          "min": 6560,
-          "p99": 13137,
-          "p99_9": 22753
+          "max": 38973,
+          "median": 7103,
+          "min": 6392,
+          "p99": 13335,
+          "p99_9": 23503
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1681,11 +1681,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 46336,
-          "median": 13792,
-          "min": 11696,
-          "p99": 22704,
-          "p99_9": 35184
+          "max": 49976,
+          "median": 12600,
+          "min": 11512,
+          "p99": 19248,
+          "p99_9": 30528
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1700,11 +1700,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 43378,
-          "median": 13332.5,
-          "min": 11296,
-          "p99": 21577,
-          "p99_9": 32401
+          "max": 47373,
+          "median": 12175,
+          "min": 11103,
+          "p99": 18439,
+          "p99_9": 28023
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1721,11 +1721,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 59808,
-          "median": 24144,
-          "min": 21280,
-          "p99": 37440,
-          "p99_9": 56256
+          "max": 51408,
+          "median": 22912,
+          "min": 20752,
+          "p99": 34912,
+          "p99_9": 44696
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -1740,11 +1740,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 56643,
-          "median": 23649,
-          "min": 20881,
-          "p99": 36066,
-          "p99_9": 52907
+          "max": 50469,
+          "median": 22471,
+          "min": 20351,
+          "p99": 33342,
+          "p99_9": 42349
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -1761,11 +1761,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 45880,
-          "median": 9048,
-          "min": 8112,
-          "p99": 14176,
-          "p99_9": 23856
+          "max": 30496,
+          "median": 8976,
+          "min": 8048,
+          "p99": 14024,
+          "p99_9": 23448
         },
         "faults": 0,
         "graph": "document",
@@ -1778,11 +1778,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 43298,
-          "median": 8616,
-          "min": 7680,
-          "p99": 13225,
-          "p99_9": 21601
+          "max": 27982,
+          "median": 8567,
+          "min": 7632,
+          "p99": 13183,
+          "p99_9": 21047
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1795,11 +1795,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 73656,
-          "median": 16704,
-          "min": 14744,
-          "p99": 23776,
-          "p99_9": 34728
+          "max": 34816,
+          "median": 16248,
+          "min": 14480,
+          "p99": 22144,
+          "p99_9": 31392
         },
         "faults": 0,
         "graph": "document",
@@ -1812,11 +1812,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 73131,
-          "median": 16249,
-          "min": 14272,
-          "p99": 22785,
-          "p99_9": 32570
+          "max": 32430,
+          "median": 15815,
+          "min": 14056,
+          "p99": 21135,
+          "p99_9": 29039
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1829,11 +1829,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 98064,
-          "median": 32632,
-          "min": 27888,
-          "p99": 46696,
-          "p99_9": 58328
+          "max": 57712,
+          "median": 31576,
+          "min": 27536,
+          "p99": 44000,
+          "p99_9": 51672
         },
         "faults": 0,
         "graph": "document",
@@ -1846,11 +1846,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 96532,
-          "median": 32137,
-          "min": 27482,
-          "p99": 45074,
-          "p99_9": 55202
+          "max": 65413,
+          "median": 31086,
+          "min": 27119,
+          "p99": 42742,
+          "p99_9": 50213
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1863,11 +1863,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 108048,
-          "median": 45816,
-          "min": 44256,
-          "p99": 53672,
-          "p99_9": 72768
+          "max": 90688,
+          "median": 45688,
+          "min": 44160,
+          "p99": 52160,
+          "p99_9": 68224
         },
         "faults": 0,
         "graph": "document",
@@ -1880,11 +1880,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 107212,
-          "median": 45321,
-          "min": 43826,
-          "p99": 52770,
-          "p99_9": 70898
+          "max": 92339,
+          "median": 45245,
+          "min": 43741,
+          "p99": 51365,
+          "p99_9": 66228
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1897,11 +1897,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 180632,
-          "median": 88472,
-          "min": 85496,
-          "p99": 100192,
-          "p99_9": 125016
+          "max": 119360,
+          "median": 87512,
+          "min": 84888,
+          "p99": 97312,
+          "p99_9": 114056
         },
         "faults": 0,
         "graph": "document",
@@ -1914,11 +1914,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 179582,
-          "median": 87963,
-          "min": 85003,
-          "p99": 98947,
-          "p99_9": 121981
+          "max": 116401,
+          "median": 87035,
+          "min": 84459,
+          "p99": 96195,
+          "p99_9": 111618
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1931,11 +1931,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 233768,
-          "median": 174144,
-          "min": 167640,
-          "p99": 190608,
-          "p99_9": 210552
+          "max": 224240,
+          "median": 171928,
+          "min": 166968,
+          "p99": 196112,
+          "p99_9": 218576
         },
         "faults": 0,
         "graph": "document",
@@ -1948,11 +1948,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 230167,
-          "median": 173594,
-          "min": 167053,
-          "p99": 189446,
-          "p99_9": 210863
+          "max": 221187,
+          "median": 171406,
+          "min": 166550,
+          "p99": 194596,
+          "p99_9": 215211
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1965,11 +1965,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 82624,
-          "median": 35888,
-          "min": 34984,
-          "p99": 46264,
-          "p99_9": 66584
+          "max": 78592,
+          "median": 35912,
+          "min": 35040,
+          "p99": 44360,
+          "p99_9": 63768
         },
         "faults": 0,
         "graph": "document",
@@ -1982,11 +1982,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 79859,
-          "median": 35417,
-          "min": 34553,
-          "p99": 45098,
-          "p99_9": 63498
+          "max": 76347,
+          "median": 35446,
+          "min": 34598,
+          "p99": 43278,
+          "p99_9": 61445
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -1999,11 +1999,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 115792,
-          "median": 69696,
-          "min": 67040,
-          "p99": 85352,
-          "p99_9": 101328
+          "max": 139880,
+          "median": 68104,
+          "min": 66600,
+          "p99": 83968,
+          "p99_9": 103184
         },
         "faults": 0,
         "graph": "document",
@@ -2016,11 +2016,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 108846,
-          "median": 69130,
-          "min": 66578,
-          "p99": 84323,
-          "p99_9": 98283
+          "max": 138008,
+          "median": 67548,
+          "min": 66172,
+          "p99": 82875,
+          "p99_9": 101778
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -2033,11 +2033,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 187512,
-          "median": 135368,
-          "min": 130584,
-          "p99": 152256,
-          "p99_9": 176976
+          "max": 175472,
+          "median": 133928,
+          "min": 130344,
+          "p99": 153952,
+          "p99_9": 168432
         },
         "faults": 0,
         "graph": "document",
@@ -2050,11 +2050,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 185765,
-          "median": 134779,
-          "min": 129884,
-          "p99": 150941,
-          "p99_9": 173684
+          "max": 196956,
+          "median": 133336,
+          "min": 129905,
+          "p99": 152639,
+          "p99_9": 167830
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -2067,11 +2067,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 75176,
-          "median": 29776,
-          "min": 28760,
-          "p99": 40504,
-          "p99_9": 62696
+          "max": 71360,
+          "median": 29712,
+          "min": 28704,
+          "p99": 38576,
+          "p99_9": 57496
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -2086,11 +2086,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 71970,
-          "median": 29280,
-          "min": 28320,
-          "p99": 39385,
-          "p99_9": 59442
+          "max": 68740,
+          "median": 29271,
+          "min": 28287,
+          "p99": 37566,
+          "p99_9": 54988
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -2107,11 +2107,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 102848,
-          "median": 56912,
-          "min": 54208,
-          "p99": 73456,
-          "p99_9": 91696
+          "max": 109248,
+          "median": 55384,
+          "min": 53712,
+          "p99": 68368,
+          "p99_9": 86904
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -2126,11 +2126,11 @@
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 99330,
-          "median": 56378,
-          "min": 53721,
-          "p99": 72250,
-          "p99_9": 88866
+          "max": 106386,
+          "median": 54909,
+          "min": 53285,
+          "p99": 67156,
+          "p99_9": 84211
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -2147,11 +2147,11 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 276736,
-          "median": 112144,
-          "min": 105384,
-          "p99": 130744,
-          "p99_9": 153656
+          "max": 149272,
+          "median": 106304,
+          "min": 103568,
+          "p99": 124112,
+          "p99_9": 140792
         },
         "derived_modules_added": 1,
         "faults": 0,
@@ -2166,11 +2166,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 273694,
-          "median": 111553,
-          "min": 104906,
-          "p99": 129489,
-          "p99_9": 152108
+          "max": 146159,
+          "median": 105809,
+          "min": 103130,
+          "p99": 122633,
+          "p99_9": 137608
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -2187,10 +2187,10 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 84312,
-          "median": 24312,
-          "min": 22960,
-          "p99": 32248,
+          "max": 68520,
+          "median": 24392,
+          "min": 23056,
+          "p99": 32208,
           "p99_9": 52888
         },
         "derived_modules_added": 1,
@@ -2206,11 +2206,11 @@
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 83186,
-          "median": 23856,
-          "min": 22489,
-          "p99": 31273,
-          "p99_9": 50097
+          "max": 67388,
+          "median": 23958,
+          "min": 22615,
+          "p99": 31238,
+          "p99_9": 50237
         },
         "sample_rate": 48000,
         "scripted_source": "essentials.clock -> example.step_sequencer",
@@ -2227,349 +2227,37 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 280880,
-          "median": 45384,
-          "min": 42808,
-          "p99": 58360,
-          "p99_9": 78896
-        },
-        "derived_modules_added": 1,
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "clocked_step_sequencer_for_host_keyboard",
-        "keyboard_sources_replaced": 1,
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-04-vowel-apparitions.json",
-        "peak": 0.361362219,
-        "period_ns": 2666666.67,
-        "preempted": 0,
-        "render_ns": {
-          "max": 277054,
-          "median": 44857,
-          "min": 42321,
-          "p99": 56953,
-          "p99_9": 75833
-        },
-        "sample_rate": 48000,
-        "scripted_source": "essentials.clock -> example.step_sequencer",
-        "seconds": 30,
-        "source_patch_error": "wirescape_soak: graph setup/render failed",
-        "source_patch_exit_code": 1,
-        "source_patch_status": "unavailable",
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 5625,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 160288,
-          "median": 86704,
-          "min": 82168,
-          "p99": 103440,
-          "p99_9": 131480
-        },
-        "derived_modules_added": 1,
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "clocked_step_sequencer_for_host_keyboard",
-        "keyboard_sources_replaced": 1,
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-04-vowel-apparitions.json",
-        "peak": 0.361362219,
-        "period_ns": 5333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 157155,
-          "median": 86130,
-          "min": 81593,
-          "p99": 102049,
-          "p99_9": 127834
-        },
-        "sample_rate": 48000,
-        "scripted_source": "essentials.clock -> example.step_sequencer",
-        "seconds": 30,
-        "source_patch_error": "wirescape_soak: graph setup/render failed",
-        "source_patch_exit_code": 1,
-        "source_patch_status": "unavailable",
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 22500,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 910128,
-          "median": 53968,
-          "min": 52624,
-          "p99": 62936,
-          "p99_9": 85808
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-05-glass-cathedrals.json",
-        "peak": 0.000146120088,
-        "period_ns": 1333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 315983,
-          "median": 53473,
-          "min": 52169,
-          "p99": 62097,
-          "p99_9": 83217
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 128,
-        "block_frames": 128,
-        "blocks": 11250,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 162704,
-          "median": 107320,
-          "min": 102712,
-          "p99": 118512,
-          "p99_9": 141280
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-05-glass-cathedrals.json",
-        "peak": 0.000146120088,
-        "period_ns": 2666666.67,
-        "preempted": 0,
-        "render_ns": {
-          "max": 160634,
-          "median": 106826.5,
-          "min": 102202,
-          "p99": 117209,
-          "p99_9": 138611
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 5625,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 311368,
-          "median": 210288,
-          "min": 205928,
-          "p99": 230496,
-          "p99_9": 246472
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-05-glass-cathedrals.json",
-        "peak": 0.000146120088,
-        "period_ns": 5333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 309990,
-          "median": 209700,
-          "min": 205492,
-          "p99": 229325,
-          "p99_9": 244317
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 22500,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 111856,
-          "median": 28808,
-          "min": 27640,
-          "p99": 40816,
-          "p99_9": 64592
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-06-dust-reactor.json",
-        "peak": 0.645248473,
-        "period_ns": 1333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 110991,
-          "median": 28322,
-          "min": 27201,
-          "p99": 39633,
-          "p99_9": 61786
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 128,
-        "block_frames": 128,
-        "blocks": 11250,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 158128,
-          "median": 54536,
-          "min": 52072,
-          "p99": 68744,
-          "p99_9": 98080
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-06-dust-reactor.json",
-        "peak": 0.645248473,
-        "period_ns": 2666666.67,
-        "preempted": 0,
-        "render_ns": {
-          "max": 156703,
-          "median": 54010,
-          "min": 51634,
-          "p99": 67330,
-          "p99_9": 95668
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 256,
-        "block_frames": 256,
-        "blocks": 5625,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 173344,
-          "median": 103920,
-          "min": 100016,
-          "p99": 123560,
-          "p99_9": 157048
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-06-dust-reactor.json",
-        "peak": 0.645248473,
-        "period_ns": 5333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 170269,
-          "median": 103379,
-          "min": 99555,
-          "p99": 122300,
-          "p99_9": 154621
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 64,
-        "block_frames": 64,
-        "blocks": 22500,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 96192,
-          "median": 24336,
-          "min": 22648,
-          "p99": 34496,
-          "p99_9": 57400
-        },
-        "faults": 0,
-        "graph": "document",
-        "input_mode": "original",
-        "late_deadlines": 0,
-        "over_100_percent": 0,
-        "over_50_percent": 0,
-        "patch": "scene-07-witching-hour.json",
-        "peak": 0.603727341,
-        "period_ns": 1333333.33,
-        "preempted": 0,
-        "render_ns": {
-          "max": 92531,
-          "median": 23880,
-          "min": 22216,
-          "p99": 33305,
-          "p99_9": 54034
-        },
-        "sample_rate": 48000,
-        "seconds": 30,
-        "status": "measured"
-      },
-      {
-        "allocations": 0,
-        "block": 128,
-        "block_frames": 128,
-        "blocks": 11250,
-        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
-        "cpu_ns": {
-          "max": 126928,
+          "max": 84104,
           "median": 44752,
-          "min": 41912,
-          "p99": 58272,
-          "p99_9": 83616
+          "min": 42488,
+          "p99": 57088,
+          "p99_9": 76280
         },
+        "derived_modules_added": 1,
         "faults": 0,
         "graph": "document",
-        "input_mode": "original",
+        "input_mode": "clocked_step_sequencer_for_host_keyboard",
+        "keyboard_sources_replaced": 1,
         "late_deadlines": 0,
         "over_100_percent": 0,
         "over_50_percent": 0,
-        "patch": "scene-07-witching-hour.json",
-        "peak": 0.603727341,
+        "patch": "scene-04-vowel-apparitions.json",
+        "peak": 0.361362219,
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 123475,
-          "median": 44244,
-          "min": 41433,
-          "p99": 57050,
-          "p99_9": 80826
+          "max": 81891,
+          "median": 44302,
+          "min": 42053,
+          "p99": 55973,
+          "p99_9": 73939
         },
         "sample_rate": 48000,
+        "scripted_source": "essentials.clock -> example.step_sequencer",
         "seconds": 30,
+        "source_patch_error": "wirescape_soak: graph setup/render failed",
+        "source_patch_exit_code": 1,
+        "source_patch_status": "unavailable",
         "status": "measured"
       },
       {
@@ -2579,31 +2267,37 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 149344,
-          "median": 89624,
-          "min": 81944,
-          "p99": 113432,
-          "p99_9": 137136
+          "max": 124376,
+          "median": 85600,
+          "min": 81144,
+          "p99": 100848,
+          "p99_9": 116584
         },
+        "derived_modules_added": 1,
         "faults": 0,
         "graph": "document",
-        "input_mode": "original",
+        "input_mode": "clocked_step_sequencer_for_host_keyboard",
+        "keyboard_sources_replaced": 1,
         "late_deadlines": 0,
         "over_100_percent": 0,
         "over_50_percent": 0,
-        "patch": "scene-07-witching-hour.json",
-        "peak": 0.603727341,
+        "patch": "scene-04-vowel-apparitions.json",
+        "peak": 0.361362219,
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 146484,
-          "median": 89010,
-          "min": 81426,
-          "p99": 111699,
-          "p99_9": 134620
+          "max": 121545,
+          "median": 85107,
+          "min": 80699,
+          "p99": 99786,
+          "p99_9": 113841
         },
         "sample_rate": 48000,
+        "scripted_source": "essentials.clock -> example.step_sequencer",
         "seconds": 30,
+        "source_patch_error": "wirescape_soak: graph setup/render failed",
+        "source_patch_exit_code": 1,
+        "source_patch_status": "unavailable",
         "status": "measured"
       },
       {
@@ -2613,11 +2307,11 @@
         "blocks": 22500,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 74640,
-          "median": 26728,
-          "min": 25256,
-          "p99": 37896,
-          "p99_9": 55352
+          "max": 95552,
+          "median": 53976,
+          "min": 52784,
+          "p99": 62000,
+          "p99_9": 83248
         },
         "faults": 0,
         "graph": "document",
@@ -2625,16 +2319,16 @@
         "late_deadlines": 0,
         "over_100_percent": 0,
         "over_50_percent": 0,
-        "patch": "scene-08-neon-elegy.json",
-        "peak": 0.455464005,
+        "patch": "scene-05-glass-cathedrals.json",
+        "peak": 0.000146120088,
         "period_ns": 1333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 71233,
-          "median": 26264,
-          "min": 24816,
-          "p99": 37177,
-          "p99_9": 53322
+          "max": 92715,
+          "median": 53501,
+          "min": 52373,
+          "p99": 61028,
+          "p99_9": 80411
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -2647,11 +2341,11 @@
         "blocks": 11250,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 95136,
-          "median": 49432,
-          "min": 47184,
-          "p99": 62560,
-          "p99_9": 84616
+          "max": 149136,
+          "median": 107152,
+          "min": 102712,
+          "p99": 117888,
+          "p99_9": 135320
         },
         "faults": 0,
         "graph": "document",
@@ -2659,16 +2353,16 @@
         "late_deadlines": 0,
         "over_100_percent": 0,
         "over_50_percent": 0,
-        "patch": "scene-08-neon-elegy.json",
-        "peak": 0.455464005,
+        "patch": "scene-05-glass-cathedrals.json",
+        "peak": 0.000146120088,
         "period_ns": 2666666.67,
         "preempted": 0,
         "render_ns": {
-          "max": 92163,
-          "median": 48912,
-          "min": 46689,
-          "p99": 61368,
-          "p99_9": 81473
+          "max": 146215,
+          "median": 106690,
+          "min": 102282,
+          "p99": 116722,
+          "p99_9": 132712
         },
         "sample_rate": 48000,
         "seconds": 30,
@@ -2681,11 +2375,317 @@
         "blocks": 5625,
         "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
         "cpu_ns": {
-          "max": 139136,
-          "median": 95632,
-          "min": 92032,
-          "p99": 110544,
-          "p99_9": 131392
+          "max": 259224,
+          "median": 209120,
+          "min": 205736,
+          "p99": 222040,
+          "p99_9": 238536
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-05-glass-cathedrals.json",
+        "peak": 0.000146120088,
+        "period_ns": 5333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 255721,
+          "median": 208580,
+          "min": 205292,
+          "p99": 220875,
+          "p99_9": 236050
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 22500,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 103240,
+          "median": 28520,
+          "min": 27400,
+          "p99": 38824,
+          "p99_9": 62232
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-06-dust-reactor.json",
+        "peak": 0.645248473,
+        "period_ns": 1333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 100682,
+          "median": 28071,
+          "min": 26974,
+          "p99": 37933,
+          "p99_9": 59300
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 128,
+        "block_frames": 128,
+        "blocks": 11250,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 100624,
+          "median": 53496,
+          "min": 51696,
+          "p99": 66272,
+          "p99_9": 88424
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-06-dust-reactor.json",
+        "peak": 0.645248473,
+        "period_ns": 2666666.67,
+        "preempted": 0,
+        "render_ns": {
+          "max": 97314,
+          "median": 53016.5,
+          "min": 51277,
+          "p99": 64965,
+          "p99_9": 85627
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 5625,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 160368,
+          "median": 102704,
+          "min": 99648,
+          "p99": 118592,
+          "p99_9": 135336
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-06-dust-reactor.json",
+        "peak": 0.645248473,
+        "period_ns": 5333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 157383,
+          "median": 102210,
+          "min": 99218,
+          "p99": 117065,
+          "p99_9": 132777
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 22500,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 77744,
+          "median": 24192,
+          "min": 22624,
+          "p99": 31872,
+          "p99_9": 51872
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-07-witching-hour.json",
+        "peak": 0.603727341,
+        "period_ns": 1333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 75219,
+          "median": 23750,
+          "min": 22214,
+          "p99": 31007,
+          "p99_9": 49205
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 128,
+        "block_frames": 128,
+        "blocks": 11250,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 88136,
+          "median": 44128,
+          "min": 41544,
+          "p99": 55696,
+          "p99_9": 74912
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-07-witching-hour.json",
+        "peak": 0.603727341,
+        "period_ns": 2666666.67,
+        "preempted": 0,
+        "render_ns": {
+          "max": 85147,
+          "median": 43661,
+          "min": 41101,
+          "p99": 54677,
+          "p99_9": 72884
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 5625,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 169040,
+          "median": 84352,
+          "min": 80776,
+          "p99": 101720,
+          "p99_9": 121104
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-07-witching-hour.json",
+        "peak": 0.603727341,
+        "period_ns": 5333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 166446,
+          "median": 83851,
+          "min": 80323,
+          "p99": 100146,
+          "p99_9": 118513
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 64,
+        "block_frames": 64,
+        "blocks": 22500,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 88312,
+          "median": 26512,
+          "min": 25224,
+          "p99": 35232,
+          "p99_9": 54312
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-08-neon-elegy.json",
+        "peak": 0.455464005,
+        "period_ns": 1333333.33,
+        "preempted": 0,
+        "render_ns": {
+          "max": 85827,
+          "median": 26047,
+          "min": 24815,
+          "p99": 34174,
+          "p99_9": 51773
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 128,
+        "block_frames": 128,
+        "blocks": 11250,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 88760,
+          "median": 49272,
+          "min": 47088,
+          "p99": 59544,
+          "p99_9": 77544
+        },
+        "faults": 0,
+        "graph": "document",
+        "input_mode": "original",
+        "late_deadlines": 0,
+        "over_100_percent": 0,
+        "over_50_percent": 0,
+        "patch": "scene-08-neon-elegy.json",
+        "peak": 0.455464005,
+        "period_ns": 2666666.67,
+        "preempted": 0,
+        "render_ns": {
+          "max": 92946,
+          "median": 48797,
+          "min": 46629,
+          "p99": 58396,
+          "p99_9": 75555
+        },
+        "sample_rate": 48000,
+        "seconds": 30,
+        "status": "measured"
+      },
+      {
+        "allocations": 0,
+        "block": 256,
+        "block_frames": 256,
+        "blocks": 5625,
+        "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+        "cpu_ns": {
+          "max": 140496,
+          "median": 94328,
+          "min": 91376,
+          "p99": 109440,
+          "p99_9": 133664
         },
         "faults": 0,
         "graph": "document",
@@ -2698,11 +2698,11 @@
         "period_ns": 5333333.33,
         "preempted": 0,
         "render_ns": {
-          "max": 136795,
-          "median": 95050,
-          "min": 91514,
-          "p99": 109242,
-          "p99_9": 127115
+          "max": 137688,
+          "median": 93810,
+          "min": 90938,
+          "p99": 108042,
+          "p99_9": 130936
         },
         "sample_rate": 48000,
         "seconds": 30,

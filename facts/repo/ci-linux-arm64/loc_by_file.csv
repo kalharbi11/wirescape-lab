@@ -96,6 +96,7 @@ native/modules2/chaos_lite/dsp.h,native,product,C/C++ Header,241,12,0
 tools/pi/preflight.py,tools,tools,Python,239,9,21
 native/sdk/examples/random_source/tests.cpp,native,product,C++,237,10,16
 native/control/app_engine.cpp,native,product,C++,236,20,1
+bench/golden/tests/test_compare.py,bench,tests,Python,234,6,22
 apps/studio/src/canvas/CableLayer.ts,apps,product,TypeScript,231,41,32
 apps/studio/tests/mock-bridge/golden-v0.spec.ts,apps,tests,TypeScript,231,14,9
 native/sidecar/devices.cpp,native,product,C++,231,5,1
@@ -148,8 +149,10 @@ native/modules2/osc_in/tests.cpp,native,product,C++,177,7,0
 apps/studio/src/panels/layouts.ts,apps,product,TypeScript,176,44,26
 native/io/osc/codec.h,native,product,C/C++ Header,176,7,0
 bench/device/model.py,bench,tools,Python,175,6,19
+bench/golden/compare.py,bench,tools,Python,175,10,17
 tools/foundation/tests/test_pi_app_smoke.py,tools,tests,Python,173,5,16
 apps/studio/tests/osc-range.spec.ts,apps,tests,TypeScript,172,1,10
+bench/golden/render.py,bench,tools,Python,172,11,24
 native/control/provider_bridge.cpp,native,product,C++,171,3,11
 native/io/midi/midi_service.cpp,native,product,C++,171,6,1
 tools/foundation/tests/test_pi_preflight.py,tools,tests,Python,170,3,21
@@ -173,7 +176,6 @@ bench/offline/metrics.py,bench,tools,Python,155,3,18
 native/control/app_engine_tests.cpp,native,product,C++,155,2,1
 apps/studio/src/groove/pattern.ts,apps,product,TypeScript,154,25,9
 tools/foundation/tests/test_ui_catalogue.py,tools,tests,Python,154,7,23
-bench/golden/render.py,bench,tools,Python,152,10,22
 native/control/monitor_capture.h,native,product,C/C++ Header,152,12,6
 apps/studio/tests/stereo-pair.spec.ts,apps,tests,TypeScript,150,2,15
 native/voice/tests.cpp,native,product,C++,150,1,5
@@ -257,6 +259,7 @@ native/modules2/host_keyboard/dsp.h,native,product,C/C++ Header,97,1,0
 apps/studio/tests/legacy-documents.spec.cjs,apps,tests,JavaScript,96,1,6
 native/document/runtime_patch.cpp,native,product,C++,95,1,0
 apps/studio/tests/groove-g4b.spec.ts,apps,tests,TypeScript,94,1,6
+bench/golden/experiment.py,bench,tools,Python,94,8,10
 docs/context/future_modules/guttur/package/src/internal.h,docs,product,C/C++ Header,94,2,0
 native/control/osc_host.cpp,native,product,C++,94,6,0
 native/modules2/midi_cc_to_cv/tests.cpp,native,product,C++,94,2,0
@@ -264,7 +267,6 @@ apps/studio/src/panels/widgets/canvasBase.ts,apps,product,TypeScript,93,15,11
 tools/capture/analysis.py,tools,tools,Python,93,5,13
 apps/desktop/preload.ts,apps,product,TypeScript,92,5,5
 apps/studio/src/runtime/Ticker.ts,apps,product,TypeScript,92,18,16
-bench/golden/compare.py,bench,tools,Python,92,3,10
 apps/studio/src/app/Modal.ts,apps,product,TypeScript,91,3,8
 apps/studio/src/panels/widgets/RandomHistory.ts,apps,product,TypeScript,91,7,5
 native/io/audio/fake_portaudio_stream_tests.cpp,native,product,C++,91,3,0
@@ -298,7 +300,6 @@ native/modules/clock/module.cpp,native,product,C++,75,1,1
 native/io/midi/midi_service.h,native,product,C/C++ Header,74,6,0
 tools/pi/update-and-build.sh,tools,tools,Bourne Shell,74,5,9
 apps/studio/src/canvas/Viewport.ts,apps,product,TypeScript,73,12,16
-bench/golden/tests/test_compare.py,bench,tests,Python,72,2,13
 tools/bench/abi2_cost.py,tools,tools,Python,72,2,9
 apps/desktop/tests/windows-setup.spec.cjs,apps,tests,JavaScript,71,3,1
 apps/studio/src/web/share.ts,apps,product,TypeScript,71,10,6
@@ -555,4 +556,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,80534,4563,4495
+SUM,SUM,product,unknown,80893,4583,4523

@@ -5,7 +5,7 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "complexity": {
       "functions": 3818,
       "lizard_version": "not exposed"
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 557
+      "files": 558
     },
     "long_lines": {
       "files": 259,
@@ -62,14 +62,14 @@
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1165
+    "source_files_tracked": 1166
   },
   "provenance": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V45 96-Core Processor",
+      "cpu": "AMD EPYC 7763 64-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",

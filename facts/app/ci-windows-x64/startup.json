@@ -2,12 +2,12 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "clocks": "hello value from Electron main boot stderr; paint epoch from renderer performance; launch wall clock Date.now()",
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "arch": "x64",
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V45 96-Core Processor                ",
+      "cpu": "AMD EPYC 9V74 80-Core Processor                ",
       "os": "win32"
     },
     "mode": "--null-audio",
@@ -16,637 +16,637 @@
         "electron_idle": {
           "processes": [
             {
-              "pid": 8376,
+              "pid": 5572,
               "process": "Browser",
-              "rss_kib": 109308
+              "rss_kib": 108744
             },
             {
-              "pid": 5228,
+              "pid": 8812,
               "process": "GPU",
-              "rss_kib": 61540
+              "rss_kib": 64544
             },
             {
-              "pid": 8660,
+              "pid": 1368,
               "process": "Utility",
-              "rss_kib": 47672
+              "rss_kib": 48128
             },
             {
-              "pid": 6324,
+              "pid": 5760,
               "process": "Tab",
-              "rss_kib": 101600
+              "rss_kib": 105808
             }
           ],
-          "rss_kib": 320120,
+          "rss_kib": 327224,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 8376,
+              "pid": 5572,
               "process": "Browser",
-              "rss_kib": 109420
+              "rss_kib": 108864
             },
             {
-              "pid": 5228,
+              "pid": 8812,
               "process": "GPU",
-              "rss_kib": 64804
+              "rss_kib": 65984
             },
             {
-              "pid": 8660,
+              "pid": 1368,
               "process": "Utility",
-              "rss_kib": 47672
+              "rss_kib": 48128
             },
             {
-              "pid": 6324,
+              "pid": 5760,
               "process": "Tab",
-              "rss_kib": 113512
+              "rss_kib": 117816
             }
           ],
-          "rss_kib": 335408,
+          "rss_kib": 340792,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789918850.4,
-        "navigation_duration_ms": 138,
-        "paint_epoch_ms": 1794789919094.4,
-        "paint_since_navigation_ms": 244,
+        "nav_start_epoch_ms": 1794793295708.2,
+        "navigation_duration_ms": 168.80000000004657,
+        "paint_epoch_ms": 1794793295960.2,
+        "paint_since_navigation_ms": 252,
         "run": 1,
-        "studio_first_paint_from_launch_ms": 430.39990234375
+        "studio_first_paint_from_launch_ms": 468.199951171875
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 7332,
+              "pid": 8972,
               "process": "Browser",
-              "rss_kib": 109448
+              "rss_kib": 109716
             },
             {
-              "pid": 4864,
+              "pid": 3684,
               "process": "GPU",
-              "rss_kib": 64680
+              "rss_kib": 64468
             },
             {
-              "pid": 2016,
+              "pid": 4544,
               "process": "Utility",
-              "rss_kib": 48432
+              "rss_kib": 46884
             },
             {
-              "pid": 8908,
+              "pid": 7360,
               "process": "Tab",
-              "rss_kib": 108004
+              "rss_kib": 108236
             }
           ],
-          "rss_kib": 330564,
+          "rss_kib": 329304,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 7332,
+              "pid": 8972,
               "process": "Browser",
-              "rss_kib": 109544
+              "rss_kib": 109792
             },
             {
-              "pid": 4864,
+              "pid": 3684,
               "process": "GPU",
-              "rss_kib": 65884
+              "rss_kib": 65604
             },
             {
-              "pid": 2016,
+              "pid": 4544,
               "process": "Utility",
-              "rss_kib": 48432
+              "rss_kib": 46884
             },
             {
-              "pid": 8908,
+              "pid": 7360,
               "process": "Tab",
-              "rss_kib": 118008
+              "rss_kib": 118088
             }
           ],
-          "rss_kib": 341868,
+          "rss_kib": 340368,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789919894.8,
-        "navigation_duration_ms": 144.19999999995343,
-        "paint_epoch_ms": 1794789920098.8,
-        "paint_since_navigation_ms": 204,
+        "nav_start_epoch_ms": 1794793296905.9,
+        "navigation_duration_ms": 173.5,
+        "paint_epoch_ms": 1794793297153.9,
+        "paint_since_navigation_ms": 248,
         "run": 2,
-        "studio_first_paint_from_launch_ms": 363.800048828125
+        "studio_first_paint_from_launch_ms": 448.89990234375
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 852,
+              "pid": 8144,
               "process": "Browser",
-              "rss_kib": 108132
+              "rss_kib": 112208
             },
             {
-              "pid": 10208,
+              "pid": 8696,
               "process": "GPU",
-              "rss_kib": 64152
+              "rss_kib": 64540
             },
             {
-              "pid": 1728,
+              "pid": 7772,
               "process": "Utility",
-              "rss_kib": 47324
+              "rss_kib": 47908
             },
             {
-              "pid": 2480,
-              "process": "Tab",
-              "rss_kib": 108844
-            }
-          ],
-          "rss_kib": 328452,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "electron_loaded": {
-          "patch": "native\\examples\\chaos_usb_midi.json",
-          "processes": [
-            {
-              "pid": 852,
-              "process": "Browser",
-              "rss_kib": 108288
-            },
-            {
-              "pid": 10208,
-              "process": "GPU",
-              "rss_kib": 65040
-            },
-            {
-              "pid": 1728,
-              "process": "Utility",
-              "rss_kib": 47324
-            },
-            {
-              "pid": 2480,
-              "process": "Tab",
-              "rss_kib": 118588
-            }
-          ],
-          "rss_kib": 339240,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "hello_from_main_boot_ms": null,
-        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789920960.6,
-        "navigation_duration_ms": 138.79999999993015,
-        "paint_epoch_ms": 1794789921156.6,
-        "paint_since_navigation_ms": 196,
-        "run": 3,
-        "studio_first_paint_from_launch_ms": 355.60009765625
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 9676,
-              "process": "Browser",
-              "rss_kib": 109564
-            },
-            {
-              "pid": 4056,
-              "process": "GPU",
-              "rss_kib": 61828
-            },
-            {
-              "pid": 616,
-              "process": "Utility",
-              "rss_kib": 48180
-            },
-            {
-              "pid": 6048,
+              "pid": 6084,
               "process": "Tab",
               "rss_kib": 108052
             }
           ],
-          "rss_kib": 327624,
+          "rss_kib": 332708,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 9676,
+              "pid": 8144,
               "process": "Browser",
-              "rss_kib": 109696
+              "rss_kib": 111536
             },
             {
-              "pid": 4056,
+              "pid": 8696,
               "process": "GPU",
-              "rss_kib": 65240
+              "rss_kib": 65668
             },
             {
-              "pid": 616,
+              "pid": 7772,
               "process": "Utility",
-              "rss_kib": 48180
+              "rss_kib": 47908
             },
             {
-              "pid": 6048,
+              "pid": 6084,
               "process": "Tab",
-              "rss_kib": 117628
+              "rss_kib": 118300
             }
           ],
-          "rss_kib": 340744,
+          "rss_kib": 343412,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789922022.6,
-        "navigation_duration_ms": 142.69999999995343,
-        "paint_epoch_ms": 1794789922278.6,
-        "paint_since_navigation_ms": 256,
+        "nav_start_epoch_ms": 1794793298100.3,
+        "navigation_duration_ms": 176.30000000004657,
+        "paint_epoch_ms": 1794793298352.3,
+        "paint_since_navigation_ms": 252,
+        "run": 3,
+        "studio_first_paint_from_launch_ms": 457.300048828125
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 4948,
+              "process": "Browser",
+              "rss_kib": 112440
+            },
+            {
+              "pid": 8392,
+              "process": "GPU",
+              "rss_kib": 64464
+            },
+            {
+              "pid": 4856,
+              "process": "Utility",
+              "rss_kib": 48172
+            },
+            {
+              "pid": 5056,
+              "process": "Tab",
+              "rss_kib": 110780
+            }
+          ],
+          "rss_kib": 335856,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "electron_loaded": {
+          "patch": "native\\examples\\chaos_usb_midi.json",
+          "processes": [
+            {
+              "pid": 4948,
+              "process": "Browser",
+              "rss_kib": 111800
+            },
+            {
+              "pid": 8392,
+              "process": "GPU",
+              "rss_kib": 65508
+            },
+            {
+              "pid": 4856,
+              "process": "Utility",
+              "rss_kib": 48172
+            },
+            {
+              "pid": 5056,
+              "process": "Tab",
+              "rss_kib": 120852
+            }
+          ],
+          "rss_kib": 346332,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "hello_from_main_boot_ms": null,
+        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
+        "nav_start_epoch_ms": 1794793299295.3,
+        "navigation_duration_ms": 172.5,
+        "paint_epoch_ms": 1794793299547.3,
+        "paint_since_navigation_ms": 252,
         "run": 4,
-        "studio_first_paint_from_launch_ms": 420.60009765625
+        "studio_first_paint_from_launch_ms": 460.300048828125
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 8536,
+              "pid": 4960,
               "process": "Browser",
-              "rss_kib": 109384
+              "rss_kib": 109880
             },
             {
-              "pid": 6424,
+              "pid": 7960,
               "process": "GPU",
-              "rss_kib": 64124
+              "rss_kib": 61940
             },
             {
-              "pid": 7240,
+              "pid": 5828,
               "process": "Utility",
-              "rss_kib": 48164
+              "rss_kib": 48232
             },
             {
-              "pid": 9928,
+              "pid": 7556,
               "process": "Tab",
-              "rss_kib": 109192
+              "rss_kib": 108288
             }
           ],
-          "rss_kib": 330864,
+          "rss_kib": 328340,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 8536,
+              "pid": 4960,
               "process": "Browser",
-              "rss_kib": 108676
+              "rss_kib": 109956
             },
             {
-              "pid": 6424,
+              "pid": 7960,
               "process": "GPU",
-              "rss_kib": 65044
+              "rss_kib": 65620
             },
             {
-              "pid": 7240,
+              "pid": 5828,
               "process": "Utility",
-              "rss_kib": 48164
+              "rss_kib": 48232
             },
             {
-              "pid": 9928,
+              "pid": 7556,
               "process": "Tab",
-              "rss_kib": 118472
+              "rss_kib": 120048
             }
           ],
-          "rss_kib": 340356,
+          "rss_kib": 343856,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789923110.5,
-        "navigation_duration_ms": 142.69999999995343,
-        "paint_epoch_ms": 1794789923322.5,
-        "paint_since_navigation_ms": 212,
+        "nav_start_epoch_ms": 1794793300488.1,
+        "navigation_duration_ms": 173.69999999995343,
+        "paint_epoch_ms": 1794793300628.1,
+        "paint_since_navigation_ms": 140,
         "run": 5,
-        "studio_first_paint_from_launch_ms": 381.5
+        "studio_first_paint_from_launch_ms": 340.10009765625
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 7784,
-              "process": "Browser",
-              "rss_kib": 109360
-            },
-            {
-              "pid": 2452,
-              "process": "GPU",
-              "rss_kib": 62520
-            },
-            {
-              "pid": 6884,
-              "process": "Utility",
-              "rss_kib": 48140
-            },
-            {
-              "pid": 5184,
-              "process": "Tab",
-              "rss_kib": 107144
-            }
-          ],
-          "rss_kib": 327164,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "electron_loaded": {
-          "patch": "native\\examples\\chaos_usb_midi.json",
-          "processes": [
-            {
-              "pid": 7784,
-              "process": "Browser",
-              "rss_kib": 109460
-            },
-            {
-              "pid": 2452,
-              "process": "GPU",
-              "rss_kib": 66004
-            },
-            {
-              "pid": 6884,
-              "process": "Utility",
-              "rss_kib": 48140
-            },
-            {
-              "pid": 5184,
-              "process": "Tab",
-              "rss_kib": 118232
-            }
-          ],
-          "rss_kib": 341836,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "hello_from_main_boot_ms": null,
-        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789924214.9,
-        "navigation_duration_ms": 144.29999999993015,
-        "paint_epoch_ms": 1794789924470.9,
-        "paint_since_navigation_ms": 256,
-        "run": 6,
-        "studio_first_paint_from_launch_ms": 421.89990234375
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 3280,
-              "process": "Browser",
-              "rss_kib": 109404
-            },
-            {
-              "pid": 6388,
-              "process": "GPU",
-              "rss_kib": 64508
-            },
-            {
-              "pid": 7228,
-              "process": "Utility",
-              "rss_kib": 48400
-            },
-            {
-              "pid": 1264,
-              "process": "Tab",
-              "rss_kib": 108352
-            }
-          ],
-          "rss_kib": 330664,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "electron_loaded": {
-          "patch": "native\\examples\\chaos_usb_midi.json",
-          "processes": [
-            {
-              "pid": 3280,
-              "process": "Browser",
-              "rss_kib": 108780
-            },
-            {
-              "pid": 6388,
-              "process": "GPU",
-              "rss_kib": 65724
-            },
-            {
-              "pid": 7228,
-              "process": "Utility",
-              "rss_kib": 48400
-            },
-            {
-              "pid": 1264,
-              "process": "Tab",
-              "rss_kib": 118512
-            }
-          ],
-          "rss_kib": 341416,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "hello_from_main_boot_ms": null,
-        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789925286.7,
-        "navigation_duration_ms": 142.5,
-        "paint_epoch_ms": 1794789925486.7,
-        "paint_since_navigation_ms": 200,
-        "run": 7,
-        "studio_first_paint_from_launch_ms": 366.699951171875
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 4052,
+              "pid": 1196,
               "process": "Browser",
               "rss_kib": 109344
             },
             {
-              "pid": 9088,
+              "pid": 6628,
               "process": "GPU",
-              "rss_kib": 62500
+              "rss_kib": 65024
             },
             {
-              "pid": 8276,
+              "pid": 2860,
               "process": "Utility",
-              "rss_kib": 48136
+              "rss_kib": 48276
             },
             {
-              "pid": 7584,
+              "pid": 7444,
               "process": "Tab",
-              "rss_kib": 110520
+              "rss_kib": 111060
             }
           ],
-          "rss_kib": 330500,
+          "rss_kib": 333704,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 4052,
+              "pid": 1196,
               "process": "Browser",
-              "rss_kib": 109428
+              "rss_kib": 108684
             },
             {
-              "pid": 9088,
+              "pid": 6628,
               "process": "GPU",
-              "rss_kib": 65908
+              "rss_kib": 65760
             },
             {
-              "pid": 8276,
+              "pid": 2860,
               "process": "Utility",
-              "rss_kib": 48136
+              "rss_kib": 48276
             },
             {
-              "pid": 7584,
+              "pid": 7444,
               "process": "Tab",
-              "rss_kib": 121756
+              "rss_kib": 120448
             }
           ],
-          "rss_kib": 345228,
+          "rss_kib": 343168,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789926370.8,
-        "navigation_duration_ms": 143.30000000004657,
-        "paint_epoch_ms": 1794789926626.8,
-        "paint_since_navigation_ms": 256,
-        "run": 8,
-        "studio_first_paint_from_launch_ms": 432.800048828125
+        "nav_start_epoch_ms": 1794793301726.7,
+        "navigation_duration_ms": 174.4000000001397,
+        "paint_epoch_ms": 1794793301986.7,
+        "paint_since_navigation_ms": 260,
+        "run": 6,
+        "studio_first_paint_from_launch_ms": 468.699951171875
       },
       {
         "electron_idle": {
           "processes": [
             {
-              "pid": 6284,
+              "pid": 2828,
+              "process": "Browser",
+              "rss_kib": 106456
+            },
+            {
+              "pid": 2188,
+              "process": "GPU",
+              "rss_kib": 61276
+            },
+            {
+              "pid": 7796,
+              "process": "Utility",
+              "rss_kib": 44724
+            },
+            {
+              "pid": 8168,
+              "process": "Tab",
+              "rss_kib": 108168
+            }
+          ],
+          "rss_kib": 320624,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "electron_loaded": {
+          "patch": "native\\examples\\chaos_usb_midi.json",
+          "processes": [
+            {
+              "pid": 2828,
+              "process": "Browser",
+              "rss_kib": 106564
+            },
+            {
+              "pid": 2188,
+              "process": "GPU",
+              "rss_kib": 62124
+            },
+            {
+              "pid": 7796,
+              "process": "Utility",
+              "rss_kib": 44724
+            },
+            {
+              "pid": 8168,
+              "process": "Tab",
+              "rss_kib": 119336
+            }
+          ],
+          "rss_kib": 332748,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "hello_from_main_boot_ms": null,
+        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
+        "nav_start_epoch_ms": 1794793302939.4,
+        "navigation_duration_ms": 173.60000000009313,
+        "paint_epoch_ms": 1794793303183.4,
+        "paint_since_navigation_ms": 244,
+        "run": 7,
+        "studio_first_paint_from_launch_ms": 444.39990234375
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 1516,
+              "process": "Browser",
+              "rss_kib": 109628
+            },
+            {
+              "pid": 2568,
+              "process": "GPU",
+              "rss_kib": 65200
+            },
+            {
+              "pid": 8004,
+              "process": "Utility",
+              "rss_kib": 48072
+            },
+            {
+              "pid": 6084,
+              "process": "Tab",
+              "rss_kib": 108560
+            }
+          ],
+          "rss_kib": 331460,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "electron_loaded": {
+          "patch": "native\\examples\\chaos_usb_midi.json",
+          "processes": [
+            {
+              "pid": 1516,
+              "process": "Browser",
+              "rss_kib": 109000
+            },
+            {
+              "pid": 2568,
+              "process": "GPU",
+              "rss_kib": 65812
+            },
+            {
+              "pid": 8004,
+              "process": "Utility",
+              "rss_kib": 48072
+            },
+            {
+              "pid": 6084,
+              "process": "Tab",
+              "rss_kib": 117672
+            }
+          ],
+          "rss_kib": 340556,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "hello_from_main_boot_ms": null,
+        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
+        "nav_start_epoch_ms": 1794793304141.6,
+        "navigation_duration_ms": 178.89999999990687,
+        "paint_epoch_ms": 1794793304401.6,
+        "paint_since_navigation_ms": 260,
+        "run": 8,
+        "studio_first_paint_from_launch_ms": 472.60009765625
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 6652,
+              "process": "Browser",
+              "rss_kib": 109312
+            },
+            {
+              "pid": 5712,
+              "process": "GPU",
+              "rss_kib": 64452
+            },
+            {
+              "pid": 9000,
+              "process": "Utility",
+              "rss_kib": 47904
+            },
+            {
+              "pid": 3596,
+              "process": "Tab",
+              "rss_kib": 111276
+            }
+          ],
+          "rss_kib": 332944,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "electron_loaded": {
+          "patch": "native\\examples\\chaos_usb_midi.json",
+          "processes": [
+            {
+              "pid": 6652,
+              "process": "Browser",
+              "rss_kib": 108636
+            },
+            {
+              "pid": 5712,
+              "process": "GPU",
+              "rss_kib": 65340
+            },
+            {
+              "pid": 9000,
+              "process": "Utility",
+              "rss_kib": 47904
+            },
+            {
+              "pid": 3596,
+              "process": "Tab",
+              "rss_kib": 120776
+            }
+          ],
+          "rss_kib": 342656,
+          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
+        },
+        "hello_from_main_boot_ms": null,
+        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
+        "nav_start_epoch_ms": 1794793305378.3,
+        "navigation_duration_ms": 182.5999999998603,
+        "paint_epoch_ms": 1794793305634.3,
+        "paint_since_navigation_ms": 256,
+        "run": 9,
+        "studio_first_paint_from_launch_ms": 456.300048828125
+      },
+      {
+        "electron_idle": {
+          "processes": [
+            {
+              "pid": 5040,
               "process": "Browser",
               "rss_kib": 109404
             },
             {
-              "pid": 5732,
+              "pid": 8636,
               "process": "GPU",
-              "rss_kib": 64692
+              "rss_kib": 64592
             },
             {
-              "pid": 1728,
+              "pid": 7196,
               "process": "Utility",
-              "rss_kib": 48332
+              "rss_kib": 47560
             },
             {
-              "pid": 7812,
+              "pid": 5216,
               "process": "Tab",
-              "rss_kib": 108328
+              "rss_kib": 108176
             }
           ],
-          "rss_kib": 330756,
+          "rss_kib": 329732,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "electron_loaded": {
           "patch": "native\\examples\\chaos_usb_midi.json",
           "processes": [
             {
-              "pid": 6284,
+              "pid": 5040,
               "process": "Browser",
-              "rss_kib": 108776
+              "rss_kib": 108728
             },
             {
-              "pid": 5732,
+              "pid": 8636,
               "process": "GPU",
-              "rss_kib": 65888
+              "rss_kib": 65448
             },
             {
-              "pid": 1728,
+              "pid": 7196,
               "process": "Utility",
-              "rss_kib": 48332
+              "rss_kib": 47560
             },
             {
-              "pid": 7812,
+              "pid": 5216,
               "process": "Tab",
-              "rss_kib": 118348
+              "rss_kib": 117600
             }
           ],
-          "rss_kib": 341344,
+          "rss_kib": 339336,
           "source": "electron.app.getAppMetrics (workingSetSize KiB)"
         },
         "hello_from_main_boot_ms": null,
         "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789927444.6,
-        "navigation_duration_ms": 142.40000000002328,
-        "paint_epoch_ms": 1794789927648.6,
-        "paint_since_navigation_ms": 204,
-        "run": 9,
-        "studio_first_paint_from_launch_ms": 375.60009765625
-      },
-      {
-        "electron_idle": {
-          "processes": [
-            {
-              "pid": 1972,
-              "process": "Browser",
-              "rss_kib": 107992
-            },
-            {
-              "pid": 8964,
-              "process": "GPU",
-              "rss_kib": 61948
-            },
-            {
-              "pid": 8088,
-              "process": "Utility",
-              "rss_kib": 48088
-            },
-            {
-              "pid": 9680,
-              "process": "Tab",
-              "rss_kib": 108280
-            }
-          ],
-          "rss_kib": 326308,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "electron_loaded": {
-          "patch": "native\\examples\\chaos_usb_midi.json",
-          "processes": [
-            {
-              "pid": 1972,
-              "process": "Browser",
-              "rss_kib": 108116
-            },
-            {
-              "pid": 8964,
-              "process": "GPU",
-              "rss_kib": 65324
-            },
-            {
-              "pid": 8088,
-              "process": "Utility",
-              "rss_kib": 48088
-            },
-            {
-              "pid": 9680,
-              "process": "Tab",
-              "rss_kib": 118952
-            }
-          ],
-          "rss_kib": 340480,
-          "source": "electron.app.getAppMetrics (workingSetSize KiB)"
-        },
-        "hello_from_main_boot_ms": null,
-        "hello_unavailable_reason": "Native boot timing emitted before Playwright stderr listener attached",
-        "nav_start_epoch_ms": 1794789928549.9,
-        "navigation_duration_ms": 129.29999999993015,
-        "paint_epoch_ms": 1794789928797.9,
+        "nav_start_epoch_ms": 1794793306619.3,
+        "navigation_duration_ms": 176.5,
+        "paint_epoch_ms": 1794793306867.3,
         "paint_since_navigation_ms": 248,
         "run": 10,
-        "studio_first_paint_from_launch_ms": 415.89990234375
+        "studio_first_paint_from_launch_ms": 447.300048828125
       }
     ],
     "summary": {
       "first_paint": {
-        "max_ms": 432.800048828125,
-        "median_ms": 381.5,
+        "max_ms": 472.60009765625,
+        "median_ms": 456.300048828125,
         "n": 10
       },
       "hello": {
@@ -657,11 +657,11 @@
     }
   },
   "provenance": {
-    "commit": "b8190f926b9cbb0a32d9d2548f2ecc411de0ae9e",
+    "commit": "76ec7857886a371c25d9e4e3a93a5d0f05def7cd",
     "date_et": "2026-11-15",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 26 Model 2 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
