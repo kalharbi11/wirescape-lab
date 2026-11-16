@@ -425,10 +425,10 @@ class RecorderCallbackStatusTests(unittest.TestCase):
             failure = RuntimeError(
                 "input capture callback status/data loss: 1 flagged callback(s); "
                 "first at capture frame 0, 128 frames: input overflow")
-            with patch.object(latency_r1, "duplex_harness",
-                              return_value={"quantity": "harness_loopback_ms"}), \\
-                 patch.object(latency_r1, "physical_command_capture",
-                              side_effect=failure):
+            with (patch.object(latency_r1, "duplex_harness",
+                               return_value={"quantity": "harness_loopback_ms"}),
+                  patch.object(latency_r1, "physical_command_capture",
+                               side_effect=failure)):
                 self.assertFalse(latency_r1.run_one(
                     args, 128, "0123456789abcdef", "2026-11-16", latency))
             records = list(Path(root).rglob("latency.json"))
