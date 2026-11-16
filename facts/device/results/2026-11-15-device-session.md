@@ -11,7 +11,7 @@
 | P5 | pi5 | 128 benchmark | not timed | 0, owner transcript | — | — | — | 30,000 blocks per configuration; no devices. |
 | P6 | pi5 | devices off | smoke test 0.05; builds not timed | 0 | — | — | — | Five stages passed, one expected test; functional display only. |
 | W1 | windows-laptop | initially 256 | 15 planned; 14.98 recorded | 0 | 81.4556 | 25 engine; 18 signal candidates | 1116.083 candidate | MME Realtek speakers; 154 detected clicks, no refused commands. Scenario changes buffers internally. |
-| W2 | windows-laptop | 128 | skipped | — | — | — | — | Not run this session. |
+| W2 | windows-laptop | initially 128 | 15 planned; 14.99 recorded | 0 | 63.9750 | 0 engine; 22 signal candidates | 387.979 candidate | MME Realtek; 152 detected clicks; zero refused commands. |
 
 **GUTTR (Pi):** 1 throat p50/p95/worst 44.594/46.483/73.873 microseconds; 16 throats 346.249/352.620/440.047 microseconds. Period 2666.667 microseconds.
 
