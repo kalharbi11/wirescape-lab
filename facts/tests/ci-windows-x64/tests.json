@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "1918cf75c1223b4a7b83b640b64fce595016468f",
+    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
     "date_et": "2026-11-16",
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "suites": {
@@ -14,12 +14,12 @@
         "count": 117,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.261511,
+          "seconds": 0.33281,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 35.569776,
+          "seconds": 39.591651,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.045134,
+          "seconds": 1.332936,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 20.2307,
+          "seconds": 23.408955,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.491791,
+          "seconds": 1.91644,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 545.940893,
+          "seconds": 622.83118,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 13.507238,
+          "seconds": 16.535827,
           "status": "passed"
         }
       },
@@ -71,11 +71,11 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "1918cf75c1223b4a7b83b640b64fce595016468f",
+    "commit": "7bf71aeaaef42ce051e89351c293efaca37e6bf3",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

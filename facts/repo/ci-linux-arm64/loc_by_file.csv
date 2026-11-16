@@ -93,13 +93,16 @@ bench/golden/tests/test_coverage.py,bench,tests,Python,252,4,17
 tools/capture/test_capture.py,tools,tests,Python,251,6,38
 apps/studio/tests/revision.spec.ts,apps,tests,TypeScript,247,6,19
 native/modules2/osc_out/tests.cpp,native,product,C++,247,11,13
+bench/continuity/metrics.py,bench,tools,Python,246,68,59
 native/modules/slew/tests.cpp,native,product,C++,246,4,4
 native/modules2/reverb/dsp.h,native,product,C/C++ Header,246,11,7
 native/control/osc_out_host.cpp,native,product,C++,243,7,2
+bench/continuity/run.py,bench,tools,Python,242,22,35
 native/modules/noise/tests.cpp,native,product,C++,242,3,4
 native/modules2/chaos_lite/dsp.h,native,product,C/C++ Header,241,12,0
 native/tests2/module_tests.cpp,native,tests,C++,240,11,7
 tools/pi/preflight.py,tools,tools,Python,239,9,21
+bench/continuity/tests/test_metrics.py,bench,tests,Python,237,30,65
 native/sdk/examples/random_source/tests.cpp,native,product,C++,237,10,16
 native/control/app_engine.cpp,native,product,C++,236,20,1
 bench/golden/tests/test_compare.py,bench,tests,Python,234,6,22
@@ -155,6 +158,7 @@ bench/golden/compare.py,bench,tools,Python,179,10,17
 native/sdk/examples/step_sequencer/dsp.h,native,product,C/C++ Header,179,27,21
 native/tests/provider_bridge_tests.cpp,native,tests,C++,179,4,12
 apps/studio/src/modules/registry.ts,apps,product,TypeScript,177,33,24
+bench/continuity/tests/test_marks.py,bench,tests,Python,177,8,42
 native/modules2/midi_to_cv/dsp.h,native,product,C/C++ Header,177,4,0
 native/modules2/osc_in/tests.cpp,native,product,C++,177,7,0
 apps/studio/src/panels/layouts.ts,apps,product,TypeScript,176,44,26
@@ -173,6 +177,7 @@ apps/studio/tests/chaos-presets.spec.ts,apps,tests,TypeScript,165,14,10
 native/modules2/blend/dsp.h,native,product,C/C++ Header,165,6,9
 apps/studio/src/app/OscOutEditor.ts,apps,product,TypeScript,163,4,5
 apps/studio/src/styles/groove.css,apps,product,CSS,162,9,9
+bench/continuity/marks.py,bench,tools,Python,162,47,42
 bench/portability/probe.py,bench,tools,Python,161,5,20
 apps/studio/src/panels/widgets/Fader.ts,apps,product,TypeScript,160,6,14
 apps/studio/tests/codec-roundtrip.spec.cjs,apps,tests,JavaScript,160,3,7
@@ -244,6 +249,7 @@ bench/golden/probe_bundled.py,bench,tools,Python,115,9,13
 apps/studio/src/patch/History.ts,apps,product,TypeScript,114,23,16
 apps/studio/tests/groove-g4b-roll.spec.ts,apps,tests,TypeScript,113,1,5
 apps/studio/tests/helpers.ts,apps,tests,TypeScript,113,8,14
+bench/continuity/probe.py,bench,tools,Python,113,23,25
 apps/studio/src/panels/widgets/StepsPane.ts,apps,product,TypeScript,110,5,10
 native/tests2/frozen_reference.h,native,tests,C/C++ Header,110,6,6
 apps/studio/src/app/QuickAdd.ts,apps,product,TypeScript,107,4,13
@@ -274,9 +280,11 @@ tools/capture/reference.py,tools,tools,Python,100,2,12
 tools/foundation/tests/test_doc_links.py,tools,tests,Python,99,4,22
 apps/studio/src/panels/panes.ts,apps,product,TypeScript,98,10,5
 apps/studio/src/panels/widgets/ModelGrid.ts,apps,product,TypeScript,97,3,5
+bench/continuity/tests/test_run.py,bench,tests,Python,97,7,25
 native/io/audio/stream_lifecycle_tests.cpp,native,product,C++,97,2,0
 native/modules2/host_keyboard/dsp.h,native,product,C/C++ Header,97,1,0
 apps/studio/tests/legacy-documents.spec.cjs,apps,tests,JavaScript,96,1,6
+bench/continuity/engine.py,bench,tools,Python,96,7,15
 native/document/runtime_patch.cpp,native,product,C++,95,1,0
 apps/studio/tests/groove-g4b.spec.ts,apps,tests,TypeScript,94,1,6
 bench/golden/experiment.py,bench,tools,Python,94,8,10
@@ -363,6 +371,7 @@ docs/context/future_modules/guttur/package/apps/offline_render.cpp,docs,product,
 tools/foundation/tests/test_dev_launch_consent.py,tools,tests,Python,62,2,5
 native/modules2/spectral/approx.h,native,product,C/C++ Header,61,9,7
 tools/foundation/acceptance_preflight.py,tools,tools,Python,61,7,11
+bench/continuity/capture.py,bench,tools,Python,60,10,12
 native/engine2/tests/cost_probe.cpp,native,tests,C++,60,2,2
 docs/context/future_modules/guttur/package/src/tables.cpp,docs,product,C++,59,2,0
 native/control/provider_bridge.h,native,product,C/C++ Header,59,5,7
@@ -585,4 +594,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,85784,4872,4965
+SUM,SUM,product,unknown,87214,5094,5285
