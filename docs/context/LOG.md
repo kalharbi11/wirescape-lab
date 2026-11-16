@@ -9,7 +9,9 @@ Design: `applyGraph` on the existing replan now (M2); then topology moved into a
 adopted at a block boundary, per-edge ramps, module data slots, instance replacement with a realtime
 `adopt` hook or ring-out. T0.13 harness designed (0005 section 4, M0 r2 ruling R6). M1 r2: sidecar
 ordering only.
-**State of main:** no product change. **Next:** lead runs M0, M1, M2. Fable: T1.6 split design.
+Also designed, not contracted: `0007` engine file split (T1.6), `0008` one transport (T1.7; found
+`Engine::transport` is never called and races with render), `0009` module build and generated registry (T1.8).
+**State of main:** no product change. **Next:** lead runs M0, M1, M2. Fable: questions, M0 acceptance, protocol v1.
 **Open for the owner:** none new.
 Signed: Fable, 2026-11-16
 

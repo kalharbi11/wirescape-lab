@@ -41,9 +41,13 @@ can be filed now; ruling R6.
 - **gpt-lead:** `lead: run`. Send R1–R5 corrections to the builders' existing chats, file P1–P4,
   open batch B1, start builders. Merge per contract. Queue anything else in QUESTIONS.md.
 - **Builders:** one task each, result comment on the PR.
-- **Fable next:** contract T1.6 from [proposals/0007](../../proposals/0007-engine-file-split.md) once
-  M1 S5b is near; `fable: run design T1.8` and `T1.7` with P3 and P4; then protocol v1 (T2.5).
-  `fable: run questions` whenever the queue has entries.
+- **Designed, not yet contracted (Fable contracts each when its dependency is near):**
+  [0007](../../proposals/0007-engine-file-split.md) engine split T1.6 (after M1 S5b);
+  [0008](../../proposals/0008-transport.md) transport T1.7 (after M1 S5b);
+  [0009](../../proposals/0009-module-build-and-registry.md) module build T1.8 (after M1 S6);
+  0005 sections 5–7 (after T1.6).
+- **Fable next:** `fable: run questions` when the queue has entries; `fable: run accept M0`;
+  `fable: run design protocol v1` (T2.5) once inventory P2 is merged.
 - **Owner:** T0.14 dependency hosts; device runs when the lead asks.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
