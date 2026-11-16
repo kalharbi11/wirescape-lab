@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Authorized owner recording. No recorder is instantiated during a dry run."""
 import platform
+import math
 import os
 import queue
 import shutil
@@ -14,11 +15,15 @@ from pathlib import Path
 
 class Recorder:
     def __init__(self,mode,directory,rate=48000,input_device=None,
-                 monitor_target=None,process_helper=None,engine_pid=None):
+                 monitor_target=None,process_helper=None,engine_pid=None,
+                 capture_buffer_frames=None):
         self.mode=mode
         self.directory=Path(directory)
         self.rate=rate
         self.input_device=input_device
+        self.capture_buffer_frames=capture_buffer_frames
+        self.timing_blocks=[]  # Per-callback capture sample indices and clock provenance.
+        self.captured_frame_count=0
         self.monitor_target=monitor_target
         self.process_helper=process_helper
         self.engine_pid=engine_pid
@@ -53,15 +58,29 @@ class Recorder:
         self.writer=threading.Thread(target=write,daemon=True)
         self.writer.start()
         def capture(samples,frames,timestamp,status):
+            callback_now=time.monotonic()
+            adc=getattr(timestamp,"inputBufferAdcTime",None)
+            current=getattr(timestamp,"currentTime",None)
+            if (adc is not None and current is not None and
+                    all(map(math.isfinite,(float(adc),float(current))))):
+                # Both PortAudio values share the input stream clock.
+                # Host mapping via callback arrival has unknown scheduling offset.
+                adc_host=callback_now-(float(current)-float(adc))
+            else:
+                adc_host=None
+            self.timing_blocks.append({
+                "start_frame":self.captured_frame_count,
+                "frames":frames,"adc_monotonic_s":adc_host,
+                "callback_monotonic_s":callback_now})
+            self.captured_frame_count+=frames
             if self.first_sample_monotonic is None:
-                # PortAudio times share a device clock; convert its relative ADC
-                # age to time.monotonic at callback entry, before copying samples.
-                self.first_sample_monotonic=(time.monotonic()
-                    - (timestamp.currentTime - timestamp.inputBufferAdcTime))
+                self.first_sample_monotonic=adc_host if adc_host is not None else callback_now
             try:self.queue.put_nowait(samples.copy())
             except queue.Full:self.overruns+=1
         self.stream=sd.InputStream(samplerate=self.rate,channels=2,
-                                   dtype="float32",device=self.input_device,callback=capture)
+                                   dtype="float32",device=self.input_device,
+                                   blocksize=self.capture_buffer_frames or 0,
+                                   callback=capture)
         self.stream.start()
 
     def start(self):
