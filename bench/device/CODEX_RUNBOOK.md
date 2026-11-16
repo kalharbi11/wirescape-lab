@@ -221,7 +221,7 @@ PR title: `facts(device): Pi 5 and Windows runs, <YYYY-MM-DD> (<sha7>)`. Do not 
 ## 5. Report to the owner (paste into the PR description too)
 
 ```
-**Runbook:** v2   **Commit:** <sha7>   **PR:** #…
+**Runbook:** v3 (M0 r2 R1)   **Commit:** <sha7>   **PR:** #…
 | Run | Machine | Buffer | Ran (min) | Exit | Engine CPU max % | Dropouts | Longest silence ms | Notes |
 (one row per run P1–P7, W1–W3; "skipped" or "failed: <one line>" where it applies)
 **GUTTR (Pi):** 1 throat p50/p95/worst µs; 16 throats p50/p95/worst µs
@@ -229,7 +229,13 @@ PR title: `facts(device): Pi 5 and Windows runs, <YYYY-MM-DD> (<sha7>)`. Do not 
 **App memory (Pi):** max Electron total MB, max engine MB
 **What the owner heard:** (ask after each 🔊 run: any glitches, silence, distortion? write their words)
 **Loopback cable available:** Pi yes/no, laptop yes/no
-**P7/W3 diagnostic per block (NOT calibrated DAC-to-ADC latency):** clicks detected/40, level dBFS, uncalibrated command-to-ADC offset median/min/max/stddev (frames, ms), rate/buffer, nominal offset-minus-2×buffer arithmetic (NOT driver overhead), request/ack span (NOT error bound); or REFUSED with exact reason. **Issue #54 hardware measurement:** blocked until DAC onset + common clock provenance are available.
+**P7/W3 three-quantity evidence per block (owner physical run only):**
+- harness_loopback_ms: one duplex stream, input click index minus emitted output click index / sample rate, median/p95 ms (no wall clock).
+- command_to_capture_ms: monotonic time of actual engine command write to captured onset ADC buffer timestamp + within-buffer sample index/rate, median/p95 ms; if ADC unavailable, record callback-time fallback count and add one full capture-buffer duration to explicitly stated additional uncertainty.
+- command_to_sound_ms: median and p95 **ranges only** [command_to_capture_ms - harness_loopback_ms, command_to_capture_ms], not a scalar DAC-onset time.
+- Provenance: actual source commit, New York date, machine label, device **class**, sample rate, engine output / duplex output / duplex input / command capture buffer sizes, detected repeats for both legs (at least 20; tool requires 30 of 40), level dBFS, raw artifact/report path or REFUSED reason. State that host-to-PortAudio absolute clock mapping error is uncalibrated and no physical DAC presentation timestamp was measured.
+**Historical non-R1 diagnostic (only if comparing old captures):** previous command/ack midpoint-to-ADC and offset-minus-2×buffer values are uncalibrated, not harness_loopback_ms or device/driver overhead. Do not substitute them for the three R1 quantities.
+**Not verified:** if no owner cable/device run, explicitly state physical latency values not measured; the accepted M0 R1 milestone covers tool, synthetic tests and runbook first.
 **Failures:** step, last lines of output
 **Large files:** uploaded to release … / left at …
 Signed: gpt-helper, <YYYY-MM-DD>
