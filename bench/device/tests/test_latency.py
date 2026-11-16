@@ -403,6 +403,26 @@ class RecorderCallbackStatusTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "input underflow"):
                 recorder.stop()
 
+    def test_both_writer_queue_loss_and_callback_overflow_reasons_preserved(self):
+        class InputOverflowStatus:
+            def __bool__(self):
+                return True
+
+            def __str__(self):
+                return "input overflow"
+
+        with tempfile.TemporaryDirectory() as root:
+            recorder = self.capture_once(root, InputOverflowStatus())
+            # Simulate the second independently detected failure after the
+            # callback; both reasons must survive refusal and be actionable.
+            recorder.overruns = 2
+            with self.assertRaises(RuntimeError) as raised:
+                recorder.stop()
+            self.assertIn("input capture lost 2 blocks", str(raised.exception))
+            self.assertIn("input capture callback status/data loss", str(raised.exception))
+            self.assertIn("frame 0", str(raised.exception))
+            self.assertIn("input overflow", str(raised.exception))
+
     def test_record_clean_callback_control_preserves_success(self):
         with tempfile.TemporaryDirectory() as root:
             recorder = self.capture_once(root, "")
