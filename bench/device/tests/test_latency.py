@@ -323,5 +323,128 @@ class R1ContractTests(unittest.TestCase):
             latency_r1.duplex_harness(SimpleNamespace(dry_run=True),48000,128,latency)
 
 
+class RecorderCallbackStatusTests(unittest.TestCase):
+    """No PortAudio device or FLAC encoder is touched in these callback tests."""
+
+    def capture_once(self, root, status):
+        import record
+
+        class FakeSoundFile:
+            def __init__(self, filename, **kwargs):
+                self.path = Path(filename)
+                self.blocks = []
+
+            def write(self, frames):
+                self.blocks.append(frames.copy())
+
+            def close(self):
+                # Recorder checks a nonempty finalized artifact, just as it
+                # would after a real FLAC writer; bytes are mock data only.
+                self.path.write_bytes(b"f" * 256)
+
+        class FakeInputStream:
+            def __init__(self, *, callback, **kwargs):
+                self.callback = callback
+
+            def start(self):
+                timestamp = SimpleNamespace(
+                    inputBufferAdcTime=9.9, currentTime=10.0)
+                self.callback(
+                    np.zeros((128, 2), dtype=np.float32),
+                    128, timestamp, status)
+
+            def stop(self):
+                pass
+
+            def close(self):
+                pass
+
+        with patch.dict(sys.modules, {
+            "sounddevice": SimpleNamespace(InputStream=FakeInputStream),
+            "soundfile": SimpleNamespace(SoundFile=FakeSoundFile),
+        }):
+            recorder = record.Recorder(
+                "input", Path(root), rate=48000,
+                input_device="mock-only", capture_buffer_frames=128)
+            recorder.start()
+            return recorder
+
+    def test_record_input_overflow_refused_even_without_writer_queue_overflow(self):
+        class InputOverflowStatus:
+            input_overflow = True
+
+            def __bool__(self):
+                return True
+
+            def __str__(self):
+                return "input overflow"
+
+        with tempfile.TemporaryDirectory() as root:
+            recorder = self.capture_once(root, InputOverflowStatus())
+            # This is the failure that previous code missed: all 128 frames
+            # were submitted and queue.Full never occurred, but PortAudio
+            # reports that samples were lost before invoking the callback.
+            self.assertEqual(recorder.overruns, 0)
+            self.assertEqual(recorder.captured_frame_count, 128)
+            self.assertEqual(recorder.callback_status_count, 1)
+            self.assertEqual(recorder.callback_statuses[0], {
+                "start_frame": 0, "frames": 128, "flags": "input overflow"})
+            with self.assertRaisesRegex(
+                    RuntimeError,
+                    r"input capture callback status/data loss: 1 flagged callback"
+                    r".*capture frame 0, 128 frames: input overflow"):
+                recorder.stop()
+
+    def test_record_other_callback_loss_status_also_refused(self):
+        with tempfile.TemporaryDirectory() as root:
+            recorder = self.capture_once(root, "input underflow")
+            self.assertEqual(recorder.overruns, 0)
+            self.assertEqual(recorder.callback_status_count, 1)
+            with self.assertRaisesRegex(RuntimeError, "input underflow"):
+                recorder.stop()
+
+    def test_record_clean_callback_control_preserves_success(self):
+        with tempfile.TemporaryDirectory() as root:
+            recorder = self.capture_once(root, "")
+            self.assertEqual(recorder.callback_status_count, 0)
+            self.assertEqual(recorder.callback_statuses, [])
+            self.assertEqual(recorder.overruns, 0)
+            self.assertEqual(recorder.captured_frame_count, 128)
+            artifact = recorder.stop()
+            self.assertEqual(artifact, Path(root) / "capture.flac")
+            self.assertTrue(artifact.is_file())
+            self.assertGreater(artifact.stat().st_size, 100)
+
+    def test_r1_refused_report_preserves_status_and_no_numeric_latency(self):
+        # The owner-only command path calls recorder.stop() before computing
+        # onsets; an overflow must become a refused run, not a plausible value.
+        with tempfile.TemporaryDirectory() as root:
+            args = SimpleNamespace(
+                dry_run=False, results=Path(root), machine="mock-only",
+                rate=48000, device_class="test-interface")
+            failure = RuntimeError(
+                "input capture callback status/data loss: 1 flagged callback(s); "
+                "first at capture frame 0, 128 frames: input overflow")
+            with patch.object(latency_r1, "duplex_harness",
+                              return_value={"quantity": "harness_loopback_ms"}), \\
+                 patch.object(latency_r1, "physical_command_capture",
+                              side_effect=failure):
+                self.assertFalse(latency_r1.run_one(
+                    args, 128, "0123456789abcdef", "2026-11-16", latency))
+            records = list(Path(root).rglob("latency.json"))
+            self.assertEqual(len(records), 1)
+            report = json.loads(records[0].read_text(encoding="utf-8"))
+            self.assertFalse(report["completed"])
+            self.assertFalse(report["owner_physical_measurement"])
+            self.assertIn("input overflow", report["error"])
+            self.assertIn("capture frame 0", report["error"])
+            for metric in ("harness_loopback_ms", "command_to_capture_ms",
+                           "command_to_sound_ms"):
+                self.assertNotIn(metric, report)
+            summary = (records[0].parent / "report.md").read_text(encoding="utf-8")
+            self.assertIn("REFUSED", summary)
+            self.assertIn("input overflow", summary)
+
+
 if __name__ == "__main__":
     unittest.main()
