@@ -79,8 +79,8 @@ build/support. It is support, not a fifth product writer; no tracked edits unles
 
 ## Timers, usage, and replacement-lead handoff
 Automation ID: wlab-lead-review. Existing target thread: 01a1e370-1e2a-79c0-a439-f0ac099e433a.
-Normal cadence: 15 minutes. At09:12UTC five-hour usage reached90%; next check temporarily scheduled
-04:57 New York (09:57UTC), after reported09:55:41UTC reset. Recheck actual usage then restore15minutes.
+Normal cadence after reset: **45 minutes** (owner steering, 2026-11-16). At09:12UTC five-hour usage reached90%; next check temporarily scheduled
+04:57 New York (09:57UTC), after reported09:55:41UTC reset. Recheck actual usage then use 45-minute intervals.
 Do not redeem reset credits or buy credits automatically. Weekly quota is shared too.
 Use brief changed-state checks; no CI/model waiting loops or duplicate expensive reruns.
 When a new lead takes over: finish this chat's active turn, inspect automation and builders, then use
@@ -105,3 +105,26 @@ base/head/invariant-pinned requests; queue them when those PRs are ready.
 > dispatch; verify actual tool access and builder execution. Continue autonomously within the contracts.
 
 Signed: gpt-lead, 2026-11-16
+
+
+## Owner-requested local replacement and worker rotation
+
+At the post-reset 04:57 New York check, once this handoff is reviewable and CI permits, the current
+lead is authorized to create the replacement local lead automatically with the minimal owner prompt
+above. Use the verified local lab project ID `f6ca202f-4314-44be-99fc-1fef2e97dc67`, after checking
+list_projects still identifies it as local. create_thread target must be project/environment local;
+verify returned hostId is local. Never choose a cloud or projectless fallback. Preserve local checkout
+and captures. Transfer the existing heartbeat to the ready replacement thread and set a 45-minute
+cadence; old lead stops dispatching after transfer. Resolve setup completion before using thread IDs.
+
+Give builders longer cohesive issue-scoped tasks. The accepted one-active-task rule still applies;
+the lead may assign a separate nonoverlapping task after the prior result enters review. Optional
+15-minute CI follow-up is useful only through a verified supported scheduler/event watcher, with a
+stop condition and one owner. Do not assume ChatGPT workers have timer capabilities or create
+parallel model polling loops.
+
+Retain old builder chats until their open PR ownership and correction handoffs are reconciled.
+Snapshot: B1 #70 (and queued #60), B2 #58, B3 #89/#91, B4 #59 (and paused #84); root owns device
+publication maintenance #73/#75 and existing #50 review. A fresh builder must reuse the same branch
+and PR, read the signed result and latest lead findings, and prove actual startup before the old chat
+is retired. Record each replacement thread ID here. Do not reset all chats mid-task.
