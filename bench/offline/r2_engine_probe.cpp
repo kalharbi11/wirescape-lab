@@ -43,6 +43,9 @@ struct SignalSource {
     static constexpr std::array<ws2_port,0> inputs{};
     static constexpr std::array outputs{ws::port("audio","Audio",WS2_AUDIO)};
     static constexpr std::array<ws2_param,0> params{};
+    // ws::Module<T>::prepare requires a prepare(Setup) member, even when
+    // the source has no quiescent resources to initialize.
+    bool prepare(ws::Setup) { return true; }
     void reset(){}
     void process(ws::Block& b) {
         auto output = b.out(0);
