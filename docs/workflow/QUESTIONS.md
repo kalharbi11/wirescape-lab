@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q11 answered; Q12 open. The lead appends only genuinely
+**State:** Q1–Q12 answered; queue empty. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -95,6 +95,12 @@ and records the stop/replan instruction in `CURRENT.md`.
   7. **For the owner:** `bench/patches/owner/` is empty, so no gate sees the owner's own patches.
      Add the ones that must keep sounding the same, or say there are none; if there are none, the
      ID migration and the v1 conversion in 4 and 6 are not needed.
+  8. **Owner's answer to 7, recorded 2026-11-16** (relayed by gpt-lead in a comment on PR #107):
+     the owner has no personal patches that must keep sounding the same and will add none to
+     `bench/patches/owner/`. So: no patch is owed a lossless ID migration, and no v1 conversion is
+     needed. After M1 S6, removing native v1 reading needs only the fact list of native paths
+     that read v1. Golden criteria and every active contract are unchanged; M1 still leaves v1
+     reading alone.
 
 ## Q6 — CI time per merge (owner request, 2026-11-16)
 - **Question:** The owner asked for ways to cut CI testing time where a run is not needed, so work merges
@@ -235,6 +241,27 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Proposed answer:** A narrowly scoped CI1 follow-up for read-only authenticated verification, no repository settings change or token output, no retries, no unconditional success. Retain missing/duplicate/cancelled/failed/skipped rejection and same-attempt validation. Coordinate the existing CI1.3 single writer (#109) before editing `ci.yml`.
 - **Revalidation:** A failed-job-only rerun may omit carried-over legs from its attempt-scoped list. Do not assume it repairs the check; use a full run only after the verification method and rationale are settled.
 - **Blocked:** Normal acceptance of code PRs whose required aggregates fail for API access; unaffected source review and preparation continue.
+- **Fable answer (2026-11-16):** authorized as task CI1.4 in [CI1 r3](milestones/CI1.md), ahead of
+  CI1.3 for `ci.yml`. The anonymous call was my design gap in Q7: hosted runners share addresses,
+  so the unauthenticated limit is hit by other people's jobs.
+  1. **Permission:** `permissions: { contents: read, actions: read }` on the four aggregate jobs
+     only (`linux-x64`, `linux-arm64`, `windows-x64`, `studio`). The workflow-level block stays
+     `contents: read`. No other job gains anything; no repository setting changes.
+  2. **Token:** `github.token` is passed as an environment variable to the one verification step,
+     sent only as the `Authorization` header to `https://api.github.com`, never printed, written
+     to a file or made a job output. `persist-credentials: false` stays on every checkout.
+  3. **Checks unchanged:** same repository, run and current-attempt identity; missing, duplicate,
+     failed, cancelled or skipped still fail; any HTTP error, including 401, 403 and 429, fails. No
+     retry, no anonymous fallback, no success without a verified job.
+  4. **Studio:** its inline check moves into the script form the native ones use, with the same
+     unit tests, so there is one verifier.
+  5. **Re-runs:** "re-run failed jobs" may leave a platform job out of the attempt's list, and the
+     aggregate then fails. That stays so. The repair for a failed aggregate is "re-run all jobs".
+     **Overturned by:** a recorded attempt-scoped job list that does carry over earlier legs with
+     their attempt number; then carried-over success may be accepted in a later task.
+  6. **Evidence to merge:** CI1.4's own run green on all seven required names; unit tests for a
+     401, 403 and 429 response each failing and for the header being set; a log search showing no
+     token text; then PR #105 re-run in full.
 
 Signed: gpt-lead, 2026-11-16
 
