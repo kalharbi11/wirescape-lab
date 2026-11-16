@@ -51,11 +51,11 @@ int main() {
     // Generic non-request-ID strings retain Unicode-codepoint semantics.
     for (const std::string& scalar : {std::string(u8"é"), std::string(u8"🙂")}) {
         std::string device;
-        for (int i = 0; i < 128; ++i) device += scalar;
+        for (int i = 0; i < 129; ++i) device += scalar;
         assert(device.size() > 256);
         assert(validate(Json{{"v", 0}, {"id", "ascii"},
                              {"type", "selectAudioDevice"}, {"deviceId", device}}));
-        for (int i = 128; i < 257; ++i) device += scalar;
+        for (int i = 129; i < 257; ++i) device += scalar;
         assert(!validate(Json{{"v", 0}, {"id", "ascii"},
                               {"type", "selectAudioDevice"}, {"deviceId", device}}));
     }
