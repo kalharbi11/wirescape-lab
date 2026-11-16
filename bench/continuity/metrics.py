@@ -346,8 +346,13 @@ def restarted(x: Sequence[float], start: Sequence[float], continuation: Sequence
         return Restart(False, None, 'no departure from the continuation near the edit')
 
     if lead is None:
-        # The reset value is silence: only "went silent" is observable.
-        if not all(abs(v) < floor for v in x[d:d + n]):
+        # The reset value is silence: only "went silent" is observable. A mute fade (never louder
+        # than the continuation) may precede the silence, within the search reach.
+        quiet = next((q for q in range(d, min(len(x) - n, d + reach) + 1)
+                      if all(abs(v) < floor for v in x[q:q + n])), None)
+        faded = quiet is not None and all(abs(v) < floor or abs(v) <= abs(c) + floor
+                                          for v, c in zip(x[d:quiet], continuation[d:quiet]))
+        if not faded:
             return Restart(False, None, 'departed without returning to the silent reset value')
         _, hi = window(x, rate, edit, late)
         if rms([a - b for a, b in zip(x[hi - n:hi], continuation[hi - n:hi])]) <= limit:

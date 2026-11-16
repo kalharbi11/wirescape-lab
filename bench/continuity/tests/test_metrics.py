@@ -267,6 +267,20 @@ class Restarted(unittest.TestCase):
         r = m.restarted(x, [0.0] * RATE, held, RATE, EDIT)
         self.assertEqual(r[:2], (None, EDIT + 1))  # 200 Hz crosses zero at the edit sample
 
+    def test_silent_reference_fade_then_silence_is_unobservable(self):
+        # A loadGraph reset of a held note: 10 ms fade-out, then silence for the rest of the window.
+        held = sine(freq=200.0)
+        x = held[:EDIT] + [held[EDIT + i] * (1 - i / 480) for i in range(480)]
+        x += [0.0] * (TOTAL - len(x))
+        r = m.restarted(x, [0.0] * RATE, held, RATE, EDIT)
+        self.assertIsNone(r[0], r[2])
+
+    def test_silent_reference_louder_then_silence_is_not_a_reset(self):
+        held = sine(freq=200.0)
+        x = held[:EDIT] + [2 * held[EDIT + i] for i in range(480)]
+        x += [0.0] * (TOTAL - len(x))
+        self.assertIs(m.restarted(x, [0.0] * RATE, held, RATE, EDIT)[0], False)
+
     def test_silent_reference_mute_that_resumes_is_not_a_restart(self):
         held = sine(freq=200.0)
         x = held[:EDIT] + [0.0] * GAP + held[EDIT + GAP:]
