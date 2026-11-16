@@ -72,6 +72,27 @@ class CoverageTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"fixture inventory mismatch"):
                 sources(base,root)
 
+    def test_base_without_new_fixtures_uses_exact_head_fixture_checkout(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base=Path(temp)/"old-engine"
+            head=Path(temp)/"new-fixtures"
+            (base/"apps/studio/patches").mkdir(parents=True)
+            (base/"apps/studio/patches/old.json").write_text("{}",encoding="utf-8")
+            (head/"bench/patches/coverage/controls").mkdir(parents=True)
+            for name in CASES:
+                (head/"bench/patches/coverage"/name).write_bytes(
+                    (ROOT/"bench/patches/coverage"/name).read_bytes())
+            for case in coverage_manifest()["cases"]:
+                (head/"bench/patches/coverage"/case["control"]).write_bytes(
+                    (ROOT/"bench/patches/coverage"/case["control"]).read_bytes())
+            entries=sources(base,head)
+            self.assertEqual([scope for scope,_ in entries],
+                             ["bundled","coverage","coverage","coverage"])
+            self.assertEqual([path.name for scope,path in entries if scope=="coverage"],
+                             list(CASES))
+            self.assertTrue(all(path.is_relative_to(head)
+                                for scope,path in entries if scope=="coverage"))
+
     def test_registry_and_bundled_patch_inventory_is_all_34(self):
         from inventory import registry, render_inventory
         modules=registry(ROOT)
