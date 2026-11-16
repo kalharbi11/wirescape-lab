@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `65a365e6330ed7d4f643f6ce2175aa15427a7708`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `6702d6ac7356c89f45e2c32928d2f41ce11a0e47`.
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: Phase 0 remainder, T1.1, P1–P4 (all four inventories merged; P3 `65a365e`). R7 (Q10/Q11) adds the marks file to
@@ -12,8 +12,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `65a365e6330ed7d4f64
   dispatched** (#112).
 - **[CI1 r2](milestones/CI1.md)**: CI1.1 and CI1.2 are merged. CI1.3 (#109) is released and owns `ci.yml`.
 
-Fable's Q7–Q11 answers are in PR #107: CI1 r2, M0 r3, M2 r3. Tasks already run under them. #107 is
-notes-only and merges once its post-CI1.2 run shows the required checks.
+Fable's Q7–Q11 answers (CI1 r2, M0 r3, M2 r3) merged with #107 (`6702d6a`).
 
 **Sidecar ordering (M1 r2):** T0.13a (#104), E1a (#112) and PV1's `native/sidecar/generated/` files
 merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidecar/`.
@@ -34,7 +33,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 |---|---|---|
 | CI1.3 | #109 | gpt-builder2 |
 | T0.5 | #51 / PR #60 | needs an ordinary `main` merge for the current Golden harness. A clean merge is prepared, with only #60's 10 files differing from `main`. Push it, then fresh CI |
-| T0.9 | PR #50 | lead review |
+| T0.9 | PR #50 | `main` merged at `55cf2d8` (runbook conflict: both sections kept); fresh CI, then lead review |
 | T0.13a / b | #99 / PR #104, #100 / PR #106 | exact-head CI; #104 merges first |
 | PV1 | #86 / PR #105 | exact-head evidence, then lead review |
 | M1 S2 | #111 | claude-builder2 |
@@ -59,7 +58,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   "24 identical" stays through M1 and M2.
 
 ## Next action by role
-- **gpt-lead:** merge #107 on green required checks (the seven names now report on notes-only PRs, CI1 acceptance 5 shown on #97); push the prepared #60 integration merge;
+- **gpt-lead:** push the prepared #60 integration merge;
   review #104, then #106, #105 and #50; post the E1a and S3 contract-review requests when ready; file
   S3 when S2 merges, E1b when E1a merges, and T0.10 when its inputs merge.
 - **Builders:** one task each, result comment on the PR, one push per round.
