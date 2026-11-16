@@ -199,6 +199,36 @@ target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 ${CMAKE
 add_dependencies(abi2_returned_filter_stress ws2_ladder ws_ladder)
 add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws_ladder>)
 
+# Inspect direct AND interface/transitive links, not just the visible -l token.
+# These are comparison targets; separate ABI1 production/bench targets remain
+# Fable-owned T1.2 and are not removed.
+function(abi2_assert_no_abi1_engine target_name)
+  get_property(already GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}")
+  if(already)
+    return()
+  endif()
+  set_property(GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}" TRUE)
+  get_target_property(direct_links "${target_name}" LINK_LIBRARIES)
+  get_target_property(interface_links "${target_name}" INTERFACE_LINK_LIBRARIES)
+  message(STATUS "T1.1 comparison links ${target_name}: ${direct_links}")
+  foreach(link_item IN LISTS direct_links interface_links)
+    if(link_item MATCHES "(^|[^a-zA-Z0-9_])wirescape_engine($|[^a-zA-Z0-9_])")
+      message(FATAL_ERROR "T1.1 comparison ${target_name} resolves the ABI1 engine: ${link_item}")
+    endif()
+    if(TARGET "${link_item}")
+      abi2_assert_no_abi1_engine("${link_item}")
+    endif()
+  endforeach()
+endfunction()
+foreach(compare_target IN ITEMS abi2_integration_tests abi2_module_tests
+        abi2_returned_filter_stress
+        abi2_clock_tests abi2_function_envelope_tests abi2_ladder_tests
+        abi2_mixer_tests abi2_noise_tests abi2_output_tests
+        abi2_scale_offset_tests abi2_slew_tests)
+  abi2_assert_no_abi1_engine("${compare_target}")
+endforeach()
+
+
 add_subdirectory(../io/midi midi_io)
 add_subdirectory(../modules2/macro_oscillator macro_oscillator)
 target_link_libraries(wirescape_catalog_dependencies INTERFACE macro_upstream)
