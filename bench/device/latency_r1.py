@@ -166,9 +166,19 @@ def find_command_onsets(audio, rate, commands, blocks):
         candidates = np.flatnonzero(power[lo:hi] > threshold*threshold)
         if not candidates.size:
             continue
-        # Moving-energy window is centered; subtract half its length.
-        onset = max(0, lo + int(candidates[0]) - smooth_count//2)
-        arrivals.append({"click": k, "start_frame": int(onset),
+        # A centered RMS window sees samples *after* its index. Its first
+        # threshold crossing is only a coarse event candidate, not an onset:
+        # subtracting half the window can timestamp silence before the click.
+        # Refine on the actual captured samples near the candidate, using the
+        # same amplitude floor that made the RMS candidate significant.
+        coarse = lo + int(candidates[0])
+        refine_lo = max(lo, coarse - smooth_count // 2)
+        refine_hi = min(hi, coarse + smooth_count + 1)
+        raw = np.flatnonzero(strength[refine_lo:refine_hi] > threshold)
+        if not raw.size:
+            continue
+        onset = refine_lo + int(raw[0])
+        arrivals.append({"click": k, "start_frame": onset,
                          "command_monotonic_s": float(stamp)})
     return ensure_detected(arrivals)
 
