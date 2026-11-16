@@ -1,6 +1,16 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — questions Q4–Q6 answered, CI1 contracted (Fable)
+**Done:** Q4: `busy` refusals retry and drop nothing, other refusals keep the simple drop; `0010` P5
+amended. Q5: owner's patch and preset reset recorded in CONSTRAINTS; no file moves and the golden
+gate is unchanged through M1 and M2; the six Macro Oscillator `patches/` files are build-time source
+diffs, not sound patches. Q6: one-task contract `milestones/CI1.md` from
+`facts/tests/ci_durations_2026-11-16.md`; compiler cache and target trimming held back until measured.
+**Not measured here:** every CI saving is an estimate until CI1.1 files its after-table.
+**Next:** lead dispatches CI1.1; owner answers Q5 point 7; Fable contracts PV3.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — Phase 2 designed: 0005, M2 contracted, T0.13 released (Fable)
 **Done:** `proposals/0005` from a read of the engine's render/replan/reconfigure code and the sidecar's
 commit path. Findings: the live replan already keeps unchanged instances, but `loadGraph` never uses

@@ -15,6 +15,12 @@ builder. S2 starts when T1.1 and inventory P1 are merged; one builder owns S2–
 and config edits stop restarting untouched modules. E0 (canonical config bytes, small, can start now), PV1 (protocol schema and generator, can start now), then E1a (sidecar), then E1b (Studio). Design and the
 rest of Phase 2: [proposals/0005](../../proposals/0005-edits-without-restart.md).
 
+**[CI1 r1](milestones/CI1.md), accepted and active, in parallel.** One task, CI1.1: shorter Lab CI
+(build parallelism, three Studio shards, linked desktop suite dropped from Studio's `test`, notes-only
+pull requests run `foundation` only). Dispatchable now to any free builder; owner wants it soon.
+`.github/workflows/ci.yml` is single-writer for CI1.1 while its PR is open, so PV1's drift check
+goes in a new workflow file. No task under M0, M1 or M2 stops or replans.
+
 **Changed in M0 r2:** T0.13 is no longer held. T0.13a (sidecar capture flag) and T0.13b (harness)
 can be filed now; ruling R6.
 
@@ -69,7 +75,11 @@ The M1 S5 sidecar ordering and all contract-review requirements remain in force.
 | T0.10 | to file | after the rows above merge |
 
 ## Decisions
-- Rulings R1–R6 are in M0. [QUESTIONS](QUESTIONS.md): empty.
+- Rulings R1–R6 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q6 answered, queue empty (Fable, 2026-11-16).
+- Q4: `busy` refusals are retried and drop nothing; other refusals keep 0010 P5. PV3 is unblocked for contracting.
+- Q5: bundled patches and presets may be reset after the rebuild (CONSTRAINTS, owner's change
+  2026-11-16). Nothing moves now; golden "24 identical" stays through M1 and M2.
+- Q6: contracted as CI1.
 - The old pause in the 2026-11-15 LOG entry is lifted by this contract.
 
 ## Next action by role
@@ -81,9 +91,10 @@ The M1 S5 sidecar ordering and all contract-review requirements remain in force.
   [0008](../../proposals/0008-transport.md) transport T1.7 (after M1 S5b);
   [0009](../../proposals/0009-module-build-and-registry.md) module build T1.8 (after M1 S6);
   0005 sections 5–7 (after T1.6); [0010](../../proposals/0010-protocol-v1.md) protocol v1 stages PV2–PV5.
-- **Fable next:** `fable: run questions` when the queue has entries; `fable: run accept M0`;
+- **Fable next:** `fable: run questions` when the queue has entries; `fable: run accept M0`; contract PV3;
   Wire module API details (0003) once M1 is through S5.
-- **Owner:** T0.14 dependency hosts; device runs when the lead asks.
+- **Owner:** T0.14 dependency hosts; device runs when the lead asks. Q5 point 7: add the owner's own
+  patches that must keep sounding the same to `bench/patches/owner/`, or say there are none.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
 

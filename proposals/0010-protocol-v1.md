@@ -44,11 +44,18 @@ or `loadGraph`. Live-class commands (`setParam`, notes, `panic`, `setTransport`)
 stale. Reason: edits sent after a refused one were built on a state that never existed; executing
 them is guessing.
 
-**P5. What the client does on a refusal.** It restores the document snapshot taken before the
-refused edit, discards its later unacknowledged structural edits, shows the refusal once, and
-sends `applyGraph(D)`. Refusals are rare, because Studio validates with the same generated schema
-and catalogue, and the discarded edits are at most the user's last few hundred milliseconds.
-This is deliberately simpler than §8's selective replay.
+**P5. What the client does on a refusal.** Two cases (amended 2026-11-16, QUESTIONS Q4).
+*Busy:* code `busy` says nothing about the edit. `D` and undo history stay as they are; the client
+resends `applyGraph(D)` after 100, 200, 400 and 800 ms, then once per heartbeat (P8), and from the
+fourth try shows "engine busy, edits pending". Nothing is dropped. `unavailable` is a lost session
+and follows P6.
+*Rejected:* any other code. The client restores the document snapshot taken before the refused
+edit, discards its later unacknowledged structural edits, cuts undo history back to that snapshot,
+shows one message naming the refused edit and the number of edits discarded, and sends
+`applyGraph(D)`. These are rare, because Studio validates with the same generated schema and
+catalogue. This is deliberately simpler than §8's selective replay: Studio's history holds
+snapshots, not operations, so keeping the later edits that still apply would need a document merge.
+That merge is designed only if measured refusals show the need (Q4, point 4).
 
 **P6. A new session never loses edits.** `D` already contains every edit the user made. After
 `hello` the client sends `loadGraph(D)` and drops only its list of outstanding request IDs.
