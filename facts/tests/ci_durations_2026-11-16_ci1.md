@@ -4,8 +4,8 @@
 - **Date (America/New_York):** 2026-11-16.
 - **Examined implementation base:** `55b7a1c0d2072b4ef00c393e5e13bd05ade3ef80` (live `main` when issue #95 was claimed).
 - **Completed baseline:** [Lab CI push run 43837588432](https://github.com/kalharbi11/wirescape-lab/actions/runs/43837588432) at commit `320576c322c81b8feae76f18ff0cb58ba1f6feb9`; method and step timing source: [`ci_durations_2026-11-16.md`](ci_durations_2026-11-16.md). The one intervening commit to branch base did not modify native CMake test definitions, Playwright configs or test files (compare `320576c...55b7a1c`).
-- **Own PR full-run source:** pending PR creation and hosted CI on `task/95-ci1-feedback`. All PR duration/core-count cells marked `pending` are **unobserved**, not estimates.
-- **Measurement method for own PR when complete:** each job and named step uses `completed_at - started_at`; sum of job durations is runner-minutes; run time uses `updated_at - run_started_at` including runner wait; minutes to two decimals. This matches the baseline method.
+- **Own PR full-run source:** [Lab CI PR run 43847804664](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664), event `pull_request`, attempt 1, completed `success`, exact implementation head `aa016e81bf421cd7b1b6f1093eddfe8bebe19d8b`, branch `task/95-ci1-feedback`, issue #95 / PR #96. Run started `2026-11-16T10:19:29Z`, updated `2026-11-16T10:40:02Z` (UTC). This is the first complete code-head PR run, not a baseline push run.
+- **Measurement method for own PR:** GitHub Actions run and jobs REST `started_at` / `completed_at` timestamps at [run 43847804664 jobs](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664); each job/step duration is completed minus started; summed exact job seconds, then rounded to two decimal minutes, gives runner-minutes. Run wall time uses `updated_at - run_started_at` (includes hosted queue delay). Values are observed, not a five-minute estimate; table build/prep/test are explicitly named step durations, with remainder in other. Core counts are literal `Runner cores: 4` lines in each corresponding current-head native/sanitizer job log. Same time method as baseline.
 
 ## Baseline hosted durations — completed push run (not own PR)
 
@@ -22,14 +22,16 @@
 
 ## K1 baseline test counts and exact CTest names
 
-| Suite | Base discovered | Base completion | Own PR discovery/completion |
+| Suite | Base discovered | Base completion | Own PR exact-head discovery/completion |
 | --- | ---: | --- | --- |
-| native linux-x64 | 114 | 114 passed | pending |
-| native linux-arm64 | 114 | 114 passed | pending |
-| native windows-x64 | 114 | 114 passed | pending |
-| sanitizers `-R abi2` | 78 | 78 passed | pending |
-| Studio Playwright | 344 | 343 passed; one existing skipped test | pending sum of shards 1–3 |
-| Desktop Playwright | 24 | 22 passed; two existing skipped tests | pending, unchanged desktop CI job |
+| native linux-x64 | 114 | 114 passed | 114/114 passed; `ctest -N` exact 114-name/order match |
+| native linux-arm64 | 114 | 114 passed | 114/114 passed; `ctest -N` exact 114-name/order match |
+| native windows-x64 | 114 | 114 passed | 114/114 passed; `ctest -N` exact 114-name/order match |
+| sanitizers `-R abi2` | 78 | 78 passed | 78/78 passed; `ctest -N -R abi2` exact 78-name/order match |
+| Studio Playwright | 344 | 343 passed; one existing skipped test | shard lists 128 + 103 + 113 = **344**, results 127 passed/1 skipped + 103 passed + 113 passed = **343 passed/1 existing skipped** |
+| Desktop Playwright | 24 | 22 passed; two existing skipped tests | **24 discovered, 22 passed/2 existing skipped**, unchanged desktop job |
+
+**K1 evidence:** [native Linux x64](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639415), [ARM64](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639488), [Windows](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639494), [sanitizers](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639324), [Studio shard 1](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639522), [shard 2](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639475), [shard 3](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639453), and [desktop](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639371). Each CTest inventory was parsed against the fully named base list printed below: all four comparisons are position-by-position identical. Studio `playwright test --list --shard=N/3` totals and test completion from the three job logs. Foundation ran 222 Python unit tests with four pre-existing skips (success).
 
 **Exact native CTest names** as emitted by [Linux x64 baseline job](https://github.com/kalharbi11/wirescape-lab/actions/runs/43837588432/job/133197976662), representative of the same 114-name baseline on all three native runners:
 
@@ -233,24 +235,30 @@ abi2_notes_to_cv_tests
 abi2_chord_tests
 ```
 
-## Own PR full-run durations (unverified until an actual hosted run completes)
+## Own PR full-run durations — completed exact implementation head
 
-| Job | Printed runner cores | Job min | Build step min | Test step min | Other step min |
+- **Run:** [Lab CI #43847804664](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664), `pull_request`, attempt 1, implementation HEAD `aa016e81bf421cd7b1b6f1093eddfe8bebe19d8b`, conclusion **success**, 10/10 jobs successful (including all three Studio shards).
+- **Job and step timing:** GitHub Actions REST UTC timestamp differences; rounded minutes; build/prep means the separately identified principal build or install step. For Windows, pinned PortAudio duration is shown in parentheses alongside the native build; `other` is the remainder of job time (not a measured extra build stage).
+
+| Job | Printed runner cores | Job min | Build/prep step min | Test step min | Other step min |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| changed-scope | n/a | pending | pending | pending | pending |
-| foundation | n/a | pending | pending | pending | pending |
-| native linux-x64 | pending | pending | pending | pending | pending |
-| native linux-arm64 | pending | pending | pending | pending | pending |
-| native windows-x64 | pending | pending | pending | pending | pending |
-| sanitizers | pending | pending | pending | pending | pending |
-| studio shard 1/3 | n/a | pending | pending | pending | pending |
-| studio shard 2/3 | n/a | pending | pending | pending | pending |
-| studio shard 3/3 | n/a | pending | pending | pending | pending |
-| desktop | n/a | pending | pending | pending | pending |
-| **Sum runner-minutes** | | **pending** | | | |
+| [changed-scope](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133235861409) | n/a | 0.08 | — | — | 0.08 |
+| [foundation](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133235861173) | n/a | 0.47 | — | 0.35 | 0.12 |
+| [linux-x64](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639415) | 4 | 3.32 | 2.27 | 0.88 | 0.17 |
+| [linux-arm64](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639488) | 4 | 2.98 | 1.87 | 0.93 | 0.18 |
+| [windows-x64](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639494) | 4 | 4.57 | 2.77 (+0.35 pinned PortAudio) | 1.00 | 0.45 |
+| [sanitizers](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639324) | 4 | 7.30 | 6.17 | 1.00 | 0.13 |
+| [studio shard 1/3](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639522) | n/a | 2.20 | 0.30 | 1.70 | 0.20 |
+| [studio shard 2/3](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639475) | n/a | 2.82 | 0.48 | 2.07 | 0.27 |
+| [studio shard 3/3](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639453) | n/a | 3.63 | 0.35 | 3.10 | 0.18 |
+| [desktop](https://github.com/kalharbi11/wirescape-lab/actions/runs/43847804664/job/133236639371) | n/a | 1.75 | 0.08 | 1.48 | 0.18 |
+| **Sum runner-minutes** | | **29.12** | | | |
 
-- **Own PR full-run URL:** pending PR run.
-- **Own PR longest job:** pending.
-- **Own PR elapsed time including runner wait:** pending.
-- **CI1 r1 estimate (not a pass threshold):** longest job approximately 5 minutes. No PR speedup or speed regression is asserted before hosted evidence.
-- **Baseline notes:** the original 9.42-minute Studio job includes the linked 24-test desktop suite, which the separate 2.02-minute desktop job also ran. The PR configuration removes that duplicate link while preserving the desktop job.
+- **Own PR longest job:** `sanitizers`, **7.30 min** (baseline longest `sanitizers` 9.48 min; decrease **2.18 min**).
+- **Own PR runner-minutes:** **29.12**, compared with prior push baseline **37.21** (difference **-8.09** runner-minutes; distinct push/PR provenance).
+- **Own PR elapsed including scheduling delay:** **20.55 min**, `2026-11-16T10:19:29Z` to `2026-11-16T10:40:02Z` UTC; separate from longest job duration. The wall time is not the longest-job speed metric.
+- **Printed runner cores:** native Linux x64 **4**, Linux ARM64 **4**, Windows x64 **4**, sanitizers Ubuntu **4**; each confirmed in the corresponding job logs. No two-core Linux runner condition triggered.
+- **K2/K5:** original scope-limited implementation did not alter pre-existing test definitions/configs, sanitizer flags, retries, timeouts, or worker count. This fact-only evidence update modifies no executable code.
+- **K3/K4:** source/workflow conditions cover full push-to-main/manual execution and fail-closed PR scope, while foundation remains always-running. These other event types were **not hosted-tested on this PR**. The pre-classifier K4 search results and directory reads are preserved in PR #96; no new scan or change to scope rules was made in this evidence-only update.
+- **CI1 r1 estimate:** about 5 minutes for longest job, expressly **not** an acceptance threshold; observed longest job is 7.30 min. Sanitizers remain the longest; compiler-cache question belongs to the delivery lead, not this task.
+- **Exact-head note:** this completed run proves the implementation state at `aa016e81bf421cd7b1b6f1093eddfe8bebe19d8b`. Updating this facts file creates a newer branch SHA; the new exact-head automatic CI must be checked by the lead at the next event/heartbeat. Do not report the earlier run as a pass on the new SHA.
