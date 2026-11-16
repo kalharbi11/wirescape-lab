@@ -12,10 +12,67 @@ from scipy import signal
 from metrics import (basic, click_events, direct_envelope_metrics,
                      filter_impulse_evidence, filter_metrics,
                      folded_alias_frequencies, oscillator_metrics, patch_metrics,
-                     read_audio, self_oscillation_metrics, step_metrics, sweep_residual_metrics)
+                     read_audio, r2_impulse_metrics, r2_tail_metrics,
+                     self_oscillation_metrics, step_metrics, sweep_residual_metrics)
 
 
 class MetricsTests(unittest.TestCase):
+    def test_r2_exact_impulse_60db_time_known_exponential(self):
+        rate = 48000
+        tau = .004
+        t = np.arange(rate * 2) / rate
+        response = np.exp(-t / tau)
+        result = r2_impulse_metrics(response, rate)
+        self.assertEqual(result["capture_frames"], rate * 2)
+        self.assertEqual(result["decay_status"], "reached")
+        self.assertEqual(result["nonfinite_samples"], 0)
+        self.assertAlmostEqual(result["peak_fs"], 1.0)
+        self.assertAlmostEqual(result["time_to_minus60_db_re_peak_ms"],
+                               tau * math.log(1000) * 1000, delta=.04)
+
+    def test_r2_60db_time_uses_suffix_peak_not_sine_zero_crossings(self):
+        rate = 44100
+        t = np.arange(rate * 2) / rate
+        response = np.exp(-t / .03) * np.sin(2 * math.pi * 1000 * t)
+        measured = r2_impulse_metrics(response, rate)
+        self.assertEqual(measured["decay_status"], "reached")
+        self.assertGreater(measured["time_to_minus60_db_re_peak_ms"], 150)
+        self.assertLess(measured["time_to_minus60_db_re_peak_ms"], 300)
+        silence = r2_impulse_metrics(np.zeros(rate * 2), rate)
+        self.assertEqual(silence["decay_status"], "zero_response")
+        self.assertIsNone(silence["time_to_minus60_db_re_peak_ms"])
+
+    def test_r2_impulse_nan_and_inf_counts(self):
+        rate = 48000
+        samples = np.zeros(rate * 2)
+        samples[3] = np.nan
+        samples[4] = np.inf
+        result = r2_impulse_metrics(samples, rate)
+        self.assertEqual((result["nan_count"], result["inf_count"]), (1, 1))
+        self.assertEqual(result["decay_status"], "nonfinite_response")
+        with self.assertRaisesRegex(ValueError, "exactly two seconds"):
+            r2_impulse_metrics(samples[:-1], rate)
+
+    def test_r2_five_tail_ratios_and_malformed_counts(self):
+        rows = [
+            {"repeat": i, "active_median_ns": 100 + i * 10,
+             "silent_median_ns": 150 + i * 15,
+             "silent_over_active": 1.5,
+             "active_full_blocks": 100, "silent_full_blocks": 300,
+             "subnormal_output_samples": i,
+             "nonfinite_output_samples": 0, "faults": 0}
+            for i in range(5)
+        ]
+        result = r2_tail_metrics(rows)
+        self.assertEqual(result["repeat_count"], 5)
+        self.assertAlmostEqual(result["median_silent_over_active_block_cost"], 1.5)
+        self.assertEqual(result["subnormal_output_samples_all_repeats"], 10)
+        with self.assertRaisesRegex(ValueError, "exactly five"):
+            r2_tail_metrics(rows[:4])
+        with self.assertRaisesRegex(ValueError, "invalid block timing"):
+            r2_tail_metrics([{**r, "silent_over_active": 0.8}
+                             for r in rows])
+
     def test_float_wav_and_levels(self):
         rate = 48000
         t = np.arange(rate) / rate
