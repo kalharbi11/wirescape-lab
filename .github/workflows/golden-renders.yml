@@ -113,6 +113,13 @@ jobs:
             --keep-wavs "$RUNNER_TEMP/golden/wavs/after" \
             --coverage-root head \
             --out "$RUNNER_TEMP/golden/after.json"
+      - name: Record full 34-module registry and rendered contribution facts
+        if: ${{ !cancelled() && steps.render_head.outcome == 'success' }}
+        run: |
+          python head/bench/golden/inventory.py --root head \
+            --render "$RUNNER_TEMP/golden/after.json" \
+            --out "$RUNNER_TEMP/golden/coverage-inventory.json" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       - name: Primary exact base/head gate, WAV sample index/time/peak and declarations
         if: github.event_name == 'pull_request'
         run: |
