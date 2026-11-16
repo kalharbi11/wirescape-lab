@@ -156,7 +156,7 @@ target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
 # Test the source-freezing parser with known-answer/synthetic byte streams.
 add_test(NAME abi2_reference_freezer_tests COMMAND ${Python3_EXECUTABLE}
   -m unittest discover -s ${CMAKE_SOURCE_DIR}/../bench/reference
-  -p test_freeze.py -v)
+  -p "test_*.py" -v)
 
 # T1.1 test-only ABI1 reference capture. This runs *the unchanged live comparisons*
 # on a disposable CI build and produces provenance-bearing fixture candidates.
