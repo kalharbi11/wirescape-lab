@@ -16,6 +16,26 @@ OUTPUTS = {
 }
 
 
+
+# Exact JSON Schema pattern approved by Fable, QUESTIONS Q8 / 0010 P1.
+# Do not add a regex engine: generated Python/TS/C++ inspect UTF-8 bytes.
+PRINTABLE_ASCII_PATTERN = r"^[\x20-\x7E]*$"
+
+
+def validate_schema_patterns(node: object) -> None:
+    """Fail generation on any pattern other than Q8's single literal."""
+    if isinstance(node, list):
+        for child in node:
+            validate_schema_patterns(child)
+    elif isinstance(node, dict):
+        if "pattern" in node and (
+            node["pattern"] != PRINTABLE_ASCII_PATTERN or node.get("type") != "string"
+        ):
+            raise ValueError(f"Unsupported protocol schema pattern: {node['pattern']!r}")
+        for child in node.values():
+            validate_schema_patterns(child)
+
+
 def ts_alias(name: str) -> str:
     """Preserve existing schema names in stable exported TypeScript aliases."""
     return "Protocol" + name[0].upper() + name[1:]
@@ -87,6 +107,11 @@ def ts_definitions(schema: dict) -> str:
 
 def render() -> dict[str, str]:
     source = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    validate_schema_patterns(source)
+    expected_id = {"type": "string", "minLength": 1, "maxLength": 64,
+                   "pattern": PRINTABLE_ASCII_PATTERN}
+    if source["$defs"]["requestId"] != expected_id:
+        raise ValueError("Q8 requestId must use exact ASCII pattern and 1..64 bounds")
     variants = source["$defs"]["command"]["oneOf"]
     command_types = [item["properties"]["type"]["const"] for item in variants]
     errors = source["$defs"]["reply"]["oneOf"][1]["properties"]["code"]["enum"]
@@ -98,6 +123,7 @@ def render() -> dict[str, str]:
         "__COMMAND_TYPES__": command_union,
         "__ERROR_CODES__": error_union,
         "__SCHEMA_TYPES__": ts_definitions(source),
+        "__PRINTABLE_ASCII_PATTERN__": json.dumps(PRINTABLE_ASCII_PATTERN),
     }
     results = {}
     for name, template in [
