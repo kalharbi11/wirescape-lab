@@ -197,6 +197,50 @@ class CoverageTests(unittest.TestCase):
                         self.assertIn(edge["from"]["module"],target_nodes)
                         self.assertEqual(intervention,"disconnect_module_output_edges")
 
+    def test_r3_event_path_citations_and_both_workflow_path_filters(self):
+        # The six event/control side effects are NOT PCM golden coverage.
+        evidence=json.loads((ROOT/"bench/golden/event_path_evidence.json").read_text(encoding="utf-8"))
+        self.assertEqual(evidence["contract"],"M0 r2 R3")
+        expected={"midi.in","midi.to_cv","midi.cc_to_cv","osc.in","osc.out","monitor"}
+        self.assertEqual({r["module_id"] for r in evidence["rows"]},expected)
+        self.assertEqual(len(evidence["rows"]),6)
+        table=(ROOT/"facts/dsp/coverage/README.md").read_text(encoding="utf-8")
+        for row in evidence["rows"]:
+            with self.subTest(module=row["module_id"]):
+                self.assertEqual(row["classification"],"event-path")
+                source=(ROOT/row["test_file"])
+                self.assertTrue(source.is_file())
+                lines=source.read_text(encoding="utf-8").splitlines()
+                self.assertLessEqual(1,row["line_start"])
+                self.assertLessEqual(row["line_start"],row["line_end"])
+                self.assertLessEqual(row["line_end"],len(lines))
+                observed="\n".join(lines[row["line_start"]-1:row["line_end"]])
+                self.assertIn(row["assertion"],observed)
+                self.assertIn(f"| {row['module_id']} |",table)
+                matrix_row=next(line for line in table.splitlines()
+                                if line.startswith(f"| {row['module_id']} |"))
+                cells=[cell.strip() for cell in matrix_row.strip().strip("|").split("|")]
+                self.assertEqual(cells[4],"event-path")
+                self.assertIn(row["test_target"],cells[5])
+                self.assertIn(evidence["test_source_commit"],cells[5])
+        for machine in ("linux-x64","linux-arm64","windows-x64"):
+            source=ROOT/f"facts/dsp/coverage/ci-{machine}-modules-2026-11-15.json"
+            data=json.loads(source.read_text(encoding="utf-8"))
+            self.assertEqual(data["source_commit"],evidence["test_source_commit"])
+            self.assertEqual(len(data["modules"]),34)
+            audio={key for key,record in data["modules"].items()
+                   if record["contribution_status"].startswith("measured_")}
+            self.assertEqual(len(audio),28)
+            self.assertEqual(set(data["modules"])-audio,expected)
+        workflow=(ROOT/".github/workflows/golden-renders.yml").read_text(encoding="utf-8")
+        pr=workflow.index("  pull_request:")
+        push=workflow.index("  push:")
+        dispatch=workflow.index("  workflow_dispatch:")
+        entry='      - "bench/patches/coverage/**"'
+        self.assertIn(entry,workflow[pr:push])
+        self.assertIn(entry,workflow[push:dispatch])
+        self.assertEqual(workflow.count(entry),2)
+
     def test_missing_bundled_and_coverage_remain_failures_with_all_declared(self):
         for key in ("bundled/basics-01-first-tone.json",
                     "coverage/chord-notes.json","owner/owner-demo.json"):
