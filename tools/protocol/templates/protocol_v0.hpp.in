@@ -3,6 +3,7 @@
 #pragma once
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -12,6 +13,42 @@ using Json = nlohmann::json;
 inline const Json &schema() {
     static const Json value = Json::parse(R"WS_V0_SCHEMA(__SCHEMA_JSON__)WS_V0_SCHEMA");
     return value;
+}
+
+// JSON Schema 2020-12 minLength/maxLength count Unicode code points, not
+// UTF-8 bytes. Native wire/session request-ID byte and ASCII limits are a
+// separate transport rule and deliberately do not alter this schema validator.
+inline bool utf8_codepoints(const std::string &input, std::size_t &length) {
+    length = 0;
+    for (std::size_t offset = 0; offset < input.size();) {
+        const auto first = static_cast<unsigned char>(input[offset]);
+        unsigned count = 0;
+        std::uint32_t scalar = 0;
+        std::uint32_t minimum = 0;
+        if (first < 0x80) {
+            count = 1;
+            scalar = first;
+        } else if (first >= 0xC2 && first <= 0xDF) {
+            count = 2; scalar = first & 0x1F; minimum = 0x80;
+        } else if (first >= 0xE0 && first <= 0xEF) {
+            count = 3; scalar = first & 0x0F; minimum = 0x800;
+        } else if (first >= 0xF0 && first <= 0xF4) {
+            count = 4; scalar = first & 0x07; minimum = 0x10000;
+        } else {
+            return false;
+        }
+        if (input.size() - offset < count) return false;
+        for (unsigned i = 1; i < count; ++i) {
+            const auto next = static_cast<unsigned char>(input[offset + i]);
+            if ((next & 0xC0) != 0x80) return false;
+            scalar = (scalar << 6) | (next & 0x3F);
+        }
+        if (scalar < minimum || scalar > 0x10FFFF ||
+            (scalar >= 0xD800 && scalar <= 0xDFFF)) return false;
+        offset += count;
+        ++length;
+    }
+    return true;
 }
 
 inline bool matches(const Json &shape, const Json &value, unsigned depth = 0) {
@@ -61,7 +98,8 @@ inline bool matches(const Json &shape, const Json &value, unsigned depth = 0) {
         if (shape.contains("maximum") && number > shape["maximum"].get<double>()) return false;
     }
     if (value.is_string()) {
-        const std::size_t length = value.get_ref<const std::string &>().size();
+        std::size_t length = 0;
+        if (!utf8_codepoints(value.get_ref<const std::string &>(), length)) return false;
         if (shape.contains("minLength") && length < shape["minLength"].get<std::size_t>()) return false;
         if (shape.contains("maxLength") && length > shape["maxLength"].get<std::size_t>()) return false;
     }
