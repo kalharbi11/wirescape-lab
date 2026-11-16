@@ -14,7 +14,7 @@ says so, and then reads this file first. Codex's local-lead notes stay in
 - **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** belongs to claude-builder2
   and has no branch yet. One writer owns S2–S6; S3 staffing is decided when S2 merges.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
-  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 waits for Q13 (Fable) and carries the `applyGraph`
+  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 has its Q13 ruling (one final packet) and carries the `applyGraph`
   schema-corpus obligation, because it merges after E1a.
 - **[CI1 r3](milestones/CI1.md)**: CI1.1, CI1.2 and CI1.4 are merged (CI1.4 `49747bd`: authenticated
   required aggregates). **CI1.3** #109 is released and is the single writer of `ci.yml`.
@@ -28,7 +28,7 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 |---|---|---|
 | gpt-builder1 | E1b #125 | E1a merged; build and test, then mark ready |
 | gpt-builder2 | CI1.3 #109 | released after CI1.4; integrate `main`, K7/K8 |
-| gpt-builder3 | PV1 #86 / PR #105 | branch updated with `main` for the Q12 full re-run; waits for the Q13 ruling before any edit |
+| gpt-builder3 | PV1 #86 / PR #105 | Q13 answered: one final packet (schema `bus_channel` maximum 15, disagreement row D08, no runtime or Desktop edit); lead dispatches it |
 | gpt-builder4 | T0.10 #113 / PR #118 | final pass: replace the `pending` rows with T0.5/T0.9 facts; last M0 task |
 | claude-builder1 | — | T0.13a/b merged; free |
 | claude-builder2 | M1 S2 #111 | start now; no branch yet |
@@ -55,18 +55,19 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
   After editing `session.cpp`, re-run `cmake build/native` before building locally. CI is unaffected.
 
 ## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q12 answered. **Q13 (PV1 bounded packet) is
-  open for Fable.**
+- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q13 answered; queue empty. Q13: PV1 gets
+  one final packet on PR #105; M2 stays r3, nothing stops or replans.
 - Q5: bundled patches and presets may be reset after the rebuild. The owner has no personal patches
   (Q5 point 8). Golden "24 identical" stays through M1 and M2.
 
 ## Next action by role
 - **claude-lead:**
   - merge #118 when its final pass is green, then file the M0 acceptance report;
+  - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
   - review #125 and #109;
   - decide S3 staffing with the owner when S2 merges.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** `fable: run questions` for Q13. Then `fable: run accept M0` once T0.10 merges and the
+- **Fable:** `fable: run accept M0` once T0.10 merges and the
   lead's acceptance report is filed. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
 
