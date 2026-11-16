@@ -1,13 +1,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `c6cd8fc0e8a789d6cfce0f78b99df636e301ede4`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `3dd68f2af0a9fab6056af4b2119987fe842434f0`.
 
 **Active lead: gpt-lead** (owner resumed local chat01a1e5ad-ea43-7b12-bc15-85ff572f1843, 2026-11-16). Claude-lead stepped down. One lead/one existing45-minute heartbeat. [LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) is historical; this queue supersedes old snapshots.
 
 ## Active contracts
-- **[M0 r3](milestones/M0.md)**: every task is merged except **T0.10** (#113 / PR #118, final pass
-  released) and **T0.14** (owner). Then the lead files the acceptance report and Fable runs `fable: run accept M0`.
+- **[M0 r3](milestones/M0.md)**: all builder tasks merged, T0.10/#118 → `3dd68f2`. [Acceptance report #132](https://github.com/kalharbi11/wirescape-lab/issues/132) is `needs/fable`; T0.14 remains owner-owned/open and exceptions are explicit. No milestone acceptance claimed.
 - **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** belongs to claude-builder2
   and has no branch yet. One writer owns S2–S6; S3 staffing is decided when S2 merges.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
@@ -23,10 +22,10 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 ## Writers (one task each)
 | Writer | Task | State / next |
 |---|---|---|
-| gpt-builder1 | E1b #125 / PR #130 | actual implementation f4da114 delivered; review signed Result/current CI |
-| gpt-builder2 | CI1.3 #109 / PR #129 | actual implementation21bc87c; lead reviews K7/K8 evidence; sole ci.yml writer |
+| gpt-builder1 | E1b #125 / PR #130 | f4da114 CI green; source review3High/1Medium, final correction2/2 sent6930813610 |
+| gpt-builder2 | CI1.3 #109 / PR #129 |21bc87c paired evidence: manualcold43966200132 then fullPRrerun after verifiedsave; K8<=318s, sole ci.ymlwriter |
 | gpt-builder3 | PV1 #86 / PR #105 | FINAL round3/3 Q13 dispatched; max15/boundaryparity,D08facts,applyGraph corpus; samebranch |
-| gpt-builder4 | T0.10 #113 / PR #118 | finalpass ea4dd03 delivered; source/criterion review before merge; last M0 builder task |
+| gpt-builder4 | — |118 merged3dd68f2 after citationfix5cffcac/green43966331470; finished/stopped, no new task |
 | claude-builder1 | — | finished/stopped; no new assignments |
 | claude-builder2 | M1 S2 #111 | no branch yet; owner decides current S2 start and later staffing |
 | claude-builder3 | — | finished/stopped; no new assignments |
@@ -59,13 +58,12 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 
 ## Next action by role
 - **gpt-lead:**
-  - merge #118 when its final pass is green, then file the M0 acceptance report;
+  - M0 report132 filed after118merge; preserve explicitexceptions and obtain Fable acceptance;
   - dispatch the Q13 packet to gpt-builder3 on PR #105 (round 3 of 3, final);
-  - review #125 and #109;
+  - review130finalsourcecorrection and129paired cold/warmmeasurement; no gateweakening;
   - decide S3 staffing with the owner when S2 merges.
 - **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** `fable: run accept M0` once T0.10 merges and the
-  lead's acceptance report is filed. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
+- **Fable:** decide M0 acceptance from report132; allbuildertasksmerged, ownerT0.14 and otherexceptions remain explicit. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
 - **Owner:** T0.14 (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
 
 The lead updates this file at each batch boundary; Fable after contract revisions.
@@ -78,8 +76,16 @@ Claude-specific review, tell the owner to assign a Claude reviewer. Milestone ac
 No new Claude builder tasks after current branches finish. GPT builders remain regular Chat, not Work/Codex.
 Q13 merged via131 atc6cd8fc, explicit86/105 finaldispatch sent. No fourth PV1 correction: follow Fable's
 revert/factsdisagreement disposition if finalpacket fails review; no redcheck waiver.
-The five-hour usage window reset was verified (0percent); existing timer can resume substantive review.
+The five-hour usage window reset was verified; existing timer resumes substantive review and preserves20percent reserve.
 Preserve ringmod2 unmeasured, rawcontinuitycaptures notuploaded, T0.14open and hostedtimingadvisory
 exceptions in M0 acceptance. No acceptance claim before complete report and Fable's decision.
+
+Signed: gpt-lead, 2026-11-16
+
+## Review and cache measurement checkpoint
+131Q13 mergedc6cd8fc and128Fableautonomy/activelead merged2b632ee. Fable does no PRreviews; lead reviews, owner assigns Claude-specific reviewer only if contract requires it.130 packet: gen-onlyACK settlement must not confirm unapplied; overlappingapplyGraph must not fall backtoloadGraph; valid reorderedconfig/unapplied accepted; FakeEngine replacedsource/OSCOutparity. Samebranch/finalround, no unsolicitednewtasks.
+129 oldassumption thatsamebranchmanualcache is invisible toPR was corrected using officialGitHubcacheaccess docs. K7 permitsmanualcoldsave; lead launched43966200132 on21bc87c. After actualsuccessfulcacheSAVE/key/compilerflags/stats, leadFULLrerunsPR43964380415 for genuine matchedwarmrestore, then K8<=318s. No mainbootstrapmerge, PRcachewrite, settingschange or prematureclosefromcold346s. No extraexperiment/triggers bybuilder. PendingCI is not polled by model loops.
+
+Latest cache pair: manualcold43966200132/head21bc87c completedSUCCESS and sanitizer133646255526 saved matching compilerflag cache; fullPR43964380415 rerun requested for genuinewarm/K8measurement. Observeactualkeyrestore andduration beforeacceptance; no modelpolling or watcher.
 
 Signed: gpt-lead, 2026-11-16
