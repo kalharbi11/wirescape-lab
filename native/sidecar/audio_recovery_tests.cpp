@@ -140,6 +140,42 @@ void send_local_osc(uint16_t port) {
 #endif
     check(sent == int(size), "send OSC packet to localhost only");
 }
+// Reserve an OS-selected loopback port briefly, then let the sidecar bind it.
+// The release/rebind interval remains a TOCTOU window; check route state below.
+uint16_t select_loopback_osc_port() {
+#ifdef _WIN32
+    WSADATA startup{};
+    check(WSAStartup(MAKEWORD(2, 2), &startup) == 0, "initialize Winsock for loopback port selection");
+    const auto sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock == INVALID_SOCKET) {
+        WSACleanup();
+        throw std::runtime_error("create loopback port selection socket");
+    }
+#else
+    const auto sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    check(sock >= 0, "create loopback port selection socket");
+#endif
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(0);
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    const bool bound = ::bind(sock, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == 0;
+#ifdef _WIN32
+    int length = sizeof(address);
+#else
+    socklen_t length = sizeof(address);
+#endif
+    const bool named = bound && ::getsockname(sock, reinterpret_cast<sockaddr *>(&address), &length) == 0;
+    const uint16_t port = named ? ntohs(address.sin_port) : 0;
+#ifdef _WIN32
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+    check(port != 0, "select OS-assigned UDP loopback port");
+    return port;
+}
 // A deterministic EWOULDBLOCK seam verifies honest send-error accounting and
 // bounded coalescing without relying on UDP receiver liveness.
 std::atomic<uint32_t> injected_calls{0};
@@ -784,7 +820,7 @@ int main() {
         {
             Session s(options);
             s.start(base);
-            constexpr uint16_t port = 49715;
+            const uint16_t port = select_loopback_osc_port();
             Json patch = {
                 {"format", "wirescape.native.patch"},
                 {"version", 2},
@@ -798,6 +834,10 @@ int main() {
                 {"connections", Json::array()}};
             auto loaded = s.reply({{{"v", 0}, {"id", "osc-rebind"}, {"type", "loadGraph"}, {"patch", patch}}, {}, {}});
             check(loaded["ok"] == true, "OSC graph loads into fake ASIO playback");
+            const auto routes_at_bind = s.status()["status"]["osc"]["routes"];
+            if (routes_at_bind.size() != 1 || routes_at_bind[0].value("port", 0) != port ||
+                routes_at_bind[0].value("state", std::string{}) != "listening")
+                throw std::runtime_error("OSC loopback route not listening before ingress: " + routes_at_bind.dump());
             auto packet_received = [&](uint64_t minimum) {
                 const auto deadline = std::chrono::steady_clock::now() + 1200ms;
                 while (std::chrono::steady_clock::now() < deadline) {
