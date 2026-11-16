@@ -48,6 +48,7 @@ def decode_case(name, entry):
 
 def unpack(files, destination, machine):
     references = {}
+    descriptors = {}
     metadata = None
     for path in sorted(files):
         if path.stat().st_size > MAX_DOCUMENT_BYTES:
@@ -67,14 +68,36 @@ def unpack(files, destination, machine):
         cases = document.get("cases")
         if not isinstance(cases, dict) or len(cases) != document.get("case_count"):
             raise ValueError("invalid case inventory length")
+        if document.get("suite") == "utility":
+            desc = document.get("descriptor")
+            key = "utility_" + str(document.get("group", "")).rsplit("_", 1)[0]
+            if not isinstance(desc, dict) or desc.get("name") != key:
+                raise ValueError("missing ABI1 utility descriptor " + key)
+            value = desc.get("utf8")
+            digest = desc.get("sha256")
+            if not isinstance(value, str) or not value.startswith("id\\t"):
+                raise ValueError("invalid legacy descriptor content " + key)
+            if hashlib.sha256(value.encode("utf-8")).hexdigest() != digest:
+                raise ValueError("legacy descriptor SHA-256 mismatch " + key)
+            if key in descriptors and descriptors[key] != value:
+                raise ValueError("conflicting legacy descriptor " + key)
+            descriptors[key] = value
         for name, entry in cases.items():
             if name in references:
                 raise ValueError("duplicate frozen reference " + name)
             references[name] = decode_case(name, entry)
     verify_inventory(set(references))
+    if set(descriptors) != {
+        "utility_" + module for module in
+        ("clock", "function_envelope", "ladder", "mixer",
+         "noise", "output", "scale_offset", "slew")
+    }:
+        raise ValueError("incomplete frozen utility descriptor inventory")
     destination.mkdir(parents=True, exist_ok=True)
     for name, body in sorted(references.items()):
         (destination / (name + ".f32le")).write_bytes(body)
+    for name, data in sorted(descriptors.items()):
+        (destination / (name + ".desc")).write_text(data, encoding="utf-8")
     manifest = {
         "SPDX-License-Identifier": "GPL-3.0-only",
         "source_commit": metadata["source_commit"],
