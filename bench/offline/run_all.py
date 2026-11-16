@@ -212,7 +212,7 @@ def save(out, section, name, meta, rows, notes=None):
     lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->", f"# {name}", "",
              f"Commit: {meta['commit']}; date ET: {meta['date_et']}",
              f"Machine: {machine['cpu']}; OS: {machine['os']}; compiler: {machine['compiler']}; configuration: {machine['configuration']}",
-             f"Sample rate: {RATE} Hz; block frames: {', '.join(map(str, BLOCKS))}",
+             f"Sample rates: {', '.join(map(str, meta.get('dsp_sample_rates_hz', [RATE])))} Hz; block frames: {', '.join(map(str, BLOCKS))}",
              f"Row count: {len(rows)}", ""]
     lines.extend(markdown_rows(rows))
     (folder / (name + ".md")).write_text("\n".join(lines) + "\n", encoding="utf-8")
