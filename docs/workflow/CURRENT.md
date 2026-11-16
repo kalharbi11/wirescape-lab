@@ -7,8 +7,7 @@ Updated: 2026-11-16 (ET) by gpt-lead. Last reviewed `main`: `3dd68f2af0a9fab6056
 
 ## Active contracts
 - **[M0 r3](milestones/M0.md)**: all builder tasks merged, T0.10/#118 → `3dd68f2`. [Acceptance report #132](https://github.com/kalharbi11/wirescape-lab/issues/132) is `needs/fable`; T0.14 remains owner-owned/open and exceptions are explicit. No milestone acceptance claimed.
-- **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** belongs to claude-builder2
-  and has no branch yet. One writer owns S2–S6; S3 staffing is decided when S2 merges.
+- **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** is reassigned by the owner to gpt-builder4, reserved for the new owner-started LOCAL Codex M1 lead. B4 is free after #118 and waits for that lead's dispatch. One M1 writer; S3 staffing/start remains an owner decision.
 - **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
   belongs to gpt-builder1; its dependency is met. **PV1** PR #105 has its Q13 ruling (one final packet) and carries the `applyGraph`
   schema-corpus obligation, because it merges after E1a.
@@ -25,9 +24,9 @@ merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidec
 | gpt-builder1 | E1b #125 / PR #130 | f4da114 CI green; source review3High/1Medium, final correction2/2 sent6930813610 |
 | gpt-builder2 | CI1.3 #109 / PR #129 |21bc87c paired evidence: manualcold43966200132 then fullPRrerun after verifiedsave; K8<=318s, sole ci.ymlwriter |
 | gpt-builder3 | PV1 #86 / PR #105 | FINAL round3/3 Q13 dispatched; max15/boundaryparity,D08facts,applyGraph corpus; samebranch |
-| gpt-builder4 | — |118 merged3dd68f2 after citationfix5cffcac/green43966331470; finished/stopped, no new task |
+| gpt-builder4 | M1 S2 #111 | reserved; wait for new LOCAL M1 lead dispatch; previous118 merged |
 | claude-builder1 | — | finished/stopped; no new assignments |
-| claude-builder2 | M1 S2 #111 | no branch yet; owner decides current S2 start and later staffing |
+| claude-builder2 | — | S2 reassigned to GPT-B4; no M1 implementation ownership |
 | claude-builder3 | — | finished/stopped; no new assignments |
 
 ## Merged this session (2026-11-16, after 18:30 ET)
@@ -87,5 +86,10 @@ Signed: gpt-lead, 2026-11-16
 129 oldassumption thatsamebranchmanualcache is invisible toPR was corrected using officialGitHubcacheaccess docs. K7 permitsmanualcoldsave; lead launched43966200132 on21bc87c. After actualsuccessfulcacheSAVE/key/compilerflags/stats, leadFULLrerunsPR43964380415 for genuine matchedwarmrestore, then K8<=318s. No mainbootstrapmerge, PRcachewrite, settingschange or prematureclosefromcold346s. No extraexperiment/triggers bybuilder. PendingCI is not polled by model loops.
 
 Latest cache pair: manualcold43966200132/head21bc87c completedSUCCESS and sanitizer133646255526 saved matching compilerflag cache; fullPR43964380415 rerun requested for genuinewarm/K8measurement. Observeactualkeyrestore andduration beforeacceptance; no modelpolling or watcher.
+
+Signed: gpt-lead, 2026-11-16
+
+## Delegated M1 lead (owner request)
+The owner will start a separate LOCAL Codex M1 lead chat focused on S2. It plans before dispatch, independently reviews B4's code and criterion-specific evidence, routes corrections, and merges S2 only under M1 r2. Root gpt-lead retains cross-milestone coordination, M0/M2/CI and the existing global heartbeat. Do not create another global timer or overlap native/control writers. New M1 lead reports through111/its PR; root maintains CURRENT. Builder4 route: regular Chat6afadc5f-8478-83ea-89a0-6b2bedf3b2a9, never Work/Codex. Issue111 latest owner reassignment is authoritative while this document change is pending. S3 requires the owner's staffing/start decision.
 
 Signed: gpt-lead, 2026-11-16
