@@ -35,6 +35,18 @@ assert.equal(cpu.top_self[0].function,'renderKnob');
 assert.equal(cpu.top_self[0].source,'/assets/index.js');
 assert.equal(cpu.top_self[0].line,15);
 assert.equal(cpu.top_self[0].self_sampled_ms,3);
+assert.equal(cpu.self_samples_all.length,1);
+assert.equal(cpu.self_samples_all[0].sampled_us,3000);
+// An empty/malformed/zero-duration CPU capture must never be reported measured.
+const empty=cpuSummary({nodes:[],samples:[],timeDeltas:[]});
+assert.equal(empty.status,'unavailable');
+assert.match(empty.reason,/no .*CPU sample/i);
+assert.equal(cpuSummary({nodes:[{id:1,callFrame:{functionName:'work'}}],
+  samples:[],timeDeltas:[]}).status,'unavailable');
+assert.equal(cpuSummary({nodes:[{id:1,callFrame:{functionName:'work'}}],
+  samples:[1],timeDeltas:[0]}).status,'unavailable');
+assert.equal(cpuSummary({nodes:[{id:1,callFrame:{functionName:'work'}}],
+  samples:[99],timeDeltas:[1000]}).status,'unavailable');
 assert.equal(sanitizedSource('/home/runner/private.js'),'[local-file redacted]');
 const trace=traceSummary(traceFixture());
 assert.equal(trace.status,'measured');
@@ -54,7 +66,40 @@ assert.equal(aggregate.cpu_attribution.top_self[0].self_sampled_ms,6);
 assert.equal(aggregate.trace_attribution.categories_ms.layout,2);
 assert.equal(aggregate.trace_attribution.observed_busy_ms,16);
 assert.equal(aggregate.trace_attribution.unobserved_window_ms,4);
+// A function ranked #13 in one trial contributes in full when it ranks
+// highly in another. Aggregating per-trial top12 lists loses this 1ms.
+const manyNodes=Array.from({length:13},(_,i)=>({
+  id:i+1,callFrame:{functionName:i===12?'tail':'large'+i,
+                   url:'http://127.0.0.1:4173/assets/profiler.js',lineNumber:i}
+}));
+const c1=cpuSummary({nodes:manyNodes,
+  samples:manyNodes.map(x=>x.id),timeDeltas:manyNodes.map((x,i)=>i===12?1000:2000)});
+const c2=cpuSummary({nodes:[
+  {id:99,callFrame:{functionName:'tail',
+    url:'http://127.0.0.1:4173/assets/profiler.js',lineNumber:12}},
+  {id:100,callFrame:{functionName:'weak',url:'',lineNumber:0}}],
+  samples:[99,100],timeDeltas:[3000,500]});
+assert.equal(c1.status,'measured');
+assert.equal(c1.self_samples_all.length,13);
+assert.equal(c1.top_self.length,12);
+assert.ok(!c1.top_self.some(x=>x.function==='tail'));
+const summed=aggregateTrials([
+  {frame_intervals_ms:[16],interactions:1,cpu:c1,trace},
+  {frame_intervals_ms:[17],interactions:1,cpu:c2,trace}
+]);
+const totalTail=summed.cpu_attribution.top_self.find(x=>x.function==='tail');
+assert.ok(totalTail,'tail should rank after combining complete maps');
+assert.equal(totalTail.self_sampled_ms,4); // 1 ms omitted from c1 top12 + 3 ms in c2
+assert.equal(totalTail.samples,2);
+assert.equal(summed.cpu_attribution.status,'measured');
+assert.match(summed.cpu_attribution.self_time_aggregation,/before top-10 truncation/);
 assert.equal(cpuSummary({}).status,'unavailable');
+// A stale 'measured' object without its full self-time map is ineligible
+// for complete aggregation. Never silently sum a truncated leaderboard.
+const legacy=aggregateTrials([{frame_intervals_ms:[16],interactions:1,
+  cpu:{status:'measured',top_self:[{function:'old',source:'/',line:1,self_sampled_ms:1,samples:1}]},trace}]);
+assert.equal(legacy.cpu_attribution.status,'unavailable');
+assert.match(legacy.unavailable_reasons.join(' '),/complete CPU self-sample map/);
 assert.equal(traceSummary({traceEvents:[]}).status,'unavailable');
 const missing=aggregateTrials([{frame_intervals_ms:[16],interactions:1,
   cpu:cpuSummary(null),trace:traceSummary(null)}]);
