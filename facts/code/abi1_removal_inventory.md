@@ -694,4 +694,426 @@ Each row is an actual condition, event translation, ABI1 descriptor callback, or
 The sidecar and web rows above use the app facade; a `ws_engine_config`, `ws_event`, `ws_meter`, or projected v1 descriptor is a **type/layout dependency** and does not by itself show a call to `ws_engine_render` on the legacy engine. Direct `ws_engine_*` calls are explicitly distinguished from `app_engine_*` facade calls in the source cells.
 
 
+## ABI1 test sources and ABI2 comparative/compatibility fixtures
+
+This table covers the source/call locations of the original native ABI1 engine/module/provider/return-filter CTests, plus existing ABI2-vs-ABI1 comparison and shim-focused tests. Test includes and setup lines are evidence of source dependency, not a claim that any device was run.
+
+| Test file:line | Source symbol, fixture call or ABI1 compatibility reference |
+| --- | --- |
+| `native/tests/engine_tests.cpp:1` | `#include "wirescape/engine.h"` |
+| `native/tests/engine_tests.cpp:18` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vco_entry();` |
+| `native/tests/engine_tests.cpp:19` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_adsr_entry();` |
+| `native/tests/engine_tests.cpp:20` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vca_entry();` |
+| `native/tests/engine_tests.cpp:21` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_output_entry();` |
+| `native/tests/engine_tests.cpp:41` | `using Engine = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/tests/engine_tests.cpp:44` | `ws_engine_config c{sizeof(c), rate, block, 32, events};` |
+| `native/tests/engine_tests.cpp:45` | `Engine e(ws_engine_create(&c), ws_engine_destroy);` |
+| `native/tests/engine_tests.cpp:48` | `check(ws_engine_build_essentials(e.get(), directory.c_str()) == WS_OK, "load Essentials");` |
+| `native/tests/engine_tests.cpp:51` | `ws_event ev(ws_engine *e, uint64_t frame, uint32_t node, uint32_t type, float value = 0,` |
+| `native/tests/engine_tests.cpp:53` | `return {sizeof(ws_event),       frame, node, type, param, value, source, note,` |
+| `native/tests/engine_tests.cpp:54` | `ws_engine_generation(e)};` |
+| `native/tests/engine_tests.cpp:56` | `void send(ws_engine *e, ws_event event) { check(ws_engine_enqueue(e, &event) == WS_OK, "enqueue"); }` |
+| `native/tests/engine_tests.cpp:71` | `check(ws_engine_render(e.get(), result.data() + i, n) == WS_OK, "partition render");` |
+| `native/tests/engine_tests.cpp:87` | `auto d = ws_engine_module(e.get(), 1);` |
+| `native/tests/engine_tests.cpp:90` | `ws_module_config config{sizeof(config), 512, rate, 1};` |
+| `native/tests/engine_tests.cpp:92` | `ws_module_event on{WS_NOTE_ON, 0, 60, 1, 7};` |
+| `native/tests/engine_tests.cpp:99` | `ws_process_context context{sizeof(context), n, pos, 1};` |
+| `native/tests/engine_tests.cpp:109` | `ws_module_event stale{WS_NOTE_OFF, 0, 0, 2, 7};` |
+| `native/tests/engine_tests.cpp:116` | `ws_module_event off{WS_NOTE_OFF, 0, 0, 1, 7};` |
+| `native/tests/engine_tests.cpp:126` | `auto d = ws_engine_module(e.get(), 0);` |
+| `native/tests/engine_tests.cpp:128` | `ws_module_config c{sizeof(c), 512, 48000, 1};` |
+| `native/tests/engine_tests.cpp:130` | `ws_module_event freq{WS_PARAMETER, 0, 440, 0, 0};` |
+| `native/tests/engine_tests.cpp:136` | `ws_process_context context{sizeof(context), n, pos, 1};` |
+| `native/tests/engine_tests.cpp:151` | `ws_engine_config bad{sizeof(bad), std::numeric_limits<double>::quiet_NaN(), 512, 32, 32};` |
+| `native/tests/engine_tests.cpp:152` | `check(!ws_engine_create(&bad), "NaN sample rate");` |
+| `native/tests/engine_tests.cpp:155` | `check(ws_engine_enqueue(e.get(), &event) == WS_INVALID, "NaN param");` |
+| `native/tests/engine_tests.cpp:157` | `check(ws_engine_enqueue(e.get(), &event) == WS_INVALID, "range param");` |
+| `native/tests/engine_tests.cpp:160` | `check(ws_engine_enqueue(e.get(), &event) == WS_NOT_FOUND, "unknown parameter");` |
+| `native/tests/engine_tests.cpp:163` | `check(ws_engine_enqueue(e.get(), &event) == WS_NOT_FOUND, "unknown node");` |
+| `native/tests/engine_tests.cpp:166` | `check(ws_engine_enqueue(e.get(), &event) == WS_INVALID, "unordered events");` |
+| `native/tests/engine_tests.cpp:167` | `check(ws_engine_add_node(e.get(), 5, "essentials.vco") == WS_STATE, "prepared graph immutable");` |
+| `native/tests/engine_tests.cpp:169` | `check(ws_engine_render(e.get(), output, 513) == WS_INVALID, "oversized block");` |
+| `native/tests/engine_tests.cpp:170` | `check(ws_engine_render(e.get(), output, 0) == WS_INVALID, "zero block");` |
+| `native/tests/engine_tests.cpp:171` | `check(ws_engine_reset(e.get()) == WS_OK, "reset");` |
+| `native/tests/engine_tests.cpp:172` | `check(ws_engine_enqueue(e.get(), &event) == WS_STATE, "stale generation");` |
+| `native/tests/engine_tests.cpp:178` | `check(ws_engine_register_module(e.get(), ws_engine_module(donor.get(), i)) == WS_OK,` |
+| `native/tests/engine_tests.cpp:180` | `check(ws_engine_add_node(e.get(), 1, "essentials.vca") == WS_OK, "add node");` |
+| `native/tests/engine_tests.cpp:181` | `check(ws_engine_add_node(e.get(), 1, "essentials.vca") == WS_INVALID, "duplicate id");` |
+| `native/tests/engine_tests.cpp:182` | `check(ws_engine_add_node(e.get(), 2, "essentials.vca") == WS_OK, "add second");` |
+| `native/tests/engine_tests.cpp:183` | `check(ws_engine_add_node(e.get(), 3, "essentials.vco") == WS_OK, "add VCO");` |
+| `native/tests/engine_tests.cpp:184` | `check(ws_engine_connect(e.get(), 99, 0, 1, 0) == WS_NOT_FOUND, "bad graph id");` |
+| `native/tests/engine_tests.cpp:185` | `check(ws_engine_connect(e.get(), 3, 0, 1, 1) == WS_GRAPH, "bad port kind");` |
+| `native/tests/engine_tests.cpp:186` | `check(ws_engine_connect(e.get(), 1, 0, 2, 0) == WS_OK, "edge1");` |
+| `native/tests/engine_tests.cpp:187` | `check(ws_engine_connect(e.get(), 2, 0, 1, 0) == WS_OK, "edge2");` |
+| `native/tests/engine_tests.cpp:188` | `check(ws_engine_prepare(e.get(), 2, 0) == WS_GRAPH, "cycle reject");` |
+| `native/tests/engine_tests.cpp:195` | `check(ws_engine_enqueue(e.get(), &event) == WS_CAPACITY, "bounded queue");` |
+| `native/tests/engine_tests.cpp:196` | `check(ws_engine_panic(e.get()) == WS_OK, "panic while full");` |
+| `native/tests/engine_tests.cpp:198` | `check(ws_engine_render(e.get(), buffer, 512) == WS_OK, "panic render");` |
+| `native/tests/engine_tests.cpp:202` | `check(ws_engine_render(e.get(), buffer, 512) == WS_OK, "postpanic render");` |
+| `native/tests/engine_tests.cpp:204` | `check(ws_engine_deactivate(e.get()) == WS_OK, "deactivate");` |
+| `native/tests/engine_tests.cpp:205` | `check(ws_engine_render(e.get(), buffer, 512) == WS_OK, "inactive render");` |
+| `native/tests/engine_tests.cpp:207` | `check(ws_engine_activate(e.get()) == WS_OK, "activate");` |
+| `native/tests/engine_tests.cpp:208` | `check(ws_engine_reset(e.get()) == WS_OK, "lifecycle reset");` |
+| `native/tests/engine_tests.cpp:209` | `ws_meter meter{};` |
+| `native/tests/engine_tests.cpp:211` | `check(ws_engine_get_meter(e.get(), &meter) == WS_OK && meter.frame_position == 0 &&` |
+| `native/tests/engine_tests.cpp:217` | `const ws_module_descriptor *descriptors[] = {ws_test_vco_entry(), ws_test_adsr_entry(),` |
+| `native/tests/engine_tests.cpp:218` | `ws_test_vca_entry(), ws_test_output_entry()};` |
+| `native/tests/engine_tests.cpp:220` | `check(ws_engine_register_module(e.get(), descriptors[i]) == WS_OK, "instrumented registry");` |
+| `native/tests/engine_tests.cpp:221` | `check(ws_engine_add_node(e.get(), i + 1, descriptors[i]->id) == WS_OK, "instrumented node");` |
+| `native/tests/engine_tests.cpp:223` | `check(ws_engine_connect(e.get(), 1, 0, 3, 0) == WS_OK &&` |
+| `native/tests/engine_tests.cpp:224` | `ws_engine_connect(e.get(), 2, 0, 3, 1) == WS_OK &&` |
+| `native/tests/engine_tests.cpp:225` | `ws_engine_connect(e.get(), 3, 0, 4, 0) == WS_OK &&` |
+| `native/tests/engine_tests.cpp:226` | `ws_engine_prepare(e.get(), 4, 0) == WS_OK,` |
+| `native/tests/engine_tests.cpp:239` | `ws_engine_render(e.get(), buffer, 512);` |
+| `native/tests/engine_tests.cpp:248` | `auto generation = ws_engine_generation(e.get());` |
+| `native/tests/engine_tests.cpp:249` | `check(ws_engine_render(e.get(), buffer, 512) == WS_CAPACITY, "event work budget");` |
+| `native/tests/engine_tests.cpp:251` | `ws_meter meter{}; meter.struct_size = sizeof(meter); ws_engine_get_meter(e.get(), &meter);` |
+| `native/tests/engine_tests.cpp:254` | `check(ws_engine_render(e.get(), buffer, 512) == WS_OK, "overload recovery");` |
+| `native/tests/engine_tests.cpp:258` | `check(ws_engine_render(e.get(), buffer, 512) == WS_CAPACITY, "graph subdivision budget");` |
+| `native/tests/engine_tests.cpp:269` | `while ((result = ws_engine_enqueue(e.get(), &event)) == WS_CAPACITY && !stop.load()) {` |
+| `native/tests/engine_tests.cpp:282` | `if (ws_engine_render(e.get(), buffer, 32) != WS_OK) { render_ok = false; stop.store(true); }` |
+| `native/tests/engine_tests.cpp:291` | `ws_parameter_descriptor parameters[64];` |
+| `native/tests/engine_tests.cpp:293` | `auto descriptor = *ws_test_vca_entry(); descriptor.id = "test.many_parameters";` |
+| `native/tests/engine_tests.cpp:295` | `ws_engine_config config{sizeof(config), 48000, 512, 64, 128};` |
+| `native/tests/engine_tests.cpp:296` | `Engine e(ws_engine_create(&config), ws_engine_destroy);` |
+| `native/tests/engine_tests.cpp:297` | `check(ws_engine_register_module(e.get(), &descriptor) == WS_OK, "setup descriptor");` |
+| `native/tests/engine_tests.cpp:299` | `check(ws_engine_add_node(e.get(), node, descriptor.id) == WS_OK, "setup node");` |
+| `native/tests/engine_tests.cpp:300` | `check(ws_engine_prepare(e.get(), 64, 0) == WS_OK, "setup prepare");` |
+| `native/tests/engine_tests.cpp:303` | `check(ws_engine_initialize_parameter(e.get(), node, parameter, .5f) == WS_OK, "4096 initial parameters bypass live queue");` |
+| `native/tests/engine_tests.cpp:304` | `check(ws_engine_initialize_parameter(e.get(), 1, 0, 3) == WS_INVALID, "setup range");` |
+| `native/tests/engine_tests.cpp:305` | `check(ws_engine_initialize_parameter(e.get(), 1, 999, 1) == WS_NOT_FOUND, "setup unknown parameter");` |
+| `native/tests/engine_tests.cpp:306` | `ws_meter meter{}; meter.struct_size = sizeof(meter); ws_engine_get_meter(e.get(), &meter);` |
+| `native/tests/engine_tests.cpp:309` | `check(ws_engine_initialize_parameter(e.get(), 1, 0, 1) == WS_STATE, "queued traffic rejects setup");` |
+| `native/tests/engine_tests.cpp:310` | `float buffer[512]; check(ws_engine_render(e.get(), buffer, 512) == WS_OK, "large setup renders");` |
+| `native/tests/engine_tests.cpp:311` | `check(ws_engine_initialize_parameter(e.get(), 1, 0, 1) == WS_STATE, "rendered graph rejects setup");` |
+| `native/tests/engine_tests.cpp:312` | `check(ws_engine_reset(e.get()) == WS_OK && ws_engine_initialize_parameter(e.get(), 1, 0, 1) == WS_OK, "quiescent reset permits setup");` |
+| `native/tests/engine_tests.cpp:316` | `check(ws_engine_render(voice.get(), buffer, 512) == (count == 256 ? WS_OK : WS_CAPACITY), "exact dispatch boundary");` |
+| `native/tests/engine_tests.cpp:321` | `check(ws_engine_render(voice.get(), buffer, 512) == (count == 64 ? WS_OK : WS_CAPACITY), "exact graph span boundary");` |
+| `native/tests/golden_render.cpp:183` | `ws_engine_config cfg{sizeof(cfg), 48000, 128, 128, 2048};` |
+| `native/tests/lfo_tests.cpp:1` | `#include "wirescape/engine.h"` |
+| `native/tests/lfo_tests.cpp:11` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_lfo_entry();` |
+| `native/tests/lfo_tests.cpp:12` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vco_entry();` |
+| `native/tests/lfo_tests.cpp:13` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vca_entry();` |
+| `native/tests/lfo_tests.cpp:14` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_output_entry();` |
+| `native/tests/lfo_tests.cpp:18` | `using Engine = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/tests/lfo_tests.cpp:20` | `static void send(const ws_module_descriptor *d, void *s, uint32_t id, float value) {` |
+| `native/tests/lfo_tests.cpp:21` | `ws_module_event e{WS_PARAMETER, 0, 0, 0, 0};` |
+| `native/tests/lfo_tests.cpp:24` | `static std::vector<float> render(const ws_module_descriptor *d, void *s, uint32_t frames,` |
+| `native/tests/lfo_tests.cpp:30` | `ws_process_context c{sizeof(c), n, pos, 1};` |
+| `native/tests/lfo_tests.cpp:38` | `const auto *d = ws_test_lfo_entry();` |
+| `native/tests/lfo_tests.cpp:40` | `d->abi_version == WS_ABI_VERSION && d->input_count == 0 &&` |
+| `native/tests/lfo_tests.cpp:50` | `ws_module_config config{sizeof(config), 512, 48000, 1};` |
+| `native/tests/lfo_tests.cpp:53` | `float *out[] = {guarded + 1}; ws_process_context c{sizeof(c), 0, 0, 1};` |
+| `native/tests/lfo_tests.cpp:76` | `const auto *d = ws_test_lfo_entry(); void *s = d->create(rate);` |
+| `native/tests/lfo_tests.cpp:77` | `ws_module_config cfg{sizeof(cfg), 512, rate, 1}; d->prepare(s, &cfg);` |
+| `native/tests/lfo_tests.cpp:83` | `const auto *d = ws_test_lfo_entry(); void *s = d->create(rate);` |
+| `native/tests/lfo_tests.cpp:84` | `ws_module_config cfg{sizeof(cfg), 512, rate, 1}; d->prepare(s, &cfg);` |
+| `native/tests/lfo_tests.cpp:92` | `ws_engine_config cfg{sizeof(cfg), 48000, 128, 8, 64};` |
+| `native/tests/lfo_tests.cpp:93` | `Engine engine(ws_engine_create(&cfg), ws_engine_destroy);` |
+| `native/tests/lfo_tests.cpp:94` | `for (auto d : {ws_test_vco_entry(), ws_test_vca_entry(), ws_test_output_entry()})` |
+| `native/tests/lfo_tests.cpp:95` | `require(ws_engine_register_module(engine.get(), d) == WS_OK, "register graph module");` |
+| `native/tests/lfo_tests.cpp:101` | `require(ws_engine_load_module(engine.get(), path.c_str()) == WS_OK, "load LFO DLL");` |
+| `native/tests/lfo_tests.cpp:102` | `require(ws_engine_add_node(engine.get(), 1, "essentials.vco") == 0 &&` |
+| `native/tests/lfo_tests.cpp:103` | `ws_engine_add_node(engine.get(), 2, "essentials.lfo") == 0 &&` |
+| `native/tests/lfo_tests.cpp:104` | `ws_engine_add_node(engine.get(), 3, "essentials.vca") == 0 &&` |
+| `native/tests/lfo_tests.cpp:105` | `ws_engine_add_node(engine.get(), 4, "essentials.output") == 0, "LFO graph nodes");` |
+| `native/tests/lfo_tests.cpp:106` | `require(ws_engine_connect(engine.get(), 1, 0, 3, 0) == 0 &&` |
+| `native/tests/lfo_tests.cpp:107` | `ws_engine_connect(engine.get(), 2, 0, 3, 1) == 0 &&` |
+| `native/tests/lfo_tests.cpp:108` | `ws_engine_connect(engine.get(), 3, 0, 4, 0) == 0 &&` |
+| `native/tests/lfo_tests.cpp:109` | `ws_engine_prepare(engine.get(), 4, 0) == 0, "LFO to VCA graph routing");` |
+| `native/tests/lfo_tests.cpp:113` | `require(ws_engine_render(engine.get(), result.data() + pos, n) == 0, "LFO graph render");` |
+| `native/tests/lfo_tests.cpp:137` | `const auto *d = ws_test_lfo_entry(); void *s = d->create(48000);` |
+| `native/tests/lfo_tests.cpp:138` | `ws_module_config cfg{sizeof(cfg), 128, 48000, 1}; d->prepare(s, &cfg);` |
+| `native/tests/module_tests.cpp:1` | `#include "wirescape/engine.h"` |
+| `native/tests/module_tests.cpp:10` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_mixer_entry();` |
+| `native/tests/module_tests.cpp:11` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vco_entry();` |
+| `native/tests/module_tests.cpp:12` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vca_entry();` |
+| `native/tests/module_tests.cpp:13` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_adsr_entry();` |
+| `native/tests/module_tests.cpp:15` | `using Engine = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/tests/module_tests.cpp:17` | `auto d = ws_test_mixer_entry();` |
+| `native/tests/module_tests.cpp:18` | `require(!std::strcmp(d->id, "essentials.mixer") && d->abi_version == WS_ABI_VERSION &&` |
+| `native/tests/module_tests.cpp:21` | `ws_module_config config{sizeof(config), 16, 48000, 1};` |
+| `native/tests/module_tests.cpp:26` | `ws_process_context c{sizeof(c), 5, 0, 1};` |
+| `native/tests/module_tests.cpp:32` | `ws_module_event e{WS_PARAMETER, 0, 2, 0, 0}; d->event(s, &e);` |
+| `native/tests/module_tests.cpp:45` | `ws_engine_config c{sizeof(c),48000,512,8,64}; Engine e(ws_engine_create(&c),ws_engine_destroy);` |
+| `native/tests/module_tests.cpp:46` | `for (auto d : {ws_test_vco_entry()}) require(ws_engine_register_module(e.get(),d)==WS_OK,"register");` |
+| `native/tests/module_tests.cpp:55` | `require(ws_engine_load_module(e.get(),path.c_str())==WS_OK,"output DLL");` |
+| `native/tests/module_tests.cpp:56` | `require(ws_engine_load_module(e.get(),mixerPath.c_str())==WS_OK,"mixer DLL descriptor");` |
+| `native/tests/module_tests.cpp:57` | `require(ws_engine_add_node(e.get(),1,"essentials.vco")==0 && ws_engine_add_node(e.get(),2,"essentials.vco")==0 &&` |
+| `native/tests/module_tests.cpp:58` | `ws_engine_add_node(e.get(),3,"essentials.mixer")==0 && ws_engine_add_node(e.get(),4,"essentials.output")==0,"graph nodes");` |
+| `native/tests/module_tests.cpp:59` | `require(ws_engine_connect(e.get(),1,0,3,0)==0 && ws_engine_connect(e.get(),2,0,3,1)==0 &&` |
+| `native/tests/module_tests.cpp:60` | `ws_engine_connect(e.get(),3,0,4,0)==0 && ws_engine_prepare(e.get(),4,0)==0,"two VCO mixer graph");` |
+| `native/tests/module_tests.cpp:61` | `ws_event event{sizeof(event),0,2,WS_PARAMETER,0,330,0,0,ws_engine_generation(e.get())};` |
+| `native/tests/module_tests.cpp:62` | `require(ws_engine_enqueue(e.get(),&event)==0,"second pitch");` |
+| `native/tests/module_tests.cpp:64` | `require(ws_engine_render(e.get(),output.data()+pos,n)==0,"mixed render");pos+=n;}` |
+| `native/tests/module_tests.cpp:69` | `auto d=ws_test_vca_entry(); void *s=d->create(rate);ws_module_config config{sizeof(config),512,rate,1};d->prepare(s,&config);` |
+| `native/tests/module_tests.cpp:71` | `ws_process_context c{sizeof(c),1,0,1};d->process(s,in,out,&c);` |
+| `native/tests/module_tests.cpp:72` | `ws_module_event event{WS_PARAMETER,0,0,0,0};d->event(s,&event);` |
+| `native/tests/module_tests.cpp:76` | `d=ws_test_vco_entry();s=d->create(rate);d->prepare(s,&config);c.frames=1;d->process(s,nullptr,out,&c);` |
+| `native/tests/module_tests.cpp:84` | `d=ws_test_mixer_entry();s=d->create(rate);d->prepare(s,&config);` |
+| `native/tests/module_tests.cpp:88` | `d=ws_test_adsr_entry();s=d->create(rate);d->prepare(s,&config);` |
+| `native/tests/module_tests.cpp:89` | `ws_module_event on{WS_GATE,0,1,1,1};d->event(s,&on);` |
+| `native/tests/provider_bridge_tests.cpp:14` | `using Engine = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/tests/provider_bridge_tests.cpp:18` | `ws_engine_config config{sizeof(config), 48000, 64, 16, events};` |
+| `native/tests/provider_bridge_tests.cpp:19` | `Engine engine(ws_engine_create(&config), ws_engine_destroy);` |
+| `native/tests/provider_bridge_tests.cpp:21` | `check(ws_engine_build_essentials(engine.get(), modules) == WS_OK, "prepare Essentials");` |
+| `native/tests/provider_bridge_tests.cpp:33` | `void direct(ws_engine *e, uint64_t frame, uint32_t node, uint32_t type,` |
+| `native/tests/provider_bridge_tests.cpp:35` | `ws_event ev{sizeof(ev), frame, node, type, parameter, value, source, note,` |
+| `native/tests/provider_bridge_tests.cpp:36` | `ws_engine_generation(e)};` |
+| `native/tests/provider_bridge_tests.cpp:37` | `check(ws_engine_enqueue(e, &ev) == WS_OK, "direct enqueue");` |
+| `native/tests/provider_bridge_tests.cpp:39` | `ws_meter meter(ws_engine *e) {` |
+| `native/tests/provider_bridge_tests.cpp:40` | `ws_meter m{sizeof(m)};` |
+| `native/tests/provider_bridge_tests.cpp:41` | `check(ws_engine_get_meter(e, &m) == WS_OK, "meter");` |
+| `native/tests/provider_bridge_tests.cpp:44` | `void render(ws_engine *e) {` |
+| `native/tests/provider_bridge_tests.cpp:46` | `check(ws_engine_render(e, samples.data(), 64) == WS_OK, "offline render barrier");` |
+| `native/tests/provider_bridge_tests.cpp:74` | `check(ws_engine_render(actual.get(), a.data() + offset, 64) == WS_OK, "bridge render");` |
+| `native/tests/provider_bridge_tests.cpp:75` | `check(ws_engine_render(reference.get(), b.data() + offset, 64) == WS_OK, "reference render");` |
+| `native/tests/provider_bridge_tests.cpp:108` | `const auto release_gen = ws_engine_generation(release.get());` |
+| `native/tests/provider_bridge_tests.cpp:112` | `ws_engine_generation(release.get()) == release_gen + 1,` |
+| `native/tests/provider_bridge_tests.cpp:128` | `const auto before = ws_engine_generation(full.get());` |
+| `native/tests/provider_bridge_tests.cpp:132` | `check(ws_engine_generation(full.get()) == before + 1 && bounded.counts().loss_panics == 1,` |
+| `native/tests/provider_bridge_tests.cpp:135` | `check(ws_engine_generation(full.get()) == before + 1, "no repeated panic");` |
+| `native/tests/provider_bridge_tests.cpp:144` | `const auto gen = ws_engine_generation(e.get());` |
+| `native/tests/provider_bridge_tests.cpp:148` | `check(ws_engine_generation(e.get()) == gen + 1, "panic increments generation immediately");` |
+| `native/tests/provider_bridge_tests.cpp:165` | `check(ws_engine_panic(external.get()) == WS_OK, "external generation change");` |
+| `native/tests/provider_bridge_tests.cpp:166` | `const auto changed = ws_engine_generation(external.get());` |
+| `native/tests/provider_bridge_tests.cpp:170` | `check(ws_engine_generation(external.get()) == changed, "generation stable after observation");` |
+| `native/tests/returned_filter_stress.cpp:3` | `#include "wirescape/engine.h"` |
+| `native/tests/returned_filter_stress.cpp:4` | `#include "wirescape/module.h"` |
+| `native/tests/returned_filter_stress.cpp:20` | `struct EngineDeleter { void operator()(ws_engine *engine) const { ws_engine_destroy(engine); } };` |
+| `native/tests/returned_filter_stress.cpp:22` | `const ws_module_descriptor *descriptor;` |
+| `native/tests/returned_filter_stress.cpp:24` | `Processor(const ws_module_descriptor *d, double rate) : descriptor(d) {` |
+| `native/tests/returned_filter_stress.cpp:27` | `ws_module_config config{sizeof(config), 512, rate, 1};` |
+| `native/tests/returned_filter_stress.cpp:34` | `ws_module_event event{WS_PARAMETER, id, value, 0, 0};` |
+| `native/tests/returned_filter_stress.cpp:40` | `ws_process_context context{sizeof(context), frames, position, 1};` |
+| `native/tests/returned_filter_stress.cpp:50` | `void impulse_cases(const ws_module_descriptor *d, bool vcf, double rate) {` |
+| `native/tests/returned_filter_stress.cpp:98` | `void modulation_case(const ws_module_descriptor *d, bool vcf, double rate) {` |
+| `native/tests/returned_filter_stress.cpp:157` | `void run_module(ws_engine *loader, const char *id, bool vcf) {` |
+| `native/tests/returned_filter_stress.cpp:158` | `const ws_module_descriptor *d = nullptr;` |
+| `native/tests/returned_filter_stress.cpp:159` | `for (uint32_t i = 0; i < ws_engine_module_count(loader); ++i) {` |
+| `native/tests/returned_filter_stress.cpp:160` | `const auto *candidate = ws_engine_module(loader, i);` |
+| `native/tests/returned_filter_stress.cpp:164` | `require(d->struct_size >= sizeof(ws_module_descriptor) && d->abi_version == WS_ABI_VERSION,` |
+| `native/tests/returned_filter_stress.cpp:178` | `ws_engine_config config{sizeof(config), 48000.0, 512, 8, 64};` |
+| `native/tests/returned_filter_stress.cpp:179` | `std::unique_ptr<ws_engine, EngineDeleter> engine(ws_engine_create(&config));` |
+| `native/tests/returned_filter_stress.cpp:191` | `require(ws_engine_load_module(engine.get(), library.c_str()) == WS_OK,` |
+| `native/tests/scale_offset_tests.cpp:1` | `#include "wirescape/engine.h"` |
+| `native/tests/scale_offset_tests.cpp:11` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_scale_offset_entry();` |
+| `native/tests/scale_offset_tests.cpp:12` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vco_entry();` |
+| `native/tests/scale_offset_tests.cpp:13` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_adsr_entry();` |
+| `native/tests/scale_offset_tests.cpp:14` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_vca_entry();` |
+| `native/tests/scale_offset_tests.cpp:15` | `extern "C" const ws_module_descriptor *WS_CALL ws_test_output_entry();` |
+| `native/tests/scale_offset_tests.cpp:20` | `using Engine = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/tests/scale_offset_tests.cpp:23` | `const auto *d = ws_test_scale_offset_entry();` |
+| `native/tests/scale_offset_tests.cpp:25` | `!std::strcmp(d->name, "Scale/Offset") && d->abi_version == WS_ABI_VERSION &&` |
+| `native/tests/scale_offset_tests.cpp:37` | `ws_module_config config{sizeof(config), 32, 48000, 1};` |
+| `native/tests/scale_offset_tests.cpp:44` | `ws_process_context context{sizeof(context), 6, 0, 1};` |
+| `native/tests/scale_offset_tests.cpp:49` | `ws_module_event event{WS_PARAMETER, 0, 0, 0, 0};` |
+| `native/tests/scale_offset_tests.cpp:67` | `static std::vector<float> ramped(const ws_module_descriptor *d, double rate, uint32_t block) {` |
+| `native/tests/scale_offset_tests.cpp:69` | `ws_module_config config{sizeof(config), 512, rate, 1};` |
+| `native/tests/scale_offset_tests.cpp:74` | `ws_process_context context{sizeof(context), 1, 0, 1};` |
+| `native/tests/scale_offset_tests.cpp:76` | `ws_module_event event{WS_PARAMETER, 0, 0, 0, 0};` |
+| `native/tests/scale_offset_tests.cpp:94` | `ws_engine_config config{sizeof(config), 48000, 512, 8, 64};` |
+| `native/tests/scale_offset_tests.cpp:95` | `Engine engine(ws_engine_create(&config), ws_engine_destroy);` |
+| `native/tests/scale_offset_tests.cpp:96` | `for (auto d : {ws_test_vco_entry(), ws_test_adsr_entry(), ws_test_vca_entry(), ws_test_output_entry()})` |
+| `native/tests/scale_offset_tests.cpp:97` | `require(ws_engine_register_module(engine.get(), d) == WS_OK, "register graph module");` |
+| `native/tests/scale_offset_tests.cpp:103` | `require(ws_engine_load_module(engine.get(), path.c_str()) == WS_OK, "load scale/offset DLL");` |
+| `native/tests/scale_offset_tests.cpp:105` | `require(ws_engine_add_node(engine.get(), 1, "essentials.vco") == 0 &&` |
+| `native/tests/scale_offset_tests.cpp:106` | `ws_engine_add_node(engine.get(), 2, "essentials.adsr") == 0 &&` |
+| `native/tests/scale_offset_tests.cpp:107` | `(!directEnvelope ? ws_engine_add_node(engine.get(), 3, "essentials.scale_offset") == 0 : true) &&` |
+| `native/tests/scale_offset_tests.cpp:108` | `ws_engine_add_node(engine.get(), 4, "essentials.vca") == 0 &&` |
+| `native/tests/scale_offset_tests.cpp:109` | `ws_engine_add_node(engine.get(), 5, "essentials.output") == 0, "graph nodes");` |
+| `native/tests/scale_offset_tests.cpp:111` | `? ws_engine_connect(engine.get(), 2, 0, 4, 1) == 0` |
+| `native/tests/scale_offset_tests.cpp:112` | `: ws_engine_connect(engine.get(), 2, 0, 3, 0) == 0 &&` |
+| `native/tests/scale_offset_tests.cpp:113` | `ws_engine_connect(engine.get(), 3, 0, 4, 1) == 0;` |
+| `native/tests/scale_offset_tests.cpp:114` | `require(ws_engine_connect(engine.get(), 1, 0, 4, 0) == 0 && controlRoute &&` |
+| `native/tests/scale_offset_tests.cpp:115` | `ws_engine_connect(engine.get(), 4, 0, 5, 0) == 0 &&` |
+| `native/tests/scale_offset_tests.cpp:116` | `ws_engine_prepare(engine.get(), 5, 0) == 0, "ADSR scale/offset VCA routing");` |
+| `native/tests/scale_offset_tests.cpp:118` | `ws_event e{sizeof(e), 0, node, WS_PARAMETER, parameter, value, 0, 0,` |
+| `native/tests/scale_offset_tests.cpp:119` | `ws_engine_generation(engine.get())};` |
+| `native/tests/scale_offset_tests.cpp:120` | `require(ws_engine_enqueue(engine.get(), &e) == 0, "enqueue graph parameter");` |
+| `native/tests/scale_offset_tests.cpp:124` | `ws_event gate{sizeof(gate), 0, 2, WS_GATE, 0, 1, 0, 1, ws_engine_generation(engine.get())};` |
+| `native/tests/scale_offset_tests.cpp:125` | `require(ws_engine_enqueue(engine.get(), &gate) == 0, "enqueue graph gate");` |
+| `native/tests/scale_offset_tests.cpp:129` | `require(ws_engine_render(engine.get(), rendered.data() + position, frames) == 0, "graph render");` |
+| `native/tests/scale_offset_tests.cpp:138` | `const auto *scaleOffset = ws_test_scale_offset_entry();` |
+| `native/modules/clock/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/clock/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/clock/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/clock/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/clock/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/clock/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/clock/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/clock/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/clock/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/clock/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/clock/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/clock/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/clock/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/clock/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/clock/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/clock/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/clock/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/clock/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/clock/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/clock/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/clock/tests.cpp:199` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/clock/tests.cpp:271` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/clock/tests.cpp:272` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/clock/tests.cpp:274` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/clock/tests.cpp:275` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/clock/tests.cpp:276` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/modules/function_envelope/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/function_envelope/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/function_envelope/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/function_envelope/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/function_envelope/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/function_envelope/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/function_envelope/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/function_envelope/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/function_envelope/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/function_envelope/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/function_envelope/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/function_envelope/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/function_envelope/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/function_envelope/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/function_envelope/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/function_envelope/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/function_envelope/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/function_envelope/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/function_envelope/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/function_envelope/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/function_envelope/tests.cpp:202` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/function_envelope/tests.cpp:251` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/function_envelope/tests.cpp:252` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/function_envelope/tests.cpp:254` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/function_envelope/tests.cpp:255` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/function_envelope/tests.cpp:256` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/modules/ladder/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/ladder/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/ladder/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/ladder/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/ladder/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/ladder/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/ladder/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/ladder/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/ladder/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/ladder/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/ladder/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/ladder/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/ladder/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/ladder/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/ladder/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/ladder/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/ladder/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/ladder/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/ladder/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/ladder/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/ladder/tests.cpp:199` | `double response(const ws_module_descriptor *d, double rate, double hz) {` |
+| `native/modules/ladder/tests.cpp:211` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/ladder/tests.cpp:254` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/ladder/tests.cpp:255` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/ladder/tests.cpp:257` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/ladder/tests.cpp:258` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/ladder/tests.cpp:259` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/modules/noise/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/noise/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/noise/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/noise/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/noise/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/noise/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/noise/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/noise/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/noise/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/noise/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/noise/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/noise/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/noise/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/noise/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/noise/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/noise/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/noise/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/noise/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/noise/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/noise/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/noise/tests.cpp:199` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/noise/tests.cpp:235` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/noise/tests.cpp:236` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/noise/tests.cpp:238` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/noise/tests.cpp:239` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/noise/tests.cpp:240` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/modules/slew/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/slew/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/slew/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/slew/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/slew/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/slew/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/slew/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/slew/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/slew/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/slew/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/slew/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/slew/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/slew/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/slew/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/slew/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/slew/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/slew/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/slew/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/slew/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/slew/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/slew/tests.cpp:199` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/slew/tests.cpp:240` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/slew/tests.cpp:241` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/slew/tests.cpp:243` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/slew/tests.cpp:244` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/slew/tests.cpp:245` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/modules/vcf/tests.cpp:26` | `#include "wirescape/engine.h"` |
+| `native/modules/vcf/tests.cpp:27` | `#include "wirescape/module.h"` |
+| `native/modules/vcf/tests.cpp:47` | `struct EngineDeleter { void operator()(ws_engine *e) const { ws_engine_destroy(e); } };` |
+| `native/modules/vcf/tests.cpp:49` | `const ws_module_descriptor *d=nullptr;` |
+| `native/modules/vcf/tests.cpp:51` | `explicit Module(const ws_module_descriptor *desc, double rate, uint32_t maxframes=512):d(desc) {` |
+| `native/modules/vcf/tests.cpp:53` | `ws_module_config c{sizeof(c),maxframes,rate,1}; check(d->prepare(p,&c)==0,"prepare failed");` |
+| `native/modules/vcf/tests.cpp:57` | `void reprepare(double rate) { ws_module_config c{sizeof(c),512,rate,2};check(d->prepare(p,&c)==0,"reprepare failed"); }` |
+| `native/modules/vcf/tests.cpp:58` | `void set(uint32_t id, float v) { ws_module_event e{WS_PARAMETER,id,v,0,0}; d->event(p,&e); }` |
+| `native/modules/vcf/tests.cpp:61` | `void render(const ws_module_descriptor *d, void *p, const float *input, float *first, float *second,` |
+| `native/modules/vcf/tests.cpp:64` | `ws_process_context ctx{sizeof(ctx),frames,pos,1};` |
+| `native/modules/vcf/tests.cpp:67` | `void verify_descriptor(const ws_module_descriptor *d) {` |
+| `native/modules/vcf/tests.cpp:68` | `check(d && d->struct_size>=sizeof(ws_module_descriptor) && d->abi_version==1,"ABI mismatch");` |
+| `native/modules/vcf/tests.cpp:90` | `void common_guards(const ws_module_descriptor *d) {` |
+| `native/modules/vcf/tests.cpp:95` | `ws_process_context ctx{sizeof(ctx),0,0,1};` |
+| `native/modules/vcf/tests.cpp:105` | `ws_module_config bad{0,0,0,0};` |
+| `native/modules/vcf/tests.cpp:109` | `ws_module_event ev{WS_PARAMETER,0,std::numeric_limits<float>::quiet_NaN(),0,0};` |
+| `native/modules/vcf/tests.cpp:132` | `std::vector<float> partition_run(const ws_module_descriptor *d, double rate, uint32_t part) {` |
+| `native/modules/vcf/tests.cpp:158` | `void partition_tests(const ws_module_descriptor *d) {` |
+| `native/modules/vcf/tests.cpp:169` | `void reset_instances_and_missing(const ws_module_descriptor *d) {` |
+| `native/modules/vcf/tests.cpp:191` | `ws_module_event bad{WS_PARAMETER,0,std::numeric_limits<float>::infinity(),0,0};` |
+| `native/modules/vcf/tests.cpp:201` | `double response(const ws_module_descriptor *d, int output_index, double rate, double cutoff, double hz) {` |
+| `native/modules/vcf/tests.cpp:216` | `void specific(const ws_module_descriptor *d) {` |
+| `native/modules/vcf/tests.cpp:257` | `ws_engine_config cfg{sizeof(cfg),48000,512,8,64};` |
+| `native/modules/vcf/tests.cpp:258` | `std::unique_ptr<ws_engine,EngineDeleter> engine(ws_engine_create(&cfg));` |
+| `native/modules/vcf/tests.cpp:260` | `check(ws_engine_load_module(engine.get(),argv[1])==WS_OK,"actual offline engine DLL/.so discovery failed");` |
+| `native/modules/vcf/tests.cpp:261` | `check(ws_engine_module_count(engine.get())==1,"discovery count mismatch");` |
+| `native/modules/vcf/tests.cpp:262` | `const auto *d=ws_engine_module(engine.get(),0);` |
+| `native/tests2/abi2_returned_filter_stress.cpp:16` | `static int WS_CALL prepare(void*p,const ws_module_config*){auto&s=*static_cast<Adapter*>(p);auto h=s.host();s.instance=stress_descriptor->create(&h);ws2_config cfg{sizeof(cfg),s.rate,512,1,1,nullptr,0};return s.instance&&stress_descriptor->prepare(s.instance` |
+| `native/tests2/abi2_returned_filter_stress.cpp:18` | `static void WS_CALL event(void*p,const ws_module_event*e){if(e->type==WS_PARAMETER&&e->parameter_id<3)static_cast<Adapter*>(p)->values[e->parameter_id]=e->value;}` |
+| `native/tests2/abi2_returned_filter_stress.cpp:19` | `static void WS_CALL process(void*p,const float*const*in,float*const*out,const ws_process_context*c){` |
+| `native/tests2/integration_tests.cpp:7` | `#include "wirescape/engine.h"` |
+| `native/tests2/integration_tests.cpp:40` | `ModuleLoader loader(directory);const char*names[]={"noise","clock","function_envelope","slew","vcf","ladder","vca","output"};const ws_module_descriptor*d[8];for(int i=0;i<8;++i)d[i]=loader.abi1(names[i]);` |
+| `native/tests2/integration_tests.cpp:42` | `ws_engine_config oldcfg{sizeof(oldcfg),48000,256,32,1024};std::unique_ptr<ws_engine,decltype(&ws_engine_destroy)>old(ws_engine_create(&oldcfg),ws_engine_destroy);VERIFY(old);Config c;c.max_block=256;Engine e(c);` |
+| `native/tests2/integration_tests.cpp:43` | `for(uint32_t i=0;i<8;++i){VERIFY(ws_engine_register_module(old.get(),d[i])==WS_OK);VERIFY(ws_engine_add_node(old.get(),i+1,d[i]->id)==WS_OK);VERIFY(e.add_abi1(i+1,d[i]));}` |
+| `native/tests2/integration_tests.cpp:45` | `for(auto&v:cables){VERIFY(ws_engine_connect(old.get(),v[0],v[1],v[2],v[3])==WS_OK);VERIFY(e.connect(v[0],v[1],v[2],v[3]));}` |
+| `native/tests2/integration_tests.cpp:46` | `VERIFY(e.output(8,0,0));VERIFY(e.register_producer()==0);VERIFY(ws_engine_prepare(old.get(),8,0)==WS_OK);VERIFY(e.prepare());` |
+| `native/tests2/integration_tests.cpp:48` | `for(auto&v:initial){VERIFY(ws_engine_initialize_parameter(old.get(),v.node,v.param,v.value)==WS_OK);VERIFY(e.set_parameter(v.node,v.param,v.value));}` |
+| `native/tests2/integration_tests.cpp:49` | `if(scripted){const Init changes[]={{5,0,3000},{7,0,.4f},{2,0,91},{6,0,1500}};uint64_t frame=777;for(auto&v:changes){ws_event o{sizeof(o),frame,v.node,WS_PARAMETER,v.param,v.value,1,1,ws_engine_generation(old.get())};VERIFY(ws_engine_enqueue(old.get(),&o)==WS` |
+| `native/tests2/integration_tests.cpp:50` | `std::vector<float>baseline(16384),actual(16384);for(uint32_t pos=0;pos<16384;pos+=256){VERIFY(ws_engine_render(old.get(),baseline.data()+pos,256)==WS_OK);float*out[]={actual.data()+pos};VERIFY(e.render(out,1,256)==WS2_OK);}` |
+| `native/tests2/module_tests.cpp:45` | `VERIFY(d->params[i].legacy_index == i);` |
+| `native/tests2/module_tests.cpp:197` | `auto f=std::make_unique<DspFixture>(descriptors[m],rate,1);void*state=old->create(rate);VERIFY(state);ws_module_config cfg{sizeof(cfg),256,rate,1};VERIFY(old->prepare(state,&cfg)==0);` |
+| `native/tests2/module_tests.cpp:202` | `if(m==3){f->ins[0].flags=WS2_CONSTANT;f->input[0][0][0]=0;f->process.events={sizeof(ws2_event_list),1,&on};ws_module_event e{WS_NOTE_ON,0,60,1,1};old->event(state,&e);}` |
+| `native/tests2/module_tests.cpp:204` | `for(uint32_t pos=0;pos<2048;){uint32_t n=std::min(block,2048-pos);ws_process_context context{sizeof(context),n,pos,1};old->process(state,ip,op,&context);f->run(n);` |
+| `native/tests2/utility_port_tests.h:14` | `for(uint32_t p=0;p<d->param_count;++p){VERIFY(d->params[p].legacy_index==old->parameters[p].id);VERIFY(d->params[p].initial==old->parameters[p].initial);VERIFY(d->params[p].minimum==old->parameters[p].minimum&&d->params[p].maximum==old->parameters[p].maximum` |
+| `native/tests2/utility_port_tests.h:16` | `auto f=std::make_unique<DspFixture>(d,rate,channels);std::vector<void*>states(channels);ws_module_config cfg{sizeof(cfg),256,rate,1};for(auto&state:states){state=old->create(rate);VERIFY(state&&old->prepare(state,&cfg)==0);}` |
+| `native/tests2/utility_port_tests.h:22` | `for(uint32_t c=0;c<channels;++c){float result[6][256]{};float*op[6];const float*ip[6];for(int p=0;p<6;++p){op[p]=result[p];ip[p]=pattern==3?nullptr:f->input[p][c];}ws_process_context context{sizeof(context),n,pos,1};old->process(states[c],ip,op,&context);` |
+
+Test-to-target CMake wiring is enumerated in the build section above, including the six `essentials_${module}_tests` instances (`native/CMakeLists.txt:82-88`), direct v1 tests and ABI2 equivalence/benchmark/cost targets linked to `wirescape_engine` (`native/engine2/CMakeLists.txt:60-70,113-114,156-159`).
+
+
 <!-- Further source/loader/facade/scheduler/layer/test and full-token use indexes follow. -->
