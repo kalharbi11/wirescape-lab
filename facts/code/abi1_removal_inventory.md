@@ -1116,4 +1116,127 @@ This table covers the source/call locations of the original native ABI1 engine/m
 Test-to-target CMake wiring is enumerated in the build section above, including the six `essentials_${module}_tests` instances (`native/CMakeLists.txt:82-88`), direct v1 tests and ABI2 equivalence/benchmark/cost targets linked to `wirescape_engine` (`native/engine2/CMakeLists.txt:60-70,113-114,156-159`).
 
 
+## Remaining compatibility test, facade-simulator and comparison call sites
+
+These are native tests and integration test sources retaining ABI1 engine configuration/event/metadata compatibility even where the executed engine is ABI2.
+
+| Test file:line | ABI1-shaped type, call or metadata field |
+| --- | --- |
+| `native/control/app_engine_tests.cpp:19` | `static App make(){ws_engine_config c{sizeof(c),48000,128,32,2048};App e(app_engine_create(&c),app_engine_destroy);check(bool(e),"create app engine");return e;}` |
+| `native/control/app_engine_tests.cpp:25` | `check(ids.insert(app_engine_module(source.get(), i)->id).second, "duplicate catalogue module ID");` |
+| `native/control/app_engine_tests.cpp:38` | `const ws_module_descriptor *metadata = nullptr;` |
+| `native/control/app_engine_tests.cpp:40` | `auto *d = app_engine_module(source.get(), i);` |
+| `native/control/app_engine_tests.cpp:61` | `check(app_engine_load_module(source.get(), library) == WS_OK, "load third-party ABI1 shared library");` |
+| `native/control/app_engine_tests.cpp:75` | `result = app_engine_render(e.get(), out, 128);` |
+| `native/control/app_engine_tests.cpp:80` | `ws_event input{sizeof(input),128,9,WS_PARAMETER,7,.75f,1,0,app_engine_generation(e.get())};` |
+| `native/control/app_engine_tests.cpp:81` | `check(app_engine_enqueue(e.get(),&input)==WS_OK,"enqueue ABI1 parameter ID, not array index");` |
+| `native/control/app_engine_tests.cpp:82` | `{allocation_watch::Scope watch;result=app_engine_render(e.get(),out,128);allocations+=watch.allocations();}` |
+| `native/control/app_engine_tests.cpp:85` | `input.parameter_id=99;check(app_engine_enqueue(e.get(),&input)==WS_INVALID,"unknown parameter refused");` |
+| `native/control/app_engine_tests.cpp:104` | `status = app_engine_render(e.get(), samples, 128);` |
+| `native/control/app_engine_tests.cpp:127` | `const auto generation = app_engine_generation(e.get());` |
+| `native/control/app_engine_tests.cpp:133` | `check(app_engine_generation(e.get()) == generation && live_allocations.load() == 0,` |
+| `native/control/app_engine_tests.cpp:140` | `auto e=make();check(app_engine_build_essentials(e.get(),"")==WS_OK,"build app graph");` |
+| `native/control/app_engine_tests.cpp:143` | `for(auto node:{1u,2u}){ws_event on{sizeof(on),0,node,WS_NOTE_ON,0,69,1,71,app_engine_generation(e.get())};check(app_engine_enqueue(e.get(),&on)==WS_OK,"host note on");}` |
+| `native/control/app_engine_tests.cpp:144` | `for(auto node:{1u,2u}){ws_event off{sizeof(off),4800,node,WS_NOTE_OFF,0,69,1,71,app_engine_generation(e.get())};check(app_engine_enqueue(e.get(),&off)==WS_OK,"host note off");}` |
+| `native/control/app_engine_tests.cpp:147` | `{allocation_watch::Scope watch;result=app_engine_render(e.get(),out,count);allocations+=watch.allocations();}` |
+| `native/control/app_engine_tests.cpp:157` | `int main(int argc,char**argv){try{check(argc==2,"ABI1 fixture library argument");check(app_engine_create(nullptr)==nullptr,"null configuration refused");shim(argv[1]);host_notes();std::cout<<"PASS app native catalogue, host notes, ABI1 IDs/library lifetime and allo` |
+| `native/control/midi_host_tests.cpp:59` | `ws_engine_config config{sizeof(config), 48000, 128, 16, 2048};` |
+| `native/control/midi_host_tests.cpp:60` | `std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> engine(app_engine_create(&config), app_engine_destroy);` |
+| `native/control/midi_host_tests.cpp:131` | `CHECK(app_engine_render(engine.get(), samples, 128) == WS_OK);` |
+| `native/control/midi_host_tests.cpp:143` | `ws_engine_config config{sizeof(config), 48000, 256, 16, 2048};` |
+| `native/control/midi_host_tests.cpp:144` | `App e(app_engine_create(&config), app_engine_destroy);` |
+| `native/control/midi_host_tests.cpp:204` | `const auto generation = app_engine_generation(engine.get());` |
+| `native/control/midi_host_tests.cpp:234` | `CHECK(app_engine_generation(engine.get()) == generation);` |
+| `native/control/midi_host_tests.cpp:251` | `CHECK(app_engine_generation(engine.get()) == generation);` |
+| `native/document/builtin_source_tests.cpp:40` | `ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};` |
+| `native/document/builtin_source_tests.cpp:51` | `result = app_engine_render(engine, out, frames);` |
+| `native/document/builtin_source_tests.cpp:123` | `ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};` |
+| `native/document/builtin_source_tests.cpp:124` | `Owner catalogue(app_engine_create(&config), app_engine_destroy);` |
+| `native/document/class_demo_cc_depth_tests.cpp:145` | `ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};` |
+| `native/document/class_demo_cc_depth_tests.cpp:146` | `std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> catalog(app_engine_create(&config),` |
+| `native/document/groove_runtime_tests.cpp:63` | `ws_engine_config cfg{sizeof(cfg), rate, 256, 64, 2048};` |
+| `native/document/groove_runtime_tests.cpp:79` | `const auto *m = app_engine_module(engine, i);` |
+| `native/document/groove_runtime_tests.cpp:89` | `ws_event event{};` |
+| `native/document/groove_runtime_tests.cpp:96` | `check(app_engine_enqueue(e, &event) == WS_OK, "existing ingress accepts run command");` |
+| `native/document/groove_runtime_tests.cpp:109` | `result = app_engine_render(e, audio.data(), n);` |
+| `native/document/groove_runtime_tests.cpp:250` | `status = app_engine_render(e, audio.data(), n);` |
+| `native/document/groove_runtime_tests.cpp:1040` | `ws_engine_config cfg{sizeof(cfg), 48000, 256, 64, 2048};` |
+| `native/document/groove_runtime_tests.cpp:1041` | `Owner cat(app_engine_create(&cfg), app_engine_destroy);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:24` | `Owner load(const std::string &bytes, AppEngine *catalogue, const ws_engine_config &config) {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:45` | `status = app_engine_render(graph, samples, 128);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:62` | `void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &config,` |
+| `native/document/qt_free_patch_coverage_tests.cpp:120` | `using Legacy = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;` |
+| `native/document/qt_free_patch_coverage_tests.cpp:121` | `Legacy old(ws_engine_create(&config), ws_engine_destroy);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:129` | `require(ws_engine_load_module(old.get(), filename.string().c_str()) == WS_OK, "load ABI1 reference module");` |
+| `native/document/qt_free_patch_coverage_tests.cpp:131` | `const auto descriptor = [&](const std::string &type) -> const ws_module_descriptor * {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:132` | `for (uint32_t i = 0; i < ws_engine_module_count(old.get()); ++i) {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:133` | `const auto *item = ws_engine_module(old.get(), i);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:138` | `const auto node = [&](int id) -> const ws_module_descriptor * {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:143` | `const auto port = [](const ws_port_descriptor *ports, uint32_t count, const std::string &id) -> uint32_t {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:149` | `require(ws_engine_add_node(old.get(), module.at("id").get<uint32_t>(),` |
+| `native/document/qt_free_patch_coverage_tests.cpp:157` | `require(ws_engine_connect(old.get(), from,` |
+| `native/document/qt_free_patch_coverage_tests.cpp:162` | `require(ws_engine_prepare(old.get(), source.at("outputNode").get<uint32_t>(), 0) == WS_OK,` |
+| `native/document/qt_free_patch_coverage_tests.cpp:166` | `require(ws_engine_initialize_parameter(old.get(), module.at("id").get<uint32_t>(),` |
+| `native/document/qt_free_patch_coverage_tests.cpp:173` | `require(ws_engine_render(old.get(), baseline, 128) == WS_OK, "ABI1 render");` |
+| `native/document/qt_free_patch_coverage_tests.cpp:177` | `a = app_engine_render(from_v1.get(), loaded, 128);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:178` | `b = app_engine_render(from_saved_v2.get(), reloaded, 128);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:197` | `void keyboard_macro(AppEngine *catalogue, const ws_engine_config &config) {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:214` | `const ws_event on{` |
+| `native/document/qt_free_patch_coverage_tests.cpp:215` | `sizeof(ws_event), 0, 1, WS_NOTE_ON, 0, static_cast<float>(key), 1, key, app_engine_generation(graph.get())};` |
+| `native/document/qt_free_patch_coverage_tests.cpp:216` | `require(app_engine_enqueue(graph.get(), &on) == WS_OK,` |
+| `native/document/qt_free_patch_coverage_tests.cpp:235` | `status = app_engine_render(graph.get(), previous, 128);` |
+| `native/document/qt_free_patch_coverage_tests.cpp:242` | `void dual_chaos(AppEngine *catalogue, const ws_engine_config &config, const std::filesystem::path &examples) {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:249` | `void fake_midi_dual_chaos(AppEngine *catalogue, const ws_engine_config &config, const std::filesystem::path &examples) {` |
+| `native/document/qt_free_patch_coverage_tests.cpp:272` | `const ws_engine_config config{sizeof(ws_engine_config), 48000, 128, 64, 2048};` |
+| `native/document/qt_free_patch_coverage_tests.cpp:273` | `Owner catalogue(app_engine_create(&config), app_engine_destroy);` |
+| `native/document/runtime_patch_tests.cpp:16` | `static void saved_lfo_patch(const char *demo, AppEngine *catalog, const ws_engine_config &cfg) {` |
+| `native/document/runtime_patch_tests.cpp:42` | `check(app_engine_render(engine.get(), audio, 128) == WS_OK, "render saved LFO patch");` |
+| `native/document/runtime_patch_tests.cpp:59` | `ws_engine_config cfg{sizeof(cfg),48000,128,64,2048};Owner catalog(app_engine_create(&cfg),app_engine_destroy);std::string error;` |
+| `native/document/runtime_patch_tests.cpp:81` | `for(int block=0;block<100;++block){int ra,rb;size_t count;{allocation_watch::Scope watch;ra=app_engine_render(v1.get(),a,128);rb=app_engine_render(v2.get(),b,128);count=watch.allocations();}check(ra==WS_OK&&rb==WS_OK&&count==0,"loader callback allocation-free");for` |
+| `native/document/runtime_patch_tests.cpp:124` | `check(app_engine_render(ccfirst.get(), stable, 128) == WS_OK &&` |
+| `native/document/runtime_patch_tests.cpp:125` | `app_engine_render(ccsecond.get(), stable, 128) == WS_OK && scope.allocations() == 0,` |
+| `native/document/ui_patch_conformance.cpp:24` | `ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};` |
+| `native/document/ui_patch_conformance.cpp:25` | `Owner catalogue(app_engine_create(&config), app_engine_destroy);` |
+| `native/document/ui_patch_conformance.cpp:28` | `auto *descriptor = app_engine_module(catalogue.get(), i);` |
+| `native/document/ui_patch_conformance.cpp:41` | `const bool unique_slot = used_legacy_indices.insert(param.legacy_index).second;` |
+| `native/document/ui_patch_conformance.cpp:42` | `require(unique_slot, id + ": duplicate legacy_index");` |
+| `native/document/ui_patch_conformance.cpp:43` | `require(param.legacy_index == legacy.at(param.id).get<uint32_t>(),` |
+| `native/document/ui_patch_conformance.cpp:44` | `id + ": legacy_index differs from UI catalogue");` |
+| `native/document/ui_patch_conformance.cpp:45` | `require(descriptor->parameters[p].id == param.legacy_index,` |
+| `native/engine2/tests/benchmark.cpp:5` | `#include "wirescape/engine.h"` |
+| `native/engine2/tests/benchmark.cpp:27` | `ModuleLoader loader(argv[1]);ws_engine_config c{sizeof(c),48000,block,32,1024};std::unique_ptr<ws_engine,decltype(&ws_engine_destroy)>old(ws_engine_create(&c),ws_engine_destroy);VERIFY(old);` |
+| `native/engine2/tests/benchmark.cpp:28` | `const char*names[]={"vco","vcf","vca"};for(uint32_t i=0;i<3;++i){auto*d=loader.abi1(names[i]);VERIFY(ws_engine_register_module(old.get(),d)==0);VERIFY(ws_engine_add_node(old.get(),i+1,d->id)==0);}VERIFY(ws_engine_connect(old.get(),1,0,2,0)==0);VERIFY(ws_engine_conn` |
+| `native/engine2/tests/benchmark.cpp:33` | `case 0:return ws_engine_render(old.get(),buffer,block);` |
+| `native/engine2/tests/cost_probe.cpp:5` | `#include "wirescape/engine.h"` |
+| `native/engine2/tests/cost_probe.cpp:22` | `ws_engine_config c{sizeof(c), 48000, 256, 32, 1024};` |
+| `native/engine2/tests/cost_probe.cpp:23` | `std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)> old(ws_engine_create(&c), ws_engine_destroy);` |
+| `native/engine2/tests/cost_probe.cpp:28` | `VERIFY(ws_engine_register_module(old.get(), d) == 0);` |
+| `native/engine2/tests/cost_probe.cpp:29` | `VERIFY(ws_engine_add_node(old.get(), i + 1, d->id) == 0);` |
+| `native/engine2/tests/cost_probe.cpp:31` | `VERIFY(ws_engine_connect(old.get(), 1, 0, 2, 0) == 0);` |
+| `native/engine2/tests/cost_probe.cpp:32` | `VERIFY(ws_engine_connect(old.get(), 2, 1, 3, 0) == 0);` |
+| `native/engine2/tests/cost_probe.cpp:33` | `VERIFY(ws_engine_prepare(old.get(), 3, 0) == 0);` |
+| `native/engine2/tests/cost_probe.cpp:34` | `for (unsigned long i = 0; i < blocks; ++i) VERIFY(ws_engine_render(old.get(), buffer, 256) == 0);` |
+| `native/engine2/tests/soak.cpp:92` | `ws_engine_config config{sizeof(config),o.rate,o.block,64,8192};` |
+| `native/engine2/tests/soak.cpp:93` | `std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>catalog(app_engine_create(&config),app_engine_destroy);require(bool(catalog));` |
+| `native/engine2/tests/soak.cpp:111` | `result = app ? app_engine_render(app.get(), buffer.data(), o.block) : e->render(out, 1, o.block);` |
+| `native/io/audio/callback_live_midi_tests.cpp:25` | `ws_engine_config cfg{sizeof(cfg), rate, block, bench ? 64u : 8u, 2048};` |
+| `native/io/audio/callback_live_midi_tests.cpp:26` | `App app(app_engine_create(&cfg), app_engine_destroy);` |
+| `native/io/audio/stream_lifecycle_tests.cpp:40` | `const ws_engine_config config{sizeof(ws_engine_config), 48000, 128, 16, 2048};` |
+| `native/io/audio/stream_lifecycle_tests.cpp:41` | `wirescape::audio::EngineOwner catalogue(app_engine_create(&config), app_engine_destroy);` |
+| `native/io/net/graph_tests.cpp:26` | `wirescape::engine2::Timing::Timestamped, app_engine_generation(self.engine));` |
+| `native/io/net/graph_tests.cpp:35` | `ws_engine_config config{sizeof(config), 48000, 128, 64, 2048};` |
+| `native/io/net/graph_tests.cpp:36` | `std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> catalog(app_engine_create(&config), app_engine_destroy);` |
+| `native/sidecar/protocol_unit_tests.cpp:355` | `ws_engine_config config{sizeof(config), 48000, 128, 64, 2048};` |
+| `native/sidecar/protocol_unit_tests.cpp:356` | `wirescape::audio::EngineOwner catalogue(app_engine_create(&config), app_engine_destroy);` |
+| `native/sidecar/protocol_unit_tests.cpp:367` | `ws_event parameter{};` |
+| `native/sidecar/protocol_unit_tests.cpp:371` | `// The native descriptor's stable legacy_index, independent of catalogue order.` |
+| `native/sidecar/protocol_unit_tests.cpp:372` | `parameter.parameter_id = app_engine_native_descriptor(engine.get(), "essentials.vco")->params[0].legacy_index;` |
+| `native/sidecar/protocol_unit_tests.cpp:373` | `parameter.generation = app_engine_generation(engine.get());` |
+| `native/sidecar/protocol_unit_tests.cpp:379` | `okay = okay && app_engine_enqueue(engine.get(), &parameter) == WS_OK;` |
+| `native/modules2/quad_vca/tests.cpp:88` | `for (uint32_t p = 0; p < params.size(); ++p) REQUIRE(params[p].legacy_index == p);` |
+| `native/modules2/reverb/tests.cpp:156` | `for (uint32_t p = 0; p < reverb::COUNT; ++p) REQUIRE(Reverb::params[p].legacy_index == p);` |
+| `native/modules2/midi_to_cv/tests.cpp:296` | `REQUIRE(MidiToCv::params[5].legacy_index == 6);` |
+| `native/modules2/midi_to_cv/tests.cpp:297` | `REQUIRE(MidiToCv::params[8].legacy_index == 9);` |
+
+
 <!-- Further source/loader/facade/scheduler/layer/test and full-token use indexes follow. -->
