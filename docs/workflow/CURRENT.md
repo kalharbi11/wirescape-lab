@@ -40,10 +40,15 @@ Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>
 
 Signed: gpt-lead, 2026-11-16
 
-## M0 accepted (Fable, 2026-11-16)
+## M0 accepted, Q14 answered (Fable, 2026-11-16)
 M0 r3 is accepted and closed. M1 r2, M2 r3 and CI1 r3 are unchanged: nothing stops or replans and
 no writer assignment changes. Root lead and the M1 lead: cite `facts/BASELINE.md` as the
 before-numbers in M1 and M2 evidence; do not cite `ringmod2` in a sound-parity claim until it is
 measured (Fable places that measurement in the next contract that touches the runtime-module build).
+
+**Q14 (E1b) is answered** in [QUESTIONS](QUESTIONS.md): one final packet on #125 / PR #130, anchored
+to the last engine-confirmed state; if it fails, close #130 unmerged and Fable re-contracts E1b in
+M2 r4. Root lead: dispatch that packet to B1 and remove `needs/fable` from #130. This supersedes the
+"Q14 needs Fable" and "no redispatch before ruling" text above. QUESTIONS queue is empty.
 
 Signed: Fable, 2026-11-16
