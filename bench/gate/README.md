@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Device-free Callgrind instruction gate (M5)
+# Device-free Callgrind instruction gate (M0 T0.6)
 
 This harness counts Valgrind Callgrind **Ir per audio processing block**. It does not
 open audio/MIDI devices, bind LAN sockets, or capture audio files in the repository.
@@ -46,15 +46,17 @@ are published. build_reports/ is ignored; output holds numbers and provenance.
    actual measurement commit, method, date and Valgrind version. Keep
    explicitly unavailable rows; never substitute zero or copy one architecture
    into another.
-4. Rerun the workflow and inspect both advisory comparisons. Missing rows or
-   unavailable baseline/current rows must fail the comparison, not read as
-   measured zero-percent changes. A green overall workflow alone is not
-   evidence of complete coverage because the comparison is advisory.
+4. Rerun the workflow and inspect both advisory comparisons. Missing or
+   invalid rows must fail the comparison, and unavailable rows are never
+   converted into numeric measurements. An overall green workflow is not
+   a claim that an advisory comparison succeeded. M0 r2 ruling R4 explicitly
+   accepts the two Chord rows with their recorded prepare-failure reason.
 
 Use the following to print the ten largest absolute percent changes and fail
 for an increase **greater than +3%** (default), missing or regressed measured
-rows, or a machine/method mismatch. Historically unavailable rows always fail
-closed (including unchanged unavailable cases):
+rows, or a machine/method mismatch. Unavailable rows stay visible and fail the strict comparator
+(including unchanged unavailable cases), even where M0 r2 R4 separately
+accepts the documented Chord fact-file exceptions:
 
     python bench/gate/compare.py baseline.json current.json --threshold 3
 
@@ -117,9 +119,13 @@ for every module, before calling `d->prepare()`. Its CLI accepts
 but **no** option to supply configuration bytes or a graph instance ID.
 Changing the Python invocation, channel count, note script, or `--param`
 cannot fix the null configuration. The benchmark retains both rows as
-`status: unavailable`, and the comparator reports failure, not success.
+`status: unavailable`. Fable accepted these two reason-bearing exceptions for
+M0 under **ruling R4**, without authorizing a synthetic replacement or a
+native config/event probe. The strict comparator still reports nonzero for
+them; the workflow remains advisory. They are not a blocker to the R4 fact
+baseline, and this PR does not claim Chord's process cost was measured.
 
-**Smallest proposal for Fable (product-owned; not implemented here):**
+**Future product-owned probe option (outside M0; not implemented here):**
 In `native/engine2/tests/module_cpu_probe.cpp`, support a test-only
 `--config-instance-id N` option for `essentials.chord`, encode `N`
 as four little-endian bytes in stable storage that survives the call to
@@ -153,13 +159,35 @@ no live socket tracer was run. Do not substitute the sidecar OSC-Out host
 or any device/network service for this probe. This measurement includes
 only DSP-side bus updates, not UDP send or loopback transport cost.
 
-## Dependency and gate interpretation
+## M0 r2 R4 disposition and exact-head audit
 
-Because `essentials.chord` is unavailable in **both** the baseline and
-current rows, the comparator intentionally exits nonzero. The workflow
-`continue-on-error` makes that comparison advisory, so an overall green
-collection job **does not** mean complete baseline coverage or a passing
-comparison. No threshold reduction, replacement zeros, or exclusion of rows
-is permitted. Same-runner golden A/B issue #55 (draft PR #64 at the time
-of this documentation) is a separate unmerged dependency. Neither this
-measurement nor the green collection jobs establishes Phase 0 acceptance.
+**Fable accepted 97 rows, with 95 numerical measurements and two
+explicitly unavailable Chord rows on each architecture, under M0 r2 R4
+(2026-11-16 ET).** These are acceptable baseline facts, not 97 measured
+module costs. Missing rows, invalid numeric totals, unexpected status changes,
+and increases greater than +3% remain gate failures. The strict comparator
+still exits nonzero for the accepted Chord unavailability; its GitHub Actions
+step is advisory (`continue-on-error`), and the verdict is clearly annotated.
+No additional native Chord config or event probe is required for M0.
+
+The [instruction gate run 43781110308](https://github.com/kalharbi11/wirescape-lab/actions/runs/43781110308)
+on PR head `cf46a0df4e7d759360bb83d915cf7865cb57ef90` produced x64 artifact
+[14188418368](https://github.com/kalharbi11/wirescape-lab/actions/runs/43781110308/artifacts/14188418368)
+and ARM64 artifact
+[14188178173](https://github.com/kalharbi11/wirescape-lab/actions/runs/43781110308/artifacts/14188178173).
+Both contain 97 unique rows (5 fixed + 24 bundled + 34 modules × 2), with
+95 measured and the same two explicit Chord reasons. The real run commit
+inside the artifacts is `2c5b95646deb94d35cc127c35d175d0e4698f7f2`;
+the *committed baseline* retains its **original** measured commit
+`d5ba23e1af128d689f9be3bd14c5bcb9b0961699`, rather than overwriting
+that source provenance with a later comparison run. All numerical deltas in
+the current-hosted comparison remain within +3%: largest increases were
++0.21635% on x64 and +0.44503% on ARM64. The 17 comparator/inventory unit
+tests passed on each host, and both jobs completed inside 15 minutes.
+[Lab CI 43781110423](https://github.com/kalharbi11/wirescape-lab/actions/runs/43781110423)
+passed all seven jobs at the same head.
+
+Same-runner golden A/B issue #55 / PR #64 is **merged** as of 2026-11-16 ET.
+It is no longer a dependency blocker for this PR. These instruction facts
+are one input into M0; only Fable accepts the whole milestone. The builder
+does not merge this PR.
