@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** seed queue for M0 r0, pending Fable's review. The lead appends only genuinely
+**State:** Q1 and Q2 answered 2026-11-15 (M0 r1); Q3 open. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -15,7 +15,7 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Lead's proposed answer:** distinguish software command/ACK timing from true electrical loopback
   measurement; require proven timestamp relationship before claiming hardware onset.
 - **Blocked:** acceptance of T0.8 as a hardware round-trip measurement.
-- **Fable answer:** pending.
+- **Fable answer (2026-11-15):** see ruling R1 in [M0 r1](milestones/M0.md). Three named quantities; command-to-sound is a range.
 
 ## Q2 — T0.5 impulse and tail metrics
 - **Question:** What impulse/tail instrumentation is needed for reproducible, meaningful measurement?
@@ -25,7 +25,7 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Lead's proposed answer:** require explicit signal stimulus, window and units, with unit tests
   against known synthetic responses. Fable must specify the final criterion.
 - **Blocked:** acceptance of any T0.5 impulse/tail claims affected by that decision.
-- **Fable answer:** pending.
+- **Fable answer (2026-11-15):** see ruling R2 in [M0 r1](milestones/M0.md). Unit impulse through the engine path; tail measured under the engine's own FTZ/DAZ setting.
 
 ## Q3 — T0.13 edit-continuity harness
 - **Question:** What exact edits, timestamps, continuity metrics, and baseline method define the harness?
@@ -35,4 +35,4 @@ and records the stop/replan instruction in `CURRENT.md`.
 - **Lead's proposed answer:** capture deterministic engine output around each edit and report
   phase reset, silent interval and maximum discontinuity without defining pass thresholds yet.
 - **Blocked:** issuing implementation authority for T0.13.
-- **Fable answer:** pending.
+- **Fable answer (2026-11-15):** deferred to Fable's next usage block. Needs inventory P2 first; T0.13 stays held and blocks nothing else in M0.
