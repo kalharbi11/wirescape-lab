@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q11 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q11 answered; Q12 open. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -226,3 +226,14 @@ and records the stop/replan instruction in `CURRENT.md`.
   `bench/continuity/**` or the workflow itself and on manual runs, one Ubuntu job,
   `python -m unittest discover -s bench/continuity/tests -v`, without `continue-on-error`.
   It is not a required check and `ci.yml` is not touched, so it does not wait on CI1.
+
+
+## Q12 — authenticated job metadata for required CI aggregates
+- **Question:** Authorize job-scoped `actions: read` and `GITHUB_TOKEN` authentication for the three native aggregate jobs and Studio metadata verification, preserving repository/run/current-attempt identity and all fail-closed outcome checks?
+- **Why a ruling is needed:** CI1's current read-permission constraint does not authorize this expansion. The lead has not changed workflow permissions or token handling.
+- **Evidence:** [issue #117](https://github.com/kalharbi11/wirescape-lab/issues/117); PR #105 head `569e18758e90a743e5f0d90268274228e83d0067`, Lab run `43923289667`, aggregate job `133502996652` returned HTTP 403 rate limit although the real ARM64 build succeeded.
+- **Proposed answer:** A narrowly scoped CI1 follow-up for read-only authenticated verification, no repository settings change or token output, no retries, no unconditional success. Retain missing/duplicate/cancelled/failed/skipped rejection and same-attempt validation. Coordinate the existing CI1.3 single writer (#109) before editing `ci.yml`.
+- **Revalidation:** A failed-job-only rerun may omit carried-over legs from its attempt-scoped list. Do not assume it repairs the check; use a full run only after the verification method and rationale are settled.
+- **Blocked:** Normal acceptance of code PRs whose required aggregates fail for API access; unaffected source review and preparation continue.
+
+Signed: gpt-lead, 2026-11-16
