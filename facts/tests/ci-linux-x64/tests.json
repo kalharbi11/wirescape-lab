@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "architecture": "x86_64",
@@ -11,15 +11,15 @@
     },
     "suites": {
       "ctest": {
-        "count": 114,
+        "count": 115,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.120086,
+          "seconds": 0.145866,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 27.060514,
+          "seconds": 29.214762,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.799515,
+          "seconds": 0.970191,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 82.789663,
+          "seconds": 92.210252,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.197294,
+          "seconds": 1.446729,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 425.514471,
+          "seconds": 463.440329,
           "status": "passed"
         }
       },
@@ -55,11 +55,11 @@
         "time": "included in ctest suite"
       },
       "unittest": {
-        "count": 207,
+        "count": 222,
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 15.96278,
+          "seconds": 16.51175,
           "status": "passed"
         }
       },
@@ -71,11 +71,11 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "cpu": "AMD EPYC 7763 64-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",

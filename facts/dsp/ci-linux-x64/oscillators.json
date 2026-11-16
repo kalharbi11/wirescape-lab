@@ -1,10 +1,10 @@
 {
   "ci_provenance": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "cpu": "AMD EPYC 7763 64-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
@@ -32,13 +32,13 @@
         128,
         256
       ],
-      "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+      "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
       "date_et": "2026-11-16",
       "machine": {
         "architecture": "x86_64",
         "compiler": "c++",
         "configuration": "Release",
-        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
         "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
       },
       "method": "python bench/offline/run_all.py",

@@ -141,12 +141,11 @@ native/tests/module_tests.cpp,28,0,0,0
 native/tests/provider_bridge_tests.cpp,25,0,0,0
 native/tests/returned_filter_stress.cpp,17,0,0,0
 native/tests/scale_offset_tests.cpp,33,0,0,0
-native/tests2/abi2_returned_filter_stress.cpp,2,0,0,0
-native/tests2/integration_tests.cpp,14,0,0,0
+native/tests2/abi2_returned_filter_stress.cpp,6,0,0,0
+native/tests2/integration_tests.cpp,1,0,0,0
 native/tests2/live_replan_tests.cpp,0,0,1,1
 native/tests2/module_loader.h,5,0,0,0
-native/tests2/module_tests.cpp,2,0,0,0
-native/tests2/utility_port_tests.h,1,0,0,0
+native/tests2/returned_filter_cases.h,6,0,0,0
 native/third_party/portaudio/portaudio.h,0,0,1,0
 native/tools/render/main.cpp,1,0,0,0
 native/voice/note_identity_tests.cpp,0,1,0,0

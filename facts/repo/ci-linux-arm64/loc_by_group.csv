@@ -1,5 +1,5 @@
 top_level,section,language,files,code,comment,blank
-SUM,product,unknown,1,83818,4737,4770
+SUM,product,unknown,1,84948,4780,4877
 apps,product,Bourne Shell,2,104,7,2
 apps,product,CSS,12,1403,120,82
 apps,product,HTML,6,3712,6,108
@@ -8,10 +8,10 @@ apps,product,TypeScript,70,13002,1094,1035
 apps,tests,JavaScript,10,1389,41,51
 apps,tests,TypeScript,56,8265,250,575
 bench,tests,JavaScript,3,182,11,5
-bench,tests,Python,20,1925,65,265
+bench,tests,Python,22,2066,69,286
 bench,tools,C++,1,194,6,2
 bench,tools,JavaScript,5,601,26,5
-bench,tools,Python,32,5957,269,593
+bench,tools,Python,34,6391,287,627
 docs,product,C++,8,915,29,0
 docs,product,C/C++ Header,6,372,15,0
 docs,product,HTML,2,634,1,0
@@ -24,8 +24,8 @@ native,product,C/C++ Header,87,8199,1279,499
 native,product,CMake,2,150,5,3
 native,product,Python,5,1613,115,113
 native,tests,C,1,5,1,0
-native,tests,C++,29,3800,76,69
-native,tests,C/C++ Header,11,393,20,10
-tools,tests,Python,32,3455,217,470
+native,tests,C++,29,3864,77,71
+native,tests,C/C++ Header,14,741,32,24
+tools,tests,Python,33,3540,219,491
 tools,tools,Bourne Shell,6,316,18,26
-tools,tools,Python,23,3522,157,399
+tools,tools,Python,24,3580,163,414

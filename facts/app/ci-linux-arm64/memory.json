@@ -1,18 +1,18 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "electron_note": "Electron process RSS measured separately in startup.json",
     "electron_process_rss_kib": null,
-    "engine_idle_rss_kib": 13592,
+    "engine_idle_rss_kib": 13588,
     "largest_bundled_patch": {
       "accepted": true,
       "error_code": null,
-      "loadGraph_ms": 22.94527,
+      "loadGraph_ms": 23.049819,
       "patch": "native/examples/class_demo_1_chaos.json",
       "patch_bytes": 3949,
-      "rss_kib": 17960
+      "rss_kib": 18016
     },
     "machine": {
       "architecture": "aarch64",
@@ -23,7 +23,7 @@
     "method": "Linux /proc/<pid>/status VmRSS, 500 ms after null-audio startup/load"
   },
   "provenance": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

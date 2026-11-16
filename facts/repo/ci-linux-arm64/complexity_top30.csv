@@ -20,11 +20,11 @@ native/src/engine.cpp,valid_descriptor( const ws_module_descriptor * d),54,91,38
 apps/studio/src/engine/FakeEngine.ts,step ( ),383,511,129,106,50
 native/modules2/chaos_lite/dsp.h,chaos_lite::ChaosLite::load_state( ws :: Reader r),195,251,57,52,50
 native/control/osc_out_host.cpp,wirescape::osc::OutHost::loop(),88,234,147,133,49
-native/tests2/utility_port_tests.h,"utility_port_tests( const char * name , int argc , char ** argv)",11,36,26,26,49
 native/sdk/wirescape_sdk.h,"ws::Module::process( * p , ws2_process * c)",208,240,33,33,48
 native/modules2/osc_in/dsp.h,wirescape::osc::OscIn::process( ws :: Block & b),104,205,102,99,45
 native/tools/render/main.cpp,"main( int argc , char ** argv)",70,203,134,133,44
 apps/studio/src/panels/widgets/GroovePane.ts,"pad ( c , i , groupEnd , sel )",428,483,56,56,44
+native/tests2/utility_port_tests.h,"utility_port_tests( const char * name , int argc , char ** argv)",12,69,58,58,43
 apps/studio/src/app/App.ts,(anonymous),1387,1412,26,23,43
 native/document/groove_runtime_tests.cpp,test_s1_engine_saturation_replan(),462,551,90,90,42
 apps/studio/src/engine/FakeEngine.ts,"computeSource ( moduleId , portId , cache )",590,642,53,52,42

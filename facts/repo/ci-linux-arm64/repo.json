@@ -5,9 +5,9 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "complexity": {
-      "functions": 3818,
+      "functions": 3833,
       "lizard_version": "not exposed"
     },
     "date_et": "2026-11-16",
@@ -16,7 +16,7 @@
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
     },
     "graph": {
-      "edges": 293,
+      "edges": 282,
       "svg": true,
       "targets": 169
     },
@@ -26,12 +26,12 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 572
+      "files": 581
     },
     "long_lines": {
-      "files": 259,
-      "over_120": 809,
-      "over_200": 219
+      "files": 262,
+      "over_120": 791,
+      "over_200": 206
     },
     "machine": {
       "architecture": "aarch64",
@@ -47,7 +47,7 @@
       "residue": "Python regex patterns recorded below"
     },
     "residue": {
-      "matched_files": 164,
+      "matched_files": 163,
       "patterns": {
         "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
         "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
@@ -56,16 +56,16 @@
       },
       "scope": "native/, apps/, tools/ tracked text files",
       "totals": {
-        "abi1_symbols": 789,
+        "abi1_symbols": 783,
         "agent_names": 9,
         "issue_refs": 181,
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1279
+    "source_files_tracked": 1365
   },
   "provenance": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",

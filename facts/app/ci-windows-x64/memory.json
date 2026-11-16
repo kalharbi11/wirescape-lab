@@ -1,33 +1,33 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "electron_note": "Electron process RSS measured separately in startup.json",
     "electron_process_rss_kib": null,
-    "engine_idle_rss_kib": 14652,
+    "engine_idle_rss_kib": 14644,
     "largest_bundled_patch": {
       "accepted": true,
       "error_code": null,
-      "loadGraph_ms": 26.2752,
+      "loadGraph_ms": 24.1989,
       "patch": "native/examples/chaos_usb_midi.json",
       "patch_bytes": 4116,
-      "rss_kib": 18668
+      "rss_kib": 18608
     },
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "method": "psutil.Process.memory_info().rss (Windows), 500 ms after null-audio startup/load"
   },
   "provenance": {
-    "commit": "04c70b409b561e1169a19c8e89dd8b26f98b2a88",
+    "commit": "ae44b912f727bf2eebed652cac858478a31ad165",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
