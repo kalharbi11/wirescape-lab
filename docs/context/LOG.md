@@ -1,6 +1,41 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-15 — Codex lead follow-up: soak repair merged, gate integrity review
+**Done:** merged the previous lead handoff #62 as `5b040ee`. Reviewed all eight changed paths in #48,
+including the main-integration diagnostic tests and the two 72-row, 30-second Linux fact projections.
+Current-head Lab CI passed 7/7; Offline facts and Generate device-off facts passed. Squash-merged #48
+at `40748f5` as `b8190f9`; #41 closed. Original and derived keyboard-graph measurements remain distinct.
+
+**Reviewed, not merged:** #64/#55 now has successful same-runner golden jobs on Linux x64/ARM64 and
+Windows x64, plus green Lab CI. All three hosted mutation experiments detected sample 2/frame 1 with
+peak delta 0.027496248483657837, then reported the change declared. Source review found two false-pass
+paths: declarations could excuse a missing patch, and equal JSON hashes could hide different A/B WAVs.
+Builder3 is fixing those with CLI/known-answer tests; the new head must be revalidated before merge.
+
+**Builder follow-ups sent directly and recorded on GitHub:**
+- Builder1: #48 is complete; continue #51/#60 corrected sweep evidence from full run 43774561958.
+  Exact impulse and engine FTZ/zero-input tail timing remain native instrumentation questions for Fable.
+  Keep the concrete interface proposal in issue/PR discussion, rather than a builder-authored design
+  proposal committed under bench/.
+- Builder2: #58's corrected 97-row run 43774054913 passed, but old 95-row baselines are incomplete.
+  Refresh actual x64/ARM64 measurements; keep unavailable chord rows visible and escalate product/probe
+  changes. Check osc.out runs devices-off, with no LAN sockets.
+- Builder3: finish #64 comparator integrity fixes, then exact-head acceptance/CI; no committed DSP edits.
+- Builder4: #63's UI profiler run passed, but Windows Lab CI failed in
+  abi2_sidecar_audio_recovery_tests ('OSC works before ASIO device loss'). Investigate; one failed-job
+  rerun is appropriate only with evidence of an unrelated transient, without loosening native tests.
+  Refresh head-pinned UI facts. Fix empty CPU captures being marked measured and the aggregate
+  top-self undercount caused by truncating each trial before aggregation.
+
+**State / next:** #58/#59/#60/#63/#64 remain draft; #50 remains outside this merge pass (draft,
+not requested for merge). Review builders' new commits/evidence before any readiness transition.
+Fable still owns #54 calibrated device-timing design, #51 exact impulse/tail instrumentation, T0.14
+dependency access and T0.13/T2.0 design. Broader delegation is not assumed. No devices, product-tree
+changes, class B/C merges, gate weakening or history rewrite in this lead run.
+
+Signed: gpt-lead, 2026-11-15
+
 ## 2026-11-15 — interim Codex lead: builder review and next assignments
 **Done:** owner asked gpt-lead to coordinate existing builders while Fable prepares broader delegation.
 Reviewed all six open PRs and their exact-head workflow results (all passed at inspection). Independently
