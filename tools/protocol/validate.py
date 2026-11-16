@@ -6,17 +6,21 @@ import json
 import math
 from pathlib import Path
 
+from generate import PRINTABLE_ASCII_PATTERN, validate_schema_patterns
+
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "docs" / "specs" / "protocol.schema.json"
 SUPPORTED = {
     "$schema", "$id", "title", "description", "$defs", "$ref", "oneOf", "type",
     "required", "properties", "const", "enum", "minimum", "maximum",
-    "minLength", "maxLength", "minItems", "maxItems", "items",
+    "minLength", "maxLength", "minItems", "maxItems", "items", "pattern",
 }
 
 
 def read_schema() -> dict:
-    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    validate_schema_patterns(schema)
+    return schema
 
 
 def check_schema_subset(node: object, *, map_keys: bool = False) -> None:
@@ -105,6 +109,14 @@ def validate(value: object, schema: dict | None = None) -> bool:
                 return False
             if "maxLength" in shape and len(instance) > shape["maxLength"]:
                 return False
+            if "pattern" in shape:
+                if shape["pattern"] != PRINTABLE_ASCII_PATTERN:
+                    return False
+                # Q8: ASCII bytes 0x20..0x7E, no regex evaluation.
+                if any(byte < 0x20 or byte > 0x7E for byte in instance.encode("utf-8")):
+                    return False
+        elif "pattern" in shape:
+            return False
         if isinstance(instance, list):
             if "minItems" in shape and len(instance) < shape["minItems"]:
                 return False
