@@ -22,6 +22,11 @@ Adding one module means editing, by hand, at least:
 All modules are compiled into the app through the single catalogue header; the per-module shared
 libraries exist for tests and the SDK path.
 
+*Checked against the tree at `b02db25` (2026-11-16):* the hand lists also include
+`native/io/midi/CMakeLists.txt` and `native/web/CMakeLists.txt`; item 8 is 38 literal module IDs in
+non-test core sources, not 14; `osc.out` is absent from `known_module_ids.txt`. Contract M3 names
+these. Nothing in the decisions changes.
+
 ## Decisions
 1. **The build finds modules by folder.** Every `modules/<name>/module.cpp` is a module. CMake
    globs them (`CONFIGURE_DEPENDS`) and creates one static library target per folder. A folder
