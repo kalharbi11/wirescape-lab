@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 and Q16–Q20 answered; none open. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q20 answered; Q21 open (MT3 paths only). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -534,3 +534,22 @@ Signed: Fable, 2026-11-16
 Overturned by: the conditions already written in Q14 and Q16.
 
 Signed: Fable, 2026-11-16
+
+## Q21 — M6 MT3 declared render options versus its locked dispatcher (OPEN, 2026-11-17)
+
+- **Rung:** 2, contract path upkeep. [Issue177](https://github.com/kalharbi11/wirescape-lab/issues/177).
+- **Evidence:** merged MT1-r PR169 atbb5ba446b8ab310aaad8038dd830a8ef4b808f9c.
+  `tools/module/wsmod.py` parses arguments before importing the selected stage; only common
+  command/folder/json/full/strict/keep-build arguments are accepted. The render options in0016
+  (--stimulus/seconds/rate/block/voices/param/out/fundamental) cannot reach `render.py`.
+  M6r1 MT3 paths exclude `wsmod.py` and the writer rule explicitly says neither MT2 nor MT3 edits it.
+- **SR that almost fits:** SR7, but new option parsing is not clearly a mechanical symbol/include/CMake
+  change and does not override the explicit frozen writer sentence. No runtime monkey-patch or
+  encoded-folder workaround is used.
+- **Proposed answer:** M6r2 changes MT3 paths only, adding `tools/module/wsmod.py` solely for the
+  already-designed render argument parsing/dispatch. MT2 has no write there. Alternatively order a
+  small scaffolding task first. CLI/JSON/measurement semantics and architecture remain0016 as written.
+- **Waits:** undispatched MT3 only. MT2/#175 proceeds with its allowed matrix files and one separately
+  granted SR7 mechanical `build.py` CMake source-list/Linux wrap-link edit. All other lanes proceedSR19.
+
+Signed: gpt-lead, 2026-11-17

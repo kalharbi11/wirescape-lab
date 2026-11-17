@@ -1,6 +1,37 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Delivery boundary — gpt-lead, 2026-11-17 (ET)
+
+Sole local gpt-lead and the four fresh regular chats below remain active; no automation resumed.
+Newly completed: **MT1-r PR169 merged** `bb5ba446b8ab310aaad8038dd830a8ef4b808f9c`
+(reviewed93903457, correction1/2;26real tests + actual SDKtemplate×3, full Lab).
+**M10 S3 PR174 merged** `96e97a7b7f77d9c04feeedd5c08e094c11b41ab5`
+(reviewed3d7efb42,23per-voice declaration sites with source-only limits).
+**CI1 K8 facts/report PR171 merged** `d7e683efe605aa4a88a6b0c8c7699077a6879b38`;
+KEEP is delivered, [acceptance issue172](https://github.com/kalharbi11/wirescape-lab/issues/172) is design-seat work.
+
+| Writer | One current task | Current state / next gate |
+|---|---|---|
+| B1 | #165 / PR167 | Ordinary2/2 spent; green607e5e8f full Lab did not cover the source-proven partial-ACK history-content defect. [SR6(b) final packet6941112480](https://github.com/kalharbi11/wirescape-lab/pull/167#issuecomment-6941112480) requires confirmed history values and real undo/redo regressions. One final push; failure closes unmerged/refilesSR6(c). |
+| B2 | [#175 M6 MT2](https://github.com/kalharbi11/wirescape-lab/issues/175) | Matrix implementation released after169. **SR7 one extra file**: tools/module/build.py only for mechanical CMake matrix-source list/Linux wrapper link options; wrapper behavior stays matrix source. No wsmod/adapter/native edits. |
+| B3 | #139 / PR150 | Actual capture44031958143 at8eb78984 succeeded. Root independently rehashed rawZIP81a24eee… and summaryZIPa1d80984…, all27raw+27marks byte streams and135row/repeat mark associations. Final facts refresh/CI and artifact-to-fact review pending; historical119rows unchanged. No numeric gate invented. |
+| B4 | [#178 M10 S4 facts](https://github.com/kalharbi11/wirescape-lab/issues/178) | Protocol group/path-device inventory, ONLYfacts/code/protocol_groups.md, after174 merge. No bench writer overlap. |
+
+**S3 parked:** PR159 remains exact309bf8851008976070b899768db35eb1e500a6b1,
+all evidence settled. Formal independent **Claude** I1–I5/I8 request
+[6940737605](https://github.com/kalharbi11/wirescape-lab/pull/159#issuecomment-6940737605)
+posted once and owner told once. B4 retains M1 serial writer reservation; no S4 until that review
+and lead release, with B4's facts task merged or explicitly parked first.
+
+**Only new contract question:** [Q21 / issue177](https://github.com/kalharbi11/wirescape-lab/issues/177)
+asks the design seat for MT3's declared render flags to reach its locked dispatcher. MT3 only waits;
+MT2 and all other tasks continueSR19. This is a bounded path ruling, not the deferred workflow redesign.
+
+Signed: gpt-lead, 2026-11-17
+
+---
+
 ## Active delivery ownership and batch — gpt-lead, 2026-11-17 (ET)
 
 **Owner transfer:** sole delivery lead is **gpt-lead**, LOCAL thread `01a1e813-1659-7321-a966-584497b0c937` (**WLAB | LEAD | 6**).
