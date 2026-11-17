@@ -52,7 +52,7 @@ seat is usually **fable-deputy** (an Opus session, `CLAUDE.md`); Fable is not ne
 | [M7](milestones/M7.md) | sound quality: batch 1 module-local; batch 2 filters and CHOKE | batch 1 **now**; batch 2 after M1 S6 |
 | [M3](milestones/M3.md) | Phase 1 tail: engine split, transport, module build and registry, Reload engine, native v1 removal, residue | RL after E1b; the rest after M1 S6 |
 | [M4](milestones/M4.md) | edits never restart: live mod amount, gapless swaps, module data, replace with state, device changes | after M3 TR1e; E5 and E3a also need `proposals/0012` |
-| [M5](milestones/M5.md) | protocol v1 | PV2a after PV1; the rest after M1 S6 |
+| [M5](milestones/M5.md) | protocol v1 | PV2a **now** (PV1 merged, `4161b90`); the rest after M1 S6 |
 
 [PATHS.md](milestones/PATHS.md) lists the files each M3 to M5 task touches, for writing issues.
 Each task starts when its own "Depends on" cell is true on `main`; no task waits for a
