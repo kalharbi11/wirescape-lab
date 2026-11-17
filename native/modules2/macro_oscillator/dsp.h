@@ -68,6 +68,8 @@ struct MacroOscillator {
         // A host can re-prepare this instance at 48 kHz after another rate.
         // Drop any previous filter selection before taking the original path.
         converter = RateConverter{};
+        // A reprepare must not retain rings owned by a previous host arena.
+        for (auto &ch : channels) ch.resampled.history = nullptr;
         capacity = std::min<uint32_t>(setup.max_channels(), 8u);
         seed = setup.config.seed;
         if (rate != 48000.) {
