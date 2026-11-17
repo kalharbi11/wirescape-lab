@@ -100,7 +100,12 @@ export class App {
   private fileInput!: HTMLInputElement;
   private history!: History;
   private snapshotRollback?: () => void;
-  private snapshotRevision = 0;
+  /** One authoritative document/dirty/history anchor for all pending graph
+   * snapshots. Incremental requests must drain before the first anchor opens. */
+  private graphChain: {
+    epoch: number; pending: number; refused: boolean;
+    anchor: { patch: PatchV2; dirty: boolean; restoreHistory: () => void };
+  } | null = null;
   private undoBtn!: HTMLButtonElement;
   private redoBtn!: HTMLButtonElement;
   private clip: Clip | null = null;
@@ -568,6 +573,63 @@ export class App {
     if (this.engine instanceof RealEngine) await this.engine.whenEditsSettled();
   }
 
+  /** Q16: do not author the next whole-graph edit while incremental ACKs
+   * are outstanding. Other graph editors also wait for an active graph chain;
+   * undo/redo snapshots alone may overlap and share its rollback anchor. */
+  private async waitBeforeGraphAuthoring(): Promise<boolean> {
+    const engine = this.editEngine();
+    if (!(engine instanceof RealEngine) || (!engine.hasUnconfirmedEdits() && !this.graphChain))
+      return true;
+    const epoch = this.viewEpoch;
+    this.beginDocumentOperation();
+    try {
+      if (this.graphChain) await engine.whenEditsSettled();
+      else await engine.whenIncrementalEditsSettled();
+      return epoch === this.viewEpoch;
+    } finally { this.endDocumentOperation(); }
+  }
+
+  private applyAuthoredGraph(
+    before: { patch: PatchV2; dirty: boolean; restoreHistory: () => void },
+    submitted: PatchV2,
+  ): Promise<void> {
+    const engine = this.editEngine(), epoch = this.viewEpoch;
+    let chain = this.graphChain;
+    if (!chain || chain.epoch !== epoch) {
+      chain = { epoch, pending: 0, refused: false, anchor: before };
+      this.graphChain = chain;
+    }
+    const activeChain = chain;
+    // Save the authored history *now*, before a second snapshot can advance it.
+    const after = { patch: structuredClone(submitted), dirty: this.doc.dirty,
+      restoreHistory: this.history.checkpoint() };
+    activeChain.pending++;
+    return engine.applyGraph(submitted).then(() => {
+      if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
+      // RealEngine's correlated ACK has already updated 'confirmed', including
+      // native 'unapplied'; never derive a rollback target from optimistic B.
+      activeChain.anchor = { ...after,
+        patch: engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch };
+    }).catch(err => {
+      // A refusal of A also rejects queued B. Only the first rejection restores
+      // the latest engine-confirmed anchor; B must never roll back to optimistic A.
+      if (this.graphChain === activeChain && !activeChain.refused && epoch === this.viewEpoch) {
+        activeChain.refused = true;
+        const anchor = activeChain.anchor, view = this.doc.ui.view;
+        this.doc.replace({ ...anchor.patch, ui: { ...(anchor.patch.ui ?? {}), view } });
+        if (!anchor.dirty) this.doc.markClean();
+        else this.doc.markDirty();
+        anchor.restoreHistory();
+        this.canvas.invalidateAnchors();
+        this.refreshDirty();
+      }
+      throw err;
+    }).finally(() => {
+      activeChain.pending--;
+      if (this.graphChain === activeChain && activeChain.pending === 0) this.graphChain = null;
+    });
+  }
+
   /** The playing patch is untouched: only the editor and its fake edit target change. */
   private async openRefusedDraft(): Promise<void> {
     if (!this.refusedDraft || this.draftVisible || this.documentBusy) return;
@@ -766,6 +828,13 @@ export class App {
 
   undo(): void {
     if (this.documentBusy) return;
+    const engine = this.editEngine();
+    if (engine instanceof RealEngine && engine.hasUnconfirmedEdits()) {
+      // Delay even history's pointer movement until an outstanding setParam
+      // either confirms or runs its inverse. No edits are authored while held.
+      void this.waitBeforeGraphAuthoring().then(ok => { if (ok) this.undo(); });
+      return;
+    }
     this.snapshotRollback = this.history.checkpoint();
     if (!this.history.undo()) {
       this.snapshotRollback = undefined;
@@ -775,6 +844,11 @@ export class App {
 
   redo(): void {
     if (this.documentBusy) return;
+    const engine = this.editEngine();
+    if (engine instanceof RealEngine && engine.hasUnconfirmedEdits()) {
+      void this.waitBeforeGraphAuthoring().then(ok => { if (ok) this.redo(); });
+      return;
+    }
     this.snapshotRollback = this.history.checkpoint();
     if (!this.history.redo()) {
       this.snapshotRollback = undefined;
@@ -785,24 +859,19 @@ export class App {
   /** Put a history snapshot back, keeping the view where it is. */
   private restoreSnapshot(p: PatchV2): void {
     if (this.documentBusy) return;
-    const previous = this.doc.toJSON(), wasDirty = this.doc.dirty;
-    const rollbackHistory = this.snapshotRollback;
+    const engine = this.editEngine();
+    if (engine instanceof RealEngine && engine.hasUnconfirmedEdits()) {
+      void this.waitBeforeGraphAuthoring().then(ok => { if (ok) this.restoreSnapshot(p); });
+      return;
+    }
+    const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+      restoreHistory: this.snapshotRollback ?? this.history.checkpoint() };
     this.snapshotRollback = undefined;
-    const epoch = this.viewEpoch, revision = ++this.snapshotRevision;
     const view = this.doc.ui.view;
     this.canvas.select({ kind: 'none' });
     this.ticker.resetTelemetry();
     this.doc.replace({ ...p, ui: { ...(p.ui ?? {}), view } });
-    void this.editEngine().applyGraph(this.doc.toJSON()).catch(e => {
-      // A refused whole-document replan never changes the running graph.
-      // Restore both the displayed patch and the history position.
-      if (revision === this.snapshotRevision && epoch === this.viewEpoch) {
-        this.doc.replace(previous);
-        if (!wasDirty) this.doc.markClean();
-        rollbackHistory?.();
-        this.canvas.invalidateAnchors();
-        this.refreshDirty();
-      }
+    void this.applyAuthoredGraph(before, this.doc.toJSON()).catch(e => {
       this.toasts.show(e instanceof Error ? e.message : 'The snapshot could not run.', 'error');
     });
     requestAnimationFrame(() => this.canvas.invalidateAnchors());
@@ -988,22 +1057,22 @@ export class App {
   /** A config save is one authored edit and one ordinary whole-graph replan. */
   private async commitOscConfig(id: number, config: OscConfig | OscOutConfig,
     type: 'osc.in' | 'osc.out'): Promise<boolean> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring()) return false;
     const mod = this.doc.modules.get(id);
-    if (this.documentBusy || !mod || mod.module !== type) return false;
-    const previous = mod.config === undefined ? undefined : structuredClone(mod.config);
+    if (!mod || mod.module !== type) return false;
     const epoch = this.viewEpoch;
+    const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+      restoreHistory: this.history.checkpoint() };
     this.history.flush();
     this.doc.setModuleConfig(id, config);
     try {
-      await this.editEngine().applyGraph(this.doc.toJSON());
+      await this.applyAuthoredGraph(before, this.doc.toJSON());
       if (epoch !== this.viewEpoch) return false;
       this.history.flush();
       this.toasts.show(`${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
       return true;
     } catch (e) {
       if (epoch === this.viewEpoch) {
-        this.doc.setModuleConfig(id, previous);
-        this.history.flush();
         this.toasts.show(e instanceof Error ? e.message : 'OSC configuration refused.', 'error');
       }
       return false;
@@ -1027,6 +1096,7 @@ export class App {
   private commitParam(moduleId: number, paramId: string, value: number, commit: boolean): void {
     if (this.documentBusy) return;
     const before = this.doc.param(moduleId, paramId);
+    const beforeDocument = this.doc.toJSON(), wasDirty = this.doc.dirty;
     this.doc.setParam(moduleId, paramId, value);
     try {
       this.editEngine().setParam(moduleId, paramId, value);
@@ -1034,6 +1104,10 @@ export class App {
         const m = this.doc.modules.get(moduleId);
         if (before === undefined && m?.parameters) delete m.parameters[paramId];
         else if (before !== undefined) this.doc.setParam(moduleId, paramId, before);
+        // Refusal while Q16 holds the document cannot turn an originally
+        // clean, unchanged patch into a dirty one.
+        if (!wasDirty && JSON.stringify(this.doc.toJSON()) === JSON.stringify(beforeDocument))
+          this.doc.markClean();
         this.canvas.cardFor(moduleId)?.panel?.refreshParam(paramId);
       });
     } catch (err) {
@@ -1043,6 +1117,8 @@ export class App {
       } else {
         this.doc.setParam(moduleId, paramId, before);
       }
+      if (!wasDirty && JSON.stringify(this.doc.toJSON()) === JSON.stringify(beforeDocument))
+        this.doc.markClean();
       this.canvas.cardFor(moduleId)?.panel?.refreshParam(paramId);
       this.toasts.show(err instanceof EngineRefusal ? err.message : 'The engine refused that change.', 'error');
     }
@@ -1058,7 +1134,9 @@ export class App {
     if (this.documentBusy || this.draftVisible || !this.engine.canApplyGroove(id)) return false;
     const unstage = this.grooves.stage(id);
     try {
-      await this.engine.applyGraph(this.doc.toJSON());
+      const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+        restoreHistory: this.history.checkpoint() };
+      await this.applyAuthoredGraph(before, this.doc.toJSON());
       this.toasts.show('Pattern loaded · press play to start from step 1.');
       return true;
     } catch (e) {
@@ -1107,6 +1185,11 @@ export class App {
   /** Keel #500: serialize Learn/Forget and its recovery replan with all document edits. */
   private applyLearn(change: () => { message: string } | null, what: string): void {
     if (this.documentBusy) return;
+    const realForGate = this.editEngine();
+    if (realForGate instanceof RealEngine && (realForGate.hasUnconfirmedEdits() || this.graphChain)) {
+      void this.waitBeforeGraphAuthoring().then(ok => { if (ok) this.applyLearn(change, what); });
+      return;
+    }
     const restoreHistory = this.history.checkpoint();
     const previous = this.doc.toJSON(), wasDirty = this.doc.dirty;
     let result: { message: string } | null;
@@ -1209,7 +1292,8 @@ export class App {
         if (state === 'restarting' && phase !== 'applied' && phase !== 'not-applied') requireRestart();
       });
     }
-    const pending = engine.applyGraph(submitted).then(() => {
+    const pending = this.applyAuthoredGraph(
+      { patch: previous, dirty: wasDirty, restoreHistory }, submitted).then(() => {
       if (phase !== 'not-applied' && phase !== 'restart-required' && phase !== 'restart') {
         phase = 'applied';
         this.toasts.show(result.message);
@@ -1239,17 +1323,21 @@ export class App {
 
   private setMidiEndpoint(moduleId: number, endpoint: string, systemName?: string): void {
     if (this.documentBusy) return;
-    const previous = this.doc.toJSON();
-    this.doc.setModuleEndpoint(moduleId, endpoint, systemName);
-    void this.editEngine().applyGraph(this.doc.toJSON()).catch(err => {
-      this.doc.replace(previous);
-      // applyGraph refusal did not swap the running graph; the old full-load
-      // compensator is retained only for engines without that capability.
-      const running = this.editEngine();
-      if (!(running instanceof RealEngine && running.hasApplyGraph()))
-        void running.loadGraph(previous);
-      this.toasts.show(err instanceof Error ? err.message : 'MIDI endpoint change was refused.', 'error');
-    });
+    void (async () => {
+      if (!await this.waitBeforeGraphAuthoring()) return;
+      const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+        restoreHistory: this.history.checkpoint() };
+      this.doc.setModuleEndpoint(moduleId, endpoint, systemName);
+      try {
+        await this.applyAuthoredGraph(before, this.doc.toJSON());
+      } catch (err) {
+        // Legacy loadGraph recovery is retained for absent capability only.
+        const running = this.editEngine();
+        if (!(running instanceof RealEngine && running.hasApplyGraph()))
+          void running.loadGraph(before.patch);
+        this.toasts.show(err instanceof Error ? err.message : 'MIDI endpoint change was refused.', 'error');
+      }
+    })();
   }
 
   private commitModAmount(c: Connection, amount: number, _commit: boolean): void {

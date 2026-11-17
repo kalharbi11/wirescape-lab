@@ -71,6 +71,7 @@ export class RealEngine implements EngineClient {
   private active?: Edit;
   private lastEdit?: Edit;
   private settledWaiters = new Set<() => void>();
+  private incrementalWaiters = new Set<() => void>();
   private confirmed: PatchV2 | null = null;
   private usedIds = new Set<number>();
   private audioDevices: Device[] = [];
@@ -185,12 +186,29 @@ export class RealEngine implements EngineClient {
       catch { window.clearTimeout(timer); this.pending.delete(id); reject(refusal('unavailable', 'Could not restart engine.')); }
     });
   }
+  /** A graph transaction cannot overtake an unacknowledged incremental edit.
+   * While another graph runs, edits queued behind it are deliberately unsent
+   * and belong to that transaction's eventual outcome. */
+  hasUnconfirmedEdits(): boolean {
+    return !this.load && (!!this.active || this.queue.length > 0);
+  }
+  async whenIncrementalEditsSettled(): Promise<void> {
+    while (this.hasUnconfirmedEdits())
+      await new Promise<void>(resolve => this.incrementalWaiters.add(resolve));
+  }
+  /** A snapshot rollback uses the execution graph only after its native ACK. */
+  confirmedDocument(): PatchV2 | null { return this.confirmed ? copy(this.confirmed) : null; }
+
   /** A document switch must keep its owner visible until all inverses have settled. */
   async whenEditsSettled(): Promise<void> {
     while (this.active || this.queue.length || this.load || this.graphQueue.length)
       await new Promise<void>(resolve => this.settledWaiters.add(resolve));
   }
   private notifySettled(): void {
+    if (!this.hasUnconfirmedEdits()) {
+      for (const resolve of this.incrementalWaiters) resolve();
+      this.incrementalWaiters.clear();
+    }
     if (this.active || this.queue.length || this.load || this.graphQueue.length) return;
     for (const resolve of this.settledWaiters) resolve();
     this.settledWaiters.clear();
@@ -429,6 +447,10 @@ export class RealEngine implements EngineClient {
     return this.submitGraph(patch, 'loadGraph');
   }
   applyGraph(patch: PatchV2): Promise<void> {
+    // Defensive drain: even a caller that misses App's edit-authoring gate
+    // cannot erase a pending incremental ACK or open a graph chain over it.
+    if (this.hasUnconfirmedEdits())
+      return this.whenIncrementalEditsSettled().then(() => this.applyGraph(patch));
     // A pending live replan is not grounds to silently restart untouched
     // instances. Queue a second live replan behind its correlated ACK.
     return this.applyGraphEnabled && (this.ready || this.load?.type === 'applyGraph')

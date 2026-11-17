@@ -213,7 +213,7 @@ test('FakeEngine OSC Out is always replaced, even for identical config and unrel
     e.phases.set(6, 0.61);
     await e.applyGraph(structuredClone(original));
     const repeated = { replaced: [...e.lastApplyResult.replaced],
-      counters: e.osc.out[0], witnessPhase: e.phases.get(6) };
+      counters: { ...e.osc.out[0] }, witnessPhase: e.phases.get(6) };
     e.setOscOutStatus(5, 7, 1);
     const added = { ...original, modules: [...original.modules, { id: 7, module: 'essentials.noise' }] };
     await e.applyGraph(added);

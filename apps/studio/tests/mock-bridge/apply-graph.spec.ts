@@ -265,3 +265,208 @@ test('native replaced ID in unapplied list still fails closed', async ({ page })
   const confirmed = await page.evaluate(() => (window.__wirescapeTest.engine as any).confirmed.modules[0].parameters.frequency);
   expect(confirmed).toBe(220);
 });
+
+
+/** Q14/Q16: three views of the same graph plus the editor's dirty/history cursor. */
+async function graphCheckpoint(page: Page) {
+  return page.evaluate(() => {
+    const t = window.__wirescapeTest, e = t.engine as any;
+    const pick = (p: any) => p.modules.find((m: any) => m.id === 2)?.parameters ?? {};
+    const undo = document.querySelector('[data-testid="undo"]') as HTMLButtonElement;
+    const redo = document.querySelector('[data-testid="redo"]') as HTMLButtonElement;
+    return { authored: pick(t.state()), confirmed: pick(e.confirmed),
+      native: pick((window as any).__mockBridge.getGraph()),
+      dirty: t.doc.dirty, history: t.historyDepth(),
+      canUndo: !undo.disabled, canRedo: !redo.disabled };
+  });
+}
+const frequencySnapshot = (frequency: number, amplitude?: number) => ({
+  format: 'wirescape.native.patch' as const, version: 2 as const,
+  modules: [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency, ...(amplitude === undefined ? {} : { amplitude }) } }],
+  connections: [],
+});
+async function equalConfirmed(page: Page, frequency: number, amplitude?: number) {
+  await expect.poll(async () => {
+    const s = await graphCheckpoint(page);
+    return s.authored.frequency === frequency && s.confirmed.frequency === frequency &&
+      s.native.frequency === frequency && JSON.stringify(s.authored) === JSON.stringify(s.confirmed) &&
+      JSON.stringify(s.confirmed) === JSON.stringify(s.native) &&
+      (amplitude === undefined || s.authored.amplitude === amplitude);
+  }).toBe(true);
+}
+
+test('Q14 A+B refused: one anchor restores 220, dirty and history position', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  const before = await graphCheckpoint(page);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 440 } }], connections: [],
+    });
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 660 } }], connections: [],
+    });
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 220);
+  const after = await graphCheckpoint(page);
+  expect(after).toEqual(before);
+});
+
+test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('applyGraph');
+    for (const frequency of [440, 660]) window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency } }], connections: [],
+    });
+    b.refuseNext('applyGraph', 'refused');
+    b.acceptHeld();
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await equalConfirmed(page, 440);
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(true);
+  expect(after.canUndo).toBe(true);
+  expect(after.canRedo).toBe(false);
+  expect(after.history.past).toBeGreaterThan(0);
+});
+
+test('Q14 partial A confirmed/B refused: unapplied side value never enters rollback anchor', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency: 220, amplitude: 0.5 } }]);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        parameters: { frequency: 440, amplitude: 0.7 } }], connections: [],
+    });
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        parameters: { frequency: 660, amplitude: 0.7 } }], connections: [],
+    });
+    b.refuseNext('applyGraph');
+    b.acceptHeld();
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await equalConfirmed(page, 440, 0.5);
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(true);
+  expect(after.canUndo).toBe(true);
+  expect(after.canRedo).toBe(false);
+});
+
+test('Q14 partial earlier checkpoint then two refused: restored anchor is 220', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency: 220, amplitude: 0.5 } }]);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'frequency' }]);
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco',
+        parameters: { frequency: 440, amplitude: 0.5 } }], connections: [],
+    });
+  });
+  await equalConfirmed(page, 220, 0.5);
+  const prior = await graphCheckpoint(page);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('applyGraph');
+    for (const frequency of [440, 660]) window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency, amplitude: 0.5 } }],
+      connections: [],
+    });
+    b.refuseHeld();
+  });
+  await equalConfirmed(page, 220, 0.5);
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(prior.dirty);
+  expect(after.history).toEqual(prior.history);
+  expect(after.canUndo).toBe(prior.canUndo);
+  expect(after.canRedo).toBe(prior.canRedo);
+});
+
+test('Q16 e: 330 setParam ACK precedes held 440 snapshot, then graph refusal restores 330', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('setParam');
+    window.__wirescapeTest.commitParam(2, 'frequency', 330);
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 440 } }], connections: [],
+    });
+  });
+  await expect.poll(async () => (await wires(page)).length).toBe(0);
+  expect(await graphCheckpoint(page)).toMatchObject({ authored: { frequency: 330 }, native: { frequency: 220 } });
+  await page.evaluate(() => (window as any).__mockBridge.acceptHeld());
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 330);
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(true);
+  expect(after.canUndo).toBe(true);
+  expect(after.canRedo).toBe(false);
+});
+
+test('Q16 f: rejected pending 330 edit rolls back before 440 snapshot is authored', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  const baseline = await graphCheckpoint(page);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('setParam');
+    window.__wirescapeTest.commitParam(2, 'frequency', 330);
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 440 } }], connections: [],
+    });
+  });
+  await expect.poll(async () => (await wires(page)).length).toBe(0);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 220);
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(baseline.dirty);
+  expect(after.history).toEqual(baseline.history);
+  expect(after.canUndo).toBe(baseline.canUndo);
+  expect(after.canRedo).toBe(baseline.canRedo);
+});
+
+test('Q16 g: edit authored behind pending chain is never sent after refusal', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  const baseline = await graphCheckpoint(page);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot({
+      format: 'wirescape.native.patch', version: 2,
+      modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency: 440 } }], connections: [],
+    });
+    window.__wirescapeTest.commitParam(2, 'frequency', 660);
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 220);
+  const commands = await page.evaluate(() => (window as any).__mockBridge.sent.map((x: any) => x.type));
+  expect(commands).not.toContain('setParam');
+  const after = await graphCheckpoint(page);
+  expect(after.dirty).toBe(baseline.dirty);
+  expect(after.history).toEqual(baseline.history);
+  expect(after.canUndo).toBe(baseline.canUndo);
+  expect(after.canRedo).toBe(baseline.canRedo);
+});
