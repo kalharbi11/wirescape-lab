@@ -1,33 +1,43 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated 2026-11-16 ET, **claude-lead** (active lead for every milestone, including M1; owner, 2026-11-16).
-Main `ba3b020dde9abd045cd02238a2517750d92487b3`. No Worker2, no timers, no root/M1 sub-leads: builders run only when the owner starts them.
-Builders are GitHub-connector only (no local native build), so every measurement comes from hosted workflows (SR8/SR9/SR18).
+Updated 2026-11-16 ET, **gpt-reviewer** (owner-assigned independent review checkpoint).
+**claude-lead remains the active delivery lead** for all milestones. Review is not a lead transfer.
+Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Builders use GitHub connector / hosted device-off evidence; no Worker2, no device/LAN tests, no model polling.
 
-## Contracts
-- **M0 r3** accepted/closed (Fable). `facts/BASELINE.md` gives before-numbers; ringmod2 unmeasured.
-- **M2 r3:** E0, E1a, PV1 merged. E1b #125/PR130: **Q16 answered**, dispatch the one final packet (Q14 + Q16 rule and tests e–g) to B1. Continuity #139/PR150 waits for hosted capture. Gap report #140/PR149 draft (not an acceptance).
-- **CI1 r4** (Q17): CI1.1/1.2/1.4 merged. CI1.3 #109/PR129: lead merges once at a reviewed head; the first later PR run of `sanitizers` decides keep (restored, ≤ 318 s) or revert; facts filed either way. Nothing stops or replans.
-- **M1 r2:** **S2 MERGED** PR138 `e28dbb3`→`70f2e21` (paired instructions 43988096709: 95/97 ≤1 % on x64 and ARM64, Chord voices1/8 SR10 exceptions for the acceptance report; link proof ×3; Golden ×3 green). **S3 #143 open to B4**; needs a **Claude** contract-review (I1–I5, I8) before merge.
-- **M3/M4/M5/M6/M7 r1** accepted. Ready now: M5 PV2a PR151 (correction 1/2: drop recommendation column; **Q18 answered**: D03, D05, D09 closed, no PV2b work), M6 MT1 PR153 (SR8 workflow granted), M7 T7.0 PR152 (hosted capture workflow granted), new **M3 V1 facts #154**, new **M7 S7.1 #155**.
+## Controlling decisions and completed merges
+- **Q16 answered** by Fable: the single final E1b packet stays on PR #130, one push, `apps/studio/**` only. It must drain unconfirmed incremental edits before a graph chain and add Q14 plus Q16 tests (e–g); on failed review/CI, STOP and close unmerged under Q14, not another correction. #130 is still at `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, draft and red at Lab 43968790557. M2 remains incomplete.
+- **Q17 answered**, CI1 r4. PR #129 (CI1.3) merged to main `879a26c`; main push Lab 43990935312 succeeded. **K8 is NOT yet decided by that success**: the first PR sanitizer run *after the main cache save* must show cache restored and job ≤318 s, else lead reverts its sanitizer change and records facts. Do not use an earlier/overlapping PR run as a warm verdict. #141 is an evidence report, not CI1 acceptance until K8 is recorded.
+- **Q18 answered:** M5 PV2a PR #151 merged `ba3b020dde9abd045cd02238a2517750d92487b3`; D03/D05/D09 answered with D09 coverage gap retained, no PV2b work before M1 S6.
+- **M1 S2** PR #138 merged `70f2e218d6834385c8acd4f5997bc750591aa9eb`. M1 S3 is now PR #159. Full-head Lab/Golden/paired workflows are green, but a fixed/ABI1 cost-probe-versus-strict-T0.6 conflict and required **Claude** I1–I5/I8 contract-review still block merger; green CI is not a waiver.
+- **M0 r3** accepted; `facts/BASELINE.md` retains original before-numbers and `ringmod2` is unmeasured. **M2 r3** E0/E1a/PV1 merged; #130/#139 completion still missing. M3/M4/M5/M6/M7 r1 active under their accepted dependencies and STANDING SR1–SR19.
 
-## Builder queues (run in this order; one active PR each)
-| Builder | 1 | 2 | 3 |
+## Active PRs and review evidence (snapshot, 2026-11-16 ET)
+| PR | Work | Evidence and next gate |
+|---|---|---|
+| #130 | M2 E1b, builder 1 | Q16 final packet not pushed; draft/block on current code and red Studio; same branch, no extra ordinary round |
+| #149 | M2 gap-only report | Exact-head Lab 43985506389 green; report is source-pinned to pre-Q16 main and describes Q16 as unanswered, so lead should assess a clearly dated addendum before treating it as current; no M2 acceptance claim |
+| #150 | M2 continuity, builder 3 | Head `d672a650` has Lab/synthetic/Golden green; actual 45 witness rows and raw/marks hashes still missing; lead authorized new hosted capture workflow on existing branch (SR8/SR18/SR9) |
+| #152 | M7 T7.0, builder 3 | Head `1847d58e`: facts JSON now contains 24/24 CHAOS alias rows and three measured Delay switch rows sourced from hosted capture 43989175810 at built head `d4d2b351`; Quad VCA mode1 remains explicitly unmeasured. Lab 43991585936 and x64/ARM64 advisory 43991586082 are green. Independent artifact-to-facts review and acceptance of the explicit SR10 exception remain; no target reset triggered |
+| #153 | M6 MT1, builder 2 | Corrected head `2c003e92`: Lab 43991606212 green, three-platform module-tools workflow 43991606284 green including real template check; needs independent source/evidence review and lead disposition |
+| #159 | M1 S3, builder 4 | Head `b438613f`: hosted Lab/Golden/paired green; ABI1 cost-probe/T0.6 conflict, exact per-row evidence review, and Claude contract-review unresolved; do not merge |
+| #160 | M3 native-v1 fact inventory, builder 1 | Head `ff8f885a`: notes-scope Lab 43991267461 green (foundation passed; code jobs correctly skipped); independent facts review then lead merge |
+
+## Owner-run builder queue (no self-dispatch, one writer/branch at a time)
+| Builder | First | Next | Then |
 |---|---|---|---|
-| gpt-builder1 | #154 `native_v1_readers.md` | #155 S7.1 reverb | — |
-| gpt-builder2 | PR153 correction 1/2: fix fixture include root (6934101225), real template check ×3 | #141 CI1 gap-only report (CI1.3 open on Q17) | — |
-| gpt-builder3 | PR152: `t7-0-capture.yml` + fill facts (6933783098) | PR150: continuity capture workflow + rows (6933784579) | #142 audit after PR150 Result |
-| gpt-builder4 | #143 S3 (S2 merged) | — | — |
+| **1** | #130 final E1b packet (owner's top priority; resume same PR) | #154 / PR #160 review/merge disposition | #155 reverb after #154 closes |
+| **2** | #147 / PR #153 review disposition | #141 CI1 evidence report with K8 pending/actual | — |
+| **3** | #148 / PR #152 measured facts and artifact-to-row review | #139 / PR #150 hosted continuity capture/rows | #142 read-only audit already filed (issue comment 6933738092; no duplicate run); revisit only upon new completed evidence |
+| **4** | #143 / PR #159 S3 contract conflict/evidence | Claude I1–I5/I8 review when ready | — |
 
-## Holds
-- None from the design seat: Q16, Q17, Q18 answered in `QUESTIONS.md` (Fable, 2026-11-16).
-- Claude reviews: none due now. Next due: M1 S3 (after S2), S5b, S6; M7 S7.3/S7.4 contract-review; S7.7/S7.8 Claude.
+## Reviewer / lead handoff
+- **Do not spend Claude on routine CI or source-review work that GPT can prepare.** Immediate lead-authority items: review/merge verified class-A #160 and MT1 #153 as warranted by evidence; review notes-only #149 and request a current-status addendum if needed; apply K8 to the first qualifying post-save sanitizer PR run and file the fact/keep-or-revert decision.
+- **Claude-specific work:** #159 requires an independent Claude contract reviewer (not a GPT substitute) on a *settled exact head*. Its separate cost-probe/T0.6 scope conflict must first receive a design/contract disposition; do not ask a reviewer to waive measurement criteria. Later M1 S5b/S6 and specified M7 contract reviews follow their dependencies.
+- **Fable-only if needed:** changing instruction-row measurement meaning, the 1% rule or another frozen acceptance threshold. No such change is authorized by a green workflow.
+- **Merge policy:** no commits directly to main; lead merges independently reviewed exact heads with all contract criteria and checks satisfied. Notes-only review may use SR13; a draft gap report does not constitute milestone acceptance. SR19 leaves unrelated ready work moving.
 
-## Merge policy (unchanged)
-Lead merges exact reviewed heads, expected SHA pinned, when every criterion and test holds; auto-merge only for a reviewed head waiting on CI. No gate weakening, no settings changes, devices off.
-
-Signed: claude-lead, 2026-11-16
+Signed: gpt-reviewer, 2026-11-16
 
 ## Preserved design-authority weekly queue
 The following is Fable's merged #144 catalog/ordering. Operational heads and Q16 status above supersede its historical Q14-dispatch snapshot; no catalog task or standing ruling is removed.
