@@ -7,8 +7,8 @@ apps/studio/src/canvas/PatchCanvas.ts,apps,product,TypeScript,1068,91,95
 apps/studio/ui/wirescape-ui-kit.html,apps,product,HTML,1050,1,10
 native/document/groove_runtime_tests.cpp,native,product,C++,1013,33,13
 apps/studio/src/panels/widgets/GroovePane.ts,apps,product,TypeScript,1010,52,36
+bench/offline/run_all.py,bench,tools,Python,945,41,73
 apps/studio/ui/groove-r1-concepts.html,apps,product,HTML,932,1,43
-bench/offline/run_all.py,bench,tools,Python,918,41,73
 native/sidecar/audio_recovery_tests.cpp,native,product,C++,894,43,6
 native/sidecar/protocol_tests.py,native,product,Python,839,80,49
 native/modules2/spectral/tests.cpp,native,product,C++,766,34,34
@@ -38,9 +38,9 @@ native/modules2/delay/tests.cpp,native,product,C++,444,27,8
 apps/desktop/tests/shell.spec.cjs,apps,tests,JavaScript,434,4,7
 native/document/runtime_module_config.h,native,product,C/C++ Header,427,19,4
 native/web/web_engine.cpp,native,product,C++,413,13,6
+bench/offline/metrics.py,bench,tools,Python,411,34,46
 bench/device/tests/test_latency.py,bench,tests,Python,407,19,44
 bench/device/latency_r1.py,bench,tools,Python,400,36,36
-bench/offline/metrics.py,bench,tools,Python,396,27,41
 bench/device/latency.py,bench,tools,Python,389,20,28
 apps/studio/src/panels/widgets/Knob.ts,apps,product,TypeScript,383,30,38
 native/modules2/midi_to_cv/tests.cpp,native,product,C++,378,16,3
@@ -103,6 +103,7 @@ native/modules2/reverb/dsp.h,native,product,C/C++ Header,246,11,7
 native/control/osc_out_host.cpp,native,product,C++,243,7,2
 bench/continuity/run.py,bench,tools,Python,242,22,35
 native/modules/noise/tests.cpp,native,product,C++,242,3,4
+bench/offline/test_metrics.py,bench,tests,Python,241,5,23
 native/modules2/chaos_lite/dsp.h,native,product,C/C++ Header,241,12,0
 native/tests2/module_tests.cpp,native,tests,C++,240,11,7
 tools/pi/preflight.py,tools,tools,Python,239,9,21
@@ -133,7 +134,6 @@ apps/studio/src/app/ccLearn.ts,apps,product,TypeScript,209,44,20
 native/engine2/tests/port_behavior_tests.cpp,native,tests,C++,209,3,4
 native/modules2/chord/dsp.h,native,product,C/C++ Header,208,10,6
 native/modules2/quantizer/dsp.h,native,product,C/C++ Header,208,13,18
-bench/offline/test_metrics.py,bench,tests,Python,207,3,21
 bench/device/record.py,bench,tools,Python,205,11,6
 tools/foundation/tests/test_sidecar_edit_soak.py,tools,tests,Python,204,80,27
 apps/studio/tests/mock-bridge/groove-apply.spec.ts,apps,tests,TypeScript,203,7,13
@@ -162,6 +162,7 @@ apps/studio/tests/p1g-ui.spec.ts,apps,tests,TypeScript,181,4,13
 native/engine2/tests/staged_tests.cpp,native,tests,C++,180,3,0
 bench/golden/compare.py,bench,tools,Python,179,10,17
 native/sdk/examples/step_sequencer/dsp.h,native,product,C/C++ Header,179,27,21
+bench/offline/t7_0.py,bench,tools,Python,178,16,19
 apps/studio/src/modules/registry.ts,apps,product,TypeScript,177,33,24
 bench/continuity/tests/test_marks.py,bench,tests,Python,177,8,42
 native/modules2/midi_to_cv/dsp.h,native,product,C/C++ Header,177,4,0
@@ -201,6 +202,7 @@ native/sidecar/generated/protocol_v0.hpp,native,product,C/C++ Header,151,9,6
 tools/protocol/generate.py,tools,tools,Python,151,12,20
 apps/studio/tests/stereo-pair.spec.ts,apps,tests,TypeScript,150,2,15
 native/voice/tests.cpp,native,product,C++,150,1,5
+bench/offline/test_t7_0.py,bench,tests,Python,149,6,21
 apps/studio/src/web/WebBridge.ts,apps,product,TypeScript,148,21,9
 bench/gate/compare.py,bench,tools,Python,147,6,15
 native/tests2/returned_filter_cases.h,native,tests,C/C++ Header,147,3,6
@@ -607,4 +609,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,90229,5279,5545
+SUM,SUM,product,unknown,90632,5310,5592

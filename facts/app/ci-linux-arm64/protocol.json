@@ -2,57 +2,57 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
+    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
     "connect": {
-      "max_ms": 5.887107,
+      "max_ms": 6.823667,
       "n": 100,
-      "p50_ms": 5.326017,
-      "p95_ms": 5.387076,
-      "p99_ms": 5.792408
+      "p50_ms": 5.317363,
+      "p95_ms": 5.41871,
+      "p99_ms": 6.110052
     },
-    "date_et": "2026-11-16",
+    "date_et": "2026-11-17",
     "disconnect": {
-      "max_ms": 6.252254,
+      "max_ms": 5.852228,
       "n": 100,
-      "p50_ms": 5.322585,
-      "p95_ms": 5.370843,
-      "p99_ms": 5.794584
+      "p50_ms": 5.322115,
+      "p95_ms": 5.366637,
+      "p99_ms": 5.384477
     },
-    "hello_ms": 7.33091,
+    "hello_ms": 7.3601,
     "loadGraph": [
       {
         "code": "invalid",
-        "ms": 0.27616,
+        "ms": 0.335627,
         "ok": false,
         "path": "native/examples/Six_Essentials_Demo.json"
       },
       {
         "code": null,
-        "ms": 22.078446,
+        "ms": 22.041316,
         "ok": true,
         "path": "native/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 25.686699,
+        "ms": 25.768108,
         "ok": true,
         "path": "native/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 21.278509,
+        "ms": 21.155167,
         "ok": true,
         "path": "native/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 20.836968,
+        "ms": 20.866999,
         "ok": true,
         "path": "native/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 20.260887,
+        "ms": 21.137623,
         "ok": true,
         "path": "native/examples/class_demo_3_macro.json"
       }
@@ -65,16 +65,16 @@
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 1.707884,
+      "max_ms": 0.903877,
       "n": 1000,
-      "p50_ms": 0.100915,
-      "p95_ms": 0.125756,
-      "p99_ms": 0.167005
+      "p50_ms": 0.107716,
+      "p95_ms": 0.131005,
+      "p99_ms": 0.158061
     }
   },
   "provenance": {
-    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
-    "date_et": "2026-11-16",
+    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",

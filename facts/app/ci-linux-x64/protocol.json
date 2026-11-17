@@ -2,57 +2,57 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
+    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
     "connect": {
-      "max_ms": 6.020823,
+      "max_ms": 6.278428,
       "n": 100,
-      "p50_ms": 5.327164,
-      "p95_ms": 5.660819,
-      "p99_ms": 5.787107
+      "p50_ms": 5.316713,
+      "p95_ms": 5.573891,
+      "p99_ms": 5.681422
     },
-    "date_et": "2026-11-16",
+    "date_et": "2026-11-17",
     "disconnect": {
-      "max_ms": 5.692516,
+      "max_ms": 5.997781,
       "n": 100,
-      "p50_ms": 5.323099,
-      "p95_ms": 5.588191,
-      "p99_ms": 5.663003
+      "p50_ms": 5.324541,
+      "p95_ms": 5.618215,
+      "p99_ms": 5.814835
     },
-    "hello_ms": 7.539446,
+    "hello_ms": 6.944853,
     "loadGraph": [
       {
         "code": "invalid",
-        "ms": 0.311161,
+        "ms": 0.286741,
         "ok": false,
         "path": "native/examples/Six_Essentials_Demo.json"
       },
       {
         "code": null,
-        "ms": 22.061744,
+        "ms": 22.090776,
         "ok": true,
         "path": "native/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 25.721474,
+        "ms": 25.88316,
         "ok": true,
         "path": "native/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 20.29377,
+        "ms": 21.139822,
         "ok": true,
         "path": "native/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 20.977104,
+        "ms": 20.138014,
         "ok": true,
         "path": "native/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 21.968736,
+        "ms": 21.221526,
         "ok": true,
         "path": "native/examples/class_demo_3_macro.json"
       }
@@ -61,30 +61,30 @@
       "architecture": "x86_64",
       "audio_devices": "not accessed",
       "cpu": "x86_64",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.811279,
+      "max_ms": 1.812108,
       "n": 1000,
-      "p50_ms": 0.076403,
-      "p95_ms": 0.099458,
-      "p99_ms": 0.127459
+      "p50_ms": 0.07227,
+      "p95_ms": 0.097903,
+      "p99_ms": 0.123161
     }
   },
   "provenance": {
-    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
-    "date_et": "2026-11-16",
+    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.196.1",
+      "runner_image_version": "20261111.82.6",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
