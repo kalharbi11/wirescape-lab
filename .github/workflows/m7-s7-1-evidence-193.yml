@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: M7 S7.1 production R2 and D5 evidence (advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'bench/evidence/s7_1_193/**'
+      - '.github/workflows/m7-s7-1-evidence-193.yml'
+  workflow_dispatch:
+
+# No release publication or branch pushes; existing lead permissions unchanged.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  collect:
+    name: pinned production R2 / ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 65
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: linux-x64
+          - runner: ubuntu-24.04-arm
+            arch: linux-arm64
+    env:
+      BASE_SHA: 518fe3f8d8a71d1485364bf9176bcf166f9602f3
+      HEAD_SHA: 8823c78ad58992b39f7b8f696425d9751bdb7ac0
+      BASE_CHECKOUT: ${{ runner.temp }}/mt193-base
+      HEAD_CHECKOUT: ${{ runner.temp }}/mt193-head
+      CAPTURE_ROOT: ${{ runner.temp }}/mt193-evidence
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Checkout read-only collector code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Unit tests before native builds
+        run: python -m unittest discover -s bench/evidence/s7_1_193 -p 'test_*.py' -v
+      - name: Resolve exact reviewed source pins (not PR merge ref)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+          git worktree add --detach "$BASE_CHECKOUT" "$BASE_SHA"
+          git worktree add --detach "$HEAD_CHECKOUT" "$HEAD_SHA"
+          test "$(git -C "$BASE_CHECKOUT" rev-parse HEAD)" = "$BASE_SHA"
+          test "$(git -C "$HEAD_CHECKOUT" rev-parse HEAD)" = "$HEAD_SHA"
+          git -C "$BASE_CHECKOUT" diff --quiet
+          git -C "$HEAD_CHECKOUT" diff --quiet
+          echo "before=$BASE_SHA; head=$HEAD_SHA; neither is the synthetic PR merge"
+      - name: Install existing pinned Python, native build and DSP metric tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0 -r bench/offline/requirements.txt
+      - name: Build unmodified pinned before source Release headless (devices off)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$BASE_CHECKOUT"
+          python tools/dev.py build --headless --config Release
+      - name: Build unmodified pinned head source Release headless (devices off)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$HEAD_CHECKOUT"
+          python tools/dev.py build --headless --config Release
+      - name: Full nonquick production Engine::render R2 / before / 44.1, 48, 96 kHz
+        shell: bash
+        run: |
+          set -euo pipefail
+          python bench/evidence/s7_1_193/collect.py --mode r2 \
+            --checkout "$BASE_CHECKOUT" --label before --out "$CAPTURE_ROOT"
+      - name: Full nonquick production Engine::render R2 / head / 44.1, 48, 96 kHz
+        shell: bash
+        run: |
+          set -euo pipefail
+          python bench/evidence/s7_1_193/collect.py --mode r2 \
+            --checkout "$HEAD_CHECKOUT" --label head --out "$CAPTURE_ROOT"
+      - name: D5 separate before/head 48k/128/10s/seed37 FLAC plus original float PCM
+        if: matrix.arch == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python bench/evidence/s7_1_193/collect.py --mode d5 \
+            --base "$BASE_CHECKOUT" --head "$HEAD_CHECKOUT" --out "$CAPTURE_ROOT"
+      - name: Validate original full R2, source/PCM hashes, strict <=5%, and D5 pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python bench/evidence/s7_1_193/collect.py --mode summary --out "$CAPTURE_ROOT"
+      - name: Upload original byte captures, float PCM, FLAC and source-provenance JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mt193-r2-d5-${{ matrix.arch }}
+          path: ${{ runner.temp }}/mt193-evidence/
+          if-no-files-found: warn
+          retention-days: 7
