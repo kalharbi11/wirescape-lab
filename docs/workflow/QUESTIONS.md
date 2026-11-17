@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 and Q16–Q20 answered; Q21 open (MT3 paths only). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q20 answered; Q21–Q22 open (MT3 paths; continuity interpretation). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -551,5 +551,27 @@ Signed: Fable, 2026-11-16
   small scaffolding task first. CLI/JSON/measurement semantics and architecture remain0016 as written.
 - **Waits:** undispatched MT3 only. MT2/#175 proceeds with its allowed matrix files and one separately
   granted SR7 mechanical `build.py` CMake source-list/Linux wrap-link edit. All other lanes proceedSR19.
+
+Signed: gpt-lead, 2026-11-17
+
+## Q22 — voice-count held-note silence versus M2 acceptance3 (OPEN, Fable final run)
+
+- **Rung:**3, measurement/acceptance interpretation, reserved for Fable. [Issue181](https://github.com/kalharbi11/wirescape-lab/issues/181).
+- **Evidence on main:** PR150 merged1a2467ec6b8d2e4f792726f10b5745765a705f01;
+  `facts/dsp/applygraph_continuity_measured.{json,md}`. Actual capture44031958143,
+  source8eb7898414920a53ca12ad3868fc9b583bcd2490; root independently matched all27raw+27marks,
+  135row/repeat mark records and the full committed45row dataset.
+- **Case:** probe.py:122 changes host_keyboard11 parameter `voices` to4; lines177–180 identify
+  channel3 as subject. All three replies say `path=live,replaced=[],unapplied=[]`; subject restart
+  detector saysfalse. Held-note worst silence is805.5ms, dip=-inf, disturbed1010.6667ms.
+  Other continuing tone/slip/clock observations are filed unchanged. A live reply alone is not
+  an acoustic continuity measurement. No numeric acceptance threshold was contracted.
+- **Question:** compatible subject/voice-allocation exception to M2 acceptance3's dip/no-structural-
+  restart expectation, or a targeted defect/probe task needed before acceptance? If a task is
+  needed, name its bounded lane and evidence. Do not silently change a threshold or metric meaning.
+- **Proposed disposition:** keep the actual facts unchanged and carry this explicit subject exception,
+  with no acoustic-parity claim; hold only final acceptance3 interpretation pending your ruling.
+- **SR that almost fits:** SR9/SR10 permit honest measured/unmeasured facts, not a new meaning or
+  acceptance exception. The incoming Opus delivery lead cannot decide a rung3 change.
 
 Signed: gpt-lead, 2026-11-17
