@@ -65,6 +65,9 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
+    // Non-48 kHz: cache the sample-accurate damping response for unchanged values.
+    // The 48 kHz branch below still uses the original per-sample coefficient.
+    float last_rate_damping = -1.f, rate_damping = 0.f;
     static constexpr float kWetMakeup = 5.f;
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
@@ -128,6 +131,8 @@ struct Reverb {
         freeze_amount = phase_a = phase_b = 0;
         pre_samples = .02f * rate;
         last_mix = last_size = -1.f;
+        last_rate_damping = -1.f;
+        rate_damping = 0.f;
         for (uint32_t k = 0; k < 8; ++k) {
             if (lines[k]) std::fill_n(lines[k], line_capacity, 0.f);
             delay[k] = target[k] = float(scaled_length(k, .5f));
@@ -167,6 +172,19 @@ struct Reverb {
         const float rt60 = std::clamp(b.param(DECAY).value(0, i), .2f, 20.f);
         for (uint32_t k = 0; k < 8; ++k) gain[k] = float(std::exp(-kLn1000 * delay[k] / (rt60 * rate)));
     }
+    // The original damping is a per-48-kHz-sample pole, not a time constant.
+    // Preserve its exact 48 kHz path and map the pole's physical decay over a
+    // 1/48,000-second interval to an arbitrary sample rate:
+    // pole(rate) ^ (rate / 48000) == pole(48000).
+    // A cache avoids pow() in the steady-state audio loop; automation and the
+    // freeze ramp remain sample-accurate when the effective pole changes.
+    float normalized_damping(float pole) {
+        if (pole != last_rate_damping) {
+            last_rate_damping = pole;
+            rate_damping = std::pow(pole, 48000.f / rate);
+        }
+        return rate_damping;
+    }
     void process(ws::Block &b) {
         auto lout = b.out(0), rout = b.out(1);
         lout.set_channels(1);
@@ -181,6 +199,9 @@ struct Reverb {
             const float frozen_target = b.param(FREEZE).value(0, i) >= .5f ? 1.f : 0.f;
             freeze_amount += std::clamp(frozen_target - freeze_amount, -freeze_step, freeze_step);
             const float damp = std::clamp(b.param(DAMPING).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
+            // Keep identical floating-point operations at 48 kHz for the
+            // immutable golden; only other rates need the physical-time pole.
+            const float damp_pole = rate == 48000.f ? damp : normalized_damping(damp);
             const float motion = std::clamp(b.param(MOTION).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
             const float mix = std::clamp(b.param(MIX).value(0, i), 0.f, 1.f);
             const float width = std::clamp(b.param(WIDTH).value(0, i), 0.f, 1.f);
@@ -216,7 +237,7 @@ struct Reverb {
                 const float delayed = tap(lines[k], line_capacity, write, shifted);
                 wet_l += project_l[k] * delayed;
                 wet_r += project_r[k] * delayed;
-                low[k] += (delayed - low[k]) * (1.f - damp);
+                low[k] += (delayed - low[k]) * (1.f - damp_pole);
                 const float feedback = gain[k] + freeze_amount * (1.f - gain[k]);
                 vector[k] = (low[k] * (1.f - freeze_amount) + delayed * freeze_amount) * feedback;
             }

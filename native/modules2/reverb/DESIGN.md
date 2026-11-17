@@ -17,3 +17,9 @@ Two allpass sections per input side and separate up-to-250 ms predelays precede 
 Line, predelay and allpass memory uses `WS2_LARGE` allocated in `prepare`; no state allocation, I/O, locks, exceptions, or random seed in the callback. State only contains a version word: loading it resets the delay buffers intentionally, rather than promising audio-tail continuation.
 
 **Listening note:** No physical-audio listening was performed by the builder. Review room-to-hall colour, stereo width at fully wet, and freeze on/off transitions after a sustained chord on the owner device.
+
+## S7.1 rate-corrected damping
+
+The one-pole damping feedback in `low[k]` previously interpreted the damping knob as a **per-sample pole** at every sample rate. A fixed pole changed the filtering per second at 44.1 and 96 kHz. Outside 48 kHz the pole is now `pow(damping_pole_48k, 48000 / sample_rate)`, preserving attenuation over elapsed physical time. The exact 48 kHz pole and processing arithmetic are unchanged, so the 48 kHz golden gate still requires zero differing samples on all three platforms. The cached coefficient updates whenever sample-accurate damping or the freeze ramp changes; it introduces no heap allocation or state-format change. The R2 suffix-maximum -60 dB impulse measurement is repeated at 44.1/48/96 kHz in the module's existing allocation-watched test rig.
+
+This is **S7.1 only**. Wet makeup, the full-scale clamp, parameters, ports and all gain-staging work remain unchanged for the separately gated S7.2 task.

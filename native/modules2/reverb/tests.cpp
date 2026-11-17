@@ -245,6 +245,49 @@ double measured_rt60(float size) {
     const double slope = (double(end - begin) * sxy - sx * sy) / (double(end - begin) * sxx - sx * sx);
     return -std::log(1000.0) / slope;
 }
+// Reproduce the production R2 impulse metric with the same one-second
+// pre-silence and two-second, single-sample impulse response. The first frame
+// after the final sample above -60 dB of the measured absolute peak is the
+// suffix-maximum crossing; a zero crossing within the tail is not decay.
+double measured_r2_minus60_ms(uint32_t rate) {
+    Rig rig(rate);
+    const Samples idle = silence(rate);
+    rig.run(idle, idle, 128);
+    Samples impulse(size_t(rate) * 2, 0.f);
+    impulse[0] = 1.f;
+    const Stereo response = rig.run(impulse, impulse, 128);
+    double peak = 0;
+    size_t peak_frame = 0;
+    for (size_t i = 0; i < response.l.size(); ++i) {
+        const double level = std::abs(double(response.l[i]));
+        if (level > peak) {
+            peak = level;
+            peak_frame = i;
+        }
+    }
+    REQUIRE(peak > 0);
+    const double threshold = peak * .001;
+    size_t last_above = peak_frame;
+    for (size_t i = peak_frame; i < response.l.size(); ++i)
+        if (std::abs(double(response.l[i])) > threshold) last_above = i;
+    REQUIRE(last_above + 1 < response.l.size());
+    return 1000.0 * double(last_above + 1) / double(rate);
+}
+void test_rate_independent_decay() {
+    // Same decay target as M7r1 S7.1, no redefinition of the R2 metric.
+    // These values are emitted by the existing three-platform folder-test CI.
+    const double low = measured_r2_minus60_ms(44100);
+    const double reference = measured_r2_minus60_ms(48000);
+    const double high = measured_r2_minus60_ms(96000);
+    const double spread_percent = 100.0 * (std::max({low, reference, high}) -
+                                            std::min({low, reference, high})) / reference;
+    std::printf("S7.1 R2 reverb: 44.1 %.5f ms; 48 %.5f ms; 96 %.5f ms; spread %.3f%%\n",
+                low, reference, high, spread_percent);
+    // The source baseline at 48 kHz was 245.35417 ms; a difference here
+    // would invalidate the bit-identical golden and requires escalation.
+    REQUIRE(std::abs(reference - 245.35416666666669) < 1.0);
+    REQUIRE(spread_percent <= 5.0);
+}
 void test_decay() {
     const double small = measured_rt60(.2f), large = measured_rt60(1.f);
     std::printf("RT60 size .2: %.3fs; size 1: %.3fs\n", small, large);
@@ -357,6 +400,7 @@ int main() {
     test_mix_loudness();
     test_dry_and_width();
     test_decay();
+    test_rate_independent_decay();
     test_freeze();
     test_cached_parameter_changes();
     test_state_extremes_and_sweep();
