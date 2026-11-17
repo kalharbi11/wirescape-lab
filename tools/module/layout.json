@@ -1,0 +1,23 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "wsmod-layout/1",
+  "paths": {
+    "sdk": "native/sdk",
+    "abi": "native/include",
+    "sdk_examples": "native/sdk/examples",
+    "template": "native/sdk/template",
+    "build_root": "build/module-tools",
+    "foundation_helpers": "tools/foundation/helpers.py",
+    "banned_includes": "tools/foundation/tests/test_banned_includes.py",
+    "portable_probe": "bench/portability/probe.py",
+    "allocation_counter": "native/tests2/allocation_watch.cpp",
+    "allocation_include": "native/tests2"
+  },
+  "stock": {
+    "native/modules2/macro_oscillator": {"build_unsupported": "requires external patched upstream; v0 never downloads it"},
+    "native/modules2/chord": {"config_bytes": [1, 0, 0, 0]},
+    "native/modules2/host_keyboard": {"extra_sources": ["native/voice/allocator.cpp"]},
+    "native/modules2/midi_to_cv": {"extra_sources": ["native/voice/allocator.cpp"]},
+    "native/modules2/notes_to_cv": {"extra_sources": ["native/voice/allocator.cpp"]}
+  }
+}
