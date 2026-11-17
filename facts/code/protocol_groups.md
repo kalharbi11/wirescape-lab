@@ -4,7 +4,7 @@
 - **Examined full lab commit:** `96e97a7b7f77d9c04feeedd5c08e094c11b41ab5` (current main at task start); source hyperlinks are pinned to this SHA.
 - **Source-inspection date:** 2026-11-17 ET (America/New_York).
 - **Environment class:** read-only tracked-source inspection through GitHub repository API; not a running engine, Desktop, physical device, firmware or LAN check.
-- **Authority:** accepted M10 r1, proposal 0013 §2 R1 and §8 S4 ([proposals/0013-portability.md:62–66](https://github.com/kalharbi11/wirescape-lab/blob/96e97a7b7f77d9c04feeedd5c08e094c11b41ab5/proposals/0013-portability.md#L62-L66)). R1 groups by capability: engine (graph/parameters/data/transport/telemetry), host (audio/MIDI devices/rates/buffers), desktop (files/dialogs/settings). Implementation owner is recorded independently of the capability group.
+- **Authority:** accepted M10 r1, proposal 0013 §2 R1 and §8 S4 ([proposals/0013-portability.md:78–81](https://github.com/kalharbi11/wirescape-lab/blob/96e97a7b7f77d9c04feeedd5c08e094c11b41ab5/proposals/0013-portability.md#L78-L81)). R1 groups by capability: engine (graph/parameters/data/transport/telemetry), host (audio/MIDI devices/rates/buffers), desktop (files/dialogs/settings). Implementation owner is recorded independently of the capability group.
 
 ## Definition, coverage and counts
 
