@@ -1,6 +1,58 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## OWNER STOP — final Fable inbox / incoming Opus lead, 2026-11-17 (ET)
+
+**Owner requested questions now, then stop because the laptop will be offline.** This Codex lead
+has stopped dispatching. STOP messages were sent to all four fresh regular builder chats; only
+an in-flight atomic preservation write/push and signed handoff were allowed. **Both Codex
+automations remain PAUSED.** No timer/check-in/watch was created. The owner's Opus session is the
+next lead; it should identify its actual session and read this handoff before any dispatch.
+The former separate M1 lead is not used. Fable's design work and rulings below remain preserved.
+
+### Fable final-run inbox
+1. **Q21 / issue177:** M6 MT3 needs its declared render flags to pass the dispatcher it cannot edit.
+   Proposed bounded path/revision grant only; MT2 is unaffected.
+2. **Q22 / issue181:** interpret actual voice-count held-note805.5ms silence alongside live/no-restart
+   detector evidence for M2 acceptance3. Exact data and proposal are in QUESTIONS; no threshold waived.
+3. **S3 review159:** independent Claude I1–I5/I8 request6940737605 on exact309bf885 is still pending.
+   The incoming delivery lead cannot count its own review as the independent reviewer.
+4. **CI1 acceptance172:** KEEP facts/report are on main via171/d7e683e; design-seat acceptance requested.
+
+### Exact open heads and restart routes — NOT dispatched
+| Fresh regular chat | Preserved work | Next owner/lead action |
+|---|---|---|
+| WLAB \| B1 \| 5 —6afbec88-faa0-83ea-be48-a4e738acaf6d | **PR167 closed UNMERGED**, branch retained at60cab7ea51ac87ed7eb11a0f1c6623e9cdea5851. Ordinary2/2+finalSR6(b) spent; final tests call test-runner frequencySnapshot inside browser callbacks. | Concrete **#182** filed under unchanged M2r4; newbranch/PR from60cab7ea, browser-safe fixtures plus independent history reconciliation review and every criterion/freshCI. Prompt when resumed: `1:run #182; read its full preserved-history contract`. |
+| WLAB \| B2 \| 5 —6afbec9f-a42c-83e8-a009-aceb1b88bf60 | #175 / **PR176** head930baed4154431a5fe932f0bd5183ad209fd3061, MT2 implementation **not independently accepted**. | Review source/checks/current Result first. SR7 extras: build.py mechanical CMake source/link entries, and test_module.py only retirement of obsolete implemented-test-stage stub expectation; keep render stub/all unrelated assertions. Prompt: `2:run #175/PR176 only after current-head review`. |
+| WLAB \| B3 \| 5 —6afbecae-9d8c-83ea-84b6-48199bdd4d9a | **PR150 merged**1a2467ec6b8d2e4f792726f10b5745765a705f01, reviewed facts head8e14a449bd2c9337dca2ddc7e7cbef7670416306; actual measured source8eb78984.0/2corrections. | Measurement delivery complete. No task assigned; Q22 affects acceptance interpretation only. No redundant142 audit or capture rerun. |
+| WLAB \| B4 \| 5 —6afbecbc-f994-83ea-9de0-19eda5e9f2c1 | #178 / **PR180** head8e07a4dfb85d351b002d357a6855a4a074a5e343, protocol-group source facts **not independently reviewed**. **PR159** parked309bf8851008976070b899768db35eb1e500a6b1. | Review180 before merge; only facts/code/protocol_groups.md allowed. B4 remains M1 serialwriter. No S4 until independentClaude159 review+lead release, with facts task merged/parked. Prompt: `4:run #178/PR180 only after review`. |
+
+### Merges in this delivery run
+| PR | Merge commit |
+|---|---|
+| 163 dated CI1 GAP-ONLY report |0970a6fa1c79f61215b698e036a6b7383b55dedb |
+| 166 sole lead / fresh routes |bc75afad5b96f2c59df73309c6f8297c42c2b249 |
+| 152 T7.0 corrected actual before-facts |395aabbdc4aee73fcc5ba714136ed372b9f18b16 |
+| 171 literal K8 KEEP facts + CI1 report |d7e683efe605aa4a88a6b0c8c7699077a6879b38 |
+| 169 MT1-r descriptor path containment |bb5ba446b8ab310aaad8038dd830a8ef4b808f9c |
+| 174 M10 S3 literal-array source facts |96e97a7b7f77d9c04feeedd5c08e094c11b41ab5 |
+| 179 delivery boundary / Q21 |541960d4dc1a847035f3ce7a620bf93293381ef6 |
+| 150 actual applyGraph continuity facts |1a2467ec6b8d2e4f792726f10b5745765a705f01 |
+
+PR153 also closed UNMERGED at1472584a underSR6(c), preserved, superseded by merged168/169.
+PR130 stays closed unmerged at3fbadbd0, history retained. #155 reverb never started and remains
+queued; no reassignment is implied. No milestone acceptance is claimed by the merges above.
+
+Shared local checkout remains device-results branch at284dfa9330ffd33473cf8fd10e721d66fdb8e877;
+all pre-existing untracked captures/.tmp-s2-review remain untouched. Root's additional
+.tmp-lead6-review contains downloaded review artifacts/probes and is untracked; never commit it.
+All runs were devices/audio/MIDI/LAN off. No main commit, force-push, reset, gate or settings change.
+No credit/reset spent. Last usage check47% five-hour used,39% weekly; later usage not polled.
+
+Signed: gpt-lead, 2026-11-17
+
+---
+
 ## Delivery boundary — gpt-lead, 2026-11-17 (ET)
 
 Sole local gpt-lead and the four fresh regular chats below remain active; no automation resumed.
