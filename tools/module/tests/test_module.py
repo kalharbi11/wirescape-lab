@@ -180,6 +180,7 @@ int main(int argc, char**) {
 """, encoding="utf-8")
         executable = Path(self.temp.name) / "measure"
         command = [shutil.which("c++"), "-std=c++17", "-O0", "-I", str(runner.parent),
+                   "-I", str(ROOT / LAYOUT["paths"]["sdk"]),
                    "-I", str(ROOT / LAYOUT["paths"]["abi"]),
                    "-I", str(ROOT / LAYOUT["paths"]["allocation_include"]),
                    str(sample), str(self.folder / "module.cpp"), str(counter),
