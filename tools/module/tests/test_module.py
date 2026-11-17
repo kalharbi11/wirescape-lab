@@ -163,11 +163,21 @@ class ModuleToolTests(unittest.TestCase):
                                         'info{__FILE__,"Example Gain",1}'))
         self.assert_compiled_bad_identifier_is_contained("module", ["module id is malformed"])
 
+    @staticmethod
+    def duplicate_template_input(source, id_expression, second_name):
+        # Reuse the template's complete port expression, including its kind.
+        # No test-side dependency on the ABI kind identifier is needed.
+        port = re.search(r'ws::port\("audio","Audio",[^)]*\)', source)
+        if port is None:
+            raise AssertionError("expected SDK template input port expression")
+        original = port.group(0)
+        first = original.replace('"audio"', id_expression, 1)
+        second = first.replace('"Audio"', f'"{second_name}"', 1)
+        return source.replace("inputs{" + original + "}",
+                              "inputs{" + first + "," + second + "}", 1)
+
     def test_c4_compiled_file_macro_duplicate_input_ids_never_leak_path(self):
-        self.mutate(lambda s: s.replace(
-            'inputs{ws::port("audio","Audio",WS2_AUDIO)}',
-            'inputs{ws::port(__FILE__,"Audio",WS2_AUDIO),'
-            'ws::port(__FILE__,"Second Audio",WS2_AUDIO)}'))
+        self.mutate(lambda s: self.duplicate_template_input(s, "__FILE__", "Second Audio"))
         self.assert_compiled_bad_identifier_is_contained(
             "input", ["input[0] id malformed", "input[1] id malformed",
                       "input[1] duplicate id (malformed)"])
@@ -182,10 +192,7 @@ class ModuleToolTests(unittest.TestCase):
                       "param[1] duplicate id (malformed)"])
 
     def test_c4_compiled_valid_duplicate_ids_keep_diagnostic_value(self):
-        self.mutate(lambda s: s.replace(
-            'inputs{ws::port("audio","Audio",WS2_AUDIO)}',
-            'inputs{ws::port("audio","Audio",WS2_AUDIO),'
-            'ws::port("audio","Second Audio",WS2_AUDIO)}'))
+        self.mutate(lambda s: self.duplicate_template_input(s, '"audio"', "Second Audio"))
         report = self.assert_failure("C4")
         failure = next(r for r in report["results"] if r["test"] == "C4" and r["status"] == "fail")
         self.assertIn("duplicate id: audio", failure["what"])
@@ -349,7 +356,7 @@ int main(int argc, char**) {
     def test_abi_and_layout_source_isolation(self):
         abi = MODULE / "runner" / "abi_ws2.h"
         self.assertTrue(abi.exists())
-        for source in [*MODULE.glob("*.py"), *MODULE.glob("runner/*.cpp"),
+        for source in [*MODULE.rglob("*.py"), *MODULE.glob("runner/*.cpp"),
                        *MODULE.glob("runner/*.h")]:
             if source == abi:
                 continue
