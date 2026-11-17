@@ -114,6 +114,31 @@ jobs:
         run: python tools/dev.py test
       - name: Native CTest inventory (K1)
         run: ctest --test-dir build/native -C Release -N
+      - name: Install Node 22 for OB-a1 (linux-x64 only)
+        if: matrix.name == 'linux-x64'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: OB-a1 real Studio/native patch round-trip (linux-x64; devices off)
+        if: matrix.name == 'linux-x64'
+        run: |
+          test -x build/native/wirescape_render
+          npm ci --prefix apps/studio
+          checked_out_sha="$(git rev-parse --verify HEAD)"
+          echo "OB-a1 actual checked-out source: $checked_out_sha"
+          python3 tools/patch_roundtrip.py \
+            --renderer build/native/wirescape_render \
+            --report build_reports/ob/patch_roundtrip.json \
+            --source-sha "$checked_out_sha"
+      - name: Archive OB-a1 case results (linux-x64)
+        if: ${{ always() && matrix.name == 'linux-x64' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ob-a1-roundtrip-linux-x64-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob/patch_roundtrip.json
+          if-no-files-found: warn
       - name: Upload native failure logs
         if: failure()
         uses: actions/upload-artifact@v4
