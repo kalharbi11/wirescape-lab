@@ -175,11 +175,14 @@ the OSC modules move their rows to data in M4 E3b and E3c with today's config st
 | `data_slot_count`, `data_slots`, `adopt`, `replace_fade_ms` | as Part 1 |
 | `telemetry_count`, `telemetry` | section 10 |
 | `internal_voices` | for a voice owner: the largest number of voices it runs inside one channel; 0 otherwise |
+| `max_channels` | the most channels the module serves (0 means 16). The host never prepares it with more and says so in the catalogue; today Macro Oscillator and CHAOS are silent above 8 |
+| `native_rate_hz` | 0, or the one rate the inner code runs at (a ported library). At another rate the SDK rate adapter of `0014` runs it, or `prepare` returns `WIRE_UNSUPPORTED` and the host names the module |
 | `licence` | SPDX expression of the module, including third-party code linked into it |
 | `memory_hint_bytes` | upper bound of `fast_bytes + large_bytes` for the default config at 48 kHz, for catalogues and the compiler's budget; the measured value is still asked through `memory_requirements` |
 
 Port additions: `binding` (string or null, section 9), `smooth` and `smooth_ms`.
-Parameter additions: `smooth` and `smooth_ms`. `smooth` is `WIRE_SMOOTH_HOST` 0 (today's host
+Parameter additions: `smooth`, `smooth_ms`, and `group` (a short section name or null; the
+default grouping for generic panels, plugin hosts and the build page). `smooth` is `WIRE_SMOOTH_HOST` 0 (today's host
 behaviour), `WIRE_SMOOTH_NONE` 1, `WIRE_SMOOTH_MS` 2, `WIRE_SMOOTH_AUDIO_RATE` 3. In T3.2 every
 module declares 0 and nothing changes in the sound; `0004` T4.2 gives the other values meaning.
 
