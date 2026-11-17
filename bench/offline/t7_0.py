@@ -26,7 +26,7 @@ WAVES = ("saw", "square")
 MODULE = "essentials.chaos_lite"
 CASES = tuple((rate, wave, hz) for rate in RATES for wave in WAVES for hz in HERTZ)
 SWITCHES = (
-    ("ports.quad_vca", "mode1", 0, 1, {"level1": 1}),
+    ("essentials.quad_vca", "mode1", 0, 1, {"level1": 1}),
     ("fx.delay", "mode", 0, 1, {"mix": 1, "feedback": .4}),
     ("fx.delay", "division", 5, 6, {"mix": 1, "feedback": .4}),
     ("fx.delay", "tone", 0, 1, {"mix": 1, "feedback": .4}),
@@ -89,6 +89,19 @@ def extract_chaos(document: dict, expected_head: str) -> list[dict]:
     return output
 
 
+def require_switch_descriptors(desc: dict) -> None:
+    """Reject source-list identities that do not exist in native descriptors.
+
+    A misspelled module ID must fail capture rather than be recorded as
+    a legitimate runtime-unavailable switch measurement.
+    """
+    for module, param, _, _, _ in SWITCHES:
+        if module not in desc:
+            raise ValueError(f"missing native switch descriptor: {module}")
+        if param not in desc[module].get("parameters", {}):
+            raise ValueError(f"missing native switch parameter: {module}.{param}")
+
+
 def capture_switches(renderer: Path, desc: dict) -> list[dict]:
     rate, seconds, switch_frame = 48000, 2, 48000
     output = []
@@ -140,6 +153,7 @@ def capture(build_dir: Path, out_dir: Path, head: str) -> dict:
     desc = descriptors()
     if MODULE not in desc:
         raise ValueError("CHAOS source descriptor unavailable")
+    require_switch_descriptors(desc)
     out_dir.mkdir(parents=True, exist_ok=True)
     oscillator_sections(renderer, desc, meta, out_dir, False, RATES, t7_chaos_only=True)
     alias_json = out_dir / "dsp/oscillators.json"
