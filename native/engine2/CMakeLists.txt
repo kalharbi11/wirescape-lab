@@ -58,7 +58,7 @@ foreach(mode scalar portable)
   add_test(NAME abi2_${mode}_ports COMMAND abi2_${mode}_ports)
 endforeach()
 add_executable(abi2_benchmark tests/benchmark.cpp)
-target_link_libraries(abi2_benchmark PRIVATE wirescape_engine2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_benchmark PRIVATE wirescape_engine2)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
 add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark.json)
 foreach(frames IN ITEMS 64 128 256)
@@ -224,7 +224,7 @@ function(abi2_assert_no_abi1_engine target_name)
     endif()
   endforeach()
 endfunction()
-foreach(compare_target IN ITEMS abi2_integration_tests abi2_module_tests
+foreach(compare_target IN ITEMS abi2_benchmark abi2_integration_tests abi2_module_tests
         abi2_returned_filter_stress
         abi2_clock_tests abi2_function_envelope_tests abi2_ladder_tests
         abi2_mixer_tests abi2_noise_tests abi2_output_tests
