@@ -18,7 +18,8 @@ still applies. The engineering constraints below still apply.
 | `gpt-builder1` … `gpt-builder4` | GPT | build one contracted task each, fix CI and review corrections, leave a PR result |
 | `claude-lead` | Claude | delivery lead with the same role and authority as `gpt-lead` (owner, 2026-11-16), used when the owner assigns the lead to a Claude session; follows `docs/context/CODEX_LEAD.md`; trigger `claude lead: run`. One lead is active at a time; the active lead is named in `CURRENT.md` |
 | `claude-builder1` … `claude-builder3` | Claude | build one explicitly assigned task each, fix CI and review corrections, leave a PR result |
-| `gpt-reviewer`, `claude-reviewer` | either | review only, when assigned |
+| `gpt-reviewer` | GPT | independent source, tests, CI and evidence review when owner-assigned; records signed findings and readiness, but never replaces a required Claude contract-review or Fable decision |
+| `claude-reviewer` | Claude | independent review when assigned, including contracts that explicitly require a Claude reviewer |
 
 Triggers: `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
 → Fable. `lead: run` or `lead: run B<n>` → gpt-lead. `claude lead: run` → claude-lead. `1:run` → the builder identified by the
