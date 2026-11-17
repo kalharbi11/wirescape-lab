@@ -5,6 +5,29 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Local OB dispatch — 2026-11-17 ET
+
+Dated plan: [OB_PLAN.md](OB_PLAN.md), ready issues #206–#210, workstream trackers #198–#205.
+**Only OB0/OB1 tasks run. Everything else is parked until OB1.** The owner explicitly authorized
+B5 as a floater for small tasks; it has no standing product lane. Prior four-builder staffing
+text is superseded only for this bounded owner assignment, with no change to reviews or gates.
+
+| Builder / ordinary ChatGPT chat | Current packet | Next tasks and gate |
+|---|---|---|
+| B1 / 6afc8740-e58c-83ea-a876-cf6962d3034b | #206 round-trip CI while #182/189 correction1 edcc97f awaits fresh evidence/review | #207 tests-only regression packet in free files; #191 after actual189 merge, then192 behind OB0 work |
+| B2 / 6afc875c-9b00-83e9-b9c9-7437e6adab67 | #193/PR196 actual full-engine R2 and D5 artifacts | #209 UI facts after bench release; e2 after208 merge plus exact issue and test slot |
+| B3 / 6afc877d-2ac8-83ea-882a-04ca69e3ac08 | #210 Macro S7.4, independent module folder; #155/184 source parked | S7.2 only after155 merge and exact stage issue; then eligible sound task from202 |
+| B4 / 6afc878d-90a8-83ea-9f1b-990fb2300ea2 | #188/190 exact96000-sample frozen capture → conversion → deletion | S5a → S5b only after each actual predecessor merge and stage issue; S6 announced ≥1 day ahead |
+| B5 / 6afca215-5574-83e9-a59a-55e6449e8dc6 | #208 module census, only facts/code/module_census.md | Small read-only OB0 readiness inventory under198, then available to lead; no arbitrary task pickup |
+
+Architect ruling190#6950233998 has released the exact frozen conversion; older “wait for ruling”
+handoffs are superseded. All finite task queues were sent to these regular chats. Historical cloud
+workers remain stopped. One writer per file, no self-merge or gate relaxation, no extra monitor.
+The two existing finite local check-ins remain the only scheduled checks. Read changed Results
+once, resume unfinished authorized work, and preserve current PRs/correction counts.
+
+Signed: gpt-lead, 2026-11-17
+
 ## Seats
 - **Design: Claude Architect** (owner's Opus session; `proposals/0017` §1). Plans, rules, accepts,
   does the Claude contract reviews. **Never the delivery lead** (0017 §1 rule 3).
