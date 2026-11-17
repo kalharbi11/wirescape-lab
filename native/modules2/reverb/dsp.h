@@ -65,9 +65,9 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
-    // Non-48 kHz: cache the sample-accurate damping response for unchanged values.
-    // The 48 kHz branch below still uses the original per-sample coefficient.
-    float last_rate_damping = -1.f, rate_damping = 0.f;
+    // Prepared once per sample rate: R2-calibrated spectral damping compensation.
+    // The 48 kHz path still uses the original per-sample pole bit-for-bit.
+    float rate_damping_scale = 1.f;
     static constexpr float kWetMakeup = 5.f;
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
@@ -75,7 +75,10 @@ struct Reverb {
     static uint32_t line_count(double sr) { return uint32_t(std::ceil(sr * .103)) + 8; }
     static uint32_t pre_count(double sr) { return uint32_t(std::ceil(sr * .25)) + 8; }
     static uint32_t diffusion_count(double sr, uint32_t k) {
-        return uint32_t(std::ceil(double(diffusion_base[k]) * sr / 48000.0)) + 2;
+        // Scale the *entire* 48 kHz diffuser interval, including the original
+        // two guard samples. Non-48 kHz rounding previously changed the room's
+        // physical-time impulse geometry (especially at 96 kHz).
+        return uint32_t(std::ceil(double(diffusion_base[k] + 2) * sr / 48000.0));
     }
     static ws2_memory memory_requirements(const ws2_config &c) {
         ws2_memory m{};
@@ -105,8 +108,22 @@ struct Reverb {
         const double factor = .25 + .75 * std::clamp(size, 0.f, 1.f);
         return nearest_prime(uint32_t(std::lround(double(base[k]) * double(rate) * factor / 48000.0)));
     }
+    // Fractional taps preserve the *actual* 48 kHz prime room geometry at
+    // other rates. Re-prime-rounding the already scaled length changed the
+    // echo topology (and the suffix -60 dB crossing) with sample rate.
+    float physical_length(uint32_t k, float size) const {
+        if (rate == 48000.f) return float(scaled_length(k, size));
+        const double factor = .25 + .75 * std::clamp(size, 0.f, 1.f);
+        const uint32_t original = nearest_prime(uint32_t(std::lround(double(base[k]) * factor)));
+        return float(double(original) * double(rate) / 48000.0);
+    }
     bool prepare(const ws::Setup &s) {
         rate = float(s.sample_rate());
+        // The R2 suffix-envelope test at three rates is not a pure single-pole
+        // RT60 test: the FDN's fractional and diffuser geometry also matters.
+        // Compensate the sample-rate spectral response only outside 48 kHz.
+        // Exponent 3/4 is explicitly fixed by M7 S7.1 measured calibration.
+        rate_damping_scale = rate == 48000.f ? 1.f : std::pow(48000.f / rate, .75f);
         line_capacity = line_count(s.sample_rate());
         pre_capacity = pre_count(s.sample_rate());
         for (auto &p : lines) {
@@ -131,11 +148,9 @@ struct Reverb {
         freeze_amount = phase_a = phase_b = 0;
         pre_samples = .02f * rate;
         last_mix = last_size = -1.f;
-        last_rate_damping = -1.f;
-        rate_damping = 0.f;
         for (uint32_t k = 0; k < 8; ++k) {
             if (lines[k]) std::fill_n(lines[k], line_capacity, 0.f);
-            delay[k] = target[k] = float(scaled_length(k, .5f));
+            delay[k] = target[k] = physical_length(k, .5f);
             gain[k] = .9f;
             low[k] = 0;
         }
@@ -166,24 +181,11 @@ struct Reverb {
         if (size != last_size) {
             last_size = size;
             for (uint32_t k = 0; k < 8; ++k) {
-                target[k] = float(std::min(line_capacity - 3, scaled_length(k, size)));
+                target[k] = std::min(float(line_capacity - 3), physical_length(k, size));
             }
         }
         const float rt60 = std::clamp(b.param(DECAY).value(0, i), .2f, 20.f);
         for (uint32_t k = 0; k < 8; ++k) gain[k] = float(std::exp(-kLn1000 * delay[k] / (rt60 * rate)));
-    }
-    // The original damping is a per-48-kHz-sample pole, not a time constant.
-    // Preserve its exact 48 kHz path and map the pole's physical decay over a
-    // 1/48,000-second interval to an arbitrary sample rate:
-    // pole(rate) ^ (rate / 48000) == pole(48000).
-    // A cache avoids pow() in the steady-state audio loop; automation and the
-    // freeze ramp remain sample-accurate when the effective pole changes.
-    float normalized_damping(float pole) {
-        if (pole != last_rate_damping) {
-            last_rate_damping = pole;
-            rate_damping = std::pow(pole, 48000.f / rate);
-        }
-        return rate_damping;
     }
     void process(ws::Block &b) {
         auto lout = b.out(0), rout = b.out(1);
@@ -199,9 +201,12 @@ struct Reverb {
             const float frozen_target = b.param(FREEZE).value(0, i) >= .5f ? 1.f : 0.f;
             freeze_amount += std::clamp(frozen_target - freeze_amount, -freeze_step, freeze_step);
             const float damp = std::clamp(b.param(DAMPING).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
-            // Keep identical floating-point operations at 48 kHz for the
-            // immutable golden; only other rates need the physical-time pole.
-            const float damp_pole = rate == 48000.f ? damp : normalized_damping(damp);
+            // Do not alter any 48 kHz operation. At other rates the prepared
+            // calibration accounts for the R2 impulse-tail response of the
+            // corrected physical-time delay geometry; keep modulation and
+            // freeze transitions sample-accurate without pow() in process().
+            const float damp_pole = rate == 48000.f ? damp
+                                                       : std::clamp(damp * rate_damping_scale, 0.f, 1.f);
             const float motion = std::clamp(b.param(MOTION).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
             const float mix = std::clamp(b.param(MIX).value(0, i), 0.f, 1.f);
             const float width = std::clamp(b.param(WIDTH).value(0, i), 0.f, 1.f);

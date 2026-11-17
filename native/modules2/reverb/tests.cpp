@@ -157,11 +157,21 @@ void test_lengths_and_rates() {
     for (double rate : {44100., 48000., 96000.}) {
         Reverb dsp;
         dsp.rate = float(rate);
+        Reverb at_48k;
+        at_48k.rate = 48000.f;
+        for (uint32_t section = 0; section < 4; ++section) {
+            const double at_rate_seconds = double(Reverb::diffusion_count(rate, section)) / rate;
+            const double reference_seconds = double(Reverb::diffusion_count(48000., section)) / 48000.;
+            REQUIRE(std::abs(at_rate_seconds - reference_seconds) <= 1.01 / rate);
+        }
         for (float size : {0.f, .2f, .5f, 1.f}) {
             for (uint32_t i = 0; i < 8; ++i) {
                 const uint32_t a = dsp.scaled_length(i, size);
                 REQUIRE(Reverb::prime(a) && a < Reverb::line_count(rate) - 2);
                 for (uint32_t j = 0; j < i; ++j) REQUIRE(a != dsp.scaled_length(j, size));
+                const double physical_seconds = double(dsp.physical_length(i, size)) / rate;
+                const double original_seconds = double(at_48k.scaled_length(i, size)) / 48000.;
+                REQUIRE(std::abs(physical_seconds - original_seconds) < 1e-6);
             }
         }
         Rig rig(rate, 16);
