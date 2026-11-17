@@ -1132,6 +1132,8 @@ export class App {
    */
   private async applyGroove(id: number): Promise<boolean> {
     if (this.documentBusy || this.draftVisible || !this.engine.canApplyGroove(id)) return false;
+    // Q16: a groove graph replan must not anchor ahead of an unconfirmed edit.
+    if (!await this.waitBeforeGraphAuthoring() || this.documentBusy || this.draftVisible) return false;
     const unstage = this.grooves.stage(id);
     try {
       const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
