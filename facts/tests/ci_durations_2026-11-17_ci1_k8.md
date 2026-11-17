@@ -50,7 +50,8 @@ Run44028971243 event=pull_request, associated PR159, attempt1, exact head above.
 | Sanitizer CTests | 83/83 passed; test interval64.25s |
 
 Matched-cache source: [main run44019382004](https://github.com/kalharbi11/wirescape-lab/actions/runs/44019382004).
-It is later than the original main seed; the selected PR run is after both main saves.
+It is later than the original main seed; the selected PR run is after the initial seed and the named matched-key origin save.
+Intermediate main saves are not enumerated here.
 The primary interval uses GitHub job API timestamps. The full log interval is separately named;
 both are below318s. The original CI1 before value is438s (7.30min), so the API interval differs
 by141s (2.35min). This is one selected Q17 observation, not a repeated sample.
