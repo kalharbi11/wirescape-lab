@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB — the Owner Build: a Wirescape the owner uses alone on the Pi 5
 
-**Revision:** r1 — **ACCEPTED by the Claude Architect, 2026-11-17 (ET).** Design: `proposals/0017`
+**Revision:** r2 (adds OB-e module census/smoke, OB-f UI smoothness; nothing in flight stops) — r1 **ACCEPTED by the Claude Architect, 2026-11-17 (ET).** Design: `proposals/0017`
 section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the web build is not in it.
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
@@ -17,6 +17,25 @@ CHOKE fixes, and the owner's saved patches still load, render and save without l
 | **OB-c** T6.8 device-free regressions: MIDI to CV, ASIO list while playing, panic gap, buffer-change gap, plus the 4 unverified items in `docs/context/KNOWN_ISSUES.md`. One failing-then-passing test per item; a fix only where the test names the cause | B | tests in `native/tests2/`, `apps/studio/` tests; fixes in the file the test names | regression tests: **now**; fixes after M1 S6 | lead |
 | **OB-d** list of bundled patches whose sound changes after M7 batch 2, with before/after render hashes; rebuild each, owner listens | A then B | `facts/sound/ob_d_patches.md`, `patches/` | M7 batch 2 | lead |
 | **OB-tag** tag `owner-build-0` (OB0) and later `owner-build-1` (OB1) on `main`; notes in `docs/RELEASES.md` | A | `docs/RELEASES.md` | the build's row in PRIORITY | lead (tag only, never moved) |
+
+### r2 additions (Architect, 2026-11-17, owner request): the four things the owner needs
+The owner's minimum: **sound engine, smooth UI, live editing, every module working.** r1 covered
+live editing (M2, M4) and sound (M1, M7). r2 adds the two that had no task. Nothing in flight stops.
+
+| Task | Class | Allowed paths | Depends on | Merge |
+|---|---|---|---|---|
+| **OB-e1** module census (facts): for each of the 33 `native/modules2/` modules, is it in the Studio palette, in a bundled patch, covered by a test, has a known issue. One table, no opinions | A | `facts/code/module_census.md` | none: **file now** | lead |
+| **OB-e2** every-module smoke test in Lab: create, prepare at 44.1/48 kHz and blocks 64/256, render 2 s with default params and a patched input; finite output, no allocation in process, not silent where the module makes sound; parameter sweep min→max without NaN | B | `native/tests2/` (new test), CI step only to add it | OB-e1 | lead |
+| **OB-e3** fixes for modules OB-e2 fails, one PR per module, golden unchanged unless the fix is the subject | B | that module's folder, its test | OB-e2 | lead |
+| **OB-f1** UI smoothness facts: on the heaviest bundled patch in Studio (Playwright, headless, CI Linux): frame-time p50/p95/max while dragging a knob, moving a module, drawing a cable, and telemetry running; time from knob drag to engine param ack. Builds on `facts/app/ui-attribution-*` | A | `facts/app/ui_smoothness_<date>.md`, `bench/ui/` (new) | none: **file now** | lead |
+| **OB-f2** UI smoothness fixes for the worst rows of OB-f1, each with a before/after row | B | `apps/studio/` | OB-f1; the Architect sets targets from OB-f1 (0017 §1 rule 1) | lead |
+
+**Added to acceptance:** 5. OB-e2 green for every module in the palette (a module that cannot be
+fixed before OB1 is hidden from the palette and listed). 6. OB-f2 targets met on CI, and the
+owner's Pi session finds no visible stutter during the 100 scripted edits.
+
+**Out of OB (P4, do not file):** third-party module drop-in, SDK, dev loop, panels, Daisy/hardware,
+protocol publication, web build features (M6 MT2+, M8–M12 beyond facts).
 
 ## Invariants
 - **B1** No patch file is rewritten by load. Unknown keys load as `0017` section 5(d) rules.
