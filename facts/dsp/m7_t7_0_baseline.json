@@ -1,0 +1,477 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "task": "M7 r1 T7.0",
+  "status": "measured",
+  "measurement_provenance": {
+    "source_baseline_main": "5d6bbbc52902afe8416b3c38cc5af82320c93867",
+    "source_commit_measured": "1b36751e44d99536166962094d52a713dfb989a2",
+    "renderer_binary_sha256": "176dca59fc8c260ec4b846bddac13a4c8ce27d0095f08ef86679feb76ee92361",
+    "artifact_sha256": "86d7f3262ca6f2b124cc87d326ad4b936c4300718be9ec250ee862f9adb988df",
+    "machine_class": {
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "architecture": "x86_64",
+      "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+      "compiler": "c++",
+      "configuration": "Release"
+    },
+    "toolchain": {
+      "runner_image": "ubuntu24",
+      "runner_image_version": "20261111.127.1",
+      "runner_label": "ubuntu-24.04",
+      "python": "3.12.16",
+      "cmake": "3.31.6",
+      "cxx": "Ubuntu GCC 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1)"
+    },
+    "measurement_date_et": "2026-11-17",
+    "capture_status": "hosted exact-built-head x64: 24/24 CHAOS and 4/4 stepped switches measured, including essentials.quad_vca.mode1",
+    "historic_reference": {
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "artifact": "facts/dsp/ci-linux-x64/oscillators.json",
+      "schema": "historical nonharmonic floor, not new alias-only metric",
+      "chaos_case_rows": 0
+    },
+    "measurement_date_utc": "2026-11-17T06:10:13Z",
+    "hosted_capture": {
+      "run_id": 44029050283,
+      "job_id": 133856273901,
+      "artifact_id": 14303479986,
+      "artifact_name": "t7-0-capture-ubuntu-24.04",
+      "zip_sha256": "9de6d99961c2664b7e69c24fcc26d66488a1258f7a071c5636516380b16be0fd",
+      "summary_path": "t7-0-summary.json",
+      "source_json_path": "t7-0-raw/dsp/oscillators.json",
+      "source_json_sha256": "86d7f3262ca6f2b124cc87d326ad4b936c4300718be9ec250ee862f9adb988df",
+      "source_commit": "1b36751e44d99536166962094d52a713dfb989a2"
+    },
+    "arm64_directional": {
+      "run_id": 44029050283,
+      "job_id": 133856273490,
+      "artifact_id": 14304228724,
+      "artifact_name": "t7-0-capture-ubuntu-24.04-arm",
+      "source_commit": "1b36751e44d99536166962094d52a713dfb989a2",
+      "zip_sha256": "28dd6817e59a2b495f20a6cf322b8585fa79f64445d0b8e70b6cdf6a2bae8589",
+      "renderer_binary_sha256": "fb94542bcd55e17aa8956a068969133189a005f4a9e1e7c22ea5975511db0207",
+      "source_json_sha256": "a6e07d53cfa217da37750b9ba854b22050cad1e9212e02426c2643390d21e858",
+      "runner_image": "ubuntu24-arm64",
+      "runner_image_version": "20261111.182.1",
+      "runner_arch": "aarch64",
+      "cpu_class": "aarch64",
+      "compiler": "Ubuntu GCC 13.3.0",
+      "python": "3.12.16",
+      "cmake": "3.31.6",
+      "measurement_date_utc": "2026-11-17T06:10:36Z",
+      "alias_case_status": "24/24 measured",
+      "switch_case_status": "4/4 measured, including essentials.quad_vca.mode1",
+      "max_abs_alias_floor_delta_db": 0.0000011160693738077043,
+      "median_abs_alias_floor_delta_db": 2.2762790763408702e-7,
+      "max_abs_rms_fs_delta": 1.3907730772588778e-8,
+      "max_abs_switch_click_delta_dbfs": 0.000023081704277672088,
+      "interpretation": "directional agreement only; neither bit-identical nor physical-audio parity"
+    }
+  },
+  "method": {
+    "source": "proposals/0011-sound-quality-order.md, M7 r1; bench/offline/metrics.py oscillator_metrics and step_metrics",
+    "chaos": "Hann FFT; energy in expected folded-harmonic bins excluding true below-Nyquist harmonics; existing alias_floor_dbfs dBFS; actual isolated alias FFT bin availability recorded",
+    "switch": "2nd-order Butterworth 2 kHz high-pass; switch-centered +/-25ms; amplitude highpass_peak_fs and 20*log10(peak_fs) dBFS",
+    "sample_rates_hz": [
+      44100,
+      48000,
+      96000
+    ],
+    "fundamentals_hz": [
+      110,
+      1760,
+      3520,
+      7040
+    ],
+    "waveforms": [
+      "saw",
+      "square"
+    ],
+    "offline_render_seconds": 2,
+    "target_values_only": {
+      "S7.3_high_freq_alias_reduction_db_48000": 20,
+      "S7.3_high_freq_alias_reduction_db_44100": 15,
+      "S7.3_low_110hz_allowed_regression_db": 1,
+      "S7.3_rms_tolerance_db": 0.5,
+      "S7.5_S7.6_switch_reduction_db": 20,
+      "S7.3_floor_dbfs": -80
+    },
+    "new_metric_gate": false
+  },
+  "chaos_alias_rows": [
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -39.39643340467205,
+      "rms_fs": 0.20381768415729856,
+      "alias_expected_bin_count": 5409
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -27.315589379901336,
+      "rms_fs": 0.21030228610159382,
+      "alias_expected_bin_count": 342
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -24.500051695630376,
+      "rms_fs": 0.20858527275462563,
+      "alias_expected_bin_count": 171
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -21.956223763668348,
+      "rms_fs": 0.2052060723603866,
+      "alias_expected_bin_count": 81
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -36.60500138899152,
+      "rms_fs": 0.3166975775392479,
+      "alias_expected_bin_count": 5409
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -24.13029008862906,
+      "rms_fs": 0.3316093429064836,
+      "alias_expected_bin_count": 342
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -21.07888147297292,
+      "rms_fs": 0.3294285114725236,
+      "alias_expected_bin_count": 171
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -19.888377942469493,
+      "rms_fs": 0.3248892471845933,
+      "alias_expected_bin_count": 81
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -39.90765924414583,
+      "rms_fs": 0.2024452874794181,
+      "alias_expected_bin_count": 5886
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -27.630974505341573,
+      "rms_fs": 0.2100480129702842,
+      "alias_expected_bin_count": 369
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -24.413627774288305,
+      "rms_fs": 0.2080670900025708,
+      "alias_expected_bin_count": 189
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -21.847113082463853,
+      "rms_fs": 0.2041565668366347,
+      "alias_expected_bin_count": 90
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -37.141149494444676,
+      "rms_fs": 0.3138802881042255,
+      "alias_expected_bin_count": 5886
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -24.83447441647449,
+      "rms_fs": 0.3313071401181518,
+      "alias_expected_bin_count": 369
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -21.008560872683848,
+      "rms_fs": 0.3287749212994898,
+      "alias_expected_bin_count": 189
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -19.545816585486374,
+      "rms_fs": 0.3234972451608996,
+      "alias_expected_bin_count": 90
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -44.61498432383293,
+      "rms_fs": 0.18201376394554902,
+      "alias_expected_bin_count": 11781
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -32.34513837537304,
+      "rms_fs": 0.20746400168463947,
+      "alias_expected_bin_count": 738
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -29.27639670024594,
+      "rms_fs": 0.20297237518255015,
+      "alias_expected_bin_count": 369
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -26.0564945504346,
+      "rms_fs": 0.1938544362112383,
+      "alias_expected_bin_count": 189
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 110,
+      "status": "measured",
+      "alias_floor_dbfs": -42.29083453051146,
+      "rms_fs": 0.27358143360187076,
+      "alias_expected_bin_count": 11781
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 1760,
+      "status": "measured",
+      "alias_floor_dbfs": -29.398718330975168,
+      "rms_fs": 0.3279765354648648,
+      "alias_expected_bin_count": 738
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 3520,
+      "status": "measured",
+      "alias_floor_dbfs": -26.481878135549643,
+      "rms_fs": 0.3222348082830644,
+      "alias_expected_bin_count": 369
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 7040,
+      "status": "measured",
+      "alias_floor_dbfs": -22.826503650907615,
+      "rms_fs": 0.30996179653345124,
+      "alias_expected_bin_count": 189
+    }
+  ],
+  "switch_click_rows": [
+    {
+      "module": "essentials.quad_vca",
+      "parameter": "mode1",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "measured",
+      "switch_click_peak_fs": 0.049578541970749734,
+      "switch_click_peak_dbfs": -26.094124986365436,
+      "render_counters": {
+        "arena_full_events": 0,
+        "dropped_events": 0,
+        "faults": 0,
+        "late_events": 0,
+        "ring_full_events": 0,
+        "stale_events": 0
+      }
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "mode",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "measured",
+      "switch_click_peak_fs": 0.007187763577553241,
+      "switch_click_peak_dbfs": -42.868124325898584,
+      "render_counters": {
+        "arena_full_events": 0,
+        "dropped_events": 0,
+        "faults": 0,
+        "late_events": 0,
+        "ring_full_events": 0,
+        "stale_events": 0
+      }
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "division",
+      "before": 5,
+      "after": 6,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "measured",
+      "switch_click_peak_fs": 0.007187763577553241,
+      "switch_click_peak_dbfs": -42.868124325898584,
+      "render_counters": {
+        "arena_full_events": 0,
+        "dropped_events": 0,
+        "faults": 0,
+        "late_events": 0,
+        "ring_full_events": 0,
+        "stale_events": 0
+      }
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "tone",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "measured",
+      "switch_click_peak_fs": 0.007187763577553241,
+      "switch_click_peak_dbfs": -42.868124325898584,
+      "render_counters": {
+        "arena_full_events": 0,
+        "dropped_events": 0,
+        "faults": 0,
+        "late_events": 0,
+        "ring_full_events": 0,
+        "stale_events": 0
+      }
+    }
+  ],
+  "below_minus80_target_reset_observation": {
+    "sample_count": 24,
+    "observed_below_minus80": false,
+    "lowest_observed_alias_floor_dbfs": -44.61498432383293,
+    "floor_reference_dbfs": -80,
+    "target_reset_question": "not triggered by current source-pinned before observations; not a pass/fail gate"
+  },
+  "unknown_or_unmeasured": [
+    "ringmod2: not built as a runtime module at current baseline; no sound-parity observation",
+    "ADSR/VCO CHOKE: event-driven; no native render/capture in this task"
+  ],
+  "raw_source": "bench/offline/T7_0_CAPTURE.md",
+  "capture_artifact": {
+    "run_id": 44029050283,
+    "source_commit": "1b36751e44d99536166962094d52a713dfb989a2",
+    "x64_artifact_id": 14303479986,
+    "arm64_artifact_id": 14304228724,
+    "source_json_hash": "86d7f3262ca6f2b124cc87d326ad4b936c4300718be9ec250ee862f9adb988df",
+    "verified_checks": [
+      "x64+ARM64 successful hosted capture jobs and exact source SHAs from raw/summary/run info",
+      "both source oscillator JSON SHA-256 independently recomputed from downloaded ZIP bytes",
+      "24 unique alias rows per architecture independently matched against each corresponding raw oscillator JSON",
+      "all four native switch rows measured at 48 kHz / frame 48000, including Quad VCA mode1",
+      "finite peak FS/dBFS consistency, zero render fault counters and ARM64 directional comparison",
+      "old x64 CHAOS 24 numeric rows and Delay 3 numeric rows independently confirmed unchanged"
+    ],
+    "limitations": [
+      "native results are device-off offline renders, not physical-audio sound parity",
+      "historical oscillator aggregate has zero CHAOS A source cases and is not substituted",
+      "renderer binary hashes were reported by each hosted runner, not independently rehashed from uploaded binary bytes"
+    ]
+  }
+}

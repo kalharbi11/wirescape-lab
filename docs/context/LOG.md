@@ -1,6 +1,24 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — run 2 of 2: modules and portability (Fable)
+- **Notes:** `0012` Wire module header (Part 1 exact for M4 E5 and E3a; Part 2 for T3.2),
+  `0013` portability (engine not ported to hardware; one planner, one host arithmetic,
+  bit-identical compiler gate; control surface), `0014` categories (GUTTR, Macro Oscillator and
+  CHAOS need three fields beyond 0012, now in it), `0015` panels (panel file v1, host API v1).
+- **Contracts:** M8 to M12 accepted. M10 batch 0 and M12 P0 start now.
+- **Rulings:** Q19 (M1 r3: `abi1_mono` stays in S3, retires by name in S4), Q20 (M2 r4: E1b
+  refiled as E1b-r).
+- **Changed from earlier notes:** `0003` "no double-precision library calls" is relaxed for
+  the portable tier (13 modules have such references; removing them changes sound). `0003`
+  "stable only after the three ports" becomes "freeze at T3.2, add what the ports show".
+- **Not verified by running code:** every note rests on source reading and three Opus
+  inventories (header, portability, categories and panels), reviewed but not re-derived.
+  Daisy Seed memory and pin facts are not in `facts/` yet (M10 S5).
+- **Left:** Sub-patch design, state carry across builds, build page contract, T4.2.
+
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — Q16, Q17, Q18 answered; CI1 r4 (Fable)
 - **Q16 (E1b):** Q14's anchor holds once "nothing pending" includes incremental edits: a graph
   chain opens only after outstanding edits settle. Three tests added (e–g). Same single packet.

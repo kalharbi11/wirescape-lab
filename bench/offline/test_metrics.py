@@ -13,7 +13,8 @@ from metrics import (basic, click_events, direct_envelope_metrics,
                      filter_impulse_evidence, filter_metrics,
                      folded_alias_frequencies, oscillator_metrics, patch_metrics,
                      read_audio, r2_impulse_metrics, r2_tail_metrics,
-                     self_oscillation_metrics, step_metrics, sweep_residual_metrics)
+                     self_oscillation_metrics, step_metrics, sweep_residual_metrics,
+                      switch_click_metrics)
 
 
 class MetricsTests(unittest.TestCase):
@@ -215,6 +216,43 @@ class MetricsTests(unittest.TestCase):
         sustained[rate * 2:] = .1
         active = self_oscillation_metrics(sustained, rate)
         self.assertAlmostEqual(active["tail_rms_fs"], .1, places=7)
+
+    def test_t7_switch_click_step_and_crossfade_known_answers_three_rates(self):
+        # Same deliberately constructed 0->0.8 DC step, once immediate and
+        # once over 10 ms; both cases preserve the same final steady state.
+        for rate in (44100, 48000, 96000):
+            with self.subTest(rate=rate):
+                switch = rate // 2
+                abrupt = np.zeros(rate, dtype=float)
+                abrupt[switch:] = .8
+                fade = max(4, int(rate * .010))
+                gentle = np.zeros(rate, dtype=float)
+                gentle[switch:switch + fade] = .8 * np.linspace(0, 1, fade)
+                gentle[switch + fade:] = .8
+                immediate = switch_click_metrics(np.column_stack([abrupt, abrupt]), switch, rate)
+                crossfade = switch_click_metrics(np.column_stack([gentle, gentle]), switch, rate)
+                self.assertEqual(immediate["status"] if "status" in immediate else "measured",
+                                 "measured")
+                self.assertGreater(immediate["switch_click_peak_fs"],
+                                   crossfade["switch_click_peak_fs"])
+                self.assertGreater(immediate["switch_click_peak_dbfs"],
+                                   crossfade["switch_click_peak_dbfs"] + 20)
+                self.assertAlmostEqual(immediate["switch_click_peak_fs"],
+                    step_metrics(np.column_stack([abrupt, abrupt]), switch, rate)["highpass_peak_fs"])
+                self.assertAlmostEqual(immediate["switch_click_peak_dbfs"],
+                    20 * math.log10(immediate["switch_click_peak_fs"]))
+                self.assertEqual(immediate["highpass_hz"], 2000)
+                self.assertAlmostEqual(immediate["window_ms"],
+                    2000 * int(.025 * rate) / rate, places=12)
+
+    def test_t7_switch_click_silence_and_short_capture_are_explicit(self):
+        rate = 48000
+        zero = switch_click_metrics(np.zeros((rate, 2)), rate // 2, rate)
+        self.assertEqual(zero["switch_click_peak_fs"], 0.0)
+        self.assertEqual(zero["switch_click_peak_dbfs"], "-inf")
+        missing = switch_click_metrics(np.zeros((3, 2)), 1, rate)
+        self.assertIsNone(missing["switch_click_peak_fs"])
+        self.assertEqual(missing["status"], "unavailable")
 
     def test_response_and_step(self):
         t = np.arange(48000) / 48000

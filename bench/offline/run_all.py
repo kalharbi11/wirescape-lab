@@ -521,10 +521,11 @@ def cpu_sections(probes, mods, meta, out, quick, soak_seconds=None):
                         soak_seconds_for(quick, soak_seconds), probes["wirescape-engine"])
 
 
-def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000)):
+def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000),
+                        t7_chaos_only=False):
     rows = []
     seconds = .5 if quick else 2
-    targets = (110, 440, 1760, 3520, 7040)
+    targets = (110, 1760, 3520, 7040) if t7_chaos_only else (110, 440, 1760, 3520, 7040)
     configurations = (
         [("essentials.vco", None, "sine")] +
         [("essentials.chaos_lite", shape, name)
@@ -532,6 +533,11 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
         [("ports.macro_oscillator", model, "model_%02d" % model)
          for model in range(24)]
     )
+    if t7_chaos_only:
+        configurations = [("essentials.chaos_lite", shape, name)
+                          for shape, name in ((0, "saw"), (1, "square"))]
+        if tuple(rates) != (44100, 48000, 96000):
+            raise ValueError("T7.0 CHAOS source requires rates 44100,48000,96000")
     for rate in rates:
         for ident, model, waveform in configurations:
             descriptor = desc.get(ident)
@@ -603,7 +609,9 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
         "thd_unit": "dB", "pitch_unit": "cents",
         "chaos_waveforms": "A oscillator saw/square/sine; B level=0, gate and velocity held at 1",
         "macro_models": "0..23 (48000 Hz only)",
-        "FFT": "Hann window; +/-4 bin harmonic exclusion; folded harmonics to 2*sample_rate"})
+        "FFT": "Hann window; +/-4 bin harmonic exclusion; folded harmonics to 2*sample_rate",
+        "t7_chaos_only": t7_chaos_only})
+    return rows
 
 
 def filter_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 96000)):
@@ -968,6 +976,8 @@ def bundled_section(renderer, meta, out, quick, rates=(44100, 48000, 96000)):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--quick", action="store_true", help="short measurement windows")
+    ap.add_argument("--t7-chaos-only", action="store_true",
+                    help="measure all 24 M7 CHAOS A saw/square alias cases without other fact sections")
     ap.add_argument("--sample-rates", default="44100,48000,96000",
                     help="DSP sample rates as comma-separated Hz values")
     ap.add_argument("--soak-seconds", type=float, default=None,
@@ -988,6 +998,23 @@ def main(argv=None):
     except ValueError as exc:
         ap.error("--sample-rates: " + str(exc))
     build = args.build_dir.resolve()
+    if args.t7_chaos_only:
+        if args.quick:
+            ap.error("--t7-chaos-only requires full two-second renders, not --quick")
+        renderer = executable(build, "wirescape_render")
+        if renderer is None:
+            ap.error("Release wirescape_render unavailable; build native at the exact checkout")
+        meta = provenance(build)
+        meta["dsp_sample_rates_hz"] = list(rates)
+        rows = oscillator_sections(renderer, descriptors(), meta, args.out_dir.resolve(),
+                                   False, rates, t7_chaos_only=True)
+        expected = {(rate, wave, hz) for rate in (44100, 48000, 96000)
+                    for wave in ("saw", "square") for hz in (110, 1760, 3520, 7040)}
+        identities = [(r["sample_rate_hz"], r["waveform"], r["target_hz"]) for r in rows]
+        if len(identities) != 24 or set(identities) != expected or len(set(identities)) != 24:
+            raise RuntimeError("T7.0 alias probe omitted or duplicated a required CHAOS case")
+        print("T7.0 CHAOS full 24-case probe wrote dsp/oscillators.json", flush=True)
+        return 0
     required = ("abi2_module_cpu_probe", "abi2_benchmark", "wirescape_soak",
                 "wirescape_render", "wirescape-engine")
     binaries = {name: executable(build, name) for name in required + ("abi2_cost_probe",)}

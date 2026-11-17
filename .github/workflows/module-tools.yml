@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Module Tools (advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'tools/module/**'
+      - '.github/workflows/module-tools.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  module-tools:
+    name: module tools (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          - platform: windows-x64
+            runner: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CI-pinned CMake and Ninja
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Run MT1 tests
+        run: python -m unittest discover -s tools/module/tests -v
+      - name: Build and check unmodified SDK template
+        run: python tools/module/wsmod.py check native/sdk/template --json
