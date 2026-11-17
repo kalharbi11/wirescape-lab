@@ -1,49 +1,33 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated 2026-11-16 ET, gpt-lead. Reviewed main4161b90fcc2fff48058ca50f44eafb15fe0ff764.
-Sole LOCAL root WLAB | LEAD | 5, thread01a1e688-a40c-7273-ab2a-3100d5731573.
-Existing wlab-lead-review ACTIVE every45minutes; no second root/timer. Lead4 stepped down.
-Preserve local device-results branch and all untracked captures.
+Updated 2026-11-16 ET, **claude-lead** (active lead for every milestone, including M1; owner, 2026-11-16).
+Main `cd8b02d7ee4b4a95de08798384568a7267c52436`. No Worker2, no timers, no root/M1 sub-leads: builders run only when the owner starts them.
+Builders are GitHub-connector only (no local native build), so every measurement comes from hosted workflows (SR8/SR9/SR18).
 
 ## Contracts
-- **M0 r3 ACCEPTED/CLOSED by Fable**, report132, decision on main b02db256. All exceptions explicitly disposed in M0.md; T0.14 no longer M0gate. Remove M0 reminders from heartbeat. Cite facts/BASELINE.md as before numbers; ringmod2 cannot support sound-parity claims while unmeasured.
-- **M2 r3** E0/E1a merged; PV1 now merged #105→4161b90. E1b#125/130 Q14 ANSWERED but its explicit anchor-disproof STOP triggered before any implementation push; Q16 now needsFable. Remaining acceptance3 continuity is #139/B3. Final report #140/B1 then read-only audit #142/B3; root/Fable retain final review/acceptance.
-- **CI1 r3** CI1.1/1.2/1.4 merged, CI1.3#109/129B2 soleci.ymlwriter/sanitizersjob only. One bounded after-seed fresh-event cache diagnostic/integration packet released, K7/K8 unchanged. Report#141 follows contractual result/disposition.
-- **M1 r2** delegated LOCAL lead01a1e676-f444-7653-839e-8659fb7209af owns S2#111/PR138head3fb2f8f and B4regularChat6afb8252-992c-83ea-a4d0-e7734bb17b7b. **B4 execution VERIFIED**; old unverified-startup snapshot superseded. Q15 owner-authorized native/cli/play.cpp+native/document/runtime_patch.cpp additions ONLY obsolete ABI1 discovery/registration removal. S2 remains held for exact paired base/head<=1% instruction data, Chord unavailable-row disposition and generated/transitive link evidence; green advisory baseline is insufficient. Golden/platform/sanitizer evidence under delegated review. **Owner now authorized S3 staffing/prep to sameB4**, dependency-blocked#143: read-only preparation whileS2pending; implementation onlyafterS2merge. S3 later requires owner-assigned Claude contract reviewer. No rootduplicatewriter/timer; root infrastructure support pending usage availability.
+- **M0 r3** accepted/closed (Fable). `facts/BASELINE.md` gives before-numbers; ringmod2 unmeasured.
+- **M2 r3:** E0, E1a, PV1 merged. E1b #125/PR130 held on **Q16** (design seat). Continuity #139/PR150 waits for hosted capture. Gap report #140/PR149 draft (not an acceptance).
+- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 STOPPED: fresh PR run missed the cache again (run 43984524907); **Q17** asks for the bootstrap-merge ordering.
+- **M1 r2:** S2 #111/PR138 evidence packet `c0e020b` running (paired instructions 43986554879, Golden 43986554704, Lab 43986554686). Lead merges S2 on B4's Result if all rows ≤1 % (Chord rows SR10 exceptions), link proof ×3 and Golden 24 identical ×3 hold. Then S3 #143 (needs a **Claude** contract-review).
+- **M3/M4/M5/M6/M7 r1** accepted. Ready now: M5 PV2a PR151 (correction 1/2: drop recommendation column; Q18 holds the batch), M6 MT1 PR153 (SR8 workflow granted), M7 T7.0 PR152 (hosted capture workflow granted), new **M3 V1 facts #154**, new **M7 S7.1 #155**.
 
-## Accepted parallel queue (Fable #144 / STANDING)
-M3r1/M4r1/M5r1/M6r1/M7r1 are ACCEPTED. Read STANDING.md first (SR1–19/B1–6). Existing M1r2/M2r3/CI1r3 unchanged. Dependency cells govern start, not milestone-acceptance waits. Root read M5/M6/M7 for current releases. SR16/SR19 selects ready tasks: B1 #146 PV2a now while130held; B2 #147 MT1 after109Result; B3 #148 T7.0 after139Result. Reports140/141/audit142 remain later ordered tasks. No extra productwriter. All new runtime tasks later require their own full contract/paths/evidence packet.
+## Builder queues (run in this order; one active PR each)
+| Builder | 1 | 2 | 3 |
+|---|---|---|---|
+| gpt-builder1 | PR151 correction (lead comment 6933781199) | #154 `native_v1_readers.md` | #155 S7.1 reverb |
+| gpt-builder2 | PR153: add `module-tools.yml` per 6933779966, real template check ×3 | #141 CI1 gap-only report (CI1.3 open on Q17) | — |
+| gpt-builder3 | PR152: `t7-0-capture.yml` + fill facts (6933783098) | PR150: continuity capture workflow + rows (6933784579) | #142 audit after PR150 Result |
+| gpt-builder4 | PR138: Result from the three runs (6933788066) | #143 S3 after S2 merges | — |
 
-## Runnable ordered queues
+## Holds
+- **Q16** (E1b anchor) and **Q17** (CI1.3 ordering): design seat; each blocks only its task (SR19). **Q18**: needed before PV2b.
+- Claude reviews: none due now. Next due: M1 S3 (after S2), S5b, S6; M7 S7.3/S7.4 contract-review; S7.7/S7.8 Claude.
 
-Owner can run 1:run, 2:run, 3:run repeatedly in existing regular Chat. [BUILDER_QUEUE.md](BUILDER_QUEUE.md) and primary issues carry ordered steps/criteria/stop conditions.
+## Merge policy (unchanged)
+Lead merges exact reviewed heads, expected SHA pinned, when every criterion and test holds; auto-merge only for a reviewed head waiting on CI. No gate weakening, no settings changes, devices off.
 
-| Writer | Current | Next |
-|---|---|---|
-| B1 6afadca6-071c-83ea-a029-b22c1560a794 | #125/PR130 same task/125-studio-apply-graph, head8d0bd29; Q16anchor-disproofHOLD, trace6933163885; noimplementationpush | #146 M5PV2a facts table now while130held, then #140 gap-onlyM2report |
-| B2 6afadc8d-5138-83ea-bb36-88048b6bf54d | #109/PR129 same task/109-sanitizer-ccache, pre-packet21bc87c; diagnosticrelease6933172462 | #147 M6MT1 newmoduletools, then #141report |
-| B3 6afadc7c-9b44-83ea-be32-dbd465646ce0 | #139 applyGraphcontinuity, branch task/139-applygraph-continuity | #148 M7T7.0click/CHAOSfacts after139Result, then #142audit |
-| B4 6afb8252-992c-83ea-a4d0-e7734bb17b7b | M1lead owns#111/138 | #143S3prep; implementationafterS2merge only |
-| Claude builders1–3 | finished/stopped | no new assignments |
-
-One active implementation per builder, one branch/PR per task. Signed Result enteringreview permits nonoverlapping notes/read-only successor preparation. No arbitrary queue pickup, duplicate pushes/runs or own merge. Delivery is not execution: inspect substantive assistant/tool-backed results before claiming startup; one supported retry only. Owner can manually activate regularChat. New queues delivered, actual runs must be verified separately.
-
-## Exact acceptance and holds
-**PV1 DONE:** #105 head8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35 →4161b90. Leadreview6933110542 verified Lab43973824231 all14success; drift43973824173/job133672555316 every step success:14Python tests, generatedTS/C++,1532wireobjects/102accepted/21refusals, Q8 12/12 and Q13sixbuscases+applyGraph. D08 neutral Desktop-space discrepancy, D09 removed failing new negativefixture recorded under Q13.18allowedpaths/unwired/unknownfields preserved. M2acceptance4 satisfied, notwholeM2.
-
-**E1b Q16 OPEN:** root independently verified source trace220→pendingincremental330→graph440→incrementalACKconfirmed330→graphrefusal. Retained editpending entry updatesconfirmed outsidegraphchain, so anchor220isfalse. No implementationpush/CI; Fable Q14explicitSTOP applies. B1#140gap-onlyreport released while rulingpending. Proposed comprehensiveconfirmedACKanchor or drain-ordering rule requiresFabledecision; no impliedextraordinaryround. Historical Q14 rules below remain conditions for any clarified packet.
-
-**E1b Q14:** one rollback anchor tracks LAST ENGINE-CONFIRMED document/dirty/history across wholependingchain, restoresonceonrefusal. Four additive scenarios (A/B refused; Aconfirmed/Brefused; both throughpartialapplication), compareUIandconfirmedgraph/dirty/undo-redo. CopyOSCcounterobservation before latermutation; everyassertionstays. If copydoesnotfix,STOPratherthanchangeFakeEnginetofit. Sameapps/studioonly; noPV3/native/Desktop/workflow/tolerancechanges. FullnewexactheadLab+Playwright andleadsourceacceptance. Finalfailure→leadcloses130unmerged/keepsbranch/FablerecontractsM2r4; nofurtherround.
-
-**CI1.3:** manual43966200132 savedcache10628646155 featurebranchkey0471e1e...-43966200132-1/versionb97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a,size102097945. FullPR43964380415attempt2green butsanitizer133653972206cacheMISS428s49/274COLD. K7orderedbase133628142310/head13365397220682namesidentical. Root's pinnedaction versioncalculation matches savedentry; normal logs don'texposeeffectivePRserviceversion/scope. B2 runcreated-beforeseed hypothesisunproved. AuthorizedONEactualmainintegration/publicprovenancepush triggers freshafterseedfullPR event. SameK7noPRsave, noextramanualseed/blindrerun/settings/bootstrapmerge. K8genuinerestoredwarm<=318smandatory; warmfailuredropfacts, repeatmissSTOP/question. Futuremeasurementfacts/Result mustmatchactualhead.
-
-## Merge and operating policy
-Owner requests safe automatic merges. Lead merges source-reviewed exactheads when ALL contract criteria + tests pass, expectedSHA pinned. Serverauto-merge only for reviewed immutablehead waitingsolelyCI ifsupported; never unreviewedproduct/measurementgate/Claude-reviewbypass. Fable doesdesign/questions/milestoneacceptance, noPRmonitoring. InformownerifClaudecontractreviewneeded. ExistingM1delegationunchanged.
-
-GPTbuildersregularChat only, noWork/Codex substitutes. Worker2durable6afad0f1-55a8-8191-975f-f008479ba02f supplies focused cloudsupport when rootissues pinnedpackage. No newClaudebuildertasks. Fullrerunalljobsforfailedaggregates,onecohesivepushperround. Devices/audio/MIDI/LANoff, realtimeconstraints/neutralfacts unchanged; noforce/settings/gateweakening. Preserve>=20%fivehourreserve except this owner's explicitly requested briefcoordination; nocredits/resetspending. No modelCI/replypollingloops. Retainbyteidenticaldepseedinggit-archive/gziprecipe/URL_HASHverification, CMakeconfigureafterS0session.cppcopy changes, nativeOSCOutreplacementfacts.
-
-Signed: gpt-lead, 2026-11-16
+Signed: claude-lead, 2026-11-16
 
 ## Preserved design-authority weekly queue
 The following is Fable's merged #144 catalog/ordering. Operational heads and Q16 status above supersede its historical Q14-dispatch snapshot; no catalog task or standing ruling is removed.

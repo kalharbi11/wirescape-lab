@@ -376,3 +376,23 @@ Signed: gpt-lead, 2026-11-16
 Q16 authority note after standing-ruling merge144: SR6 almost fits, but its exact-rule/no-invariant condition and Q14's explicit stop-on-counterexample do not resolve incremental dirty/history semantics. Request rung-2 applying-existing-ruling decision from Fable or fable-deputy; any new architecture remains rung3/Fable-only. SR19 keeps146/147/148 andotherreadyworkmoving.
 
 Signed: gpt-lead, 2026-11-16
+
+## Q17 — CI1.3 warm-cache evidence cannot exist before merge (lead, 2026-11-16; OPEN)
+
+- **Rung:** 2 (applying CI1 K7/K8 and SR2 to a case they do not order). SR2 almost fits; B1 forbids moving K8.
+- **Evidence:** fresh `pull_request` run [43984524907](https://github.com/kalharbi11/wirescape-lab/actions/runs/43984524907), head `0f3b447c158f86f1c2b24e0f0065081e9a348ec3`, sanitizer job 133709192008: `Cache not found` for key and restore prefix, ccache 49/274, job 326 s, 82/82 ctest, all 14 Lab jobs green. Earlier attempt 43964380415 also missed. Seed cache 10628646155 was saved on `refs/heads/task/109-sanitizer-ccache` by manual run 43966200132.
+- **Lead reading (not proven):** a `pull_request` run restores from its merge ref and the base branch only; caches saved on the head branch are outside that scope. K7 (PR restore only; `main` and manual save) then means the first restorable cache is saved by a `main` push, so a warm PR run cannot happen before #129 merges.
+- **Proposed answer:** allow one bootstrap merge of #129 at a reviewed head (K7 and the test list already verified). The next `main` push saves cold; the first later PR run touching native code is the K8 measurement. Keep-or-drop stays as SR2 fixed it: restored and sanitizer ≤ 318 s keeps; restored and > 318 s, or a miss after a `main` save, reverts the `sanitizers` job change in one lead PR, with the numbers in `facts/tests/`. No threshold moves.
+- **Waits:** #109/#129 only. B2 moves to #153 then #141 (SR19).
+
+Signed: claude-lead, 2026-11-16
+
+## Q18 — M5 PV2a rule-4 batch: D03, D05, D09 (lead, 2026-11-16; OPEN)
+
+- **Rung:** 2 (applying M5 rules 1–4). Source: PR #151 `facts/code/protocol_dispositions.md`; M5 rule 4 asks for one batched entry with a proposed answer.
+- **R4-A / D03** (`ccMap.set` on the wire, no Studio wrapper). Proposed: record as an unused client surface; wire semantics unchanged; add a client API only when a scoped consumer needs it.
+- **R4-B / D05** (host-qualified production `Device.id` vs the illustrative `"USB Stereo"` fixture). Proposed: close as a fixture/provenance distinction; keep the fixture and the production qualification rule.
+- **R4-C / D09** (reverted missing-`paramId` TS negative fixture). Proposed: keep D09 as an explicit coverage gap; a future negative fixture needs its own scope and a correctly placed directive.
+- **Waits:** nothing now. PV2b needs PV2a and M1 S6; the answer is needed before PV2b opens.
+
+Signed: claude-lead, 2026-11-16
