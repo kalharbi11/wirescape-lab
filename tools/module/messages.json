@@ -1,0 +1,14 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "schema": "wsmod-messages/1",
+  "C1": {"what": "one registration macro and module.cpp are required", "fix": "add module.cpp with exactly one WS_REGISTER_MODULE registration"},
+  "C2": {"what": "source file lacks the required SPDX license identifier", "fix": "put the correct SPDX-License-Identifier comment at the top of the source"},
+  "C3": {"what": "portable DSP source includes a banned library header", "fix": "remove dynamic allocation, I/O, thread and container headers from portable DSP sources"},
+  "C4": {"what": "module descriptor is invalid", "fix": "correct the descriptor IDs, counts, callbacks, finite parameter ranges and initial values"},
+  "C5": {"what": "module.json does not match the runtime descriptor", "fix": "make module.json id, name and port/parameter IDs agree with the descriptor, or remove obsolete metadata"},
+  "C6": {"what": "portable-tier symbol report has warnings or is unavailable", "fix": "inspect the undefined-symbol groups and optional cross-compile diagnostics; C6 is advisory in v0"},
+  "BUILD": {"what": "module failed to build", "fix": "correct the first compiler/linker error; do not change locked native product files"},
+  "ENV": {"what": "required build environment is unavailable", "fix": "install a C++17 toolchain, CMake and Ninja/Make or a Visual Studio generator"},
+  "USAGE": {"what": "module folder or argument is invalid", "fix": "pass a readable module folder and use --help for the supported arguments"},
+  "STAGE": {"what": "this runner stage has not been implemented", "fix": "use check now; test and render arrive in separate MT2/MT3 tasks"}
+}
