@@ -49,6 +49,8 @@ All direct literal dimensions above are **16 elements per per-voice axis**, not 
 
 ## Other observed literal-16 arrays in the same module scope (5, not per-voice)
 
+| Source | Symbol and shape | Classification evidence |
+|---|---|---|
 | [`native/modules2/chord/dsp.h:46`](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/chord/dsp.h#L46) | `active`: `std::array<Activation, kActivations>`; `kActivations=16` at [line 33](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/chord/dsp.h#L33) | 16 simultaneous chord activation records; each record holds up to `kNotes=5` notes ([lines 33–47](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/chord/dsp.h#L33-L47)); capacity is activation-based rather than a single audio channel index. |
 | [`native/modules2/midi_cc_to_cv/dsp.h:18`](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/midi_cc_to_cv/dsp.h#L18) | `Row::msb`, `Row::lsb`: two `std::array<uint8_t, identity_capacity>` symbols | `identity_capacity = size_t{16} * 16` at [line 15](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/midi_cc_to_cv/dsp.h#L15); source endpoint × MIDI channel identity, accessed by `source` index ([lines 47–64](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/midi_cc_to_cv/dsp.h#L47-L64)). |
 | [`native/modules2/midi_cc_to_cv/dsp.h:22`](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/midi_cc_to_cv/dsp.h#L22) | `sources`: `std::array<Source, identity_capacity>` | Same 16 × 16 identity capacity, used by source/channel registry ([lines 24–28](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/modules2/midi_cc_to_cv/dsp.h#L24-L28)). |
@@ -60,6 +62,8 @@ Other numeric-16 uses observed but **not** array capacity declarations: `host_ke
 
 ## Separate outside-catalogue product scope (2 stored array declarations)
 
+| Source | Array and indexing evidence |
+|---|---|
 | [`native/voice/allocator.h:94`](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/voice/allocator.h#L94) | `Allocator::voices_`: C-style `Voice voices_[kMaxVoices]`; `kMaxVoices=16` at [line 8](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/voice/allocator.h#L8). Indexed by allocator voice, [lines 67–78](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/voice/allocator.h#L67-L78). |
 | [`native/voice/note_to_cv.h:102`](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/voice/note_to_cv.h#L102) | `NoteToCv::snapshot()::r`: local `std::array<Voice, kMaxVoices>`, indexed by allocator voice count at [lines 101–103](https://github.com/kalharbi11/wirescape-lab/blob/d7e683efe605aa4a88a6b0c8c7699077a6879b38/native/voice/note_to_cv.h#L101-L103); same allocator-header `kMaxVoices=16` alias. |
 
