@@ -146,7 +146,7 @@ class T70Switch(unittest.TestCase):
             self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
             return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
 
-        with patch.object(t7_0, "run_wav", side_effect=fake_wav), \\
+        with patch.object(t7_0, "run_wav", side_effect=fake_wav), \
              patch.object(t7_0, "switch_click_metrics",
                           return_value={"switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
