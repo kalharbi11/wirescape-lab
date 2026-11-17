@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 answered; queue empty. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 answered; Q16 OPEN for Fable. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -359,6 +359,20 @@ Signed: Fable, 2026-11-16
 - **Original gap:** S2 deletes app_engine_load_module and app_engine_register_module, but production callers at `native/cli/play.cpp:121` and `native/document/runtime_patch.cpp:49` lie outside its original path list. M1 lead preflight [6931391213](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931391213) pinned main `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
 - **Owner-directed resolution:** the owner authorized the delegated M1 lead to fix the concrete blockers; release [6931470917](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931470917) permits ONLY `native/cli/play.cpp` for obsolete ABI1 discovery/loader removal and `native/document/runtime_patch.cpp` for obsolete ABI1 registration removal into the already populated static native catalogue. The owner repeated those additions in the root takeover instruction. This records additional owner authority; it does not claim M1 r2 originally listed them.
 - No protocol, native v1 patch reader, module2.h, sound, acceptance/tolerance, architecture or later-stage change follows. Other M1 r2 requirements and false-A1/A2 escalation remain.
-- LOCAL scoped M1 lead `01a1e676-f444-7653-839e-8659fb7209af` owns S2 planning, startup verification, independent review, corrections and delegated merge. Regular-Chat B4 `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is the sole writer. Release delivered but implementation execution remains unverified after one supported startup retry; M1 lead owns that check. S3 staffing/start remains the owner’s decision. Root retains cross-milestone coordination and the one heartbeat.
+- LOCAL scoped M1 lead `01a1e676-f444-7653-839e-8659fb7209af` owns S2 planning, startup verification, independent review, corrections and delegated merge. Regular-Chat B4 `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is the sole writer. B4 implementation execution is now verified: S2 PR #138/head3fb2f8f. Delegated M1 lead owns its independent evidence review and merge. The owner subsequently authorized same-B4 S3 preparation in dependency-blocked #143; implementation only after S2 merges, with its required Claude contract review before S3 merge. Root retains cross-milestone coordination and the one heartbeat.
+
+Signed: gpt-lead, 2026-11-16
+
+## Q16 — Q14 anchor disproved by outstanding incremental ACK (OPEN, 2026-11-16)
+
+- **Decision:** revise the bounded E1b repair rule to account for confirmed incremental edits during a graph chain, or re-contract E1b in M2 r4. Fable Q14 explicitly requires STOP on this trace; root does not waive it.
+- **Evidence:** B1 [6933163885](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6933163885), existing head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`. No implementation push or new CI run occurred. Root independently checked the relevant preserved source: submitGraph clears active/queue/lastEdit but retains the earlier edit pending entry; receive's edit-success arm applies its mutation to confirmed.
+- **Trace (source-verified, not claimed executed):** engine-confirmed220; commitParam authors330 and sends setParam awaiting ACK (App1027–1038/RealEngine519–533,569); snapshot requests440 and starts graph chain with confirmed anchor220 (submitGraph447–481); retained earlier pending setParam succeeds and receive419–424 updates confirmed330; applyGraph440 is refused, correctly leaving engine330. A graph-only anchor220 would restore UI220 while engine330. Dirty/history consistency also needs an explicit rule.
+- **Proposed answer:** one authoritative confirmed-state mechanism encompassing both edit and graph ACKs, with correctly associated document/dirty/history checkpoints; alternatively drain in-flight incremental confirmations before opening the graph transaction and specify ordering for later edits. Fable chooses the bounded mechanism; no PV3 retry/convergence/native/protocol change is assumed. Add a regression of this exact ordering in addition to Q14's four cases and OSC-copy check. If this exceeds the final packet, close unmerged preservingbranch and issue M2r4 task.
+- **Disposition:** PR130 stays draft/statusblocked/needsfable; Q14 exceptional implementation never pushed, no fourth ordinary or additional repair dispatched. B1 may independently prepare #140 gap-only evidence report now, explicitly missingE1b; no acceptance claim. B2/B3 unaffected.
+
+Signed: gpt-lead, 2026-11-16
+
+Q16 authority note after standing-ruling merge144: SR6 almost fits, but its exact-rule/no-invariant condition and Q14's explicit stop-on-counterexample do not resolve incremental dirty/history semantics. Request rung-2 applying-existing-ruling decision from Fable or fable-deputy; any new architecture remains rung3/Fable-only. SR19 keeps146/147/148 andotherreadyworkmoving.
 
 Signed: gpt-lead, 2026-11-16
