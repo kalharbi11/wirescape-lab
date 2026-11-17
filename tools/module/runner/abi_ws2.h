@@ -170,7 +170,10 @@ public:
         if (d->struct_size < sizeof(ws2_descriptor)) {
             o.errors.push_back("descriptor struct_size is too small"); return o;
         }
-        o.id = safe(d->id); o.name = safe(d->name);
+        // A malformed identifier can be __FILE__ (an absolute compiler path).
+        // Never return it through the neutral describe boundary.
+        o.id = id_ok(d->id) ? safe(d->id) : "<invalid-id>";
+        o.name = safe(d->name);
         o.version = d->version; o.abi_version = d->abi_version;
         if (d->abi_version != WS_ABI2_VERSION || ws_module2_abi_version() != WS_ABI2_VERSION)
             o.errors.push_back("ABI version mismatch");
@@ -191,10 +194,16 @@ public:
             for (unsigned i = 0; i < count; ++i) {
                 const auto& p = src[i];
                 if (p.struct_size < sizeof(ws2_port)) o.errors.push_back(std::string(label) + " struct_size too small");
-                if (!id_ok(p.id)) o.errors.push_back(std::string(label) + " id malformed");
-                auto name = safe(p.id);
-                if (!ids.insert(name).second) o.errors.push_back(std::string(label) + " duplicate id: " + name);
-                if (p.kind != WS2_SIGNAL && p.kind != WS2_EVENT) o.errors.push_back(std::string(label) + " invalid kind: " + name);
+                const bool valid_id = id_ok(p.id);
+                if (!valid_id) o.errors.push_back(std::string(label) + "[" + std::to_string(i) + "] id malformed");
+                const auto raw_id = safe(p.id);
+                const auto name = valid_id ? raw_id : "<invalid-id>";
+                if (!ids.insert(raw_id).second)
+                    o.errors.push_back(std::string(label) + "[" + std::to_string(i) + "] duplicate id" +
+                                       (valid_id ? ": " + name : " (malformed)"));
+                if (p.kind != WS2_SIGNAL && p.kind != WS2_EVENT)
+                    o.errors.push_back(std::string(label) + "[" + std::to_string(i) + "] invalid kind" +
+                                       (valid_id ? ": " + name : " (malformed id)"));
                 dst.push_back({name, safe(p.name), p.kind, p.hint, p.poly});
             }
         };
@@ -204,12 +213,17 @@ public:
         for (unsigned i = 0; i < d->param_count; ++i) {
             const auto& p = d->params[i];
             if (p.struct_size < sizeof(ws2_param)) o.errors.push_back("param struct_size too small");
-            if (!id_ok(p.id)) o.errors.push_back("param id malformed");
-            auto id = safe(p.id);
-            if (!ids.insert(id).second) o.errors.push_back("param duplicate id: " + id);
+            const bool valid_id = id_ok(p.id);
+            if (!valid_id) o.errors.push_back("param[" + std::to_string(i) + "] id malformed");
+            const auto raw_id = safe(p.id);
+            const auto id = valid_id ? raw_id : "<invalid-id>";
+            if (!ids.insert(raw_id).second)
+                o.errors.push_back("param[" + std::to_string(i) + "] duplicate id" +
+                                   (valid_id ? ": " + id : " (malformed)"));
             if (!std::isfinite(p.minimum) || !std::isfinite(p.maximum) || !std::isfinite(p.initial) ||
                 !(p.minimum < p.maximum) || p.initial < p.minimum || p.initial > p.maximum)
-                o.errors.push_back("param range/initial invalid: " + id);
+                o.errors.push_back("param[" + std::to_string(i) + "] range/initial invalid" +
+                                   (valid_id ? ": " + id : " (malformed id)"));
             o.params.push_back({id, safe(p.name), safe(p.unit), p.minimum, p.maximum,
                                 p.initial, p.step, p.flags});
         }

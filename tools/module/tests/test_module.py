@@ -130,6 +130,66 @@ class ModuleToolTests(unittest.TestCase):
         self.assertEqual(describe.call_count, 2)
         self.assertEqual(describe.call_args.kwargs["timeout"], 30)
 
+    def assert_compiled_bad_identifier_is_contained(self, field, expected_reasons):
+        # This is a real C++ mutation, not mocked describe output: CMake embeds
+        # its absolute module.cpp path through the __FILE__ macro.
+        code, report = self.check()
+        self.assertEqual(code, 1, report)
+        self.assertEqual(report["exit_code"], 1)
+        fails = [entry for entry in report["results"]
+                 if entry["test"] == "C4" and entry["status"] == "fail"]
+        self.assertEqual(len(fails), 1, report)
+        failure = fails[0]
+        for key in ("what", "where", "fix"):
+            self.assertTrue(failure[key], report)
+        self.assertTrue(failure["what"].startswith(MESSAGES["C4"]["what"]))
+        self.assertEqual(failure["fix"], MESSAGES["C4"]["fix"])
+        for reason in expected_reasons:
+            self.assertIn(reason, failure["what"], report)
+        encoded = json.dumps(report, sort_keys=True)
+        self.assertNotIn("Traceback", encoded)
+        self.assertNotIn(str(self.folder.resolve()), encoded)
+        self.assertNotIn(str((self.folder / "module.cpp").resolve()), encoded)
+        self.assertNotIn(str(ROOT.resolve()), encoded)
+        self.assertNotIn(str(check.build_dir_for(ROOT, self.folder, LAYOUT, None)), encoded)
+        if field == "module":
+            self.assertEqual(report["module"]["id"], "<invalid-id>")
+            self.assertEqual(failure["where"]["descriptor"], "<invalid-id>")
+        else:
+            self.assertEqual(report["module"]["id"], "example.gain2")
+
+    def test_c4_compiled_file_macro_module_id_never_leaks_path(self):
+        self.mutate(lambda s: s.replace('info{"example.gain2","Example Gain",1}',
+                                        'info{__FILE__,"Example Gain",1}'))
+        self.assert_compiled_bad_identifier_is_contained("module", ["module id is malformed"])
+
+    def test_c4_compiled_file_macro_duplicate_input_ids_never_leak_path(self):
+        self.mutate(lambda s: s.replace(
+            'inputs{ws::port("audio","Audio",WS2_AUDIO)}',
+            'inputs{ws::port(__FILE__,"Audio",WS2_AUDIO),'
+            'ws::port(__FILE__,"Second Audio",WS2_AUDIO)}'))
+        self.assert_compiled_bad_identifier_is_contained(
+            "input", ["input[0] id malformed", "input[1] id malformed",
+                      "input[1] duplicate id (malformed)"])
+
+    def test_c4_compiled_file_macro_duplicate_param_ids_never_leak_path(self):
+        self.mutate(lambda s: s.replace(
+            'params{ws::param("gain","Gain",0,2,1)}',
+            'params{ws::param(__FILE__,"Gain",0,2,1),'
+            'ws::param(__FILE__,"Second Gain",0,2,1)}'))
+        self.assert_compiled_bad_identifier_is_contained(
+            "param", ["param[0] id malformed", "param[1] id malformed",
+                      "param[1] duplicate id (malformed)"])
+
+    def test_c4_compiled_valid_duplicate_ids_keep_diagnostic_value(self):
+        self.mutate(lambda s: s.replace(
+            'inputs{ws::port("audio","Audio",WS2_AUDIO)}',
+            'inputs{ws::port("audio","Audio",WS2_AUDIO),'
+            'ws::port("audio","Second Audio",WS2_AUDIO)}'))
+        report = self.assert_failure("C4")
+        failure = next(r for r in report["results"] if r["test"] == "C4" and r["status"] == "fail")
+        self.assertIn("duplicate id: audio", failure["what"])
+
     def test_c4_bad_descriptor_id(self):
         self.mutate(lambda s: s.replace('"example.gain2"', '"Invalid-ID"'))
         self.assert_failure("C4")
