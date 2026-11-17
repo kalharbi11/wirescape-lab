@@ -58,4 +58,12 @@ Downloaded ZIP SHA-256 values match the GitHub artifact digest. Numeric JSON-mem
 
 Windows has no Callgrind measurement in this run; its paired artifact supplies generated link evidence only. This file makes no Windows instruction-count claim. Historical committed baselines remain unchanged. S4 retains the other 96 named IDs and the unchanged +1% measured-row limit; the two Chord unavailable rows remain unavailable, not measured passes.
 
+## S4 Qt-free ABI1 96,000-sample capture (pre-deletion)
+
+Read-only device-free hosted release build on Linux x64, 2026-11-17 ET: [M1 paired run 44134064502](https://github.com/kalharbi11/wirescape-lab/actions/runs/44134064502), job `134218653099`, artifact `14352740696` (`m1-stage-evidence-linux-x64`). This is the exact existing Qt-free `serialized_demo_equivalence` ABI1 render, not the 16,384-frame T1.1 shim reference. Test/capture source commit `fd0b9058e3515ea95e75c0a16a695fdf52b7e129`; comparison base `be928a112d3280a04e2cdce229df8e0315c1dd6c`. The artifact's `provenance.txt` records both actual checkouts matching those pins, machine `linux-x64`, runner `Linux/X64`, CMake 4.2.3, Python 3.12.16 and `-g` compilation flags. That hosted job concluded success.
+
+The artifact archive is 290,548 bytes and has SHA-256 `deb5cf60646fc094b33f0fd05318908365ea4d0c96b3f6d8beb11dd3418cf6de`, matching GitHub's artifact digest. Member `qt_free_saved_v2_abi1_48000_128_96000.f32le`: **384,000 bytes**, exactly **96,000** IEEE 754 binary32 little-endian sample words from 750 × 128 ABI1 blocks at 48 kHz. The raw SHA-256 is `485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419`, agreeing with the archive's `.sha256` sidecar. The sample stream contains 96,000 finite words, of which 73,152 are nonzero; maximum absolute sample is 0.06200799718499184. A raw Git blob made from those bytes has SHA-1 `4dc06c72035a30979ea84beacc7664999bce77b6` (precomputed from the bytes, **not** a claim of a published GitHub blob).
+
+The same Linux x64 paired artifact reports 97 expected historical IDs, 95 measured and two Chord paired-unavailable exceptions, with no failures; those are **capture-head S3-reference** measurements, not S4 retirement evidence. The mandatory surviving-96-ID verification remains outstanding. The raw PCM member was extracted and hashed from the actual published artifact. Its repository fixture blob, manifest entry, frozen-reader comparison and S4 deletion are **not yet committed** as of this facts commit.
+
 Signed: gpt-builder4, 2026-11-17
