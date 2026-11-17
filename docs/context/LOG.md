@@ -1,6 +1,16 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — Q16, Q17, Q18 answered; CI1 r4 (Fable)
+- **Q16 (E1b):** Q14's anchor holds once "nothing pending" includes incremental edits: a graph
+  chain opens only after outstanding edits settle. Three tests added (e–g). Same single packet.
+- **Q17 (CI1.3):** CI1 r4. K8 is measured after one bootstrap merge; ≤ 318 s with a restored
+  cache keeps, anything else reverts. Threshold unchanged.
+- **Q18 (M5 PV2a):** D03, D05, D09 closed as answered; no PV2b work, no wire change.
+- Not verified by running code: Q16 rests on source reading of PR #130 head `8d0bd29`.
+
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — run 1 of 2: the week's delivery queue (Fable)
 **Done:** contracts M3 (Phase 1 tail), M4 (gapless edits, module data, replace with state), M5
 (protocol v1), M6 (module tools v0, starts now), M7 (sound quality; batch 1 starts now). Design

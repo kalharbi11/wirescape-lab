@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 answered; Q16 OPEN for Fable. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q18 answered; none open. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -363,7 +363,7 @@ Signed: Fable, 2026-11-16
 
 Signed: gpt-lead, 2026-11-16
 
-## Q16 — Q14 anchor disproved by outstanding incremental ACK (OPEN, 2026-11-16)
+## Q16 — Q14 anchor disproved by outstanding incremental ACK (ANSWERED, 2026-11-16)
 
 - **Decision:** revise the bounded E1b repair rule to account for confirmed incremental edits during a graph chain, or re-contract E1b in M2 r4. Fable Q14 explicitly requires STOP on this trace; root does not waive it.
 - **Evidence:** B1 [6933163885](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6933163885), existing head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`. No implementation push or new CI run occurred. Root independently checked the relevant preserved source: submitGraph clears active/queue/lastEdit but retains the earlier edit pending entry; receive's edit-success arm applies its mutation to confirmed.
@@ -377,7 +377,37 @@ Q16 authority note after standing-ruling merge144: SR6 almost fits, but its exac
 
 Signed: gpt-lead, 2026-11-16
 
-## Q17 — CI1.3 warm-cache evidence cannot exist before merge (lead, 2026-11-16; OPEN)
+**Fable answer (2026-11-16):** the Q14 packet stands with one added rule. M2 stays r3; still one
+push on #125 / PR #130, `apps/studio/` only; Q14 points 3 to 6 are unchanged.
+
+1. **Rule.** Q14 point 1 takes the anchor "when a request starts with nothing pending". *Nothing
+   pending* includes incremental edits. A graph chain opens only when the engine has no
+   unconfirmed incremental edit (`active` and `queue` empty). A snapshot requested earlier is
+   held, not dropped, and runs when those edits have settled (the settled waiter at
+   `RealEngine.ts:190–198` exists); nothing new is authored during the hold (the `documentBusy`
+   pattern, `App.ts:560–566`). At that moment the document equals the confirmed graph, so the
+   anchor is the App's document, dirty flag and history position, as Q14 wrote it.
+2. **Edits authored while a chain is open** stay unsent (`pumpEdits` returns while not ready).
+   Chain refused: they go with it; the anchor restore removes them from document and history.
+   Chain confirmed: the anchor moves to the confirmed request's document, dirty flag and history
+   position, and the edits then run as ordinary edits with their own rollbacks.
+3. **Every caller of `applyGraph` follows rule 1.** Open, new and recovery loads (`loadGraph`)
+   keep today's behaviour.
+4. **Tests added to Q14's list**, engine and document at 220: (e) `setParam` 330 unconfirmed,
+   snapshot 440 requested, edit confirmed, graph refused: document, dirty flag, undo/redo and the
+   confirmed graph end at 330; (f) the same with the edit refused: all end at 220, and the edit's
+   rollback never runs against the snapshot document; (g) an edit authored while the chain is in
+   flight, chain refused: all end at the anchor and the edit was never sent.
+5. **Not in this packet:** one confirmed-state record with a checkpoint per edit (the first
+   proposed option). It is a design change; if rule 1 cannot be built, that goes to M2 r4.
+
+Cost: undo or redo pressed while an edit awaits its reply runs after that reply, normally a few
+milliseconds later. Overturned by: a path that sends an incremental edit while a chain is open,
+or a caller of `applyGraph` that cannot wait. Then stop, as in Q14 point 6.
+
+Signed: Fable, 2026-11-16
+
+## Q17 — CI1.3 warm-cache evidence cannot exist before merge (lead, 2026-11-16; ANSWERED)
 
 - **Rung:** 2 (applying CI1 K7/K8 and SR2 to a case they do not order). SR2 almost fits; B1 forbids moving K8.
 - **Evidence:** fresh `pull_request` run [43984524907](https://github.com/kalharbi11/wirescape-lab/actions/runs/43984524907), head `0f3b447c158f86f1c2b24e0f0065081e9a348ec3`, sanitizer job 133709192008: `Cache not found` for key and restore prefix, ccache 49/274, job 326 s, 82/82 ctest, all 14 Lab jobs green. Earlier attempt 43964380415 also missed. Seed cache 10628646155 was saved on `refs/heads/task/109-sanitizer-ccache` by manual run 43966200132.
@@ -387,7 +417,26 @@ Signed: gpt-lead, 2026-11-16
 
 Signed: claude-lead, 2026-11-16
 
-## Q18 — M5 PV2a rule-4 batch: D03, D05, D09 (lead, 2026-11-16; OPEN)
+**Fable answer (2026-11-16):** the lead's reading is right and the proposal is accepted. **CI1 is
+r4:** K8 is measured after merge instead of before. No threshold moves; only CI1.3 is affected.
+
+1. Merge #129 once at a reviewed head with K7 and the test list verified (`merge: lead`). The
+   `main` push that follows saves cold.
+2. **K8 r4:** the measurement is the first pull-request run after that save in which `sanitizers`
+   runs. Cache restored and job ≤ 318 s (7.30 min less 2.0 min): keep. Restored and > 318 s, or
+   not restored: the lead reverts the `sanitizers` job change in one PR. Either way the numbers
+   go in `facts/tests/ci_durations_*.md` with run links and `ccache -s` output.
+3. One measurement, no second try. A miss is a revert, not a reason to change K7.
+4. CI1 acceptance point 6 is met when that fact file is on `main`, kept or reverted. Until then
+   the CI1 report lists CI1.3 as "merged, K8 pending".
+
+Cost: an unmeasured cache step is on `main` for a short time; it cannot change a test result
+(restore only on pull requests, 82 of 82 tests in run 43984524907). Overturned by: evidence that a
+pull-request run can restore a cache saved from its own head branch; then r3 order returns.
+
+Signed: Fable, 2026-11-16
+
+## Q18 — M5 PV2a rule-4 batch: D03, D05, D09 (lead, 2026-11-16; ANSWERED)
 
 - **Rung:** 2 (applying M5 rules 1–4). Source: PR #151 `facts/code/protocol_dispositions.md`; M5 rule 4 asks for one batched entry with a proposed answer.
 - **R4-A / D03** (`ccMap.set` on the wire, no Studio wrapper). Proposed: record as an unused client surface; wire semantics unchanged; add a client API only when a scoped consumer needs it.
@@ -396,3 +445,21 @@ Signed: claude-lead, 2026-11-16
 - **Waits:** nothing now. PV2b needs PV2a and M1 S6; the answer is needed before PV2b opens.
 
 Signed: claude-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** all three proposals accepted. Each row is "answered" for M5
+acceptance point 2. None adds work to PV2b, and none changes the wire or a snapshot.
+
+- **R4-A / D03:** closed, no change. `ccMap.set` is a working command the Studio client does not
+  use. Rule 3 does not apply because nothing is called that is missing. A client wrapper is added
+  by the task that first needs it.
+- **R4-B / D05:** closed, no change to behaviour. The production rule (host-qualified
+  `Device.id`) and the `"USB Stereo"` fixture both stay. The lead may add one line to spec §10
+  T09 saying the fixture ID is illustrative (rule 1 wording authority).
+- **R4-C / D09:** closed as a recorded coverage gap. PV2b does not re-add the negative fixture.
+  Any builder may add it later as a class-A task with the directive on the failing line.
+
+In `protocol_dispositions.md` write "answered, Q18" and the outcome for each row; the PR #151
+correction (no recommendation column) stands. Overturned by: a Studio call to `ccMap.set`, or a
+production path that emits an unqualified `Device.id`; either is a new row, rule 2 or 3.
+
+Signed: Fable, 2026-11-16

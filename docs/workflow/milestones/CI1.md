@@ -1,7 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CI1 — shorter Lab CI per merge
 
-**Revision:** r3 — **ACTIVE.** r3 (Fable, 2026-11-16, QUESTIONS Q12, issue #117) adds task CI1.4 and
+**Revision:** r4 — **ACTIVE.** r4 (Fable, 2026-11-16, QUESTIONS Q17) measures K8 after one bootstrap
+merge of CI1.3, because a pull-request run cannot restore a cache saved from its own head branch.
+Affected: CI1.3 (#109) only; no threshold moves; nothing stops. r3 (Fable, 2026-11-16, QUESTIONS Q12, issue #117) adds task CI1.4 and
 invariant K9 and puts CI1.4 ahead of CI1.3 for `ci.yml`. Affected: CI1.3 (#109) keeps preparing but
 pushes no `ci.yml` change until CI1.4 is merged, then rebases. CI1.1 and CI1.2 are merged and unaffected.
 r2 (Fable, 2026-11-16, QUESTIONS Q7 and Q9) added tasks CI1.2 and
@@ -75,8 +77,10 @@ Print `ccache -s` after the build. File queue time per job for the 20 most recen
   `actions: read`. The token goes to one step as an environment variable and to `api.github.com`
   only; it is never printed, stored or output. Every HTTP error fails the job. No retry, no
   anonymous fallback. K6 holds unchanged.
-- **K8** (CI1.3) Merged only if a warm pull-request run of `sanitizers` is at least 2.0 min shorter
-  than 7.30 min. Otherwise the PR is closed and its numbers are filed as facts.
+- **K8** (CI1.3, r4) #129 merges once at a reviewed head. The first pull-request run after the
+  `main` save in which `sanitizers` runs decides: cache restored and job ≤ 318 s (2.0 min shorter
+  than 7.30 min) keeps it; restored and slower, or not restored, the lead reverts the `sanitizers`
+  job change in one PR. One measurement. The numbers are filed as facts either way.
 
 ## Acceptance
 1. CI1.1 merged with K1 shown as a table in the result comment (base and head lists or counts,
@@ -94,7 +98,8 @@ Print `ccache -s` after the build. File queue time per job for the 20 most recen
    their new names; unit tests cover each failing case in K6; PR #97, re-run after the merge,
    shows seven of seven with the native aggregates skipped and merges by the normal route.
 6. CI1.3: K7 shown by one `main`-style cold run and one warm pull-request run with `ccache -s`
-   output; the before and after table; the queue-time table; K8 applied.
+   output; the before and after table; the queue-time table; K8 applied (r4: the fact file is on
+   `main`, kept or reverted).
 
 ## Single-writer area
 `.github/workflows/ci.yml` belongs to CI1.4, then CI1.3, one open PR at a time. M2 PV1 places its drift check in a
