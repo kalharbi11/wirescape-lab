@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
+#include "../../modules2/noise/dsp.h"
+#include "../../modules2/clock/dsp.h"
+#include "../../modules2/function_envelope/dsp.h"
+#include "../../modules2/slew/dsp.h"
+#include "../../modules2/ladder/dsp.h"
+#include "../../modules2/output/dsp.h"
 #include "../../modules2/adsr/dsp.h"
 #include "../../modules2/vca/dsp.h"
 #include "../../modules2/vcf/dsp.h"
 #include "../../modules2/vco/dsp.h"
 #include "../../tests2/allocation_watch.h"
-#include "../../tests2/module_loader.h"
 #include "engine2.h"
 #include "runtime_patch.h"
 #include "soak_stats.h"
@@ -57,13 +62,19 @@ static uint32_t voices(const std::string&graph){
  auto suffix=graph.substr(7);if(suffix.empty()||suffix.find_first_not_of("0123456789")!=std::string::npos)throw std::invalid_argument("voice count must be digits");
  double n=number(suffix);if(n<1||n>16||std::floor(n)!=n)throw std::invalid_argument("voices must be 1..16");return static_cast<uint32_t>(n);
 }
-static std::unique_ptr<Engine> graph(const Options&o,ModuleLoader&loader){
+static std::unique_ptr<Engine> graph(const Options&o){
  Config c;c.sample_rate=o.rate;c.max_block=o.block;c.max_channels=16;
  auto e=std::make_unique<Engine>(c);
  if(o.graph=="six_essentials_shim"){
   if(o.modules.empty())throw std::invalid_argument("shim graph requires --modules directory");
-  const char*names[]={"noise","clock","function_envelope","slew","vcf","ladder","vca","output"};
-  for(uint32_t i=0;i<8;++i)require(e->add_abi1(i+1,loader.abi1(names[i])));
+  // Retain the existing CLI graph name and eight-node wiring while replacing
+  // its ABI1-only test fixture with the corresponding native ABI2 modules.
+  const ws2_descriptor*descriptors[]={ws::Module<ws2ports::Noise>::descriptor(),
+    ws::Module<ws2ports::Clock>::descriptor(),ws::Module<ws2ports::FunctionEnvelope>::descriptor(),
+    ws::Module<ws2ports::Slew>::descriptor(),ws::Module<ws2ports::Vcf>::descriptor(),
+    ws::Module<ws2ports::Ladder>::descriptor(),ws::Module<ws2ports::Vca>::descriptor(),
+    ws::Module<ws2ports::Output>::descriptor()};
+  for(uint32_t i=0;i<8;++i)require(e->add_node(i+1,descriptors[i]));
   const uint32_t edges[][4]={{1,0,5,0},{5,1,6,0},{6,0,7,0},{2,0,3,0},{3,0,4,0},{4,0,7,1},{7,0,8,0}};
   for(auto&a:edges)require(e->connect(a[0],a[1],a[2],a[3]));require(e->output(8,0,0));require(e->prepare());
   struct Param{uint32_t node,index;float value;};
@@ -85,7 +96,7 @@ static std::unique_ptr<Engine> graph(const Options&o,ModuleLoader&loader){
  return e;
 }
 static bool run(const Options&o){
- ModuleLoader loader(o.modules.c_str());auto builtin=o.patch.empty()?graph(o,loader):nullptr;Engine*e=builtin.get();
+ auto builtin=o.patch.empty()?graph(o):nullptr;Engine*e=builtin.get();
  std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>app(nullptr,app_engine_destroy);
  if(!o.patch.empty()){
   using namespace wirescape::document;

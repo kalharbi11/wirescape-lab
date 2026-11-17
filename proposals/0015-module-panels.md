@@ -144,8 +144,9 @@ Studio is the broker: it checks each request, forwards it through `EngineClient`
   policy that blocks the network. If the scheme handler cannot express that, the files are
   inlined into the frame by the host; the API does not change.
 - **A2** 30 telemetry messages per second per stream is enough for a scope and a
-  per-voice display. A panel that needs more gets a `BLOCK` stream with larger records, not
-  a higher rate.
+  per-voice display. A panel that needs more gets a `BLOCK` stream, which may deliver several
+  queued records in one message, not a higher message rate (records stay ≤ 4,096 bytes, `0012`;
+  amended by `0017` section 5).
 - **A3** Stateless panels are acceptable to authors. A panel that needs view state (a zoom
   level, a selected step) keeps it in a data slot marked as view-only; if several modules
   need this, version 2 adds a small per-instance view store saved under `ui` in the patch.

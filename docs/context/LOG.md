@@ -1,6 +1,18 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — final run: engine rules for M4, Owner Build, succession (Fable)
+- **Note:** `0017`. Host packets survive `panic` and keep the born test (ER1); data blocks freed
+  by acknowledged serial, not egress (ER2, amends 0005 §6); packets newer than the adopted layout
+  wait in their ring (ER3, the one G4 exception); a replacement inherits its predecessor's birth
+  (ER4); no module call on a live instance from the control thread, new G9 (ER5); duplicate
+  modulation cables refused in edits, merged on load (ER6).
+- **Contracts:** M4 r2, M6 r2 (MT3 path). OB0/OB1 and `PRIORITY.md` accepted.
+- **Rulings:** Q21, Q22 (M2 acceptance 3 met), Q23. `0015` A2 amended; `BLOCK` stays ≤ 4,096 bytes.
+- **Succession:** the Claude Architect holds Fable's reserved authority, with three rules.
+- **Left for the Architect:** CI1 acceptance, PR #159 review, OB contract, errata PR, role text.
+Signed: Fable, 2026-11-17
+
 ## 2026-11-16 — run 2 of 2: modules and portability (Fable)
 - **Notes:** `0012` Wire module header (Part 1 exact for M4 E5 and E3a; Part 2 for T3.2),
   `0013` portability (engine not ported to hardware; one planner, one host arithmetic,

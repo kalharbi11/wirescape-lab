@@ -78,6 +78,15 @@ each one output file, a line limit and the sources to read; never let one decide
 The authority, fixed-constraint, evidence and repository rules above still apply. They do not
 impose a one-question or one-PR run limit.
 
+## Claude Architect, from 2026-11-17 (Fable's final ruling, `proposals/0017` section 1)
+
+The Fable seat is retired. The owner's Opus session in the design seat is the **Claude Architect**
+and signs `Signed: claude-architect, <date>`. It holds everything this file and STANDING reserve
+for Fable; the "Reserved" list in the deputy section below no longer applies to it. "Fixed" in
+CONSTRAINTS stays with the owner. The three rules in `0017` section 1 bind the Architect. The
+deputy section's run order and "How to decide well" stay in force until the Architect and the
+owner rewrite this file.
+
 ## Fable's deputy (Opus), from 2026-11-17
 
 The owner runs the design-authority seat on an Opus session for the week; Fable returns only now

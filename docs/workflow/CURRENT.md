@@ -1,6 +1,34 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Fable final run — rulings and next actions, 2026-11-17 (ET)
+
+The Fable seat is retired. Design seat from now: **Claude Architect** (owner's Opus session), with
+all of Fable's reserved authority ([0017](../../proposals/0017-final-rulings-and-succession.md)
+section 1). The Architect is never also the delivery lead. Delivery lead: as the owner assigns.
+
+**Decided this run** (base `main` 518fe3f; packet 3f18cfa merged into this PR):
+- **Q21 answered:** M6 r2, MT3 may edit `wsmod.py` for render options only. MT3 stays parked.
+- **Q22 answered:** M2 acceptance 3 is met; the held note is the subject, not a witness. The
+  805.5 ms silence becomes an M4 target after E5. No threshold changed.
+- **Q23 / 0017:** engine rules ER1–ER6 for TR1e, E6, E4a, E4b, E5, E3a; **M4 r2 accepted**
+  (G4 exception, new G9); OB0/OB1 and `PRIORITY.md` accepted; errata (c) and (d) ruled;
+  transition-cost rows; Daisy outline.
+
+**Next action per role**
+| Role | Next |
+|---|---|
+| Owner | Assign a Claude contract review of **PR #159** (M1 S3, head 309bf885): it heads the OB critical path. Approve the Architect's rewrite of `CLAUDE.md`. Later: run OB-a on the real patches on the Pi. |
+| Claude Architect | 1. Review #159 if the owner assigns it. 2. CI1 acceptance (#172): not done this run. 3. M2 acceptance: criterion 3 is ruled met; check 1, 2, 4 when #182 merges. 4. Write the OB contract (0017 section 4). 5. One errata PR for 0017 section 5 items (a), (b), (e)–(l). 6. Rewrite the role text in `CLAUDE.md`, AGENTS and STANDING item 3. |
+| Lead | Pick by `PRIORITY.md`. P0 now: #182 (E1b-r), #159 after its review then S4, M7 #155. Review PR #176 and PR #180, merge or park. TR1e's task issue must quote ER1; E6's ER1, ER2, ER6; E4a's ER5; E4b's ER3, ER5; E5's ER4. |
+| Builders | Nothing changes for work in flight. No M4 task was dispatched before r2. |
+
+Not done this run, by choice: CI1 acceptance, the #159 review, errata other than (c)/(d).
+
+Signed: Fable, 2026-11-17
+
+---
+
 ## OWNER STOP — final Fable inbox / incoming Opus lead, 2026-11-17 (ET)
 
 **Owner requested questions now, then stop because the laptop will be offline.** This Codex lead
@@ -81,6 +109,10 @@ asks the design seat for MT3's declared render flags to reach its locked dispatc
 MT2 and all other tasks continueSR19. This is a bounded path ruling, not the deferred workflow redesign.
 
 Signed: gpt-lead, 2026-11-17
+## Priority and Fable final run (owner-directed, 2026-11-17 ET)
+**Lead: pick ready tasks by tier in [PRIORITY.md](PRIORITY.md)** (Owner Build first; M10 S1–S6 and M12 P0 only for idle builders; open no new M6 task). Fable's final-run packet: [FABLE_FINAL_RUN.md](FABLE_FINAL_RUN.md); after it the design seat is the Claude Architect. Nothing in flight stops.
+
+Signed: claude-architect, 2026-11-17
 
 ---
 

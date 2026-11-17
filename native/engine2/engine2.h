@@ -5,7 +5,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-struct ws_module_descriptor;
 namespace wirescape::engine2 {
 enum class Timing { Frames, Immediate, Timestamped };
 struct Config {
@@ -53,7 +52,6 @@ public:
     explicit Engine(Config config={});~Engine();
     Engine(const Engine&)=delete;Engine&operator=(const Engine&)=delete;
     bool add_node(uint32_t id,const ws2_descriptor*,const std::vector<uint8_t>&config={});
-    bool add_abi1(uint32_t id,const ws_module_descriptor*);
     bool connect(uint32_t from,uint32_t output,uint32_t to,uint32_t input);
     bool modulate(uint32_t from,uint32_t output,uint32_t to,uint32_t parameter,float amount);
     bool output(uint32_t node,uint32_t port,uint32_t bus_channel);
@@ -96,8 +94,6 @@ public:
     // One control owner stages a prepared candidate while render remains active.
     // A timed-out park never changes the live graph. Candidate retirement is control-side.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
-    // Quiescent staging helper: descriptors must outlive the eventual live graph.
-    bool rebind_abi1_descriptor(uint32_t node, const ws_module_descriptor *);
     uint32_t dropped_connections()const;
 };
 }
