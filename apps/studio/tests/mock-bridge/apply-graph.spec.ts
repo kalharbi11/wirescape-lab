@@ -320,6 +320,14 @@ test('Q14 A+B refused: one anchor restores 220, dirty and history position', asy
 
 test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  // The direct restoreSnapshot test hook bypasses History.undo/redo, which normally
+  // advance the cursor before restoring. Model one real authored gesture explicitly.
+  await page.evaluate(() => {
+    window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
+    window.__wirescapeTest.flushHistory();
+  });
+  const authoredCursor = await graphCheckpoint(page);
+  expect(authoredCursor.history).toEqual({ past: 1, future: 0 });
   await page.evaluate(() => {
     const b = (window as any).__mockBridge;
     b.holdNext('applyGraph');
@@ -333,6 +341,15 @@ test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor
   });
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
   await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  // B is held and still authored as 660; A has already reached 440. Since
+  // the direct test hook did not move History, the explicitly authored cursor
+  // must be the one retained after B's refusal.
+  const afterA = await graphCheckpoint(page);
+  expect(afterA.confirmed.frequency).toBe(440);
+  expect(afterA.authored.frequency).toBe(660);
+  expect(afterA.history).toEqual(authoredCursor.history);
+  expect(afterA.canUndo).toBe(true);
+  expect(afterA.canRedo).toBe(false);
   await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
   await equalConfirmed(page, 440);
   const after = await graphCheckpoint(page);
@@ -345,6 +362,14 @@ test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor
 test('Q14 partial A confirmed/B refused: unapplied side value never enters rollback anchor', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco',
     parameters: { frequency: 220, amplitude: 0.5 } }]);
+  // Author frequency as the one history gesture. The native-unapplied amplitude
+  // is deliberately NOT recorded in the cursor; its confirmed value stays 0.5.
+  await page.evaluate(() => {
+    window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
+    window.__wirescapeTest.flushHistory();
+  });
+  const authoredCursor = await graphCheckpoint(page);
+  expect(authoredCursor.history).toEqual({ past: 1, future: 0 });
   await page.evaluate(() => {
     const b = (window as any).__mockBridge;
     b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
@@ -364,12 +389,48 @@ test('Q14 partial A confirmed/B refused: unapplied side value never enters rollb
   });
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
   await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  // B is held and still authored as 660; A has already reached 440. Since
+  // the direct test hook did not move History, the explicitly authored cursor
+  // must be the one retained after B's refusal.
+  const afterA = await graphCheckpoint(page);
+  expect(afterA.confirmed.frequency).toBe(440);
+  expect(afterA.authored.frequency).toBe(660);
+  expect(afterA.history).toEqual(authoredCursor.history);
+  expect(afterA.canUndo).toBe(true);
+  expect(afterA.canRedo).toBe(false);
   await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
   await equalConfirmed(page, 440, 0.5);
   const after = await graphCheckpoint(page);
   expect(after.dirty).toBe(true);
   expect(after.canUndo).toBe(true);
   expect(after.canRedo).toBe(false);
+});
+
+test('Q14 normal undo and redo move exactly one history entry with confirmed graph', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+  const baseline = await graphCheckpoint(page);
+  expect(baseline.history).toEqual({ past: 0, future: 0 });
+  await page.evaluate(() => window.__wirescapeTest.commitParam(2, 'frequency', 330));
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(330);
+  await page.evaluate(() => window.__wirescapeTest.flushHistory());
+  const authored = await graphCheckpoint(page);
+  expect(authored.history).toEqual({ past: 1, future: 0 });
+  expect(authored.canUndo).toBe(true);
+  expect(authored.canRedo).toBe(false);
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 220);
+  await expectGraphCommands(page, ['applyGraph']);
+  const undone = await graphCheckpoint(page);
+  expect(undone.history).toEqual({ past: 0, future: 1 });
+  expect(undone.canUndo).toBe(false);
+  expect(undone.canRedo).toBe(true);
+  await page.evaluate(() => window.__wirescapeTest.redo());
+  await equalConfirmed(page, 330);
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  const redone = await graphCheckpoint(page);
+  expect(redone.history).toEqual(authored.history);
+  expect(redone.canUndo).toBe(true);
+  expect(redone.canRedo).toBe(false);
 });
 
 test('Q14 partial earlier checkpoint then two refused: restored anchor is 220', async ({ page }) => {
