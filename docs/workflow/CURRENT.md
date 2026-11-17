@@ -2,23 +2,23 @@
 # CURRENT — lab workflow handoff
 
 Updated 2026-11-16 ET, **claude-lead** (active lead for every milestone, including M1; owner, 2026-11-16).
-Main `cd8b02d7ee4b4a95de08798384568a7267c52436`. No Worker2, no timers, no root/M1 sub-leads: builders run only when the owner starts them.
+Main `ba3b020dde9abd045cd02238a2517750d92487b3`. No Worker2, no timers, no root/M1 sub-leads: builders run only when the owner starts them.
 Builders are GitHub-connector only (no local native build), so every measurement comes from hosted workflows (SR8/SR9/SR18).
 
 ## Contracts
 - **M0 r3** accepted/closed (Fable). `facts/BASELINE.md` gives before-numbers; ringmod2 unmeasured.
 - **M2 r3:** E0, E1a, PV1 merged. E1b #125/PR130: **Q16 answered**, dispatch the one final packet (Q14 + Q16 rule and tests e–g) to B1. Continuity #139/PR150 waits for hosted capture. Gap report #140/PR149 draft (not an acceptance).
 - **CI1 r4** (Q17): CI1.1/1.2/1.4 merged. CI1.3 #109/PR129: lead merges once at a reviewed head; the first later PR run of `sanitizers` decides keep (restored, ≤ 318 s) or revert; facts filed either way. Nothing stops or replans.
-- **M1 r2:** S2 #111/PR138 evidence packet `c0e020b` running (paired instructions 43986554879, Golden 43986554704, Lab 43986554686). Lead merges S2 on B4's Result if all rows ≤1 % (Chord rows SR10 exceptions), link proof ×3 and Golden 24 identical ×3 hold. Then S3 #143 (needs a **Claude** contract-review).
+- **M1 r2:** **S2 MERGED** PR138 `e28dbb3`→`70f2e21` (paired instructions 43988096709: 95/97 ≤1 % on x64 and ARM64, Chord voices1/8 SR10 exceptions for the acceptance report; link proof ×3; Golden ×3 green). **S3 #143 open to B4**; needs a **Claude** contract-review (I1–I5, I8) before merge.
 - **M3/M4/M5/M6/M7 r1** accepted. Ready now: M5 PV2a PR151 (correction 1/2: drop recommendation column; **Q18 answered**: D03, D05, D09 closed, no PV2b work), M6 MT1 PR153 (SR8 workflow granted), M7 T7.0 PR152 (hosted capture workflow granted), new **M3 V1 facts #154**, new **M7 S7.1 #155**.
 
 ## Builder queues (run in this order; one active PR each)
 | Builder | 1 | 2 | 3 |
 |---|---|---|---|
-| gpt-builder1 | PR151 correction (lead comment 6933781199) | #154 `native_v1_readers.md` | #155 S7.1 reverb |
-| gpt-builder2 | PR153: add `module-tools.yml` per 6933779966, real template check ×3 | #141 CI1 gap-only report (CI1.3 open on Q17) | — |
+| gpt-builder1 | #154 `native_v1_readers.md` | #155 S7.1 reverb | — |
+| gpt-builder2 | PR153 correction 1/2: fix fixture include root (6934101225), real template check ×3 | #141 CI1 gap-only report (CI1.3 open on Q17) | — |
 | gpt-builder3 | PR152: `t7-0-capture.yml` + fill facts (6933783098) | PR150: continuity capture workflow + rows (6933784579) | #142 audit after PR150 Result |
-| gpt-builder4 | PR138: Result from the three runs (6933788066) | #143 S3 after S2 merges | — |
+| gpt-builder4 | #143 S3 (S2 merged) | — | — |
 
 ## Holds
 - None from the design seat: Q16, Q17, Q18 answered in `QUESTIONS.md` (Fable, 2026-11-16).
