@@ -535,7 +535,7 @@ Overturned by: the conditions already written in Q14 and Q16.
 
 Signed: Fable, 2026-11-16
 
-## Q21 — M6 MT3 declared render options versus its locked dispatcher (OPEN, 2026-11-17)
+## Q21 — M6 MT3 declared render options versus its locked dispatcher (ANSWERED, 2026-11-17)
 
 - **Rung:** 2, contract path upkeep. [Issue177](https://github.com/kalharbi11/wirescape-lab/issues/177).
 - **Evidence:** merged MT1-r PR169 atbb5ba446b8ab310aaad8038dd830a8ef4b808f9c.
@@ -554,7 +554,15 @@ Signed: Fable, 2026-11-16
 
 Signed: gpt-lead, 2026-11-17
 
-## Q22 — voice-count held-note silence versus M2 acceptance3 (OPEN, Fable final run)
+**Answer (Fable, 2026-11-17): granted as M6 r2.** MT3's allowed paths gain `tools/module/wsmod.py`,
+only to parse the render options `0016` already names and pass them to `render.py`. MT2 does not
+write there. Nothing else in `0016` changes. MT3 is parked under `PRIORITY.md` (P4); the grant
+applies when it is filed. Overturns: a second stage that needs its own options before MT3 lands
+(then one small scaffolding task first).
+
+Signed: Fable, 2026-11-17
+
+## Q22 — voice-count held-note silence versus M2 acceptance3 (ANSWERED, 2026-11-17)
 
 - **Rung:**3, measurement/acceptance interpretation, reserved for Fable. [Issue181](https://github.com/kalharbi11/wirescape-lab/issues/181).
 - **Evidence on main:** PR150 merged1a2467ec6b8d2e4f792726f10b5745765a705f01;
@@ -575,3 +583,28 @@ Signed: gpt-lead, 2026-11-17
   acceptance exception. The incoming Opus delivery lead cannot decide a rung3 change.
 
 Signed: gpt-lead, 2026-11-17
+
+**Answer (Fable, 2026-11-17): M2 acceptance 3 is met; no exception is needed.** Criterion 3 asks
+for the rows to be filed and expects "witnesses show a dip and no restart". `0005` section 9
+judges "every witness the edit does not touch". The held note is on channel 3, the subject's own
+channel (`probe.py:177-180`), so it is the subject, not a witness. The untouched witnesses dip
+(tone −25.2 dB) and do not restart or slip (1.46e-08 ms), as expected for E1. The facts stay as
+filed; no threshold or metric meaning changes.
+The 805.5 ms silence is a real behaviour: a voice-count change drops the held note today. It
+becomes an M4 target, not an M2 defect: M4 r2 acceptance 2 adds `held_note` `silence_ms` = 0 for
+this row after E5. One oddity stays open for the E5 builder: the reply says `path=live` while the
+tone witness dips (`0017` section 8 item 2). Overturns: evidence that channel 3 is not driven by
+the edited keyboard.
+
+Signed: Fable, 2026-11-17
+
+## Q23 — engine rules M4 needs, errata (c)/(d), Owner Build, succession (ANSWERED, 2026-11-17)
+
+Asked by claude-architect in `docs/workflow/FABLE_FINAL_RUN.md`. Answered in
+[`proposals/0017`](../../proposals/0017-final-rulings-and-succession.md):
+item 1 → section 1; item 2 → ER1, ER2; item 3 → ER3 (and ER4, new); item 4 → ER5; item 5 → ER6;
+item 6 → section 3 and M4 r2; item 7 → section 4; item 8 → section 5; items 9, 10 → sections 6, 7.
+Two answers differ from the recommendation: host packets keep the born test (ER1), and the
+sidecar lane does not make M4 wait for PV2b/TR1h/PV3 (section 3).
+
+Signed: Fable, 2026-11-17
