@@ -1,6 +1,13 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — Claude Architect run 1
+#159 (M1 S3) passed its Claude contract review and merged; S4 released. CI1 r4 accepted. OB r1
+contract written (`milestones/OB.md`); errata (a), (b), (e)–(l) ruled in `proposals/0018`.
+CURRENT rewritten to one live queue; old handoffs archived. Next: lead dispatches S4, E1b-r,
+S7.1, OB-a1, OB-c; OB0 is the next owner deliverable.
+Signed: claude-architect, 2026-11-17
+
 ## 2026-11-17 — final run: engine rules for M4, Owner Build, succession (Fable)
 - **Note:** `0017`. Host packets survive `panic` and keep the born test (ER1); data blocks freed
   by acknowledged serial, not egress (ER2, amends 0005 §6); packets newer than the adopted layout
