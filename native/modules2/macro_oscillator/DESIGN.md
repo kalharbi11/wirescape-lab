@@ -155,3 +155,31 @@ changes invalidate the baseline pending review. Full output remains in a collaps
 CI log group. Tool failures and changed/new reports still fail. Upstream DSP,
 pins, native tests and sanitizer settings stay unchanged. Baseline additions
 require T2 analysis-policy review.
+
+
+## S7.4: prepared resampling for non-48-kHz hosts (OB0)
+
+This task leaves the original 48 kHz processing branch, Plaits model
+selection, upstream pins, unsigned-shift reference oracle, existing three-model
+hash test, parameters and state version unchanged. In non-48-kHz `prepare`,
+allocate the 96-tap x 129-phase coefficient array and one 128-frame stereo
+history per active voice from host WS2_LARGE; prepare the scalar
+Blackman-Harris-windowed sinc at cutoff min(20 kHz, host Nyquist - 3.5 kHz).
+Only the non-48-kHz process branch consumes the table: the Plaits core keeps
+running at 48 kHz, with a causal 47.5-input-frame group delay. Linear phase
+interpolation avoids stair-step phase quantization at 44.1 kHz. Both main and
+aux outputs use the same taps; latency reports the original core 12-frame
+delay plus the resampler delay in host frames. The filter, branch isolation,
+memory and lifetime constraints are directly tested in the module folder.
+
+The existing `module.json` description still says 48-kHz-only because the
+M7 K3 contract explicitly freezes `module.json`. That preexisting metadata
+string needs its own contract-scoped disposition, not an unauthorized K3 edit.
+The input CV/control quantum remains 12 internal Plaits frames; the host
+signals are sampled at the host sample that triggers each internal quantum.
+This may delay modulation consistently with the declared filter latency.
+
+Actual all-24-model pitch measurements, architecture-specific Ir rows and
+three-platform 48-kHz bit-identical Golden gate require hosted exact-head
+evidence, not a synthetic or local calculation. No numeric pitch equivalence
+or 48-kHz audible parity is asserted by this design text.
