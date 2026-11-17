@@ -4,6 +4,10 @@
 #include "dispatch.h"
 #include <algorithm>
 #include <cmath>
+#include <cfenv>
+#if defined(__SSE__)
+#include <xmmintrin.h>
+#endif
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -40,6 +44,23 @@ void* __wrap_aligned_alloc(size_t a, size_t n) {
 
 namespace {
 constexpr double pi = 3.14159265358979323846;
+struct GradualUnderflow {
+#if defined(__SSE__)
+    unsigned previous = _mm_getcsr();
+    GradualUnderflow() { _mm_setcsr(previous & ~(1u << 15 | 1u << 6)); }
+    ~GradualUnderflow() { _mm_setcsr(previous); }
+#elif defined(__aarch64__) && !defined(_WIN32)
+    uint64_t previous = 0;
+    GradualUnderflow() {
+        asm volatile("mrs %0, fpcr" : "=r"(previous));
+        const uint64_t gradual = previous & ~(uint64_t(1) << 24 | uint64_t(1) << 19);
+        asm volatile("msr fpcr, %0" :: "r"(gradual));
+    }
+    ~GradualUnderflow() { asm volatile("msr fpcr, %0" :: "r"(previous)); }
+#else
+    GradualUnderflow() { std::fesetenv(FE_DFL_ENV); }
+#endif
+};
 struct Result {
     std::string test, status = "pass", detail = "completed";
     int rate = 48000, block = 17, voices = 1, frame = 0, channel = 0;
@@ -88,7 +109,8 @@ float stimulus(uint64_t frame, unsigned port, unsigned channel, int rate) {
 HostBlock make_block(const HostDescription& d, int rate, unsigned frames,
                      unsigned voices, uint64_t offset = 0,
                      int special = 0, int changed_param = -1,
-                     float value = 0, bool sweep = false) {
+                     float value = 0, bool sweep = false,
+                     int nonfinite_input = -1, int nonfinite_param = -1) {
     HostBlock b;
     b.frames = frames; b.channels = voices; b.sample_rate = rate;
     for (unsigned j = 0; j < d.inputs.size(); ++j) {
@@ -97,7 +119,7 @@ HostBlock make_block(const HostDescription& d, int rate, unsigned frames,
             std::vector<float> samples(frames);
             for (unsigned i = 0; i < frames; ++i)
                 samples[i] = stimulus(offset + i, j, c, rate);
-            if (special && j == 0 && !samples.empty())
+            if (special && int(j) == nonfinite_input && !samples.empty())
                 samples[0] = special == 1 ? std::numeric_limits<float>::quiet_NaN()
                            : special == 2 ? std::numeric_limits<float>::infinity()
                                           : -std::numeric_limits<float>::infinity();
@@ -115,7 +137,7 @@ HostBlock make_block(const HostDescription& d, int rate, unsigned frames,
                         ? d.params[j].minimum + (d.params[j].maximum - d.params[j].minimum) *
                               float((offset + i) % 64) / 63.f : value;
             }
-            if (special && d.inputs.empty() && j == 0)
+            if (special && int(j) == nonfinite_param)
                 samples[0] = special == 1 ? std::numeric_limits<float>::quiet_NaN()
                            : special == 2 ? std::numeric_limits<float>::infinity()
                                           : -std::numeric_limits<float>::infinity();
@@ -178,7 +200,7 @@ std::vector<float> stream(const HostDescription& d, int rate, unsigned chunk,
     const uint64_t length = uint64_t(rate) * seconds;
     for (uint64_t at = 0; ok && at < length; at += chunk) {
         auto b = make_block(d, rate, unsigned(std::min<uint64_t>(chunk, length - at)), voices, at);
-        if (decay && at >= uint64_t(rate / 2)) {
+        if (decay && at >= uint64_t(rate)) {
             for (auto& input : b.inputs)
                 for (auto& channel : input.samples) std::fill(channel.begin(), channel.end(), 0.f);
         }
@@ -253,7 +275,7 @@ int module_matrix_main(int argc, const char* const* argv) {
             emit(t3);
         }
     }
-    const int rate = 48000, frames = 17, voices = 4;
+    const int rate = 48000, frames = 17, voices = full ? 16 : 4;
     {
         Result t4 = row("T4", rate, frames, voices);
         HostModule together;
@@ -387,14 +409,22 @@ int module_matrix_main(int argc, const char* const* argv) {
         if (!prepared(m, rate, frames, 1, config)) {
             t9.status = "skip"; t9.detail = "prepare unavailable";
         } else {
-            for (int k = 1; k <= 3; ++k) {
-                auto block = make_block(d, rate, frames, 1, 0, k);
-                const auto o = observe(m, block);
-                if (!((o.code == 1 && o.zero_constant) ||
-                      (o.code == 0 && o.finite))) {
-                    t9.status = "fail";
-                    t9.detail = "nonfinite input not safely handled";
-                    t9.frame = 0; break;
+            for (int k = 1; k <= 3 && t9.status == "pass"; ++k) {
+                for (size_t j = 0; j < d.inputs.size() + d.params.size(); ++j) {
+                    const bool is_input = j < d.inputs.size();
+                    auto block = make_block(d, rate, frames, 1, 0, k, -1, 0, false,
+                                            is_input ? int(j) : -1,
+                                            is_input ? -1 : int(j - d.inputs.size()));
+                    const auto o = observe(m, block);
+                    if (!((o.code == 1 && o.zero_constant) ||
+                          (o.code == 0 && o.finite))) {
+                        t9.status = "fail";
+                        t9.detail = "nonfinite input not safely handled";
+                        if (is_input) t9.port = d.inputs[j].id;
+                        else t9.param = d.params[j - d.inputs.size()].id;
+                        t9.frame = 0; break;
+                    }
+                    m.reset();
                 }
             }
         }
@@ -424,13 +454,30 @@ int module_matrix_main(int argc, const char* const* argv) {
     if (full) {
         Result t10 = row("T10", rate, 256, 1);
         bool ok = false;
-        const auto tail = stream(d, rate, 256, 1, config, 1, true, &ok);
+        std::vector<float> tail;
+        {
+            GradualUnderflow gradual; // FTZ/DAZ off for stimulus and decay.
+            tail = stream(d, rate, 256, 1, config, 2, true, &ok);
+        }
         uint64_t subnormal = 0;
-        for (float value : tail)
+        size_t last_nontrivial = 0, last_nonzero = 0;
+        double peak = 0;
+        for (size_t i = 0; i < tail.size(); ++i)
+            if (i < size_t(rate)) peak = std::max(peak, std::fabs(double(tail[i])));
+        const double threshold = peak * .001;
+        for (size_t i = size_t(rate); i < tail.size(); ++i) {
+            const float value = tail[i];
             if (std::fpclassify(value) == FP_SUBNORMAL) ++subnormal;
+            if (std::fabs(double(value)) > threshold) last_nontrivial = i;
+            if (value != 0) last_nonzero = i;
+        }
         t10.metric = double(subnormal);
         t10.status = "warn"; // report-only, never exit failure
-        t10.detail = ok ? "denormal decay report" : "denormal probe unavailable";
+        t10.detail = ok
+            ? "subnormal samples " + std::to_string(subnormal) +
+              ", -60 dB at " + std::to_string(double(last_nontrivial) / rate) +
+              " s, exact silence at " + std::to_string(double(last_nonzero) / rate) + " s"
+            : "denormal decay probe unavailable";
         emit(t10);
         for (unsigned j = 0; j < d.params.size(); ++j) {
             Result t12 = row("T12", rate, 64, 1);
