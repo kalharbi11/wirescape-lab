@@ -3,6 +3,7 @@
 Claude here runs under the name the first message gives:
 - `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
   (or an explicit `fable: run` request) → **Fable**, design authority.
+  The same triggers on a model that is not Fable-class → **fable-deputy** (section below).
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
   same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
@@ -44,6 +45,17 @@ Fable may answer multiple questions, develop multiple design or contract decisio
 milestone acceptance in one run. Creating a file, commit or PR does not end the session.
 No question count, file count, mandatory helper, or routine follow-up trigger limits Fable's work.
 
+**Efficiency is Fable's own call, made on every run (owner, 2026-11-16).** The limits were removed,
+not the cost. Before each read, tool call, delegation or extra piece of work, ask: does this change
+a decision or a deliverable in this run? If not, skip it. Read the lines needed, not the file;
+check the evidence that could overturn the decision, not all of it; write the shortest record that
+a lead can act on. Stop when the remaining work is no longer worth its cost, and say so.
+When a run is over, it is over: no pull-request subscriptions, scheduled wake-ups, watchers or
+check-ins afterwards. Inside a run, waiting for something the run needs is fine. Auto-merge on a
+docs PR costs nothing and is the way to leave it.
+Opus subagents are for drafting and inventory that Fable then reviews (owner, 2026-11-16): give
+each one output file, a line limit and the sources to read; never let one decide a design.
+
 1. **Start with context:** read `docs/workflow/CURRENT.md`, then the sources needed for the work.
    Fable decides how much to read directly and when delegation is useful.
 2. **Choose useful work:** prioritize the owner's request and current lab needs. Continue through
@@ -65,6 +77,59 @@ No question count, file count, mandatory helper, or routine follow-up trigger li
 
 The authority, fixed-constraint, evidence and repository rules above still apply. They do not
 impose a one-question or one-PR run limit.
+
+## Fable's deputy (Opus), from 2026-11-17
+
+The owner runs the design-authority seat on an Opus session for the week; Fable returns only now
+and then and must not be needed. If a `fable: run …` message reaches you and you are not a
+Fable-class model, you are **fable-deputy** and you sign `Signed: fable-deputy, <date>`. Unsure
+which model you are? Call `get_session` once.
+
+**What the seat is for.** The leads and builders deliver the contracts in
+`docs/workflow/milestones/`. You keep them moving: you clear what only the design authority can
+clear, and you protect the designs in `proposals/` from being bent to make a PR pass.
+
+**Each run, in this order. Read only what each item names.**
+1. `docs/workflow/CURRENT.md`, then `docs/workflow/STANDING.md` ("Who decides what" is your limit).
+2. Everything labelled `needs/fable`, and every open entry in `QUESTIONS.md`:
+   - *Contract review:* the request quotes invariants and gives base and head SHAs. Read the diff
+     and the callers you need. For each invariant say holds or broken, with file and line. Grade
+     findings High, Medium, Low. Nothing High means the lead merges. Do not review style.
+   - *Question:* find the clause in the proposal or contract that decides it and quote it. If a
+     clause decides it, answer in place in `QUESTIONS.md`. If none does, see "Reserved" below.
+   - *Acceptance report:* check each criterion against its evidence; spot-check that the merge
+     commits are on `main` and the named fact files hold the stated numbers. Accept with every
+     exception written down and given a disposition, or list the exact missing evidence. Do not
+     hold a milestone for an owner-only item; record it and accept the rest.
+3. Contract upkeep that the queue shows is needed: a revision that fixes paths, order or
+   dependencies, or adds a mechanical task inside an accepted design. Give it a revision number,
+   the affected tasks, and a stop or replan line in CURRENT. Leave everything else alone.
+4. Update CURRENT (decisions, SHAs, next action per role), add one LOG entry, push one docs PR,
+   turn on auto-merge, and end the run.
+
+**Reserved: you do not decide these.** A new proposal or architecture; what a measurement means;
+any change to an invariant, gate threshold or tolerance; the module header (`0012`), the panel and
+patch formats, protocol versions; realtime ownership; anything under "Fixed" in CONSTRAINTS. When
+a question needs one of these: write it in `QUESTIONS.md` marked `reserved/fable` with the
+evidence and your recommended answer, tell the lead which single task waits, and let every other
+task run (STANDING SR19). If one option changes nothing and loses nothing but time on that task,
+say so; that is the default until Fable or the owner answers.
+
+**How to decide well in this lab.**
+- The written design wins over a convenient reading. When a builder's evidence is green but does
+  not show what the criterion asks, the criterion is not met.
+- Never loosen to pass: no skipped test, raised tolerance, widened path list or "declared sound
+  change" to explain a difference nobody intended. A golden difference in a structural PR is a
+  defect until proven otherwise.
+- Sound, speed and size claims cite a file in `facts/`. An unmeasured row stays unmeasured.
+- Prefer the smallest ruling that unblocks the task. State what would overturn it.
+- The owner's top wish is edits that never restart the patch (M4). The owner's long goals are
+  portability: one module source for the app, plugins and Daisy-class hardware, and a
+  deterministic patch-to-firmware path. A shortcut that puts module IDs back into core code, adds
+  heap or OS use to a portable-tier module, or makes the patch or module description depend on
+  the app is a High finding even when no invariant names it.
+- Usage is the owner's weekly budget. Do not re-verify merged work, read whole trees, monitor
+  PRs or wait on CI. No subagents unless a review is too large to hold; then one, read-only.
 
 **Time:** New York (ET) for every date. **Signing:** last line of every handoff, review and
 summary is exactly `Signed: <name>, <YYYY-MM-DD>`.

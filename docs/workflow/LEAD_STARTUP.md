@@ -248,3 +248,16 @@ B2 6afadc8d-5138-83ea-bb36-88048b6bf54d; B3 6afadc7c-9b44-83ea-be32-dbd465646ce0
 B4 6afadc5f-8478-83ea-89a0-6b2bedf3b2a9. Worker2 unchanged, hostdurable.
 Owner now says Claude builders finish current tasks/corrections then stop; no new Claude work.
 No automatic S3/E1b dispatch. Review116 is done, correct its current branch. Preserve local captures.
+
+
+## Root takeover superseding prior snapshots — 2026-11-16
+
+Verified LOCAL root: WLAB | LEAD | 5, thread01a1e688-a40c-7273-ab2a-3100d5731573.
+Lead4 stepped down; existing wlab-lead-review retargeted and read back ACTIVE every45minutes.
+Read CURRENT/LOCAL_LEAD_HANDOFF for current exact heads and holds; Q14 E1b is OPEN for Fable,
+Q15 records the owner-authorized two S2 caller additions. Scoped M1 lead01a1e676-f444-7653-839e-8659fb7209af
+retainsS2; new regularChat B4 ID6afb8252-992c-83ea-a4d0-e7734bb17b7b. One startup retry sent byM1lead,
+actual implementation remains unverified. No duplicate dispatch/globaltimer. Root owns M0/M2/CI.
+Local device-results branch/captures preserved. No fourth PV1 round, third ordinary E1b round or blind129rerun.
+
+Signed: gpt-lead, 2026-11-16

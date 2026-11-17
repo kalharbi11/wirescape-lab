@@ -10,9 +10,6 @@ AppEngine* app_engine_create_config(const ws_engine_config*,const wirescape::eng
 void app_engine_destroy(AppEngine*);
 const char* app_engine_error(const AppEngine*);
 uint32_t app_engine_abi_version();
-int app_engine_load_module(AppEngine*,const char*);
-int app_engine_register_module(AppEngine*,const ws_module_descriptor*);
-int app_engine_copy_modules(AppEngine* destination,const AppEngine* source);
 uint32_t app_engine_module_count(const AppEngine*);
 const ws_module_descriptor* app_engine_module(const AppEngine*,uint32_t);
 // Borrowed metadata; valid while the internal catalogue owner lives.

@@ -1,6 +1,49 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — Q16, Q17, Q18 answered; CI1 r4 (Fable)
+- **Q16 (E1b):** Q14's anchor holds once "nothing pending" includes incremental edits: a graph
+  chain opens only after outstanding edits settle. Three tests added (e–g). Same single packet.
+- **Q17 (CI1.3):** CI1 r4. K8 is measured after one bootstrap merge; ≤ 318 s with a restored
+  cache keeps, anything else reverts. Threshold unchanged.
+- **Q18 (M5 PV2a):** D03, D05, D09 closed as answered; no PV2b work, no wire change.
+- Not verified by running code: Q16 rests on source reading of PR #130 head `8d0bd29`.
+
+Signed: Fable, 2026-11-16
+
+## 2026-11-16 — run 1 of 2: the week's delivery queue (Fable)
+**Done:** contracts M3 (Phase 1 tail), M4 (gapless edits, module data, replace with state), M5
+(protocol v1), M6 (module tools v0, starts now), M7 (sound quality; batch 1 starts now). Design
+notes 0011 (sound order, from the measured facts) and 0016 (module tools). `0004` gains the Phase
+3 to 6 task list and the map from tasks to contracts. `docs/workflow/STANDING.md`: 19 standing
+rulings so CI, process, correction-limit and small path questions stop at the lead, and a ladder
+of who decides what. `CLAUDE.md`: the fable-deputy seat for an Opus session, and no watching
+after a run ends.
+**How:** four Opus helpers drafted inventory and first drafts (paths, sound ranking, module
+tools, standing rules); Fable wrote M3 to M5 and reviewed, ruled on and rewrote the rest.
+**Found while checking the plan against the owner's brief:** the −20 % engine-cost target has no
+design (now T6.4, facts first); physical-computing bridges and the KNOWN_ISSUES behaviour bugs had
+no task (now T5.4 and T6.8); "envelope 10 % short" was a property of the metric, not a defect;
+the largest measured sound defect (VCF passband −11.8 dB) cannot be fixed until M1 releases the
+frozen reference tests (M7 batch 2).
+**Not done, for run 2:** `0012` Wire module header (M4 E5 and E3a wait for it), `0013`
+portability tiers, patch intermediate form, Daisy compiler and build page, `0014` categories and
+capability modules, `0015` panel format and host API; contracts M8 onward.
+Signed: Fable, 2026-11-16
+
+## 2026-11-16 — M0 accepted and closed; Q14 answered (Fable)
+**Done:** M0 r3 accepted against report #132 at `main` `cc1c223`. Checked: 16 merge commits on
+`main`, ten baseline rows against `0002`, P1–P4 and continuity facts present. Not re-run: per-PR CI
+and source review (lead's signed reviews stand).
+**Exceptions kept explicit:** T0.14 (owner, no PR), `ringmod2` sound metrics unmeasured, two Chord
+rows (R4), continuity raw captures not uploaded, device-only metrics, advisory timing ratios.
+**Q14:** E1b gets one final packet on PR #130 (rollback to the last engine-confirmed state); on
+failure #130 closes unmerged and E1b is re-contracted in M2 r4.
+**Also:** CLAUDE.md gains an efficiency rule for Fable runs (owner request).
+**Next:** leads continue M1 S2, M2 E1b/PV1 and CI1.3 unchanged; Fable places the `ringmod2`
+measurement in the next contract that touches the runtime-module build.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — questions Q7–Q11 answered; CI1 r2, M0 r3, M2 r3 (Fable)
 **Done:** Q7: three literal native aggregate checks (CI1.2); Q6's "no required checks" was wrong.
 Q8: request-ID rule goes in the schema through one permitted `pattern` (0010 P1, M2 r3). Q9:

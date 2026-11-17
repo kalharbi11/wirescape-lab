@@ -1,0 +1,62 @@
+[
+  {
+    "name": "printable-64",
+    "id": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "valid": true
+  },
+  {
+    "name": "printable-65",
+    "id": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "valid": false
+  },
+  {
+    "name": "empty",
+    "id": "",
+    "valid": false
+  },
+  {
+    "name": "control-0x1f",
+    "id": "\u001f",
+    "valid": false
+  },
+  {
+    "name": "control-0x00",
+    "id": "\u0000",
+    "valid": false
+  },
+  {
+    "name": "del-0x7f",
+    "id": "",
+    "valid": false
+  },
+  {
+    "name": "nonascii-one-codepoint-two-bytes",
+    "id": "é",
+    "valid": false
+  },
+  {
+    "name": "nonascii-four-byte-codepoint",
+    "id": "🙂",
+    "valid": false
+  },
+  {
+    "name": "nonascii-33-codepoints",
+    "id": "ééééééééééééééééééééééééééééééééé",
+    "valid": false
+  },
+  {
+    "name": "printable-space",
+    "id": " ",
+    "valid": true
+  },
+  {
+    "name": "printable-tilde",
+    "id": "~",
+    "valid": true
+  },
+  {
+    "name": "printable-with-punctuation",
+    "id": "X_09-!?/",
+    "valid": true
+  }
+]

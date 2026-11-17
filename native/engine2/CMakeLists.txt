@@ -238,7 +238,7 @@ add_subdirectory(../modules2/macro_oscillator macro_oscillator)
 target_link_libraries(wirescape_catalog_dependencies INTERFACE macro_upstream)
 add_library(wirescape_app_engine STATIC ../control/app_engine.cpp)
 target_include_directories(wirescape_app_engine PUBLIC ../control)
-target_link_libraries(wirescape_app_engine PUBLIC wirescape_engine2 wirescape_engine wirescape_catalog_dependencies)
+target_link_libraries(wirescape_app_engine PUBLIC wirescape_engine2 wirescape_catalog_dependencies)
 target_link_libraries(wirescape_cli PRIVATE wirescape_app_engine)
 
 # Device-free, deterministic benchmark shared by all built-in modules.
@@ -317,10 +317,9 @@ add_executable(app_engine_tests ../control/app_engine_tests.cpp ../tests2/alloca
 target_link_libraries(app_engine_tests PRIVATE wirescape_app_engine)
 target_compile_definitions(app_engine_tests PRIVATE
   WS_KNOWN_MODULE_IDS="${CMAKE_CURRENT_SOURCE_DIR}/../../tools/foundation/fixtures/known_module_ids.txt")
-add_library(app_legacy_fixture SHARED ../control/app_legacy_fixture.cpp)
-target_include_directories(app_legacy_fixture PRIVATE ../include)
-add_dependencies(app_engine_tests app_legacy_fixture)
-add_test(NAME app_engine_tests COMMAND app_engine_tests $<TARGET_FILE:app_legacy_fixture>)
+add_test(NAME app_engine_tests COMMAND app_engine_tests)
+# The sanitizer workflow runs -R abi2; execute the real facade test under ASan/UBSan too.
+add_test(NAME abi2_app_engine_sanitizer_tests COMMAND app_engine_tests)
 # Document soak uses the same Qt-free execution copy as the sidecar.
 target_link_libraries(wirescape_soak PRIVATE wirescape_runtime_document)
 add_test(NAME app_document_soak COMMAND wirescape_soak --patch

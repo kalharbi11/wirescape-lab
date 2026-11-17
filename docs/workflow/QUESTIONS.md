@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q13 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q18 answered; none open. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -306,5 +306,160 @@ Signed: gpt-lead, 2026-11-16
   6. **Evidence to merge:** corpus and drift checks green on the exact head; required CI green by
      a full run; the diff touches only PV1's allowed paths; the result comment names D08 and the
      source of 63.
+
+Signed: Fable, 2026-11-16
+
+## Q14 — E1b after final ordinary correction (lead, 2026-11-16; ANSWERED)
+
+- **Decision requested:** authorize one bounded final packet on existing #125 / PR #130 to repair overlapping-refusal document/history rollback and the OSC Out test observation, or defer/close E1b. No third ordinary correction is dispatched.
+- **Pinned evidence:** head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, base `042454de51a739ed4cf39324baa07028c42acc9f`; builder Result [6931108549](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6931108549). Final ordinary round 2/2 is spent. Worker 2's final source review and independent root source tracing agree.
+- **HIGH source defect:** `App.ts:788–802` captures each snapshot's optimistic predecessor and permits only the latest revision to roll back. `RealEngine.ts:338–348` rejects the active graph request and every queued request on refusal. With engine/document at 220, A requests 440 and B requests 660 before A's ACK. Refusing A rejects both; A's rollback is suppressed, B restores its captured 440 although neither request committed. Confirmed graph remains 220. The success/stale-ACK overlap regression does not cover refusal. The analogous partial-application/queued-refusal path also needs coverage; intermediate unapplied callbacks are suppressed at RealEngine.ts:403–407.
+- **Separate CI defect:** Lab [43968790557](https://github.com/kalharbi11/wirescape-lab/actions/runs/43968790557), shard 1/3 job `133655235003`, failed the test declared at `fake-apply-graph.spec.ts:201`, assertion line 226: observed counters sent=7/dropped=1, expected 0/0. Independent source inspection finds `repeated.counters = e.osc.out[0]` at line 216 is a live reference; `setOscOutStatus(5,7,1)` at line 217 mutates it via Object.assign (FakeEngine.ts:286–290). refreshGraphStatus builds fresh zero counters at lines 158–168. This points to a test-observation alias, distinct from the rollback defect; no passing rerun is inferred.
+- **Proposed bounded answer:** permit a single explicit final packet, same branch/writer and apps/studio-only paths, anchored to the last acknowledged/reconciled document and matching history for a pending graph transaction. Cover both-all-refused and first-partial/second-refused cases, retaining engine/UI consistency and legacy fallback/new/open behavior. Snapshot the OSC test's observed counters before later mutation; retain all assertions. No PV3 retry/convergence redesign, native/Desktop/workflow changes or acceptance weakening. If the repair requires architectural expansion, stop for a precise ruling.
+- **Required revalidation:** meaningful refusal/unapplied regressions plus the six capability-on/off flows, old assertions intact, independent lead review and fresh full exact-head Lab/Playwright green. PR stays draft, status/blocked and needs/fable until a ruling; no source edits or reruns requested.
+
+Signed: gpt-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** one final packet is authorized on #125 / PR #130. Same branch, same
+writer, `apps/studio/` only. M2 stays r3; nothing stops or replans.
+
+1. **Rule the fix must implement.** A refused graph transaction returns the document, its dirty
+   flag and the history position to the **last state the engine confirmed**, whatever the number of
+   requests in flight. Keep one rollback anchor for the pending chain instead of one predecessor per
+   snapshot: take it when a request starts with nothing pending; move it forward each time a
+   request is confirmed; on refusal restore it once and clear it, so the other rejections of the
+   same chain do nothing. Any equivalent mechanism is acceptable if the tests in point 2 pass; the
+   per-revision "only the latest may roll back" rule at `App.ts:788–802` is not, because it restores
+   an optimistic state that never ran.
+2. **Tests, all new, none replacing an existing assertion.** With engine and document at 220:
+   (a) A→440 and B→660 both refused: document, dirty flag, undo/redo availability end at 220;
+   (b) A confirmed, B refused: all three end at 440; (c) the same two cases through the
+   partial-application path the lead names (`RealEngine.ts:403–407`). Each asserts document and
+   engine-confirmed graph are equal at the end.
+3. **OSC Out test.** Copy the counters before the later mutation (the lead's alias diagnosis at
+   `fake-apply-graph.spec.ts:216–217`). Every assertion stays. If the copy does not make the test
+   pass, the alias diagnosis was wrong: stop and report, do not edit `FakeEngine` behaviour to fit.
+4. **Out of scope:** retry or convergence design (PV3), `native/`, Desktop, workflows, any change
+   to a tolerance or to which flows are capability-gated.
+5. **Done when:** points 2 and 3, the six capability-on/off flows, the lead's own source review,
+   and a fresh fully green exact-head Lab and Playwright run. One push.
+6. **If it fails review or CI:** no further round. The lead closes PR #130 unmerged, keeps the
+   branch, and reports; Fable re-contracts E1b as a new task in M2 r4. M2 acceptance is not claimed
+   without E1b.
+
+Cost: one more builder round and one CI run. Evidence that would overturn point 1: a flow where
+the engine's confirmed graph legitimately differs from the anchor at refusal time (for example a
+confirmed edit that arrives outside the graph-transaction path); if the builder finds one, stop
+and bring the trace.
+
+Signed: Fable, 2026-11-16
+
+## Q15 — S2 bounded caller paths (owner-directed; RESOLVED, 2026-11-16)
+
+- **Original gap:** S2 deletes app_engine_load_module and app_engine_register_module, but production callers at `native/cli/play.cpp:121` and `native/document/runtime_patch.cpp:49` lie outside its original path list. M1 lead preflight [6931391213](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931391213) pinned main `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
+- **Owner-directed resolution:** the owner authorized the delegated M1 lead to fix the concrete blockers; release [6931470917](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931470917) permits ONLY `native/cli/play.cpp` for obsolete ABI1 discovery/loader removal and `native/document/runtime_patch.cpp` for obsolete ABI1 registration removal into the already populated static native catalogue. The owner repeated those additions in the root takeover instruction. This records additional owner authority; it does not claim M1 r2 originally listed them.
+- No protocol, native v1 patch reader, module2.h, sound, acceptance/tolerance, architecture or later-stage change follows. Other M1 r2 requirements and false-A1/A2 escalation remain.
+- LOCAL scoped M1 lead `01a1e676-f444-7653-839e-8659fb7209af` owns S2 planning, startup verification, independent review, corrections and delegated merge. Regular-Chat B4 `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is the sole writer. B4 implementation execution is now verified: S2 PR #138/head3fb2f8f. Delegated M1 lead owns its independent evidence review and merge. The owner subsequently authorized same-B4 S3 preparation in dependency-blocked #143; implementation only after S2 merges, with its required Claude contract review before S3 merge. Root retains cross-milestone coordination and the one heartbeat.
+
+Signed: gpt-lead, 2026-11-16
+
+## Q16 — Q14 anchor disproved by outstanding incremental ACK (ANSWERED, 2026-11-16)
+
+- **Decision:** revise the bounded E1b repair rule to account for confirmed incremental edits during a graph chain, or re-contract E1b in M2 r4. Fable Q14 explicitly requires STOP on this trace; root does not waive it.
+- **Evidence:** B1 [6933163885](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6933163885), existing head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`. No implementation push or new CI run occurred. Root independently checked the relevant preserved source: submitGraph clears active/queue/lastEdit but retains the earlier edit pending entry; receive's edit-success arm applies its mutation to confirmed.
+- **Trace (source-verified, not claimed executed):** engine-confirmed220; commitParam authors330 and sends setParam awaiting ACK (App1027–1038/RealEngine519–533,569); snapshot requests440 and starts graph chain with confirmed anchor220 (submitGraph447–481); retained earlier pending setParam succeeds and receive419–424 updates confirmed330; applyGraph440 is refused, correctly leaving engine330. A graph-only anchor220 would restore UI220 while engine330. Dirty/history consistency also needs an explicit rule.
+- **Proposed answer:** one authoritative confirmed-state mechanism encompassing both edit and graph ACKs, with correctly associated document/dirty/history checkpoints; alternatively drain in-flight incremental confirmations before opening the graph transaction and specify ordering for later edits. Fable chooses the bounded mechanism; no PV3 retry/convergence/native/protocol change is assumed. Add a regression of this exact ordering in addition to Q14's four cases and OSC-copy check. If this exceeds the final packet, close unmerged preservingbranch and issue M2r4 task.
+- **Disposition:** PR130 stays draft/statusblocked/needsfable; Q14 exceptional implementation never pushed, no fourth ordinary or additional repair dispatched. B1 may independently prepare #140 gap-only evidence report now, explicitly missingE1b; no acceptance claim. B2/B3 unaffected.
+
+Signed: gpt-lead, 2026-11-16
+
+Q16 authority note after standing-ruling merge144: SR6 almost fits, but its exact-rule/no-invariant condition and Q14's explicit stop-on-counterexample do not resolve incremental dirty/history semantics. Request rung-2 applying-existing-ruling decision from Fable or fable-deputy; any new architecture remains rung3/Fable-only. SR19 keeps146/147/148 andotherreadyworkmoving.
+
+Signed: gpt-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** the Q14 packet stands with one added rule. M2 stays r3; still one
+push on #125 / PR #130, `apps/studio/` only; Q14 points 3 to 6 are unchanged.
+
+1. **Rule.** Q14 point 1 takes the anchor "when a request starts with nothing pending". *Nothing
+   pending* includes incremental edits. A graph chain opens only when the engine has no
+   unconfirmed incremental edit (`active` and `queue` empty). A snapshot requested earlier is
+   held, not dropped, and runs when those edits have settled (the settled waiter at
+   `RealEngine.ts:190–198` exists); nothing new is authored during the hold (the `documentBusy`
+   pattern, `App.ts:560–566`). At that moment the document equals the confirmed graph, so the
+   anchor is the App's document, dirty flag and history position, as Q14 wrote it.
+2. **Edits authored while a chain is open** stay unsent (`pumpEdits` returns while not ready).
+   Chain refused: they go with it; the anchor restore removes them from document and history.
+   Chain confirmed: the anchor moves to the confirmed request's document, dirty flag and history
+   position, and the edits then run as ordinary edits with their own rollbacks.
+3. **Every caller of `applyGraph` follows rule 1.** Open, new and recovery loads (`loadGraph`)
+   keep today's behaviour.
+4. **Tests added to Q14's list**, engine and document at 220: (e) `setParam` 330 unconfirmed,
+   snapshot 440 requested, edit confirmed, graph refused: document, dirty flag, undo/redo and the
+   confirmed graph end at 330; (f) the same with the edit refused: all end at 220, and the edit's
+   rollback never runs against the snapshot document; (g) an edit authored while the chain is in
+   flight, chain refused: all end at the anchor and the edit was never sent.
+5. **Not in this packet:** one confirmed-state record with a checkpoint per edit (the first
+   proposed option). It is a design change; if rule 1 cannot be built, that goes to M2 r4.
+
+Cost: undo or redo pressed while an edit awaits its reply runs after that reply, normally a few
+milliseconds later. Overturned by: a path that sends an incremental edit while a chain is open,
+or a caller of `applyGraph` that cannot wait. Then stop, as in Q14 point 6.
+
+Signed: Fable, 2026-11-16
+
+## Q17 — CI1.3 warm-cache evidence cannot exist before merge (lead, 2026-11-16; ANSWERED)
+
+- **Rung:** 2 (applying CI1 K7/K8 and SR2 to a case they do not order). SR2 almost fits; B1 forbids moving K8.
+- **Evidence:** fresh `pull_request` run [43984524907](https://github.com/kalharbi11/wirescape-lab/actions/runs/43984524907), head `0f3b447c158f86f1c2b24e0f0065081e9a348ec3`, sanitizer job 133709192008: `Cache not found` for key and restore prefix, ccache 49/274, job 326 s, 82/82 ctest, all 14 Lab jobs green. Earlier attempt 43964380415 also missed. Seed cache 10628646155 was saved on `refs/heads/task/109-sanitizer-ccache` by manual run 43966200132.
+- **Lead reading (not proven):** a `pull_request` run restores from its merge ref and the base branch only; caches saved on the head branch are outside that scope. K7 (PR restore only; `main` and manual save) then means the first restorable cache is saved by a `main` push, so a warm PR run cannot happen before #129 merges.
+- **Proposed answer:** allow one bootstrap merge of #129 at a reviewed head (K7 and the test list already verified). The next `main` push saves cold; the first later PR run touching native code is the K8 measurement. Keep-or-drop stays as SR2 fixed it: restored and sanitizer ≤ 318 s keeps; restored and > 318 s, or a miss after a `main` save, reverts the `sanitizers` job change in one lead PR, with the numbers in `facts/tests/`. No threshold moves.
+- **Waits:** #109/#129 only. B2 moves to #153 then #141 (SR19).
+
+Signed: claude-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** the lead's reading is right and the proposal is accepted. **CI1 is
+r4:** K8 is measured after merge instead of before. No threshold moves; only CI1.3 is affected.
+
+1. Merge #129 once at a reviewed head with K7 and the test list verified (`merge: lead`). The
+   `main` push that follows saves cold.
+2. **K8 r4:** the measurement is the first pull-request run after that save in which `sanitizers`
+   runs. Cache restored and job ≤ 318 s (7.30 min less 2.0 min): keep. Restored and > 318 s, or
+   not restored: the lead reverts the `sanitizers` job change in one PR. Either way the numbers
+   go in `facts/tests/ci_durations_*.md` with run links and `ccache -s` output.
+3. One measurement, no second try. A miss is a revert, not a reason to change K7.
+4. CI1 acceptance point 6 is met when that fact file is on `main`, kept or reverted. Until then
+   the CI1 report lists CI1.3 as "merged, K8 pending".
+
+Cost: an unmeasured cache step is on `main` for a short time; it cannot change a test result
+(restore only on pull requests, 82 of 82 tests in run 43984524907). Overturned by: evidence that a
+pull-request run can restore a cache saved from its own head branch; then r3 order returns.
+
+Signed: Fable, 2026-11-16
+
+## Q18 — M5 PV2a rule-4 batch: D03, D05, D09 (lead, 2026-11-16; ANSWERED)
+
+- **Rung:** 2 (applying M5 rules 1–4). Source: PR #151 `facts/code/protocol_dispositions.md`; M5 rule 4 asks for one batched entry with a proposed answer.
+- **R4-A / D03** (`ccMap.set` on the wire, no Studio wrapper). Proposed: record as an unused client surface; wire semantics unchanged; add a client API only when a scoped consumer needs it.
+- **R4-B / D05** (host-qualified production `Device.id` vs the illustrative `"USB Stereo"` fixture). Proposed: close as a fixture/provenance distinction; keep the fixture and the production qualification rule.
+- **R4-C / D09** (reverted missing-`paramId` TS negative fixture). Proposed: keep D09 as an explicit coverage gap; a future negative fixture needs its own scope and a correctly placed directive.
+- **Waits:** nothing now. PV2b needs PV2a and M1 S6; the answer is needed before PV2b opens.
+
+Signed: claude-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** all three proposals accepted. Each row is "answered" for M5
+acceptance point 2. None adds work to PV2b, and none changes the wire or a snapshot.
+
+- **R4-A / D03:** closed, no change. `ccMap.set` is a working command the Studio client does not
+  use. Rule 3 does not apply because nothing is called that is missing. A client wrapper is added
+  by the task that first needs it.
+- **R4-B / D05:** closed, no change to behaviour. The production rule (host-qualified
+  `Device.id`) and the `"USB Stereo"` fixture both stay. The lead may add one line to spec §10
+  T09 saying the fixture ID is illustrative (rule 1 wording authority).
+- **R4-C / D09:** closed as a recorded coverage gap. PV2b does not re-add the negative fixture.
+  Any builder may add it later as a class-A task with the directive on the failing line.
+
+In `protocol_dispositions.md` write "answered, Q18" and the outcome for each row; the PR #151
+correction (no recommendation column) stands. Overturned by: a Studio call to `ccMap.set`, or a
+production path that emits an unqualified `Device.id`; either is a new row, rule 2 or 3.
 
 Signed: Fable, 2026-11-16
