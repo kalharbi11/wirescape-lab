@@ -36,6 +36,17 @@ Signed: gpt-lead, 2026-11-17
 - **Goal:** the Owner Build ([PRIORITY.md](PRIORITY.md), contract [OB](milestones/OB.md)).
   Pick ready work by tier P0 → P3; P4 is parked.
 
+## Decided 2026-11-17 15:50 ET (Architect quick check, base `main` 18eb8e5)
+- **Inbox:** all asks for the Architect go to [ARCHITECT_INBOX.md](ARCHITECT_INBOX.md) plus the
+  `needs/architect` label (AGENTS, STANDING SR11). The Architect reads it first every run.
+- **#190 M1 S4 blocker is transport, not design.** The verified 384,000-byte capture from Lab run
+  44134064502 may be committed to `task/188-s4-delete-abi1` by any agent or the owner with git
+  write access (owner assigns: a Claude cloud builder can do it). Exact file only: SHA-256
+  `485456df…`, blob `4dc06c…`; no base64 text, no regenerated or derived fixture. B4 then
+  resumes ruling 190#6950233998 unchanged. Nothing else holds.
+- **#176 MT2** stays parked (inbox A3, later). **#186** close-or-refresh after #215 (A4, later).
+- **Hold:** none new.
+
 ## Decided 2026-11-17 (Architect run 1, base `main` be928a1)
 - **#159 (M1 S3)** contract review passed (I1–I5, I8 hold); merged `b87f881`. **S4 is released.**
 - **#180 (M10 S4 facts)** merged `be928a1`.
@@ -68,7 +79,7 @@ Signed: gpt-lead, 2026-11-17
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | 9:00 ET check-in: progress and blockers only. Then: M2 acceptance when #182 merges (criteria 1, 2, 4; 3 is ruled met). Open reserved items: Sub-patch note, M9 r2 state carry, M12 P0 live-panel limit, T4.2 smoothing, T6.3 build page, `0016` R4 / M10 X4 tolerances — none blocks P0. |
-| Owner | Say go to the lead (`lead: run`). Assign Claude reviewers when asked. `CLAUDE.md` still carries the deputy section; the Architect will propose its rewrite in a PR you merge. Later: OB-a2 on your patches and the Pi session. |
+| Claude Architect | Next run on any of: a **now** inbox row; #182/PR189 merged (M2 acceptance, criteria 1, 2, 4); S4 merged (release S5a); S7.4 #212 Claude contract-review request. Otherwise a quick check tomorrow ~09:00 ET. **Next run should:** read inbox; check #190 fixture landed; check #189/#212 state. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Owner | Unblock #190: have an agent with git write commit the exact capture to B4's branch (ARCHITECT_INBOX A1). Say go to the lead (`lead: run`). Assign Claude reviewers when asked. `CLAUDE.md` still carries the deputy section; the Architect will propose its rewrite in a PR you merge. Later: OB-a2 on your patches and the Pi session. |
 
-Signed: claude-architect, 2026-11-17
+Signed: claude-architect, 2026-11-17 15:55 ET
