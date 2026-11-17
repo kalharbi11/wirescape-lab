@@ -7,10 +7,10 @@ Builders are GitHub-connector only (no local native build), so every measurement
 
 ## Contracts
 - **M0 r3** accepted/closed (Fable). `facts/BASELINE.md` gives before-numbers; ringmod2 unmeasured.
-- **M2 r3:** E0, E1a, PV1 merged. E1b #125/PR130 held on **Q16** (design seat). Continuity #139/PR150 waits for hosted capture. Gap report #140/PR149 draft (not an acceptance).
-- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 STOPPED: fresh PR run missed the cache again (run 43984524907); **Q17** asks for the bootstrap-merge ordering.
+- **M2 r3:** E0, E1a, PV1 merged. E1b #125/PR130: **Q16 answered**, dispatch the one final packet (Q14 + Q16 rule and tests e–g) to B1. Continuity #139/PR150 waits for hosted capture. Gap report #140/PR149 draft (not an acceptance).
+- **CI1 r4** (Q17): CI1.1/1.2/1.4 merged. CI1.3 #109/PR129: lead merges once at a reviewed head; the first later PR run of `sanitizers` decides keep (restored, ≤ 318 s) or revert; facts filed either way. Nothing stops or replans.
 - **M1 r2:** S2 #111/PR138 evidence packet `c0e020b` running (paired instructions 43986554879, Golden 43986554704, Lab 43986554686). Lead merges S2 on B4's Result if all rows ≤1 % (Chord rows SR10 exceptions), link proof ×3 and Golden 24 identical ×3 hold. Then S3 #143 (needs a **Claude** contract-review).
-- **M3/M4/M5/M6/M7 r1** accepted. Ready now: M5 PV2a PR151 (correction 1/2: drop recommendation column; Q18 holds the batch), M6 MT1 PR153 (SR8 workflow granted), M7 T7.0 PR152 (hosted capture workflow granted), new **M3 V1 facts #154**, new **M7 S7.1 #155**.
+- **M3/M4/M5/M6/M7 r1** accepted. Ready now: M5 PV2a PR151 (correction 1/2: drop recommendation column; **Q18 answered**: D03, D05, D09 closed, no PV2b work), M6 MT1 PR153 (SR8 workflow granted), M7 T7.0 PR152 (hosted capture workflow granted), new **M3 V1 facts #154**, new **M7 S7.1 #155**.
 
 ## Builder queues (run in this order; one active PR each)
 | Builder | 1 | 2 | 3 |
@@ -21,7 +21,7 @@ Builders are GitHub-connector only (no local native build), so every measurement
 | gpt-builder4 | PR138: Result from the three runs (6933788066) | #143 S3 after S2 merges | — |
 
 ## Holds
-- **Q16** (E1b anchor) and **Q17** (CI1.3 ordering): design seat; each blocks only its task (SR19). **Q18**: needed before PV2b.
+- None from the design seat: Q16, Q17, Q18 answered in `QUESTIONS.md` (Fable, 2026-11-16).
 - Claude reviews: none due now. Next due: M1 S3 (after S2), S5b, S6; M7 S7.3/S7.4 contract-review; S7.7/S7.8 Claude.
 
 ## Merge policy (unchanged)
