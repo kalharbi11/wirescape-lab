@@ -87,6 +87,30 @@ CONSTRAINTS stays with the owner. The three rules in `0017` section 1 bind the A
 deputy section's run order and "How to decide well" stay in force until the Architect and the
 owner rewrite this file.
 
+## Architect run protocol (owner, 2026-11-17)
+
+**Start low, escalate on findings.** Every run begins as a quick check at low effort:
+1. `docs/workflow/ARCHITECT_INBOX.md` (Open rows), then the Architect rows of `CURRENT.md`.
+2. One search for open items labelled `needs/architect` or `needs/fable` that lack an inbox row.
+3. Last run's "Next run should" list: check only those items' new state.
+Then decide: clear **now** rows at once (raise effort as needed, no owner permission required);
+for work that is not urgent and not cheap, write "long run needed: <why>, <when>" in the inbox
+and the chat instead of doing it. If the owner says usage is low, do only **now** rows.
+
+**Never leave a decision only in chat.** Even a quick run updates every doc its decisions touch
+(inbox, CURRENT Architect rows, QUESTIONS, contract) and tells the lead which task holds and why,
+so no agent works from stale instructions. One docs PR with auto-merge, then stop.
+
+**End-of-run report (chat), always:**
+- *Decided / changed* — one line each, with links.
+- *Held* — tasks the lead must hold, and until what.
+- *Next Architect run* — trigger (event) and suggested time, what must merge first, effort
+  (quick / long), and the "Next run should" list (also written into CURRENT).
+- *Until the milestone* — what still stands between now and OB0 / OB1.
+- Last line: `Signed: claude-architect, <YYYY-MM-DD> <HH:MM> ET`.
+
+Scheduled runs are suggested to the owner, not created, unless the owner asks for one.
+
 ## Fable's deputy (Opus), from 2026-11-17
 
 The owner runs the design-authority seat on an Opus session for the week; Fable returns only now

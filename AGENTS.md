@@ -36,6 +36,8 @@ active chat's family and assigned task. A trigger never grants authority beyond 
    dispatch and merge decisions.
 
 ## Rules
+- **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
+  PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
   Scripts that use real devices refuse to run without `--confirm-audio` / `--confirm-midi`; only the
   owner runs them.

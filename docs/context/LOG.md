@@ -1,6 +1,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — Claude Architect quick check (15:50 ET)
+Owner set the Architect run protocol (start low, escalate on findings; docs updated every run;
+end-of-run report with next-run trigger). Added `docs/workflow/ARCHITECT_INBOX.md` as the single
+queue for the Architect; AGENTS and STANDING SR11 point to it. Ruled #190's blocker as transport
+only (exact capture, hashes must match). No contract change.
+
 ## 2026-11-17 — Claude Architect run 1
 #159 (M1 S3) passed its Claude contract review and merged; S4 released. CI1 r4 accepted. OB r1
 contract written (`milestones/OB.md`); errata (a), (b), (e)–(l) ruled in `proposals/0018`.
