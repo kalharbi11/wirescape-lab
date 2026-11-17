@@ -197,9 +197,14 @@ and `WIRE_F_F64` for config only. Config fields are shape only: counts of ports,
    `std::atomic` is not allowed; the host services replace its uses.
 4. No mutable global or function-static object, and no global with a constructor. `const` tables
    are fine.
-5. No double-precision library call: the object imports no `sin`, `cos`, `tan`, `exp`, `log`,
-   `pow`, `sqrt`, `fmod`, `floor` (and so on) without the `f` suffix. `double` arithmetic and
-   the transport's `double` fields are allowed; the bench reports their cost.
+5. Single precision by default. The reference target is Cortex-M7 with the `fpv5-d16` unit
+   (double arithmetic in hardware, as on the Daisy Seed). `check` lists by name every
+   double-precision library call and every software-float helper the object imports, and the
+   tier is **not** refused for them: `facts/repo/cortex-m7/` shows 13 modules with such
+   references today, and removing them changes the sound, which is a declared per-module
+   change under `0011`, not a format rule. This relaxes `0003` §2 ("no double-precision
+   library calls"). Cost: a portable module may be slow on hardware; the compiler's budget
+   (`0013`) is where that shows. `long double` is not allowed.
 6. All memory comes from `memory_requirements` and `alloc` at `prepare`; `memory_hint_bytes` is
    declared; no automatic array above 4 KiB.
 7. Vector code only through `sdk/simd.h`, which has a scalar path.
