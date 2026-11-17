@@ -1,54 +1,43 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by gpt-lead. Last verified main: `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
+Updated 2026-11-16 ET, gpt-lead. Reviewed main4161b90fcc2fff48058ca50f44eafb15fe0ff764.
+Sole LOCAL root WLAB | LEAD | 5, thread01a1e688-a40c-7273-ab2a-3100d5731573.
+Existing wlab-lead-review ACTIVE every45minutes; no second root/timer. Lead4 stepped down.
+Preserve local device-results branch and all untracked captures.
 
-**Sole LOCAL root lead:** WLAB | LEAD | 5, `01a1e688-a40c-7273-ab2a-3100d5731573`. Local app inventory and CODEX_THREAD_ID agree. Lead 4 is idle/stepped down. The existing `wlab-lead-review` heartbeat is ACTIVE every 45 minutes on this verified ID; no new timer. Scoped M1 delivery is delegated below.
+## Contracts
+- **M0 r3 ACCEPTED/CLOSED by Fable**, report132, decision on main b02db256. All exceptions explicitly disposed in M0.md; T0.14 no longer M0gate. Remove M0 reminders from heartbeat. Cite facts/BASELINE.md as before numbers; ringmod2 cannot support sound-parity claims while unmeasured.
+- **M2 r3** E0/E1a merged; PV1 now merged #105→4161b90. E1b#125/130 Q14 ANSWERED but its explicit anchor-disproof STOP triggered before any implementation push; Q16 now needsFable. Remaining acceptance3 continuity is #139/B3. Final report #140/B1 then read-only audit #142/B3; root/Fable retain final review/acceptance.
+- **CI1 r3** CI1.1/1.2/1.4 merged, CI1.3#109/129B2 soleci.ymlwriter/sanitizersjob only. One bounded after-seed fresh-event cache diagnostic/integration packet released, K7/K8 unchanged. Report#141 follows contractual result/disposition.
+- **M1 r2** delegated LOCAL lead01a1e676-f444-7653-839e-8659fb7209af owns S2#111/PR138head3fb2f8f and B4regularChat6afb8252-992c-83ea-a4d0-e7734bb17b7b. **B4 execution VERIFIED**; old unverified-startup snapshot superseded. Q15 owner-authorized native/cli/play.cpp+native/document/runtime_patch.cpp additions ONLY obsolete ABI1 discovery/registration removal. S2 remains held for exact paired base/head<=1% instruction data, Chord unavailable-row disposition and generated/transitive link evidence; green advisory baseline is insufficient. Golden/platform/sanitizer evidence under delegated review. **Owner now authorized S3 staffing/prep to sameB4**, dependency-blocked#143: read-only preparation whileS2pending; implementation onlyafterS2merge. S3 later requires owner-assigned Claude contract reviewer. No rootduplicatewriter/timer; root infrastructure support pending usage availability.
 
-## Contracts and acceptance
+## Runnable ordered queues
 
-- **M0 r3:** **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132. Every exception has a disposition in [M0.md](milestones/M0.md) "Milestone acceptance". T0.14 is no longer an M0 gate (owner environment item; the seeding recipe below stays the working route). No lead action remains on M0; drop it from the heartbeat.
-- **M1 r2:** S0/T1.1/P1 merged. S2 #111 belongs to delegated LOCAL lead `01a1e676-f444-7653-839e-8659fb7209af`; B4 regular Chat `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is sole writer. Root does not duplicate S2 dispatch. Owner-authorized additions: `native/cli/play.cpp` and `native/document/runtime_patch.cpp`, only obsolete ABI1 discovery/registration removal; [QUESTIONS Q15](QUESTIONS.md) records the resolution. M1 lead owns planning, execution verification, independent review, corrections and delegated merge. Release delivered, one startup retry sent, implementation execution unverified. S3 staffing/start remains owner decision.
-- **M2 r3:** E0 and E1a merged (E1a #116 → e0d4437). E1b #125/PR130 is held after final ordinary correction; Q14 needs Fable. PV1 #86/PR105 Q13 revert-and-record disposition applied; exact-head acceptance pending.
-- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 retains sole ci.yml ownership, sanitizer job only. K7/K8 unchanged; missing warm evidence holds merge.
+Owner can run 1:run, 2:run, 3:run repeatedly in existing regular Chat. [BUILDER_QUEUE.md](BUILDER_QUEUE.md) and primary issues carry ordered steps/criteria/stop conditions.
 
-## Writers and next actions
-
-| Writer | Task / branch / head | Verified disposition |
+| Writer | Current | Next |
 |---|---|---|
-| B1 | #125 / #130, task/125-studio-apply-graph, `8d0bd29467d1b505c8ac9838fc267301e4537cc0` | final ordinary 2/2 spent; Lab43968790557 red Studio1/3 + aggregate; independently confirmed overlap/refusal rollback HIGH; Q14 proposed bounded final packet, no redispatch before ruling |
-| B2 | #109 / #129, task/109-sanitizer-ccache, `21bc87c405be6813cdbc9bb382c9058d3f4b35c8` | full43964380415 attempt2 green; sanitizer133653972206 cacheMISS/428s/49 of274 hits is cold, K8 unmeasured; branch stable, no blind rerun |
-| B3 | #86 / #105, task/86-pv1-protocol-v0, `8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35` | Q13 3/3 spent; lead reverted only new missing-paramId negative fixture to prior absence and recorded D09; normalized duplicated D08 text; fresh Lab43973824231 + drift43973824173 in progress at inspection |
-| B4 | #111, task/111-s2-native-catalogue planned | delegated M1 lead owns startup check; latest implementation release has no substantive assistant result yet; do not claim execution |
-| Claude builders1–3 | finished/stopped | no new tasks |
+| B1 6afadca6-071c-83ea-a029-b22c1560a794 | #125/PR130 same task/125-studio-apply-graph, head8d0bd29; Q16anchor-disproofHOLD, trace6933163885; noimplementationpush | #140 M2evidence report; gap-only if finalE1bfails |
+| B2 6afadc8d-5138-83ea-bb36-88048b6bf54d | #109/PR129 same task/109-sanitizer-ccache, pre-packet21bc87c; diagnosticrelease6933172462 | #141 CI1finalreport/facts disposition |
+| B3 6afadc7c-9b44-83ea-be32-dbd465646ce0 | #139 applyGraphcontinuity, branch task/139-applygraph-continuity | #142 read-only M2evidenceaudit after report exists |
+| B4 6afb8252-992c-83ea-a4d0-e7734bb17b7b | M1lead owns#111/138 | #143S3prep; implementationafterS2merge only |
+| Claude builders1–3 | finished/stopped | no new assignments |
 
-## Review evidence and holds
+One active implementation per builder, one branch/PR per task. Signed Result enteringreview permits nonoverlapping notes/read-only successor preparation. No arbitrary queue pickup, duplicate pushes/runs or own merge. Delivery is not execution: inspect substantive assistant/tool-backed results before claiming startup; one supported retry only. Owner can manually activate regularChat. New queues delivered, actual runs must be verified separately.
 
-**PV1:** previous8b23600 Lab43967315210 passed all14 jobs, drift43967315137 failed TS2578 at test_generated.ts123 and intended TS2741 at125. The new incompleteApplyResult fixture and void reference were absent at prior e984561; Q13 point5 authorized reverting this item. D09 neutrally states the unretained compile-time coverage. applyGraph schema/type/corpus, bus_channel0..15, Q8 and unknown-field preservation remain; generators unwired. D08 factual Desktop-space discrepancy preserved after removing duplicated embedded document text. Require NEW exact-head corpus/TS/C++/drift/null-sidecar Q8/Q13, full required CI and M2 acceptance4. No fourth builder round or red waiver.
+## Exact acceptance and holds
+**PV1 DONE:** #105 head8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35 →4161b90. Leadreview6933110542 verified Lab43973824231 all14success; drift43973824173/job133672555316 every step success:14Python tests, generatedTS/C++,1532wireobjects/102accepted/21refusals, Q8 12/12 and Q13sixbuscases+applyGraph. D08 neutral Desktop-space discrepancy, D09 removed failing new negativefixture recorded under Q13.18allowedpaths/unwired/unknownfields preserved. M2acceptance4 satisfied, notwholeM2.
 
-**E1b:** from confirmed220, queued snapshots440 then660 both reject, but latest revision restores optimistic440 while engine stays220. Root independently traced App.ts788–802 and RealEngine.ts338–348 after Worker2 review. Separate OSC test failure is a live counter-reference alias (test216–217, setter286–290), not proven runtime replacement failure. Q14 asks Fable for one bounded final packet or defer/close; hold draft/blocked. No third ordinary correction.
+**E1b Q16 OPEN:** root independently verified source trace220→pendingincremental330→graph440→incrementalACKconfirmed330→graphrefusal. Retained editpending entry updatesconfirmed outsidegraphchain, so anchor220isfalse. No implementationpush/CI; Fable Q14explicitSTOP applies. B1#140gap-onlyreport released while rulingpending. Proposed comprehensiveconfirmedACKanchor or drain-ordering rule requiresFabledecision; no impliedextraordinaryround. Historical Q14 rules below remain conditions for any clarified packet.
 
-**CI1.3:** manual43966200132/head21bc87c cold-saved cache10628646155 at refs/heads/task/109-sanitizer-ccache; key fingerprint0471e1e.../run43966200132-1, version b97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a, size102097945. PR attempt2 explicitly missed this prefix. Official cache docs permit feature-branch restores; cause remains unproved, not assumed merge-ref isolation. Same image/action/path/cross-OS inputs observed. Worker2 read-only diagnosis complete; compare exact bundled version inputs/lookup before any further run, no blind timing retry. K7 independently compared hosted base133628142310 and exact-head133653972206 ordered ctest -N -R abi2 inventories:82 names each, equal/zero additions/deletions. K8 needs genuine restored warm <=318s; cold428s establishes neither warm pass nor warm failure. No bootstrap merge, PR cache save or settings change.
+**E1b Q14:** one rollback anchor tracks LAST ENGINE-CONFIRMED document/dirty/history across wholependingchain, restoresonceonrefusal. Four additive scenarios (A/B refused; Aconfirmed/Brefused; both throughpartialapplication), compareUIandconfirmedgraph/dirty/undo-redo. CopyOSCcounterobservation before latermutation; everyassertionstays. If copydoesnotfix,STOPratherthanchangeFakeEnginetofit. Sameapps/studioonly; noPV3/native/Desktop/workflow/tolerancechanges. FullnewexactheadLab+Playwright andleadsourceacceptance. Finalfailure→leadcloses130unmerged/keepsbranch/FablerecontractsM2r4; nofurtherround.
 
-## Operating rules and routes
+**CI1.3:** manual43966200132 savedcache10628646155 featurebranchkey0471e1e...-43966200132-1/versionb97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a,size102097945. FullPR43964380415attempt2green butsanitizer133653972206cacheMISS428s49/274COLD. K7orderedbase133628142310/head13365397220682namesidentical. Root's pinnedaction versioncalculation matches savedentry; normal logs don'texposeeffectivePRserviceversion/scope. B2 runcreated-beforeseed hypothesisunproved. AuthorizedONEactualmainintegration/publicprovenancepush triggers freshafterseedfullPR event. SameK7noPRsave, noextramanualseed/blindrerun/settings/bootstrapmerge. K8genuinerestoredwarm<=318smandatory; warmfailuredropfacts, repeatmissSTOP/question. Futuremeasurementfacts/Result mustmatchactualhead.
 
-B1 regular Chat `6afadca6-071c-83ea-a029-b22c1560a794`; B2 `6afadc8d-5138-83ea-bb36-88048b6bf54d`; B3 `6afadc7c-9b44-83ea-be32-dbd465646ce0`; B4 new route above (old6afadc5f superseded). Worker2 cloud support `6afad0f1-55a8-8191-975f-f008479ba02f`, host durable. Verify actual execution/results before one supported retry; delivery/active flags alone do not prove execution. Keep GPT builders in regular Chat, never Work/Codex substitutes.
+## Merge and operating policy
+Owner requests safe automatic merges. Lead merges source-reviewed exactheads when ALL contract criteria + tests pass, expectedSHA pinned. Serverauto-merge only for reviewed immutablehead waitingsolelyCI ifsupported; never unreviewedproduct/measurementgate/Claude-reviewbypass. Fable doesdesign/questions/milestoneacceptance, noPRmonitoring. InformownerifClaudecontractreviewneeded. ExistingM1delegationunchanged.
 
-Lead does reviews. Fable handles design/questions/acceptance and merge:fable only; Fable does no PR monitoring. Notify owner if a contract requires a Claude reviewer; owner assigns one. S2 requires none; later S3/S5b/S6 require contract review. No new Claude builder tasks. Preserve one writer per task, existing branches, full rerun-all for failed aggregates, one cohesive push per round; two ordinary corrections then QUESTIONS except explicitly authorized Q13.
-
-Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n; verify URL_HASH), configure CMake again after session.cpp changes because S0 copy occurs at configure, and native OSC Out replacement semantics. Preserve devices-off/realtime/neutral-facts rules; no force/settings/gate weakening. Keep >=20% five-hour usage reserve; no credit/reset spending. No model waits/polling loops; existing heartbeat checks changed state. Preserve local device-results branch and all untracked captures.
+GPTbuildersregularChat only, noWork/Codex substitutes. Worker2durable6afad0f1-55a8-8191-975f-f008479ba02f supplies focused cloudsupport when rootissues pinnedpackage. No newClaudebuildertasks. Fullrerunalljobsforfailedaggregates,onecohesivepushperround. Devices/audio/MIDI/LANoff, realtimeconstraints/neutralfacts unchanged; noforce/settings/gateweakening. Preserve>=20%fivehourreserve except this owner's explicitly requested briefcoordination; nocredits/resetspending. No modelCI/replypollingloops. Retainbyteidenticaldepseedinggit-archive/gziprecipe/URL_HASHverification, CMakeconfigureafterS0session.cppcopy changes, nativeOSCOutreplacementfacts.
 
 Signed: gpt-lead, 2026-11-16
-
-## M0 accepted, Q14 answered (Fable, 2026-11-16)
-M0 r3 is accepted and closed. M1 r2, M2 r3 and CI1 r3 are unchanged: nothing stops or replans and
-no writer assignment changes. Root lead and the M1 lead: cite `facts/BASELINE.md` as the
-before-numbers in M1 and M2 evidence; do not cite `ringmod2` in a sound-parity claim until it is
-measured (Fable places that measurement in the next contract that touches the runtime-module build).
-
-**Q14 (E1b) is answered** in [QUESTIONS](QUESTIONS.md): one final packet on #125 / PR #130, anchored
-to the last engine-confirmed state; if it fails, close #130 unmerged and Fable re-contracts E1b in
-M2 r4. Root lead: dispatch that packet to B1 and remove `needs/fable` from #130. This supersedes the
-"Q14 needs Fable" and "no redispatch before ruling" text above. QUESTIONS queue is empty.
-
-Signed: Fable, 2026-11-16
