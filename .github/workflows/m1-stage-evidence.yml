@@ -1,0 +1,124 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: M1 paired stage evidence (nonrequired)
+on:
+  pull_request:
+    paths:
+      - "native/**"
+      - "bench/m1/**"
+      - ".github/workflows/m1-stage-evidence.yml"
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: "Exact base SHA (40 lowercase hex)"
+        required: true
+        type: string
+      head_sha:
+        description: "Exact head SHA (40 lowercase hex)"
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  paired-evidence:
+    name: M1 paired evidence / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { machine: linux-x64, runner: ubuntu-24.04, linux: true }
+          - { machine: linux-arm64, runner: ubuntu-24.04-arm, linux: true }
+          - { machine: windows-x64, runner: windows-2022, linux: false }
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || inputs.head_sha }}
+      MACHINE: ${{ matrix.machine }}
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+      CXXFLAGS: "-g"
+      CFLAGS: "-g"
+    steps:
+      - name: Validate input pins before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ "$BASE_SHA" != "$HEAD_SHA" ]] || exit 2
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_SHA }}
+          path: base
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          path: head
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install profiling/build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install cmake==4.2.3 ninja==1.13.0 numpy scipy
+          if [[ "$MACHINE" == linux-* ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends valgrind
+          fi
+      - name: Record source/toolchain provenance and CMake File API query
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          test "$(git -C base rev-parse HEAD)" = "$BASE_SHA"
+          test "$(git -C head rev-parse HEAD)" = "$HEAD_SHA"
+          {
+            printf 'machine=%s\nrunner_os=%s\nrunner_arch=%s\n' "$MACHINE" "$RUNNER_OS" "$RUNNER_ARCH"
+            printf 'base=%s\nhead=%s\n' "$BASE_SHA" "$HEAD_SHA"
+            printf 'base_actual=%s\nhead_actual=%s\n' "$(git -C base rev-parse HEAD)" "$(git -C head rev-parse HEAD)"
+            printf 'cmake=%s\npython=%s\n' "$(cmake --version | head -n1)" "$(python --version)"
+            printf 'compiler_flags=CFLAGS=%s CXXFLAGS=%s\n' "$CFLAGS" "$CXXFLAGS"
+            if [[ "$MACHINE" == linux-* ]]; then
+              printf 'valgrind=%s\nmethod=callgrind-Ir-two-length-difference-v1\n' "$(valgrind --version)"
+            else
+              printf 'method=Windows generated links only, no Callgrind\n'
+            fi
+          } > evidence/provenance.txt
+          mkdir -p base/build/native/.cmake/api/v1/query head/build/native/.cmake/api/v1/query
+          : > base/build/native/.cmake/api/v1/query/codemodel-v2
+          : > head/build/native/.cmake/api/v1/query/codemodel-v2
+      - name: Run device-free comparator unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd head
+          python -m unittest discover -s bench/m1 -p 'test_*.py' -v
+      - name: Build pinned revisions headlessly in identical environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd base && python tools/dev.py build --headless --config Release)
+          (cd head && python tools/dev.py build --headless --config Release)
+      - name: Capture resolved generated links
+        shell: bash
+        run: |
+          set -euo pipefail
+          python head/bench/m1/links.py --build base/build/native --output evidence/base-links.json --allow-abi1-baseline
+          python head/bench/m1/links.py --build head/build/native --output evidence/head-links.json
+      - name: Collect strict paired Callgrind (Linux only)
+        if: matrix.linux
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd base && python bench/gate/instructions.py --machine "$MACHINE" --build-dir build/native --skip-build --output ../evidence/base-instructions.json)
+          (cd head && python bench/gate/instructions.py --machine "$MACHINE" --build-dir build/native --skip-build --output ../evidence/head-instructions.json)
+          python head/bench/m1/paired.py --base evidence/base-instructions.json --head evidence/head-instructions.json --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --machine "$MACHINE" --output evidence/paired-verdict.json
+      - name: Upload evidence even when collection fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-stage-evidence-${{ matrix.machine }}
+          path: evidence/
+          if-no-files-found: warn
