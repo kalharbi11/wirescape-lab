@@ -470,3 +470,38 @@ test('Q16 g: edit authored behind pending chain is never sent after refusal', as
   expect(after.canUndo).toBe(baseline.canUndo);
   expect(after.canRedo).toBe(baseline.canRedo);
 });
+
+/** Q20(h): a 350 ms debounced edit must settle before the snapshot's anchor. */
+for (const editConfirmed of [true, false]) {
+  test(`Q20 h: debounced 330 ${editConfirmed ? 'confirmed' : 'refused'} before refused snapshot keeps anchor undo/redo`, async ({ page }) => {
+    await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
+    const baseline = await graphCheckpoint(page);
+    await page.evaluate(target => {
+      const b = (window as any).__mockBridge;
+      b.holdNext('setParam');
+      // commitParam schedules History's 350 ms timer, but its ACK is held.
+      window.__wirescapeTest.commitParam(2, 'frequency', 330);
+      b.holdNext('applyGraph');
+      // The snapshot must remain un-authored while the incremental ACK is held.
+      window.__wirescapeTest.restoreSnapshot(target);
+    }, frequencySnapshot(440));
+    await expect.poll(async () => (await wires(page)).length).toBe(0);
+    expect(await graphCheckpoint(page)).toMatchObject({
+      authored: { frequency: 330 }, confirmed: { frequency: 220 },
+    });
+    await page.evaluate(confirm => {
+      const b = (window as any).__mockBridge;
+      if (confirm) b.acceptHeld();
+      else b.refuseHeld();
+    }, editConfirmed);
+    await expectGraphCommands(page, ['applyGraph']);
+    await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+    await equalConfirmed(page, editConfirmed ? 330 : 220);
+    const after = await graphCheckpoint(page);
+    expect(after.dirty).toBe(editConfirmed ? true : baseline.dirty);
+    expect(after.canUndo).toBe(editConfirmed ? true : baseline.canUndo);
+    expect(after.canRedo).toBe(baseline.canRedo);
+    expect(after.history.past).toBe(baseline.history.past + (editConfirmed ? 1 : 0));
+    expect(after.history.future).toBe(baseline.history.future);
+  });
+}
