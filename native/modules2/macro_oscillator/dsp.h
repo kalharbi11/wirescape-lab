@@ -162,13 +162,13 @@ struct MacroOscillator {
             if (converter.enabled()) {
                 for (uint32_t i = 0; i < b.frames(); ++i) {
                     const auto sample = converter.output(ch.resampled, [&]() {
+                        if (ch.fill == 0) update_resampled_control(b, ch, c, i);
                         const RateConverter::Frame raw{
                             ch.output[ch.read].out / 32768.f,
                             ch.output[ch.read].aux / 32768.f
                         };
                         ch.read = (ch.read + 1) % 12;
                         if (++ch.fill == 12) {
-                            update_resampled_control(b, ch, c, i);
                             RngScope scope(ch.rng);
                             ch.voice->Render(ch.patch, ch.modulation, ch.output, 12);
                             ch.fill = 0;
