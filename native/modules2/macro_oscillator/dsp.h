@@ -65,6 +65,9 @@ struct MacroOscillator {
     bool prepare(const ws::Setup &setup) {
         const double rate = setup.sample_rate();
         if (!std::isfinite(rate) || rate < 8000. || rate > 192000.) return false;
+        // A host can re-prepare this instance at 48 kHz after another rate.
+        // Drop any previous filter selection before taking the original path.
+        converter = RateConverter{};
         capacity = std::min<uint32_t>(setup.max_channels(), 8u);
         seed = setup.config.seed;
         if (rate != 48000.) {
