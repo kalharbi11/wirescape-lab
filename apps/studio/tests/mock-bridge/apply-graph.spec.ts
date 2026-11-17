@@ -362,10 +362,11 @@ test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor
 test('Q14 partial A confirmed/B refused: unapplied side value never enters rollback anchor', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco',
     parameters: { frequency: 220, amplitude: 0.5 } }]);
-  // Author frequency as the one history gesture. The native-unapplied amplitude
-  // is deliberately NOT recorded in the cursor; its confirmed value stays 0.5.
+  // Record ALL authored values in one real history gesture; the native
+  // ACK must subsequently remove unapplied amplitude 0.7 from its content.
   await page.evaluate(() => {
     window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
+    window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.7);
     window.__wirescapeTest.flushHistory();
   });
   const authoredCursor = await graphCheckpoint(page);
@@ -404,6 +405,91 @@ test('Q14 partial A confirmed/B refused: unapplied side value never enters rollb
   expect(after.dirty).toBe(true);
   expect(after.canUndo).toBe(true);
   expect(after.canRedo).toBe(false);
+});
+
+test('SR6b partial A confirmed/B refused: real undo and redo never resurrect unapplied amplitude', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency: 220, amplitude: 0.5 } }]);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
+    window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.7);
+    window.__wirescapeTest.flushHistory();
+    b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(440, 0.7));
+    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(660, 0.7));
+    b.holdNext('applyGraph');
+    b.acceptHeld();
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  await page.evaluate(() => (window as any).__mockBridge.setUnapplied([]));
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 440, 0.5);
+  const anchor = await graphCheckpoint(page);
+  expect(anchor.authored).toEqual({ frequency: 440, amplitude: 0.5 });
+  expect(anchor.confirmed).toEqual(anchor.authored);
+  expect(anchor.native).toEqual(anchor.authored);
+  expect(anchor.history).toEqual({ past: 1, future: 0 });
+  expect(anchor.canUndo).toBe(true);
+  expect(anchor.canRedo).toBe(false);
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 220, 0.5);
+  expect(await graphCheckpoint(page)).toMatchObject({
+    history: { past: 0, future: 1 }, canUndo: false, canRedo: true,
+  });
+  await page.evaluate(() => window.__wirescapeTest.redo());
+  await equalConfirmed(page, 440, 0.5);
+  const redone = await graphCheckpoint(page);
+  expect(redone.authored).toEqual(anchor.authored);
+  expect(redone.confirmed).toEqual(anchor.confirmed);
+  expect(redone.native).toEqual(anchor.native);
+  expect(redone.dirty).toBe(anchor.dirty);
+  expect(redone.history).toEqual(anchor.history);
+  expect(redone.canUndo).toBe(anchor.canUndo);
+  expect(redone.canRedo).toBe(anchor.canRedo);
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph', 'applyGraph', 'applyGraph']);
+});
+
+test('SR6b partial A then B confirmed: undo B returns to reconciled A, never amplitude 0.7', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency: 220, amplitude: 0.5 } }]);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
+    window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.7);
+    window.__wirescapeTest.flushHistory();
+    b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
+    b.holdNext('applyGraph');
+    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(440, 0.7));
+  });
+  await expectGraphCommands(page, ['applyGraph']);
+  await page.evaluate(() => (window as any).__mockBridge.acceptHeld());
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  // A is confirmed at 440/0.5. B is a distinct user-authored history entry.
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.setUnapplied([]);
+    window.__wirescapeTest.doc.setParam(2, 'frequency', 660);
+    window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.8);
+    window.__wirescapeTest.flushHistory();
+    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(660, 0.8));
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await equalConfirmed(page, 660, 0.8);
+  const afterB = await graphCheckpoint(page);
+  expect(afterB.history).toEqual({ past: 2, future: 0 });
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 440, 0.5);
+  const afterUndo = await graphCheckpoint(page);
+  expect(afterUndo.authored).toEqual({ frequency: 440, amplitude: 0.5 });
+  expect(afterUndo.confirmed).toEqual(afterUndo.authored);
+  expect(afterUndo.native).toEqual(afterUndo.authored);
+  expect(afterUndo.history).toEqual({ past: 1, future: 1 });
+  expect(afterUndo.canUndo).toBe(true);
+  expect(afterUndo.canRedo).toBe(true);
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph', 'applyGraph']);
 });
 
 test('Q14 normal undo and redo move exactly one history entry with confirmed graph', async ({ page }) => {

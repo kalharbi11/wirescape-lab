@@ -614,8 +614,11 @@ export class App {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
-      activeChain.anchor = { ...after,
-        patch: engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch };
+      const confirmed = engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch;
+      // Keep the saved history contents as authoritative as the confirmed
+      // document: an unapplied parameter must not return on later undo/redo.
+      after.restoreHistory.reconcile(after.patch, confirmed);
+      activeChain.anchor = { ...after, patch: confirmed };
     }).catch(err => {
       // A refusal of A also rejects queued B. Only the first rejection restores
       // the latest engine-confirmed anchor; B must never roll back to optimistic A.

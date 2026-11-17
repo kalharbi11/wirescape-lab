@@ -17,6 +17,11 @@ import type { PatchV2 } from './types';
  *  - other changes (keys, typed values, paste, delete) are committed after
  *    350 ms of quiet, so holding an arrow key is one step too.
  */
+/** A saved history cursor can be reconciled to the engine-confirmed graph. */
+export type HistoryCheckpoint = (() => void) & {
+  reconcile: (authored: PatchV2, confirmed: PatchV2) => void;
+};
+
 export class History {
   private past: string[] = [];
   private future: string[] = [];
@@ -65,10 +70,10 @@ export class History {
   }
 
   /** Save the current document's history before a provisional patch load. */
-  checkpoint(): () => void {
+  checkpoint(): HistoryCheckpoint {
     this.flush();
-    const past = [...this.past], future = [...this.future], current = this.current;
-    return () => {
+    let past = [...this.past], future = [...this.future], current = this.current;
+    const restore = (() => {
       this.clearTimer();
       this.pending = false;
       this.finishingPointer = false;
@@ -76,7 +81,23 @@ export class History {
       this.future = [...future];
       this.current = current;
       this.changed();
+    }) as HistoryCheckpoint;
+    restore.reconcile = (authored, confirmed) => {
+      const from = this.snapOf(authored), to = this.snapOf(confirmed);
+      if (from === to) return;
+      // A native ACK may confirm the graph while leaving authored parameter
+      // events unapplied. Normalize both the saved rollback cursor and the
+      // live undo/redo entries before a later graph or undo can use them.
+      const normalize = (items: string[]) => items.map(item => item === from ? to : item);
+      past = normalize(past);
+      future = normalize(future);
+      if (current === from) current = to;
+      this.past = normalize(this.past);
+      this.future = normalize(this.future);
+      if (this.current === from) this.current = to;
+      this.changed();
     };
+    return restore;
   }
 
   get canUndo(): boolean { return this.past.length > 0 || (this.pending && this.snap() !== this.current); }
@@ -160,8 +181,9 @@ export class History {
     if (this.timer !== null) { clearTimeout(this.timer); this.timer = null; }
   }
 
-  private snap(): string {
-    const j = this.doc.toJSON();
+  private snap(): string { return this.snapOf(this.doc.toJSON()); }
+
+  private snapOf(j: PatchV2): string {
     const { view: _view, ...ui } = j.ui ?? {};
     return JSON.stringify({ ...j, ui });
   }
