@@ -18,7 +18,7 @@ Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Bui
 | #130 | M2 E1b, builder 1 | Q16 final packet not pushed; draft/block on current code and red Studio; same branch, no extra ordinary round |
 | #149 | M2 gap-only report | Exact-head Lab 43985506389 green; report is source-pinned to pre-Q16 main and describes Q16 as unanswered, so lead should assess a clearly dated addendum before treating it as current; no M2 acceptance claim |
 | #150 | M2 continuity, builder 3 | Head `d672a650` has Lab/synthetic/Golden green; actual 45 witness rows and raw/marks hashes still missing; lead authorized new hosted capture workflow on existing branch (SR8/SR18/SR9) |
-| #152 | M7 T7.0, builder 3 | Head `1847d58e` has Lab and two-platform hosted capture workflow 43991586082 green; before-fact rows and capture artifacts still require comparison/ingestion; no invented numbers or target reset |
+| #152 | M7 T7.0, builder 3 | Head `1847d58e`: facts JSON now contains 24/24 CHAOS alias rows and three measured Delay switch rows sourced from hosted capture 43989175810 at built head `d4d2b351`; Quad VCA mode1 remains explicitly unmeasured. Lab 43991585936 and x64/ARM64 advisory 43991586082 are green. Independent artifact-to-facts review and acceptance of the explicit SR10 exception remain; no target reset triggered |
 | #153 | M6 MT1, builder 2 | Corrected head `2c003e92`: Lab 43991606212 green, three-platform module-tools workflow 43991606284 green including real template check; needs independent source/evidence review and lead disposition |
 | #159 | M1 S3, builder 4 | Head `b438613f`: hosted Lab/Golden/paired green; ABI1 cost-probe/T0.6 conflict, exact per-row evidence review, and Claude contract-review unresolved; do not merge |
 | #160 | M3 native-v1 fact inventory, builder 1 | Head `ff8f885a`: notes-scope Lab 43991267461 green (foundation passed; code jobs correctly skipped); independent facts review then lead merge |
@@ -28,7 +28,7 @@ Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Bui
 |---|---|---|---|
 | **1** | #130 final E1b packet (owner's top priority; resume same PR) | #154 / PR #160 review/merge disposition | #155 reverb after #154 closes |
 | **2** | #147 / PR #153 review disposition | #141 CI1 evidence report with K8 pending/actual | — |
-| **3** | #148 / PR #152 hosted facts ingestion | #139 / PR #150 hosted continuity capture/rows | #142 read-only audit after report and #139 evidence |
+| **3** | #148 / PR #152 measured facts and artifact-to-row review | #139 / PR #150 hosted continuity capture/rows | #142 read-only audit already filed (issue comment 6933738092; no duplicate run); revisit only upon new completed evidence |
 | **4** | #143 / PR #159 S3 contract conflict/evidence | Claude I1–I5/I8 review when ready | — |
 
 ## Reviewer / lead handoff
