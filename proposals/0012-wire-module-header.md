@@ -94,6 +94,7 @@ same for `ws2_process`. `header_c99.c` gains offset checks for every appended fi
 - **Missing key:** the field's `initial` (TEXT and RECORD: zero bytes, length 0). **Unknown key,
   wrong type, value out of range, array too long:** the edit is refused and the reply names
   the slot and the field ID (`steps[3].velocity`). Nothing is delivered.
+- **Stored-document load (0017 section 5(d)):** preserve unknown keys in the document, omit them from delivery and warn. Existing known keys keep loading as today: widen the table or provide declarative version-keyed rename/drop/default migration in the module description. The shared loader and 0013 compiler run migrations; devices do not. Anything not expressible by the table needs Architect design.
 - Bytes that no field covers are zero. The packed block is therefore a pure function of the
   table and the JSON; two hosts given the same struct layout produce the same bytes.
 - **Descriptor validation, at registration:** at most 8 slots; `bytes` from 1 to 65,536; at most
@@ -212,7 +213,7 @@ and `WIRE_F_F64` for config only. Config fields are shape only: counts of ports,
    declared; no automatic array above 4 KiB.
 7. Vector code only through `sdk/simd.h`, which has a scalar path.
 8. Works at every sample rate from 32 kHz to 96 kHz and every block size from 1 to the
-   prepared maximum (the module test matrix of `0016` already runs this).
+   prepared maximum. The v0 matrix of `0016` samples 44.1, 48 and 96 kHz; it does not prove every rate in this range.
 9. Saved state is written with fixed-width little-endian fields.
 10. Capabilities only from the portable set (section 9).
 

@@ -1,6 +1,13 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — reviewer follow-through on final Fable rulings (gpt-reviewer)
+- Reviewed #159 final source: no High finding; cannot replace its mandatory independent Claude review. No merge or S4 release.
+- Approved #180 facts after source spot-check; lead retains merge. #176 remains blocked by T11 option coverage; #184 awaits complete evidence.
+- Prepared succession/errata propagation and OB r1 draft from 0017, for Architect/owner approval. Existing M4 r2 and 0015 corrections preserved. No design approval, threshold change, hardware run or dispatch claimed.
+
+Signed: gpt-reviewer, 2026-11-17
+
 ## 2026-11-17 — final run: engine rules for M4, Owner Build, succession (Fable)
 - **Note:** `0017`. Host packets survive `panic` and keep the born test (ER1); data blocks freed
   by acknowledged serial, not egress (ER2, amends 0005 §6); packets newer than the adopted layout

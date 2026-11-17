@@ -1,6 +1,35 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Reviewer follow-through on Fable's final run — 2026-11-17 (ET)
+
+**Prepared for lead/Architect approval; not a role transfer.** This block supersedes stale
+open-head snapshots below, not the original signed history. Fable's final 0017 ruling governs.
+No dispatch, automation, device run or milestone acceptance was performed.
+
+| PR | Exact reviewed head | Disposition |
+|---|---|---|
+| #159 | 309bf8851008976070b899768db35eb1e500a6b1 | GPT source review: I1–I5/I8 hold in final four-file diff; hosted runs green. Mandatory independent Claude contract review still missing. No merge/S4 |
+| #176 | d9af77ac3667973c43526f11e9f54ee02bf32375 | Lab/Module Tools green. T11 discrete-option coverage not met: HostParam omits option descriptors. Lead/Architect must resolve allowed-path boundary, then builder corrects same PR; no approval |
+| #180 | 7bd49be0860c3d4e0dce7c22f8d2b27b4f57f802 | GPT facts/neutrality review approved; pinned schema/dispatch/MIDI/IPC spot-check supports 21 requests, 6 IPC, 7 push types. Lead retains independent merge disposition |
+| #184 | 8823c78ad58992b39f7b8f696425d9751bdb7ac0 | Lab success; Golden/paired evidence unsettled at inspection. Required source/numeric/instruction/FLAC evidence remains before approval |
+
+**Docs prepared:** succession text (AGENTS/CLAUDE/STANDING), priority stale references,
+0012 load-vs-edit clarification/rate coverage, 0014 category/Transport clarification, 0016 ID
+and optional-import errata, M6/M8/M10/M11/M12/M3/M5 propagation, OB r1 draft. These are
+proposals pending Architect approval where contracts/design/roles change. M4 r2, Q21/Q22,
+0015 BLOCK record cap and M12 P6→C3 were already present and are preserved.
+
+**Next:** Claude Architect reviews role rewrite and errata, accepts or revises OB; handles #159
+Claude review if owner assigned; CI1 #172 and M2 acceptance stay design-seat work. Lead resolves
+#176 gap, disposes #180 and completes #184 evidence. No new M6 work; use PRIORITY tiers.
+ER1–ER6 must be quoted by the designated task issues/reviews before code. Owner-only OB-a/Pi
+checks remain pending; no corpus or results inferred.
+
+Signed: gpt-reviewer, 2026-11-17
+
+---
+
 ## Fable final run — rulings and next actions, 2026-11-17 (ET)
 
 The Fable seat is retired. Design seat from now: **Claude Architect** (owner's Opus session), with

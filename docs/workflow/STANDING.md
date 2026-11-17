@@ -92,12 +92,12 @@ milestone's tasks are merged; the next milestone's tasks start on their own "Dep
 
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.
-2. **The design authority in session** (Fable, or Fable's deputy on an Opus session; see
+2. **The Claude Architect** (the owner's Opus design session, separate from delivery; see
    `CLAUDE.md`): applying an existing proposal or ruling to a new case; contract revisions that
    fix paths, ordering or dependencies or add a mechanical task inside an accepted design;
    a correction packet beyond SR6; milestone acceptance against the written criteria with the
    exceptions kept explicit; contract reviews; a new SR that writes down an existing precedent.
-3. **Fable only:** a new proposal or architecture; what a measurement means; changing an
+3. **The Claude Architect (successor to Fable, 0017 section 1):** a new proposal or architecture; what a measurement means; changing an
    invariant, gate threshold or tolerance in any proposal or contract (0005 section 9 and B1–B4,
    0006 I1–I8, 0008 K1–K4, 0009 L1–L5, 0010 P and Q, M2 J1–J5, M4 G1–G8, CI1 K1–K9, M8 W1–W8, M9 V1–V5, M10 X1–X6, M11 Y1–Y6,
    M12 Z1–Z6, the guarantees of 0013 section 2, golden
@@ -106,7 +106,8 @@ milestone's tasks are merged; the next milestone's tasks start on their own "Dep
 4. **The owner:** the Fixed constraints; intentional sound changes by ear; IDs before release;
    the required-check list and repository settings; who leads and which Claude sessions run.
 
-A question names its rung and the SR that almost fits. A rung-3 question does not stop the lab:
-the deputy records it in QUESTIONS as `reserved/fable` with its recommendation, and SR19 applies.
+A question names its rung and the SR that almost fits. A pending design question blocks only its named task (SR19). The Architect inherits the former Fable-reserved decisions, including every listed tolerance. Fixed constraints stay with the owner. Changes to invariants/thresholds follow all three rules in 0017 section 1 and never rescue an already failing task.
 
-Signed: Fable, 2026-11-16
+**Order amendment (0017 sections 3–4):** PRIORITY.md overrides SR16's priority among ready work: M10 batch 0 and M12 P0 are idle-builder work. Sidecar order is TR1e → E6 → E5/E3a → E7; PV2b/TR1h/PV3 never make ready M4 work wait. One writer remains mandatory. MT3 remains parked even though Q21 grants its render-option dispatcher path.
+
+Signed: gpt-reviewer, 2026-11-17

@@ -3,17 +3,12 @@
 
 This repo is a lab copy of Wirescape (see README). It has no tiers, board or merge gate.
 
-**Status (owner, 2026-11-15): Fable leads design and milestone acceptance.** The gpt-lead delivers
-milestones under a Fable-accepted written contract in `docs/workflow/milestones/`, dispatches builders,
-reviews their evidence and merges only tasks delegated by that contract. Builders no longer wait for
-routine owner approval. Without an accepted contract, the fallback authority in `proposals/0004-execution-plan.md`
-still applies. The engineering constraints below still apply.
+**Status:** Fable retired on 2026-11-17. The owner's **Claude Architect** holds the design seat under `proposals/0017` section 1. The active delivery lead remains separate; accepted milestone contracts govern delivery and merges. Fixed constraints stay with the owner.
 
 ## Who's who
 | Name | Family | Does |
 |---|---|---|
-| **Fable** | Claude | design authority: design notes, milestone contracts, queued rulings, milestone acceptance |
-| `fable-deputy` | Claude (Opus) | holds Fable's seat for routine work from 2026-11-17: reviews, queued questions, acceptance, contract upkeep; limits in `CLAUDE.md` and `docs/workflow/STANDING.md` |
+| **Claude Architect** | Claude (Opus) | design authority: proposals, contracts, rulings, contract review and milestone acceptance; never the delivery lead |
 | `gpt-lead` | GPT | delivery lead: runs a contracted milestone end to end (`docs/context/CODEX_LEAD.md`); trigger `lead: run` |
 | `gpt-builder1` … `gpt-builder4` | GPT | build one contracted task each, fix CI and review corrections, leave a PR result |
 | `claude-lead` | Claude | delivery lead with the same role and authority as `gpt-lead` (owner, 2026-11-16), used when the owner assigns the lead to a Claude session; follows `docs/context/CODEX_LEAD.md`; trigger `claude lead: run`. One lead is active at a time; the active lead is named in `CURRENT.md` |
@@ -21,9 +16,7 @@ still applies. The engineering constraints below still apply.
 | `gpt-reviewer` | GPT | independent source, tests, CI and evidence review when owner-assigned; records signed findings and readiness, but never replaces a required Claude contract-review or Fable decision |
 | `claude-reviewer` | Claude | independent review when assigned, including contracts that explicitly require a Claude reviewer |
 
-Triggers: `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
-→ Fable. `lead: run` or `lead: run B<n>` → gpt-lead. `claude lead: run` → claude-lead. `1:run` → the builder identified by the
-active chat's family and assigned task. A trigger never grants authority beyond the accepted contract.
+Triggers: owner-assigned design work → Claude Architect; `lead: run` / `lead: run B<n>` → gpt-lead; `claude lead: run` → claude-lead; `<N>:run` → the assigned builder of the chat's family; `review` → the assigned independent reviewer. Historical Fable/deputy entries are history. A trigger never grants authority beyond the accepted contract.
 
 ## A builder run = one task and one PR
 1. Read the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and

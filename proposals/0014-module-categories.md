@@ -1,4 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
+
+**0017 errata draft:** `other` is the fallback shelf/display label for an unknown category that must keep loading under 0012. Transport's custom panel uses the 0015 broker API `setTransport`; its panel requires M12 P3 (M11 K3), not a direct native renderer call. Architect approval required.
+
 # 0014 — Module categories, tested against GUTTR, Macro Oscillator and CHAOS (design note)
 
 **Author:** Fable · **Date:** 2026-11-16 (ET) · **Status:** design for `0004` T5.1–T5.4

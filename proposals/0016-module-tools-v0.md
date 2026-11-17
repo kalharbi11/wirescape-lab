@@ -93,7 +93,7 @@ Stimulus: signal inputs get a deterministic sine plus noise per port and channel
 Params start at their initial values. Seed 42. Every message is `WHAT / WHERE / FIX`. WHERE = rate, block, voices, port|param, channel, first frame.
 | # | Test | Detected by | WHAT … / FIX … (template) |
 |---|---|---|---|
-| T1 | descriptor sane | runtime describe: ids `[a-z0-9_.]+`, unique per list, min<max, initial in range, finite, counts ≤ `WS2_MAX_*` | "param `{id}` initial {v} outside [{min},{max}]" / "set initial inside the range in `ws::param(...)`" |
+| T1 | descriptor sane | runtime describe: ids `[a-z][a-z0-9_.]*`, at most 63 bytes (0012 frozen limit), unique per list, min<max, initial in range, finite, counts ≤ `WS2_MAX_*` | "param `{id}` initial {v} outside [{min},{max}]" / "set initial inside the range in `ws::param(...)`" |
 | T2 | rates 44.1/48/96k | `prepare` result at each rate | refusal at 48k = FAIL; at others = WARN "refuses {rate} Hz" / "support it or say so in README; hosts will not load it at that rate" |
 | T3 | block sizes 1,17,64,256 | `process`≠OK, or out channels > max | "process returned {code} for {n} frames" / "never assume a block is a multiple of 4/16; use `b.frames()`" |
 | T4 | voices 1/4/16 | outputs for voice c differ from same stimulus alone in voice 0 (POLY outputs only) | "voice {c} leaks into voice {d}" / "index per-voice state by channel; arrays sized `WS2_MAX_CHANNELS`" |
@@ -118,7 +118,7 @@ no timestamps in results (CPU numbers only in `render`), so outputs can be diffe
 `bench/offline/metrics.read_audio` accepts (fact 6). Summary: peak, DC, RMS, nonfinite, and CPU per block (median/p99/max ns and
 % of block period, timed in the runner over process only), all stdlib or C++. Clicks (`click_events`) and alias floor
 (`oscillator_metrics`, only with `--fundamental HZ` or the tone stimulus) are imported by path from `bench/offline/metrics.py`
-if numpy/scipy are installed. Otherwise the field reads `"unavailable: pip install -r bench/offline/requirements.txt"`, never 0.
+only after optional numpy/scipy availability is established; import these helpers lazily in render, never during check/test startup. Otherwise the field reads `"unavailable: pip install -r bench/offline/requirements.txt"`, never 0.
 `--patch` (render inside a small patch) is out of v0 because it needs the engine.
 
 **check (static, no execution except the describe).** C1 `module.cpp` exists, `WS_REGISTER_MODULE` exactly once. C2 SPDX
