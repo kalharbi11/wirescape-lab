@@ -1,6 +1,102 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## OWNER PAUSE — cloud Lead 7 stopped; local takeover required, 2026-11-17 ET
+
+**Latest owner instruction supersedes every dispatch and schedule below.** This chat used an
+accidental cloud environment. All cloud workers were interrupted; no further implementation or
+agent dispatch is authorized here. A new **local Codex Lead** must take over, verify its actual
+checkout/session and fresh GitHub state, then resume delivery. Keep Claude Architect's separate
+design seat. Do not create or resume any schedule without a new owner request.
+
+Both one-time checks created by Lead7 (**05:30 and10:00 America/New_York**) were explicitly
+paused before execution; private lookup verifies both disabled and never run. Older monitors
+were already paused and were not resumed. No heartbeat/watch or auto-merge was enabled here.
+
+### Published state at stop
+| Item | Exact published state | Local lead's next action |
+|---|---|---|
+| #159 / M1S3 | MERGED b87f8817de34818758c43d32b176acbc223dc038, reviewed309bf885; Claude5934759930 | Do not reopen/re-review unchanged evidence. |
+| #180 / source facts | MERGED be928a112d3280a04e2cdce229df8e0315c1dd6c, reviewed7bd49be | Complete; B4 facts reservation cleared. |
+| #182 / draftPR189 | ab8718cbdb517ecee8ad9d6fed96896ffcfa4c8f; Lab44045966242 SUCCESS; High6942751502 still blocks | Resume same branch. Correction1/2 authorized/planned but interrupted before a new push;0/2 submitted correction pushes. Reconcile every relevant same-chain saved cursor. Test A/B/C queued BEFORE A ACK, partialA→acceptB→refuseC→realundo/redo at confirmedA amplitude0.5, not stale0.7. |
+| #188 / draftPR190 | f2e83e05da32341000e8d7860f94a301fb954827, ONLY final S3 measurements, no deletion pushed | Await Architect ruling:96000-frame live ABI1 reference in document test cannot be replaced by existing16384-frame fixture. Three-file SR7 grant already used. Keep AppEngine golden renderer/CLI and frozen readers. |
+| #155 / draftPR184 | 8823c78ad58992b39f7b8f696425d9751bdb7ac0; associated workflows/Golden×3 success | Still needs real full-engine R2 after-values and D5 release FLAC pair. No merge yet. |
+| #193 / reverb evidence | Brief/plan only; NO script/workflow PR, no new capture | Dispatch locally only after lane check. Narrow full R2 capture + proper before/head D5 pair; read-only advisory workflow, release attachment by authorized route. |
+| #175 / draftPR176 | d9af77ac3667973c43526f11e9f54ee02bf32375 PARKED | T11 options metadata High; Architect disposition, no MT3. |
+| #186 / Architect packet | draft10a592878c9bfece2e0674495ae2d79b64bc2e6a | Architect owns role/workflow/OB text and S4 technical ruling; owner role-rewrite approval still applies. |
+
+**Queued successors:** #191 M2r4 final report after189 actual merge/release; #192 M3 Reload engine
+after that report Result and Studio lane release. M3 engine split/transport waits M1S6. OB0 also
+needs the contracted M7 work; do not present these partial merges as a testable first build yet.
+
+**Repository bookkeeping:** all open needs/fable labels removed; answered Q21#177/Q22#181 closed,
+CI1#172 routes needs/architect + approver/architect, registry#187 defines approver/codex-lead,
+approver/architect and scoped approver/delegated. Historical delivered report/audit#140/#142 closed.
+Cloud-owned182/188/193 are blocked with fresh Current state;189/190 blocked, not active writers.
+
+**Recovery:** published PRs/issues are the durable handoff. Cloud-only unpublished S4 edits and
+capture sketches are unaccepted and must not be assumed available locally. No M2 correction was
+published afterab8718cb. Root independently verified preserved S3 data from5 actual ZIPs,
+7 member hashes,9 timing medians and4 instruction calculations. No device/audio/MIDI/LAN run,
+main push, force-push, repository-setting change or gate weakening occurred.
+
+Signed: gpt-lead, 2026-11-17
+
+---
+
+
+## Codex Lead 7 — owner resumed delivery, 2026-11-17 (ET)
+
+**Active delivery lead:** gpt-lead / Codex Lead, owner-invoked **WLAB | LEAD | 7**.
+This supersedes the owner-stop and earlier delivery-seat blocks below. **Claude Architect
+(Opus)** holds Fable's full design seat under proposal0017§1 and owns the upcoming role,
+workflow and OB-contract organization (draft PR186). The seats remain separate.
+
+**Completed this run**
+- PR159 merged `b87f8817de34818758c43d32b176acbc223dc038`, reviewed head309bf885:
+  independent Claude review5934759930 has no High; exact-head Lab/Golden/OfflineFacts/paired
+  runs success. Prior numerical artifact inspections remain attributed to their signed authors.
+- PR180 merged `be928a112d3280a04e2cdce229df8e0315c1dd6c`, reviewed head7bd49be:
+  independent source/count/neutrality review and exact-head notes CI; B4 facts reservation clears.
+- All open `needs/fable` removed. Q21#177 and Q22#181 closed with final merged ruling proof.
+  CI1#172 now `needs/architect` + `approver/architect`; no milestone self-acceptance.
+- Registry#187 records `approver/codex-lead`, `approver/architect`, `approver/delegated`.
+  A temporary delegation needs named actor, signed owner source, scope/action and expiry.
+  Labels route work; they do not bypass independent reviews, exact-head evidence or contracts.
+
+**Focused technical queue (one writer per lane)**
+| Writer | Current | Dependency and next |
+|---|---|---|
+| gpt-builder1 | #182 / draftPR189, initial ab8718cb | Browser fixtures repaired; independent High6942751502 proves queued A/B/C saved-history corruption. Correction1/2 authorized, same branch; fresh source review/full Lab required. Then #191 report after actual merge/release, then #192 M3 RL after report Result and Studio lane release. |
+| gpt-builder4 | #188 / draftPR190 PARKED; next #193 | Evidence-first f2e83e05 preserves real S3 values. S4 deletion STOP: document test still runs96000 ABI1 samples at1e-7; exact frozen replacement needs Architect path/design grant. No deletion push. Separate reverb evidence193 released only after signed S4 blocked Result; no overlapping edits. |
+| gpt-builder3 (existing writer) | #155 / PR184, 8823c78 | Golden now green×3; full production R2 after-values and D5 FLAC release pair still missing. Narrow capture#193 assigned sequentially to B4 after S4 park; reverb source writer is unchanged. |
+| gpt-builder2 | #175 / PR176, d9af77a, PARKED | T11 discrete options lack adapter metadata, High6942008407. Architect disposition needed; no extra source grant or MT3 dispatch. |
+
+**SR7/S4:** exactly three mechanical extra files granted in #188: bench/gate/instructions.py
+(fixed-mode inventory), bench/m1/paired.py (Q19 exact retired-symbol disposition), and
+bench/m1/test_paired.py (corresponding inventory expectations). No threshold/provenance/Chord
+change or generic bypass. A further native/document live-reference replacement exceeds SR7;
+Architect request posted on186. Existing16384-frame frozen shim cannot substitute96000-frame
+proof. Native/tests/golden_render.cpp is an AppEngine renderer and must also survive removal.
+Lead independently opened all5 saved S3 ZIPs, rehashed7 members and verified9 timing medians
+and4 Ir two-length calculations against the preserved facts. S3's unused soak flag waits.
+
+M3 engine split T1.6a→b→c→TR1e remains P0 but starts only after actual M1S6 merge.
+TR1e's task must quote ER1; future M4 tasks quote the relevant ER1–ER6 clauses as Fable directed.
+No new M6 or future-facts lane was started. Historical #140/#142 delivery closed; #191 replaces
+the stale final-report wait. Architect may refresh PR186's superseded missing-review statements.
+
+**Schedule:** exactly two finite checks on 2026-11-17 at **05:30 and10:00 America/New_York**,
+following the owner's Architect run. Existing monitors remain paused; no heartbeat or recurring
+watch was created. No model waits on unchanged CI. Shell GitHub/VPN access is unavailable;
+connected GitHub source/artifact tools work. Hosted execution is required; local diagnostics
+do not replace it. Devices/audio/MIDI/LAN off, no settings/gate changes or main push.
+
+Signed: gpt-lead, 2026-11-17
+
+---
+
+
 ## Fable final run — rulings and next actions, 2026-11-17 (ET)
 
 The Fable seat is retired. Design seat from now: **Claude Architect** (owner's Opus session), with
