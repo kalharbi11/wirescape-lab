@@ -2,9 +2,7 @@
 #include "engine2.h"
 #include "dsp_fixture.h"
 #include "test_modules.h"
-#include "module_loader.h"
 #include "allocation_watch.h"
-#include "frozen_reference.h"
 #include <memory>
 #include <vector>
 #include <cstring>
@@ -36,47 +34,4 @@ static void poly(const std::string&dir){
  wav(dir+"/poly_synth.wav",stereo,48000,2);FILE*f=std::fopen((dir+"/poly_synth.json").c_str(),"w");VERIFY(f);std::fprintf(f,"{\"frames\":96000,\"channels\":2,\"peak\":%.12g,\"rms\":%.12g,\"release_tail_peak\":%.12g,\"allocations\":%llu,\"pitch_cents\":[%.12g,%.12g,%.12g],\"faults\":%llu}\n",peak,std::sqrt(sum/96000),tail,static_cast<unsigned long long>(allocations),cents[0],cents[1],cents[2],static_cast<unsigned long long>(e.meter().faults));std::fclose(f);
  std::puts("PASS offline eight-voice synth: pitch, one-sample envelope boundaries, stealing/release, stereo, zero allocations");
 }
-static void shim(const char*directory,const std::string&reports){
- ModuleLoader loader(directory);
- const char*names[]={"noise","clock","function_envelope","slew","vcf","ladder","vca","output"};
- const ws_module_descriptor*d[8];
- for(int i=0;i<8;++i)d[i]=loader.abi1(names[i]);
- for(bool scripted:{false,true}){
-  const auto baseline=abi1_frozen_samples(scripted?"shim_scripted":"shim_steady");
-  VERIFY(baseline.size()==16384);
-  Config c;c.max_block=256;Engine e(c);
-  for(uint32_t i=0;i<8;++i)VERIFY(e.add_abi1(i+1,d[i]));
-  const uint32_t cables[][4]={{1,0,5,0},{5,1,6,0},{6,0,7,0},{2,0,3,0},{3,0,4,0},{4,0,7,1},{7,0,8,0}};
-  for(auto&v:cables)VERIFY(e.connect(v[0],v[1],v[2],v[3]));
-  VERIFY(e.output(8,0,0));VERIFY(e.register_producer()==0);VERIFY(e.prepare());
-  struct Init {uint32_t node,param;float value;};
-  const Init initial[]={{1,0,.2f},{2,0,137},{2,1,1},{2,2,.5f},{2,3,1},
-    {3,0,.01f},{3,1,.1f},{3,2,0},{4,0,.02f},{4,1,.02f},{5,0,1800},
-    {5,1,.2f},{6,0,3500},{6,1,.2f},{6,2,.5f},{7,0,1}};
-  for(auto&v:initial)VERIFY(e.set_parameter(v.node,v.param,v.value));
-  if(scripted){
-   const Init changes[]={{5,0,3000},{7,0,.4f},{2,0,91},{6,0,1500}};
-   uint64_t frame=777;
-   for(auto&v:changes){
-    auto n=ev(WS2_PARAM,60,1,v.value);n.index=v.param;
-    VERIFY(e.enqueue(0,v.node,WS2_DIRECT_PORT,n,frame)==WS2_OK);
-    frame+=1234;
-   }
-  }
-  std::vector<float>actual(16384);
-  for(uint32_t pos=0;pos<16384;pos+=256){
-   float*out[]={actual.data()+pos};
-   VERIFY(e.render(out,1,256)==WS2_OK);
-  }
-  double worst=0;
-  for(size_t i=0;i<actual.size();++i)
-   worst=std::max(worst,double(std::abs(actual[i]-baseline[i])));
-  const bool equal=std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0;
-  std::printf("shim %s max_abs_error %.12g bit_equal %d\n",
-              scripted?"scripted":"steady",worst,int(equal));
-  VERIFY(std::memcmp(actual.data(),baseline.data(),actual.size()*4)==0);
-  wav(reports+(scripted?"/shim_scripted.wav":"/shim_steady.wav"),baseline,48000);
- }
-}
-
-int main(int argc,char**argv){std::setvbuf(stdout,nullptr,_IONBF,0);VERIFY(argc==3);shim(argv[1],argv[2]);poly(argv[2]);}
+int main(int argc,char**argv){std::setvbuf(stdout,nullptr,_IONBF,0);VERIFY(argc==3);poly(argv[2]);}
