@@ -242,7 +242,8 @@ class MetricsTests(unittest.TestCase):
                 self.assertAlmostEqual(immediate["switch_click_peak_dbfs"],
                     20 * math.log10(immediate["switch_click_peak_fs"]))
                 self.assertEqual(immediate["highpass_hz"], 2000)
-                self.assertAlmostEqual(immediate["window_ms"], 50.0, delta=.02)
+                self.assertAlmostEqual(immediate["window_ms"],
+                    2000 * int(.025 * rate) / rate, places=12)
 
     def test_t7_switch_click_silence_and_short_capture_are_explicit(self):
         rate = 48000
