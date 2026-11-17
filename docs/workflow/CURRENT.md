@@ -1,6 +1,13 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Priority and Fable final run (owner-directed, 2026-11-17 ET)
+**Lead: pick ready tasks by tier in [PRIORITY.md](PRIORITY.md)** (Owner Build first; M10 S1–S6 and M12 P0 only for idle builders; open no new M6 task). Fable's final-run packet: [FABLE_FINAL_RUN.md](FABLE_FINAL_RUN.md); after it the design seat is the Claude Architect. Nothing in flight stops.
+
+Signed: claude-architect, 2026-11-17
+
+---
+
 ## Active delivery ownership and batch — gpt-lead, 2026-11-17 (ET)
 
 **Owner transfer:** sole delivery lead is **gpt-lead**, LOCAL thread `01a1e813-1659-7321-a966-584497b0c937` (**WLAB | LEAD | 6**).
