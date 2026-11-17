@@ -2,6 +2,8 @@
 """Offline MT1 mutation tests; no product edits, sockets or downloads."""
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 from pathlib import Path
 import re
@@ -16,6 +18,7 @@ MODULE = Path(__file__).resolve().parents[1]
 ROOT = MODULE.parents[1]
 sys.path.insert(0, str(MODULE))
 import check  # noqa: E402
+import wsmod  # noqa: E402
 
 LAYOUT = json.loads((MODULE / "layout.json").read_text(encoding="utf-8"))
 MESSAGES = json.loads((MODULE / "messages.json").read_text(encoding="utf-8"))
@@ -92,6 +95,40 @@ class ModuleToolTests(unittest.TestCase):
         self.assertEqual(code, 0, report)
         self.assertFalse(any(x["test"] == "C3" and x["status"] == "fail"
                              for x in report["results"]))
+
+    def test_c4_describe_timeout_json_exit_three_deterministic(self):
+        # Exercise the real CLI JSON/exit path while isolating only the build,
+        # describe invocation and advisory compiler probe.
+        runner = self.folder / "sensitive" / "runner"
+        expired = subprocess.TimeoutExpired([str(runner), "describe"], 30)
+        reports = []
+        with mock.patch.object(check, "build", return_value={"state": "ok", "runner": runner}), \
+             mock.patch.object(check, "run_command", side_effect=expired) as describe, \
+             mock.patch.object(check, "portable_symbols", return_value={
+                 "native": "compiled", "cross": "unavailable", "symbols": {}}):
+            for _ in range(2):
+                output, errors = io.StringIO(), io.StringIO()
+                with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+                    code = wsmod.main(["check", str(self.folder), "--json"])
+                self.assertEqual(code, 3)
+                self.assertEqual(errors.getvalue(), "")
+                raw = output.getvalue()
+                report = json.loads(raw)
+                self.assertEqual(report["exit_code"], 3)
+                failures = [item for item in report["results"]
+                            if item["test"] == "C4" and item["status"] == "fail"]
+                self.assertEqual(len(failures), 1, report)
+                self.assertTrue(all(failures[0][key] for key in ("what", "where", "fix")))
+                self.assertTrue(failures[0]["what"].startswith(MESSAGES["C4"]["what"]))
+                self.assertEqual(failures[0]["fix"], MESSAGES["C4"]["fix"])
+                self.assertNotIn("Traceback", raw)
+                self.assertNotIn(str(self.folder.resolve()), raw)
+                self.assertNotIn(str(ROOT.resolve()), raw)
+                self.assertNotIn(str(runner), raw)
+                reports.append(raw)
+        self.assertEqual(reports[0], reports[1])
+        self.assertEqual(describe.call_count, 2)
+        self.assertEqual(describe.call_args.kwargs["timeout"], 30)
 
     def test_c4_bad_descriptor_id(self):
         self.mutate(lambda s: s.replace('"example.gain2"', '"Invalid-ID"'))

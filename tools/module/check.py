@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 from build import build, build_dir_for, clean_error, load_file, located, portable_symbols, run_command
@@ -88,7 +89,7 @@ def descriptor_check(root: Path, folder: Path, layout: dict, messages: dict,
         return (4 if kind == "ENV" else 3), None
     try:
         output = run_command([str(state["runner"]), "describe"], timeout=30)
-    except (OSError, TimeoutError) as exc:
+    except (OSError, subprocess.TimeoutExpired) as exc:
         emit(report, messages, "C4", "fail", where, "describe invocation failed: " + type(exc).__name__)
         return 3, None
     if output.returncode not in (0, 1):
