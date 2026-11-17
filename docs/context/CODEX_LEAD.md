@@ -40,6 +40,7 @@ section before starting work; preserve it across handoffs and fresh chats.
   GitHub handoff and run summary: `Signed: codex-lead, YYYY-MM-DD, HH:mm EST`.
   Use actual New York local time; use EDT during daylight saving time and include the zone.
   This signature is a communication preference; the repository role remains gpt-lead.
+- **Every run starts with a quick check**, including an owner-requested long run or scheduled wake. Start narrow and low-effort, then adapt to actual findings and remaining usage; do not begin with a full audit by default.
 - **Quick check** means a very low-usage pass: read the latest builder Results/changed status,
   identify concrete blockers, release a safe writer slot or send a bounded continuation, and
   refresh the status docs. Keep existing branches, PRs and correction counts. No broad audits,
@@ -50,9 +51,7 @@ section before starting work; preserve it across handoffs and fresh chats.
   planning. Delegate most implementation to the regular ChatGPT builders. Give each a queue of
   1–3 scoped tasks, stating which independent task can proceed during review and which waits
   for an actual merge. Keep B5 a small-task floater, not a permanent competing product lane.
-- Escalate a quick check to a normal run only for urgent, materially new Architect information
-  that requires changing tasks or more work, and explicitly explain the change. Defer other
-  substantial/nonurgent repairs to the next normal run. When a normal run will be useful soon,
+- Increase effort/scope from the initial quick check when actual findings and project needs justify it, within the owner's usage reserves. New Architect information is one trigger, not the only trigger. Explicitly explain a substantial escalation. Defer nonurgent expensive repairs when remaining usage or timing makes that preferable. When a normal run will be useful soon,
   suggest a concrete time and purpose to the owner; a suggestion does not authorize creating
   a schedule. Reuse existing schedules where appropriate; no extra heartbeats by default.
 - At run entry, check shared usage and the five-hour window reset time once; distinguish that
