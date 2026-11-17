@@ -1,0 +1,398 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "task": "M7 r1 T7.0",
+  "status": "unmeasured",
+  "measurement_provenance": {
+    "source_baseline_main": "5d6bbbc52902afe8416b3c38cc5af82320c93867",
+    "source_commit_measured": null,
+    "renderer_binary_sha256": null,
+    "artifact_sha256": null,
+    "machine_class": null,
+    "toolchain": null,
+    "measurement_date_et": null,
+    "capture_status": "not executed — regular Chat has no native build/renderer capture; no physical device, MIDI or LAN used",
+    "historic_reference": {
+      "commit": "7d3842dc783915cf31aaf43bca508ebdcefb8a48",
+      "artifact": "facts/dsp/ci-linux-x64/oscillators.json",
+      "schema": "historical nonharmonic floor, not new alias-only metric",
+      "chaos_case_rows": 0
+    }
+  },
+  "method": {
+    "source": "proposals/0011-sound-quality-order.md, M7 r1; bench/offline/metrics.py oscillator_metrics and step_metrics",
+    "chaos": "Hann FFT; energy in expected folded-harmonic bins excluding true below-Nyquist harmonics; existing alias_floor_dbfs dBFS; actual isolated alias FFT bin availability recorded",
+    "switch": "2nd-order Butterworth 2 kHz high-pass; switch-centered +/-25ms; amplitude highpass_peak_fs and 20*log10(peak_fs) dBFS",
+    "sample_rates_hz": [
+      44100,
+      48000,
+      96000
+    ],
+    "fundamentals_hz": [
+      110,
+      1760,
+      3520,
+      7040
+    ],
+    "waveforms": [
+      "saw",
+      "square"
+    ],
+    "offline_render_seconds": 2,
+    "target_values_only": {
+      "S7.3_high_freq_alias_reduction_db_48000": 20,
+      "S7.3_high_freq_alias_reduction_db_44100": 15,
+      "S7.3_low_110hz_allowed_regression_db": 1,
+      "S7.3_rms_tolerance_db": 0.5,
+      "S7.5_S7.6_switch_reduction_db": 20,
+      "S7.3_floor_dbfs": -80
+    },
+    "new_metric_gate": false
+  },
+  "chaos_alias_rows": [
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 44100,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 44100,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 48000,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 48000,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "saw",
+      "sample_rate_hz": 96000,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 110,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 1760,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 3520,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "oscillator": "A",
+      "waveform": "square",
+      "sample_rate_hz": 96000,
+      "target_hz": 7040,
+      "status": "unmeasured",
+      "alias_floor_dbfs": null,
+      "rms_fs": null,
+      "alias_expected_bin_count": null,
+      "reason": "native exact-head offline renderer not executed in regular Chat; source-pinned capture package pending"
+    }
+  ],
+  "switch_click_rows": [
+    {
+      "module": "ports.quad_vca",
+      "parameter": "mode1",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "unmeasured",
+      "switch_click_peak_fs": null,
+      "switch_click_peak_dbfs": null,
+      "reason": "native exact-head offline renderer not executed; no stepped-switch PCM measured"
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "mode",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "unmeasured",
+      "switch_click_peak_fs": null,
+      "switch_click_peak_dbfs": null,
+      "reason": "native exact-head offline renderer not executed; no stepped-switch PCM measured"
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "division",
+      "before": 5,
+      "after": 6,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "unmeasured",
+      "switch_click_peak_fs": null,
+      "switch_click_peak_dbfs": null,
+      "reason": "native exact-head offline renderer not executed; no stepped-switch PCM measured"
+    },
+    {
+      "module": "fx.delay",
+      "parameter": "tone",
+      "before": 0,
+      "after": 1,
+      "sample_rate_hz": 48000,
+      "switch_frame": 48000,
+      "status": "unmeasured",
+      "switch_click_peak_fs": null,
+      "switch_click_peak_dbfs": null,
+      "reason": "native exact-head offline renderer not executed; no stepped-switch PCM measured"
+    }
+  ],
+  "below_minus80_target_reset_observation": null,
+  "unknown_or_unmeasured": [
+    "ringmod2: not built as a runtime module at current baseline; no sound-parity observation",
+    "ADSR/VCO CHOKE: event-driven; no native render/capture in this task"
+  ],
+  "raw_source": "bench/offline/T7_0_CAPTURE.md",
+  "capture_artifact": null
+}
