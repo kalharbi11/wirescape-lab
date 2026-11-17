@@ -1,74 +1,41 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Local lead checkpoint — 2026-11-16
+# Local root lead checkpoint — 2026-11-16
 
-Sole LOCAL lead: WLAB | LEAD | 4, thread01a1e5ad-ea43-7b12-bc15-85ff572f1843.
-Existing wlab-lead-review ACTIVE every45minutes; no duplicate lead/timer.
-Windows device-results checkout and captures preserved. Read live AGENTS/CODEX_LEAD/CURRENT,
-accepted contracts and batch82. Verify every snapshot against current PR head and signed Result.
+Updated: 2026-11-16 (ET) by gpt-lead. Last verified main: `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
 
-## Owner instructions
-Claude builders finish current tasks/branches and existing corrections, then STOP. No new Claude
-tasks or automatic S3/E1b dispatch. Existing GPT builders remain regular Chat, never Work/Codex.
-Keep owners/branches; inspect actual execution before one concise startup retry. Worker2 is cloud support.
-Audit every open issue/PR each run; close answered/duplicate items with evidence, reconcile primary
-descriptions/labels and handoffs, prioritize finishing before dispatching more. No age-only closures.
+**Sole LOCAL root lead:** WLAB | LEAD | 5, `01a1e688-a40c-7273-ab2a-3100d5731573`. Local app inventory and CODEX_THREAD_ID agree. Lead 4 is idle/stepped down. The existing `wlab-lead-review` heartbeat is ACTIVE every 45 minutes on this verified ID; no new timer. Scoped M1 delivery is delegated below.
 
-## Authority and CI priority
-Fable Q12 specifically accepted PR119/fbbf771ac119a61e0275182fae4bfe14b5508c0f, CI1r3.
-CI1.4/#122 GPT-B4 is current exclusive ci.yml writer, then cache109/GPT-B2. Dispatch from accepted
-head before119 merges is explicitly allowed. Four aggregate jobs only add actions:read; token step
-and fixed API host only; all current-attempt failclosed checks remain. No red waiver; full rerun after
-integration, never failed-jobs-only repair.119 remains open/red aggregate403 and may need documentation
-conflict resolution preserving Fable Q12/Q5. Lead never edits contracts/proposals.
+## Contracts and acceptance
 
-## Current tasks
-- B4 #122/PR123 task/122-authenticated-aggregates headb39d170d9ae1008db328aa0ce16f9c0efb297d5e.
-  Actual implementation completed, atomic3file commit/onepush. Lab43935029115 all real builds,
-  sanitizer/Studio/Desktop and authenticated aggregates PASS; only foundation133537268054 failed.
-  239tests/4 failures: old contiguous name-to-needs assertion omits permissions, new section boundary
-  content.index("\n  ") matches nested indentation. Correction round1/2 posted6927371478 and sent
-  existing B4 chat. Preserve all semantic assertions; one corrected push/current7required checks and
-  token log audit. No oldhead rerun. After merge, integrate/revalidate105 and other affected PRs.
-- B2 #109 retains staging/queue evidence, no remote branch/push. No ci.yml push before122 merge;
-  then integrate latest main without forcepush. K7/K8 unchanged; no test-count weakening inferred.
-- B1 #51/PR60 task/51-sound-metric-probes head7ed7c54fa00babc4b5b9342eefad84cdec78070a.
-  SignalSource.prepare compile fix, Lab/Golden green. Full Generate device-off43930176728:
-  x64job133531000275, ARM64133531000414, Windows133531000029 SUCCESS, raw/staged artifacts present.
-  B1 continuation sent to verify actual measured impulse/five-repeat tail rows and stage only
-  validated source-attributed summaries. Job success alone is not R2 evidence. Earlierafd244a
-  had zero R2 rows due compile failure. No new task.
-- Claude1 #100/PR106 MERGED7bf71aeaaef42ce051e89351c293efaca37e6bf3 after review of730794c, facts code4b6a45a.
-  Signed ready6926102623: both abrupt/fade silentreset findings fixed;119rows/21edits/3repeats.
-  Exact-head Lab43934899922, continuity43934900431 and Golden43934899876 SUCCESS.
-  Root read runner/reset metric/regressions and audited JSON357alignments, repeat counts/brackets,
-  offsets/ranges/residuals; no violations. Worker2 final delta/facts review DONE, no blocking issue.
-  Actual continuity log shows78tests OK; all14Lab jobs/7required names passed. Merge completed.
-  Raw captures1.3GB retained only in Claude environment, not uploaded; no waveform recalculation claimed.
-  Unknown/unobservable subject resets explicitly None. Writer STOPPED, no successor assignment.
-- Claude3 #112/PR116 headea27e2aebf0729dd814c9a6d13efcca77e30b0a4 unchanged.
-  Claude contract review5925370959 DONE, nothingHigh. Existing rule6 fake-stream D5 test/spec
-  correction6925602832/issue112 still outstanding; no duplicate review. Current branch only then stop.
-- Claude2 #111 S2 only, no PR found in latest inventory. Preserve owner; no S3 automatic assignment.
-- B3 #86/PR105 head569e18758e90a743e5f0d90268274228e83d0067. Drift/Q8passed, aggregate403.
-  Original rounds1/2 exhausted6921938186/6922666564; Q8 was explicit replan6924067718 then fixture
-  repair6924542074, not implicit third correction. Q13 on main asks Fable for bounded disposition:
-  bus_channel schema<=63 vs runtime<16, Desktop IDs rejectspace vsQ8. No runtimechange dispatched.
-  Whichever105/116 lands second addsapplyGraph corpus or recordsdisagreement.
-- B4 #113/PR118 head3b023b3 parked behind60;50 already merged1918cf75. No concurrent baseline edits.
+- **M0 r3:** all builder work merged. [#132](https://github.com/kalharbi11/wirescape-lab/issues/132) remains needs/fable with no acceptance decision. Owner T0.14 stays open; ringmod2 unmeasured, continuity raw captures unpublished, device-only gaps, lower-bound counts and advisory timing remain explicit. Owner prompt: “fable: run accept M0 — assess #132 and explicitly resolve its listed exceptions.”
+- **M1 r2:** S0/T1.1/P1 merged. S2 #111 belongs to delegated LOCAL lead `01a1e676-f444-7653-839e-8659fb7209af`; B4 regular Chat `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is sole writer. Root does not duplicate S2 dispatch. Owner-authorized additions: `native/cli/play.cpp` and `native/document/runtime_patch.cpp`, only obsolete ABI1 discovery/registration removal; [QUESTIONS Q15](QUESTIONS.md) records the resolution. M1 lead owns planning, execution verification, independent review, corrections and delegated merge. Release delivered, one startup retry sent, implementation execution unverified. S3 staffing/start remains owner decision.
+- **M2 r3:** E0 and E1a merged (E1a #116 → e0d4437). E1b #125/PR130 is held after final ordinary correction; Q14 needs Fable. PV1 #86/PR105 Q13 revert-and-record disposition applied; exact-head acceptance pending.
+- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 retains sole ci.yml ownership, sanitizer job only. K7/K8 unchanged; missing warm evidence holds merge.
 
-## Routing
-B1 Chat6afadca6-071c-83ea-a029-b22c1560a794; B2 Chat6afadc8d-5138-83ea-bb36-88048b6bf54d;
-B3 Chat6afadc7c-9b44-83ea-be32-dbd465646ce0; B4 Chat6afadc5f-8478-83ea-89a0-6b2bedf3b2a9.
-Worker2 durable6afad0f1-55a8-8191-975f-f008479ba02f. Read actual Results, not activeflag/prompt alone.
+## Writers and next actions
 
-## Hygiene and next
-121 merged84dcc02 after verified exact-head CI. Answered90/103 CLOSED;117 staysopen for122;
-stale needs/fable removed117/116. Current descriptions/labels reconciled, no duplicate branch/PR.
-Next review123 correction and60 artifact Result;106 finished/merged; Q13 awaitsFable.
-Batch docs updates in onePR, merge on verified head CI. Never delete preserved branches/captures.
-Devices/MIDI/LAN off, no forcepush/gate weakening/settings/resetcreditspend. Two correction rounds
-thenQUESTIONS. Preserve20percent fivehourreserve, check actualusage/reset; weeklyalone notstoprule.
-Last read90percent fivehourused, reset1794865742. Owner asked continue; bounded changed-state actions
-dispatched, no resetcredits consumed. Substantial followup respects reserve unless owner revises it.
+| Writer | Task / branch / head | Verified disposition |
+|---|---|---|
+| B1 | #125 / #130, task/125-studio-apply-graph, `8d0bd29467d1b505c8ac9838fc267301e4537cc0` | final ordinary 2/2 spent; Lab43968790557 red Studio1/3 + aggregate; independently confirmed overlap/refusal rollback HIGH; Q14 proposed bounded final packet, no redispatch before ruling |
+| B2 | #109 / #129, task/109-sanitizer-ccache, `21bc87c405be6813cdbc9bb382c9058d3f4b35c8` | full43964380415 attempt2 green; sanitizer133653972206 cacheMISS/428s/49 of274 hits is cold, K8 unmeasured; branch stable, no blind rerun |
+| B3 | #86 / #105, task/86-pv1-protocol-v0, `8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35` | Q13 3/3 spent; lead reverted only new missing-paramId negative fixture to prior absence and recorded D09; normalized duplicated D08 text; fresh Lab43973824231 + drift43973824173 in progress at inspection |
+| B4 | #111, task/111-s2-native-catalogue planned | delegated M1 lead owns startup check; latest implementation release has no substantive assistant result yet; do not claim execution |
+| Claude builders1–3 | finished/stopped | no new tasks |
+
+## Review evidence and holds
+
+**PV1:** previous8b23600 Lab43967315210 passed all14 jobs, drift43967315137 failed TS2578 at test_generated.ts123 and intended TS2741 at125. The new incompleteApplyResult fixture and void reference were absent at prior e984561; Q13 point5 authorized reverting this item. D09 neutrally states the unretained compile-time coverage. applyGraph schema/type/corpus, bus_channel0..15, Q8 and unknown-field preservation remain; generators unwired. D08 factual Desktop-space discrepancy preserved after removing duplicated embedded document text. Require NEW exact-head corpus/TS/C++/drift/null-sidecar Q8/Q13, full required CI and M2 acceptance4. No fourth builder round or red waiver.
+
+**E1b:** from confirmed220, queued snapshots440 then660 both reject, but latest revision restores optimistic440 while engine stays220. Root independently traced App.ts788–802 and RealEngine.ts338–348 after Worker2 review. Separate OSC test failure is a live counter-reference alias (test216–217, setter286–290), not proven runtime replacement failure. Q14 asks Fable for one bounded final packet or defer/close; hold draft/blocked. No third ordinary correction.
+
+**CI1.3:** manual43966200132/head21bc87c cold-saved cache10628646155 at refs/heads/task/109-sanitizer-ccache; key fingerprint0471e1e.../run43966200132-1, version b97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a, size102097945. PR attempt2 explicitly missed this prefix. Official cache docs permit feature-branch restores; cause remains unproved, not assumed merge-ref isolation. Same image/action/path/cross-OS inputs observed. Worker2 read-only diagnosis complete; compare exact bundled version inputs/lookup before any further run, no blind timing retry. K7 independently compared hosted base133628142310 and exact-head133653972206 ordered ctest -N -R abi2 inventories:82 names each, equal/zero additions/deletions. K8 needs genuine restored warm <=318s; cold428s establishes neither warm pass nor warm failure. No bootstrap merge, PR cache save or settings change.
+
+## Operating rules and routes
+
+B1 regular Chat `6afadca6-071c-83ea-a029-b22c1560a794`; B2 `6afadc8d-5138-83ea-bb36-88048b6bf54d`; B3 `6afadc7c-9b44-83ea-be32-dbd465646ce0`; B4 new route above (old6afadc5f superseded). Worker2 cloud support `6afad0f1-55a8-8191-975f-f008479ba02f`, host durable. Verify actual execution/results before one supported retry; delivery/active flags alone do not prove execution. Keep GPT builders in regular Chat, never Work/Codex substitutes.
+
+Lead does reviews. Fable handles design/questions/acceptance and merge:fable only; Fable does no PR monitoring. Notify owner if a contract requires a Claude reviewer; owner assigns one. S2 requires none; later S3/S5b/S6 require contract review. No new Claude builder tasks. Preserve one writer per task, existing branches, full rerun-all for failed aggregates, one cohesive push per round; two ordinary corrections then QUESTIONS except explicitly authorized Q13.
+
+Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n; verify URL_HASH), configure CMake again after session.cpp changes because S0 copy occurs at configure, and native OSC Out replacement semantics. Preserve devices-off/realtime/neutral-facts rules; no force/settings/gate weakening. Keep >=20% five-hour usage reserve; no credit/reset spending. No model waits/polling loops; existing heartbeat checks changed state. Preserve local device-results branch and all untracked captures.
 
 Signed: gpt-lead, 2026-11-16

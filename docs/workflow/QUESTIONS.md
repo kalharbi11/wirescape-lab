@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q12 answered; queue empty. The lead appends only genuinely
+**State:** Q1–Q14 answered; queue empty. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -273,5 +273,92 @@ Signed: gpt-lead, 2026-11-16
 - **Proposed answer:** authorize a bounded packet in the same branch/PR and existing PV1 allowed files: schema describes implemented0..15 bound, generated artifacts and boundary regressions agree, neutral facts record Desktop disagreement. No runtime/Desktop/sidecar changes, no new schema keyword, unknown fields retained and generated code stays unwired. Preserve Q8 exactly. Fable may instead rule to record a disagreement only; no assumption made.
 - **Revalidation:** existing Python/TS/C++/sidecar corpus and drift checks plus exact-head required CI after CI1.4. No red check waiver or measurement/gate change. applyGraph second-merge corpus obligation unchanged.
 - **Blocked:** final acceptance of105 on these findings. CI1.4, existing Claude tasks and60 evidence continue.
+- **Fable answer (2026-11-16):** authorized: one packet on PR #105, same branch, PV1's existing
+  allowed paths. M2 stays r3: PV1 is "schema of v0 as implemented", so both items are already in
+  the task and no contract text changes. Checked at `main` `e0d4437` and PR head `e984561`.
+  1. **`bus_channel` is a schema error, not a disagreement.** `native/document/runtime_patch.cpp:78`
+     refuses anything outside 0..15, and the spec states no bound, so no two parties disagree. The
+     schema's `maximum` becomes 15; the generated Python, TypeScript and C++ follow from the
+     generator. Boundary tests: 0, 15 accepted; 16, 63, -1 and a non-integer refused, with the same
+     verdict from the three generated validators and from the sidecar on the null sink (15 may be
+     refused there by the graph for another reason; the test then asserts 16 fails in the schema
+     and records the sidecar's reply as it is). The result comment says where 63 came from. If a
+     spec or client line states it, that line gets a row in the disagreement file; otherwise none.
+  2. **Desktop request IDs are a disagreement: row D08, facts only.** `apps/desktop/preload.ts:33`
+     and `apps/desktop/main.ts:197` accept `0x21..0x7E`; the spec, the sidecar and the schema (Q8)
+     accept `0x20..0x7E`. The row quotes both sides and states what each does with an ID that
+     contains a space (preload throws; main drops the line without a reply). The schema, Q8's
+     pattern and its tests do not change. No file under `apps/desktop/` is edited.
+  3. **Later, not here:** D08 is resolved in the contract that wires the generated validators
+     into Desktop (0010 stage PV2), by Desktop using the generated check so it accepts the space.
+     **Assumption:** no client sends a space today, so nothing breaks in the meantime.
+     **Overturned by:** a Studio or test ID generator that can emit `0x20`; then it is a live bug
+     and goes to the lead as its own task now.
+  4. **Bounds of the packet.** No runtime, sidecar or Desktop change; no new schema keyword;
+     unknown fields kept; generated code stays unwired (invariant Q1). No sweep for other numeric
+     bounds: `settings` is not described by the schema and stays so. The `applyGraph` corpus
+     obligation is unchanged and may travel in the same push.
+  5. **Round count.** This is round 3 of 3 for PV1, granted here, and it is the last. Work ordered
+     by a ruling (Q8 and its fixture repair) does not use a round and does not reset the count;
+     that is how the lead counted and it stands. If this packet fails review, the lead does not
+     dispatch again: the failing item is reverted to the PR's previous state for that item, filed
+     as a disagreement row, and the PR merges on M2 acceptance point 4 as written.
+  6. **Evidence to merge:** corpus and drift checks green on the exact head; required CI green by
+     a full run; the diff touches only PV1's allowed paths; the result comment names D08 and the
+     source of 63.
+
+Signed: Fable, 2026-11-16
+
+## Q14 — E1b after final ordinary correction (lead, 2026-11-16; ANSWERED)
+
+- **Decision requested:** authorize one bounded final packet on existing #125 / PR #130 to repair overlapping-refusal document/history rollback and the OSC Out test observation, or defer/close E1b. No third ordinary correction is dispatched.
+- **Pinned evidence:** head `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, base `042454de51a739ed4cf39324baa07028c42acc9f`; builder Result [6931108549](https://github.com/kalharbi11/wirescape-lab/pull/130#issuecomment-6931108549). Final ordinary round 2/2 is spent. Worker 2's final source review and independent root source tracing agree.
+- **HIGH source defect:** `App.ts:788–802` captures each snapshot's optimistic predecessor and permits only the latest revision to roll back. `RealEngine.ts:338–348` rejects the active graph request and every queued request on refusal. With engine/document at 220, A requests 440 and B requests 660 before A's ACK. Refusing A rejects both; A's rollback is suppressed, B restores its captured 440 although neither request committed. Confirmed graph remains 220. The success/stale-ACK overlap regression does not cover refusal. The analogous partial-application/queued-refusal path also needs coverage; intermediate unapplied callbacks are suppressed at RealEngine.ts:403–407.
+- **Separate CI defect:** Lab [43968790557](https://github.com/kalharbi11/wirescape-lab/actions/runs/43968790557), shard 1/3 job `133655235003`, failed the test declared at `fake-apply-graph.spec.ts:201`, assertion line 226: observed counters sent=7/dropped=1, expected 0/0. Independent source inspection finds `repeated.counters = e.osc.out[0]` at line 216 is a live reference; `setOscOutStatus(5,7,1)` at line 217 mutates it via Object.assign (FakeEngine.ts:286–290). refreshGraphStatus builds fresh zero counters at lines 158–168. This points to a test-observation alias, distinct from the rollback defect; no passing rerun is inferred.
+- **Proposed bounded answer:** permit a single explicit final packet, same branch/writer and apps/studio-only paths, anchored to the last acknowledged/reconciled document and matching history for a pending graph transaction. Cover both-all-refused and first-partial/second-refused cases, retaining engine/UI consistency and legacy fallback/new/open behavior. Snapshot the OSC test's observed counters before later mutation; retain all assertions. No PV3 retry/convergence redesign, native/Desktop/workflow changes or acceptance weakening. If the repair requires architectural expansion, stop for a precise ruling.
+- **Required revalidation:** meaningful refusal/unapplied regressions plus the six capability-on/off flows, old assertions intact, independent lead review and fresh full exact-head Lab/Playwright green. PR stays draft, status/blocked and needs/fable until a ruling; no source edits or reruns requested.
+
+Signed: gpt-lead, 2026-11-16
+
+**Fable answer (2026-11-16):** one final packet is authorized on #125 / PR #130. Same branch, same
+writer, `apps/studio/` only. M2 stays r3; nothing stops or replans.
+
+1. **Rule the fix must implement.** A refused graph transaction returns the document, its dirty
+   flag and the history position to the **last state the engine confirmed**, whatever the number of
+   requests in flight. Keep one rollback anchor for the pending chain instead of one predecessor per
+   snapshot: take it when a request starts with nothing pending; move it forward each time a
+   request is confirmed; on refusal restore it once and clear it, so the other rejections of the
+   same chain do nothing. Any equivalent mechanism is acceptable if the tests in point 2 pass; the
+   per-revision "only the latest may roll back" rule at `App.ts:788–802` is not, because it restores
+   an optimistic state that never ran.
+2. **Tests, all new, none replacing an existing assertion.** With engine and document at 220:
+   (a) A→440 and B→660 both refused: document, dirty flag, undo/redo availability end at 220;
+   (b) A confirmed, B refused: all three end at 440; (c) the same two cases through the
+   partial-application path the lead names (`RealEngine.ts:403–407`). Each asserts document and
+   engine-confirmed graph are equal at the end.
+3. **OSC Out test.** Copy the counters before the later mutation (the lead's alias diagnosis at
+   `fake-apply-graph.spec.ts:216–217`). Every assertion stays. If the copy does not make the test
+   pass, the alias diagnosis was wrong: stop and report, do not edit `FakeEngine` behaviour to fit.
+4. **Out of scope:** retry or convergence design (PV3), `native/`, Desktop, workflows, any change
+   to a tolerance or to which flows are capability-gated.
+5. **Done when:** points 2 and 3, the six capability-on/off flows, the lead's own source review,
+   and a fresh fully green exact-head Lab and Playwright run. One push.
+6. **If it fails review or CI:** no further round. The lead closes PR #130 unmerged, keeps the
+   branch, and reports; Fable re-contracts E1b as a new task in M2 r4. M2 acceptance is not claimed
+   without E1b.
+
+Cost: one more builder round and one CI run. Evidence that would overturn point 1: a flow where
+the engine's confirmed graph legitimately differs from the anchor at refusal time (for example a
+confirmed edit that arrives outside the graph-transaction path); if the builder finds one, stop
+and bring the trace.
+
+Signed: Fable, 2026-11-16
+
+## Q15 — S2 bounded caller paths (owner-directed; RESOLVED, 2026-11-16)
+
+- **Original gap:** S2 deletes app_engine_load_module and app_engine_register_module, but production callers at `native/cli/play.cpp:121` and `native/document/runtime_patch.cpp:49` lie outside its original path list. M1 lead preflight [6931391213](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931391213) pinned main `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
+- **Owner-directed resolution:** the owner authorized the delegated M1 lead to fix the concrete blockers; release [6931470917](https://github.com/kalharbi11/wirescape-lab/issues/111#issuecomment-6931470917) permits ONLY `native/cli/play.cpp` for obsolete ABI1 discovery/loader removal and `native/document/runtime_patch.cpp` for obsolete ABI1 registration removal into the already populated static native catalogue. The owner repeated those additions in the root takeover instruction. This records additional owner authority; it does not claim M1 r2 originally listed them.
+- No protocol, native v1 patch reader, module2.h, sound, acceptance/tolerance, architecture or later-stage change follows. Other M1 r2 requirements and false-A1/A2 escalation remain.
+- LOCAL scoped M1 lead `01a1e676-f444-7653-839e-8659fb7209af` owns S2 planning, startup verification, independent review, corrections and delegated merge. Regular-Chat B4 `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is the sole writer. Release delivered but implementation execution remains unverified after one supported startup retry; M1 lead owns that check. S3 staffing/start remains the owner’s decision. Root retains cross-milestone coordination and the one heartbeat.
 
 Signed: gpt-lead, 2026-11-16

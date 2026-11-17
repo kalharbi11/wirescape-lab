@@ -1,75 +1,95 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
-Updated: 2026-11-16 (ET) by claude-lead. Last reviewed `main`: `e0d443760c6858f09e9d178d891ebc30cb317b22`.
+Updated: 2026-11-16 (ET) by gpt-lead. Last verified main: `cc1c223ca7239666c56d4ec0462cdf34b7fe74f8`.
 
-**Active lead: claude-lead** (owner, 2026-11-16). It has the same role and authority as gpt-lead
-(`AGENTS.md`, `docs/context/CODEX_LEAD.md`). One lead at a time: gpt-lead resumes only when the owner
-says so, and then reads this file first. Codex's local-lead notes stay in
-[LOCAL_LEAD_HANDOFF](LOCAL_LEAD_HANDOFF.md) for history.
+**Sole LOCAL root lead:** WLAB | LEAD | 5, `01a1e688-a40c-7273-ab2a-3100d5731573`. Local app inventory and CODEX_THREAD_ID agree. Lead 4 is idle/stepped down. The existing `wlab-lead-review` heartbeat is ACTIVE every 45 minutes on this verified ID; no new timer. Scoped M1 delivery is delegated below.
 
-## Active contracts
-- **[M0 r3](milestones/M0.md)**: every task is merged except **T0.10** (#113 / PR #118, final pass
-  released) and **T0.14** (owner). Then the lead files the acceptance report and Fable runs `fable: run accept M0`.
-- **[M1 r2](milestones/M1.md)**: one engine. S0, T1.1 and P1 are merged. **S2 #111** belongs to claude-builder2
-  and has no branch yet. One writer owns S2–S6; S3 staffing is decided when S2 merges.
-- **[M2 r3](milestones/M2.md)**: `applyGraph`. E0 and **E1a are merged** (E1a #116 → `e0d4437`). **E1b** #125
-  belongs to gpt-builder1; its dependency is met. **PV1** PR #105 waits for Q13 (Fable) and carries the `applyGraph`
-  schema-corpus obligation, because it merges after E1a.
-- **[CI1 r3](milestones/CI1.md)**: CI1.1, CI1.2 and CI1.4 are merged (CI1.4 `49747bd`: authenticated
-  required aggregates). **CI1.3** #109 is released and is the single writer of `ci.yml`.
+## Contracts and acceptance
 
-**Sidecar ordering (M1 r2):** T0.13a and E1a are merged. PV1's `native/sidecar/generated/` files
-merge before M1 S5a opens, or wait until S5b. S2–S4 do not touch `native/sidecar/`. PV1 (#105) adds
-`applyGraph` to its schema corpus or records it as a disagreement.
+- **M0 r3:** **ACCEPTED AND CLOSED by Fable, 2026-11-16** against report #132. Every exception has a disposition in [M0.md](milestones/M0.md) "Milestone acceptance". T0.14 is no longer an M0 gate (owner environment item; the seeding recipe below stays the working route). No lead action remains on M0; drop it from the heartbeat.
+- **M1 r2:** S0/T1.1/P1 merged. S2 #111 belongs to delegated LOCAL lead `01a1e676-f444-7653-839e-8659fb7209af`; B4 regular Chat `6afb8252-992c-83ea-a4d0-e7734bb17b7b` is sole writer. Root does not duplicate S2 dispatch. Owner-authorized additions: `native/cli/play.cpp` and `native/document/runtime_patch.cpp`, only obsolete ABI1 discovery/registration removal; [QUESTIONS Q15](QUESTIONS.md) records the resolution. M1 lead owns planning, execution verification, independent review, corrections and delegated merge. Release delivered, one startup retry sent, implementation execution unverified. S3 staffing/start remains owner decision.
+- **M2 r3:** E0 and E1a merged (E1a #116 → e0d4437). E1b #125/PR130 is held after final ordinary correction; Q14 needs Fable. PV1 #86/PR105 Q13 revert-and-record disposition applied; exact-head acceptance pending.
+- **CI1 r3:** CI1.1/1.2/1.4 merged. CI1.3 #109/PR129 retains sole ci.yml ownership, sanitizer job only. K7/K8 unchanged; missing warm evidence holds merge.
 
-## Writers (one task each)
-| Writer | Task | State / next |
+## Writers and next actions
+
+| Writer | Task / branch / head | Verified disposition |
 |---|---|---|
-| gpt-builder1 | E1b #125 | E1a merged; build and test, then mark ready |
-| gpt-builder2 | CI1.3 #109 | released after CI1.4; integrate `main`, K7/K8 |
-| gpt-builder3 | PV1 #86 / PR #105 | branch updated with `main` for the Q12 full re-run; waits for the Q13 ruling before any edit |
-| gpt-builder4 | T0.10 #113 / PR #118 | final pass: replace the `pending` rows with T0.5/T0.9 facts; last M0 task |
-| claude-builder1 | — | T0.13a/b merged; free |
-| claude-builder2 | M1 S2 #111 | start now; no branch yet |
-| claude-builder3 | — | E1a merged `e0d4437`; free |
+| B1 | #125 / #130, task/125-studio-apply-graph, `8d0bd29467d1b505c8ac9838fc267301e4537cc0` | final ordinary 2/2 spent; Lab43968790557 red Studio1/3 + aggregate; independently confirmed overlap/refusal rollback HIGH; Q14 proposed bounded final packet, no redispatch before ruling |
+| B2 | #109 / #129, task/109-sanitizer-ccache, `21bc87c405be6813cdbc9bb382c9058d3f4b35c8` | full43964380415 attempt2 green; sanitizer133653972206 cacheMISS/428s/49 of274 hits is cold, K8 unmeasured; branch stable, no blind rerun |
+| B3 | #86 / #105, task/86-pv1-protocol-v0, `8c15a941c1a4e21c4616d20ea5bdfe2a75e27f35` | Q13 3/3 spent; lead reverted only new missing-paramId negative fixture to prior absence and recorded D09; normalized duplicated D08 text; fresh Lab43973824231 + drift43973824173 in progress at inspection |
+| B4 | #111, task/111-s2-native-catalogue planned | delegated M1 lead owns startup check; latest implementation release has no substantive assistant result yet; do not claim execution |
+| Claude builders1–3 | finished/stopped | no new tasks |
 
-## Merged this session (2026-11-16, after 18:30 ET)
-- CI1.4 #123 → `49747bd`
-- Q12 #119 → `9f883a1`
-- T0.5 #60 → `2c4d3d0` (`ringmod2` unmeasured, written down)
-- M2 E1a #116 → `e0d4437`; claude-lead role #126 → `57f866b`
-- Earlier: T0.9 #50 → `1918cf7`; T0.13b #106 → `7bf71ae`
+## Review evidence and holds
 
-## Notes for every builder
-- **CI queue time dominates.** Push each correction round as **one push**. Per-file API commits queue a
-  full run each.
-- **Failed required aggregate:** repair it with "re-run all jobs", never failed-only (Q12 point 5).
-- **Native build in a Claude cloud container:** the proxy refuses `codeload.github.com` tarballs.
-  `git fetch --depth 1 https://github.com/<owner>/<repo> <sha>`, then
-  `git archive --format=tar --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n`, reproduces each pinned tarball
-  byte-identically (SHA-256 equals `URL_HASH`). Copy it to
-  `build/native/_deps/<name>-subbuild/<name>-populate-prefix/src/archive.tar` before configuring.
-  Local runs are not acceptance evidence.
-- **S0 snapshot copy:** `native/CMakeLists.txt` writes a copy of `session.cpp` only at configure time.
-  After editing `session.cpp`, re-run `cmake build/native` before building locally. CI is unaffected.
+**PV1:** previous8b23600 Lab43967315210 passed all14 jobs, drift43967315137 failed TS2578 at test_generated.ts123 and intended TS2741 at125. The new incompleteApplyResult fixture and void reference were absent at prior e984561; Q13 point5 authorized reverting this item. D09 neutrally states the unretained compile-time coverage. applyGraph schema/type/corpus, bus_channel0..15, Q8 and unknown-field preservation remain; generators unwired. D08 factual Desktop-space discrepancy preserved after removing duplicated embedded document text. Require NEW exact-head corpus/TS/C++/drift/null-sidecar Q8/Q13, full required CI and M2 acceptance4. No fourth builder round or red waiver.
 
-## Decisions
-- Rulings R1–R7 are in M0. [QUESTIONS](QUESTIONS.md): Q1–Q12 answered. **Q13 (PV1 bounded packet) is
-  open for Fable.**
-- Q5: bundled patches and presets may be reset after the rebuild. The owner has no personal patches
-  (Q5 point 8). Golden "24 identical" stays through M1 and M2.
+**E1b:** from confirmed220, queued snapshots440 then660 both reject, but latest revision restores optimistic440 while engine stays220. Root independently traced App.ts788–802 and RealEngine.ts338–348 after Worker2 review. Separate OSC test failure is a live counter-reference alias (test216–217, setter286–290), not proven runtime replacement failure. Q14 asks Fable for one bounded final packet or defer/close; hold draft/blocked. No third ordinary correction.
 
-## Next action by role
-- **claude-lead:**
-  - merge #118 when its final pass is green, then file the M0 acceptance report;
-  - review #125 and #109;
-  - decide S3 staffing with the owner when S2 merges.
-- **Builders:** one task each, result comment on the PR, one push per round.
-- **Fable:** `fable: run questions` for Q13. Then `fable: run accept M0` once T0.10 merges and the
-  lead's acceptance report is filed. PV2, T1.6 and T1.7 wait on M1 S5b; T1.8 waits on S6.
-- **Owner:** T0.14 (or adopt the byte-identical seeding above). The S3–S6 staffing decision when S2 merges.
+**CI1.3:** manual43966200132/head21bc87c cold-saved cache10628646155 at refs/heads/task/109-sanitizer-ccache; key fingerprint0471e1e.../run43966200132-1, version b97fbe098767aae2aa5efb5d4f8da4e488678a6aaf72931965bfb19f3ef9e00a, size102097945. PR attempt2 explicitly missed this prefix. Official cache docs permit feature-branch restores; cause remains unproved, not assumed merge-ref isolation. Same image/action/path/cross-OS inputs observed. Worker2 read-only diagnosis complete; compare exact bundled version inputs/lookup before any further run, no blind timing retry. K7 independently compared hosted base133628142310 and exact-head133653972206 ordered ctest -N -R abi2 inventories:82 names each, equal/zero additions/deletions. K8 needs genuine restored warm <=318s; cold428s establishes neither warm pass nor warm failure. No bootstrap merge, PR cache save or settings change.
 
-The lead updates this file at each batch boundary; Fable after contract revisions.
+## Operating rules and routes
 
-Signed: claude-lead, 2026-11-16
+B1 regular Chat `6afadca6-071c-83ea-a029-b22c1560a794`; B2 `6afadc8d-5138-83ea-bb36-88048b6bf54d`; B3 `6afadc7c-9b44-83ea-be32-dbd465646ce0`; B4 new route above (old6afadc5f superseded). Worker2 cloud support `6afad0f1-55a8-8191-975f-f008479ba02f`, host durable. Verify actual execution/results before one supported retry; delivery/active flags alone do not prove execution. Keep GPT builders in regular Chat, never Work/Codex substitutes.
+
+Lead does reviews. Fable handles design/questions/acceptance and merge:fable only; Fable does no PR monitoring. Notify owner if a contract requires a Claude reviewer; owner assigns one. S2 requires none; later S3/S5b/S6 require contract review. No new Claude builder tasks. Preserve one writer per task, existing branches, full rerun-all for failed aggregates, one cohesive push per round; two ordinary corrections then QUESTIONS except explicitly authorized Q13.
+
+Keep byte-identical dependency-seeding recipe (git archive --prefix=<repo>-<sha>/ FETCH_HEAD | gzip -n; verify URL_HASH), configure CMake again after session.cpp changes because S0 copy occurs at configure, and native OSC Out replacement semantics. Preserve devices-off/realtime/neutral-facts rules; no force/settings/gate weakening. Keep >=20% five-hour usage reserve; no credit/reset spending. No model waits/polling loops; existing heartbeat checks changed state. Preserve local device-results branch and all untracked captures.
+
+Signed: gpt-lead, 2026-11-16
+
+## Queue for the week (Fable, 2026-11-16, run 1)
+**Read first:** [STANDING.md](STANDING.md). It lets the lead settle CI, process, correction-limit
+and small path questions alone (SR1–SR19) and says who decides what. From 2026-11-17 the design
+seat is usually **fable-deputy** (an Opus session, `CLAUDE.md`); Fable is not needed for routine work.
+
+**New contracts, all accepted. Nothing stops or replans: M1 r2, M2 r3 and CI1 r3 are unchanged.**
+| Contract | What | Starts |
+|---|---|---|
+| [M6](milestones/M6.md) | module tools v0 (`check`, `test`, `render` for one folder), new paths only | **now** |
+| [M7](milestones/M7.md) | sound quality: batch 1 module-local; batch 2 filters and CHOKE | batch 1 **now**; batch 2 after M1 S6 |
+| [M3](milestones/M3.md) | Phase 1 tail: engine split, transport, module build and registry, Reload engine, native v1 removal, residue | RL after E1b; the rest after M1 S6 |
+| [M4](milestones/M4.md) | edits never restart: live mod amount, gapless swaps, module data, replace with state, device changes | after M3 TR1e; E5 and E3a also need `proposals/0012` |
+| [M5](milestones/M5.md) | protocol v1 | PV2a **now** (PV1 merged, `4161b90`); the rest after M1 S6 |
+
+[PATHS.md](milestones/PATHS.md) lists the files each M3 to M5 task touches, for writing issues.
+Each task starts when its own "Depends on" cell is true on `main`; no task waits for a
+milestone acceptance report. Order between ready tasks: SR16 (M1, then the M4 chain, then M5,
+M3, M6, M7). Design notes behind them: `proposals/0011` (sound), `0016` (module tools), and the
+Phase 3 to 6 task list in `proposals/0004`. Notes `0012` to `0015` (Wire module header,
+portability and compiler, categories, panels) are Fable's run 2.
+
+**Next action by role**
+- **Root lead:** dispatch the Q14 packet to B1 (still open). File M6 MT1 and M7 T7.0 now and
+  give them to the first free builders (B2 and B3 when CI1.3 and PV1 close); then S7.1 and S7.4.
+  File `facts/code/native_v1_readers.md` (M3 V1 precondition) and M5 PV2a as class-A tasks when
+  a builder is free. M6 and M7 pull requests merge or park before M1 S6 opens.
+- **M1 lead:** unchanged. For S6, note what `milestones/PATHS.md` found: the 0002 layout does
+  not name a place for `native/tests2`, `native/voice`, `native/tools/render`, `native/third_party`,
+  `native/examples`, the top-level `tests/protocol/` or the subfolders of `host/`; path filters in
+  the workflows other than `ci.yml`, `tools/ci/changed_scope.py`, and `bench/` scripts with
+  `native/` written in them move with the rename. Choosing those names is inside S6 (the script
+  is the record); `ci.yml` edits are ordered with CI1.3 by the root lead. When S5b merges, S6 is next; when S6 merges, tell the root lead: that
+  opens M3 T1.6a, TR2, V1, M5 PV2b and M7 batch 2.
+- **Builders:** one task each, as before.
+- **Owner:** nothing is needed for the queue. Optional: one `fable: run` to a Claude session
+  clears any pending contract review (M1 S3, S5b, S6 need a Claude reviewer; SR11).
+- **Design seat (Fable or deputy):** review requests, questions and acceptance reports as they
+  arrive. M1, M2 and CI1 acceptance reports are expected this week.
+
+Signed: Fable, 2026-11-16
+
+## M0 accepted, Q14 answered (Fable, 2026-11-16)
+M0 r3 is accepted and closed. M1 r2, M2 r3 and CI1 r3 are unchanged: nothing stops or replans and
+no writer assignment changes. Root lead and the M1 lead: cite `facts/BASELINE.md` as the
+before-numbers in M1 and M2 evidence; do not cite `ringmod2` in a sound-parity claim until it is
+measured (Fable places that measurement in the next contract that touches the runtime-module build).
+
+**Q14 (E1b) is answered** in [QUESTIONS](QUESTIONS.md): one final packet on #125 / PR #130, anchored
+to the last engine-confirmed state; if it fails, close #130 unmerged and Fable re-contracts E1b in
+M2 r4. Root lead: dispatch that packet to B1 and remove `needs/fable` from #130. This supersedes the
+"Q14 needs Fable" and "no redispatch before ruling" text above. QUESTIONS queue is empty.
+
+Signed: Fable, 2026-11-16

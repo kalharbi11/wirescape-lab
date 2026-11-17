@@ -282,16 +282,41 @@ jobs:
             ci1-sanitizers-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.sanitizer_cache_key.outputs.fingerprint }}-
       - name: Record cache provenance and reset statistics
         env:
+          PRIMARY_SANITIZER_KEY: ${{ steps.sanitizer_cache_restore.outputs.cache-primary-key }}
           MATCHED_SANITIZER_KEY: ${{ steps.sanitizer_cache_restore.outputs.cache-matched-key }}
+          SANITIZER_CACHE_HIT: ${{ steps.sanitizer_cache_restore.outputs.cache-hit }}
         run: |
+          # Only public Actions identity/step outputs. Never print tokens or environment dumps.
+          printf 'CI1.3 event=%s ref=%s headref=%s baseref=%s run=%s attempt=%s sha=%s\n' \
+            "$GITHUB_EVENT_NAME" "$GITHUB_REF" "${GITHUB_HEAD_REF:-<none>}" \
+            "${GITHUB_BASE_REF:-<none>}" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA"
+          printf 'CI1.3 cache primary key: %s\n' "${PRIMARY_SANITIZER_KEY:-<none>}"
+          printf 'CI1.3 cache matched key: %s\n' "${MATCHED_SANITIZER_KEY:-<none>}"
+          printf 'CI1.3 cache exact-hit flag: %s\n' "${SANITIZER_CACHE_HIT:-<none>}"
+          python - <<'PYCODE'
+          import hashlib
+          import shutil
+          # Pinned actions/cache v4 getCacheVersion inputs. This is an independently
+          # computed expected version, NOT the backend restore request's observed value.
+          path = "~/.cache/ccache"
+          compression = "zstd-without-long"
+          salt = "1.0"
+          value = "|".join((path, compression, salt))
+          print("CI1.3 cache version inputs: path=%s compression=%s salt=%s" %
+                (path, compression, salt))
+          print("CI1.3 zstd executable present:", bool(shutil.which("zstd")))
+          print("CI1.3 predicted cache version (not backend-observed):",
+                hashlib.sha256(value.encode("utf-8")).hexdigest())
+          PYCODE
           if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
-            echo "Main/manual: no restore; resetting compiler cache for cold build"
+            echo "CI1.3 cache classification: COLD (manual/main: restore forbidden)"
             ccache --clear
           elif [ -z "$MATCHED_SANITIZER_KEY" ]; then
-            echo "PR: no matching cache; cold build (not warm evidence)"
+            echo "CI1.3 cache classification: COLD (PR cache miss)"
             ccache --clear
           else
-            echo "PR restored cache key: $MATCHED_SANITIZER_KEY"
+            echo "CI1.3 cache classification: RESTORED (matched key required for warm evidence)"
+            printf 'CI1.3 restored cache key: %s\n' "$MATCHED_SANITIZER_KEY"
           fi
           ccache --zero-stats
       - name: Compile with ASan and UBSan

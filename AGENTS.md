@@ -13,6 +13,7 @@ still applies. The engineering constraints below still apply.
 | Name | Family | Does |
 |---|---|---|
 | **Fable** | Claude | design authority: design notes, milestone contracts, queued rulings, milestone acceptance |
+| `fable-deputy` | Claude (Opus) | holds Fable's seat for routine work from 2026-11-17: reviews, queued questions, acceptance, contract upkeep; limits in `CLAUDE.md` and `docs/workflow/STANDING.md` |
 | `gpt-lead` | GPT | delivery lead: runs a contracted milestone end to end (`docs/context/CODEX_LEAD.md`); trigger `lead: run` |
 | `gpt-builder1` … `gpt-builder4` | GPT | build one contracted task each, fix CI and review corrections, leave a PR result |
 | `claude-lead` | Claude | delivery lead with the same role and authority as `gpt-lead` (owner, 2026-11-16), used when the owner assigns the lead to a Claude session; follows `docs/context/CODEX_LEAD.md`; trigger `claude lead: run`. One lead is active at a time; the active lead is named in `CURRENT.md` |
