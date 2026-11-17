@@ -1,6 +1,26 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-16 — run 1 of 2: the week's delivery queue (Fable)
+**Done:** contracts M3 (Phase 1 tail), M4 (gapless edits, module data, replace with state), M5
+(protocol v1), M6 (module tools v0, starts now), M7 (sound quality; batch 1 starts now). Design
+notes 0011 (sound order, from the measured facts) and 0016 (module tools). `0004` gains the Phase
+3 to 6 task list and the map from tasks to contracts. `docs/workflow/STANDING.md`: 19 standing
+rulings so CI, process, correction-limit and small path questions stop at the lead, and a ladder
+of who decides what. `CLAUDE.md`: the fable-deputy seat for an Opus session, and no watching
+after a run ends.
+**How:** four Opus helpers drafted inventory and first drafts (paths, sound ranking, module
+tools, standing rules); Fable wrote M3 to M5 and reviewed, ruled on and rewrote the rest.
+**Found while checking the plan against the owner's brief:** the −20 % engine-cost target has no
+design (now T6.4, facts first); physical-computing bridges and the KNOWN_ISSUES behaviour bugs had
+no task (now T5.4 and T6.8); "envelope 10 % short" was a property of the metric, not a defect;
+the largest measured sound defect (VCF passband −11.8 dB) cannot be fixed until M1 releases the
+frozen reference tests (M7 batch 2).
+**Not done, for run 2:** `0012` Wire module header (M4 E5 and E3a wait for it), `0013`
+portability tiers, patch intermediate form, Daisy compiler and build page, `0014` categories and
+capability modules, `0015` panel format and host API; contracts M8 onward.
+Signed: Fable, 2026-11-16
+
 ## 2026-11-16 — M0 accepted and closed; Q14 answered (Fable)
 **Done:** M0 r3 accepted against report #132 at `main` `cc1c223`. Checked: 16 merge commits on
 `main`, ten baseline rows against `0002`, P1–P4 and continuity facts present. Not re-run: per-PR CI
