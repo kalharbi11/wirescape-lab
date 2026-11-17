@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Protocol v0 generated drift (PV1)
+
+on:
+  pull_request:
+    paths:
+      - 'docs/specs/protocol.schema.json'
+      - 'docs/specs/ENGINE_PROTOCOL.md'
+      - 'tools/protocol/**'
+      - 'apps/studio/src/engine/generated/**'
+      - 'native/sidecar/generated/**'
+      - '.github/workflows/protocol-v0-drift.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protocol-v0:
+    name: protocol-v0 validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check deterministic generated outputs
+        run: python tools/protocol/generate.py --check
+      - name: Validate every normative spec section 10 wire line and preservation rules
+        run: python -m unittest discover -s tools/protocol -p 'test_*.py' -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile unwired generated TypeScript without changing app behavior
+        working-directory: apps/studio
+        run: |
+          npm ci
+          npm run typecheck
+      - name: Compile TS payload examples and execute generated validator regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          apps/studio/node_modules/.bin/tsc --strict --skipLibCheck --target es2022 --module commonjs --moduleResolution node --rootDir . --outDir build/pv1/ts tools/protocol/test_generated.ts
+          node build/pv1/ts/tools/protocol/test_generated.js
+      - name: Configure and compile device-free sidecar
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          cmake -S native -B build/pv1 -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/pv1 --target wirescape_engine_sidecar --parallel "$(nproc)"
+      - name: Compile and execute unwired generated C++ validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          header="$(find build/pv1 -type f -path '*/nlohmann/json.hpp' -print -quit)"
+          if [ -z "$header" ]; then echo "nlohmann header unavailable from pinned native build" >&2; exit 1; fi
+          include_dir="$(dirname "$(dirname "$header")")"
+          c++ -std=c++17 -O1 -Wall -Wextra -Werror -I. -I"$include_dir" \
+            tools/protocol/test_generated.cpp -o build/pv1/protocol-v0-validator
+          build/pv1/protocol-v0-validator
+      - name: Validate every emitted sidecar protocol-test line (null audio; no device/LAN)
+        run: |
+          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples
+      - name: Q8 compare exact request-ID boundaries with real null-audio sidecar
+        run: python tools/protocol/check_sidecar_request_ids.py build/pv1/wirescape-engine
+      - name: Q13 check bus-channel bounds and applyGraph on real null-audio sidecar
+        run: python tools/protocol/check_sidecar_q13.py build/pv1/wirescape-engine
