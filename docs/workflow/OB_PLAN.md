@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB delivery plan — 2026-11-17 ET
 
-Owner-directed scope: OB r2, PRIORITY, M1 r3, M2 r4, M3 r1, M4 r2, M7 r1 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All four builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
+Owner-directed scope: OB r2, PRIORITY, M1 r3, M2 r4, M3 r1, M4 r2, M7 r1 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
 ## Critical paths and estimates
 OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, OB-a1) → release/tag. Start S7.4 and OB-a1 now, in separate files. Aim for the first eligible build, not a bundled wait for OB1.
@@ -10,9 +10,11 @@ Estimates below are initial active engineering hours per task, including a first
 
 ## Immediate dispatch, one active writer per file
 B1: #182/PR189 correction1 published edcc97f; park source for review, take #206 OB-a1 in new files while waiting. Return to182 only for concrete review/CI failure. #191 report after actual merge; #192 RL lower priority than OB0 tests.
-B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #208 module census and #209 UI facts when bench lane is free; smoke tests follow census merge and a separate issue.
+B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #209 UI facts when the bench lane is free; smoke tests follow the census merge and a separate issue. B5 owns #208.
 B3: #155/PR184 source8823c78 parked awaiting193; start #210 S7.4 Macro in its own module folder now. S7.2 follows155 actual merge, using the same source owner; finish/park Macro before switching. No duplicate Reverb capture.
 B4: #188/PR190 capturefd0b905; verify actual384000-byte reference, commit exact bytes/hash/provenance, convert assertions, then delete. Architect190#6950233998 rules. Then serial S5a/S5b/S6; no other builder edits engine/control.
+
+B5 (owner-authorized floater, no permanent product lane): #208 read-only source census, then a small read-only OB0 evidence-readiness inventory for #198, then available for explicitly assigned gaps. No automatic takeover of B1–B4 files. This is a bounded staffing exception authorized by the owner on 2026-11-17; it does not waive review or lane limits.
 
 ## Complete task ledger
 Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover every row below. A tracker is not permission to implement an unmet dependency. Every future implementation gets its own issue/branch/PR, exact allowed paths, contract criteria and mapped S6 paths at release.
@@ -59,7 +61,7 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-c regression tests | #207 | B1 |ready in isolated tests; Studio lane after182 source park | 8–16h |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
-| OB-e1 module census | #208 | B2 |ready; census33 actual modules, read-only sources | 2–4h |
+| OB-e1 module census | #208 | B5 |ready; census33 actual modules, read-only sources | 2–4h |
 | OB-e2 every-module smoke | #204 | B2 |e1; native/tests2 slot after a1;44.1/48k,64/256,2s,sweep,RT | 6–12h |
 | OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
@@ -74,7 +76,7 @@ Each task retains its contract's numeric targets, exact-head hosted tests, Golde
 
 S6 is a planned exclusive rename window: announce at least one day ahead, inventory all open product PRs, merge or explicitly park each, run only mechanical moves/substitutions, then record the path map and rebase resumed work. No new pre-rename product packet that cannot finish or park in that window.
 
-B1 Studio; B2 evidence/tools and uniquely named smoke files; B3 module source; B4 serial engine/control. OB-a3 waits native/document release. Dedicated workflow files avoid an incidental ci.yml writer collision; adding a Lab step uses an explicit lead slot. E3b/E3c share Studio files only sequentially. CN runs in the bench slot, not concurrently with another collector editing the same files.
+B5 owns only its assigned facts file and read-only checks; it does not hold a product lane. B1 Studio; B2 evidence/tools and uniquely named smoke files; B3 module source; B4 serial engine/control. OB-a3 waits native/document release. Dedicated workflow files avoid an incidental ci.yml writer collision; adding a Lab step uses an explicit lead slot. E3b/E3c share Studio files only sequentially. CN runs in the bench slot, not concurrently with another collector editing the same files.
 
 ## Decisions and escalation
 OB-f2 numerical targets are missing until f1 measures them: send the actual rows to Architect; never invent a threshold. Unknown module census or smoke failures become named module issues, not suppressed coverage. Palette hiding, if needed, follows the OB r2 disposition and a recorded scoped task. No claim of all modules working without e2 evidence. Any scope/architecture/format/threshold change goes to Architect with a bounded question; unaffected tasks proceed.
