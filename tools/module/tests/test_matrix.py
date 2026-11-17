@@ -7,7 +7,9 @@ import io
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
+import tempfile
 import sys
 import time
 import unittest
@@ -25,8 +27,8 @@ EXPECTED_FULL = {f"T{i}" for i in range(1, 14)}
 
 
 class MatrixTests(unittest.TestCase):
-    def invoke(self, *options):
-        cmd = [sys.executable, str(MODULE / "wsmod.py"), "test", str(TEMPLATE),
+    def invoke(self, *options, folder=None):
+        cmd = [sys.executable, str(MODULE / "wsmod.py"), "test", str(folder or TEMPLATE),
                "--json", *options]
         started = time.monotonic()
         proc = subprocess.run(cmd, text=True, capture_output=True, check=False, timeout=240)
@@ -62,6 +64,30 @@ class MatrixTests(unittest.TestCase):
         for test in ("T10", "T13"):
             self.assertTrue(any(r["test"] == test for r in report["results"]))
         print("MT2 actual full wall seconds:", round(seconds, 3))
+
+    def test_real_stepped_parameter_constant_and_per_sample_buffers(self):
+        # Real compiled SDK mutation: set a step without naming an ABI symbol.
+        # Quick retains min/max; full enumerates the five values in both modes.
+        with tempfile.TemporaryDirectory(prefix="wsmod-mt2-step-") as tmp:
+            folder = Path(tmp) / "module"
+            shutil.copytree(TEMPLATE, folder)
+            file = folder / "module.cpp"
+            source = file.read_text(encoding="utf-8")
+            original = 'ws::param("gain","Gain",0,2,1)'
+            stepped = 'ws::param("gain","Gain",0,2,1,"",3,0,0,4,.5)'
+            self.assertEqual(source.count(original), 1)
+            file.write_text(source.replace(original, stepped), encoding="utf-8")
+            code, report, _ = self.invoke("--full", folder=folder)
+            self.assertEqual(code, 0, report)
+            rows = [r for r in report["results"] if r["test"] == "T11"]
+            self.assertEqual(len(rows), 10, report)
+            details = [r["what"] for r in rows]
+            for label in ("minimum", "maximum", "step"):
+                self.assertTrue(any(label in d for d in details), details)
+            self.assertEqual(sum("per-sample" in d for d in details), 5)
+            self.assertEqual(sum("constant" in d for d in details), 5)
+            self.assertNotIn(str(folder.resolve()), json.dumps(report))
+            self.assertTrue(all(r["where"]["param"] == "gain" for r in rows))
 
     def test_strict_report_only_warnings_never_fail(self):
         args = type("Args", (), {"keep_build": None, "full": True, "strict": True})()

@@ -431,23 +431,55 @@ int module_matrix_main(int argc, const char* const* argv) {
         emit(t9);
     }
     for (unsigned j = 0; j < d.params.size(); ++j) {
-        for (int side = 0; side < 2; ++side) {
-            Result t11 = row("T11", rate, frames, 1);
-            t11.param = d.params[j].id;
-            HostModule m;
-            if (!prepared(m, rate, frames, 1, config)) {
-                t11.status = "skip"; t11.detail = "prepare unavailable";
-            } else {
-                const float extreme = side ? d.params[j].maximum : d.params[j].minimum;
-                auto b = make_block(d, rate, frames, 1, 0, 0, int(j), extreme);
-                auto o = observe(m, b);
-                t11.metric = o.peak;
-                if (o.code || !o.finite) {
-                    t11.status = "fail"; t11.detail = "param extreme produced nonfinite or process error";
-                } else if (o.peak > 4.0) {
-                    t11.status = "warn"; t11.detail = "param extreme peak exceeds 4 FS";
-                } else t11.detail = side ? "max finite" : "min finite";
+        const auto& param = d.params[j];
+        std::vector<float> cases{param.minimum, param.maximum};
+        // Full mode also probes every representable step. The neutral HostParam
+        // carries step, but not discrete option_count/options (recorded gap).
+        bool step_limit = false;
+        if (full && std::isfinite(param.step) && param.step > 0 &&
+            std::isfinite(param.maximum - param.minimum)) {
+            const double steps = std::floor(double(param.maximum - param.minimum) / param.step);
+            if (steps > 1024) step_limit = true;
+            else for (unsigned k = 1; k < unsigned(steps); ++k)
+                cases.push_back(float(double(param.minimum) + k * double(param.step)));
+        }
+        for (unsigned index = 0; index < cases.size(); ++index) {
+            for (int buffer = 0; buffer < (full ? 2 : 1); ++buffer) {
+                Result t11 = row("T11", rate, frames, 1);
+                t11.param = param.id;
+                const float value = cases[index];
+                HostModule m;
+                if (!prepared(m, rate, frames, 1, config)) {
+                    t11.status = "skip"; t11.detail = "prepare unavailable";
+                } else {
+                    auto b = make_block(d, rate, frames, 1, 0, 0, int(j), value);
+                    if (buffer) {
+                        b.params[j].constant = false;
+                        for (auto& channel : b.params[j].samples)
+                            channel.assign(frames, value);
+                    }
+                    const auto o = observe(m, b);
+                    t11.metric = o.peak;
+                    t11.detail = (buffer ? "per-sample " : "constant ") +
+                                 std::string(index == 0 ? "minimum" :
+                                             index == 1 ? "maximum" : "step") +
+                                 " value=" + std::to_string(value);
+                    if (o.code || !o.finite) {
+                        t11.status = "fail";
+                        t11.detail += " nonfinite or process error " + std::to_string(o.code);
+                    } else if (o.peak > 4.0) {
+                        t11.status = "warn";
+                        t11.detail += " peak exceeds 4 FS";
+                    }
+                }
+                emit(t11);
             }
+        }
+        if (step_limit) {
+            Result t11 = row("T11", rate, frames, 1);
+            t11.param = param.id;
+            t11.status = "warn";
+            t11.detail = "step grid exceeds 1024 probes; enumeration incomplete";
             emit(t11);
         }
     }
