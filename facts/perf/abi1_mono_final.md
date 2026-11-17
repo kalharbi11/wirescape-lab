@@ -1,0 +1,61 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+# Final S3 ABI1 reference measurements
+
+Source date: 2026-11-17 ET. Recorded by gpt-builder4 in a cloud workspace through GitHub artifact downloads and Python zipfile/json/hashlib inspection; no audio/MIDI devices or LAN.
+
+S3 reviewed head: `309bf8851008976070b899768db35eb1e500a6b1`; merged as `b87f8817de34818758c43d32b176acbc223dc038`. Q19 point 3 retires the ABI1 reference row in S4. These are the final actual S3 values; this file does not label the retired row measured on S4 or count it as a surviving comparison.
+
+## Instruction counts
+
+Run: [44028971378](https://github.com/kalharbi11/wirescape-lab/actions/runs/44028971378). Callgrind two-length difference, 10/30 blocks of 256 frames at 48 kHz. Base `cec70d7c6ee3cfe144c9525bba6ce7230048ac9c`; head is the reviewed source above. Ir/block is `(second total - first total) / 20`.
+
+| Platform | Revision | Ir/block | Raw totals |
+|---|---|---:|---|
+| Linux aarch64 | base | 79168.35 | [2660365, 4243732] |
+| Linux aarch64 | head | 79168.35 | [2659093, 4242460] |
+| Linux x86_64 | base | 87889.65 | [3128857, 4886650] |
+| Linux x86_64 | head | 87889.65 | [3125013, 4882806] |
+
+## Benchmark timings
+
+Run: [44028971187](https://github.com/kalharbi11/wirescape-lab/actions/runs/44028971187). The artifact records GitHub synthetic checkout `305930893dde53d47debde57fe0224c019bf649b`, whose second parent is the reviewed S3 head. PR159 documents the source-blob equality for benchmark/engine/build/validator paths and the intervening docs/facts/CI-only difference. This checkout pin is preserved rather than relabelled as a source-head execution.
+
+The real standalone ABI1 engine measured `abi1_mono`; it did not call the removed Engine ABI1 shim. 48 kHz; 256 warmup blocks; 5 repetitions of 800 measured blocks. `mean_ns` is the median of the five repetition means, as emitted by the benchmark. The following values are copied from the actual artifact rows without rounding.
+
+| Hosted platform | Block frames | mean_ns | p99_ns | worst_ns | Five repetition means, ns |
+|---|---:|---:|---:|---:|---|
+| Windows AMD64 | 64 | 2627.75 | 4000.0 | 27200.0 | [2627.75, 2630.75, 2624.75, 2622.25, 3160.5] |
+| Windows AMD64 | 128 | 5198.0 | 7400.0 | 70300.0 | [5206.25, 5198.0, 5322.375, 5180.0, 5175.75] |
+| Windows AMD64 | 256 | 10291.125 | 14700.0 | 47900.0 | [10260.875, 10245.5, 10334.75, 10291.125, 10307.625] |
+| Linux x86_64 | 64 | 2579.33 | 2644.0 | 12709.0 | [2596.968, 2579.33, 2578.936, 2573.588, 2584.859] |
+| Linux x86_64 | 128 | 5087.594 | 5198.0 | 14922.0 | [5081.629, 5079.701, 5089.151, 5089.234, 5087.594] |
+| Linux x86_64 | 256 | 10092.504 | 16154.0 | 26810.0 | [10092.311, 10088.885, 10092.504, 10216.31, 10104.237] |
+| Linux aarch64 | 64 | 2837.049 | 2952.0 | 6591.0 | [2842.926, 2840.881, 2837.049, 2836.963, 2835.497] |
+| Linux aarch64 | 128 | 5563.604 | 5752.0 | 15127.0 | [5567.735, 5563.604, 5546.667, 5554.602, 5574.746] |
+| Linux aarch64 | 256 | 10932.446 | 12527.0 | 22294.0 | [10939.228, 10944.256, 10932.446, 10922.819, 10920.965] |
+
+## Artifact integrity and member hashes
+
+Downloaded ZIP SHA-256 values match the GitHub artifact digest. Numeric JSON-member SHA-256 values were computed after opening each ZIP.
+
+| Artifact ID | ZIP SHA-256 |
+|---|---|
+| 14304681604 | `55f6877c315eb7b465da3ffcc25c3114f09530ec5aac45f44992ac071268dab9` |
+| 14305465508 | `685b627d863cc473a31c1b84f4c00d6517e4c59a20cfbcc01ffc6b85dda4b68d` |
+| 14304872068 | `7fb29216198ec66ace4fab2e063d36c9691527fd4d8ea03debd11c7927189f42` |
+| 14303549646 | `05c78242bf3059f1d7bfdcf75244db984c21862bb207219e307ec7a2de30ce2e` |
+| 14303734478 | `f8ab677a46b765eada330457babe02d16684b0678c6e17f552c25b6b24036d97` |
+
+| Artifact ID | Member | SHA-256 |
+|---|---|---|
+| 14304681604 | perf/engine_cpu.json | `e1416d955eed267c4a8343c5c99c1eade19b70354290862e32e903533a23e725` |
+| 14305465508 | base-instructions.json | `c4cf9b499b97fd020aaac6452675bc61f09b068ad3318bfc59c4aec0e48d6050` |
+| 14305465508 | head-instructions.json | `4bd972327f0fa0ea4e756f6cc79559cbebbe30fedee64b24c9e6cdb2ac4f373d` |
+| 14304872068 | base-instructions.json | `d36b857ef9d0e995f46242284aec17c1c420fe7d0c006fd81242f60452a84a48` |
+| 14304872068 | head-instructions.json | `3d2b1c3961e3bce60ff5cd1327fbd03c3b4d66bd14a44a13cea8d09f0cb7b4b7` |
+| 14303549646 | perf/engine_cpu.json | `ba3b6e57e9539805bde6240f16c7fd37c44ea571c25e87fe1dcf3aedaf2897b3` |
+| 14303734478 | perf/engine_cpu.json | `4444fd64fe7ee61ad4592cd61c1a3581ce979380f70d63e94127412c8f2d9f5f` |
+
+Windows has no Callgrind measurement in this run; its paired artifact supplies generated link evidence only. This file makes no Windows instruction-count claim. Historical committed baselines remain unchanged. S4 retains the other 96 named IDs and the unchanged +1% measured-row limit; the two Chord unavailable rows remain unavailable, not measured passes.
+
+Signed: gpt-builder4, 2026-11-17
