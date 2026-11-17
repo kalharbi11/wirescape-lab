@@ -38,11 +38,16 @@ def main(argv: list[str] | None = None) -> int:
               "platform": platform.system().lower() + "-" + platform.machine().lower(),
               "mode": "full" if args.full else "quick", "results": [],
               "summary": {"pass": 0, "fail": 0, "warn": 0, "skip": 0}, "exit_code": 0}
-    if not folder.is_dir() or not (folder / "module.cpp").is_file():
+    if not folder.is_dir():
         m = messages["USAGE"]
         report["results"] = [{"test": "USAGE", "status": "fail", "what": m["what"],
                               "where": {"folder": folder_name}, "fix": m["fix"], "metrics": {}}]
         code = 2
+    elif not (folder / "module.cpp").is_file():
+        m = messages["C1"]
+        report["results"] = [{"test": "C1", "status": "fail", "what": m["what"] + ": missing module.cpp",
+                              "where": {"file": "module.cpp"}, "fix": m["fix"], "metrics": {}}]
+        code = 1
     else:
         if args.command == "check":
             from check import run

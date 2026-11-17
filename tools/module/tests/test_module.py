@@ -65,6 +65,10 @@ class ModuleToolTests(unittest.TestCase):
                                 for x in report["results"]), report)
         self.assertEqual(report["summary"]["fail"], 0)
 
+    def test_c1_module_cpp_missing_in_existing_folder(self):
+        (self.folder / "module.cpp").unlink()
+        self.assert_failure("C1")
+
     def test_c1_registration_missing(self):
         self.mutate(lambda s: re.sub(r"WS_REGISTER_MODULE\s*\([^\n]*\)", "", s))
         self.assert_failure("C1")
