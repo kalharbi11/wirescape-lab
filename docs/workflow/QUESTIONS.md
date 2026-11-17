@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 and Q16–Q18 answered; none open. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q20 answered; none open. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -461,5 +461,76 @@ acceptance point 2. None adds work to PV2b, and none changes the wire or a snaps
 In `protocol_dispositions.md` write "answered, Q18" and the outcome for each row; the PR #151
 correction (no recommendation column) stands. Overturned by: a Studio call to `ccMap.set`, or a
 production path that emits an unqualified `Device.id`; either is a new row, rule 2 or 3.
+
+Signed: Fable, 2026-11-16
+
+## Q19 — M1 S3: the `abi1_mono` probe row and the seven-row validator (builder 4, PR #159; ANSWERED)
+
+- **Rung:** 3 (what a measurement row means). Source: PR #159 comment
+  [6936243362](https://github.com/kalharbi11/wirescape-lab/pull/159#issuecomment-6936243362).
+- **Question:** 0006 S3 says engine2 probes that link ABI1 "are converted to frozen data or
+  deleted". `abi2_benchmark` case 0 and `abi2_cost_probe` mode `abi1_mono` run the ABI1 engine.
+  Removing case 0 leaves six engine rows where `bench/offline/verify_artifacts.py:24` requires
+  seven; keeping the cost-probe mode keeps an ABI1 link in an engine2 test target.
+
+**Fable answer (2026-11-16): option A now, the row retires in S4. M1 becomes r3.**
+
+1. **What the row is.** `abi1_mono` measures the old engine (`ws_engine_render`), not the shim
+   S3 removes. It is a reference row, and it can only be measured while `wirescape_engine`
+   exists. The S3 sentence was written for comparison tests whose ABI1 side could be frozen as
+   PCM (T1.1). An executed cost row cannot be frozen that way, so the sentence does not cover it.
+2. **S3 (PR #159, same branch, one push, uses no correction round).** Restore case 0 of
+   `native/engine2/tests/benchmark.cpp` and its CMake linkage exactly as on the base; leave
+   `cost_probe.cpp` as it is. Both executables may link `wirescape_engine` until S4. Everything
+   else in S3 stands. I5 is unaffected: these are test executables, not the engine's public API.
+   The grep table lists the two files as the stated exception. Offline Facts must be green with
+   seven measured rows per block; the paired comparison keeps 97 rows.
+3. **S4 retires the row, by name, in the PR that deletes the ABI1 tree.** Added to S4's allowed
+   paths: `native/engine2/tests/benchmark.cpp`, `cost_probe.cpp`, `native/engine2/CMakeLists.txt`,
+   `bench/offline/verify_artifacts.py` (7 → 6), `bench/offline/run_all.py`, `bench/gate/compare.py`,
+   `tools/bench/abi2_cost.py`, `tools/bench/compare_bench.py`, their tests, and one new facts file.
+   Rules: (a) only `abi1_mono` leaves; the expected set is 96 IDs, each named; (b) the paired
+   comparison in the S4 PR compares the 96 surviving rows at the unchanged +1 % limit and
+   reports `fixed/abi1_mono` as `retired`, never as measured, zero or passed; (c) the last
+   measured values of the row (instruction counts and the three block timings, with run IDs,
+   from the S3 merged head) are filed as `facts/perf/abi1_mono_final.md` before the row is
+   removed; (d) the committed baselines keep their historical `abi1_mono` entries untouched.
+4. **Not allowed:** a fabricated seventh case, a renamed ABI2 case standing in for the row, a
+   validator that accepts "6 or 7", or any change to the +1 % rule.
+
+Cost: one small push on #159 and a wider path list for S4. Overturned by: a finding that the
+restored case 0 depends on symbols S3 deletes from the engine (then stop and bring the symbol).
+The Claude contract review of S3 (I1–I5, I8) runs on the head after this push.
+
+Signed: Fable, 2026-11-16
+
+## Q20 — M2 E1b after the Q14/Q16 stop (lead, issue #125, PR #130 closed; ANSWERED)
+
+- **Rung:** 3 (Q14 point 6 reserved the re-contract). Evidence: PR #130 last head `3fbadbd`
+  failed Lab 43991969991 with `TS6133` (unused `frequencySnapshot`) in all three Studio shard
+  typechecks and Desktop, before Playwright ran. The lead closed #130 unmerged and kept
+  `task/125-studio-apply-graph`.
+
+**Fable answer (2026-11-16): M2 r4. E1b is refiled as task E1b-r; the design does not change.**
+
+1. **New task, new issue, new PR**, branched from `task/125-studio-apply-graph` at `3fbadbd`.
+   Paths: `apps/studio/` as before. The lead picks the builder; a builder other than the
+   original writer is preferred (SR12 allows it), with the Q14 and Q16 answers as the whole brief.
+2. **The rule is Q14 points 1–4 with Q16 rules 1–3, unchanged.** Tests: Q14 (a)–(c), Q16
+   (e)–(g), the OSC counter copy, the six capability-on/off flows. No existing assertion is
+   removed or loosened.
+3. **Before code, one comment on the issue:** how the 350 ms history debounce meets rule 1.
+   State what the anchor's history position is when a snapshot is requested while an edit's
+   history entry is still inside the debounce window, and add test (h) for that order: the
+   entry is settled or discarded by a stated rule, and after a refused chain undo and redo
+   availability equal the anchor's. If no stated rule makes (h) pass inside `apps/studio/`,
+   that is the stop condition; bring the trace.
+4. **Rounds:** a normal task: two correction rounds, then SR6. A typecheck or lint failure is
+   fixed inside a round like any other failure; it is not a design stop.
+5. **Done when:** points 2 and 3, the lead's source review against the Q14 and Q16 rules, and a
+   fully green exact-head Lab and Playwright run. Issue #125 closes as superseded by the new one.
+6. M2 acceptance still needs E1b-r. M3 RL waits for it; nothing else does (SR19).
+
+Overturned by: the conditions already written in Q14 and Q16.
 
 Signed: Fable, 2026-11-16
