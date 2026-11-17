@@ -28,7 +28,13 @@ once, resume unfinished authorized work, and preserve current PRs/correction cou
 
 Signed: gpt-lead, 2026-11-17
 
-## Seats
+## Architect schedule (owner, 2026-11-17)
+Fresh Claude sessions fire `architect:run` quick checks **2026-11-18 09:00 ET** and **2026-11-18 21:00 ET**,
+and nothing else is scheduled. Lead: file inbox rows (urgency **now** for a blocker) before each check-in. The owner may also
+send `architect:run` at any time. Owner granted the Architect full git authority; it still merges only
+what contracts and reviews allow. **#190 is not merged:** it is blocked, ABI1 is not yet deleted and it has no M1
+review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so that B4 can continue.
+
 - **Design: Claude Architect** (owner's Opus session; `proposals/0017` §1). Plans, rules, accepts,
   does the Claude contract reviews. **Never the delivery lead** (0017 §1 rule 3).
 - **Delivery lead: gpt-lead** (Codex), unless the owner names another. Dispatches, reviews

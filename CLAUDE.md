@@ -6,6 +6,7 @@ Claude here runs under the name the first message gives:
   The same triggers on a model that is not Fable-class → **fable-deputy** (section below).
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
   same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
+- `architect:run` → **Claude Architect**: follow "Architect run protocol" below (first read: `docs/workflow/ARCHITECT_INBOX.md`). The owner needs to add nothing else.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
 Anything after the trigger is the specific ask. No match? Ask the owner; never guess a name.
 
