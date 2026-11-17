@@ -97,6 +97,45 @@ class ModuleToolTests(unittest.TestCase):
         self.mutate(lambda s: s.replace('"example.gain2"', '"Invalid-ID"'))
         self.assert_failure("C4")
 
+    def test_c4_param_initial_outside_range(self):
+        # Both the current SDK template and the isolated ABI fixture use this
+        # literal range; if it changes, fail rather than silently bypass C4.
+        def broken(source):
+            if '"gain","Gain",0,2,1' in source:
+                return source.replace('"gain","Gain",0,2,1', '"gain","Gain",0,2,5')
+            return source.replace('"gain","Gain","",0,2,1', '"gain","Gain","",0,2,5')
+        self.mutate(broken)
+        self.assert_failure("C4")
+
+    def test_c5_port_id_mismatch(self):
+        metadata = self.folder / "module.json"
+        payload = json.loads(metadata.read_text(encoding="utf-8"))
+        payload["inputs"] = {"invalid_port": "signal"}
+        metadata.write_text(json.dumps(payload), encoding="utf-8")
+        report = self.assert_failure("C5")
+        self.assertTrue(any("inputs ids" in r["what"] for r in report["results"]
+                            if r["test"] == "C5"))
+
+    def test_missing_folder_code_two_and_no_machine_paths(self):
+        missing = self.folder.parent / "absent"
+        proc = subprocess.run([sys.executable, str(MODULE / "wsmod.py"),
+                               "check", str(missing), "--json"],
+                              capture_output=True, text=True, check=False, timeout=20)
+        self.assertEqual(proc.returncode, 2)
+        report = json.loads(proc.stdout)
+        self.assertEqual(report["exit_code"], 2)
+        self.assertEqual(report["results"][0]["test"], "USAGE")
+        self.assertNotIn(str(self.folder.parent), proc.stdout)
+        self.assertTrue(all(report["results"][0][field] for field in ("what", "where", "fix")))
+
+    def test_build_error_never_leaks_absolute_source_path(self):
+        self.mutate(lambda source: '#include "mt1_missing_header_for_diagnostic.h"\n' + source)
+        report = self.assert_failure("BUILD", expected=3)
+        output = json.dumps(report)
+        self.assertNotIn(str(self.folder.resolve()), output)
+        self.assertNotIn(str(ROOT.resolve()), output)
+        self.assertIn("mt1_missing_header_for_diagnostic.h", output)
+
     def test_c5_metadata_mismatch(self):
         metadata = self.folder / "module.json"
         value = json.loads(metadata.read_text(encoding="utf-8"))
@@ -111,6 +150,59 @@ class ModuleToolTests(unittest.TestCase):
     def test_build_failure_exit_three_with_fix(self):
         self.mutate(lambda s: s + "\n#error deliberate_module_error\n")
         self.assert_failure("BUILD", expected=3)
+
+    def test_runner_counts_only_module_allocations(self):
+        # The MT2 test writer cannot edit this ABI bridge. A synthetic fixture
+        # proves host-side vector staging is outside the measured callback.
+        if not shutil.which("c++"):
+            self.skipTest("C++17 driver not installed")
+        runner = MODULE / "runner" / "abi_ws2.h"
+        counter = ROOT / LAYOUT["paths"]["allocation_counter"]
+        if not counter.is_file():
+            self.skipTest("reused allocation counter source unavailable")
+        sample = Path(self.temp.name) / "measure.cpp"
+        sample.write_text("""// SPDX-License-Identifier: GPL-3.0-only
+#include "abi_ws2.h"
+#include <cstdint>
+int main(int argc, char**) {
+    HostModule module;
+    if (!module.describe().errors.empty() || module.create(48000.0, 17, 1) != 0) return 2;
+    HostBlock block;
+    block.frames = 17;
+    block.channels = 1;
+    std::uint64_t allocations = 999;
+    if (module.process(block, &allocations) != 0) return 3;
+    if (allocations != (argc > 1 ? 1u : 0u)) return 4;
+    module.reset(&allocations);
+    if (allocations != 0) return 5;
+    return 0;
+}
+""", encoding="utf-8")
+        executable = Path(self.temp.name) / "measure"
+        command = [shutil.which("c++"), "-std=c++17", "-O0", "-I", str(runner.parent),
+                   "-I", str(ROOT / LAYOUT["paths"]["abi"]),
+                   "-I", str(ROOT / LAYOUT["paths"]["allocation_include"]),
+                   str(sample), str(self.folder / "module.cpp"), str(counter),
+                   "-o", str(executable)]
+        native = subprocess.run(command, capture_output=True, text=True,
+                                check=False, timeout=90)
+        self.assertEqual(native.returncode, 0, native.stderr)
+        self.assertEqual(subprocess.run([str(executable)], check=False,
+                                        timeout=15).returncode, 0)
+
+        # A volatile write prevents the compiler from eliminating new/delete.
+        source = (self.folder / "module.cpp").read_text(encoding="utf-8")
+        changed = re.sub(r"(static int process\([^)]*\)\s*\{)\s*return [A-Z0-9_]+;",
+                         r"\1 static void* volatile sink = nullptr; sink = new char[16]; return 0;",
+                         source, count=1)
+        if changed == source:
+            self.skipTest("synthetic ABI fixture lacks a directly mutable process body")
+        (self.folder / "module.cpp").write_text(changed, encoding="utf-8")
+        rebuilt = subprocess.run(command, capture_output=True, text=True,
+                                 check=False, timeout=90)
+        self.assertEqual(rebuilt.returncode, 0, rebuilt.stderr)
+        self.assertEqual(subprocess.run([str(executable), "expect-one"], check=False,
+                                        timeout=15).returncode, 0)
 
     def test_c6_advisory_even_in_strict(self):
         # Exercises the decision function directly, independently of compiler presence.

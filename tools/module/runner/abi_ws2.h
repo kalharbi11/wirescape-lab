@@ -2,6 +2,7 @@
 #pragma once
 // Sole ABI-dependent translation boundary. MT2/MT3 use only neutral Host* types.
 #include "wirescape/module2.h"
+#include "allocation_watch.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -60,6 +61,8 @@ class HostModule {
     ws2_host host_{};
     ws2_config config_{};
     std::vector<uint8_t> config_data_;
+    bool measuring_ = false;
+    uint64_t process_host_allocations_ = 0;
 
     static bool id_ok(const char* id) {
         if (!id || !*id) return false;
@@ -81,7 +84,10 @@ class HostModule {
 #else
         if (posix_memalign(&out, alignment, size ? size : 1)) out = nullptr;
 #endif
-        if (out) self->allocations_.push_back(out);
+        if (out) {
+            if (self->measuring_) ++self->process_host_allocations_;
+            self->allocations_.push_back(out);
+        }
         return out;
     }
     static void free_aligned(void* p) {
@@ -256,7 +262,9 @@ public:
         if (!instance_) return WS2_CAPACITY;
         return descriptor_->prepare(instance_, &config_, &host_);
     }
-    int process(HostBlock& block) {
+    // Optional allocation count spans only the module callback (not host-side
+    // buffer/pointer setup). MT2 must not count the runner's own vector growth.
+    int process(HostBlock& block, uint64_t* allocation_count = nullptr) {
         if (!descriptor_ || !instance_) return WS2_INVALID;
         const unsigned ni = descriptor_->input_count, no = descriptor_->output_count,
                        np = descriptor_->param_count;
@@ -300,14 +308,44 @@ public:
         ctx.inputs = inputs.data(); ctx.outputs = outputs.data(); ctx.params = params.data();
         ctx.event_inputs = event_in.data(); ctx.event_outputs = event_out.data();
         ctx.events = evt;
-        const int status = descriptor_->process(instance_, &ctx);
+        int status;
+        if (allocation_count) {
+            // Event delivery is a host callback and must not consume measured
+            // heap operations for the module. Reserve before entering the scope.
+            block.emitted.reserve(block.emitted.size() + 1024);
+            process_host_allocations_ = 0;
+            measuring_ = true;
+            {
+                allocation_watch::ThreadScope counter;
+                status = descriptor_->process(instance_, &ctx);
+                *allocation_count = counter.allocations();
+            }
+            measuring_ = false;
+            *allocation_count += process_host_allocations_;
+        } else {
+            status = descriptor_->process(instance_, &ctx);
+        }
         for (unsigned i = 0; i < no; ++i) {
             block.outputs[i].channels = outputs[i].channels;
             block.outputs[i].constant = (outputs[i].flags & WS2_CONSTANT) != 0;
         }
         return status;
     }
-    void reset() { if (descriptor_ && instance_ && descriptor_->reset) descriptor_->reset(instance_); }
+    void reset(uint64_t* allocation_count = nullptr) {
+        if (allocation_count) *allocation_count = 0;
+        if (!descriptor_ || !instance_ || !descriptor_->reset) return;
+        if (allocation_count) {
+            process_host_allocations_ = 0;
+            measuring_ = true;
+            {
+                allocation_watch::ThreadScope counter;
+                descriptor_->reset(instance_);
+                *allocation_count = counter.allocations();
+            }
+            measuring_ = false;
+            *allocation_count += process_host_allocations_;
+        } else descriptor_->reset(instance_);
+    }
     int save(std::vector<uint8_t>& data) {
         if (!descriptor_ || !instance_ || !descriptor_->save_state) return WS2_UNSUPPORTED;
         data.clear(); ws2_writer writer{sizeof(writer), &data, &HostModule::write_state};
