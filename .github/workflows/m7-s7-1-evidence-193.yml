@@ -29,9 +29,9 @@ jobs:
     env:
       BASE_SHA: 518fe3f8d8a71d1485364bf9176bcf166f9602f3
       HEAD_SHA: 8823c78ad58992b39f7b8f696425d9751bdb7ac0
-      BASE_CHECKOUT: ${{ runner.temp }}/mt193-base
-      HEAD_CHECKOUT: ${{ runner.temp }}/mt193-head
-      CAPTURE_ROOT: ${{ runner.temp }}/mt193-evidence
+      BASE_CHECKOUT: /tmp/mt193-base
+      HEAD_CHECKOUT: /tmp/mt193-head
+      CAPTURE_ROOT: /tmp/mt193-evidence
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout read-only collector code
@@ -95,6 +95,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mt193-r2-d5-${{ matrix.arch }}
-          path: ${{ runner.temp }}/mt193-evidence/
+          path: /tmp/mt193-evidence/
           if-no-files-found: warn
           retention-days: 7
