@@ -1,6 +1,50 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Design seat update — Fable, 2026-11-16 (run 2 of 2)
+This block is newer than the reviewer's block below and replaces its two "Fable/design seat"
+items. Operational PR heads below are the reviewer's snapshot and are not re-verified here.
+
+**Rulings (QUESTIONS Q19, Q20). Stop/replan lines:**
+- **M1 r3 (Q19), PR #159 / S3:** *replan, do not stop.* B4 makes one push on the same branch:
+  restore case 0 of `native/engine2/tests/benchmark.cpp` and its CMake linkage as on the base;
+  leave `cost_probe.cpp`. No correction round is used. Offline Facts must be green with seven
+  rows; paired stays 97 rows. Then the lead requests the **Claude** I1–I5/I8 review on that head.
+  `abi1_mono` retires by name in **S4** (wider S4 paths; `facts/perf/abi1_mono_final.md` first).
+- **M2 r4 (Q20), E1b:** refiled as **E1b-r**: new issue and PR from `task/125-studio-apply-graph`
+  at `3fbadbd`; Q14 + Q16 rules and tests, plus debounce test (h); a pre-code comment on the 350 ms
+  debounce; normal two rounds. #125 closes as superseded. M3 RL waits for E1b-r; nothing else does.
+
+**New design notes on `main` with this PR:** `proposals/0012` (Wire module header),
+`0013` (portability, patch plan, compiler, control surface), `0014` (categories, capability
+modules), `0015` (panel file and panel host API).
+- **M4 E5 and E3a are no longer waiting for a design.** They start on their own "Depends on"
+  cells. The E5 PR lands the whole header block of `0012` §1; E3a adds no header text.
+
+**New contracts, all accepted, all queued behind their "Depends on" cells:**
+| Contract | What | Starts |
+|---|---|---|
+| [M8](milestones/M8.md) | Wire header, config tables, bindings and services, SDK, tiers | after M4 E3a and M3 MB2 |
+| [M9](milestones/M9.md) | developer loop level 2 (no state carry in r1) | after M4 E5 and M8 H5 |
+| [M10](milestones/M10.md) | portability | **batch 0 (facts S1–S6) now**; the rest after M8 |
+| [M11](milestones/M11.md) | GUTTR, Macro Oscillator, CHAOS, nine capability modules | after M8 |
+| [M12](milestones/M12.md) | panels | **P0 (facts) now**; P1 after M3 MB2; the rest after M8 and M4 |
+
+**Next action by role**
+- **Lead:** dispatch the Q19 push to B4 and the E1b-r issue; file M10 S1–S6 and M12 P0 as
+  class-A tasks for the first free builder (SR18; order SR16).
+- **Builders:** unchanged, one task each.
+- **Design seat (deputy from 2026-11-17):** reviews, questions, acceptance reports. Reserved
+  for Fable: the Sub-patch note, state carry across builds (M9 r2), the live-panel limit
+  (M12 P0 numbers), T4.2 smoothing policy, the build page contract.
+- **Owner:** nothing blocks. Three items wait for you without holding work: approve IDs of
+  new stock modules (M11 Y6), listen to Macro Oscillator at 44.1 and 96 kHz when C2 lands,
+  and say whether `sound.blend` and `sound.spectral` panel files should load (M12 Z4).
+
+Signed: Fable, 2026-11-16
+
+---
+
 Updated 2026-11-16 ET, **gpt-reviewer**, under the owner's **one-time A–E task authorization** (PRs #160/#149/#162/#152/#159). **claude-lead remains active delivery lead**; this is not a lead transfer, future merge mandate or contract approval.
 Verified `main` before this notes update: `7fda86c22ee61faee409b6345f4bf4d0fc03b3f8` (PRs #160 and #149 merged). All devices/MIDI/LAN off; no model polling or test-gate waiver.
 
