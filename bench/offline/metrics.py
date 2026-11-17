@@ -423,6 +423,33 @@ def step_metrics(audio, step_frame, rate=RATE):
             "window_ms": 2000 * half / rate, "highpass_hz": 2000}
 
 
+
+def switch_click_metrics(audio, switch_frame, rate=RATE):
+    """A T7.0 switch-centered high-pass peak, same filter/window as step_metrics.
+
+    Readout is FS amplitude plus its 20*log10 dBFS representation. No new
+    detector, threshold, reference substitution or parameter-step metric
+    change: the source is the existing 2nd-order 2-kHz Butterworth high-pass
+    and the same 25-ms-per-side window centered on the scripted switch.
+    Zero measured high-pass peak is mathematically -inf dBFS (serialized).
+    """
+    measured = step_metrics(audio, switch_frame, rate)
+    peak = measured.get("highpass_peak_fs")
+    if peak is None:
+        return {"switch_click_peak_fs": None, "switch_click_peak_dbfs": None,
+                "status": "unavailable",
+                "reason": ("nonfinite audio" if measured.get("nonfinite_samples", 0)
+                           else "switch frame lacks two pre/post samples"),
+                "switch_frame": switch_frame, "sample_rate_hz": rate}
+    return {"switch_click_peak_fs": peak,
+            "switch_click_peak_dbfs": 20 * math.log10(peak) if peak else "-inf",
+            "switch_frame": switch_frame, "sample_rate_hz": rate,
+            "highpass_hz": measured["highpass_hz"],
+            "window_ms": measured["window_ms"],
+            "metric_source": "step_metrics highpass_peak_fs; 20*log10(FS)"}
+
+
+
 def envelope_metrics(audio, on_frame, off_frame, attack_s, release_s, rate=RATE):
     if not np.isfinite(audio).all():
         return {"nonfinite_samples": int(audio.size - np.count_nonzero(np.isfinite(audio)))}
