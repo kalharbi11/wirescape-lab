@@ -22,6 +22,7 @@ export class History {
   private future: string[] = [];
   private current: string;
   private pending = false;
+  private pendingHolds = 0;
   private suppress = false;
   private pointerDown = false;
   private finishingPointer = false;
@@ -82,8 +83,23 @@ export class History {
   get canRedo(): boolean { return this.future.length > 0; }
   get depth(): { past: number; future: number } { return { past: this.past.length, future: this.future.length }; }
 
+  /** Freeze a debounced optimistic gesture during Q16's incremental ACK hold.
+   * The inverse on refusal returns the source to 'current', so releasing
+   * commits no unconfirmed 330 and no compensating 220 history entry. */
+  holdPending(): () => void {
+    ++this.pendingHolds;
+    this.clearTimer();
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      if (--this.pendingHolds === 0) this.flush();
+    };
+  }
+
   /** Commit any pending change now (call before saving or undoing). */
   flush(): void {
+    if (this.pendingHolds) return;
     this.clearTimer();
     this.finishingPointer = false;
     if (!this.pending) return;
@@ -136,6 +152,7 @@ export class History {
 
   private later(ms: number): void {
     this.clearTimer();
+    if (this.pendingHolds) return;
     this.timer = setTimeout(() => { this.timer = null; this.flush(); }, ms);
   }
 

@@ -327,10 +327,13 @@ test('Q14 A confirmed/B refused: anchor advances to 440 with correct undo cursor
       format: 'wirescape.native.patch', version: 2,
       modules: [{ id: 2, module: 'essentials.vco', parameters: { frequency } }], connections: [],
     });
-    b.refuseNext('applyGraph', 'refused');
+    // The held A is accepted first; only B is held for a later refusal.
+    b.holdNext('applyGraph');
     b.acceptHeld();
   });
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
   await equalConfirmed(page, 440);
   const after = await graphCheckpoint(page);
   expect(after.dirty).toBe(true);
@@ -356,10 +359,12 @@ test('Q14 partial A confirmed/B refused: unapplied side value never enters rollb
       modules: [{ id: 2, module: 'essentials.vco',
         parameters: { frequency: 660, amplitude: 0.7 } }], connections: [],
     });
-    b.refuseNext('applyGraph');
+    b.holdNext('applyGraph');
     b.acceptHeld();
   });
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
   await equalConfirmed(page, 440, 0.5);
   const after = await graphCheckpoint(page);
   expect(after.dirty).toBe(true);
@@ -379,6 +384,8 @@ test('Q14 partial earlier checkpoint then two refused: restored anchor is 220', 
     });
   });
   await equalConfirmed(page, 220, 0.5);
+  // Commit the earlier reconciled gesture before measuring its history anchor.
+  await page.evaluate(() => window.__wirescapeTest.flushHistory());
   const prior = await graphCheckpoint(page);
   await page.evaluate(() => {
     const b = (window as any).__mockBridge;
@@ -476,6 +483,7 @@ for (const editConfirmed of [true, false]) {
   test(`Q20 h: debounced 330 ${editConfirmed ? 'confirmed' : 'refused'} before refused snapshot keeps anchor undo/redo`, async ({ page }) => {
     await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
     const baseline = await graphCheckpoint(page);
+    await page.clock.install();
     await page.evaluate(target => {
       const b = (window as any).__mockBridge;
       b.holdNext('setParam');
@@ -489,6 +497,8 @@ for (const editConfirmed of [true, false]) {
     expect(await graphCheckpoint(page)).toMatchObject({
       authored: { frequency: 330 }, confirmed: { frequency: 220 },
     });
+    // Deterministic clock: ACK remains held beyond the entire 350 ms window.
+    await page.clock.runFor(400);
     await page.evaluate(confirm => {
       const b = (window as any).__mockBridge;
       if (confirm) b.acceptHeld();

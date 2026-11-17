@@ -581,12 +581,18 @@ export class App {
     if (!(engine instanceof RealEngine) || (!engine.hasUnconfirmedEdits() && !this.graphChain))
       return true;
     const epoch = this.viewEpoch;
+    // Suspend the 350 ms history timer before an outstanding edit can ACK.
+    // On refusal its inverse runs first, before history is made authoritative.
+    const releaseHistory = this.history.holdPending();
     this.beginDocumentOperation();
     try {
       if (this.graphChain) await engine.whenEditsSettled();
       else await engine.whenIncrementalEditsSettled();
       return epoch === this.viewEpoch;
-    } finally { this.endDocumentOperation(); }
+    } finally {
+      releaseHistory();
+      this.endDocumentOperation();
+    }
   }
 
   private applyAuthoredGraph(
