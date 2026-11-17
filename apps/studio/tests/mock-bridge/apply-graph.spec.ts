@@ -410,18 +410,19 @@ test('Q14 partial A confirmed/B refused: unapplied side value never enters rollb
 test('SR6b partial A confirmed/B refused: real undo and redo never resurrect unapplied amplitude', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco',
     parameters: { frequency: 220, amplitude: 0.5 } }]);
-  await page.evaluate(() => {
+  const authoredUi = (await state(page)).ui;
+  await page.evaluate(([a, queued]) => {
     const b = (window as any).__mockBridge;
     window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
     window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.7);
     window.__wirescapeTest.flushHistory();
     b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
     b.holdNext('applyGraph');
-    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(440, 0.7));
-    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(660, 0.7));
+    window.__wirescapeTest.restoreSnapshot(a);
+    window.__wirescapeTest.restoreSnapshot(queued);
     b.holdNext('applyGraph');
     b.acceptHeld();
-  });
+  }, [frequencySnapshot(440, 0.7), frequencySnapshot(660, 0.7)]);
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
   await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
   await page.evaluate(() => (window as any).__mockBridge.setUnapplied([]));
@@ -449,33 +450,36 @@ test('SR6b partial A confirmed/B refused: real undo and redo never resurrect una
   expect(redone.history).toEqual(anchor.history);
   expect(redone.canUndo).toBe(anchor.canUndo);
   expect(redone.canRedo).toBe(anchor.canRedo);
+  // History reconciliation preserves editor metadata while removing only
+  // the native-unapplied graph values, even when snapshots omit that metadata.
+  expect((await state(page)).ui).toEqual(authoredUi);
   await expectGraphCommands(page, ['applyGraph', 'applyGraph', 'applyGraph', 'applyGraph']);
 });
 
 test('SR6b partial A then B confirmed: undo B returns to reconciled A, never amplitude 0.7', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco',
     parameters: { frequency: 220, amplitude: 0.5 } }]);
-  await page.evaluate(() => {
+  await page.evaluate(target => {
     const b = (window as any).__mockBridge;
     window.__wirescapeTest.doc.setParam(2, 'frequency', 440);
     window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.7);
     window.__wirescapeTest.flushHistory();
     b.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
     b.holdNext('applyGraph');
-    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(440, 0.7));
-  });
+    window.__wirescapeTest.restoreSnapshot(target);
+  }, frequencySnapshot(440, 0.7));
   await expectGraphCommands(page, ['applyGraph']);
   await page.evaluate(() => (window as any).__mockBridge.acceptHeld());
   await expect.poll(async () => (await graphCheckpoint(page)).confirmed.frequency).toBe(440);
   // A is confirmed at 440/0.5. B is a distinct user-authored history entry.
-  await page.evaluate(() => {
+  await page.evaluate(target => {
     const b = (window as any).__mockBridge;
     b.setUnapplied([]);
     window.__wirescapeTest.doc.setParam(2, 'frequency', 660);
     window.__wirescapeTest.doc.setParam(2, 'amplitude', 0.8);
     window.__wirescapeTest.flushHistory();
-    window.__wirescapeTest.restoreSnapshot(frequencySnapshot(660, 0.8));
-  });
+    window.__wirescapeTest.restoreSnapshot(target);
+  }, frequencySnapshot(660, 0.8));
   await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
   await equalConfirmed(page, 660, 0.8);
   const afterB = await graphCheckpoint(page);

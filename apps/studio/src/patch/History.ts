@@ -83,18 +83,27 @@ export class History {
       this.changed();
     }) as HistoryCheckpoint;
     restore.reconcile = (authored, confirmed) => {
-      const from = this.snapOf(authored), to = this.snapOf(confirmed);
+      // A snapshot can omit UI metadata that is present in its authored
+      // history entry. Match the graph, preserving each entry's own UI: a
+      // rejected parameter must not survive merely because positions differ.
+      const graph = (patch: PatchV2) => {
+        const { ui: _ui, ...rest } = patch;
+        return JSON.stringify(rest);
+      };
+      const from = graph(authored), to = graph(confirmed);
       if (from === to) return;
-      // A native ACK may confirm the graph while leaving authored parameter
-      // events unapplied. Normalize both the saved rollback cursor and the
-      // live undo/redo entries before a later graph or undo can use them.
-      const normalize = (items: string[]) => items.map(item => item === from ? to : item);
-      past = normalize(past);
-      future = normalize(future);
-      if (current === from) current = to;
-      this.past = normalize(this.past);
-      this.future = normalize(this.future);
-      if (this.current === from) this.current = to;
+      const normalize = (item: string): string => {
+        const patch = JSON.parse(item) as PatchV2;
+        return graph(patch) === from ? this.snapOf({ ...confirmed, ui: patch.ui }) : item;
+      };
+      // Normalize the saved rollback cursor and live entries before the
+      // next graph or undo can restore an unapplied authored value.
+      past = past.map(normalize);
+      future = future.map(normalize);
+      current = normalize(current);
+      this.past = this.past.map(normalize);
+      this.future = this.future.map(normalize);
+      this.current = normalize(this.current);
       this.changed();
     };
     return restore;
