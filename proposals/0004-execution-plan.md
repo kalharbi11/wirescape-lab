@@ -128,8 +128,11 @@ a task with a design that is not on `main` does not start. Classes as above.
 | T6.8 | Behaviour bugs listed in `docs/context/KNOWN_ISSUES.md` (MIDI to CV on Windows, ASIO list while playing, LAN OSC consent warning, panic and buffer-change gaps): one device-free regression test and fix each; the owner confirms on the device | B | M1 S6 | later; lead may file the regression tests as facts (SR18) |
 | T6.7 | Packaged build and installer; AudioWorklet web demo on the shared engine path | B | M3 MB2 | later |
 
-Design notes `0011` to `0015` are written by Fable (2026-11-16, runs 1 and 2). Where one is
-missing, the task waits and nothing else does.
+Design notes `0011` to `0015` are on `main` (Fable, 2026-11-16, runs 1 and 2). Contracts:
+**M8** (T3.2–T3.8, T3.10), **M9** (T3.9), **M10** (T3.11, T6.1, T6.2 and the facts of `0013` §8,
+which start now), **M11** (T5.1–T5.4; the GUTTR drop-in of T3.7 is M11 C1), **M12** (T5.5, T5.6).
+Not contracted: T6.3 build page, Sub-patch (needs its own note), T4.2, T4.3, T5.7, T6.4–T6.8.
+Where a contract differs from a row above (for example M8 H1 waits for M4 E3a), the contract wins.
 
 ## Contract-driven delivery and fallback
 Follow the active revision named by `docs/workflow/CURRENT.md` in

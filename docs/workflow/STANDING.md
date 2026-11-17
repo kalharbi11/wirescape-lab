@@ -78,7 +78,8 @@ the mapped paths into the task issue. Not a contract change.
 **SR16 Order between ready tasks.** One writer per lane: engine, sidecar and host, modules and
 build, Studio and desktop, tools and bench. When two ready tasks need the same lane or builder:
 M1 stages first, then the M4 chain and what it depends on (the owner's top wish), then M5, then
-the rest of M3, then M6 and M7. A lane with nothing ready does not wait: take the next milestone.
+the rest of M3, then M6 and M7, then M8, M9, M10, M11, M12 in number order. M10 batch 0
+(facts) and M12 P0 are class A and never wait. A lane with nothing ready does not wait: take the next milestone.
 **SR17 Protocol additions.** Every task that adds or changes a command, reply field or capability
 also changes `docs/specs/protocol.schema.json`, regenerates, and keeps the drift check green, in
 the same PR. Those files count as part of its allowed paths once M2 PV1 is merged.
@@ -98,7 +99,8 @@ milestone's tasks are merged; the next milestone's tasks start on their own "Dep
    exceptions kept explicit; contract reviews; a new SR that writes down an existing precedent.
 3. **Fable only:** a new proposal or architecture; what a measurement means; changing an
    invariant, gate threshold or tolerance in any proposal or contract (0005 section 9 and B1–B4,
-   0006 I1–I8, 0008 K1–K4, 0009 L1–L5, 0010 P and Q, M2 J1–J5, M4 G1–G8, CI1 K1–K9, golden
+   0006 I1–I8, 0008 K1–K4, 0009 L1–L5, 0010 P and Q, M2 J1–J5, M4 G1–G8, CI1 K1–K9, M8 W1–W8, M9 V1–V5, M10 X1–X6, M11 Y1–Y6,
+   M12 Z1–Z6, the guarantees of 0013 section 2, golden
    "24 identical", the 1 % instruction-count rule); the module header and module API shape; the
    panel and patch formats; protocol versions and schema keywords; realtime ownership.
 4. **The owner:** the Fixed constraints; intentional sound changes by ear; IDs before release;
