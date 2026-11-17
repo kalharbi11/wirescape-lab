@@ -105,7 +105,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python head/bench/m1/links.py --build base/build/native --output evidence/base-links.json
+          python head/bench/m1/links.py --build base/build/native --output evidence/base-links.json --allow-abi1-baseline
           python head/bench/m1/links.py --build head/build/native --output evidence/head-links.json
       - name: Collect strict paired Callgrind (Linux only)
         if: matrix.linux

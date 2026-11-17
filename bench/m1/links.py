@@ -12,7 +12,7 @@ ABI1 = re.compile(r"(?<![A-Za-z0-9_])(?:lib)?wirescape_engine(?![A-Za-z0-9_])", 
 TARGETS = ("wirescape_app_engine", "wirescape_engine_sidecar")
 
 
-def capture(build):
+def capture(build, allow_abi1_baseline=False):
     reply = build / ".cmake/api/v1/reply"
     indexes = sorted(reply.glob("index-*.json"))
     if not indexes:
@@ -26,7 +26,9 @@ def capture(build):
               for key, value in entries.items()}
     names = {key: value["name"] for key, value in entries.items()}
     result = {"generator": index.get("cmake", {}).get("generator", {}),
-              "configuration": config.get("name"), "closure": {}}
+              "configuration": config.get("name"),
+              "revision_role": "base" if allow_abi1_baseline else "head",
+              "abi1_observations": [], "closure": {}}
     for target in TARGETS:
         starts = [key for key, value in names.items() if value == target]
         if len(starts) != 1:
@@ -41,7 +43,9 @@ def capture(build):
             deps = [d["id"] for d in node.get("dependencies", [])]
             name = names[key]
             if name == "wirescape_engine":
-                raise ValueError("ABI1 link dependency: " + target)
+                result["abi1_observations"].append(target + ": codemodel wirescape_engine")
+                if not allow_abi1_baseline:
+                    raise ValueError("ABI1 link dependency: " + target)
             closure.append({"name": name, "type": node.get("type"),
                             "dependencies": [names.get(d, "UNRESOLVED") for d in deps],
                             "link": node.get("link"), "artifacts": node.get("artifacts")})
@@ -57,7 +61,9 @@ def capture(build):
         if not result["generated_commands"]:
             raise ValueError("missing generated Ninja commands")
         if any(ABI1.search(line) for line in result["generated_commands"]):
-            raise ValueError("ABI1 in generated Ninja command")
+            result["abi1_observations"].append("generated Ninja command")
+            if not allow_abi1_baseline:
+                raise ValueError("ABI1 in generated Ninja command")
     else:
         projects = {p.stem: p for p in build.rglob("*.vcxproj") if p.stem in TARGETS}
         if set(projects) != set(TARGETS):
@@ -73,9 +79,13 @@ def capture(build):
         if not logs:
             raise ValueError("missing generated sidecar link.command tlog")
         if any(ABI1.search(x["xml"]) for x in result["generated_projects"].values()):
-            raise ValueError("ABI1 in generated MSBuild project")
+            result["abi1_observations"].append("generated MSBuild project")
+            if not allow_abi1_baseline:
+                raise ValueError("ABI1 in generated MSBuild project")
         if any(ABI1.search(x) for x in logs.values()):
-            raise ValueError("ABI1 in generated MSBuild link command")
+            result["abi1_observations"].append("generated MSBuild link command")
+            if not allow_abi1_baseline:
+                raise ValueError("ABI1 in generated MSBuild link command")
     return result
 
 
@@ -83,9 +93,11 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--build", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--allow-abi1-baseline", action="store_true",
+                   help="Record expected pre-S2 ABI1 links; head remains fail-closed")
     a = p.parse_args()
     try:
-        record = {"verdict": "passed", **capture(a.build.resolve())}
+        record = {"verdict": "passed", **capture(a.build.resolve(), a.allow_abi1_baseline)}
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as exc:
         record = {"verdict": "failed", "error": str(exc)}
     a.output.parent.mkdir(parents=True, exist_ok=True)
