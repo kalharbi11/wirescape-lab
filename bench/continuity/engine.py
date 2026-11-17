@@ -7,6 +7,7 @@ ever passed, so no audio/MIDI device or LAN socket is opened. Pacing uses the en
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import queue
 import shutil
@@ -36,6 +37,7 @@ class Run:
     marks: list            # marks.Mark, in file order
     segments: list         # capture.Segment
     stderr: str
+    artifacts: dict = field(default_factory=dict)  # hashes; only relative artifact names, never host paths
 
 
 class Engine:
@@ -57,6 +59,7 @@ class Engine:
         hello = self.messages.get(timeout=15)
         if hello.get('type') != 'hello':
             raise RuntimeError(f'expected hello, got {hello}')
+        self.hello = hello
 
     def _read(self):
         for line in self.process.stdout:
@@ -91,12 +94,21 @@ class Engine:
         return stderr
 
 
-def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256, keep: str | None = None) -> Run:
+def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256,
+        keep: str | None = None, expected_head: str | None = None) -> Run:
     with tempfile.TemporaryDirectory(prefix='continuity-') as d:
         work = Path(d)
         engine = Engine(binary, work, rate, block)
         replies, serial = {}, 0
         try:
+            if expected_head:
+                observed = engine.hello.get('engine', {}).get('sha')
+                if observed != expected_head[:12]:
+                    raise RuntimeError(f'built sidecar hello SHA {observed!r} differs from '
+                                       f'checkout {expected_head[:12]!r}')
+            if any(step.method == 'applyGraph' for step in steps):
+                if 'applyGraph' not in engine.hello.get('capabilities', []):
+                    raise RuntimeError('engine does not advertise applyGraph; no M2 measurement recorded')
             engine.statuses(3)
             for step in steps:
                 if step.method:
@@ -115,4 +127,15 @@ def run(binary: str, steps: list[Step], rate: int = 48000, block: int = 256, kee
             dest.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(engine.capture_path, dest / 'capture.f32')
             shutil.copyfile(work / 'capture.f32.marks', dest / 'capture.f32.marks')
+            # Hash the exact retained bytes; publish paths relative to an artifact root,
+            # never machine-specific absolute directories or raw audio in repository facts.
+            def info(filename):
+                data = dest / filename
+                digest = hashlib.sha256()
+                with data.open('rb') as src:
+                    for chunk in iter(lambda: src.read(1024 * 1024), b''):
+                        digest.update(chunk)
+                return dict(relative_path=dest.name + '/' + filename, sha256=digest.hexdigest(),
+                            bytes=data.stat().st_size)
+            result.artifacts = {'raw': info('capture.f32'), 'marks': info('capture.f32.marks')}
         return result

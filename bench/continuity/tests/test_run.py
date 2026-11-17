@@ -120,7 +120,7 @@ class Probe(unittest.TestCase):
         self.assertEqual(channels, list(range(9)))
         names = [e['name'] for e in probe.edits()]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(len(names), 21)
+        self.assertEqual(len(names), 29)
         for e in probe.edits():
             self.assertTrue(e['subject'] is None or 0 <= e['subject'] < 16)
 

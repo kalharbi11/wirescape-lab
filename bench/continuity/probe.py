@@ -152,10 +152,36 @@ def edits() -> list[dict]:
              setup=_without(B, 90)),
         dict(name='setBufferFrames', cmd=('setBufferFrames', dict(frames=128)), subject=None),
         dict(name='panic', cmd=('panic', {}), subject=3),
-    ]
+    ] + applygraph_edits(B, groove_steps, groove_length, voices, osc_row, param)
 
 
-# Rows listed so their absence is explicit, not silent (applyGraph lands with M2 E1).
-UNSUPPORTED = [dict(name=f'applyGraph {k}', reason='applyGraph is not implemented before M2 E1')
-               for k in ('identical', 'Groove steps', 'Groove length', 'voice count', 'OSC In row',
-                         'one parameter', 'deleted module', 'restored module')]
+# All eight formerly unsupported M2 variants use the existing probe and
+# unchanged metric semantics; the captured sidecar must advertise applyGraph.
+APPLYGRAPH_KINDS = ('identical', 'Groove steps', 'Groove length', 'voice count',
+                    'OSC In row', 'one parameter', 'deleted module', 'restored module')
+
+
+def applygraph_edits(B, groove_steps, groove_length, voices, osc_row, param):
+    # Both the load and changed patch carry identical unknown user fields.
+    start = copy.deepcopy(B)
+    start['future_continuity'] = {'unknown': ['preserve', None, True]}
+    start['ui'] = {'future_ui': {'opaque': 23}}
+    changes = [None, groove_steps, groove_length, voices, osc_row, param,
+               lambda p: p.update(_without(p, 90)), None]
+    edits = []
+    for kind, change in zip(APPLYGRAPH_KINDS, changes):
+        patch = copy.deepcopy(start)
+        if change is not None:
+            change(patch)
+        setup = _without(start, 90) if kind == 'restored module' else copy.deepcopy(start)
+        edits.append(dict(name='applyGraph ' + kind, cmd=('applyGraph', {'patch': patch}),
+                          subject={'identical': 5, 'Groove steps': 7, 'Groove length': 7,
+                                   'voice count': 3, 'one parameter': 5}.get(kind),
+                          changes_subject=kind in ('Groove steps', 'Groove length', 'one parameter'),
+                          setup=setup))
+    return edits
+
+
+# M2 E1a implements these edit forms. A device-free runner refuses a sidecar
+# lacking hello.capabilities.applyGraph rather than silently omitting them.
+UNSUPPORTED = []

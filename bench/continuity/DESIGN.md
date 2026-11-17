@@ -100,8 +100,10 @@ runs three times and the worst value of each metric is reported. The edits are t
 supported today: add/remove an unconnected module, remove a connected one, connect/disconnect a
 signal, event and modulation cable, `setModAmount`, `ccMap.set`, identical `loadGraph`,
 single-change `loadGraph` (Groove steps, Groove length, voice count, OSC In row, one parameter,
-one deleted and restored module), `setBufferFrames` and `panic`. `applyGraph` rows are added once
-M2 E1 lands. Until then they are listed as not supported, not left out silently.
+one deleted and restored module), `setBufferFrames` and `panic`. Historical T0.13b
+measurements remain pinned to their original source/date/machine. M2 E1a advertises
+`applyGraph`; eight variants are now runnable under task #139, not retroactively
+measured by the old T0.13b facts.
 
 ## Locating the edit in the capture (ruling R7, QUESTIONS Q10)
 Wall-clock bracketing is not used. The edit is located from the sidecar's marks file
@@ -129,3 +131,40 @@ Wall-clock bracketing is not used. The edit is located from the sidecar's marks 
   [`b0_a − (b1_b + 1)`, `(b1_a + 1) − b0_b`]. The harness uses `b0_a − b0_b` and reports the
   interval's width (`width_a + width_b` blocks) as the alignment uncertainty beside the row.
   The two widths are reported separately from the edit's own bracket.
+
+## M2 E1a extension — task #139 (measurement pending until captured)
+
+The eight applyGraph edits mirror the existing loadGraph cases: identical document,
+Groove steps, Groove length, voice count, OSC In row, one parameter, deleted module
+and restored module. The latter begins with unconnected VCO 90 absent, then
+restores that ID; the other seven begin at one common probe. Both starting and
+target documents carry identical extra future_continuity and ui.future_ui fields;
+the named edit is the only difference. Five continuing witnesses (tone, slip tone,
+tail, held note, clock) remain on their original output channels. A subject row is
+also collected where the probe has an identifiable sounding subject. No historical
+loadGraph edit is renamed, removed or re-measured by this extension.
+
+The same marks.py, metrics.py and run.py numerical definitions remain authoritative:
+48 kHz / 256 frames, three repeats per edit, worst-of-three, and the 100 ms pre-b0
+to 1 s post-(b1+1) window. The edit is located from its actual mark with gen and
+b0/b1; bracket width is b1+1-b0 blocks. The reference uses earlier shared load
+marks; permitted offset interval, residual and exact offsets remain per repeat.
+No wall-clock-only edit position, new acceptance threshold or causal restart claim.
+
+Accepted applyGraph replies are checked/recorded for result.path (live or restart),
+replaced and unapplied, generation increase, and matching reply/mark. Refusals
+record their actual code and no result. This is distinct from the measured
+restarted witness state: a path of live does not prove phase retention.
+An unadvertised applyGraph capability stops the runner before measurement.
+
+The --keep flag copies raw float32 captures and .marks bytes into per-repeat
+directories and records SHA-256, byte size and relative name, never an absolute
+machine path. Use a new --out prefix first: the runner refuses to overwrite the
+existing 119-row T0.13b facts. Until the exact built-head three-repeat package
+exists, the historical edit_continuity.json and .md retain all old numerical rows,
+their provenance, and their eight then-unsupported entries. Do not remove or
+relabel those old entries merely because E1a now exists.
+
+See bench/continuity/CAPTURE.md for the pinned Worker2 package and the missing
+evidence. Future merger must independently verify raw/marks bytes and retain
+all 119 historical measurements and their source pins.

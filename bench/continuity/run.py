@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import math
 import platform
@@ -118,6 +119,33 @@ def subject_restart(x, cont, geo, marks, subject, edit, late, changes_subject=Fa
     return r.state, r.note
 
 
+def applygraph_reply(reply: dict, mark: mk.Mark, gen_before: str) -> dict:
+    """Require the marked E1a reply shape; no invented metric/pass threshold."""
+    if mark.type != 'applyGraph' or mark.re != 'edit':
+        raise ValueError('applyGraph requires its own edit mark')
+    if mark.ok is not reply.get('ok') or mark.gen != reply.get('gen'):
+        raise ValueError('applyGraph mark and reply disagree')
+    if not reply['ok']:
+        return dict(ok=False, code=reply.get('code'), path=None,
+                    replaced=None, unapplied=None)
+    result = reply.get('result')
+    if not isinstance(result, dict) or result.get('path') not in ('live', 'restart'):
+        raise ValueError('applyGraph success lacks a valid path')
+    replaced, unapplied = result.get('replaced'), result.get('unapplied')
+    positive_id = lambda n: type(n) is int and 1 <= n <= 0xffffffff
+    if not isinstance(replaced, list) or not all(positive_id(n) for n in replaced):
+        raise ValueError('applyGraph replaced requires numeric module IDs')
+    if not isinstance(unapplied, list) or not all(
+            isinstance(item, dict) and positive_id(item.get('moduleId')) and
+            isinstance(item.get('paramId'), str) and bool(item['paramId'])
+            for item in unapplied):
+        raise ValueError('applyGraph unapplied requires moduleId and paramId')
+    if not gen_before.isascii() or not gen_before.isdigit() or int(reply['gen']) <= int(gen_before):
+        raise ValueError('accepted applyGraph must advance gen')
+    return dict(ok=True, code=None, path=result['path'],
+                replaced=replaced, unapplied=unapplied)
+
+
 def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False) -> dict:
     mark = mk.locate(run.marks, 'edit')
     geo = mk.Geometry.of(run.segments)
@@ -125,11 +153,15 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
     x_all, r_all = channels(run), channels(ref)
     edit, late = win.edit, win.late
     reply = run.replies['edit']
+    if mark.ok is not reply.get('ok') or mark.gen != reply.get('gen'):
+        raise ValueError('edit reply disagrees with capture marks')
     out = dict(ok=reply['ok'], code=reply.get('code'), message=reply.get('message'),
                all_marks=[m_._asdict() for m_ in run.marks], reference_marks=[m_._asdict() for m_ in ref.marks],
                gen_before=mk.locate(run.marks, 'note').gen, gen_after=mark.gen,
                b0=mark.b0, b1=mark.b1, bracket_blocks=win.width_blocks,
                segments=[[s.block, s.blocks] for s in run.segments], witnesses={})
+    if mark.type == 'applyGraph':
+        out['applygraph'] = applygraph_reply(reply, mark, out['gen_before'])
     for ch, name in [*probe.WITNESS.items(), *([(subject, 'subject')] if subject is not None else [])]:
         x = x_all[ch]
         row, errors = {}, {}
@@ -214,7 +246,15 @@ def worst(values: list, key: str):
     return finite(WORST[key]([_num(v) for v in vals]))
 
 
-def provenance() -> dict:
+def binary_hash(binary: str) -> str:
+    digest = hashlib.sha256()
+    with Path(binary).open('rb') as src:
+        for part in iter(lambda: src.read(1024 * 1024), b''):
+            digest.update(part)
+    return digest.hexdigest()
+
+
+def provenance(binary: str | None = None, built_head: str | None = None) -> dict:
     sh = lambda *a: subprocess.run(a, capture_output=True, text=True, cwd=ROOT).stdout.strip()
     cpu = ''
     try:
@@ -222,7 +262,14 @@ def provenance() -> dict:
     except OSError:
         pass
     now = datetime.datetime.now(datetime.timezone.utc)
-    return dict(lab_commit=sh('git', 'rev-parse', 'HEAD'), dirty=bool(sh('git', 'status', '--porcelain', '--',
+    head = sh('git', 'rev-parse', 'HEAD')
+    if built_head and built_head != head:
+        raise ValueError(f'built source pin {built_head} does not match checkout {head}')
+    return dict(lab_commit=head, built_head_claim=built_head,
+                engine_sha256=binary_hash(binary) if binary else None,
+                toolchain=dict(cmake=sh('cmake', '--version').splitlines()[:1],
+                               cxx=sh('c++', '--version').splitlines()[:1]),
+                dirty=bool(sh('git', 'status', '--porcelain', '--',
                                                                          'native', 'bench')),
                 machine=dict(system=platform.system(), arch=platform.machine(), cpu=cpu,
                              python=platform.python_version(), kind='cloud container, null sink, devices off'),
@@ -236,16 +283,29 @@ def main(argv=None):
     ap.add_argument('--only', nargs='*')
     ap.add_argument('--out', default=str(ROOT / 'facts' / 'dsp' / 'edit_continuity'))
     ap.add_argument('--keep', help='directory to keep every raw capture and marks file (for an artifact)')
+    ap.add_argument('--built-head', help='assert sidecar built at this exact checkout SHA')
     a = ap.parse_args(argv)
+    known = {e['name'] for e in probe.edits()}
+    if a.only and (unknown := set(a.only) - known):
+        ap.error('unknown edit(s): ' + ', '.join(sorted(unknown)))
+    if a.repeats < 1:
+        ap.error('--repeats must be positive')
     edits = [e for e in probe.edits() if not a.only or e['name'] in a.only]
     per_edit = {e['name']: [] for e in edits}
+    artifact_rows = {}
+
     for rep in range(a.repeats):
         keep = lambda tag: str(Path(a.keep) / f'r{rep + 1}-{tag}') if a.keep else None
-        ref = eng.run(a.engine, script(None, None), keep=keep('reference'))
+        ref = eng.run(a.engine, script(None, None), keep=keep('reference'), expected_head=a.built_head)
         for e in edits:
             print(f'repeat {rep + 1}/{a.repeats}: {e["name"]}', flush=True)
-            run = eng.run(a.engine, script(e, e.get('setup')), keep=keep(e['name'].replace(' ', '_')))
+            run = eng.run(a.engine, script(e, e.get('setup')), keep=keep(e['name'].replace(' ', '_')),
+                          expected_head=a.built_head)
             per_edit[e['name']].append(analyse(run, ref, e['subject'], e.get('changes_subject', False)))
+            if a.keep:
+                artifact_rows.setdefault(e['name'], []).append(dict(
+                    repeat=rep + 1, edited=run.artifacts, reference=ref.artifacts))
+
     rows = []
     for e in edits:
         reps = per_edit[e['name']]
@@ -262,11 +322,16 @@ def main(argv=None):
                        marks=[dict(b0=r['b0'], b1=r['b1'], gen_before=r['gen_before'], gen_after=r['gen_after'],
                                    segments=r['segments'], run=r['all_marks'], reference=r['reference_marks'])
                               for r in reps])
+            if e['cmd'][0] == 'applyGraph':
+                row['applygraph_results'] = [r['applygraph'] for r in reps]
             rows.append(row)
-    doc = dict(provenance=provenance(), repeats=a.repeats,
+    doc = dict(provenance=provenance(a.engine, a.built_head), repeats=a.repeats,
                method='proposals/0005 section 4 as amended by M0 r3 ruling R7; bench/continuity/DESIGN.md',
-               rows=rows, unsupported=probe.UNSUPPORTED)
+               rows=rows, unsupported=probe.UNSUPPORTED, artifacts=artifact_rows)
     out = Path(a.out)
+    if out.with_suffix('.json').exists() or out.with_suffix('.md').exists():
+        raise ValueError('refusing to overwrite historical facts: supply a new --out path; '
+                         'merge fresh rows only after measured capture review')
     out.parent.mkdir(parents=True, exist_ok=True)
     out.with_suffix('.json').write_text(json.dumps(doc, indent=1) + '\n')
     out.with_suffix('.md').write_text(markdown(doc))
