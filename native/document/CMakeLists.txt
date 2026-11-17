@@ -33,6 +33,24 @@ target_link_libraries(builtin_source_tests PRIVATE wirescape_runtime_document nl
 add_test(NAME abi2_builtin_source_tests COMMAND builtin_source_tests)
 
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+# M1 S4 pre-deletion capture, enabled only for the existing paired evidence
+# Linux x64 job. Its evidence/ directory is already uploaded by that workflow.
+# No workflow, test tolerance or engine render path is changed.
+if(DEFINED ENV{MACHINE} AND "$ENV{MACHINE}" STREQUAL "linux-x64"
+   AND DEFINED ENV{BASE_SHA} AND DEFINED ENV{HEAD_SHA}
+   AND CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(_s4_ref "${PROJECT_SOURCE_DIR}/../../evidence/qt_free_saved_v2_abi1_48000_128_96000.f32le")
+  add_custom_command(TARGET qt_free_patch_coverage_tests POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E env
+      "ABI1_S4_CAPTURE_PATH=${_s4_ref}"
+      "$<TARGET_FILE:qt_free_patch_coverage_tests>"
+      "${PROJECT_SOURCE_DIR}/examples"
+      "$<TARGET_FILE_DIR:ws_noise>"
+      "${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json"
+    COMMAND "${Python3_EXECUTABLE}" -c
+      "(lambda p: p.with_suffix(p.suffix + '.sha256').write_text(__import__('hashlib').sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\\n'))(__import__('pathlib').Path(r'${_s4_ref}'))"
+    VERBATIM)
+endif()
 add_executable(ui_patch_conformance ui_patch_conformance.cpp)
 target_link_libraries(ui_patch_conformance PRIVATE wirescape_runtime_document nlohmann_json::nlohmann_json)
 add_test(NAME ui_patch_conformance COMMAND ui_patch_conformance

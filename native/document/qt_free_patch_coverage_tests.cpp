@@ -8,6 +8,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -166,11 +168,35 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
             require(ws_engine_initialize_parameter(old.get(), module.at("id").get<uint32_t>(),
                                                    uint32_t(std::stoul(it.key())), it.value().get<float>()) == WS_OK,
                     "ABI1 reference parameter initialized");
+    // M1 S4 evidence-only capture: the existing ABI1 render remains authoritative.
+    // This is enabled solely by the pinned M1 Linux x64 evidence job, before deletion.
+    std::ofstream s4_capture;
+    if (const char *path = std::getenv("ABI1_S4_CAPTURE_PATH")) {
+        require(sizeof(float) == sizeof(uint32_t), "ABI1 S4 capture requires binary32");
+        s4_capture.open(path, std::ios::binary | std::ios::trunc);
+        require(bool(s4_capture), "open ABI1 S4 capture");
+    }
     float baseline[128]{}, loaded[128]{}, reloaded[128]{};
     double max_abs_error = 0, baseline_peak = 0;
     size_t allocations = 0, rendered = 0;
     for (int block = 0; block < 750; ++block) {
         require(ws_engine_render(old.get(), baseline, 128) == WS_OK, "ABI1 render");
+        if (s4_capture.is_open()) {
+            // Store the exact ABI1 binary32 words in an explicitly little-endian file.
+            // No output or allocation is introduced inside the engine's render path.
+            for (float sample : baseline) {
+                uint32_t word = 0;
+                std::memcpy(&word, &sample, sizeof(word));
+                const unsigned char bytes[] = {
+                    static_cast<unsigned char>(word),
+                    static_cast<unsigned char>(word >> 8),
+                    static_cast<unsigned char>(word >> 16),
+                    static_cast<unsigned char>(word >> 24)
+                };
+                s4_capture.write(reinterpret_cast<const char *>(bytes), sizeof(bytes));
+            }
+            require(bool(s4_capture), "write ABI1 S4 binary32 sample words");
+        }
         int a = -1, b = -1;
         {
             allocation_watch::Scope watch;
@@ -191,6 +217,10 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
     require(allocations == 0, "saved graph callbacks allocate no memory");
     require(max_abs_error <= 1e-7, "ABI1 vs saved/reloaded app-loader bound 1e-7");
     require(rendered == 96000u, "96,000 source and saved-reloaded PCM samples compared");
+    if (s4_capture.is_open()) {
+        s4_capture.close();
+        require(bool(s4_capture), "close complete ABI1 S4 96,000-sample capture");
+    }
     std::cout << "v1 -> disk v2 -> reload exact PCM; ABI1 max_abs_error=" << max_abs_error << " allocs=" << allocations
               << '\n';
 }
