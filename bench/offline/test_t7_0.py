@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """T7.0 source completeness, neutral unavailable rows and switch fixture routing."""
 import copy
+import json
 import unittest
 from unittest.mock import patch
 
@@ -97,7 +98,7 @@ class T70Switch(unittest.TestCase):
         for module, param, *_ in t7_0.SWITCHES:
             catalogue.setdefault(module, {"parameters": {}})["parameters"][param] = {
                 "min": -2, "max": 8}
-        catalogue["ports.quad_vca"]["parameters"]["mode1"] = {"min": 0, "max": 1}
+        catalogue["essentials.quad_vca"]["parameters"]["mode1"] = {"min": 0, "max": 1}
         # Explicit kMode is a valid stepped parameter despite the source
         # parameter extractor not decoding that C++ constant alias.
         def fake_wav(renderer, patch_doc, events, seconds, *, rate):
@@ -119,6 +120,50 @@ class T70Switch(unittest.TestCase):
         self.assertTrue(all(x["status"] == "measured" for x in results))
         self.assertEqual({x["parameter"] for x in results},
                          {"mode1", "mode", "division", "tone"})
+
+    def test_native_descriptor_identity_cannot_be_mocked_into_availability(self):
+        # Read the actual native C++ descriptor and on-disk module manifest.
+        # A self-referential mocked catalogue once hid "ports.quad_vca".
+        manifest = json.loads(
+            (run_all.ROOT / "native/modules2/quad_vca/module.json").read_text(encoding="utf-8"))
+        desc = run_all.descriptors()
+        quad = next(switch for switch in t7_0.SWITCHES if switch[1] == "mode1")
+        self.assertEqual(manifest["id"], "essentials.quad_vca")
+        self.assertEqual(quad[0], manifest["id"])
+        self.assertEqual(manifest["parameters"]["mode1"], 4)
+        self.assertIn(manifest["id"], desc)
+        self.assertIn("mode1", desc[manifest["id"]]["parameters"])
+        bounds = desc[manifest["id"]]["parameters"]["mode1"]
+        self.assertEqual((bounds["min"], bounds["max"]), (0, 1))
+        t7_0.require_switch_descriptors(desc)
+
+        routed = []
+        def fake_wav(renderer, patch_doc, events, seconds, *, rate):
+            module = patch_doc["modules"][0]["module"]
+            routed.append(module)
+            self.assertIn(module, desc)
+            self.assertIn(events[0]["parameter"], desc[module]["parameters"])
+            self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
+            return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
+
+        with patch.object(t7_0, "run_wav", side_effect=fake_wav), \\
+             patch.object(t7_0, "switch_click_metrics",
+                          return_value={"switch_click_peak_fs": .3,
+                                        "switch_click_peak_dbfs": -10.4575749056}):
+            rows = t7_0.capture_switches("not-executed", desc)
+        self.assertEqual(len(routed), 4)
+        self.assertEqual(routed[0], manifest["id"])
+        self.assertEqual(rows[0]["status"], "measured")
+        self.assertEqual(rows[0]["module"], manifest["id"])
+
+        absent = dict(desc)
+        absent.pop(manifest["id"])
+        with self.assertRaisesRegex(ValueError, "missing native switch descriptor"):
+            t7_0.require_switch_descriptors(absent)
+        misspelled = (("ports.quad_vca",) + quad[1:],) + t7_0.SWITCHES[1:]
+        with patch.object(t7_0, "SWITCHES", misspelled):
+            with self.assertRaisesRegex(ValueError, "missing native switch descriptor"):
+                t7_0.require_switch_descriptors(desc)
 
     def test_switch_unavailable_when_descriptor_absent(self):
         with patch.object(t7_0, "run_wav") as unused:
