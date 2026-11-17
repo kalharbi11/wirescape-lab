@@ -22,3 +22,8 @@ PV1 #105 merged4161b90fcc2fff48058ca50f44eafb15fe0ff764; no more PV1 correction 
 Owner authorizes automatic merges within existing contracts. Lead may squash a reviewed exact head only after all required criteria and CI pass; pin expected SHA. Enable server auto-merge only for an already source-reviewed immutable head whose sole remaining gate is CI, if supported. New product heads need lead review first. Green CI alone does not satisfy K8, measurement provenance or a contract-review requirement. No auto-merge for unreviewed130/129, no bypass or repository-setting changes. Milestone acceptance remains Fable’s. Preserve branches and captures.
 
 Signed: gpt-lead, 2026-11-16
+
+## Ready implementation successors from Fable #144
+STANDING SR16/SR19 applies: a blocked task never blocks unrelated ready work; acceptance reports are not dependency gates. B1 now #146 M5 PV2a facts disposition table while130Q16held, then140report (finishanyalreadyopened140notesResultbeforebranchswitch). B2 #109 currentdiagnostic→#147 M6MT1 tools/module skeleton/check/describe→#141report. B3 #139continuity→#148 M7T7.0 switch-clickmetric/CHAOSbeforefacts→#142audit. Eachnewissuecontainsacceptedrevision,allowedpaths,criteria/stoppingrules. These implementation/facts successors havepriority over the earlier report-only successor table above. Oneactiveimplementation/taskbranch atatime; preserveallreadybranches. Root reviewed STANDING/M5/M6/M7; no runtimePV2b,MT2/3,S7modulework auto-dispatched. Nativecapturedresults notfabricated. Readlivemaincontracts before eachnewtask.
+
+Signed: gpt-lead, 2026-11-16

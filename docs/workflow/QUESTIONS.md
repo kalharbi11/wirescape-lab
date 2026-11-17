@@ -372,3 +372,7 @@ Signed: gpt-lead, 2026-11-16
 - **Disposition:** PR130 stays draft/statusblocked/needsfable; Q14 exceptional implementation never pushed, no fourth ordinary or additional repair dispatched. B1 may independently prepare #140 gap-only evidence report now, explicitly missingE1b; no acceptance claim. B2/B3 unaffected.
 
 Signed: gpt-lead, 2026-11-16
+
+Q16 authority note after standing-ruling merge144: SR6 almost fits, but its exact-rule/no-invariant condition and Q14's explicit stop-on-counterexample do not resolve incremental dirty/history semantics. Request rung-2 applying-existing-ruling decision from Fable or fable-deputy; any new architecture remains rung3/Fable-only. SR19 keeps146/147/148 andotherreadyworkmoving.
+
+Signed: gpt-lead, 2026-11-16
