@@ -54,6 +54,7 @@ seat is usually **fable-deputy** (an Opus session, `CLAUDE.md`); Fable is not ne
 | [M4](milestones/M4.md) | edits never restart: live mod amount, gapless swaps, module data, replace with state, device changes | after M3 TR1e; E5 and E3a also need `proposals/0012` |
 | [M5](milestones/M5.md) | protocol v1 | PV2a after PV1; the rest after M1 S6 |
 
+[PATHS.md](milestones/PATHS.md) lists the files each M3 to M5 task touches, for writing issues.
 Each task starts when its own "Depends on" cell is true on `main`; no task waits for a
 milestone acceptance report. Order between ready tasks: SR16 (M1, then the M4 chain, then M5,
 M3, M6, M7). Design notes behind them: `proposals/0011` (sound), `0016` (module tools), and the
@@ -65,7 +66,12 @@ portability and compiler, categories, panels) are Fable's run 2.
   give them to the first free builders (B2 and B3 when CI1.3 and PV1 close); then S7.1 and S7.4.
   File `facts/code/native_v1_readers.md` (M3 V1 precondition) and M5 PV2a as class-A tasks when
   a builder is free. M6 and M7 pull requests merge or park before M1 S6 opens.
-- **M1 lead:** unchanged. When S5b merges, S6 is next; when S6 merges, tell the root lead: that
+- **M1 lead:** unchanged. For S6, note what `milestones/PATHS.md` found: the 0002 layout does
+  not name a place for `native/tests2`, `native/voice`, `native/tools/render`, `native/third_party`,
+  `native/examples`, the top-level `tests/protocol/` or the subfolders of `host/`; path filters in
+  the workflows other than `ci.yml`, `tools/ci/changed_scope.py`, and `bench/` scripts with
+  `native/` written in them move with the rename. Choosing those names is inside S6 (the script
+  is the record); `ci.yml` edits are ordered with CI1.3 by the root lead. When S5b merges, S6 is next; when S6 merges, tell the root lead: that
   opens M3 T1.6a, TR2, V1, M5 PV2b and M7 batch 2.
 - **Builders:** one task each, as before.
 - **Owner:** nothing is needed for the queue. Optional: one `fable: run` to a Claude session
