@@ -24,14 +24,18 @@ workflow and OB-contract organization (draft PR186). The seats remain separate.
 | Writer | Current | Dependency and next |
 |---|---|---|
 | gpt-builder1 | #182 / draftPR189, initial ab8718cb | Browser fixtures repaired; independent High6942751502 proves queued A/B/C saved-history corruption. Correction1/2 authorized, same branch; fresh source review/full Lab required. Then #191 report after actual merge/release, then #192 M3 RL after report Result and Studio lane release. |
-| gpt-builder4 | #188 / draftPR190 | S4 evidence-first f2e83e05 preserves real S3 ABI1 final values before deletion. S4 implements exact named retirement, 96 survivors/+1%, retains frozen data and ABI2 CLI. S5a→S5b→S6 follow separate lead releases; S5b/S6 need Claude review. |
-| gpt-builder3 (existing writer) | #155 / PR184, 8823c78 | Golden now green×3; full production R2 after-values and D5 FLAC release pair still missing. Narrow capture brief#193 queued, not dispatched; no new module source correction implied. |
+| gpt-builder4 | #188 / draftPR190 PARKED; next #193 | Evidence-first f2e83e05 preserves real S3 values. S4 deletion STOP: document test still runs96000 ABI1 samples at1e-7; exact frozen replacement needs Architect path/design grant. No deletion push. Separate reverb evidence193 released only after signed S4 blocked Result; no overlapping edits. |
+| gpt-builder3 (existing writer) | #155 / PR184, 8823c78 | Golden now green×3; full production R2 after-values and D5 FLAC release pair still missing. Narrow capture#193 assigned sequentially to B4 after S4 park; reverb source writer is unchanged. |
 | gpt-builder2 | #175 / PR176, d9af77a, PARKED | T11 discrete options lack adapter metadata, High6942008407. Architect disposition needed; no extra source grant or MT3 dispatch. |
 
 **SR7/S4:** exactly three mechanical extra files granted in #188: bench/gate/instructions.py
 (fixed-mode inventory), bench/m1/paired.py (Q19 exact retired-symbol disposition), and
 bench/m1/test_paired.py (corresponding inventory expectations). No threshold/provenance/Chord
-change or generic bypass. S3's unused soak flag waits for an allowed later stage.
+change or generic bypass. A further native/document live-reference replacement exceeds SR7;
+Architect request posted on186. Existing16384-frame frozen shim cannot substitute96000-frame
+proof. Native/tests/golden_render.cpp is an AppEngine renderer and must also survive removal.
+Lead independently opened all5 saved S3 ZIPs, rehashed7 members and verified9 timing medians
+and4 Ir two-length calculations against the preserved facts. S3's unused soak flag waits.
 
 M3 engine split T1.6a→b→c→TR1e remains P0 but starts only after actual M1S6 merge.
 TR1e's task must quote ER1; future M4 tasks quote the relevant ER1–ER6 clauses as Fable directed.
