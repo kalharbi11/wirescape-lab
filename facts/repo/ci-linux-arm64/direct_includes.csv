@@ -27,8 +27,6 @@ control,native/control/app_engine_tests.cpp,set
 control,native/control/app_engine_tests.cpp,stdexcept
 control,native/control/app_engine_tests.cpp,string
 control,native/control/app_engine_tests.cpp,thread
-control,native/control/app_legacy_fixture.cpp,algorithm
-control,native/control/app_legacy_fixture.cpp,wirescape/module.h
 control,native/control/midi_host.cpp,algorithm
 control,native/control/midi_host.cpp,midi_host.h
 control,native/control/midi_host.cpp,midi_release.h
@@ -134,13 +132,6 @@ control,native/control/osc_out_host.h,memory
 control,native/control/osc_out_host.h,string
 control,native/control/osc_out_host.h,thread
 control,native/control/osc_out_host.h,vector
-control,native/control/provider_bridge.cpp,cmath
-control,native/control/provider_bridge.cpp,limits
-control,native/control/provider_bridge.cpp,provider_bridge.h
-control,native/control/provider_bridge.h,array
-control,native/control/provider_bridge.h,cstddef
-control,native/control/provider_bridge.h,cstdint
-control,native/control/provider_bridge.h,wirescape/engine.h
 engine2,native/engine2/engine2.cpp,algorithm
 engine2,native/engine2/engine2.cpp,array
 engine2,native/engine2/engine2.cpp,atomic
@@ -308,6 +299,11 @@ sidecar,native/sidecar/devices.h,atomic
 sidecar,native/sidecar/devices.h,chrono
 sidecar,native/sidecar/devices.h,midi_backend.h
 sidecar,native/sidecar/devices.h,protocol.h
+sidecar,native/sidecar/generated/protocol_v0.hpp,cmath
+sidecar,native/sidecar/generated/protocol_v0.hpp,cstddef
+sidecar,native/sidecar/generated/protocol_v0.hpp,cstdint
+sidecar,native/sidecar/generated/protocol_v0.hpp,nlohmann/json.hpp
+sidecar,native/sidecar/generated/protocol_v0.hpp,string
 sidecar,native/sidecar/main.cpp,csignal
 sidecar,native/sidecar/main.cpp,iostream
 sidecar,native/sidecar/main.cpp,session.h

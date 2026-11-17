@@ -12,6 +12,7 @@ apps/studio/src/app/ccLearn.ts,0,0,1,0
 apps/studio/src/app/starters.ts,0,1,0,0
 apps/studio/src/canvas/PatchCanvas.ts,0,0,1,0
 apps/studio/src/engine/FakeEngine.ts,0,0,1,0
+apps/studio/src/engine/generated/protocol_v0.ts,0,0,0,1
 apps/studio/src/groove/GrooveSession.ts,0,0,1,0
 apps/studio/src/groove/chords.ts,0,0,2,0
 apps/studio/src/groove/pattern.ts,0,0,0,1
@@ -38,15 +39,12 @@ apps/studio/tests/v1-visuals.spec.ts,0,0,1,0
 native/README.md,0,5,0,0
 native/cli/main.cpp,1,0,0,0
 native/cli/play.cpp,1,0,0,0
-native/control/app_engine.cpp,19,0,0,0
-native/control/app_engine.h,5,0,0,0
+native/control/app_engine.cpp,10,0,0,0
+native/control/app_engine.h,4,0,0,0
 native/control/app_engine_tests.cpp,2,0,1,0
-native/control/app_legacy_fixture.cpp,7,0,0,0
 native/control/midi_host_tests.cpp,2,1,0,0
 native/control/monitor_capture.h,0,0,1,0
 native/control/osc_host.h,0,0,1,0
-native/control/provider_bridge.cpp,10,0,0,0
-native/control/provider_bridge.h,2,0,0,0
 native/document/DESIGN.md,0,3,0,0
 native/document/builtin_source_tests.cpp,2,0,0,0
 native/document/class_demo_cc_depth_tests.cpp,1,0,0,0
@@ -129,6 +127,7 @@ native/sdk/examples/step_sequencer/README.md,0,0,1,0
 native/sdk/examples/step_sequencer/dsp.h,0,1,1,0
 native/sidecar/DESIGN.md,0,1,1,1
 native/sidecar/audio_recovery_tests.cpp,0,0,5,1
+native/sidecar/generated/protocol_v0.hpp,0,0,0,1
 native/sidecar/protocol_tests.py,0,0,4,0
 native/sidecar/protocol_unit_tests.cpp,1,1,0,0
 native/sidecar/session.cpp,2,0,2,1
@@ -139,7 +138,6 @@ native/tests/engine_tests.cpp,88,0,0,0
 native/tests/golden_render.cpp,1,2,0,0
 native/tests/lfo_tests.cpp,27,0,0,0
 native/tests/module_tests.cpp,28,0,0,0
-native/tests/provider_bridge_tests.cpp,25,0,0,0
 native/tests/returned_filter_stress.cpp,17,0,0,0
 native/tests/scale_offset_tests.cpp,33,0,0,0
 native/tests2/abi2_returned_filter_stress.cpp,6,0,0,0
@@ -163,3 +161,5 @@ tools/foundation/tests/test_reporting.py,0,0,1,0
 tools/foundation/tests/test_ui_catalogue.py,0,0,1,0
 tools/golden.py,0,9,0,0
 tools/module_cpu_probe.py,0,1,0,0
+tools/protocol/check_sidecar_q13.py,0,0,0,1
+tools/protocol/generate.py,0,0,0,1

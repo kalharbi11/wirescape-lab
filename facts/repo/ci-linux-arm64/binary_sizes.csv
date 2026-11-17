@@ -16,7 +16,7 @@ build/native/libws2_osc_in.so,75488,file
 build/native/libws2_midi_to_cv.so,75464,file
 build/native/ws_vca.module.json,298,file
 build/native/libws2_test_notes.so,73960,file
-build/native/wirescape-engine,2282424,file
+build/native/wirescape-engine,2347720,file
 build/native/libws2_host_keyboard.so,74488,file
 build/native/libws_scale_offset.so,70488,file
 build/native/libws_lfo.so,70536,file
@@ -55,7 +55,6 @@ build/native/ws_lfo.module.json,256,file
 build/native/libws2_chord.so,72616,file
 build/native/libws2_scale_offset.so,72608,file
 build/native/libws2_test_rows.so,71664,file
-build/native/libapp_legacy_fixture.so,70224,file
 build/native/libws_vca.so,70488,file
 build/native/libws_adsr.so,70512,file
 build/native/libws2_osc_out.so,72880,file
@@ -71,9 +70,9 @@ build/native/libws2_spectral.so,73280,file
 build/native/engine2/libwirescape_engine2.a,205046,file
 build/native/engine2/libwirescape_midi_host.a,385494,file
 build/native/engine2/libwirescape_audio_service.a,116284,file
-build/native/engine2/libwirescape_app_engine.a,843372,file
+build/native/engine2/libwirescape_app_engine.a,827550,file
 build/native/engine2/libwirescape_voice2.a,10702,file
-build/native/document/libwirescape_runtime_document.a,448796,file
+build/native/document/libwirescape_runtime_document.a,448964,file
 build/native/engine2/midi_io/libwirescape_midi_service.a,29340,file
 build/native/engine2/midi_io/libwirescape_midi_backend.a,301162,file
 build/native/engine2/macro_oscillator/libmacro_upstream.a,390116,file
@@ -221,7 +220,7 @@ build/native/engine2/CMakeFiles/audio_callback_live_midi_tests.dir/__/tests2/all
 build/native/engine2/CMakeFiles/audio_callback_live_midi_tests.dir/__/io/audio/callback_live_midi_tests.cpp.o,29544,file
 build/native/engine2/CMakeFiles/ws2_vcf.dir/__/modules2/vcf/module.cpp.o,16184,file
 build/native/engine2/CMakeFiles/app_engine_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
-build/native/engine2/CMakeFiles/app_engine_tests.dir/__/control/app_engine_tests.cpp.o,767328,file
+build/native/engine2/CMakeFiles/app_engine_tests.dir/__/control/app_engine_tests.cpp.o,766656,file
 build/native/engine2/CMakeFiles/abi2_osc_in_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_osc_in_tests.dir/__/modules2/osc_in/tests.cpp.o,76304,file
 build/native/engine2/CMakeFiles/ws2_vco.dir/__/modules2/vco/module.cpp.o,17608,file
@@ -279,7 +278,7 @@ build/native/engine2/CMakeFiles/abi2_noise_tests.dir/__/modules2/noise/tests.cpp
 build/native/engine2/CMakeFiles/abi2_sdk_scalar_tests.dir/tests/sdk_tests.cpp.o,20816,file
 build/native/engine2/CMakeFiles/abi2_mixer_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_mixer_tests.dir/__/modules2/mixer/tests.cpp.o,78168,file
-build/native/engine2/CMakeFiles/wirescape_app_engine.dir/__/control/app_engine.cpp.o,800288,file
+build/native/engine2/CMakeFiles/wirescape_app_engine.dir/__/control/app_engine.cpp.o,786120,file
 build/native/engine2/CMakeFiles/abi2_live_replan_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_live_replan_tests.dir/__/tests2/live_replan_tests.cpp.o,141224,file
 build/native/engine2/CMakeFiles/abi2_feedback_tests.dir/tests/feedback_tests.cpp.o,42104,file
@@ -295,7 +294,6 @@ build/native/engine2/CMakeFiles/abi2_host_keyboard_tests.dir/__/modules2/host_ke
 build/native/engine2/CMakeFiles/ws2_host_keyboard.dir/__/modules2/host_keyboard/module.cpp.o,33024,file
 build/native/engine2/CMakeFiles/ws2_test_rows.dir/__/tests2/rows_module.cpp.o,13928,file
 build/native/engine2/CMakeFiles/ws2_lfo.dir/__/modules2/lfo/module.cpp.o,15432,file
-build/native/engine2/CMakeFiles/app_legacy_fixture.dir/__/control/app_legacy_fixture.cpp.o,3360,file
 build/native/engine2/CMakeFiles/ws2_slew.dir/__/modules2/slew/module.cpp.o,18920,file
 build/native/engine2/CMakeFiles/abi2_example_random_source_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_example_random_source_tests.dir/__/sdk/examples/random_source/tests.cpp.o,58560,file
@@ -309,7 +307,7 @@ build/native/document/CMakeFiles/ui_patch_conformance.dir/ui_patch_conformance.c
 build/native/document/CMakeFiles/builtin_source_tests.dir/builtin_source_tests.cpp.o,180320,file
 build/native/document/CMakeFiles/runtime_patch_tests.dir/runtime_patch_tests.cpp.o,518496,file
 build/native/document/CMakeFiles/qt_free_patch_coverage_tests.dir/qt_free_patch_coverage_tests.cpp.o,393608,file
-build/native/document/CMakeFiles/wirescape_runtime_document.dir/runtime_patch.cpp.o,423696,file
+build/native/document/CMakeFiles/wirescape_runtime_document.dir/runtime_patch.cpp.o,423864,file
 build/native/document/CMakeFiles/groove_observation_tests.dir/groove_observation_tests.cpp.o,132616,file
 build/native/document/CMakeFiles/class_demo_cc_depth_tests.dir/class_demo_cc_depth_tests.cpp.o,400648,file
 build/native/document/CMakeFiles/groove_runtime_tests.dir/groove_runtime_tests.cpp.o,733144,file
@@ -332,7 +330,7 @@ build/native/_deps/wirescape_libremidi-build/CMakeFiles/libremidi.dir/include/li
 build/native/_deps/wirescape_libremidi-build/CMakeFiles/libremidi.dir/include/libremidi/backends/emscripten/midi_out.cpp.o,944,file
 build/native/_deps/wirescape_libremidi-build/CMakeFiles/libremidi.dir/include/libremidi/backends/emscripten/midi_in.cpp.o,944,file
 build/native/_deps/wirescape_libremidi-build/CMakeFiles/libremidi.dir/include/libremidi/backends/emscripten/observer.cpp.o,944,file
-build/native/CMakeFiles/sidecar_s0_snapshot_tests.dir/s0_snapshot_session.cpp.o,704024,file
+build/native/CMakeFiles/sidecar_s0_snapshot_tests.dir/s0_snapshot_session.cpp.o,803608,file
 build/native/CMakeFiles/native_engine_tests.dir/tests/engine_tests.cpp.o,61888,file
 build/native/CMakeFiles/native_engine_tests.dir/src/engine.cpp.o,38752,file
 build/native/CMakeFiles/wirescape_osc_service.dir/io/net/osc_service.cpp.o,21752,file
@@ -348,8 +346,6 @@ build/native/CMakeFiles/sidecar_protocol_unit_tests.dir/tests2/allocation_watch.
 build/native/CMakeFiles/sidecar_protocol_unit_tests.dir/sidecar/protocol.cpp.o,324448,file
 build/native/CMakeFiles/sidecar_protocol_unit_tests.dir/sidecar/protocol_unit_tests.cpp.o,166296,file
 build/native/CMakeFiles/sidecar_protocol_unit_tests.dir/sidecar/devices.cpp.o,128168,file
-build/native/CMakeFiles/native_provider_bridge_tests.dir/tests/provider_bridge_tests.cpp.o,25208,file
-build/native/CMakeFiles/native_provider_bridge_tests.dir/control/provider_bridge.cpp.o,8760,file
 build/native/CMakeFiles/native_lfo_tests.dir/tests/lfo_tests.cpp.o,22320,file
 build/native/CMakeFiles/abi2_osc_host_service_tests.dir/io/net/tests.cpp.o,24384,file
 build/native/CMakeFiles/essentials_slew_tests.dir/modules/slew/tests.cpp.o,47072,file
@@ -357,7 +353,7 @@ build/native/CMakeFiles/native_module_tests.dir/tests/module_tests.cpp.o,24672,f
 build/native/CMakeFiles/wirescape_engine_sidecar.dir/sidecar/protocol.cpp.o,324448,file
 build/native/CMakeFiles/wirescape_engine_sidecar.dir/sidecar/devices.cpp.o,128168,file
 build/native/CMakeFiles/wirescape_engine_sidecar.dir/sidecar/main.cpp.o,68880,file
-build/native/CMakeFiles/wirescape_engine_sidecar.dir/sidecar/session.cpp.o,705600,file
+build/native/CMakeFiles/wirescape_engine_sidecar.dir/sidecar/session.cpp.o,804128,file
 build/native/CMakeFiles/sidecar_s0_snapshot_tests.dir/sidecar/protocol.cpp.o,324448,file
 build/native/CMakeFiles/sidecar_s0_snapshot_tests.dir/sidecar/devices.cpp.o,128168,file
 build/native/CMakeFiles/sidecar_s0_snapshot_tests.dir/sidecar/snapshot_tests.cpp.o,169944,file
@@ -366,9 +362,9 @@ build/native/CMakeFiles/essentials_noise_tests.dir/modules/noise/tests.cpp.o,396
 build/native/CMakeFiles/wirescape_osc_host.dir/control/osc_host.cpp.o,262720,file
 build/native/CMakeFiles/wirescape_osc_host.dir/control/osc_out_host.cpp.o,360336,file
 build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/protocol.cpp.o,324448,file
-build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/audio_recovery_tests.cpp.o,740608,file
+build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/audio_recovery_tests.cpp.o,784568,file
 build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/devices.cpp.o,128168,file
-build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/session.cpp.o,705600,file
+build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/sidecar/session.cpp.o,804128,file
 build/native/CMakeFiles/sidecar_audio_recovery_tests.dir/io/audio/device_identity.cpp.o,9464,file
 build/native/CMakeFiles/essentials_function_envelope_tests.dir/modules/function_envelope/tests.cpp.o,48536,file
 build/native/CMakeFiles/ws_test_lfo.dir/modules/lfo/module.cpp.o,5512,file
@@ -379,7 +375,7 @@ build/native/CMakeFiles/abi2_osc_graph_ingress_tests.dir/io/net/graph_tests.cpp.
 build/native/CMakeFiles/essentials_clock_tests.dir/modules/clock/tests.cpp.o,44792,file
 build/native/CMakeFiles/ws_test_vca.dir/modules/vca/module.cpp.o,4736,file
 build/native/CMakeFiles/wirescape_cli.dir/cli/main.cpp.o,35184,file
-build/native/CMakeFiles/wirescape_cli.dir/cli/play.cpp.o,74648,file
+build/native/CMakeFiles/wirescape_cli.dir/cli/play.cpp.o,66184,file
 build/native/tools/render/CMakeFiles/wirescape_render.dir/main.cpp.o,353936,file
 build/native/modules/lfo/CMakeFiles/ws_lfo.dir/module.cpp.o,5512,file
 build/native/modules/slew/CMakeFiles/ws_slew.dir/module.cpp.o,4592,file
@@ -405,11 +401,11 @@ apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff,22104,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff,23916,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2,14888,file
 apps/studio/dist/assets/index-hcJRR-ZL.css,65403,file
-apps/studio/dist/assets/index-ubgIXjPM.js.map,1056053,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2,14708,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2,15620,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2,24184,file
-apps/studio/dist/assets/index-ubgIXjPM.js,409514,file
+apps/studio/dist/assets/index-x-M1rlUQ.js.map,1056053,file
+apps/studio/dist/assets/index-x-M1rlUQ.js,409514,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2,22588,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff,13208,file
 apps/studio/dist/panels/fx.delay.json,20,file

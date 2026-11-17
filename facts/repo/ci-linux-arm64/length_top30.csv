@@ -1,14 +1,14 @@
 path,name,start_line,end_line,length,nloc,cyclomatic_complexity
-native/sidecar/audio_recovery_tests.cpp,main(),285,881,597,571,136
+native/sidecar/audio_recovery_tests.cpp,main(),285,942,658,627,143
 native/document/runtime_module_config.h,"wirescape::document::runtime_module_config_impl( const std :: string & type , const nlohmann :: json & value , uint32_t instance_id , std :: vector<std::string> * ignored_keys)",53,427,375,366,223
-native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),878,1197,320,310,72
+native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),969,1295,327,315,73
 apps/studio/src/app/OscEditor.ts,"showOscEditor ( modal , raw , save ( value : OscConfig ) , readRaw ( row : Pick < OscRow , 'pattern' | 'argument' | 'enabled' > ) ( ) => , subscribe ( refresh : ( ) => void ) ( ) ( ) => } )",70,367,298,152,10
 native/sidecar/protocol_unit_tests.cpp,run_tests(),210,482,273,246,38
 apps/studio/src/app/App.ts,openSettings ( ),1456,1728,273,88,6
 native/web/web_engine_tests.cpp,"main( int argc , char ** argv)",71,338,268,237,37
 native/document/groove_runtime_tests.cpp,test_v2_config_and_conditions( AppEngine * cat),726,991,266,252,89
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::Impl::process_node( Node & n , uint32_t start , uint32_t frames)",554,731,178,173,135
-native/sidecar/session.cpp,"wirescape::sidecar::Session::commit( Json patch , bool new_namespace)",702,877,176,153,34
+native/sidecar/session.cpp,"wirescape::sidecar::Session::commit( Json patch , bool new_namespace)",702,878,177,154,34
 native/modules2/groove/dsp.h,groove::Sequencer::process( ws :: Block & b),393,566,174,164,84
 native/engine2/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,217,159,157,71
 native/engine2/engine2.cpp,"wirescape::engine2::Engine::replan( Engine & candidate , uint64_t timeout_ns)",1118,1270,153,147,59

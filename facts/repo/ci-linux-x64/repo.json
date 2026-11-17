@@ -2,12 +2,12 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "binary_sizes": {
-      "files": 443,
+      "files": 439,
       "missing_roots": 0
     },
-    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
+    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
     "complexity": {
-      "functions": 3864,
+      "functions": 3847,
       "lizard_version": "not exposed"
     },
     "date_et": "2026-11-16",
@@ -16,28 +16,28 @@
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
     },
     "graph": {
-      "edges": 288,
+      "edges": 280,
       "svg": true,
-      "targets": 170
+      "targets": 168
     },
     "includes": {
-      "direct_includes": 389,
-      "files": 48
+      "direct_includes": 385,
+      "files": 46
     },
     "loc": {
       "cloc": "[path]",
-      "files": 599
+      "files": 609
     },
     "long_lines": {
-      "files": 264,
-      "over_120": 792,
+      "files": 261,
+      "over_120": 787,
       "over_200": 206
     },
     "machine": {
       "architecture": "x86_64",
       "audio_devices": "not accessed",
       "cpu": "x86_64",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
     },
     "methods": {
       "complexity": "lizard function analyzer",
@@ -56,27 +56,27 @@
       },
       "scope": "native/, apps/, tools/ tracked text files",
       "totals": {
-        "abi1_symbols": 783,
-        "agent_names": 10,
+        "abi1_symbols": 729,
+        "agent_names": 14,
         "issue_refs": 181,
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1399
+    "source_files_tracked": 1429
   },
   "provenance": {
-    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
+    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.82.6",
+      "runner_image_version": "20261111.196.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

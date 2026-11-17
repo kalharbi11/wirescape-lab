@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
+    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
     "date_et": "2026-11-16",
     "machine": {
       "architecture": "aarch64",
@@ -11,15 +11,15 @@
     },
     "suites": {
       "ctest": {
-        "count": 117,
+        "count": 118,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.116888,
+          "seconds": 0.115678,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 31.202874,
+          "seconds": 32.14808,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.805269,
+          "seconds": 0.84357,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 95.660933,
+          "seconds": 97.204555,
           "status": "passed"
         }
       },
@@ -40,17 +40,17 @@
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.453756,
+          "seconds": 1.290147,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 449.244864,
+          "seconds": 447.631319,
           "status": "passed"
         }
       },
       "protocol": {
-        "count": 6,
+        "count": 7,
         "method": "CTest test names containing sidecar or protocol",
         "time": "included in ctest suite"
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 20.64301,
+          "seconds": 19.814844,
           "status": "passed"
         }
       },
@@ -71,7 +71,7 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "2c4d3d083fdd24299e31d86828629033d61edf0a",
+    "commit": "70f2e218d6834385c8acd4f5997bc750591aa9eb",
     "date_et": "2026-11-16",
     "machine": {
       "audio_devices": "not accessed",
