@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "engine2.h"
 #include "midi_release.h"
-#include "wirescape/module.h"
 #include "wirescape_sdk.h"
 #include <algorithm>
 #include <array>
@@ -99,9 +98,9 @@ struct Edge;
 struct Node {
     uint32_t id=0,index=0,component=0;const ws2_descriptor*d=nullptr;
     uint64_t born_revision = 0;
-    const ws_module_descriptor*legacy=nullptr;void*instance=nullptr;
+    void*instance=nullptr;
     std::vector<ws2_port>inputs,outputs;
-    std::vector<ws2_param>parameters;std::vector<std::string>legacy_ids;
+    std::vector<ws2_param>parameters;
     std::vector<Edge*>incoming,signal_edges;
     std::vector<std::vector<Edge*>>modulation,outgoing;
     std::vector<Parameter>state;std::vector<uint8_t>config,preserved;
@@ -121,13 +120,12 @@ struct Node {
         float value = std::numeric_limits<float>::quiet_NaN();
     } pitch;
     std::vector<ws2_event>events;std::vector<Item>pending;
-    std::vector<const float*>legacy_in;std::vector<float*>legacy_out;
     int forced_channels=-1;uint32_t channels=1,latency=0;
     bool loop=false,touched=false;size_t requested_fast=0,requested_large=0;
     void*emit_context=nullptr;
     ~Node(){clear_instance();}
     void clear_instance() {
-        if(instance){if(legacy)legacy->destroy(instance);else if(d)d->destroy(instance);instance=nullptr;}
+        if(instance){if(d)d->destroy(instance);instance=nullptr;}
         for(auto&a:allocations)::operator delete(a.p,std::align_val_t(a.alignment));
         allocations.clear();requested_fast=requested_large=0;
     }
@@ -142,7 +140,7 @@ struct Node {
     ws2_host host(){return {sizeof(ws2_host),this,allocate};}
 };
 bool pitch_layout(const Node *node, Node::Pitch &pitch) {
-    if (!node || node->legacy) return false;
+    if (!node) return false;
     pitch.vco = !std::strcmp(node->d->id, "essentials.vco");
     if (!pitch.vco && std::strcmp(node->d->id, "ports.macro_oscillator")) return false;
     const auto index = [](const auto &ports, const char *id) {
@@ -165,7 +163,7 @@ bool valid_tap(const Node *node, const Tap &tap) {
         Node::Pitch layout;
         return tap.index == 0 && pitch_layout(node, layout);
     }
-    if (tap.kind == Tap::Param) return !node->legacy && tap.index < node->parameters.size();
+    if (tap.kind == Tap::Param) return tap.index < node->parameters.size();
     return tap.index < node->outputs.size() &&
            node->outputs[tap.index].kind == (tap.kind == Tap::EventOut ? WS2_EVENT : WS2_SIGNAL);
 }
@@ -240,7 +238,7 @@ struct Engine::Impl {
     }
     void reset_processors()noexcept {
         for(auto&n:nodes){
-            if(n->legacy)n->legacy->reset(n->instance);else n->d->reset(n->instance);
+            n->d->reset(n->instance);
             n->pitch.latest = 0;
             n->pitch.note_on.fill(false);
             n->pitch.high.fill(false);
@@ -275,13 +273,7 @@ struct Engine::Impl {
 bool Engine::Impl::setup(Node&n) {
     n.clear_instance();n.allocations.reserve(64);
     ws2_config config{sizeof(ws2_config),cfg.sample_rate,cfg.max_block,cfg.max_channels,cfg.seed+n.id,n.config.data(),static_cast<uint32_t>(n.config.size())};
-    if(n.legacy){
-        n.instance=n.legacy->create(cfg.sample_rate);
-        ws_module_config old{sizeof(old),cfg.max_block,cfg.sample_rate,generation.load()};
-        if(!n.instance||n.legacy->prepare(n.instance,&old))return fail("ABI1 shim prepare failed");
-        for(auto&p:n.state)if(p.requested){ws_module_event e{WS_PARAMETER,p.info.legacy_index,static_cast<float>(ws::to_plain(p.info,p.base.value())),0,0};n.legacy->event(n.instance,&e);}
-    }else{
-        auto host=n.host();n.instance=n.d->create(&host);
+    auto host=n.host();n.instance=n.d->create(&host);
         if(!n.instance)return fail("ABI2 create failed");
         ws2_ports ports{sizeof(ports),0,0,nullptr,nullptr};
         if(n.d->query_ports(n.instance,&config,&ports)!=WS2_OK||ports.input_count>WS2_MAX_PORTS||ports.output_count>WS2_MAX_PORTS||
@@ -293,7 +285,6 @@ bool Engine::Impl::setup(Node&n) {
         ws2_memory memory{sizeof(memory),0,0,0};
         if(n.d->memory_requirements(&config,&memory)!=WS2_OK||memory.fast_bytes<n.requested_fast||memory.large_bytes<n.requested_large)return fail("Module memory report understates requested storage");
         n.latency=n.d->latency_frames(n.instance);
-    }
     auto check_ports=[&](const std::vector<ws2_port>&ports){
         for(size_t i=0;i<ports.size();++i){const auto&p=ports[i];if(p.struct_size<sizeof(ws2_port)||!p.id||!p.name||
             (p.kind!=WS2_SIGNAL&&p.kind!=WS2_EVENT)||p.poly>WS2_FIRST||!std::isfinite(p.unpatched_value))return false;
@@ -308,7 +299,6 @@ bool Engine::Impl::setup(Node&n) {
     n.port_events.resize(n.inputs.size());n.event_view.resize(n.inputs.size());n.event_outputs.resize(n.outputs.size());
     for(auto&events:n.port_events)events.reserve(cfg.event_budget);
     n.events.reserve(cfg.event_budget);n.pending.reserve(cfg.event_budget);
-    n.legacy_in.resize(n.inputs.size());n.legacy_out.resize(n.outputs.size());
     for(auto&p:n.state){p.base.prepare(cfg.sample_rate);p.offset.fill(0);}
     for(uint32_t i=0;i<n.outputs.size();++i)n.event_outputs[i]={sizeof(ws2_event_out),this,i,emit};
     setup_bytes+=n.requested_fast+n.requested_large;
@@ -552,7 +542,7 @@ bool Engine::Impl::route(uint32_t port,const ws2_event&source) {
 }
 
 void Engine::Impl::process_node(Node&n,uint32_t start,uint32_t frames) {
-    const bool direct=!n.loop&&!n.legacy;
+    const bool direct=!n.loop;
     n.events.clear();for(auto&v:n.port_events)v.clear();
     std::sort(n.pending.begin(),n.pending.end(),ordered);
     for(const auto&item:n.pending)if(item.frame>=block_start+start&&item.frame<block_start+start+frames){
@@ -569,7 +559,7 @@ void Engine::Impl::process_node(Node&n,uint32_t start,uint32_t frames) {
         return channel<buffer.channels?buffer.data[channel][(buffer.flags&WS2_CONSTANT)?0:start+i]:0.f;
     };
     uint32_t channels=n.forced_channels>0?static_cast<uint32_t>(n.forced_channels):1;
-    if(!n.legacy)for(const auto*edge:n.signal_edges){const auto&e=*edge;if(e.kind==2?(n.parameters[e.input].flags&WS2_PER_VOICE)!=0:n.inputs[e.input].poly==WS2_POLY)channels=std::max(channels,raw_channels(e));}
+    for(const auto*edge:n.signal_edges){const auto&e=*edge;if(e.kind==2?(n.parameters[e.input].flags&WS2_PER_VOICE)!=0:n.inputs[e.input].poly==WS2_POLY)channels=std::max(channels,raw_channels(e));}
     channels=std::min(channels,cfg.max_channels);n.channels=channels;
     for(uint32_t j=0;j<n.inputs.size();++j){
         const auto&port=n.inputs[j];auto&buffer=n.in[j];const Edge*source=nullptr;
@@ -592,7 +582,7 @@ void Engine::Impl::process_node(Node&n,uint32_t start,uint32_t frames) {
         n.in_view[j]={sizeof(ws2_signal),buffer.read.data(),buffer.channels,buffer.flags};
         n.event_view[j]={sizeof(ws2_event_list),static_cast<uint32_t>(n.port_events[j].size()),n.port_events[j].data()};
     }
-    if(!n.legacy)for(uint32_t j=0;j<n.parameters.size();++j){
+    for(uint32_t j=0;j<n.parameters.size();++j){
         auto&p=n.state[j];auto&buffer=n.param[j];bool poly=false,constant=p.base.constant();
         for(uint32_t c=1;c<channels;++c)poly|=p.offset[c]!=p.offset[0];
         for(const auto*edge:n.modulation[j]){const auto&e=*edge;poly|=raw_channels(e)>1;constant&=!e.back&&(e.source->global_out[e.output].flags&WS2_CONSTANT);}
@@ -624,26 +614,7 @@ void Engine::Impl::process_node(Node&n,uint32_t start,uint32_t frames) {
     for(uint32_t j=0;j<n.outputs.size();++j)n.out_view[j]={sizeof(ws2_signal_out),(direct?n.global_out[j]:n.local_out[j]).data.data(),channels,0,cfg.max_channels};
     processing=&n;processing_start=start;processing_frames=frames;
     if(n.forced_channels==0){for(auto&o:n.out_view){o.channels=0;o.flags=WS2_CONSTANT;}}
-    else if(n.legacy){
-        uint32_t cursor=0;
-        auto span=[&](uint32_t end){if(end<=cursor)return;
-            for(uint32_t j=0;j<n.in.size();++j){auto&b=n.in[j];if(b.flags&WS2_CONSTANT)std::fill_n(b.data[0],frames,b.data[0][0]);n.legacy_in[j]=b.data[0]+cursor;}
-            for(uint32_t j=0;j<n.local_out.size();++j)n.legacy_out[j]=n.local_out[j].data[0]+cursor;
-            ws_process_context c{sizeof(c),end-cursor,block_start+start+cursor,generation.load()};
-            n.legacy->process(n.instance,n.legacy_in.data(),n.legacy_out.data(),&c);cursor=end;
-        };
-        for(const auto&e:n.events){span(e.offset);
-            ws_module_event old{};old.source_id=e.source_id;old.note_id=static_cast<uint32_t>(e.note_id);old.parameter_id=e.index;old.value=e.value;
-            if(e.type==WS2_PARAM){old.type=WS_PARAMETER;if(e.index<n.state.size()){auto&v=n.state[e.index];old.parameter_id=v.info.legacy_index;v.base.jump(ws::to_normal(v.info,e.value));v.requested=true;}}
-            else if(e.type==WS2_NOTE_ON){old.type=WS_NOTE_ON;old.value=static_cast<float>(e.key);}
-            else if(e.type==WS2_NOTE_OFF||e.type==WS2_NOTE_CHOKE)old.type=WS_NOTE_OFF;
-            else continue;
-            n.legacy->event(n.instance,&old);
-        }span(frames);
-        bool finite=true;
-        for(auto&o:n.out_view){o.channels=1;o.flags=0;finite&=ws::finite_samples(o.data[0],frames);}
-        if(!finite){++faults;for(auto&o:n.out_view){o.flags=WS2_CONSTANT;o.data[0][0]=0;}}
-    }else{
+    else{
         ws2_transport transport{sizeof(ws2_transport),cfg.playing?WS2_PLAYING:0u,cfg.bpm,
             beat+(cfg.playing?start*cfg.bpm/(60.*cfg.sample_rate):0),0,4,4,0,0};
         transport.bar_start=std::floor(transport.beat/4)*4;
@@ -746,14 +717,6 @@ bool Engine::add_node(uint32_t id,const ws2_descriptor*d,const std::vector<uint8
     if(!p.setup(*n))return false;
     p.nodes.push_back(std::move(n));return true;
 }
-bool Engine::add_abi1(uint32_t id,const ws_module_descriptor*d){
-    auto&p=*p_;if(p.prepared||!id||p.find(id)||p.nodes.size()>=p.cfg.max_nodes||!d||d->struct_size<sizeof(ws_module_descriptor)||d->abi_version!=WS_ABI_VERSION||!d->create||!d->prepare||!d->process||!d->reset||!d->destroy||!d->event)return p.fail("Invalid ABI1 node");
-    auto n=std::make_unique<Node>();n->id=id;n->legacy=d;n->legacy_ids.resize(d->parameter_count);
-    for(uint32_t i=0;i<d->input_count;++i){auto&v=d->inputs[i];n->inputs.push_back(ws::port(v.id,v.name,v.kind==WS_AUDIO?WS2_AUDIO:WS2_ANY,WS2_FIRST,!std::strcmp(v.id,"gain_cv")?1.f:0.f));}
-    for(uint32_t i=0;i<d->output_count;++i){auto&v=d->outputs[i];n->outputs.push_back(ws::port(v.id,v.name,v.kind==WS_AUDIO?WS2_AUDIO:WS2_ANY));}
-    for(uint32_t i=0;i<d->parameter_count;++i){const auto&v=d->parameters[i];n->legacy_ids[i]=std::to_string(v.id);n->parameters.push_back(ws::param(n->legacy_ids[i].c_str(),v.name,v.minimum,v.maximum,v.initial,v.unit,WS2_STEPPED,WS2_LINEAR,v.id));n->state.emplace_back(n->parameters.back());}
-    p.nodes.push_back(std::move(n));return true;
-}
 bool Engine::connect(uint32_t from,uint32_t output,uint32_t to,uint32_t input){
     auto&p=*p_;auto*a=p.find(from),*b=p.find(to);if(p.prepared||!a||!b||output>=a->outputs.size()||input>=b->inputs.size())return p.fail("Invalid connection");
     auto kind=a->outputs[output].kind;if(kind!=b->inputs[input].kind)return p.fail("Signal/event kind mismatch");
@@ -818,9 +781,9 @@ bool Engine::prepare(){
 bool Engine::set_parameter(uint32_t node,uint32_t index,float plain){auto&p=*p_;auto*n=p.find(node);if(!n||index>=n->parameters.size()||!std::isfinite(plain))return false;auto&v=n->state[index];if(plain<v.info.minimum||plain>v.info.maximum)return false;
     if(p.prepared&&p.position.load()!=0)return p.fail("Use PARAM ingress for live changes");
     v.base.set(ws::to_normal(v.info,plain));v.requested=true;
-    if(n->legacy&&n->instance){ws_module_event e{WS_PARAMETER,v.info.legacy_index,plain,0,0};n->legacy->event(n->instance,&e);}return true;
+    return true;
 }
-bool Engine::set_channels(uint32_t node,uint32_t channels){auto*n=p_->find(node);if(!n||channels>p_->cfg.max_channels||(n->legacy&&channels!=1))return false;n->forced_channels=static_cast<int>(channels);return true;}
+bool Engine::set_channels(uint32_t node,uint32_t channels){auto*n=p_->find(node);if(!n||channels>p_->cfg.max_channels)return false;n->forced_channels=static_cast<int>(channels);return true;}
 
 int Engine::enqueue(uint32_t producer,uint32_t node,uint32_t port,const ws2_event&event,uint64_t time,Timing mode,uint64_t wanted_generation)noexcept {
     auto&p=*p_;if(!p.prepared||producer>=p.producer_count)return WS2_STATE;
@@ -1012,13 +975,13 @@ std::vector<FeedbackLoop>Engine::feedback_loops()const{
 }
 
 std::vector<uint8_t>Engine::save_state(uint32_t node){
-    auto*n=p_->find(node);if(!n||n->legacy)return {};
+    auto*n=p_->find(node);if(!n)return {};
     if(!n->preserved.empty())return n->preserved;
     std::vector<uint8_t>bytes;ws2_writer writer{sizeof(writer),&bytes,[](void*ctx,const void*data,uint32_t count){auto&out=*static_cast<std::vector<uint8_t>*>(ctx);if(count>1024*1024-out.size())return int(WS2_CAPACITY);auto*p=static_cast<const uint8_t*>(data);out.insert(out.end(),p,p+count);return int(WS2_OK);}};
     return n->d->save_state(n->instance,&writer)==WS2_OK?bytes:std::vector<uint8_t>{};
 }
 int Engine::load_state(uint32_t node,const std::vector<uint8_t>&bytes){
-    auto*n=p_->find(node);if(!n||n->legacy||bytes.size()>1024*1024)return WS2_INVALID;
+    auto*n=p_->find(node);if(!n||bytes.size()>1024*1024)return WS2_INVALID;
     struct Context{const std::vector<uint8_t>&bytes;size_t cursor=0;}context{bytes};
     ws2_reader reader{sizeof(reader),&context,[](void*ctx,void*data,uint32_t count){auto&c=*static_cast<Context*>(ctx);if(count>c.bytes.size()-c.cursor)return int(WS2_INVALID);std::memcpy(data,c.bytes.data()+c.cursor,count);c.cursor+=count;return int(WS2_OK);},static_cast<uint32_t>(bytes.size())};
     int result=n->d->load_state(n->instance,&reader);
@@ -1033,13 +996,12 @@ bool Engine::reconfigure(uint32_t node,const std::vector<uint8_t>&config){
     // Stage metadata for retained nodes; only the changed node creates/prepares DSP.
     for(auto&n:old.nodes){
         if(n->id==node){
-            if(!(n->legacy?next.add_abi1(n->id,n->legacy):next.add_node(n->id,n->d,config)))return old.fail("Cannot stage reconfiguration");
+            if(!next.add_node(n->id,n->d,config))return old.fail("Cannot stage reconfiguration");
             auto*target=fresh.find(node);target->config=config;
             target->forced_channels=n->forced_channels;target->state=n->state;
             for(uint32_t i=0;i<target->state.size();++i)target->state[i].info=target->parameters[i];
-            if(n->legacy&&!fresh.setup(*target))return old.fail("Staged shim prepare failed");
         }else{
-            auto target=std::make_unique<Node>();target->id=n->id;target->d=n->d;target->legacy=n->legacy;
+            auto target=std::make_unique<Node>();target->id=n->id;target->d=n->d;
             target->inputs=n->inputs;target->outputs=n->outputs;target->parameters=n->parameters;
             target->forced_channels=n->forced_channels;target->latency=n->latency;
             fresh.nodes.push_back(std::move(target));
@@ -1073,7 +1035,7 @@ bool Engine::reconfigure(uint32_t node,const std::vector<uint8_t>&config){
     }
     if(!remapped.empty()&&!next.set_telemetry_taps(remapped))return old.fail("Cannot stage telemetry tap layout");
     if(!fresh.finish_prepare())return old.fail("Staged graph prepare failed");
-    if(!changed->legacy){auto bytes=save_state(node);if(!bytes.empty()){int r=next.load_state(node,bytes);if(r!=WS2_OK&&r!=WS2_UNSUPPORTED)return old.fail("Staged state restore failed");}}
+    auto bytes=save_state(node);if(!bytes.empty()){int r=next.load_state(node,bytes);if(r!=WS2_OK&&r!=WS2_UNSUPPORTED)return old.fail("Staged state restore failed");}
     std::vector<Node*>actual;actual.reserve(fresh.nodes.size());
     for(auto&n:fresh.nodes)actual.push_back(n->id==node?n.get():old.find(n->id));
     // Preserve unchanged loop delay lines as well as processor state.
@@ -1104,17 +1066,6 @@ bool Engine::reconfigure(uint32_t node,const std::vector<uint8_t>&config){
     fresh.generation.store(old.generation.load()+1);fresh.applied.store(fresh.generation.load());p_.swap(next.p_);return true;
 }
 
-bool Engine::rebind_abi1_descriptor(uint32_t node, const ws_module_descriptor *d) {
-    auto *n = p_->find(node);
-    if (!n || !n->legacy || !d || !d->id || std::string_view(n->legacy->id) != d->id ||
-        n->legacy->create != d->create || n->legacy->destroy != d->destroy || n->legacy->prepare != d->prepare ||
-        n->legacy->process != d->process || n->legacy->event != d->event || n->legacy->input_count != d->input_count ||
-        n->legacy->output_count != d->output_count || n->legacy->parameter_count != d->parameter_count)
-        return false;
-    n->legacy = d;
-    return true;
-}
-
 bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     auto &old = *p_;
     auto &fresh = *candidate.p_;
@@ -1139,7 +1090,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     for (size_t i = 0; i < fresh.nodes.size(); ++i) {
         auto &n = *fresh.nodes[i];
         auto *prior = old.find(n.id);
-        if (prior && prior->d == n.d && prior->legacy == n.legacy && prior->config == n.config) {
+        if (prior && prior->d == n.d && prior->config == n.config) {
             if (prior->inputs.size() != n.inputs.size() || prior->outputs.size() != n.outputs.size() ||
                 prior->parameters.size() != n.parameters.size())
                 return old.fail("Surviving node ports changed");
