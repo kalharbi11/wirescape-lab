@@ -1,6 +1,30 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CURRENT — lab workflow handoff
 
+## Active delivery ownership and batch — gpt-lead, 2026-11-17 (ET)
+
+**Owner transfer:** sole delivery lead is **gpt-lead**, LOCAL thread `01a1e813-1659-7321-a966-584497b0c937` (**WLAB | LEAD | 6**).
+This supersedes historical active-claude-lead and separate-M1-lead wording below. Fable owns design and milestone acceptance; owner-invoked Claude sessions retain their signed role without acquiring delivery ownership. Previous root has handed over. No workflow/role redesign is started.
+
+**Owner-selected regular ChatGPT routes (SR12):**
+| Writer | Fresh chat ID | One current task / exact starting head | Release |
+|---|---|---|---|
+| B1 | `6afbec88-faa0-83ea-be48-a4e738acaf6d` | [#165 E1b-r](https://github.com/kalharbi11/wirescape-lab/issues/165), new branch/PR from `3fbadbd0fc4d34d06436119e96d5170cf74d1ea3` | Q20/M2r4; mandatory pre-code debounce comment + test(h); normal two corrections |
+| B2 | `6afbec9f-a42c-83e8-a009-aceb1b88bf60` | [#153](https://github.com/kalharbi11/wirescape-lab/pull/153), `2c003e92d27f5985473869faf75f38e1c1913143` | [SR6(b) final packet6940241791](https://github.com/kalharbi11/wirescape-lab/pull/153#issuecomment-6940241791): actual TimeoutExpired structured C4 regression; ordinary2/2 remains spent |
+| B3 | `6afbecae-9d8c-83ea-84b6-48199bdd4d9a` | [#152](https://github.com/kalharbi11/wirescape-lab/pull/152), `1847d58ef8c492a0a3c169d5b96aa2b578a82af7` | [Correction2/2,6940242752](https://github.com/kalharbi11/wirescape-lab/pull/152#issuecomment-6940242752): real essentials.quad_vca probe/test + hosted capture/facts; then #150 only after lead release |
+| B4 | `6afbecbc-f994-83ea-9de0-19eda5e9f2c1` | [#159](https://github.com/kalharbi11/wirescape-lab/pull/159), `b438613f7734c9c13196210ad3c452dca8c20b47` | [Q19 restoration,6940243690](https://github.com/kalharbi11/wirescape-lab/pull/159#issuecomment-6940243690): one push/no round, seven Offline Facts rows,97 paired; mandatory independent Claude review follows settled head |
+
+Older continuation writers were told STOP before the transfers. Historical rounds/branches/PRs carry over. Prompts have been delivered via app tools; substantive execution still requires verification, and idle/active titles alone are not proof. No Work/Codex substitute builders. B1's old chat explicitly reports #155 **never started**, with no branch/PR/write; #155 stays queued while free B1 takes critical E1b-r. #125 is superseded by concrete #165; #130 stays closed unmerged with preserved branch.
+
+**CI1 Q17:** cache save timestamp in main Lab43990935312 is `2026-11-17T00:59:31.7337289Z`.
+S3 Lab43991231173 was created `00:53:11Z`, before save, so its restored302.020s is not the literal qualifying run. Later sampled docs runs skip sanitizers. K8 remains pending, one qualifying measurement only; no acceptance or selected later retry. [#163](https://github.com/kalharbi11/wirescape-lab/pull/163) remains dated GAP-ONLY evidence for review.
+
+**Preservation/operation:** both existing Codex automations verified **PAUSED**, remain paused. No new timer/check-in/polling loop. Shared checkout stays device-results branch at `284dfa9330ffd33473cf8fd10e721d66fdb8e877`, all untracked captures and `.tmp-s2-review` preserved. GitHub API branches isolate lead notes. Main reviewed before batch: `dd0af89d4d2a3de3682c965374300c6388ebf827` (#164/Fable run2); inspect newly merged rulings before conflicting decisions. No devices/audio/MIDI/LAN/settings/gate changes. SR19 keeps unrelated lanes moving.
+
+Signed: gpt-lead, 2026-11-17
+
+---
+
 ## Design seat update — Fable, 2026-11-16 (run 2 of 2)
 This block is newer than the reviewer's block below and replaces its two "Fable/design seat"
 items. Operational PR heads below are the reviewer's snapshot and are not re-verified here.
