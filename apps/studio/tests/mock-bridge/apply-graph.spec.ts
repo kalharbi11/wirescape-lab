@@ -496,6 +496,98 @@ test('SR6b partial A then B confirmed: undo B returns to reconciled A, never amp
   await expectGraphCommands(page, ['applyGraph', 'applyGraph', 'applyGraph']);
 });
 
+test('Q14 queued A/B/C before A ACK: partial A, accepted B, refused C keep confirmed undo/redo history', async ({ page }) => {
+  await setup(page, true, [{ id: 2, module: 'essentials.vco',
+    parameters: { frequency: 220, amplitude: 0.5 } }]);
+  const authoredUi = (await state(page)).ui;
+  // The actual document and History author all three values before A's ACK.
+  // In particular B's checkpoint already contains optimistic A=440/0.7.
+  await page.evaluate(([a, b, c]) => {
+    const bridge = (window as any).__mockBridge;
+    const t = window.__wirescapeTest;
+    const author = (frequency: number, amplitude: number) => {
+      t.doc.setParam(2, 'frequency', frequency);
+      t.doc.setParam(2, 'amplitude', amplitude);
+      t.flushHistory();
+    };
+    bridge.holdNext('applyGraph');
+    author(440, 0.7);
+    bridge.setUnapplied([{ moduleId: 2, paramId: 'amplitude' }]);
+    t.restoreSnapshot(a);
+    author(660, 0.8);
+    t.restoreSnapshot(b);
+    author(880, 0.9);
+    t.restoreSnapshot(c);
+  }, [frequencySnapshot(440, 0.7), frequencySnapshot(660, 0.8), frequencySnapshot(880, 0.9)]);
+  // Prove B/C are in the RealEngine queue, not authored after A confirms.
+  await expectGraphCommands(page, ['applyGraph']);
+  const queued = await page.evaluate(() => {
+    const engine = window.__wirescapeTest.engine as any;
+    return engine.graphQueue.map((request: any) => {
+      const parameters = request.patch.modules[0].parameters;
+      return [parameters.frequency, parameters.amplitude];
+    });
+  });
+  expect(queued).toEqual([[660, 0.8], [880, 0.9]]);
+  expect((await graphCheckpoint(page)).history).toEqual({ past: 3, future: 0 });
+
+  // Confirm A with native-unapplied amplitude. Hold B before the A reply
+  // allows RealEngine to dispatch its next queued request.
+  await page.evaluate(() => {
+    const bridge = (window as any).__mockBridge;
+    bridge.holdNext('applyGraph');
+    bridge.acceptHeld();
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed)
+    .toEqual({ frequency: 440, amplitude: 0.5 });
+  expect((await graphCheckpoint(page)).authored).toEqual({ frequency: 880, amplitude: 0.9 });
+
+  // B is a legitimate later edit: preserve its 660/0.8 after it confirms.
+  // The already-queued C is held, then refused without changing native B.
+  await page.evaluate(() => {
+    const bridge = (window as any).__mockBridge;
+    bridge.holdNext('applyGraph');
+    bridge.acceptHeld();
+  });
+  await expectGraphCommands(page, ['applyGraph', 'applyGraph', 'applyGraph']);
+  await expect.poll(async () => (await graphCheckpoint(page)).confirmed)
+    .toEqual({ frequency: 660, amplitude: 0.8 });
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld());
+  await equalConfirmed(page, 660, 0.8);
+  const anchor = await graphCheckpoint(page);
+  expect(anchor.authored).toEqual(anchor.confirmed);
+  expect(anchor.native).toEqual(anchor.confirmed);
+  expect(anchor.history).toEqual({ past: 2, future: 0 });
+  expect(anchor.canUndo).toBe(true);
+  expect(anchor.canRedo).toBe(false);
+
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 440, 0.5);
+  expect((await graphCheckpoint(page)).history).toEqual({ past: 1, future: 1 });
+  expect((await state(page)).ui).toEqual(authoredUi);
+  await page.evaluate(() => window.__wirescapeTest.redo());
+  await equalConfirmed(page, 660, 0.8);
+  expect((await graphCheckpoint(page)).history).toEqual(anchor.history);
+  // Repeat through the baseline and back: saved past, current and future
+  // must all retain the confirmed A value without flattening legitimate B.
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 440, 0.5);
+  await page.evaluate(() => window.__wirescapeTest.undo());
+  await equalConfirmed(page, 220, 0.5);
+  await page.evaluate(() => window.__wirescapeTest.redo());
+  await equalConfirmed(page, 440, 0.5);
+  await page.evaluate(() => window.__wirescapeTest.redo());
+  await equalConfirmed(page, 660, 0.8);
+  expect(await graphCheckpoint(page)).toMatchObject({
+    authored: { frequency: 660, amplitude: 0.8 },
+    confirmed: { frequency: 660, amplitude: 0.8 },
+    native: { frequency: 660, amplitude: 0.8 },
+    history: anchor.history,
+  });
+  await expectGraphCommands(page, Array(9).fill('applyGraph'));
+});
+
 test('Q14 normal undo and redo move exactly one history entry with confirmed graph', async ({ page }) => {
   await setup(page, true, [{ id: 2, module: 'essentials.vco', parameters: { frequency: 220 } }]);
   const baseline = await graphCheckpoint(page);

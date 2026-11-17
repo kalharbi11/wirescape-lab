@@ -3,7 +3,7 @@ import { connKey } from './../patch/types';
 import { ModuleRegistry, findParam, findPort } from '../modules/registry';
 import { PanelOverrides } from '../panels/layouts';
 import { PatchDoc } from '../patch/PatchDoc';
-import { History } from '../patch/History';
+import { History, type HistoryCheckpoint } from '../patch/History';
 import type { Connection, PatchV2 } from '../patch/types';
 import { FakeEngine } from '../engine/FakeEngine';
 import { RealEngine } from '../engine/RealEngine';
@@ -99,12 +99,15 @@ export class App {
   private learnEpoch = -1;
   private fileInput!: HTMLInputElement;
   private history!: History;
-  private snapshotRollback?: () => void;
+  private snapshotRollback?: HistoryCheckpoint;
   /** One authoritative document/dirty/history anchor for all pending graph
    * snapshots. Incremental requests must drain before the first anchor opens. */
   private graphChain: {
     epoch: number; pending: number; refused: boolean;
-    anchor: { patch: PatchV2; dirty: boolean; restoreHistory: () => void };
+    anchor: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint };
+    /** Saved cursors are copied at authoring time, before preceding ACKs.
+     * Keep only cursors in this in-flight chain, not unrelated history. */
+    checkpoints: Set<HistoryCheckpoint>;
   } | null = null;
   private undoBtn!: HTMLButtonElement;
   private redoBtn!: HTMLButtonElement;
@@ -596,28 +599,35 @@ export class App {
   }
 
   private applyAuthoredGraph(
-    before: { patch: PatchV2; dirty: boolean; restoreHistory: () => void },
+    before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
     submitted: PatchV2,
   ): Promise<void> {
     const engine = this.editEngine(), epoch = this.viewEpoch;
     let chain = this.graphChain;
     if (!chain || chain.epoch !== epoch) {
-      chain = { epoch, pending: 0, refused: false, anchor: before };
+      chain = { epoch, pending: 0, refused: false, anchor: before,
+        checkpoints: new Set<HistoryCheckpoint>() };
       this.graphChain = chain;
     }
     const activeChain = chain;
     // Save the authored history *now*, before a second snapshot can advance it.
     const after = { patch: structuredClone(submitted), dirty: this.doc.dirty,
       restoreHistory: this.history.checkpoint() };
+    // B and C may capture A's optimistic values before A's partial ACK.
+    // Both before/after saved cursors must be normalized when A confirms.
+    activeChain.checkpoints.add(before.restoreHistory);
+    activeChain.checkpoints.add(after.restoreHistory);
     activeChain.pending++;
     return engine.applyGraph(submitted).then(() => {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
       const confirmed = engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch;
-      // Keep the saved history contents as authoritative as the confirmed
-      // document: an unapplied parameter must not return on later undo/redo.
-      after.restoreHistory.reconcile(after.patch, confirmed);
+      // A later request's saved rollback cursor may predate this ACK.
+      // Reconcile every same-chain cursor, as well as live History, using
+      // History's exact non-UI graph match. A distinct B value is untouched.
+      for (const checkpoint of activeChain.checkpoints)
+        checkpoint.reconcile(after.patch, confirmed);
       activeChain.anchor = { ...after, patch: confirmed };
     }).catch(err => {
       // A refusal of A also rejects queued B. Only the first rejection restores
