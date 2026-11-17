@@ -160,6 +160,7 @@ tools/foundation/tests/test_build_parallel.py,0,1,0,0
 tools/foundation/tests/test_reporting.py,0,0,1,0
 tools/foundation/tests/test_ui_catalogue.py,0,0,1,0
 tools/golden.py,0,9,0,0
+tools/module/runner/abi_ws2.h,2,0,0,0
 tools/module_cpu_probe.py,0,1,0,0
 tools/protocol/check_sidecar_q13.py,0,0,0,1
 tools/protocol/generate.py,0,0,0,1

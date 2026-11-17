@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "arch": "arm64",
@@ -13,39 +13,39 @@
     "results": [
       {
         "action": "knob",
-        "frames": 62,
-        "max_ms": 16.799999999999955,
+        "frames": 59,
+        "max_ms": 33.299999999999955,
         "modules": 50,
-        "p50_ms": 16.699999999999932,
+        "p50_ms": 16.700000000000045,
         "p95_ms": 16.700000000000045
       },
       {
         "action": "cable",
-        "frames": 66,
-        "max_ms": 66.69999999999993,
+        "frames": 63,
+        "max_ms": 66.59999999999991,
         "modules": 50,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 16.799999999999955
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 33.30000000000007
       },
       {
         "action": "knob",
-        "frames": 71,
-        "max_ms": 33.39999999999998,
+        "frames": 68,
+        "max_ms": 16.799999999999955,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 16.700000000000273
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.700000000000045
       },
       {
         "action": "cable",
-        "frames": 75,
-        "max_ms": 116.69999999999982,
+        "frames": 74,
+        "max_ms": 116.60000000000014,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
+        "p50_ms": 16.699999999999818,
         "p95_ms": 50
       },
       {
         "action": "knob",
-        "frames": 71,
+        "frames": 69,
         "max_ms": 66.70000000000027,
         "modules": 200,
         "p50_ms": 16.699999999999818,
@@ -53,16 +53,16 @@
       },
       {
         "action": "cable",
-        "frames": 120,
-        "max_ms": 233.29999999999973,
+        "frames": 127,
+        "max_ms": 200,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.70000000000027
+        "p95_ms": 50
       }
     ]
   },
   "provenance": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",

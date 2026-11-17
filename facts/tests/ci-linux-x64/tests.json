@@ -1,25 +1,25 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "architecture": "x86_64",
       "audio_devices": "not accessed",
       "cpu": "x86_64",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43"
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
     },
     "suites": {
       "ctest": {
         "count": 118,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.09227,
+          "seconds": 0.118304,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 28.883075,
+          "seconds": 30.440305,
           "status": "passed"
         }
       },
@@ -27,67 +27,25 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.684669,
+          "seconds": 0.747858,
           "status": "passed"
         },
         "run": {
-          "exit_code": 1,
-          "failure_output_lines": [
-            "      245 |     await expect.poll(() => fs.existsSync(marker)).toBe(true);",
-            "        at [checkout]/apps/desktop/tests/shell.spec.cjs:242:5",
-            "",
-            "    attachment #1: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
-            "    test-results/shell-Escape-exits-F11-ful-a88da-nd-Quit-closes-engine-stdin/trace.zip",
-            "    Usage:",
-            "",
-            "        npx playwright show-trace test-results/shell-Escape-exits-F11-ful-a88da-nd-Quit-closes-engine-stdin/trace.zip",
-            "",
-            "    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
-            "",
-            "  1 failed",
-            "    shell.spec.cjs:232:1 \u203a Escape exits F11 fullscreen and Quit closes engine stdin \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
-            "  2 skipped",
-            "  21 passed (1.4m)",
-            "CMake Warning (dev) at [path] (message):",
-            "  The DOWNLOAD_EXTRACT_TIMESTAMP option was not given and policy CMP0135 is",
-            "  not set.  The policy's OLD behavior will be used.  When using a URL",
-            "  download, the timestamps of extracted files [word omitted] preferably be that of",
-            "  the time of extraction, otherwise code that depends on the extracted",
-            "  contents might not be rebuilt if the URL changes.  The OLD behavior",
-            "  preserves the timestamps from the archive instead, but this is usually not",
-            "  what you want.  Update your project to the NEW behavior or specify the",
-            "  DOWNLOAD_EXTRACT_TIMESTAMP option with a value of true to avoid this",
-            "  robustness issue.",
-            "Call Stack (most recent call first):",
-            "  document/CMakeLists.txt:3 (FetchContent_Declare)",
-            "This warning is for project developers.  Use -Wno-dev to suppress it.",
-            "",
-            "CMake Warning in CMakeLists.txt:",
-            "  CMAKE_SKIP_INSTALL_RULES was enabled even though installation rules have",
-            "  been specified",
-            "",
-            "",
-            "CMake Warning:",
-            "  Manually-specified variables were not used by the project:",
-            "",
-            "    WIRESCAPE_BUILD_UI",
-            "",
-            ""
-          ],
-          "seconds": 84.659551,
-          "status": "failed"
+          "exit_code": 0,
+          "seconds": 82.766977,
+          "status": "passed"
         }
       },
       "playwright_studio": {
         "count": 344,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.030895,
+          "seconds": 1.110772,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 386.111581,
+          "seconds": 402.265815,
           "status": "passed"
         }
       },
@@ -101,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 21.071108,
+          "seconds": 27.727808,
           "status": "passed"
         }
       },
@@ -113,18 +71,18 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1016-aws-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.82.6",
+      "runner_image_version": "20261111.196.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

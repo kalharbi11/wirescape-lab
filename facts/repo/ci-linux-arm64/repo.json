@@ -5,7 +5,7 @@
       "files": 439,
       "missing_roots": 0
     },
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "complexity": {
       "functions": 3847,
       "lizard_version": "not exposed"
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 611
+      "files": 623
     },
     "long_lines": {
       "files": 261,
@@ -47,7 +47,7 @@
       "residue": "Python regex patterns recorded below"
     },
     "residue": {
-      "matched_files": 164,
+      "matched_files": 165,
       "patterns": {
         "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
         "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
@@ -56,16 +56,16 @@
       },
       "scope": "native/, apps/, tools/ tracked text files",
       "totals": {
-        "abi1_symbols": 729,
+        "abi1_symbols": 731,
         "agent_names": 14,
         "issue_refs": 181,
         "qt_mentions": 78
       }
     },
-    "source_files_tracked": 1448
+    "source_files_tracked": 1472
   },
   "provenance": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",

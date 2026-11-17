@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
@@ -39,7 +39,7 @@
         128,
         256
       ],
-      "commit": "395aabbdc4aee73fcc5ba714136ed372b9f18b16",
+      "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
       "date_et": "2026-11-17",
       "dsp_sample_rates_hz": [
         44100,
