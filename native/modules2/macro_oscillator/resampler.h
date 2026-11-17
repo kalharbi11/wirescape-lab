@@ -37,7 +37,7 @@ struct RateConverter {
             double sum = 0.;
             for (uint32_t tap = 0; tap < kTaps; ++tap) {
                 const double position = double(tap) + fraction - (kTaps - 1) * .5;
-                const double angle = 2. * pi * position;
+                const double angle = pi * position;
                 const double sinc = std::abs(position) < 1e-12
                     ? 2. * cutoff : std::sin(2. * cutoff * angle) / angle;
                 const double window_phase = 2. * pi * tap / (kTaps - 1);
