@@ -6,7 +6,7 @@ Updated 2026-11-16 ET, **gpt-reviewer** (owner-assigned independent review check
 Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Builders use GitHub connector / hosted device-off evidence; no Worker2, no device/LAN tests, no model polling.
 
 ## Controlling decisions and completed merges
-- **Q16 answered** by Fable: the single final E1b packet stays on PR #130, one push, `apps/studio/**` only. It must drain unconfirmed incremental edits before a graph chain and add Q14 plus Q16 tests (e–g); on failed review/CI, STOP and close unmerged under Q14, not another correction. #130 is still at `8d0bd29467d1b505c8ac9838fc267301e4537cc0`, draft and red at Lab 43968790557. M2 remains incomplete.
+- **Q16 answered** by Fable. Builder 1 pushed the ONE final Q14/Q16 packet on PR #130 at `3fbadbd0fc4d34d06436119e96d5170cf74d1ea3`, four authored `apps/studio/**` files; **exact-head Lab 43991969991 FAILED**. All Studio shards and Desktop reported `TS6133` unused `frequencySnapshot` in `apply-graph.spec.ts:283`; no Playwright executed, while foundation/native/sanitizer passed. Fable's Q14 point 6 now controls: **lead closes #130 unmerged preserving branch, then requests Fable M2 r4 re-contract**, no further code push/retry. PR was still open/draft at this reviewer checkpoint. M2 r3 cannot be accepted.
 - **Q17 answered**, CI1 r4. PR #129 (CI1.3) merged to main `879a26c`; main push Lab 43990935312 succeeded. **K8 is NOT yet decided by that success**: the first PR sanitizer run *after the main cache save* must show cache restored and job ≤318 s, else lead reverts its sanitizer change and records facts. Do not use an earlier/overlapping PR run as a warm verdict. #141 is an evidence report, not CI1 acceptance until K8 is recorded.
 - **Q18 answered:** M5 PV2a PR #151 merged `ba3b020dde9abd045cd02238a2517750d92487b3`; D03/D05/D09 answered with D09 coverage gap retained, no PV2b work before M1 S6.
 - **M1 S2** PR #138 merged `70f2e218d6834385c8acd4f5997bc750591aa9eb`. M1 S3 is now PR #159. Full-head Lab/Golden/paired workflows are green, but a fixed/ABI1 cost-probe-versus-strict-T0.6 conflict and required **Claude** I1–I5/I8 contract-review still block merger; green CI is not a waiver.
@@ -15,7 +15,7 @@ Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Bui
 ## Active PRs and review evidence (snapshot, 2026-11-16 ET)
 | PR | Work | Evidence and next gate |
 |---|---|---|
-| #130 | M2 E1b, builder 1 | Q16 final packet not pushed; draft/block on current code and red Studio; same branch, no extra ordinary round |
+| #130 | M2 E1b, builder 1 | Final packet `3fbadbd0` pushed and exact-head Lab 43991969991 failed TS6133 in three Studio shard typechecks and Desktop; no Playwright. Independent review 5931137141 confirms final STOP; active lead must close unmerged and request Fable M2 r4 |
 | #149 | M2 gap-only report | Exact-head Lab 43985506389 green; report is source-pinned to pre-Q16 main and describes Q16 as unanswered, so lead should assess a clearly dated addendum before treating it as current; no M2 acceptance claim |
 | #150 | M2 continuity, builder 3 | Head `d672a650` has Lab/synthetic/Golden green; actual 45 witness rows and raw/marks hashes still missing; lead authorized new hosted capture workflow on existing branch (SR8/SR18/SR9) |
 | #152 | M7 T7.0, builder 3 | Head `1847d58e`: facts JSON now contains 24/24 CHAOS alias rows and three measured Delay switch rows sourced from hosted capture 43989175810 at built head `d4d2b351`; Quad VCA mode1 remains explicitly unmeasured. Lab 43991585936 and x64/ARM64 advisory 43991586082 are green. Independent artifact-to-facts review and acceptance of the explicit SR10 exception remain; no target reset triggered |
@@ -26,13 +26,13 @@ Main at review: `879a26cc4a6261cf49ab46afb63e1ee6a993612f` (PR #129 merged). Bui
 ## Owner-run builder queue (no self-dispatch, one writer/branch at a time)
 | Builder | First | Next | Then |
 |---|---|---|---|
-| **1** | #130 final E1b packet (owner's top priority; resume same PR) | #154 / PR #160 review/merge disposition | #155 reverb after #154 closes |
+| **1** | #130 final packet failed; **no further builder-1 correction** (lead closes PR, Fable re-contracts) | #154 / PR #160 review/merge disposition | #155 reverb after #154 closes |
 | **2** | #147 / PR #153 review disposition | #141 CI1 evidence report with K8 pending/actual | — |
 | **3** | #148 / PR #152 measured facts and artifact-to-row review | #139 / PR #150 hosted continuity capture/rows | #142 read-only audit already filed (issue comment 6933738092; no duplicate run); revisit only upon new completed evidence |
 | **4** | #143 / PR #159 S3 contract conflict/evidence | Claude I1–I5/I8 review when ready | — |
 
 ## Reviewer / lead handoff
-- **Do not spend Claude on routine CI or source-review work that GPT can prepare.** Immediate lead-authority items: review/merge verified class-A #160 and MT1 #153 as warranted by evidence; review notes-only #149 and request a current-status addendum if needed; apply K8 to the first qualifying post-save sanitizer PR run and file the fact/keep-or-revert decision.
+- **Do not spend Claude on routine CI or source-review work that GPT can prepare.** Immediate lead-authority items: close #130 unmerged under Q14 and request Fable M2 r4 re-contract; review/merge verified class-A #160; MT1 #153 has reviewer-confirmed unhandled `subprocess.TimeoutExpired` C4 diagnostic and needs bounded SR6 disposition; review notes-only #149 and request a current-status addendum if needed; apply K8 to the first qualifying post-save sanitizer PR run and file the fact/keep-or-revert decision.
 - **Claude-specific work:** #159 requires an independent Claude contract reviewer (not a GPT substitute) on a *settled exact head*. Its separate cost-probe/T0.6 scope conflict must first receive a design/contract disposition; do not ask a reviewer to waive measurement criteria. Later M1 S5b/S6 and specified M7 contract reviews follow their dependencies.
 - **Fable-only if needed:** changing instruction-row measurement meaning, the 1% rule or another frozen acceptance threshold. No such change is authorized by a green workflow.
 - **Merge policy:** no commits directly to main; lead merges independently reviewed exact heads with all contract criteria and checks satisfied. Notes-only review may use SR13; a draft gap report does not constitute milestone acceptance. SR19 leaves unrelated ready work moving.
