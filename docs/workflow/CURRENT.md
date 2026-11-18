@@ -5,42 +5,34 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
-## Post-Architect dispatch — 2026-11-17, 19:58 EST
+## Local quick check — 2026-11-17, 21:25 EST
 
-Architect A6/A7 are now on main (M7r1.1); they supersede older wait-for-ruling text.
-No chat dispatch or schedule. This small delivery update supersedes unmerged224, preserving
-its B1 slot, B3 review and unanswered A8. Architect's decision text below is retained verbatim.
+Local chat 01a1ec76-6b2d-7c21-81ac-a0718ae08d96. Mode: quick; manual builder starts only.
+Usage at entry: five-hour 16% used / 84% remaining, resets 2026-11-18 00:24 EST;
+weekly 59% used / 41% remaining. No reset or credits spent.
 
-| Agent | Next authorized run |
+| Writer | Changed result and next authorized work |
 |---|---|
-| B1 1:run | #207/214: wire ONE native MIDI test target+CTest in engine2/CMake underSR7, execute hosted; ASIO fixture f457bbe now green. Existing correction1/2 preserved; no product fixes beforeS6 |
-| B2 2:run | Finish209/216 UI facts; then approved226 Macro non48 collector. Capture pins after B4 test transition; one active task |
-| B3 3:run | Independent collector196 source/tests/workflow review222. Cannot approve own184 sound source; no212 pushes during B4 handoff |
-| B4 4:run | A6 bounded native/document/qt_free_patch_coverage_tests.cpp update on existing212 branch, per210's new brief. Pause190 first; no simultaneous file writer. Stop with hosted Result |
-| B5 |208 census only if source tools work; otherwise stop with capability gap |
+| B4 | #188/190 26c749d: builder published original A7 fixture, conversion and ABI1 deletion. All 27 reported exact-head checks succeeded, including Lab, Golden x3, paired x3, instructions and Offline. This is check status, not independent acceptance. Source/evidence and required Claude M1 review remain. Two corrections used: SR6 applies to any new failure. Park all190 writes now; no S5. |
+| B1 | #206/213 00664a1: reported real32/32 roundtrips, source/normalization review due. #207/214 f457bbe: ASIO hosted pass; native MIDI still unexecuted. B1's observed190 CMake collision was valid. With190 now parked, B1 owns the sole additive207 CMake target slot on214; preserve190 changes during later lead-ordered integration. Six remaining oracles await223/A8. |
+| B2 | #209/216 3f321a2: measured UI facts delivered; pending independent review/current-head CI. Selected patch is a graph-complexity proxy, not proven CPU-heaviest. Two corrections used. Next226 is authorized after209 bench release; pin212 after compatibility transition; do not overlap190 bench edits. |
+| B3 | #222 independent collector196 review remains the next bounded task. Keep212 source parked during compatibility handoff; no184 self-approval or S7.2 before155 merge. |
+| B5 | #208/221 b9532b0 now delivered census; 34 catalog/palette IDs versus contract33 needs explicit reconciliation review. No every-module smoke acceptance. No product lane takeover. |
 
-B4 retains serial190 ownership but hands engine2/CMake slot temporarily to B1 for207.
-B4's212 work touches only native/document test; no CMake collision. Native/document same-file
-conversion on190 stays parked until212 handoff + lead-ordered integration. Protocol test only
-if source demonstrates same obsolete Macro refusal, per exact Architect allowance.
-B2's226 bench/offline/run_all.py writer slot follows209 release and remains exclusive; B4 must
-not perform190's benchmark removal in that file during226. Sequence via signed handoffs.
+**Macro compatibility:** A6/A7 remain cleared. B4 retains the previously assigned one-file
+212 compatibility transition, only after190 is explicitly parked; B3 must not push212 meanwhile.
+Its native/document edit and B1's additive CMake target are distinct files. No190 continuation
+while either handoff is active. Lead integrates in actual merge order; no blind overwrite.
 
-**190:** format grant exists; original artifact14352740696 transport still unsolved in cloud.
-Local lead/owner fetches384000 bytes, verifies SHA485456df… and blob4dc06c…; raw preferred
-or exact zlib9+b64 document with bounded decode_case wiring/hash test. No rerender/reconstruction.
-No190 merge/S5 until conversion+deletion+final evidence. B4's212 task gives real work meanwhile.
+**Review queue:** A9 requests Claude M1 review of190 at26c749d, plus criterion-level evidence
+inspection; final green alone does not certify S4. #189, #213, #196/#184 and #221 still need
+independent source/evidence review; durable D5 release publication remains outstanding.
+A8/#223 stays unanswered and blocks only the six OB-c oracle cases (SR19).
 
-**Actual delivery state:**21300664a1:32/32 real roundtrip hosted pass (44208227304),
-independent normalization/source review still needed.214f457bbe ASIO test passes
-44208696769; native MIDI unexecuted until new target.189edcc97f green, lead source review due.
-E1b-r Studio merge gate is lead, not an invented mandatory Claude gate.
-196 evidence/source review and184 independent sound review plus durable D5 release upload remain
-lead duties; B3 helps collector only. No product merge certified in this brief run.
-A8/#223 remains unanswered: six gap/click/lag oracles need per-case ruling or baseline-facts release;
-B1 supplies source evidence. Not a reason to stop MIDI wiring, UI facts or Macro test transition.
-Usage unknown. Owner's local20:45 and Architect21:00 intentions create no new automation.
-Signed: codex-lead, 2026-11-17, 19:58 EST
+SR5/6/7/11/13/18/19 apply. No product merge, source edits, builder-chat dispatch, devices,
+new schedules or repeated CI polling. Existing branch227 is refreshed for review; until merged,
+read this unmerged handoff explicitly. Architect decision text below is preserved.
+Signed: codex-lead, 2026-11-17, 21:25 EST
 
 ## Owner evening handoff — 2026-11-17, 19:40 EST
 
