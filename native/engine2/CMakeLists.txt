@@ -172,6 +172,8 @@ set(ABI1_REFERENCE_MANIFEST
   "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json")
 set(ABI1_REFERENCE_CORPUS
   "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs")
+set(ABI1_S4_QT_FREE_FIXTURE
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_s4_qt_free_96000.json")
 add_custom_target(abi2_frozen_reference_unpack ALL
   COMMAND ${Python3_EXECUTABLE}
     "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
@@ -179,9 +181,18 @@ add_custom_target(abi2_frozen_reference_unpack ALL
     --corpus-dir "${ABI1_REFERENCE_CORPUS}"
     --destination "${ABI1_FROZEN_DIR}"
     --machine "${ABI1_FROZEN_MACHINE}"
+    --s4-fixture "${ABI1_S4_QT_FREE_FIXTURE}"
   BYPRODUCTS "${ABI1_FROZEN_DIR}/capture_source.json"
   COMMENT "Unpack and SHA-256-verify committed, frozen ABI1 reference words"
   VERBATIM)
+# Independent decoded-file SHA check: it cannot be replaced by a corpus-only pass.
+add_test(NAME abi1_s4_frozen_hash COMMAND ${Python3_EXECUTABLE}
+  "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+  --verify-s4 "${ABI1_FROZEN_DIR}/qt_free_saved_v2_abi1_48000_128_96000.f32le"
+  --destination "${ABI1_FROZEN_DIR}" --machine "${ABI1_FROZEN_MACHINE}")
+target_compile_definitions(qt_free_patch_coverage_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(qt_free_patch_coverage_tests abi2_frozen_reference_unpack)
 target_compile_definitions(abi2_module_tests PRIVATE
   ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
 target_compile_definitions(abi2_integration_tests PRIVATE

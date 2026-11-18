@@ -4064,6 +4064,17 @@
       "sha256": "c35020473aed1b4642cd726cad727b63fff2824ad68cedd7ffb73c7cbd890479"
     }
   },
+  "s4_qt_free": {
+    "id": "qt_free_saved_v2_abi1_48000_128_96000",
+    "document": "abi1_s4_qt_free_96000.json",
+    "samples": 96000,
+    "bytes": 384000,
+    "sha256": "485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419",
+    "git_blob_sha1": "4dc06c72035a30979ea84beacc7664999bce77b6",
+    "workflow_run": 44134064502,
+    "artifact_id": 14352740696,
+    "source_commit": "fd0b9058e3515ea95e75c0a16a695fdf52b7e129"
+  },
   "schema": "abi1-reference-word-hash-manifest-v1",
   "source_artifacts": {
     "linux-arm64": 14191288653,
