@@ -225,12 +225,12 @@ void fake_midi_dual_chaos(AppEngine *catalogue, const ws_engine_config &config, 
 } // namespace
 int main(int argc, char **argv) {
     try {
-        require(argc == 4, "usage: qt_free_patch_coverage_tests <examples-dir> <ABI1-modules-dir> <demo>");
+        require(argc == 3, "usage: qt_free_patch_coverage_tests <examples-dir> <demo>");
         const ws_engine_config config{sizeof(ws_engine_config), 48000, 128, 64, 2048};
         Owner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create Qt-free catalogue");
         const std::filesystem::path examples(argv[1]);
-        serialized_demo_equivalence(catalogue.get(), config, argv[3]);
+        serialized_demo_equivalence(catalogue.get(), config, argv[2]);
         keyboard_macro(catalogue.get(), config);
         dual_chaos(catalogue.get(), config, examples);
         fake_midi_dual_chaos(catalogue.get(), config, examples);
