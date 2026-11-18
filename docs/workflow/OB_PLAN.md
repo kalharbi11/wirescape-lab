@@ -43,6 +43,15 @@ Signed: codex-lead, 2026-11-18, 00:03 EST
 
 Signed: codex-lead, 2026-11-18, 05:41 EST
 
+## Delivery changes — 2026-11-18 09:39 EST
+
+- S7.1 and S7.4 are merged with R2/pitch, Ir, full Golden and attached D5. B3 owns #243 S7.2,
+  the remaining Reverb source task for OB0. Collector #196 is under final evidence review.
+- #212 actually merged. B4 may integrate the Qt-free test config callers on #242. A16 holds only
+  its two new Golden descriptor-field substitutions. S5b still awaits S5a merge.
+
+Signed: codex-lead, 2026-11-18, 09:39 EST
+
 ## Complete task ledger
 Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover every row below. A tracker is not permission to implement an unmet dependency. Every future implementation gets its own issue/branch/PR, exact allowed paths, contract criteria and mapped S6 paths at release.
 
@@ -51,15 +60,15 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB0 T7.0 baseline | #152 merged | complete | retained facts | done |
 | OB0 M2 E1b-r | #182 / PR189 merged06e68f0 | complete | reviewed exactedcc97f, Lab green | done |
 | M2 final report | #191 / PR232 mergedd048049; acceptance235 | Architect | report complete; milestone decision separate | report done |
-| OB0 S7.1 Reverb | #155 / PR184 | B3 | High damping regression; correction2/2, M7r1.2 four damping rows | re-estimate after correction |
+| OB0 S7.1 Reverb | #155 / PR184 merged1909b44 | complete | A13 verified, D5 attached | done |
 | OB0 R2/D5 capture | #193 / PR196 | B2 |actual x64/ARM64 production artifacts; lead release upload | 2–6h |
-| OB0 S7.2 Reverb gain | #202 (stage issue after155 merge) | B3 |155 merged; same module writer | 4–10h |
-| OB0 S7.4 Macro rate support | #210 | B3 |ready; 24models×rates,48k identical, required contract-review | 12–24h |
+| OB0 S7.2 Reverb gain | #243 (tracker #202) | B3 | S7.1 merged; same module writer, dispatched | 4–10h |
+| OB0 S7.4 Macro rate support | #210 / PR212 merged004a1b4 | complete | A12 reviewed, Ir verified, D5 attached | done |
 | OB0 OB-a1 round-trip CI | #206 / PR213 merged6998f05 | complete | actual32/32, approved00664a1 | done |
 | OB0 tag/release/install check | #198 | lead |all OB0 criteria on main; preserve immutable fallback tag | 1–3h |
 | OB1 M1 S3 | #159 merged | complete |reviewed prior evidence retained | done |
 | OB1 M1 S4 | #188 / PR190 merged8c72722 | complete | reviewed26c749d, final facts/CI green | done |
-| OB1 M1 S5a | #234 (tracker199) | B4 | ArchitectA11 released;212 same-file/sidecar order holds | 8–16h |
+| OB1 M1 S5a | #234 / PR242 (tracker #199) | B4 | #212 merged; ordered Qt-free integration released; A16 Golden scope pending | in progress |
 | OB1 M1 S5b | #199 | B4 |S5a merged; required Claude contract-review | 8–16h |
 | OB1 M1 S6 | #199 | B4 |S5b; every product PR merged/explicitly parked; plan window ≥1 day ahead; Claude review | 8–16h |
 | OB1 M3 T1.6a | #200 | B4 |S6; mapped paths, mechanical only | 4–8h |
