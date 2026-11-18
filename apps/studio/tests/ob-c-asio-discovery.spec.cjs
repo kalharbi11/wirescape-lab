@@ -79,6 +79,9 @@ test('OB-c: while running, a new ASIO enumeration replaces stale devices without
   engine.selectAudioDevice(asio.id);
   expect(sent.at(-1)).toMatchObject({ type: 'selectAudioDevice', deviceId: asio.id });
   expect(graphLoads).toBe(1);
+  // The fake backend replies in a microtask. Settle the actual control ACK
+  // before detaching the listener; a fire-and-forget selection is still async.
+  await Promise.resolve();
   unsubscribe();
   engine.stop();
 });
