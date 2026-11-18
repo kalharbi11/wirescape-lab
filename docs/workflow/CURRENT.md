@@ -5,6 +5,41 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Local lead dispatch — 2026-11-17, 22:01 EST
+
+Owner explicitly authorized this local Codex lead to start the existing ChatGPT agents.
+Verified hostId local, chat01a1ec76-6b2d-7c21-81ac-a0718ae08d96, title WLAB | LEAD | 8,
+local Wirescape checkout. All five designated chats in the Wirescape Lab project received
+bounded run prompts and were independently listed active after dispatch. This current owner
+authorization supersedes older manual-only start text; no new chats or schedules were created.
+
+| Writer | Dispatched packet / ownership |
+|---|---|
+| B1 | #207/214 additive native MIDI target + CTest, actual hosted execution; sole temporary engine2/CMake writer.190 delivered and source parked. Correction1/2 retained.21300664a1 reported32/32 waits independent source review. |
+| B2 | Park delivered209/2163f321a2 for review, release its bench lane, start approved226 collector in allowed bench paths/new advisory workflow. Actual capture pins212 only after compatibility handoff; implement/test collector meanwhile. No invented pitch or evidence. |
+| B3 | #222 read-only independent196 collector review; no184 self-approval, all212 pushes parked during B4 handoff. |
+| B4 | Inspect190 final facts outcome once; follow Architect21:50 ready/status instruction with honest evidence, no self-merge. Park ALL190 source/CMake/bench writes. Then previously authorized212 native/document Macro compatibility block only; preserve frozen conversion/assertions. No S5. |
+| B5 | Delivered221b9532b0 parked; run already assigned small read-only OB0 readiness inventory on198, then stop/available. No product lane. |
+
+**190 exact26c749d:** Architect21:50 confirms its invariants; independent M1 review is still
+required. At this run's one inspection, Generate device-off facts44216123000 remained in_progress;
+Lab/Golden/paired/Offline/instructions/T7.0 succeeded. No merge or final facts pass inferred.
+Two corrections used; SR6 applies to a concrete new failure. Reviewer must be independent Claude;
+lead/GPT review cannot substitute. Owner assignment remains needed.
+
+**Writer sequencing:** B1's reported CMake collision was valid. B4's190 writes remain parked
+during B1 wiring and B2 collector work.212 native/document transition is distinct from B1 CMake;
+B3 cannot push212. Lead orders later integration preserving190 frozen/hash/deletion changes.
+Six OB-c oracle cases in223 remain unanswered; inbox uses A10 to avoid the Architect's newer
+A8 identifier. Prior A9 review request is independent M1 review, not a request to repeat the
+Architect's completed invariant ruling. Unaffected work proceeds (SR19).
+
+Mode quick + owner-authorized dispatch. Usage entry: five-hour20% used/80% remaining,
+reset2026-11-18 00:24 EST; weekly60% used/40% remaining. No credits/reset spent.
+SR6/7/11/13/18/19; no product merge, devices, source implementation by lead or polling.
+This refreshed notes PR supersedes227 and preserves main Architect21:50 text verbatim.
+Signed: codex-lead, 2026-11-17, 22:01 EST
+
 ## Owner evening handoff — 2026-11-17, 19:40 EST
 
 Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
