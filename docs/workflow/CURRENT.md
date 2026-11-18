@@ -5,6 +5,38 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 09:39 EST
+
+- **Macro S7.4:** Claude approved A12 `b92a8a6`; #238 merged at `861a41f`. Source #212
+  `7bde1ee` merged at `004a1b4` after exact-head CI, A12 evidence, verified instruction
+  evidence and durable D5. Verified the merged Qt-free test retains both the frozen ABI1 comparator
+  and 44.1/96 kHz Macro load/render assertions plus failed-load isolation.
+- **Reverb S7.1:** #184 `32abedde` merged at `1909b44` with signed independent review,
+  three-platform Golden/Lab, both-architecture R2 run 44290289509 and D5. All 48 impulse files
+  hashed and recomputed from raw bytes. Default spread is 35.570514% → 0.008145% on both
+  architectures; all three other damping rows improved and all four 48 kHz pairs match on each.
+  All 94 comparable Ir rows per architecture were ≤ +3%; the S4-retired ABI1 row stays absent.
+  Off-rate sample/hold imaging/droop stays in the owner listening notes. B3 started new #243 S7.2
+  as the sole Reverb writer; preserve the merged S7.1 behavior.
+- **Bench evidence:** Matching D5 before/head pairs and their manifests are attached to the
+  [dated bench draft release](https://github.com/kalharbi11/wirescape-lab/releases/tag/untagged-8c14fbb8eb6926ccadbb).
+  B2 was asked for the final signed read-only #193/#196 Result at `5b27806`, production run
+  44290289509. The collector PR stays draft; no extra capture was ordered. #240 awaits writer/wiring
+  release. B5's Macro metadata/Ir/D5 inventory is complete.
+- **S5a:** B4 published draft #242 at `b6f715a`; it is red at the known compile gates. After
+  #212 merged, B4 was sent the ordered Qt-free file integration on the same branch. A16 asks
+  the Architect to allow only two Golden descriptor accesses in the config-only A15 exception.
+  B4 remains sole sidecar writer. S5b and S6 stay closed.
+- **B1 / #214:** No signed Result or head movement after the supported SR8 retry. A10 execution
+  gaps remain; keep the writer parked from any reassignment until a stop/handoff is sent (SR12).
+- **Architect:** A14 M2 acceptance remains open. A16 blocks the S5a Golden build. A15 remains cleared.
+
+Mode quick expanded to clear actual S7.1/S7.4 merge gates, release S7.2, and isolate the S5a
+scope question. Entry usage showed 0% used in the five-hour window (reset about 14:30 EST) and
+63% weekly used. No device execution or usage reset. Next lead wake is 13:00 EST.
+
+Signed: codex-lead, 2026-11-18, 09:39 EST
+
 ## Delivery update — 2026-11-18 05:41 EST
 
 Lab main includes the Architect's A15 grant via #239 (`4167925`) and the OB-e1 facts via #221
