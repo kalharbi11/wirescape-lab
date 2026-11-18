@@ -10,7 +10,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-MODES = ('abi1_mono', 'abi2_mono', 'abi2_modulated', 'abi2_poly8', 'abi2_quad_vca_lpg8')
+MODES = ('abi2_mono', 'abi2_modulated', 'abi2_poly8', 'abi2_quad_vca_lpg8')
 
 
 def instructions(path):
@@ -45,10 +45,13 @@ def main(argv=None):
     parser.add_argument('--configuration', default='Release')
     parser.add_argument('--blocks', type=int, nargs=2, default=(50, 150))
     parser.add_argument('--output', type=Path)
-    parser.add_argument('--gate', action='store_true', help='require mono Ir ratio <= 1.05')
+    parser.add_argument('--gate', action='store_true', help='retired ABI1 mono gate (fails closed; use M1 paired evidence)')
     args = parser.parse_args(argv)
     if not 0 < args.blocks[0] < args.blocks[1] <= 1000000:
         parser.error('block counts must be positive, increasing, and at most 1000000')
+    if args.gate:
+        print('error: retired ABI1 mono Ir gate cannot pass; use strict M1 paired +1% evidence', file=sys.stderr)
+        return 2
     valgrind = shutil.which('valgrind')
     if not valgrind:
         print('error: --gate requires valgrind' if args.gate else 'skipped: valgrind is not installed')
@@ -62,21 +65,21 @@ def main(argv=None):
         subprocess.run(['cmake', '-S', str(ROOT / 'native'), '-B', str(binary),
                         '-DWIRESCAPE_BUILD_UI=OFF', f'-DCMAKE_BUILD_TYPE={args.configuration}'], check=True)
         subprocess.run(['cmake', '--build', str(binary), '--config', args.configuration,
-                        '--target', 'abi2_cost_probe', 'ws_vco', 'ws_vcf', 'ws_vca', '--parallel', '2'], check=True)
+                        '--target', 'abi2_cost_probe', '--parallel', '2'], check=True)
         probe = binary / f'abi2_cost_probe{suffix}'
         if not probe.exists():
             probe = binary / args.configuration / probe.name
     rows = [cost(probe, (args.modules_dir or probe.parent).resolve(), mode, args.blocks, valgrind) for mode in MODES]
     result = dict(block_counts=args.blocks, frames=256, rows=rows,
-                  mono_ratio=rows[1]['ir_per_block'] / rows[0]['ir_per_block'],
-                  modulated_ratio=rows[2]['ir_per_block'] / rows[1]['ir_per_block'])
+                  retired_modes=['abi1_mono'],
+                  modulated_ratio=rows[1]['ir_per_block'] / rows[0]['ir_per_block'])
     print('| Probe | Ir/block |\n|---|---:|')
     for row in rows:
         print(f"| {row['name']} | {row['ir_per_block']:.2f} |")
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2) + '\n')
-    return int(args.gate and result['mono_ratio'] > 1.05)
+    return 0
 
 
 if __name__ == '__main__':

@@ -20,10 +20,13 @@ def validate(folder):
         results[section] = document["rows"]
     blocks = {64, 128, 256}
     engine = results["engine_cpu"]
+    expected_engine = {"abi2_mono", "abi2_poly8", "abi2_eight_mono",
+                       "abi2_modulated", "vcf_constant", "vcf_audio_rate_cutoff"}
     for block in blocks:
-        if len([r for r in engine if r.get("block_frames") == block
-                and r.get("status") == "measured"]) != 7:
-            raise ValueError("engine benchmark incomplete for block " + str(block))
+        rows = [r for r in engine if r.get("block_frames") == block]
+        if (len(rows) != 6 or any(r.get("status") != "measured" for r in rows)
+                or {r.get("name") for r in rows} != expected_engine):
+            raise ValueError("exact six genuinely measured engine cases required for block " + str(block))
     denormal = results["denormal_spikes"]
     for block in blocks:
         if not any(r.get("block_frames") == block and r.get("status") == "measured"

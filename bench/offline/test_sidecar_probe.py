@@ -26,8 +26,11 @@ class ProtocolTests(unittest.TestCase):
             docs = {
                 "module_cpu": [],
                 "engine_cpu": [
-                    {"block_frames": block, "status": "measured"}
-                    for block in (64, 128, 256) for _ in range(7)],
+                    {"block_frames": block, "status": "measured", "name": name}
+                    for block in (64, 128, 256)
+                    for name in ("abi2_mono", "abi2_poly8", "abi2_eight_mono",
+                                 "abi2_modulated", "vcf_constant",
+                                 "vcf_audio_rate_cutoff")],
                 "probe_failures": [
                     {"module": "essentials.chord", "block_frames": 64, "channels": 1,
                      "sample_rate_hz": 48000, "instances": 1,
@@ -45,7 +48,19 @@ class ProtocolTests(unittest.TestCase):
                 (perf / (name + ".json")).write_text(json.dumps({
                     "provenance": {"commit": "test-commit"}, "rows": rows}), encoding="utf-8")
                 (perf / (name + ".md")).write_text("# " + name, encoding="utf-8")
-            self.assertEqual(validate(folder)["measured_engine_benchmarks"], 21)
+            self.assertEqual(validate(folder)["measured_engine_benchmarks"], 18)
+            # A seventh historic/unknown case must never be silently accepted.
+            docs["engine_cpu"].append({"block_frames": 64, "status": "measured",
+                                       "name": "abi1_mono"})
+            (perf / "engine_cpu.json").write_text(json.dumps({
+                "provenance": {"commit": "test-commit"},
+                "rows": docs["engine_cpu"]}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "exact six"):
+                validate(folder)
+            docs["engine_cpu"].pop()
+            (perf / "engine_cpu.json").write_text(json.dumps({
+                "provenance": {"commit": "test-commit"},
+                "rows": docs["engine_cpu"]}), encoding="utf-8")
             docs["soak_failures"][0]["sidecar_result"] = "unavailable"
             (perf / "soak_failures.json").write_text(
                 json.dumps({"provenance": {"commit": "test-commit"},
