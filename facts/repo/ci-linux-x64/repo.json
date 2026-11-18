@@ -5,12 +5,12 @@
       "files": 379,
       "missing_roots": 0
     },
-    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
+    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
     "complexity": {
-      "functions": 3524,
+      "functions": 3583,
       "lizard_version": "not exposed"
     },
-    "date_et": "2026-11-17",
+    "date_et": "2026-11-18",
     "dependencies": {
       "entries": 146,
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
@@ -26,7 +26,7 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 595
+      "files": 601
     },
     "long_lines": {
       "files": 235,
@@ -62,11 +62,11 @@
         "qt_mentions": 72
       }
     },
-    "source_files_tracked": 1404
+    "source_files_tracked": 1428
   },
   "provenance": {
-    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
-    "date_et": "2026-11-17",
+    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "AMD EPYC 7763 64-Core Processor",

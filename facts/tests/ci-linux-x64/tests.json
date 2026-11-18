@@ -1,8 +1,8 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
-    "date_et": "2026-11-17",
+    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "date_et": "2026-11-18",
     "machine": {
       "architecture": "x86_64",
       "audio_devices": "not accessed",
@@ -14,12 +14,12 @@
         "count": 108,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.148454,
+          "seconds": 0.146726,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 33.61342,
+          "seconds": 32.722986,
           "status": "passed"
         }
       },
@@ -27,25 +27,25 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.013851,
+          "seconds": 0.965109,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 106.091133,
+          "seconds": 99.418991,
           "status": "passed"
         }
       },
       "playwright_studio": {
-        "count": 344,
+        "count": 381,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.511629,
+          "seconds": 1.484348,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 485.858196,
+          "seconds": 498.35295,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 17.35599,
+          "seconds": 19.024194,
           "status": "passed"
         }
       },
@@ -71,8 +71,8 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
-    "date_et": "2026-11-17",
+    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "AMD EPYC 7763 64-Core Processor",

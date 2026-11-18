@@ -1,7 +1,7 @@
 {
   "ci_provenance": {
-    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
-    "date_et": "2026-11-17",
+    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "AMD EPYC 7763 64-Core Processor",
@@ -35,8 +35,8 @@
         128,
         256
       ],
-      "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
-      "date_et": "2026-11-17",
+      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
         48000,
