@@ -17,7 +17,7 @@ jobs:
   collect:
     name: pinned production R2 / ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 65
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -28,7 +28,7 @@ jobs:
             arch: linux-arm64
     env:
       BASE_SHA: 518fe3f8d8a71d1485364bf9176bcf166f9602f3
-      HEAD_SHA: 8823c78ad58992b39f7b8f696425d9751bdb7ac0
+      HEAD_SHA: 32abedde03e37a8d85510244c61d782652ed32c8
       BASE_CHECKOUT: /tmp/mt193-base
       HEAD_CHECKOUT: /tmp/mt193-head
       CAPTURE_ROOT: /tmp/mt193-evidence
@@ -66,13 +66,13 @@ jobs:
           set -euo pipefail
           cd "$HEAD_CHECKOUT"
           python tools/dev.py build --headless --config Release
-      - name: Full nonquick production Engine::render R2 / before / 44.1, 48, 96 kHz
+      - name: Full A13 4 damping x 3 rate production Engine::render R2 / before
         shell: bash
         run: |
           set -euo pipefail
           python bench/evidence/s7_1_193/collect.py --mode r2 \
             --checkout "$BASE_CHECKOUT" --label before --out "$CAPTURE_ROOT"
-      - name: Full nonquick production Engine::render R2 / head / 44.1, 48, 96 kHz
+      - name: Full A13 4 damping x 3 rate production Engine::render R2 / head
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +94,7 @@ jobs:
           set -euo pipefail
           python bench/evidence/s7_1_193/collect.py --mode d5 \
             --base "$BASE_CHECKOUT" --head "$HEAD_CHECKOUT" --out "$CAPTURE_ROOT"
-      - name: Validate original full R2, source/PCM hashes, strict <=5%, and D5 pair
+      - name: Detached revalidate 4 damping suffix R2/tail, exact PCM, <=5% default and D5 pair
         shell: bash
         run: |
           set -euo pipefail
