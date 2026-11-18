@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Macro non48 evidence collector (SR8 advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'bench/offline/run_all.py'
+      - 'bench/evidence/macro_non48/**'
+      - '.github/workflows/macro-non48-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# This is IMPLEMENTATION/UNIT validation ONLY until B4's #212 compatibility
+# handoff. Absolutely no source SHA, source checkout, audio file, or Ir claim
+# is made here. A separately authorized release switches to pinned capture.
+jobs:
+  collector-contract:
+    name: Collector and original estimator / ${{ matrix.machine }
+    runs-on: ${{ matrix.runner }
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {machine: linux-x64, runner: ubuntu-24.04}
+          - {machine: linux-arm64, runner: ubuntu-24.04-arm}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing FFT requirements only (no device)
+        run: python -m pip install -r bench/offline/requirements.txt
+      - name: Verify collector syntax, known answers and obsolete-skip removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build_reports/macro_non48
+          python -m py_compile bench/offline/run_all.py \
+            bench/evidence/macro_non48/collect.py \
+            bench/evidence/macro_non48/test_collect.py
+          python -m unittest discover -s bench/evidence/macro_non48 \
+            -p 'test_*.py' -v 2>&1 | tee build_reports/macro_non48/tests.log
+          python bench/evidence/macro_non48/collect.py --mode check \
+            2>&1 | tee build_reports/macro_non48/collector-check.log
+          git rev-parse HEAD | tee build_reports/macro_non48/checkout-sha.txt
+          sha256sum bench/offline/run_all.py bench/offline/metrics.py \
+            bench/evidence/macro_non48/collect.py \
+            bench/evidence/macro_non48/test_collect.py \
+            | tee build_reports/macro_non48/source-hashes.txt
+      - name: Upload exact-head collector validation, not audio or source capture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macro-226-implementation-${{ matrix.machine }-${{ github.run_id }
+          path: build_reports/macro_non48/
+          if-no-files-found: warn
+          retention-days: 7
