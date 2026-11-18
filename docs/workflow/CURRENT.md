@@ -5,6 +5,35 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## #190 transport diagnosis — 2026-11-17, 19:34 EST
+
+Owner supplied independent Claude reviewer analysis; verified against live unpack.py and190 rulings.
+Existing frozen corpus is LZMA/base64 text with strict manifest digests and inventory; simply adding
+a .b64 file does not make the existing unpacker read a new case. Reviewer direction is sound,
+but needs explicit new-case unpack wiring/path grant, not a claim that current reader already handles it.
+
+Proposed A7 amendment to190#6960646798: allow a separate losslessly encoded fixture and manifest
+under native/tests/fixtures/abi2, plus bounded bench/reference/unpack.py wiring to decode only this
+new case to the build directory. Keep old corpus/chunks/inventory/hashes unchanged. Decoded bytes
+must be exactly384000 /96000 float32LE, SHA256
+485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419.
+Decoded Git blob hash remains4dc06c72035a30979ea84beacc7664999bce77b6; encoded file has its own hash.
+No change to frozen_reference.h, original assertions,1e-7 tolerance or capture→convert→delete order.
+Architect must approve this amendment before committing encoded fixture/wiring.
+
+Alternative needs no format amendment: GitHub create_blob(encoding=base64) stores decoded binary,
+not base64 text. A lead with artifact bytes in the tool runtime could upload exact binary then
+fast-forward the branch. Current cloud cannot fetch bytes: connector returns a signed artifact URL,
+shell downloads and git fail proxy503. Runtime reports vpn_enrollment_failed and blocked
+non-platform networking. This is independent of fixture format; do not fabricate/re-render capture.
+Artifact14352740696 remains downloadable via connector; no bytes verified locally or branch edit.
+
+Owner next: architect:run for A7; then B4 4:run on existing190 to preserve exact artifact, decode/hash
+check, convert test, delete ABI1 and obtain fresh final-head CI/review. A local session with working
+artifact/git access can instead do the original raw binary route under existing ruling.
+No agent chat dispatched. #190 remains draft/blocked; no merge or S5 release.
+Signed: codex-lead, 2026-11-17, 19:34 EST
+
 ## Cloud lead quick check — 2026-11-17, 19:28 EST
 
 Owner resumes gpt-lead in cloud; **manual agent starts only**, no messages sent to builder chats,
