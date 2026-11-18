@@ -166,7 +166,7 @@ def raw_pcm(wav: Path, rate: int, seconds: float) -> bytes:
 def preserve_pcm(pcm: bytes, output: Path, root: Path) -> dict:
     """Persist every original float32 sample, compressed; hash both representations."""
     output.parent.mkdir(parents=True, exist_ok=True)
-    with gzip.open(output, "wb", compresslevel=6, mtime=0) as writer:
+    with gzip.GzipFile(filename=str(output), mode="wb", compresslevel=6, mtime=0) as writer:
         writer.write(pcm)
     original_sha = hashlib.sha256(pcm).hexdigest()
     if gzip.decompress(output.read_bytes()) != pcm:
