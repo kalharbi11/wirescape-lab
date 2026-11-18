@@ -146,7 +146,7 @@ class A10Capture(unittest.TestCase):
                     next(m for m in patch["modules"] if m["id"] == 8)["parameters"]["attack"] = attack
                     next(m for m in patch["modules"] if m["id"] == 7)["parameters"]["gain"] = gain
                 segs, marks, _ = self._run(Path(t), name, patch, [],
-                                             pre=18, post=10)
+                                             pre=48, post=24)
                 self.assertEqual(len(segs), 1, "INFRA: bundled graph unexpectedly restarted")
                 pcm = channel(segs[0])
                 self.assertTrue(all(math.isfinite(v) for v in pcm),

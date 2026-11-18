@@ -16,6 +16,14 @@ test('OB-c A10 Echo: actual 100 ms / 1 s knob gestures emit measured setParam tr
     resolve(process.cwd(), 'patches/basics-03-echo-and-reverb.json'), 'utf8'));
   await page.evaluate(p => window.__wirescapeTest.load(p, 'A10 Echo trace'), patch);
   await page.evaluate(() => {
+    // Move the real Studio canvas view to the Echo card before pointer input.
+    const vp = window.__wirescapeTest.canvas.viewport;
+    vp.setView(vp.view.x, vp.view.y, 1);
+    const card = document.querySelector<HTMLElement>('[data-testid="module-6"]');
+    if (!card) throw new Error('INFRA_A10_ECHO: no real delay card');
+    const rect = card.getBoundingClientRect(), bounds = vp.rect();
+    vp.setView(vp.view.x - (rect.left - bounds.left) + 50,
+               vp.view.y - (rect.top - bounds.top) + 70, 1);
     const api = window.__wirescapeTest;
     const engine = api.engine as any;
     const events: ParamEvent[] = [];
@@ -54,9 +62,6 @@ test('OB-c A10 Echo: actual 100 ms / 1 s knob gestures emit measured setParam tr
       }
       await page.mouse.up();
       const end = await page.evaluate(() => performance.now());
-      const events = await page.evaluate(() =>
-        (window as any).__obCA10ParamEvents.filter(
-          (e: ParamEvent) => e.moduleId === 6 && e.paramId === (window as any).__obCA10CurrentKnob));
       // The observer is deliberately not emptied between gestures until after
       // asserting its full per-drag product trace.
       const all = await page.evaluate(() => (window as any).__obCA10ParamEvents as ParamEvent[]);
@@ -68,7 +73,6 @@ test('OB-c A10 Echo: actual 100 ms / 1 s knob gestures emit measured setParam tr
       data.push({ knob, duration_nominal_ms: duration,
         gesture_start_ms: start, gesture_end_ms: end,
         events: within.map(e => ({ ...e, t_ms: e.t_ms - start })) });
-      expect(events).toBeDefined();
     }
   }
   // Mode/division are STEP switches. A10 says report-only; no sound/click

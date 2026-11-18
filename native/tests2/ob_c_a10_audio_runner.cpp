@@ -86,7 +86,7 @@ void scene(const std::filesystem::path &source, const std::filesystem::path &dir
     ws_engine_config c{sizeof(c), kRate, kBlock, 32, 2048};
     Owner catalogue(app_engine_create(&c), app_engine_destroy);
     require(bool(catalogue), "create production module catalogue");
-    const uint32_t total = 328000; // exact block multiple, > latest panic + 500ms+guard
+    const uint32_t total = 327680; // exact block multiple, > latest panic + 500ms+guard
     require(total % kBlock == 0, "scene render total must be block multiple");
     const auto render_case = [&](const char *name, uint32_t panic_frame, int gate) {
         auto graph = loaded(catalogue.get(), patch);
