@@ -218,15 +218,21 @@ void keyboard_macro(AppEngine *catalogue, const ws_engine_config &config) {
     }
     render_and_check(graph.get(), 64, "keyboard to Macro");
     require(app_engine_native(graph.get()).output_channels(2, 0) == 4, "Macro loader preserves four voices");
-    // This asserts off-rate loader refusal only. Sidecar protocol_tests.py
-    // separately checks failed loadGraph commits and continued live output.
+    // S7.4: both supported off-rates must load through the actual native
+    // patch path, render finite non-silent samples, and allocate nothing in RT.
     for (double rate : {44100.0, 96000.0}) {
-        auto rejected_rate = config;
-        rejected_rate.sample_rate = rate;
-        std::string error;
-        Owner rejected(wirescape::document::load_runtime_patch(source, catalogue, rejected_rate, error),
-                       app_engine_destroy);
-        require(!rejected && !error.empty(), "loaded Macro rejects unsupported rate");
+        auto supported_rate = config;
+        supported_rate.sample_rate = rate;
+        auto off_rate_graph = load(source, catalogue, supported_rate);
+        for (uint32_t key : {60u, 64u, 67u, 72u}) {
+            const ws_event on{
+                sizeof(ws_event), 0, 1, WS_NOTE_ON, 0, static_cast<float>(key), 1, key,
+                app_engine_generation(off_rate_graph.get())};
+            require(app_engine_enqueue(off_rate_graph.get(), &on) == WS_OK,
+                    "enqueue synthetic chord into off-rate Macro graph");
+        }
+        render_and_check(off_rate_graph.get(), 64,
+                         rate == 44100.0 ? "44.1 kHz loaded Macro" : "96 kHz loaded Macro");
         float previous[128]{};
         size_t allocations = 0;
         int status;
@@ -236,8 +242,28 @@ void keyboard_macro(AppEngine *catalogue, const ws_engine_config &config) {
             allocations = watch.allocations();
         }
         require(status == WS_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
-                "off-rate loader refusal leaves the separately loaded graph renderable");
+                "off-rate Macro load leaves the separately loaded 48 kHz graph renderable");
     }
+
+    // Preserve the failure-isolation assertion using a genuinely malformed
+    // saved rate, not a newly supported Macro rate.
+    auto invalid_rate_patch = nlohmann::json::parse(source);
+    invalid_rate_patch["settings"]["sample_rate"] = 0;
+    std::string error;
+    Owner rejected(wirescape::document::load_runtime_patch(
+                       invalid_rate_patch.dump(), catalogue, config, error),
+                   app_engine_destroy);
+    require(!rejected && !error.empty(), "loaded Macro rejects invalid saved sample rate");
+    float previous[128]{};
+    size_t allocations = 0;
+    int status;
+    {
+        allocation_watch::Scope watch;
+        status = app_engine_render(graph.get(), previous, 128);
+        allocations = watch.allocations();
+    }
+    require(status == WS_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
+            "failed load leaves the separately loaded graph renderable");
 }
 void dual_chaos(AppEngine *catalogue, const ws_engine_config &config, const std::filesystem::path &examples) {
     auto graph = load(fixture(examples / "chaos_two.json"), catalogue, config);
