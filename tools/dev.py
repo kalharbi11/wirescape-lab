@@ -54,8 +54,13 @@ def _artifact_inventory(config: str) -> dict[str, str]:
     for path in BUILD_DIR.rglob("*"):
         if not path.is_file() or path.name in {"build-metadata.json", "CMakeCache.txt"}:
             continue
+        # An incremental build folder may still contain obsolete ABI1 artifacts.
+        # Never certify those binaries as part of the new ABI2-only inventory.
+        if (path.name.startswith(("ws_", "libws_"))
+                or path.stem in {"wirescape_engine", "libwirescape_engine"}):
+            continue
         known_executable = path.stem in names and (path.suffix.lower() in executable_suffixes or not path.suffix)
-        library = path.suffix.lower() in executable_suffixes and (path.name.startswith(("ws_", "libws_", "ws2_", "libws2_")) or "wirescape" in path.name)
+        library = path.suffix.lower() in executable_suffixes and (path.name.startswith(("ws2_", "libws2_")) or "wirescape" in path.name)
         if known_executable or library:
             # Ignore binaries from another configuration where the path states one.
             if any(part in {"Debug", "Release"} for part in path.parts) and config not in path.parts and path.parent.name in {"Debug", "Release"}:
