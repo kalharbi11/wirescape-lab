@@ -8,6 +8,20 @@ OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, 
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
 Estimates below are initial active engineering hours per task, including a first validation/fix pass. CI queue/runtime, independent/Claude reviews, Architect target-setting and owner Pi availability are additional elapsed time. Re-estimate after each signed Result; do not promise a delivery date before observing those dependencies. OB0 budget roughly 2–4 working days elapsed if evidence/reviews clear; OB1 roughly 4–8 weeks with the current serial engine chain. These are planning ranges, not guarantees or permission to skip gates.
 
+## Local dispatch — 2026-11-17 22:01 EST
+
+Owner authorized agent chat starts; all five existing Wirescape Lab chats active after dispatch.
+B1 #207 MIDI CMake/test; B2 delivered209 then226 collector; B3 independent222 review;
+B4 delivered190 evidence/admin handoff then212 one-file compatibility transition; B5 read-only198 readiness.
+All190 source/CMake/bench writes parked; B1 sole temporary CMake writer, B2 sole226 bench writer,
+B3 parks212 while B4 edits only its native/document compatibility block. Actual226 captures wait
+for212 handoff, collector implementation does not. Preserve190 changes in later integration.
+19026c749d Architect invariants confirmed21:50; independent M1 review and final facts workflow
+still required, no S4 merge/S5 release. Two corrections used.223 oracles remain unresolved.
+Census221 delivered34 actual IDs versus contract33;209 heaviest-patch proxy is not CPU proof.
+No new product lane, chats, schedules or acceptance waiver.
+Signed: codex-lead, 2026-11-17, 22:01 EST
+
 ## Immediate dispatch, one active writer per file
 B1: #182/PR189 correction1 published edcc97f; park source for review, take #206 OB-a1 in new files while waiting. Return to182 only for concrete review/CI failure. #191 report after actual merge; #192 RL lower priority than OB0 tests.
 B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #209 UI facts when the bench lane is free; smoke tests follow the census merge and a separate issue. B5 owns #208.
