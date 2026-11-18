@@ -1,6 +1,13 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — Claude Architect run (23:40 ET)
+Released M1 S5a to B4. Defined when a Macro row has a pitch (from the 48 kHz data only; M7 r1.2) and set
+the six device-free OB-c oracles (OB r2.1). Approved #213 OB-a1. #184 S7.1: High. A local reproduction
+of the R2 metric shows the damping calibration holds only at the default damping and is worse than base
+at 0.7 and 0.9, so S7.1 now also reports four damping values. Closed #172 (CI1 r4 was already accepted).
+Signed: claude-architect, 2026-11-17
+
 ## 2026-11-17 — Claude Architect quick check (15:50 ET)
 Owner set the Architect run protocol (start low, escalate on findings; docs updated every run;
 end-of-run report with next-run trigger). Added `docs/workflow/ARCHITECT_INBOX.md` as the single
