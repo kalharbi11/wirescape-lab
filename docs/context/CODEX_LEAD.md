@@ -37,6 +37,21 @@ When a contract or task needs a Claude review, the lead labels the PR `claude-re
 the base/head SHAs and the invariants. It no longer asks the owner to assign a reviewer. Every
 Claude review run clears that label queue.
 
+## Asking the Architect: inbox row first (owner, 2026-11-18)
+The Architect's queue is `docs/workflow/ARCHITECT_INBOX.md`. It only reads that table and
+`needs/architect`, so an ask posted only as a PR comment, issue comment or chat line is missed.
+For every ruling, question, acceptance or Architect-level review the lead (or a builder, through
+the lead) needs:
+1. In the same docs PR as the CURRENT update (or a docs PR of its own), add one row to the inbox **Open** table:
+   next `A<n>` ID, ET date, `From`, kind, `Urg` (now/soon/later), the ask in one line with the
+   PR/issue link and exact head SHA, and the single task that waits. Long questions also go in
+   `QUESTIONS.md`, linked from the row.
+2. Label the PR or issue `needs/architect` (plus `claude-review/architect` for a review).
+3. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
+4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
+   withdrawn, say so in the row; do not leave a stale Open row.
+A `claude-review/reviewer` request needs no inbox row; the label is its queue.
+
 ## Owner-specific run and communication policy — 2026-11-17 ET
 
 These are the owner's explicit instructions for every Codex delivery-lead session. Read this
