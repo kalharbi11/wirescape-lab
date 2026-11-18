@@ -1,20 +1,47 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB delivery plan — 2026-11-17 ET
 
-Owner-directed scope: OB r2, PRIORITY, M1 r3, M2 r4, M3 r1, M4 r2, M7 r1 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
+Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
 ## Critical paths and estimates
 OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, OB-a1) → release/tag. Start S7.4 and OB-a1 now, in separate files. Aim for the first eligible build, not a bundled wait for OB1.
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
 Estimates below are initial active engineering hours per task, including a first validation/fix pass. CI queue/runtime, independent/Claude reviews, Architect target-setting and owner Pi availability are additional elapsed time. Re-estimate after each signed Result; do not promise a delivery date before observing those dependencies. OB0 budget roughly 2–4 working days elapsed if evidence/reviews clear; OB1 roughly 4–8 weeks with the current serial engine chain. These are planning ranges, not guarantees or permission to skip gates.
 
-## Immediate dispatch, one active writer per file
-B1: #182/PR189 correction1 published edcc97f; park source for review, take #206 OB-a1 in new files while waiting. Return to182 only for concrete review/CI failure. #191 report after actual merge; #192 RL lower priority than OB0 tests.
-B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #209 UI facts when the bench lane is free; smoke tests follow the census merge and a separate issue. B5 owns #208.
-B3: #155/PR184 source8823c78 parked awaiting193; start #210 S7.4 Macro in its own module folder now. S7.2 follows155 actual merge, using the same source owner; finish/park Macro before switching. No duplicate Reverb capture.
-B4: #188/PR190 capturefd0b905; verify actual384000-byte reference, commit exact bytes/hash/provenance, convert assertions, then delete. Architect190#6950233998 rules. Then serial S5a/S5b/S6; no other builder edits engine/control.
+## Immediate dispatch — 2026-11-18, 00:03 EST
 
-B5 (owner-authorized floater, no permanent product lane): #208 read-only source census, then a small read-only OB0 evidence-readiness inventory for #198, then available for explicitly assigned gaps. No automatic takeover of B1–B4 files. This is a bounded staffing exception authorized by the owner on 2026-11-17; it does not waive review or lane limits.
+B1:207/214 six A10 oracle tests in new test files; existing MIDI/ASIO green, strict expected
+failures allowed only perOB r2.1 cause, fixes afterS6.191/232 report mergedd048049;235 Architect
+acceptance queued.189 merged06e68f0 and213 OB-a1 merged6998f05.192 separately gated.
+B2:226/230 A12 offline classification of original44229365015 artifacts, no recapture; only48k
+margins decide defined pitch, then±2cent comparisons. Keep196/209 source parked;196 validator
+findings remain a later bounded correction, and revised184 needs later newly pinned evidence.
+B3:155/184 HIGH damping regression, correction2/2, four actual hosted damping rows with default
+<=5% and no other row worse thanbase. Preserve48k and allinvariants. NoS7.2/212 source changes.
+B4:234 S5a nowreleased, same serialM1 writer; exact0006 evidence1–5/I1–I8. Exclusive sidecar lane.
+212 Macro test block stays reserved; defer same-file edit/rebase after212 actualmerge. NoS5b/S6.
+B5: census221/readiness198 delivered, available only for small explicitly assigned tasks.
+
+A10/A11/A12 are cleared by Architect23:40, not open questions.212 rate Medium nonblocking
+unlessnewhead (then8/192 tests+DESIGN line); definedpitchfailures remain real210 defects.
+One writer perfile, no source task overlap, no new schedules. Run prompts sent toB1–B4;
+all four verifiedactive. Reviewlabels per231, no owner reviewer assignment.
+Signed: codex-lead, 2026-11-18, 00:03 EST
+
+## Delivery changes — 2026-11-18 05:41 EST
+
+- B1 continues #207 / #214 on the isolated A10 runner packet after a supported retry.
+- B2's Macro A12 analysis is in companion #238 for independent review. B2 owns #193 / #196 now
+  for validator corrections and new #184 head capture. Queue #240 after that packet and shared
+  wiring release. B3 parks #184 at `32abedde` (2/2) for review and capture; #212 stays parked until
+  Macro acceptance evidence and D5 are verified.
+- B4 resumed #234 under A15 / M1 r3.1. The entire Qt-free test file waits on actual #212 merge before
+  B4 edits it. Sidecar and successor stage ownership stay with B4.
+- B5's census #221 merged at `998f56b`: 34 palette IDs, 32 native registrations and two SDK
+  examples. B5 is assigned only a read-only Macro artifact/release inventory. #240 covers the live
+  palette and waits for dispatch; OB-e2 remains unverified.
+
+Signed: codex-lead, 2026-11-18, 05:41 EST
 
 ## Complete task ledger
 Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover every row below. A tracker is not permission to implement an unmet dependency. Every future implementation gets its own issue/branch/PR, exact allowed paths, contract criteria and mapped S6 paths at release.
@@ -22,17 +49,17 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | Build / task | Issue or tracker | Builder | Dependency / gate | Active effort |
 |---|---|---|---|---|
 | OB0 T7.0 baseline | #152 merged | complete | retained facts | done |
-| OB0 M2 E1b-r | #182 / PR189 | B1 | correction1; exact-head Lab + independent Claude M2 review | 2–6h remaining |
-| M2 final report | #191 | B1 |189 merged; Architect accepts milestone separately | 1–2h |
-| OB0 S7.1 Reverb | #155 / PR184 | B3 |193 actual evidence + independent lead review/release pair | 1–3h remaining |
+| OB0 M2 E1b-r | #182 / PR189 merged06e68f0 | complete | reviewed exactedcc97f, Lab green | done |
+| M2 final report | #191 / PR232 mergedd048049; acceptance235 | Architect | report complete; milestone decision separate | report done |
+| OB0 S7.1 Reverb | #155 / PR184 | B3 | High damping regression; correction2/2, M7r1.2 four damping rows | re-estimate after correction |
 | OB0 R2/D5 capture | #193 / PR196 | B2 |actual x64/ARM64 production artifacts; lead release upload | 2–6h |
 | OB0 S7.2 Reverb gain | #202 (stage issue after155 merge) | B3 |155 merged; same module writer | 4–10h |
 | OB0 S7.4 Macro rate support | #210 | B3 |ready; 24models×rates,48k identical, required contract-review | 12–24h |
-| OB0 OB-a1 round-trip CI | #206 | B1 |ready; bundled+each config shape; no loader fixes | 6–12h |
+| OB0 OB-a1 round-trip CI | #206 / PR213 merged6998f05 | complete | actual32/32, approved00664a1 | done |
 | OB0 tag/release/install check | #198 | lead |all OB0 criteria on main; preserve immutable fallback tag | 1–3h |
 | OB1 M1 S3 | #159 merged | complete |reviewed prior evidence retained | done |
-| OB1 M1 S4 | #188 / PR190 | B4 |exact frozen capture before conversion/deletion | 8–16h remaining |
-| OB1 M1 S5a | #199 | B4 |S4 merged; I1–I8 | 8–16h |
+| OB1 M1 S4 | #188 / PR190 merged8c72722 | complete | reviewed26c749d, final facts/CI green | done |
+| OB1 M1 S5a | #234 (tracker199) | B4 | ArchitectA11 released;212 same-file/sidecar order holds | 8–16h |
 | OB1 M1 S5b | #199 | B4 |S5a merged; required Claude contract-review | 8–16h |
 | OB1 M1 S6 | #199 | B4 |S5b; every product PR merged/explicitly parked; plan window ≥1 day ahead; Claude review | 8–16h |
 | OB1 M3 T1.6a | #200 | B4 |S6; mapped paths, mechanical only | 4–8h |
@@ -58,11 +85,11 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-a2 owner folder runner | #203 | B1 |OB-a1; read-only inputs; owner runs real patches | 3–6h |
 | OB-a3 no rewrite/first-save backup | #203 | B1 |OB-a1; native/document free after S5; Claude review | 6–12h |
 | OB-b Pi install/launch | #198 | B2 |S6; dry-run paths; no agent device test | 4–8h |
-| OB-c regression tests | #207 | B1 |ready in isolated tests; Studio lane after182 source park | 8–16h |
+| OB-c regression tests | #207 / PR214 | B1 | A10 six oracles released; new test files, no sidecar duringS5 | 8–16h |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
-| OB-e1 module census | #208 | B5 |ready; census33 actual modules, read-only sources | 2–4h |
-| OB-e2 every-module smoke | #204 | B2 |e1; native/tests2 slot after a1;44.1/48k,64/256,2s,sweep,RT | 6–12h |
+| OB-e1 module census | #208 / PR221 merged998f56b | complete | 34 actual palette IDs (32 native, two SDK examples) | done |
+| OB-e2 every-module smoke | #240 (tracker #204) | B2 | e1 merged; queue behind #193 and Lab wiring release; 44.1/48k,64/256,2s,sweep,RT | 6–12h |
 | OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
 | OB-f2 UI fixes | #205 | B1 |f1+Architect numerical targets; Studio free | 8–20h provisional |

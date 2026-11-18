@@ -2,7 +2,7 @@
 # Macro Oscillator
 
 Module `ports.macro_oscillator`: 24 selectable synthesis models, main and auxiliary
-outputs. **48 kHz only**; preparation rejects every other sample rate. Polyphony is
+outputs. native 48 kHz Plaits core, with a device-free prepared polyphase resampler for other host rates (including 44.1 and 96 kHz). Polyphony is
 capped at eight active channels; channels above eight are silent. Main/aux are two
 separate audio streams, not a left/right stereo pair.
 
@@ -20,8 +20,13 @@ harmonics/timbre/morph/decay/LPG colour are 0..1; three modulation amounts −1.
 Stable IDs and parameter slot indices are in `module.json`.
 
 Controls are sampled on an internal 12-frame quantum. A per-channel FIFO makes host
-block divisions 1/12/17/128/256 equivalent; `latency_frames()` reports the fixed
-12-frame delay. Trigger transitions shorter than a control quantum may be missed.
+block divisions 1/12/17/128/256 equivalent at 48 kHz; `latency_frames()`
+reports the original 12-frame delay there. At other host rates, a host-owned
+96-tap, 128-phase Blackman-Harris/windowed-sinc table is built only in
+`prepare`, with a 128-frame per-voice history ring. The 48 kHz core renders
+its original 12-frame quantum and the causal filter converts both output
+streams. Reported latency includes the filter's 47.5-core-frame group delay
+and the original 12-core-frame FIFO delay, converted to host frames. Trigger transitions shorter than a control quantum may be missed.
 Outputs are normalized from upstream signed 16-bit values by division by 32768.
 
 State v1 is patch state plus deterministic reset: parameters belong to the host;

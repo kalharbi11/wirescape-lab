@@ -157,11 +157,21 @@ void test_lengths_and_rates() {
     for (double rate : {44100., 48000., 96000.}) {
         Reverb dsp;
         dsp.rate = float(rate);
+        Reverb at_48k;
+        at_48k.rate = 48000.f;
+        for (uint32_t section = 0; section < 4; ++section) {
+            const double at_rate_seconds = double(Reverb::diffusion_count(rate, section)) / rate;
+            const double reference_seconds = double(Reverb::diffusion_count(48000., section)) / 48000.;
+            REQUIRE(std::abs(at_rate_seconds - reference_seconds) <= 1.01 / rate);
+        }
         for (float size : {0.f, .2f, .5f, 1.f}) {
             for (uint32_t i = 0; i < 8; ++i) {
                 const uint32_t a = dsp.scaled_length(i, size);
                 REQUIRE(Reverb::prime(a) && a < Reverb::line_count(rate) - 2);
                 for (uint32_t j = 0; j < i; ++j) REQUIRE(a != dsp.scaled_length(j, size));
+                const double physical_seconds = double(dsp.physical_length(i, size)) / rate;
+                const double original_seconds = double(at_48k.scaled_length(i, size)) / 48000.;
+                REQUIRE(std::abs(physical_seconds - original_seconds) < 1e-6);
             }
         }
         Rig rig(rate, 16);
@@ -244,6 +254,62 @@ double measured_rt60(float size) {
     }
     const double slope = (double(end - begin) * sxy - sx * sy) / (double(end - begin) * sxx - sx * sx);
     return -std::log(1000.0) / slope;
+}
+// Reproduce the production R2 impulse metric with the same one-second
+// pre-silence and two-second, single-sample impulse response. The first frame
+// after the final sample above -60 dB of the measured absolute peak is the
+// suffix-maximum crossing; a zero crossing within the tail is not decay.
+double measured_r2_minus60_ms(uint32_t rate, float damping = .4f) {
+    Rig rig(rate);
+    rig.set(reverb::DAMPING, damping);
+    const Samples idle = silence(rate);
+    rig.run(idle, idle, 128);
+    Samples impulse(size_t(rate) * 2, 0.f);
+    impulse[0] = 1.f;
+    const Stereo response = rig.run(impulse, impulse, 128);
+    double peak = 0;
+    size_t peak_frame = 0;
+    for (size_t i = 0; i < response.l.size(); ++i) {
+        const double level = std::abs(double(response.l[i]));
+        if (level > peak) {
+            peak = level;
+            peak_frame = i;
+        }
+    }
+    REQUIRE(peak > 0);
+    const double threshold = peak * .001;
+    size_t last_above = peak_frame;
+    for (size_t i = peak_frame; i < response.l.size(); ++i)
+        if (std::abs(double(response.l[i])) > threshold) last_above = i;
+    REQUIRE(last_above + 1 < response.l.size());
+    return 1000.0 * double(last_above + 1) / double(rate);
+}
+void test_rate_independent_decay() {
+    // Same decay target as M7r1 S7.1, no redefinition of the R2 metric.
+    // These values are emitted by the existing three-platform folder-test CI.
+    const double low = measured_r2_minus60_ms(44100);
+    const double reference = measured_r2_minus60_ms(48000);
+    const double high = measured_r2_minus60_ms(96000);
+    const double spread_percent = 100.0 * (std::max({low, reference, high}) -
+                                            std::min({low, reference, high})) / reference;
+    std::printf("S7.1 R2 reverb: 44.1 %.5f ms; 48 %.5f ms; 96 %.5f ms; spread %.3f%%\n",
+                low, reference, high, spread_percent);
+    // The source baseline at 48 kHz was 245.35417 ms; a difference here
+    // would invalidate the bit-identical golden and requires escalation.
+    REQUIRE(std::abs(reference - 245.35416666666669) < 1.0);
+    REQUIRE(spread_percent <= 5.0);
+    // M7 r1.2: preserve the identical suffix-maximum method at each damping.
+    // This 1% guard is stronger than even the smallest Architect diagnostic
+    // base spread; hosted base/head numbers remain required for acceptance.
+    for (float damping : {.1f, .7f, .9f}) {
+        const double a = measured_r2_minus60_ms(44100, damping);
+        const double b = measured_r2_minus60_ms(48000, damping);
+        const double c = measured_r2_minus60_ms(96000, damping);
+        const double spread = 100.0 * (std::max({a, b, c}) - std::min({a, b, c})) / b;
+        std::printf("S7.1 R2 damping %.1f: 44.1 %.5f; 48 %.5f; 96 %.5f ms; spread %.3f%%\n",
+                    damping, a, b, c, spread);
+        REQUIRE(spread <= 1.0);
+    }
 }
 void test_decay() {
     const double small = measured_rt60(.2f), large = measured_rt60(1.f);
@@ -357,6 +423,7 @@ int main() {
     test_mix_loudness();
     test_dry_and_width();
     test_decay();
+    test_rate_independent_decay();
     test_freeze();
     test_cached_parameter_changes();
     test_state_extremes_and_sweep();

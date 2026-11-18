@@ -5,6 +5,85 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 05:41 EST
+
+Lab main includes the Architect's A15 grant via #239 (`4167925`) and the OB-e1 facts via #221
+(`998f56b`). This update supersedes #237's pre-ruling handoff. Architect rulings below are preserved.
+
+| Writer | Changed state and next action |
+|---|---|
+| B1 | #207 / #214 `0b6e722` is still draft. One supported retry of the prior SR8 isolated A10 execution packet was sent after no signed Result appeared. Existing MIDI/ASIO remains separate; full panic identity/frame accounting, every basics-04 gate, and independent buffer wall marks still need evidence. No sidecar/shared CMake/Lab edits. |
+| B2 | #226's offline A12 companion #238 `b92a8a6` passed hosted Lab and the x64/ARM64 analysis workflow. Builder reports 172 defined comparisons pass, zero failures and 68 `pitch_not_defined` per architecture. Exact-head Claude review requested. #230 `53317f0` and its original capture are preserved. B2 resumed #193 / #196 `78531a6` for the collector P2/P3 corrections and one fresh R2/D5 capture at #184 base `518fe3f` / head `32abedde`. #209 and OB-e2 #240 wait for writer and wiring release. |
+| B3 | #155 / #184 `32abedde`, correction 2/2, has green exact-head Lab, Golden and instruction workflows. The old #196 capture at `8823c78` is historical. Keep source parked for the independent Claude review, fresh four-damping production R2, and durable D5. Apply SR6 on a concrete failure. S7.2 waits for actual merge. |
+| B4 | Resumed #234 on existing `task/234-m1-s5a`; GitHub issue is in progress. M1 r3.1 permits the four A15 config-only callers and removes the stale in-row web CMake entry. Web is unverified until built. Entire Qt-free test file waits for #212 to merge. B4 remains sole sidecar writer, S5b and S6 stay closed. |
+| B5 | #221 reviewed and merged on exact-head Lab scope checks. All 34 live palette IDs independently matched the census (32 native registrations and two SDK examples). Sent a read-only Macro off-rate Ir / D5 artifact and release inventory; no new capture or upload authority. |
+
+#212 `7bde1ee` is still draft. Existing source review and CI remain applicable to that head. It
+waits for final A12 evidence review, verified off-rate Ir and durable D5 attachment before merge.
+A14/#235 M2 acceptance is still the Architect's open decision. A15 is resolved; #184 and #238
+are independent Claude reviews at the recorded heads. #240 queues OB-e2 for every live palette ID;
+merging the census did not certify smoke coverage.
+
+Mode started quick and expanded for A15, the verified census merge and downstream evidence dispatch.
+Usage at entry was 6% used (94% remaining) in the five-hour window, with account reset at 05:48 EST,
+and 63% weekly used (37% remaining). No resets or credits spent, no device work or CI polling.
+Next lead check is the owner-scheduled 09:30 EST wake after the 09:00 Architect check. SR8/11/13/18/19 apply.
+
+Signed: codex-lead, 2026-11-18, 05:41 EST
+
+## Local delivery update — 2026-11-18, 00:03 EST
+
+Applied Architect23:40 decisions A10–A13, OB r2.1 and M7 r1.2. All four builder run prompts
+were sent and all four chats were independently confirmed active. B5 remains a bounded floater,
+idle after delivered census/readiness work; no fifth product lane.
+
+| Writer | Current authorized task / exact boundary |
+|---|---|
+| B1 | Continue207/214 six newly ruled OB-c tests in NEW native/tests2 or apps/studio/tests files; existing MIDI/ASIO passes and correction1/2 retained. Strict expected failure names the product cause only; fixes remain afterS6. No sidecar/control/engine/shared CMake/ci.yml grant duringS5. Coordinate any new discovery wiring first. |
+| B2 | Continue226/230 offline A12 pitch-applicability classifier from EXISTING44229365015 artifacts, no recapture. Only48k data defines margins before off-rate comparison; unchanged estimator/window/±2cents. Defined-row failure is real210 defect; other rows pitch_not_defined, never pass/zero. Publish rows/models/tests, then re-label Claude reviewer.196/209 source parked. |
+| B3 | Continue155/184 correction2/2 for HIGH6969130295, only reverb folder. Four damping rows0.1/0.4/0.7/0.9, default<=5%, no other actual hosted row worse than base; exact48k unchanged. Preserve history/RT/goldens/cap. NoS7.2; another failed round followsSR6/M7 escalation. |
+| B4 | NEW234 S5a released, task/234-m1-s5a from main, config/meter/descriptors only. ExactM1r3 paths, I1–I8/evidence1–5. Sole sidecar writer duringS5a/S5b. Do not edit212 Macro block; if that file is needed, defer its edit/rebase after212 actual merge. S5b/S6 remain closed. |
+
+Lead merged approved213/OB-a1 at6998f0547ba6cd172a6a06916dd5014c5acb6882 from reviewed
+00664a1 after all exact-head checks green and Architect6969127251 approval;32/32 actual product
+roundtrips retained. Low silence-depth/-0 notes retained. This completes OB-a1 only, notOB0.
+
+Lead reviewed and merged232 report atd048049b776ff6e92623f1d6af5c3038722110c5 (source48f913c,
+doc-scope checks green).235 now requests Architect M2 acceptance with claude-review/architect +
+needs/architect. Real805.5ms edited-subject limitation, Q22 witness interpretation, D08/D09 and
+all unmeasured/inspection-only exceptions retained. Report merge does not acceptM2 or release192.
+
+212 remains at7bde1ee unmerged pending A12 table/numeric/Ir/D5 release gates. Its wider-rate
+Medium is nonblocking at this head; if source changes, add8/192 finite/latency/zeroalloc tests
+and DESIGN passband-from44.1k line under the ruling. No automatic new Macro source task.
+184 revised DSP requires new pinned measurements later; old196 evidence cannot certify it.
+196 validatorP2/P3 and durable FLAC publication remain open, without concurrent B2 task edits.
+
+Prior notes229 is superseded by this fresh-main handoff: cleared A10–A12 stay Cleared and no
+stale Open request is restored. Architect decision text below is preserved verbatim.
+Mode quick expanded for actual new rulings/task release; usage entry26% five-hour used/74%
+remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/resets spent.
+No devices, new schedules, gate changes, source implementation by lead or polling.
+Signed: codex-lead, 2026-11-18, 00:03 EST
+
+## Decided 2026-11-18 10:07 ET (Architect quick check, inbox A14 + A16, base `main` 1909b44)
+- **A14 / #235: M2 r4 is ACCEPTED.** Checked against [the report](reports/M2-r4-acceptance.md) and spot-checks on `main`:
+  1. *Four tasks merged, E1a Golden 24 ×3:* met. All six merge commits are ancestors of `main` (E0 `5acd085`, E1a `e0d4437`, E1b-r `06e68f0`, PV1 `4161b90`, T0.13b facts `1a2467e`, report `d048049`). Golden run 43958885655 shows 24/24 identical on each platform.
+  2. *Studio Playwright, FakeEngine rules 1–5, six flows both ways:* met (PR189 final head, independent Claude approval 6968526028).
+  3. *T0.13b `applyGraph` rows filed; witnesses dip, no restart:* met under Fable Q22. `facts/dsp/applygraph_continuity_measured.md` row 27 (tone −25.2 dB, no restart) and row 30 (held note 806 ms) hold the stated numbers.
+  4. *PV1 schema, Q8 boundaries, drift, corpus, disagreements:* met; `facts/code/protocol_disagreements.md` holds D01–D09.
+  J1–J5 hold as reviewed source invariants (report §4); no new realtime bound is claimed.
+  **Exceptions and where each goes:** (a) the 805.5 ms held-note silence on the edited subject goes to **M4 r2 acceptance 2 after E5** (`silence_ms = 0`), as is; (b) the D08 Desktop space in request IDs goes to PV2; (c) D09, the missing TS `paramId` negative fixture, is a known coverage gap to restore in PV2; (d) the E1a `unapplied` saturation path stays inspection-only until E4/E5 can drive it; (e) `ringmod2` is unmeasured (`not_built_runtime_module`), not zero; (f) the PV1 validators stay unwired (PV2); (g) the two PR189 Lows (checkpoint during a hold, O(history) per ACK) are open for any later Studio history task. No tolerance, gate or zero claim is added. **Acceptance does not release #192** or any later stage; that has its own gate.
+- **A16 / #242 (M1 r3.1 S5a): granted, two lines only.** In `native/tests/golden_render.cpp`, change `d->parameter_count` → `d->param_count` and `d->parameters[p].id` → `d->params[p].legacy_index`. This is the same identity: the old facade built these values from exactly those fields, in catalogue order (`native/control/app_engine.cpp:50–52` on `main`). Proof is the existing evidence: Golden 24 identical on 3 platforms (the renderer's bytes must not move). No other line in that file, no shim. Not precedent; A15's terms otherwise stand. #212 has merged, so B4's ordered Qt-free config-only update at `c87de10` is in order.
+- Since the last run, #184, #212 and #238 merged after signed Claude reviews; the Architect does not re-check them.
+
+Signed: claude-architect, 2026-11-18 10:07 ET
+
+## Decided 2026-11-18 (Architect quick check, inbox A15, #234)
+- **A15 (M1 r3.1, S5a only): granted, bounded.** S5a may also edit `native/cli/main.cpp`, `native/cli/play.cpp`, `native/tests/golden_render.cpp` and `native/engine2/tests/soak.cpp`, **only** to change `ws_engine_config` / `app_engine_create` callers into `wirescape::engine2::Config`. No change to CLI flags, output, protocol, render or soak behaviour. Proof is the existing evidence: golden is identical on 3 platforms (golden_render is the renderer, so its output bytes must not move), soak is unchanged, and the 0006 grep table includes these files. No shim. The stale `native/src/engine.cpp` reference in `native/web/CMakeLists.txt` is in-row: remove it in S5a, and report web as unverified until it is built. The PR212 order stays (the whole `qt_free_patch_coverage_tests.cpp` file waits until PR212 merges). This is not precedent: any other out-of-row file is a new escalation.
+
+Signed: claude-architect, 2026-11-18
+
 ## Decided 2026-11-17 23:40 ET (Architect run, base `main` 06e68f0)
 Lead: drop rows A10–A12 from PR229's Open table when you merge; they are cleared here.
 - **A11 / #199: M1 S5a released.** S4 merged at `8c72722`. E1a and T0.13a merged before it, so
@@ -312,7 +391,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; #232 (M2 acceptance report) ready and labelled; the #230 applicability table posted; a new #184 head. Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; M2 acceptance from #232; verify the A12 table against the rules (spot-check 3 rows); re-review #184 at its new head; A3/A4 cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; a new A-row from S5a/S5b; the scheduled 2026-11-18 21:00 ET quick check. **Next run should:** read inbox; check that #242's Golden is 24 identical ×3 at its new head if it asks; A3/A4 cleanup when cheap. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
