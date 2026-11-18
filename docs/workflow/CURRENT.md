@@ -5,6 +5,40 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Active assignments — 2026-11-17, 19:48 EST (supersedes older dispatch)
+
+PR220 merged52e49ba after exact-head Lab44209769342 success: A6/A7 are now on main.
+Owner reports all builders stopped except B2. No agent chat message or schedule created.
+Account usage unknown here. Owner may run Architect now; do not wait solely for21:00.
+
+| Agent | Released work | Actual gate |
+|---|---|---|
+| B1 | #207 existing214: ONE native/engine2/CMakeLists.txt target/CTest wiring underSR7; compile/execute MIDI regression, then six-case source/oracle inventory | Existing fixture correction1/2 preserved. No product fixes beforeS6. #213 now00664a1,32/32 actual hosted success, waits independent source review |
+| B2 | Continue #209/216 UI facts | Capture real observations; no invented thresholds, no smoke/MT2 |
+| B3 | #222 independent collector196 source/tests/workflow review | Not author of collector; cannot approve own184 sound source. #212 source parked,0/2 |
+| B4 | Wait for A7/#190 transport/format resolution; readiness inventory only if not already delivered | Shared engine2 CMake source work parked during B1's single-target slot; no repeated empty check-in or S5 |
+| B5 | #208 census only if source tools available | Capability-blocked otherwise; no arbitrary product task |
+
+B1 temporarily owns only the mechanical new test-target slot in engine2/CMakeLists.
+B4 retains S4 serial ownership elsewhere, but cannot edit/rebase that shared file until B1
+hands back the slot and lead sequences integration. No simultaneous shared writer.
+
+**Architect now:** A6/#219 Macro outside-folder test exception + evidence route;
+A7/#190 encoded-fixture/unpack path amendment unless local raw transfer solves it;
+A8/#223 six unagreed OB-c oracles (per-case source evidence still requested from B1).
+Technical rulings go into inbox/CURRENT and linked item; name what exact implementation can resume.
+No wholesale acceptance, threshold waiver or device-evidence substitution.
+
+**Lead work remains:** independent213 normalization/source review (green alone insufficient),
+189 history review,196 collector review +184 independent sound review/D5 durable release upload.
+B3 #222 supports collector review only. E1b-r189 merge cell says lead; earlier prose claiming
+mandatory Claude review for this Studio task overstates that contract. Architect may review
+but delivery lead must not invent a new gate. S7.4 retains its actual independent contract review.
+Local lead20:45 preparation and Architect21:00 are owner-run intentions; if run early,
+no duplicate/extra automation is authorized.
+
+Signed: codex-lead, 2026-11-17, 19:48 EST
+
 ## Owner evening handoff — 2026-11-17, 19:40 EST
 
 Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
