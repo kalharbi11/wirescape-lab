@@ -8,6 +8,20 @@ OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, 
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
 Estimates below are initial active engineering hours per task, including a first validation/fix pass. CI queue/runtime, independent/Claude reviews, Architect target-setting and owner Pi availability are additional elapsed time. Re-estimate after each signed Result; do not promise a delivery date before observing those dependencies. OB0 budget roughly 2–4 working days elapsed if evidence/reviews clear; OB1 roughly 4–8 weeks with the current serial engine chain. These are planning ranges, not guarantees or permission to skip gates.
 
+## Review and merge boundary — 2026-11-17, 22:58 EST
+
+190/S4 merged8c72722 by Claude, source26c749d.189/E1b-r merged06e68f0 by lead after exact
+edcc97f green+Claude approval. B1 now191 acceptance report only; Architect accepts M2 later.
+B4 parked after2127bde1ee compatibility;199 asks Architect releaseS5a, no tracker-only build.
+B2 actual230/53317f0 workflow44229365015 completed success; inspect raw artifacts now, numeric
+acceptance not inferred.212 Claude source review passed; numeric/Ir/D5 release gates stay.
+Architect230 request covers meaningful pitch applicability and Medium wider-rate support.
+B3 collector222 review done;196 needs bounded P2/P3 validator correction after B2 current handoff.
+B5 readiness inventory done.214 MIDI/ASIO verified, six223 oracles incomplete.
+New231 review-label rules replace owner-assigned reviewers;213 and184 source reviews requested.
+No192/S5b/S6 release; no product merge beyond earned189; preserve all surviving source invariants.
+Signed: codex-lead, 2026-11-17, 22:58 EST
+
 ## Local dispatch — 2026-11-17 22:01 EST
 
 Owner authorized agent chat starts; all five existing Wirescape Lab chats active after dispatch.
