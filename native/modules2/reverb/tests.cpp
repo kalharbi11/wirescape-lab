@@ -259,8 +259,9 @@ double measured_rt60(float size) {
 // pre-silence and two-second, single-sample impulse response. The first frame
 // after the final sample above -60 dB of the measured absolute peak is the
 // suffix-maximum crossing; a zero crossing within the tail is not decay.
-double measured_r2_minus60_ms(uint32_t rate) {
+double measured_r2_minus60_ms(uint32_t rate, float damping = .4f) {
     Rig rig(rate);
+    rig.set(reverb::DAMPING, damping);
     const Samples idle = silence(rate);
     rig.run(idle, idle, 128);
     Samples impulse(size_t(rate) * 2, 0.f);
@@ -297,6 +298,18 @@ void test_rate_independent_decay() {
     // would invalidate the bit-identical golden and requires escalation.
     REQUIRE(std::abs(reference - 245.35416666666669) < 1.0);
     REQUIRE(spread_percent <= 5.0);
+    // M7 r1.2: preserve the identical suffix-maximum method at each damping.
+    // This 1% guard is stronger than even the smallest Architect diagnostic
+    // base spread; hosted base/head numbers remain required for acceptance.
+    for (float damping : {.1f, .7f, .9f}) {
+        const double a = measured_r2_minus60_ms(44100, damping);
+        const double b = measured_r2_minus60_ms(48000, damping);
+        const double c = measured_r2_minus60_ms(96000, damping);
+        const double spread = 100.0 * (std::max({a, b, c}) - std::min({a, b, c})) / b;
+        std::printf("S7.1 R2 damping %.1f: 44.1 %.5f; 48 %.5f; 96 %.5f ms; spread %.3f%%\n",
+                    damping, a, b, c, spread);
+        REQUIRE(spread <= 1.0);
+    }
 }
 void test_decay() {
     const double small = measured_rt60(.2f), large = measured_rt60(1.f);

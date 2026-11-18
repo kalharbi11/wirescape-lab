@@ -57,7 +57,9 @@ struct Reverb {
     static constexpr std::array<float, 8> project_l{{1, 1, 1, 1, -1, -1, -1, -1}};
     static constexpr std::array<float, 8> project_r{{1, -1, 1, -1, 1, -1, 1, -1}};
 
-    float rate = 48000;
+    float rate = 48000, host_rate = 48000;
+    double core_phase = 0.0;
+    float last_core_wet_l = 0.f, last_core_wet_r = 0.f;
     uint32_t line_capacity = 0, pre_capacity = 0, write = 0, pre_write = 0;
     float *lines[8]{};
     float *pre[2]{};
@@ -65,9 +67,6 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
-    // Prepared once per sample rate: R2-calibrated spectral damping compensation.
-    // The 48 kHz path still uses the original per-sample pole bit-for-bit.
-    float rate_damping_scale = 1.f;
     static constexpr float kWetMakeup = 5.f;
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
@@ -80,13 +79,14 @@ struct Reverb {
         // physical-time impulse geometry (especially at 96 kHz).
         return uint32_t(std::ceil(double(diffusion_base[k] + 2) * sr / 48000.0));
     }
-    static ws2_memory memory_requirements(const ws2_config &c) {
+    static ws2_memory memory_requirements(const ws2_config &) {
         ws2_memory m{};
         m.struct_size = sizeof(m);
         m.alignment = 32;
-        const size_t samples = size_t(8) * line_count(c.sample_rate) + size_t(2) * pre_count(c.sample_rate) +
-                               diffusion_count(c.sample_rate, 0) + diffusion_count(c.sample_rate, 1) +
-                               diffusion_count(c.sample_rate, 2) + diffusion_count(c.sample_rate, 3);
+        constexpr double internal_rate = 48000.0;
+        const size_t samples = size_t(8) * line_count(internal_rate) + size_t(2) * pre_count(internal_rate) +
+                               diffusion_count(internal_rate, 0) + diffusion_count(internal_rate, 1) +
+                               diffusion_count(internal_rate, 2) + diffusion_count(internal_rate, 3);
         m.large_bytes = samples * sizeof(float) + size_t(14) * 32; // separate aligned host allocations
         return m;
     }
@@ -118,14 +118,11 @@ struct Reverb {
         return float(double(original) * double(rate) / 48000.0);
     }
     bool prepare(const ws::Setup &s) {
-        rate = float(s.sample_rate());
-        // The R2 suffix-envelope test at three rates is not a pure single-pole
-        // RT60 test: the FDN's fractional and diffuser geometry also matters.
-        // Compensate the sample-rate spectral response only outside 48 kHz.
-        // Exponent 3/4 is explicitly fixed by M7 S7.1 measured calibration.
-        rate_damping_scale = rate == 48000.f ? 1.f : std::pow(48000.f / rate, .75f);
-        line_capacity = line_count(s.sample_rate());
-        pre_capacity = pre_count(s.sample_rate());
+        host_rate = float(s.sample_rate());
+        if (!(host_rate > 0.f) || !std::isfinite(host_rate)) return false;
+        rate = 48000.f; // Preserve physical feedback, diffusion and LFO clock.
+        line_capacity = line_count(rate);
+        pre_capacity = pre_count(rate);
         for (auto &p : lines) {
             p = static_cast<float *>(s.alloc(size_t(line_capacity) * sizeof(float), 32, WS2_LARGE));
             if (!p) return false;
@@ -135,7 +132,7 @@ struct Reverb {
             if (!p) return false;
         }
         for (uint32_t i = 0; i < 4; ++i) {
-            const uint32_t n = diffusion_count(s.sample_rate(), i);
+            const uint32_t n = diffusion_count(rate, i);
             auto *p = static_cast<float *>(s.alloc(size_t(n) * sizeof(float), 32, WS2_LARGE));
             if (!p) return false;
             diffusion[i].attach(p, n);
@@ -145,6 +142,9 @@ struct Reverb {
     void reset() {
         write = pre_write = 0;
         sample_counter = 0;
+        const double ratio = double(rate) / double(host_rate);
+        core_phase = ratio < 1.0 ? 1.0 - ratio : 0.0;
+        last_core_wet_l = last_core_wet_r = 0.f;
         freeze_amount = phase_a = phase_b = 0;
         pre_samples = .02f * rate;
         last_mix = last_size = -1.f;
@@ -187,7 +187,105 @@ struct Reverb {
         const float rt60 = std::clamp(b.param(DECAY).value(0, i), .2f, 20.f);
         for (uint32_t k = 0; k < 8; ++k) gain[k] = float(std::exp(-kLn1000 * delay[k] / (rt60 * rate)));
     }
+    // The non48 host adapter advances this original 48k tank one tick at a time.
+    void process_core_sample(const ws::Block &b, uint32_t i) {
+        const bool right_connected = b.in(1).connected();
+        const float glide = 1.f / (rate * .05f);
+        const float freeze_step = 1.f / (rate * .02f);
+            if ((sample_counter++ & 63u) == 0) refresh(b, i); // absolute, block-size independent
+            const float frozen_target = b.param(FREEZE).value(0, i) >= .5f ? 1.f : 0.f;
+            freeze_amount += std::clamp(frozen_target - freeze_amount, -freeze_step, freeze_step);
+            const float damp = std::clamp(b.param(DAMPING).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
+            const float damp_pole = damp;
+            const float motion = std::clamp(b.param(MOTION).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
+            const float l = b.in(0).value(0, i);
+            const float r = right_connected ? b.in(1).value(0, i) : l;
+            const float predelay_target = std::clamp(b.param(PREDELAY).value(0, i), 0.f, .25f) * rate;
+            pre_samples += glide * (predelay_target - pre_samples);
+            if (std::abs(pre_samples - predelay_target) < .001f) pre_samples = predelay_target;
+            const float drive = 1.f - freeze_amount;
+            float d[2] = {l * drive, r * drive};
+            for (uint32_t c = 0; c < 2; ++c) {
+                const float old = pre_samples < 1 ? d[c]
+                                                  : tap(pre[c], pre_capacity, pre_write,
+                                                        std::clamp(pre_samples, 1.f, float(pre_capacity - 2)));
+                pre[c][pre_write] = d[c];
+                d[c] = old;
+                d[c] = diffusion[size_t(c) * 2 + 1].step(diffusion[size_t(c) * 2].step(d[c]));
+            }
+            if (++pre_write == pre_capacity) pre_write = 0;
+
+            phase_a += .17f / rate;
+            if (phase_a >= 1) phase_a -= 1;
+            phase_b += .23f / rate;
+            if (phase_b >= 1) phase_b -= 1;
+            const float ma = motion == 0.f ? 0.f : motion * std::sin(2.f * kPi * phase_a);
+            const float mb = motion == 0.f ? 0.f : motion * std::sin(2.f * kPi * phase_b);
+            float vector[8], wet_l = 0, wet_r = 0;
+            for (uint32_t k = 0; k < 8; ++k) {
+                delay[k] += glide * (target[k] - delay[k]);
+                if (std::abs(delay[k] - target[k]) < .001f) delay[k] = target[k];
+                const float modulated = float(delay[k]) + (k & 1 ? ma : -ma) + (k & 2 ? mb : -mb);
+                const float shifted = std::clamp(modulated, 2.f, float(line_capacity - 2));
+                const float delayed = tap(lines[k], line_capacity, write, shifted);
+                wet_l += project_l[k] * delayed;
+                wet_r += project_r[k] * delayed;
+                low[k] += (delayed - low[k]) * (1.f - damp_pole);
+                const float feedback = gain[k] + freeze_amount * (1.f - gain[k]);
+                vector[k] = (low[k] * (1.f - freeze_amount) + delayed * freeze_amount) * feedback;
+            }
+            hadamard(vector);
+            for (uint32_t k = 0; k < 8; ++k) {
+                const float injection = .20f * (k & 1 ? d[1] : d[0]) * (k & 4 ? -1.f : 1.f);
+                // Normally inactive; bounds pathological feedback without nonlinearising small tails.
+                lines[k][write] = std::clamp(vector[k] + injection, -8.f, 8.f);
+            }
+            if (++write == line_capacity) write = 0;
+            wet_l *= .12374369f;
+            wet_r *= .12374369f;
+            last_core_wet_l = wet_l;
+            last_core_wet_r = wet_r;
+    }
     void process(ws::Block &b) {
+        if (host_rate != 48000.f) {
+            auto lout = b.out(0), rout = b.out(1);
+            lout.set_channels(1);
+            rout.set_channels(1);
+            lout.mark_constant(false);
+            rout.mark_constant(false);
+            const bool right_connected = b.in(1).connected();
+            const double ratio = double(rate) / double(host_rate);
+            for (uint32_t i = 0; i < b.frames(); ++i) {
+                core_phase += ratio;
+                // Hold input and modulation over each original 48k tank tick.
+                while (core_phase >= 1.0) {
+                    process_core_sample(b, i);
+                    core_phase -= 1.0;
+                }
+                // Keep dry, mix and stereo width at the exact host-frame clock.
+                const float l = b.in(0).value(0, i);
+                const float r = right_connected ? b.in(1).value(0, i) : l;
+                const float mix = std::clamp(b.param(MIX).value(0, i), 0.f, 1.f);
+                if (mix == 0.f) {
+                    lout.ch(0)[i] = l;
+                    rout.ch(0)[i] = r;
+                    continue;
+                }
+                const float width = std::clamp(b.param(WIDTH).value(0, i), 0.f, 1.f);
+                const float mid = .5f * (last_core_wet_l + last_core_wet_r);
+                const float wet_l = mid + width * (last_core_wet_l - mid);
+                const float wet_r = mid + width * (last_core_wet_r - mid);
+                if (mix != last_mix) {
+                    last_mix = mix;
+                    dry_gain = mix == 1.f ? 0.f : std::cos(mix * kHalfPi);
+                    const float makeup = 1.f + kWetMakeup * mix * mix;
+                    wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
+                }
+                lout.ch(0)[i] = std::clamp(dry_gain * l + wet_gain * wet_l, -2.f, 2.f);
+                rout.ch(0)[i] = std::clamp(dry_gain * r + wet_gain * wet_r, -2.f, 2.f);
+            }
+            return;
+        }
         auto lout = b.out(0), rout = b.out(1);
         lout.set_channels(1);
         rout.set_channels(1);
@@ -201,12 +299,8 @@ struct Reverb {
             const float frozen_target = b.param(FREEZE).value(0, i) >= .5f ? 1.f : 0.f;
             freeze_amount += std::clamp(frozen_target - freeze_amount, -freeze_step, freeze_step);
             const float damp = std::clamp(b.param(DAMPING).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
-            // Do not alter any 48 kHz operation. At other rates the prepared
-            // calibration accounts for the R2 impulse-tail response of the
-            // corrected physical-time delay geometry; keep modulation and
-            // freeze transitions sample-accurate without pow() in process().
-            const float damp_pole = rate == 48000.f ? damp
-                                                       : std::clamp(damp * rate_damping_scale, 0.f, 1.f);
+            // Exactly 48k: the original per-sample damping pole.
+            const float damp_pole = damp;
             const float motion = std::clamp(b.param(MOTION).value(0, i), 0.f, 1.f) * (1.f - freeze_amount);
             const float mix = std::clamp(b.param(MIX).value(0, i), 0.f, 1.f);
             const float width = std::clamp(b.param(WIDTH).value(0, i), 0.f, 1.f);
