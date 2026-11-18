@@ -5,6 +5,117 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Owner evening handoff — 2026-11-17, 19:40 EST
+
+Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
+These are owner-run sessions, not new scheduled jobs. Cloud sends no builder chat prompts.
+
+**B4 bounded continuation now, under existing #188/#190:** read-only S4 readiness packet on the
+same issue/PR, no new source branch or second task. Inventory the exact frozen-reader conversion
+sites, ABI1-only deletion/link consumers and assertions that must survive; identify file:line and
+the corresponding post-deletion proof for each. Prepare a step-by-step conversion/deletion/test
+checklist from the already-authorized S4 scope. Check whether the original artifact can actually
+be retrieved with B4's current tools; if available verify exact length/SHA without regenerating it.
+Publish one signed Result with checklist and remaining capability gaps. No source deletion,
+encoded-fixture/unpacker edit, shared CMake edit, S5 start or correction-round consumption while
+A7 waits. This work is preparation for the existing blocked packet, not permission to implement
+a dependent stage. B4 keeps its serial lane. Owner starts B4 with4:run.
+
+**20:45 local lead checklist (read this unmerged PR220 explicitly):**
+1. Read latest main CURRENT, inbox and this handoff; reconcile newer Results without overwriting
+   Architect decisions. Review/merge220 only after exact-head green; ensure A6/A7 reach main
+   before21:00. If checks are unfinished, Architect must explicitly read220's inbox as well.
+2. A7/#190: try artifact14352740696 with local working networking; independently hash384000
+   bytes SHA485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419,
+   blob4dc06c72035a30979ea84beacc7664999bce77b6. Raw binary upload satisfies existing ruling;
+   base64 API transport is decoded binary. If successful, coordinate B4 handoff before branch
+   write, commit fixture+manifest/provenance in order and mark A7 transport amendment unnecessary.
+   Otherwise ask Architect to authorize exact encoded-fixture path AND bounded unpack wiring;
+   preserve old immutable corpus and all assertions. Do not claim a download link is verified bytes.
+3. A6/#219: obtain bounded native/document test-path/serial-writer ruling for212; retain strict
+   non48 actual pitch/Ir/D5 evidence requirements. No contract-target change by lead.
+4. Review189 edcc97f confirmed-history source against queued regression and green Lab; route any
+   mandatory Claude review explicitly. Review196/184 evidence and arrange durable D5 release
+   attachment with local capabilities before any product merge. These are delivery duties.
+5. Carry B1's four roundtrip document drifts and fixture-listener failure as exact unresolved
+   findings; request design rulings only if diagnosis actually needs scope/meaning changes.
+   Preserve B2 UI facts/B5 census lanes; no new unrelated work or schedules.
+
+**Architect decisions requested at21:00:** A6 and (unless local raw transfer solved it) A7.
+B4 source inventory is supporting evidence; capture-only190 is still not merge-ready.
+Signed: codex-lead, 2026-11-17, 19:40 EST
+
+## #190 transport diagnosis — 2026-11-17, 19:34 EST
+
+Owner supplied independent Claude reviewer analysis; verified against live unpack.py and190 rulings.
+Existing frozen corpus is LZMA/base64 text with strict manifest digests and inventory; simply adding
+a .b64 file does not make the existing unpacker read a new case. Reviewer direction is sound,
+but needs explicit new-case unpack wiring/path grant, not a claim that current reader already handles it.
+
+Proposed A7 amendment to190#6960646798: allow a separate losslessly encoded fixture and manifest
+under native/tests/fixtures/abi2, plus bounded bench/reference/unpack.py wiring to decode only this
+new case to the build directory. Keep old corpus/chunks/inventory/hashes unchanged. Decoded bytes
+must be exactly384000 /96000 float32LE, SHA256
+485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419.
+Decoded Git blob hash remains4dc06c72035a30979ea84beacc7664999bce77b6; encoded file has its own hash.
+No change to frozen_reference.h, original assertions,1e-7 tolerance or capture→convert→delete order.
+Architect must approve this amendment before committing encoded fixture/wiring.
+
+Alternative needs no format amendment: GitHub create_blob(encoding=base64) stores decoded binary,
+not base64 text. A lead with artifact bytes in the tool runtime could upload exact binary then
+fast-forward the branch. Current cloud cannot fetch bytes: connector returns a signed artifact URL,
+shell downloads and git fail proxy503. Runtime reports vpn_enrollment_failed and blocked
+non-platform networking. This is independent of fixture format; do not fabricate/re-render capture.
+Artifact14352740696 remains downloadable via connector; no bytes verified locally or branch edit.
+
+Owner next: architect:run for A7; then B4 4:run on existing190 to preserve exact artifact, decode/hash
+check, convert test, delete ABI1 and obtain fresh final-head CI/review. A local session with working
+artifact/git access can instead do the original raw binary route under existing ruling.
+No agent chat dispatched. #190 remains draft/blocked; no merge or S5 release.
+Signed: codex-lead, 2026-11-17, 19:34 EST
+
+## Cloud lead quick check — 2026-11-17, 19:28 EST
+
+Owner resumes gpt-lead in cloud; **manual agent starts only**, no messages sent to builder chats,
+no subagents or schedules created. SR5/7/11/13/18/19 applied; scope stays OB0/OB1.
+Usage/account reset: unavailable to this session, not inferred from yesterday's snapshot.
+Shell clone failed proxy503; GitHub connector supplied live heads, Results and hosted logs.
+
+- Merged owner workflow handoff #215 at 74aabda after exact-head Lab44171081847 success.
+- #182/189 edcc97f correction1/2: Lab44134002029 success; independent source review still needed.
+- #206/213 9246e55: Lab44170731786 FAILED. Actual OB-a1 28/32: normalized document drift
+  in basics-02, basics-03, basics-04, scene-08. Native tests ×3 and Studio passed.
+  Report artifact14367992194, checkout dd52b9c. B1 diagnoses exact differing keys first;
+  no patch rewrite, normalization relaxation or loader fix authorized; preserve draft red reproducer.
+- #207/214 b19d908: Lab44156502991 FAILED, shard2 ob-c-asio-discovery.spec.cjs:27:
+  "no RealEngine listener" at emit invoked from line50. B1 corrects fixture startup on same PR
+  without weakening assertions; six remaining cases and native wiring remain unexecuted.
+  B4 retains shared CMake slot; no new CMake grant in this run.
+- #193/196 78531a6: Lab44153874650 and evidence44153874673 success.
+  Builder reports verified R2 spread2.471322% both architectures and D5 artifacts;
+  lead independent source/artifact review and release publication still outstanding.
+  Connector offers no release-upload action and shell git route failed; no publication claimed.
+- B2 #209/216 361fd59: continue existing UI measurement packet, inspect completed hosted
+  outcome once and write neutral facts from actual artifacts; no smoke/MT2 pickup.
+- B3 #210/212 d712074: old negative non48 integration assertion blocks Lab.
+  #219 + Architect inbox A6 request bounded exception/routing; no native/document edit released.
+  Actual non48 pitch/Ir and D5 evidence still missing; Golden ×3 does not replace them.
+- B4 #188/190 3858a2a: exact fixture not yet committed. Architect transport ruling stands;
+  keep384000 original bytes, SHA256485456df… and blob4dc06c…; no deletion/S5 before sequence.
+- B5 #208: no PR/result; resume only census with source access. Otherwise report capability
+  blocker and stop, no product-lane takeover.
+- #176 remains parked until OB1; #186 remains draft for Architect close/refresh disposition.
+
+Manual starts: B1 `1:run` (#206 diagnosis, then #207 fixture); B2 `2:run` (#209);
+B3 `3:run` (bounded source/evidence review of #210, await219 for outside-folder edits);
+B4 `4:run` (#188 exact fixture then ordered S4); B5 `5:run` (#208 only).
+Architect `architect:run`: #219 ruling and #189 independent M2 review; #212 review after unblock.
+Delivery lead still owns independent #196/#184 review, release publication and earned merges.
+No product merge or OB0 tag earned by this quick check. Next normal lead run: review #189,
+#196/#184 and resolve binary transport/publication with working git access.
+
+Signed: codex-lead, 2026-11-17, 19:28 EST
+
 ## Quick check — 2026-11-17, 15:33 EST
 
 Owner run modes, signatures and usage reserves: [CODEX_LEAD.md](../context/CODEX_LEAD.md).
