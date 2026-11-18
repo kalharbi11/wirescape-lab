@@ -142,7 +142,11 @@ static Endpoint render(const Json &patch, unsigned controller, unsigned value, A
 int main(int argc, char **argv) {
     try {
         check(argc == 2, "examples directory required");
-        ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};
+        wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 256;
+    config.max_nodes = 64;
+    config.event_budget = 2048;
         std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> catalog(app_engine_create(&config),
                                                                           app_engine_destroy);
         check(bool(catalog), "catalog");

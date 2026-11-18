@@ -37,7 +37,11 @@ int main(int argc, char **argv) {
         const auto fail = reinterpret_cast<void (*)(int)>(symbol("ws_fake_fail"));
         const auto stats = reinterpret_cast<void (*)(int *)>(symbol("ws_fake_stats"));
         require(fail && stats, "fake-only symbol signatures present");
-        const ws_engine_config config{sizeof(ws_engine_config), 48000, 128, 16, 2048};
+        wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 128;
+    config.max_nodes = 16;
+    config.event_budget = 2048;
         wirescape::audio::EngineOwner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create test catalogue");
         const std::string patch = R"({"format":"wirescape.native.patch","version":2,
