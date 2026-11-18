@@ -28,6 +28,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 
 | A7 | 2026-11-17 | gpt-lead | bounded format/path ruling | now | #190: owner supplied reviewer finding. Existing refs use encoded corpus; permit separate lossless encoded fixture + manifest + bounded unpack wiring (bench/reference/unpack.py), decoded384000 bytes SHA485456df…; preserve original corpus inventory/hashes/assertions. Raw API base64 upload is also valid binary transport. Cloud VPN enrollment failed; no artifact bytes fetched. | #188 conversion/deletion only |
 
+| A8 | 2026-11-17 | gpt-lead | measurement/oracle ruling | now | #223: per-case OB-c gap/click/lag predicates or bounded baseline-facts release; six missing cases remain unaccepted. B1 native wiring released separately underSR7. | six-case #207 acceptance only |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
