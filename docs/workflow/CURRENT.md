@@ -5,6 +5,46 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Owner evening handoff — 2026-11-17, 19:40 EST
+
+Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
+These are owner-run sessions, not new scheduled jobs. Cloud sends no builder chat prompts.
+
+**B4 bounded continuation now, under existing #188/#190:** read-only S4 readiness packet on the
+same issue/PR, no new source branch or second task. Inventory the exact frozen-reader conversion
+sites, ABI1-only deletion/link consumers and assertions that must survive; identify file:line and
+the corresponding post-deletion proof for each. Prepare a step-by-step conversion/deletion/test
+checklist from the already-authorized S4 scope. Check whether the original artifact can actually
+be retrieved with B4's current tools; if available verify exact length/SHA without regenerating it.
+Publish one signed Result with checklist and remaining capability gaps. No source deletion,
+encoded-fixture/unpacker edit, shared CMake edit, S5 start or correction-round consumption while
+A7 waits. This work is preparation for the existing blocked packet, not permission to implement
+a dependent stage. B4 keeps its serial lane. Owner starts B4 with4:run.
+
+**20:45 local lead checklist (read this unmerged PR220 explicitly):**
+1. Read latest main CURRENT, inbox and this handoff; reconcile newer Results without overwriting
+   Architect decisions. Review/merge220 only after exact-head green; ensure A6/A7 reach main
+   before21:00. If checks are unfinished, Architect must explicitly read220's inbox as well.
+2. A7/#190: try artifact14352740696 with local working networking; independently hash384000
+   bytes SHA485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419,
+   blob4dc06c72035a30979ea84beacc7664999bce77b6. Raw binary upload satisfies existing ruling;
+   base64 API transport is decoded binary. If successful, coordinate B4 handoff before branch
+   write, commit fixture+manifest/provenance in order and mark A7 transport amendment unnecessary.
+   Otherwise ask Architect to authorize exact encoded-fixture path AND bounded unpack wiring;
+   preserve old immutable corpus and all assertions. Do not claim a download link is verified bytes.
+3. A6/#219: obtain bounded native/document test-path/serial-writer ruling for212; retain strict
+   non48 actual pitch/Ir/D5 evidence requirements. No contract-target change by lead.
+4. Review189 edcc97f confirmed-history source against queued regression and green Lab; route any
+   mandatory Claude review explicitly. Review196/184 evidence and arrange durable D5 release
+   attachment with local capabilities before any product merge. These are delivery duties.
+5. Carry B1's four roundtrip document drifts and fixture-listener failure as exact unresolved
+   findings; request design rulings only if diagnosis actually needs scope/meaning changes.
+   Preserve B2 UI facts/B5 census lanes; no new unrelated work or schedules.
+
+**Architect decisions requested at21:00:** A6 and (unless local raw transfer solved it) A7.
+B4 source inventory is supporting evidence; capture-only190 is still not merge-ready.
+Signed: codex-lead, 2026-11-17, 19:40 EST
+
 ## #190 transport diagnosis — 2026-11-17, 19:34 EST
 
 Owner supplied independent Claude reviewer analysis; verified against live unpack.py and190 rulings.
