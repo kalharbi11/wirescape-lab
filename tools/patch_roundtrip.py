@@ -35,9 +35,19 @@ def sha(raw: bytes) -> str:
 
 
 def normalized(value) -> str:
-    # Only JSON object key order is irrelevant. All values, UI and opaque keys
-    # count, and arrays retain order; no migration or default healing.
-    return json.dumps(value, ensure_ascii=False, sort_keys=True,
+    # JSON has a single numeric type: JavaScript JSON.stringify writes 1.0 as
+    # 1, and -0.0 as 0. Compare numeric values, not Python's float/int spelling.
+    # Keep every field, array order, non-integral value and boolean distinct.
+    def semantic(v):
+        if isinstance(v, dict):
+            return {k: semantic(item) for k, item in v.items()}
+        if isinstance(v, list):
+            return [semantic(item) for item in v]
+        if type(v) is float and math.isfinite(v) and v.is_integer():
+            return int(v)
+        return v
+
+    return json.dumps(semantic(value), ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False)
 
 
