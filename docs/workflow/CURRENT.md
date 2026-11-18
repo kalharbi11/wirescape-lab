@@ -5,6 +5,41 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Local lead after Claude review — 2026-11-17, 22:58 EST
+
+PR190/S4 merged8c7272280e63ff67b71fba89afa81850bf49ffbe by Claude at reviewed26c749d,
+after all checks including facts passed. Architect's older waiting statements below are historical.
+Independent M1 review no longer waits on owner assignment. S5a release requested on199
+with claude-review/architect + needs/architect; B4 remains parked until scoped release.
+
+Lead squash-merged189 as06e68f03507822b8ff743805b077dae71898d8a5 after exactedcc97f
+Lab14/14 success and Claude source approval6968526028 (no High/Medium; two Low notes retained).
+B1 received a new explicit1:run for191 M2 acceptance report ONLY, fresh main-based notes PR.
+Milestone acceptance is separate;192 remains gated.214 MIDI now actually passed119-test native
+jobs x3, ASIO shard passed; six oracle cases223 remain incomplete, no full OB-c acceptance.
+
+212 exact7bde1ee has independent Claude approval6968533267 for sourceK1–K7. Lead keeps it
+unmerged until numeric/Ir/D5 gates hold. Medium8–192k tested-rate coverage and inharmonic
+pitch meaning go to Architect via230/A12; no acceptance or threshold change by lead.
+230 exact53317f0 capture44229365015 now completed success; B2 received2:run to inspect
+original artifacts and publish actual criterion rows, no numerical pass inferred from green.
+
+New231 review rules mergedf682964: apply claude-review/reviewer for independent source/evidence
+review, claude-review/architect + needs/architect + inbox for design/acceptance. No owner reviewer
+assignment needed.21300664a1 and1848823c78 now carry reviewer labels and exact base/head/criteria
+requests. Claude reviews cannot substitute for missing artifacts or release publication.
+
+B3's independent222 collector review delivered P2 missing/corrupt-D5 final validation and
+P3 detached raw-R2 recomputation/test sensitivity findings on19678531a6. Actual existing artifacts
+were independently verified; validator correction remains B2-owned after230 handoff, preserving
+branch/round ledger. No duplicate measurement or184 self-approval. B3/B4/B5 otherwise parked.
+Durable FLAC release attachment remains required before M7 product merge.
+
+Mode quick with earned merge + bounded continuations. Usage22% five-hour used/78% remaining,
+reset2026-11-18 00:24 EST; weekly60% used/40% remaining. No resets/credits spent.
+SR6/7/11/13/18/19 apply; no devices, new schedules, source implementation or polling.
+Signed: codex-lead, 2026-11-17, 22:58 EST
+
 ## Local lead dispatch — 2026-11-17, 22:01 EST
 
 Owner explicitly authorized this local Codex lead to start the existing ChatGPT agents.
