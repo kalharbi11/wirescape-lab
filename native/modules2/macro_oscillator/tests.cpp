@@ -5,6 +5,7 @@
 #include "dsp.h"
 #include <atomic>
 #include <chrono>
+#include <complex>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -291,6 +292,66 @@ static void signed_shift_reference() {
                 static_cast<unsigned long long>(observed[2]));
     std::fflush(stdout);
 }
+
+// Contracted S7.4 band-limiting checks: 2-kHz-wide transition is not a
+// substitute for the actual 16 kHz passband and >=60 dB image/alias stopband.
+static void rate_converter_response() {
+    using Filter = macro_oscillator::RateConverter;
+    constexpr double pi = 3.1415926535897932384626433832795;
+    for (double rate : {44100., 96000.}) {
+        std::vector<float> storage(size_t(Filter::kPhases + 1) * Filter::kTaps);
+        Filter filter;
+        filter.prepare(storage.data(), rate);
+        REQUIRE(filter.enabled());
+        REQUIRE(filter.latency > 12);
+        auto gain = [&](uint32_t phase, double hz) {
+            std::complex<double> sum{};
+            for (uint32_t tap = 0; tap < Filter::kTaps; ++tap) {
+                const double theta = -2. * pi * hz * tap / 48000.;
+                sum += double(storage[size_t(phase) * Filter::kTaps + tap])
+                    * std::complex<double>(std::cos(theta), std::sin(theta));
+            }
+            return std::abs(sum);
+        };
+        double worst_passband_db = 0., worst_stopband_db = -300.;
+        const double stop = rate == 44100. ? 22050. : 24000.;
+        for (uint32_t phase : {0u, 32u, 64u, 96u, 128u}) {
+            for (double hz : {0., 1000., 8000., 16000.}) {
+                const double db = 20. * std::log10(std::max(1e-15, gain(phase, hz)));
+                worst_passband_db = std::max(worst_passband_db, std::abs(db));
+                REQUIRE(std::abs(db) <= .5);
+            }
+            const double stop_db = 20. * std::log10(std::max(1e-15, gain(phase, stop)));
+            worst_stopband_db = std::max(worst_stopband_db, stop_db);
+            REQUIRE(stop_db <= -60.);
+        }
+        std::printf("S7.4 FIR %.0f Hz: passband maxabs %.5f dB; stop %.5f dB; latency %u frames\\n",
+                    rate, worst_passband_db, worst_stopband_db, filter.latency);
+    }
+}
+// All 24 engines must prepare and render independently of host block slicing,
+// remain deterministic after reset, and keep both output ports finite.
+static void non48_model_matrix() {
+    for (double rate : {44100., 96000.}) {
+        for (int model = 0; model < 24; ++model) {
+            Rig whole(1, 42, rate);
+            whole.values[0] = float(model);
+            const auto expected = render(whole, 256, 2048);
+            for (uint32_t block : {17u, 128u}) {
+                Rig split(1, 42, rate);
+                split.values[0] = float(model);
+                REQUIRE(render(split, block, 2048) == expected);
+            }
+            {
+                allocation_watch::Scope scope;
+                whole.d->reset(whole.instance);
+                REQUIRE(scope.allocations() == 0);
+            }
+            REQUIRE(render(whole, 17, 2048) == expected);
+        }
+        std::printf("S7.4 all 24 models finite, deterministic, partition invariant at %.0f Hz\\n", rate);
+    }
+}
 static void matrix_and_state() {
     for (int model = 0; model < 24; ++model) {
         Rig whole;
@@ -330,7 +391,9 @@ static void matrix_and_state() {
     src.pos = 0;
     reader.bytes = 0;
     REQUIRE(a.d->load_state(a.instance, &reader) == WS2_INVALID);
-    Rig wrong_rate(1, 42, 44100, false), wrong_rate2(1, 42, 96000, false);
+    Rig low_rate(1, 42, 44100), high_rate(1, 42, 96000);
+    REQUIRE(low_rate.d->latency_frames(low_rate.instance) > 12);
+    REQUIRE(high_rate.d->latency_frames(high_rate.instance) > low_rate.d->latency_frames(low_rate.instance));
     REQUIRE(macro_oscillator::MacroOscillator{}.latency_frames() == 12);
     for (int extreme = 0; extreme < 2; ++extreme) {
         Rig r(8);
@@ -481,6 +544,8 @@ int main(int argc, char **argv) {
     trigger_only_golden();
     gate_lifecycle();
     signed_shift_reference();
+    rate_converter_response();
+    non48_model_matrix();
     matrix_and_state();
     controls_and_capacity();
     unmodified_rng_oracle();
