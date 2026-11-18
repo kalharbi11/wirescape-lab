@@ -24,8 +24,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
 
-| A9 | 2026-11-17 | gpt-lead | independent Claude M1 review | now | #190 exact26c749d/basebe928a1: independent M1r3/S4 review still required after Architect21:50 invariant confirmation. Facts44216123000 still running at22:01. Owner must assign independent Claude reviewer; do not repeat completed Architect ruling. | S4 merge / S5 release |
 | A10 | 2026-11-17 | gpt-lead | oracle ruling | now | #223: six OB-c gap/click/lag oracles remain unanswered. Former lead A8 carried here because Architect reused A8 for190. B1 source inventory available on214; no invented thresholds. | six-case207 acceptance |
+| A11 | 2026-11-17 | gpt-lead | stage release | now | #199:190/S4 merged8c72722 at reviewed26c749d, all checks green. Release scoped S5a; B4 parked. claude-review/architect applied. | S5a implementation |
+| A12 | 2026-11-17 | gpt-lead | reserved measurement meaning / scope | now | #230 pinned53317f0 measures2127bde1ee; define pitch applicability for noise/inharmonic models without invented zeros. Dispose of Claude Medium212 wider8–192k supported-rate finding. Exact criteria/comment on230; claude-review/architect applied. | affected S7.4 numeric acceptance |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
