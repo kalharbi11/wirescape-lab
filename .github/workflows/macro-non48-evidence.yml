@@ -17,8 +17,8 @@ permissions:
 # is made here. A separately authorized release switches to pinned capture.
 jobs:
   collector-contract:
-    name: Collector and original estimator / ${{ matrix.machine }
-    runs-on: ${{ matrix.runner }
+    name: Collector and original estimator / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha || github.sha }
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -57,7 +57,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: macro-226-implementation-${{ matrix.machine }-${{ github.run_id }
+          name: macro-226-implementation-${{ matrix.machine }}-${{ github.run_id }}
           path: build_reports/macro_non48/
           if-no-files-found: warn
           retention-days: 7
