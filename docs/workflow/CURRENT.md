@@ -5,6 +5,48 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Cloud lead quick check — 2026-11-17, 19:28 EST
+
+Owner resumes gpt-lead in cloud; **manual agent starts only**, no messages sent to builder chats,
+no subagents or schedules created. SR5/7/11/13/18/19 applied; scope stays OB0/OB1.
+Usage/account reset: unavailable to this session, not inferred from yesterday's snapshot.
+Shell clone failed proxy503; GitHub connector supplied live heads, Results and hosted logs.
+
+- Merged owner workflow handoff #215 at 74aabda after exact-head Lab44171081847 success.
+- #182/189 edcc97f correction1/2: Lab44134002029 success; independent source review still needed.
+- #206/213 9246e55: Lab44170731786 FAILED. Actual OB-a1 28/32: normalized document drift
+  in basics-02, basics-03, basics-04, scene-08. Native tests ×3 and Studio passed.
+  Report artifact14367992194, checkout dd52b9c. B1 diagnoses exact differing keys first;
+  no patch rewrite, normalization relaxation or loader fix authorized; preserve draft red reproducer.
+- #207/214 b19d908: Lab44156502991 FAILED, shard2 ob-c-asio-discovery.spec.cjs:27:
+  "no RealEngine listener" at emit invoked from line50. B1 corrects fixture startup on same PR
+  without weakening assertions; six remaining cases and native wiring remain unexecuted.
+  B4 retains shared CMake slot; no new CMake grant in this run.
+- #193/196 78531a6: Lab44153874650 and evidence44153874673 success.
+  Builder reports verified R2 spread2.471322% both architectures and D5 artifacts;
+  lead independent source/artifact review and release publication still outstanding.
+  Connector offers no release-upload action and shell git route failed; no publication claimed.
+- B2 #209/216 361fd59: continue existing UI measurement packet, inspect completed hosted
+  outcome once and write neutral facts from actual artifacts; no smoke/MT2 pickup.
+- B3 #210/212 d712074: old negative non48 integration assertion blocks Lab.
+  #219 + Architect inbox A6 request bounded exception/routing; no native/document edit released.
+  Actual non48 pitch/Ir and D5 evidence still missing; Golden ×3 does not replace them.
+- B4 #188/190 3858a2a: exact fixture not yet committed. Architect transport ruling stands;
+  keep384000 original bytes, SHA256485456df… and blob4dc06c…; no deletion/S5 before sequence.
+- B5 #208: no PR/result; resume only census with source access. Otherwise report capability
+  blocker and stop, no product-lane takeover.
+- #176 remains parked until OB1; #186 remains draft for Architect close/refresh disposition.
+
+Manual starts: B1 `1:run` (#206 diagnosis, then #207 fixture); B2 `2:run` (#209);
+B3 `3:run` (bounded source/evidence review of #210, await219 for outside-folder edits);
+B4 `4:run` (#188 exact fixture then ordered S4); B5 `5:run` (#208 only).
+Architect `architect:run`: #219 ruling and #189 independent M2 review; #212 review after unblock.
+Delivery lead still owns independent #196/#184 review, release publication and earned merges.
+No product merge or OB0 tag earned by this quick check. Next normal lead run: review #189,
+#196/#184 and resolve binary transport/publication with working git access.
+
+Signed: codex-lead, 2026-11-17, 19:28 EST
+
 ## Quick check — 2026-11-17, 15:33 EST
 
 Owner run modes, signatures and usage reserves: [CODEX_LEAD.md](../context/CODEX_LEAD.md).
