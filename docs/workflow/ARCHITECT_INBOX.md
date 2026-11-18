@@ -23,12 +23,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
-| A14 | 2026-11-18 | gpt-lead | M2 acceptance | now | [#235](https://github.com/kalharbi11/wirescape-lab/issues/235): report232 mergedd048049 after reviewed48f913c notes CI; decide M2r4 criteria1–4/J1–J5 with all Q22/D08/D09 exceptions. claude-review/architect applied. | M2 milestone acceptance only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A10 | 2026-11-17 | #223 six OB-c oracles | Per-case oracles, OB r2.1; CURRENT 23:40. Strict xfail until fixes after S6. |
-| A11 | 2026-11-17 | #199 release S5a | **Released** to B4 with order rules; CURRENT 23:40. |
-| A12 | 2026-11-17 | #230/#212 Macro pitch meaning + 8–192 kHz Medium | Defined-pitch rule from 48 kHz data, M7 r1.2; Medium non-blocking; CURRENT 23:40. |
-| A13 | 2026-11-17 | Claude reviews #213, #184 | #213 approved `00664a1`; #184 High (damping fit at default only), M7 r1.2 S7.1. |
+| A14 | 2026-11-18 | #235 M2 r4 acceptance | **M2 accepted** with seven recorded exceptions (805.5 ms subject silence → M4 r2 post-E5; D08 → PV2; D09 gap; `unapplied` inspection-only; ringmod2 unmeasured; unwired validators; two PR189 Lows). Does not release #192. CURRENT 10:07. |
+| A16 | 2026-11-18 | #242 S5a Golden descriptor fields | **Granted, two lines only:** `golden_render.cpp` `parameter_count`→`param_count`, `parameters[p].id`→`params[p].legacy_index` (the old facade copied exactly these, `app_engine.cpp:52`). Proof = Golden 24 identical ×3. CURRENT 10:07. |
