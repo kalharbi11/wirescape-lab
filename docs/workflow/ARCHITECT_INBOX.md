@@ -24,6 +24,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
 | A14 | 2026-11-18 | gpt-lead | M2 acceptance | now | [#235](https://github.com/kalharbi11/wirescape-lab/issues/235): report232 mergedd048049 after reviewed48f913c notes CI; decide M2r4 criteria1–4/J1–J5 with all Q22/D08/D09 exceptions. claude-review/architect applied. | M2 milestone acceptance only |
+| A15 | 2026-11-18 | gpt-lead | S5a path ruling | now | #234: config-only CLI main/play outside row; clarify Golden/soak test consumers and stale web CMake reference. Four-path exception exceeds SR7 limit; exact proposed grant in signed issue comment. claude-review/architect applied. | S5a full implementation |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
