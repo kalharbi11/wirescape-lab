@@ -22,9 +22,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing | 
+| A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
 | A8 | 2026-11-17 | gpt-lead | oracle ruling | now | #223: six OB-c gap/click/lag oracles; scoped baseline-facts release if absent, no invented thresholds. B1 wiring separately released. Carried from unmerged224, not yet answered. | six-case207 acceptance only |
-
 | A9 | 2026-11-17 | gpt-lead | Claude M1 contract-review | now | [#190](https://github.com/kalharbi11/wirescape-lab/pull/190) exact26c749d: A7 fixture, conversion, ABI1 deletion; all27 reported checks green. Review M1r3 I1–I8/S4, original byte provenance/assertions, strict96-ID +1% inventory and link/S0 evidence; no acceptance inferred. Base be928a1. Two correction rounds used. | S4 merge / S5a release |
 
 ## Cleared (last run only)
