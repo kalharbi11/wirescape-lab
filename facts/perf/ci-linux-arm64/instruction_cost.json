@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -11,7 +11,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -28,7 +28,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -47,39 +47,39 @@
     },
     "rows": [
       {
-        "ir_per_block": 65153.36,
+        "ir_per_block": 65154.54,
         "name": "abi2_mono",
         "status": "measured",
         "totals": [
-          5203713,
-          11719049
+          5203668,
+          11719122
         ]
       },
       {
-        "ir_per_block": 192995.8,
+        "ir_per_block": 192993.99,
         "name": "abi2_modulated",
         "status": "measured",
         "totals": [
-          11436828,
-          30736408
+          11436912,
+          30736311
         ]
       },
       {
-        "ir_per_block": 499987.5,
+        "ir_per_block": 499985.8,
         "name": "abi2_poly8",
         "status": "measured",
         "totals": [
-          26969882,
-          76968632
+          26969955,
+          76968535
         ]
       },
       {
-        "ir_per_block": 1446102.5,
+        "ir_per_block": 1446100.69,
         "name": "abi2_quad_vca_lpg8",
         "status": "measured",
         "totals": [
-          74494531,
-          219104781
+          74494615,
+          219104684
         ]
       }
     ],

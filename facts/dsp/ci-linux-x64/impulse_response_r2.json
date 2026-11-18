@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -35,7 +35,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -1378,7 +1378,7 @@
         "metric": "r2_impulse",
         "mode": "impulse",
         "module": "fx.reverb",
-        "module_library_sha256": "86f24613beb7f5643673edfdbddf7a69aca231718bbafe9410e12ef6875ab060",
+        "module_library_sha256": "4430e1bd73c81f37c7759b4a892c62fc72a338a6d8db1a76a1383b2c8c08db81",
         "nan_count": 0,
         "nonfinite_samples": 0,
         "one_second_pre_silence_frames": 44100,
@@ -1395,7 +1395,7 @@
         "sample_rate_hz": 44100,
         "source": "engine2_render_native_test_signal",
         "status": "measured",
-        "time_to_minus60_db_re_peak_ms": 295.8049886621315
+        "time_to_minus60_db_re_peak_ms": 245.37414965986395
       },
       {
         "block_frames": 128,
@@ -1411,7 +1411,7 @@
         "metric": "r2_impulse",
         "mode": "impulse",
         "module": "fx.reverb",
-        "module_library_sha256": "86f24613beb7f5643673edfdbddf7a69aca231718bbafe9410e12ef6875ab060",
+        "module_library_sha256": "4430e1bd73c81f37c7759b4a892c62fc72a338a6d8db1a76a1383b2c8c08db81",
         "nan_count": 0,
         "nonfinite_samples": 0,
         "one_second_pre_silence_frames": 48000,
@@ -1444,7 +1444,7 @@
         "metric": "r2_impulse",
         "mode": "impulse",
         "module": "fx.reverb",
-        "module_library_sha256": "86f24613beb7f5643673edfdbddf7a69aca231718bbafe9410e12ef6875ab060",
+        "module_library_sha256": "4430e1bd73c81f37c7759b4a892c62fc72a338a6d8db1a76a1383b2c8c08db81",
         "nan_count": 0,
         "nonfinite_samples": 0,
         "one_second_pre_silence_frames": 96000,
@@ -1461,7 +1461,7 @@
         "sample_rate_hz": 96000,
         "source": "engine2_render_native_test_signal",
         "status": "measured",
-        "time_to_minus60_db_re_peak_ms": 208.53125
+        "time_to_minus60_db_re_peak_ms": 245.35416666666669
       },
       {
         "block_frames": 128,

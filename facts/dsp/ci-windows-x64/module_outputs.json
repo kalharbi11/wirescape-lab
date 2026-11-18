@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -32,7 +32,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -1211,12 +1211,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 0.0001815925839864624,
+        "dc_fs": 0.0001956928836675227,
         "finite_samples": 132300,
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 1.1159377098083496,
-        "rms_fs": 0.7365092914021599,
+        "peak_fs": 1.1004359722137451,
+        "rms_fs": 0.722178494581744,
         "sample_rate_hz": 44100,
         "status": "measured"
       },
@@ -1247,12 +1247,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 0.00019510984423969506,
+        "dc_fs": 0.000195855016471289,
         "finite_samples": 288000,
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 1.0868738889694214,
-        "rms_fs": 0.7194882114539655,
+        "peak_fs": 1.0993895530700684,
+        "rms_fs": 0.7218418482910456,
         "sample_rate_hz": 96000,
         "status": "measured"
       },

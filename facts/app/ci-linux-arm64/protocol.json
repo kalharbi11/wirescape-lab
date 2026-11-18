@@ -2,57 +2,57 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "connect": {
-      "max_ms": 5.924943,
+      "max_ms": 5.991799,
       "n": 100,
-      "p50_ms": 5.325061,
-      "p95_ms": 5.394361,
-      "p99_ms": 5.479787
+      "p50_ms": 5.32444,
+      "p95_ms": 5.362982,
+      "p99_ms": 5.436161
     },
     "date_et": "2026-11-18",
     "disconnect": {
-      "max_ms": 6.187487,
+      "max_ms": 5.987919,
       "n": 100,
-      "p50_ms": 5.321565,
-      "p95_ms": 5.372386,
-      "p99_ms": 5.408808
+      "p50_ms": 5.322512,
+      "p95_ms": 5.365341,
+      "p99_ms": 5.389284
     },
-    "hello_ms": 7.410171,
+    "hello_ms": 7.411376,
     "loadGraph": [
       {
         "code": "invalid",
-        "ms": 0.313084,
+        "ms": 0.294613,
         "ok": false,
         "path": "native/examples/Six_Essentials_Demo.json"
       },
       {
         "code": null,
-        "ms": 22.058451,
+        "ms": 22.050218,
         "ok": true,
         "path": "native/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 25.767092,
+        "ms": 26.017198,
         "ok": true,
         "path": "native/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 21.232543,
+        "ms": 21.095549,
         "ok": true,
         "path": "native/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 20.032866,
+        "ms": 19.829275,
         "ok": true,
         "path": "native/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 21.765494,
+        "ms": 21.085429,
         "ok": true,
         "path": "native/examples/class_demo_3_macro.json"
       }
@@ -65,15 +65,15 @@
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.174341,
+      "max_ms": 0.910216,
       "n": 1000,
-      "p50_ms": 0.088795,
-      "p95_ms": 0.109161,
-      "p99_ms": 0.123209
+      "p50_ms": 0.101754,
+      "p95_ms": 0.117473,
+      "p99_ms": 0.15559
     }
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -84,7 +84,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

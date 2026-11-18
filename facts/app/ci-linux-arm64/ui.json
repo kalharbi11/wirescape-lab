@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "arch": "arm64",
@@ -17,52 +17,52 @@
         "max_ms": 16.799999999999955,
         "modules": 50,
         "p50_ms": 16.699999999999932,
-        "p95_ms": 16.700000000000045
+        "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 61,
-        "max_ms": 66.70000000000005,
+        "frames": 64,
+        "max_ms": 50,
         "modules": 50,
         "p50_ms": 16.700000000000045,
-        "p95_ms": 33.30000000000018
-      },
-      {
-        "action": "knob",
-        "frames": 69,
-        "max_ms": 16.799999999999955,
-        "modules": 100,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 16.700000000000045
-      },
-      {
-        "action": "cable",
-        "frames": 76,
-        "max_ms": 133.4000000000001,
-        "modules": 100,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 33.399999999999864
-      },
-      {
-        "action": "knob",
-        "frames": 73,
-        "max_ms": 66.70000000000005,
-        "modules": 200,
-        "p50_ms": 16.699999999999818,
         "p95_ms": 33.40000000000009
       },
       {
+        "action": "knob",
+        "frames": 67,
+        "max_ms": 33.299999999999955,
+        "modules": 100,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 16.700000000000045
+      },
+      {
         "action": "cable",
-        "frames": 129,
-        "max_ms": 216.69999999999982,
+        "frames": 73,
+        "max_ms": 133.30000000000018,
+        "modules": 100,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 50
+      },
+      {
+        "action": "knob",
+        "frames": 71,
+        "max_ms": 66.70000000000027,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.59999999999945
+        "p95_ms": 50
+      },
+      {
+        "action": "cable",
+        "frames": 109,
+        "max_ms": 216.70000000000027,
+        "modules": 200,
+        "p50_ms": 16.699999999999818,
+        "p95_ms": 66.70000000000027
       }
     ]
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -73,7 +73,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

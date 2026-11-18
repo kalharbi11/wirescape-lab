@@ -26,6 +26,6 @@ apps/studio/src/panels/widgets/GroovePane.ts,renderRoll ( ),537,666,130,78,33
 apps/studio/src/engine/FakeEngine.ts,step ( ),496,624,129,106,50
 native/document/runtime_module_config_tests.cpp,main(),230,356,127,126,35
 apps/studio/src/app/OscOutEditor.ts,"showOscOutEditor ( modal , raw , save ( value : OscOutConfig ) )",47,172,126,63,7
+native/modules2/reverb/dsp.h,reverb::Reverb::process( ws :: Block & b),249,373,125,116,33
 native/modules2/midi_to_cv/dsp.h,wirescape::midi::MidiToCv::process( ws :: Block & b),54,177,124,122,77
 apps/studio/src/canvas/ModuleCard.ts,constructor ( private readonly o ),89,211,123,87,18
-apps/studio/src/canvas/PatchCanvas.ts,attachViewportGestures ( ),934,1056,123,16,3

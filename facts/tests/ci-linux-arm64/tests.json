@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "architecture": "aarch64",
@@ -14,12 +14,12 @@
         "count": 108,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.117152,
+          "seconds": 0.118813,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 31.488985,
+          "seconds": 31.846728,
           "status": "passed"
         }
       },
@@ -27,12 +27,12 @@
         "count": 24,
         "inventory": {
           "exit_code": 0,
-          "seconds": 0.835069,
+          "seconds": 0.842054,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 95.86487,
+          "seconds": 97.91617,
           "status": "passed"
         }
       },
@@ -40,12 +40,12 @@
         "count": 381,
         "inventory": {
           "exit_code": 0,
-          "seconds": 1.336392,
+          "seconds": 1.315349,
           "status": "passed"
         },
         "run": {
           "exit_code": 0,
-          "seconds": 492.681311,
+          "seconds": 496.886817,
           "status": "passed"
         }
       },
@@ -59,7 +59,7 @@
         "method": "python -m unittest discover tools/foundation/tests",
         "run": {
           "exit_code": 0,
-          "seconds": 21.214005,
+          "seconds": 29.546555,
           "status": "passed"
         }
       },
@@ -71,7 +71,7 @@
     "tests_executed": true
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -82,7 +82,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

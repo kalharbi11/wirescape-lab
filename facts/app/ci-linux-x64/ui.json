@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "arch": "x64",
@@ -14,55 +14,55 @@
       {
         "action": "knob",
         "frames": 59,
-        "max_ms": 33.200000000000045,
+        "max_ms": 16.799999999999955,
         "modules": 50,
         "p50_ms": 16.699999999999932,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 62,
-        "max_ms": 50.09999999999991,
+        "frames": 60,
+        "max_ms": 50,
         "modules": 50,
         "p50_ms": 16.699999999999932,
         "p95_ms": 33.299999999999955
       },
       {
         "action": "knob",
-        "frames": 65,
+        "frames": 66,
         "max_ms": 33.299999999999955,
         "modules": 100,
-        "p50_ms": 16.700000000000045,
+        "p50_ms": 16.699999999999932,
         "p95_ms": 16.799999999999955
       },
       {
         "action": "cable",
-        "frames": 69,
-        "max_ms": 83.29999999999995,
+        "frames": 71,
+        "max_ms": 116.60000000000014,
         "modules": 100,
         "p50_ms": 16.700000000000045,
-        "p95_ms": 66.70000000000005
+        "p95_ms": 50
       },
       {
         "action": "knob",
-        "frames": 75,
-        "max_ms": 66.69999999999982,
+        "frames": 72,
+        "max_ms": 66.79999999999973,
         "modules": 200,
         "p50_ms": 16.699999999999818,
         "p95_ms": 50
       },
       {
         "action": "cable",
-        "frames": 120,
-        "max_ms": 183.4000000000001,
+        "frames": 126,
+        "max_ms": 166.60000000000036,
         "modules": 200,
         "p50_ms": 16.699999999999818,
-        "p95_ms": 66.80000000000018
+        "p95_ms": 66.69999999999982
       }
     ]
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",

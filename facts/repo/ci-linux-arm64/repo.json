@@ -5,9 +5,9 @@
       "files": 379,
       "missing_roots": 0
     },
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "complexity": {
-      "functions": 3583,
+      "functions": 3594,
       "lizard_version": "not exposed"
     },
     "date_et": "2026-11-18",
@@ -26,10 +26,10 @@
     },
     "loc": {
       "cloc": "[path]",
-      "files": 601
+      "files": 604
     },
     "long_lines": {
-      "files": 235,
+      "files": 236,
       "over_120": 706,
       "over_200": 199
     },
@@ -47,7 +47,7 @@
       "residue": "Python regex patterns recorded below"
     },
     "residue": {
-      "matched_files": 127,
+      "matched_files": 128,
       "patterns": {
         "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
         "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
@@ -58,14 +58,14 @@
       "totals": {
         "abi1_symbols": 145,
         "agent_names": 14,
-        "issue_refs": 181,
+        "issue_refs": 182,
         "qt_mentions": 72
       }
     },
-    "source_files_tracked": 1428
+    "source_files_tracked": 1432
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -76,7 +76,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

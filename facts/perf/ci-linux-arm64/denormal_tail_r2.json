@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -11,7 +11,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -38,7 +38,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -211,14 +211,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01022756,
-          1.00932193,
-          1.01020669,
+          1.0102459,
           1.01022495,
-          1.00816327
+          1.0102459,
+          1.01022756,
+          1.00817996
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01020669,
+        "median_silent_over_active_block_cost": 1.01022756,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -238,35 +238,13 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 3911,
+            "active_median_ns": 3904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3951,
-            "silent_over_active": 1.01022756,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 3915.5,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 3952,
-            "silent_over_active": 1.00932193,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 3919,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 3959,
-            "silent_over_active": 1.01020669,
+            "silent_median_ns": 3944,
+            "silent_over_active": 1.0102459,
             "subnormal_output_samples": 0
           },
           {
@@ -274,7 +252,7 @@
             "active_median_ns": 3912,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 3,
+            "repeat": 1,
             "silent_full_blocks": 1722,
             "silent_median_ns": 3952,
             "silent_over_active": 1.01022495,
@@ -282,13 +260,35 @@
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 3920,
+            "active_median_ns": 3904,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 3944,
+            "silent_over_active": 1.0102459,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 3911,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 3951,
+            "silent_over_active": 1.01022756,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 3912,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3952,
-            "silent_over_active": 1.00816327,
+            "silent_median_ns": 3944,
+            "silent_over_active": 1.00817996,
             "subnormal_output_samples": 0
           }
         ],
@@ -304,11 +304,11 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01026694,
           1.01022495,
-          1.01048325,
-          1.00843774,
-          1.00817996
+          1.00817996,
+          1.01022495,
+          1.0102459,
+          1.00845503
         ],
         "input_mode": "bench_source_engine_graph",
         "median_silent_over_active_block_cost": 1.01022495,
@@ -331,13 +331,13 @@
         "repeats": [
           {
             "active_full_blocks": 375,
-            "active_median_ns": 3896,
+            "active_median_ns": 3912,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3936,
-            "silent_over_active": 1.01026694,
+            "silent_median_ns": 3952,
+            "silent_over_active": 1.01022495,
             "subnormal_output_samples": 0
           },
           {
@@ -347,30 +347,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3952,
-            "silent_over_active": 1.01022495,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 3911,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 3952,
-            "silent_over_active": 1.01048325,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 3911,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 3,
-            "silent_full_blocks": 1875,
             "silent_median_ns": 3944,
-            "silent_over_active": 1.00843774,
+            "silent_over_active": 1.00817996,
             "subnormal_output_samples": 0
           },
           {
@@ -378,10 +356,32 @@
             "active_median_ns": 3912,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 4,
+            "repeat": 2,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 3952,
+            "silent_over_active": 1.01022495,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 3904,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
             "silent_full_blocks": 1875,
             "silent_median_ns": 3944,
-            "silent_over_active": 1.00817996,
+            "silent_over_active": 1.0102459,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 3903,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 4,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 3936,
+            "silent_over_active": 1.00845503,
             "subnormal_output_samples": 0
           }
         ],
@@ -398,10 +398,10 @@
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
           1.01240695,
-          1.00987654,
           1.01234568,
           1.01234568,
-          1.01013825
+          1.01231527,
+          1.01231906
         ],
         "input_mode": "bench_source_engine_graph",
         "median_silent_over_active_block_cost": 1.01234568,
@@ -440,8 +440,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3272,
-            "silent_over_active": 1.00987654,
+            "silent_median_ns": 3280,
+            "silent_over_active": 1.01234568,
             "subnormal_output_samples": 0
           },
           {
@@ -457,24 +457,24 @@
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3240,
+            "active_median_ns": 3248,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3280,
-            "silent_over_active": 1.01234568,
+            "silent_median_ns": 3288,
+            "silent_over_active": 1.01231527,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3255,
+            "active_median_ns": 3247,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3288,
-            "silent_over_active": 1.01013825,
+            "silent_median_ns": 3287,
+            "silent_over_active": 1.01231906,
             "subnormal_output_samples": 0
           }
         ],
@@ -521,7 +521,7 @@
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
           1.03448276,
-          1.02758621,
+          1.03448276,
           1.03448276,
           1.03448276,
           1.03448276
@@ -563,8 +563,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 1192,
-            "silent_over_active": 1.02758621,
+            "silent_median_ns": 1200,
+            "silent_over_active": 1.03448276,
             "subnormal_output_samples": 0
           },
           {
@@ -613,11 +613,11 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
+          1.04137931,
           1.03362069,
           1.03448276,
           1.03448276,
-          1.03448276,
-          1.03362069
+          1.03448276
         ],
         "input_mode": "bench_source_engine_graph",
         "median_silent_over_active_block_cost": 1.03448276,
@@ -645,8 +645,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 1199,
-            "silent_over_active": 1.03362069,
+            "silent_median_ns": 1208,
+            "silent_over_active": 1.04137931,
             "subnormal_output_samples": 0
           },
           {
@@ -656,8 +656,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 1200,
-            "silent_over_active": 1.03448276,
+            "silent_median_ns": 1199,
+            "silent_over_active": 1.03362069,
             "subnormal_output_samples": 0
           },
           {
@@ -689,8 +689,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 1199,
-            "silent_over_active": 1.03362069,
+            "silent_median_ns": 1200,
+            "silent_over_active": 1.03448276,
             "subnormal_output_samples": 0
           }
         ],
@@ -706,7 +706,7 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.03448276,
+          1.04137931,
           1.03448276,
           1.03448276,
           1.03448276,
@@ -738,8 +738,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 1200,
-            "silent_over_active": 1.03448276,
+            "silent_median_ns": 1208,
+            "silent_over_active": 1.04137931,
             "subnormal_output_samples": 0
           },
           {
@@ -1138,11 +1138,11 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.03323056,
+          1.0137741,
           1.01381215,
           1.01381215,
-          1.01136755,
-          1.01412332
+          1.01381215,
+          1.01136755
         ],
         "input_mode": "bench_source_engine_graph",
         "median_silent_over_active_block_cost": 1.01381215,
@@ -1165,13 +1165,13 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2919,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3016,
-            "silent_over_active": 1.03323056,
+            "silent_median_ns": 2944,
+            "silent_over_active": 1.0137741,
             "subnormal_output_samples": 0
           },
           {
@@ -1198,13 +1198,13 @@
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2903,
+            "active_median_ns": 2896,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1722,
             "silent_median_ns": 2936,
-            "silent_over_active": 1.01136755,
+            "silent_over_active": 1.01381215,
             "subnormal_output_samples": 0
           },
           {
@@ -1214,8 +1214,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 2944,
-            "silent_over_active": 1.01412332,
+            "silent_median_ns": 2936,
+            "silent_over_active": 1.01136755,
             "subnormal_output_samples": 0
           }
         ],
@@ -1231,9 +1231,9 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01098901,
-          1.01136755,
-          1.01133631,
+          1.01101928,
+          1.01101928,
+          1.01101928,
           1.01101928,
           1.01101928
         ],
@@ -1258,35 +1258,35 @@
         "repeats": [
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2912,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 2944,
-            "silent_over_active": 1.01098901,
+            "silent_median_ns": 2936,
+            "silent_over_active": 1.01101928,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2903,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1875,
             "silent_median_ns": 2936,
-            "silent_over_active": 1.01136755,
+            "silent_over_active": 1.01101928,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2911,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 2944,
-            "silent_over_active": 1.01133631,
+            "silent_median_ns": 2936,
+            "silent_over_active": 1.01101928,
             "subnormal_output_samples": 0
           },
           {
@@ -1324,14 +1324,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01098901,
-          1.01136755,
-          1.01136755,
-          1.01136755,
+          1.0137741,
+          1.0137741,
+          1.0137741,
+          1.01101928,
           1.0137741
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01136755,
+        "median_silent_over_active_block_cost": 1.0137741,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -1351,46 +1351,46 @@
         "repeats": [
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2912,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
             "silent_median_ns": 2944,
-            "silent_over_active": 1.01098901,
+            "silent_over_active": 1.0137741,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2903,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 2936,
-            "silent_over_active": 1.01136755,
+            "silent_median_ns": 2944,
+            "silent_over_active": 1.0137741,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2903,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 2936,
-            "silent_over_active": 1.01136755,
+            "silent_median_ns": 2944,
+            "silent_over_active": 1.0137741,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2903,
+            "active_median_ns": 2904,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
             "silent_median_ns": 2936,
-            "silent_over_active": 1.01136755,
+            "silent_over_active": 1.01101928,
             "subnormal_output_samples": 0
           },
           {
@@ -1447,14 +1447,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.00186741,
-          1.00280374,
-          1.00280374,
-          1.00280407,
-          1.00373875
+          1.0026794,
+          1.00373875,
+          1.00280112,
+          1.00198251,
+          1.00198621
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00280374,
+        "median_silent_over_active_block_cost": 1.0026794,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -1474,35 +1474,13 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 8568,
+            "active_median_ns": 8584,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 8584,
-            "silent_over_active": 1.00186741,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 8560,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 8584,
-            "silent_over_active": 1.00280374,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 8560,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 8584,
-            "silent_over_active": 1.00280374,
+            "silent_median_ns": 8607,
+            "silent_over_active": 1.0026794,
             "subnormal_output_samples": 0
           },
           {
@@ -1510,10 +1488,32 @@
             "active_median_ns": 8559,
             "faults": 0,
             "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 8591,
+            "silent_over_active": 1.00373875,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 8568,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 8592,
+            "silent_over_active": 1.00280112,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 8575,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 8583,
-            "silent_over_active": 1.00280407,
+            "silent_median_ns": 8592,
+            "silent_over_active": 1.00198251,
             "subnormal_output_samples": 0
           },
           {
@@ -1523,8 +1523,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 8591,
-            "silent_over_active": 1.00373875,
+            "silent_median_ns": 8576,
+            "silent_over_active": 1.00198621,
             "subnormal_output_samples": 0
           }
         ],
@@ -1540,14 +1540,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.00187113,
+          1.00280669,
+          1.00186916,
           1.00198621,
-          1.00187091,
-          1.00280407,
-          1.00280636
+          1.00186916,
+          1.00186741
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00198621,
+        "median_silent_over_active_block_cost": 1.00186916,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -1572,8 +1572,19 @@
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 8567,
-            "silent_over_active": 1.00187113,
+            "silent_median_ns": 8575,
+            "silent_over_active": 1.00280669,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 8560,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 8576,
+            "silent_over_active": 1.00186916,
             "subnormal_output_samples": 0
           },
           {
@@ -1581,7 +1592,7 @@
             "active_median_ns": 8559,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 1,
+            "repeat": 2,
             "silent_full_blocks": 1875,
             "silent_median_ns": 8576,
             "silent_over_active": 1.00198621,
@@ -1589,35 +1600,24 @@
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 8552,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 8568,
-            "silent_over_active": 1.00187091,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 8559,
+            "active_median_ns": 8560,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 8583,
-            "silent_over_active": 1.00280407,
+            "silent_median_ns": 8576,
+            "silent_over_active": 1.00186916,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 8552,
+            "active_median_ns": 8568,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 8576,
-            "silent_over_active": 1.00280636,
+            "silent_median_ns": 8584,
+            "silent_over_active": 1.00186741,
             "subnormal_output_samples": 0
           }
         ],
@@ -1633,14 +1633,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.00268441,
-          1.00145637,
-          1.00186589,
-          1.0029209,
-          1.00373134
+          1.0017507,
+          1.00174744,
+          1.00198251,
+          1.0026794,
+          1.00268692
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00268441,
+        "median_silent_over_active_block_cost": 1.00198251,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -1665,19 +1665,19 @@
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 8591,
-            "silent_over_active": 1.00268441,
+            "silent_median_ns": 8583,
+            "silent_over_active": 1.0017507,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 8583,
+            "active_median_ns": 8584,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 8595.5,
-            "silent_over_active": 1.00145637,
+            "silent_median_ns": 8599,
+            "silent_over_active": 1.00174744,
             "subnormal_output_samples": 0
           },
           {
@@ -1687,30 +1687,30 @@
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 8591,
-            "silent_over_active": 1.00186589,
+            "silent_median_ns": 8592,
+            "silent_over_active": 1.00198251,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 8559,
+            "active_median_ns": 8584,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 8584,
-            "silent_over_active": 1.0029209,
+            "silent_median_ns": 8607,
+            "silent_over_active": 1.0026794,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 8576,
+            "active_median_ns": 8560,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 8608,
-            "silent_over_active": 1.00373134,
+            "silent_median_ns": 8583,
+            "silent_over_active": 1.00268692,
             "subnormal_output_samples": 0
           }
         ],
@@ -1881,8 +1881,8 @@
         "individual_silent_over_active_ratios": [
           1.08928571,
           1.08928571,
-          1.08928571,
-          1.08928571,
+          1.0877193,
+          1.10491071,
           1.08928571
         ],
         "input_mode": "bench_source_engine_graph",
@@ -1928,13 +1928,13 @@
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 448,
+            "active_median_ns": 456,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 488,
-            "silent_over_active": 1.08928571,
+            "silent_median_ns": 496,
+            "silent_over_active": 1.0877193,
             "subnormal_output_samples": 0
           },
           {
@@ -1944,8 +1944,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 488,
-            "silent_over_active": 1.08928571,
+            "silent_median_ns": 495,
+            "silent_over_active": 1.10491071,
             "subnormal_output_samples": 0
           },
           {
@@ -2065,14 +2065,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01336898,
-          1.01336898,
-          1.01336898,
-          1.01336898,
-          1.01336898
+          1.01340483,
+          1.01340483,
+          1.01340483,
+          1.01340483,
+          1.01340483
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01336898,
+        "median_silent_over_active_block_cost": 1.01340483,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2092,57 +2092,57 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2992,
+            "active_median_ns": 2984,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3032,
-            "silent_over_active": 1.01336898,
+            "silent_median_ns": 3024,
+            "silent_over_active": 1.01340483,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2992,
+            "active_median_ns": 2984,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3032,
-            "silent_over_active": 1.01336898,
+            "silent_median_ns": 3024,
+            "silent_over_active": 1.01340483,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2992,
+            "active_median_ns": 2984,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3032,
-            "silent_over_active": 1.01336898,
+            "silent_median_ns": 3024,
+            "silent_over_active": 1.01340483,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2992,
+            "active_median_ns": 2984,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3032,
-            "silent_over_active": 1.01336898,
+            "silent_median_ns": 3024,
+            "silent_over_active": 1.01340483,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2992,
+            "active_median_ns": 2984,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 3032,
-            "silent_over_active": 1.01336898,
+            "silent_median_ns": 3024,
+            "silent_over_active": 1.01340483,
             "subnormal_output_samples": 0
           }
         ],
@@ -2158,14 +2158,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01340483,
-          1.01340483,
-          1.01340483,
-          1.01340483,
-          1.01340483
+          1.01336898,
+          1.01370779,
+          1.01370779,
+          1.01370779,
+          1.01370779
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01340483,
+        "median_silent_over_active_block_cost": 1.01370779,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2185,57 +2185,57 @@
         "repeats": [
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2984,
+            "active_median_ns": 2992,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3024,
-            "silent_over_active": 1.01340483,
+            "silent_median_ns": 3032,
+            "silent_over_active": 1.01336898,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2984,
+            "active_median_ns": 2991,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3024,
-            "silent_over_active": 1.01340483,
+            "silent_median_ns": 3032,
+            "silent_over_active": 1.01370779,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2984,
+            "active_median_ns": 2991,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3024,
-            "silent_over_active": 1.01340483,
+            "silent_median_ns": 3032,
+            "silent_over_active": 1.01370779,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2984,
+            "active_median_ns": 2991,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3024,
-            "silent_over_active": 1.01340483,
+            "silent_median_ns": 3032,
+            "silent_over_active": 1.01370779,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2984,
+            "active_median_ns": 2991,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3024,
-            "silent_over_active": 1.01340483,
+            "silent_median_ns": 3032,
+            "silent_over_active": 1.01370779,
             "subnormal_output_samples": 0
           }
         ],
@@ -2344,14 +2344,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.0084317,
-          1.01013942,
-          1.01313559,
-          1.01016949,
-          1.01034847
+          1.00673401,
+          1.01652542,
+          1.01330236,
+          1.0154432,
+          1.01694915
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01016949,
+        "median_silent_over_active_block_cost": 1.0154432,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2371,35 +2371,46 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2372,
+            "active_median_ns": 2376,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
             "silent_median_ns": 2392,
-            "silent_over_active": 1.0084317,
+            "silent_over_active": 1.00673401,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2367,
+            "active_median_ns": 2360,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 2391,
-            "silent_over_active": 1.01013942,
+            "silent_median_ns": 2399,
+            "silent_over_active": 1.01652542,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2360,
+            "active_median_ns": 2368,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 2391,
-            "silent_over_active": 1.01313559,
+            "silent_median_ns": 2399.5,
+            "silent_over_active": 1.01330236,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 2363.5,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 2400,
+            "silent_over_active": 1.0154432,
             "subnormal_output_samples": 0
           },
           {
@@ -2407,81 +2418,70 @@
             "active_median_ns": 2360,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 3,
+            "repeat": 4,
             "silent_full_blocks": 1722,
+            "silent_median_ns": 2400,
+            "silent_over_active": 1.01694915,
+            "subnormal_output_samples": 0
+          }
+        ],
+        "sample_rate_hz": 44100,
+        "status": "measured",
+        "subnormal_output_samples_all_repeats": 0,
+        "timing": "wall_ns_around_engine_render",
+        "zero_frames": 220500,
+        "zero_input_verified": true
+      },
+      {
+        "active_frames": 48000,
+        "block_frames": 128,
+        "engine_process_mode": "production_Engine_render",
+        "individual_silent_over_active_ratios": [
+          1.0170068,
+          1.01360544,
+          1.01360544,
+          1.01360544,
+          1.01355932
+        ],
+        "input_mode": "bench_source_engine_graph",
+        "median_silent_over_active_block_cost": 1.01360544,
+        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
+        "metric": "r2_tail",
+        "mode": "tail",
+        "module": "essentials.vco",
+        "module_library_sha256": "5559f879b3e2e2627cb33f8fd8b9df4dec0e2eea79068de1e5e07d0f77e4b9b5",
+        "nonfinite_output_samples_all_repeats": 0,
+        "probe_source": {
+          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
+          "compiler": "c++",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
+          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
+          "source": "bench/offline/r2_engine_probe.cpp"
+        },
+        "production_ftz_mode": "engine_render_fpcr_fz",
+        "rate_hz": 48000,
+        "repeat_count": 5,
+        "repeats": [
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2352,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 0,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2392,
+            "silent_over_active": 1.0170068,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2352,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1875,
             "silent_median_ns": 2384,
-            "silent_over_active": 1.01016949,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 2367.5,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 4,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 2392,
-            "silent_over_active": 1.01034847,
-            "subnormal_output_samples": 0
-          }
-        ],
-        "sample_rate_hz": 44100,
-        "status": "measured",
-        "subnormal_output_samples_all_repeats": 0,
-        "timing": "wall_ns_around_engine_render",
-        "zero_frames": 220500,
-        "zero_input_verified": true
-      },
-      {
-        "active_frames": 48000,
-        "block_frames": 128,
-        "engine_process_mode": "production_Engine_render",
-        "individual_silent_over_active_ratios": [
-          1.0170068,
-          1.0170068,
-          1.0170068,
-          1.0170068,
-          1.0170068
-        ],
-        "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.0170068,
-        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
-        "metric": "r2_tail",
-        "mode": "tail",
-        "module": "essentials.vco",
-        "module_library_sha256": "5559f879b3e2e2627cb33f8fd8b9df4dec0e2eea79068de1e5e07d0f77e4b9b5",
-        "nonfinite_output_samples_all_repeats": 0,
-        "probe_source": {
-          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
-          "compiler": "c++",
-          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
-          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
-          "source": "bench/offline/r2_engine_probe.cpp"
-        },
-        "production_ftz_mode": "engine_render_fpcr_fz",
-        "rate_hz": 48000,
-        "repeat_count": 5,
-        "repeats": [
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2352,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2392,
-            "silent_over_active": 1.0170068,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2352,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2392,
-            "silent_over_active": 1.0170068,
+            "silent_over_active": 1.01360544,
             "subnormal_output_samples": 0
           },
           {
@@ -2491,8 +2491,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 2392,
-            "silent_over_active": 1.0170068,
+            "silent_median_ns": 2384,
+            "silent_over_active": 1.01360544,
             "subnormal_output_samples": 0
           },
           {
@@ -2502,19 +2502,19 @@
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 2392,
-            "silent_over_active": 1.0170068,
+            "silent_median_ns": 2384,
+            "silent_over_active": 1.01360544,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 2352,
+            "active_median_ns": 2360,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1875,
             "silent_median_ns": 2392,
-            "silent_over_active": 1.0170068,
+            "silent_over_active": 1.01355932,
             "subnormal_output_samples": 0
           }
         ],
@@ -2530,14 +2530,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01666667,
           1.0166113,
-          1.01328904,
-          1.01328904,
-          1.01328904
+          1.00951987,
+          1.01666667,
+          1.01645833,
+          1.0166113
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01328904,
+        "median_silent_over_active_block_cost": 1.0166113,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2555,23 +2555,12 @@
         "rate_hz": 96000,
         "repeat_count": 5,
         "repeats": [
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 2400,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 2440,
-            "silent_over_active": 1.01666667,
-            "subnormal_output_samples": 0
-          },
           {
             "active_full_blocks": 750,
             "active_median_ns": 2408,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 1,
+            "repeat": 0,
             "silent_full_blocks": 3750,
             "silent_median_ns": 2448,
             "silent_over_active": 1.0166113,
@@ -2579,24 +2568,35 @@
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2408,
+            "active_median_ns": 2416,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 2439,
+            "silent_over_active": 1.00951987,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2400,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 3750,
             "silent_median_ns": 2440,
-            "silent_over_active": 1.01328904,
+            "silent_over_active": 1.01666667,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 2408,
+            "active_median_ns": 2400,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 2440,
-            "silent_over_active": 1.01328904,
+            "silent_median_ns": 2439.5,
+            "silent_over_active": 1.01645833,
             "subnormal_output_samples": 0
           },
           {
@@ -2606,8 +2606,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 2440,
-            "silent_over_active": 1.01328904,
+            "silent_median_ns": 2448,
+            "silent_over_active": 1.0166113,
             "subnormal_output_samples": 0
           }
         ],
@@ -2713,14 +2713,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.003861,
-          1.00772201,
-          1.00580271,
-          1.00581395,
-          1.00576923
+          1.00775194,
+          1.00773694,
+          1.00579151,
+          1.00776699,
+          1.00589013
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00580271,
+        "median_silent_over_active_block_cost": 1.00773694,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2740,24 +2740,13 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 4144,
+            "active_median_ns": 4128,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
             "silent_median_ns": 4160,
-            "silent_over_active": 1.003861,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 4144,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 4176,
-            "silent_over_active": 1.00772201,
+            "silent_over_active": 1.00775194,
             "subnormal_output_samples": 0
           },
           {
@@ -2765,32 +2754,43 @@
             "active_median_ns": 4136,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 2,
+            "repeat": 1,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 4160,
-            "silent_over_active": 1.00580271,
+            "silent_median_ns": 4168,
+            "silent_over_active": 1.00773694,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 4128,
+            "active_median_ns": 4144,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 4168,
+            "silent_over_active": 1.00579151,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 4120,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1722,
             "silent_median_ns": 4152,
-            "silent_over_active": 1.00581395,
+            "silent_over_active": 1.00776699,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 4160,
+            "active_median_ns": 4159.5,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
             "silent_median_ns": 4184,
-            "silent_over_active": 1.00576923,
+            "silent_over_active": 1.00589013,
             "subnormal_output_samples": 0
           }
         ],
@@ -2806,14 +2806,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01055409,
-          1.00820479,
-          1.0101706,
+          1.00791557,
+          1.01052632,
+          1.00754593,
           1.00789474,
           1.00791557
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00820479,
+        "median_silent_over_active_block_cost": 1.00791557,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2838,19 +2838,19 @@
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3064,
-            "silent_over_active": 1.01055409,
+            "silent_median_ns": 3056,
+            "silent_over_active": 1.00791557,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 3047,
+            "active_median_ns": 3040,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1875,
             "silent_median_ns": 3072,
-            "silent_over_active": 1.00820479,
+            "silent_over_active": 1.01052632,
             "subnormal_output_samples": 0
           },
           {
@@ -2860,8 +2860,8 @@
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 3079,
-            "silent_over_active": 1.0101706,
+            "silent_median_ns": 3071,
+            "silent_over_active": 1.00754593,
             "subnormal_output_samples": 0
           },
           {
@@ -2899,14 +2899,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.00787402,
-          1.01011749,
-          1.0104712,
-          1.00799739,
-          1.0078329
+          1.00820479,
+          1.0078534,
+          1.0078534,
+          1.0078534,
+          1.01049869
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.00799739,
+        "median_silent_over_active_block_cost": 1.0078534,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -2926,24 +2926,24 @@
         "repeats": [
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3048,
+            "active_median_ns": 3047,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
             "silent_median_ns": 3072,
-            "silent_over_active": 1.00787402,
+            "silent_over_active": 1.00820479,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3064,
+            "active_median_ns": 3056,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3095,
-            "silent_over_active": 1.01011749,
+            "silent_median_ns": 3080,
+            "silent_over_active": 1.0078534,
             "subnormal_output_samples": 0
           },
           {
@@ -2953,30 +2953,30 @@
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3088,
-            "silent_over_active": 1.0104712,
+            "silent_median_ns": 3080,
+            "silent_over_active": 1.0078534,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3063.5,
+            "active_median_ns": 3056,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3088,
-            "silent_over_active": 1.00799739,
+            "silent_median_ns": 3080,
+            "silent_over_active": 1.0078534,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 3064,
+            "active_median_ns": 3048,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 3088,
-            "silent_over_active": 1.0078329,
+            "silent_median_ns": 3080,
+            "silent_over_active": 1.01049869,
             "subnormal_output_samples": 0
           }
         ],
@@ -2992,19 +2992,19 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.02073246,
-          1.01683982,
-          1.01684897,
-          1.01684897,
-          1.01795552
+          1.01283346,
+          1.00875791,
+          1.00829065,
+          1.00751702,
+          1.00901382
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01684897,
+        "median_silent_over_active_block_cost": 1.00875791,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
         "module": "fx.reverb",
-        "module_library_sha256": "30452646d7de57d5b3a0943d82ec1bf87b09d9450f9ae26c9e46dd7881d4fd8e",
+        "module_library_sha256": "40d2fd4ec24a3390f7d9638a0b442bf9fc854ae0f7b272d32106f7fde32616ff",
         "nonfinite_output_samples_all_repeats": 0,
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
@@ -3019,150 +3019,150 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 14663,
+            "active_median_ns": 16831,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.02073246,
+            "silent_median_ns": 17047,
+            "silent_over_active": 1.01283346,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 14727,
+            "active_median_ns": 16899,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 1722,
+            "silent_median_ns": 17047,
+            "silent_over_active": 1.00875791,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 16886.5,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 17026.5,
+            "silent_over_active": 1.00829065,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 16895,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 17022,
+            "silent_over_active": 1.00751702,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 16863,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 4,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 17015,
+            "silent_over_active": 1.00901382,
+            "subnormal_output_samples": 0
+          }
+        ],
+        "sample_rate_hz": 44100,
+        "status": "measured",
+        "subnormal_output_samples_all_repeats": 0,
+        "timing": "wall_ns_around_engine_render",
+        "zero_frames": 220500,
+        "zero_input_verified": true
+      },
+      {
+        "active_frames": 48000,
+        "block_frames": 128,
+        "engine_process_mode": "production_Engine_render",
+        "individual_silent_over_active_ratios": [
+          1.01684897,
+          1.00971988,
+          1.01134599,
+          1.01250761,
+          1.01293337
+        ],
+        "input_mode": "bench_source_engine_graph",
+        "median_silent_over_active_block_cost": 1.01250761,
+        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
+        "metric": "r2_tail",
+        "mode": "tail",
+        "module": "fx.reverb",
+        "module_library_sha256": "40d2fd4ec24a3390f7d9638a0b442bf9fc854ae0f7b272d32106f7fde32616ff",
+        "nonfinite_output_samples_all_repeats": 0,
+        "probe_source": {
+          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
+          "compiler": "c++",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
+          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
+          "source": "bench/offline/r2_engine_probe.cpp"
+        },
+        "production_ftz_mode": "engine_render_fpcr_fz",
+        "rate_hz": 48000,
+        "repeat_count": 5,
+        "repeats": [
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 14719,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 0,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 14967,
+            "silent_over_active": 1.01684897,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 14815,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 14959,
+            "silent_over_active": 1.00971988,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 14807,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1875,
             "silent_median_ns": 14975,
-            "silent_over_active": 1.01683982,
+            "silent_over_active": 1.01134599,
             "subnormal_output_samples": 0
           },
           {
-            "active_full_blocks": 344,
-            "active_median_ns": 14719,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01684897,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 14719,
+            "active_full_blocks": 375,
+            "active_median_ns": 14791,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01684897,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 14976,
+            "silent_over_active": 1.01250761,
             "subnormal_output_samples": 0
           },
           {
-            "active_full_blocks": 344,
-            "active_median_ns": 14703,
+            "active_full_blocks": 375,
+            "active_median_ns": 14768,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01795552,
-            "subnormal_output_samples": 0
-          }
-        ],
-        "sample_rate_hz": 44100,
-        "status": "measured",
-        "subnormal_output_samples_all_repeats": 0,
-        "timing": "wall_ns_around_engine_render",
-        "zero_frames": 220500,
-        "zero_input_verified": true
-      },
-      {
-        "active_frames": 48000,
-        "block_frames": 128,
-        "engine_process_mode": "production_Engine_render",
-        "individual_silent_over_active_ratios": [
-          1.01961987,
-          1.01417622,
-          1.01521016,
-          1.01568441,
-          1.01740194
-        ],
-        "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01568441,
-        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
-        "metric": "r2_tail",
-        "mode": "tail",
-        "module": "fx.reverb",
-        "module_library_sha256": "30452646d7de57d5b3a0943d82ec1bf87b09d9450f9ae26c9e46dd7881d4fd8e",
-        "nonfinite_output_samples_all_repeats": 0,
-        "probe_source": {
-          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
-          "compiler": "c++",
-          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
-          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
-          "source": "bench/offline/r2_engine_probe.cpp"
-        },
-        "production_ftz_mode": "engine_render_fpcr_fz",
-        "rate_hz": 48000,
-        "repeat_count": 5,
-        "repeats": [
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 14679,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01961987,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 14743,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 14952,
-            "silent_over_active": 1.01417622,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 14727,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 14951,
-            "silent_over_active": 1.01521016,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 14728,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 3,
             "silent_full_blocks": 1875,
             "silent_median_ns": 14959,
-            "silent_over_active": 1.01568441,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 14711,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 4,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01740194,
+            "silent_over_active": 1.01293337,
             "subnormal_output_samples": 0
           }
         ],
@@ -3178,19 +3178,19 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01795552,
-          1.01574483,
-          1.01582128,
-          1.01355105,
-          1.01464308
+          1.01365932,
+          1.00639269,
+          1.00638759,
+          1.00638759,
+          1.00724927
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01574483,
+        "median_silent_over_active_block_cost": 1.00639269,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
         "module": "fx.reverb",
-        "module_library_sha256": "30452646d7de57d5b3a0943d82ec1bf87b09d9450f9ae26c9e46dd7881d4fd8e",
+        "module_library_sha256": "40d2fd4ec24a3390f7d9638a0b442bf9fc854ae0f7b272d32106f7fde32616ff",
         "nonfinite_output_samples_all_repeats": 0,
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
@@ -3205,57 +3205,57 @@
         "repeats": [
           {
             "active_full_blocks": 750,
-            "active_median_ns": 14703,
+            "active_median_ns": 8712,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01795552,
+            "silent_median_ns": 8831,
+            "silent_over_active": 1.01365932,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 14735,
+            "active_median_ns": 8760,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 1,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01574483,
+            "silent_median_ns": 8816,
+            "silent_over_active": 1.00639269,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 14727,
+            "active_median_ns": 8767,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 14960,
-            "silent_over_active": 1.01582128,
+            "silent_median_ns": 8823,
+            "silent_over_active": 1.00638759,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 14759,
+            "active_median_ns": 8767,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 14959,
-            "silent_over_active": 1.01355105,
+            "silent_median_ns": 8823,
+            "silent_over_active": 1.00638759,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 14751,
+            "active_median_ns": 8759.5,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 14967,
-            "silent_over_active": 1.01464308,
+            "silent_median_ns": 8823,
+            "silent_over_active": 1.00724927,
             "subnormal_output_samples": 0
           }
         ],
@@ -3541,14 +3541,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.01269719,
-          1.0154321,
-          1.0154321,
-          1.015,
-          1.0154321
+          1.01538462,
+          1.01265823,
+          1.01538462,
+          1.01265823,
+          1.01538462
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.0154321,
+        "median_silent_over_active_block_cost": 1.01538462,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -3568,243 +3568,243 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2599,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.01269719,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
             "active_median_ns": 2600,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 3,
+            "repeat": 0,
             "silent_full_blocks": 1722,
-            "silent_median_ns": 2639,
-            "silent_over_active": 1.015,
+            "silent_median_ns": 2640,
+            "silent_over_active": 1.01538462,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 4,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          }
-        ],
-        "sample_rate_hz": 44100,
-        "status": "measured",
-        "subnormal_output_samples_all_repeats": 0,
-        "timing": "wall_ns_around_engine_render",
-        "zero_frames": 220500,
-        "zero_input_verified": true
-      },
-      {
-        "active_frames": 48000,
-        "block_frames": 128,
-        "engine_process_mode": "production_Engine_render",
-        "individual_silent_over_active_ratios": [
-          1.0154321,
-          1.0154321,
-          1.0154321,
-          1.0154321,
-          1.0154321
-        ],
-        "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.0154321,
-        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
-        "metric": "r2_tail",
-        "mode": "tail",
-        "module": "sound.blend",
-        "module_library_sha256": "5c82362d2684a152853ced45630232641144bfd78d2ff16111d7f74b682a4194",
-        "nonfinite_output_samples_all_repeats": 0,
-        "probe_source": {
-          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
-          "compiler": "c++",
-          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
-          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
-          "source": "bench/offline/r2_engine_probe.cpp"
-        },
-        "production_ftz_mode": "engine_render_fpcr_fz",
-        "rate_hz": 48000,
-        "repeat_count": 5,
-        "repeats": [
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 3,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 2592,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 4,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 2632,
-            "silent_over_active": 1.0154321,
-            "subnormal_output_samples": 0
-          }
-        ],
-        "sample_rate_hz": 48000,
-        "status": "measured",
-        "subnormal_output_samples_all_repeats": 0,
-        "timing": "wall_ns_around_engine_render",
-        "zero_frames": 240000,
-        "zero_input_verified": true
-      },
-      {
-        "active_frames": 96000,
-        "block_frames": 128,
-        "engine_process_mode": "production_Engine_render",
-        "individual_silent_over_active_ratios": [
-          1.01533742,
-          1.01802147,
-          1.015,
-          1.01533742,
-          1.01534331
-        ],
-        "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 1.01533742,
-        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
-        "metric": "r2_tail",
-        "mode": "tail",
-        "module": "sound.blend",
-        "module_library_sha256": "5c82362d2684a152853ced45630232641144bfd78d2ff16111d7f74b682a4194",
-        "nonfinite_output_samples_all_repeats": 0,
-        "probe_source": {
-          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
-          "compiler": "c++",
-          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
-          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
-          "source": "bench/offline/r2_engine_probe.cpp"
-        },
-        "production_ftz_mode": "engine_render_fpcr_fz",
-        "rate_hz": 96000,
-        "repeat_count": 5,
-        "repeats": [
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 2608,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 0,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 2648,
-            "silent_over_active": 1.01533742,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 2608,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 2655,
-            "silent_over_active": 1.01802147,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 2600,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 2639,
-            "silent_over_active": 1.015,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 2608,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 3,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 2648,
-            "silent_over_active": 1.01533742,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 750,
             "active_median_ns": 2607,
             "faults": 0,
             "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 2640,
+            "silent_over_active": 1.01265823,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 2600,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 2640,
+            "silent_over_active": 1.01538462,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 2607,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 2640,
+            "silent_over_active": 1.01265823,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 2600,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 4,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 2640,
+            "silent_over_active": 1.01538462,
+            "subnormal_output_samples": 0
+          }
+        ],
+        "sample_rate_hz": 44100,
+        "status": "measured",
+        "subnormal_output_samples_all_repeats": 0,
+        "timing": "wall_ns_around_engine_render",
+        "zero_frames": 220500,
+        "zero_input_verified": true
+      },
+      {
+        "active_frames": 48000,
+        "block_frames": 128,
+        "engine_process_mode": "production_Engine_render",
+        "individual_silent_over_active_ratios": [
+          1.0154321,
+          1.0154321,
+          1.0154321,
+          1.0154321,
+          1.0154321
+        ],
+        "input_mode": "bench_source_engine_graph",
+        "median_silent_over_active_block_cost": 1.0154321,
+        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
+        "metric": "r2_tail",
+        "mode": "tail",
+        "module": "sound.blend",
+        "module_library_sha256": "5c82362d2684a152853ced45630232641144bfd78d2ff16111d7f74b682a4194",
+        "nonfinite_output_samples_all_repeats": 0,
+        "probe_source": {
+          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
+          "compiler": "c++",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
+          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
+          "source": "bench/offline/r2_engine_probe.cpp"
+        },
+        "production_ftz_mode": "engine_render_fpcr_fz",
+        "rate_hz": 48000,
+        "repeat_count": 5,
+        "repeats": [
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 0,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 4,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          }
+        ],
+        "sample_rate_hz": 48000,
+        "status": "measured",
+        "subnormal_output_samples_all_repeats": 0,
+        "timing": "wall_ns_around_engine_render",
+        "zero_frames": 240000,
+        "zero_input_verified": true
+      },
+      {
+        "active_frames": 96000,
+        "block_frames": 128,
+        "engine_process_mode": "production_Engine_render",
+        "individual_silent_over_active_ratios": [
+          1.01813272,
+          1.0154321,
+          1.0154321,
+          1.015,
+          1.0154321
+        ],
+        "input_mode": "bench_source_engine_graph",
+        "median_silent_over_active_block_cost": 1.0154321,
+        "method": "median of 5 (silent full-block median ns / active full-block median ns)",
+        "metric": "r2_tail",
+        "mode": "tail",
+        "module": "sound.blend",
+        "module_library_sha256": "5c82362d2684a152853ced45630232641144bfd78d2ff16111d7f74b682a4194",
+        "nonfinite_output_samples_all_repeats": 0,
+        "probe_source": {
+          "compile_flags": "-std=c++17 -O2 -pthread -ldl",
+          "compiler": "c++",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
+          "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
+          "source": "bench/offline/r2_engine_probe.cpp"
+        },
+        "production_ftz_mode": "engine_render_fpcr_fz",
+        "rate_hz": 96000,
+        "repeat_count": 5,
+        "repeats": [
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 0,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 2639,
+            "silent_over_active": 1.01813272,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2600,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 2639,
+            "silent_over_active": 1.015,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 2592,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
-            "silent_median_ns": 2647,
-            "silent_over_active": 1.01534331,
+            "silent_median_ns": 2632,
+            "silent_over_active": 1.0154321,
             "subnormal_output_samples": 0
           }
         ],
@@ -3820,14 +3820,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.02549342,
+          1.0,
+          0.986550633,
+          0.992834395,
           0.993630573,
-          0.98968254,
-          0.987341772,
-          0.981012658
+          0.987261146
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 0.98968254,
+        "median_silent_over_active_block_cost": 0.992834395,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -3847,13 +3847,24 @@
         "repeats": [
           {
             "active_full_blocks": 344,
-            "active_median_ns": 1216,
+            "active_median_ns": 1240,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 1722,
+            "silent_median_ns": 1240,
+            "silent_over_active": 1,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 1264,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
+            "silent_full_blocks": 1722,
             "silent_median_ns": 1247,
-            "silent_over_active": 1.02549342,
+            "silent_over_active": 0.986550633,
             "subnormal_output_samples": 0
           },
           {
@@ -3861,7 +3872,18 @@
             "active_median_ns": 1256,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 1,
+            "repeat": 2,
+            "silent_full_blocks": 1722,
+            "silent_median_ns": 1247,
+            "silent_over_active": 0.992834395,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 344,
+            "active_median_ns": 1256,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 3,
             "silent_full_blocks": 1722,
             "silent_median_ns": 1248,
             "silent_over_active": 0.993630573,
@@ -3869,35 +3891,13 @@
           },
           {
             "active_full_blocks": 344,
-            "active_median_ns": 1260,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 2,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 1247,
-            "silent_over_active": 0.98968254,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 1264,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 3,
-            "silent_full_blocks": 1722,
-            "silent_median_ns": 1248,
-            "silent_over_active": 0.987341772,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 344,
-            "active_median_ns": 1264,
+            "active_median_ns": 1256,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1722,
             "silent_median_ns": 1240,
-            "silent_over_active": 0.981012658,
+            "silent_over_active": 0.987261146,
             "subnormal_output_samples": 0
           }
         ],
@@ -3913,14 +3913,14 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
+          1.03228477,
           0.993589744,
-          0.962962963,
-          0.968944099,
-          0.96875,
-          0.97421875
+          0.974842767,
+          0.981012658,
+          0.987261146
         ],
         "input_mode": "bench_source_engine_graph",
-        "median_silent_over_active_block_cost": 0.968944099,
+        "median_silent_over_active_block_cost": 0.987261146,
         "method": "median of 5 (silent full-block median ns / active full-block median ns)",
         "metric": "r2_tail",
         "mode": "tail",
@@ -3940,10 +3940,21 @@
         "repeats": [
           {
             "active_full_blocks": 375,
-            "active_median_ns": 1248,
+            "active_median_ns": 1208,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
+            "silent_full_blocks": 1875,
+            "silent_median_ns": 1247,
+            "silent_over_active": 1.03228477,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 375,
+            "active_median_ns": 1248,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 1,
             "silent_full_blocks": 1875,
             "silent_median_ns": 1240,
             "silent_over_active": 0.993589744,
@@ -3951,46 +3962,35 @@
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 1296,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 1875,
-            "silent_median_ns": 1248,
-            "silent_over_active": 0.962962963,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 375,
-            "active_median_ns": 1288,
+            "active_median_ns": 1272,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 2,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 1248,
-            "silent_over_active": 0.968944099,
+            "silent_median_ns": 1240,
+            "silent_over_active": 0.974842767,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 1280,
+            "active_median_ns": 1264,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 1875,
             "silent_median_ns": 1240,
-            "silent_over_active": 0.96875,
+            "silent_over_active": 0.981012658,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 375,
-            "active_median_ns": 1280,
+            "active_median_ns": 1256,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 1875,
-            "silent_median_ns": 1247,
-            "silent_over_active": 0.97421875,
+            "silent_median_ns": 1240,
+            "silent_over_active": 0.987261146,
             "subnormal_output_samples": 0
           }
         ],
@@ -4006,11 +4006,11 @@
         "block_frames": 128,
         "engine_process_mode": "production_Engine_render",
         "individual_silent_over_active_ratios": [
-          1.05442177,
           1.06164384,
           1.05442177,
-          1.06164384,
-          1.0472973
+          1.05487027,
+          1.04026846,
+          1.03333333
         ],
         "input_mode": "bench_source_engine_graph",
         "median_silent_over_active_block_cost": 1.05442177,
@@ -4033,23 +4033,12 @@
         "repeats": [
           {
             "active_full_blocks": 750,
-            "active_median_ns": 1176,
+            "active_median_ns": 1168,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 0,
             "silent_full_blocks": 3750,
             "silent_median_ns": 1240,
-            "silent_over_active": 1.05442177,
-            "subnormal_output_samples": 0
-          },
-          {
-            "active_full_blocks": 750,
-            "active_median_ns": 1168,
-            "faults": 0,
-            "nonfinite_output_samples": 0,
-            "repeat": 1,
-            "silent_full_blocks": 3750,
-            "silent_median_ns": 1240,
             "silent_over_active": 1.06164384,
             "subnormal_output_samples": 0
           },
@@ -4058,7 +4047,7 @@
             "active_median_ns": 1176,
             "faults": 0,
             "nonfinite_output_samples": 0,
-            "repeat": 2,
+            "repeat": 1,
             "silent_full_blocks": 3750,
             "silent_median_ns": 1240,
             "silent_over_active": 1.05442177,
@@ -4066,24 +4055,35 @@
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 1168,
+            "active_median_ns": 1175.5,
+            "faults": 0,
+            "nonfinite_output_samples": 0,
+            "repeat": 2,
+            "silent_full_blocks": 3750,
+            "silent_median_ns": 1240,
+            "silent_over_active": 1.05487027,
+            "subnormal_output_samples": 0
+          },
+          {
+            "active_full_blocks": 750,
+            "active_median_ns": 1192,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 3,
             "silent_full_blocks": 3750,
             "silent_median_ns": 1240,
-            "silent_over_active": 1.06164384,
+            "silent_over_active": 1.04026846,
             "subnormal_output_samples": 0
           },
           {
             "active_full_blocks": 750,
-            "active_median_ns": 1184,
+            "active_median_ns": 1200,
             "faults": 0,
             "nonfinite_output_samples": 0,
             "repeat": 4,
             "silent_full_blocks": 3750,
             "silent_median_ns": 1240,
-            "silent_over_active": 1.0472973,
+            "silent_over_active": 1.03333333,
             "subnormal_output_samples": 0
           }
         ],

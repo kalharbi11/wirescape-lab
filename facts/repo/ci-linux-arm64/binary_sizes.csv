@@ -1,5 +1,5 @@
 path,bytes,kind
-build/native/libws2_reverb.so,72792,file
+build/native/libws2_reverb.so,72904,file
 build/native/libws2_notes_to_cv.so,74400,file
 build/native/libws2_midi_cc_to_cv.so,72120,file
 build/native/libws2_groove.so,72552,file
@@ -9,7 +9,7 @@ build/native/libws2_output.so,71744,file
 build/native/libws2_osc_in.so,75488,file
 build/native/libws2_midi_to_cv.so,75464,file
 build/native/libws2_test_notes.so,73960,file
-build/native/wirescape-engine,2280984,file
+build/native/wirescape-engine,2347128,file
 build/native/libws2_host_keyboard.so,74488,file
 build/native/libwirescape_osc_host.a,659944,file
 build/native/libws2_mixer.so,72480,file
@@ -27,7 +27,7 @@ build/native/libws2_slew.so,72352,file
 build/native/libws2_ladder.so,72768,file
 build/native/libws2_quantizer.so,72048,file
 build/native/libws2_guide_ringmod.so,71528,file
-build/native/libws2_macro_oscillator.so,296296,file
+build/native/libws2_macro_oscillator.so,361928,file
 build/native/libws2_noise.so,72328,file
 build/native/libws2_chord.so,72616,file
 build/native/libws2_scale_offset.so,72608,file
@@ -43,7 +43,7 @@ build/native/libws2_spectral.so,73280,file
 build/native/engine2/libwirescape_engine2.a,188324,file
 build/native/engine2/libwirescape_midi_host.a,385494,file
 build/native/engine2/libwirescape_audio_service.a,116284,file
-build/native/engine2/libwirescape_app_engine.a,827550,file
+build/native/engine2/libwirescape_app_engine.a,836332,file
 build/native/engine2/libwirescape_voice2.a,10702,file
 build/native/document/libwirescape_runtime_document.a,448964,file
 build/native/engine2/midi_io/libwirescape_midi_service.a,29340,file
@@ -73,8 +73,8 @@ build/native/engine2/midi_io/CMakeFiles/ws2_midi_cc_to_cv.dir/__/__/modules2/mid
 build/native/engine2/midi_io/CMakeFiles/ws2_midi_in.dir/__/__/modules2/midi_in/module.cpp.o,18800,file
 build/native/engine2/midi_io/CMakeFiles/abi2_midi_cc_to_cv_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/midi_io/CMakeFiles/abi2_midi_cc_to_cv_tests.dir/__/__/modules2/midi_cc_to_cv/tests.cpp.o,68032,file
-build/native/engine2/reverb/CMakeFiles/abi2_reverb_tests.dir/tests.cpp.o,72096,file
-build/native/engine2/reverb/CMakeFiles/ws2_reverb.dir/module.cpp.o,29200,file
+build/native/engine2/reverb/CMakeFiles/abi2_reverb_tests.dir/tests.cpp.o,90512,file
+build/native/engine2/reverb/CMakeFiles/ws2_reverb.dir/module.cpp.o,37120,file
 build/native/engine2/reverb/CMakeFiles/abi2_reverb_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/resonator/CMakeFiles/ws2_resonator.dir/module.cpp.o,24120,file
 build/native/engine2/resonator/CMakeFiles/abi2_resonator_tests.dir/tests.cpp.o,70752,file
@@ -82,9 +82,9 @@ build/native/engine2/resonator/CMakeFiles/abi2_resonator_tests.dir/__/__/tests2/
 build/native/engine2/chaos_lite/CMakeFiles/abi2_chaos_lite_tests.dir/tests.cpp.o,102584,file
 build/native/engine2/chaos_lite/CMakeFiles/ws2_chaos_lite.dir/module.cpp.o,37224,file
 build/native/engine2/chaos_lite/CMakeFiles/abi2_chaos_lite_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
-build/native/engine2/macro_oscillator/CMakeFiles/abi2_macro_oscillator_tests.dir/tests.cpp.o,114016,file
-build/native/engine2/macro_oscillator/CMakeFiles/macro_unpatched_reference.dir/tests.cpp.o,114016,file
-build/native/engine2/macro_oscillator/CMakeFiles/ws2_macro_oscillator.dir/module.cpp.o,34224,file
+build/native/engine2/macro_oscillator/CMakeFiles/abi2_macro_oscillator_tests.dir/tests.cpp.o,136648,file
+build/native/engine2/macro_oscillator/CMakeFiles/macro_unpatched_reference.dir/tests.cpp.o,136648,file
+build/native/engine2/macro_oscillator/CMakeFiles/ws2_macro_oscillator.dir/module.cpp.o,40408,file
 build/native/engine2/macro_oscillator/CMakeFiles/abi2_macro_oscillator_tests.dir/__/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/macro_oscillator/CMakeFiles/macro_reference_upstream.dir/upstream/stmlib/dsp/units.cc.o,3248,file
 build/native/engine2/macro_oscillator/CMakeFiles/macro_reference_upstream.dir/__/__/_deps/macro_eurorack-src/plaits/resources.cc.o,77920,file
@@ -193,7 +193,7 @@ build/native/engine2/CMakeFiles/audio_callback_live_midi_tests.dir/__/tests2/all
 build/native/engine2/CMakeFiles/audio_callback_live_midi_tests.dir/__/io/audio/callback_live_midi_tests.cpp.o,29544,file
 build/native/engine2/CMakeFiles/ws2_vcf.dir/__/modules2/vcf/module.cpp.o,16184,file
 build/native/engine2/CMakeFiles/app_engine_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
-build/native/engine2/CMakeFiles/app_engine_tests.dir/__/control/app_engine_tests.cpp.o,766656,file
+build/native/engine2/CMakeFiles/app_engine_tests.dir/__/control/app_engine_tests.cpp.o,779160,file
 build/native/engine2/CMakeFiles/abi2_osc_in_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_osc_in_tests.dir/__/modules2/osc_in/tests.cpp.o,76304,file
 build/native/engine2/CMakeFiles/ws2_vco.dir/__/modules2/vco/module.cpp.o,17608,file
@@ -236,7 +236,7 @@ build/native/engine2/CMakeFiles/wirescape_audio_service.dir/__/io/audio/device_i
 build/native/engine2/CMakeFiles/abi2_integration_tests.dir/__/tests2/integration_tests.cpp.o,114688,file
 build/native/engine2/CMakeFiles/abi2_integration_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/ws2_clock.dir/__/modules2/clock/module.cpp.o,24136,file
-build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/tests/module_cpu_probe.cpp.o,797960,file
+build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/tests/module_cpu_probe.cpp.o,803424,file
 build/native/engine2/CMakeFiles/abi2_module_cpu_probe.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/wirescape_midi_host.dir/__/control/midi_host.cpp.o,361528,file
 build/native/engine2/CMakeFiles/ws2_function_envelope.dir/__/modules2/function_envelope/module.cpp.o,21208,file
@@ -251,7 +251,7 @@ build/native/engine2/CMakeFiles/abi2_noise_tests.dir/__/modules2/noise/tests.cpp
 build/native/engine2/CMakeFiles/abi2_sdk_scalar_tests.dir/tests/sdk_tests.cpp.o,20816,file
 build/native/engine2/CMakeFiles/abi2_mixer_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_mixer_tests.dir/__/modules2/mixer/tests.cpp.o,78168,file
-build/native/engine2/CMakeFiles/wirescape_app_engine.dir/__/control/app_engine.cpp.o,786120,file
+build/native/engine2/CMakeFiles/wirescape_app_engine.dir/__/control/app_engine.cpp.o,794472,file
 build/native/engine2/CMakeFiles/abi2_live_replan_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/engine2/CMakeFiles/abi2_live_replan_tests.dir/__/tests2/live_replan_tests.cpp.o,141224,file
 build/native/engine2/CMakeFiles/abi2_feedback_tests.dir/tests/feedback_tests.cpp.o,42104,file
@@ -279,7 +279,7 @@ build/native/document/CMakeFiles/runtime_module_config_tests.dir/runtime_module_
 build/native/document/CMakeFiles/ui_patch_conformance.dir/ui_patch_conformance.cpp.o,328224,file
 build/native/document/CMakeFiles/builtin_source_tests.dir/builtin_source_tests.cpp.o,180320,file
 build/native/document/CMakeFiles/runtime_patch_tests.dir/runtime_patch_tests.cpp.o,518496,file
-build/native/document/CMakeFiles/qt_free_patch_coverage_tests.dir/qt_free_patch_coverage_tests.cpp.o,350792,file
+build/native/document/CMakeFiles/qt_free_patch_coverage_tests.dir/qt_free_patch_coverage_tests.cpp.o,355800,file
 build/native/document/CMakeFiles/wirescape_runtime_document.dir/runtime_patch.cpp.o,423864,file
 build/native/document/CMakeFiles/groove_observation_tests.dir/groove_observation_tests.cpp.o,132616,file
 build/native/document/CMakeFiles/class_demo_cc_depth_tests.dir/class_demo_cc_depth_tests.cpp.o,400648,file
@@ -289,7 +289,7 @@ build/native/document/CMakeFiles/runtime_patch_tests.dir/__/tests2/allocation_wa
 build/native/document/CMakeFiles/qt_free_patch_coverage_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/document/CMakeFiles/groove_observation_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
 build/native/document/CMakeFiles/groove_runtime_tests.dir/__/tests2/allocation_watch.cpp.o,11488,file
-build/native/document/CMakeFiles/golden_render.dir/__/tests/golden_render.cpp.o,1296648,file
+build/native/document/CMakeFiles/golden_render.dir/__/tests/golden_render.cpp.o,1309784,file
 build/native/fake_portaudio/Release/libportaudio.so,73344,file
 build/native/_deps/wirescape_libremidi-build/liblibremidi.a,2690060,file
 build/native/_deps/wirescape_libremidi-build/CMakeFiles/libremidi.dir/include/libremidi/libremidi.cpp.o,352792,file
@@ -338,15 +338,15 @@ apps/studio/dist/patches/index.json,86508,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff,13144,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff,13156,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff,22104,file
+apps/studio/dist/assets/index-DRpyq5Lt.js.map,1091744,file
+apps/studio/dist/assets/index-DRpyq5Lt.js,419513,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff,23916,file
 apps/studio/dist/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2,14888,file
 apps/studio/dist/assets/index-hcJRR-ZL.css,65403,file
 apps/studio/dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2,14708,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2,15620,file
-apps/studio/dist/assets/index-IkDhr5nn.js,419513,file
 apps/studio/dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2,24184,file
 apps/studio/dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2,22588,file
-apps/studio/dist/assets/index-IkDhr5nn.js.map,1091744,file
 apps/studio/dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff,13208,file
 apps/studio/dist/panels/fx.delay.json,20,file
 apps/studio/dist/panels/example.random_source.json,49,file

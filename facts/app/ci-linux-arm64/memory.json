@@ -1,18 +1,18 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "electron_note": "Electron process RSS measured separately in startup.json",
     "electron_process_rss_kib": null,
-    "engine_idle_rss_kib": 13348,
+    "engine_idle_rss_kib": 13332,
     "largest_bundled_patch": {
       "accepted": true,
       "error_code": null,
-      "loadGraph_ms": 23.069181,
+      "loadGraph_ms": 23.248257,
       "patch": "native/examples/class_demo_1_chaos.json",
       "patch_bytes": 3949,
-      "rss_kib": 17548
+      "rss_kib": 17532
     },
     "machine": {
       "architecture": "aarch64",
@@ -23,7 +23,7 @@
     "method": "Linux /proc/<pid>/status VmRSS, 500 ms after null-audio startup/load"
   },
   "provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -34,7 +34,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

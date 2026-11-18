@@ -111,6 +111,7 @@ native/modules2/lfo/dsp.h,2,0,168
 native/modules2/lfo/module.cpp,0,0,40
 native/modules2/macro_oscillator/dsp.h,0,0,112
 native/modules2/macro_oscillator/module.cpp,0,0,53
+native/modules2/macro_oscillator/resampler.h,0,0,100
 native/modules2/macro_oscillator/rng_scope.hpp,0,0,118
 native/modules2/macro_oscillator/tests.cpp,0,0,117
 native/modules2/midi_cc_to_cv/config.h,0,0,117

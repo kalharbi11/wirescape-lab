@@ -87,6 +87,7 @@ native/modules2/osc_in/tests.cpp,0,0,1,0
 native/modules2/osc_out/DESIGN.md,0,0,1,0
 native/modules2/osc_out/README.md,0,0,1,0
 native/modules2/quad_vca/DESIGN.md,0,0,1,0
+native/modules2/reverb/DESIGN.md,0,0,1,0
 native/modules2/spectral/DESIGN.md,0,0,7,0
 native/modules2/spectral/README.md,0,0,2,1
 native/modules2/spectral/tests.cpp,0,0,2,0

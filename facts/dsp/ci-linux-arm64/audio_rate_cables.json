@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -11,7 +11,7 @@
       "runner": "linux-arm64",
       "runner_arch": "ARM64",
       "runner_image": "ubuntu24-arm64",
-      "runner_image_version": "20261111.182.1",
+      "runner_image_version": "20261116.188.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -28,7 +28,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -545,15 +545,15 @@
         "status": "measured"
       },
       {
-        "dc_fs": 1.8037790981775175e-05,
+        "dc_fs": 1.0219851297535855e-05,
         "finite_samples": 88200,
-        "highpass_rms_fs": 0.6497258999778582,
+        "highpass_rms_fs": 0.6125163629483735,
         "input_port": "left",
         "input_type": "WS2_AUDIO",
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 0.9870988726615906,
-        "rms_fs": 0.6809631192193156,
+        "peak_fs": 0.9677213430404663,
+        "rms_fs": 0.6419710744041384,
         "sample_rate_hz": 44100,
         "source": "essentials.vco",
         "source_frequency_hz": 3520,
@@ -575,15 +575,15 @@
         "status": "measured"
       },
       {
-        "dc_fs": 2.4162889732338996e-05,
+        "dc_fs": 2.1079251507559136e-05,
         "finite_samples": 192000,
-        "highpass_rms_fs": 0.5824920650636402,
+        "highpass_rms_fs": 0.6164579065635537,
         "input_port": "left",
         "input_type": "WS2_AUDIO",
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 0.9355939030647278,
-        "rms_fs": 0.6117785438335493,
+        "peak_fs": 0.962219774723053,
+        "rms_fs": 0.6474475293779954,
         "sample_rate_hz": 96000,
         "source": "essentials.vco",
         "source_frequency_hz": 3520,

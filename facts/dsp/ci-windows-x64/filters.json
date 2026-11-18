@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -34,7 +34,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -111362,8 +111362,8 @@
         "status": "not_exact_impulse"
       },
       {
-        "cutoff_3db_hz": 48.63987264698574,
-        "cutoff_error_hz": -51.36012735301426,
+        "cutoff_3db_hz": 48.639872646985744,
+        "cutoff_error_hz": -51.360127353014256,
         "cutoff_error_reason": null,
         "cutoff_hz": 100,
         "cutoff_reference_db": -0.5615097276811425,

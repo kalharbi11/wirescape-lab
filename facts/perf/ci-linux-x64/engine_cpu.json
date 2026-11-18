@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
     "date_et": "2026-11-18",
     "machine": {
       "audio_devices": "not accessed",
@@ -33,7 +33,7 @@
         128,
         256
       ],
-      "commit": "861a41f69d6bc9aad0fac86ccd0f721d21b52e7e",
+      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
       "date_et": "2026-11-18",
       "dsp_sample_rates_hz": [
         44100,
@@ -53,273 +53,273 @@
     "rows": [
       {
         "block_frames": 64,
-        "mean_ns": 2842.059,
+        "mean_ns": 2832.293,
         "name": "abi2_mono",
-        "p99_ns": 3015.0,
+        "p99_ns": 3576.0,
         "repetition_means_ns": [
-          2830.72,
-          2843.003,
-          2853.957,
-          2836.136,
-          2842.059
+          2828.762,
+          2829.229,
+          2888.544,
+          2832.293,
+          2835.299
         ],
         "status": "measured",
-        "worst_ns": 17733.0
+        "worst_ns": 17673.0
       },
       {
         "block_frames": 64,
-        "mean_ns": 20001.713,
+        "mean_ns": 19972.138,
         "name": "abi2_poly8",
-        "p99_ns": 27652.0,
+        "p99_ns": 27621.0,
         "repetition_means_ns": [
-          20001.713,
-          19998.487,
-          20057.112,
-          19987.389,
-          20006.94
+          19948.042,
+          19965.522,
+          19979.075,
+          19972.138,
+          20010.196
         ],
         "status": "measured",
-        "worst_ns": 35617.0
+        "worst_ns": 35055.0
       },
       {
         "block_frames": 64,
-        "mean_ns": 22754.088,
+        "mean_ns": 22749.56,
         "name": "abi2_eight_mono",
-        "p99_ns": 30918.0,
+        "p99_ns": 30788.0,
         "repetition_means_ns": [
-          22754.088,
-          22762.644,
-          22748.205,
-          22751.736,
-          22866.312
+          22956.423,
+          22749.56,
+          22735.151,
+          22751.65,
+          22722.236
         ],
         "status": "measured",
-        "worst_ns": 64874.0
+        "worst_ns": 44373.0
       },
       {
         "block_frames": 64,
-        "mean_ns": 5353.055,
+        "mean_ns": 5321.547,
         "name": "abi2_modulated",
-        "p99_ns": 6111.0,
+        "p99_ns": 5801.0,
         "repetition_means_ns": [
-          5344.191,
-          5353.055,
-          5355.29,
-          5328.25,
-          5356.613
+          5321.547,
+          5346.845,
+          5313.56,
+          5311.632,
+          5331.443
         ],
         "status": "measured",
-        "worst_ns": 22252.0
+        "worst_ns": 13977.0
       },
       {
         "block_frames": 64,
-        "mean_ns": 1476.394,
+        "mean_ns": 1469.639,
         "name": "vcf_constant",
-        "p99_ns": 1533.0,
+        "p99_ns": 1532.0,
         "repetition_means_ns": [
-          1485.678,
-          1468.869,
-          1488.26,
-          1470.129,
-          1476.394
+          1469.639,
+          1469.132,
+          1476.266,
+          1469.32,
+          1480.64
         ],
         "status": "measured",
-        "worst_ns": 19296.0
+        "worst_ns": 10690.0
       },
       {
         "block_frames": 64,
-        "mean_ns": 1988.085,
+        "mean_ns": 1985.447,
         "name": "vcf_audio_rate_cutoff",
-        "p99_ns": 2795.0,
+        "p99_ns": 2054.0,
         "repetition_means_ns": [
-          1980.408,
-          2061.48,
-          1988.085,
-          1997.037,
-          1979.566
+          1985.247,
+          1978.436,
+          1985.447,
+          1989.928,
+          2004.824
         ],
         "status": "measured",
-        "worst_ns": 18474.0
+        "worst_ns": 15469.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 5304.408,
+        "mean_ns": 5277.2,
         "name": "abi2_mono",
-        "p99_ns": 7324.0,
+        "p99_ns": 7334.0,
         "repetition_means_ns": [
-          5276.354,
-          5291.294,
-          5357.283,
-          5349.82,
-          5304.408
+          5277.2,
+          5345.84,
+          5269.844,
+          5272.552,
+          5286.121
         ],
         "status": "measured",
-        "worst_ns": 21912.0
+        "worst_ns": 21450.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 39504.08,
+        "mean_ns": 39473.166,
         "name": "abi2_poly8",
-        "p99_ns": 48180.0,
+        "p99_ns": 47178.0,
         "repetition_means_ns": [
-          39482.479,
-          39497.534,
-          39558.646,
-          39504.08,
-          39781.603
+          39509.338,
+          39473.166,
+          39473.683,
+          39462.863,
+          39450.723
         ],
         "status": "measured",
-        "worst_ns": 68128.0
+        "worst_ns": 56916.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 42297.299,
+        "mean_ns": 42400.226,
         "name": "abi2_eight_mono",
-        "p99_ns": 53851.0,
+        "p99_ns": 50875.0,
         "repetition_means_ns": [
-          42278.009,
-          42284.115,
-          42309.275,
-          43285.223,
-          42297.299
+          42403.75,
+          42391.24,
+          42349.853,
+          42442.38,
+          42400.226
         ],
         "status": "measured",
-        "worst_ns": 72355.0
+        "worst_ns": 67867.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 10075.948,
+        "mean_ns": 10019.378,
         "name": "abi2_modulated",
-        "p99_ns": 17422.0,
+        "p99_ns": 16922.0,
         "repetition_means_ns": [
-          10053.179,
-          10047.653,
-          10075.948,
-          10408.954,
-          10078.995
+          10073.445,
+          9997.914,
+          10010.847,
+          10096.11,
+          10019.378
         ],
         "status": "measured",
-        "worst_ns": 33583.0
+        "worst_ns": 29134.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 2878.079,
+        "mean_ns": 2874.496,
         "name": "vcf_constant",
         "p99_ns": 2915.0,
         "repetition_means_ns": [
           2871.08,
-          2880.946,
-          2875.365,
-          2893.907,
-          2878.079
+          2934.39,
+          2870.3,
+          2874.496,
+          2878.343
         ],
         "status": "measured",
-        "worst_ns": 27732.0
+        "worst_ns": 42490.0
       },
       {
         "block_frames": 128,
-        "mean_ns": 3770.385,
+        "mean_ns": 3848.564,
         "name": "vcf_audio_rate_cutoff",
-        "p99_ns": 3838.0,
+        "p99_ns": 3907.0,
         "repetition_means_ns": [
-          3784.009,
-          3770.278,
-          3769.849,
-          3770.385,
-          3772.255
+          3868.18,
+          3849.659,
+          3844.032,
+          3836.36,
+          3848.564
         ],
         "status": "measured",
-        "worst_ns": 18205.0
+        "worst_ns": 17022.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 10180.784,
+        "mean_ns": 10122.249,
         "name": "abi2_mono",
-        "p99_ns": 17172.0,
+        "p99_ns": 17052.0,
         "repetition_means_ns": [
-          10186.566,
-          10190.24,
-          10180.296,
-          10180.784,
-          10172.829
+          10118.909,
+          10122.249,
+          10127.121,
+          10123.144,
+          10110.48
         ],
         "status": "measured",
-        "worst_ns": 27040.0
+        "worst_ns": 20809.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 79238.773,
+        "mean_ns": 78291.73,
         "name": "abi2_poly8",
-        "p99_ns": 88175.0,
+        "p99_ns": 86111.0,
         "repetition_means_ns": [
-          79236.536,
-          79238.773,
-          79238.024,
-          79246.324,
-          79280.419
+          78601.159,
+          78362.281,
+          78291.73,
+          78240.232,
+          78254.879
         ],
         "status": "measured",
-        "worst_ns": 117930.0
+        "worst_ns": 125725.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 81587.336,
+        "mean_ns": 81273.141,
         "name": "abi2_eight_mono",
-        "p99_ns": 91020.0,
+        "p99_ns": 99566.0,
         "repetition_means_ns": [
-          81525.497,
-          81582.391,
-          81636.486,
-          81587.336,
-          81640.645
+          81340.259,
+          82456.652,
+          81141.294,
+          81273.141,
+          81162.259
         ],
         "status": "measured",
-        "worst_ns": 106990.0
+        "worst_ns": 121587.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 19567.127,
+        "mean_ns": 19677.912,
         "name": "abi2_modulated",
-        "p99_ns": 26980.0,
+        "p99_ns": 26950.0,
         "repetition_means_ns": [
-          19582.611,
-          19547.136,
-          19555.529,
-          19614.768,
-          19567.127
+          19683.807,
+          19620.838,
+          19746.369,
+          19677.912,
+          19651.643
         ],
         "status": "measured",
-        "worst_ns": 38141.0
+        "worst_ns": 36087.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 5692.811,
+        "mean_ns": 5689.488,
         "name": "vcf_constant",
-        "p99_ns": 6412.0,
+        "p99_ns": 6112.0,
         "repetition_means_ns": [
-          5689.624,
-          5694.852,
-          5692.811,
-          5697.571,
-          5691.775
+          5711.576,
+          5688.635,
+          5695.911,
+          5685.245,
+          5689.488
         ],
         "status": "measured",
-        "worst_ns": 21159.0
+        "worst_ns": 32039.0
       },
       {
         "block_frames": 256,
-        "mean_ns": 7111.109,
+        "mean_ns": 7112.794,
         "name": "vcf_audio_rate_cutoff",
-        "p99_ns": 7895.0,
+        "p99_ns": 7834.0,
         "repetition_means_ns": [
-          7111.109,
-          7109.466,
-          7103.28,
-          7115.368,
-          7128.241
+          7112.794,
+          7114.479,
+          7108.705,
+          7109.208,
+          7113.114
         ],
         "status": "measured",
-        "worst_ns": 21470.0
+        "worst_ns": 15759.0
       }
     ],
     "section": "engine_cpu"

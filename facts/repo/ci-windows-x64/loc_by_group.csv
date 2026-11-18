@@ -1,5 +1,5 @@
 top_level,section,language,files,code,comment,blank
-SUM,product,unknown,1,89228,5495,5710
+SUM,product,unknown,1,90612,5583,5791
 apps,product,Bourne Shell,2,104,7,2
 apps,product,CSS,12,1403,120,82
 apps,product,HTML,6,3712,6,108
@@ -8,10 +8,10 @@ apps,product,TypeScript,71,13827,1180,1073
 apps,tests,JavaScript,10,1389,41,51
 apps,tests,TypeScript,58,9243,287,619
 bench,tests,JavaScript,3,182,11,5
-bench,tests,Python,31,3418,137,520
+bench,tests,Python,32,3767,141,544
 bench,tools,C++,2,468,14,5
 bench,tools,JavaScript,5,601,26,5
-bench,tools,Python,45,8849,578,949
+bench,tools,Python,46,9484,621,1002
 docs,product,C++,8,915,29,0
 docs,product,C/C++ Header,6,372,15,0
 docs,product,HTML,2,634,1,0
@@ -19,8 +19,8 @@ docs,product,JavaScript,2,1206,107,30
 docs,product,Python,1,39,4,2
 docs,tests,C++,2,170,5,2
 lab,product,Python,1,67,9,7
-native,product,C++,109,18716,752,350
-native,product,C/C++ Header,88,8443,1315,508
+native,product,C++,109,18855,769,352
+native,product,C/C++ Header,89,8704,1339,510
 native,product,CMake,2,150,5,3
 native,product,Python,7,1920,155,165
 native,tests,C,1,5,1,0
