@@ -61,3 +61,95 @@ jobs:
           path: build_reports/macro_non48/
           if-no-files-found: warn
           retention-days: 7
+
+  # B4's signed READY handoff is PR212 comment 6967773732 (22:05 EST);
+  # no exact source SHA was fixed before that handoff.
+  source-capture:
+    name: Pinned Macro output + Ir + D5 / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {machine: linux-x64, runner: ubuntu-24.04}
+          - {machine: linux-arm64, runner: ubuntu-24.04-arm}
+    env:
+      BASE_SHA: cdd608d517ffe3106897de7d80274768375d0e3c
+      HEAD_SHA: 7bde1ee9603ae7f231d8d20ac130856b97fa8994
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      CXXFLAGS: '-g'
+      CFLAGS: '-g'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check current PR212 head, fetch exactly signed source checkouts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(gh api "repos/${{ github.repository }}/pulls/212" --jq '.head.sha')"
+          test "$actual" = "$HEAD_SHA" || { echo 'PR212 head changed: no capture' >&2; exit 2; }
+          git fetch --no-tags origin "$BASE_SHA"
+          git fetch --no-tags origin refs/pull/212/head
+          test "$(git rev-parse FETCH_HEAD)" = "$HEAD_SHA" || exit 2
+          git worktree add --detach "$RUNNER_TEMP/macro-before" "$BASE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/macro-head" "$HEAD_SHA"
+          test "$(git -C "$RUNNER_TEMP/macro-before" rev-parse HEAD)" = "$BASE_SHA"
+          test "$(git -C "$RUNNER_TEMP/macro-head" rev-parse HEAD)" = "$HEAD_SHA"
+          cmp "$RUNNER_TEMP/macro-before/bench/offline/metrics.py" \
+              "$RUNNER_TEMP/macro-head/bench/offline/metrics.py"
+      - name: Install actual Callgrind, FLAC and pinned Release native tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -r bench/offline/requirements.txt
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends valgrind ffmpeg
+          valgrind --version
+      - name: Build independent before and A6 head native Release (devices off)
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd "$RUNNER_TEMP/macro-before" && python tools/dev.py build --headless --config Release)
+          (cd "$RUNNER_TEMP/macro-head" && python tools/dev.py build --headless --config Release)
+      - name: Capture 24 model original FFT and float PCM at each applicable rate
+        shell: bash
+        run: |
+          set -euo pipefail
+          out=build_reports/macro-226-actual
+          python bench/evidence/macro_non48/collect.py --mode pitch --checkout "$RUNNER_TEMP/macro-before" --label before --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out "$out"
+          python bench/evidence/macro_non48/collect.py --mode pitch --checkout "$RUNNER_TEMP/macro-head" --label head --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out "$out"
+      - name: Capture genuine Callgrind Ir at 48k before, 44.1/48/96k head
+        shell: bash
+        run: |
+          set -euo pipefail
+          out=build_reports/macro-226-actual
+          python bench/evidence/macro_non48/collect.py --mode ir --checkout "$RUNNER_TEMP/macro-before" --label before --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out "$out"
+          python bench/evidence/macro_non48/collect.py --mode ir --checkout "$RUNNER_TEMP/macro-head" --label head --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out "$out"
+      - name: Original 48k separate before/head D5 PCM and genuine FLAC pair
+        run: |
+          python bench/evidence/macro_non48/collect.py --mode d5 \
+            --base "$RUNNER_TEMP/macro-before" --head "$RUNNER_TEMP/macro-head" \
+            --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out build_reports/macro-226-actual
+      - name: Verify complete original PCM, Ir, media and source provenance
+        run: |
+          python bench/evidence/macro_non48/collect.py --mode summary \
+            --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --out build_reports/macro-226-actual
+      - name: Upload raw measured evidence only; lead owns bench release and review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macro-226-actual-${{ matrix.machine }}-${{ github.run_id }}
+          path: build_reports/macro-226-actual/
+          compression-level: 0
+          if-no-files-found: warn
+          retention-days: 7
