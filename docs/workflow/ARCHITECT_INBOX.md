@@ -24,6 +24,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
 
+| A6 | 2026-11-17 | gpt-lead | scope/ruling | now | #219: S7.4 old non48 rejection integration test needs bounded native/document exception; actual pitch/Ir capture missing. SR7 near miss, B4 serial writer retained. | #212 acceptance only |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
