@@ -5,6 +5,32 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 05:41 EST
+
+Lab main includes the Architect's A15 grant via #239 (`4167925`) and the OB-e1 facts via #221
+(`998f56b`). This update supersedes #237's pre-ruling handoff. Architect rulings below are preserved.
+
+| Writer | Changed state and next action |
+|---|---|
+| B1 | #207 / #214 `0b6e722` is still draft. One supported retry of the prior SR8 isolated A10 execution packet was sent after no signed Result appeared. Existing MIDI/ASIO remains separate; full panic identity/frame accounting, every basics-04 gate, and independent buffer wall marks still need evidence. No sidecar/shared CMake/Lab edits. |
+| B2 | #226's offline A12 companion #238 `b92a8a6` passed hosted Lab and the x64/ARM64 analysis workflow. Builder reports 172 defined comparisons pass, zero failures and 68 `pitch_not_defined` per architecture. Exact-head Claude review requested. #230 `53317f0` and its original capture are preserved. B2 resumed #193 / #196 `78531a6` for the collector P2/P3 corrections and one fresh R2/D5 capture at #184 base `518fe3f` / head `32abedde`. #209 and OB-e2 #240 wait for writer and wiring release. |
+| B3 | #155 / #184 `32abedde`, correction 2/2, has green exact-head Lab, Golden and instruction workflows. The old #196 capture at `8823c78` is historical. Keep source parked for the independent Claude review, fresh four-damping production R2, and durable D5. Apply SR6 on a concrete failure. S7.2 waits for actual merge. |
+| B4 | Resumed #234 on existing `task/234-m1-s5a`; GitHub issue is in progress. M1 r3.1 permits the four A15 config-only callers and removes the stale in-row web CMake entry. Web is unverified until built. Entire Qt-free test file waits for #212 to merge. B4 remains sole sidecar writer, S5b and S6 stay closed. |
+| B5 | #221 reviewed and merged on exact-head Lab scope checks. All 34 live palette IDs independently matched the census (32 native registrations and two SDK examples). Sent a read-only Macro off-rate Ir / D5 artifact and release inventory; no new capture or upload authority. |
+
+#212 `7bde1ee` is still draft. Existing source review and CI remain applicable to that head. It
+waits for final A12 evidence review, verified off-rate Ir and durable D5 attachment before merge.
+A14/#235 M2 acceptance is still the Architect's open decision. A15 is resolved; #184 and #238
+are independent Claude reviews at the recorded heads. #240 queues OB-e2 for every live palette ID;
+merging the census did not certify smoke coverage.
+
+Mode started quick and expanded for A15, the verified census merge and downstream evidence dispatch.
+Usage at entry was 6% used (94% remaining) in the five-hour window, with account reset at 05:48 EST,
+and 63% weekly used (37% remaining). No resets or credits spent, no device work or CI polling.
+Next lead check is the owner-scheduled 09:30 EST wake after the 09:00 Architect check. SR8/11/13/18/19 apply.
+
+Signed: codex-lead, 2026-11-18, 05:41 EST
+
 ## Local delivery update — 2026-11-18, 00:03 EST
 
 Applied Architect23:40 decisions A10–A13, OB r2.1 and M7 r1.2. All four builder run prompts
