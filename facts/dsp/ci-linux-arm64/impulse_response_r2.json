@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
@@ -35,7 +35,7 @@
         128,
         256
       ],
-      "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+      "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
       "date_et": "2026-11-17",
       "dsp_sample_rates_hz": [
         44100,
@@ -226,7 +226,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -259,7 +259,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -292,7 +292,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -355,7 +355,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -388,7 +388,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -421,7 +421,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -514,7 +514,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -547,7 +547,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -580,7 +580,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -613,7 +613,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -646,7 +646,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -679,7 +679,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -742,7 +742,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -775,7 +775,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -808,7 +808,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -901,7 +901,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -934,7 +934,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -967,7 +967,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1000,7 +1000,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1033,7 +1033,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1066,7 +1066,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1099,7 +1099,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1132,7 +1132,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1165,7 +1165,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1288,7 +1288,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1321,7 +1321,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1354,7 +1354,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1387,7 +1387,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1420,7 +1420,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1453,7 +1453,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1756,7 +1756,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1789,7 +1789,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1822,7 +1822,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1855,7 +1855,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1888,7 +1888,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },
@@ -1921,7 +1921,7 @@
         "probe_source": {
           "compile_flags": "-std=c++17 -O2 -pthread -ldl",
           "compiler": "c++",
-          "engine2_archive_sha256": "bdf51c5eb9ce2f2c8b49111107ddd870e370907e5965568c53cf03238aeaad9e",
+          "engine2_archive_sha256": "ea47c683aa9a5936badedb852ed1479c8ad79c110e9d61719869be645d818ff0",
           "probe_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f",
           "source": "bench/offline/r2_engine_probe.cpp"
         },

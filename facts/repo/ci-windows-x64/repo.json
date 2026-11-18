@@ -2,12 +2,12 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "binary_sizes": {
-      "files": 209,
+      "files": 56,
       "missing_roots": 0
     },
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "complexity": {
-      "functions": 3847,
+      "functions": 3524,
       "lizard_version": "not exposed"
     },
     "date_et": "2026-11-17",
@@ -16,27 +16,27 @@
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
     },
     "graph": {
-      "edges": 266,
+      "edges": 214,
       "svg": true,
-      "targets": 174
+      "targets": 138
     },
     "includes": {
-      "direct_includes": 385,
+      "direct_includes": 384,
       "files": 46
     },
     "loc": {
       "cloc": "[path]",
-      "files": 623
+      "files": 595
     },
     "long_lines": {
-      "files": 261,
-      "over_120": 787,
-      "over_200": 206
+      "files": 235,
+      "over_120": 706,
+      "over_200": 199
     },
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "Intel64 Family 6 Model 106 Stepping 6, GenuineIntel",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "methods": {
@@ -47,7 +47,7 @@
       "residue": "Python regex patterns recorded below"
     },
     "residue": {
-      "matched_files": 165,
+      "matched_files": 127,
       "patterns": {
         "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
         "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
@@ -56,20 +56,20 @@
       },
       "scope": "native/, apps/, tools/ tracked text files",
       "totals": {
-        "abi1_symbols": 731,
+        "abi1_symbols": 145,
         "agent_names": 14,
         "issue_refs": 181,
-        "qt_mentions": 78
+        "qt_mentions": 72
       }
     },
-    "source_files_tracked": 1472
+    "source_files_tracked": 1404
   },
   "provenance": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "Intel64 Family 6 Model 106 Stepping 6, GenuineIntel",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",

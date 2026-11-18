@@ -1,7 +1,7 @@
 path,top_level,section,language,code,comment,blank
 apps/studio/src/app/App.ts,apps,product,TypeScript,1742,79,115
 native/sidecar/session.cpp,native,product,C++,1441,93,5
-native/engine2/engine2.cpp,native,product,C++,1222,29,20
+native/engine2/engine2.cpp,native,product,C++,1174,29,19
 docs/context/future_modules/guttur/package/reference/guttur-worklet.js,docs,product,JavaScript,1158,104,30
 apps/studio/src/canvas/PatchCanvas.ts,apps,product,TypeScript,1068,91,95
 apps/studio/ui/wirescape-ui-kit.html,apps,product,HTML,1050,1,10
@@ -21,9 +21,8 @@ apps/studio/src/canvas/ModuleCard.ts,apps,product,TypeScript,611,49,45
 apps/studio/src/styles/app.css,apps,product,CSS,605,38,34
 docs/context/future_modules/guttur/package/src/engine.cpp,docs,product,C++,595,21,0
 apps/desktop/main.ts,apps,product,TypeScript,561,17,5
-native/src/engine.cpp,native,product,C++,555,0,0
 native/tests2/live_replan_tests.cpp,native,tests,C++,550,10,0
-tools/dev.py,tools,tools,Python,540,10,41
+tools/dev.py,tools,tools,Python,543,12,41
 native/modules2/groove/dsp.h,native,product,C/C++ Header,523,40,9
 native/modules2/spectral/dsp.h,native,product,C/C++ Header,519,33,12
 native/sdk/examples/step_sequencer/tests.cpp,native,product,C++,493,21,36
@@ -50,7 +49,6 @@ bench/compare/measure.py,bench,tools,Python,370,9,32
 tools/module/runner/abi_ws2.h,tools,tools,C/C++ Header,369,8,4
 native/modules2/reverb/tests.cpp,native,product,C++,351,12,1
 apps/studio/src/app/OscEditor.ts,apps,product,TypeScript,350,6,11
-native/tests/engine_tests.cpp,native,tests,C++,350,0,1
 apps/studio/tests/mock-bridge/midi-learn.spec.ts,apps,tests,TypeScript,348,6,27
 tools/foundation/helpers.py,tools,tools,Python,348,13,38
 native/document/runtime_module_config_tests.cpp,native,product,C++,345,12,3
@@ -80,31 +78,24 @@ native/modules2/resonator/tests.cpp,native,product,C++,279,3,4
 native/tests/golden_render.cpp,native,tests,C++,279,7,0
 apps/studio/tests/kit-controls.spec.ts,apps,tests,TypeScript,278,1,18
 apps/studio/tests/groove-g2b.spec.ts,apps,tests,TypeScript,277,12,13
-native/document/qt_free_patch_coverage_tests.cpp,native,product,C++,277,9,0
 native/io/midi/service_tests.cpp,native,product,C++,276,11,5
 native/io/net/osc_service.cpp,native,product,C++,275,6,0
-native/modules/clock/tests.cpp,native,product,C++,275,6,4
 native/modules2/chaos_lite/tests.cpp,native,product,C++,275,22,3
 bench/offline/r2_engine_probe.cpp,bench,tools,C++,274,8,3
 apps/studio/tests/osc-editor.spec.ts,apps,tests,TypeScript,267,12,21
+bench/reference/unpack.py,bench,tools,Python,266,12,17
 bench/gate/instructions.py,bench,tools,Python,265,20,34
 bench/sdk/out_of_tree_trial.py,bench,tools,Python,263,10,22
 apps/studio/src/panels/PanelBuilder.ts,apps,product,TypeScript,262,21,13
 apps/studio/tests/midi-learn-ui.spec.ts,apps,tests,TypeScript,262,7,24
 apps/studio/tests/mock-bridge/real-engine.spec.ts,apps,tests,TypeScript,262,2,21
-native/modules/vcf/tests.cpp,native,product,C++,259,8,4
 native/sdk/wirescape_sdk.h,native,product,C/C++ Header,259,2,2
-native/modules/ladder/tests.cpp,native,product,C++,258,6,4
-native/modules/function_envelope/tests.cpp,native,product,C++,254,7,4
 bench/golden/tests/test_coverage.py,bench,tests,Python,252,4,17
-tools/capture/test_capture.py,tools,tests,Python,251,6,38
 apps/studio/tests/revision.spec.ts,apps,tests,TypeScript,247,6,19
 native/modules2/osc_out/tests.cpp,native,product,C++,247,11,13
 bench/continuity/metrics.py,bench,tools,Python,246,68,59
-native/modules/slew/tests.cpp,native,product,C++,246,4,4
 native/modules2/reverb/dsp.h,native,product,C/C++ Header,246,11,7
 native/control/osc_out_host.cpp,native,product,C++,243,7,2
-native/modules/noise/tests.cpp,native,product,C++,242,3,4
 bench/offline/test_metrics.py,bench,tests,Python,241,5,23
 native/modules2/chaos_lite/dsp.h,native,product,C/C++ Header,241,12,0
 native/tests2/module_tests.cpp,native,tests,C++,240,11,7
@@ -112,18 +103,17 @@ tools/pi/preflight.py,tools,tools,Python,239,9,21
 bench/continuity/tests/test_metrics.py,bench,tests,Python,237,30,65
 native/sdk/examples/random_source/tests.cpp,native,product,C++,237,10,16
 bench/golden/tests/test_compare.py,bench,tests,Python,234,6,22
+native/document/qt_free_patch_coverage_tests.cpp,native,product,C++,232,11,0
 apps/studio/src/canvas/CableLayer.ts,apps,product,TypeScript,231,41,32
 apps/studio/tests/mock-bridge/golden-v0.spec.ts,apps,tests,TypeScript,231,14,9
 native/sidecar/devices.cpp,native,product,C++,231,5,1
 tools/pi/app_smoke.py,tools,tools,Python,230,7,24
 bench/golden/render.py,bench,tools,Python,226,12,26
 tools/protocol/test_protocol.py,tools,tests,Python,224,6,23
-bench/reference/unpack.py,bench,tools,Python,222,10,14
 native/control/app_engine.cpp,native,product,C++,222,16,1
 native/modules2/host_keyboard/tests.cpp,native,product,C++,222,2,0
 native/modules2/quad_vca/tests.cpp,native,product,C++,222,3,7
 native/voice/allocator.cpp,native,product,C++,222,2,22
-native/tools/capture/capture.cpp,native,product,C++,219,4,0
 tools/ci/static_checks.py,tools,tools,Python,219,10,20
 bench/offline/repo_facts.py,bench,tools,Python,216,2,30
 native/third_party/portaudio/portaudio.h,native,product,C/C++ Header,216,725,287
@@ -149,16 +139,15 @@ apps/studio/src/panels/widgets/EnvelopeCurve.ts,apps,product,TypeScript,194,13,2
 bench/device/capture_engine.cpp,bench,tools,C++,194,6,2
 tools/foundation/tests/test_windows_setup.py,tools,tests,Python,194,16,26
 native/io/audio/callback_live_midi_tests.cpp,native,product,C++,192,6,2
-native/tests/returned_filter_stress.cpp,native,tests,C++,192,2,8
 native/voice/note_identity_tests.cpp,native,product,C++,192,2,0
 apps/studio/tests/editing.spec.ts,apps,tests,TypeScript,190,7,13
 apps/studio/tests/mock-bridge/refused-draft.spec.ts,apps,tests,TypeScript,190,2,10
 native/tools/render/evidence.py,native,product,Python,189,2,19
 apps/studio/tests/mock-bridge/bridge.ts,apps,tests,TypeScript,188,2,1
 native/document/class_demo_cc_depth_tests.cpp,native,product,C++,187,11,0
+tools/foundation/tests/test_reporting.py,tools,tests,Python,187,0,17
 native/document/telemetry_taps.h,native,product,C/C++ Header,185,9,4
 apps/studio/src/panels/widgets/InfoBox.ts,apps,product,TypeScript,183,2,13
-tools/foundation/tests/test_reporting.py,tools,tests,Python,183,0,17
 bench/offline/ui_profile.cjs,bench,tools,JavaScript,182,6,0
 apps/studio/tests/p1g-ui.spec.ts,apps,tests,TypeScript,181,4,13
 native/engine2/tests/staged_tests.cpp,native,tests,C++,180,3,0
@@ -193,9 +182,9 @@ native/io/net/tests.cpp,native,product,C++,160,10,0
 apps/studio/tests/osc-tuning.spec.ts,apps,tests,TypeScript,159,7,10
 apps/studio/tests/review-artifacts.spec.ts,apps,tests,TypeScript,159,9,1
 tools/foundation/tests/test_launch_freshness.py,tools,tests,Python,158,3,12
+bench/gate/compare.py,bench,tools,Python,157,8,15
 native/modules2/macro_oscillator/dsp.h,native,product,C/C++ Header,157,6,0
-tools/capture/run.py,tools,tools,Python,157,4,23
-native/tests/scale_offset_tests.cpp,native,tests,C++,156,1,9
+native/engine2/tests/soak.cpp,native,tests,C++,155,4,0
 apps/studio/src/groove/pattern.ts,apps,product,TypeScript,154,25,9
 tools/foundation/tests/test_ui_catalogue.py,tools,tests,Python,154,7,23
 bench/golden/inventory.py,bench,tools,Python,153,4,10
@@ -207,14 +196,11 @@ apps/studio/tests/stereo-pair.spec.ts,apps,tests,TypeScript,150,2,15
 native/voice/tests.cpp,native,product,C++,150,1,5
 bench/offline/test_t7_0.py,bench,tests,Python,149,6,21
 apps/studio/src/web/WebBridge.ts,apps,product,TypeScript,148,21,9
-bench/gate/compare.py,bench,tools,Python,147,6,15
 native/tests2/returned_filter_cases.h,native,tests,C/C++ Header,147,3,6
 native/control/app_engine_tests.cpp,native,product,C++,146,5,1
-native/engine2/tests/soak.cpp,native,tests,C++,146,2,0
 apps/studio/tests/session-autosave.spec.ts,apps,tests,TypeScript,145,1,15
 bench/offline/protocol_facts.py,bench,tools,Python,145,3,20
 native/sdk/examples/random_source/dsp.h,native,product,C/C++ Header,143,20,19
-native/tests/lfo_tests.cpp,native,tests,C++,143,1,7
 native/io/audio/portaudio_service.h,native,product,C/C++ Header,141,24,5
 native/modules2/resonator/dsp.h,native,product,C/C++ Header,140,6,4
 native/control/midi_host.cpp,native,product,C++,139,3,1
@@ -230,6 +216,7 @@ apps/studio/src/app/oscCapture.ts,apps,product,TypeScript,131,7,6
 apps/studio/src/engine/EngineClient.ts,apps,product,TypeScript,131,61,16
 apps/studio/tests-web/web-module-matrix.spec.ts,apps,tests,TypeScript,131,4,10
 bench/continuity/probe.py,bench,tools,Python,131,27,29
+bench/m1/paired.py,bench,tools,Python,131,7,9
 tools/module/build.py,tools,tools,Python,131,35,23
 tools/patch_library.py,tools,tools,Python,131,4,18
 tools/protocol/validate.py,tools,tools,Python,131,5,21
@@ -244,6 +231,7 @@ native/modules2/macro_oscillator/patches/compare_reference.cmake,native,product,
 native/sidecar/session.h,native,product,C/C++ Header,126,11,3
 apps/studio/tests/osc-monitor.spec.ts,apps,tests,TypeScript,125,2,11
 bench/compare/tests/test_compare.py,bench,tests,Python,125,2,21
+bench/gate/test_compare.py,bench,tests,Python,124,2,22
 tools/pi/demo.sh,tools,tools,Bourne Shell,124,3,9
 bench/offline/electron_startup.cjs,bench,tools,JavaScript,123,7,0
 docs/context/future_modules/guttur/package/dsp.h,docs,product,C/C++ Header,123,5,0
@@ -251,10 +239,8 @@ native/document/runtime_patch_tests.cpp,native,product,C++,123,4,4
 native/modules2/quad_vca/dsp.h,native,product,C/C++ Header,123,2,3
 tools/foundation/tests/test_pi_update.py,tools,tests,Python,122,45,16
 apps/studio/public/web/ws-processor.js,apps,product,JavaScript,121,8,3
-native/modules/adsr/module.cpp,native,product,C++,121,1,0
 apps/studio/tests-web/web-audio-parity.spec.ts,apps,tests,TypeScript,120,8,8
 apps/studio/ui/groove-s1-study.css,apps,product,CSS,120,2,0
-bench/m1/paired.py,bench,tools,Python,120,4,9
 tools/foundation/tests/test_patch_library.py,tools,tests,Python,120,3,19
 native/modules2/groove/config.h,native,product,C/C++ Header,119,5,4
 apps/studio/tests/mobile-gestures.spec.ts,apps,tests,TypeScript,118,6,11
@@ -264,6 +250,7 @@ native/io/osc/tests.cpp,native,product,C++,117,3,0
 tools/foundation/tests/test_helpers.py,tools,tests,Python,117,1,15
 bench/device/speaker_check.py,bench,tools,Python,115,10,8
 bench/golden/probe_bundled.py,bench,tools,Python,115,9,13
+bench/m1/test_paired.py,bench,tests,Python,115,2,17
 apps/studio/src/patch/History.ts,apps,product,TypeScript,114,23,16
 tools/ci/verify_native_required.py,tools,tools,Python,114,4,20
 apps/studio/tests/groove-g4b-roll.spec.ts,apps,tests,TypeScript,113,1,5
@@ -274,11 +261,9 @@ native/tests2/frozen_reference.h,native,tests,C/C++ Header,110,6,6
 tools/protocol/check_sidecar_q13.py,tools,tools,Python,110,7,16
 apps/studio/src/app/QuickAdd.ts,apps,product,TypeScript,107,4,13
 native/document/ui_patch_conformance.cpp,native,product,C++,107,4,4
-native/tests/module_tests.cpp,native,tests,C++,107,1,0
 apps/studio/src/app/Library.ts,apps,product,TypeScript,106,3,15
 tools/bench/abi2_foundation.py,tools,tools,Python,106,5,5
 bench/device/probe_limits.py,bench,tools,Python,105,5,9
-bench/gate/test_compare.py,bench,tests,Python,105,2,21
 bench/offline/test_ui_profile_parse.cjs,bench,tests,JavaScript,105,7,1
 apps/studio/tests-web/groove-io.spec.ts,apps,tests,TypeScript,103,6,5
 apps/studio/tests/review-35.spec.ts,apps,tests,TypeScript,103,4,9
@@ -296,7 +281,6 @@ apps/studio/tests-node/groove-study.test.mjs,apps,product,JavaScript,100,3,3
 apps/studio/tests/crash-recovery.spec.ts,apps,tests,TypeScript,100,2,9
 apps/studio/tests/starters.spec.ts,apps,tests,TypeScript,100,4,4
 bench/offline/test_ci_stage_facts.py,bench,tests,Python,100,2,12
-tools/capture/reference.py,tools,tools,Python,100,2,12
 tools/foundation/tests/test_doc_links.py,tools,tests,Python,99,4,22
 apps/studio/src/panels/panes.ts,apps,product,TypeScript,98,10,5
 apps/studio/src/panels/widgets/ModelGrid.ts,apps,product,TypeScript,97,3,5
@@ -304,7 +288,6 @@ bench/continuity/tests/test_run.py,bench,tests,Python,97,7,25
 native/io/audio/stream_lifecycle_tests.cpp,native,product,C++,97,2,0
 native/modules2/host_keyboard/dsp.h,native,product,C/C++ Header,97,1,0
 apps/studio/tests/legacy-documents.spec.cjs,apps,tests,JavaScript,96,1,6
-bench/m1/test_paired.py,bench,tests,Python,96,2,16
 native/document/runtime_patch.cpp,native,product,C++,95,2,0
 apps/studio/tests/groove-g4b.spec.ts,apps,tests,TypeScript,94,1,6
 bench/golden/experiment.py,bench,tools,Python,94,8,10
@@ -322,8 +305,6 @@ native/io/audio/fake_portaudio_stream_tests.cpp,native,product,C++,91,3,0
 native/io/net/graph_tests.cpp,native,product,C++,91,2,0
 native/tools/render/library_smoke.py,native,product,Python,91,8,11
 native/voice/allocator.h,native,product,C/C++ Header,91,5,14
-native/modules/ladder/module.cpp,native,product,C++,90,4,1
-native/modules/vcf/module.cpp,native,product,C++,90,4,1
 native/modules2/osc_out/dsp.h,native,product,C/C++ Header,90,3,4
 docs/context/future_modules/guttur/package/include/guttur/parameters.h,docs,product,C/C++ Header,89,1,0
 docs/context/future_modules/guttur/package/tests/engine_tests.cpp,docs,tests,C++,89,3,2
@@ -334,9 +315,7 @@ apps/studio/src/app/Keyboard.ts,apps,product,TypeScript,85,3,13
 bench/offline/test_facts.py,bench,tests,Python,85,6,8
 tools/foundation/tests/test_changed_scope.py,tools,tests,Python,85,2,21
 apps/desktop/tests/refused-draft-files.spec.cjs,apps,tests,JavaScript,84,2,1
-native/modules/mixer/module.cpp,native,product,C++,84,2,14
 tools/protocol/test_generated.cpp,tools,tests,C++,83,7,6
-native/modules/function_envelope/module.cpp,native,product,C++,82,1,1
 native/modules2/midi_cc_to_cv/dsp.h,native,product,C/C++ Header,82,3,0
 tools/golden.py,tools,tools,Python,82,5,11
 apps/studio/src/app/OnScreenKeyboard.ts,apps,product,TypeScript,81,2,6
@@ -344,17 +323,15 @@ bench/offline/sidecar_probe.py,bench,tools,Python,81,7,9
 docs/context/future_modules/guttur/package/tests/wirescape_tests.cpp,docs,tests,C++,81,2,0
 tools/cloud/git_deps.py,tools,tools,Python,81,14,17
 tools/foundation/tests/test_module_cpu_probe.py,tools,tests,Python,81,6,15
-native/tests2/integration_tests.cpp,native,tests,C++,80,1,1
 apps/studio/tests/conditional-controls.spec.ts,apps,tests,TypeScript,79,2,2
-native/engine2/engine2.h,native,product,C/C++ Header,79,24,0
 tools/foundation/tests/test_pi_demo.py,tools,tests,Python,77,3,9
+native/engine2/engine2.h,native,product,C/C++ Header,76,23,0
 tools/protocol/check_sidecar_request_ids.py,tools,tools,Python,76,5,12
-native/modules/clock/module.cpp,native,product,C++,75,1,1
+tools/bench/abi2_cost.py,tools,tools,Python,75,2,9
 native/io/midi/midi_service.h,native,product,C/C++ Header,74,6,0
 tools/pi/update-and-build.sh,tools,tools,Bourne Shell,74,5,9
 apps/studio/src/canvas/Viewport.ts,apps,product,TypeScript,73,12,16
 native/sidecar/snapshot_tests.cpp,native,product,C++,72,11,5
-tools/bench/abi2_cost.py,tools,tools,Python,72,2,9
 apps/desktop/tests/windows-setup.spec.cjs,apps,tests,JavaScript,71,3,1
 apps/studio/src/web/share.ts,apps,product,TypeScript,71,10,6
 apps/studio/tools/pi-ui-health.sh,apps,product,Bourne Shell,71,3,2
@@ -372,7 +349,6 @@ native/tests2/utility_port_tests.h,native,tests,C/C++ Header,68,1,0
 apps/studio/src/app/DevPanel.ts,apps,product,TypeScript,67,3,8
 apps/studio/tests-web/macro-rate-diagnostic.spec.ts,apps,tests,TypeScript,67,4,1
 lab/import_from_main.py,lab,product,Python,67,9,7
-native/modules/vco/module.cpp,native,product,C++,67,1,0
 tools/foundation/tests/test_build_parallel.py,tools,tests,Python,67,1,7
 tools/foundation/tests/test_reference_kernels.py,tools,tests,Python,67,0,10
 apps/studio/src/groove/editorHelpers.ts,apps,product,TypeScript,66,5,4
@@ -380,56 +356,51 @@ apps/studio/tests/groove-chords.spec.ts,apps,tests,TypeScript,66,2,6
 bench/compare/generate_scaling.py,bench,tools,Python,66,6,11
 native/modules2/notes_to_cv/dsp.h,native,product,C/C++ Header,66,8,5
 tools/module/wsmod.py,tools,tools,Python,66,2,5
-native/modules/lfo/module.cpp,native,product,C++,65,1,2
 native/modules2/midi_cc_to_cv/config.h,native,product,C/C++ Header,65,3,1
+bench/offline/test_sidecar_probe.py,bench,tests,Python,64,3,6
 native/sidecar/devices.h,native,product,C/C++ Header,64,7,2
 native/include/wirescape/module.h,native,product,C/C++ Header,63,5,0
-native/modules/slew/module.cpp,native,product,C++,63,2,1
 apps/studio/src/panels/widgets/Meter.ts,apps,product,TypeScript,62,8,7
 apps/studio/tests/groove-g5b.spec.ts,apps,tests,TypeScript,62,2,4
 apps/studio/tests/keyboard-default.spec.ts,apps,tests,TypeScript,62,1,4
 docs/context/future_modules/guttur/package/apps/offline_render.cpp,docs,product,C++,62,1,0
+tools/foundation/tests/test_compare_bench.py,tools,tests,Python,62,1,9
 tools/foundation/tests/test_dev_launch_consent.py,tools,tests,Python,62,2,5
 native/modules2/spectral/approx.h,native,product,C/C++ Header,61,9,7
 tools/foundation/acceptance_preflight.py,tools,tools,Python,61,7,11
 bench/continuity/capture.py,bench,tools,Python,60,10,12
-native/engine2/tests/cost_probe.cpp,native,tests,C++,60,2,2
 docs/context/future_modules/guttur/package/src/tables.cpp,docs,product,C++,59,2,0
 native/sdk/signals.h,native,product,C/C++ Header,59,5,0
 apps/studio/src/theme/theme.ts,apps,product,TypeScript,58,9,9
 native/io/midi/module_test_support.h,native,tests,C/C++ Header,58,1,0
 native/tests2/reference_capture.h,native,tests,C/C++ Header,58,3,2
+tools/bench/compare_bench.py,tools,tools,Python,58,3,9
 tools/ci/changed_scope.py,tools,tools,Python,58,6,15
 tools/gen_ui_catalogue.py,tools,tools,Python,58,5,7
-native/modules/vca/module.cpp,native,product,C++,57,1,0
 native/sidecar/main.cpp,native,product,C++,57,3,0
 apps/studio/tests/macro-panel.spec.ts,apps,tests,TypeScript,56,1,4
 tools/foundation/tests/test_soak.py,tools,tests,Python,56,4,9
 bench/offline/test_r2_probe.py,bench,tests,Python,55,2,7
-native/modules/noise/module.cpp,native,product,C++,55,3,1
 tools/protocol/validate_sidecar.py,tools,tools,Python,55,7,11
 apps/studio/src/web/start.ts,apps,product,TypeScript,54,5,2
+bench/offline/verify_artifacts.py,bench,tools,Python,54,2,6
 native/control/osc_out_host.h,native,product,C/C++ Header,54,4,4
 native/io/osc/fuzz.cpp,native,product,C++,54,4,3
 bench/offline/verify_windows_facts.py,bench,tools,Python,53,2,8
 native/engine2/tests/sdk_tests.cpp,native,tests,C++,53,1,0
 native/io/midi/libremidi_backend.cpp,native,product,C++,53,2,0
 native/sdk/examples/test_support.h,native,tests,C/C++ Header,53,6,5
-tools/bench/compare_bench.py,tools,tools,Python,53,2,9
 tools/foundation/tests/test_golden.py,tools,tests,Python,53,2,7
 apps/studio/src/panels/widgets/Segmented.ts,apps,product,TypeScript,52,3,5
 apps/studio/src/patch/types.ts,apps,product,TypeScript,52,13,9
 apps/studio/tests/mock-bridge/audio-recovery.spec.ts,apps,tests,TypeScript,52,1,4
 bench/device/tests/test_speaker_check.py,bench,tests,Python,52,2,9
 native/modules2/midi_in/dsp.h,native,product,C/C++ Header,52,1,0
-tools/foundation/tests/test_abi2_cost.py,tools,tests,Python,52,2,8
 apps/studio/src/app/modulePresets.ts,apps,product,TypeScript,51,6,3
 bench/device/check_ci_reports.py,bench,tools,Python,51,4,9
 bench/offline/test_ui_frames.cjs,bench,tests,JavaScript,51,2,2
-bench/offline/verify_artifacts.py,bench,tools,Python,51,2,6
-bench/offline/test_sidecar_probe.py,bench,tests,Python,50,2,6
+tools/foundation/tests/test_abi2_cost.py,tools,tests,Python,51,2,8
 native/modules2/osc_out/config.h,native,product,C/C++ Header,50,1,1
-tools/foundation/tests/test_compare_bench.py,tools,tests,Python,50,1,8
 apps/studio/tests-web/worklet-cadence.spec.ts,apps,tests,TypeScript,49,3,1
 apps/studio/tests/quad-vca.spec.ts,apps,tests,TypeScript,49,1,4
 bench/reference/test_freeze.py,bench,tests,Python,49,2,7
@@ -438,15 +409,14 @@ apps/studio/src/groove/GrooveSession.ts,apps,product,TypeScript,48,13,10
 apps/studio/src/panels/widgets/Toggle.ts,apps,product,TypeScript,48,4,5
 apps/studio/tests/mixer-output.spec.ts,apps,tests,TypeScript,48,1,3
 docs/context/future_modules/guttur/package/tools/render_js_reference.js,docs,product,JavaScript,48,3,0
-native/modules/scale_offset/module.cpp,native,product,C++,48,1,4
 native/sidecar/protocol.h,native,product,C/C++ Header,48,3,1
 native/tests2/module_loader.h,native,tests,C/C++ Header,48,1,0
 native/tests2/test_modules.h,native,tests,C/C++ Header,48,1,0
+tools/capture/test_capture.py,tools,tests,Python,48,2,15
 apps/studio/src/panels/widgets/Scope.ts,apps,product,TypeScript,47,2,5
 apps/studio/tests/revision-editing.spec.ts,apps,tests,TypeScript,46,3,3
 docs/context/future_modules/guttur/package/include/guttur/engine.h,docs,product,C/C++ Header,46,5,0
 native/control/module_catalog.h,native,product,C/C++ Header,46,1,0
-native/engine2/tests/benchmark.cpp,native,tests,C++,46,1,0
 tools/chaos_two_probe.py,tools,tools,Python,46,2,6
 tools/ci/codex_cloud_setup.sh,tools,tools,Bourne Shell,46,5,5
 native/cli/play_tests.py,native,product,Python,45,4,1
@@ -459,13 +429,14 @@ native/tests2/allocation_watch.cpp,native,tests,C++,44,1,0
 apps/studio/src/modules/types.ts,apps,product,TypeScript,43,24,10
 bench/compare/midi_fixture.py,bench,tools,Python,42,4,9
 bench/device/tests/test_analyse.py,bench,tests,Python,42,1,11
+native/engine2/tests/cost_probe.cpp,native,tests,C++,42,2,2
 apps/desktop/tests/stub-engine.cjs,apps,tests,JavaScript,41,4,0
 apps/studio/tests/module-presets.spec.ts,apps,tests,TypeScript,41,1,5
 native/control/app_engine.h,native,product,C/C++ Header,41,10,1
+native/engine2/tests/benchmark.cpp,native,tests,C++,41,1,0
 native/io/audio/callback_render.h,native,product,C/C++ Header,41,6,1
 native/modules2/adsr/dsp.h,native,product,C/C++ Header,40,1,0
 docs/context/future_modules/guttur/package/tools/compare_renders.py,docs,product,Python,39,4,2
-native/modules/output/module.cpp,native,product,C++,39,1,0
 native/sdk/simd.h,native,product,C/C++ Header,39,1,0
 native/tests2/dsp_fixture.h,native,tests,C/C++ Header,39,2,0
 tools/foundation/tests/test_migration_portability.py,tools,tests,Python,39,2,6
@@ -478,6 +449,7 @@ bench/offline/test_verify_windows_facts.py,bench,tests,Python,36,2,7
 native/control/osc_host.h,native,product,C/C++ Header,36,3,1
 native/engine2/tests/panic_stress.cpp,native,tests,C++,36,1,0
 native/modules2/chaos_lite/comb_body.h,native,product,C/C++ Header,36,2,0
+native/tests2/integration_tests.cpp,native,tests,C++,36,1,0
 native/engine2/tests/feedback_tests.cpp,native,tests,C++,35,1,0
 native/modules2/macro_oscillator/rng_scope.hpp,native,product,C/C++ Header,35,19,0
 tools/foundation/tests/test_acceptance_preflight.py,tools,tests,Python,35,1,13
@@ -621,4 +593,4 @@ native/tests2/guide_ringmod/module.cpp,native,tests,C++,2,1,1
 native/tests2/notes_module.cpp,native,tests,C++,2,1,0
 native/tests2/rows_module.cpp,native,tests,C++,2,1,0
 tools/foundation/__init__.py,tools,tools,Python,0,1,1
-SUM,SUM,product,unknown,91944,5412,5714
+SUM,SUM,product,unknown,87284,5350,5585

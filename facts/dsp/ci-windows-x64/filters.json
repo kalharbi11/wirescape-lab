@@ -1,10 +1,10 @@
 {
   "ci_provenance": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+      "cpu": "Intel64 Family 6 Model 106 Stepping 6, GenuineIntel",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
@@ -34,7 +34,7 @@
         128,
         256
       ],
-      "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+      "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
       "date_et": "2026-11-17",
       "dsp_sample_rates_hz": [
         44100,
@@ -45,7 +45,7 @@
         "architecture": "AMD64",
         "compiler": "unavailable",
         "configuration": "multi-config/unavailable",
-        "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+        "cpu": "Intel64 Family 6 Model 106 Stepping 6, GenuineIntel",
         "os": "Windows-2025Server-10.0.26100-SP0"
       },
       "method": "python bench/offline/run_all.py",
@@ -111362,8 +111362,8 @@
         "status": "not_exact_impulse"
       },
       {
-        "cutoff_3db_hz": 48.63987264698574,
-        "cutoff_error_hz": -51.36012735301426,
+        "cutoff_3db_hz": 48.639872646985744,
+        "cutoff_error_hz": -51.360127353014256,
         "cutoff_error_reason": null,
         "cutoff_hz": 100,
         "cutoff_reference_db": -0.5615097276811425,

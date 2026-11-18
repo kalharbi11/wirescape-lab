@@ -1,6 +1,6 @@
 {
   "ci_provenance": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
@@ -28,7 +28,7 @@
         128,
         256
       ],
-      "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+      "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
       "date_et": "2026-11-17",
       "dsp_sample_rates_hz": [
         44100,
@@ -47,48 +47,39 @@
     },
     "rows": [
       {
-        "ir_per_block": 79186.82,
-        "name": "abi1_mono",
-        "status": "measured",
-        "totals": [
-          5825752,
-          13744434
-        ]
-      },
-      {
-        "ir_per_block": 65137.36,
+        "ir_per_block": 65153.36,
         "name": "abi2_mono",
         "status": "measured",
         "totals": [
-          5318450,
-          11832186
+          5203713,
+          11719049
         ]
       },
       {
-        "ir_per_block": 192964.8,
+        "ir_per_block": 192995.8,
         "name": "abi2_modulated",
         "status": "measured",
         "totals": [
-          11551740,
-          30848220
+          11436828,
+          30736408
         ]
       },
       {
-        "ir_per_block": 499950.5,
+        "ir_per_block": 499987.5,
         "name": "abi2_poly8",
         "status": "measured",
         "totals": [
-          27083838,
-          77078888
+          26969882,
+          76968632
         ]
       },
       {
-        "ir_per_block": 1445992.5,
+        "ir_per_block": 1446102.5,
         "name": "abi2_quad_vca_lpg8",
         "status": "measured",
         "totals": [
-          74602428,
-          219201678
+          74494531,
+          219104781
         ]
       }
     ],

@@ -1,7 +1,7 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "arch": "arm64",
@@ -13,56 +13,56 @@
     "results": [
       {
         "action": "knob",
-        "frames": 59,
-        "max_ms": 33.299999999999955,
-        "modules": 50,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 16.700000000000045
-      },
-      {
-        "action": "cable",
-        "frames": 63,
-        "max_ms": 66.59999999999991,
-        "modules": 50,
-        "p50_ms": 16.700000000000045,
-        "p95_ms": 33.30000000000007
-      },
-      {
-        "action": "knob",
-        "frames": 68,
+        "frames": 60,
         "max_ms": 16.799999999999955,
-        "modules": 100,
-        "p50_ms": 16.699999999999818,
+        "modules": 50,
+        "p50_ms": 16.699999999999932,
         "p95_ms": 16.700000000000045
       },
       {
         "action": "cable",
-        "frames": 74,
-        "max_ms": 116.60000000000014,
+        "frames": 64,
+        "max_ms": 66.69999999999993,
+        "modules": 50,
+        "p50_ms": 16.699999999999932,
+        "p95_ms": 33.299999999999955
+      },
+      {
+        "action": "knob",
+        "frames": 70,
+        "max_ms": 16.800000000000182,
+        "modules": 100,
+        "p50_ms": 16.700000000000045,
+        "p95_ms": 16.799999999999727
+      },
+      {
+        "action": "cable",
+        "frames": 78,
+        "max_ms": 116.70000000000005,
         "modules": 100,
         "p50_ms": 16.699999999999818,
         "p95_ms": 50
       },
       {
         "action": "knob",
-        "frames": 69,
-        "max_ms": 66.70000000000027,
+        "frames": 74,
+        "max_ms": 83.40000000000009,
         "modules": 200,
         "p50_ms": 16.699999999999818,
         "p95_ms": 50
       },
       {
         "action": "cable",
-        "frames": 127,
-        "max_ms": 200,
+        "frames": 77,
+        "max_ms": 216.69999999999982,
         "modules": 200,
-        "p50_ms": 16.699999999999818,
-        "p95_ms": 50
+        "p50_ms": 33.30000000000018,
+        "p95_ms": 99.90000000000055
       }
     ]
   },
   "provenance": {
-    "commit": "1a2467ec6b8d2e4f792726f10b5745765a705f01",
+    "commit": "8c7272280e63ff67b71fba89afa81850bf49ffbe",
     "date_et": "2026-11-17",
     "machine": {
       "audio_devices": "not accessed",
