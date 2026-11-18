@@ -3,13 +3,12 @@
 // abi2_app_patch_tests. No audio or MIDI device is opened.
 #include "../engine2/engine2.h"
 #include "../tests2/allocation_watch.h"
+#include "../tests2/frozen_reference.h"
 #include "runtime_patch.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -59,10 +58,9 @@ float render_and_check(AppEngine *graph, int blocks, const char *context) {
     return peak;
 }
 // Loaded v1 -> serialized v2 -> disk reload -> 96,000 rendered samples.
-// This preserves the app-loader-vs-ABI1 bound from Qt abi2_app_patch_tests,
-// instead of assuming independent codec/engine unit tests cover that seam.
-void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &config,
-                                 const std::filesystem::path &modules, const char *demo) {
+// This preserves the app-loader-vs-exact-frozen-ABI1 bound from the Qt tests.
+// The 96,000-sample reference is captured from the actual former ABI1 graph.
+void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &config, const char *demo) {
     using Json = nlohmann::json;
     const std::string original = fixture(demo);
     const auto source = Json::parse(original);
@@ -119,84 +117,15 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
     require(Json::parse(reread) == saved, "serialized v2 disk reload preserves complete object");
     auto from_v1 = load(original, catalogue, config);
     auto from_saved_v2 = load(reread, catalogue, config);
-    using Legacy = std::unique_ptr<ws_engine, decltype(&ws_engine_destroy)>;
-    Legacy old(ws_engine_create(&config), ws_engine_destroy);
-    require(bool(old), "create ABI1 reference engine");
-    for (const char *name : {"noise", "clock", "function_envelope", "slew", "vcf", "ladder", "vca", "output"}) {
-#ifdef _WIN32
-        const auto filename = modules / (std::string("ws_") + name + ".dll");
-#else
-        const auto filename = modules / (std::string("libws_") + name + ".so");
-#endif
-        require(ws_engine_load_module(old.get(), filename.string().c_str()) == WS_OK, "load ABI1 reference module");
-    }
-    const auto descriptor = [&](const std::string &type) -> const ws_module_descriptor * {
-        for (uint32_t i = 0; i < ws_engine_module_count(old.get()); ++i) {
-            const auto *item = ws_engine_module(old.get(), i);
-            if (type == item->id) return item;
-        }
-        throw std::runtime_error("ABI1 descriptor missing");
-    };
-    const auto node = [&](int id) -> const ws_module_descriptor * {
-        for (const auto &module : source["modules"])
-            if (module.at("id") == id) return descriptor(module.at("type").get<std::string>());
-        throw std::runtime_error("ABI1 node descriptor missing");
-    };
-    const auto port = [](const ws_port_descriptor *ports, uint32_t count, const std::string &id) -> uint32_t {
-        for (uint32_t i = 0; i < count; ++i)
-            if (id == ports[i].id) return i;
-        throw std::runtime_error("ABI1 port missing");
-    };
-    for (const auto &module : source["modules"])
-        require(ws_engine_add_node(old.get(), module.at("id").get<uint32_t>(),
-                                   module.at("type").get<std::string>().c_str()) == WS_OK,
-                "ABI1 reference node added");
-    for (const auto &cable : source["connections"]) {
-        const auto from = cable.at("fromNode").get<uint32_t>();
-        const auto to = cable.at("toNode").get<uint32_t>();
-        const auto *a = node(int(from));
-        const auto *b = node(int(to));
-        require(ws_engine_connect(old.get(), from,
-                                  port(a->outputs, a->output_count, cable.at("fromPort").get<std::string>()), to,
-                                  port(b->inputs, b->input_count, cable.at("toPort").get<std::string>())) == WS_OK,
-                "ABI1 reference cable connected");
-    }
-    require(ws_engine_prepare(old.get(), source.at("outputNode").get<uint32_t>(), 0) == WS_OK,
-            "ABI1 reference prepared");
-    for (const auto &module : source["modules"])
-        for (auto it = module["values"].begin(); it != module["values"].end(); ++it)
-            require(ws_engine_initialize_parameter(old.get(), module.at("id").get<uint32_t>(),
-                                                   uint32_t(std::stoul(it.key())), it.value().get<float>()) == WS_OK,
-                    "ABI1 reference parameter initialized");
-    // M1 S4 evidence-only capture: the existing ABI1 render remains authoritative.
-    // This is enabled solely by the pinned M1 Linux x64 evidence job, before deletion.
-    std::ofstream s4_capture;
-    if (const char *path = std::getenv("ABI1_S4_CAPTURE_PATH")) {
-        require(sizeof(float) == sizeof(uint32_t), "ABI1 S4 capture requires binary32");
-        s4_capture.open(path, std::ios::binary | std::ios::trunc);
-        require(bool(s4_capture), "open ABI1 S4 capture");
-    }
+    // Verified A7 source: M1 paired run 44134064502, artifact 14352740696.
+    // frozen_reference.h fails closed on absent/truncated build-local fixture.
+    const auto frozen = abi1_frozen_samples("qt_free_saved_v2_abi1_48000_128_96000");
+    require(frozen.size() == 96000u, "frozen ABI1 96,000-sample reference length");
     float baseline[128]{}, loaded[128]{}, reloaded[128]{};
     double max_abs_error = 0, baseline_peak = 0;
     size_t allocations = 0, rendered = 0;
     for (int block = 0; block < 750; ++block) {
-        require(ws_engine_render(old.get(), baseline, 128) == WS_OK, "ABI1 render");
-        if (s4_capture.is_open()) {
-            // Store the exact ABI1 binary32 words in an explicitly little-endian file.
-            // No output or allocation is introduced inside the engine's render path.
-            for (float sample : baseline) {
-                uint32_t word = 0;
-                std::memcpy(&word, &sample, sizeof(word));
-                const unsigned char bytes[] = {
-                    static_cast<unsigned char>(word),
-                    static_cast<unsigned char>(word >> 8),
-                    static_cast<unsigned char>(word >> 16),
-                    static_cast<unsigned char>(word >> 24)
-                };
-                s4_capture.write(reinterpret_cast<const char *>(bytes), sizeof(bytes));
-            }
-            require(bool(s4_capture), "write ABI1 S4 binary32 sample words");
-        }
+        std::copy_n(frozen.data() + rendered, 128u, baseline);
         int a = -1, b = -1;
         {
             allocation_watch::Scope watch;
@@ -206,7 +135,9 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
         }
         require(a == WS_OK && b == WS_OK, "v1 and saved v2 loaded graphs render");
         for (int i = 0; i < 128; ++i) {
+            require(std::isfinite(baseline[i]), "frozen ABI1 reference finite");
             require(std::isfinite(loaded[i]), "saved v2 render finite");
+            require(std::isfinite(reloaded[i]), "reloaded saved v2 render finite");
             require(loaded[i] == reloaded[i], "v1 to disk v2 renders exactly equal PCM samples");
             baseline_peak = std::max(baseline_peak, std::abs(double(baseline[i])));
             max_abs_error = std::max(max_abs_error, std::abs(double(baseline[i]) - loaded[i]));
@@ -217,10 +148,6 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
     require(allocations == 0, "saved graph callbacks allocate no memory");
     require(max_abs_error <= 1e-7, "ABI1 vs saved/reloaded app-loader bound 1e-7");
     require(rendered == 96000u, "96,000 source and saved-reloaded PCM samples compared");
-    if (s4_capture.is_open()) {
-        s4_capture.close();
-        require(bool(s4_capture), "close complete ABI1 S4 96,000-sample capture");
-    }
     std::cout << "v1 -> disk v2 -> reload exact PCM; ABI1 max_abs_error=" << max_abs_error << " allocs=" << allocations
               << '\n';
 }
@@ -303,7 +230,7 @@ int main(int argc, char **argv) {
         Owner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create Qt-free catalogue");
         const std::filesystem::path examples(argv[1]);
-        serialized_demo_equivalence(catalogue.get(), config, argv[2], argv[3]);
+        serialized_demo_equivalence(catalogue.get(), config, argv[3]);
         keyboard_macro(catalogue.get(), config);
         dual_chaos(catalogue.get(), config, examples);
         fake_midi_dual_chaos(catalogue.get(), config, examples);
