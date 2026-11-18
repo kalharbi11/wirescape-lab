@@ -8,6 +8,20 @@ OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, 
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
 Estimates below are initial active engineering hours per task, including a first validation/fix pass. CI queue/runtime, independent/Claude reviews, Architect target-setting and owner Pi availability are additional elapsed time. Re-estimate after each signed Result; do not promise a delivery date before observing those dependencies. OB0 budget roughly 2–4 working days elapsed if evidence/reviews clear; OB1 roughly 4–8 weeks with the current serial engine chain. These are planning ranges, not guarantees or permission to skip gates.
 
+## Dispatch correction — 2026-11-17, 19:48 EST
+
+B1 #206/213 now00664a1: actual32/32 hosted pass, independent source review pending.
+#207/214 nowf457bbe: ASIO fixture passes, MIDI native fixture not yet compiled. Lead grants
+B1 ONE mechanical engine2/CMakeLists test-target/CTest entry underSR7; B4's use of that shared
+file is parked until bounded handback. All remaining S4 product work stays with B4.
+B1 next prepares six-case source/oracle evidence for Architect223; no post-S6 product fix early.
+B2 continues209/216. B3 performs independent read-only collector196 review under222 while
+Macro212 stays source-parked pending219; B3 never self-approves184 sound implementation.
+B4 waits190/A7 after any already-delivered readiness inventory. B5 census208 stays capability-
+blocked if no source tools. Do not manufacture work or repeat unchanged blocked check-ins.
+Architect may run now for A6/A7/A8. No scheduling or agent chat dispatch authorized.
+Signed: codex-lead, 2026-11-17, 19:48 EST
+
 ## Immediate dispatch, one active writer per file
 B1: #182/PR189 correction1 published edcc97f; park source for review, take #206 OB-a1 in new files while waiting. Return to182 only for concrete review/CI failure. #191 report after actual merge; #192 RL lower priority than OB0 tests.
 B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #209 UI facts when the bench lane is free; smoke tests follow the census merge and a separate issue. B5 owns #208.
