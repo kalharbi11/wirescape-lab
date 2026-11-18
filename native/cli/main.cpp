@@ -16,7 +16,11 @@
 namespace {
 using Engine = std::unique_ptr<AppEngine, decltype(&app_engine_destroy)>;
 Engine make(const std::string &dir, double rate, uint32_t block) {
-    ws_engine_config c{sizeof(c), rate, block, 32, 8192};
+    wirescape::engine2::Config c{};
+        c.sample_rate = rate;
+        c.max_block = block;
+        c.max_nodes = 32;
+        c.event_budget = 8192;
     Engine e(app_engine_create(&c), app_engine_destroy);
     if (!e || app_engine_build_essentials(e.get(), dir.c_str()))
         throw std::runtime_error(e ? app_engine_error(e.get()) : "Cannot create engine");

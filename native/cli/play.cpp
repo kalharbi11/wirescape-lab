@@ -108,7 +108,11 @@ int wirescape_play(int argc,char**argv){
  std::ifstream input(patch,std::ios::binary);if(!input)throw std::runtime_error("Cannot read patch");
  std::string bytes(wirescape::document::RuntimePatchLimit+1,'\0');input.read(bytes.data(),std::streamsize(bytes.size()));bytes.resize(size_t(input.gcount()));
  if(bytes.size()>wirescape::document::RuntimePatchLimit)throw std::runtime_error("Patch exceeds 2 MiB limit");
- ws_engine_config config{sizeof(config),double(rate),block,64,2048};
+ wirescape::engine2::Config config{};
+        config.sample_rate = double(rate);
+        config.max_block = block;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
  wirescape::audio::EngineOwner catalog(app_engine_create(&config),app_engine_destroy);
  if(!catalog)throw std::runtime_error("Cannot create catalogue");
  std::string error;wirescape::audio::EngineOwner engine(wirescape::document::load_runtime_patch(bytes,catalog.get(),config,error),app_engine_destroy);

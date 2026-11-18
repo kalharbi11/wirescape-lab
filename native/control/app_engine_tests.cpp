@@ -16,7 +16,11 @@
 #include <thread>
 static void check(bool ok,const char*message){if(!ok)throw std::runtime_error(message);}
 using App=std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>;
-static App make(){ws_engine_config c{sizeof(c),48000,128,32,2048};App e(app_engine_create(&c),app_engine_destroy);check(bool(e),"create app engine");return e;}
+static App make(){wirescape::engine2::Config c{};
+        c.sample_rate = 48000;
+        c.max_block = 128;
+        c.max_nodes = 32;
+        c.event_budget = 2048;App e(app_engine_create(&c),app_engine_destroy);check(bool(e),"create app engine");return e;}
 static void native_catalogue_and_replan(){
     auto source = make();
     // Known IDs may only grow (#687): every one must be present, none twice.
@@ -35,14 +39,14 @@ static void native_catalogue_and_replan(){
     check(known_count >= 33, "known module ID list holds the 1.0 catalogue");
     bool quad_seen = false;
     for (auto *native : wirescape::app::builtin_modules()) {
-        const ws_module_descriptor *metadata = nullptr;
+        const ws2_descriptor *metadata = nullptr;
         for (uint32_t i = 0; i < app_engine_module_count(source.get()); ++i) {
             auto *d = app_engine_module(source.get(), i);
             if (!std::strcmp(d->id, native->id)) metadata = d;
         }
         check(app_engine_native_descriptor(source.get(), native->id) == native,
               "catalogue entry always has a native descriptor");
-        check(metadata && metadata->input_count == native->input_count &&
+        check(metadata == native && metadata->input_count == native->input_count &&
                   metadata->output_count == native->output_count,
               "catalogue port counts");
         if (!std::strcmp(native->id, "essentials.quad_vca")) {
@@ -51,13 +55,13 @@ static void native_catalogue_and_replan(){
             quad_seen = true;
         }
         for (uint32_t i = 0; i < native->input_count; ++i)
-            check(metadata->inputs[i].kind ==
-                      static_cast<uint32_t>(native->inputs[i].hint == WS2_AUDIO ? WS_AUDIO : WS_CONTROL),
-                  "catalogue input kind");
+            check(metadata->inputs[i].kind == native->inputs[i].kind &&
+                      metadata->inputs[i].hint == native->inputs[i].hint,
+                  "catalogue input kind and hint preserved");
         for (uint32_t i = 0; i < native->output_count; ++i)
-            check(metadata->outputs[i].kind ==
-                      static_cast<uint32_t>(native->outputs[i].hint == WS2_AUDIO ? WS_AUDIO : WS_CONTROL),
-                  "catalogue output kind");
+            check(metadata->outputs[i].kind == native->outputs[i].kind &&
+                      metadata->outputs[i].hint == native->outputs[i].hint,
+                  "catalogue output kind and hint preserved");
     }
     check(quad_seen, "Quad VCA is present in the native catalogue");
     // S2: two independently built facades have the same native-only catalogue.

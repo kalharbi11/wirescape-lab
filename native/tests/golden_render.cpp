@@ -180,7 +180,11 @@ int main(int argc, char **argv) {
                 {{"name", name}, {"first_bytes", hex(first)}, {"second_bytes", hex(second)}, {"stream", stream}});
             require(first == second, "same-build fresh renders differ");
         };
-        ws_engine_config cfg{sizeof(cfg), 48000, 128, 128, 2048};
+        wirescape::engine2::Config cfg{};
+        cfg.sample_rate = 48000;
+        cfg.max_block = 128;
+        cfg.max_nodes = 128;
+        cfg.event_budget = 2048;
         App catalog(app_engine_create(&cfg), app_engine_destroy);
         require(bool(catalog), "catalog creation failed");
         std::vector<std::filesystem::path> examples;

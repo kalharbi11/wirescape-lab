@@ -37,7 +37,11 @@ static Json patch(bool sequencer, uint64_t seed) {
                                       {"port", sequencer ? "audio" : "step"}, {"bus_channel", 0}}})}};
 }
 static Owner load(const Json &patch, AppEngine *catalogue) {
-    ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};
+    wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 256;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
     std::string error;
     Owner engine(wirescape::document::load_runtime_patch(patch.dump(), catalogue, config, error), app_engine_destroy);
     if (!engine) throw std::runtime_error(error);
@@ -120,7 +124,11 @@ static void random_source(AppEngine *catalogue) {
 }
 int main() {
     try {
-        ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};
+        wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 256;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
         Owner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create builtin catalogue");
         sequencer(catalogue.get());
