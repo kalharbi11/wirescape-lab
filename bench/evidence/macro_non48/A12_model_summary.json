@@ -1,0 +1,695 @@
+{
+  "any_failed_defined_pitch": false,
+  "counts_total": {
+    "pass": 344,
+    "pitch_not_defined": 136
+  },
+  "no_defined_pitch_models": [
+    "03 Six-op FM B",
+    "07 Chiptune",
+    "12 Additive",
+    "14 Chords",
+    "18 Particle"
+  ],
+  "per_model": [
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 0,
+      "model_name": "Virtual Analog VCF",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 1,
+      "model_name": "Phase Distortion",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 2,
+      "model_name": "Six-op FM A",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        }
+      ],
+      "model": 3,
+      "model_name": "Six-op FM B",
+      "no_defined_pitch_either_arch": true
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 4,
+      "model_name": "Six-op FM C",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 5,
+      "model_name": "Wave Terrain",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        }
+      ],
+      "model": 6,
+      "model_name": "String Machine",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        }
+      ],
+      "model": 7,
+      "model_name": "Chiptune",
+      "no_defined_pitch_either_arch": true
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 8,
+      "model_name": "Virtual Analog",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 9,
+      "model_name": "Waveshaping",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        }
+      ],
+      "model": 10,
+      "model_name": "FM",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 11,
+      "model_name": "Grain",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        }
+      ],
+      "model": 12,
+      "model_name": "Additive",
+      "no_defined_pitch_either_arch": true
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 13,
+      "model_name": "Wavetable",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        }
+      ],
+      "model": 14,
+      "model_name": "Chords",
+      "no_defined_pitch_either_arch": true
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        }
+      ],
+      "model": 15,
+      "model_name": "Speech",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        }
+      ],
+      "model": 16,
+      "model_name": "Swarm",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            1760
+          ],
+          "failed_positions": [],
+          "pass": 2,
+          "pitch_not_defined": 8
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            1760
+          ],
+          "failed_positions": [],
+          "pass": 2,
+          "pitch_not_defined": 8
+        }
+      ],
+      "model": 17,
+      "model_name": "Noise",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [],
+          "failed_positions": [],
+          "pitch_not_defined": 10
+        }
+      ],
+      "model": 18,
+      "model_name": "Particle",
+      "no_defined_pitch_either_arch": true
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 19,
+      "model_name": "String",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 20,
+      "model_name": "Modal",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 21,
+      "model_name": "Bass Drum",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            110,
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 10
+        }
+      ],
+      "model": 22,
+      "model_name": "Snare Drum",
+      "no_defined_pitch_either_arch": false
+    },
+    {
+      "architectures": [
+        {
+          "architecture": "linux-x64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        },
+        {
+          "architecture": "linux-arm64",
+          "defined_48k_target_hz": [
+            440,
+            1760,
+            3520,
+            7040
+          ],
+          "failed_positions": [],
+          "pass": 8,
+          "pitch_not_defined": 2
+        }
+      ],
+      "model": 23,
+      "model_name": "Hi-hat",
+      "no_defined_pitch_either_arch": false
+    }
+  ],
+  "source_run": 44229365015
+}
