@@ -79,7 +79,7 @@ class StrictPairedTests(unittest.TestCase):
         result = self.run_pair(b, h)
         self.assertEqual(result["status"], "passed", result["failures"])
         self.assertEqual(result["paired_unavailable_count"], 2)
-        self.assertEqual(result["measured_count"], 95)
+        self.assertEqual(result["measured_count"], 94)
         self.assertTrue(all("NOT measured" in x["disposition"] for x in result["exceptions"]))
 
     def test_chord_unilateral_or_changed_reason_rejected(self):
@@ -94,6 +94,26 @@ class StrictPairedTests(unittest.TestCase):
         for row in b["rows"]:
             if row["id"] in CHORD:
                 row.update(status="unavailable", reason=REASON)
+        self.assertEqual(self.run_pair(b, h)["status"], "failed")
+
+    def test_retired_historical_abi1_is_disclosed_not_compared(self):
+        b, h = fixture()
+        historic = {"id": "fixed/abi1_mono", "status": "measured",
+                    "ir_per_block": 100.0, "totals": [1000, 3000]}
+        b["rows"].append(copy.deepcopy(historic))
+        result = self.run_pair(b, h)
+        self.assertEqual(result["status"], "passed", result["failures"])
+        self.assertEqual(result["expected_count"], 96)
+        self.assertEqual(result["retired_count"], 1)
+        self.assertEqual(result["measured_count"], 96)
+        self.assertEqual(result["retired"][0]["id"], "fixed/abi1_mono")
+        self.assertTrue(all(row["id"] != "fixed/abi1_mono" for row in result["measured"]))
+        h["rows"].append(copy.deepcopy(historic))
+        self.assertEqual(self.run_pair(b, h)["status"], "failed")
+        h["rows"].pop()
+        b["rows"][-1]["status"] = "unavailable"
+        self.assertEqual(self.run_pair(b, h)["status"], "failed")
+        b["rows"][-1] = dict(historic, id="fixed/unrecognized")
         self.assertEqual(self.run_pair(b, h)["status"], "failed")
 
     def test_other_unavailable_never_waived(self):

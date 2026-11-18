@@ -66,4 +66,24 @@ The artifact archive is 290,548 bytes and has SHA-256 `deb5cf60646fc094b33f0fd05
 
 The same Linux x64 paired artifact reports 97 expected historical IDs, 95 measured and two Chord paired-unavailable exceptions, with no failures; those are **capture-head S3-reference** measurements, not S4 retirement evidence. The mandatory surviving-96-ID verification remains outstanding. The raw PCM member was extracted and hashed from the actual published artifact. Its repository fixture blob, manifest entry, frozen-reader comparison and S4 deletion are **not yet committed** as of this facts commit.
 
+
+## S4 deleted ABI1-only test inventory and replacements
+
+- `native/tests/engine_tests.cpp`: exercised removed `ws_engine` lifecycle/render; surviving `abi2_engine_tests` and the frozen Qt-free saved-document comparison enforce ABI2 behavior.
+- `native/tests/module_tests.cpp`: ABI1 module v1 entry/build and legacy engine target only; `abi2_module_tests` and native `modules2/` cases survive.
+- `native/tests/scale_offset_tests.cpp`: ABI1 scalar source/entry and legacy engine target only; `abi2_scale_offset_tests` and frozen utility references survive.
+- `native/tests/lfo_tests.cpp`: ABI1 oscillator/LFO source and old engine target only; ABI2 module and runtime tests survive.
+- `native/tests/returned_filter_stress.cpp`: legacy VCF/ladder target only; `abi2_returned_filter_stress` stays and uses committed frozen references.
+- `native/modules/clock/tests.cpp`: ABI1 clock shared-module test; retained `native/modules2/clock/tests.cpp` and frozen clock fixtures.
+- `native/modules/function_envelope/tests.cpp`: ABI1 envelope shared-module test; retained `native/modules2/function_envelope/tests.cpp` and frozen utility fixtures.
+- `native/modules/ladder/tests.cpp`: ABI1 ladder shared-module test; retained `native/modules2/ladder/tests.cpp` and frozen utility fixtures.
+- `native/modules/noise/tests.cpp`: ABI1 noise shared-module test; retained `native/modules2/noise/tests.cpp` and frozen utility fixtures.
+- `native/modules/slew/tests.cpp`: ABI1 slew shared-module test; retained `native/modules2/slew/tests.cpp` and frozen utility fixtures.
+- `native/modules/vcf/tests.cpp`: ABI1 VCF shared-module test; retained `native/modules2/vcf/tests.cpp` and frozen module fixtures.
+- `tools/capture/test_capture.py` `EngineTests` (4): required deleted executable ABI1 reference renderer; the 96,000-sample Qt-free frozen comparison and surviving ABI2 tests cover the migrated testable seam.
+- `tools/capture/test_capture.py` `RunnerTests` (16): mocked only removed manual/ABI1 capture CLI and transport implementation; the 11 synthetic offline `AnalysisTests` remain under `capture_offline_selftests`.
+- `native/tools/capture/capture.cpp`: manual device endpoint executable, not a CTest or product target after S4; executable retired without executing devices.
+
+Retained unchanged: `native/tests/golden_render.cpp` (AppEngine Golden), `native/tests/fixtures/` and its historic corpus/chunks, `native/tests2/frozen_reference.h`, and v1 file reader/header contracts for S5. `fixed/abi1_mono` is historical-only (no current measurement, numeric zero or pass); 96 surviving IDs including two explicitly unavailable Chord rows keep the same strict +1% threshold. Any comparison/Golden/fixture mismatch blocks acceptance; no hosted S4 green verdict is asserted by this inventory.
+
 Signed: gpt-builder4, 2026-11-17

@@ -48,7 +48,7 @@ def _cache_values() -> dict[str, str]:
 
 def _artifact_inventory(config: str) -> dict[str, str]:
     """Hash native artifacts in multi-config and single-config CMake layouts."""
-    names = {"wirescape_cli", "wirescape_engine", "wirescape-engine", "native_engine_tests", "native_module_tests", "audio_device_tests", "controller_failure_tests", "native_scale_offset_tests", "native_provider_bridge_tests", "native_lfo_tests", "returned_filter_stress", "essentials_noise_tests", "essentials_slew_tests", "essentials_function_envelope_tests", "essentials_clock_tests", "essentials_vcf_tests", "essentials_ladder_tests"}
+    names = {"wirescape_cli", "wirescape-engine", "audio_device_tests", "controller_failure_tests", "native_provider_bridge_tests"}
     executable_suffixes = {".exe", ".dll", ".so", ".dylib"}
     result = {}
     for path in BUILD_DIR.rglob("*"):

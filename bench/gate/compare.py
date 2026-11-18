@@ -36,7 +36,7 @@ def expected_ids(root=None):
     if len(module_ids) != 34 or len(patches) != 24:
         raise ValueError(f"unexpected catalogue coverage: {len(module_ids)} modules, "
                          f"{len(patches)} patches")
-    modes = ("abi1_mono", "abi2_mono", "abi2_modulated", "abi2_poly8",
+    modes = ("abi2_mono", "abi2_modulated", "abi2_poly8",
              "abi2_quad_vca_lpg8")
     return ({f"fixed/{m}" for m in modes}
             | {f"bundled/{p.name}" for p in patches}
@@ -77,6 +77,18 @@ def compare(baseline, current, threshold=3.0, required_ids=None,
     before, after = indexed(baseline), indexed(current)
     changes = []
     failures = []
+    # Exactly one historic base row is retired by S4; all surviving 96 IDs
+    # still compare normally. Retired is a disclosed status, never a pass/zero.
+    retired = "fixed/abi1_mono"
+    if required_ids is not None and retired not in required_ids:
+        old = before.pop(retired, None)
+        new = after.pop(retired, None)
+        if old is not None:
+            if old.get("status") != "measured" or not valid_measured_row(old, verify_totals):
+                failures.append(f"{retired}: invalid historic retired measurement")
+            changes.append({"id": retired, "percent": None, "status": "retired"})
+        if new is not None:
+            failures.append(f"{retired}: retired metric must not appear in current evidence")
     for key in sorted(before.keys() | after.keys() | (set(required_ids) if required_ids else set())):
         old, new = before.get(key), after.get(key)
         if old is None or new is None:
