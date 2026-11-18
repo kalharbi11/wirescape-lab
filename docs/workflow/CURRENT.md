@@ -5,6 +5,41 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Local delivery update — 2026-11-18, 00:03 EST
+
+Applied Architect23:40 decisions A10–A13, OB r2.1 and M7 r1.2. All four builder run prompts
+were sent and all four chats were independently confirmed active. B5 remains a bounded floater,
+idle after delivered census/readiness work; no fifth product lane.
+
+| Writer | Current authorized task / exact boundary |
+|---|---|
+| B1 | Continue207/214 six newly ruled OB-c tests in NEW native/tests2 or apps/studio/tests files; existing MIDI/ASIO passes and correction1/2 retained. Strict expected failure names the product cause only; fixes remain afterS6. No sidecar/control/engine/shared CMake/ci.yml grant duringS5. Coordinate any new discovery wiring first. |
+| B2 | Continue226/230 offline A12 pitch-applicability classifier from EXISTING44229365015 artifacts, no recapture. Only48k data defines margins before off-rate comparison; unchanged estimator/window/±2cents. Defined-row failure is real210 defect; other rows pitch_not_defined, never pass/zero. Publish rows/models/tests, then re-label Claude reviewer.196/209 source parked. |
+| B3 | Continue155/184 correction2/2 for HIGH6969130295, only reverb folder. Four damping rows0.1/0.4/0.7/0.9, default<=5%, no other actual hosted row worse than base; exact48k unchanged. Preserve history/RT/goldens/cap. NoS7.2; another failed round followsSR6/M7 escalation. |
+| B4 | NEW234 S5a released, task/234-m1-s5a from main, config/meter/descriptors only. ExactM1r3 paths, I1–I8/evidence1–5. Sole sidecar writer duringS5a/S5b. Do not edit212 Macro block; if that file is needed, defer its edit/rebase after212 actual merge. S5b/S6 remain closed. |
+
+Lead merged approved213/OB-a1 at6998f0547ba6cd172a6a06916dd5014c5acb6882 from reviewed
+00664a1 after all exact-head checks green and Architect6969127251 approval;32/32 actual product
+roundtrips retained. Low silence-depth/-0 notes retained. This completes OB-a1 only, notOB0.
+
+Lead reviewed and merged232 report atd048049b776ff6e92623f1d6af5c3038722110c5 (source48f913c,
+doc-scope checks green).235 now requests Architect M2 acceptance with claude-review/architect +
+needs/architect. Real805.5ms edited-subject limitation, Q22 witness interpretation, D08/D09 and
+all unmeasured/inspection-only exceptions retained. Report merge does not acceptM2 or release192.
+
+212 remains at7bde1ee unmerged pending A12 table/numeric/Ir/D5 release gates. Its wider-rate
+Medium is nonblocking at this head; if source changes, add8/192 finite/latency/zeroalloc tests
+and DESIGN passband-from44.1k line under the ruling. No automatic new Macro source task.
+184 revised DSP requires new pinned measurements later; old196 evidence cannot certify it.
+196 validatorP2/P3 and durable FLAC publication remain open, without concurrent B2 task edits.
+
+Prior notes229 is superseded by this fresh-main handoff: cleared A10–A12 stay Cleared and no
+stale Open request is restored. Architect decision text below is preserved verbatim.
+Mode quick expanded for actual new rulings/task release; usage entry26% five-hour used/74%
+remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/resets spent.
+No devices, new schedules, gate changes, source implementation by lead or polling.
+Signed: codex-lead, 2026-11-18, 00:03 EST
+
 ## Decided 2026-11-17 23:40 ET (Architect run, base `main` 06e68f0)
 Lead: drop rows A10–A12 from PR229's Open table when you merge; they are cleared here.
 - **A11 / #199: M1 S5a released.** S4 merged at `8c72722`. E1a and T0.13a merged before it, so
