@@ -173,6 +173,39 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 - **Goal:** the Owner Build ([PRIORITY.md](PRIORITY.md), contract [OB](milestones/OB.md)).
   Pick ready work by tier P0 → P3; P4 is parked.
 
+## Decided 2026-11-17 21:00 ET (Architect quick check, base `main` 52e49ba)
+- **A7 / #190: encoded fixture route granted, bounded.** Amends 190#6950233998 and A1 on the
+  fixture format only. The raw binary commit (A1) stays first choice; the encoded route is equal
+  to it if the decoded bytes match exactly. Conditions: (1) bytes come only from artifact
+  `14352740696` (Lab run 44134064502), never re-rendered; (2) one new document under
+  `native/tests/fixtures/abi2/` that uses the existing entry shape (`codec: zlib9+b64`,
+  `samples` 96000, `bytes` 384000, `sha256` `485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419`)
+  plus provenance (run, artifact, decoded blob `4dc06c72035a30979ea84beacc7664999bce77b6`);
+  (3) `bench/reference/unpack.py` may read it, reusing `decode_case` (length, eof, digest checks)
+  and writing to the build directory only, and `native/engine2/CMakeLists.txt` may add only that file to the
+  existing unpack command's inputs; (4) the old corpus, chunks, inventory and hashes, `frozen_reference.h`,
+  every assertion, the 1e-7 tolerance and the capture → convert → delete order stay unchanged.
+  A test that the unpacked file hashes to `485456df…` is required. **Transport is still open:**
+  this session's proxy also refused the signed artifact URL (403). The owner (local download) or any
+  session that can fetch the artifact produces the bytes; the format no longer limits who can commit them.
+- **A6 / #219 S7.4: test transition granted, bounded (M7 r1.1).** The S7.4 contract sets
+  "0 `unsupported_rate` rows" as the target, so the old test that Macro refuses 44.1/96 kHz is out of date and has to be rewritten. That is a
+  fix to match the accepted design, not a loosened gate. In `native/document/qt_free_patch_coverage_tests.cpp`, the Macro off-rate
+  block (about 221–240) changes to: load succeeds at 44.1 and 96 kHz and renders finite output with
+  0 allocations and 0 faults. The "failed load leaves the separately loaded graph renderable" check
+  stays, driven by another genuine refusal (for example an invalid rate), not deleted. The same
+  rule covers `protocol_tests.py` only if it depends on Macro refusing off-rate. Every other
+  assertion stays. Writer: one file handed off by the lead; B4 by default, or B3 on PR212
+  if the lead confirms B4's #190 work does not touch that file. **Evidence packet (B2, after #193
+  releases its writer lane) is approved:** `bench/offline/run_all.py` reports measured non48 Macro rows, with no hardcoded
+  status; 24 models at 44.1/48/96 kHz with the estimator and ±2-cent target unchanged; Ir at 44.1/96 reported; D5
+  pair; one advisory workflow under SR8, not `ci.yml`. If a model's `pitch_cents` cannot be measured
+  meaningfully (inharmonic models), report it as unmeasured with the reason, never as 0, and file
+  `reserved` in QUESTIONS: the meaning of a measurement is not the lead's call, and the criterion
+  is not met for that row until it is ruled.
+- **Hold:** #190 merge until final-head CI shows the fixture test, conversion and ABI1 deletion.
+  #212 acceptance until the test transition and measured non48 rows land. Nothing else holds.
+
 ## Decided 2026-11-17 15:50 ET (Architect quick check, base `main` 18eb8e5)
 - **Inbox:** all asks for the Architect go to [ARCHITECT_INBOX.md](ARCHITECT_INBOX.md) plus the
   `needs/architect` label (AGENTS, STANDING SR11). The Architect reads it first every run.
@@ -216,7 +249,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; #182/PR189 merged (M2 acceptance, criteria 1, 2, 4); S4 merged (release S5a); S7.4 #212 Claude contract-review request. Otherwise a quick check tomorrow ~09:00 ET. **Next run should:** read inbox; check #190 fixture landed; check #189/#212 state. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
-| Owner | Unblock #190: have an agent with git write commit the exact capture to B4's branch (ARCHITECT_INBOX A1). Say go to the lead (`lead: run`). Assign Claude reviewers when asked. `CLAUDE.md` still carries the deputy section; the Architect will propose its rewrite in a PR you merge. Later: OB-a2 on your patches and the Pi session. |
+| Claude Architect | Next run on any of: a **now** inbox row; #190 final head green (fixture + conversion + deletion: check S4, release S5a); #212 contract-review request; PR189 merged (M2 acceptance, criteria 1, 2, 4). Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; check whether the #190 fixture landed and its hash test passes; check the #212 test transition and the B2 non48 packet; A4 (#186) cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Owner | #190: download artifact 14352740696 locally (cloud proxies refuse it) and commit the exact 384,000-byte file, or hand it to B4 to encode under A7; then `4:run`. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
-Signed: claude-architect, 2026-11-17 15:55 ET
+Signed: claude-architect, 2026-11-17 21:05 ET

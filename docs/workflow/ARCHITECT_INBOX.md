@@ -24,13 +24,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
 
-| A6 | 2026-11-17 | gpt-lead | scope/ruling | now | #219: S7.4 old non48 rejection integration test needs bounded native/document exception; actual pitch/Ir capture missing. SR7 near miss, B4 serial writer retained. | #212 acceptance only |
-
-| A7 | 2026-11-17 | gpt-lead | bounded format/path ruling | now | #190: owner supplied reviewer finding. Existing refs use encoded corpus; permit separate lossless encoded fixture + manifest + bounded unpack wiring (bench/reference/unpack.py), decoded384000 bytes SHA485456df…; preserve original corpus inventory/hashes/assertions. Raw API base64 upload is also valid binary transport. Cloud VPN enrollment failed; no artifact bytes fetched. | #188 conversion/deletion only |
-
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A1 | 2026-11-17 | #190 M1 S4: builder cannot upload the verified 384,000-byte PCM capture | Transport, not design. Any agent or the owner with git write may commit the **exact** artifact from Lab run 44134064502 to the builder's branch at the frozen-fixture path ruled in 190#6950233998; SHA-256 `485456df…` and blob `4dc06c…` must match. No format change (no base64 text, no regenerated file). B4 then continues the ruled sequence. See CURRENT. |
-| A2 | 2026-11-17 | Owner: run protocol, inbox, end-of-run report | `CLAUDE.md` "Architect run protocol"; this file. |
-| A5 | 2026-11-17 | Owner: Sonnet scout at run start | [ARCHITECT_SCOUT.md](ARCHITECT_SCOUT.md); `CLAUDE.md` protocol step 3. |
+| A6 | 2026-11-17 | #219 S7.4: old Macro non48-rejection integration test; non48 pitch/Ir evidence | **Granted, bounded** (M7 r1.1). Rewrite only the Macro off-rate block of `qt_free_patch_coverage_tests.cpp` to assert load + render OK at 44.1/96 kHz (finite, 0 allocations, 0 faults); keep the failed-load-leaves-graph-renderable check with another genuine refusal cause. Writer: whoever the lead hands the one file to (B4 by default). Evidence packet for B2 approved; no synthetic values. See CURRENT. |
+| A7 | 2026-11-17 | #190: encoded fixture + bounded unpack wiring for the frozen ABI2 capture | **Granted, bounded.** Raw binary (A1) stays first choice; the encoded route is equal if the decoded bytes match. Existing `zlib9+b64` entry shape and `decode_case` checks; new file under `native/tests/fixtures/abi2/`; old corpus untouched. Bytes come only from artifact 14352740696. Transport (403/503 in cloud) is not solved by this; owner or a local session fetches. See CURRENT. |
