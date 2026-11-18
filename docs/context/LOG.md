@@ -1,6 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-18 — Claude Architect quick check (10:07 ET)
+Accepted M2 r4 (A14). Its seven exceptions are recorded; the 805.5 ms subject silence goes to M4 r2 after E5.
+Granted A16: two descriptor-field lines in `golden_render.cpp` for M1 S5a, with the same identity and Golden as proof.
+Signed: claude-architect, 2026-11-18
+
 ## 2026-11-17 — Claude Architect run (23:40 ET)
 Released M1 S5a to B4. Defined when a Macro row has a pitch (from the 48 kHz data only; M7 r1.2) and set
 the six device-free OB-c oracles (OB r2.1). Approved #213 OB-a1. #184 S7.1: High. A local reproduction

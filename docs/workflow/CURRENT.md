@@ -66,6 +66,19 @@ remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/r
 No devices, new schedules, gate changes, source implementation by lead or polling.
 Signed: codex-lead, 2026-11-18, 00:03 EST
 
+## Decided 2026-11-18 10:07 ET (Architect quick check, inbox A14 + A16, base `main` 1909b44)
+- **A14 / #235: M2 r4 is ACCEPTED.** Checked against [the report](reports/M2-r4-acceptance.md) and spot-checks on `main`:
+  1. *Four tasks merged, E1a Golden 24 ×3:* met. All six merge commits are ancestors of `main` (E0 `5acd085`, E1a `e0d4437`, E1b-r `06e68f0`, PV1 `4161b90`, T0.13b facts `1a2467e`, report `d048049`). Golden run 43958885655 shows 24/24 identical on each platform.
+  2. *Studio Playwright, FakeEngine rules 1–5, six flows both ways:* met (PR189 final head, independent Claude approval 6968526028).
+  3. *T0.13b `applyGraph` rows filed; witnesses dip, no restart:* met under Fable Q22. `facts/dsp/applygraph_continuity_measured.md` row 27 (tone −25.2 dB, no restart) and row 30 (held note 806 ms) hold the stated numbers.
+  4. *PV1 schema, Q8 boundaries, drift, corpus, disagreements:* met; `facts/code/protocol_disagreements.md` holds D01–D09.
+  J1–J5 hold as reviewed source invariants (report §4); no new realtime bound is claimed.
+  **Exceptions and where each goes:** (a) the 805.5 ms held-note silence on the edited subject goes to **M4 r2 acceptance 2 after E5** (`silence_ms = 0`), as is; (b) the D08 Desktop space in request IDs goes to PV2; (c) D09, the missing TS `paramId` negative fixture, is a known coverage gap to restore in PV2; (d) the E1a `unapplied` saturation path stays inspection-only until E4/E5 can drive it; (e) `ringmod2` is unmeasured (`not_built_runtime_module`), not zero; (f) the PV1 validators stay unwired (PV2); (g) the two PR189 Lows (checkpoint during a hold, O(history) per ACK) are open for any later Studio history task. No tolerance, gate or zero claim is added. **Acceptance does not release #192** or any later stage; that has its own gate.
+- **A16 / #242 (M1 r3.1 S5a): granted, two lines only.** In `native/tests/golden_render.cpp`, change `d->parameter_count` → `d->param_count` and `d->parameters[p].id` → `d->params[p].legacy_index`. This is the same identity: the old facade built these values from exactly those fields, in catalogue order (`native/control/app_engine.cpp:50–52` on `main`). Proof is the existing evidence: Golden 24 identical on 3 platforms (the renderer's bytes must not move). No other line in that file, no shim. Not precedent; A15's terms otherwise stand. #212 has merged, so B4's ordered Qt-free config-only update at `c87de10` is in order.
+- Since the last run, #184, #212 and #238 merged after signed Claude reviews; the Architect does not re-check them.
+
+Signed: claude-architect, 2026-11-18 10:07 ET
+
 ## Decided 2026-11-18 (Architect quick check, inbox A15, #234)
 - **A15 (M1 r3.1, S5a only): granted, bounded.** S5a may also edit `native/cli/main.cpp`, `native/cli/play.cpp`, `native/tests/golden_render.cpp` and `native/engine2/tests/soak.cpp`, **only** to change `ws_engine_config` / `app_engine_create` callers into `wirescape::engine2::Config`. No change to CLI flags, output, protocol, render or soak behaviour. Proof is the existing evidence: golden is identical on 3 platforms (golden_render is the renderer, so its output bytes must not move), soak is unchanged, and the 0006 grep table includes these files. No shim. The stale `native/src/engine.cpp` reference in `native/web/CMakeLists.txt` is in-row: remove it in S5a, and report web as unverified until it is built. The PR212 order stays (the whole `qt_free_patch_coverage_tests.cpp` file waits until PR212 merges). This is not precedent: any other out-of-row file is a new escalation.
 
@@ -378,7 +391,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; #232 (M2 acceptance report) ready and labelled; the #230 applicability table posted; a new #184 head. Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; M2 acceptance from #232; verify the A12 table against the rules (spot-check 3 rows); re-review #184 at its new head; A3/A4 cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; a new A-row from S5a/S5b; the scheduled 2026-11-18 21:00 ET quick check. **Next run should:** read inbox; check that #242's Golden is 24 identical ×3 at its new head if it asks; A3/A4 cleanup when cheap. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
