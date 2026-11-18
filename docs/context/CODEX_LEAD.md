@@ -31,6 +31,12 @@ Milestone end: one acceptance report mapping every criterion to its evidence (PR
 or fact file), then `needs/fable` on the acceptance issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 
+## Claude reviews (owner, 2026-11-17)
+When a contract or task needs a Claude review, the lead labels the PR `claude-review/reviewer`
+(claude-reviewer or Architect) or `claude-review/architect` (Architect only), and comments with
+the base/head SHAs and the invariants. It no longer asks the owner to assign a reviewer. Every
+Claude review run clears that label queue.
+
 ## Owner-specific run and communication policy — 2026-11-17 ET
 
 These are the owner's explicit instructions for every Codex delivery-lead session. Read this

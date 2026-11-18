@@ -49,6 +49,14 @@ filing inbox rows before each check-in. The owner granted the Architect full git
    dispatch and merge decisions.
 
 ## Rules
+- **Asking for a Claude review (owner, 2026-11-17):** label the PR with its level, then post one
+  comment naming the base/head SHAs and the invariants or criteria to check.
+  `claude-review/reviewer` = `claude-reviewer` or the Architect may do it (contract-reviews,
+  M-task "Claude review" rows, source/evidence review). `claude-review/architect` = only the
+  Architect (design meaning, reserved items, milestone acceptance; also add `needs/architect` and
+  an inbox row). Re-label after a new head. The reviewer removes the label once it posts its
+  signed review (approval or findings). Leads and Codex agents use these labels and no longer
+  have to ask the owner to assign a Claude reviewer.
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
