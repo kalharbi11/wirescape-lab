@@ -5,6 +5,26 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Quick check — 2026-11-17, 15:33 EST
+
+Owner run modes, signatures and usage reserves: [CODEX_LEAD.md](../context/CODEX_LEAD.md).
+Plan211 merged18eb8e5 after exact-head notes Lab44153759982 success.
+
+| Builder | Changed status / next |
+|---|---|
+| B1 | #206/PR213 c501d9f:32-case round-trip packet unexecuted. Exclusive ci.yml Lab integration slot released; continue same PR, then207 in free files. #182 preserved. |
+| B2 | #193/PR196 78531a6: full-engine R2 measured/artifact-verified, after spread2.471322% on x64/ARM64. D5 encoder fixed; new run pending at builder Result. Finish artifacts, then209; no lead acceptance inferred. |
+| B3 | #210/PR212 d712074: Macro implementation published; continue changed-state hosted validation and concrete diagnosis. |
+| B4 | #188/PR190 3858a2a: genuine96000-sample/384000-byte reference verified; binary Git publication capability blocked. Preserve original bytes/hash/assertions. Lead transfer repair deferred to normal run; no deletion/S5. |
+| B5 | #208 census capability-blocked, no Work substitute. Report actual supported tools once, then await small supported packet/reassignment. |
+
+Usage: five-hour17% used/83% remaining, reset2026-11-17 16:56EST; weekly56% used/44%
+remaining, reset2026-11-23 11:49EST. No reset/credit spent. One bounded continuation each,
+no polling/new heartbeat. Next normal run: binary transfer and required reviews; suggest an
+after-Architect time to owner before scheduling. B1 exclusively owns ci.yml until packet ends.
+
+Signed: codex-lead, 2026-11-17, 15:33 EST
+
 ## Local OB dispatch — 2026-11-17 ET
 
 Dated plan: [OB_PLAN.md](OB_PLAN.md), ready issues #206–#210, workstream trackers #198–#205.
