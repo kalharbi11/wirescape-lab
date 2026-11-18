@@ -5,6 +5,37 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Quick check — 2026-11-18 04:20 EST
+
+Changed Results inspected once. B1/214 head0b6e722 has six new A10 source files, but native
+execution is unwired and panic full-frame/gate coverage plus true buffer wall interval remain
+unproved. Lead sent a bounded SR8 isolated advisory workflow/new test-local wiring continuation;
+no engine2 CMake/sidecar/control/ci.yml grant, no setup-failure xfail or invented timing.
+
+B2/230 remains53317f0. A12 original-artifact table reports344 defined comparisons passing,
+zero failures and136 pitch_not_defined across both architectures, with five models having no
+defined rows. This is builder evidence pending independent review, not lead acceptance.
+Publication blocked because original capture workflow wildcard would recapture. Lead sent
+bounded safe publication/wiring continuation: preserve original capture tests/jobs and no
+recapture; if editing the capture workflow triggers capture, use separate analysis-only PR
+from main with new files/workflow and explicit230/226 provenance. No metric/threshold edits.
+
+B3/184 correction2/2 at32abedde now uses fixed48k off-rate core/sample-hold; independent
+Claude review requested with correct claude-review/reviewer label. All new-head quantitative/
+48k Golden/Ir/D5 gates remain; old196 source evidence stale. No third ordinary correction.
+B4/234 reserved branch has no implementation/PR: CLI config callers outside scope and
+Golden/soak test interpretation need ruling. Architect-labelled234 asks four exact path
+dispositions plus stale in-row web CMake diagnosis; no SR7 three-file limit bypass.
+S5b/S6 and212 same-file rule unchanged. M2 acceptance235/A14 still queued.
+
+Usage entry: five-hour1% used/99% remaining, reset timestamp1794998923; weekly62% used/38%
+remaining. Reset is account window, not chat restart; no credits/reset spent. Mode quick,
+SR1/7/8/11/13/19, no product merge, devices, schedules or unchanged-state CI polling.
+Next: B1/B2 publication Results, Claude184 review, Architect234/235. Send lead:run after
+a new Result/ruling; otherwise after the scheduled09:00 Architect check (suggest09:15EST).
+Standing owner preference: end every user-facing reply with next steps and when to run lead.
+Signed: codex-lead, 2026-11-18, 04:20 EST
+
 ## Local delivery update — 2026-11-18, 00:03 EST
 
 Applied Architect23:40 decisions A10–A13, OB r2.1 and M7 r1.2. All four builder run prompts
