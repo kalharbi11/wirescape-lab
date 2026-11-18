@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB delivery plan — 2026-11-17 ET
 
-Owner-directed scope: OB r2.1, PRIORITY, M1 r3, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
+Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
 ## Critical paths and estimates
 OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, OB-a1) → release/tag. Start S7.4 and OB-a1 now, in separate files. Aim for the first eligible build, not a bundled wait for OB1.
@@ -27,6 +27,21 @@ unlessnewhead (then8/192 tests+DESIGN line); definedpitchfailures remain real210
 One writer perfile, no source task overlap, no new schedules. Run prompts sent toB1–B4;
 all four verifiedactive. Reviewlabels per231, no owner reviewer assignment.
 Signed: codex-lead, 2026-11-18, 00:03 EST
+
+## Delivery changes — 2026-11-18 05:41 EST
+
+- B1 continues #207 / #214 on the isolated A10 runner packet after a supported retry.
+- B2's Macro A12 analysis is in companion #238 for independent review. B2 owns #193 / #196 now
+  for validator corrections and new #184 head capture. Queue #240 after that packet and shared
+  wiring release. B3 parks #184 at `32abedde` (2/2) for review and capture; #212 stays parked until
+  Macro acceptance evidence and D5 are verified.
+- B4 resumed #234 under A15 / M1 r3.1. The entire Qt-free test file waits on actual #212 merge before
+  B4 edits it. Sidecar and successor stage ownership stay with B4.
+- B5's census #221 merged at `998f56b`: 34 palette IDs, 32 native registrations and two SDK
+  examples. B5 is assigned only a read-only Macro artifact/release inventory. #240 covers the live
+  palette and waits for dispatch; OB-e2 remains unverified.
+
+Signed: codex-lead, 2026-11-18, 05:41 EST
 
 ## Complete task ledger
 Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover every row below. A tracker is not permission to implement an unmet dependency. Every future implementation gets its own issue/branch/PR, exact allowed paths, contract criteria and mapped S6 paths at release.
@@ -73,8 +88,8 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-c regression tests | #207 / PR214 | B1 | A10 six oracles released; new test files, no sidecar duringS5 | 8–16h |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
-| OB-e1 module census | #208 | B5 |ready; census33 actual modules, read-only sources | 2–4h |
-| OB-e2 every-module smoke | #204 | B2 |e1; native/tests2 slot after a1;44.1/48k,64/256,2s,sweep,RT | 6–12h |
+| OB-e1 module census | #208 / PR221 merged998f56b | complete | 34 actual palette IDs (32 native, two SDK examples) | done |
+| OB-e2 every-module smoke | #240 (tracker #204) | B2 | e1 merged; queue behind #193 and Lab wiring release; 44.1/48k,64/256,2s,sweep,RT | 6–12h |
 | OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
 | OB-f2 UI fixes | #205 | B1 |f1+Architect numerical targets; Studio free | 8–20h provisional |
