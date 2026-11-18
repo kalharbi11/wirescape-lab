@@ -50,16 +50,16 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 |---|---|---|---|---|
 | OB0 T7.0 baseline | #152 merged | complete | retained facts | done |
 | OB0 M2 E1b-r | #182 / PR189 merged06e68f0 | complete | reviewed exactedcc97f, Lab green | done |
-| M2 final report | #191 / PR232 mergedd048049; acceptance235 | Architect | report complete; milestone decision separate | report done |
-| OB0 S7.1 Reverb | #155 / PR184 | B3 | High damping regression; correction2/2, M7r1.2 four damping rows | re-estimate after correction |
-| OB0 R2/D5 capture | #193 / PR196 | B2 |actual x64/ARM64 production artifacts; lead release upload | 2–6h |
-| OB0 S7.2 Reverb gain | #202 (stage issue after155 merge) | B3 |155 merged; same module writer | 4–10h |
-| OB0 S7.4 Macro rate support | #210 | B3 |ready; 24models×rates,48k identical, required contract-review | 12–24h |
+| M2 final report | #191 / PR232 merged d048049; A14/#235 accepted | complete | Architect accepted M2 r4 with stated exceptions; #192 stays gated | done |
+| OB0 S7.1 Reverb | #155 / PR184 merged 1909b44 | complete | A13, three-platform Golden and durable D5 verified | done |
+| OB0 R2/D5 capture | #193 / PR196 merged 34b3da3 | complete | both production architectures, P2/P3 checks and D5 attached | done |
+| OB0 S7.2 Reverb gain | #243 (tracker #202) | B3 | S7.1 merged; same writer; supported retry sent | 4–10h |
+| OB0 S7.4 Macro rate support | #210 / PR212 merged 004a1b4 | complete | A12 review, instruction evidence and D5 verified | done |
 | OB0 OB-a1 round-trip CI | #206 / PR213 merged6998f05 | complete | actual32/32, approved00664a1 | done |
 | OB0 tag/release/install check | #198 | lead |all OB0 criteria on main; preserve immutable fallback tag | 1–3h |
 | OB1 M1 S3 | #159 merged | complete |reviewed prior evidence retained | done |
 | OB1 M1 S4 | #188 / PR190 merged8c72722 | complete | reviewed26c749d, final facts/CI green | done |
-| OB1 M1 S5a | #234 (tracker199) | B4 | ArchitectA11 released;212 same-file/sidecar order holds | 8–16h |
+| OB1 M1 S5a | #234 / PR242 (tracker #199) | B4 | Qt-free ordered integration done; A16 granted; exact new-head evidence required | in progress |
 | OB1 M1 S5b | #199 | B4 |S5a merged; required Claude contract-review | 8–16h |
 | OB1 M1 S6 | #199 | B4 |S5b; every product PR merged/explicitly parked; plan window ≥1 day ahead; Claude review | 8–16h |
 | OB1 M3 T1.6a | #200 | B4 |S6; mapped paths, mechanical only | 4–8h |
@@ -85,11 +85,11 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-a2 owner folder runner | #203 | B1 |OB-a1; read-only inputs; owner runs real patches | 3–6h |
 | OB-a3 no rewrite/first-save backup | #203 | B1 |OB-a1; native/document free after S5; Claude review | 6–12h |
 | OB-b Pi install/launch | #198 | B2 |S6; dry-run paths; no agent device test | 4–8h |
-| OB-c regression tests | #207 / PR214 | B1 | A10 six oracles released; new test files, no sidecar duringS5 | 8–16h |
+| OB-c regression tests | #207 / PR214 | B1 | A10 execution Result missing after retry; B5 read-only wiring inventory | 8–16h |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
 | OB-e1 module census | #208 / PR221 merged998f56b | complete | 34 actual palette IDs (32 native, two SDK examples) | done |
-| OB-e2 every-module smoke | #240 (tracker #204) | B2 | e1 merged; queue behind #193 and Lab wiring release; 44.1/48k,64/256,2s,sweep,RT | 6–12h |
+| OB-e2 every-module smoke | #240 (tracker #204) | B2 | dispatched isolated test; shared Lab wiring held pending exact plan | 6–12h |
 | OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
 | OB-f2 UI fixes | #205 | B1 |f1+Architect numerical targets; Studio free | 8–20h provisional |
