@@ -22,10 +22,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | cleanup | later | #186 old succession docs PR: close or refresh after #215 lands. | nothing |
+| A4 | 2026-11-17 | Architect | errata review | later | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed** to rule each erratum, after OB0 and before any of MT4, H3a, CP1, K3 or K4 is dispatched (2026-11-18 13:10). | MT4/H3a/CP1/K3/K4 dispatch only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A14 | 2026-11-18 | #235 M2 r4 acceptance | **M2 accepted** with seven recorded exceptions (805.5 ms subject silence → M4 r2 post-E5; D08 → PV2; D09 gap; `unapplied` inspection-only; ringmod2 unmeasured; unwired validators; two PR189 Lows). Does not release #192. CURRENT 10:07. |
-| A16 | 2026-11-18 | #242 S5a Golden descriptor fields | **Granted, two lines only:** `golden_render.cpp` `parameter_count`→`param_count`, `parameters[p].id`→`params[p].legacy_index` (the old facade copied exactly these, `app_engine.cpp:52`). Proof = Golden 24 identical ×3. CURRENT 10:07. |
+| — | 2026-11-18 13:10 | Quick check | Nothing cleared. A14/A16 rows removed (older than one run; see CURRENT 10:07). |
