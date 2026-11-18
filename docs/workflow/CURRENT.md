@@ -249,7 +249,18 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; #190 final head green (fixture + conversion + deletion: check S4, release S5a); #212 contract-review request; PR189 merged (M2 acceptance, criteria 1, 2, 4). Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; check whether the #190 fixture landed and its hash test passes; check the #212 test transition and the B2 non48 packet; A4 (#186) cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
-| Owner | #190: download artifact 14352740696 locally (cloud proxies refuse it) and commit the exact 384,000-byte file, or hand it to B4 to encode under A7; then `4:run`. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
+| Claude Architect | Next run on any of: a **now** inbox row; #190 merged (release S5a); #212 contract-review request; PR189 merged (M2 acceptance, criteria 1, 2, 4). Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; after #190 merges, release S5a; check the #212 test transition and the B2 non48 packet; A4 (#186) cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
-Signed: claude-architect, 2026-11-17 21:05 ET
+## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
+- **#190 S4: the Architect's invariants hold; nothing more is needed from the Architect.** The fixture
+  `native/tests/fixtures/abi2/abi1_s4_qt_free_96000.json` decodes (zlib+b64) to 384,000 bytes with SHA-256
+  `485456df…`, which equals the A1/A7 capture. In `serialized_demo_equivalence`, every original assertion
+  stays (finite, exact v1→v2 PCM, 0 RT allocations, max_abs_error ≤ 1e-7, 96,000 samples), with
+  one finite check added. Lab, Golden, M1 paired, Offline, instruction and T7.0 are green on the head;
+  `facts` ×3 was still running at check time.
+- **Lead:** do not merge until `facts` ×3 is green on the exact head and the contract's independent M1
+  review has passed; then merge per M1. Builder: take #190 out of draft and drop `status/blocked`.
+  The `needs/architect` label is removed.
+
+Signed: claude-architect, 2026-11-17 21:50 ET
