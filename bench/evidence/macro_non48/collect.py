@@ -38,6 +38,8 @@ PITCH_MAX_DELTA_CENTS = 2.0
 IR_48_MAX_GROWTH_PERCENT = 3.0
 PIN_FILES = ("bench/offline/metrics.py", "bench/golden/render.py",
              "bench/offline/run_all.py", "native/modules2/macro_oscillator/dsp.h",
+             "native/modules2/macro_oscillator/CMakeLists.txt",
+             "native/modules2/macro_oscillator/module.json",
              "native/document/qt_free_patch_coverage_tests.cpp")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
@@ -107,11 +109,24 @@ def harness_sources(checkout: Path) -> dict:
     return {name: digest(checkout / name) for name in PIN_FILES}
 
 
+def compiled_libraries(checkout: Path) -> dict:
+    """Exact built library hashes; unavailable is a blocker, not a proxy."""
+    build = checkout / "build/native"
+    matches = sorted(p for p in build.rglob("*ws2_macro_oscillator*")
+                     if p.is_file() and p.suffix.lower() in (".so", ".dylib", ".dll"))
+    if not matches:
+        return {"status": "unavailable", "reason": "built ws2_macro_oscillator shared module absent"}
+    return {"status": "measured", "files": [
+        {"path": p.relative_to(checkout).as_posix(), "sha256": digest(p),
+         "bytes": p.stat().st_size} for p in matches]}
+
+
 def provenance(checkout: Path, expected: str, label: str) -> dict:
     pinned(checkout, expected)
     return {"source_commit": expected, "label": label, "toolchain": toolchain(checkout),
             "collector_sha256": digest(Path(__file__)),
-            "source_hashes": harness_sources(checkout)}
+            "source_hashes": harness_sources(checkout),
+            "compiled_macro_libraries": compiled_libraries(checkout)}
 
 
 def matrix(label: str) -> list[tuple[int, int, int]]:
@@ -387,6 +402,10 @@ def capture_d5(base: Path, head: Path, base_sha: str, head_sha: str, out: Path) 
     save(dest / "manifest.json", {
         "schema": "wirescape/macro-non48-d5-226/1",
         "sources": {"before": base_sha, "head": head_sha},
+        "source_harness_sha256": {
+            "before": harness_sources(base), "head": harness_sources(head)},
+        "compiled_macro_libraries": {
+            "before": compiled_libraries(base), "head": compiled_libraries(head)},
         "patch_file": D5_PATCH, "patch_sha256": digest(after_path),
         "script_sha256": digest(script),
         "golden_harness_sha256": digest(head / "bench/golden/render.py"),
@@ -466,6 +485,16 @@ def summarize(out: Path, base_sha: str, head_sha: str) -> dict:
             record = d5["renders"][label][kind]
             if digest(out / "d5" / record["file"]) != record["sha256"]:
                 raise ValueError("D5 PCM/FLAC SHA mismatch")
+        codec = d5["renders"][label]["flac"].get("codec", {})
+        if (codec.get("codec_name") != "flac" or
+                int(codec.get("sample_rate", 0)) != 48000 or
+                int(codec.get("channels", 0)) != 2 or
+                int(codec.get("bits_per_raw_sample", 0)) != 24):
+            raise ValueError("D5 FLAC media format provenance absent/invalid")
+    d5_same = (d5["renders"]["before"]["original_pcm"]["sha256"] ==
+               d5["renders"]["head"]["original_pcm"]["sha256"])
+    if d5["original_float_pcm_identical"] != d5_same:
+        raise ValueError("D5 claimed original PCM equality contradicts hashes")
     ir_b = {(r["sample_rate_hz"],r["voices"]):r for r in ir_before["rows"]}
     ir_a = {(r["sample_rate_hz"],r["voices"]):r for r in ir_after["rows"]}
     if set(ir_b)!={(48000,1),(48000,8)} or set(ir_a)!={(r,v) for r in RATES for v in (1,8)}:
@@ -506,7 +535,7 @@ def summarize(out: Path, base_sha: str, head_sha: str) -> dict:
             "ir_48k_within_plus3":all(
                 r["growth_pct"] is not None and r["growth_pct"]<=IR_48_MAX_GROWTH_PERCENT
                 for r in ir_summary if r["rate_hz"]==48000),
-            "d5_original_pcm_identical":d5["original_float_pcm_identical"],
+            "d5_original_pcm_identical":d5_same,
             "d5_pair_exists":True,
             "full_acceptance":False,
             "reason":"pitch applicability reserved; B4 compatibility handoff, Architect and lead review still gate S7.4"}
