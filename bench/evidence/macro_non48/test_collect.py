@@ -145,7 +145,9 @@ class MacroCollectorTests(unittest.TestCase):
             flac=d5/f"{label}.flac";flac.write_bytes(b"not real FLAC; synthetic test only")
             renders[label]={
                 "original_pcm":{"file":original.name,"sha256":collect.digest(original)},
-                "flac":{"file":flac.name,"sha256":collect.digest(flac)}}
+                "flac":{"file":flac.name,"sha256":collect.digest(flac),
+                        "codec":{"codec_name":"flac","sample_rate":"48000",
+                                 "channels":2,"bits_per_raw_sample":24}}}
         collect.save(d5/"manifest.json",{
             "sources":{"before":base_sha,"head":head_sha},
             "configuration":{"rate_hz":48000,"block_frames":128,"seconds":10,
@@ -170,6 +172,29 @@ class MacroCollectorTests(unittest.TestCase):
             self.assertTrue(all(r["raw_estimator_delta_cents_vs48_diagnostic"]==0
                                 for r in result["pitch_diagnostic_rows"]))
             self.assertIn("inharmonic",result["pitch_reserved_question"])
+
+    def test_compiled_library_identity_and_d5_manifest_must_be_factual(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)
+            self.assertEqual(collect.compiled_libraries(out)["status"],"unavailable")
+            shared=out/"build/native/modules2/macro_oscillator/libws2_macro_oscillator.so"
+            shared.parent.mkdir(parents=True,exist_ok=True)
+            shared.write_bytes(b"synthetic library bytes, never a captured build")
+            record=collect.compiled_libraries(out)
+            self.assertEqual(record["status"],"measured")
+            self.assertEqual(record["files"][0]["sha256"],collect.digest(shared))
+            base,head=self._fake_complete(out)
+            d5=out/"d5/manifest.json"
+            stored=json.loads(d5.read_text())
+            stored["original_float_pcm_identical"]=False
+            collect.save(d5,stored)
+            with self.assertRaisesRegex(ValueError,"contradicts hashes"):
+                collect.summarize(out,base,head)
+            stored["original_float_pcm_identical"]=True
+            stored["renders"]["head"]["flac"]["codec"]["sample_rate"]="96000"
+            collect.save(d5,stored)
+            with self.assertRaisesRegex(ValueError,"media format provenance"):
+                collect.summarize(out,base,head)
 
     def test_missing_rows_pcm_mutation_and_bad_pins_cannot_pass(self):
         with tempfile.TemporaryDirectory() as folder:
