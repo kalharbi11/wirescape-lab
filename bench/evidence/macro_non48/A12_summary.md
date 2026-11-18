@@ -51,3 +51,4 @@ A12 48k reference rows selected only from byte-identical before/head render. Dom
 | Model | Target | Rate | Dominance margin | Level margin | Δ cents |
 |---|---:|---:|---:|---:|---:|
 | none | — | — | — | — | — |
+
