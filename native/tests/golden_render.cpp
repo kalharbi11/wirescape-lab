@@ -211,8 +211,8 @@ int main(int argc, char **argv) {
                     for (uint32_t i = 0; i < app_engine_module_count(catalog.get()); ++i) {
                         const auto *d = app_engine_module(catalog.get(), i);
                         if (type != d->id) continue;
-                        for (uint32_t p = 0; p < d->parameter_count; ++p) {
-                            const auto key = std::to_string(d->parameters[p].id);
+                        for (uint32_t p = 0; p < d->param_count; ++p) {
+                            const auto key = std::to_string(d->params[p].legacy_index);
                             if (module.value("values", Json::object()).contains(key))
                                 parameters[app_engine_parameter_id(catalog.get(), d->id, p)] = module["values"][key];
                         }
