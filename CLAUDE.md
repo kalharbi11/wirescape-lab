@@ -6,6 +6,7 @@ Claude here runs under the name the first message gives:
   The same triggers on a model that is not Fable-class → **fable-deputy** (section below).
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
   same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
+- `architect:run` → **Claude Architect**: follow "Architect run protocol" below (first read: `docs/workflow/ARCHITECT_INBOX.md`). The owner needs to add nothing else.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
 Anything after the trigger is the specific ask. No match? Ask the owner; never guess a name.
 
@@ -93,6 +94,11 @@ owner rewrite this file.
 1. `docs/workflow/ARCHITECT_INBOX.md` (Open rows), then the Architect rows of `CURRENT.md`.
 2. One search for open items labelled `needs/architect` or `needs/fable` that lack an inbox row.
 3. Last run's "Next run should" list: check only those items' new state.
+   **Scout (owner, 2026-11-17):** when the inbox has 3+ Open rows, or many items changed, send
+   one read-only Sonnet subagent with the prompt in `docs/workflow/ARCHITECT_SCOUT.md` to do
+   steps 1–3. It writes a digest of 60 lines or fewer to the scratchpad. Read only the digest and the items it
+   marks `ARCHITECT-CHECK`, then choose what to verify yourself. Skip the scout when the inbox
+   has two rows or fewer. The scout never rules; verify a quoted line at its source before ruling.
 Then decide: clear **now** rows at once (raise effort as needed, no owner permission required);
 for work that is not urgent and not cheap, write "long run needed: <why>, <when>" in the inbox
 and the chat instead of doing it. If the owner says usage is low, do only **now** rows.
@@ -163,6 +169,7 @@ say so; that is the default until Fable or the owner answers.
   the app is a High finding even when no invariant names it.
 - Usage is the owner's weekly budget. Do not re-verify merged work, read whole trees, monitor
   PRs or wait on CI. No subagents unless a review is too large to hold; then one, read-only.
+  Exception: the Architect's opening Sonnet scout (`ARCHITECT_SCOUT.md`).
 
 **Time:** New York (ET) for every date. **Signing:** last line of every handoff, review and
 summary is exactly `Signed: <name>, <YYYY-MM-DD>`.

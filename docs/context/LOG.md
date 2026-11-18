@@ -5,7 +5,8 @@
 Owner set the Architect run protocol (start low, escalate on findings; docs updated every run;
 end-of-run report with next-run trigger). Added `docs/workflow/ARCHITECT_INBOX.md` as the single
 queue for the Architect; AGENTS and STANDING SR11 point to it. Ruled #190's blocker as transport
-only (exact capture, hashes must match). No contract change.
+only (exact capture, hashes must match). No contract change. Owner added an opening Sonnet
+scout (`docs/workflow/ARCHITECT_SCOUT.md`): a read-only digest of 60 lines or fewer; the Architect keeps every ruling.
 
 ## 2026-11-17 — Claude Architect run 1
 #159 (M1 S3) passed its Claude contract review and merged; S4 released. CI1 r4 accepted. OB r1
