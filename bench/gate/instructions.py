@@ -285,8 +285,8 @@ def main(argv=None):
     keys = [r["id"] for r in rows]
     if len(keys) != len(set(keys)):
         raise RuntimeError("duplicate instruction row ID")
-    if len([r for r in rows if r["id"].startswith("fixed/")]) != 5:
-        raise RuntimeError("five fixed cost modes required")
+    if len([r for r in rows if r["id"].startswith("fixed/")]) != 4:
+        raise RuntimeError("four surviving fixed cost modes required")
     if len([r for r in rows if r["id"].startswith("bundled/")]) < 24:
         raise RuntimeError("all 24 bundled golden patches required")
     if len([r for r in rows if r["id"].startswith("module/")]) != 68:

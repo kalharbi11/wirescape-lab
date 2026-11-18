@@ -17,11 +17,17 @@ import type { PatchV2 } from './types';
  *  - other changes (keys, typed values, paste, delete) are committed after
  *    350 ms of quiet, so holding an arrow key is one step too.
  */
+/** A saved history cursor can be reconciled to the engine-confirmed graph. */
+export type HistoryCheckpoint = (() => void) & {
+  reconcile: (authored: PatchV2, confirmed: PatchV2) => void;
+};
+
 export class History {
   private past: string[] = [];
   private future: string[] = [];
   private current: string;
   private pending = false;
+  private pendingHolds = 0;
   private suppress = false;
   private pointerDown = false;
   private finishingPointer = false;
@@ -64,10 +70,10 @@ export class History {
   }
 
   /** Save the current document's history before a provisional patch load. */
-  checkpoint(): () => void {
+  checkpoint(): HistoryCheckpoint {
     this.flush();
-    const past = [...this.past], future = [...this.future], current = this.current;
-    return () => {
+    let past = [...this.past], future = [...this.future], current = this.current;
+    const restore = (() => {
       this.clearTimer();
       this.pending = false;
       this.finishingPointer = false;
@@ -75,15 +81,55 @@ export class History {
       this.future = [...future];
       this.current = current;
       this.changed();
+    }) as HistoryCheckpoint;
+    restore.reconcile = (authored, confirmed) => {
+      // A snapshot can omit UI metadata that is present in its authored
+      // history entry. Match the graph, preserving each entry's own UI: a
+      // rejected parameter must not survive merely because positions differ.
+      const graph = (patch: PatchV2) => {
+        const { ui: _ui, ...rest } = patch;
+        return JSON.stringify(rest);
+      };
+      const from = graph(authored), to = graph(confirmed);
+      if (from === to) return;
+      const normalize = (item: string): string => {
+        const patch = JSON.parse(item) as PatchV2;
+        return graph(patch) === from ? this.snapOf({ ...confirmed, ui: patch.ui }) : item;
+      };
+      // Normalize the saved rollback cursor and live entries before the
+      // next graph or undo can restore an unapplied authored value.
+      past = past.map(normalize);
+      future = future.map(normalize);
+      current = normalize(current);
+      this.past = this.past.map(normalize);
+      this.future = this.future.map(normalize);
+      this.current = normalize(this.current);
+      this.changed();
     };
+    return restore;
   }
 
   get canUndo(): boolean { return this.past.length > 0 || (this.pending && this.snap() !== this.current); }
   get canRedo(): boolean { return this.future.length > 0; }
   get depth(): { past: number; future: number } { return { past: this.past.length, future: this.future.length }; }
 
+  /** Freeze a debounced optimistic gesture during Q16's incremental ACK hold.
+   * The inverse on refusal returns the source to 'current', so releasing
+   * commits no unconfirmed 330 and no compensating 220 history entry. */
+  holdPending(): () => void {
+    ++this.pendingHolds;
+    this.clearTimer();
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      if (--this.pendingHolds === 0) this.flush();
+    };
+  }
+
   /** Commit any pending change now (call before saving or undoing). */
   flush(): void {
+    if (this.pendingHolds) return;
     this.clearTimer();
     this.finishingPointer = false;
     if (!this.pending) return;
@@ -136,6 +182,7 @@ export class History {
 
   private later(ms: number): void {
     this.clearTimer();
+    if (this.pendingHolds) return;
     this.timer = setTimeout(() => { this.timer = null; this.flush(); }, ms);
   }
 
@@ -143,8 +190,9 @@ export class History {
     if (this.timer !== null) { clearTimeout(this.timer); this.timer = null; }
   }
 
-  private snap(): string {
-    const j = this.doc.toJSON();
+  private snap(): string { return this.snapOf(this.doc.toJSON()); }
+
+  private snapOf(j: PatchV2): string {
     const { view: _view, ...ui } = j.ui ?? {};
     return JSON.stringify({ ...j, ui });
   }

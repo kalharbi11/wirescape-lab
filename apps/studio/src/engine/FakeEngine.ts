@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import type {
   EngineClient, OscStatus, Telemetry, SystemStatus, Device, EngineError, MonitorEntry, UnavailableAudioDriver,
+  UnappliedParameter,
 } from './EngineClient';
 import { EngineRefusal } from './EngineClient';
 import type { PatchV2, Connection } from '../patch/types';
@@ -35,6 +36,10 @@ export class FakeEngine implements EngineClient {
   readonly capabilities: string[];
   private nodes = new Map<number, Node>();
   private conns: Connection[] = [];
+  private document: PatchV2 | null = null;
+  private unappliedCbs = new Set<(items: UnappliedParameter[]) => void>();
+  private nextUnapplied: { moduleId: number; paramId: string }[] = [];
+  lastApplyResult?: { path: 'live'; replaced: number[]; unapplied: { moduleId: number; paramId: string }[] };
   private voices: Voice[] = [];
   private lastNote: number | null = null;
   private telemetryCbs = new Set<(t: Telemetry) => void>();
@@ -86,7 +91,7 @@ export class FakeEngine implements EngineClient {
 
   constructor(private readonly registry: ModuleRegistry) {
     // Browser Web mode cannot host UDP or advertise the osc.out capability.
-    this.capabilities = window.wirescape?.web ? [] : ['osc.out'];
+    this.capabilities = window.wirescape?.web ? [] : ['osc.out', 'applyGraph'];
     this.status.midi.devices = this.midiDevices.map(d => ({ ...d }));
     this.recomputeLatency();
   }
@@ -115,6 +120,8 @@ export class FakeEngine implements EngineClient {
   canApplyGroove(_moduleId: number): boolean { return true; }
 
   async loadGraph(patch: PatchV2): Promise<void> {
+    this.document = structuredClone(patch);
+    this.lastApplyResult = undefined;
     this.graphGeneration++;
     this.nodes.clear(); this.conns = []; this.voices = []; this.lastNote = null;
     this.phases.clear(); this.randomHold.clear(); this.seqStep.clear();
@@ -129,6 +136,11 @@ export class FakeEngine implements EngineClient {
       try { this.validateConnection(c); this.conns.push({ ...c }); }
       catch { /* a patch may legitimately carry cables this engine won't model */ }
     }
+    this.refreshGraphStatus(patch);
+  }
+
+  /** Rebuild OSC/status projections without resetting any retained DSP state. */
+  private refreshGraphStatus(patch: PatchV2): void {
     const oscModules = patch.modules.filter(m => m.module === 'osc.in');
     this.osc.routes = oscModules.map(m => {
       const cfg = m.config && typeof m.config === 'object' && !Array.isArray(m.config)
@@ -161,6 +173,96 @@ export class FakeEngine implements EngineClient {
     this.osc.port = this.osc.routes[0]?.port ?? this.legacyOsc.port;
     this.osc.allowNetwork = this.legacyOsc.allowNetwork;
     this.pushStatus();
+  }
+
+
+  onUnapplied(cb: (items: UnappliedParameter[]) => void): () => void {
+    this.unappliedCbs.add(cb); return () => this.unappliedCbs.delete(cb);
+  }
+  /** Test hook: simulate an exhausted native parameter-event queue. */
+  setNextUnapplied(items: { moduleId: number; paramId: string }[]): void {
+    this.nextUnapplied = items.map(item => ({ ...item }));
+  }
+
+  private sameConfig(left: unknown, right: unknown): boolean {
+    // Canonical execution values, not authoring object key insertion order.
+    const normal = (v: unknown): unknown => {
+      if (Array.isArray(v)) return v.map(normal);
+      if (v && typeof v === 'object')
+        return Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, value]) => [key, normal(value)]));
+      return v;
+    };
+    return JSON.stringify(normal(left ?? {})) === JSON.stringify(normal(right ?? {}));
+  }
+
+  async applyGraph(patch: PatchV2): Promise<void> {
+    // Browser preview stays on the original full-load path.
+    if (!this.capabilities.includes('applyGraph') || !this.document) return this.loadGraph(patch);
+    this.guardRefusal(); // Refused replans leave generation, graph and document untouched.
+    const oldModules = new Map(this.document.modules.map(module => [module.id, module]));
+    const nextNodes = new Map<number, Node>();
+    const retained = new Set<number>();
+    const replaced: number[] = [];
+    const nextDocument = structuredClone(patch);
+    for (const module of nextDocument.modules) {
+      const old = oldModules.get(module.id);
+      // E1a treats OSC Out's staged bus pointer as execution config:
+      // every structural replan replaces that instance even with identical JSON.
+      const sameConfig = old?.module === module.module && module.module !== 'osc.out' &&
+        this.sameConfig(old?.config, module.config);
+      const existing = this.nodes.get(module.id);
+      if (sameConfig && existing) {
+        retained.add(module.id);
+        // Keep all simulated time/phase/tail state; new document.state is ignored.
+        nextNodes.set(module.id, { ...existing, params: { ...(module.parameters ?? {}) } });
+      } else {
+        if (old) replaced.push(module.id);
+        const rows = (module.config as { rows?: unknown } | undefined)?.rows;
+        nextNodes.set(module.id, { id: module.id, type: module.module,
+          params: { ...(module.parameters ?? {}) },
+          ...(module.module === 'midi.cc_to_cv' && Array.isArray(rows)
+            ? { ccRows: structuredClone(rows as Record<string, unknown>[]) } : {}) });
+      }
+    }
+    const unapplied: UnappliedParameter[] = [];
+    const blocked = this.nextUnapplied;
+    this.nextUnapplied = [];
+    for (const item of blocked) {
+      if (!retained.has(item.moduleId)) continue;
+      const old = this.nodes.get(item.moduleId), next = nextNodes.get(item.moduleId);
+      const updated = nextDocument.modules.find(m => m.id === item.moduleId);
+      if (!old || !next || !updated || old.params[item.paramId] === next.params[item.paramId]) continue;
+      const previous = old.params[item.paramId];
+      if (previous === undefined) {
+        delete next.params[item.paramId];
+        delete updated.parameters?.[item.paramId];
+      } else {
+        next.params[item.paramId] = previous;
+        (updated.parameters ??= {})[item.paramId] = previous;
+      }
+      unapplied.push({ ...item, previous });
+    }
+    for (const id of this.nodes.keys()) if (!retained.has(id)) {
+      this.phases.delete(id); this.randomHold.delete(id); this.clockEdge.delete(id);
+      this.seqStep.delete(id); this.meterPeak.delete(id);
+    }
+    // Notes belong to their source instance, not merely its numeric ID.
+    // Removal *or replacement* of a keyboard/MIDI In releases its held notes;
+    // a continuing source retains them across unrelated graph replans.
+    if ([...this.nodes].some(([id, node]) => !retained.has(id) &&
+        (node.type === 'host.keyboard' || node.type === 'midi.in'))) {
+      this.voices = []; this.lastNote = null;
+    }
+    this.nodes = nextNodes;
+    this.conns = nextDocument.connections.map(c => structuredClone(c));
+    this.document = nextDocument;
+    this.graphGeneration++;
+    this.eventActivity.clear();
+    this.monitorEntries = {};
+    this.refreshGraphStatus(nextDocument);
+    this.lastApplyResult = { path: 'live', replaced, unapplied: unapplied.map(({ moduleId, paramId }) => ({ moduleId, paramId })) };
+    if (unapplied.length) for (const cb of this.unappliedCbs) cb(unapplied);
   }
 
   /** Deterministic FakeEngine route states for device-free OSC UI tests. */
@@ -210,6 +312,7 @@ export class FakeEngine implements EngineClient {
       throw new EngineRefusal({ code: 'unknown-module', message: `Unknown module type "${type}"` });
     }
     this.nodes.set(id, { id, type, params: { ...params } });
+    this.document?.modules.push({ id, module: type, parameters: { ...params } });
     this.pushStatus();
   }
 
@@ -217,6 +320,10 @@ export class FakeEngine implements EngineClient {
     this.nodes.delete(id);
     for (const k of this.eventActivity.keys()) if (k.startsWith(`${id}:`)) this.eventActivity.delete(k);
     this.conns = this.conns.filter(c => c.from.module !== id && c.to.module !== id);
+    if (this.document) {
+      this.document.modules = this.document.modules.filter(m => m.id !== id);
+      this.document.connections = this.document.connections.filter(c => c.from.module !== id && c.to.module !== id);
+    }
     this.pushStatus();
   }
 
@@ -224,11 +331,13 @@ export class FakeEngine implements EngineClient {
     this.guardRefusal();
     this.validateConnection(c);
     this.conns.push({ ...c });
+    this.document?.connections.push(structuredClone(c));
   }
 
   disconnect(c: Connection): void {
     const k = key(c);
     this.conns = this.conns.filter(x => key(x) !== k);
+    if (this.document) this.document.connections = this.document.connections.filter(x => key(x) !== k);
   }
 
   setParam(moduleId: number, paramId: string, value: number): void {
@@ -236,12 +345,16 @@ export class FakeEngine implements EngineClient {
     const n = this.nodes.get(moduleId);
     if (!n) throw new EngineRefusal({ code: 'not-found', message: `No module ${moduleId}` });
     n.params[paramId] = value;
+    const committed = this.document?.modules.find(m => m.id === moduleId);
+    if (committed) (committed.parameters ??= {})[paramId] = value;
   }
 
   setModAmount(c: Connection, amount: number): void {
     const k = key(c);
     const found = this.conns.find(x => key(x) === k);
     if (found) found.amount = amount;
+    const committed = this.document?.connections.find(x => key(x) === k);
+    if (committed) committed.amount = amount;
   }
 
   /** Test hook: the rows the running fake graph holds for a CC module. */

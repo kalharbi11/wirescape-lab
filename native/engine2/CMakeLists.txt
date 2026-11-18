@@ -58,16 +58,16 @@ foreach(mode scalar portable)
   add_test(NAME abi2_${mode}_ports COMMAND abi2_${mode}_ports)
 endforeach()
 add_executable(abi2_benchmark tests/benchmark.cpp)
-target_link_libraries(abi2_benchmark PRIVATE wirescape_engine2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_benchmark PRIVATE wirescape_engine2 ${CMAKE_DL_LIBS})
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
-add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark.json)
+add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark.json)
 foreach(frames IN ITEMS 64 128 256)
   add_test(NAME abi2_benchmark_${frames} COMMAND abi2_benchmark
-    $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})
+    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})
 endforeach()
 add_executable(abi2_integration_tests ../tests2/integration_tests.cpp ../tests2/allocation_watch.cpp)
 target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 ${CMAKE_DL_LIBS})
-add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
+add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)
 foreach(module notes rows)
   add_library(ws2_test_${module} SHARED ../tests2/${module}_module.cpp)
   target_link_libraries(ws2_test_${module} PRIVATE wirescape_sdk2 wirescape_voice2)
@@ -111,7 +111,7 @@ foreach(module vco lfo vcf adsr vca clock function_envelope ladder mixer noise o
 endforeach()
 
 add_executable(abi2_cost_probe tests/cost_probe.cpp)
-target_link_libraries(abi2_cost_probe PRIVATE wirescape_engine2 wirescape_engine ${CMAKE_DL_LIBS})
+target_link_libraries(abi2_cost_probe PRIVATE wirescape_engine2 ${CMAKE_DL_LIBS})
 add_executable(abi2_panic_stress tests/panic_stress.cpp)
 target_link_libraries(abi2_panic_stress PRIVATE wirescape_engine2 wirescape_voice2 Threads::Threads)
 add_test(NAME abi2_panic_stress COMMAND abi2_panic_stress)
@@ -130,7 +130,7 @@ set_tests_properties(abi2_soak_smoke PROPERTIES TIMEOUT 30)
 add_executable(abi2_soak_stats_tests tests/soak_stats_tests.cpp)
 add_test(NAME abi2_soak_stats_tests COMMAND abi2_soak_stats_tests)
 add_test(NAME abi2_soak_cli COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/../tools/foundation/tests/test_soak.py
-  $<TARGET_FILE:wirescape_soak> $<TARGET_FILE_DIR:ws_vco>)
+  $<TARGET_FILE:wirescape_soak> $<TARGET_FILE_DIR:ws2_vco>)
 set_tests_properties(abi2_soak_cli PROPERTIES TIMEOUT 60)
 
 add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests2/allocation_watch.cpp)
@@ -172,6 +172,8 @@ set(ABI1_REFERENCE_MANIFEST
   "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json")
 set(ABI1_REFERENCE_CORPUS
   "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs")
+set(ABI1_S4_QT_FREE_FIXTURE
+  "${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_s4_qt_free_96000.json")
 add_custom_target(abi2_frozen_reference_unpack ALL
   COMMAND ${Python3_EXECUTABLE}
     "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
@@ -179,9 +181,18 @@ add_custom_target(abi2_frozen_reference_unpack ALL
     --corpus-dir "${ABI1_REFERENCE_CORPUS}"
     --destination "${ABI1_FROZEN_DIR}"
     --machine "${ABI1_FROZEN_MACHINE}"
+    --s4-fixture "${ABI1_S4_QT_FREE_FIXTURE}"
   BYPRODUCTS "${ABI1_FROZEN_DIR}/capture_source.json"
   COMMENT "Unpack and SHA-256-verify committed, frozen ABI1 reference words"
   VERBATIM)
+# Independent decoded-file SHA check: it cannot be replaced by a corpus-only pass.
+add_test(NAME abi1_s4_frozen_hash COMMAND ${Python3_EXECUTABLE}
+  "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+  --verify-s4 "${ABI1_FROZEN_DIR}/qt_free_saved_v2_abi1_48000_128_96000.f32le"
+  --destination "${ABI1_FROZEN_DIR}" --machine "${ABI1_FROZEN_MACHINE}")
+target_compile_definitions(qt_free_patch_coverage_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(qt_free_patch_coverage_tests abi2_frozen_reference_unpack)
 target_compile_definitions(abi2_module_tests PRIVATE
   ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
 target_compile_definitions(abi2_integration_tests PRIVATE

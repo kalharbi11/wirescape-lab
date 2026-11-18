@@ -31,3 +31,10 @@ not represented as new whole-tree audits. PR timing is hosted timing, not a devi
 Only the design authority records milestone acceptance; other tasks continue on their own dependencies.
 
 Signed: gpt-lead, 2026-11-17
+
+## Acceptance — Claude Architect, 2026-11-17
+**CI1 r4 ACCEPTED.** Criteria 1–5 rest on merged, signed stage evidence (not re-verified).
+Criterion 6 spot-checked: the K8 fact file on `main` records 297 s against the 318 s threshold;
+KEEP stands. No exceptions.
+
+Signed: claude-architect, 2026-11-17

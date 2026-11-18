@@ -48,14 +48,19 @@ def _cache_values() -> dict[str, str]:
 
 def _artifact_inventory(config: str) -> dict[str, str]:
     """Hash native artifacts in multi-config and single-config CMake layouts."""
-    names = {"wirescape_cli", "wirescape_engine", "wirescape-engine", "native_engine_tests", "native_module_tests", "audio_device_tests", "controller_failure_tests", "native_scale_offset_tests", "native_provider_bridge_tests", "native_lfo_tests", "returned_filter_stress", "essentials_noise_tests", "essentials_slew_tests", "essentials_function_envelope_tests", "essentials_clock_tests", "essentials_vcf_tests", "essentials_ladder_tests"}
+    names = {"wirescape_cli", "wirescape-engine", "audio_device_tests", "controller_failure_tests", "native_provider_bridge_tests"}
     executable_suffixes = {".exe", ".dll", ".so", ".dylib"}
     result = {}
     for path in BUILD_DIR.rglob("*"):
         if not path.is_file() or path.name in {"build-metadata.json", "CMakeCache.txt"}:
             continue
+        # An incremental build folder may still contain obsolete ABI1 artifacts.
+        # Never certify those binaries as part of the new ABI2-only inventory.
+        if (path.name.startswith(("ws_", "libws_"))
+                or path.stem in {"wirescape_engine", "libwirescape_engine"}):
+            continue
         known_executable = path.stem in names and (path.suffix.lower() in executable_suffixes or not path.suffix)
-        library = path.suffix.lower() in executable_suffixes and (path.name.startswith(("ws_", "libws_", "ws2_", "libws2_")) or "wirescape" in path.name)
+        library = path.suffix.lower() in executable_suffixes and (path.name.startswith(("ws2_", "libws2_")) or "wirescape" in path.name)
         if known_executable or library:
             # Ignore binaries from another configuration where the path states one.
             if any(part in {"Debug", "Release"} for part in path.parts) and config not in path.parts and path.parent.name in {"Debug", "Release"}:

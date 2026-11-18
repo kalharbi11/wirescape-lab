@@ -30,3 +30,49 @@ run device tests; force-push; re-check unchanged state in a loop.
 Milestone end: one acceptance report mapping every criterion to its evidence (PR, head SHA, run
 or fact file), then `needs/fable` on the acceptance issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
+
+## Claude reviews (owner, 2026-11-17)
+When a contract or task needs a Claude review, the lead labels the PR `claude-review/reviewer`
+(claude-reviewer or Architect) or `claude-review/architect` (Architect only), and comments with
+the base/head SHAs and the invariants. It no longer asks the owner to assign a reviewer. Every
+Claude review run clears that label queue.
+
+## Owner-specific run and communication policy — 2026-11-17 ET
+
+These are the owner's explicit instructions for every Codex delivery-lead session. Read this
+section before starting work; preserve it across handoffs and fresh chats.
+
+- Sign every user-facing prompt response (including progress updates), builder dispatch,
+  GitHub handoff and run summary: `Signed: codex-lead, YYYY-MM-DD, HH:mm EST`.
+  Use actual New York local time; use EDT during daylight saving time and include the zone.
+  This signature is a communication preference; the repository role remains gpt-lead.
+- **Every run starts with a quick check**, including an owner-requested long run or scheduled wake. Start narrow and low-effort, then adapt to actual findings and remaining usage; do not begin with a full audit by default.
+- **Quick check** means a very low-usage pass: read the latest builder Results/changed status,
+  identify concrete blockers, release a safe writer slot or send a bounded continuation, and
+  refresh the status docs. Keep existing branches, PRs and correction counts. No broad audits,
+  full implementation, new multi-task/lane planning, repeated unchanged CI reads or polling.
+  Use low-effort reasoning in practice; increase only enough to resolve a concrete obstacle.
+  Do not claim to have changed a model/reasoning setting unless a tool actually did so.
+- **Normal/long run** covers broad review, implementation, substantial task creation and lane
+  planning. Delegate most implementation to the regular ChatGPT builders. Give each a queue of
+  1–3 scoped tasks, stating which independent task can proceed during review and which waits
+  for an actual merge. Keep B5 a small-task floater, not a permanent competing product lane.
+- Increase effort/scope from the initial quick check when actual findings and project needs justify it, within the owner's usage reserves. New Architect information is one trigger, not the only trigger. Explicitly explain a substantial escalation. Defer nonurgent expensive repairs when remaining usage or timing makes that preferable. When a normal run will be useful soon,
+  suggest a concrete time and purpose to the owner; a suggestion does not authorize creating
+  a schedule. Reuse existing schedules where appropriate; no extra heartbeats by default.
+- At run entry, check shared usage and the five-hour window reset time once; distinguish that
+  account window reset from a chat restart (do not infer one from the other). Missing usage is
+  unknown, never zero. Reduce breadth, effort and check frequency as reserves approach.
+- Preserve **at least 10% of the five-hour allowance** for owner-requested urgent quick checks.
+  At or below 10% remaining, do not start normal work; perform only explicitly requested urgent
+  checks within the remaining budget or stop. Preserve **20% of weekly allowance**: at or below
+  20% remaining, run only on an explicit current owner instruction; scheduled/autonomous wakes
+  do not count as a fresh instruction and must stop before task work. Never spend a reset or
+  purchase credits without the separately required explicit owner authorization.
+- **Every run updates durable status docs**, even a quick/blocked run: CURRENT records changed
+  PR/head, writer, blockers, next task, mode, timestamp and usage snapshot; keep OB_PLAN accurate
+  if ownership/dependencies change. Use a small notes branch/PR, merge on exact-head green, and
+  link an unmerged handoff explicitly until it lands. Do not replace newer Architect text.
+  No product changes or acceptance are implied by a status update.
+
+Signed: codex-lead, 2026-11-17, 15:33 EST

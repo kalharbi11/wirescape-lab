@@ -76,21 +76,41 @@ class CompareTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             indexed(facts([("a", "measured", 1), ("a", "measured", 1)]))
 
-    def test_expected_inventory_has_all_97_rows(self):
+    def test_expected_inventory_has_all_96_rows(self):
         required = expected_ids()
-        self.assertEqual(len(required), 97)
+        self.assertEqual(len(required), 96)
+        self.assertNotIn("fixed/abi1_mono", required)
         self.assertIn("module/osc.out/voices1", required)
         self.assertIn("module/osc.out/voices8", required)
 
+    def test_single_historic_retired_row_is_disclosed_not_passed(self):
+        old = facts([("fixed/abi1_mono", "measured", 100),
+                     ("fixed/abi2_mono", "measured", 100)])
+        new = facts([("fixed/abi2_mono", "measured", 100)])
+        old["rows"][0]["totals"] = [1000, 3000]
+        old["rows"][1]["totals"] = [1000, 3000]
+        new["rows"][0]["totals"] = [1000, 3000]
+        changes, errors = compare(old, new, required_ids={"fixed/abi2_mono"}, verify_totals=True)
+        self.assertEqual(errors, [])
+        retired = [r for r in changes if r["status"] == "retired"]
+        self.assertEqual([r["id"] for r in retired], ["fixed/abi1_mono"])
+        self.assertIsNone(retired[0]["percent"])
+        self.assertEqual(len([r for r in changes if r["status"] == "measured"]), 1)
+        new["rows"].append(old["rows"][0].copy())
+        self.assertTrue(compare(old, new, required_ids={"fixed/abi2_mono"}, verify_totals=True)[1])
+        new["rows"].pop()
+        old["rows"][0]["status"] = "unavailable"
+        self.assertTrue(compare(old, new, required_ids={"fixed/abi2_mono"}, verify_totals=True)[1])
+
     def test_missing_on_both_sides_fails_with_required_inventory(self):
-        a = facts([("fixed/abi1_mono", "measured", 100)])
+        a = facts([("fixed/abi2_mono", "measured", 100)])
         _, errors = compare(a, a, required_ids={
-            "fixed/abi1_mono", "module/osc.out/voices1"})
+            "fixed/abi2_mono", "module/osc.out/voices1"})
         self.assertTrue(any("module/osc.out/voices1: missing baseline row" in e
                             for e in errors))
 
     def test_measured_row_needs_real_callgrind_totals_in_strict_mode(self):
-        a = facts([("fixed/abi1_mono", "measured", 100)])
+        a = facts([("fixed/abi2_mono", "measured", 100)])
         _, errors = compare(a, a, verify_totals=True)
         self.assertEqual(len(errors), 1)
         self.assertIn("invalid baseline", errors[0])
@@ -107,8 +127,8 @@ class CompareTests(unittest.TestCase):
         self.assertTrue(any("invalid current Ir" in failure for failure in failures))
 
     def test_valgrind_version_mismatch_rejected(self):
-        a = facts([("fixed/abi1_mono", "measured", 100)])
-        b = facts([("fixed/abi1_mono", "measured", 100)])
+        a = facts([("fixed/abi2_mono", "measured", 100)])
+        b = facts([("fixed/abi2_mono", "measured", 100)])
         a["valgrind_version"] = "valgrind-3.22.0"
         b["valgrind_version"] = "valgrind-3.23.0"
         with self.assertRaisesRegex(ValueError, "Valgrind version"):

@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 from bench.gate.compare import expected_ids, indexed, valid_measured_row
 
 SHA = re.compile(r"[0-9a-f]{40}\Z")
+RETIRED = "fixed/abi1_mono"  # exact S4 historical-only metric; never measured on head
 CHORD = {"module/essentials.chord/voices1", "module/essentials.chord/voices8"}
 REASON = "exit 2: module_cpu_probe: create/prepare failed"
 FIELDS = ("schema", "machine", "architecture", "valgrind_version", "method",
@@ -23,7 +24,7 @@ FIELDS = ("schema", "machine", "architecture", "valgrind_version", "method",
 
 
 def compare_pair(base, head, base_sha, head_sha, machine):
-    failures, exceptions, measured = [], [], []
+    failures, exceptions, measured, retired = [], [], [], []
     if not all(SHA.fullmatch(x or "") for x in (base_sha, head_sha)):
         failures.append("both revision pins must be 40 lowercase hexadecimal characters")
     if base_sha == head_sha:
@@ -57,7 +58,18 @@ def compare_pair(base, head, base_sha, head_sha, machine):
         required = expected_ids(ROOT)
     except (TypeError, ValueError, AttributeError) as error:
         return {"status": "failed", "failures": failures + [str(error)],
-                "exceptions": exceptions, "measured": measured}
+                "exceptions": exceptions, "measured": measured, "retired": retired}
+    # The base may carry the genuine historic ABI1 measurement; the head may not.
+    # Retired evidence is disclosed separately, excluded from both the 96-row
+    # comparison and the measured/pass counts. Unknown extras still fail closed.
+    if RETIRED in before:
+        old = before.pop(RETIRED)
+        if old.get("status") != "measured" or not valid_measured_row(old, True):
+            failures.append("base: invalid historic retired ABI1 measurement")
+        retired.append({"id": RETIRED, "disposition":
+                        "retired: historical base only; NOT compared, measured, zero or passed"})
+    if RETIRED in after:
+        failures.append("head: retired ABI1 metric must not be collected")
     for name, rows in (("base", before), ("head", after)):
         missing = required - rows.keys()
         extra = rows.keys() - required
@@ -98,8 +110,9 @@ def compare_pair(base, head, base_sha, head_sha, machine):
     return {"status": "failed" if failures else "passed", "base_sha": base_sha,
             "head_sha": head_sha, "machine": machine,
             "expected_count": len(required), "measured_count": len(measured),
-            "paired_unavailable_count": len(exceptions), "failures": failures,
-            "exceptions": exceptions, "measured": measured}
+            "paired_unavailable_count": len(exceptions), "retired_count": len(retired),
+            "failures": failures, "exceptions": exceptions, "measured": measured,
+            "retired": retired}
 
 
 def main(argv=None):
@@ -117,12 +130,13 @@ def main(argv=None):
                               args.base_sha, args.head_sha, args.machine)
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
         result = {"status": "failed", "failures": [str(exc)],
-                  "exceptions": [], "measured": []}
+                  "exceptions": [], "measured": [], "retired": []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n")
     print(f"M1 strict paired result: {result['status']}; "
           f"measured={result.get('measured_count', 0)}; "
           f"paired-unavailable={len(result['exceptions'])}; "
+          f"retired={len(result.get('retired', []))}; "
           f"failures={len(result['failures'])}", flush=True)
     for err in result["failures"]:
         print("FAIL: " + err, file=sys.stderr)

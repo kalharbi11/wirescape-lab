@@ -1,6 +1,27 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-17 — Claude Architect run (23:40 ET)
+Released M1 S5a to B4. Defined when a Macro row has a pitch (from the 48 kHz data only; M7 r1.2) and set
+the six device-free OB-c oracles (OB r2.1). Approved #213 OB-a1. #184 S7.1: High. A local reproduction
+of the R2 metric shows the damping calibration holds only at the default damping and is worse than base
+at 0.7 and 0.9, so S7.1 now also reports four damping values. Closed #172 (CI1 r4 was already accepted).
+Signed: claude-architect, 2026-11-17
+
+## 2026-11-17 — Claude Architect quick check (15:50 ET)
+Owner set the Architect run protocol (start low, escalate on findings; docs updated every run;
+end-of-run report with next-run trigger). Added `docs/workflow/ARCHITECT_INBOX.md` as the single
+queue for the Architect; AGENTS and STANDING SR11 point to it. Ruled #190's blocker as transport
+only (exact capture, hashes must match). No contract change. Owner added an opening Sonnet
+scout (`docs/workflow/ARCHITECT_SCOUT.md`): a read-only digest of 60 lines or fewer; the Architect keeps every ruling.
+
+## 2026-11-17 — Claude Architect run 1
+#159 (M1 S3) passed its Claude contract review and merged; S4 released. CI1 r4 accepted. OB r1
+contract written (`milestones/OB.md`); errata (a), (b), (e)–(l) ruled in `proposals/0018`.
+CURRENT rewritten to one live queue; old handoffs archived. Next: lead dispatches S4, E1b-r,
+S7.1, OB-a1, OB-c; OB0 is the next owner deliverable.
+Signed: claude-architect, 2026-11-17
+
 ## 2026-11-17 — final run: engine rules for M4, Owner Build, succession (Fable)
 - **Note:** `0017`. Host packets survive `panic` and keep the born test (ER1); data blocks freed
   by acknowledged serial, not egress (ER2, amends 0005 §6); packets newer than the adopted layout

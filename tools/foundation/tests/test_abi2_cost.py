@@ -41,22 +41,21 @@ class CostTests(unittest.TestCase):
         with patch.object(cost.shutil, 'which', return_value=None):
             self.assertEqual(cost.main([]), 0)
 
-    def test_gate_boundary_failure_and_report_only(self):
-        for mono, expected in ((105, 0), (105.00001, 1)):
-            def fake_cost(probe, modules, mode, counts, valgrind):
-                return dict(name=mode, ir_per_block=dict(zip(cost.MODES, (100, mono, 200, 800, 1600)))[mode])
-            with self.subTest(mono=mono), tempfile.TemporaryDirectory() as folder:
-                output = Path(folder) / 'cost.json'
-                with patch.object(cost.shutil, 'which', return_value='valgrind'), \
-                     patch.object(Path, 'exists', return_value=True), \
-                     patch.object(cost, 'cost', side_effect=fake_cost), redirect_stdout(StringIO()):
-                    self.assertEqual(cost.main(['--gate', '--output', str(output)]), expected)
-                    self.assertEqual(cost.main([]), 0)
-                report = json.loads(output.read_text())
-                self.assertEqual(report['mono_ratio'], mono / 100)
-                self.assertEqual(report['rows'][-1]['name'], 'abi2_quad_vca_lpg8')
-                self.assertEqual(report['rows'][-1]['ir_per_block'], 1600)
+    def test_retired_mono_gate_fails_closed_and_four_modes_report(self):
+        def fake_cost(probe, modules, mode, counts, valgrind):
+            return dict(name=mode, ir_per_block=dict(zip(cost.MODES, (105, 200, 800, 1600)))[mode])
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / 'cost.json'
+            with patch.object(cost.shutil, 'which', return_value='valgrind'), \
+                 patch.object(Path, 'exists', return_value=True), \
+                 patch.object(cost, 'cost', side_effect=fake_cost), redirect_stdout(StringIO()):
+                self.assertEqual(cost.main(['--output', str(output)]), 0)
+                self.assertEqual(cost.main(['--gate']), 2)
+            report = json.loads(output.read_text())
+            self.assertEqual([row['name'] for row in report['rows']], list(cost.MODES))
+            self.assertNotIn('mono_ratio', report)
+            self.assertEqual(report['retired_modes'], ['abi1_mono'])
 
     def test_gate_requires_a_measurement(self):
         with patch.object(cost.shutil, 'which', return_value=None), redirect_stdout(StringIO()):
-            self.assertEqual(cost.main(['--gate']), 1)
+            self.assertEqual(cost.main(['--gate']), 2)
