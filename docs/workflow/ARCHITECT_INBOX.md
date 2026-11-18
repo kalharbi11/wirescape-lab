@@ -27,4 +27,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A8 | 2026-11-17 | owner | check | now | #190: why it isn't merged | **Architect side done** at `26c749d`: the fixture bytes match exactly and every assertion stays. Merge waits on `facts` ×3 green plus the independent M1 review; then the lead merges. See CURRENT 21:50. |
+| A10 | 2026-11-17 | #223 six OB-c oracles | Per-case oracles, OB r2.1; CURRENT 23:40. Strict xfail until fixes after S6. |
+| A11 | 2026-11-17 | #199 release S5a | **Released** to B4 with order rules; CURRENT 23:40. |
+| A12 | 2026-11-17 | #230/#212 Macro pitch meaning + 8–192 kHz Medium | Defined-pitch rule from 48 kHz data, M7 r1.2; Medium non-blocking; CURRENT 23:40. |
+| A13 | 2026-11-17 | Claude reviews #213, #184 | #213 approved `00664a1`; #184 High (damping fit at default only), M7 r1.2 S7.1. |

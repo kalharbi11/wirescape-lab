@@ -5,6 +5,69 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Decided 2026-11-17 23:40 ET (Architect run, base `main` 06e68f0)
+Lead: drop rows A10–A12 from PR229's Open table when you merge; they are cleared here.
+- **A11 / #199: M1 S5a released.** S4 merged at `8c72722`. E1a and T0.13a merged before it, so
+  S5a may open. **Writer:** B4 only, one new issue `task/<n>-m1-s5a` + one PR. **Paths:** the M1 r3 S5a row
+  (`native/control/`, `native/sidecar/`, `native/web/`, `native/tools/render/`, `native/document/`,
+  `native/io/`, their tests). **Criteria:** 0006 evidence 1–5 on the merged head (golden identical on
+  three platforms, no instruction row >1 % worse, sanitizers + S0 snapshots green and unchanged, grep
+  table, deleted-test list), I1–I8 untouched, M1 Escalate list unchanged. **Order rules:** PR212 owns the
+  Macro block of `native/document/qt_free_patch_coverage_tests.cpp` until it merges; S5a does not edit
+  that block, and if S5a must edit that file it rebases after PR212 merges. While S5a/S5b are open, nobody else
+  edits `native/sidecar/` (OB-c tests go in new files, see A10). S5b stays closed until S5a merges.
+- **A12 / #230, #212: what "pitch within ±2 cents" means for Macro (M7 r1.2).** The estimator,
+  its window and ±2 cents stay unchanged. A row (model, target, rate) **has a defined pitch** only if
+  its **48 kHz** render (the same bytes before and after) meets both rules. Each rule is computed once, from
+  the 48 kHz data only, and recorded per row *before* any off-rate value is compared:
+  (1) **dominance:** the selected bin's magnitude is at least 1 dB above the largest magnitude in the
+  80–120 % window outside ±3 bins of it. 1 dB is twice the contracted ±0.5 dB passband ripple, so the converter
+  cannot move the peak to another bin; (2) **level:** that bin is within 40 dB of the largest
+  bin of the whole spectrum (bin 0 excluded). The contracted 60 dB stopband then cannot shift it by
+  more than ~1 dB. Rows with a defined pitch must be within ±2 cents at 44.1 and 96 kHz. One failure means S7.4 is not met
+  and goes back to #210's writer as a defect (8 diagnostic outliers on models 6, 7, 12, 15
+  are rows to check, not rows to excuse). Other rows are reported `pitch_not_defined` with both
+  margins. They are not passes and not zeros, and their rate evidence is the folder passband/stopband test plus finite,
+  non-silent output. Models with no defined row are listed by name in the acceptance report.
+  B2 computes this offline from the **existing** artifacts of run 44229365015 (they expire about 2026-11-24),
+  in new files under `bench/evidence/macro_non48/`, with no recapture. **Claude Medium (8–192 kHz):**
+  not blocking. `prepare` stays bounded and realtime-safe at every rate, and S7.4 claims only 44.1/96. If
+  PR212 gets another head for any reason, it adds a folder test at 8 and 192 kHz (prepare, finite
+  output, latency reported, 0 allocations) and one DESIGN line saying the passband rule applies from 44.1 kHz;
+  otherwise it is a follow-up. S7.4 still also needs the D5 FLAC pair in `bench-<date>` (lead).
+- **A10 / #223: the six OB-c oracles (OB r2.1).** All are device-free. The owner's 306/546 ms are never a pass
+  mark. A test that fails now lands as an *expected failure that is strict* (CTest `WILL_FAIL`
+  / pytest `xfail(strict=True)`) naming the cause; the fix after M1 S6 removes the mark. Tests go
+  in **new** files under `native/tests2/` or `apps/studio/tests/`, not in `native/sidecar/` while S5 is open.
+  1. *Panic gap:* a graph with no note/gate state (VCO → Output) through the null-sink capture. After
+     `panic`, the PCM is **bit-identical** to a reference run without panic, and block positions run without a break
+     (no missing or repeated frames, 0 overruns).
+  2. *Buffer change:* the same drone, `setBufferFrames`. (a) The first block of the new segment is not
+     silent past the engine's reported latency; (b) the stop → first-new-block interval from the
+     b0/b1 marks is **recorded as a fact** (5 repeats, median and maximum, per architecture). It has no pass mark; the fix task gets
+     a budget from the owner.
+  3. *basics-04:* render the bundled patch, plus attack 0.001/0.005 × VCA gain at its value and at the parameter maximum.
+     Every gate-on step's output peak is within 60 dB of the render's median step peak. 0 nonfinite samples.
+  4. *scene-07 after panic:* panic at two fixed frames (mid-note, and between notes). The existing
+     `click_events` detector (bench/offline, imported unchanged) over the 500 ms after panic must count ≤
+     the same window of the no-panic reference.
+  5. *Echo knobs:* time, feedback, tone, mix, each swept over 100 ms and 1 s at Studio's real
+     `setParam` cadence (cite the line). `click_events` in the gesture window must be ≤ the no-gesture reference.
+     Division/mode switches: record only; the fix is 0011 row 8.
+  6. *Groove lag:* frame-stamped start/stop, internal clock. The first gate comes within one block of the frame at which
+     the engine applies start; `running` = 0 within one block of stop. With an external clock the first gate is on the first
+     clock edge at or after start. UI → sidecar timing is recorded as a fact only.
+  When all eight rows have a test landed (passing, or strict-xfail naming a cause), the OB-c
+  regression stage is met. Fixes stay after M1 S6.
+- **#213 OB-a1: approved** at `00664a1` (no High; see PR). **#184 S7.1: High, not approved.** The
+  damping calibration was fitted at the default damping only. The Architect reproduced R2 locally
+  (x64 GCC, the folder test's own metric). Base spreads at damping 0.1/0.4/0.7/0.9 are 28.5/35.6/18.0/3.5 %;
+  at the head they are 17.4/2.5/32.7/61.9 %. **M7 r1.2 for S7.1:** the folder test also reports the spread at damping
+  0.1, 0.4, 0.7 and 0.9. Default stays ≤5 %, and no other value may be worse than base. B3 has correction 2/2.
+- **#172 closed:** CI1 r4 was accepted earlier (see "Decided 2026-11-17 (Architect run 1)").
+
+Signed: claude-architect, 2026-11-17 23:40 ET
+
 ## Owner evening handoff — 2026-11-17, 19:40 EST
 
 Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
@@ -249,7 +312,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; #190 merged (release S5a); #212 contract-review request; PR189 merged (M2 acceptance, criteria 1, 2, 4). Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; after #190 merges, release S5a; check the #212 test transition and the B2 non48 packet; A4 (#186) cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; #232 (M2 acceptance report) ready and labelled; the #230 applicability table posted; a new #184 head. Otherwise the scheduled 2026-11-18 09:00 ET quick check. **Next run should:** read inbox; M2 acceptance from #232; verify the A12 table against the rules (spot-check 3 rows); re-review #184 at its new head; A3/A4 cleanup. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
