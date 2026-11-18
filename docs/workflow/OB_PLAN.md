@@ -8,6 +8,17 @@ OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, 
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
 Estimates below are initial active engineering hours per task, including a first validation/fix pass. CI queue/runtime, independent/Claude reviews, Architect target-setting and owner Pi availability are additional elapsed time. Re-estimate after each signed Result; do not promise a delivery date before observing those dependencies. OB0 budget roughly 2–4 working days elapsed if evidence/reviews clear; OB1 roughly 4–8 weeks with the current serial engine chain. These are planning ranges, not guarantees or permission to skip gates.
 
+## Dispatch update after Architect A6/A7 — 2026-11-17 19:58 EST
+
+B1 gets207 MIDI target wiring slot in engine2/CMake; B4 shared CMake parked until handback.
+B4 pauses190 and owns only212 native/document Macro test transition (210 brief/M7r1.1).
+B3 source212 parked, reviews independent collector196 via222. B2 finishes209 then226 approved
+Macro non48 evidence; bench/offline/run_all.py serializes with190 benchmark retirement.
+190 encoded format now granted, exact artifact transport still blocked; owner/local lead supplies.
+213 now32/32 hosted pass and214 ASIO fixture green; source reviews remain. A8/#223 unanswered.
+No unrelated work, source gate change, chat dispatch or schedules.
+Signed: codex-lead, 2026-11-17, 19:58 EST
+
 ## Immediate dispatch, one active writer per file
 B1: #182/PR189 correction1 published edcc97f; park source for review, take #206 OB-a1 in new files while waiting. Return to182 only for concrete review/CI failure. #191 report after actual merge; #192 RL lower priority than OB0 tests.
 B2: #193/PR196 collector8be53d3; finish real R2/D5 and release handoff. Then #209 UI facts when the bench lane is free; smoke tests follow the census merge and a separate issue. B5 owns #208.
