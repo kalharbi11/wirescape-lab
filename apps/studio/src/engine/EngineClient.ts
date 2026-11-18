@@ -170,9 +170,15 @@ export class EngineRefusal extends Error {
   }
 }
 
+/** A parameter not applied by the live event queue; previous is the committed value. */
+export interface UnappliedParameter { moduleId: number; paramId: string; previous?: number }
+
 export interface EngineClient {
   // ---- the patch -------------------------------------------------------
   loadGraph(patch: PatchV2): Promise<void>;
+  /** Uses the live whole-document command when advertised, otherwise loadGraph. */
+  applyGraph(patch: PatchV2): Promise<void>;
+  onUnapplied?(cb: (items: UnappliedParameter[]) => void): () => void;
   addModule(id: number, type: string, params?: Record<string, number>): void;
   removeModule(id: number): void;
   connect(c: Connection): void;
