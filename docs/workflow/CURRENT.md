@@ -5,6 +5,40 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 16:51 EST
+
+The 13:00 wake was delivered at 16:48 EST. The Architect's 10:07 and 13:10 decisions below
+remain authoritative. This update supersedes #244, whose A16 Open row is stale.
+
+- **M2 r4 accepted (A14/#235)** via `e0ad3ce`; carry all stated exceptions forward. In
+  particular #192 stays gated, and the 805.5 ms held-note silence stays assigned to M4 after E5.
+- **B4 / #234 / #242:** `c87de10` contains the correctly ordered Qt-free config conversion
+  after #212 merged. Its red CI preceded A16. Sent the signed A16 authorization for exactly the
+  two Golden descriptor accesses, no other Golden change. Keep the same writer/PR and require
+  exact new-head evidence 1–5. Re-label the final head for independent Claude review as applicable.
+  S5b and S6 remain closed.
+- **B2 / #196:** Final evidence Result at `5b27806` confirmed both production artifacts and the
+  P2/P3 validator fixes. Lab 44290289389 and production 44290289509 passed. Lead merged the
+  collector at `34b3da3`; the advisory has no main-push capture trigger. B2 was dispatched on
+  #240, new isolated smoke test for every current palette ID. Shared Lab/CMake wiring is held
+  pending an exact registration proposal. #209 stays parked.
+- **B3 / #243:** S7.2 remains Reverb-only after S7.1 #184 merged at `1909b44`. Sent one
+  supported retry after the previous prompt produced no visible Result or PR.
+- **B1 / #214:** `0b6e722` unchanged; no signed execution Result after the supported retry.
+  B1 retains source ownership. B5 received one read-only A10 execution and instrumentation
+  inventory, with no edits or takeover, to support the next staffing decision.
+- **Already landed:** Macro #212 `004a1b4` and A12 #238 `861a41f`; both D5 pairs and manifests
+  verified in the [dated bench draft release](https://github.com/kalharbi11/wirescape-lab/releases/tag/untagged-8c14fbb8eb6926ccadbb).
+  Keep Reverb off-rate sample/hold caveats for the owner's listening review.
+- **Architect:** no immediate open ruling. Keep #186 open for the post-OB0 §5 errata run. MT4,
+  H3a, CP1, K3 and K4 remain gated by that ruling.
+
+Mode quick expanded for the exact-head collector merge and bounded dispatches. Entry use 0%
+five-hour (account reset about 21:49 EST), 65% weekly. No credits, usage reset, devices or CI
+polling. Next wake 19:00 EST. SR8/12/13/18/19.
+
+Signed: codex-lead, 2026-11-18, 16:51 EST
+
 ## Delivery update — 2026-11-18 05:41 EST
 
 Lab main includes the Architect's A15 grant via #239 (`4167925`) and the OB-e1 facts via #221
