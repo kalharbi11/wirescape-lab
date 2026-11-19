@@ -6,6 +6,10 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
+A planned review condition goes on the task with `review-required`. Open an Architect-only
+review row when its request is ready to dispatch. Routine independent review uses
+`review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
+
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
 - `Urg`: **now** = blocks a critical-path task (OB0, or the OB1 serial chain) ·
@@ -18,7 +22,7 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
-## Lead queue sync — 2026-11-18 19:33 EST
+## Historical lead queue sync — 2026-11-18 19:33 EST
 
 Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
 PR #242 now needs independent **reviewer-level** Claude review at
