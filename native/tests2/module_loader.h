@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
-#include "wirescape/module.h"
 #include "wirescape/module2.h"
 #include <stdexcept>
 #include <string>
@@ -44,6 +43,5 @@ struct ModuleLoader {
         return dlsym(h,name);
 #endif
     }
-    const ws_module_descriptor*abi1(const std::string&name){auto h=library("ws_"+name);auto entry=reinterpret_cast<ws_module_entry_fn>(symbol(h,"ws_module_entry"));if(!entry)throw std::runtime_error("Missing ABI1 entry");return entry();}
     const ws2_descriptor*abi2(const std::string&name){auto h=library("ws2_"+name);auto entry=reinterpret_cast<ws2_entry_fn>(symbol(h,"ws_module2_entry"));auto version=reinterpret_cast<uint32_t(*)()>(symbol(h,"ws_module2_abi_version"));if(!entry||!version||version()!=2)throw std::runtime_error("Missing/mismatched ABI2 entry");return entry();}
 };
