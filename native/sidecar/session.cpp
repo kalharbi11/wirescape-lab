@@ -439,9 +439,9 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
                         app_engine_render_live(live, rows.data(), channels, options_.block, app_engine_clock_ns());
                     if (options_.bench_summary) {
                         bench_.observe_faults(app_engine_native(live).meter().faults);
-                        if (render != WS_OK) ++bench_.faults;
+                        if (render != WS2_OK) ++bench_.faults;
                     }
-                    if (render != WS_OK) break;
+                    if (render != WS2_OK) break;
                     auto after = std::chrono::steady_clock::now();
                     // Null-sink thread only (not Engine::render, not a device callback).
                     capture_.append(rows.data(), channels, options_.block, scratch.data());

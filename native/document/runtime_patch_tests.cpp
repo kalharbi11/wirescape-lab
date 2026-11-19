@@ -39,7 +39,7 @@ static void saved_lfo_patch(const char *demo, AppEngine *catalog, const wirescap
     auto &native = app_engine_native(engine.get());
     check(native.meter().feedback_edges == 0, "saved patch has no feedback chunking");
     for (uint32_t block = 0; block < 750; ++block) {
-        check(app_engine_render(engine.get(), audio, 128) == WS_OK, "render saved LFO patch");
+        check(app_engine_render(engine.get(), audio, 128) == WS2_OK, "render saved LFO patch");
         for (uint32_t i = 0; i < 128; ++i) {
             const float expected = static_cast<float>(std::sin(phase) * depth + offset);
             const float actual = native.output_sample(5, 0, 0, i);
@@ -82,7 +82,7 @@ int main(int argc,char**argv){try{
  for(auto&m:patch["modules"]){auto type=m["type"].get<std::string>();m["module"]=type;m["version"]=1;m["config"]=Json::object();m["parameters"]=Json::object();for(auto it=m["values"].begin();it!=m["values"].end();++it)m["parameters"][app_engine_parameter_id(catalog.get(),type.c_str(),uint32_t(std::stoul(it.key())))]=it.value();m.erase("type");m.erase("values");}
  for(auto&c:patch["connections"]){c["from"]={{"module",c["fromNode"]},{"port",c["fromPort"]}};c["to"]={{"module",c["toNode"]},{"port",c["toPort"]}};c["kind"]="signal";for(auto key:{"fromNode","fromPort","toNode","toPort"})c.erase(key);}
  auto v2=load(patch.dump());check(bool(v2),"v2 loader");float a[128],b[128];
- for(int block=0;block<100;++block){int ra,rb;size_t count;{allocation_watch::Scope watch;ra=app_engine_render(v1.get(),a,128);rb=app_engine_render(v2.get(),b,128);count=watch.allocations();}check(ra==WS_OK&&rb==WS_OK&&count==0,"loader callback allocation-free");for(int i=0;i<128;++i)check(a[i]==b[i]&&std::isfinite(a[i]),"v1/v2 graph equivalence");}
+ for(int block=0;block<100;++block){int ra,rb;size_t count;{allocation_watch::Scope watch;ra=app_engine_render(v1.get(),a,128);rb=app_engine_render(v2.get(),b,128);count=watch.allocations();}check(ra==WS2_OK&&rb==WS2_OK&&count==0,"loader callback allocation-free");for(int i=0;i<128;++i)check(a[i]==b[i]&&std::isfinite(a[i]),"v1/v2 graph equivalence");}
  check(!load("{\"format\":\"wirescape.native.patch\",\"format\":\"wirescape.native.patch\"}"),"duplicate keys rejected");
  for (const auto &raw : {std::string("{\"format\":1,\"\\u0066ormat\":2}"), std::string("{\"x\":[{\"a\":1,\"a\":2}]}")})
      check(!load(raw) && !error.empty(), "escaped and nested duplicate keys refused");
@@ -125,8 +125,8 @@ int main(int argc,char**argv){try{
  float stable[128]{};
  {
      allocation_watch::Scope scope;
-     check(app_engine_render(ccfirst.get(), stable, 128) == WS_OK &&
-               app_engine_render(ccsecond.get(), stable, 128) == WS_OK && scope.allocations() == 0,
+     check(app_engine_render(ccfirst.get(), stable, 128) == WS2_OK &&
+               app_engine_render(ccsecond.get(), stable, 128) == WS2_OK && scope.allocations() == 0,
            "refusal leaves previously loaded graphs usable");
  }
 

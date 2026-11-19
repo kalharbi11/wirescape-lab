@@ -3,7 +3,204 @@
 
 Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
-below replaces them; this page is the only live queue.
+below replaces them; this page is the chronological lead–Architect handoff. The lead maintains
+[BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
+Builders use their queue row and issue; Architect requests stay in the inbox.
+
+## Delivery update — 2026-11-19 06:45 EST
+
+- B1 #259/#263 owner-mode acceptance stands. Windows Lab also failed on main with
+  the same libremidi diagnostic. Keep PR263 parked until CI tooling #271 proves the
+  remedy. The read-only OB-a3 inventory was acknowledged; its Result is unverified.
+- B2 #268 has a self-contained relaunch. Verify an actual branch or Result before
+  treating it as active. #209 remains parked.
+- B3 retains parked #255. A Codex evidence worker takes sole #267 ownership under
+  [SR12](https://github.com/kalharbi11/wirescape-lab/issues/267#issuecomment-7008105213).
+  The Linux evidence workflow and Windows #271 are separate writer scopes.
+- B4 posted the [signed S6 destination reconciliation](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7008070874).
+  No S6 source release. B5's ChatGPT kickoff produced no findings; a low-effort
+  Codex triage verified that Windows first failed in unchanged libremidi under
+  MSVC 19.52. The Golden base failure shares the image change; its diagnostic is unverified.
+- Entry reserves were 60% five-hour and 25% weekly. Check startup against observed
+  progress or GitHub artifacts. SR12/13/14/19.
+
+Signed: codex-lead, 2026-11-19 06:45 EST
+
+## Delivery update — 2026-11-19 06:33 EST
+
+- B1 #259/#263 owner-mode acceptance and 32/32 OB-a1 cases passed. Windows Lab
+  failed at `a3544de`; source parked, ledger 1/2. B1 can inventory OB-a3 read-only.
+- B2 #268 released for the test-local ABI2 adaptation on S5b and the sidecar path.
+  The eight A10 oracles carry forward. B3 takes the disjoint #267 full-mode evidence
+  task; #255 remains draft and review-required. The lead owns D5 publication.
+- B4's S6 inventory is signed at #199. The next read-only pass resolves map options.
+  The OB0 tag, agreed map and notice gate S6. B5's audit adds the explicit M4
+  acceptance rows to ROADMAP. B5 is checking the Windows baseline and Golden logs.
+- Review requests require `review-ready` and pinned evidence. An intentional
+  `architect-wake` on #265 also gets a one-shot lead check after 20 minutes.
+  No urgent Architect dispatch was needed this run.
+
+All five rows checked and dispatched within their scope. Quick intake expanded to
+workflow updates and bounded dispatch. Entry usage remaining 68% five-hour and 26%
+weekly. SR6/8/13/18/19.
+
+Signed: codex-lead, 2026-11-19 06:33 EST
+
+## Delivery update — 2026-11-19 05:59 EST
+
+- S5b #261 merged at `c373c3d` after signed Claude approval 7006666280 and verified
+  Lab, three-platform Golden and paired evidence. B4 prepares S6 readiness at #199.
+  Carry the two reviewer Lows, the unmeasured standalone web/CLI checks and paired
+  Chord gaps. S6 source stays closed until OB0 tags and the lead releases the window.
+- B1 continues #259/#263 on owner-mode overlap and hosted acceptance. B2 #268
+  replaces the exhausted #207/#214 packet per SR6(c). B3 #267 is the dedicated
+  full-mode matched Reverb capture; #255 and the D5 publication still gate OB0.
+- Owner verified the Architect integration on #265. Post the `/architect-run` scope
+  first, **then add `architect-wake`**. Architect clears it on completion. Routine
+  comments and labels do not trigger it. No new urgent inbox work, no wake sent.
+
+All four lanes updated. Cloud usage/reset unavailable. SR6/8/13/18/19.
+
+Signed: codex-lead, 2026-11-19, 05:59 EST
+
+## Delivery update — 2026-11-19 04:56 EST
+
+Merged review-label policy #264 on green Lab. All builder rows refreshed in BUILDERS.
+#261 is review-ready for independent Claude at e621863. #255 remains review-required
+while Reverb evidence is open. No immediate Architect-only ruling; reviewer can take
+#261. The owner authorized builder one-shot CLI/test continuations and deliberate
+lead-only Architect wakes on #265 after the consumer is configured. No wake sent.
+Cloud usage/reset unavailable. No gate bypass.
+
+Signed: codex-lead, 2026-11-19, 04:56 EST
+
+## Workflow handoff — 2026-11-19 04:21 EST
+
+New local leads start at [CODEX_LEAD](../context/CODEX_LEAD.md), then check
+[all four builder rows](BUILDERS.md) and the [milestone roadmap](ROADMAP.md).
+Review labels are now `review-required` for the merge condition and `review-ready`
+for dispatch after the pinned request and evidence. Older entries retain the
+label names used at the time. A17 and authorized reviewer roles still apply.
+No new Architect ruling in the current queue. The next S5b review needs the
+reconciled evidence and pinned request.
+
+Signed: codex-lead, 2026-11-19, 04:21 EST
+
+## Delivery update — 2026-11-19 04:06 EST
+
+The lead separated builder assignments and milestone order into the linked tables above.
+All four lanes were checked. B2 has a one-import SR6(b) final packet on #214. B3 #255 stays
+out of review while matched production evidence and D5 publication are open. Removed split
+review labels from #255 and the two historical PRs that carried them. B4 #261 is in
+validation under A17. No new Architect ruling is needed. Cloud usage/reset unavailable.
+
+Signed: codex-lead, 2026-11-19, 04:06 EST
+
+## Four-builder queue — 2026-11-19 03:35 EST
+
+Owner direction: on every lead run, try to keep B1–B4 active with one independent,
+authorized task each. Fill a free slot with ready contract work or a bounded evidence
+or review task when that advances delivery. Preserve dependency gates and one writer
+per file. If a slot must wait, record its blocker and next trigger. In cloud, give the
+owner all runnable starts in one handoff. A live CI run alone is not a reason to
+restart an agent to watch it.
+
+- B1: released OB-a2 #259, owner-folder round-trip runner. OB-a1 merged; only the runner
+  and Pi README paths. Real owner files stay owner-only.
+- B2: #207/#214 current head `b6900c1`. Lab 44488804319 and A10 44488804192 running.
+  Continue on actual results; retain the existing correction ledger and scope.
+- B3: #243/#255 `f314b85`. Lab and first Golden succeeded. A later Golden run failed
+  building the Windows base renderer; reconcile provenance and collect actual production
+  measurements and D5 on the current correction. OB0 waits on S7.2.
+- B4: #253 S5b under merged A17/M1 r3.2 on the existing branch, no CMake edits.
+  S6 waits for reviewed S5b merge.
+
+Previous A17 handoff #258 merged at `42d326d` on green Lab 44487462144.
+No new Architect ask. Cloud usage/reset unavailable. SR13/16/19.
+
+Signed: codex-lead, 2026-11-19, 03:35 EST
+
+## Delivery update — 2026-11-19 03:24 EST
+
+- Architect #257 merged at `3bc5594`. A17 is Cleared and M1 r3.2 is on main.
+  B4 #253 is back in progress on the existing S5b branch. Use only A17's exact extra
+  CLI/Golden/returned-filter paths. Preserve stress cases, CTest, CLI behavior and Golden
+  bytes. No CMake or retired-name shim. Include CLI/tests2 retired-symbol evidence, zero
+  deleted tests and independent Claude review at the implementation head. S6 stays gated.
+- B2 #207/#214 published the mechanical merge `a05f2a2`, retaining main's frozen fixture
+  and adding only the existing three-line MIDI registration. CMake slot released. Lab
+  44486864336 and A10 44486864410 started. A10 results and independent buffer wall time
+  remain outstanding. Ledger 1/2; #209 stays parked.
+- B3 #243/#255 correction 1/2 at `f314b85`: restores wet makeup, adds mixed gain and a
+  documented soft knee before the hard guard. Lab 44486830182, Golden 44486830089,
+  Ir 44486830128 and Offline 44486830148 started. Require preserved wet/dry loudness
+  and S7.1 behavior, actual production MO/no-hard-clamp/RMS/Ir values and a new D5
+  pair. Review the soft knee explicitly and record how often it engages. Reverb still
+  gates OB0, followed by release/install verification and the tag.
+
+Next owner run: B4 on #253. B2/B3 resume on criterion-specific results. Architect may
+review once S5b has a pinned `claude-review/reviewer` request or a fresh urgent inbox row.
+A3/A4 stay parked. Quick run; cloud usage/reset unavailable. SR7/13/19.
+
+Signed: codex-lead, 2026-11-19, 03:24 EST
+
+## Delivery update — 2026-11-19 03:14 EST
+
+- Merged #254 at `ccf609a` after Lab 44445528696 passed. S5a and the 34-module smoke
+  are merged. #242 review is cleared per Architect #252.
+- B4 #253 is blocked at preflight on untouched branch `137a6ab`. A17 requests bounded
+  scope for live CLI/Golden and returned-filter consumers of the retired headers. SR7
+  cannot cover the test conversion and extra paths. Only S5b waits.
+- B3 #243/#255 `0025eab` enters correction 1/2 on the same PR. Lab 44452687090 failed
+  native/sanitizer Reverb loudness (−7.95 dB versus existing |dB| <6). Preserve that test
+  and deliver the contracted peak/no-clamp/RMS/Ir/D5 evidence on the corrected head.
+  The advisory M1 ARM64 report flagged two unrelated Function Envelope rows; inspect
+  provenance before classifying them. Golden and the M7 instruction workflow ran green.
+- B2 #207/#214 `7d85f2c`: GitHub merge conflict prevents all PR workflows. Released one
+  ordered SR7 mechanical CMake conflict slot to B2 while B4 is stopped on A17. Same branch,
+  merge current main and retain both frozen fixture and MIDI registration. No correction
+  round for the integration operation. Return the slot after the merge commit. #209 waits.
+- OB0 still depends on corrected S7.2 and production evidence, then release/install checks
+  and the immutable tag. No release date update until the next signed numeric Result.
+
+Quick run expanded for specific blockers. Shared usage/reset unavailable in this cloud
+session. Owner runs B2 and B3 on their existing PRs and Architect on A17. B4 resumes after
+the ruling and CMake slot release. SR7/13/19.
+
+Signed: codex-lead, 2026-11-19, 03:14 EST
+
+## Delivery update — 2026-11-18 21:35 EST
+
+Supersedes #251 and earlier builder dispatch status. Architect #252 remains on main with the
+signed review and open-row state. No immediate Architect-only question remains.
+
+- **M1 S5a merged:** #242 `fd41342` → `af62278` after independent Claude approval 6997412602.
+  Golden 24/24 identical on x64/ARM64/Windows, Lab and paired evidence green. Measured Ir up
+  at most +0.269173% x64/+0.333476% ARM64; both Chord rows paired unavailable under SR10.
+  Generated link verdict passes x3. A3 standalone web remains explicitly unverified per 0006.
+  Preserve the three reviewer Lows, no High/Medium. A16 was Architect-ordered (S5a 0/2 ordinary).
+- **B4** now owns and was dispatched on new S5b #253, separate branch/PR, exclusive M1/sidecar
+  writer. Start with exact A1–A4/consumer paths. Required independent Claude review, I1–I8 and
+  evidence 1–5. A15/A16 scope was S5a only. S6 remains gated by actual S5b merge and planning.
+- **OB-e2 merged:** #249 `5bd3b15` → `137a6ab`. Verified raw-log hashes and exact matrix from
+  run 44434889168 artifacts 14489280757/14489096252: 34 palette IDs and 136 two-second
+  rows per Linux architecture, 884 sweeps each, no failed case, render allocation or fault.
+  One test-only Chord identity correction; failed first run retained. No OB-e3 issue is
+  required from this matrix. The separate paired-Ir Chord coverage gaps remain open.
+- **B2 / A10:** #207/#214 `0b6e722` transferred under SR12 after B1's stop instruction.
+  Both owner labels were updated and B2 was dispatched. Keep the same branch/PR, ordinary
+  ledger 1/2, one authorized isolated SR8 workflow and no additional shared CMake/Lab/sidecar
+  or product writes. Buffer wall-time remains unmeasured; #209 stays parked.
+- **B3 / #243:** Reverb S7.2 remains the OB0 critical path. No PR or signed Result followed
+  the original dispatch and supported retry. B3 remains the same Reverb writer. Owner should
+  run existing B3 directly; the lead can proceed on a substantive Result without a new
+  Architect ruling. A4/#186 remains deferred until after OB0.
+
+Mode quick expanded for reviewed S5a, verified OB-e2 and the SR12 handoff. Entry use 15%
+five-hour (account reset about 21:49 EST), 68% weekly. No devices, usage reset or CI polling.
+This is the final scheduled Nov 18 lead run; no further wake was created.
+
+Signed: codex-lead, 2026-11-18, 21:35 EST
 
 ## Cloud-1 delivery sync — 2026-11-18 19:33 EST
 
@@ -143,6 +340,18 @@ Mode quick expanded for actual new rulings/task release; usage entry26% five-hou
 remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/resets spent.
 No devices, new schedules, gate changes, source implementation by lead or polling.
 Signed: codex-lead, 2026-11-18, 00:03 EST
+
+## Decided 2026-11-19 ET (Architect quick check, A17, base `main` a31f26b)
+- **A17 / S5b #253 scope: granted, bounded (M1 r3.2).** 0006 S5 says a consumer "is converted in the PR that removes the type they use"; these are such consumers, so this is a mechanical grant inside the accepted design. B4 resumes on `task/253-m1-s5b`. Exactly these extra files, nothing else:
+  1. `native/cli/main.cpp`, `native/cli/play.cpp`: move `ws_event`/`WS_PARAMETER`/`WS_NOTE_*` and `WS_OK` use to the S5b facade types (parameters by string ID, I6). CLI arguments, stdout/stderr text, exit codes and rendered bytes do not change.
+  2. `native/tests/golden_render.cpp`: replace the `WS_OK` comparison at line 63 only. Golden fixtures, harness and the 24 bytes-identical results are unchanged.
+  3. `native/tests2/module_loader.h`: delete `abi1()` and the `module.h` include; `abi2()` unchanged. `returned_filter_cases.h` + `abi2_returned_filter_stress.cpp`: **convert, do not delete.** `Processor` drives the ABI2 ladder directly (what `Adapter` does now); legacy parameter ids map through the frozen `legacy_index` as the bridge does now. The bodies of `impulse_cases`, `modulation_case` and `check_sample` (cutoffs, rates, inputs, partitions, tails, bounds, messages) and the frozen-descriptor shape checks stay byte-identical (I8). Same CTest name, arguments and dependencies. `utility_port_tests.h` only if its include must change.
+  - **Not granted:** `native/engine2/CMakeLists.txt` or any CMake (B2 holds the CMake slot); any new type or alias reusing a retired `ws_module_*`/`ws_event`/`WS_*` name (that is a shim). If either proves needed, stop and add an inbox row.
+  - **Evidence additions:** the retired-symbol grep (evidence 4) also covers `native/cli` and `native/tests2`; evidence 5 states "no test deleted" and the PR shows the diff of `returned_filter_cases.h` limited to `Processor` and includes; the converted CTest passes on x64/ARM64/Windows. The review request quotes I1, I4, I6, I7, I8 plus this grant.
+  - Overturn: a needed CMake edit, or a stress-case body that cannot stay identical.
+- **Hold:** none beyond SR7 (B4 must not take the CMake slot while B2 holds it). A3 and A4 unchanged.
+
+Signed: claude-architect, 2026-11-19
 
 ## Decided 2026-11-18 21:01 ET (Architect quick check, base `main` 84e594a)
 - **#242 (S5a) Claude review, done:** [Approved for merge `fd41342`](https://github.com/kalharbi11/wirescape-lab/pull/242#issuecomment-6997412602). A15 and A16 boundaries hold, I1–I8 hold, and every config value carried over exactly. Golden 44405668182 shows 24/24 identical on linux-x64, linux-arm64 and windows-x64. Lab, Ir, paired-stage and Offline runs are green at the exact head. Lows: L1 telemetry gate `frame != 0`; L2 `AppEngine::peak`/`blocks` are now write-only (S6 cleanup); L3 self-comparison checks. `claude-review/reviewer` removed. **The lead may merge #242.** It must first record the disposition of A3 (standalone web build unverified). After the merge, S5b opens per contract.
@@ -482,7 +691,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; a Claude contract-review request on S5b; the owner's next scheduled quick check. **Next run should:** read inbox; check that #242 merged and S5b was dispatched (no re-review of `fd41342`); review any new `claude-review/*` label. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; a review-ready S5b #253 request that authorizes the Architect; the owner's next scheduled quick check. **Next run should:** read inbox; on S5b review check the A17/r3.2 limits (no CMake, no retired-name shim, stress-case bodies identical, CLI behaviour unchanged) and I1, I4, I6, I7, I8 at the exact head. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)

@@ -102,7 +102,7 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         bool commit_entered = false;
         auto commit = [&] {
             commit_entered = true;
-            return engine_ && app_engine_replan(engine_, candidate, timeout_ns) == WS_OK;
+            return engine_ && app_engine_replan(engine_, candidate, timeout_ns) == WS2_OK;
         };
         if (!(service_ ? service_->replace_routes(std::move(routes), commit) : commit())) {
             error = service_ && !commit_entered ? "MIDI worker busy" : "Live graph refused";

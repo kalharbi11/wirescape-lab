@@ -6,6 +6,14 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
+A planned review condition goes on the task with `review-required`. Open an Architect-only
+review row when its request is ready to dispatch. Routine independent review uses
+`review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
+
+A row and its labels record the decision or review request. Only the delivery lead sends
+a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
+or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
 - `Urg`: **now** = blocks a critical-path task (OB0, or the OB1 serial chain) ·
@@ -18,7 +26,7 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
-## Lead queue sync — 2026-11-18 19:33 EST
+## Historical lead queue sync — 2026-11-18 19:33 EST
 
 Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
 PR #242 now needs independent **reviewer-level** Claude review at
@@ -41,4 +49,4 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| — | 2026-11-18 21:01 | #242 reviewer-level Claude review (lead queue sync 19:33) | Approved for merge `fd41342`. No High or Medium findings; 3 Lows. Golden 24/24 identical ×3. A3 web build is unverified and goes to the lead's disposition. Label removed. [review](https://github.com/kalharbi11/wirescape-lab/pull/242#issuecomment-6997412602) |
+| A17 | 2026-11-19 | #253 S5b preflight: CLI/Golden consumers and returned-filter test | Granted, bounded: M1 r3.2. CLI event/status migration with behaviour unchanged; golden_render `WS_OK` line only; tests2 returned-filter bridge converted to ABI2, not deleted, case bodies identical; no CMake, no retired-name shim. Limits in CURRENT "Decided 2026-11-19". B4 resumes. |

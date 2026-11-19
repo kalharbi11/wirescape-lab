@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
             float left[256]{}, right[256]{}, peak = 0.f, stereo_difference = 0.f;
             float *channels[]{left, right};
             for (int block = 0; block < (autoplay ? 256 : 1); ++block) {
-                require(app_engine_render_channels(engine.get(), channels, 2, 256) == WS_OK, name + ": render failed");
+                require(app_engine_render_channels(engine.get(), channels, 2, 256) == WS2_OK, name + ": render failed");
                 for (int i = 0; i < 256; ++i) {
                     require(std::isfinite(left[i]) && std::isfinite(right[i]), name + ": non-finite sample");
                     if (std::fabs(left[i]) > peak) peak = std::fabs(left[i]);

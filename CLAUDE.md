@@ -20,20 +20,26 @@ KNOWN_ISSUES, `future_modules/`) → `facts/README.md` and `facts/code/FACT_PACK
 (0001 audit, 0002 plan, 0003 module design, 0004 execution) → `docs/ARCHITECTURE.md`
 and relevant `docs/specs/`. Grep; don't read whole trees.
 
-## claude-reviewer: every run clears the Claude review queue (owner, 2026-11-17)
-Whatever the specific ask, every `review` run (and every Claude Architect run) also does all
-Claude reviews that are due before stopping:
-1. List open PRs labelled `claude-review/reviewer` (the Architect also takes `claude-review/architect`),
-   plus inbox rows asking for a "Claude review" or "contract-review" that lack a label.
-2. For each one, review the requested base..head against the named invariants and contract criteria.
-   Read the diff and only the callers you need. Grade High/Medium/Low with file:line, and check the
-   evidence is from the exact head.
-3. Post one signed PR conversation comment. With nothing High, its lines are
-   `Approved for merge <sha7>` and `Signed: claude-reviewer, <date>`. Then remove the label.
-   If evidence is missing, say exactly what, and leave the label on.
-4. Merge only when the owner authorizes it in that run. Otherwise the lead merges.
-Leave reviews labelled `claude-review/architect` to the Architect. Usage rules still apply:
-diffs and log tails, not whole trees.
+## Reviewer queue (owner, 2026-11-19)
+
+Every reviewer run checks open non-draft PRs with `review-ready`. Accept only a pinned
+request at the live head that authorizes your role. `review-required` alone means the
+review is a merge condition and is not queued. A review reserved for the Architect also
+has `needs/architect` and an Open inbox row. Design rulings continue through the inbox.
+
+1. Review the named base..head, contract criteria and evidence. Read the diff and relevant
+   callers. Report High/Medium/Low findings with file and line.
+2. Post a signed result pinned to the head. For approval, record `Approved for merge <sha7>`.
+   Clear `review-ready` after the result, or when the requested head or evidence is stale.
+   Keep `review-required` until a valid approval satisfies the gate. If blocked, state what
+   the lead needs to provide before sending a fresh request.
+3. Merge only when authorized for that run. Otherwise the lead merges.
+
+See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+
+Builder sessions follow the [one-shot continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
+For an `architect-wake` event on #265, read the newest `/architect-run` comment as scope, record the signed outcome and remove the `architect-wake` label when done. See the [lead dispatch rules](docs/workflow/README.md#intentional-architect-wake).
+Reviewers use the pinned `review-ready` request and its role restrictions.
 
 ## Roles and authority
 | Role | Owns | Stops when |

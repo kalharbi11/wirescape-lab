@@ -55,9 +55,10 @@ acceptance report as an exception; no claim may cite it until it is measured. Pr
 M0 acceptance (`ringmod2`).
 **SR11 Contract review.** "Contract-review" means a reviewer who is neither the lead nor the
 builder checks the quoted invariants on the exact head; nothing High means the lead merges. The lead
-posts the request once, sets `needs/architect` (or `needs/fable`), adds one row to
-[ARCHITECT_INBOX.md](ARCHITECT_INBOX.md), tells the owner once and moves other tasks. One owner
-message `fable: run` to a Claude session clears every pending review, question and acceptance.
+records the merge condition with `review-required`. When the current head is ready, the lead
+posts the pinned review request once and adds `review-ready` per the [label lifecycle](README.md#github-labels-for-work-and-review).
+Only Architect-only work needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md).
+The lead tells the owner once and continues unaffected tasks.
 Where a contract from M3 on says contract-review without the word **Claude**, and no Claude
 session has answered within 24 hours, a fresh `gpt-reviewer` chat may run the same checklist; the
 PR records which reviewer it was. Where the contract says **Claude**, and for M1 and M2, only a

@@ -60,7 +60,7 @@ template <class Render> static Bytes signal_bytes(Render render) {
     for (uint32_t offset = 0; offset < 48000; offset += 128) {
         float samples[128]{};
         const auto count = std::min(128u, 48000u - offset);
-        require(render(samples, count) == WS_OK, "offline render failed");
+        require(render(samples, count) == WS2_OK, "offline render failed");
         for (uint32_t i = 0; i < count; ++i) f32(bytes, samples[i]);
     }
     return bytes;
