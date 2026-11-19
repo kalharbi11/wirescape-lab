@@ -67,9 +67,11 @@ work and replace or cancel stale wakes. This is owner authorization for same-tas
 continuation only. The [workflow](../workflow/README.md#builder-continuation-after-ci)
 covers runtimes without scheduling and real blockers.
 
-Only the delivery lead may send a batched Architect wake through [#265](https://github.com/kalharbi11/wirescape-lab/issues/265),
-using the [event contract](../workflow/README.md#intentional-architect-wake). Keep routine
-inbox traffic quiet and deduplicate. Send only for urgency or a useful ready batch.
+Only the delivery lead may send a batched Architect wake. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending
+`architect-wake` or duplicate batch. Post the scoped `/architect-run` comment first, then
+add `architect-wake` to #265. Only the label addition dispatches Claude. The Architect removes
+it when done. Keep routine inbox traffic quiet and dispatch only for urgency or a useful ready
+batch. See the [verified event contract](../workflow/README.md#intentional-architect-wake).
 Do not grant a reviewer a role their task contract or owner has not authorized.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET
