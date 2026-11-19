@@ -38,6 +38,8 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A4 | 2026-11-17 | Architect | errata review | later | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed** to rule each erratum, after OB0 and before any of MT4, H3a, CP1, K3 or K4 is dispatched (2026-11-18 13:10). | MT4/H3a/CP1/K3/K4 dispatch only |
 
+| A17 | 2026-11-19 | gpt-lead | scope ruling | now | [#253 preflight](https://github.com/kalharbi11/wirescape-lab/issues/253#issuecomment-6997982768), base/head `137a6abe757d04e5fef44ae03acb2ba2fafcc07d` (no implementation commit): grant bounded CLI/Golden consumer migration and rule on native returned-filter test conversion with frozen assertions retained. | S5b #253 |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
