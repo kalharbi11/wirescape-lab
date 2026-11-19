@@ -4,16 +4,13 @@
 // The native PCM oracle will replay this exact trace after the lead authorizes
 // artifact transfer and a CTest/native-binary writer slot.
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import patch from '../patches/basics-03-echo-and-reverb.json';
 import { boot } from './helpers';
 
 type ParamEvent = { t_ms: number; moduleId: number; paramId: string; value: number };
 
 test('OB-c A10 Echo: actual 100 ms / 1 s knob gestures emit measured setParam trace', async ({ page }, testInfo) => {
   await boot(page);
-  const patch = JSON.parse(readFileSync(
-    resolve(process.cwd(), 'patches/basics-03-echo-and-reverb.json'), 'utf8'));
   await page.evaluate(p => window.__wirescapeTest.load(p, 'A10 Echo trace'), patch);
   await page.evaluate(() => {
     // Move the real Studio canvas view to the Echo card before pointer input.
@@ -94,7 +91,7 @@ test('OB-c A10 Echo: actual 100 ms / 1 s knob gestures emit measured setParam tr
     mode_division_record_only: switches,
   };
   await testInfo.attach('ob-c-a10-studio-setparam-cadence', {
-    body: Buffer.from(JSON.stringify(evidence, null, 2)), contentType: 'application/json',
+    body: JSON.stringify(evidence, null, 2), contentType: 'application/json',
   });
   console.log('OB-C-A10-CADENCE-FACT ' + JSON.stringify(evidence));
   expect(data).toHaveLength(8);

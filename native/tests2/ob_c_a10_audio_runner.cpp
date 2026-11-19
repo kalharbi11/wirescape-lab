@@ -37,8 +37,16 @@ std::string read(const std::filesystem::path &path) {
     require(bool(f), "missing input: " + path.string());
     return {std::istreambuf_iterator<char>(f), {}};
 }
+wirescape::engine2::Config test_config() {
+    wirescape::engine2::Config c{};
+    c.sample_rate = kRate;
+    c.max_block = kBlock;
+    c.max_channels = 32;
+    c.event_budget = 2048;
+    return c;
+}
 Owner loaded(AppEngine *catalogue, const std::string &document) {
-    ws_engine_config c{sizeof(c), kRate, kBlock, 32, 2048};
+    const auto c = test_config();
     std::string error;
     Owner p(wirescape::document::load_runtime_patch(document, catalogue, c, error), app_engine_destroy);
     require(bool(p), "product patch failed to load: " + error);
@@ -83,7 +91,7 @@ void scene(const std::filesystem::path &source, const std::filesystem::path &dir
     require(graph_spec.at("format") == "wirescape.native.patch", "wrong scene fixture");
     require(graph_spec.at("name").get<std::string>().find("Witching Hour") != std::string::npos,
             "expected scene07 actual bundled patch");
-    ws_engine_config c{sizeof(c), kRate, kBlock, 32, 2048};
+    const auto c = test_config();
     Owner catalogue(app_engine_create(&c), app_engine_destroy);
     require(bool(catalogue), "create production module catalogue");
     const uint32_t total = 327680; // exact block multiple, > latest panic + 500ms+guard
@@ -131,7 +139,7 @@ void echo(const std::filesystem::path &trace_path, const std::filesystem::path &
             trace.at("delay_module_id") == 6, "wrong Studio-only cadence trace");
     const auto &gestures = trace.at("gestures");
     require(gestures.is_array() && gestures.size() == 8, "A10 needs eight real Studio gestures");
-    ws_engine_config c{sizeof(c), kRate, kBlock, 32, 2048};
+    const auto c = test_config();
     Owner catalogue(app_engine_create(&c), app_engine_destroy);
     require(bool(catalogue), "create production module catalogue");
     const std::string document = echo_document();
