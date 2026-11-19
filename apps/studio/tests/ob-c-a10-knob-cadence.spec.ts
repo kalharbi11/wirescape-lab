@@ -4,7 +4,7 @@
 // The native PCM oracle will replay this exact trace after the lead authorizes
 // artifact transfer and a CTest/native-binary writer slot.
 import { test, expect } from '@playwright/test';
-import patch from '../patches/basics-03-echo-and-reverb.json';
+import patch from '../patches/basics-03-echo-and-reverb.json' with { type: 'json' };
 import { boot } from './helpers';
 
 type ParamEvent = { t_ms: number; moduleId: number; paramId: string; value: number };
