@@ -152,6 +152,31 @@ jobs:
           assert subprocess.run(["git", "check-ignore", "-q", "--", str(copied)],
                                 check=False).returncode == 0
 
+          # A pre-existing report may be a hard link to an owner input. Writing
+          # through it used to truncate the already-hashed original input.
+          hardlink_path = root / "bench/results/synthetic-hardlink.json"
+          hardlinked_input = valid / "first.json"
+          hardlinked_before = snapshots(valid)
+          os.link(hardlinked_input, hardlink_path)
+          assert os.path.samefile(hardlinked_input, hardlink_path)
+          exercise("hardlink-report", valid, 0, hardlink_path)
+          hardlinked_report = json.loads(hardlink_path.read_text())
+          assert hardlinked_report["passed"] is True
+          assert hardlinked_report["input_inventory_unchanged"] is True
+          assert all(c["status"] == "pass" and c["input_unchanged"]
+                     for c in hardlinked_report["cases"])
+          assert hardlinked_before == snapshots(valid), "hard-linked source mutated"
+          assert not os.path.samefile(hardlinked_input, hardlink_path), (
+              "report was not atomically replaced with a new inode")
+          shutil.copy2(hardlink_path, results / "hardlink-report.json")
+
+          # The ignore-rule marker itself is not an allowed report destination.
+          marker_before = marker.read_bytes()
+          marker_rejection = exercise("marker-report", valid, 2, marker)
+          assert "owner report destination is reserved" in marker_rejection.stderr
+          assert marker.read_bytes() == marker_before == b"*\n"
+          assert hardlinked_before == snapshots(valid), "marker test mutated source"
+
           # Independent regression for the unchanged default OB-a1 path.
           baseline_path = results / "baseline-ob-a1.json"
           baseline_run = subprocess.run(
@@ -181,8 +206,11 @@ jobs:
                      "invalid_hashes_before": before_mixed,
                      "invalid_hashes_after": snapshots(mixed),
                      "private_report_gitignored": True,
+                     "hardlink_report_atomic_no_input_mutation": True,
+                     "reserved_ignore_marker_rejected": True,
                      "negative_exit_codes": {"invalid": 1, "empty": 1, "missing": 1,
-                                             "nested_report_overlap": 2},
+                                             "nested_report_overlap": 2,
+                                             "reserved_ignore_marker": 2},
                      "baseline_bundled": baseline["bundled"],
                      "baseline_shapes": baseline["config_shapes"],
                      "baseline_negative": baseline["negative"], "passed": True}

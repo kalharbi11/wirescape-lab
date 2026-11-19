@@ -36,6 +36,9 @@ def prepare_owner_report(path: Path, folder: Path) -> None:
     """Never emit owner data to a non-ignored location or input directory."""
     root = OWNER_REPORTS.resolve()
     dest = path.resolve()
+    marker = root / ".gitignore"
+    if dest == marker.resolve():
+        raise ValueError("owner report destination is reserved bench/results/.gitignore")
     if dest == root or not dest.is_relative_to(root):
         raise ValueError("--dir report must stay under bench/results/")
     if root.is_relative_to(folder.resolve()):
@@ -43,7 +46,6 @@ def prepare_owner_report(path: Path, folder: Path) -> None:
     if dest.is_relative_to(folder.resolve()):
         raise ValueError("report output is inside the supplied input folder")
     root.mkdir(parents=True, exist_ok=True)
-    marker = root / ".gitignore"
     if marker.is_symlink() or (marker.exists() and not marker.is_file()):
         raise ValueError("unsafe bench/results/.gitignore")
     if not marker.exists():
@@ -54,6 +56,30 @@ def prepare_owner_report(path: Path, folder: Path) -> None:
         capture_output=True, text=True, check=False)
     if ignored.returncode != 0:
         raise ValueError("owner report is not gitignored by bench/results rules")
+
+
+def write_owner_report_atomic(path: Path, content: str) -> None:
+    """Never truncate a pre-existing report inode (possibly hard-linked to input)."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=path.parent,
+                prefix=f".{path.name}.", suffix=".tmp", delete=False) as output:
+            temporary = Path(output.name)
+            # Check the actual temporary pathname before putting owner data in it.
+            ignored = subprocess.run(
+                ["git", "-C", str(ROOT), "check-ignore", "-q", "--", str(temporary)],
+                capture_output=True, text=True, check=False)
+            if ignored.returncode != 0:
+                raise ValueError("owner report temporary file is not gitignored")
+            output.write(content)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def owner_inventory(folder: Path):
@@ -344,8 +370,16 @@ def main() -> int:
     except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
         report["setup_error"] = str(exc)
         print(f"FAIL OB-a1 setup: {exc}", file=sys.stderr, flush=True)
-    args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    content = json.dumps(report, indent=2) + "\n"
+    if owner_mode:
+        try:
+            write_owner_report_atomic(args.report, content)
+        except (OSError, ValueError) as exc:
+            print(f"FAIL OB-a2 report write: {exc}", file=sys.stderr, flush=True)
+            return 1
+    else:
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(content, encoding="utf-8")
     total = report.get("owner_files", 0) if owner_mode else report["bundled"] + report["config_shapes"]
     print(f"{report['test']} {sum(c['status']=='pass' for c in report['cases'])}/"
           f"{total} cases; report={args.report}")

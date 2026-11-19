@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+
 # Pi / owner patch round-trip (OB-a2)
 
 This runner checks **temporary copies** of an owner's native v2 JSON patches with
@@ -32,8 +34,11 @@ report is bench/results/patch_roundtrip_owner.json. --report is permitted
 only for paths under bench/results/ and **outside the input folder**,
 including when the input is itself nested under bench/results/. A missing
 local .gitignore there is created with *; existing ignore configurations are never overwritten. The
-runner verifies git check-ignore before writing the report. Neither owner
-files nor this private report should be uploaded to CI or committed.
+runner verifies git check-ignore before writing the report. Owner-mode reports
+are written through a fresh, ignored sibling temporary file and atomic replace,
+so even a pre-existing report hard-linked to an input cannot truncate the input.
+The bench/results/.gitignore marker is reserved and cannot be a report path.
+Neither owner files nor private reports should be uploaded to CI or committed.
 
 Exit 0: every discovered file, original negative controls, input hashes
 and directory inventory pass. Exit 1: missing/empty directory, invalid file,
