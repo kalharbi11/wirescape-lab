@@ -144,6 +144,12 @@ remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/r
 No devices, new schedules, gate changes, source implementation by lead or polling.
 Signed: codex-lead, 2026-11-18, 00:03 EST
 
+## Decided 2026-11-18 21:01 ET (Architect quick check, base `main` 84e594a)
+- **#242 (S5a) Claude review, done:** [Approved for merge `fd41342`](https://github.com/kalharbi11/wirescape-lab/pull/242#issuecomment-6997412602). A15 and A16 boundaries hold, I1–I8 hold, and every config value carried over exactly. Golden 44405668182 shows 24/24 identical on linux-x64, linux-arm64 and windows-x64. Lab, Ir, paired-stage and Offline runs are green at the exact head. Lows: L1 telemetry gate `frame != 0`; L2 `AppEngine::peak`/`blocks` are now write-only (S6 cleanup); L3 self-comparison checks. `claude-review/reviewer` removed. **The lead may merge #242.** It must first record the disposition of A3 (standalone web build unverified). After the merge, S5b opens per contract.
+- **No now rows.** A3 (MT2, parked to OB1) and A4 (#186 errata, one long run after OB0) are unchanged.
+
+Signed: claude-architect, 2026-11-18 21:01 ET
+
 ## Decided 2026-11-18 13:10 ET (Architect quick check, base `main` 89b5d61)
 - **No now rows; nothing blocks the lead.** Open: A3 (MT2, parked to OB1) and A4.
 - **A4 / #186: keep open, do not close.** #215 has landed, but #186 also carries 0017 §5 errata that are not on `main` (proposals 0012, 0014, 0016; contracts M6, M8, M10, M11). Ruling on them is one long run after OB0. Until then, the lead dispatches none of MT4, H3a, CP1, K3 or K4. Nothing on the OB0/OB1 path waits.
@@ -476,7 +482,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; a new A-row from S5a/S5b; the scheduled 2026-11-18 21:00 ET quick check. **Next run should:** read inbox; if #242 has a new head past `c87de10` with the A16 two-line edit, check only that Golden is 24 identical ×3 and the edit is exactly those two lines; A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; a Claude contract-review request on S5b; the owner's next scheduled quick check. **Next run should:** read inbox; check that #242 merged and S5b was dispatched (no re-review of `fd41342`); review any new `claude-review/*` label. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
