@@ -48,6 +48,40 @@ inbox process. Before acting on an event, verify that the PR is still open and n
 `review-ready` is still present, the pinned request matches the live head and the reviewer
 is authorized. A new head requires a new signed request before reapplying the ready label.
 
+## Builder continuation after CI
+
+Continue any independent in-scope work while the needed CLI build or checks run. If results
+are the only thing preventing progress, schedule one continuation in the same task session
+for the expected finish time, using the observed duration or a reasonable documented estimate.
+Record the task/PR, head, run link or local job ID and next action. The continuation checks
+that the head and writer still match, reads the result once, then carries out the next
+authorized action. Repeat for later testing in the same active task. Replace an existing
+pending wake for that task and clear it at completion, reassignment or a real blocker.
+If scheduling is unavailable, leave a signed handoff with the exact resume trigger. A local
+CLI job can be scheduled only where the job and its output survive the wake.
+No recurring polling, automatic CI reruns, extra correction rounds or new task authority.
+
+## Intentional Architect wake
+
+The [Architect inbox](ARCHITECT_INBOX.md) is the source of truth. File ordinary questions and
+review conditions there or on the task as applicable. They do not wake the Architect.
+
+The delivery lead may post one new comment on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) with exact first line
+`/architect-run`, followed by the relevant inbox IDs/PRs, pinned evidence, which work waits
+and why the existing reviewer or next planned Architect run is insufficient. Use it for a
+critical-path decision that cannot wait or a useful batch of ready Architect-only work.
+Check for a pending wake covering that work first. Urgent rows should already be in the
+inbox with their routing labels. Builders and reviewers ask the lead, who decides whether
+to send the combined wake. This is separate from `review-ready` dispatch to reviewers.
+
+If the Claude app exposes GitHub issue-comment events, configure `issue_comment.created`
+for this repo, issue 265, exact first line and an allowlisted sender. Ignore PR comments,
+edits, other issue numbers and unapproved senders. Deduplicate by comment ID. If the app
+offers only broad comment triggers, use a filter before invocation or keep the wake manual.
+A shared GitHub login cannot enforce a lead-only boundary. Use a distinct lead sender for
+technical enforcement. The owner configures the consumer. Codex can post the matching
+comment after setup is confirmed.
+
 ## Templates
 
 **Milestone contract**
