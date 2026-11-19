@@ -5,6 +5,50 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Cloud-1 delivery sync — 2026-11-18 19:33 EST
+
+Lab only. The cloud checkout is the frozen original repository; all work in this run used
+the connected GitHub API against `kalharbi11/wirescape-lab`. Shared usage/reset data is
+unavailable in this cloud session (unknown, not zero). Quick check expanded for concrete
+queue/label/wiring blockers; no product edits, device work, chat dispatch or CI polling.
+
+- Read reviewer #246's merged instruction update: Architect asks require BOTH an Open inbox
+  row and needs/architect, exact base/head and criteria; new heads renew the row/label.
+  Reviewer-level requests remain label-only. No request exists only in this chat.
+- Merged stale pending handoff #248 at `3793d65` after reviewing its docs-only diff and
+  successful exact-head Lab 44405859334. Architect decisions on main are preserved.
+- B4 #234/#242 head `fd413424197cec2f4ae04c7c866636d4483e41ed`: all five recorded workflows
+  completed successfully (Lab, Golden, Ir, paired-stage, Offline). Source/numeric artifact
+  review remains necessary. Both issue and PR move to status/review; PR keeps
+  claude-review/reviewer. No new design ruling is requested: A16 is cleared.
+  SR6 says A16-ordered work consumes no ordinary round: S5a 0/2, historical S4 2/2.
+  S5b/S6 stay closed until actual S5a merge. B4 next run: reconcile PR body with latest Result,
+  complete evidence1–5 and address independent review; no new stage.
+- B2 #240/#249 `de48378`: granted SR8 NEW dedicated ob-e2-240-smoke.yml, one matrix job,
+  exact-head read-only runs, full 136-case production smoke with no hidden failures.
+  Shared ci.yml/CMake remain locked. Issue/PR status/in-progress, B2 owner on both.
+  Existing green workflows do NOT execute the new smoke. #209 remains parked.
+- B1 #207/#214 `0b6e722`: granted SR8 NEW dedicated ob-c-a10.yml, one job with actual
+  Playwright trace/native replay, dependencies and real execution. No shared CMake/ci.yml
+  or sidecar grant. Complete full panic/frame identity and every gate first; buffer wall-time
+  remains unmeasured until real independent marks exist. Same writer/PR, ordinary ledger 1/2.
+  PR now matches issue status/in-progress and owner; no OB-c acceptance or source-fix grant.
+- B3 #243 remains the OB0 critical path: no PR/Result visible. Owner should run B3 on that
+  existing Reverb-only task; no new retry or reassignment performed by cloud.
+- Architect action index: #242 exact-head Claude reviewer review (Architect may fulfill it);
+  no new Architect-only now ruling. A3 stays later/OB1; A4/#186 stays after OB0 and before
+  MT4/H3a/CP1/K3/K4. Inbox sync explicitly separates this from cleared A14/A16.
+
+Next owner runs: B1/B2/B3/B4 on the tasks above; Claude reviewer on #242.
+OB0 remaining: #243 S7.2 -> exact-head numeric/Golden/Ir/D5 + independent review ->
+lead release/install check and immutable owner-build-0 tag. Aim 1–2 days only if those gates clear;
+OB1's serial migration is not a 1–2 day commitment. Cloud cannot verify bench-release binary
+attachments in this run; earlier verified evidence is retained, not re-certified here.
+Future handoffs must update CURRENT + affected inbox row + task/PR labels together; until notes
+merge, link the unmerged handoff explicitly. SR6/8/13/19; no changed gates or acceptance.
+
+Signed: codex-lead, 2026-11-18, 19:33 EST
+
 ## Delivery update — 2026-11-18 16:51 EST
 
 The 13:00 wake was delivered at 16:48 EST. The Architect's 10:07 and 13:10 decisions below

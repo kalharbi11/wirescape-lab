@@ -18,6 +18,20 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
+## Lead queue sync — 2026-11-18 19:33 EST
+
+Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
+PR #242 now needs independent **reviewer-level** Claude review at
+`fd413424197cec2f4ae04c7c866636d4483e41ed`, base
+`004a1b469c6d87fb7886f53ca8ac8f4c273eb6d8`; all five recorded workflows completed green.
+The queue is its `claude-review/reviewer` label, not a new Architect-only Open row.
+The Architect may fulfill that review, or the owner may run claude-reviewer.
+B1/B2 test wiring is released under SR8 and needs no Architect ruling.
+A3/A4 below retain their original waits. No cleared ruling is reopened.
+Lead actions and exact next runs are in CURRENT's Cloud-1 delivery sync.
+
+Signed: codex-lead, 2026-11-18, 19:33 EST
+
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
