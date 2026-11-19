@@ -1,16 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-19, 04:05 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-19 14:32 EST. The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · patch tools / Studio | [#259](https://github.com/kalharbi11/wirescape-lab/issues/259) OB-a2, in progress, PR pending | Add the owner-folder round-trip mode. Verify unchanged input hashes, ignored reports and existing bundled/config-shape coverage. | [#192](https://github.com/kalharbi11/wirescape-lab/issues/192) Reload engine waits for lead release of the Studio/Desktop lane after higher priority work. OB-a3 in [#203](https://github.com/kalharbi11/wirescape-lab/issues/203) needs the native/document writer and its own task. |
-| **B2** `gpt-builder2` · fixtures / evidence | [#207](https://github.com/kalharbi11/wirescape-lab/issues/207) / [#214](https://github.com/kalharbi11/wirescape-lab/pull/214) A10, `b6900c1` | [Final SR6(b) packet](https://github.com/kalharbi11/wirescape-lab/pull/214#issuecomment-7004613519): fix only the Node 22 JSON import attribute. Report actual Studio inventory and A10 results. Ledger 2/2 plus this packet. Buffer wall time still needs independent marks. Stop if the packet fails. | [#209](https://github.com/kalharbi11/wirescape-lab/issues/209) / [#216](https://github.com/kalharbi11/wirescape-lab/pull/216) UI timing facts remain parked behind A10's disposition and a lead release. Architect sets OB-f2 targets from measured facts. |
-| **B3** `gpt-builder3` · module DSP | [#243](https://github.com/kalharbi11/wirescape-lab/issues/243) / [#255](https://github.com/kalharbi11/wirescape-lab/pull/255) Reverb S7.2, `f314b85` | [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/255#issuecomment-7004276611): corrected Lab and original three-platform Golden passed. Matched full-mode MO is open. Lead verifies/publishes the D5 audio and reconciles the later Windows base-build failure. Queue independent review at readiness. Ledger 1/2. | [#202](https://github.com/kalharbi11/wirescape-lab/issues/202) sound queue: S7.3/S7.5/S7.6 after dispatch, S7.7–S7.9 follow S6 and module dependencies. S7.2 is the OB0 priority. |
-| **B4** `gpt-builder4` · engine / sidecar | [#253](https://github.com/kalharbi11/wirescape-lab/issues/253) / [#261](https://github.com/kalharbi11/wirescape-lab/pull/261) S5b, `e621863` | [Checkpoint](https://github.com/kalharbi11/wirescape-lab/pull/261#issuecomment-7004404418): correction 1/2 fixed a returned-filter compile error. Collect evidence 1–5 and request independent Claude review against A17 and M1. A17 excludes CMake. | [#199](https://github.com/kalharbi11/wirescape-lab/issues/199) S6 waits for reviewed S5b merge and an announced rename window. Then [#200](https://github.com/kalharbi11/wirescape-lab/issues/200) M3/M4 serial engine work follows the roadmap. |
+| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 | OB-a3 inventory signed on #203. #273 merged at `73e462fd`; resume the existing #263 branch with a mechanical main sync, unchanged packet, 1/2 ledger, exact Windows Lab and owner-folder SR8 results. | OB-a3 implementation requires separate release. Stop on sync conflicts. |
+| **B2** `gpt-builder2` · fixtures / evidence | #226 / #230 Macro archive, read-only | Signed retention finding delivered. Prepare SHA-256/size-verified copies or a precise retrieval handoff before Nov 24 (earlier ARM64 expiry 22:28 EST). No release upload, recapture or #268 source writes. | #209 / #216 remain parked pending lead disposition. Lead owns archive publication. |
+| **B3** `gpt-builder3` · module DSP | #243 / #255 | #274 merged, D5 attached, and #198 readiness map signed. #273 merged. Resume existing branch with mechanical main sync; require all three Reverb blobs unchanged from `f314b859`, Reverb-only diff and new-head Lab/Golden. Ledger 1/2. | Repin source evidence and dispatch independent review only after new checks; never relabel prior capture. OB0 install/tag follows merge. |
+| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | Nested map signed; public header destination approved with same bytes and include spelling. Internal-only headers follow owning components. Read-only collision and active-consumer manifest released. | S6 implementation waits for OB0 tag, dispositions, exact scope and ≥24h notice. |
+| **B5** `gpt-builder5` · bounded support | #275 A10 read-only diagnosis | #216 evidence check delivered. A10 `57db5997` passed Echo/Scene in artifact 14564399481. Diagnose panic PCM and Groove STOP only. Lead retains source; no tests, thresholds, or reruns released. | Post two bounded follow-up proposals with concrete evidence. Separate #216 owner/Architect target decision remains pending. |
 
 ## How the lead maintains this table
 
@@ -25,7 +26,7 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - Remove finished tasks after merge or final disposition. Keep final evidence on GitHub
   and completed milestones on the roadmap. Update issue and PR labels in the same handoff.
   See [label rules](README.md#github-labels-for-work-and-review).
-- In cloud, give the owner one B1–B4 start list. Resume a CI-dependent task when its
+- In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
   results enable a new action.
 
 Signed: codex-lead, 2026-11-19, 04:05 EST

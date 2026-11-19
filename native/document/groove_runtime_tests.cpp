@@ -78,26 +78,24 @@ static uint32_t note_events(AppEngine *engine) {
           "native notes telemetry tap configured");
     return count;
 }
-static uint32_t param_id(AppEngine *engine, uint32_t slot) {
+static const char *param_id(AppEngine *engine, uint32_t slot) {
     for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {
         const auto *m = app_engine_module(engine, i);
-        if (std::string(m->id) == "sequencing.groove") return m->params[slot].legacy_index;
+        if (std::string(m->id) == "sequencing.groove") return m->params[slot].id;
     }
     throw std::runtime_error("Groove not registered in native catalogue");
 }
-static uint32_t run_id(AppEngine *engine) { return param_id(engine, 0); }
+static const char *run_id(AppEngine *engine) { return param_id(engine, 0); }
 // A rendered graph must receive live parameter events. initialize_parameter
 // is quiescent/position-zero only, even if this module is currently stopped.
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): parameter id, then value.
-static void run_command(AppEngine *e, uint32_t param, float value) {
-    ws_event event{};
+static void run_command(AppEngine *e, const char *param, float value) {
+    ws2_event event{};
     event.struct_size = sizeof(event);
-    event.type = WS_PARAMETER;
-    event.node_id = 1;
-    event.parameter_id = param;
+    event.type = WS2_PARAM;
     event.value = value;
-    event.frame = app_engine_native(e).meter().frame;
-    check(app_engine_enqueue(e, &event) == WS_OK, "existing ingress accepts run command");
+    check(app_engine_enqueue(e, 1, event, app_engine_native(e).meter().frame, 0, param) == WS2_OK,
+          "existing ingress accepts run command");
 }
 static std::vector<float> trace(AppEngine *e, uint32_t count, uint32_t block, bool verify_cv = false) {
     std::vector<float> out;
@@ -113,7 +111,7 @@ static std::vector<float> trace(AppEngine *e, uint32_t count, uint32_t block, bo
             result = app_engine_render(e, audio.data(), n);
             allocations = watch.allocations();
         }
-        check(result == WS_OK && allocations == 0, "real render succeeds with no allocation");
+        check(result == WS2_OK && allocations == 0, "real render succeeds with no allocation");
         auto &graph = app_engine_native(e);
         for (uint32_t i = 0; i < n; ++i) {
             float g = graph.output_sample(1, 1, 0, i);
@@ -196,7 +194,7 @@ static void test_rate_block(AppEngine *cat, double rate, uint32_t block) {
     check(bool(live) && bool(reload), "structured pattern loads into real engine");
     check(trace(live.get(), block, block)[0] == 0.f, "fresh patch starts stopped");
     check(trace(reload.get(), block, block)[0] == 0.f, "reloaded patch starts stopped");
-    uint32_t id = run_id(live.get());
+    const char *id = run_id(live.get());
     run_command(live.get(), id, 1.f);
     run_command(reload.get(), id, 1.f);
     const double period = rate / 8.; // 120 BPM sixteenth note
@@ -211,7 +209,7 @@ static void test_rate_block(AppEngine *cat, double rate, uint32_t block) {
               at(8) == 0.f && at(31) == 0.f && at(32) == 1.f,
           "note/rest/tie/wrap transition frames");
     // S1 stop queues to the next common 32-step boundary, never acts as S0 run-low.
-    const uint32_t stop = param_id(live.get(), 1);
+    const char *stop = param_id(live.get(), 1);
     run_command(live.get(), stop, 1.f);
     check(trace(live.get(), 1, 1)[0] == 1.f, "queued STOP does not truncate step 1");
     const auto until_stop = trace(live.get(), static_cast<uint32_t>(std::ceil(period * 32)) + 2, block);
@@ -254,7 +252,7 @@ static void advance(AppEngine *e, uint32_t frames, uint32_t block) {
             status = app_engine_render(e, audio.data(), n);
             allocated = watch.allocations();
         }
-        check(status == WS_OK && allocated == 0, "S1 render is bounded and allocation-free");
+        check(status == WS2_OK && allocated == 0, "S1 render is bounded and allocation-free");
         wirescape::engine2::Outgoing out;
         while (app_engine_native(e).pop_egress(out))
             check(out.node == 1 && (out.port == 4 || out.port == 9) &&

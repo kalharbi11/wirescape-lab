@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
-#include "wirescape/engine.h"
+#include <cstdint>
 #include "engine2.h"
-// Internal native-only app facade; event compatibility retires in S5b.
+// Internal native-only facade; events and statuses use native ABI2 types.
 struct AppEngine;
 AppEngine* app_engine_create(const wirescape::engine2::Config*);
 AppEngine* app_engine_create_config(const wirescape::engine2::Config*,const wirescape::engine2::Config*);
@@ -19,8 +19,12 @@ int app_engine_connect(AppEngine*,uint32_t,uint32_t,uint32_t,uint32_t);
 int app_engine_prepare(AppEngine*,uint32_t,uint32_t);
 // Control thread only; candidate is prepared, live rendering stays on its owner.
 int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns);
-int app_engine_initialize_parameter(AppEngine*,uint32_t,uint32_t,float);
-int app_engine_enqueue(AppEngine*,const ws_event*);
+// Resolve string parameter IDs on the control side, never in the render callback.
+int app_engine_initialize_parameter(AppEngine*,uint32_t,const char*,float);
+int app_engine_enqueue(AppEngine*,uint32_t,const ws2_event&,uint64_t frame,uint64_t generation,
+                       const char *parameter_id=nullptr);
+// Preserve the gate -> envelope/keyboard rule, never oscillator pitch.
+int app_engine_enqueue_gate(AppEngine*,uint32_t,float,uint64_t frame,uint64_t generation,uint32_t source_id=0);
 int app_engine_render(AppEngine*,float*,uint32_t);
 int app_engine_render_channels(AppEngine*,float*const*,uint32_t,uint32_t);
 // Live audio callbacks: publish the callback's steady-clock time as the D13 anchor so

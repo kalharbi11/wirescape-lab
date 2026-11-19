@@ -75,16 +75,16 @@ static void native_catalogue_and_replan(){
 
     // Keep the facade's live-replan, state/generation and callback allocation
     // coverage; only the deleted ABI1 fixture/legacy-ID branches are removed.
-    check(app_engine_add_node(e.get(), 9, "essentials.vca") == WS_OK &&
-          app_engine_prepare(e.get(), 9, 0) == WS_OK, "native live graph");
+    check(app_engine_add_node(e.get(), 9, "essentials.vca") == WS2_OK &&
+          app_engine_prepare(e.get(), 9, 0) == WS2_OK, "native live graph");
     float samples[128]{};
-    check(app_engine_render(e.get(), samples, 128) == WS_OK &&
+    check(app_engine_render(e.get(), samples, 128) == WS2_OK &&
           std::all_of(samples, samples + 128, [](float v) { return v == 0.f; }),
           "native silent input renders zero");
     auto candidate = make();
-    check(app_engine_add_node(candidate.get(), 9, "essentials.vca") == WS_OK &&
-          app_engine_add_node(candidate.get(), 10, "essentials.noise") == WS_OK &&
-          app_engine_prepare(candidate.get(), 9, 0) == WS_OK,
+    check(app_engine_add_node(candidate.get(), 9, "essentials.vca") == WS2_OK &&
+          app_engine_add_node(candidate.get(), 10, "essentials.noise") == WS2_OK &&
+          app_engine_prepare(candidate.get(), 9, 0) == WS2_OK,
           "native candidate stages unrelated node addition");
     std::atomic<bool> running{true}, failed{false};
     std::atomic<unsigned> blocks{0};
@@ -99,7 +99,7 @@ static void native_catalogue_and_replan(){
                 status = app_engine_render(e.get(), out, 128);
                 live_allocations += watch.allocations();
             }
-            if (status != WS_OK) failed = true;
+            if (status != WS2_OK) failed = true;
             last.store(out[127]);
             ++blocks;
             std::this_thread::yield();
@@ -121,7 +121,7 @@ static void native_catalogue_and_replan(){
     };
     wait(2);
     const auto generation = app_engine_generation(e.get());
-    check(app_engine_replan(e.get(), candidate.get(), 8000000) == WS_OK,
+    check(app_engine_replan(e.get(), candidate.get(), 8000000) == WS2_OK,
           app_engine_error(e.get()));
     candidate.reset(); // Static native descriptors must outlive staged graph.
     wait(blocks.load() + 5);
@@ -135,15 +135,15 @@ static void native_catalogue_and_replan(){
           "staged native node remains after candidate retirement");
 }
 static void host_notes(){
- auto e=make();check(app_engine_build_essentials(e.get(),"")==WS_OK,"build app graph");
+ auto e=make();check(app_engine_build_essentials(e.get(),"")==WS2_OK,"build app graph");
  auto& engine=app_engine_native(e.get());
  for(uint32_t node=1;node<=4;++node)check(engine.descriptor(node)&&engine.descriptor(node)->abi_version==2,"native ABI2 Essentials");
- for(auto node:{1u,2u}){ws_event on{sizeof(on),0,node,WS_NOTE_ON,0,69,1,71,app_engine_generation(e.get())};check(app_engine_enqueue(e.get(),&on)==WS_OK,"host note on");}
- for(auto node:{1u,2u}){ws_event off{sizeof(off),4800,node,WS_NOTE_OFF,0,69,1,71,app_engine_generation(e.get())};check(app_engine_enqueue(e.get(),&off)==WS_OK,"host note off");}
+ for(auto node:{1u,2u}){ws2_event on{};on.struct_size=sizeof(on);on.type=WS2_NOTE_ON;on.value=69;on.source_id=1;on.note_id=71;check(app_engine_enqueue(e.get(),node,on,0,app_engine_generation(e.get()))==WS2_OK,"host note on");}
+ for(auto node:{1u,2u}){ws2_event off{};off.struct_size=sizeof(off);off.type=WS2_NOTE_OFF;off.value=69;off.source_id=1;off.note_id=71;check(app_engine_enqueue(e.get(),node,off,4800,app_engine_generation(e.get()))==WS2_OK,"host note off");}
  float out[128],previous=0;double peak=0,tail=0;size_t allocations=0;unsigned crossings=0;
  for(uint32_t frame=0;frame<48000;frame+=128){uint32_t count=std::min(128u,48000-frame);int result;
   {allocation_watch::Scope watch;result=app_engine_render(e.get(),out,count);allocations+=watch.allocations();}
-  check(result==WS_OK,"render host-note graph");
+  check(result==WS2_OK,"render host-note graph");
   for(uint32_t i=0;i<count;++i){check(std::isfinite(out[i]),"finite callback output");peak=std::max(peak,double(std::abs(out[i])));if(frame+i>=24000)tail=std::max(tail,double(std::abs(out[i])));
    float oscillator=engine.output_sample(1,0,0,i);if(frame+i<4800&&previous<0&&oscillator>=0)++crossings;previous=oscillator;
   }
