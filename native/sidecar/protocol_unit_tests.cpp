@@ -368,19 +368,17 @@ int run_tests() {
     std::atomic<uint64_t> faults{0};
     check(wirescape::audio::render_callback_block(engine.get(), scratch, 128, output_block, 128, app_engine_clock_ns(),
                                                   faults));
-    ws_event parameter{};
+    ws2_event parameter{};
     parameter.struct_size = sizeof(parameter);
-    parameter.type = WS_PARAMETER;
-    parameter.node_id = 1;
-    // The native descriptor's stable legacy_index, independent of catalogue order.
-    parameter.parameter_id = app_engine_native_descriptor(engine.get(), "essentials.vco")->params[0].legacy_index;
-    parameter.generation = app_engine_generation(engine.get());
+    parameter.type = WS2_PARAM;
+    const char *parameter_id = app_engine_native_descriptor(engine.get(), "essentials.vco")->params[0].id;
+    const auto parameter_generation = app_engine_generation(engine.get());
     allocation_watch::count.store(0);
     allocation_watch::enabled.store(true);
     bool okay = true;
     for (int i = 0; i < 1000; ++i) {
         parameter.value = float(220 + i % 100);
-        okay = okay && app_engine_enqueue(engine.get(), &parameter) == WS_OK;
+        okay = okay && app_engine_enqueue(engine.get(), 1, parameter, 0, parameter_generation, parameter_id) == WS2_OK;
         okay = okay && wirescape::audio::render_callback_block(engine.get(), scratch, 128, output_block, 128,
                                                                app_engine_clock_ns(), faults);
     }
@@ -399,12 +397,12 @@ int run_tests() {
     float dry[128]{}, wet[128]{};
     float *dry_rows[] = {dry}, *wet_rows[] = {wet};
     auto render = [&](AppEngine *left, AppEngine *right) {
-        check(app_engine_render_channels(left, wet_rows, 1, 128) == WS_OK);
-        check(app_engine_render_channels(right, dry_rows, 1, 128) == WS_OK);
+        check(app_engine_render_channels(left, wet_rows, 1, 128) == WS2_OK);
+        check(app_engine_render_channels(right, dry_rows, 1, 128) == WS2_OK);
     };
     auto render_at = [&](uint64_t callback_ns) {
-        check(app_engine_render_live(faded.get(), wet_rows, 1, 128, callback_ns) == WS_OK);
-        check(app_engine_render_channels(reference.get(), dry_rows, 1, 128) == WS_OK);
+        check(app_engine_render_live(faded.get(), wet_rows, 1, 128, callback_ns) == WS2_OK);
+        check(app_engine_render_channels(reference.get(), dry_rows, 1, 128) == WS2_OK);
     };
     render(faded.get(), reference.get()); // both graphs initially at unity
     app_engine_begin_master_fade_out(faded.get());
@@ -440,12 +438,12 @@ int run_tests() {
     check(requested_ns > 1 && app_engine_master_fade_out_started_ns(reference.get()) == 0);
     allocation_watch::count.store(0);
     allocation_watch::enabled.store(true);
-    const bool overlap_ok = app_engine_render_live(reference.get(), dry_rows, 1, 128, requested_ns - 1) == WS_OK;
+    const bool overlap_ok = app_engine_render_live(reference.get(), dry_rows, 1, 128, requested_ns - 1) == WS2_OK;
     allocation_watch::enabled.store(false);
     check(overlap_ok && allocation_watch::count.load() == 0);
     check(app_engine_master_fade_out_started_ns(reference.get()) == requested_ns);
     // The once-only render publication must not move if another faded block arrives.
-    check(app_engine_render_live(reference.get(), dry_rows, 1, 128, requested_ns + 1000000) == WS_OK);
+    check(app_engine_render_live(reference.get(), dry_rows, 1, 128, requested_ns + 1000000) == WS2_OK);
     check(app_engine_master_fade_out_started_ns(reference.get()) == requested_ns);
 
     // No callback: zero timestamp, no synthetic fade-start proof, bounded watchdog.

@@ -8,10 +8,12 @@
 #include <cmath>
 #include <cstring>
 #include <deque>
+#include <functional>
 #include <map>
+#include <string>
 #include <vector>
 struct AppEngine {
- struct Entry { const ws2_descriptor* native=nullptr; };
+ struct Entry { const ws2_descriptor* native=nullptr; std::map<std::string,uint32_t,std::less<>> by_id; };
  std::deque<Entry> entries;std::map<uint32_t,const Entry*> nodes;
  // Destroy the scheduler before the metadata and libraries its nodes borrow.
  wirescape::engine2::Engine engine;
@@ -37,6 +39,7 @@ struct AppEngine {
      for (auto *d : wirescape::app::builtin_modules()) {
          entries.emplace_back();
          entries.back().native = d;
+         for (uint32_t i=0; i<d->param_count; ++i) entries.back().by_id.emplace(d->params[i].id,i);
      }
  }
  const Entry* find(const char* id)const{for(auto& e:entries)if(std::strcmp(e.native->id,id)==0)return &e;return nullptr;}
@@ -61,53 +64,81 @@ const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const cha
     return entry ? entry->native : nullptr;
 }
 int app_engine_add_node(AppEngine*e,uint32_t id,const char*type){return app_engine_add_node_config(e,id,type,{});}
-int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS_NOT_FOUND;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS_OK:WS_GRAPH;}
-int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS_OK:WS_GRAPH;}
-int app_engine_prepare(AppEngine*e,uint32_t n,uint32_t p){return e->engine.output(n,p,0)&&e->engine.prepare()?WS_OK:WS_GRAPH;}
+int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS2_UNSUPPORTED;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS2_OK:WS2_STATE;}
+int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS2_OK:WS2_STATE;}
+int app_engine_prepare(AppEngine*e,uint32_t n,uint32_t p){return e->engine.output(n,p,0)&&e->engine.prepare()?WS2_OK:WS2_STATE;}
 int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns) {
-    if (!live || !candidate || live == candidate) return WS_INVALID;
+    if (!live || !candidate || live == candidate) return WS2_INVALID;
     try {
         std::map<uint32_t, const AppEngine::Entry *> nodes;
         for (auto &item : candidate->nodes) {
             const auto *entry = live->find(item.second->native->id);
             if (!entry || entry->native != item.second->native) {
                 live->error = "Module catalogue differs from live graph";
-                return WS_GRAPH;
+                return WS2_STATE;
             }
             nodes.emplace(item.first, entry);
         }
-        if (!live->engine.replan(candidate->engine, timeout_ns)) return WS_GRAPH;
+        if (!live->engine.replan(candidate->engine, timeout_ns)) return WS2_STATE;
         live->nodes.swap(nodes);
         live->error.clear();
-        return WS_OK;
+        return WS2_OK;
     } catch (const std::exception &e) {
         live->error = e.what();
-        return WS_GRAPH;
+        return WS2_STATE;
     }
 }
-int app_engine_initialize_parameter(AppEngine*e,uint32_t n,uint32_t p,float v){auto it=e->nodes.find(n);if(it==e->nodes.end())return WS_NOT_FOUND;auto*d=it->second;for(uint32_t i=0;i<d->native->param_count;++i)if(d->native->params[i].legacy_index==p)return e->engine.set_parameter(n,i,v)?WS_OK:WS_INVALID;return WS_INVALID;}
-int app_engine_enqueue(AppEngine*e,const ws_event*v){
- if(!e||!v)return WS_INVALID;
- ws2_event x{};x.struct_size=sizeof(x);x.source_id=v->source_id;x.note_id=static_cast<int32_t>(v->note_id);x.channel=0;x.key=static_cast<int32_t>(v->value);x.value=1;
- if(v->type==WS_PARAMETER){
-  auto it=e->nodes.find(v->node_id);if(it==e->nodes.end())return WS_NOT_FOUND;
-  auto*d=it->second;uint32_t index=0;while(index<d->native->param_count&&d->native->params[index].legacy_index!=v->parameter_id)++index;
-  if(index==d->native->param_count)return WS_INVALID;x.type=WS2_PARAM;x.index=index;x.value=v->value;
- }
- else if(v->type==WS_GATE){
-  // ABI1 gate controls envelopes, never oscillator pitch. Preserve that routing.
-  auto it=e->nodes.find(v->node_id);if(it==e->nodes.end())return WS_NOT_FOUND;
-  if (it->second->native && std::strcmp(it->second->native->id, "essentials.adsr") != 0 &&
-      std::strcmp(it->second->native->id, "host.keyboard") != 0)
-      return WS_OK;
-  x.type=v->value>0?WS2_NOTE_ON:WS2_NOTE_OFF;x.key=60;
- }else x.type=v->type==WS_NOTE_ON?WS2_NOTE_ON:WS2_NOTE_OFF;
- int r=e->engine.enqueue(0,v->node_id,WS2_DIRECT_PORT,x,v->frame,wirescape::engine2::Timing::Frames,v->generation);
- return r==WS2_OK?WS_OK:r==WS2_CAPACITY?WS_CAPACITY:WS_INVALID;
+int app_engine_initialize_parameter(AppEngine*e,uint32_t node,const char*id,float value) {
+ if(!e||!id)return WS2_INVALID;
+ const auto it=e->nodes.find(node);
+ if(it==e->nodes.end())return WS2_UNSUPPORTED;
+ const auto slot=it->second->by_id.find(id);
+ if(slot==it->second->by_id.end())return WS2_INVALID;
+ return e->engine.set_parameter(node,slot->second,value)?WS2_OK:WS2_INVALID;
+}
+int app_engine_enqueue(AppEngine*e,uint32_t node,const ws2_event&event,uint64_t frame,
+                       uint64_t generation,const char*parameter_id) {
+ if(!e)return WS2_INVALID;
+ if(event.type!=WS2_NOTE_ON&&event.type!=WS2_NOTE_OFF&&event.type!=WS2_PARAM)return WS2_INVALID;
+ ws2_event native{};
+ native.struct_size=sizeof(native);
+ native.source_id=event.source_id;
+ native.note_id=event.note_id;
+ native.channel=0;
+ native.key=static_cast<int32_t>(event.value);
+ native.value=1;
+ if(event.type==WS2_PARAM) {
+  if(!parameter_id)return WS2_INVALID;
+  const auto node_it=e->nodes.find(node);
+  if(node_it==e->nodes.end())return WS2_UNSUPPORTED;
+  const auto slot=node_it->second->by_id.find(parameter_id);
+  if(slot==node_it->second->by_id.end())return WS2_INVALID;
+  native.type=WS2_PARAM; native.index=slot->second; native.value=event.value;
+ } else native.type=event.type;
+ const int result=e->engine.enqueue(0,node,WS2_DIRECT_PORT,native,frame,
+                                    wirescape::engine2::Timing::Frames,generation);
+ return result==WS2_OK?WS2_OK:result==WS2_CAPACITY?WS2_CAPACITY:WS2_INVALID;
+}
+static bool routes_gate_to_envelope(const ws2_descriptor *native) {
+ return native && (!std::strcmp(native->id,"essentials.adsr") ||
+                   !std::strcmp(native->id,"host.keyboard"));
+}
+int app_engine_enqueue_gate(AppEngine*e,uint32_t node,float value,uint64_t frame,
+                            uint64_t generation,uint32_t source_id) {
+ if(!e)return WS2_INVALID;
+ const auto it=e->nodes.find(node);
+ if(it==e->nodes.end())return WS2_UNSUPPORTED;
+ if(!routes_gate_to_envelope(it->second->native))return WS2_OK;
+ ws2_event native{};
+ native.struct_size=sizeof(native);native.type=value>0?WS2_NOTE_ON:WS2_NOTE_OFF;
+ native.source_id=source_id;native.note_id=0;native.channel=0;native.key=60;native.value=1;
+ const int result=e->engine.enqueue(0,node,WS2_DIRECT_PORT,native,frame,
+                                    wirescape::engine2::Timing::Frames,generation);
+ return result==WS2_OK?WS2_OK:result==WS2_CAPACITY?WS2_CAPACITY:WS2_INVALID;
 }
 int app_engine_render_live(AppEngine *e, float *const *out, uint32_t channels, uint32_t n, uint64_t callback_time_ns) {
     int r = e->engine.render(out, channels, n, callback_time_ns);
-    if (r != WS2_OK) return WS_CAPACITY;
+    if (r != WS2_OK) return WS2_CAPACITY;
     float p = 0;
     const auto fade = e->master_fade.load(std::memory_order_acquire);
     if (fade == 1 && callback_time_ns != 0 && callback_time_ns != UINT64_MAX) {
@@ -157,7 +188,7 @@ int app_engine_render_live(AppEngine *e, float *const *out, uint32_t channels, u
     }
     e->peak.store(p);
     e->blocks.fetch_add(1);
-    return WS_OK;
+    return WS2_OK;
 }
 void app_engine_begin_master_fade_out(AppEngine *e) noexcept {
     e->master_fade_out_started_ns.store(0, std::memory_order_relaxed);
@@ -195,13 +226,13 @@ int app_engine_render_channels(AppEngine *e, float *const *out, uint32_t channel
     return app_engine_render_live(e, out, channels, n, UINT64_MAX);
 }
 int app_engine_render(AppEngine*e,float*out,uint32_t n){float* rows[]={out};return app_engine_render_channels(e,rows,1,n);}
-int app_engine_reset(AppEngine*e){e->engine.reset();e->peak.store(0);for(auto&c:e->channel_peaks)c.store(0);e->blocks.store(0);return WS_OK;}
+int app_engine_reset(AppEngine*e){e->engine.reset();e->peak.store(0);for(auto&c:e->channel_peaks)c.store(0);e->blocks.store(0);return WS2_OK;}
 float app_engine_channel_peak(const AppEngine*e,uint32_t channel){return e&&channel<AppEngine::meter_channels?e->channel_peaks[channel].load(std::memory_order_relaxed):0.f;}
-int app_engine_activate(AppEngine*){return WS_OK;}
-int app_engine_deactivate(AppEngine*){return WS_OK;}
-int app_engine_panic(AppEngine*e){e->engine.panic();return WS_OK;}
+int app_engine_activate(AppEngine*){return WS2_OK;}
+int app_engine_deactivate(AppEngine*){return WS2_OK;}
+int app_engine_panic(AppEngine*e){e->engine.panic();return WS2_OK;}
 uint64_t app_engine_generation(const AppEngine*e){return e->engine.meter().generation;}
 wirescape::engine2::Meter app_engine_get_meter(const AppEngine*e){return e->engine.meter();}
-int app_engine_build_essentials(AppEngine*e,const char*){return app_engine_add_node(e,1,"essentials.vco")||app_engine_add_node(e,2,"essentials.adsr")||app_engine_add_node(e,3,"essentials.vca")||app_engine_add_node(e,4,"essentials.output")||app_engine_connect(e,1,0,3,0)||app_engine_connect(e,2,0,3,1)||app_engine_connect(e,3,0,4,0)||app_engine_prepare(e,4,0)?WS_GRAPH:WS_OK;}
+int app_engine_build_essentials(AppEngine*e,const char*){return app_engine_add_node(e,1,"essentials.vco")||app_engine_add_node(e,2,"essentials.adsr")||app_engine_add_node(e,3,"essentials.vca")||app_engine_add_node(e,4,"essentials.output")||app_engine_connect(e,1,0,3,0)||app_engine_connect(e,2,0,3,1)||app_engine_connect(e,3,0,4,0)||app_engine_prepare(e,4,0)?WS2_STATE:WS2_OK;}
 
 const char* app_engine_parameter_id(const AppEngine*e,const char*type,uint32_t index){for(auto*d:wirescape::app::builtin_modules())if(!std::strcmp(d->id,type))return index<d->param_count?d->params[index].id:"";auto*d=e->find(type);return d&&index<d->native->param_count?d->native->params[index].id:"";}
