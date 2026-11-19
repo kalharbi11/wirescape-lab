@@ -29,7 +29,7 @@ active chat's family and assigned task. A trigger never grants authority beyond 
 | Trigger | Who | Read first, in order |
 |---|---|---|
 | `architect:run` | Claude Architect (Claude session) | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` "Architect run protocol" (scout: `docs/workflow/ARCHITECT_SCOUT.md`) |
-| `lead:run` (= `lead: run`) | gpt-lead (Codex) | `docs/workflow/CURRENT.md` → `docs/context/CODEX_LEAD.md` → `docs/workflow/OB_PLAN.md` → Cleared rows of `ARCHITECT_INBOX.md` (new rulings) |
+| `lead:run` (= `lead: run`) | gpt-lead (Codex) | [Lead brief](docs/context/CODEX_LEAD.md) → [all four builder rows](docs/workflow/BUILDERS.md) → [roadmap](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) and newly Cleared Architect rows |
 
 **Architect workflow, for every agent (owner, 2026-11-17).** The Architect runs low-effort quick
 checks and escalates only on findings. Ask it by adding a row to `ARCHITECT_INBOX.md` plus the
@@ -38,8 +38,12 @@ Its scheduled check-ins are listed in CURRENT ("Architect schedule"); the lead p
 filing inbox rows before each check-in. The owner granted the Architect full git authority
 (2026-11-17); it still follows contracts, gates and SR rules.
 
-## A builder run = one task and one PR
-1. Read the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
+## Each builder task has one issue, branch and PR
+
+The lead owns the builder queue. Each lead run checks all four lanes and updates next tasks,
+blockers and labels. Builders may pursue multiple explicitly released tasks with disjoint
+writers and cleared dependencies.
+1. Read your row in `docs/workflow/BUILDERS.md`, the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
    relevant files named in the task. Do not pick up the next queued task on your own.
 2. Work on one branch `task/<issue#>-<slug>` and one PR with `Closes #<issue#>`. Reuse that same
    branch and PR for corrections. Respect allowed paths and single-writer areas.
@@ -49,14 +53,12 @@ filing inbox rows before each check-in. The owner granted the Architect full git
    dispatch and merge decisions.
 
 ## Rules
-- **Asking for a Claude review (owner, 2026-11-17):** label the PR with its level, then post one
-  comment naming the base/head SHAs and the invariants or criteria to check.
-  `claude-review/reviewer` = `claude-reviewer` or the Architect may do it (contract-reviews,
-  M-task "Claude review" rows, source/evidence review). `claude-review/architect` = only the
-  Architect (design meaning, reserved items, milestone acceptance; also add `needs/architect` and
-  an inbox row). Re-label after a new head. The reviewer removes the label once it posts its
-  signed review (approval or findings). Leads and Codex agents use these labels and no longer
-  have to ask the owner to assign a Claude reviewer.
+- **Review labels (owner, 2026-11-19):** `review-required` records a merge condition only.
+  `review-ready` is the dispatch signal. Apply it only after the lead validates a review-ready
+  Result, a non-draft PR and relevant evidence at the current head, and posts a request with
+  full base/head SHAs, criteria and the authorized reviewer role. Reviewer eligibility still
+  comes from the contract or explicit owner authorization. Architect-only reviews also need
+  an Open inbox row and `needs/architect`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).

@@ -17,10 +17,10 @@ copyable templates and the label lifecycle.
 
 ## GitHub labels for work and review
 
-Use literal label names. GitHub triggers receive a single label name per event.
-Match `github.event.label.name` exactly, including the slash. Quote the full label when
-using the CLI, for example `gh pr edit 255 --add-label "claude-review/reviewer"` **only when
-a review is ready**. `claude-review` and `reviewer` are retired split names.
+The review labels describe two different states. For the GitHub `pull_request: labeled`
+event, dispatch review only if `github.event.label.name == 'review-ready'`. The former
+`claude-review/reviewer`, `claude-review/architect`, `claude-review` and `reviewer`
+labels are retired. Update any external automation that still matches them.
 
 | Label | When to apply | When to remove |
 |---|---|---|
@@ -28,8 +28,8 @@ a review is ready**. `claude-review` and `reviewer` are retired split names.
 | `status/in-progress` | A released writer has a next action, including a scoped correction. | Replace at review, real blocker or closure. |
 | `status/review` | The builder has a review-ready Result for the current head. | Replace on returned work, blocker or closure. |
 | `status/blocked` | The task cannot proceed. Record the dependency and how it clears. | Replace as soon as the lead releases work again. |
-| `claude-review/reviewer` | Independent Claude review is requested for the current PR head. | Reviewer clears after posting the signed response; lead clears stale requests. |
-| `claude-review/architect` and `needs/architect` | Architect-only review with a corresponding Open inbox row. | Clear when the ruling/review is recorded and the row resolved. |
+| `review-required` | A contract, Architect ruling or owner instruction makes independent review a merge condition. May be recorded before the PR is ready. This label never dispatches review. | Clear after valid approval at the current head, or closure. Restore if the head changes and the gate still applies. |
+| `review-ready` | The lead verified a non-draft PR, the signed Result and evidence needed for review at its current head. After posting the pinned request, add this label to the PR to dispatch. Both review labels may coexist. | Clear after a signed result, loss of readiness, head change, cancellation or closure. Keep `review-required` on findings or missing evidence. |
 | `needs/architect` | Architect ruling or acceptance with an Open inbox row. | Clear when the ruling/acceptance is recorded and the row resolved. |
 
 Update labels when ownership, state, PR head or review routing changes. At each lead
@@ -38,12 +38,15 @@ label on each active item and close out stale operational labels when work finis
 The issue and PR may differ only when their states actually differ; note the reason
 in the queue. Preserve unrelated labels.
 
-For a review, record the full base and head SHAs, the contract criteria and open evidence
-in a PR comment, then apply the exact review label as the dispatch signal. On a new head,
-clear the old signal and post the new pinned request before reapplying it when ready.
-A draft lacking review-ready evidence should stay out of the review queue. An Architect-only
-ask also needs its [inbox row](ARCHITECT_INBOX.md). In trigger consumers, check the exact label
-and current head again before starting, since a queued event can become stale.
+For a review request, name the authorized reviewer or role, full base/head SHAs, contract
+criteria and the evidence to check. If the contract needs Claude or reserves a review for
+the Architect, only that role qualifies unless the owner explicitly changes the requirement.
+An Architect-only review also needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md)
+when it is actually dispatched. Record planning conditions on the task and in the builder
+queue without requesting an Architect run. Rulings and milestone acceptance keep their own
+inbox process. Before acting on an event, verify that the PR is still open and non-draft,
+`review-ready` is still present, the pinned request matches the live head and the reviewer
+is authorized. A new head requires a new signed request before reapplying the ready label.
 
 ## Templates
 

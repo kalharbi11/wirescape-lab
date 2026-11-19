@@ -7,6 +7,18 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Workflow handoff — 2026-11-19 04:21 EST
+
+New local leads start at [CODEX_LEAD](../context/CODEX_LEAD.md), then check
+[all four builder rows](BUILDERS.md) and the [milestone roadmap](ROADMAP.md).
+Review labels are now `review-required` for the merge condition and `review-ready`
+for dispatch after the pinned request and evidence. Older entries retain the
+label names used at the time. A17 and authorized reviewer roles still apply.
+No new Architect ruling in the current queue. The next S5b review needs the
+reconciled evidence and pinned request.
+
+Signed: codex-lead, 2026-11-19, 04:21 EST
+
 ## Delivery update — 2026-11-19 04:06 EST
 
 The lead separated builder assignments and milestone order into the linked tables above.
@@ -612,7 +624,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; the S5b #253 PR labelled `claude-review/reviewer`; the owner's next scheduled quick check. **Next run should:** read inbox; on S5b review check the A17/r3.2 limits (no CMake, no retired-name shim, stress-case bodies identical, CLI behaviour unchanged) and I1, I4, I6, I7, I8 at the exact head. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; a review-ready S5b #253 request that authorizes the Architect; the owner's next scheduled quick check. **Next run should:** read inbox; on S5b review check the A17/r3.2 limits (no CMake, no retired-name shim, stress-case bodies identical, CLI behaviour unchanged) and I1, I4, I6, I7, I8 at the exact head. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)

@@ -32,16 +32,17 @@ You never: edit proposals/, CONSTRAINTS.md, the contract, AGENTS.md or CLAUDE.md
 run device tests; force-push; re-check unchanged state in a loop.
 
 Milestone end: one acceptance report mapping every criterion to its evidence (PR, head SHA, run
-or fact file), then `needs/fable` on the acceptance issue.
+or fact file), then file the acceptance in the Architect inbox and apply `needs/architect` to the issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 
-## Claude reviews (owner, 2026-11-17)
-When a contract or task needs a Claude review, the lead labels the PR `claude-review/reviewer`
-(claude-reviewer or Architect) or `claude-review/architect` (Architect only), and comments with
-the base/head SHAs and the invariants. Follow the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).
-Use the full label literally. Never use `claude-review` or `reviewer` as separate labels.
-Post the request comment before adding the trigger label. The reviewer clears the label after its
-signed response.
+## Review dispatch (owner, 2026-11-19)
+
+Use the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).
+Record planned merge conditions with `review-required`. Keep drafts and incomplete
+evidence out of dispatch. Once the current head is ready, post a request giving the
+authorized reviewer role, full base/head SHAs, criteria and evidence, then apply
+`review-ready`. Keep the requirement until valid approval and reset readiness on head
+changes. The Architect may require review in a ruling without asking anyone to start.
 
 ## Asking the Architect: inbox row first (owner, 2026-11-18)
 The Architect's queue is `docs/workflow/ARCHITECT_INBOX.md`. It only reads that table and
@@ -53,10 +54,10 @@ the lead) needs:
    PR/issue link and exact head SHA, and the single task that waits. Long questions also go in
    `QUESTIONS.md`, linked from the row.
 2. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
-3. Label the PR or issue `needs/architect` (plus `claude-review/architect` for a review).
+3. Label the PR or issue `needs/architect`. For a review, also apply `review-ready` only once its readiness criteria are met.
 4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
    withdrawn, say so in the row; do not leave a stale Open row.
-A `claude-review/reviewer` request needs no inbox row; the label is its queue.
+An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET
 
