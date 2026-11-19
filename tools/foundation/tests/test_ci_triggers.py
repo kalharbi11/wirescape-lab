@@ -22,7 +22,7 @@ class CITriggers(unittest.TestCase):
         for name in ("linux-x64", "linux-arm64", "windows-x64", "sanitizers", "studio", "desktop"):
             with self.subTest(name=name):
                 self.assertIn(name, self.workflow)
-        for runner in ("ubuntu-latest", "ubuntu-24.04-arm", "windows-latest"):
+        for runner in ("ubuntu-latest", "ubuntu-24.04-arm", "windows-2022"):
             self.assertIn(runner, self.workflow)
         self.assertNotRegex(self.workflow, r"self-hosted|ci/pi|merge_gate|board\\.py|guard\\.py")
 
