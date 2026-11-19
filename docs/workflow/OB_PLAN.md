@@ -3,6 +3,15 @@
 
 Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
+## Latest dispatch sync — 2026-11-19 03:24 EST
+
+B4 #253 resumes under merged A17/M1 r3.2. B2 released the temporary CMake slot after
+the #214 merge at `a05f2a2`; S5b still excludes CMake. Actual A10 and Lab are running.
+B3 published Reverb correction 1/2 at `f314b85`. OB0 waits for that task's numeric,
+review and release evidence. S6 waits for S5b merge.
+
+Signed: codex-lead, 2026-11-19, 03:24 EST
+
 ## Latest dispatch sync — 2026-11-19 03:14 EST
 
 B3 #255 is in its first correction after the Reverb loudness regression. S7.2 remains the
