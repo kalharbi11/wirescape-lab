@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Milestone roadmap
 
-Updated 2026-11-19, 04:05 EST. This page shows order, completion and the next gate.
+Updated 2026-11-19, 05:59 EST. This page shows order, completion and the next gate.
 [BUILDERS](BUILDERS.md) shows current assignments. [PRIORITY](PRIORITY.md),
 [OB_PLAN](OB_PLAN.md) and the linked contracts control scope and release criteria.
 
@@ -14,8 +14,8 @@ OB1 has a separate engine chain and owner Pi acceptance.
 | Foundation | [M0](milestones/M0.md) measurement floor | Accepted | Fable accepted r3 with stated exceptions. | Retain unmeasured rows when reusing baselines. |
 | Foundation | [CI1](milestones/CI1.md) Lab CI | Accepted | r4 accepted by the Architect. [#172](https://github.com/kalharbi11/wirescape-lab/issues/172) | Future CI work follows priority. |
 | Foundation | [M2](milestones/M2.md) Studio edits and confirmed history | Accepted | r4 accepted under A14. E1b-r and PV1 merged. | M4 E5 owns the edited-subject continuity recheck. M5 owns PV2 follow-ups. |
-| **1** | **[OB0](milestones/OB.md)** first installable Owner Build | **In progress** | M2 E1b-r, M7 T7.0/S7.1/S7.4 and OB-a1 landed. | S7.2 [#255](https://github.com/kalharbi11/wirescape-lab/pull/255) → evidence, review and merge → release/install check → immutable `owner-build-0` tag. |
-| **2a** | [M1](milestones/M1.md) one engine | In progress | S3, S4 and S5a merged. A17 released S5b. | S5b [#261](https://github.com/kalharbi11/wirescape-lab/pull/261) → S6 rename. S6 needs a window announced at least one day ahead and product PRs merged or explicitly parked. OB0 tags before the rename. |
+| **1** | **[OB0](milestones/OB.md)** first installable Owner Build | **In progress** | M2 E1b-r, M7 T7.0/S7.1/S7.4 and OB-a1 landed. | S7.2 [#255](https://github.com/kalharbi11/wirescape-lab/pull/255) → [matched production evidence #267](https://github.com/kalharbi11/wirescape-lab/issues/267), review and merge → release/install check → immutable `owner-build-0` tag. |
+| **2a** | [M1](milestones/M1.md) one engine | In progress | S3, S4, S5a and S5b merged. | S6 rename readiness after [#261](https://github.com/kalharbi11/wirescape-lab/pull/261) merged. S6 needs a window announced at least one day ahead and product PRs merged or explicitly parked. OB0 tags before the rename. |
 | **2b** | [M3](milestones/M3.md) engine split and transport | Queued | S6 is the next engine prerequisite. | T1.6a → T1.6b → T1.6c → TR1e. Reload engine and module build follow their own task rows and priority. |
 | **2c** | [M4](milestones/M4.md) gapless live edits | Queued | M2 continuity baseline available with exceptions. | TR1e → E6 → E4a → E4b → E5 and E3a in writer order → E3b/E3c and E7. Collect CN continuity evidence after each applicable change. |
 | **2 in parallel** | [M7](milestones/M7.md) sound work | In progress | T7.0, S7.1 and S7.4 merged. | S7.2 for OB0. S7.3/S7.5/S7.6 as released. S7.7–S7.9 follow S6 and module order. Then main after-facts and OB-d patch list. |
