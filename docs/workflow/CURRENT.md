@@ -5,6 +5,30 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Four-builder queue — 2026-11-19 03:35 EST
+
+Owner direction: on every lead run, try to keep B1–B4 active with one independent,
+authorized task each. Fill a free slot with ready contract work or a bounded evidence
+or review task when that advances delivery. Preserve dependency gates and one writer
+per file. If a slot must wait, record its blocker and next trigger. In cloud, give the
+owner all runnable starts in one handoff. A live CI run alone is not a reason to
+restart an agent to watch it.
+
+- B1: released OB-a2 #259, owner-folder round-trip runner. OB-a1 merged; only the runner
+  and Pi README paths. Real owner files stay owner-only.
+- B2: #207/#214 current head `b6900c1`. Lab 44488804319 and A10 44488804192 running.
+  Continue on actual results; retain the existing correction ledger and scope.
+- B3: #243/#255 `f314b85`. Lab and first Golden succeeded. A later Golden run failed
+  building the Windows base renderer; reconcile provenance and collect actual production
+  measurements and D5 on the current correction. OB0 waits on S7.2.
+- B4: #253 S5b under merged A17/M1 r3.2 on the existing branch, no CMake edits.
+  S6 waits for reviewed S5b merge.
+
+Previous A17 handoff #258 merged at `42d326d` on green Lab 44487462144.
+No new Architect ask. Cloud usage/reset unavailable. SR13/16/19.
+
+Signed: codex-lead, 2026-11-19, 03:35 EST
+
 ## Delivery update — 2026-11-19 03:24 EST
 
 - Architect #257 merged at `3bc5594`. A17 is Cleared and M1 r3.2 is on main.
