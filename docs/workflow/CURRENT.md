@@ -7,6 +7,25 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-19 06:45 EST
+
+- B1 #259/#263 owner-mode acceptance stands. Windows Lab also failed on main with
+  the same libremidi diagnostic. Keep PR263 parked until CI tooling #271 proves the
+  remedy. The read-only OB-a3 inventory was acknowledged; its Result is unverified.
+- B2 #268 has a self-contained relaunch. Verify an actual branch or Result before
+  treating it as active. #209 remains parked.
+- B3 retains parked #255. A Codex evidence worker takes sole #267 ownership under
+  [SR12](https://github.com/kalharbi11/wirescape-lab/issues/267#issuecomment-7008105213).
+  The Linux evidence workflow and Windows #271 are separate writer scopes.
+- B4 posted the [signed S6 destination reconciliation](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7008070874).
+  No S6 source release. B5's ChatGPT kickoff produced no findings; a low-effort
+  Codex triage verified that Windows first failed in unchanged libremidi under
+  MSVC 19.52. The Golden base failure shares the image change; its diagnostic is unverified.
+- Entry reserves were 60% five-hour and 25% weekly. Check startup against observed
+  progress or GitHub artifacts. SR12/13/14/19.
+
+Signed: codex-lead, 2026-11-19 06:45 EST
+
 ## Delivery update — 2026-11-19 06:33 EST
 
 - B1 #259/#263 owner-mode acceptance and 32/32 OB-a1 cases passed. Windows Lab

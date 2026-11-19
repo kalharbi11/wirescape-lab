@@ -75,10 +75,16 @@ Rotate a long builder chat after its current issue/PR reaches a signed Result an
 records its final disposition. Use an owner-prepared fresh chat when available, title it with
 the builder and next task, and dispatch the ordered packet there. Carry over handoff links,
 writer and review ownership, evidence, the correction ledger and the next trigger. Retire
-the old chat as a writer. Start each ChatGPT builder dispatch with its numbered trigger on
-the first line (`1:run` for B1 through `5:run` for B5). Verify a builder response, active run
-or signed Result before treating the assignment as started. If only the prompt is visible,
-record delivery separately and use a supported continuation or report the startup blocker.
+the old chat as a writer. Put the numbered trigger and the whole bounded work packet in a
+single message, with the trigger (`1:run` through `5:run`) on the first line. Include the
+repo, issue/PR, first executable action, allowed paths, acceptance and stop condition.
+A delivered prompt or preamble is insufficient proof of execution. Verify live tool
+activity, an exact branch/run, or a signed Result. If a dispatch stalls, check the task's
+GitHub state, then retry once with a self-contained packet if it still has a safe writer.
+If the retry yields no substantive work, use SR12 where it fits. Tell the old writer to
+stop and record the transfer before a replacement starts. Prefer a lower-cost worker for
+bounded evidence or CI work and let GitHub Actions execute repeatable tests. Keep the
+existing review roles and schedule one result-driven follow-up if a running check gates work.
 On any lead or builder chat rotation,
 transfer still-authorized pending check-ins with their remaining times and expiry. Verify
 the replacement before retiring the old schedule.
