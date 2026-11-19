@@ -13,7 +13,7 @@ using Json=nlohmann::json;
 using Owner=std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>;
 static void check(bool value,const char*why){if(!value)throw std::runtime_error(why);}
 
-static void saved_lfo_patch(const char *demo, AppEngine *catalog, const ws_engine_config &cfg) {
+static void saved_lfo_patch(const char *demo, AppEngine *catalog, const wirescape::engine2::Config &cfg) {
     const auto path = std::filesystem::path(demo).parent_path().parent_path() / "document/ui_starters.json";
     std::ifstream input(path);
     check(bool(input), "open existing saved starters");
@@ -56,7 +56,11 @@ static void saved_lfo_patch(const char *demo, AppEngine *catalog, const ws_engin
 
 int main(int argc,char**argv){try{
  check(argc==2,"demo argument");std::ifstream input(argv[1]);std::string bytes((std::istreambuf_iterator<char>(input)),{});check(!bytes.empty(),"read demo");
- ws_engine_config cfg{sizeof(cfg),48000,128,64,2048};Owner catalog(app_engine_create(&cfg),app_engine_destroy);std::string error;
+ wirescape::engine2::Config cfg{};
+    cfg.sample_rate = 48000;
+    cfg.max_block = 128;
+    cfg.max_nodes = 64;
+    cfg.event_budget = 2048;Owner catalog(app_engine_create(&cfg),app_engine_destroy);std::string error;
  saved_lfo_patch(argv[1], catalog.get(), cfg);
  // Qt's inspection-only legacy formats must never become executable native graphs.
  const auto fixtures = std::filesystem::path(argv[1]).parent_path().parent_path() / "tests/fixtures/legacy_documents";

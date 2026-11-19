@@ -352,7 +352,11 @@ int run_tests() {
     fake.inject(endpoints[0], on, 3, 120);
     fake.close(endpoints[0]);
     check(fake.held().empty());
-    ws_engine_config config{sizeof(config), 48000, 128, 64, 2048};
+    wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 128;
+    config.max_nodes = 64;
+    config.event_budget = 2048;
     wirescape::audio::EngineOwner catalogue(app_engine_create(&config), app_engine_destroy);
     std::string error;
     const char *patch =

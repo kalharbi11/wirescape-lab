@@ -95,7 +95,11 @@ int main(int argc, char **argv) {
         patch["settings"]["seed"] = seed;
         const Json script = Json::parse(read_bounded(args.at("--script"), 65536));
         need(script.is_array() && script.size() <= 128, "script must have <=128 events");
-        ws_engine_config cfg{sizeof(cfg), double(rate), uint32_t(block), 64, 2048};
+        wirescape::engine2::Config cfg{};
+        cfg.sample_rate = double(rate);
+        cfg.max_block = uint32_t(block);
+        cfg.max_nodes = 64;
+        cfg.event_budget = 2048;
         App catalog(app_engine_create(&cfg), app_engine_destroy);
         need(bool(catalog), "catalogue creation failed");
         std::string error;
@@ -140,11 +144,11 @@ int main(int argc, char **argv) {
                 for (uint32_t i = 0; i < app_engine_module_count(engine.get()); ++i) {
                     const auto *descriptor = app_engine_module(engine.get(), i);
                     if (module != descriptor->id) continue;
-                    for (uint32_t p = 0; p < descriptor->parameter_count; ++p) {
+                    for (uint32_t p = 0; p < descriptor->param_count; ++p) {
                         if (parameter == app_engine_parameter_id(engine.get(), module.c_str(), p)) {
-                            const auto &d = descriptor->parameters[p];
+                            const auto &d = descriptor->params[p];
                             need(event.value >= d.minimum && event.value <= d.maximum, "parameter outside range");
-                            event.parameter_id = d.id;
+                            event.parameter_id = d.legacy_index;
                             found = true;
                         }
                     }

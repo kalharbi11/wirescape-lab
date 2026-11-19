@@ -2,16 +2,15 @@
 #pragma once
 #include "wirescape/engine.h"
 #include "engine2.h"
-// Internal app facade, not an ABI. Legacy structures are UI metadata only.
+// Internal native-only app facade; event compatibility retires in S5b.
 struct AppEngine;
-AppEngine* app_engine_create(const ws_engine_config*);
-wirescape::engine2::Config AppEngineConfig(const ws_engine_config&);
-AppEngine* app_engine_create_config(const ws_engine_config*,const wirescape::engine2::Config*);
+AppEngine* app_engine_create(const wirescape::engine2::Config*);
+AppEngine* app_engine_create_config(const wirescape::engine2::Config*,const wirescape::engine2::Config*);
 void app_engine_destroy(AppEngine*);
 const char* app_engine_error(const AppEngine*);
 uint32_t app_engine_abi_version();
 uint32_t app_engine_module_count(const AppEngine*);
-const ws_module_descriptor* app_engine_module(const AppEngine*,uint32_t);
+const ws2_descriptor* app_engine_module(const AppEngine*,uint32_t);
 // Borrowed metadata; valid while the internal catalogue owner lives.
 const ws2_descriptor *app_engine_native_descriptor(const AppEngine *, const char *module);
 int app_engine_add_node(AppEngine*,uint32_t,const char*);
@@ -43,7 +42,7 @@ int app_engine_activate(AppEngine*);
 int app_engine_deactivate(AppEngine*);
 int app_engine_panic(AppEngine*);
 uint64_t app_engine_generation(const AppEngine*);
-int app_engine_get_meter(const AppEngine*,ws_meter*);
+wirescape::engine2::Meter app_engine_get_meter(const AppEngine*);
 /** Last rendered block's peak on one bus channel (0 for channels >= 16 or before rendering). */
 float app_engine_channel_peak(const AppEngine*,uint32_t channel);
 int app_engine_build_essentials(AppEngine*,const char*);

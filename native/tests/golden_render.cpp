@@ -180,7 +180,11 @@ int main(int argc, char **argv) {
                 {{"name", name}, {"first_bytes", hex(first)}, {"second_bytes", hex(second)}, {"stream", stream}});
             require(first == second, "same-build fresh renders differ");
         };
-        ws_engine_config cfg{sizeof(cfg), 48000, 128, 128, 2048};
+        wirescape::engine2::Config cfg{};
+        cfg.sample_rate = 48000;
+        cfg.max_block = 128;
+        cfg.max_nodes = 128;
+        cfg.event_budget = 2048;
         App catalog(app_engine_create(&cfg), app_engine_destroy);
         require(bool(catalog), "catalog creation failed");
         std::vector<std::filesystem::path> examples;
@@ -207,8 +211,8 @@ int main(int argc, char **argv) {
                     for (uint32_t i = 0; i < app_engine_module_count(catalog.get()); ++i) {
                         const auto *d = app_engine_module(catalog.get(), i);
                         if (type != d->id) continue;
-                        for (uint32_t p = 0; p < d->parameter_count; ++p) {
-                            const auto key = std::to_string(d->parameters[p].id);
+                        for (uint32_t p = 0; p < d->param_count; ++p) {
+                            const auto key = std::to_string(d->params[p].legacy_index);
                             if (module.value("values", Json::object()).contains(key))
                                 parameters[app_engine_parameter_id(catalog.get(), d->id, p)] = module["values"][key];
                         }

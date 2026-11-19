@@ -60,7 +60,11 @@ static Json patch(Json config, bool cv = false) {
     return p;
 }
 static Owner load(const Json &p, AppEngine *catalog, double rate, std::string &error, bool tap_notes = false) {
-    ws_engine_config cfg{sizeof(cfg), rate, 256, 64, 2048};
+    wirescape::engine2::Config cfg{};
+    cfg.sample_rate = rate;
+    cfg.max_block = 256;
+    cfg.max_nodes = 64;
+    cfg.event_budget = 2048;
     std::vector<wirescape::engine2::Tap> taps;
     if (tap_notes) taps.push_back({wirescape::engine2::Tap::EventOut, 1, 4, wirescape::engine2::Tap::First});
     return Owner(wirescape::document::load_runtime_patch(p.dump(), catalog, cfg, error, tap_notes ? &taps : nullptr),
@@ -77,7 +81,7 @@ static uint32_t note_events(AppEngine *engine) {
 static uint32_t param_id(AppEngine *engine, uint32_t slot) {
     for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {
         const auto *m = app_engine_module(engine, i);
-        if (std::string(m->id) == "sequencing.groove") return m->parameters[slot].id;
+        if (std::string(m->id) == "sequencing.groove") return m->params[slot].legacy_index;
     }
     throw std::runtime_error("Groove not registered in native catalogue");
 }
@@ -1037,7 +1041,11 @@ static void test_chord_to_notes_cv() {
 }
 int main() {
     try {
-        ws_engine_config cfg{sizeof(cfg), 48000, 256, 64, 2048};
+        wirescape::engine2::Config cfg{};
+    cfg.sample_rate = 48000;
+    cfg.max_block = 256;
+    cfg.max_nodes = 64;
+    cfg.event_budget = 2048;
         Owner cat(app_engine_create(&cfg), app_engine_destroy);
         check(bool(cat), "native catalogue creation");
         test_refusals(cat.get());

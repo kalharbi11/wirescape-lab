@@ -100,7 +100,11 @@ static bool run(const Options&o){
  std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>app(nullptr,app_engine_destroy);
  if(!o.patch.empty()){
   using namespace wirescape::document;
-  ws_engine_config config{sizeof(config),o.rate,o.block,64,8192};
+  wirescape::engine2::Config config{};
+        config.sample_rate = o.rate;
+        config.max_block = o.block;
+        config.max_nodes = 64;
+        config.event_budget = 8192;
   std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>catalog(app_engine_create(&config),app_engine_destroy);require(bool(catalog));
   std::ifstream file(o.patch, std::ios::binary);
   if (!file) throw std::runtime_error("cannot read document patch");

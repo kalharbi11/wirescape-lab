@@ -32,7 +32,11 @@ struct GraphSink {
 int main() {
     const std::string patch =
         R"({"format":"wirescape.native.patch","version":2,"settings":{},"modules":[{"id":1,"module":"osc.in","version":1,"parameters":{},"config":{"rows":[{"pattern":"/pico1/knob/*","smoothing_ms":0}]}},{"id":2,"module":"essentials.vco","version":1,"parameters":{}}],"connections":[],"outputs":[{"module":2,"port":"audio","bus_channel":0}]})";
-    ws_engine_config config{sizeof(config), 48000, 128, 64, 2048};
+    wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 128;
+    config.max_nodes = 64;
+    config.event_budget = 2048;
     std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> catalog(app_engine_create(&config), app_engine_destroy);
     std::string error;
     std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> engine(

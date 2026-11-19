@@ -21,7 +21,11 @@ int main(int argc, char **argv) {
         std::ifstream fixtures_file(argv[1]), catalogue_file(argv[2]);
         const auto fixtures = Json::parse(fixtures_file), ui = Json::parse(catalogue_file);
         require(fixtures.size() == 15, "all fifteen UI starters must be exported");
-        ws_engine_config config{sizeof(config), 48000, 256, 64, 2048};
+        wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 256;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
         Owner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create catalogue without devices");
         for (uint32_t i = 0; i < app_engine_module_count(catalogue.get()); ++i) {
@@ -42,7 +46,7 @@ int main(int argc, char **argv) {
                     require(unique_slot, id + ": duplicate legacy_index");
                     require(param.legacy_index == legacy.at(param.id).get<uint32_t>(),
                             id + ": legacy_index differs from UI catalogue");
-                    require(descriptor->parameters[p].id == param.legacy_index,
+                    require(descriptor->params[p].legacy_index == param.legacy_index,
                             id + ": facade numeric slot differs from native descriptor");
                 }
                 found = true;

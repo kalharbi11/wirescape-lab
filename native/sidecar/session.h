@@ -66,7 +66,7 @@ struct RenderHistogram {
 };
 class Session {
     Options options_;
-    ws_engine_config config_;
+    engine2::Config config_;
     audio::EngineOwner catalogue_, engine_;
     AppEngine *active_ = nullptr;
     std::unique_ptr<audio::Stream> stream_;

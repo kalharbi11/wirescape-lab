@@ -22,7 +22,7 @@ using Owner = std::unique_ptr<AppEngine, decltype(&app_engine_destroy)>;
 void require(bool ok, const char *message) {
     if (!ok) throw std::runtime_error(message);
 }
-Owner load(const std::string &bytes, AppEngine *catalogue, const ws_engine_config &config) {
+Owner load(const std::string &bytes, AppEngine *catalogue, const wirescape::engine2::Config &config) {
     std::string error;
     Owner result(wirescape::document::load_runtime_patch(bytes, catalogue, config, error), app_engine_destroy);
     if (!result) throw std::runtime_error("Qt-free runtime patch load: " + error);
@@ -60,7 +60,7 @@ float render_and_check(AppEngine *graph, int blocks, const char *context) {
 // Loaded v1 -> serialized v2 -> disk reload -> 96,000 rendered samples.
 // This preserves the app-loader-vs-exact-frozen-ABI1 bound from the Qt tests.
 // The 96,000-sample reference is captured from the actual former ABI1 graph.
-void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &config, const char *demo) {
+void serialized_demo_equivalence(AppEngine *catalogue, const wirescape::engine2::Config &config, const char *demo) {
     using Json = nlohmann::json;
     const std::string original = fixture(demo);
     const auto source = Json::parse(original);
@@ -151,7 +151,7 @@ void serialized_demo_equivalence(AppEngine *catalogue, const ws_engine_config &c
     std::cout << "v1 -> disk v2 -> reload exact PCM; ABI1 max_abs_error=" << max_abs_error << " allocs=" << allocations
               << '\n';
 }
-void keyboard_macro(AppEngine *catalogue, const ws_engine_config &config) {
+void keyboard_macro(AppEngine *catalogue, const wirescape::engine2::Config &config) {
     // Same on-disk document shape as the Qt loader test, through runtime_patch.
     const std::string source = R"({
       "format":"wirescape.native.patch","version":2,"name":"Offline keyboard to Macro",
@@ -222,14 +222,14 @@ void keyboard_macro(AppEngine *catalogue, const ws_engine_config &config) {
     require(status == WS_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
             "failed load leaves the separately loaded graph renderable");
 }
-void dual_chaos(AppEngine *catalogue, const ws_engine_config &config, const std::filesystem::path &examples) {
+void dual_chaos(AppEngine *catalogue, const wirescape::engine2::Config &config, const std::filesystem::path &examples) {
     auto graph = load(fixture(examples / "chaos_two.json"), catalogue, config);
     render_and_check(graph.get(), 32, "loaded dual CHAOS");
     const auto &native = app_engine_native(graph.get());
     require(native.output_channels(2, 0) == 4 && native.output_channels(3, 0) == 4,
             "loaded dual CHAOS preserves four voices per instrument");
 }
-void fake_midi_dual_chaos(AppEngine *catalogue, const ws_engine_config &config, const std::filesystem::path &examples) {
+void fake_midi_dual_chaos(AppEngine *catalogue, const wirescape::engine2::Config &config, const std::filesystem::path &examples) {
     auto graph = load(fixture(examples / "chaos_usb_midi.json"), catalogue, config);
     auto &native = app_engine_native(graph.get());
     for (uint32_t key : {60u, 64u, 67u, 72u}) {
@@ -252,7 +252,11 @@ void fake_midi_dual_chaos(AppEngine *catalogue, const ws_engine_config &config, 
 int main(int argc, char **argv) {
     try {
         require(argc == 3, "usage: qt_free_patch_coverage_tests <examples-dir> <demo>");
-        const ws_engine_config config{sizeof(ws_engine_config), 48000, 128, 64, 2048};
+        wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 128;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
         Owner catalogue(app_engine_create(&config), app_engine_destroy);
         require(bool(catalogue), "create Qt-free catalogue");
         const std::filesystem::path examples(argv[1]);

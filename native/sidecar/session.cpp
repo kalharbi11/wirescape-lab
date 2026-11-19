@@ -155,8 +155,7 @@ Json catalogue(AppEngine *engine) {
     const char *hints[] = {"any",  "audio",   "pitch",    "cv_bi",   "cv_uni",
                            "gate", "trigger", "ev_notes", "ev_midi", "ev_message"};
     for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {
-        auto *meta = app_engine_module(engine, i);
-        auto *d = app_engine_native_descriptor(engine, meta->id);
+        const auto *d = app_engine_module(engine, i);
         if (!d) continue;
         Json ports = Json::array(), params = Json::array();
         for (bool output : {false, true}) {
@@ -267,7 +266,15 @@ Options parse_options(int argc, char **argv) {
     return o;
 }
 Session::Session(Options options)
-    : options_(std::move(options)), config_{sizeof(config_), double(options_.rate), options_.block, 64, 2048},
+    : options_(std::move(options)),
+      config_([](const Options &options) {
+          engine2::Config native{};
+          native.sample_rate = double(options.rate);
+          native.max_block = options.block;
+          native.max_nodes = 64;
+          native.event_budget = 2048;
+          return native;
+      }(options_)),
       catalogue_(app_engine_create(&config_), app_engine_destroy), engine_(nullptr, app_engine_destroy) {
     need(bool(catalogue_), "unavailable", "Cannot create catalogue");
     std::random_device random;
@@ -473,8 +480,8 @@ void Session::open_at_driver_block(int64_t frames) {
     const auto block = uint32_t(frames);
     document::telemetry::Sampler next_telemetry(
         document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
-    ws_engine_config next_config = config_;
-    next_config.max_block_frames = block;
+    engine2::Config next_config = config_;
+    next_config.max_block = block;
     std::string error;
     auto next_out = std::make_unique<osc::OutHost>(patch_.dump());
     document::ScopedOutBuses staged_out(next_out->buses());
@@ -1042,9 +1049,9 @@ Json Session::apply(const Json &command) {
         stop_audio();
         auto previous = std::move(engine_);
         try {
-            ws_engine_config next_config = config_;
+            engine2::Config next_config = config_;
             next_config.sample_rate = next_rate;
-            next_config.max_block_frames = next_block;
+            next_config.max_block = next_block;
             std::string error;
             document::ScopedOutBuses staged_out(next_out->buses());
             audio::EngineOwner prepared(document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config,
@@ -1439,9 +1446,8 @@ Json Session::telemetry() {
     // Every observed essentials.output reports its own bus channel(s): one Output
     // feeding both sides gives [L,R]; a per-side Output (stereo patches) gives
     // [peak,peak] of its channel. Owner v1: stereo Output meters never moved.
-    ws_meter meter{};
-    app_engine_get_meter(active_, &meter);
-    if (meter.rendered_blocks) {
+    const auto meter = app_engine_get_meter(active_);
+    if (meter.frame != 0) {
         std::map<int64_t, std::array<float, 2>> levels;
         std::map<int64_t, std::array<bool, 2>> seen;
         for (const auto &route : patch_["outputs"]) {
