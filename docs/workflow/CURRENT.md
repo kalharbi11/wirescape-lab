@@ -5,6 +5,39 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 21:35 EST
+
+Supersedes #251 and earlier builder dispatch status. Architect #252 remains on main with the
+signed review and open-row state. No immediate Architect-only question remains.
+
+- **M1 S5a merged:** #242 `fd41342` → `af62278` after independent Claude approval 6997412602.
+  Golden 24/24 identical on x64/ARM64/Windows, Lab and paired evidence green. Measured Ir up
+  at most +0.269173% x64/+0.333476% ARM64; both Chord rows paired unavailable under SR10.
+  Generated link verdict passes x3. A3 standalone web remains explicitly unverified per 0006.
+  Preserve the three reviewer Lows, no High/Medium. A16 was Architect-ordered (S5a 0/2 ordinary).
+- **B4** now owns and was dispatched on new S5b #253, separate branch/PR, exclusive M1/sidecar
+  writer. Start with exact A1–A4/consumer paths. Required independent Claude review, I1–I8 and
+  evidence 1–5. A15/A16 scope was S5a only. S6 remains gated by actual S5b merge and planning.
+- **OB-e2 merged:** #249 `5bd3b15` → `137a6ab`. Verified raw-log hashes and exact matrix from
+  run 44434889168 artifacts 14489280757/14489096252: 34 palette IDs and 136 two-second
+  rows per Linux architecture, 884 sweeps each, no failed case, render allocation or fault.
+  One test-only Chord identity correction; failed first run retained. No OB-e3 issue is
+  required from this matrix. The separate paired-Ir Chord coverage gaps remain open.
+- **B2 / A10:** #207/#214 `0b6e722` transferred under SR12 after B1's stop instruction.
+  Both owner labels were updated and B2 was dispatched. Keep the same branch/PR, ordinary
+  ledger 1/2, one authorized isolated SR8 workflow and no additional shared CMake/Lab/sidecar
+  or product writes. Buffer wall-time remains unmeasured; #209 stays parked.
+- **B3 / #243:** Reverb S7.2 remains the OB0 critical path. No PR or signed Result followed
+  the original dispatch and supported retry. B3 remains the same Reverb writer. Owner should
+  run existing B3 directly; the lead can proceed on a substantive Result without a new
+  Architect ruling. A4/#186 remains deferred until after OB0.
+
+Mode quick expanded for reviewed S5a, verified OB-e2 and the SR12 handoff. Entry use 15%
+five-hour (account reset about 21:49 EST), 68% weekly. No devices, usage reset or CI polling.
+This is the final scheduled Nov 18 lead run; no further wake was created.
+
+Signed: codex-lead, 2026-11-18, 21:35 EST
+
 ## Cloud-1 delivery sync — 2026-11-18 19:33 EST
 
 Lab only. The cloud checkout is the frozen original repository; all work in this run used
