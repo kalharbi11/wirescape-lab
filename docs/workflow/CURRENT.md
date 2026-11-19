@@ -3,7 +3,19 @@
 
 Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
-below replaces them; this page is the only live queue.
+below replaces them; this page is the chronological lead–Architect handoff. The lead maintains
+[BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
+Builders use their queue row and issue; Architect requests stay in the inbox.
+
+## Delivery update — 2026-11-19 04:06 EST
+
+The lead separated builder assignments and milestone order into the linked tables above.
+All four lanes were checked. B2 has a one-import SR6(b) final packet on #214. B3 #255 stays
+out of review while matched production evidence and D5 publication are open. Removed split
+review labels from #255 and the two historical PRs that carried them. B4 #261 is in
+validation under A17. No new Architect ruling is needed. Cloud usage/reset unavailable.
+
+Signed: codex-lead, 2026-11-19, 04:06 EST
 
 ## Four-builder queue — 2026-11-19 03:35 EST
 
