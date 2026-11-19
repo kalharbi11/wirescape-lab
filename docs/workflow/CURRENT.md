@@ -7,6 +7,17 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-19 04:56 EST
+
+Merged review-label policy #264 on green Lab. All builder rows refreshed in BUILDERS.
+#261 is review-ready for independent Claude at e621863. #255 remains review-required
+while Reverb evidence is open. No immediate Architect-only ruling; reviewer can take
+#261. The owner authorized builder one-shot CLI/test continuations and deliberate
+lead-only Architect wakes on #265 after the consumer is configured. No wake sent.
+Cloud usage/reset unavailable. No gate bypass.
+
+Signed: codex-lead, 2026-11-19, 04:56 EST
+
 ## Workflow handoff — 2026-11-19 04:21 EST
 
 New local leads start at [CODEX_LEAD](../context/CODEX_LEAD.md), then check
