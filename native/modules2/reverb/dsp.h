@@ -67,16 +67,20 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
-    // S7.2: fixed linear headroom before the pre-existing safety clamp.
-    // Keep pure dry bypass exact; normalize mixed output at every other Mix.
-    static constexpr float kWetMakeup = 3.8f;
-    static constexpr float kMixHeadroom = .90f;
+    // S7.2: retain the original full-wet RMS, add modest mixed headroom.
+    // A smooth knee handles rare extreme coherent peaks before the old +/-2
+    // fault-safety guard without changing normal (<1.25 FS) mixed samples.
+    static constexpr float kWetMakeup = 5.f;
+    static constexpr float kHeadroomBase = .88f, kHeadroomMixSlope = .04f;
+    static constexpr float kSoftKneeStart = 1.25f, kSoftKneeSpan = .5f;
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
 #ifdef REVERB_TEST_GAIN_METER
     // Folder-test-only instrumentation: no counter or RT branch in production.
     inline static float test_preclamp_peak = 0.f;
+    inline static float test_raw_mix_peak = 0.f;
     inline static uint64_t test_clamp_hits = 0;
+    inline static uint64_t test_soft_knee_hits = 0;
 #endif
     static float bounded_output(float v) {
 #ifdef REVERB_TEST_GAIN_METER
@@ -84,6 +88,24 @@ struct Reverb {
         if (v >= 2.f || v <= -2.f) ++test_clamp_hits;
 #endif
         return std::clamp(v, -2.f, 2.f);
+    }
+    // Preserve the old hard guard solely for unanticipated internal faults.
+    // Continuous, unit-slope at the knee, asymptotes to 1.75 FS; no hard
+    // limiting or nonlinear work for ordinary levels below 1.25 FS.
+    static float staged_output(float v) {
+        const float magnitude = std::abs(v);
+#ifdef REVERB_TEST_GAIN_METER
+        test_raw_mix_peak = std::max(test_raw_mix_peak, magnitude);
+#endif
+        if (magnitude > kSoftKneeStart) {
+#ifdef REVERB_TEST_GAIN_METER
+            ++test_soft_knee_hits;
+#endif
+            const float excess = magnitude - kSoftKneeStart;
+            const float limited = kSoftKneeStart + kSoftKneeSpan * excess / (kSoftKneeSpan + excess);
+            return bounded_output(std::copysign(limited, v));
+        }
+        return bounded_output(v);
     }
 
     static uint32_t line_count(double sr) { return uint32_t(std::ceil(sr * .103)) + 8; }
@@ -296,10 +318,9 @@ struct Reverb {
                     const float makeup = 1.f + kWetMakeup * mix * mix;
                     wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
                 }
-                // Linear gain-staging headroom, not a limiter; guard remains
-                // a safety net and is tested never to engage at full scale.
-                lout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * l + wet_gain * wet_l));
-                rout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * r + wet_gain * wet_r));
+                const float headroom = kHeadroomBase + kHeadroomMixSlope * mix;
+                lout.ch(0)[i] = staged_output(headroom * (dry_gain * l + wet_gain * wet_l));
+                rout.ch(0)[i] = staged_output(headroom * (dry_gain * r + wet_gain * wet_r));
             }
             return;
         }
@@ -384,8 +405,9 @@ struct Reverb {
                 const float makeup = 1.f + kWetMakeup * mix * mix;
                 wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
             }
-            lout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * l + wet_gain * wet_l));
-            rout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * r + wet_gain * wet_r));
+            const float headroom = kHeadroomBase + kHeadroomMixSlope * mix;
+            lout.ch(0)[i] = staged_output(headroom * (dry_gain * l + wet_gain * wet_l));
+            rout.ch(0)[i] = staged_output(headroom * (dry_gain * r + wet_gain * wet_r));
         }
     }
     // Host owns all parameters. Patch loads intentionally discard delay/filter history.

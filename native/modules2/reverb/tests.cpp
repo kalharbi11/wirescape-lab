@@ -200,7 +200,9 @@ void test_s7_2_gain_staging_and_no_clamp() {
     for (size_t i = 0; i < sine.size(); ++i)
         sine[i] = std::sin(float(i) * (2.f * reverb::kPi * 440.f / rate));
     Reverb::test_preclamp_peak = 0.f;
+    Reverb::test_raw_mix_peak = 0.f;
     Reverb::test_clamp_hits = 0;
+    Reverb::test_soft_knee_hits = 0;
     Rig default_rig;
     const Stereo normal = default_rig.run(sine, sine, 128);
     float default_peak = 0.f;
@@ -209,7 +211,9 @@ void test_s7_2_gain_staging_and_no_clamp() {
     std::printf("S7.2 direct VCO-style default peak %.8f FS; preclamp %.8f FS\n",
                 default_peak, Reverb::test_preclamp_peak);
     REQUIRE(default_peak <= 1.f);
+    REQUIRE(Reverb::test_raw_mix_peak <= 1.f);
     REQUIRE(Reverb::test_clamp_hits == 0);
+    REQUIRE(Reverb::test_soft_knee_hits == 0);
 
     // Full-scale broadband and coherent cases at Mix=1, Decay=20 s.
     // The fixture observes the *unclipped* output to prevent a tautological
@@ -225,15 +229,20 @@ void test_s7_2_gain_staging_and_no_clamp() {
            .set(reverb::SIZE, 1.f)
            .set(reverb::MOTION, .2f);
         Reverb::test_preclamp_peak = 0.f;
+        Reverb::test_raw_mix_peak = 0.f;
         Reverb::test_clamp_hits = 0;
+        Reverb::test_soft_knee_hits = 0;
         const Stereo out = hot.run(full, inverted ? anti : full, 128);
         for (float v : out.l) REQUIRE(std::isfinite(v));
         for (float v : out.r) REQUIRE(std::isfinite(v));
-        std::printf("S7.2 mix1/decay20 full-scale %s: preclamp %.8f FS, hits %llu\n",
-                    inverted ? "antiphase" : "in-phase", Reverb::test_preclamp_peak,
+        std::printf("S7.2 mix1/decay20 full-scale %s: raw %.8f FS, preclamp %.8f FS, soft %llu, hard %llu\n",
+                    inverted ? "antiphase" : "in-phase",
+                    Reverb::test_raw_mix_peak, Reverb::test_preclamp_peak,
+                    static_cast<unsigned long long>(Reverb::test_soft_knee_hits),
                     static_cast<unsigned long long>(Reverb::test_clamp_hits));
         REQUIRE(Reverb::test_preclamp_peak < 2.f);
         REQUIRE(Reverb::test_clamp_hits == 0);
+        REQUIRE(Reverb::test_soft_knee_hits > 0);
     }
 }
 void test_frame_and_reset() {
