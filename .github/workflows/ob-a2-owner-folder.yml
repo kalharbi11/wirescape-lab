@@ -1,0 +1,201 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: OB-a2 owner-folder production validation (SR8, devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "tools/patch_roundtrip.py"
+      - "tools/pi/README.md"
+      - ".github/workflows/ob-a2-owner-folder.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-folder:
+    name: Device-off synthetic copies / actual Studio and native renderer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: Install pinned CMake/Ninja
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Build original production native renderer (headless)
+        run: |
+          python tools/dev.py build --headless
+          test -x build/native/wirescape_render
+      - name: Install actual Studio PatchDoc dependencies
+        run: npm ci --prefix apps/studio
+      - name: Validate real owner mode on copied PUBLIC fixtures and OB-a1 baseline
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+
+          root = Path.cwd().resolve()
+          head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          if head != os.environ["EXPECTED_HEAD"]:
+              raise RuntimeError("checkout is not the actual PR head")
+          renderer = root / "build/native/wirescape_render"
+          assert renderer.is_file(), "production renderer not built"
+          results = root / "build_reports/ob-a2"
+          results.mkdir(parents=True, exist_ok=True)
+          temp = Path(os.environ["RUNNER_TEMP"]) / ("ob-a2-public-" + head[:12])
+          temp.mkdir(parents=True, exist_ok=False)
+          patches = sorted((root / "apps/studio/patches").glob("*.json"))
+          shape = root / "tests/fixtures/patch_shapes/no-config.json"
+          assert len(patches) >= 2 and shape.is_file(), "public fixtures absent"
+          valid, mixed, empty = (temp / name for name in ("valid", "mixed", "empty"))
+          for folder in (valid, mixed, empty):
+              folder.mkdir()
+          shutil.copy2(patches[0], valid / "first.json")
+          shutil.copy2(patches[1], valid / "second.json")
+          shutil.copy2(shape, valid / "shape.json")
+          shutil.copy2(patches[0], mixed / "valid.json")
+          (mixed / "invalid.json").write_text("{ invalid JSON", encoding="utf-8")
+
+          def sha(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          def snapshots(folder):
+              return {p.relative_to(folder).as_posix(): sha(p)
+                      for p in sorted(folder.rglob("*.json"))}
+
+          def exercise(name, folder, expected_exit, report=None):
+              cmd = [sys.executable, "tools/patch_roundtrip.py", "--renderer",
+                     str(renderer), "--dir", str(folder), "--source-sha", head]
+              if report is not None:
+                  cmd.extend(["--report", str(report)])
+              p = subprocess.run(cmd, capture_output=True, text=True,
+                                 check=False, timeout=1200)
+              (results / (name + ".log")).write_text(
+                  "exit=" + str(p.returncode) + "\n" + p.stdout + "\n" + p.stderr,
+                  encoding="utf-8")
+              if p.returncode != expected_exit:
+                  raise RuntimeError(name + ": expected exit " + str(expected_exit)
+                                     + " got " + str(p.returncode)
+                                     + ": " + p.stderr[-1500:])
+              return p
+
+          before_valid, before_mixed = snapshots(valid), snapshots(mixed)
+          positive_path = root / "bench/results/patch_roundtrip_owner.json"
+          exercise("positive", valid, 0)
+          positive = json.loads(positive_path.read_text())
+          assert positive["passed"] is True and positive["test"] == "OB-a2"
+          assert positive["owner_files"] == 3 and len(positive["cases"]) == 3
+          assert positive["input_inventory_unchanged"] is True
+          assert all(c["status"] == "pass" and c["input_unchanged"] is True
+                     and c["input_sha256_before"] == c["input_sha256_after"]
+                     for c in positive["cases"])
+          assert positive["negative"]["document_difference_detected"] is True
+          assert positive["negative"]["render_difference_detected"] is True
+          assert before_valid == snapshots(valid), "positive inputs modified"
+          marker = root / "bench/results/.gitignore"
+          assert marker.read_text() == "*\n", "missing self-ignoring rule"
+          assert subprocess.run(["git", "check-ignore", "-q", "--", str(positive_path)],
+                                check=False).returncode == 0, "report not gitignored"
+          shutil.copy2(positive_path, results / "positive.json")
+
+          mixed_path = root / "bench/results/synthetic-invalid.json"
+          exercise("invalid", mixed, 1, mixed_path)
+          invalid = json.loads(mixed_path.read_text())
+          by_name = {x["name"]: x for x in invalid["cases"]}
+          assert invalid["passed"] is False and len(by_name) == 2
+          assert by_name["owner/valid.json"]["status"] == "pass"
+          assert by_name["owner/invalid.json"]["status"] == "fail"
+          assert all(x["input_unchanged"] for x in invalid["cases"])
+          assert invalid["input_inventory_unchanged"] is True
+          assert invalid["negative"]["document_difference_detected"] is True
+          assert before_mixed == snapshots(mixed), "invalid inputs modified"
+          shutil.copy2(mixed_path, results / "invalid.json")
+
+          for label, folder, reason in (
+              ("empty", empty, "empty input folder"),
+              ("missing", temp / "does-not-exist", "missing input folder"),
+          ):
+              report = root / ("bench/results/synthetic-" + label + ".json")
+              exercise(label, folder, 1, report)
+              datum = json.loads(report.read_text())
+              assert datum["passed"] is False and reason in datum["setup_error"]
+              shutil.copy2(report, results / (label + ".json"))
+
+          # The input itself lives under bench/results. Explicit report inside
+          # that nested input must be rejected BEFORE any output is written.
+          nested = root / "bench/results/synthetic-owner-input"
+          nested.mkdir(parents=True, exist_ok=False)
+          copied = nested / "copied.json"
+          shutil.copy2(patches[0], copied)
+          prior = sha(copied)
+          unsafe = nested / "inside-input.json"
+          rejection = exercise("nested-overlap", nested, 2, unsafe)
+          assert "report output is inside the supplied input folder" in rejection.stderr
+          assert not unsafe.exists() and prior == sha(copied)
+          assert subprocess.run(["git", "check-ignore", "-q", "--", str(copied)],
+                                check=False).returncode == 0
+
+          # Independent regression for the unchanged default OB-a1 path.
+          baseline_path = results / "baseline-ob-a1.json"
+          baseline_run = subprocess.run(
+              [sys.executable, "tools/patch_roundtrip.py",
+               "--renderer", str(renderer), "--report", str(baseline_path),
+               "--source-sha", head],
+              capture_output=True, text=True, check=False, timeout=1200)
+          (results / "baseline-ob-a1.log").write_text(
+              "exit=" + str(baseline_run.returncode) + "\n"
+              + baseline_run.stdout + "\n" + baseline_run.stderr, encoding="utf-8")
+          assert baseline_run.returncode == 0, "OB-a1 baseline failed"
+          baseline = json.loads(baseline_path.read_text())
+          assert baseline["passed"] is True and baseline["bundled"] == 24
+          assert baseline["config_shapes"] == 8 and len(baseline["cases"]) == 32
+          assert all(c["status"] == "pass" for c in baseline["cases"])
+          assert baseline["negative"]["document_difference_detected"] is True
+          assert baseline["negative"]["render_difference_detected"] is True
+
+          summary = {"source_sha": head,
+                     "runner_sha256": sha(root / "tools/patch_roundtrip.py"),
+                     "renderer_sha256": sha(renderer),
+                     "synthetic_public_fixtures_only": True,
+                     "devices_used": False,
+                     "positive_files": len(before_valid),
+                     "positive_hashes_before": before_valid,
+                     "positive_hashes_after": snapshots(valid),
+                     "invalid_hashes_before": before_mixed,
+                     "invalid_hashes_after": snapshots(mixed),
+                     "private_report_gitignored": True,
+                     "negative_exit_codes": {"invalid": 1, "empty": 1, "missing": 1,
+                                             "nested_report_overlap": 2},
+                     "baseline_bundled": baseline["bundled"],
+                     "baseline_shapes": baseline["config_shapes"],
+                     "baseline_negative": baseline["negative"], "passed": True}
+          (results / "summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print("OB-a2 exact-head, device-off, synthetic production summary:",
+                json.dumps(summary, sort_keys=True), flush=True)
+          PY
+      - name: Archive source, cases and synthetic-only raw evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ob-a2-synthetic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-a2/
+          if-no-files-found: warn
+          retention-days: 14

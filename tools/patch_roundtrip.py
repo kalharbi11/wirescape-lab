@@ -40,6 +40,8 @@ def prepare_owner_report(path: Path, folder: Path) -> None:
         raise ValueError("--dir report must stay under bench/results/")
     if root.is_relative_to(folder.resolve()):
         raise ValueError("report directory is inside the supplied input folder")
+    if dest.is_relative_to(folder.resolve()):
+        raise ValueError("report output is inside the supplied input folder")
     root.mkdir(parents=True, exist_ok=True)
     marker = root / ".gitignore"
     if marker.is_symlink() or (marker.exists() and not marker.is_file()):

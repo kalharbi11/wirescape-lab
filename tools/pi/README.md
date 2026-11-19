@@ -29,8 +29,9 @@ including files that fail validation. The JSON file inventory is rechecked.
 Manifests, saved documents, audio renders and event scripts live only in a
 separate temporary folder, never in the owner input folder. The default JSON
 report is bench/results/patch_roundtrip_owner.json. --report is permitted
-only for paths under bench/results/. A missing local .gitignore there is
-created with *; existing ignore configurations are never overwritten. The
+only for paths under bench/results/ and **outside the input folder**,
+including when the input is itself nested under bench/results/. A missing
+local .gitignore there is created with *; existing ignore configurations are never overwritten. The
 runner verifies git check-ignore before writing the report. Neither owner
 files nor this private report should be uploaded to CI or committed.
 
