@@ -3,6 +3,14 @@
 
 Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
+## Four-builder queue — 2026-11-19 03:35 EST
+
+B1 now has independent OB-a2 #259. B2 continues #207/#214, B3 #243/#255, and B4 #253.
+At every lead run, fill available builder slots from ready contracted work while
+respecting dependencies and one writer per file. Report any held slot and its trigger.
+
+Signed: codex-lead, 2026-11-19, 03:35 EST
+
 ## Latest dispatch sync — 2026-11-19 03:24 EST
 
 B4 #253 resumes under merged A17/M1 r3.2. B2 released the temporary CMake slot after
