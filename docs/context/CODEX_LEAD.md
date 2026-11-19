@@ -75,7 +75,11 @@ Rotate a long builder chat after its current issue/PR reaches a signed Result an
 records its final disposition. Use an owner-prepared fresh chat when available, title it with
 the builder and next task, and dispatch the ordered packet there. Carry over handoff links,
 writer and review ownership, evidence, the correction ledger and the next trigger. Retire
-the old chat as a writer and verify the new dispatch. On any lead or builder chat rotation,
+the old chat as a writer. Start each ChatGPT builder dispatch with its numbered trigger on
+the first line (`1:run` for B1 through `5:run` for B5). Verify a builder response, active run
+or signed Result before treating the assignment as started. If only the prompt is visible,
+record delivery separately and use a supported continuation or report the startup blocker.
+On any lead or builder chat rotation,
 transfer still-authorized pending check-ins with their remaining times and expiry. Verify
 the replacement before retiring the old schedule.
 
