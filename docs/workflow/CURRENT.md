@@ -7,6 +7,23 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-19 05:59 EST
+
+- S5b #261 merged at `c373c3d` after signed Claude approval 7006666280 and verified
+  Lab, three-platform Golden and paired evidence. B4 prepares S6 readiness at #199.
+  Carry the two reviewer Lows, the unmeasured standalone web/CLI checks and paired
+  Chord gaps. S6 source stays closed until OB0 tags and the lead releases the window.
+- B1 continues #259/#263 on owner-mode overlap and hosted acceptance. B2 #268
+  replaces the exhausted #207/#214 packet per SR6(c). B3 #267 is the dedicated
+  full-mode matched Reverb capture; #255 and the D5 publication still gate OB0.
+- Owner verified the Architect integration on #265. Post the `/architect-run` scope
+  first, **then add `architect-wake`**. Architect clears it on completion. Routine
+  comments and labels do not trigger it. No new urgent inbox work, no wake sent.
+
+All four lanes updated. Cloud usage/reset unavailable. SR6/8/13/18/19.
+
+Signed: codex-lead, 2026-11-19, 05:59 EST
+
 ## Delivery update — 2026-11-19 04:56 EST
 
 Merged review-label policy #264 on green Lab. All builder rows refreshed in BUILDERS.
