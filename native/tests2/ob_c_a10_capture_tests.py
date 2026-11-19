@@ -70,23 +70,42 @@ class A10Capture(unittest.TestCase):
             control = channel(ref_segments[0])
             actual = channel(got_segments[0])
             self.assertTrue(nonzero(control) and nonzero(actual), "INFRA: drone not audible")
-            # Anchor to the first active VCO sample, NOT a guessed wall-clock time.
+            # Align deterministic start at the first live VCO sample.
+            # Compare the ENTIRE overlapping active stream byte-for-byte,
+            # including every block before, across and after panic. Unlike a
+            # 4096-sample spot check, this catches a silent, skipped or
+            # repeated block ANYWHERE in the captured post-panic timeline.
             first_ref = next(i for i, v in enumerate(control) if v)
             first_actual = next(i for i, v in enumerate(actual) if v)
-            before = 4096
-            self.assertEqual(control[first_ref:first_ref + before],
-                             actual[first_actual:first_actual + before],
-                             "INFRA: the two before-panic deterministic drone traces differ")
+            span = min(len(control) - first_ref, len(actual) - first_actual)
+            self.assertGreater(span, RATE * 2,
+                               "INFRA: insufficient full drone capture for a frame oracle")
             mark = marker(got_marks, "panic")
-            # Capture file header+payload accounting proves every recorded block
-            # is complete; bench summary separately demands overruns=0.
-            start = max(0, mark["b1"] * got_segments[0]["block"] - first_actual)
-            span = 4096
-            self.assertGreater(len(actual) - first_actual - start, span)
-            self.assertGreater(len(control) - first_ref - start, span)
-            self.assertEqual(control[first_ref + start:first_ref + start + span],
-                             actual[first_actual + start:first_actual + start + span],
-                             "PRODUCT_A10_PANIC: panic changed gate-free drone PCM or frame continuity")
+            before_mark = mark["b0"] * got_segments[0]["block"] - first_actual
+            after_mark = mark["b1"] * got_segments[0]["block"] - first_actual
+            self.assertTrue(0 < before_mark <= after_mark < span - RATE,
+                            "INFRA: panic mark outside full active comparison window")
+            # Capture headers, strict segment indices and their exact block
+            # payload lengths account for ALL recorded frames. Phase-aligned
+            # whole-stream equality to the no-panic reference tests missing
+            # or duplicated blocks even without per-block absolute timestamps.
+            self.assertEqual(
+                control[first_ref:first_ref + span],
+                actual[first_actual:first_actual + span],
+                "PRODUCT_A10_PANIC: gate-free drone PCM differs anywhere across "
+                "full aligned run; silent/skipped/repeated frames are forbidden")
+            print("OB-C-A10-PANIC-FULL-FRAME-FACT " + __import__("json").dumps({
+                "architecture": __import__("platform").machine(),
+                "aligned_first_reference_frame": first_ref,
+                "aligned_first_panic_frame": first_actual,
+                "compared_every_frame": span,
+                "panic_mark_blocks": [mark["b0"], mark["b1"]],
+                "capture_complete_blocks_reference": ref_segments[0]["blocks"],
+                "capture_complete_blocks_panic": got_segments[0]["blocks"],
+                "pcm_bit_identical_full_aligned_overlap": True,
+                "overruns": 0,
+                "unsupported_independent_absolute_frame_ids": True
+            }, sort_keys=True))
             self.assertEqual(len(ref_marks), 2)
             self.assertEqual(len(got_marks), 2)
 
@@ -152,22 +171,32 @@ class A10Capture(unittest.TestCase):
                 self.assertTrue(all(math.isfinite(v) for v in pcm),
                                 f"PRODUCT_A10_BASICS04: nonfinite PCM in {name}")
                 origin = marker(marks, "loadGraph")["b1"] * segs[0]["block"]
-                # Skip first gate to avoid conflating loadGraph start/ramp with
-                # an actual repeated sequencer gate; cover all later gate-on
-                # steps over two complete 8-step cycles.
+                # A10 explicitly requires EVERY enabled gate, including
+                # startup step 0 and first step of the second cycle (step 8).
+                # Never hide startup gates as a warm-up exemption.
                 step_peaks = []
-                for step in range(1, 16):
+                step_indices = []
+                for step in range(0, 16):
                     if not gates[step % 8]:
                         continue
                     first = int(origin + (step + .1) * step_frames)
                     last = int(origin + (step + .9) * step_frames)
                     self.assertGreater(len(pcm), last, "INFRA: capture too short for all gate steps")
                     step_peaks.append(max(abs(v) for v in pcm[first:last]))
-                self.assertGreater(len(step_peaks), 8)
+                    step_indices.append(step)
+                self.assertEqual(step_indices, [s for s in range(16) if gates[s % 8]],
+                                 "INFRA: omitted a required startup/second-cycle gate")
+                self.assertEqual(len(step_peaks), 14)
                 reference = statistics.median(step_peaks)
                 self.assertGreater(reference, 0, f"PRODUCT_A10_BASICS04: silent median gate peak in {name}")
                 self.assertTrue(all(peak >= reference * 10**(-60/20) for peak in step_peaks),
                                 f"PRODUCT_A10_BASICS04: gate-on peak more than 60 dB below median in {name}: {step_peaks}")
+                print("OB-C-A10-BASICS04-EVERY-GATE-FACT " + __import__("json").dumps({
+                    "variant": name, "enabled_steps": step_indices,
+                    "all_14_gate_peaks": step_peaks,
+                    "median_step_peak": reference, "nonfinite_samples": 0,
+                    "minimum_allowed_peak": reference * 10**(-60/20),
+                }, sort_keys=True))
 
 
 if __name__ == "__main__":
