@@ -5,7 +5,7 @@
 #include "wirescape_sdk.h"
 #include "frozen_reference.h"
 std::array<uint32_t, 3> Processor::frozen_parameter_ids{};
-int main(int argc,char**argv){try{require(argc==2,"expected module directory");ModuleLoader loader(argv[1]);stress_descriptor=loader.abi2("ladder");const auto frozen=abi1_frozen_descriptor("ladder");
+int main(int argc,char**argv){try{require(argc==2,"expected module directory");ModuleLoader loader(argv[1]);const auto *stress_descriptor=loader.abi2("ladder");const auto frozen=abi1_frozen_descriptor("ladder");
  require(frozen.id==stress_descriptor->id,"frozen ladder module ID differs from ABI2");
  require(frozen.input_count==1&&frozen.output_count==1&&frozen.parameter_count==3,
          "frozen ABI1 ladder descriptor shape differs");
