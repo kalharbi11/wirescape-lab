@@ -12,7 +12,7 @@ review row when its request is ready to dispatch. Routine independent review use
 
 A row and its labels record the decision or review request. Only the delivery lead sends
 a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it. The dedicated event issue is [#265](https://github.com/kalharbi11/wirescape-lab/issues/265).
+or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
