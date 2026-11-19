@@ -29,7 +29,7 @@ active chat's family and assigned task. A trigger never grants authority beyond 
 | Trigger | Who | Read first, in order |
 |---|---|---|
 | `architect:run` | Claude Architect (Claude session) | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` "Architect run protocol" (scout: `docs/workflow/ARCHITECT_SCOUT.md`) |
-| `lead:run` (= `lead: run`) | gpt-lead (Codex) | [Lead brief](docs/context/CODEX_LEAD.md) → [all four builder rows](docs/workflow/BUILDERS.md) → [roadmap](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) and newly Cleared Architect rows |
+| `lead:run` (= `lead: run`) | gpt-lead (Codex) | [Lead brief](docs/context/CODEX_LEAD.md) → [builder queue](docs/workflow/BUILDERS.md) → [roadmap](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) and newly Cleared Architect rows |
 
 **Architect workflow, for every agent (owner, 2026-11-17).** The Architect runs low-effort quick
 checks and escalates only on findings. Ask it by adding a row to `ARCHITECT_INBOX.md` plus the
@@ -40,7 +40,7 @@ filing inbox rows before each check-in. The owner granted the Architect full git
 
 ## Each builder task has one issue, branch and PR
 
-The lead owns the builder queue. Each lead run checks all four lanes and updates next tasks,
+The lead owns the builder queue. Each lead run checks B1–B4 and the B5 floater and updates next tasks,
 blockers and labels. Builders may pursue multiple explicitly released tasks with disjoint
 writers and cleared dependencies.
 1. Read your row in `docs/workflow/BUILDERS.md`, the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
@@ -66,7 +66,7 @@ writers and cleared dependencies.
   [continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
 - **Architect wakes:** delivery lead only. Post the scoped `/architect-run` comment to
   [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake` to #265. The Architect reads the newest command
-  and clears the label after the run. Check for a pending wake first. Follow the
+  and clears the label after the run. Check for a pending wake first, then schedule a one-shot lead check 20 minutes after dispatch. Follow the
   [wake rules](docs/workflow/README.md#intentional-architect-wake).
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.

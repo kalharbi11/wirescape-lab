@@ -7,6 +7,26 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-19 06:33 EST
+
+- B1 #259/#263 owner-mode acceptance and 32/32 OB-a1 cases passed. Windows Lab
+  failed at `a3544de`; source parked, ledger 1/2. B1 can inventory OB-a3 read-only.
+- B2 #268 released for the test-local ABI2 adaptation on S5b and the sidecar path.
+  The eight A10 oracles carry forward. B3 takes the disjoint #267 full-mode evidence
+  task; #255 remains draft and review-required. The lead owns D5 publication.
+- B4's S6 inventory is signed at #199. The next read-only pass resolves map options.
+  The OB0 tag, agreed map and notice gate S6. B5's audit adds the explicit M4
+  acceptance rows to ROADMAP. B5 is checking the Windows baseline and Golden logs.
+- Review requests require `review-ready` and pinned evidence. An intentional
+  `architect-wake` on #265 also gets a one-shot lead check after 20 minutes.
+  No urgent Architect dispatch was needed this run.
+
+All five rows checked and dispatched within their scope. Quick intake expanded to
+workflow updates and bounded dispatch. Entry usage remaining 68% five-hour and 26%
+weekly. SR6/8/13/18/19.
+
+Signed: codex-lead, 2026-11-19 06:33 EST
+
 ## Delivery update — 2026-11-19 05:59 EST
 
 - S5b #261 merged at `c373c3d` after signed Claude approval 7006666280 and verified

@@ -70,6 +70,11 @@ still records questions and rulings. Routine comments and inbox labels do not wa
 2. Post a new comment on #265 with exact first line `/architect-run`. Include inbox IDs, linked tasks, pinned heads/evidence, what waits and why now. **Then add `architect-wake` to #265.** The label addition is the trigger. Keep #265 limited to this purpose.
 3. The Architect reads the newest `/architect-run` comment on #265 as scope, uses the linked inbox/evidence, records its signed result and removes `architect-wake` when done. The removal resets the next wake. The lead does not clear an active wake to resend.
 
+4. After successfully adding the label, schedule one lead check 20 minutes after dispatch, tied
+   to the wake comment and inbox IDs. Check signed rulings and status once, update the queue,
+   apply cleared decisions and advance ready work. Record the pending trigger if no ruling has
+   landed. Arrange the timer from the local lead when the dispatching runtime lacks scheduling.
+
 Keep `review-ready` for pinned PR reviews. Builders and reviewers route wake requests through the lead.
 If the Claude integration is reconfigured, match a label addition for `architect-wake` on #265,
 not comments, label removal or this label on another item.
