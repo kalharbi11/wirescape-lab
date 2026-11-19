@@ -3,6 +3,14 @@
 
 Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
+## Latest dispatch sync — 2026-11-18 21:35 EST
+
+S5a and OB-e2 have merged. B4 owns S5b #253; B2 took over the existing A10 #207/#214 after
+B1's stop instruction, with #209 still parked. The #249 matrix produced no OB-e3 source task.
+B3 retains #243 S7.2, the remaining OB0 source change. S6 is still gated.
+
+Signed: codex-lead, 2026-11-18, 21:35 EST
+
 ## Latest dispatch sync — 2026-11-18 19:33 EST
 
 Supersedes older dispatch/wiring holds below. B1 #207/#214 and B2 #240/#249 now have
@@ -73,8 +81,8 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB0 tag/release/install check | #198 | lead |all OB0 criteria on main; preserve immutable fallback tag | 1–3h |
 | OB1 M1 S3 | #159 merged | complete |reviewed prior evidence retained | done |
 | OB1 M1 S4 | #188 / PR190 merged8c72722 | complete | reviewed26c749d, final facts/CI green | done |
-| OB1 M1 S5a | #234 / PR242 (tracker #199) | B4 | Qt-free ordered integration done; A16 granted; exact new-head evidence required | in progress |
-| OB1 M1 S5b | #199 | B4 |S5a merged; required Claude contract-review | 8–16h |
+| OB1 M1 S5a | #234 / PR242 merged af62278 | complete | reviewed and evidence verified; standalone web unverified | done |
+| OB1 M1 S5b | #253 (tracker #199) | B4 | S5a merged; dispatched; required independent Claude review | in progress |
 | OB1 M1 S6 | #199 | B4 |S5b; every product PR merged/explicitly parked; plan window ≥1 day ahead; Claude review | 8–16h |
 | OB1 M3 T1.6a | #200 | B4 |S6; mapped paths, mechanical only | 4–8h |
 | OB1 M3 T1.6b | #200 | B4 |T1.6a; independent review | 8–16h |
@@ -99,12 +107,12 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-a2 owner folder runner | #203 | B1 |OB-a1; read-only inputs; owner runs real patches | 3–6h |
 | OB-a3 no rewrite/first-save backup | #203 | B1 |OB-a1; native/document free after S5; Claude review | 6–12h |
 | OB-b Pi install/launch | #198 | B2 |S6; dry-run paths; no agent device test | 4–8h |
-| OB-c regression tests | #207 / PR214 | B1 | A10 execution Result missing after retry; B5 read-only wiring inventory | 8–16h |
+| OB-c regression tests | #207 / PR214 | B2 | SR12 handoff from B1, current branch/head and 1/2 ledger retained | in progress |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
 | OB-e1 module census | #208 / PR221 merged998f56b | complete | 34 actual palette IDs (32 native, two SDK examples) | done |
-| OB-e2 every-module smoke | #240 (tracker #204) | B2 | dispatched isolated test; shared Lab wiring held pending exact plan | 6–12h |
-| OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
+| OB-e2 every-module smoke | #240 / PR249 merged 137a6ab | complete | 136/136 and zero render allocations/faults, x64 and ARM64 | done |
+| OB-e3 module failures | #204 | B3 | waits for actual OB-e2 failure; none in the verified 34-ID matrix | no task released |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
 | OB-f2 UI fixes | #205 | B1 |f1+Architect numerical targets; Studio free | 8–20h provisional |
 | M3 RL | #192 | B1 |182 merged+191Result+Studio slot; behind OB0 work | 4–8h |
