@@ -10,6 +10,10 @@ A planned review condition goes on the task with `review-required`. Open an Arch
 review row when its request is ready to dispatch. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
+A row and its labels record the decision or review request. Only the delivery lead sends
+a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
+or a ready batch justifies it. The dedicated event issue is [#265](https://github.com/kalharbi11/wirescape-lab/issues/265).
+
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
 - `Urg`: **now** = blocks a critical-path task (OB0, or the OB1 serial chain) ·
