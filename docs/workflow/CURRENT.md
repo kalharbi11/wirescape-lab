@@ -5,6 +5,36 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-18 19:52 EST
+
+The 19:00 wake arrived at 19:48 EST. Merged the docs-only Cloud-1 queue sync #250 at
+`84e594a` after exact-head Lab 44430039514. Preserve its SR8 releases and the Architect queue.
+
+- **B4 / #242** remains under independent Claude reviewer-level review at `fd413424`.
+  Verified paired evidence 44405668223 on base `004a1b4` and that exact head. Linux x64 and
+  ARM64 each have 94 measured rows; max growth +0.269173% and +0.333476%, respectively.
+  Chord voices 1/8 are paired unavailable in both builds (SR10). No measured row exceeded
+  +1%. Generated link evidence passes all three platforms, with no ABI1 observation;
+  Windows is link-only. Lab sanitizer log shows 83/83 tests. S0 runtime assertion proof
+  was not independently extracted in this pass. See exact evidence comment 6996443870.
+  S5a still awaits independent review; S5b and S6 stay closed.
+- **B2 / #249** `de48378`: source-only OB-e2 runner and smoke test delivered. Sent the written
+  SR8 workflow release and requested hosted execution of all 136 cases on both Linux
+  architectures. No shared CMake/Lab workflow change; #209 stays parked.
+- **B1 / #214** `0b6e722`: relayed the new written SR8 release and B5's read-only production
+  target/trace inventory. Historical MIDI CMake registration is already in the PR; no further
+  shared CMake edits are released. A10 execution remains outstanding and buffer wall-time
+  unmeasured. Source stays with B1, ordinary ledger 1/2.
+- **B3 / #243** still has no PR or signed Result after the supported retry. The OB0 critical
+  path remains S7.2. Keep the same Reverb owner and ask the owner to run B3 directly.
+- **Architect:** no new design question. Existing #242 reviewer-level queue is current; A4 is
+  deferred until after OB0 under the signed 13:10 ruling.
+
+Mode quick with the concrete evidence and SR8 handoffs. Entry use 10% five-hour (reset ~21:49
+EST) and 67% weekly. No CI reruns, devices, or usage reset. Final owner wake is 21:30 EST.
+
+Signed: codex-lead, 2026-11-18, 19:52 EST
+
 ## Cloud-1 delivery sync — 2026-11-18 19:33 EST
 
 Lab only. The cloud checkout is the frozen original repository; all work in this run used
