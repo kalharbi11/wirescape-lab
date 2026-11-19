@@ -115,6 +115,9 @@ struct HostServices {
     wirescape::osc::OutBus osc_out;
     wirescape::monitor::Configuration monitor_cfg{};
     wirescape::osc::OutConfiguration osc_cfg{};
+    // Actual Chord production adapter requires a four-byte LE graph instance
+    // identity. Use the isolated smoke node 2; never bypass prepare().
+    const std::array<uint8_t,4> chord_graph_instance{{2u,0u,0u,0u}};
     HostServices() {
         monitor_cfg.tap=&monitor;
         osc_cfg.bus=&osc_out;
@@ -124,6 +127,7 @@ struct HostServices {
         size_t bytes=0;
         if(id=="monitor"){ptr=&monitor_cfg;bytes=sizeof(monitor_cfg);}
         if(id=="osc.out"){ptr=&osc_cfg;bytes=sizeof(osc_cfg);}
+        if(id=="essentials.chord"){ptr=chord_graph_instance.data();bytes=chord_graph_instance.size();}
         if(!ptr)return {};
         const auto *p=static_cast<const uint8_t*>(ptr);
         return {p,p+bytes};
