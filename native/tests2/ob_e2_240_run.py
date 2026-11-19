@@ -84,9 +84,34 @@ def build_test(build: Path, temporary: Path) -> Path:
         raise RuntimeError("OB-e2 isolated C++ object absent after original compiler")
 
     links = list(build.rglob("CMakeFiles/abi2_module_cpu_probe.dir/link.txt"))
-    if len(links) != 1:
-        raise FileNotFoundError("native Release CPU probe link command absent/ambiguous")
-    link = shlex.split(links[0].read_text(encoding="utf-8"))
+    if len(links) == 1:
+        # Unix Makefiles: CMake persists the exact linker invocation here.
+        link = shlex.split(links[0].read_text(encoding="utf-8"))
+    elif not links and (build / "build.ninja").is_file():
+        # Ninja does NOT guarantee link.txt. Retrieve its own generated
+        # production target command, rather than hand-authoring any libs.
+        cp = command(["ninja", "-C", str(build), "-t", "commands",
+                      "abi2_module_cpu_probe"], ROOT)
+        options = []
+        for line in cp.stdout.splitlines():
+            if "abi2_module_cpu_probe.dir" not in line or "module_cpu_probe.cpp.o" not in line:
+                continue
+            tokens = shlex.split(line)
+            if tokens[:2] == [":", "&&"] and tokens[-2:] == ["&&", ":"]:
+                tokens = tokens[2:-2]  # CMake Ninja's shell no-op wrapper.
+            if tokens.count("-o") != 1:
+                continue
+            out_arg = tokens[tokens.index("-o") + 1]
+            if Path(out_arg).name == "abi2_module_cpu_probe" and (
+                    not any(t in {"&&", "||", "|", ";"} for t in tokens)):
+                options.append(tokens)
+        if len(options) != 1:
+            raise ValueError("Ninja production CPU probe linker command "
+                             "absent/ambiguous; refusing hand-written substitute")
+        link = options[0]
+    else:
+        raise FileNotFoundError("native Release production CPU probe link "
+                                "command missing or ambiguous (Make/Ninja)")
     objects = [i for i, x in enumerate(link) if
                x.replace("\\", "/").endswith("module_cpu_probe.cpp.o")]
     if len(objects) != 1 or link.count("-o") != 1:
