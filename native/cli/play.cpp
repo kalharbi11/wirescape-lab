@@ -129,7 +129,7 @@ int wirescape_play(int argc,char**argv){
  std::vector<float>left(block),right(block);float*rows[]={left.data(),right.data()};std::vector<double>times;times.reserve(size_t((frames+block-1)/block));
  double peak=0,sum=0;uint64_t rendered=0,overruns=0;const double period=double(block)/rate*1e6;auto epoch=std::chrono::steady_clock::now();
  for(uint64_t at=0;at<frames&&!quit.load(std::memory_order_relaxed);){uint32_t n=uint32_t(std::min<uint64_t>(block,frames-at));auto begin=std::chrono::steady_clock::now();
-  if(app_engine_render_channels(engine.get(),rows,2,n)!=WS_OK)throw std::runtime_error("Offline render failed");
+  if(app_engine_render_channels(engine.get(),rows,2,n)!=WS2_OK)throw std::runtime_error("Offline render failed");
   double us=std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-begin).count();times.push_back(us);overruns+=us>double(n)/rate*1e6;
   for(uint32_t i=0;i<n;++i)for(float value:{left[i],right[i]}){value=std::clamp(value*WS_OUTPUT_GAIN,-1.f,1.f);peak=std::max(peak,double(std::abs(value)));sum+=double(value)*value;u16(wav,uint16_t(int16_t(std::lround(value*32767))));}
   at+=n;rendered=at;

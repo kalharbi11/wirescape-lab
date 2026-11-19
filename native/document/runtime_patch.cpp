@@ -61,7 +61,7 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
    if(version==2){need(m.at("version").is_number_integer()&&m.at("version").get<int64_t>()>0,"Invalid module version");if(m.contains("config"))need(m["config"].is_object(),"Module config must be an object");}
    const auto authored_config = version == 2 ? m.value("config", Json::object()) : Json::object();
    auto module_config = runtime_module_config(type, authored_config, node, &ignored_osc_keys);
-   need(app_engine_add_node_config(engine.get(),node,type.c_str(),module_config)==WS_OK,"Module unavailable or prepare failed");
+   need(app_engine_add_node_config(engine.get(),node,type.c_str(),module_config)==WS2_OK,"Module unavailable or prepare failed");
    nodes[node] = descriptor;
   }
   auto port=[&](uint32_t node,const std::string&name,bool output){need(nodes.count(node),"Missing cable/output module");auto*d=nodes.at(node);auto*p=output?d->outputs:d->inputs;uint32_t n=output?d->output_count:d->input_count;for(uint32_t i=0;i<n;++i)if(name==p[i].id)return i;throw std::runtime_error("Unknown port");};
@@ -80,7 +80,7 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
   if(telemetry_taps)need(graph.set_telemetry_taps(*telemetry_taps),"Cannot configure telemetry taps");
   need(graph.prepare(),"Cannot prepare graph");
   for(const auto&m:modules){uint32_t node=id(m.at("id"));auto*d=nodes.at(node);const auto values=m.value(version==1?"values":"parameters",Json::object());need(values.is_object(),"Invalid parameters");
-   for(auto it=values.begin();it!=values.end();++it){bool found=false;for(uint32_t p=0;p<d->param_count;++p){bool matches=version==1?it.key()==std::to_string(d->params[p].legacy_index):it.key()==app_engine_parameter_id(engine.get(),d->id,p);if(!matches)continue;need(it.value().is_number(),"Invalid parameter value");float v=it.value().get<float>();need(std::isfinite(v)&&app_engine_initialize_parameter(engine.get(),node,d->params[p].legacy_index,v)==WS_OK,"Parameter outside range");found=true;break;}need(version==1||found,"Unknown parameter ID");}
+   for(auto it=values.begin();it!=values.end();++it){bool found=false;for(uint32_t p=0;p<d->param_count;++p){bool matches=version==1?it.key()==std::to_string(d->params[p].legacy_index):it.key()==app_engine_parameter_id(engine.get(),d->id,p);if(!matches)continue;need(it.value().is_number(),"Invalid parameter value");float v=it.value().get<float>();need(std::isfinite(v)&&app_engine_initialize_parameter(engine.get(),node,d->params[p].id,v)==WS2_OK,"Parameter outside range");found=true;break;}need(version==1||found,"Unknown parameter ID");}
    if(version==2&&m.contains("state"))need(graph.load_state(node,state_bytes(m.at("state")))==WS2_OK,"Unsupported module state");
   }
   if (!ignored_osc_keys.empty()) {
