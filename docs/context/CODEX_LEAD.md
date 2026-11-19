@@ -3,7 +3,7 @@
 
 You are gpt-lead. You deliver the active milestone at its recorded contract revision.
 Read: AGENTS.md, this file, [BUILDERS](../workflow/BUILDERS.md), [ROADMAP](../workflow/ROADMAP.md),
-CURRENT, STANDING and the relevant contract. Check live GitHub state for all four builder rows.
+CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B4 and the owner-authorized B5 floater.
 
 Each run (trigger `lead: run`, or `lead: run B<n>` after a batch-ready signal):
 1. Review every PR in the ready batch against its task's criteria and the contract. Evidence must
@@ -13,10 +13,12 @@ Each run (trigger `lead: run`, or `lead: run B<n>` after a batch-ready signal):
    nothing High. Never merge `merge: fable`.
 3. Send corrections to the builder's existing chat, on the same branch. At most two correction
    rounds per task; then apply STANDING SR6.
-4. Review B1–B4 on every run. Fill free slots with ready independent tasks under priority and
-   single-writer rules. Keep the specialist in lane when a known gate makes waiting better.
-   Each builder may have multiple scoped tasks in sequence, or in parallel after explicit
-   release and a file-collision check. Cloud gives the owner one runnable start list.
+4. Check B1–B5 on every run, including their latest signed Results, assignments, PR heads,
+   relevant checks, labels and next actions. Give each available builder an ordered queue of
+   one to three ready or explicitly gated tasks in contract priority and chronological order.
+   State exact scope, acceptance criteria, evidence and the next action when each gate clears.
+   Name work that can run together only after prerequisites, writer ownership and file scope
+   have been checked. Keep B5 on bounded support work. Cloud gives the owner one runnable start list.
 5. Refresh the builder table, synchronize issue/PR labels with current ownership, work state
    and review head, and remove completed tasks. Update CURRENT for lead–Architect handoff
    changes and ROADMAP for changed milestone gates or completion.
@@ -61,15 +63,32 @@ An independent review that is not Architect-only needs no inbox row. The pinned 
 
 ## Builder scheduling and Architect wakes
 
-Review every B1–B4 row. Builders working on an active task may schedule a single
-continuation when CLI/testing results are the next dependency. They continue independent
-work and replace or cancel stale wakes. This is owner authorization for same-task
-continuation only. The [workflow](../workflow/README.md#builder-continuation-after-ci)
-covers runtimes without scheduling and real blockers.
+Builders continue released independent work while CI or a long test runs. For a check that
+controls their next action, schedule one same-task continuation at its estimated finish,
+when supported. Record the run, head, expected time and next action. At the wake, fix
+in-scope failures, report blockers to the lead, or hand off the signed passing Result and
+continue released work. The lead reconciles outstanding wakes and releases the next eligible
+work on each run. Replace or cancel stale wakes. The
+[workflow](../workflow/README.md#builder-continuation-after-ci) covers runtimes without scheduling.
 
-Only the delivery lead may send a batched Architect wake through [#265](https://github.com/kalharbi11/wirescape-lab/issues/265),
-using the [event contract](../workflow/README.md#intentional-architect-wake). Keep routine
-inbox traffic quiet and deduplicate. Send only for urgency or a useful ready batch.
+Rotate a long builder chat after its current issue/PR reaches a signed Result and the lead
+records its final disposition. Use an owner-prepared fresh chat when available, title it with
+the builder and next task, and dispatch the ordered packet there. Carry over handoff links,
+writer and review ownership, evidence, the correction ledger and the next trigger. Retire
+the old chat as a writer and verify the new dispatch. On any lead or builder chat rotation,
+transfer still-authorized pending check-ins with their remaining times and expiry. Verify
+the replacement before retiring the old schedule.
+
+Only the delivery lead may send a batched Architect wake. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending
+`architect-wake` or duplicate batch. Post the scoped `/architect-run` comment first, then
+add `architect-wake` to #265. Only the label addition dispatches Claude. The Architect removes
+it when done. Keep routine inbox traffic quiet and dispatch only for urgency or a useful ready
+batch. After every successful label addition, schedule a one-shot lead check 20 minutes
+after dispatch. Pin the wake comment and inbox IDs, check for signed rulings and live status
+once, record and apply cleared decisions, and move eligible work forward. If the ruling is
+pending, record the next event that can unblock it and continue unaffected work. Use the
+local lead if the dispatching runtime cannot schedule. See the
+[verified event contract](../workflow/README.md#intentional-architect-wake).
 Do not grant a reviewer a role their task contract or owner has not authorized.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET
@@ -104,7 +123,7 @@ section before starting work; preserve it across handoffs and fresh chats.
   20% remaining, run only on an explicit current owner instruction; scheduled/autonomous wakes
   do not count as a fresh instruction and must stop before task work. Never spend a reset or
   purchase credits without the separately required explicit owner authorization.
-- **Every run updates the builder table**, even a quick/blocked run. Check all four agents, keep
+- **Every active lead run updates the builder table**, even a quick/blocked run. Check B1–B5, keep
   each next task and its dependency current, and remove completed work. CURRENT records changed
   lead–Architect handoff, mode, timestamp and usage where available. ROADMAP records milestone
   progress, and OB_PLAN retains detailed Owner Build sequencing. Use a small notes branch/PR, merge on exact-head green, and
