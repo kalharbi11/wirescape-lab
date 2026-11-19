@@ -7,6 +7,15 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-19 14:57 EST
+
+- OB0 #255 synced to `c70dc3f`; all three Reverb blobs match `f314b859` and the diff is Reverb-only. Lab 44600163787 and all three Golden jobs 44600163710 passed. The non-required ARM64 M1 run 44600163841 retains both Function Envelope failures (+2.083516199% and +2.605186238%). Independent M7 review, merge, install check and the immutable `owner-build-0` tag are next. The full-mode MO and D5 assets keep their original source pins.
+- OB1 #263 synced to `15f3ecf`. Lab 44600200478 including Windows, and SR8 44600200490 passed. B1 owns the signed exact-head closeout. The owner later runs the real folder check. B4's S6 preflight found zero collisions; #199 settles four remaining map classifications and releases the final map only. S6 source waits for OB0, product PR dispositions and ≥24h notice, then M3/M4 follow.
+- OB1 A10 #275 stays parked at `57db5997`: Echo, Scene, external Groove and historical MIDI passed. Panic PCM identity and internal Groove STOP failed; buffer-change wall time remains unmeasured. B2 has read-only OB-f1 ranking planning and B5 has OB0 install preflight. Macro ZIPs verified in B2 chat; durable copies due before 2026-11-24 22:28 EST.
+- Quick intake expanded to CI disposition, review routing and bounded builder continuations. Entry reserves 81% five-hour, 18% weekly. Five-hour reset 18:59 EST. Current owner request authorized the run. Chat submission and observed execution are tracked separately.
+
+Signed: codex-lead, 2026-11-19, 14:57 EST
+
 ## Delivery update — 2026-11-19 06:45 EST
 
 - B1 #259/#263 owner-mode acceptance stands. Windows Lab also failed on main with
