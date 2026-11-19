@@ -62,7 +62,7 @@ def pcm(path: Path) -> np.ndarray:
     return data
 
 
-def after_clicks(data: np.ndarray, start: int, duration_ms: int) -> list[dict]:
+def after_clicks(data: np.ndarray, start: int, duration_ms: float) -> list[dict]:
     """500ms/gesture window with detector's unchanged ±25-ms guard present."""
     guard = int(.05 * RATE)  # 50ms surrounding context, NOT an altered click oracle
     end = start + round(duration_ms * RATE / 1000)
@@ -126,10 +126,11 @@ class A10Clicks(unittest.TestCase):
                 self.assertEqual(reference.shape, actual.shape)
                 self.assertTrue(np.array_equal(reference[:ECHO_START], actual[:ECHO_START]),
                                 f"INFRA_A10_ECHO: baseline drift before {tag}")
-                real = after_clicks(actual, ECHO_START, duration)
-                baseline = after_clicks(reference, ECHO_START, duration)
+                span_ms = g["gesture_end_ms"] - g["gesture_start_ms"]
+                real = after_clicks(actual, ECHO_START, span_ms)
+                baseline = after_clicks(reference, ECHO_START, span_ms)
                 print("OB-C-A10-ECHO-CLICK-FACT " + json.dumps({
-                    "knob": knob, "duration_ms": duration,
+                    "knob": knob, "duration_ms": duration, "observed_span_ms": span_ms,
                     "actual_studio_setparam_events": len(g["events"]),
                     "click_events": len(real), "reference_click_events": len(baseline),
                     "detector": "unchanged bench/offline/metrics.py:38-89"}, sort_keys=True))

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -143,7 +144,18 @@ void echo(const std::filesystem::path &trace_path, const std::filesystem::path &
         const auto &events = gesture.at("events");
         require(events.is_array() && events.size() >= 3, "missing actual Studio pointermove events");
         const auto tag = knob + "-" + std::to_string(duration);
-        const uint32_t total = ((kEchoGestureStart + duration * 48 + 48000 + kBlock - 1) / kBlock) * kBlock;
+        // Studio records event offsets from the observed pointer gesture start.
+        const double start_ms = gesture.at("gesture_start_ms").get<double>();
+        const double end_ms = gesture.at("gesture_end_ms").get<double>();
+        const double span_ms = end_ms - start_ms;
+        require(std::isfinite(start_ms) && start_ms >= 0 && std::isfinite(end_ms) && span_ms > 0,
+                "invalid recorded Studio gesture span");
+        const double gesture_frames = std::ceil(span_ms * kRate / 1000.);
+        require(gesture_frames <= std::numeric_limits<uint32_t>::max() -
+                                  kEchoGestureStart - kRate - (kBlock - 1),
+                "recorded Studio gesture span exceeds render capacity");
+        const uint32_t total = ((kEchoGestureStart + static_cast<uint32_t>(gesture_frames) +
+                                 kRate + kBlock - 1) / kBlock) * kBlock;
         {
             auto graph = loaded(catalogue.get(), document);
             render_to(graph.get(), dir / ("echo-reference-" + tag + ".f32le"), total);
@@ -157,8 +169,8 @@ void echo(const std::filesystem::path &trace_path, const std::filesystem::path &
                 const double when = event.at("t_ms").get<double>();
                 const float value = event.at("value").get<float>();
                 require(std::isfinite(when) && std::isfinite(value) && when >= previous &&
-                        when >= 0 && when <= duration + 300,
-                        "out-of-order or nonfinite true Studio event timestamps");
+                        when >= 0 && when <= span_ms,
+                        "out-of-order, nonfinite or out-of-span true Studio event");
                 previous = when;
                 require(knob == "time" || knob == "feedback" || knob == "tone" || knob == "mix",
                         "unruled gesture: " + knob);
