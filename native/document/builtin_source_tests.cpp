@@ -55,7 +55,7 @@ static void render(AppEngine *engine, float *out, uint32_t frames) {
         result = app_engine_render(engine, out, frames);
         allocations = watch.allocations();
     }
-    require(result == WS_OK && allocations == 0, "device-free render must succeed without allocation");
+    require(result == WS2_OK && allocations == 0, "device-free render must succeed without allocation");
     require(app_engine_native(engine).meter().faults == 0, "no engine faults");
 }
 static void sequencer(AppEngine *catalogue) {
@@ -119,7 +119,7 @@ static void random_source(AppEngine *catalogue) {
         smoothing |= expected[i] != expected[i + 1];
     }
     require(changed && smoothing, "clock advances random values and smooth output follows");
-    require(app_engine_reset(first.get()) == WS_OK, "reset random graph");
+    require(app_engine_reset(first.get()) == WS2_OK, "reset random graph");
     require(expected == random_render(first.get()), "reset replays the seeded graph");
 }
 int main() {

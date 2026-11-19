@@ -2,7 +2,7 @@
 #pragma once
 // Original ABI1 filter stress functions; lifted without changing their assertions,
 // signal bounds, inputs, rates, partitions or tails. No ABI1 engine loader.
-#include "wirescape/module.h"
+#include "wirescape/module2.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -18,26 +18,55 @@ void require(bool okay, const std::string &message) {
     if (!okay) throw std::runtime_error(message);
 }
 struct Processor {
-    const ws_module_descriptor *descriptor;
+    const ws2_descriptor *descriptor;
+    static std::array<uint32_t, 3> frozen_parameter_ids;
+    alignas(64) std::array<uint8_t, 65536> arena{};
+    size_t used = 0;
     void *state = nullptr;
-    Processor(const ws_module_descriptor *d, double rate) : descriptor(d) {
-        state = descriptor->create(rate);
+    double rate = 48000.0;
+    float values[3]{};
+    static void *WS2_CALL allocate(void *context, size_t bytes, size_t alignment, uint32_t) {
+        auto &self = *static_cast<Processor *>(context);
+        self.used = (self.used + alignment - 1) & ~(alignment - 1);
+        if (bytes > self.arena.size() - self.used) return nullptr;
+        void *memory = self.arena.data() + self.used;
+        self.used += bytes;
+        return memory;
+    }
+    ws2_host host() { return {sizeof(ws2_host), this, allocate}; }
+    Processor(const ws2_descriptor *d, double sample_rate) : descriptor(d), rate(sample_rate) {
+        for (uint32_t i = 0; i < 3; ++i) values[i] = descriptor->params[i].initial;
+        auto h = host();
+        state = descriptor->create(&h);
         require(state != nullptr, "processor create failed");
-        ws_module_config config{sizeof(config), 512, rate, 1};
-        require(descriptor->prepare(state, &config) == 0, "processor prepare failed");
+        ws2_config config{sizeof(config), rate, 512, 1, 1, nullptr, 0};
+        require(descriptor->prepare(state, &config, &h) == WS2_OK, "processor prepare failed");
     }
     ~Processor() { if (state) descriptor->destroy(state); }
     Processor(const Processor &) = delete;
     Processor &operator=(const Processor &) = delete;
     void set(uint32_t id, float value) {
-        ws_module_event event{WS_PARAMETER, id, value, 0, 0};
-        descriptor->event(state, &event);
+        for (uint32_t i = 0; i < 3; ++i) {
+            if (frozen_parameter_ids[i] == id) { values[i] = value; return; }
+        }
+        require(false, "unknown frozen ladder parameter ID");
     }
     void reset() { descriptor->reset(state); }
     void render(const float *input, float *const *outputs, uint32_t frames, uint64_t position) {
         const float *inputs[] = {input};
-        ws_process_context context{sizeof(context), frames, position, 1};
-        descriptor->process(state, descriptor->input_count ? inputs : nullptr, outputs, &context);
+        ws2_signal signal{sizeof(signal), inputs, inputs[0] ? 1u : 0u,
+                          inputs[0] ? WS2_CONNECTED : WS2_CONSTANT};
+        const float *data[3] = {values, values + 1, values + 2};
+        ws2_signal parameters[3];
+        for (int i = 0; i < 3; ++i)
+            parameters[i] = {sizeof(ws2_signal), data + i, 1, WS2_CONSTANT};
+        float *output[] = {outputs[0]};
+        ws2_signal_out result{sizeof(result), output, 1, 0, 1};
+        ws2_event_list events{sizeof(events), 0, nullptr};
+        ws2_process context{sizeof(context), frames, position, 1, rate, 1, 1, 1, 3,
+                            &signal, &result, parameters, &events, nullptr,
+                            {sizeof(ws2_event_list), 0, nullptr}, nullptr};
+        require(descriptor->process(state, &context) == WS2_OK, "ABI2 ladder process failed");
     }
 };
 
@@ -46,7 +75,7 @@ void check_sample(float value, const char *what) {
     if (std::abs(value) >= 16.0f) throw std::runtime_error(std::string(what) + " exceeded normal-signal bound");
 }
 
-void impulse_cases(const ws_module_descriptor *d, bool vcf, double rate) {
+void impulse_cases(const ws2_descriptor *d, bool vcf, double rate) {
     const std::array<float, 3> cutoffs{{20.0f, 1000.0f,
         static_cast<float>(std::min(18000.0, 0.4 * rate))}};
     const uint32_t output_count = d->output_count;
@@ -94,7 +123,7 @@ void impulse_cases(const ws_module_descriptor *d, bool vcf, double rate) {
     }
 }
 
-void modulation_case(const ws_module_descriptor *d, bool vcf, double rate) {
+void modulation_case(const ws2_descriptor *d, bool vcf, double rate) {
     Processor processor(d, rate);
     std::array<float, 512> input{}, first{}, second{};
     std::array<float *, 2> outputs{{first.data(), second.data()}};

@@ -34,7 +34,7 @@ inline bool render_callback_block(AppEngine *engine, float *scratch, uint32_t ca
         return false;
     }
     float *rows[]{scratch, scratch + capacity};
-    if (app_engine_render_live(engine, rows, 2, uint32_t(frames), now_ns) != WS_OK) {
+    if (app_engine_render_live(engine, rows, 2, uint32_t(frames), now_ns) != WS2_OK) {
         std::fill_n(out, frames * 2, 0.f);
         faults.fetch_add(1, std::memory_order_relaxed);
         return false;

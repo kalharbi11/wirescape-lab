@@ -83,7 +83,7 @@ int main() {
         status = app_engine_render_live(engine.get(), channels, 1, 128, callback_time);
         REQUIRE(scope.allocations() == 0);
     }
-    REQUIRE(status == WS_OK);
+    REQUIRE(status == WS2_OK);
     // Timestamped ingress has one max-block of bounded scheduling lead.
     REQUIRE(app_engine_native(engine.get()).output_sample(1, 0, 0, 0) == 0);
     {
@@ -91,7 +91,7 @@ int main() {
         status = app_engine_render_live(engine.get(), channels, 1, 128, app_engine_clock_ns());
         REQUIRE(scope.allocations() == 0);
     }
-    REQUIRE(status == WS_OK);
+    REQUIRE(status == WS2_OK);
     REQUIRE(app_engine_native(engine.get()).output_sample(1, 0, 0, 0) == .75f);
     REQUIRE(app_engine_native(engine.get()).output_sample(1, 0, 0, 127) == .75f);
 }

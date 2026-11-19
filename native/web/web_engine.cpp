@@ -268,13 +268,13 @@ struct Web {
         float *rows[] = {left, right};
         std::fill(left, left + frames, 0.f);
         std::fill(right, right + frames, 0.f);
-        if (live && app_engine_render_channels(live.get(), rows, 2, frames) != WS_OK) {
+        if (live && app_engine_render_channels(live.get(), rows, 2, frames) != WS2_OK) {
             std::fill(left, left + frames, 0.f);
             std::fill(right, right + frames, 0.f);
         }
         if (fade && old) {
             float *prior[] = {scratch_l, scratch_r};
-            if (app_engine_render_channels(old.get(), prior, 2, frames) != WS_OK) {
+            if (app_engine_render_channels(old.get(), prior, 2, frames) != WS2_OK) {
                 std::fill(scratch_l, scratch_l + frames, 0.f);
                 std::fill(scratch_r, scratch_r + frames, 0.f);
             }

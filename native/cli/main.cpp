@@ -27,9 +27,14 @@ Engine make(const std::string &dir, double rate, uint32_t block) {
     return e;
 }
 void send(AppEngine *e, uint64_t frame, uint32_t node, uint32_t type, float value,
-          uint32_t parameter = 0, uint32_t note = 1) {
-    ws_event ev{sizeof(ev), frame, node, type, parameter, value, 1, note, app_engine_generation(e)};
-    if (app_engine_enqueue(e, &ev))
+          const char *parameter = nullptr, uint32_t note = 1) {
+    ws2_event event{};
+    event.struct_size = sizeof(event);
+    event.type = type;
+    event.source_id = 1;
+    event.note_id = static_cast<int32_t>(note);
+    event.value = value;
+    if (app_engine_enqueue(e, node, event, frame, app_engine_generation(e), parameter) != WS2_OK)
         throw std::runtime_error("Event rejected");
 }
 void u16(std::ofstream &o, uint16_t v) {
@@ -43,13 +48,13 @@ void u32(std::ofstream &o, uint32_t v) {
 void render(const std::string &dir, const std::string &path) {
     constexpr uint32_t rate = 48000, frames = rate * 4;
     auto e = make(dir, rate, 512);
-    send(e.get(), 0, 3, WS_PARAMETER, .3f);
+    send(e.get(), 0, 3, WS2_PARAM, .3f, "gain");
     const int notes[] = {57, 60, 64, 69};
     for (uint32_t i = 0; i < 4; ++i) {
         auto f = static_cast<uint64_t>(i) * rate;
-        send(e.get(), f, 1, WS_NOTE_ON, static_cast<float>(notes[i]));
-        send(e.get(), f, 2, WS_NOTE_ON, static_cast<float>(notes[i]), 0, i + 1);
-        send(e.get(), f + rate * 3 / 5, 2, WS_NOTE_OFF, 0, 0, i + 1);
+        send(e.get(), f, 1, WS2_NOTE_ON, static_cast<float>(notes[i]));
+        send(e.get(), f, 2, WS2_NOTE_ON, static_cast<float>(notes[i]), nullptr, i + 1);
+        send(e.get(), f + rate * 3 / 5, 2, WS2_NOTE_OFF, 0, nullptr, i + 1);
     }
     std::ofstream out(path, std::ios::binary);
     if (!out)
@@ -123,7 +128,7 @@ void benchmark(const std::string &dir, const std::string &path, uint32_t blocks)
             const uint32_t events = std::min(traffic, block);
             auto e = make(dir, rate, block);
             std::vector<float> buffer(block);
-            send(e.get(), 0, 2, WS_NOTE_ON, 60);
+            send(e.get(), 0, 2, WS2_NOTE_ON, 60);
             for (int i = 0; i < 200; ++i)
                 app_engine_render(e.get(), buffer.data(), block);
             std::vector<double> times;
@@ -133,10 +138,10 @@ void benchmark(const std::string &dir, const std::string &path, uint32_t blocks)
             for (uint32_t i = 0; i < blocks; ++i) {
                 for (uint32_t k = 0; k < events; ++k) {
                     const uint64_t frame = static_cast<uint64_t>(200 + i) * block + static_cast<uint64_t>(k) * block / events;
-                    if (k % 8 == 0) send(e.get(), frame, 2, WS_NOTE_ON, 60);
-                    else if (k % 8 == 1) send(e.get(), frame, 2, WS_NOTE_OFF, 0);
-                    else if (k % 8 == 2) send(e.get(), frame, 3, WS_PARAMETER, .3f);
-                    else send(e.get(), frame, 1, WS_PARAMETER, 220.f + (k % 7) * 55.f);
+                    if (k % 8 == 0) send(e.get(), frame, 2, WS2_NOTE_ON, 60);
+                    else if (k % 8 == 1) send(e.get(), frame, 2, WS2_NOTE_OFF, 0);
+                    else if (k % 8 == 2) send(e.get(), frame, 3, WS2_PARAM, .3f, "gain");
+                    else send(e.get(), frame, 1, WS2_PARAM, 220.f + (k % 7) * 55.f, "frequency");
                 }
                 auto start = std::chrono::steady_clock::now();
                 if (app_engine_render(e.get(), buffer.data(), block))

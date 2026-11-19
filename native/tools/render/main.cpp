@@ -114,24 +114,25 @@ int main(int argc, char **argv) {
             previous = frame;
             const uint32_t node = u32(entry.at("node"), "event node");
             const std::string type = entry.at("type").get<std::string>();
-            ws_event event{};
+            ws2_event event{};
             event.struct_size = sizeof(event);
-            event.frame = frame;
-            event.node_id = node;
             event.source_id = 1;
-            event.generation = app_engine_generation(engine.get());
+            const auto generation = app_engine_generation(engine.get());
+            std::string parameter_id;
+            bool gate = false;
+            float gate_value = 0.f;
             if (type == "noteOn" || type == "noteOff") {
                 const auto key = u32(entry.at("key"), "MIDI key");
                 need(key <= 127, "MIDI key >127");
-                event.type = type == "noteOn" ? WS_NOTE_ON : WS_NOTE_OFF;
+                event.type = type == "noteOn" ? WS2_NOTE_ON : WS2_NOTE_OFF;
                 event.note_id = key;
                 event.value = float(key);
             } else if (type == "gate") {
-                event.type = WS_GATE;
-                event.value = entry.at("value").get<float>();
-                need(std::isfinite(event.value), "non-finite gate");
+                gate = true;
+                gate_value = entry.at("value").get<float>();
+                need(std::isfinite(gate_value), "non-finite gate");
             } else if (type == "setParam") {
-                event.type = WS_PARAMETER;
+                event.type = WS2_PARAM;
                 event.value = entry.at("value").get<float>();
                 need(std::isfinite(event.value), "non-finite parameter");
                 std::string module;
@@ -140,6 +141,7 @@ int main(int argc, char **argv) {
                 }
                 need(!module.empty(), "parameter targets missing node");
                 const std::string parameter = entry.at("parameter").get<std::string>();
+                parameter_id = parameter;
                 bool found = false;
                 for (uint32_t i = 0; i < app_engine_module_count(engine.get()); ++i) {
                     const auto *descriptor = app_engine_module(engine.get(), i);
@@ -148,7 +150,6 @@ int main(int argc, char **argv) {
                         if (parameter == app_engine_parameter_id(engine.get(), module.c_str(), p)) {
                             const auto &d = descriptor->params[p];
                             need(event.value >= d.minimum && event.value <= d.maximum, "parameter outside range");
-                            event.parameter_id = d.legacy_index;
                             found = true;
                         }
                     }
@@ -157,7 +158,11 @@ int main(int argc, char **argv) {
             } else {
                 throw std::runtime_error("unknown event type: " + type);
             }
-            need(app_engine_enqueue(engine.get(), &event) == WS_OK,
+            const int event_status = gate
+                ? app_engine_enqueue_gate(engine.get(), node, gate_value, frame, generation, 1)
+                : app_engine_enqueue(engine.get(), node, event, frame, generation,
+                                     parameter_id.empty() ? nullptr : parameter_id.c_str());
+            need(event_status == WS2_OK,
                  "frame-addressed event enqueue failed at frame " + std::to_string(frame));
         }
         std::vector<float> interleaved(size_t(frames) * 2);
@@ -167,18 +172,16 @@ int main(int argc, char **argv) {
             float *rows[]{left.data(), right.data()};
             if (args.count("--late-fixture") && start == block) {
                 // Test-only: enqueue an already-rendered frame; this must be detected.
-                ws_event late{};
+                ws2_event late{};
                 late.struct_size = sizeof(late);
-                late.frame = 0;
-                late.node_id = 1;
                 late.source_id = 1;
-                late.generation = app_engine_generation(engine.get());
-                late.type = WS_NOTE_ON;
+                late.type = WS2_NOTE_ON;
                 late.note_id = 60;
                 late.value = 60.f;
-                need(app_engine_enqueue(engine.get(), &late) == WS_OK, "late fixture enqueue failed");
+                need(app_engine_enqueue(engine.get(), 1, late, 0, app_engine_generation(engine.get())) == WS2_OK,
+                     "late fixture enqueue failed");
             }
-            need(app_engine_render_channels(engine.get(), rows, 2, n) == WS_OK,
+            need(app_engine_render_channels(engine.get(), rows, 2, n) == WS2_OK,
                  "render failed at frame " + std::to_string(start));
             for (uint32_t i = 0; i < n; ++i) {
                 interleaved[size_t(start + i) * 2] = left[i];

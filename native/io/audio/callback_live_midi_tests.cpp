@@ -29,34 +29,34 @@ App graph(bool bench = false, bool tapped = false) {
     cfg.event_budget = 2048;
     App app(app_engine_create(&cfg), app_engine_destroy);
     CHECK(app);
-    CHECK(app_engine_add_node(app.get(), 1, "midi.in") == WS_OK);
-    CHECK(app_engine_add_node(app.get(), 2, "midi.to_cv") == WS_OK);
-    CHECK(app_engine_add_node(app.get(), 3, "essentials.vco") == WS_OK);
-    CHECK(app_engine_add_node(app.get(), 4, "essentials.adsr") == WS_OK);
-    CHECK(app_engine_add_node(app.get(), 5, "essentials.vca") == WS_OK);
-    CHECK(app_engine_add_node(app.get(), 6, "essentials.output") == WS_OK);
-    CHECK(app_engine_connect(app.get(), 1, 0, 2, 0) == WS_OK);
-    CHECK(app_engine_connect(app.get(), 2, 0, 3, 0) == WS_OK); // pitch
-    CHECK(app_engine_connect(app.get(), 2, 1, 4, 0) == WS_OK); // gate
-    if (!bench) CHECK(app_engine_connect(app.get(), 3, 0, 5, 0) == WS_OK);
-    CHECK(app_engine_connect(app.get(), 4, 0, 5, 1) == WS_OK);
-    CHECK(app_engine_connect(app.get(), 5, 0, 6, 0) == WS_OK);
+    CHECK(app_engine_add_node(app.get(), 1, "midi.in") == WS2_OK);
+    CHECK(app_engine_add_node(app.get(), 2, "midi.to_cv") == WS2_OK);
+    CHECK(app_engine_add_node(app.get(), 3, "essentials.vco") == WS2_OK);
+    CHECK(app_engine_add_node(app.get(), 4, "essentials.adsr") == WS2_OK);
+    CHECK(app_engine_add_node(app.get(), 5, "essentials.vca") == WS2_OK);
+    CHECK(app_engine_add_node(app.get(), 6, "essentials.output") == WS2_OK);
+    CHECK(app_engine_connect(app.get(), 1, 0, 2, 0) == WS2_OK);
+    CHECK(app_engine_connect(app.get(), 2, 0, 3, 0) == WS2_OK); // pitch
+    CHECK(app_engine_connect(app.get(), 2, 1, 4, 0) == WS2_OK); // gate
+    if (!bench) CHECK(app_engine_connect(app.get(), 3, 0, 5, 0) == WS2_OK);
+    CHECK(app_engine_connect(app.get(), 4, 0, 5, 1) == WS2_OK);
+    CHECK(app_engine_connect(app.get(), 5, 0, 6, 0) == WS2_OK);
     CHECK(app_engine_native(app.get()).output(6, 0, 1));
     if (bench) {
         std::vector<wirescape::engine2::Tap> taps;
         for (uint32_t id = 10; id < 42; ++id) {
-            CHECK(app_engine_add_node(app.get(), id, "essentials.vco") == WS_OK);
-            CHECK(app_engine_connect(app.get(), id == 10 ? 3 : id - 1, 0, id, 1) == WS_OK);
+            CHECK(app_engine_add_node(app.get(), id, "essentials.vco") == WS2_OK);
+            CHECK(app_engine_connect(app.get(), id == 10 ? 3 : id - 1, 0, id, 1) == WS2_OK);
             taps.push_back({wirescape::engine2::Tap::Param, id, 0});
             taps.push_back({wirescape::engine2::Tap::Output, id, 0});
         }
-        CHECK(app_engine_connect(app.get(), 41, 0, 5, 0) == WS_OK);
+        CHECK(app_engine_connect(app.get(), 41, 0, 5, 0) == WS2_OK);
         if (tapped) CHECK(app_engine_native(app.get()).set_telemetry_taps(taps));
     }
-    CHECK(app_engine_prepare(app.get(), 6, 0) == WS_OK);
-    CHECK(app_engine_initialize_parameter(app.get(), 2, 0, 1) == WS_OK);
-    CHECK(app_engine_initialize_parameter(app.get(), 4, 0, .0001f) == WS_OK);
-    CHECK(app_engine_initialize_parameter(app.get(), 4, 3, .005f) == WS_OK);
+    CHECK(app_engine_prepare(app.get(), 6, 0) == WS2_OK);
+    CHECK(app_engine_initialize_parameter(app.get(), 2, "voice_count", 1) == WS2_OK);
+    CHECK(app_engine_initialize_parameter(app.get(), 4, "attack", .0001f) == WS2_OK);
+    CHECK(app_engine_initialize_parameter(app.get(), 4, "release", .005f) == WS2_OK);
     return app;
 }
 void midi(AppEngine *app, bool on, uint64_t when) {
