@@ -192,6 +192,30 @@ void test_mix_loudness() {
     std::printf("full-wet vs dry: %.2f dB\n", db);
     REQUIRE(std::abs(db) < 6);
 }
+void test_mix_zero_continuity() {
+    // The original positive-Mix headroom stepped 12% below exact dry at
+    // zero. Exercise the moving, sample-accurate control in BOTH output
+    // paths, including a change from a substantial wet setting back to 0.
+    const Samples left(1, .5f), right(1, -.25f);
+    for (double rate : {44100., 48000., 96000.}) {
+        Rig moving(rate);
+        const Samples warm = noise(4096, .25f);
+        moving.set(reverb::MIX, .3f);
+        moving.run(warm, warm, 17);
+        for (float mix : {0.f, .00001f, .0001f, 0.f,
+                          .5f, .0001f, .00001f, 0.f}) {
+            moving.set(reverb::MIX, mix);
+            const Stereo out = moving.run(left, right, 1);
+            if (mix == 0.f) {
+                REQUIRE(out.l[0] == left[0] && out.r[0] == right[0]);
+            } else if (mix <= .0001f) {
+                // The pre-correction 0.88 dry multiplier fails by ~0.06 FS.
+                REQUIRE(std::abs(out.l[0] - left[0]) < .0005f);
+                REQUIRE(std::abs(out.r[0] - right[0]) < .0005f);
+            }
+        }
+    }
+}
 void test_s7_2_gain_staging_and_no_clamp() {
     // Direct mono VCO-style sine excitation under the same default parameters
     // as the module-output contract; hosted MO remains the official oracle.
@@ -475,6 +499,7 @@ int main() {
     test_lengths_and_rates();
     test_frame_and_reset();
     test_mix_loudness();
+    test_mix_zero_continuity();
     test_s7_2_gain_staging_and_no_clamp();
     test_dry_and_width();
     test_decay();

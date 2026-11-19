@@ -67,12 +67,23 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
-    // S7.2: retain the original full-wet RMS, add modest mixed headroom.
-    // A smooth knee handles rare extreme coherent peaks before the old +/-2
-    // fault-safety guard without changing normal (<1.25 FS) mixed samples.
+    // S7.2: retain full-wet loudness and preserve the existing headroom
+    // at default Mix=0.3 and above. At lower Mix, smoothly recover dry
+    // unity to avoid a step when the modulatable Mix crosses zero.
+    // The subsequent knee is linear below 1.25 FS; mixed-signal headroom
+    // still attenuates ordinary samples at positive Mix.
     static constexpr float kWetMakeup = 5.f;
     static constexpr float kHeadroomBase = .88f, kHeadroomMixSlope = .04f;
     static constexpr float kSoftKneeStart = 1.25f, kSoftKneeSpan = .5f;
+    static float mixed_headroom(float mix) {
+        const float old_gain = kHeadroomBase + kHeadroomMixSlope * mix;
+        if (mix >= .3f) return old_gain; // Exact S7.2 default/full-wet gain.
+        // Smoothstep has zero slope at both ends: unity and slope zero
+        // at Mix=0, matching the original gain curve's slope at 0.3.
+        const float t = mix / .3f;
+        const float blend = t * t * (3.f - 2.f * t);
+        return 1.f + blend * (old_gain - 1.f);
+    }
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
 #ifdef REVERB_TEST_GAIN_METER
@@ -318,7 +329,7 @@ struct Reverb {
                     const float makeup = 1.f + kWetMakeup * mix * mix;
                     wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
                 }
-                const float headroom = kHeadroomBase + kHeadroomMixSlope * mix;
+                const float headroom = mixed_headroom(mix);
                 lout.ch(0)[i] = staged_output(headroom * (dry_gain * l + wet_gain * wet_l));
                 rout.ch(0)[i] = staged_output(headroom * (dry_gain * r + wet_gain * wet_r));
             }
@@ -405,7 +416,7 @@ struct Reverb {
                 const float makeup = 1.f + kWetMakeup * mix * mix;
                 wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
             }
-            const float headroom = kHeadroomBase + kHeadroomMixSlope * mix;
+            const float headroom = mixed_headroom(mix);
             lout.ch(0)[i] = staged_output(headroom * (dry_gain * l + wet_gain * wet_l));
             rout.ch(0)[i] = staged_output(headroom * (dry_gain * r + wet_gain * wet_r));
         }
