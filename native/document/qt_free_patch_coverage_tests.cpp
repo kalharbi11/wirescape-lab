@@ -46,7 +46,7 @@ float render_and_check(AppEngine *graph, int blocks, const char *context) {
             status = app_engine_render(graph, samples, 128);
             allocations = watch.allocations();
         }
-        if (status != WS_OK || allocations != 0)
+        if (status != WS2_OK || allocations != 0)
             throw std::runtime_error(std::string(context) + ": render or allocation failure");
         for (float sample : samples) {
             require(std::isfinite(sample), "Qt-free loaded graph produces finite samples");
@@ -133,7 +133,7 @@ void serialized_demo_equivalence(AppEngine *catalogue, const wirescape::engine2:
             b = app_engine_render(from_saved_v2.get(), reloaded, 128);
             allocations += watch.allocations();
         }
-        require(a == WS_OK && b == WS_OK, "v1 and saved v2 loaded graphs render");
+        require(a == WS2_OK && b == WS2_OK, "v1 and saved v2 loaded graphs render");
         for (int i = 0; i < 128; ++i) {
             require(std::isfinite(baseline[i]), "frozen ABI1 reference finite");
             require(std::isfinite(loaded[i]), "saved v2 render finite");
@@ -168,9 +168,10 @@ void keyboard_macro(AppEngine *catalogue, const wirescape::engine2::Config &conf
       "outputs":[{"module":3,"port":"audio","bus_channel":0}]})";
     auto graph = load(source, catalogue, config);
     for (uint32_t key : {60u, 64u, 67u, 72u}) {
-        const ws_event on{
-            sizeof(ws_event), 0, 1, WS_NOTE_ON, 0, static_cast<float>(key), 1, key, app_engine_generation(graph.get())};
-        require(app_engine_enqueue(graph.get(), &on) == WS_OK,
+        ws2_event on{};
+        on.struct_size=sizeof(on);on.type=WS2_NOTE_ON;on.value=static_cast<float>(key);
+        on.source_id=1;on.note_id=static_cast<int32_t>(key);
+        require(app_engine_enqueue(graph.get(), 1, on, 0, app_engine_generation(graph.get())) == WS2_OK,
                 "enqueue synthetic keyboard chord through loaded Macro graph");
     }
     render_and_check(graph.get(), 64, "keyboard to Macro");
@@ -182,10 +183,11 @@ void keyboard_macro(AppEngine *catalogue, const wirescape::engine2::Config &conf
         supported_rate.sample_rate = rate;
         auto off_rate_graph = load(source, catalogue, supported_rate);
         for (uint32_t key : {60u, 64u, 67u, 72u}) {
-            const ws_event on{
-                sizeof(ws_event), 0, 1, WS_NOTE_ON, 0, static_cast<float>(key), 1, key,
-                app_engine_generation(off_rate_graph.get())};
-            require(app_engine_enqueue(off_rate_graph.get(), &on) == WS_OK,
+            ws2_event on{};
+            on.struct_size=sizeof(on);on.type=WS2_NOTE_ON;on.value=static_cast<float>(key);
+            on.source_id=1;on.note_id=static_cast<int32_t>(key);
+            require(app_engine_enqueue(off_rate_graph.get(), 1, on, 0,
+                                       app_engine_generation(off_rate_graph.get())) == WS2_OK,
                     "enqueue synthetic chord into off-rate Macro graph");
         }
         render_and_check(off_rate_graph.get(), 64,
@@ -198,7 +200,7 @@ void keyboard_macro(AppEngine *catalogue, const wirescape::engine2::Config &conf
             status = app_engine_render(graph.get(), previous, 128);
             allocations = watch.allocations();
         }
-        require(status == WS_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
+        require(status == WS2_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
                 "off-rate Macro load leaves the separately loaded 48 kHz graph renderable");
     }
 
@@ -219,7 +221,7 @@ void keyboard_macro(AppEngine *catalogue, const wirescape::engine2::Config &conf
         status = app_engine_render(graph.get(), previous, 128);
         allocations = watch.allocations();
     }
-    require(status == WS_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
+    require(status == WS2_OK && allocations == 0 && app_engine_native(graph.get()).meter().faults == 0,
             "failed load leaves the separately loaded graph renderable");
 }
 void dual_chaos(AppEngine *catalogue, const wirescape::engine2::Config &config, const std::filesystem::path &examples) {

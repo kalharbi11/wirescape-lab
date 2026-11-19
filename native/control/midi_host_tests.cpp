@@ -47,7 +47,7 @@ static bool wait_gate(AppEngine *engine, bool wanted) {
     do {
         // Render like the live callback: real service chokes carry steady-clock stamps.
         float *rows[]{samples};
-        CHECK(app_engine_render_live(engine, rows, 1, 128, app_engine_clock_ns()) == WS_OK);
+        CHECK(app_engine_render_live(engine, rows, 1, 128, app_engine_clock_ns()) == WS2_OK);
         bool gate = false;
         for (float value : samples) gate |= value > .5f;
         if (gate == wanted) return true;
@@ -63,8 +63,8 @@ static void global_keyboard_notes() {
     config.event_budget = 2048;
     std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> engine(app_engine_create(&config), app_engine_destroy);
     CHECK(engine);
-    CHECK(app_engine_add_node(engine.get(), 1, "host.keyboard") == WS_OK);
-    CHECK(app_engine_prepare(engine.get(), 1, 1) == WS_OK); // Observe the keyboard gate without any device.
+    CHECK(app_engine_add_node(engine.get(), 1, "host.keyboard") == WS2_OK);
+    CHECK(app_engine_prepare(engine.get(), 1, 1) == WS2_OK); // Observe the keyboard gate without any device.
     auto backend = std::make_unique<KeyboardBackend>();
     auto *fake = backend.get();
     wirescape::midi::Host host(true, std::move(backend));
@@ -130,9 +130,9 @@ static void global_keyboard_notes() {
     CHECK(wait_gate(engine.get(), false));
     midi1(0x90, 67, 100);
     CHECK(wait_gate(engine.get(), true));
-    CHECK(app_engine_panic(engine.get()) == WS_OK);
+    CHECK(app_engine_panic(engine.get()) == WS2_OK);
     float samples[128]{};
-    CHECK(app_engine_render(engine.get(), samples, 128) == WS_OK);
+    CHECK(app_engine_render(engine.get(), samples, 128) == WS2_OK);
     for (float value : samples) CHECK(value == 0);
     host.stop();
     host.stop();
@@ -151,16 +151,16 @@ static void live_subscriptions() {
     config.event_budget = 2048;
         App e(app_engine_create(&config), app_engine_destroy);
         CHECK(e);
-        CHECK(app_engine_add_node(e.get(), 1, "host.keyboard") == WS_OK);
-        CHECK(app_engine_add_node(e.get(), 4, "midi.to_cv") == WS_OK);
-        if (sources.keyboard) CHECK(app_engine_add_node(e.get(), 2, "host.keyboard") == WS_OK);
+        CHECK(app_engine_add_node(e.get(), 1, "host.keyboard") == WS2_OK);
+        CHECK(app_engine_add_node(e.get(), 4, "midi.to_cv") == WS2_OK);
+        if (sources.keyboard) CHECK(app_engine_add_node(e.get(), 2, "host.keyboard") == WS2_OK);
         if (sources.midi) {
-            CHECK(app_engine_add_node(e.get(), 3, "midi.in") == WS_OK);
-            CHECK(app_engine_connect(e.get(), 3, 0, 4, 0) == WS_OK);
+            CHECK(app_engine_add_node(e.get(), 3, "midi.in") == WS2_OK);
+            CHECK(app_engine_connect(e.get(), 3, 0, 4, 0) == WS2_OK);
         }
         CHECK(app_engine_native(e.get()).output(4, 1, 1));
         if (sources.keyboard) CHECK(app_engine_native(e.get()).output(2, 1, 2));
-        CHECK(app_engine_prepare(e.get(), 1, 1) == WS_OK);
+        CHECK(app_engine_prepare(e.get(), 1, 1) == WS2_OK);
         return e;
     };
     const std::string initial = R"({"modules":[{"id":1,"module":"host.keyboard"}]})";
@@ -189,7 +189,7 @@ static void live_subscriptions() {
             paused = false;
             {
                 allocation_watch::ThreadScope watch;
-                CHECK(app_engine_render_live(engine.get(), rows, 3, 256, app_engine_clock_ns()) == WS_OK);
+                CHECK(app_engine_render_live(engine.get(), rows, 3, 256, app_engine_clock_ns()) == WS2_OK);
                 allocations += watch.allocations();
             }
             for (unsigned i = 0; i < 3; ++i) gates[i] = samples[i][255];
