@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "../../sdk/examples/test_support.h"
 #include "../../tests2/allocation_watch.h"
+#define REVERB_TEST_GAIN_METER 1
 #include "dsp.h"
 #include <algorithm>
 #include <cmath>
@@ -190,6 +191,50 @@ void test_mix_loudness() {
     const double db = 20 * std::log10(w / d);
     std::printf("full-wet vs dry: %.2f dB\n", db);
     REQUIRE(std::abs(db) < 6);
+}
+void test_s7_2_gain_staging_and_no_clamp() {
+    // Direct mono VCO-style sine excitation under the same default parameters
+    // as the module-output contract; hosted MO remains the official oracle.
+    constexpr uint32_t rate = 48000;
+    Samples sine(rate * 2);
+    for (size_t i = 0; i < sine.size(); ++i)
+        sine[i] = std::sin(float(i) * (2.f * reverb::kPi * 440.f / rate));
+    Reverb::test_preclamp_peak = 0.f;
+    Reverb::test_clamp_hits = 0;
+    Rig default_rig;
+    const Stereo normal = default_rig.run(sine, sine, 128);
+    float default_peak = 0.f;
+    for (float v : normal.l) default_peak = std::max(default_peak, std::abs(v));
+    for (float v : normal.r) default_peak = std::max(default_peak, std::abs(v));
+    std::printf("S7.2 direct VCO-style default peak %.8f FS; preclamp %.8f FS\n",
+                default_peak, Reverb::test_preclamp_peak);
+    REQUIRE(default_peak <= 1.f);
+    REQUIRE(Reverb::test_clamp_hits == 0);
+
+    // Full-scale broadband and coherent cases at Mix=1, Decay=20 s.
+    // The fixture observes the *unclipped* output to prevent a tautological
+    // pass from the existing +/-2 final safety clamp.
+    const Samples full = noise(size_t(rate) * 8, 1.f);
+    Samples anti = full;
+    for (auto &v : anti) v = -v;
+    for (bool inverted : {false, true}) {
+        Rig hot;
+        hot.set(reverb::MIX, 1.f)
+           .set(reverb::DECAY, 20.f)
+           .set(reverb::DAMPING, 0.f)
+           .set(reverb::SIZE, 1.f)
+           .set(reverb::MOTION, .2f);
+        Reverb::test_preclamp_peak = 0.f;
+        Reverb::test_clamp_hits = 0;
+        const Stereo out = hot.run(full, inverted ? anti : full, 128);
+        for (float v : out.l) REQUIRE(std::isfinite(v));
+        for (float v : out.r) REQUIRE(std::isfinite(v));
+        std::printf("S7.2 mix1/decay20 full-scale %s: preclamp %.8f FS, hits %llu\n",
+                    inverted ? "antiphase" : "in-phase", Reverb::test_preclamp_peak,
+                    static_cast<unsigned long long>(Reverb::test_clamp_hits));
+        REQUIRE(Reverb::test_preclamp_peak < 2.f);
+        REQUIRE(Reverb::test_clamp_hits == 0);
+    }
 }
 void test_frame_and_reset() {
     const Samples x = noise(12037), y = noise(12037, .2f);
@@ -421,6 +466,7 @@ int main() {
     test_lengths_and_rates();
     test_frame_and_reset();
     test_mix_loudness();
+    test_s7_2_gain_staging_and_no_clamp();
     test_dry_and_width();
     test_decay();
     test_rate_independent_decay();

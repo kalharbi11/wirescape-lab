@@ -67,9 +67,24 @@ struct Reverb {
     double delay[8]{}; // Float glides stall before the integer target, making frozen feedback lossy.
     float target[8]{}, gain[8]{}, low[8]{};
     float pre_samples = 960, freeze_amount = 0, phase_a = 0, phase_b = 0;
-    static constexpr float kWetMakeup = 5.f;
+    // S7.2: fixed linear headroom before the pre-existing safety clamp.
+    // Keep pure dry bypass exact; normalize mixed output at every other Mix.
+    static constexpr float kWetMakeup = 3.8f;
+    static constexpr float kMixHeadroom = .90f;
     float last_mix = -1.f, dry_gain = 1.f, wet_gain = 0.f, last_size = -1.f;
     uint64_t sample_counter = 0;
+#ifdef REVERB_TEST_GAIN_METER
+    // Folder-test-only instrumentation: no counter or RT branch in production.
+    inline static float test_preclamp_peak = 0.f;
+    inline static uint64_t test_clamp_hits = 0;
+#endif
+    static float bounded_output(float v) {
+#ifdef REVERB_TEST_GAIN_METER
+        test_preclamp_peak = std::max(test_preclamp_peak, std::abs(v));
+        if (v >= 2.f || v <= -2.f) ++test_clamp_hits;
+#endif
+        return std::clamp(v, -2.f, 2.f);
+    }
 
     static uint32_t line_count(double sr) { return uint32_t(std::ceil(sr * .103)) + 8; }
     static uint32_t pre_count(double sr) { return uint32_t(std::ceil(sr * .25)) + 8; }
@@ -281,8 +296,10 @@ struct Reverb {
                     const float makeup = 1.f + kWetMakeup * mix * mix;
                     wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
                 }
-                lout.ch(0)[i] = std::clamp(dry_gain * l + wet_gain * wet_l, -2.f, 2.f);
-                rout.ch(0)[i] = std::clamp(dry_gain * r + wet_gain * wet_r, -2.f, 2.f);
+                // Linear gain-staging headroom, not a limiter; guard remains
+                // a safety net and is tested never to engage at full scale.
+                lout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * l + wet_gain * wet_l));
+                rout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * r + wet_gain * wet_r));
             }
             return;
         }
@@ -367,8 +384,8 @@ struct Reverb {
                 const float makeup = 1.f + kWetMakeup * mix * mix;
                 wet_gain = (mix == 1.f ? 1.f : std::sin(mix * kHalfPi)) * makeup;
             }
-            lout.ch(0)[i] = std::clamp(dry_gain * l + wet_gain * wet_l, -2.f, 2.f);
-            rout.ch(0)[i] = std::clamp(dry_gain * r + wet_gain * wet_r, -2.f, 2.f);
+            lout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * l + wet_gain * wet_l));
+            rout.ch(0)[i] = bounded_output(kMixHeadroom * (dry_gain * r + wet_gain * wet_r));
         }
     }
     // Host owns all parameters. Patch loads intentionally discard delay/filter history.
