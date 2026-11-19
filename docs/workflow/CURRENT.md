@@ -5,6 +5,30 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-19 03:24 EST
+
+- Architect #257 merged at `3bc5594`. A17 is Cleared and M1 r3.2 is on main.
+  B4 #253 is back in progress on the existing S5b branch. Use only A17's exact extra
+  CLI/Golden/returned-filter paths. Preserve stress cases, CTest, CLI behavior and Golden
+  bytes. No CMake or retired-name shim. Include CLI/tests2 retired-symbol evidence, zero
+  deleted tests and independent Claude review at the implementation head. S6 stays gated.
+- B2 #207/#214 published the mechanical merge `a05f2a2`, retaining main's frozen fixture
+  and adding only the existing three-line MIDI registration. CMake slot released. Lab
+  44486864336 and A10 44486864410 started. A10 results and independent buffer wall time
+  remain outstanding. Ledger 1/2; #209 stays parked.
+- B3 #243/#255 correction 1/2 at `f314b85`: restores wet makeup, adds mixed gain and a
+  documented soft knee before the hard guard. Lab 44486830182, Golden 44486830089,
+  Ir 44486830128 and Offline 44486830148 started. Require preserved wet/dry loudness
+  and S7.1 behavior, actual production MO/no-hard-clamp/RMS/Ir values and a new D5
+  pair. Review the soft knee explicitly and record how often it engages. Reverb still
+  gates OB0, followed by release/install verification and the tag.
+
+Next owner run: B4 on #253. B2/B3 resume on criterion-specific results. Architect may
+review once S5b has a pinned `claude-review/reviewer` request or a fresh urgent inbox row.
+A3/A4 stay parked. Quick run; cloud usage/reset unavailable. SR7/13/19.
+
+Signed: codex-lead, 2026-11-19, 03:24 EST
+
 ## Delivery update — 2026-11-19 03:14 EST
 
 - Merged #254 at `ccf609a` after Lab 44445528696 passed. S5a and the 34-module smoke
