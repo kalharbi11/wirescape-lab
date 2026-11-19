@@ -202,6 +202,18 @@ remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/r
 No devices, new schedules, gate changes, source implementation by lead or polling.
 Signed: codex-lead, 2026-11-18, 00:03 EST
 
+## Decided 2026-11-19 ET (Architect quick check, A17, base `main` a31f26b)
+- **A17 / S5b #253 scope: granted, bounded (M1 r3.2).** 0006 S5 says a consumer "is converted in the PR that removes the type they use"; these are such consumers, so this is a mechanical grant inside the accepted design. B4 resumes on `task/253-m1-s5b`. Exactly these extra files, nothing else:
+  1. `native/cli/main.cpp`, `native/cli/play.cpp`: move `ws_event`/`WS_PARAMETER`/`WS_NOTE_*` and `WS_OK` use to the S5b facade types (parameters by string ID, I6). CLI arguments, stdout/stderr text, exit codes and rendered bytes do not change.
+  2. `native/tests/golden_render.cpp`: replace the `WS_OK` comparison at line 63 only. Golden fixtures, harness and the 24 bytes-identical results are unchanged.
+  3. `native/tests2/module_loader.h`: delete `abi1()` and the `module.h` include; `abi2()` unchanged. `returned_filter_cases.h` + `abi2_returned_filter_stress.cpp`: **convert, do not delete.** `Processor` drives the ABI2 ladder directly (what `Adapter` does now); legacy parameter ids map through the frozen `legacy_index` as the bridge does now. The bodies of `impulse_cases`, `modulation_case` and `check_sample` (cutoffs, rates, inputs, partitions, tails, bounds, messages) and the frozen-descriptor shape checks stay byte-identical (I8). Same CTest name, arguments and dependencies. `utility_port_tests.h` only if its include must change.
+  - **Not granted:** `native/engine2/CMakeLists.txt` or any CMake (B2 holds the CMake slot); any new type or alias reusing a retired `ws_module_*`/`ws_event`/`WS_*` name (that is a shim). If either proves needed, stop and add an inbox row.
+  - **Evidence additions:** the retired-symbol grep (evidence 4) also covers `native/cli` and `native/tests2`; evidence 5 states "no test deleted" and the PR shows the diff of `returned_filter_cases.h` limited to `Processor` and includes; the converted CTest passes on x64/ARM64/Windows. The review request quotes I1, I4, I6, I7, I8 plus this grant.
+  - Overturn: a needed CMake edit, or a stress-case body that cannot stay identical.
+- **Hold:** none beyond SR7 (B4 must not take the CMake slot while B2 holds it). A3 and A4 unchanged.
+
+Signed: claude-architect, 2026-11-19
+
 ## Decided 2026-11-18 21:01 ET (Architect quick check, base `main` 84e594a)
 - **#242 (S5a) Claude review, done:** [Approved for merge `fd41342`](https://github.com/kalharbi11/wirescape-lab/pull/242#issuecomment-6997412602). A15 and A16 boundaries hold, I1–I8 hold, and every config value carried over exactly. Golden 44405668182 shows 24/24 identical on linux-x64, linux-arm64 and windows-x64. Lab, Ir, paired-stage and Offline runs are green at the exact head. Lows: L1 telemetry gate `frame != 0`; L2 `AppEngine::peak`/`blocks` are now write-only (S6 cleanup); L3 self-comparison checks. `claude-review/reviewer` removed. **The lead may merge #242.** It must first record the disposition of A3 (standalone web build unverified). After the merge, S5b opens per contract.
 - **No now rows.** A3 (MT2, parked to OB1) and A4 (#186 errata, one long run after OB0) are unchanged.
@@ -540,7 +552,7 @@ review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so 
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | Next run on any of: a **now** inbox row; a Claude contract-review request on S5b; the owner's next scheduled quick check. **Next run should:** read inbox; check that #242 merged and S5b was dispatched (no re-review of `fd41342`); review any new `claude-review/*` label. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Claude Architect | Next run on any of: a **now** inbox row; the S5b #253 PR labelled `claude-review/reviewer`; the owner's next scheduled quick check. **Next run should:** read inbox; on S5b review check the A17/r3.2 limits (no CMake, no retired-name shim, stress-case bodies identical, CLI behaviour unchanged) and I1, I4, I6, I7, I8 at the exact head. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
 | Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
 ## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
