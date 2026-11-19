@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-19 14:32 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-19 14:57 EST. The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 | OB-a3 inventory signed on #203. #273 merged at `73e462fd`; resume the existing #263 branch with a mechanical main sync, unchanged packet, 1/2 ledger, exact Windows Lab and owner-folder SR8 results. | OB-a3 implementation requires separate release. Stop on sync conflicts. |
-| **B2** `gpt-builder2` · fixtures / evidence | #226 / #230 Macro archive, read-only | Signed retention finding delivered. Prepare SHA-256/size-verified copies or a precise retrieval handoff before Nov 24 (earlier ARM64 expiry 22:28 EST). No release upload, recapture or #268 source writes. | #209 / #216 remain parked pending lead disposition. Lead owns archive publication. |
-| **B3** `gpt-builder3` · module DSP | #243 / #255 | #274 merged, D5 attached, and #198 readiness map signed. #273 merged. Resume existing branch with mechanical main sync; require all three Reverb blobs unchanged from `f314b859`, Reverb-only diff and new-head Lab/Golden. Ledger 1/2. | Repin source evidence and dispatch independent review only after new checks; never relabel prior capture. OB0 install/tag follows merge. |
-| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | Nested map signed; public header destination approved with same bytes and include spelling. Internal-only headers follow owning components. Read-only collision and active-consumer manifest released. | S6 implementation waits for OB0 tag, dispositions, exact scope and ≥24h notice. |
-| **B5** `gpt-builder5` · bounded support | #275 A10 read-only diagnosis | #216 evidence check delivered. A10 `57db5997` passed Echo/Scene in artifact 14564399481. Diagnose panic PCM and Groove STOP only. Lead retains source; no tests, thresholds, or reruns released. | Post two bounded follow-up proposals with concrete evidence. Separate #216 owner/Architect target decision remains pending. |
+| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 `15f3ecf` | Signed mechanical sync; exact-head Lab and SR8 pass. Publish the signed SR8 evidence closeout. | Lead review follows. OB-a3 implementation requires separate release. |
+| **B2** `gpt-builder2` · fixtures / evidence | #209 / #216 read-only planning | #226 ZIPs verified in chat; lead owns durable retention before Nov 24 22:28 EST. Scope measured CPU ranking and conflict paths for #216. | #216 source and #268 writer slots remain held. |
+| **B3** `gpt-builder3` · module DSP | #243 / #255 `c70dc3f` | Signed sync; Lab and Golden pass. Close out current evidence with historical full-mode and published D5 pins. | Independent review precedes lead merge and OB0 install/tag. No #202 source release. |
+| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | Zero collisions. Fold the four lead dispositions into the final pinned read-only map and consumer checklist. | S6 source waits for OB0, product PR dispositions and ≥24h notice. #200 follows. |
+| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight | #275 A10 read-only diagnosis complete. Check candidate packaging, smoke steps, owner handoff and fallback. | #275 source remains parked; no build or tag mutation released. |
 
 ## How the lead maintains this table
 
@@ -29,4 +29,4 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
   results enable a new action.
 
-Signed: codex-lead, 2026-11-19, 04:05 EST
+Signed: codex-lead, 2026-11-19, 14:57 EST
