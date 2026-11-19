@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-19 14:06 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-19 14:32 EST. The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263, draft `a3544de` | SR8 owner-folder acceptance and 32/32 OB-a1 passed. Windows Lab remains blocked behind #271; ledger 1/2. B1 is released to the independent #203 OB-a3 entry-point inventory. | Resume #263 when the lead releases the runner fix. #192 and OB-a3 implementation remain gated. |
-| **B2** `gpt-builder2` · fixtures / evidence | #268 / [#275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7010713356), draft `05954b3` | Lead-owned writer slot per SR12. Real sidecar executed. Panic identity failed, internal Groove aborted, and the Echo fixture rejected the trace. External Groove and historical MIDI passed. | Lead worker is released to the test-local measured gesture-span correction. B2 can verify #226/#230 evidence retention in parallel. #209 remains parked. |
-| **B3** `gpt-builder3` · module DSP | #243 / #255, draft `f314b85` | #267 / #274 merged; verified full-mode head peak 0.9806554914 FS and D5 published. Ledger 1/2. | B3 can prepare #198 release readiness. Lead pinned the Windows base-build and ARM64 Function Envelope advisory failures. Source review waits for CI disposition. #202 requires separate release. |
-| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | [Signed destination reconciliation](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7008070874) complete, with decisions and collisions recorded. | B4 is released to the exact nested map under the #199 ruling. S6 implementation waits for OB0 tag, open-PR disposition, lead release and ≥24h notice. #200 follows. |
-| **B5** `gpt-builder5` · bounded support | Independent read-only #216 evidence review | Audit delivered. Lead-assigned Codex worker completed the Windows diagnosis. #273 proved the Windows runner. New head 966af91 pins the Studio Ubuntu image. Automatic Lab and Golden are running. | Keep the CI writer with the lead. No second retry or new product writer slot. |
+| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 | OB-a3 inventory signed on #203. #273 merged at `73e462fd`; resume the existing #263 branch with a mechanical main sync, unchanged packet, 1/2 ledger, exact Windows Lab and owner-folder SR8 results. | OB-a3 implementation requires separate release. Stop on sync conflicts. |
+| **B2** `gpt-builder2` · fixtures / evidence | #226 / #230 Macro archive, read-only | Signed retention finding delivered. Prepare SHA-256/size-verified copies or a precise retrieval handoff before Nov 24 (earlier ARM64 expiry 22:28 EST). No release upload, recapture or #268 source writes. | #209 / #216 remain parked pending lead disposition. Lead owns archive publication. |
+| **B3** `gpt-builder3` · module DSP | #243 / #255 | #274 merged, D5 attached, and #198 readiness map signed. #273 merged. Resume existing branch with mechanical main sync; require all three Reverb blobs unchanged from `f314b859`, Reverb-only diff and new-head Lab/Golden. Ledger 1/2. | Repin source evidence and dispatch independent review only after new checks; never relabel prior capture. OB0 install/tag follows merge. |
+| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | Nested map signed; public header destination approved with same bytes and include spelling. Internal-only headers follow owning components. Read-only collision and active-consumer manifest released. | S6 implementation waits for OB0 tag, dispositions, exact scope and ≥24h notice. |
+| **B5** `gpt-builder5` · bounded support | #275 A10 read-only diagnosis | #216 evidence check delivered. A10 `57db5997` passed Echo/Scene in artifact 14564399481. Diagnose panic PCM and Groove STOP only. Lead retains source; no tests, thresholds, or reruns released. | Post two bounded follow-up proposals with concrete evidence. Separate #216 owner/Architect target decision remains pending. |
 
 ## How the lead maintains this table
 
