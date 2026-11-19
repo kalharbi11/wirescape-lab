@@ -3,6 +3,20 @@
 
 Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
+## Latest dispatch sync — 2026-11-18 19:33 EST
+
+Supersedes older dispatch/wiring holds below. B1 #207/#214 and B2 #240/#249 now have
+explicit SR8 grants for separate dedicated workflows on their existing branches; no shared
+ci.yml/CMake slot or product edit granted. B2 finishes actual 136-case smoke before #209.
+B1 completes A10 execution/identity/every-gate proof; wall-time remains unmeasured until actual
+marks exist. B4 #234/#242 is in independent Claude review at fd413424, with all five workflow
+runs green; S5b/S6 remain gated by actual merge. B3 #243 is the remaining OB0 source task.
+M2 accepted and Macro/S7.1 merged as recorded below. Target OB0 first; a 1–2 day aim depends on
+S7.2 evidence/review/release gates and does not apply to OB1's serial migration.
+Labels, CURRENT and Architect queue sync together; #246 reviewer instructions apply.
+
+Signed: codex-lead, 2026-11-18, 19:33 EST
+
 ## Critical paths and estimates
 OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, OB-a1) → release/tag. Start S7.4 and OB-a1 now, in separate files. Aim for the first eligible build, not a bundled wait for OB1.
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
