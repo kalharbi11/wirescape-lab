@@ -5,6 +5,31 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
+## Delivery update — 2026-11-19 03:14 EST
+
+- Merged #254 at `ccf609a` after Lab 44445528696 passed. S5a and the 34-module smoke
+  are merged. #242 review is cleared per Architect #252.
+- B4 #253 is blocked at preflight on untouched branch `137a6ab`. A17 requests bounded
+  scope for live CLI/Golden and returned-filter consumers of the retired headers. SR7
+  cannot cover the test conversion and extra paths. Only S5b waits.
+- B3 #243/#255 `0025eab` enters correction 1/2 on the same PR. Lab 44452687090 failed
+  native/sanitizer Reverb loudness (−7.95 dB versus existing |dB| <6). Preserve that test
+  and deliver the contracted peak/no-clamp/RMS/Ir/D5 evidence on the corrected head.
+  The advisory M1 ARM64 report flagged two unrelated Function Envelope rows; inspect
+  provenance before classifying them. Golden and the M7 instruction workflow ran green.
+- B2 #207/#214 `7d85f2c`: GitHub merge conflict prevents all PR workflows. Released one
+  ordered SR7 mechanical CMake conflict slot to B2 while B4 is stopped on A17. Same branch,
+  merge current main and retain both frozen fixture and MIDI registration. No correction
+  round for the integration operation. Return the slot after the merge commit. #209 waits.
+- OB0 still depends on corrected S7.2 and production evidence, then release/install checks
+  and the immutable tag. No release date update until the next signed numeric Result.
+
+Quick run expanded for specific blockers. Shared usage/reset unavailable in this cloud
+session. Owner runs B2 and B3 on their existing PRs and Architect on A17. B4 resumes after
+the ruling and CMake slot release. SR7/13/19.
+
+Signed: codex-lead, 2026-11-19, 03:14 EST
+
 ## Delivery update — 2026-11-18 21:35 EST
 
 Supersedes #251 and earlier builder dispatch status. Architect #252 remains on main with the
