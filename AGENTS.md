@@ -64,8 +64,10 @@ writers and cleared dependencies.
   if scheduling is available. Continue this pattern until done or genuinely blocked.
   Record the head/run and next action. No recurring polling. See the
   [continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
-- **Architect wakes:** only the delivery lead may send a deliberate batched wake to
-  [#265](https://github.com/kalharbi11/wirescape-lab/issues/265). Ordinary inbox entries and labels do not send that wake.
+- **Architect wakes:** delivery lead only. Post the scoped `/architect-run` comment to
+  [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake` to #265. The Architect reads the newest command
+  and clears the label after the run. Check for a pending wake first. Follow the
+  [wake rules](docs/workflow/README.md#intentional-architect-wake).
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
