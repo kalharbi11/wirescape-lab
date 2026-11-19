@@ -63,24 +63,16 @@ No recurring polling, automatic CI reruns, extra correction rounds or new task a
 
 ## Intentional Architect wake
 
-The [Architect inbox](ARCHITECT_INBOX.md) is the source of truth. File ordinary questions and
-review conditions there or on the task as applicable. They do not wake the Architect.
+The owner verified the Claude label trigger on 2026-11-19. The [Architect inbox](ARCHITECT_INBOX.md)
+still records questions and rulings. Routine comments and inbox labels do not wake the Architect.
 
-The delivery lead may post one new comment on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) with exact first line
-`/architect-run`, followed by the relevant inbox IDs/PRs, pinned evidence, which work waits
-and why the existing reviewer or next planned Architect run is insufficient. Use it for a
-critical-path decision that cannot wait or a useful batch of ready Architect-only work.
-Check for a pending wake covering that work first. Urgent rows should already be in the
-inbox with their routing labels. Builders and reviewers ask the lead, who decides whether
-to send the combined wake. This is separate from `review-ready` dispatch to reviewers.
+1. Only the delivery lead may dispatch. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending `architect-wake` and avoid duplicate batches. Use a wake for a critical-path blocker that cannot wait or a useful batch of ready Architect-only work.
+2. Post a new comment on #265 with exact first line `/architect-run`. Include inbox IDs, linked tasks, pinned heads/evidence, what waits and why now. **Then add `architect-wake` to #265.** The label addition is the trigger. Keep #265 limited to this purpose.
+3. The Architect reads the newest `/architect-run` comment on #265 as scope, uses the linked inbox/evidence, records its signed result and removes `architect-wake` when done. The removal resets the next wake. The lead does not clear an active wake to resend.
 
-If the Claude app exposes GitHub issue-comment events, configure `issue_comment.created`
-for this repo, issue 265, exact first line and an allowlisted sender. Ignore PR comments,
-edits, other issue numbers and unapproved senders. Deduplicate by comment ID. If the app
-offers only broad comment triggers, use a filter before invocation or keep the wake manual.
-A shared GitHub login cannot enforce a lead-only boundary. Use a distinct lead sender for
-technical enforcement. The owner configures the consumer. Codex can post the matching
-comment after setup is confirmed.
+Keep `review-ready` for pinned PR reviews. Builders and reviewers route wake requests through the lead.
+If the Claude integration is reconfigured, match a label addition for `architect-wake` on #265,
+not comments, label removal or this label on another item.
 
 ## Templates
 
