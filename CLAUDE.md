@@ -6,6 +6,7 @@ Claude here runs under the name the first message gives:
   The same triggers on a model that is not Fable-class → **fable-deputy** (section below).
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with the
   same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
+- `architect:run` → **Claude Architect**: follow "Architect run protocol" below (first read: `docs/workflow/ARCHITECT_INBOX.md`). The owner needs to add nothing else.
 - `<N>:run` → `claude-builder<N>`. `review` → `claude-reviewer`.
 Anything after the trigger is the specific ask. No match? Ask the owner; never guess a name.
 
@@ -18,6 +19,21 @@ KNOWN_ISSUES, `future_modules/`) → `facts/README.md` and `facts/code/FACT_PACK
 §0–§2 and needed fact files → newest `docs/context/LOG.md` entry → `proposals/`
 (0001 audit, 0002 plan, 0003 module design, 0004 execution) → `docs/ARCHITECTURE.md`
 and relevant `docs/specs/`. Grep; don't read whole trees.
+
+## claude-reviewer: every run clears the Claude review queue (owner, 2026-11-17)
+Whatever the specific ask, every `review` run (and every Claude Architect run) also does all
+Claude reviews that are due before stopping:
+1. List open PRs labelled `claude-review/reviewer` (the Architect also takes `claude-review/architect`),
+   plus inbox rows asking for a "Claude review" or "contract-review" that lack a label.
+2. For each one, review the requested base..head against the named invariants and contract criteria.
+   Read the diff and only the callers you need. Grade High/Medium/Low with file:line, and check the
+   evidence is from the exact head.
+3. Post one signed PR conversation comment. With nothing High, its lines are
+   `Approved for merge <sha7>` and `Signed: claude-reviewer, <date>`. Then remove the label.
+   If evidence is missing, say exactly what, and leave the label on.
+4. Merge only when the owner authorizes it in that run. Otherwise the lead merges.
+Leave reviews labelled `claude-review/architect` to the Architect. Usage rules still apply:
+diffs and log tails, not whole trees.
 
 ## Roles and authority
 | Role | Owns | Stops when |
@@ -87,6 +103,35 @@ CONSTRAINTS stays with the owner. The three rules in `0017` section 1 bind the A
 deputy section's run order and "How to decide well" stay in force until the Architect and the
 owner rewrite this file.
 
+## Architect run protocol (owner, 2026-11-17)
+
+**Start low, escalate on findings.** Every run begins as a quick check at low effort:
+1. `docs/workflow/ARCHITECT_INBOX.md` (Open rows), then the Architect rows of `CURRENT.md`.
+2. One search for open items labelled `needs/architect` or `needs/fable` that lack an inbox row.
+3. Last run's "Next run should" list: check only those items' new state.
+   **Scout (owner, 2026-11-17):** when the inbox has 3+ Open rows, or many items changed, send
+   one read-only Sonnet subagent with the prompt in `docs/workflow/ARCHITECT_SCOUT.md` to do
+   steps 1–3. It writes a digest of 60 lines or fewer to the scratchpad. Read only the digest and the items it
+   marks `ARCHITECT-CHECK`, then choose what to verify yourself. Skip the scout when the inbox
+   has two rows or fewer. The scout never rules; verify a quoted line at its source before ruling.
+Then decide: clear **now** rows at once (raise effort as needed, no owner permission required);
+for work that is not urgent and not cheap, write "long run needed: <why>, <when>" in the inbox
+and the chat instead of doing it. If the owner says usage is low, do only **now** rows.
+
+**Never leave a decision only in chat.** Even a quick run updates every doc its decisions touch
+(inbox, CURRENT Architect rows, QUESTIONS, contract) and tells the lead which task holds and why,
+so no agent works from stale instructions. One docs PR with auto-merge, then stop.
+
+**End-of-run report (chat), always:**
+- *Decided / changed* — one line each, with links.
+- *Held* — tasks the lead must hold, and until what.
+- *Next Architect run* — trigger (event) and suggested time, what must merge first, effort
+  (quick / long), and the "Next run should" list (also written into CURRENT).
+- *Until the milestone* — what still stands between now and OB0 / OB1.
+- Last line: `Signed: claude-architect, <YYYY-MM-DD> <HH:MM> ET`.
+
+Scheduled runs are suggested to the owner, not created, unless the owner asks for one.
+
 ## Fable's deputy (Opus), from 2026-11-17
 
 The owner runs the design-authority seat on an Opus session for the week; Fable returns only now
@@ -139,6 +184,7 @@ say so; that is the default until Fable or the owner answers.
   the app is a High finding even when no invariant names it.
 - Usage is the owner's weekly budget. Do not re-verify merged work, read whole trees, monitor
   PRs or wait on CI. No subagents unless a review is too large to hold; then one, read-only.
+  Exception: the Architect's opening Sonnet scout (`ARCHITECT_SCOUT.md`).
 
 **Time:** New York (ET) for every date. **Signing:** last line of every handoff, review and
 summary is exactly `Signed: <name>, <YYYY-MM-DD>`.

@@ -97,11 +97,13 @@ class ReportingTests(unittest.TestCase):
             root = Path(folder)
             build = root/'build'
             build.mkdir()
-            for name in ("native_engine_tests.exe", "native_engine_tests.lastbuildstate", "wirescape_cli", "ws_filter.dll", "libws2_filter.so", "wirescape-engine", "notes.txt"):
+            for name in ("wirescape-engine.exe", "wirescape-engine.lastbuildstate", "wirescape_cli", "ws_filter.dll", "libws2_filter.so", "wirescape-engine", "notes.txt"):
                 (build/name).write_bytes(b"x")
             with patch.object(dev, "BUILD_DIR", build):
                 inventory = dev._artifact_inventory("Release")
-            self.assertEqual(set(inventory), {"native_engine_tests.exe", "wirescape_cli", "ws_filter.dll", "libws2_filter.so", "wirescape-engine"})
+            self.assertEqual(set(inventory), {"wirescape-engine.exe", "wirescape_cli",
+                                              "libws2_filter.so", "wirescape-engine"})
+            self.assertNotIn("ws_filter.dll", inventory)
 
 
     def test_check_stops_after_first_failure_and_marks_later_stages_blocked(self):
@@ -165,9 +167,10 @@ class ReportingTests(unittest.TestCase):
             build.mkdir()
             (build/'CMakeCache.txt').write_text("CMAKE_BUILD_TYPE:STRING=Release\n")
             (build/'wirescape_cli').write_bytes(b"cli")
-            (build/'libwirescape_engine.so').write_bytes(b"engine")
-            (build/'libws_mixer.so').write_bytes(b"module")
-            (build/'native_engine_tests').write_bytes(b"test")
+            (build/'libwirescape_engine.so').write_bytes(b"retired-engine")
+            (build/'libws_mixer.so').write_bytes(b"retired-module")
+            (build/'wirescape-engine').write_bytes(b"sidecar")
+            (build/'libws2_mixer.so').write_bytes(b"module")
             native = root/'native'
             native.mkdir()
             (native/'a.cpp').write_text('source')
@@ -176,9 +179,10 @@ class ReportingTests(unittest.TestCase):
             self.assertTrue(stable)
             self.assertEqual(metadata['cmake_cache']['CMAKE_BUILD_TYPE'], 'Release')
             self.assertIn('wirescape_cli', metadata['binaries'])
-            self.assertIn('libwirescape_engine.so', metadata['binaries'])
-            self.assertIn('libws_mixer.so', metadata['binaries'])
-            self.assertIn('native_engine_tests', metadata['binaries'])
+            self.assertIn('wirescape-engine', metadata['binaries'])
+            self.assertIn('libws2_mixer.so', metadata['binaries'])
+            self.assertNotIn('libwirescape_engine.so', metadata['binaries'])
+            self.assertNotIn('libws_mixer.so', metadata['binaries'])
 
     def test_source_change_detection(self):
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:

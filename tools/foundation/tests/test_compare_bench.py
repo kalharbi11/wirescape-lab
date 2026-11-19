@@ -19,9 +19,9 @@ class CompareTests(unittest.TestCase):
         self.path = Path(self.tmp.name) / "benchmark.json"
         self.data = {"rows": [{"name": n, "mean_ns": 999,
                               "repetition_means_ns": [v, v * 100, v, v / 2, v]}
-                             for n, v in zip(("abi1_mono", "abi2_mono", "abi2_poly8",
-                                              "abi2_eight_mono", "abi2_modulated"),
-                                             (100, 105, 800, 800, 210))]}
+                             for n, v in zip(("abi2_mono", "abi2_poly8", "abi2_eight_mono",
+                                              "abi2_modulated", "vcf_constant", "vcf_audio_rate_cutoff"),
+                                             (105, 800, 800, 210, 100, 120))]}
 
     def run_cli(self, *args):
         self.path.write_text(json.dumps(self.data))
@@ -33,17 +33,30 @@ class CompareTests(unittest.TestCase):
         self.path.write_text(json.dumps(self.data))
         values = compare.load(self.path)
         self.assertEqual(values["abi2_mono"], 105)
-        self.assertEqual(values["mono_ratio"], 1.05)
+        self.assertEqual(values["poly8_vs_eight_mono_ratio"], 1.0)
+        self.assertNotIn("mono_ratio", values)
         self.assertIn("+0.00%", compare.table(values, values))
         self.assertEqual(self.run_cli("--base", str(self.path), "--gate")[0], 0)
 
     def test_each_gate_and_report_only(self):
-        for index in (1, 2):
+        for index in (1,):
             original = self.data["rows"][index]["repetition_means_ns"]
             self.data["rows"][index]["repetition_means_ns"] = [10000] * 5
             self.assertEqual(self.run_cli("--gate")[0], 1)
             self.assertEqual(self.run_cli()[0], 0)
             self.data["rows"][index]["repetition_means_ns"] = original
+
+    def test_historical_abi1_base_row_retired_and_head_rejects_it(self):
+        legacy = {"name": "abi1_mono", "repetition_means_ns": [100] * 5}
+        with tempfile.TemporaryDirectory() as tmp:
+            historic = Path(tmp) / "historical.json"
+            historic.write_text(json.dumps({"rows": self.data["rows"] + [legacy]}))
+            current = self.path
+            current.write_text(json.dumps(self.data))
+            table = compare.table(compare.load(current), compare.load(historic, historical=True))
+            self.assertNotIn("abi1", table)
+            with self.assertRaisesRegex(ValueError, "exact six"):
+                compare.load(historic)
 
     def test_bad_input(self):
         for invalid in ([1] * 4, [float("nan")] * 5, [0] * 5):

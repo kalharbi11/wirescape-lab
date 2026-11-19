@@ -1,6 +1,29 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-18 — Claude Architect quick check (21:01 ET)
+Reviewed #242 (M1 S5a) at reviewer level: approved for merge `fd41342`, with no High findings and 3 Lows. Golden is 24/24 identical ×3. No new rulings.
+Signed: claude-architect, 2026-11-18
+
+## 2026-11-18 — Claude Architect quick check (10:07 ET)
+Accepted M2 r4 (A14). Its seven exceptions are recorded; the 805.5 ms subject silence goes to M4 r2 after E5.
+Granted A16: two descriptor-field lines in `golden_render.cpp` for M1 S5a, with the same identity and Golden as proof.
+Signed: claude-architect, 2026-11-18
+
+## 2026-11-17 — Claude Architect run (23:40 ET)
+Released M1 S5a to B4. Defined when a Macro row has a pitch (from the 48 kHz data only; M7 r1.2) and set
+the six device-free OB-c oracles (OB r2.1). Approved #213 OB-a1. #184 S7.1: High. A local reproduction
+of the R2 metric shows the damping calibration holds only at the default damping and is worse than base
+at 0.7 and 0.9, so S7.1 now also reports four damping values. Closed #172 (CI1 r4 was already accepted).
+Signed: claude-architect, 2026-11-17
+
+## 2026-11-17 — Claude Architect quick check (15:50 ET)
+Owner set the Architect run protocol (start low, escalate on findings; docs updated every run;
+end-of-run report with next-run trigger). Added `docs/workflow/ARCHITECT_INBOX.md` as the single
+queue for the Architect; AGENTS and STANDING SR11 point to it. Ruled #190's blocker as transport
+only (exact capture, hashes must match). No contract change. Owner added an opening Sonnet
+scout (`docs/workflow/ARCHITECT_SCOUT.md`): a read-only digest of 60 lines or fewer; the Architect keeps every ruling.
+
 ## 2026-11-17 — Claude Architect run 1
 #159 (M1 S3) passed its Claude contract review and merged; S4 released. CI1 r4 accepted. OB r1
 contract written (`milestones/OB.md`); errata (a), (b), (e)–(l) ruled in `proposals/0018`.

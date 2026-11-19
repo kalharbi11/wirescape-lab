@@ -5,13 +5,508 @@ Older handoffs (gpt-lead, gpt-reviewer, Fable runs 1–3) are in
 [archive/CURRENT-2026-11-17.md](archive/CURRENT-2026-11-17.md). They stay valid where nothing
 below replaces them; this page is the only live queue.
 
-## Seats
+## Delivery update — 2026-11-19 03:14 EST
+
+- Merged #254 at `ccf609a` after Lab 44445528696 passed. S5a and the 34-module smoke
+  are merged. #242 review is cleared per Architect #252.
+- B4 #253 is blocked at preflight on untouched branch `137a6ab`. A17 requests bounded
+  scope for live CLI/Golden and returned-filter consumers of the retired headers. SR7
+  cannot cover the test conversion and extra paths. Only S5b waits.
+- B3 #243/#255 `0025eab` enters correction 1/2 on the same PR. Lab 44452687090 failed
+  native/sanitizer Reverb loudness (−7.95 dB versus existing |dB| <6). Preserve that test
+  and deliver the contracted peak/no-clamp/RMS/Ir/D5 evidence on the corrected head.
+  The advisory M1 ARM64 report flagged two unrelated Function Envelope rows; inspect
+  provenance before classifying them. Golden and the M7 instruction workflow ran green.
+- B2 #207/#214 `7d85f2c`: GitHub merge conflict prevents all PR workflows. Released one
+  ordered SR7 mechanical CMake conflict slot to B2 while B4 is stopped on A17. Same branch,
+  merge current main and retain both frozen fixture and MIDI registration. No correction
+  round for the integration operation. Return the slot after the merge commit. #209 waits.
+- OB0 still depends on corrected S7.2 and production evidence, then release/install checks
+  and the immutable tag. No release date update until the next signed numeric Result.
+
+Quick run expanded for specific blockers. Shared usage/reset unavailable in this cloud
+session. Owner runs B2 and B3 on their existing PRs and Architect on A17. B4 resumes after
+the ruling and CMake slot release. SR7/13/19.
+
+Signed: codex-lead, 2026-11-19, 03:14 EST
+
+## Delivery update — 2026-11-18 21:35 EST
+
+Supersedes #251 and earlier builder dispatch status. Architect #252 remains on main with the
+signed review and open-row state. No immediate Architect-only question remains.
+
+- **M1 S5a merged:** #242 `fd41342` → `af62278` after independent Claude approval 6997412602.
+  Golden 24/24 identical on x64/ARM64/Windows, Lab and paired evidence green. Measured Ir up
+  at most +0.269173% x64/+0.333476% ARM64; both Chord rows paired unavailable under SR10.
+  Generated link verdict passes x3. A3 standalone web remains explicitly unverified per 0006.
+  Preserve the three reviewer Lows, no High/Medium. A16 was Architect-ordered (S5a 0/2 ordinary).
+- **B4** now owns and was dispatched on new S5b #253, separate branch/PR, exclusive M1/sidecar
+  writer. Start with exact A1–A4/consumer paths. Required independent Claude review, I1–I8 and
+  evidence 1–5. A15/A16 scope was S5a only. S6 remains gated by actual S5b merge and planning.
+- **OB-e2 merged:** #249 `5bd3b15` → `137a6ab`. Verified raw-log hashes and exact matrix from
+  run 44434889168 artifacts 14489280757/14489096252: 34 palette IDs and 136 two-second
+  rows per Linux architecture, 884 sweeps each, no failed case, render allocation or fault.
+  One test-only Chord identity correction; failed first run retained. No OB-e3 issue is
+  required from this matrix. The separate paired-Ir Chord coverage gaps remain open.
+- **B2 / A10:** #207/#214 `0b6e722` transferred under SR12 after B1's stop instruction.
+  Both owner labels were updated and B2 was dispatched. Keep the same branch/PR, ordinary
+  ledger 1/2, one authorized isolated SR8 workflow and no additional shared CMake/Lab/sidecar
+  or product writes. Buffer wall-time remains unmeasured; #209 stays parked.
+- **B3 / #243:** Reverb S7.2 remains the OB0 critical path. No PR or signed Result followed
+  the original dispatch and supported retry. B3 remains the same Reverb writer. Owner should
+  run existing B3 directly; the lead can proceed on a substantive Result without a new
+  Architect ruling. A4/#186 remains deferred until after OB0.
+
+Mode quick expanded for reviewed S5a, verified OB-e2 and the SR12 handoff. Entry use 15%
+five-hour (account reset about 21:49 EST), 68% weekly. No devices, usage reset or CI polling.
+This is the final scheduled Nov 18 lead run; no further wake was created.
+
+Signed: codex-lead, 2026-11-18, 21:35 EST
+
+## Cloud-1 delivery sync — 2026-11-18 19:33 EST
+
+Lab only. The cloud checkout is the frozen original repository; all work in this run used
+the connected GitHub API against `kalharbi11/wirescape-lab`. Shared usage/reset data is
+unavailable in this cloud session (unknown, not zero). Quick check expanded for concrete
+queue/label/wiring blockers; no product edits, device work, chat dispatch or CI polling.
+
+- Read reviewer #246's merged instruction update: Architect asks require BOTH an Open inbox
+  row and needs/architect, exact base/head and criteria; new heads renew the row/label.
+  Reviewer-level requests remain label-only. No request exists only in this chat.
+- Merged stale pending handoff #248 at `3793d65` after reviewing its docs-only diff and
+  successful exact-head Lab 44405859334. Architect decisions on main are preserved.
+- B4 #234/#242 head `fd413424197cec2f4ae04c7c866636d4483e41ed`: all five recorded workflows
+  completed successfully (Lab, Golden, Ir, paired-stage, Offline). Source/numeric artifact
+  review remains necessary. Both issue and PR move to status/review; PR keeps
+  claude-review/reviewer. No new design ruling is requested: A16 is cleared.
+  SR6 says A16-ordered work consumes no ordinary round: S5a 0/2, historical S4 2/2.
+  S5b/S6 stay closed until actual S5a merge. B4 next run: reconcile PR body with latest Result,
+  complete evidence1–5 and address independent review; no new stage.
+- B2 #240/#249 `de48378`: granted SR8 NEW dedicated ob-e2-240-smoke.yml, one matrix job,
+  exact-head read-only runs, full 136-case production smoke with no hidden failures.
+  Shared ci.yml/CMake remain locked. Issue/PR status/in-progress, B2 owner on both.
+  Existing green workflows do NOT execute the new smoke. #209 remains parked.
+- B1 #207/#214 `0b6e722`: granted SR8 NEW dedicated ob-c-a10.yml, one job with actual
+  Playwright trace/native replay, dependencies and real execution. No shared CMake/ci.yml
+  or sidecar grant. Complete full panic/frame identity and every gate first; buffer wall-time
+  remains unmeasured until real independent marks exist. Same writer/PR, ordinary ledger 1/2.
+  PR now matches issue status/in-progress and owner; no OB-c acceptance or source-fix grant.
+- B3 #243 remains the OB0 critical path: no PR/Result visible. Owner should run B3 on that
+  existing Reverb-only task; no new retry or reassignment performed by cloud.
+- Architect action index: #242 exact-head Claude reviewer review (Architect may fulfill it);
+  no new Architect-only now ruling. A3 stays later/OB1; A4/#186 stays after OB0 and before
+  MT4/H3a/CP1/K3/K4. Inbox sync explicitly separates this from cleared A14/A16.
+
+Next owner runs: B1/B2/B3/B4 on the tasks above; Claude reviewer on #242.
+OB0 remaining: #243 S7.2 -> exact-head numeric/Golden/Ir/D5 + independent review ->
+lead release/install check and immutable owner-build-0 tag. Aim 1–2 days only if those gates clear;
+OB1's serial migration is not a 1–2 day commitment. Cloud cannot verify bench-release binary
+attachments in this run; earlier verified evidence is retained, not re-certified here.
+Future handoffs must update CURRENT + affected inbox row + task/PR labels together; until notes
+merge, link the unmerged handoff explicitly. SR6/8/13/19; no changed gates or acceptance.
+
+Signed: codex-lead, 2026-11-18, 19:33 EST
+
+## Delivery update — 2026-11-18 16:51 EST
+
+The 13:00 wake was delivered at 16:48 EST. The Architect's 10:07 and 13:10 decisions below
+remain authoritative. This update supersedes #244, whose A16 Open row is stale.
+
+- **M2 r4 accepted (A14/#235)** via `e0ad3ce`; carry all stated exceptions forward. In
+  particular #192 stays gated, and the 805.5 ms held-note silence stays assigned to M4 after E5.
+- **B4 / #234 / #242:** `c87de10` contains the correctly ordered Qt-free config conversion
+  after #212 merged. Its red CI preceded A16. Sent the signed A16 authorization for exactly the
+  two Golden descriptor accesses, no other Golden change. Keep the same writer/PR and require
+  exact new-head evidence 1–5. Re-label the final head for independent Claude review as applicable.
+  S5b and S6 remain closed.
+- **B2 / #196:** Final evidence Result at `5b27806` confirmed both production artifacts and the
+  P2/P3 validator fixes. Lab 44290289389 and production 44290289509 passed. Lead merged the
+  collector at `34b3da3`; the advisory has no main-push capture trigger. B2 was dispatched on
+  #240, new isolated smoke test for every current palette ID. Shared Lab/CMake wiring is held
+  pending an exact registration proposal. #209 stays parked.
+- **B3 / #243:** S7.2 remains Reverb-only after S7.1 #184 merged at `1909b44`. Sent one
+  supported retry after the previous prompt produced no visible Result or PR.
+- **B1 / #214:** `0b6e722` unchanged; no signed execution Result after the supported retry.
+  B1 retains source ownership. B5 received one read-only A10 execution and instrumentation
+  inventory, with no edits or takeover, to support the next staffing decision.
+- **Already landed:** Macro #212 `004a1b4` and A12 #238 `861a41f`; both D5 pairs and manifests
+  verified in the [dated bench draft release](https://github.com/kalharbi11/wirescape-lab/releases/tag/untagged-8c14fbb8eb6926ccadbb).
+  Keep Reverb off-rate sample/hold caveats for the owner's listening review.
+- **Architect:** no immediate open ruling. Keep #186 open for the post-OB0 §5 errata run. MT4,
+  H3a, CP1, K3 and K4 remain gated by that ruling.
+
+Mode quick expanded for the exact-head collector merge and bounded dispatches. Entry use 0%
+five-hour (account reset about 21:49 EST), 65% weekly. No credits, usage reset, devices or CI
+polling. Next wake 19:00 EST. SR8/12/13/18/19.
+
+Signed: codex-lead, 2026-11-18, 16:51 EST
+
+## Delivery update — 2026-11-18 05:41 EST
+
+Lab main includes the Architect's A15 grant via #239 (`4167925`) and the OB-e1 facts via #221
+(`998f56b`). This update supersedes #237's pre-ruling handoff. Architect rulings below are preserved.
+
+| Writer | Changed state and next action |
+|---|---|
+| B1 | #207 / #214 `0b6e722` is still draft. One supported retry of the prior SR8 isolated A10 execution packet was sent after no signed Result appeared. Existing MIDI/ASIO remains separate; full panic identity/frame accounting, every basics-04 gate, and independent buffer wall marks still need evidence. No sidecar/shared CMake/Lab edits. |
+| B2 | #226's offline A12 companion #238 `b92a8a6` passed hosted Lab and the x64/ARM64 analysis workflow. Builder reports 172 defined comparisons pass, zero failures and 68 `pitch_not_defined` per architecture. Exact-head Claude review requested. #230 `53317f0` and its original capture are preserved. B2 resumed #193 / #196 `78531a6` for the collector P2/P3 corrections and one fresh R2/D5 capture at #184 base `518fe3f` / head `32abedde`. #209 and OB-e2 #240 wait for writer and wiring release. |
+| B3 | #155 / #184 `32abedde`, correction 2/2, has green exact-head Lab, Golden and instruction workflows. The old #196 capture at `8823c78` is historical. Keep source parked for the independent Claude review, fresh four-damping production R2, and durable D5. Apply SR6 on a concrete failure. S7.2 waits for actual merge. |
+| B4 | Resumed #234 on existing `task/234-m1-s5a`; GitHub issue is in progress. M1 r3.1 permits the four A15 config-only callers and removes the stale in-row web CMake entry. Web is unverified until built. Entire Qt-free test file waits for #212 to merge. B4 remains sole sidecar writer, S5b and S6 stay closed. |
+| B5 | #221 reviewed and merged on exact-head Lab scope checks. All 34 live palette IDs independently matched the census (32 native registrations and two SDK examples). Sent a read-only Macro off-rate Ir / D5 artifact and release inventory; no new capture or upload authority. |
+
+#212 `7bde1ee` is still draft. Existing source review and CI remain applicable to that head. It
+waits for final A12 evidence review, verified off-rate Ir and durable D5 attachment before merge.
+A14/#235 M2 acceptance is still the Architect's open decision. A15 is resolved; #184 and #238
+are independent Claude reviews at the recorded heads. #240 queues OB-e2 for every live palette ID;
+merging the census did not certify smoke coverage.
+
+Mode started quick and expanded for A15, the verified census merge and downstream evidence dispatch.
+Usage at entry was 6% used (94% remaining) in the five-hour window, with account reset at 05:48 EST,
+and 63% weekly used (37% remaining). No resets or credits spent, no device work or CI polling.
+Next lead check is the owner-scheduled 09:30 EST wake after the 09:00 Architect check. SR8/11/13/18/19 apply.
+
+Signed: codex-lead, 2026-11-18, 05:41 EST
+
+## Local delivery update — 2026-11-18, 00:03 EST
+
+Applied Architect23:40 decisions A10–A13, OB r2.1 and M7 r1.2. All four builder run prompts
+were sent and all four chats were independently confirmed active. B5 remains a bounded floater,
+idle after delivered census/readiness work; no fifth product lane.
+
+| Writer | Current authorized task / exact boundary |
+|---|---|
+| B1 | Continue207/214 six newly ruled OB-c tests in NEW native/tests2 or apps/studio/tests files; existing MIDI/ASIO passes and correction1/2 retained. Strict expected failure names the product cause only; fixes remain afterS6. No sidecar/control/engine/shared CMake/ci.yml grant duringS5. Coordinate any new discovery wiring first. |
+| B2 | Continue226/230 offline A12 pitch-applicability classifier from EXISTING44229365015 artifacts, no recapture. Only48k data defines margins before off-rate comparison; unchanged estimator/window/±2cents. Defined-row failure is real210 defect; other rows pitch_not_defined, never pass/zero. Publish rows/models/tests, then re-label Claude reviewer.196/209 source parked. |
+| B3 | Continue155/184 correction2/2 for HIGH6969130295, only reverb folder. Four damping rows0.1/0.4/0.7/0.9, default<=5%, no other actual hosted row worse than base; exact48k unchanged. Preserve history/RT/goldens/cap. NoS7.2; another failed round followsSR6/M7 escalation. |
+| B4 | NEW234 S5a released, task/234-m1-s5a from main, config/meter/descriptors only. ExactM1r3 paths, I1–I8/evidence1–5. Sole sidecar writer duringS5a/S5b. Do not edit212 Macro block; if that file is needed, defer its edit/rebase after212 actual merge. S5b/S6 remain closed. |
+
+Lead merged approved213/OB-a1 at6998f0547ba6cd172a6a06916dd5014c5acb6882 from reviewed
+00664a1 after all exact-head checks green and Architect6969127251 approval;32/32 actual product
+roundtrips retained. Low silence-depth/-0 notes retained. This completes OB-a1 only, notOB0.
+
+Lead reviewed and merged232 report atd048049b776ff6e92623f1d6af5c3038722110c5 (source48f913c,
+doc-scope checks green).235 now requests Architect M2 acceptance with claude-review/architect +
+needs/architect. Real805.5ms edited-subject limitation, Q22 witness interpretation, D08/D09 and
+all unmeasured/inspection-only exceptions retained. Report merge does not acceptM2 or release192.
+
+212 remains at7bde1ee unmerged pending A12 table/numeric/Ir/D5 release gates. Its wider-rate
+Medium is nonblocking at this head; if source changes, add8/192 finite/latency/zeroalloc tests
+and DESIGN passband-from44.1k line under the ruling. No automatic new Macro source task.
+184 revised DSP requires new pinned measurements later; old196 evidence cannot certify it.
+196 validatorP2/P3 and durable FLAC publication remain open, without concurrent B2 task edits.
+
+Prior notes229 is superseded by this fresh-main handoff: cleared A10–A12 stay Cleared and no
+stale Open request is restored. Architect decision text below is preserved verbatim.
+Mode quick expanded for actual new rulings/task release; usage entry26% five-hour used/74%
+remaining, reset2026-11-18 00:24 EST; weekly61% used/39% remaining. No credits/resets spent.
+No devices, new schedules, gate changes, source implementation by lead or polling.
+Signed: codex-lead, 2026-11-18, 00:03 EST
+
+## Decided 2026-11-18 21:01 ET (Architect quick check, base `main` 84e594a)
+- **#242 (S5a) Claude review, done:** [Approved for merge `fd41342`](https://github.com/kalharbi11/wirescape-lab/pull/242#issuecomment-6997412602). A15 and A16 boundaries hold, I1–I8 hold, and every config value carried over exactly. Golden 44405668182 shows 24/24 identical on linux-x64, linux-arm64 and windows-x64. Lab, Ir, paired-stage and Offline runs are green at the exact head. Lows: L1 telemetry gate `frame != 0`; L2 `AppEngine::peak`/`blocks` are now write-only (S6 cleanup); L3 self-comparison checks. `claude-review/reviewer` removed. **The lead may merge #242.** It must first record the disposition of A3 (standalone web build unverified). After the merge, S5b opens per contract.
+- **No now rows.** A3 (MT2, parked to OB1) and A4 (#186 errata, one long run after OB0) are unchanged.
+
+Signed: claude-architect, 2026-11-18 21:01 ET
+
+## Decided 2026-11-18 13:10 ET (Architect quick check, base `main` 89b5d61)
+- **No now rows; nothing blocks the lead.** Open: A3 (MT2, parked to OB1) and A4.
+- **A4 / #186: keep open, do not close.** #215 has landed, but #186 also carries 0017 §5 errata that are not on `main` (proposals 0012, 0014, 0016; contracts M6, M8, M10, M11). Ruling on them is one long run after OB0. Until then, the lead dispatches none of MT4, H3a, CP1, K3 or K4. Nothing on the OB0/OB1 path waits.
+- **#242 (S5a):** head is still `c87de10` (14:39Z, before the A16 grant). Its red CI is from before A16, and the Architect has no new action. `claude-review/architect` stays on #242 until the lead re-labels the final head `claude-review/reviewer` (A16 comment).
+
+Signed: claude-architect, 2026-11-18 13:10 ET
+
+## Decided 2026-11-18 10:07 ET (Architect quick check, inbox A14 + A16, base `main` 1909b44)
+- **A14 / #235: M2 r4 is ACCEPTED.** Checked against [the report](reports/M2-r4-acceptance.md) and spot-checks on `main`:
+  1. *Four tasks merged, E1a Golden 24 ×3:* met. All six merge commits are ancestors of `main` (E0 `5acd085`, E1a `e0d4437`, E1b-r `06e68f0`, PV1 `4161b90`, T0.13b facts `1a2467e`, report `d048049`). Golden run 43958885655 shows 24/24 identical on each platform.
+  2. *Studio Playwright, FakeEngine rules 1–5, six flows both ways:* met (PR189 final head, independent Claude approval 6968526028).
+  3. *T0.13b `applyGraph` rows filed; witnesses dip, no restart:* met under Fable Q22. `facts/dsp/applygraph_continuity_measured.md` row 27 (tone −25.2 dB, no restart) and row 30 (held note 806 ms) hold the stated numbers.
+  4. *PV1 schema, Q8 boundaries, drift, corpus, disagreements:* met; `facts/code/protocol_disagreements.md` holds D01–D09.
+  J1–J5 hold as reviewed source invariants (report §4); no new realtime bound is claimed.
+  **Exceptions and where each goes:** (a) the 805.5 ms held-note silence on the edited subject goes to **M4 r2 acceptance 2 after E5** (`silence_ms = 0`), as is; (b) the D08 Desktop space in request IDs goes to PV2; (c) D09, the missing TS `paramId` negative fixture, is a known coverage gap to restore in PV2; (d) the E1a `unapplied` saturation path stays inspection-only until E4/E5 can drive it; (e) `ringmod2` is unmeasured (`not_built_runtime_module`), not zero; (f) the PV1 validators stay unwired (PV2); (g) the two PR189 Lows (checkpoint during a hold, O(history) per ACK) are open for any later Studio history task. No tolerance, gate or zero claim is added. **Acceptance does not release #192** or any later stage; that has its own gate.
+- **A16 / #242 (M1 r3.1 S5a): granted, two lines only.** In `native/tests/golden_render.cpp`, change `d->parameter_count` → `d->param_count` and `d->parameters[p].id` → `d->params[p].legacy_index`. This is the same identity: the old facade built these values from exactly those fields, in catalogue order (`native/control/app_engine.cpp:50–52` on `main`). Proof is the existing evidence: Golden 24 identical on 3 platforms (the renderer's bytes must not move). No other line in that file, no shim. Not precedent; A15's terms otherwise stand. #212 has merged, so B4's ordered Qt-free config-only update at `c87de10` is in order.
+- Since the last run, #184, #212 and #238 merged after signed Claude reviews; the Architect does not re-check them.
+
+Signed: claude-architect, 2026-11-18 10:07 ET
+
+## Decided 2026-11-18 (Architect quick check, inbox A15, #234)
+- **A15 (M1 r3.1, S5a only): granted, bounded.** S5a may also edit `native/cli/main.cpp`, `native/cli/play.cpp`, `native/tests/golden_render.cpp` and `native/engine2/tests/soak.cpp`, **only** to change `ws_engine_config` / `app_engine_create` callers into `wirescape::engine2::Config`. No change to CLI flags, output, protocol, render or soak behaviour. Proof is the existing evidence: golden is identical on 3 platforms (golden_render is the renderer, so its output bytes must not move), soak is unchanged, and the 0006 grep table includes these files. No shim. The stale `native/src/engine.cpp` reference in `native/web/CMakeLists.txt` is in-row: remove it in S5a, and report web as unverified until it is built. The PR212 order stays (the whole `qt_free_patch_coverage_tests.cpp` file waits until PR212 merges). This is not precedent: any other out-of-row file is a new escalation.
+
+Signed: claude-architect, 2026-11-18
+
+## Decided 2026-11-17 23:40 ET (Architect run, base `main` 06e68f0)
+Lead: drop rows A10–A12 from PR229's Open table when you merge; they are cleared here.
+- **A11 / #199: M1 S5a released.** S4 merged at `8c72722`. E1a and T0.13a merged before it, so
+  S5a may open. **Writer:** B4 only, one new issue `task/<n>-m1-s5a` + one PR. **Paths:** the M1 r3 S5a row
+  (`native/control/`, `native/sidecar/`, `native/web/`, `native/tools/render/`, `native/document/`,
+  `native/io/`, their tests). **Criteria:** 0006 evidence 1–5 on the merged head (golden identical on
+  three platforms, no instruction row >1 % worse, sanitizers + S0 snapshots green and unchanged, grep
+  table, deleted-test list), I1–I8 untouched, M1 Escalate list unchanged. **Order rules:** PR212 owns the
+  Macro block of `native/document/qt_free_patch_coverage_tests.cpp` until it merges; S5a does not edit
+  that block, and if S5a must edit that file it rebases after PR212 merges. While S5a/S5b are open, nobody else
+  edits `native/sidecar/` (OB-c tests go in new files, see A10). S5b stays closed until S5a merges.
+- **A12 / #230, #212: what "pitch within ±2 cents" means for Macro (M7 r1.2).** The estimator,
+  its window and ±2 cents stay unchanged. A row (model, target, rate) **has a defined pitch** only if
+  its **48 kHz** render (the same bytes before and after) meets both rules. Each rule is computed once, from
+  the 48 kHz data only, and recorded per row *before* any off-rate value is compared:
+  (1) **dominance:** the selected bin's magnitude is at least 1 dB above the largest magnitude in the
+  80–120 % window outside ±3 bins of it. 1 dB is twice the contracted ±0.5 dB passband ripple, so the converter
+  cannot move the peak to another bin; (2) **level:** that bin is within 40 dB of the largest
+  bin of the whole spectrum (bin 0 excluded). The contracted 60 dB stopband then cannot shift it by
+  more than ~1 dB. Rows with a defined pitch must be within ±2 cents at 44.1 and 96 kHz. One failure means S7.4 is not met
+  and goes back to #210's writer as a defect (8 diagnostic outliers on models 6, 7, 12, 15
+  are rows to check, not rows to excuse). Other rows are reported `pitch_not_defined` with both
+  margins. They are not passes and not zeros, and their rate evidence is the folder passband/stopband test plus finite,
+  non-silent output. Models with no defined row are listed by name in the acceptance report.
+  B2 computes this offline from the **existing** artifacts of run 44229365015 (they expire about 2026-11-24),
+  in new files under `bench/evidence/macro_non48/`, with no recapture. **Claude Medium (8–192 kHz):**
+  not blocking. `prepare` stays bounded and realtime-safe at every rate, and S7.4 claims only 44.1/96. If
+  PR212 gets another head for any reason, it adds a folder test at 8 and 192 kHz (prepare, finite
+  output, latency reported, 0 allocations) and one DESIGN line saying the passband rule applies from 44.1 kHz;
+  otherwise it is a follow-up. S7.4 still also needs the D5 FLAC pair in `bench-<date>` (lead).
+- **A10 / #223: the six OB-c oracles (OB r2.1).** All are device-free. The owner's 306/546 ms are never a pass
+  mark. A test that fails now lands as an *expected failure that is strict* (CTest `WILL_FAIL`
+  / pytest `xfail(strict=True)`) naming the cause; the fix after M1 S6 removes the mark. Tests go
+  in **new** files under `native/tests2/` or `apps/studio/tests/`, not in `native/sidecar/` while S5 is open.
+  1. *Panic gap:* a graph with no note/gate state (VCO → Output) through the null-sink capture. After
+     `panic`, the PCM is **bit-identical** to a reference run without panic, and block positions run without a break
+     (no missing or repeated frames, 0 overruns).
+  2. *Buffer change:* the same drone, `setBufferFrames`. (a) The first block of the new segment is not
+     silent past the engine's reported latency; (b) the stop → first-new-block interval from the
+     b0/b1 marks is **recorded as a fact** (5 repeats, median and maximum, per architecture). It has no pass mark; the fix task gets
+     a budget from the owner.
+  3. *basics-04:* render the bundled patch, plus attack 0.001/0.005 × VCA gain at its value and at the parameter maximum.
+     Every gate-on step's output peak is within 60 dB of the render's median step peak. 0 nonfinite samples.
+  4. *scene-07 after panic:* panic at two fixed frames (mid-note, and between notes). The existing
+     `click_events` detector (bench/offline, imported unchanged) over the 500 ms after panic must count ≤
+     the same window of the no-panic reference.
+  5. *Echo knobs:* time, feedback, tone, mix, each swept over 100 ms and 1 s at Studio's real
+     `setParam` cadence (cite the line). `click_events` in the gesture window must be ≤ the no-gesture reference.
+     Division/mode switches: record only; the fix is 0011 row 8.
+  6. *Groove lag:* frame-stamped start/stop, internal clock. The first gate comes within one block of the frame at which
+     the engine applies start; `running` = 0 within one block of stop. With an external clock the first gate is on the first
+     clock edge at or after start. UI → sidecar timing is recorded as a fact only.
+  When all eight rows have a test landed (passing, or strict-xfail naming a cause), the OB-c
+  regression stage is met. Fixes stay after M1 S6.
+- **#213 OB-a1: approved** at `00664a1` (no High; see PR). **#184 S7.1: High, not approved.** The
+  damping calibration was fitted at the default damping only. The Architect reproduced R2 locally
+  (x64 GCC, the folder test's own metric). Base spreads at damping 0.1/0.4/0.7/0.9 are 28.5/35.6/18.0/3.5 %;
+  at the head they are 17.4/2.5/32.7/61.9 %. **M7 r1.2 for S7.1:** the folder test also reports the spread at damping
+  0.1, 0.4, 0.7 and 0.9. Default stays ≤5 %, and no other value may be worse than base. B3 has correction 2/2.
+- **#172 closed:** CI1 r4 was accepted earlier (see "Decided 2026-11-17 (Architect run 1)").
+
+Signed: claude-architect, 2026-11-17 23:40 ET
+
+## Owner evening handoff — 2026-11-17, 19:40 EST
+
+Owner will start a **local Codex lead at20:45 ET** to prepare the **21:00 ET Architect run**.
+These are owner-run sessions, not new scheduled jobs. Cloud sends no builder chat prompts.
+
+**B4 bounded continuation now, under existing #188/#190:** read-only S4 readiness packet on the
+same issue/PR, no new source branch or second task. Inventory the exact frozen-reader conversion
+sites, ABI1-only deletion/link consumers and assertions that must survive; identify file:line and
+the corresponding post-deletion proof for each. Prepare a step-by-step conversion/deletion/test
+checklist from the already-authorized S4 scope. Check whether the original artifact can actually
+be retrieved with B4's current tools; if available verify exact length/SHA without regenerating it.
+Publish one signed Result with checklist and remaining capability gaps. No source deletion,
+encoded-fixture/unpacker edit, shared CMake edit, S5 start or correction-round consumption while
+A7 waits. This work is preparation for the existing blocked packet, not permission to implement
+a dependent stage. B4 keeps its serial lane. Owner starts B4 with4:run.
+
+**20:45 local lead checklist (read this unmerged PR220 explicitly):**
+1. Read latest main CURRENT, inbox and this handoff; reconcile newer Results without overwriting
+   Architect decisions. Review/merge220 only after exact-head green; ensure A6/A7 reach main
+   before21:00. If checks are unfinished, Architect must explicitly read220's inbox as well.
+2. A7/#190: try artifact14352740696 with local working networking; independently hash384000
+   bytes SHA485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419,
+   blob4dc06c72035a30979ea84beacc7664999bce77b6. Raw binary upload satisfies existing ruling;
+   base64 API transport is decoded binary. If successful, coordinate B4 handoff before branch
+   write, commit fixture+manifest/provenance in order and mark A7 transport amendment unnecessary.
+   Otherwise ask Architect to authorize exact encoded-fixture path AND bounded unpack wiring;
+   preserve old immutable corpus and all assertions. Do not claim a download link is verified bytes.
+3. A6/#219: obtain bounded native/document test-path/serial-writer ruling for212; retain strict
+   non48 actual pitch/Ir/D5 evidence requirements. No contract-target change by lead.
+4. Review189 edcc97f confirmed-history source against queued regression and green Lab; route any
+   mandatory Claude review explicitly. Review196/184 evidence and arrange durable D5 release
+   attachment with local capabilities before any product merge. These are delivery duties.
+5. Carry B1's four roundtrip document drifts and fixture-listener failure as exact unresolved
+   findings; request design rulings only if diagnosis actually needs scope/meaning changes.
+   Preserve B2 UI facts/B5 census lanes; no new unrelated work or schedules.
+
+**Architect decisions requested at21:00:** A6 and (unless local raw transfer solved it) A7.
+B4 source inventory is supporting evidence; capture-only190 is still not merge-ready.
+Signed: codex-lead, 2026-11-17, 19:40 EST
+
+## #190 transport diagnosis — 2026-11-17, 19:34 EST
+
+Owner supplied independent Claude reviewer analysis; verified against live unpack.py and190 rulings.
+Existing frozen corpus is LZMA/base64 text with strict manifest digests and inventory; simply adding
+a .b64 file does not make the existing unpacker read a new case. Reviewer direction is sound,
+but needs explicit new-case unpack wiring/path grant, not a claim that current reader already handles it.
+
+Proposed A7 amendment to190#6960646798: allow a separate losslessly encoded fixture and manifest
+under native/tests/fixtures/abi2, plus bounded bench/reference/unpack.py wiring to decode only this
+new case to the build directory. Keep old corpus/chunks/inventory/hashes unchanged. Decoded bytes
+must be exactly384000 /96000 float32LE, SHA256
+485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419.
+Decoded Git blob hash remains4dc06c72035a30979ea84beacc7664999bce77b6; encoded file has its own hash.
+No change to frozen_reference.h, original assertions,1e-7 tolerance or capture→convert→delete order.
+Architect must approve this amendment before committing encoded fixture/wiring.
+
+Alternative needs no format amendment: GitHub create_blob(encoding=base64) stores decoded binary,
+not base64 text. A lead with artifact bytes in the tool runtime could upload exact binary then
+fast-forward the branch. Current cloud cannot fetch bytes: connector returns a signed artifact URL,
+shell downloads and git fail proxy503. Runtime reports vpn_enrollment_failed and blocked
+non-platform networking. This is independent of fixture format; do not fabricate/re-render capture.
+Artifact14352740696 remains downloadable via connector; no bytes verified locally or branch edit.
+
+Owner next: architect:run for A7; then B4 4:run on existing190 to preserve exact artifact, decode/hash
+check, convert test, delete ABI1 and obtain fresh final-head CI/review. A local session with working
+artifact/git access can instead do the original raw binary route under existing ruling.
+No agent chat dispatched. #190 remains draft/blocked; no merge or S5 release.
+Signed: codex-lead, 2026-11-17, 19:34 EST
+
+## Cloud lead quick check — 2026-11-17, 19:28 EST
+
+Owner resumes gpt-lead in cloud; **manual agent starts only**, no messages sent to builder chats,
+no subagents or schedules created. SR5/7/11/13/18/19 applied; scope stays OB0/OB1.
+Usage/account reset: unavailable to this session, not inferred from yesterday's snapshot.
+Shell clone failed proxy503; GitHub connector supplied live heads, Results and hosted logs.
+
+- Merged owner workflow handoff #215 at 74aabda after exact-head Lab44171081847 success.
+- #182/189 edcc97f correction1/2: Lab44134002029 success; independent source review still needed.
+- #206/213 9246e55: Lab44170731786 FAILED. Actual OB-a1 28/32: normalized document drift
+  in basics-02, basics-03, basics-04, scene-08. Native tests ×3 and Studio passed.
+  Report artifact14367992194, checkout dd52b9c. B1 diagnoses exact differing keys first;
+  no patch rewrite, normalization relaxation or loader fix authorized; preserve draft red reproducer.
+- #207/214 b19d908: Lab44156502991 FAILED, shard2 ob-c-asio-discovery.spec.cjs:27:
+  "no RealEngine listener" at emit invoked from line50. B1 corrects fixture startup on same PR
+  without weakening assertions; six remaining cases and native wiring remain unexecuted.
+  B4 retains shared CMake slot; no new CMake grant in this run.
+- #193/196 78531a6: Lab44153874650 and evidence44153874673 success.
+  Builder reports verified R2 spread2.471322% both architectures and D5 artifacts;
+  lead independent source/artifact review and release publication still outstanding.
+  Connector offers no release-upload action and shell git route failed; no publication claimed.
+- B2 #209/216 361fd59: continue existing UI measurement packet, inspect completed hosted
+  outcome once and write neutral facts from actual artifacts; no smoke/MT2 pickup.
+- B3 #210/212 d712074: old negative non48 integration assertion blocks Lab.
+  #219 + Architect inbox A6 request bounded exception/routing; no native/document edit released.
+  Actual non48 pitch/Ir and D5 evidence still missing; Golden ×3 does not replace them.
+- B4 #188/190 3858a2a: exact fixture not yet committed. Architect transport ruling stands;
+  keep384000 original bytes, SHA256485456df… and blob4dc06c…; no deletion/S5 before sequence.
+- B5 #208: no PR/result; resume only census with source access. Otherwise report capability
+  blocker and stop, no product-lane takeover.
+- #176 remains parked until OB1; #186 remains draft for Architect close/refresh disposition.
+
+Manual starts: B1 `1:run` (#206 diagnosis, then #207 fixture); B2 `2:run` (#209);
+B3 `3:run` (bounded source/evidence review of #210, await219 for outside-folder edits);
+B4 `4:run` (#188 exact fixture then ordered S4); B5 `5:run` (#208 only).
+Architect `architect:run`: #219 ruling and #189 independent M2 review; #212 review after unblock.
+Delivery lead still owns independent #196/#184 review, release publication and earned merges.
+No product merge or OB0 tag earned by this quick check. Next normal lead run: review #189,
+#196/#184 and resolve binary transport/publication with working git access.
+
+Signed: codex-lead, 2026-11-17, 19:28 EST
+
+## Quick check — 2026-11-17, 15:33 EST
+
+Owner run modes, signatures and usage reserves: [CODEX_LEAD.md](../context/CODEX_LEAD.md).
+Plan211 merged18eb8e5 after exact-head notes Lab44153759982 success.
+
+| Builder | Changed status / next |
+|---|---|
+| B1 | #206/PR213 c501d9f:32-case round-trip packet unexecuted. Exclusive ci.yml Lab integration slot released; continue same PR, then207 in free files. #182 preserved. |
+| B2 | #193/PR196 78531a6: full-engine R2 measured/artifact-verified, after spread2.471322% on x64/ARM64. D5 encoder fixed; new run pending at builder Result. Finish artifacts, then209; no lead acceptance inferred. |
+| B3 | #210/PR212 d712074: Macro implementation published; continue changed-state hosted validation and concrete diagnosis. |
+| B4 | #188/PR190 3858a2a: genuine96000-sample/384000-byte reference verified; binary Git publication capability blocked. Preserve original bytes/hash/assertions. Lead transfer repair deferred to normal run; no deletion/S5. |
+| B5 | #208 census capability-blocked, no Work substitute. Report actual supported tools once, then await small supported packet/reassignment. |
+
+Usage: five-hour17% used/83% remaining, reset2026-11-17 16:56EST; weekly56% used/44%
+remaining, reset2026-11-23 11:49EST. No reset/credit spent. One bounded continuation each,
+no polling/new heartbeat. Next normal run: binary transfer and required reviews; suggest an
+after-Architect time to owner before scheduling. B1 exclusively owns ci.yml until packet ends.
+
+Signed: codex-lead, 2026-11-17, 15:33 EST
+
+## Local OB dispatch — 2026-11-17 ET
+
+Dated plan: [OB_PLAN.md](OB_PLAN.md), ready issues #206–#210, workstream trackers #198–#205.
+**Only OB0/OB1 tasks run. Everything else is parked until OB1.** The owner explicitly authorized
+B5 as a floater for small tasks; it has no standing product lane. Prior four-builder staffing
+text is superseded only for this bounded owner assignment, with no change to reviews or gates.
+
+| Builder / ordinary ChatGPT chat | Current packet | Next tasks and gate |
+|---|---|---|
+| B1 / 6afc8740-e58c-83ea-a876-cf6962d3034b | #206 round-trip CI while #182/189 correction1 edcc97f awaits fresh evidence/review | #207 tests-only regression packet in free files; #191 after actual189 merge, then192 behind OB0 work |
+| B2 / 6afc875c-9b00-83e9-b9c9-7437e6adab67 | #193/PR196 actual full-engine R2 and D5 artifacts | #209 UI facts after bench release; e2 after208 merge plus exact issue and test slot |
+| B3 / 6afc877d-2ac8-83ea-882a-04ca69e3ac08 | #210 Macro S7.4, independent module folder; #155/184 source parked | S7.2 only after155 merge and exact stage issue; then eligible sound task from202 |
+| B4 / 6afc878d-90a8-83ea-9f1b-990fb2300ea2 | #188/190 exact96000-sample frozen capture → conversion → deletion | S5a → S5b only after each actual predecessor merge and stage issue; S6 announced ≥1 day ahead |
+| B5 / 6afca215-5574-83e9-a59a-55e6449e8dc6 | #208 module census, only facts/code/module_census.md | Small read-only OB0 readiness inventory under198, then available to lead; no arbitrary task pickup |
+
+Architect ruling190#6950233998 has released the exact frozen conversion; older “wait for ruling”
+handoffs are superseded. All finite task queues were sent to these regular chats. Historical cloud
+workers remain stopped. One writer per file, no self-merge or gate relaxation, no extra monitor.
+The two existing finite local check-ins remain the only scheduled checks. Read changed Results
+once, resume unfinished authorized work, and preserve current PRs/correction counts.
+
+Signed: gpt-lead, 2026-11-17
+
+## Architect schedule (owner, 2026-11-17)
+Fresh Claude sessions fire `architect:run` quick checks **2026-11-18 09:00 ET** and **2026-11-18 21:00 ET**,
+and nothing else is scheduled. Lead: file inbox rows (urgency **now** for a blocker) before each check-in. The owner may also
+send `architect:run` at any time. Owner granted the Architect full git authority; it still merges only
+what contracts and reviews allow. **#190 is not merged:** it is blocked, ABI1 is not yet deleted and it has no M1
+review. The 09:00 run will try to commit the exact fixture itself (inbox A1) so that B4 can continue.
+
 - **Design: Claude Architect** (owner's Opus session; `proposals/0017` §1). Plans, rules, accepts,
   does the Claude contract reviews. **Never the delivery lead** (0017 §1 rule 3).
 - **Delivery lead: gpt-lead** (Codex), unless the owner names another. Dispatches, reviews
   evidence, merges inside contracts. Builders: gpt-builder1–4 (Codex), one task each.
 - **Goal:** the Owner Build ([PRIORITY.md](PRIORITY.md), contract [OB](milestones/OB.md)).
   Pick ready work by tier P0 → P3; P4 is parked.
+
+## Decided 2026-11-17 21:00 ET (Architect quick check, base `main` 52e49ba)
+- **A7 / #190: encoded fixture route granted, bounded.** Amends 190#6950233998 and A1 on the
+  fixture format only. The raw binary commit (A1) stays first choice; the encoded route is equal
+  to it if the decoded bytes match exactly. Conditions: (1) bytes come only from artifact
+  `14352740696` (Lab run 44134064502), never re-rendered; (2) one new document under
+  `native/tests/fixtures/abi2/` that uses the existing entry shape (`codec: zlib9+b64`,
+  `samples` 96000, `bytes` 384000, `sha256` `485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419`)
+  plus provenance (run, artifact, decoded blob `4dc06c72035a30979ea84beacc7664999bce77b6`);
+  (3) `bench/reference/unpack.py` may read it, reusing `decode_case` (length, eof, digest checks)
+  and writing to the build directory only, and `native/engine2/CMakeLists.txt` may add only that file to the
+  existing unpack command's inputs; (4) the old corpus, chunks, inventory and hashes, `frozen_reference.h`,
+  every assertion, the 1e-7 tolerance and the capture → convert → delete order stay unchanged.
+  A test that the unpacked file hashes to `485456df…` is required. **Transport is still open:**
+  this session's proxy also refused the signed artifact URL (403). The owner (local download) or any
+  session that can fetch the artifact produces the bytes; the format no longer limits who can commit them.
+- **A6 / #219 S7.4: test transition granted, bounded (M7 r1.1).** The S7.4 contract sets
+  "0 `unsupported_rate` rows" as the target, so the old test that Macro refuses 44.1/96 kHz is out of date and has to be rewritten. That is a
+  fix to match the accepted design, not a loosened gate. In `native/document/qt_free_patch_coverage_tests.cpp`, the Macro off-rate
+  block (about 221–240) changes to: load succeeds at 44.1 and 96 kHz and renders finite output with
+  0 allocations and 0 faults. The "failed load leaves the separately loaded graph renderable" check
+  stays, driven by another genuine refusal (for example an invalid rate), not deleted. The same
+  rule covers `protocol_tests.py` only if it depends on Macro refusing off-rate. Every other
+  assertion stays. Writer: one file handed off by the lead; B4 by default, or B3 on PR212
+  if the lead confirms B4's #190 work does not touch that file. **Evidence packet (B2, after #193
+  releases its writer lane) is approved:** `bench/offline/run_all.py` reports measured non48 Macro rows, with no hardcoded
+  status; 24 models at 44.1/48/96 kHz with the estimator and ±2-cent target unchanged; Ir at 44.1/96 reported; D5
+  pair; one advisory workflow under SR8, not `ci.yml`. If a model's `pitch_cents` cannot be measured
+  meaningfully (inharmonic models), report it as unmeasured with the reason, never as 0, and file
+  `reserved` in QUESTIONS: the meaning of a measurement is not the lead's call, and the criterion
+  is not met for that row until it is ruled.
+- **Hold:** #190 merge until final-head CI shows the fixture test, conversion and ABI1 deletion.
+  #212 acceptance until the test transition and measured non48 rows land. Nothing else holds.
+
+## Decided 2026-11-17 15:50 ET (Architect quick check, base `main` 18eb8e5)
+- **Inbox:** all asks for the Architect go to [ARCHITECT_INBOX.md](ARCHITECT_INBOX.md) plus the
+  `needs/architect` label (AGENTS, STANDING SR11). The Architect reads it first every run.
+- **#190 M1 S4 blocker is transport, not design.** The verified 384,000-byte capture from Lab run
+  44134064502 may be committed to `task/188-s4-delete-abi1` by any agent or the owner with git
+  write access (owner assigns: a Claude cloud builder can do it). Exact file only: SHA-256
+  `485456df…`, blob `4dc06c…`; no base64 text, no regenerated or derived fixture. B4 then
+  resumes ruling 190#6950233998 unchanged. Nothing else holds.
+- **#176 MT2** stays parked (inbox A3, later). **#186** close-or-refresh after #215 (A4, later).
+- **Hold:** none new.
 
 ## Decided 2026-11-17 (Architect run 1, base `main` be928a1)
 - **#159 (M1 S3)** contract review passed (I1–I5, I8 hold); merged `b87f881`. **S4 is released.**
@@ -45,7 +540,18 @@ below replaces them; this page is the only live queue.
 |---|---|
 | Lead (gpt-lead) | `lead: run`. Dispatch rows 1–5; review #176. Ask the owner for a Claude reviewer for each task the contract marks **Claude** contract-review (S5b, S6, OB-a3, M4 E-tasks). |
 | Builders | One task each from the queue. Nothing in flight stops. |
-| Claude Architect | 9:00 ET check-in: progress and blockers only. Then: M2 acceptance when #182 merges (criteria 1, 2, 4; 3 is ruled met). Open reserved items: Sub-patch note, M9 r2 state carry, M12 P0 live-panel limit, T4.2 smoothing, T6.3 build page, `0016` R4 / M10 X4 tolerances — none blocks P0. |
-| Owner | Say go to the lead (`lead: run`). Assign Claude reviewers when asked. `CLAUDE.md` still carries the deputy section; the Architect will propose its rewrite in a PR you merge. Later: OB-a2 on your patches and the Pi session. |
+| Claude Architect | Next run on any of: a **now** inbox row; a Claude contract-review request on S5b; the owner's next scheduled quick check. **Next run should:** read inbox; check that #242 merged and S5b was dispatched (no re-review of `fd41342`); review any new `claude-review/*` label. A4 (#186 0017 §5 errata) is a long run after OB0, not a quick check. Reserved items (Sub-patch note, M9 r2, M12 P0, T4.2, T6.3, 0016 R4 / M10 X4) need one long run, not before OB0. |
+| Owner | #190: assign the independent M1 Claude reviewer the lead asks for. The fixture has landed and the Architect has checked it, so no file transfer is needed now. Say go to the lead. Assign Claude reviewers when asked. Later: OB-a2 on your patches and the Pi session. |
 
-Signed: claude-architect, 2026-11-17
+## Decided 2026-11-17 21:50 ET (Architect quick check, #190 head `26c749d`)
+- **#190 S4: the Architect's invariants hold; nothing more is needed from the Architect.** The fixture
+  `native/tests/fixtures/abi2/abi1_s4_qt_free_96000.json` decodes (zlib+b64) to 384,000 bytes with SHA-256
+  `485456df…`, which equals the A1/A7 capture. In `serialized_demo_equivalence`, every original assertion
+  stays (finite, exact v1→v2 PCM, 0 RT allocations, max_abs_error ≤ 1e-7, 96,000 samples), with
+  one finite check added. Lab, Golden, M1 paired, Offline, instruction and T7.0 are green on the head;
+  `facts` ×3 was still running at check time.
+- **Lead:** do not merge until `facts` ×3 is green on the exact head and the contract's independent M1
+  review has passed; then merge per M1. Builder: take #190 out of draft and drop `status/blocked`.
+  The `needs/architect` label is removed.
+
+Signed: claude-architect, 2026-11-17 21:50 ET

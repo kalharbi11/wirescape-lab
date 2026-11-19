@@ -1,0 +1,109 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "OB-a1 shape groove-v1",
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 42,
+    "timing_mode": "immediate"
+  },
+  "modules": [
+    {
+      "id": 1,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    },
+    {
+      "id": 2,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 3,
+      "module": "sequencing.groove",
+      "version": 2,
+      "parameters": {},
+      "config": {
+        "version": 1,
+        "bpm": 120,
+        "tracks": [
+          {
+            "steps": [
+              {
+                "kind": "note",
+                "key": 60,
+                "velocity": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "audio"
+      },
+      "to": {
+        "module": 1,
+        "port": "audio"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "module": 1,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 1,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ],
+  "ui": {
+    "positions": {
+      "1": [
+        650,
+        200
+      ],
+      "2": [
+        100,
+        200
+      ],
+      "3": [
+        100,
+        650
+      ]
+    },
+    "labels": {
+      "1": "Out",
+      "2": "VCO",
+      "3": "Config groove-v1"
+    },
+    "view": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    },
+    "opaque": {
+      "preserve": [
+        "OB-a1",
+        "groove-v1",
+        null
+      ]
+    }
+  }
+}

@@ -38,7 +38,7 @@ target_compile_definitions(web_macro PUBLIC TEST)
 target_compile_options(web_macro PUBLIC -include ${macro_dir}/rng_scope.hpp)
 
 add_library(web_core STATIC ${native}/engine2/engine2.cpp ${native}/control/app_engine.cpp
-  ${native}/document/runtime_patch.cpp ${native}/src/engine.cpp ${native}/voice/allocator.cpp)
+  ${native}/document/runtime_patch.cpp ${native}/voice/allocator.cpp)
 target_include_directories(web_core PUBLIC ${native}/include ${native}/sdk ${native}/engine2 ${native}/control
   ${native}/document ${native}/voice)
 target_compile_definitions(web_core PUBLIC WS_ENGINE_BUILD)

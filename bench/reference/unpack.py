@@ -21,8 +21,14 @@ MAX_CASE_BYTES = 1024 * 1024
 MAX_DOCUMENT_BYTES = 4 * 1024 * 1024
 
 
+# Exact Architect A7 S4 reference from the immutable hosted ABI1 capture.
+S4_CASE = "qt_free_saved_v2_abi1_48000_128_96000"
+S4_SHA256 = "485456df74522320047a4ae9361e5de52042c15079ccb4549982fbe41d887419"
+S4_BLOB_SHA1 = "4dc06c72035a30979ea84beacc7664999bce77b6"
+
 def decode_case(name, entry):
-    file_kind(name)
+    if name != S4_CASE:
+        file_kind(name)
     if entry.get("codec") != "zlib9+b64":
         raise ValueError("unsupported fixture codec: " + name)
     samples = entry.get("samples")
@@ -112,7 +118,40 @@ def unpack(files, destination, machine):
     return manifest
 
 
-def unpack_frozen(manifest_path, corpus_dir, destination, machine):
+def load_s4_qt_free_fixture(path, expected):
+    """Decode only the architect-authorized saved-v2 comparison reference."""
+    if not isinstance(expected, dict) or path.name != expected.get("document"):
+        raise ValueError("missing S4 fixture manifest entry")
+    if path.stat().st_size > MAX_DOCUMENT_BYTES:
+        raise ValueError("oversized S4 fixture document")
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if document.get("schema") != "abi1-s4-qt-free-frozen-v1":
+        raise ValueError("unknown S4 fixture schema")
+    source = document.get("source", {})
+    if (source.get("workflow_run") != expected.get("workflow_run")
+            or source.get("artifact_id") != expected.get("artifact_id")
+            or source.get("capture_commit") != expected.get("source_commit")
+            or source.get("decoded_git_blob_sha1") != expected.get("git_blob_sha1")):
+        raise ValueError("S4 capture provenance mismatch")
+    cases = document.get("cases")
+    if not isinstance(cases, dict) or set(cases) != {S4_CASE}:
+        raise ValueError("S4 frozen case inventory mismatch")
+    entry = cases[S4_CASE]
+    if (expected.get("id") != S4_CASE or expected.get("samples") != 96000
+            or expected.get("bytes") != 384000 or expected.get("sha256") != S4_SHA256
+            or expected.get("git_blob_sha1") != S4_BLOB_SHA1
+            or entry.get("samples") != expected["samples"]
+            or entry.get("bytes") != expected["bytes"]
+            or entry.get("sha256") != expected["sha256"]):
+        raise ValueError("S4 frozen length or digest manifest mismatch")
+    raw = decode_case(S4_CASE, entry)
+    blob_header = ("blob " + str(len(raw)) + "\0").encode("ascii")
+    if hashlib.sha1(blob_header + raw).hexdigest() != S4_BLOB_SHA1:
+        raise ValueError("S4 decoded Git blob digest mismatch")
+    return raw
+
+
+def unpack_frozen(manifest_path, corpus_dir, destination, machine, s4_fixture=None):
     """Unpack exact recorded ABI1 words (no ABI1 code or devices involved).
 
     Every byte is checked against the original source-machine capture digest.
@@ -205,11 +244,14 @@ def unpack_frozen(manifest_path, corpus_dir, destination, machine):
             raise ValueError("invalid ABI1 descriptor: " + name)
         if hashlib.sha256(value.encode("utf-8")).hexdigest() != entry.get("sha256"):
             raise ValueError("ABI1 descriptor digest mismatch: " + name)
+    s4_raw = load_s4_qt_free_fixture(s4_fixture, doc.get("s4_qt_free")) if s4_fixture else None
     destination.mkdir(parents=True, exist_ok=True)
     for name, data in sorted(raw_by_case.items()):
         (destination / (name + ".f32le")).write_bytes(data)
     for name, entry in sorted(descriptors.items()):
         (destination / (name + ".desc")).write_bytes(entry["utf8"].encode("utf-8"))
+    if s4_raw is not None:
+        (destination / (S4_CASE + ".f32le")).write_bytes(s4_raw)
     result = {"machine": machine, "source_commit": source, "cases":len(raw_by_case),
               "bytes":sum(len(x) for x in raw_by_case.values()),
               "source_artifact_id":captures[machine]["artifact_id"]}
@@ -221,14 +263,21 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixtures", type=Path)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--s4-fixture", type=Path)
+    parser.add_argument("--verify-s4", type=Path)
     parser.add_argument("--corpus-dir", type=Path)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--machine", required=True,
                         choices=("linux-x64", "linux-arm64", "windows-x64"))
     args = parser.parse_args(argv)
-    if args.manifest and args.corpus_dir:
+    if args.verify_s4:
+        raw = args.verify_s4.read_bytes()
+        if len(raw) != 384000 or hashlib.sha256(raw).hexdigest() != S4_SHA256:
+            raise ValueError("unpacked S4 ABI1 reference hash mismatch")
+        print("ABI1_S4_FROZEN_HASH_OK", S4_SHA256)
+    elif args.manifest and args.corpus_dir:
         result = unpack_frozen(args.manifest, args.corpus_dir,
-                               args.destination, args.machine)
+                               args.destination, args.machine, args.s4_fixture)
         print("ABI1_FROZEN_UNPACKED", result)
     elif args.fixtures:
         files = sorted(args.fixtures.glob("abi1_" + args.machine + "_*.json"))

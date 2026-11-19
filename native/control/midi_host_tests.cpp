@@ -56,7 +56,11 @@ static bool wait_gate(AppEngine *engine, bool wanted) {
     return false;
 }
 static void global_keyboard_notes() {
-    ws_engine_config config{sizeof(config), 48000, 128, 16, 2048};
+    wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 128;
+    config.max_nodes = 16;
+    config.event_budget = 2048;
     std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> engine(app_engine_create(&config), app_engine_destroy);
     CHECK(engine);
     CHECK(app_engine_add_node(engine.get(), 1, "host.keyboard") == WS_OK);
@@ -140,7 +144,11 @@ static void live_subscriptions() {
         bool keyboard, midi;
     };
     auto graph = [](Sources sources) {
-        ws_engine_config config{sizeof(config), 48000, 256, 16, 2048};
+        wirescape::engine2::Config config{};
+    config.sample_rate = 48000;
+    config.max_block = 256;
+    config.max_nodes = 16;
+    config.event_budget = 2048;
         App e(app_engine_create(&config), app_engine_destroy);
         CHECK(e);
         CHECK(app_engine_add_node(e.get(), 1, "host.keyboard") == WS_OK);

@@ -25,6 +25,19 @@ Triggers: `fable: run design <topic>`, `fable: run questions`, `fable: run accep
 → Fable. `lead: run` or `lead: run B<n>` → gpt-lead. `claude lead: run` → claude-lead. `1:run` → the builder identified by the
 active chat's family and assigned task. A trigger never grants authority beyond the accepted contract.
 
+**Short triggers and first reads (owner, 2026-11-17).** No other instruction is needed after these.
+| Trigger | Who | Read first, in order |
+|---|---|---|
+| `architect:run` | Claude Architect (Claude session) | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` "Architect run protocol" (scout: `docs/workflow/ARCHITECT_SCOUT.md`) |
+| `lead:run` (= `lead: run`) | gpt-lead (Codex) | `docs/workflow/CURRENT.md` → `docs/context/CODEX_LEAD.md` → `docs/workflow/OB_PLAN.md` → Cleared rows of `ARCHITECT_INBOX.md` (new rulings) |
+
+**Architect workflow, for every agent (owner, 2026-11-17).** The Architect runs low-effort quick
+checks and escalates only on findings. Ask it by adding a row to `ARCHITECT_INBOX.md` plus the
+`needs/architect` label; its rulings land in the inbox Cleared table and CURRENT, never only in chat.
+Its scheduled check-ins are listed in CURRENT ("Architect schedule"); the lead plans around them by
+filing inbox rows before each check-in. The owner granted the Architect full git authority
+(2026-11-17); it still follows contracts, gates and SR rules.
+
 ## A builder run = one task and one PR
 1. Read the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
    relevant files named in the task. Do not pick up the next queued task on your own.
@@ -36,6 +49,16 @@ active chat's family and assigned task. A trigger never grants authority beyond 
    dispatch and merge decisions.
 
 ## Rules
+- **Asking for a Claude review (owner, 2026-11-17):** label the PR with its level, then post one
+  comment naming the base/head SHAs and the invariants or criteria to check.
+  `claude-review/reviewer` = `claude-reviewer` or the Architect may do it (contract-reviews,
+  M-task "Claude review" rows, source/evidence review). `claude-review/architect` = only the
+  Architect (design meaning, reserved items, milestone acceptance; also add `needs/architect` and
+  an inbox row). Re-label after a new head. The reviewer removes the label once it posts its
+  signed review (approval or findings). Leads and Codex agents use these labels and no longer
+  have to ask the owner to assign a Claude reviewer.
+- **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
+  PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
   Scripts that use real devices refuse to run without `--confirm-audio` / `--confirm-midi`; only the
   owner runs them.

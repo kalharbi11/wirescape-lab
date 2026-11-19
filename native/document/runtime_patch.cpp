@@ -26,7 +26,7 @@ std::vector<uint8_t> state_bytes(const Json&s){
  }return out;
 }
 }
-AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const ws_engine_config&config,std::string&error,const std::vector<engine2::Tap>*telemetry_taps){
+AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const engine2::Config&config,std::string&error,const std::vector<engine2::Tap>*telemetry_taps){
  try{
   need(bytes.size()<=RuntimePatchLimit,"Patch exceeds 2 MiB limit");std::vector<std::set<std::string>> keys;
   auto callback=[&](int depth,Json::parse_event_t event,Json&value){need(depth<=64,"JSON nesting exceeds 64");
@@ -36,23 +36,23 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const ws
   const auto patch=Json::parse(bytes,callback);need(patch.is_object()&&patch.at("format")=="wirescape.native.patch","Not a native patch");
   need(patch.at("version").is_number_integer(),"Invalid patch version");int version=patch.at("version").get<int>();need(version==1||version==2,"Unsupported patch version");
   const auto&modules=patch.at("modules");const auto&cables=patch.at("connections");need(modules.is_array()&&modules.size()<=64&&cables.is_array()&&cables.size()<=128,"Invalid graph size/types");
-  auto native=AppEngineConfig(config); // Internal config, never an ABI extension.
+  auto native=config; // Native config, before applying saved-patch settings.
   if(version==2){const auto&settings=patch.at("settings");need(settings.is_object(),"Invalid settings");
    if(settings.contains("sample_rate"))need(settings["sample_rate"].is_number()&&std::isfinite(settings["sample_rate"].get<double>())&&settings["sample_rate"].get<double>()>0,"Invalid saved sample rate");
    if(settings.contains("max_block_frames"))need(id(settings["max_block_frames"])<=4096,"Invalid saved block limit");
    if(settings.contains("timing_mode"))need(settings["timing_mode"]=="immediate"||settings["timing_mode"]=="timestamped","Invalid timing mode");
    if(settings.contains("max_channels")){native.max_channels=id(settings.at("max_channels"));need(native.max_channels<=16,"Invalid channel limit");}
-   if(settings.contains("feedback_block")){native.feedback_block=id(settings.at("feedback_block"));need(native.feedback_block<=config.max_block_frames,"Invalid feedback block");}
+   if(settings.contains("feedback_block")){native.feedback_block=id(settings.at("feedback_block"));need(native.feedback_block<=config.max_block,"Invalid feedback block");}
    if(settings.contains("seed")){need(settings.at("seed").is_number_unsigned(),"Invalid seed");native.seed=settings.at("seed").get<uint64_t>();}
   }
   std::unique_ptr<AppEngine,decltype(&app_engine_destroy)>engine(app_engine_create_config(&config,&native),app_engine_destroy);need(bool(engine),"Cannot create engine2");
   // Each AppEngine owns the same built-in native catalogue; no ABI1 copying.
   (void)catalog;
-  std::map<uint32_t,const ws_module_descriptor*> nodes;
+  std::map<uint32_t,const ws2_descriptor*> nodes;
   std::vector<std::string> ignored_osc_keys;
   for(const auto&m:modules){need(m.is_object(),"Invalid module");const uint32_t node=id(m.at("id"));need(!nodes.count(node),"Duplicate module ID");
    std::string type=m.at(version==1?"type":"module").get<std::string>();need(!m.value("inactive",false),"Inactive module; saved data preserved");
-   const ws_module_descriptor *descriptor = nullptr;
+   const ws2_descriptor *descriptor = nullptr;
    for (uint32_t i = 0; i < app_engine_module_count(engine.get()); ++i) {
        auto *candidate = app_engine_module(engine.get(), i);
        if (type == candidate->id) descriptor = candidate;
@@ -80,7 +80,7 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const ws
   if(telemetry_taps)need(graph.set_telemetry_taps(*telemetry_taps),"Cannot configure telemetry taps");
   need(graph.prepare(),"Cannot prepare graph");
   for(const auto&m:modules){uint32_t node=id(m.at("id"));auto*d=nodes.at(node);const auto values=m.value(version==1?"values":"parameters",Json::object());need(values.is_object(),"Invalid parameters");
-   for(auto it=values.begin();it!=values.end();++it){bool found=false;for(uint32_t p=0;p<d->parameter_count;++p){bool matches=version==1?it.key()==std::to_string(d->parameters[p].id):it.key()==app_engine_parameter_id(engine.get(),d->id,p);if(!matches)continue;need(it.value().is_number(),"Invalid parameter value");float v=it.value().get<float>();need(std::isfinite(v)&&app_engine_initialize_parameter(engine.get(),node,d->parameters[p].id,v)==WS_OK,"Parameter outside range");found=true;break;}need(version==1||found,"Unknown parameter ID");}
+   for(auto it=values.begin();it!=values.end();++it){bool found=false;for(uint32_t p=0;p<d->param_count;++p){bool matches=version==1?it.key()==std::to_string(d->params[p].legacy_index):it.key()==app_engine_parameter_id(engine.get(),d->id,p);if(!matches)continue;need(it.value().is_number(),"Invalid parameter value");float v=it.value().get<float>();need(std::isfinite(v)&&app_engine_initialize_parameter(engine.get(),node,d->params[p].legacy_index,v)==WS_OK,"Parameter outside range");found=true;break;}need(version==1||found,"Unknown parameter ID");}
    if(version==2&&m.contains("state"))need(graph.load_state(node,state_bytes(m.at("state")))==WS2_OK,"Unsupported module state");
   }
   if (!ignored_osc_keys.empty()) {

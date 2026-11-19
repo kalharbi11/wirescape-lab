@@ -67,7 +67,7 @@ bool web_module(const char *id) { return std::strncmp(id, "midi.", 5) != 0 && st
 
 struct Web {
     double rate = 48000;
-    ws_engine_config config{};
+    wirescape::engine2::Config config{};
     Owner catalogue{nullptr, app_engine_destroy}, live{nullptr, app_engine_destroy}, old{nullptr, app_engine_destroy};
     Json patch;
     uint64_t generation = 0;
@@ -303,8 +303,7 @@ Json catalogue_json(AppEngine *engine) {
     const char *hints[] = {"any",  "audio",   "pitch",    "cv_bi",   "cv_uni",
                            "gate", "trigger", "ev_notes", "ev_midi", "ev_message"};
     for (uint32_t i = 0; i < app_engine_module_count(engine); ++i) {
-        auto *meta = app_engine_module(engine, i);
-        auto *d = app_engine_native_descriptor(engine, meta->id);
+        const auto *d = app_engine_module(engine, i);
         if (!d || !web_module(d->id)) continue;
         Json ports = Json::array(), params = Json::array();
         for (bool output : {false, true}) {
@@ -354,7 +353,11 @@ int wsw_init(double sample_rate) {
     if (!(sample_rate >= 8000 && sample_rate <= 192000)) return 0;
     auto *w = new Web();
     w->rate = sample_rate;
-    w->config = {sizeof(ws_engine_config), sample_rate, 128, 64, 2048};
+    w->config = {};
+    w->config.sample_rate = sample_rate;
+    w->config.max_block = 128;
+    w->config.max_nodes = 64;
+    w->config.event_budget = 2048;
     w->catalogue.reset(app_engine_create(&w->config));
     if (!w->catalogue) {
         delete w;

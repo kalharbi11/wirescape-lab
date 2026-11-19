@@ -7,6 +7,7 @@
 #endif
 #include "plaits/dsp/voice.h"
 #include "rng_scope.hpp"
+#include "resampler.h"
 #include "wirescape_sdk.h"
 #include <new>
 namespace macro_oscillator {
@@ -42,28 +43,51 @@ struct MacroOscillator {
         uint32_t fill = 0, read = 0;
         plaits::Patch patch{};
         plaits::Modulations modulation{};
+        RateConverter::State resampled{};
     };
     std::array<Channel, 8> channels{};
     uint32_t capacity = 0;
     uint64_t seed = 1;
+    RateConverter converter{};
     static ws2_memory memory_requirements(const ws2_config &c) {
         ws2_memory m{};
         m.struct_size = sizeof(m);
         m.alignment = 32;
         m.fast_bytes = std::min<uint32_t>(c.max_channels, 8u) * (sizeof(plaits::Voice) + 32);
-        m.large_bytes = static_cast<size_t>(std::min<uint32_t>(c.max_channels, 8u)) * 16384;
+        const size_t voices = std::min<uint32_t>(c.max_channels, 8u);
+        m.large_bytes = voices * 16384;
+        if (c.sample_rate != 48000.) {
+            m.large_bytes += RateConverter::kTableBytes + 32
+                + voices * (RateConverter::kRing * sizeof(RateConverter::Frame) + 32);
+        }
         return m;
     }
     bool prepare(const ws::Setup &setup) {
-        if (setup.sample_rate() != 48000) return false;
+        const double rate = setup.sample_rate();
+        if (!std::isfinite(rate) || rate < 8000. || rate > 192000.) return false;
+        // A host can re-prepare this instance at 48 kHz after another rate.
+        // Drop any previous filter selection before taking the original path.
+        converter = RateConverter{};
+        // A reprepare must not retain rings owned by a previous host arena.
+        for (auto &ch : channels) ch.resampled.history = nullptr;
         capacity = std::min<uint32_t>(setup.max_channels(), 8u);
         seed = setup.config.seed;
+        if (rate != 48000.) {
+            auto *table = static_cast<float *>(setup.alloc(RateConverter::kTableBytes, 32, WS2_LARGE));
+            if (!table) return false;
+            converter.prepare(table, rate);
+        }
         for (uint32_t c = 0; c < capacity; ++c) {
             void *object = setup.alloc(sizeof(plaits::Voice), 32, WS2_FAST);
             auto *workspace = static_cast<uint8_t *>(setup.alloc(16384, 32, WS2_LARGE));
             if (!object || !workspace) return false;
             channels[c].voice = new (object) plaits::Voice();
             channels[c].memory = workspace;
+            if (converter.enabled()) {
+                channels[c].resampled.history = static_cast<RateConverter::Frame *>(
+                    setup.alloc(RateConverter::kRing * sizeof(RateConverter::Frame), 32, WS2_LARGE));
+                if (!channels[c].resampled.history) return false;
+            }
         }
         return true;
     }
@@ -88,9 +112,43 @@ struct MacroOscillator {
             std::fill_n(ch.output, 12, plaits::Voice::Frame{});
             ch.patch = {};
             ch.modulation = {};
+            RateConverter::reset(ch.resampled);
         }
     }
-    uint32_t latency_frames() const { return 12; }
+    uint32_t latency_frames() const { return converter.enabled() ? converter.latency : 12; }
+    // The input mapping is duplicated only for the non-48 kHz clock domain.
+    // Do not change the original 48 kHz control/render arithmetic or hashes.
+    void update_resampled_control(ws::Block &b, Channel &ch, uint32_t c, uint32_t i) {
+        auto p = [&](uint32_t slot) { return b.param(slot).value(c, i); };
+        ch.patch.note = 60.f + p(1);
+        ch.patch.engine = std::clamp(int(std::lround(p(0))), 0, 23);
+        ch.patch.harmonics = p(2);
+        ch.patch.timbre = p(3);
+        ch.patch.morph = p(4);
+        ch.patch.frequency_modulation_amount = p(5);
+        ch.patch.timbre_modulation_amount = p(6);
+        ch.patch.morph_modulation_amount = p(7);
+        ch.patch.decay = p(8);
+        ch.patch.lpg_colour = p(9);
+        ch.modulation.note = std::clamp(12.f * b.in(0).value(c, i), -96.f, 96.f);
+        ch.modulation.engine = std::clamp(b.in(1).value(c, i), -1.f, 1.f);
+        ch.modulation.frequency = std::clamp(b.in(2).value(c, i) * 6.f, -48.f, 48.f);
+        ch.modulation.harmonics = std::clamp(b.in(3).value(c, i), -1.f, 1.f);
+        ch.modulation.timbre = std::clamp(b.in(4).value(c, i), -1.f, 1.f);
+        ch.modulation.morph = std::clamp(b.in(5).value(c, i), -1.f, 1.f);
+        const bool gate_connected = b.in(8).connected();
+        const bool level_connected = b.in(7).connected();
+        const float trigger = std::clamp(b.in(6).value(c, i), 0.f, 1.f);
+        const float gate = gate_connected ? std::clamp(b.in(8).value(c, i), 0.f, 1.f) : 0.f;
+        ch.modulation.trigger = gate_connected ? std::max(trigger, gate) : trigger;
+        ch.modulation.level = gate_connected && !level_connected
+            ? gate : std::clamp(b.in(7).value(c, i), 0.f, 1.f);
+        ch.modulation.frequency_patched = b.in(2).connected();
+        ch.modulation.timbre_patched = b.in(4).connected();
+        ch.modulation.morph_patched = b.in(5).connected();
+        ch.modulation.trigger_patched = b.in(6).connected() || gate_connected;
+        ch.modulation.level_patched = level_connected || gate_connected;
+    }
     void process(ws::Block &b) {
         const uint32_t n = b.channels();
         for (uint32_t out = 0; out < 2; ++out) {
@@ -103,6 +161,27 @@ struct MacroOscillator {
                 continue;
             }
             auto &ch = channels[c];
+            if (converter.enabled()) {
+                for (uint32_t i = 0; i < b.frames(); ++i) {
+                    const auto sample = converter.output(ch.resampled, [&]() {
+                        if (ch.fill == 0) update_resampled_control(b, ch, c, i);
+                        const RateConverter::Frame raw{
+                            ch.output[ch.read].out / 32768.f,
+                            ch.output[ch.read].aux / 32768.f
+                        };
+                        ch.read = (ch.read + 1) % 12;
+                        if (++ch.fill == 12) {
+                            RngScope scope(ch.rng);
+                            ch.voice->Render(ch.patch, ch.modulation, ch.output, 12);
+                            ch.fill = 0;
+                        }
+                        return raw;
+                    });
+                    b.out(0).ch(c)[i] = sample.main;
+                    b.out(1).ch(c)[i] = sample.aux;
+                }
+                continue;
+            }
             for (uint32_t i = 0; i < b.frames(); ++i) {
                 b.out(0).ch(c)[i] = ch.output[ch.read].out / 32768.f;
                 b.out(1).ch(c)[i] = ch.output[ch.read].aux / 32768.f;
