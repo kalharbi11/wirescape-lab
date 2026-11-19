@@ -59,6 +59,19 @@ the lead) needs:
    withdrawn, say so in the row; do not leave a stale Open row.
 An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
 
+## Builder scheduling and Architect wakes
+
+Review every B1–B4 row. Builders working on an active task may schedule a single
+continuation when CLI/testing results are the next dependency. They continue independent
+work and replace or cancel stale wakes. This is owner authorization for same-task
+continuation only. The [workflow](../workflow/README.md#builder-continuation-after-ci)
+covers runtimes without scheduling and real blockers.
+
+Only the delivery lead may send a batched Architect wake through [#265](https://github.com/kalharbi11/wirescape-lab/issues/265),
+using the [event contract](../workflow/README.md#intentional-architect-wake). Keep routine
+inbox traffic quiet and deduplicate. Send only for urgency or a useful ready batch.
+Do not grant a reviewer a role their task contract or owner has not authorized.
+
 ## Owner-specific run and communication policy — 2026-11-17 ET
 
 These are the owner's explicit instructions for every Codex delivery-lead session. Read this
@@ -81,7 +94,7 @@ section before starting work; preserve it across handoffs and fresh chats.
   for an actual merge. Keep B5 a small-task floater, not a permanent competing product lane.
 - Increase effort/scope from the initial quick check when actual findings and project needs justify it, within the owner's usage reserves. New Architect information is one trigger, not the only trigger. Explicitly explain a substantial escalation. Defer nonurgent expensive repairs when remaining usage or timing makes that preferable. When a normal run will be useful soon,
   suggest a concrete time and purpose to the owner; a suggestion does not authorize creating
-  a schedule. Reuse existing schedules where appropriate; no extra heartbeats by default.
+  a schedule. Reuse existing schedules where appropriate. The one-shot builder continuation above is separately authorized. Do not add recurring heartbeats by default.
 - At run entry, check shared usage and the five-hour window reset time once; distinguish that
   account window reset from a chat restart (do not infer one from the other). Missing usage is
   unknown, never zero. Reduce breadth, effort and check frequency as reserves approach.

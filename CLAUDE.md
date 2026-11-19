@@ -37,6 +37,10 @@ has `needs/architect` and an Open inbox row. Design rulings continue through the
 
 See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 
+Builder sessions follow the [one-shot continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
+An Architect event wake is valid only under the [lead dispatch rules](docs/workflow/README.md#intentional-architect-wake).
+Reviewers use the pinned `review-ready` request and its role restrictions.
+
 ## Roles and authority
 | Role | Owns | Stops when |
 |---|---|---|

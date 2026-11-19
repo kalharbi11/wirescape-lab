@@ -59,6 +59,13 @@ writers and cleared dependencies.
   full base/head SHAs, criteria and the authorized reviewer role. Reviewer eligibility still
   comes from the contract or explicit owner authorization. Architect-only reviews also need
   an Open inbox row and `needs/architect`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+- **Builder continuation:** when an active task depends on a running CLI build or test,
+  keep doing independent work and schedule one same-task resume near expected completion
+  if scheduling is available. Continue this pattern until done or genuinely blocked.
+  Record the head/run and next action. No recurring polling. See the
+  [continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
+- **Architect wakes:** only the delivery lead may send a deliberate batched wake to
+  [#265](https://github.com/kalharbi11/wirescape-lab/issues/265). Ordinary inbox entries and labels do not send that wake.
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
@@ -72,7 +79,7 @@ writers and cleared dependencies.
   `build*/`, or audio files over 1 MB (see `bench/README.md` for where recordings go).
 - SPDX header on new files: MIT under `native/sdk/` and `native/voice/`, GPL-3.0-only elsewhere.
 - No force-push, no history rewrite, no commits to `main`.
-- No model run waits on or re-checks unchanged state. Scripts and GitHub Actions may watch CI and events.
+- No model run polls unchanged state. A builder may schedule a one-shot same-task continuation under the rules above. Scripts and GitHub Actions may watch CI and events.
 
 ## Handoff template
 ```
