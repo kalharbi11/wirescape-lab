@@ -101,8 +101,8 @@ class Sidecar:
         return result
 
     def send_patch(self, patch: dict) -> None:
-        if "loadGraph" not in self.hello.get("capabilities", []):
-            raise RuntimeError("engine lacks loadGraph capability")
+        # The engine accepts loadGraph without listing it in hello.capabilities
+        # (session.cpp handles it unconditionally); a refusal comes back in the reply.
         self.process.stdin.write((json.dumps(
             {"v": 0, "id": "w1-load", "type": "loadGraph", "patch": patch},
             separators=(",", ":")) + "\n").encode())
