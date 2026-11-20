@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # 0014 — Module categories, tested against GUTTR, Macro Oscillator and CHAOS (design note)
 
+**Erratum (Architect, 2026-11-20, A4), 0017 section 5(e):** `other` is the fallback shelf/display label for an unknown category that must keep loading under 0012. Transport's custom panel uses the 0015 broker API `setTransport`; its panel requires M12 P3 (M11 K3), not a direct native renderer call.
+
 **Author:** Fable · **Date:** 2026-11-16 (ET) · **Status:** design for `0004` T5.1–T5.4
 (contract M11). It also closes the three questions `0003` §6 left open.
 **Rests on:** `0012`, `0013`, `facts/code/capability_map.md`, `facts/compare/module_categories.md`,

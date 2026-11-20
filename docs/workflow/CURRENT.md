@@ -7,6 +7,30 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-20 16:30 ET: Architect run 3 (owner Windows report, Pi runner security, A4 errata; base `main` 0ad5ddc)
+
+- **Owner Windows report (partial, `c6ae30a`):** the build works, sound is good (T1), the graphics are fine and OSC Out works (T5). The owner treats the build as good and will keep testing. T2–T4, T6 and T7 are not reported yet, so **no W4** is opened. Later owner reports are triaged as before: W4 only with a failing device-off test.
+- **Owner-local tests:** new [OWNER_LOCAL_TESTS.md](OWNER_LOCAL_TESTS.md) for a local agent on the laptop (L1–L5) or the Pi (P0–P3). **It never blocks a lane.** A lane waits only if a row here names it. Today nothing waits. Optional: L1 (finish T2–T7) and L3 (Windows benchmark numbers for OB-f/M7) when the owner chooses. P1 is the owner-only OB0 Pi smoke still owed on #198.
+- **Pi runner security (owner request; gpt-reviewer report 2026-11-20):** [wirescape-pi#18](https://github.com/kalharbi11/wirescape-pi/pull/18) replaces the bridge.
+  - No schedules or polling: dispatch only.
+  - A hosted gate admits only main's head or an open same-repo PR head of `wirescape-lab`.
+  - The Pi job holds no secret. Repo code runs only inside rootless podman, with no network after configure, no mounts beyond the checkout and no devices.
+  - The runner user `wsci` has no sudo and is LAN-blocked.
+  - The only token lives in the hosted publish job.
+  - The laptop runner is retired.
+
+  **The owner merges #18 and does its README "Owner setup"** (Architect-only access, so the owner merges). Until then the Pi takes no lab runs. **Before the Pi is powered on, merge #18 or disable `poll.yml`/`nightly.yml`/`laptop.yml` in wirescape-pi Actions.** The old poller would otherwise run original-repo PR code on the Pi.
+- **Pi runs from now on:** lab agents never get the Pi repo. The lead asks for a run with an inbox row (`Pi run: <sha> <task> [PR]`), and the Architect or the owner dispatches it. Results arrive as status `pi5/<task>` plus a PR comment. They are **advisory**: no lab gate reads `pi5/*` until a contract names it. The first dispatch after setup is `nightly` at main's head, as the sandbox smoke test.
+- **A4 cleared: 0017 section 5 errata (a), (b) and (d)–(l) applied** from #186's draft after checking each against its source. The H3a list now equals 0012's `binding:` rows, M10 CP1 covers all six 0013 refusal rules, and the stricter 0012 ID rule wins in 0016 T1 (no merged test used the looser one). (c) was already on `main` in 0015. Revisions: M5 r2, M6 r3, M8 r2, M10 r2, M11 r2; notes in M3 and M12; errata in 0012, 0014 and 0016. All the affected tasks are queued or parked, so **no running builder is affected.** MT4, H3a, CP1, K3 and K4 are no longer held for A4; PRIORITY tiers still park them until OB1. #186's role rewrite, OB draft and PRIORITY edits are **not adopted** (superseded on `main`). #186 is closed.
+- **Unchanged:** Phase A/B/C below binds. S6 window 2026-11-21 06:00 ET. OB-a3 #298 (B1 removes the Save As refusal, plus the pin-7 matrix), S7.5 #291 (CI, D5, independent review), T7.0b #296, S6 prep #295 and OB-c prep #275 are all still drafts.
+- **Phase D, after OB1 (prep, no dispatch):** A3/MT2 disposition → M6 MT2–MT5. M8 H1 after M4 E3a/E5 and M3 MB2 → H2 → H3a (Claude review) → H3b/H3c, H4. M9 L1 after E5 + H5. M10 R1 → PL1 (with PV2b) → CP1 → CP2. M11 after M8 services. M12 P1 after MB2. M5 PV3 after TR1h. Every task's contract text is now errata-clean.
+- **Held:** S6 source until the window; S7.6 (#296); #275 fixes (after S6); MT2/A3 (until OB1).
+
+**Next Architect run:** at the S6 review-ready request (on or after 2026-11-21 06:00 ET), or when the owner says the Pi setup is done, whichever is first. Quick effort, or long if S6's contract-review is ready.
+Next run should: (1) S6 contract-review when requested; (2) after Pi setup, dispatch `nightly` at main's head and read the result; (3) Claude contract-review of OB-a3 #298 if pinned; (4) T7.0b #296 facts → S7.6 release; (5) triage any further owner Windows report.
+
+Signed: claude-architect, 2026-11-20
+
 ## Decided 2026-11-20 12:45 ET: Architect run 2, acting as lead (owner: Codex unavailable; base `main` c6ae30a)
 
 Lead authority for this run only; the next `lead:run` resumes normally. The phase plan below still binds.

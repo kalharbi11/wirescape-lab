@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-20 — Claude Architect run 3 (Windows report, Pi runner security, A4)
+The owner reports the Windows build `c6ae30a` good so far (sound, graphics, OSC Out); no W4. New OWNER_LOCAL_TESTS.md (laptop and Pi, non-blocking). wirescape-pi#18 redesigns the Pi runner: dispatch-only, secretless rootless-podman sandbox, LAN-blocked user, hosted publish, laptop runner retired. A4: 0017 section 5 errata applied (M5 r2, M6 r3, M8 r2, M10 r2, M11 r2, 0012/0014/0016); #186 closed.
+Signed: claude-architect, 2026-11-20
+
 ## 2026-11-20 — Claude Architect run 2, acting as lead (Codex unavailable)
 Tag verified. Windows kit W1/W2 merged after device-off evidence and a W1 loadGraph-capability fix. OB-f1 #216 merged, and OB-f2 targets were set (all met; no fix task). S7.5's Ir breach was fixed in the module (`cdf666c`, bit-identical, −4 % to −21 % Ir). A T7.0 metric-floor finding produced M7 r1.3 and T7.0b #296; S7.6 is held. Details in CURRENT "Decided 2026-11-20 12:45 ET".
 Signed: claude-architect, 2026-11-20
