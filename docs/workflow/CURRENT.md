@@ -7,6 +7,35 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-20 ET (Claude Architect, acting as delivery lead this run, base `main` f5107e6)
+
+The owner asked the Architect to take the lead's job for this run (Codex usage is low). Lead
+actions below carry lead authority for this run only. The next `lead:run` resumes normally.
+
+- **A18, Windows owner evaluation:** an evaluation, **not an OB0/OB1 gate**. Build exact
+  `a440d71` with WASAPI and `-NoAsio`. Source check found no blocker. Plan, runbook, report
+  template and agent tasks are in [WINDOWS_EVAL.md](WINDOWS_EVAL.md). W1 #284 (B5) OSC sender and
+  device-off loopback check; W2 #285 (B1) four test patches; W3 #286 (B4) read-only MIDI audit.
+  W1/W2 are due 18:00 and W3 17:00. W4 (a fix) is opened only for an owner-observed failure
+  that already has a device-off failing test; it is the reserved Codex run.
+- **Install doc defect fixed:** `docs/INSTALL.md` cloned `kalharbi11/wirescape`; it now clones this lab repository (Windows and Linux steps).
+- **A19, OB r2.2:** OB-a3 pins (v1 only, `<filename>.bak-v1`, no overwrite, no `native/` source).
+  B1 starts [#287](https://github.com/kalharbi11/wirescape-lab/issues/287) after W2. A Claude
+  contract-review is required before merge.
+- **A20, OB-f1:** B2 is released on #209/#216 for the offline CPU ranking and the re-capture on the winner (B2's own 2026-11-19 plan). #216's own paths only, no shared CI.
+- **S7.5 released:** B3 [#288](https://github.com/kalharbi11/wirescape-lab/issues/288) Quad VCA crossfade (M7 lets S7.1–S7.6 run beside M1). Merge waits for the OB0 tag. S7.6 Delay follows in the same lane.
+- **#283 merged** (lead docs, exact-head 14/14 green).
+- **OB0 tag, not changed:** the OB contract's acceptance (merged items, OB-a1 green, tag on `main`)
+  is already met at `a440d71`. The lead-added Pi install smoke stays before the tag, as planned,
+  unless the owner chooses to tag earlier. Tagging earlier would bring the S6 notice forward by
+  about a day; it is the owner's call.
+- **Held:** S6 source and window (OB0 tag plus at least 24 h notice); #275 A10 fixes (after S6, per OB-c); #268; MT2/A3; A4 errata run (after OB0).
+
+**Architect run 2** (owner-triggered, after the Windows session, about 2026-11-21 03:00 ET or the next morning): triage the owner's report. Merge W1/W2 if they are still open. Open W4 only for a reproduced defect. Read the W3 decision tree. Quick effort unless a MIDI defect is reproduced.
+**Architect run 3** (when PRs are ready): Claude contract-review of OB-a3 #287 if its request is pinned; S7.5 evidence; OB-f2 targets from A20 facts.
+
+Signed: claude-architect, 2026-11-20
+
 ## Delivery update — 2026-11-20 03:28 EST
 
 - Cloud quick check; all five builder lanes reconciled from GitHub. No agent chats accessed or dispatched. Usage/reset unavailable in this runtime.
