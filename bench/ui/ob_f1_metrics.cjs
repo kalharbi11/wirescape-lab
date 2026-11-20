@@ -71,6 +71,13 @@ function correlatedAcks(sent,acks,downAt=null) {
                  values.length!==candidates.length?'native setParam ACK incomplete/refused':null,
           definition:'browser performance.now() bridge.send(setParam) to correlated sidecar reply delivered via stdin/stdout bridge, includes transport and scheduling, not audio application latency'};
 }
+function applyGesture(record, gesture) {
+  Object.assign(record,gesture);
+  // A completed actual Playwright mouse gesture must not be relabelled
+  // unavailable by a stale bookkeeping field.
+  record.gesture_completed=gesture.completed===true;
+  return record;
+}
 function consolidate(records) {
   return records.map(r=>{
     const frame=measuredFrames(r.frames);
@@ -89,4 +96,4 @@ function consolidate(records) {
       reason:r.error||null,source_observation:r.raw_file||null};
   });
 }
-module.exports={hash,chooseHeaviest,percentile,measuredFrames,correlatedAcks,consolidate};
+module.exports={hash,chooseHeaviest,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate};
