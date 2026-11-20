@@ -38,6 +38,7 @@ struct QuadVca {
         const double top = std::min(18000.0, .45 * rate);
         const double ratio = top / 40.0;
         attack_alpha_ = float(std::exp(-1.0 / (.002 * rate)));
+        mode_fade_step_ = float(1.0 / (.010 * rate)); // 10 ms, rate independent.
         for (uint32_t i = 0; i <= 256; ++i) {
             const double position = double(i) / 256.0;
             const double cutoff = 40.0 * std::pow(ratio, position);
@@ -61,7 +62,8 @@ struct QuadVca {
         constant = constant && b.param(8).constant();
         for (uint32_t k = 0; k < 4 && constant; ++k)
             for (uint32_t voice = 0; voice < voices; ++voice)
-                if (b.param(k + 4).value(voice) >= .5f) constant = false;
+                if (b.param(k + 4).value(voice) >= .5f || state_[k][voice].mode_blend > 0.f)
+                    constant = false;
         for (uint32_t k = 0; k < 5; ++k) {
             b.out(k).set_channels(voices);
             b.out(k).mark_constant(constant);
@@ -87,10 +89,17 @@ struct QuadVca {
                     const float x = input[k][i];
                     float y;
                     auto &s = state_[k][voice];
-                    if (b.param(k + 4).value(voice, i) < .5f) {
-                        s = {}; // No stale LPG state after a VCA-only interval.
+                    const bool want_lpg = b.param(k + 4).value(voice, i) >= .5f;
+                    if (!want_lpg && s.mode_blend <= 0.f) {
+                        s = {}; // Keep the steady VCA path bit-exact and discard old LPG state.
                         y = x * control;
                     } else {
+                        // A running LPG keeps its filter state while the mode output fades.
+                        // Blend is per-channel/voice, including across processing blocks.
+                        if (want_lpg)
+                            s.mode_blend = std::min(1.f, s.mode_blend + mode_fade_step_);
+                        else
+                            s.mode_blend = std::max(0.f, s.mode_blend - mode_fade_step_);
                         const float response = std::clamp(b.param(8).value(voice, i), 0.f, 1.f);
                         const float decay = lookup(release_alpha_, response);
                         const float alpha = control > s.follower ? attack_alpha_ : decay;
@@ -102,7 +111,10 @@ struct QuadVca {
                         const float v2 = s.ic2 + g * v1;
                         s.ic1 = 2.f * v1 - s.ic1;
                         s.ic2 = 2.f * v2 - s.ic2;
-                        y = v2 * s.follower;
+                        const float lpg = v2 * s.follower;
+                        const float vca = x * control;
+                        y = s.mode_blend >= 1.f ? lpg : vca + s.mode_blend * (lpg - vca);
+                        if (s.mode_blend <= 0.f) s = {}; // Never retain stale LPG history.
                     }
                     output[k][i] = y;
                     sum += y;
@@ -114,7 +126,7 @@ struct QuadVca {
 
   private:
     struct VoiceState {
-        float follower = 0, ic1 = 0, ic2 = 0;
+        float follower = 0, ic1 = 0, ic2 = 0, mode_blend = 0;
     };
     static float lookup(const std::array<float, 257> &table, float x) {
         const float scaled = std::clamp(x, 0.f, 1.f) * 256.f;
@@ -123,6 +135,6 @@ struct QuadVca {
     }
     std::array<std::array<VoiceState, 16>, 4> state_{};
     std::array<float, 257> cutoff_g_{}, release_alpha_{};
-    float attack_alpha_ = 0;
+    float attack_alpha_ = 0, mode_fade_step_ = 0;
 };
 } // namespace quad_vca
