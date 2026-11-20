@@ -122,17 +122,33 @@ def capture_switches(renderer: Path, desc: dict) -> list[dict]:
             output.append(dict(identity, status="unavailable",
                                reason=reason or "no renderer probe"))
             continue
+        # Exact same original source patch rendered a second time with no
+        # switch event; do not substitute a silence or a synthetic reference.
         audio, result = run_wav(renderer, patch, [
             {"frame": switch_frame, "type": "setParam", "node": 1,
              "parameter": param, "value": new}], seconds, rate=rate)
-        if audio is None:
+        floor_audio, floor_result = run_wav(renderer, patch, [], seconds, rate=rate)
+        if audio is None or floor_audio is None:
+            failed = result if audio is None else floor_result
             output.append(dict(identity, status="unavailable",
-                               reason=result.get("reason") or "renderer failed"))
-        else:
-            metric = switch_click_metrics(audio, switch_frame, rate)
-            output.append(dict(identity, status=metric.get("status", "measured"),
-                               **{k: v for k, v in metric.items() if k != "status"},
-                               render_counters=result.get("counters")))
+                               reason=failed.get("reason") or "paired render failed",
+                               render_counters=result.get("counters"),
+                               no_switch_render_counters=floor_result.get("counters")))
+            continue
+        delay_time = None
+        if module == "fx.delay":
+            # The source fixture has no clock input: division is not an
+            # applied clock multiplier. The time default is 0.375 s on main.
+            settings = patch["modules"][0].get("parameters", {})
+            delay_time = float(settings.get("time",
+                descriptor["parameters"]["time"]["initial"]))
+        metric = switch_click_metrics(audio, switch_frame, rate,
+                                      no_switch_audio=floor_audio,
+                                      delay_time_s=delay_time)
+        output.append(dict(identity, status=metric.get("status", "unavailable"),
+                           **{k: v for k, v in metric.items() if k != "status"},
+                           render_counters=result.get("counters"),
+                           no_switch_render_counters=floor_result.get("counters")))
     return output
 
 
@@ -175,8 +191,11 @@ def capture(build_dir: Path, out_dir: Path, head: str) -> dict:
         },
         "alias_method": data.get("method_details"),
         "alias_rows": alias_rows,
-        "switch_method": ("step_metrics highpass_peak_fs; second-order Butterworth "
-                          "2000 Hz; centered +/-25ms; dBFS=20log10(peak FS)"),
+        "switch_method": ("T7.0b matched switched and no-switch source renders; "
+                          "2nd-order 2000 Hz Butterworth high-pass; peaks and "
+                          "click-excess dB; Quad VCA centered +/-25ms; Delay "
+                          "switch to unclocked delay time + 25ms; exact window "
+                          "frames and settings retained in each row"),
         "switch_rows": switch_rows,
         "observed_alias_below_minus80": [
             {"sample_rate_hz": row["sample_rate_hz"],
