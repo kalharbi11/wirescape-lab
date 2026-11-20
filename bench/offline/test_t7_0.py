@@ -99,23 +99,28 @@ class T70Switch(unittest.TestCase):
             catalogue.setdefault(module, {"parameters": {}})["parameters"][param] = {
                 "min": -2, "max": 8}
         catalogue["essentials.quad_vca"]["parameters"]["mode1"] = {"min": 0, "max": 1}
+        catalogue["fx.delay"]["parameters"]["time"] = {"min": .001, "max": 2, "initial": .375}
         # Explicit kMode is a valid stepped parameter despite the source
         # parameter extractor not decoding that C++ constant alias.
         def fake_wav(renderer, patch_doc, events, seconds, *, rate):
             self.assertEqual(rate, 48000)
-            self.assertEqual(events[0]["frame"], 48000)
-            self.assertEqual(events[0]["type"], "setParam")
+            if events:
+                self.assertEqual(events[0]["frame"], 48000)
+                self.assertEqual(events[0]["type"], "setParam")
+            else:
+                self.assertEqual(events, [])
             self.assertEqual(seconds, 2)
             return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
 
         with patch.object(t7_0, "build_module_patch",
-                          return_value=({"modules": [], "outputs": []}, None)), \
+                          return_value=({"modules": [{"parameters": {}}], "outputs": []}, None)), \
              patch.object(t7_0, "run_wav", side_effect=fake_wav) as calls, \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             results = t7_0.capture_switches("unexecuted", catalogue)
-        self.assertEqual(calls.call_count, 4)
+        self.assertEqual(calls.call_count, 8)
         self.assertEqual(len(results), 4)
         self.assertTrue(all(x["status"] == "measured" for x in results))
         self.assertEqual({x["parameter"] for x in results},
@@ -142,16 +147,20 @@ class T70Switch(unittest.TestCase):
             module = patch_doc["modules"][0]["module"]
             routed.append(module)
             self.assertIn(module, desc)
-            self.assertIn(events[0]["parameter"], desc[module]["parameters"])
-            self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
+            if events:
+                self.assertIn(events[0]["parameter"], desc[module]["parameters"])
+                self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
+            else:
+                self.assertEqual((seconds, rate), (2, 48000))
             return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
 
         with patch.object(t7_0, "run_wav", side_effect=fake_wav), \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             rows = t7_0.capture_switches("not-executed", desc)
-        self.assertEqual(len(routed), 4)
+        self.assertEqual(len(routed), 8)
         self.assertEqual(routed[0], manifest["id"])
         self.assertEqual(rows[0]["status"], "measured")
         self.assertEqual(rows[0]["module"], manifest["id"])

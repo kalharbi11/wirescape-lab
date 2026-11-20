@@ -254,6 +254,46 @@ class MetricsTests(unittest.TestCase):
         self.assertIsNone(missing["switch_click_peak_fs"])
         self.assertEqual(missing["status"], "unavailable")
 
+    def test_t7_0b_excess_and_identical_pair(self):
+        rate, switch = 48000, 48000
+        t = np.arange(rate * 2) / rate
+        floor = .04 * np.sin(2 * math.pi * 220 * t)
+        switched = floor.copy()
+        switched[switch:] += .4
+        stereo = lambda mono: np.column_stack([mono, mono])
+        result = switch_click_metrics(stereo(switched), switch, rate,
+                                      no_switch_audio=stereo(floor))
+        self.assertEqual(result["status"], "measured")
+        self.assertGreater(result["click_excess_db"], 0)
+        self.assertAlmostEqual(result["click_excess_db"],
+            result["switch_click_peak_dbfs"] - result["no_switch_floor_dbfs"])
+        self.assertEqual(result["window_before_ms"], 25)
+        self.assertEqual(result["window_after_ms"], 25)
+        same = switch_click_metrics(stereo(floor), switch, rate,
+                                    no_switch_audio=stereo(floor))
+        self.assertEqual(same["click_excess_db"], 0.0)
+
+    def test_t7_0b_delay_repetition_window_and_refusal(self):
+        rate, switch, seconds = 48000, 48000, .375
+        floor = np.zeros(rate * 2)
+        active = floor.copy()
+        active[switch + int(seconds * rate)] = .5
+        stereo = lambda mono: np.column_stack([mono, mono])
+        early = switch_click_metrics(stereo(active), switch, rate)
+        late = switch_click_metrics(stereo(active), switch, rate,
+                                    no_switch_audio=stereo(floor),
+                                    delay_time_s=seconds)
+        self.assertEqual(early["switch_click_peak_fs"], 0.)
+        self.assertGreater(late["switch_click_peak_fs"], .1)
+        self.assertEqual(late["click_excess_db"], "inf")
+        self.assertEqual(late["window_kind"], "delay_first_repeat")
+        self.assertEqual(late["window_after_ms"], 400.)
+        refused = switch_click_metrics(stereo(active[:switch + 8]), switch, rate,
+                                       no_switch_audio=stereo(floor[:switch + 8]),
+                                       delay_time_s=seconds)
+        self.assertEqual(refused["status"], "unavailable")
+        self.assertIsNone(refused["click_excess_db"])
+
     def test_response_and_step(self):
         t = np.arange(48000) / 48000
         dry = np.column_stack([np.sin(t * math.tau * 440)] * 2)
