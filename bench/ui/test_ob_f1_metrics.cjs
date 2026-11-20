@@ -5,7 +5,7 @@ const assert=require('node:assert/strict');
 const {mkdtempSync,mkdirSync,writeFileSync,rmSync}=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
-const {chooseHeaviest,percentile,measuredFrames,correlatedAcks,consolidate}=
+const {chooseHeaviest,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate}=
   require('./ob_f1_metrics.cjs');
 
 const folder=mkdtempSync(path.join(os.tmpdir(),'ob-f1-'));
@@ -50,6 +50,10 @@ assert.equal(correlatedAcks([],[]).p50_ms,null);
 assert.equal(correlatedAcks([],[],null).drag_to_first_native_ack_ms,null);
 assert.equal(correlatedAcks(sent,[{id:'u1',type:'setParam',ok:false,
   code:'refused',received_at_ms:14}]).status,'unavailable');
+const completed={gesture_completed:false,frames:[16]};
+assert.equal(applyGesture(completed,{completed:true,target:'knob'}).gesture_completed,true);
+assert.equal(completed.target,'knob');
+assert.equal(applyGesture({gesture_completed:true},{completed:false}).gesture_completed,false);
 const fake=[{action:'knob',gesture_completed:true,frames:[15,16],
   sent,acks,telemetry_count:0,raw_file:'raw/knob.json'},
   {action:'telemetry',gesture_completed:true,frames:[16,20],
