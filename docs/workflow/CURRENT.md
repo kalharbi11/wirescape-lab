@@ -7,6 +7,24 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-20 03:28 EST
+
+- Cloud quick check; all five builder lanes reconciled from GitHub. No agent chats accessed or dispatched. Usage/reset unavailable in this runtime.
+- Integrated candidate `a440d7175659402474290e34a1d63b4404dcaa72`: Lab 44686629489, Golden 44686629427, instruction 44686629413, Cortex-M7 44686629420 and PV1 44686629426 all completed successfully. Pi source-install/null-audio smoke and immutable OB0 tag still wait; no release acceptance implied.
+- B5 re-pin is complete: #198 Result 7032162242 supplies exact-SHA commands and report requirements. Do not restart B5 for the completed checklist. B4 can refresh #199 product-PR merge/park inventory read-only; no S6 source or window released. B1 awaits OB-a3 shape/Save As disposition and writer release, B2 awaits OB-f1 scope/conflict disposition, B3 awaits next M7 release after OB0 handoff. Preserve all correction ledgers and parked tasks.
+- Updated BUILDERS and ROADMAP on existing handoff PR #283. Fresh docs-head CI must pass before merge. Owner receives the runnable B4 start and the Pi handoff; no Architect wake or schedule created.
+
+Signed: codex-lead, 2026-11-20, 03:28 EST
+
+## Delivery update — 2026-11-20 01:17 EST
+
+- OB0 Reverb #255 merged as `a440d7175659402474290e34a1d63b4404dcaa72` after independent K1–K8 approval of `da195299` and green exact-head Lab, three-platform Golden, Reverb Ir and Cortex-M7. Full-mode peak 0.9806554914 FS and fresh D5 are pinned on #280/#255. Keep the Windows Offline and ARM64 paired M1 advisory failures visible; they did not block S7.2.
+- This is the integrated OB0 source candidate. Main validation, the Pi 5 source-install and null-audio smoke, and the immutable tag remain outstanding. The lead owns the release notes and tag. B5 can refresh the install handoff against the integrated SHA. B4 can prepare the product-PR disposition inventory; S6 source and notice remain gated on the OB0 tag and explicit release.
+- OB1 #263 merged as `b148d34` after exact-head Lab/SR8 and the hard-link safety correction. No legacy personal-patch folder is required for engine comparison. The owner's fresh patches may be used for the later owner-only check. A10 #275 remains parked on panic PCM and internal Groove STOP; buffer wall time is unmeasured. OB-f1 #216 remains held after the read-only ranking proposal. Macro full ZIPs are retained on the dated draft release (assets 770393102 and 770394298).
+- Quick owner-requested run. Entry reserves 81% five-hour, 13% weekly. Five-hour reset 03:59 EST.
+
+Signed: codex-lead, 2026-11-20, 01:17 EST
+
 ## Delivery update — 2026-11-19 15:04 EST
 
 - OB0 #255 synced to `c70dc3f`; all three Reverb blobs match `f314b859` and the diff is Reverb-only. Lab 44600163787 and all three Golden jobs 44600163710 passed. The non-required ARM64 M1 run 44600163841 retains both Function Envelope failures (+2.083516199% and +2.605186238%). Independent M7 review found an approximately 1.1 dB gain jump crossing Mix=0. B3 owns correction 2/2 and fresh Lab, Golden, Ir, MO and D5 evidence. Re-review, merge, install check and immutable `owner-build-0` tagging follow. The full-mode MO and D5 assets keep their original source pins.
