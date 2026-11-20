@@ -8,7 +8,7 @@ const {createInterface}=require('node:readline');
 const {mkdirSync,writeFileSync,readFileSync,existsSync}=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
-const {chooseHeaviest,hash,consolidate}=require('./ob_f1_metrics.cjs');
+const {chooseHeaviest,hash,applyGesture,consolidate}=require('./ob_f1_metrics.cjs');
 const {previewCommand}=require('../offline/ui_frames.cjs');
 const ROOT=path.resolve(__dirname,'../..');
 const OUT=path.join(ROOT,'build_reports/ob-f1');
@@ -231,8 +231,7 @@ async function main() {
       try{
         await frameStart(page);
         const gestureRecord=await gesture(page,action,patch);
-        Object.assign(record,gestureRecord);
-        record.gesture_completed=gestureRecord.completed===true;
+        applyGesture(record,gestureRecord);
         await settleFrames(page,10);
         if(action==='knob'){
           await page.waitForFunction(()=>window.__obf1Bridge.allAcked(),{timeout:15000})
