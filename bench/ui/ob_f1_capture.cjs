@@ -159,11 +159,13 @@ async function main() {
     await page.addInitScript(()=>{
       const listeners=new Set();
       const buffered=[],pending=new Map();
+      let retainedHello=null;
       const observations={sent:[],acks:[],telemetry:0,down_at_ms:null};
       let active=false;
       document.addEventListener('pointerdown',()=>{if(active&&observations.down_at_ms===null)
         observations.down_at_ms=performance.now();},{capture:true});
       window.__obf1Dispatch=msg=>{
+        if(msg.type==='hello')retainedHello=msg;
         if(msg.type==='telemetry'&&active)observations.telemetry++;
         if(typeof msg.re==='string'){
           const prior=pending.get(msg.re);
@@ -187,7 +189,10 @@ async function main() {
         },
         onMessage(callback){
           listeners.add(callback);
-          for(const msg of buffered.splice(0))callback(msg);
+          // The menu listener subscribes before RealEngine. Both must see
+          // the native boot hello, even when it arrived before either one.
+          if(retainedHello)callback(retainedHello);
+          for(const msg of buffered.splice(0))if(msg!==retainedHello)callback(msg);
           return ()=>listeners.delete(callback);
         },
         openPatch:async()=>null,
@@ -217,13 +222,13 @@ async function main() {
     await page.waitForFunction(()=>typeof window.__obf1Dispatch==='function');
     bridgeReady=true;
     for(const msg of queued.splice(0))await deliver(msg);
-    await page.waitForFunction(()=>document.body.dataset.ready==='true',{timeout:25000});
+    await page.waitForFunction(()=>document.body.dataset.ready==='true',null,{timeout:25000});
     await page.evaluate(p=>{
       window.__wirescapeTest.clearAutosave();
       window.__wirescapeTest.load(p,'OB-f1 read-only heaviest bundled patch');
       window.__wirescapeTest.fit();
     },patch);
-    await page.waitForFunction(()=>document.querySelector('[data-testid="status-engine"]')?.textContent?.includes('real'),{timeout:25000});
+    await page.waitForFunction(()=>document.querySelector('[data-testid="status-engine"]')?.textContent?.includes('real'),null,{timeout:25000});
     await settleFrames(page,15);
     for(const action of ACTIONS){
       const record={action,gesture_completed:false,frames:[],sent:[],acks:[],
