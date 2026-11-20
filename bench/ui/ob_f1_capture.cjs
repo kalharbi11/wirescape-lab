@@ -5,15 +5,16 @@
 const {chromium}=require('../../apps/studio/node_modules/playwright');
 const {spawn,execFileSync}=require('node:child_process');
 const {createInterface}=require('node:readline');
-const {mkdirSync,writeFileSync,readFileSync,existsSync}=require('node:fs');
+const {mkdirSync,mkdtempSync,rmSync,writeFileSync,readFileSync,existsSync}=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
-const {chooseHeaviest,hash,applyGesture,consolidate}=require('./ob_f1_metrics.cjs');
+const {chooseHeaviest,rankIdleCpu,hash,applyGesture,consolidate}=require('./ob_f1_metrics.cjs');
 const {previewCommand}=require('../offline/ui_frames.cjs');
 const ROOT=path.resolve(__dirname,'../..');
 const OUT=path.join(ROOT,'build_reports/ob-f1');
 const URL='http://127.0.0.1:4173';
 const BINARY=path.join(ROOT,'build/native/wirescape-engine');
+const CLI=path.join(ROOT,'build/native/wirescape_cli');
 const ACTIONS=['knob','module','cable','telemetry'];
 const VIEWPORT={width:1920,height:1080};
 
@@ -113,15 +114,90 @@ async function gesture(page,action,patch) {
   throw new Error('unsupported action');
 }
 
+// A20: source-pinned, idle/default-state-only offline engine cost ranking.
+// The real Release CLI measures app_engine_render_channels, not WAV output time.
+function captureCpuRanking(proxy) {
+  const rate=48000,block=128,seconds=10,periodUs=block/rate*1e6;
+  if(!existsSync(CLI))throw new Error('Release wirescape_cli absent: cannot rank actual CPU');
+  const temp=mkdtempSync(path.join(os.tmpdir(),'ob-f1-idle-cpu-'));
+  const rows=[];
+  try {
+    for(const fixture of proxy.inventory) {
+      const relative='apps/studio/patches/'+fixture.name;
+      const wav=path.join(temp,fixture.name+'.wav');
+      const args=['play',relative,'--rate',String(rate),'--block',String(block),
+        '--seconds',String(seconds),'--output',wav];
+      const item={name:fixture.name,sha256:fixture.sha256,bytes:fixture.bytes,
+        module_count:fixture.module_count,connection_count:fixture.connection_count,
+        args:['play',relative,'--rate','48000','--block','128','--seconds','10',
+          '--output','<distinct temporary WAV>'],status:'unavailable',
+        metrics:null,render_period_cpu_ratio_p95:null,error:null};
+      try {
+        const stdout=execFileSync(CLI,args,{cwd:ROOT,encoding:'utf8',
+          timeout:120000,maxBuffer:1024*1024});
+        const observation=JSON.parse(stdout.trim().split(/\r?\n/).at(-1));
+        const names=['p50_us','p95_us','p99_us','worst_us','overruns','blocks'];
+        if(observation.offline!==true||observation.rate!==rate||
+           observation.block!==block||observation.frames!==rate*seconds||
+           observation.blocks!==Math.ceil(rate*seconds/block)||
+           names.some(k=>typeof observation[k]!=='number'||!Number.isFinite(observation[k]))||
+           observation.p50_us<=0||observation.p95_us<=0||observation.p99_us<=0||
+           observation.worst_us<=0||observation.overruns<0||
+           !(observation.p50_us<=observation.p95_us&&
+             observation.p95_us<=observation.p99_us&&
+             observation.p99_us<=observation.worst_us))
+          throw new Error('CLI offline JSON missing, incomplete or inconsistent');
+        item.status='measured';
+        item.metrics=observation; // Preserve exact CLI JSON, not just derived percentiles.
+        item.raw_stdout=stdout.trim();
+        item.render_period_cpu_ratio_p95=observation.p95_us/periodUs;
+      }catch(error) {
+        item.status='unavailable';
+        item.error=String(error.message||error).slice(0,900);
+        item.exit_code=Number.isInteger(error.status)?error.status:null;
+        if(error.stdout)item.raw_stdout=String(error.stdout).slice(-1600);
+        if(error.stderr)item.raw_stderr=String(error.stderr).slice(-1600);
+      }finally {
+        rmSync(wav,{force:true}); // WAVs are disposable; never commit audio or patches.
+      }
+      rows.push(item);
+      console.log('OBF1_CPU '+fixture.name+' '+item.status+
+        (item.status==='measured'?' p95_us='+item.metrics.p95_us:''));
+    }
+  }finally {rmSync(temp,{recursive:true,force:true});}
+  const sorted=rankIdleCpu(rows);
+  const report={schema:'wirescape/ob-f1-idle-cpu-rank/1',provenance:metadata(),
+    cli_executable_sha256:hash(readFileSync(CLI)),
+    method:'actual default-state offline wirescape_cli play; 48k Hz, 128-frame blocks, 10 s per patch; no --confirm-* or --pace; measures render only, not WAV I/O',
+    scope:'idle-only; input-gated/silent graph active CPU is unresolved; one run per patch on shared hosted runner, not Pi/device/audio performance',
+    period_us:periodUs,expected_patches:24,observed_patches:rows.length,
+    measured_count:sorted.length,unavailable_count:rows.length-sorted.length,
+    sort:'descending observed p95_us / render period, then p50_us, then lexical filename',
+    graph_proxy_original:proxy.chosen.name,
+    winner:sorted.length?sorted[0].name:null,
+    rank:sorted.map((r,i)=>({rank:i+1,name:r.name,
+      p50_us:r.metrics.p50_us,p95_us:r.metrics.p95_us,
+      render_period_cpu_ratio_p95:r.render_period_cpu_ratio_p95})),
+    rows};
+  writeFileSync(path.join(OUT,'cpu-ranking.json'),JSON.stringify(report,null,2)+'\n');
+  if(rows.length!==24)throw new Error('CPU ranking inventory expected 24 original bundled patches, got '+rows.length);
+  if(!sorted.length)throw new Error('CPU ranking has no actually measured patches');
+  return report;
+}
+
 async function main() {
   mkdirSync(OUT,{recursive:true});mkdirSync(path.join(OUT,'raw'),{recursive:true});
-  const selection=chooseHeaviest(path.join(ROOT,'apps/studio/patches'));
-  // Keep only the chosen graph and a byte-hashed inventory, never modify a patch.
-  const patch=selection.chosen.document;
+  const proxy=chooseHeaviest(path.join(ROOT,'apps/studio/patches'));
+  const cpuRanking=captureCpuRanking(proxy);
+  const chosen=proxy.inventory.find(x=>x.name===cpuRanking.winner);
+  if(!chosen)throw new Error('CPU-winning patch missing from source-pinned inventory');
+  const patch=JSON.parse(readFileSync(path.join(ROOT,'apps/studio/patches',chosen.name)));
+  const selection={chosen,inventory:proxy.inventory,
+    selection_rule:'actual default-state idle-only offline CPU p95_us / 2666.6667 us, p50 tie, lexical tie'};
   writeFileSync(path.join(OUT,'patch-selection.json'),JSON.stringify({
-    selection_rule:selection.selection_rule,
-    chosen:Object.fromEntries(Object.entries(selection.chosen).filter(([k])=>k!=='document')),
-    inventory:selection.inventory,source_commit:sha()
+    selection_rule:selection.selection_rule,chosen,inventory:selection.inventory,
+    original_graph_proxy:{name:proxy.chosen.name,rule:proxy.selection_rule},
+    cpu_rank_file:'cpu-ranking.json',source_commit:sha()
   },null,2)+'\n');
   if(!existsSync(BINARY))throw new Error('native Release --null-audio sidecar missing, build headless first');
   const engine=spawn(BINARY,['--null-audio'],{cwd:ROOT,stdio:['pipe','pipe','pipe']});
@@ -263,6 +339,9 @@ async function main() {
         acknowledgements:'RealEngine bridge sent setParam, native --null-audio sidecar v0 correlated ok reply; browser monotonic send/reply clock, not audio-output application time',
         device_scope:'no hardware audio/MIDI; native sidecar --null-audio, stdio bridge, Vite preview 127.0.0.1',
         limitations:'headless Linux Chromium is not Pi, physical audio, GPU compositor, or end-to-end sound; no percentile targets assigned by builder'},
+      cpu_rank_file:'cpu-ranking.json',cpu_rank_winner:cpuRanking.winner,
+      cpu_rank_measured_count:cpuRanking.measured_count,
+      cpu_rank_unavailable_count:cpuRanking.unavailable_count,
       patch:{file:selection.chosen.name,sha256:selection.chosen.sha256,
         module_count:selection.chosen.module_count,connection_count:selection.chosen.connection_count},
       source_records:records.map(r=>r.raw_file),results:consolidate(records),
@@ -272,7 +351,7 @@ async function main() {
     console.log('OBF1_FACTS_JSON='+JSON.stringify({
       source_commit:summary.provenance.source_commit,patch:summary.patch,results:summary.results
     }));
-    if(summary.results.some(r=>r.status!=='measured'))
+    if(cpuRanking.unavailable_count>0||summary.results.some(r=>r.status!=='measured'))
       process.exitCode=1; // fail advisory honestly; upload actual raw/unavailable records
     await context.close();
   }finally{

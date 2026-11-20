@@ -6,6 +6,7 @@ on:
     paths:
       - 'bench/ui/**'
       - 'facts/app/ui_smoothness_2026-11-17.md'
+      - 'facts/app/ui_cpu_rank_2026-11-20.md'
       - '.github/workflows/ob-f1-ui-facts.yml'
   workflow_dispatch:
 
@@ -55,9 +56,9 @@ jobs:
           node --check bench/ui/ob_f1_metrics.cjs
           node --check bench/ui/test_ob_f1_metrics.cjs
           node bench/ui/test_ob_f1_metrics.cjs
-      - name: Select largest bundled graph and measure four actual headless Studio workloads
+      - name: Rank 24 bundled patches by actual idle-only offline CPU and capture winner in Studio
         run: node bench/ui/ob_f1_capture.cjs
-      - name: Upload original UI frame intervals and native sidecar correlated ACK observations
+      - name: Upload original CPU CLI observations, UI frame intervals and native sidecar ACKs
         if: always()
         uses: actions/upload-artifact@v4
         with:

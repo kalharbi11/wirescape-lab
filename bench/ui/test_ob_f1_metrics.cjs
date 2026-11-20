@@ -5,7 +5,7 @@ const assert=require('node:assert/strict');
 const {mkdtempSync,mkdirSync,writeFileSync,rmSync}=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
-const {chooseHeaviest,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate}=
+const {chooseHeaviest,rankIdleCpu,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate}=
   require('./ob_f1_metrics.cjs');
 
 const folder=mkdtempSync(path.join(os.tmpdir(),'ob-f1-'));
@@ -24,6 +24,15 @@ try{
   assert.equal(chosen.chosen.sha256.length,64);
 }finally{rmSync(folder,{recursive:true,force:true});}
 
+// CPU order is observed render time, never largest graph or unavailable=0.
+const ranked=rankIdleCpu([
+  {name:'a.json',status:'measured',metrics:{p95_us:100,p50_us:80}},
+  {name:'c.json',status:'measured',metrics:{p95_us:120,p50_us:90}},
+  {name:'b.json',status:'measured',metrics:{p95_us:120,p50_us:90}},
+  {name:'unavailable.json',status:'unavailable',metrics:null},
+  {name:'invalid.json',status:'measured',metrics:{p95_us:NaN,p50_us:0}}
+]);
+assert.deepEqual(ranked.map(r=>r.name),['b.json','c.json','a.json']);
 assert.equal(percentile([1,2,3,4,5],95),5);
 assert.deepEqual([10,20,30], [10,20,30]);
 assert.deepEqual(measuredFrames([10,20,30]),{

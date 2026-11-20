@@ -96,4 +96,14 @@ function consolidate(records) {
       reason:r.error||null,source_observation:r.raw_file||null};
   });
 }
-module.exports={hash,chooseHeaviest,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate};
+// All candidates have the same 48k/128 render period, so ranking the actual
+// positive p95 render duration is equivalent to ranking observed p95 CPU ratio.
+// Never use graph size or substitute zero for a refused/unavailable measurement.
+function rankIdleCpu(rows) {
+  return rows.filter(r=>r.status==='measured'&&r.metrics&&
+    Number.isFinite(r.metrics.p95_us)&&r.metrics.p95_us>0&&
+    Number.isFinite(r.metrics.p50_us)&&r.metrics.p50_us>0)
+    .sort((a,b)=>b.metrics.p95_us-a.metrics.p95_us||
+      b.metrics.p50_us-a.metrics.p50_us||a.name.localeCompare(b.name,'en'));
+}
+module.exports={hash,chooseHeaviest,rankIdleCpu,percentile,measuredFrames,correlatedAcks,applyGesture,consolidate};
