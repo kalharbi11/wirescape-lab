@@ -96,10 +96,12 @@ struct QuadVca {
                     } else {
                         // A running LPG keeps its filter state while the mode output fades.
                         // Blend is per-channel/voice, including across processing blocks.
-                        if (want_lpg)
-                            s.mode_blend = std::min(1.f, s.mode_blend + mode_fade_step_);
-                        else
+                        if (want_lpg) {
+                            if (s.mode_blend < 1.f)
+                                s.mode_blend = std::min(1.f, s.mode_blend + mode_fade_step_);
+                        } else {
                             s.mode_blend = std::max(0.f, s.mode_blend - mode_fade_step_);
+                        }
                         const float response = std::clamp(b.param(8).value(voice, i), 0.f, 1.f);
                         const float decay = lookup(release_alpha_, response);
                         const float alpha = control > s.follower ? attack_alpha_ : decay;
@@ -112,8 +114,13 @@ struct QuadVca {
                         s.ic1 = 2.f * v1 - s.ic1;
                         s.ic2 = 2.f * v2 - s.ic2;
                         const float lpg = v2 * s.follower;
-                        const float vca = x * control;
-                        y = s.mode_blend >= 1.f ? lpg : vca + s.mode_blend * (lpg - vca);
+                        if (s.mode_blend >= 1.f) {
+                            // Settled LPG: skip the unused VCA multiply and crossfade.
+                            y = lpg;
+                        } else {
+                            const float vca = x * control;
+                            y = vca + s.mode_blend * (lpg - vca);
+                        }
                         if (s.mode_blend <= 0.f) s = {}; // Never retain stale LPG history.
                     }
                     output[k][i] = y;
