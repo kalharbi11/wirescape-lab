@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
-      BASE_SHA: 137a6abe757d04e5fef44ae03acb2ba2fafcc07d
-      HEAD_SHA: f314b859f18cf7813f80eb998cce1c341cb14b86
+      BASE_SHA: 3d3c8437131ac40b3275eae221ba7728e48a766c
+      HEAD_SHA: da1952996c9c5f5b44b904208de9abf63a13abcb
       CMAKE_BUILD_PARALLEL_LEVEL: '2'
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -34,9 +34,9 @@ jobs:
           echo "EVIDENCE=$EVIDENCE" >> "$GITHUB_ENV"
           mkdir -p "$EVIDENCE"
           gh api "repos/$GITHUB_REPOSITORY/pulls/255" \
-            --jq '{draft, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255.json"
+            --jq '{state, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255.json"
           jq -e --arg head "$HEAD_SHA" --arg base "$BASE_SHA" \
-            '.draft and .head == $head and .base == $base' "$EVIDENCE/pr-255.json"
+            '.state == "open" and .head == $head and .base == $base' "$EVIDENCE/pr-255.json"
           git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA"
           git worktree add --detach "$RUNNER_TEMP/reverb-s72-before" "$BASE_SHA"
           git worktree add --detach "$RUNNER_TEMP/reverb-s72-head" "$HEAD_SHA"
@@ -76,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/pulls/255" \
-            --jq '{draft, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255-after.json"
+            --jq '{state, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255-after.json"
           cmp "$EVIDENCE/pr-255.json" "$EVIDENCE/pr-255-after.json"
           python bench/evidence/reverb_s72/collect.py compare "$EVIDENCE" "$BASE_SHA" "$HEAD_SHA"
       - name: Upload source pins, original reports, raw captures and logs
