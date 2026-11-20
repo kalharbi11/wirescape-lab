@@ -1,0 +1,192 @@
+{
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Windows Eval 2 - MIDI Poly 4",
+  "description": "MIDI In -> 4-voice rotate MIDI to CV -> polyphonic VCO, ADSR, VCA and summed stereo output.",
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 285,
+    "timing_mode": "immediate"
+  },
+  "outputs": [
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ],
+  "modules": [
+    {
+      "id": 1,
+      "module": "midi.in",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "endpoint": "all_enabled"
+      }
+    },
+    {
+      "id": 2,
+      "module": "midi.to_cv",
+      "version": 1,
+      "parameters": {
+        "voice_count": 4,
+        "allocation_mode": 0,
+        "apply_bend": 1,
+        "pitch_bend_range_semitones": 2,
+        "channel_filter": 0
+      }
+    },
+    {
+      "id": 3,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 4,
+      "module": "essentials.adsr",
+      "version": 2,
+      "parameters": {
+        "attack": 0.02,
+        "decay": 0.3,
+        "sustain": 0.65,
+        "release": 0.4
+      }
+    },
+    {
+      "id": 5,
+      "module": "essentials.vca",
+      "version": 2,
+      "parameters": {
+        "gain": 0.24
+      }
+    },
+    {
+      "id": 6,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    }
+  ],
+  "connections": [
+    {
+      "kind": "event",
+      "from": {
+        "module": 1,
+        "port": "midi"
+      },
+      "to": {
+        "module": 2,
+        "port": "midi"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "pitch"
+      },
+      "to": {
+        "module": 3,
+        "port": "pitch"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "gate"
+      },
+      "to": {
+        "module": 4,
+        "port": "gate"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 3,
+        "port": "audio"
+      },
+      "to": {
+        "module": 5,
+        "port": "audio"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 4,
+        "port": "envelope"
+      },
+      "to": {
+        "module": 5,
+        "port": "gain_cv"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 5,
+        "port": "audio"
+      },
+      "to": {
+        "module": 6,
+        "port": "audio"
+      }
+    }
+  ],
+  "ui": {
+    "positions": {
+      "1": [
+        60,
+        150
+      ],
+      "2": [
+        540,
+        150
+      ],
+      "3": [
+        1080,
+        150
+      ],
+      "4": [
+        1080,
+        650
+      ],
+      "5": [
+        1660,
+        150
+      ],
+      "6": [
+        2240,
+        150
+      ]
+    },
+    "labels": {
+      "1": "MIDI In - enabled device",
+      "2": "4 voices (rotate)",
+      "3": "Poly tone",
+      "4": "Poly envelope",
+      "5": "Poly amplifier",
+      "6": "Summed Out"
+    },
+    "view": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}
