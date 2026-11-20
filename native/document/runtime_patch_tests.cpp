@@ -54,6 +54,31 @@ static void saved_lfo_patch(const char *demo, AppEngine *catalog, const wirescap
     std::cout << "saved qt-lfo-filter loads unchanged; 96000 control samples bit-identical to pre-phase renderer\\n";
 }
 
+// OB-a3 pin 7: native document execution of a legacy v1 file is read-only.
+// This tests the common loader used by CLI/soak/golden, not their separate CLI paths.
+static void legacy_runtime_load_is_read_only(const std::filesystem::path &filename,
+                                            AppEngine *catalog,
+                                            const wirescape::engine2::Config &cfg) {
+    std::ifstream before_file(filename, std::ios::binary);
+    check(bool(before_file), "OB-a3 read legacy fixture");
+    const std::string before((std::istreambuf_iterator<char>(before_file)), {});
+    check(Json::parse(before).at("version") == 1, "OB-a3 fixture is v1");
+    const auto stamp = std::filesystem::last_write_time(filename);
+    std::string error;
+    Owner engine(wirescape::document::load_runtime_patch(before, catalog, cfg, error), app_engine_destroy);
+    check(bool(engine), "OB-a3 native loader still accepts v1");
+    float samples[128]{};
+    check(app_engine_render(engine.get(), samples, 128) == WS2_OK,
+          "OB-a3 v1 graph remains executable");
+    std::ifstream after_file(filename, std::ios::binary);
+    check(bool(after_file), "OB-a3 fixture still exists");
+    const std::string after((std::istreambuf_iterator<char>(after_file)), {});
+    check(after == before && std::filesystem::last_write_time(filename) == stamp,
+          "OB-a3 native v1 load must not rewrite original file");
+    check(!std::filesystem::exists(filename.string() + ".bak-v1"),
+          "OB-a3 execution-only loader cannot create a desktop backup");
+}
+
 int main(int argc,char**argv){try{
  check(argc==2,"demo argument");std::ifstream input(argv[1]);std::string bytes((std::istreambuf_iterator<char>(input)),{});check(!bytes.empty(),"read demo");
  wirescape::engine2::Config cfg{};
@@ -62,6 +87,7 @@ int main(int argc,char**argv){try{
     cfg.max_nodes = 64;
     cfg.event_budget = 2048;Owner catalog(app_engine_create(&cfg),app_engine_destroy);std::string error;
  saved_lfo_patch(argv[1], catalog.get(), cfg);
+ legacy_runtime_load_is_read_only(argv[1], catalog.get(), cfg);
  // Qt's inspection-only legacy formats must never become executable native graphs.
  const auto fixtures = std::filesystem::path(argv[1]).parent_path().parent_path() / "tests/fixtures/legacy_documents";
  for (const char *name : {"patch_v1.json", "patch_v2.json", "patch_v3_unknown.json", "visual_study_v4.json",
