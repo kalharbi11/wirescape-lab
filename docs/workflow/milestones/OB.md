@@ -4,6 +4,7 @@
 **Revision:** r2 (adds OB-e module census/smoke, OB-f UI smoothness; nothing in flight stops) — r1 **ACCEPTED by the Claude Architect, 2026-11-17 (ET).** Design: `proposals/0017`
 section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the web build is not in it.
 **r2.1 (Architect, 2026-11-17, inbox A10):** OB-c's six owner-reported cases get the device-free oracles in CURRENT "Decided 2026-11-17 23:40 ET". A test that fails before its fix lands as a strict expected failure. Wall-clock gaps are recorded as facts, not as pass marks. Affects OB-c only.
+**r2.2 (Architect, 2026-11-20, inbox A19):** OB-a3 pins: "older shape" = native patch `version` 1; backup `<filename>.bak-v1` (then `.bak-v1.<n>`, n ≥ 2, never overwritten; equal bytes → no write); written before the original is replaced, save refused if it cannot be; Save As never writes the source; the existing `<stem>.v1<ext>` naming is replaced in the OB-a3 PR; native loaders stay execution-only with one no-write test each. Full text: #287. Affects OB-a3 only; nothing in flight stops.
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.

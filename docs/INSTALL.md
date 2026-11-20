@@ -75,7 +75,7 @@ earlier beta; just close it before launching 1.0 so they don't share audio and
 MIDI devices.
 
 ```powershell
-git clone https://github.com/kalharbi11/wirescape.git C:\src\wirescape-1.0
+git clone https://github.com/kalharbi11/wirescape-lab.git C:\src\wirescape-1.0
 cd C:\src\wirescape-1.0
 # 1.0 is the commit named in docs/releases/v1.0.md. Before it is pinned, use current main:
 $Ref = (git rev-parse origin/main).Trim()
@@ -157,7 +157,7 @@ of current `main` (it includes the OSC In range scaling, #742, and the ESP32
 launcher, #748):
 
 ```sh
-git clone https://github.com/kalharbi11/wirescape.git ~/wirescape-test
+git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape-test
 cd ~/wirescape-test
 Ref=$(git rev-parse origin/main) && git switch --detach "$Ref"
 python3 tools/pi/preflight.py --check-only

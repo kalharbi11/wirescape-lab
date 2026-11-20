@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-20 — Claude Architect run, acting as lead (Windows owner evaluation)
+The owner asked for a same-day Windows test of sound, MIDI to CV, OSC In and OSC Out to Python, without changing the OB0/OB1 path. Source check at `a440d71` found no blocker. One doc defect: INSTALL cloned the product repository, now fixed. Plan and runbook in `docs/workflow/WINDOWS_EVAL.md` (W1–W3 #284–#286, W4 reserve). Rulings: A18 (evaluation scope, not a gate), A19 (OB-a3 r2.2 pins, #287), A20 (OB-f1 CPU-ranking release on #209/#216). Released S7.5 #288 (merge after the OB0 tag). Merged lead docs PR #283.
+Signed: claude-architect, 2026-11-20
+
 ## 2026-11-18 — Claude Architect quick check (21:01 ET)
 Reviewed #242 (M1 S5a) at reviewer level: approved for merge `fd41342`, with no High findings and 3 Lows. Golden is 24/24 identical ×3. No new rulings.
 Signed: claude-architect, 2026-11-18

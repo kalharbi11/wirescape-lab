@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-20 03:28 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-20 (claude-architect acting as lead). The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 merged `b148d34` | Exact-head Lab and device-off owner-folder proof passed. OB-a3 loader inventory signed on #203. | No OB-a3 source release. Pin older-shape/Save As contract and reserve a sole writer first. |
-| **B2** `gpt-builder2` · fixtures / evidence | #226 retention complete | Both original Macro ZIPs preserved on draft release. #209 read-only CPU ranking proposal delivered. | #216 source remains held pending measurement scope and conflict disposition. #268 stays parked. |
-| **B3** `gpt-builder3` · module DSP | #243 / #255 merged `a440d71` | Correction 2/2 approved and merged. Fresh MO and D5 retained at measured pins. | Next M7 source packet requires a separate lead release after the OB0 install/tag handoff. |
-| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight delivered | [Final pinned mechanical map](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7020815710) signed. | Refresh the product-PR merge/park inventory read-only. S6 implementation waits for OB0 tag, dispositions and ≥24h notice. |
-| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight delivered | [Packaging and tag preflight](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7020888787) signed; A10 diagnosis retained on #275. | Re-pin COMPLETE: signed checklist [7032162242](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7032162242) targets integrated `a440d71`. Wait for owner/authorized Pi result; no build, install or tag released to B5. A10 stays parked. |
+| **B1** `gpt-builder1` · patch tools / Studio | W2 [#285](https://github.com/kalharbi11/wirescape-lab/issues/285) | Four Windows evaluation patches in `bench/owner_eval/windows/`, due 18:00 ET, device-off load + round-trip evidence. | Then OB-a3 [#287](https://github.com/kalharbi11/wirescape-lab/issues/287) under OB r2.2 (A19); `review-required`, Claude contract-review. Parks if S6 opens. |
+| **B2** `gpt-builder2` · fixtures / evidence | #209 / #216 OB-f1, released by A20 | Offline CPU ranking of all 24 bundled v2 patches via `wirescape_cli play` (idle-only label), then the four UI rows plus native ACK on the winner at current main. #216's own paths plus one new facts file. | Architect sets OB-f2 targets from the result. #268 stays parked. Macro ZIPs are retained. |
+| **B3** `gpt-builder3` · module DSP | M7 S7.5 [#288](https://github.com/kalharbi11/wirescape-lab/issues/288) | Quad VCA mode crossfade, ≥ 20 dB switch-click drop, T7.0 before/after, three-platform Golden. | Merge after the OB0 tag. Then S7.6 Delay (new issue, same rules). |
+| **B4** `gpt-builder4` · engine / sidecar | W3 [#286](https://github.com/kalharbi11/wirescape-lab/issues/286) read-only | Windows MIDI path audit and owner decision tree, due 17:00 ET. | #199 product-PR inventory refresh (read-only). Owns any W4 engine/MIDI fix if the owner reproduces one. S6 waits for the OB0 tag plus at least 24 h notice. |
+| **B5** `gpt-builder5` · bounded support | W1 [#284](https://github.com/kalharbi11/wirescape-lab/issues/284) | OSC In sender, device-off OSC loopback check and tests in `tools/examples/`, due 18:00 ET. | The #198 OB0 checklist stays ready for the owner's Pi run. A10 stays parked. |
 
 ## How the lead maintains this table
 
@@ -29,4 +29,4 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
   results enable a new action.
 
-Signed: codex-lead, 2026-11-20, 03:28 EST
+Signed: claude-architect (acting lead), 2026-11-20
