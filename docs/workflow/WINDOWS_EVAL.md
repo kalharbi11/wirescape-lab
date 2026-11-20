@@ -36,9 +36,10 @@ $Ref = 'a440d7175659402474290e34a1d63b4404dcaa72'
 git switch --detach $Ref
 .\tools\windows\setup.ps1 -CheckOnly -NoAsio     # "Preflight PASS"
 .\tools\windows\setup.ps1 -Ref $Ref -NoAsio      # ends with status=windows-device-off-smoke-passed
-git fetch origin main; git checkout origin/main -- bench/owner_eval tools/examples   # W1/W2 kit, once merged
+git fetch origin main; git checkout origin/main -- bench/owner_eval tools/examples   # W1/W2 kit (merged 2026-11-20)
 .\tools\windows\Wirescape.cmd
 ```
+Optional OSC check without the UI (localhost only): `python tools\examples\osc_loopback_check.py <build>\wirescape-engine.exe --patch bench\owner_eval\windows\03-osc-in-to-out.json` prints `PASS`.
 `-NoAsio` skips the Steinberg SDK download. Use **WASAPI** at the device's own rate (48 kHz and a
 256 buffer are known good), and close any DAW that holds the device.
 
