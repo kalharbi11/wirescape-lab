@@ -91,16 +91,17 @@ struct QuadVca {
                     auto &s = state_[k][voice];
                     const bool want_lpg = b.param(k + 4).value(voice, i) >= .5f;
                     if (!want_lpg && s.mode_blend <= 0.f) {
-                        s = {}; // Keep the steady VCA path bit-exact and discard old LPG state.
+                        // Reset/initialization and completed fades already cleared state.
+                        // Do not repeatedly write four zero floats in the steady VCA hot path.
                         y = x * control;
                     } else {
-                        // A running LPG keeps its filter state while the mode output fades.
-                        // Blend is per-channel/voice, including across processing blocks.
-                        if (want_lpg) {
-                            if (s.mode_blend < 1.f)
-                                s.mode_blend = std::min(1.f, s.mode_blend + mode_fade_step_);
-                        } else {
-                            s.mode_blend = std::max(0.f, s.mode_blend - mode_fade_step_);
+                        // Only pay for a fade when the mode is actually changing.
+                        // Keep the original LPG arithmetic for every settled LPG sample.
+                        const bool fading = !want_lpg || s.mode_blend < 1.f;
+                        if (fading) {
+                            s.mode_blend = want_lpg
+                                ? std::min(1.f, s.mode_blend + mode_fade_step_)
+                                : std::max(0.f, s.mode_blend - mode_fade_step_);
                         }
                         const float response = std::clamp(b.param(8).value(voice, i), 0.f, 1.f);
                         const float decay = lookup(release_alpha_, response);
@@ -114,14 +115,13 @@ struct QuadVca {
                         s.ic1 = 2.f * v1 - s.ic1;
                         s.ic2 = 2.f * v2 - s.ic2;
                         const float lpg = v2 * s.follower;
-                        if (s.mode_blend >= 1.f) {
-                            // Settled LPG: skip the unused VCA multiply and crossfade.
-                            y = lpg;
+                        if (!fading) {
+                            y = lpg; // Settled LPG: no VCA multiply or blend.
                         } else {
                             const float vca = x * control;
                             y = vca + s.mode_blend * (lpg - vca);
+                            if (s.mode_blend <= 0.f) s = {}; // One reset per completed fade.
                         }
-                        if (s.mode_blend <= 0.f) s = {}; // Never retain stale LPG history.
                     }
                     output[k][i] = y;
                     sum += y;
