@@ -548,11 +548,6 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
                     rows.append(dict(entry, status="unsupported_descriptor",
                                      reason="source descriptor absent"))
                     continue
-                if ident == "ports.macro_oscillator" and rate != 48000:
-                    rows.append(dict(entry, status="unsupported_rate",
-                                     reason="Macro Oscillator prepare() requires 48000 Hz; "
-                                            "native/modules2/macro_oscillator/dsp.h"))
-                    continue
                 if ident == "essentials.vco":
                     patch = direct_source(ident, descriptor["version"],
                                           {"frequency": hz}, "audio")
@@ -608,7 +603,7 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
         "nonharmonic_floor_unit": "dBFS all nonharmonic FFT bins (not equivalent to aliasing)",
         "thd_unit": "dB", "pitch_unit": "cents",
         "chaos_waveforms": "A oscillator saw/square/sine; B level=0, gate and velocity held at 1",
-        "macro_models": "0..23 (48000 Hz only)",
+        "macro_models": "0..23 at each requested rate; pitch is raw existing FFT estimate (not meaningful for every inharmonic model)",
         "FFT": "Hann window; +/-4 bin harmonic exclusion; folded harmonics to 2*sample_rate",
         "t7_chaos_only": t7_chaos_only})
     return rows
@@ -698,9 +693,6 @@ def module_sections(renderer, desc, all_modules, meta, out, quick,
             entry = {"module": ident, "sample_rate_hz": rate}
             if patch is None:
                 module_rows.append(dict(entry, status="unsupported_probe", reason=reason))
-            elif ident == "ports.macro_oscillator" and rate != 48000:
-                module_rows.append(dict(entry, status="unsupported_rate",
-                                       reason="Macro Oscillator prepare() requires 48000 Hz"))
             else:
                 audio, status = run_wav(renderer, patch, [], seconds, rate=rate)
                 if audio is not None:
@@ -816,7 +808,6 @@ def sweep_sections(renderer, desc, meta, out, quick,
         params = {key: bounds for key, bounds in descriptor["parameters"].items()
                   if not bounds["stepped"] and bounds["min"] != bounds["max"]}
         for rate in rates:
-            limited = ident == "ports.macro_oscillator" and rate != 48000
             for key, bounds in params.items():
                 entry = {"module": ident, "sample_rate_hz": rate,
                          "parameter": key, "min": bounds["min"], "max": bounds["max"],
@@ -824,10 +815,6 @@ def sweep_sections(renderer, desc, meta, out, quick,
                 if ident not in runtime_modules:
                     sweep_rows.append(dict(entry, status="unsupported_runtime_module",
                         reason="descriptor is not registered in built-in runtime catalogue"))
-                    continue
-                if limited:
-                    sweep_rows.append(dict(entry, status="unsupported_rate",
-                        reason="Macro Oscillator requires 48000 Hz"))
                     continue
                 if quick:
                     sweep_rows.append(dict(entry, status="not_run_quick_mode",
@@ -864,10 +851,6 @@ def sweep_sections(renderer, desc, meta, out, quick,
             if ident not in runtime_modules:
                 cable_rows.append(dict(entry, status="unsupported_runtime_module",
                     reason="descriptor is not registered in built-in runtime catalogue"))
-                continue
-            if limited:
-                cable_rows.append(dict(entry, status="unsupported_rate",
-                                       reason="Macro Oscillator requires 48000 Hz"))
                 continue
             patch, selected, reason = cabled_module_patch(ident, descriptor)
             if patch is None:
@@ -945,11 +928,6 @@ def bundled_section(renderer, meta, out, quick, rates=(44100, 48000, 96000)):
                      "sample_rate_hz": rate}
             try:
                 patch = json.loads(path.read_text())
-                members = [m.get("module") for m in patch.get("modules", [])]
-                if "ports.macro_oscillator" in members and rate != 48000:
-                    rows.append(dict(entry, status="unsupported_rate",
-                                     reason="Macro Oscillator prepare() requires 48000 Hz"))
-                    continue
                 keyboard = [m["id"] for m in patch.get("modules", [])
                             if m.get("module") == "host.keyboard"]
                 events = []
