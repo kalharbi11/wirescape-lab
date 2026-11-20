@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: OB-f1 Studio UI facts (device-off advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'bench/ui/**'
+      - 'facts/app/ui_smoothness_2026-11-17.md'
+      - '.github/workflows/ob-f1-ui-facts.yml'
+  workflow_dispatch:
+
+# SR8 separate advisory; never touches shared ci.yml or existing workflows.
+# No checks/merges, release writes, facts-auto branches or release uploads.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ob-f1:
+    name: Linux x64 native ACK + headless Studio UI (advisory)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Studio Playwright and headless native build tools
+        run: |
+          set -euo pipefail
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          npm --prefix apps/studio ci --no-audit --no-fund
+          cd apps/studio
+          npx playwright install --with-deps chromium
+      - name: Build device-off Studio preview and actual null-audio native sidecar
+        run: |
+          set -euo pipefail
+          npm --prefix apps/studio run build
+          python tools/dev.py build --headless --config Release
+      - name: Pure OB-f1 selector/metrics/ACK known-answer regressions
+        run: |
+          set -euo pipefail
+          node --check bench/ui/ob_f1_capture.cjs
+          node --check bench/ui/ob_f1_metrics.cjs
+          node --check bench/ui/test_ob_f1_metrics.cjs
+          node bench/ui/test_ob_f1_metrics.cjs
+      - name: Select largest bundled graph and measure four actual headless Studio workloads
+        run: node bench/ui/ob_f1_capture.cjs
+      - name: Upload original UI frame intervals and native sidecar correlated ACK observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ob-f1-ui-facts-${{ github.run_id }}
+          path: build_reports/ob-f1/
+          if-no-files-found: warn
+          retention-days: 7
