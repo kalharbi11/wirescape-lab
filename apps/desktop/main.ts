@@ -491,10 +491,8 @@ async function savePatch(input: unknown): Promise<{ name: string } | null> {
     if (result.canceled || !result.filePath) return null;
     filename = result.filePath;
   }
-  // Save As must never rewrite the currently opened source, even if the
-  // destination chooser returns the same pathname.
-  if (saveAs && patchPath && path.resolve(filename) === path.resolve(patchPath))
-    throw new Error('Save As must choose a different patch file');
+  // In Save As the explicitly chosen filename is the destination, even when
+  // it matches the opened path (OB r2.2a); any v1 destination gets a backup.
   nativeFile(text);
   let previous: Awaited<ReturnType<typeof readNativeFile>> | undefined;
   try { previous = await readNativeFile(filename); }
