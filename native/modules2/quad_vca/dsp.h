@@ -80,6 +80,21 @@ struct QuadVca {
                 output[k] = b.out(k).ch(voice);
             }
             output[4] = b.out(4).ch(voice);
+            // Work on a local copy: output stores cannot alias it, so the per-sample mode
+            // checks stay in registers. Written back once per voice per block.
+            std::array<VoiceState, 4> local{};
+            // Per block: a channel whose mode is constant and not fading is settled, so the
+            // sample loop needs no mode read. kDynamic handles mode CV and running fades.
+            std::array<uint8_t, 4> path{};
+            for (uint32_t k = 0; k < 4; ++k) {
+                local[k] = state_[k][voice];
+                path[k] = kDynamic;
+                if (b.param(k + 4).constant()) {
+                    const bool want_lpg = b.param(k + 4).value(voice) >= .5f;
+                    if (!want_lpg && local[k].mode_blend <= 0.f) path[k] = kVca;
+                    else if (want_lpg && local[k].mode_blend >= 1.f) path[k] = kLpg;
+                }
+            }
             for (uint32_t i = 0; i < frames; ++i) {
                 float sum = 0;
                 for (uint32_t k = 0; k < 4; ++k) {
@@ -88,38 +103,24 @@ struct QuadVca {
                     const float control = std::clamp(level * cv_value, 0.f, 1.f);
                     const float x = input[k][i];
                     float y;
-                    auto &s = state_[k][voice];
-                    const bool want_lpg = b.param(k + 4).value(voice, i) >= .5f;
-                    if (!want_lpg && s.mode_blend <= 0.f) {
-                        // Reset/initialization and completed fades already cleared state.
-                        // Do not repeatedly write four zero floats in the steady VCA hot path.
-                        y = x * control;
+                    auto &s = local[k];
+                    if (path[k] == kVca) {
+                        y = x * control; // Settled VCA; reset and completed fades cleared state.
+                    } else if (path[k] == kLpg) {
+                        y = lpg(s, x, control, b.param(8).value(voice, i)); // Settled LPG.
                     } else {
-                        // Only pay for a fade when the mode is actually changing.
-                        // Keep the original LPG arithmetic for every settled LPG sample.
-                        const bool fading = !want_lpg || s.mode_blend < 1.f;
-                        if (fading) {
-                            s.mode_blend = want_lpg
-                                ? std::min(1.f, s.mode_blend + mode_fade_step_)
-                                : std::max(0.f, s.mode_blend - mode_fade_step_);
-                        }
-                        const float response = std::clamp(b.param(8).value(voice, i), 0.f, 1.f);
-                        const float decay = lookup(release_alpha_, response);
-                        const float alpha = control > s.follower ? attack_alpha_ : decay;
-                        s.follower = alpha * s.follower + (1.f - alpha) * control;
-                        const float g = lookup(cutoff_g_, s.follower);
-                        constexpr float k = 1.f / .6f;
-                        const float a1 = 1.f / (1.f + g * (g + k));
-                        const float v1 = (s.ic1 + g * (x - s.ic2)) * a1;
-                        const float v2 = s.ic2 + g * v1;
-                        s.ic1 = 2.f * v1 - s.ic1;
-                        s.ic2 = 2.f * v2 - s.ic2;
-                        const float lpg = v2 * s.follower;
-                        if (!fading) {
-                            y = lpg; // Settled LPG: no VCA multiply or blend.
+                        const bool want_lpg = b.param(k + 4).value(voice, i) >= .5f;
+                        if (!want_lpg && s.mode_blend <= 0.f) {
+                            y = x * control;
+                        } else if (want_lpg && s.mode_blend >= 1.f) {
+                            y = lpg(s, x, control, b.param(8).value(voice, i));
                         } else {
+                            // Mode change in progress: 10 ms linear crossfade, either direction.
+                            s.mode_blend = want_lpg ? std::min(1.f, s.mode_blend + mode_fade_step_)
+                                                    : std::max(0.f, s.mode_blend - mode_fade_step_);
+                            const float wet = lpg(s, x, control, b.param(8).value(voice, i));
                             const float vca = x * control;
-                            y = vca + s.mode_blend * (lpg - vca);
+                            y = vca + s.mode_blend * (wet - vca);
                             if (s.mode_blend <= 0.f) s = {}; // One reset per completed fade.
                         }
                     }
@@ -128,13 +129,30 @@ struct QuadVca {
                 }
                 output[4][i] = std::clamp(sum, -4.f, 4.f);
             }
+            for (uint32_t k = 0; k < 4; ++k) state_[k][voice] = local[k];
         }
     }
 
   private:
+    static constexpr uint8_t kDynamic = 0, kVca = 1, kLpg = 2;
     struct VoiceState {
         float follower = 0, ic1 = 0, ic2 = 0, mode_blend = 0;
     };
+    // The original LPG step, shared by the settled and crossfade paths.
+    float lpg(VoiceState &s, float x, float control, float response_param) const {
+        const float response = std::clamp(response_param, 0.f, 1.f);
+        const float decay = lookup(release_alpha_, response);
+        const float alpha = control > s.follower ? attack_alpha_ : decay;
+        s.follower = alpha * s.follower + (1.f - alpha) * control;
+        const float g = lookup(cutoff_g_, s.follower);
+        constexpr float k = 1.f / .6f;
+        const float a1 = 1.f / (1.f + g * (g + k));
+        const float v1 = (s.ic1 + g * (x - s.ic2)) * a1;
+        const float v2 = s.ic2 + g * v1;
+        s.ic1 = 2.f * v1 - s.ic1;
+        s.ic2 = 2.f * v2 - s.ic2;
+        return v2 * s.follower;
+    }
     static float lookup(const std::array<float, 257> &table, float x) {
         const float scaled = std::clamp(x, 0.f, 1.f) * 256.f;
         const uint32_t index = std::min<uint32_t>(uint32_t(scaled), uint32_t(255));
