@@ -7,6 +7,47 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-20 05:40 ET: OB0 accepted, S6 notice, phase plan (Claude Architect; owner: "tag now")
+
+**OB0 accepted** on OB.md acceptance item 1. M2 E1b-r, T7.0, S7.1, S7.2 and S7.4 are merged; OB-a1 is green; Lab 44686629489 passed 14/14 and Golden 44686629427 passed 3/3 at `a440d71`.
+The owner directed tagging before the Pi smoke, which stays an owner-only follow-up on #198,
+recorded and not waived. **Tag `owner-build-0` → `a440d7175659402474290e34a1d63b4404dcaa72`.**
+The Architect's session proxy refused the tag push. **The lead's first action** is to check
+`git ls-remote --tags origin owner-build-0`. If it is absent, create an annotated tag on exactly
+that SHA and push it; never move it. If the owner already made it on GitHub, only verify the SHA.
+
+**S6 notice given now (≥24 h):** the M1 S6 window opens **2026-11-21 06:00 ET**. Every open
+product PR must be merged or parked by then. Lead protocol change (owner authorized it): B4 may
+**prepare** S6 before the window, on `task/<S6 issue>-m1-s6` as a draft, using the signed #199
+map and the `lab/` script with a dry run. It rebases and finalizes at the window. Nothing merges
+before the window, and contract-review (evidence 6) stays required.
+
+### Phases for the lead (read in every lead run until replaced)
+**Phase A, now → 2026-11-21 06:00 ET (pre-S6).**
+1. Verify or create the OB0 tag (above). Comment on #198 with the tag SHA.
+2. W1 #284, W2 #285: merge on green before 18:00 ET (owner evaluation tonight). W3 #286: check the Result by 17:00.
+3. S7.5 #288 and OB-a3 #287: may merge **before the window** if their gates are met (S7.5: lead; OB-a3: Claude contract-review first). Otherwise they **park** at 06:00 and rebase after S6.
+4. B2 OB-f1 (#216, bench/facts only): it is not a product PR and continues through S6.
+5. B4: W3 first, then S6 prep (open an S6 issue under #199 if none exists).
+6. B5: after W1, read-only OB-c prep on #275. Find the cause of the panic PCM identity failure (VCO phase reset suspected) and draft the device-off fix test. Fixes land after S6 (OB-c).
+
+**Phase B, S6 window (2026-11-21 06:00 ET → S6 merge).** Only B4 writes product source.
+Everyone else works on bench, facts, tests drafts or read-only prep. Lead posts the S6
+review-ready request (base/head, 0006 evidence 1–6, the #199 map) and wakes the Architect on #265.
+
+**Phase C, after S6 merges (OB1 chain; the order is binding).**
+- Engine lane (B4, single writer in `native/engine2/`): M3 T1.6a → T1.6b → T1.6c → TR1e. Then M4 E6 → E4a → E4b → E5/E3a (sidecar lane) → E3b/E3c, E7.
+- Parked PRs rebase in this order: OB-a3 #287 → S7.5 #288 → anything else.
+- B3: S7.6 Delay, then S7.7–S7.9 in M7 order (S7.9 after S6).
+- B5: OB-c cause-specific fixes, one PR per case, each with its strict-xfail oracle turning to pass.
+- B1: after OB-a3, OB-b Pi setup (after S6) and the M3 RL #192 prep if released.
+- B2: OB-f1 facts → Architect sets OB-f2 targets → B2 or B1 OB-f2 fixes in `apps/studio/`.
+- M5 PV2b after S6, in the sidecar lane only when no M4 task holds it.
+
+**Fill rule (lead):** never leave a lane idle. If a lane's next task is gated, give it the next
+read-only prep of the critical-path task (S6 → T1.6a → TR1e → E6), or the next OB-c/OB-d item.
+No new design work without an Architect row.
+
 ## Decided 2026-11-20 ET (Claude Architect, acting as delivery lead this run, base `main` f5107e6)
 
 The owner asked the Architect to take the lead's job for this run (Codex usage is low). Lead
@@ -25,11 +66,8 @@ actions below carry lead authority for this run only. The next `lead:run` resume
 - **A20, OB-f1:** B2 is released on #209/#216 for the offline CPU ranking and the re-capture on the winner (B2's own 2026-11-19 plan). #216's own paths only, no shared CI.
 - **S7.5 released:** B3 [#288](https://github.com/kalharbi11/wirescape-lab/issues/288) Quad VCA crossfade (M7 lets S7.1–S7.6 run beside M1). Merge waits for the OB0 tag. S7.6 Delay follows in the same lane.
 - **#283 merged** (lead docs, exact-head 14/14 green).
-- **OB0 tag, not changed:** the OB contract's acceptance (merged items, OB-a1 green, tag on `main`)
-  is already met at `a440d71`. The lead-added Pi install smoke stays before the tag, as planned,
-  unless the owner chooses to tag earlier. Tagging earlier would bring the S6 notice forward by
-  about a day; it is the owner's call.
-- **Held:** S6 source and window (OB0 tag plus at least 24 h notice); #275 A10 fixes (after S6, per OB-c); #268; MT2/A3; A4 errata run (after OB0).
+- **OB0 tag:** superseded at 05:40 by the owner's "tag now" (section above).
+- **Held:** S6 source until the 2026-11-21 06:00 window; #275 A10 fixes (after S6, per OB-c); #268; MT2/A3; A4 errata run (after OB0).
 
 **Architect run 2** (owner-triggered, after the Windows session, about 2026-11-21 03:00 ET or the next morning): triage the owner's report. Merge W1/W2 if they are still open. Open W4 only for a reproduced defect. Read the W3 decision tree. Quick effort unless a MIDI defect is reproduced.
 **Architect run 3** (when PRs are ready): Claude contract-review of OB-a3 #287 if its request is pinned; S7.5 evidence; OB-f2 targets from A20 facts.
