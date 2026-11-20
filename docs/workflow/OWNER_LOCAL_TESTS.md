@@ -34,9 +34,9 @@ Setup is `docs/workflow/WINDOWS_EVAL.md` → "Owner steps" (VS x64 Developer Pow
 | L5 | 🔊 owner | Only on request in CURRENT: re-run L1 on a new owner build SHA (for example the OB1 candidate). | As L1 | Candidate sign-off |
 
 ## Raspberry Pi 5
-**CI-style runs** (build, tests and soaks, devices off) now go through the sandboxed bridge: the
-Architect or the owner dispatches wirescape-pi's **Pi sandbox run** after the owner has done its
-README "Owner setup". The local agent does not run them.
+**CI-style runs** (build, tests and soaks, devices off) go through the sandboxed bridge once its
+README "Owner setup" is done. Any agent requests one with a `/pi-run …` comment on a lab PR or
+issue (CURRENT "Decided 2026-11-20 17:15 ET"). The local agent does not run them.
 
 The **owner-local** Pi checks are the real screen, audio and MIDI. Use `docs/PI_SETUP.md` and
 `docs/PI_APP_SMOKE.md` for setup.
