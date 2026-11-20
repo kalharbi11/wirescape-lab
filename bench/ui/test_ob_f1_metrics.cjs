@@ -63,4 +63,51 @@ assert.equal(rows[0].status,'measured');
 assert.equal(rows[1].status,'unavailable');
 assert.equal(rows[1].telemetry.count,0);
 assert.notEqual(rows[1].telemetry.reason,null);
+
+// Exact browser preload source regression: native hello may arrive before
+// App's menu listener, while RealEngine only subscribes afterwards.
+const vm=require('node:vm');
+const {readFileSync}=require('node:fs');
+const captureSrc=readFileSync(path.join(__dirname,'ob_f1_capture.cjs'),'utf8');
+const injectedStart='    await page.addInitScript(()=>{';
+const injectedEnd='    });\n    await page.goto(URL';
+const begin=captureSrc.indexOf(injectedStart);
+const finish=captureSrc.indexOf(injectedEnd,begin);
+assert.ok(begin>=0 && finish>begin,'real browser preload body must be found');
+const preload='(function(){'+captureSrc.slice(begin+injectedStart.length,finish)+'\n})()';
+const makeBridge=()=>{
+  const win={__obf1Send:async()=>{}};
+  vm.runInNewContext(preload,{
+    window:win,document:{addEventListener(){}},performance:{now:()=>100},
+    Set,Map
+  });
+  return win;
+};
+const early=makeBridge();
+early.__obf1Dispatch({v:0,type:'hello',session:'s1'});
+const earlyMenu=[],earlyEngine=[];
+early.wirescape.onMessage(m=>earlyMenu.push(m));
+early.wirescape.onMessage(m=>earlyEngine.push(m));
+assert.equal(earlyMenu.filter(m=>m.type==='hello').length,1);
+assert.equal(earlyEngine.filter(m=>m.type==='hello').length,1);
+assert.equal(earlyEngine[0].session,'s1');
+early.__obf1Dispatch({v:0,type:'telemetry',tick:1});
+assert.equal(earlyMenu.filter(m=>m.type==='telemetry').length,1);
+assert.equal(earlyEngine.filter(m=>m.type==='telemetry').length,1);
+// Also protect the race where hello arrives between the two subscribers.
+const middle=makeBridge();
+const middleMenu=[],middleEngine=[];
+middle.wirescape.onMessage(m=>middleMenu.push(m));
+middle.__obf1Dispatch({v:0,type:'hello',session:'s2'});
+middle.wirescape.onMessage(m=>middleEngine.push(m));
+assert.equal(middleMenu.filter(m=>m.type==='hello').length,1);
+assert.equal(middleEngine.filter(m=>m.type==='hello').length,1);
+const late=makeBridge();
+const lateMenu=[],lateEngine=[];
+late.wirescape.onMessage(m=>lateMenu.push(m));
+late.wirescape.onMessage(m=>lateEngine.push(m));
+late.__obf1Dispatch({v:0,type:'hello',session:'s3'});
+assert.equal(lateMenu.filter(m=>m.type==='hello').length,1);
+assert.equal(lateEngine.filter(m=>m.type==='hello').length,1);
+
 console.log('OB-f1 patch complexity, frame percentiles and correlated real ACK validation tests passed');
