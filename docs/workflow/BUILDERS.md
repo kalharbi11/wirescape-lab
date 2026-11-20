@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-19 15:04 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-19 23:03 EST. The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 `15f3ecf` | Signed mechanical sync; exact-head Lab and SR8 pass. Lead verified signed SR8. Correction 2/2 released in #263 for read-only report writes and the reserved ignore marker. | New-head Lab and SR8, then lead review. OB-a3 implementation requires separate release. |
-| **B2** `gpt-builder2` · fixtures / evidence | #209 / #216 read-only planning | #226 ZIPs verified in chat; lead owns durable retention before Nov 24 22:28 EST. Scope measured CPU ranking and conflict paths for #216. | #216 source and #268 writer slots remain held. |
-| **B3** `gpt-builder3` · module DSP | #243 / #255 `c70dc3f` | Signed sync and exact-head CI delivered. Independent Medium found the Mix=0 gain step. B3 owns correction 2/2 and refreshed Lab/Golden/Ir/MO/D5. | Fresh independent review precedes lead merge and OB0 install/tag. No #202 source release. |
-| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight | Zero collisions. Fold the four lead dispositions into the final pinned read-only map and consumer checklist. | S6 source waits for OB0, product PR dispositions and ≥24h notice. #200 follows. |
-| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight | #275 A10 read-only diagnosis complete. Check candidate packaging, smoke steps, owner handoff and fallback. | #275 source remains parked; no build or tag mutation released. |
+| **B1** `gpt-builder1` · patch tools / Studio | #259 / #263 merged `b148d34` | Exact-head Lab and device-off owner-folder proof passed. OB-a3 loader inventory signed on #203. | No OB-a3 source release. Pin older-shape/Save As contract and reserve a sole writer first. |
+| **B2** `gpt-builder2` · fixtures / evidence | #226 / #230 retention complete in chat | Both original Macro ZIPs byte-verified; earlier expiry Nov 24 at 22:28 EST. Durable draft-release publication remains with lead. | #209 / #216 remain held; #268 source stays parked. |
+| **B3** `gpt-builder3` · module DSP | #243 / #255 `da19529`, correction 2/2 | Exact-head Lab, three-platform Golden and Reverb Ir passed. Fresh full-mode capture active on #280 / #281. Lead handles refreshed D5. No further source release. | Pinned independent review after full MO and D5. Then lead merge and OB0 install/tag. |
+| **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight delivered | [Final pinned mechanical map](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7020815710) signed. | S6 implementation waits for OB0 tag, product PR dispositions and ≥24h notice. |
+| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight delivered | [Packaging and tag preflight](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7020888787) signed; A10 diagnosis retained on #275. | No install, build or tag mutation released. A10 source stays parked. |
 
 ## How the lead maintains this table
 
