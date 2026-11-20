@@ -7,6 +7,15 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-20 03:28 EST
+
+- Cloud quick check; all five builder lanes reconciled from GitHub. No agent chats accessed or dispatched. Usage/reset unavailable in this runtime.
+- Integrated candidate `a440d7175659402474290e34a1d63b4404dcaa72`: Lab 44686629489, Golden 44686629427, instruction 44686629413, Cortex-M7 44686629420 and PV1 44686629426 all completed successfully. Pi source-install/null-audio smoke and immutable OB0 tag still wait; no release acceptance implied.
+- B5 re-pin is complete: #198 Result 7032162242 supplies exact-SHA commands and report requirements. Do not restart B5 for the completed checklist. B4 can refresh #199 product-PR merge/park inventory read-only; no S6 source or window released. B1 awaits OB-a3 shape/Save As disposition and writer release, B2 awaits OB-f1 scope/conflict disposition, B3 awaits next M7 release after OB0 handoff. Preserve all correction ledgers and parked tasks.
+- Updated BUILDERS and ROADMAP on existing handoff PR #283. Fresh docs-head CI must pass before merge. Owner receives the runnable B4 start and the Pi handoff; no Architect wake or schedule created.
+
+Signed: codex-lead, 2026-11-20, 03:28 EST
+
 ## Delivery update — 2026-11-20 01:17 EST
 
 - OB0 Reverb #255 merged as `a440d7175659402474290e34a1d63b4404dcaa72` after independent K1–K8 approval of `da195299` and green exact-head Lab, three-platform Golden, Reverb Ir and Cortex-M7. Full-mode peak 0.9806554914 FS and fresh D5 are pinned on #280/#255. Keep the Windows Offline and ARM64 paired M1 advisory failures visible; they did not block S7.2.
