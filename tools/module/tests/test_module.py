@@ -343,15 +343,15 @@ int main(int argc, char**) {
         self.assertNotIn(str(self.folder.resolve()), json.dumps(first))
         self.assertNotIn(str(ROOT.resolve()), json.dumps(first))
 
-    def test_mt2_and_mt3_stubs_do_not_fabricate_success(self):
-        for stage in ("test", "render"):
-            proc = subprocess.run([sys.executable, str(MODULE / "wsmod.py"),
-                                   stage, str(self.folder), "--json"],
-                                  capture_output=True, text=True, check=False, timeout=15)
-            self.assertEqual(proc.returncode, 4)
-            result = json.loads(proc.stdout)
-            self.assertEqual(result["exit_code"], 4)
-            self.assertEqual(result["results"][0]["status"], "skip")
+    def test_mt3_stub_does_not_fabricate_success(self):
+        # MT2 now implements "test"; only MT3's "render" remains a stub.
+        proc = subprocess.run([sys.executable, str(MODULE / "wsmod.py"),
+                               "render", str(self.folder), "--json"],
+                              capture_output=True, text=True, check=False, timeout=15)
+        self.assertEqual(proc.returncode, 4)
+        result = json.loads(proc.stdout)
+        self.assertEqual(result["exit_code"], 4)
+        self.assertEqual(result["results"][0]["status"], "skip")
 
     def test_abi_and_layout_source_isolation(self):
         abi = MODULE / "runner" / "abi_ws2.h"

@@ -100,6 +100,12 @@ if(MSVC)
 else()
   set_source_files_properties("''' + _cmake_string(folder / "module.cpp") + '''" PROPERTIES COMPILE_OPTIONS "-fno-exceptions;-fno-rtti")
 endif()
+# MT2: raw heap wrappers supplement the existing new/delete counter on Linux.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_link_options(wsmod_runner PRIVATE
+    "-Wl,--wrap=malloc" "-Wl,--wrap=calloc"
+    "-Wl,--wrap=realloc" "-Wl,--wrap=aligned_alloc")
+endif()
 '''
     (directory / "CMakeLists.txt").write_text(text, encoding="utf-8")
 
