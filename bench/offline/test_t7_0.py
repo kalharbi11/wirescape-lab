@@ -99,6 +99,7 @@ class T70Switch(unittest.TestCase):
             catalogue.setdefault(module, {"parameters": {}})["parameters"][param] = {
                 "min": -2, "max": 8}
         catalogue["essentials.quad_vca"]["parameters"]["mode1"] = {"min": 0, "max": 1}
+        catalogue["fx.delay"]["parameters"]["time"] = {"min": .001, "max": 2, "initial": .375}
         # Explicit kMode is a valid stepped parameter despite the source
         # parameter extractor not decoding that C++ constant alias.
         def fake_wav(renderer, patch_doc, events, seconds, *, rate):
