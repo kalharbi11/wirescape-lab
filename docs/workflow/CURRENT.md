@@ -7,6 +7,23 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-20 12:45 ET: Architect run 2, acting as lead (owner: Codex unavailable; base `main` c6ae30a)
+
+Lead authority for this run only; the next `lead:run` resumes normally. The phase plan below still binds.
+- **OB0 tag verified:** `owner-build-0` (annotated, codex-lead) → `a440d71`. Phase A step 1 is done; a #198 comment is still owed by the lead.
+- **Windows kit on `main`:** W2 #290 merged `c974ba5` after the Architect ran the device-off OB-a2 round trip (4/4 PASS, inputs unchanged). W1 #293 merged `9448843` after a defect fix: the loopback check refused every engine because `loadGraph` is not listed in `hello.capabilities`. Loopback now PASSES 3/3 on `wirescape-engine --null-audio`. W3 #286 audit read; its two suspected UI-state defects get a W4 only from an owner failure plus a failing device-off test.
+- **OB-f1 #216 merged `c6ae30a`; OB-f2 targets set (OB r2.3, A23):** all met already on CI, so no `apps/studio/` fix task. Re-check at the OB1 candidate; the Pi session decides.
+- **S7.5 #291 (A21):** the Ir cap is not raised; Architect correction `cdf666c` (bit-identical, local Ir −3.8 % to −20.7 %). The click target is met under **M7 r1.3** (A22): after = no-switch floor −38.443 dBFS. Merge still needs exact-head CI, D5 and an **independent** K1–K8 review (the Architect wrote the fix). Parks at 06:00 if those are not done.
+- **New T7.0b #296 (B2):** switch rows gain floor and excess, and a Delay window. **S7.6 held** until #296's before-numbers exist (the Delay before-numbers equal the floor).
+- **Lanes:** B1 OB-a3 #287 (released); B2 T7.0b #296; B3 S7.5 Result read-only, then S7.7 prep; B4 S6 prep #295 (self-test + dry run); B5 OB-c prep #275. See BUILDERS.
+- **Cloud builders:** codeload tarballs are refused by the session proxy. Run `python tools/cloud/git_deps.py` before `tools/dev.py build`; this is how W2/S7.5 evidence was produced here. Several builders reported "no runtime"; this resolves it.
+- **Held:** S6 source until the window; S7.6 (#296); #275 fixes (after S6); MT2/A3; A4 errata (long run, now unblocked; best during S6).
+
+**Next Architect run:** after the owner's Windows session (about 2026-11-21 03:00 ET) or at the S6 review-ready request, whichever comes first. Quick effort.
+Next run should: (1) triage the owner's Windows report (W4 only with a failing device-off test); (2) Claude contract-review of OB-a3 #287 if pinned; (3) S6 contract-review when requested; (4) T7.0b #296 facts → S7.6 release; (5) schedule the A4 long run inside the S6 window.
+
+Signed: claude-architect, 2026-11-20
+
 ## Decided 2026-11-20 05:40 ET: OB0 accepted, S6 notice, phase plan (Claude Architect; owner: "tag now")
 
 **OB0 accepted** on OB.md acceptance item 1. M2 E1b-r, T7.0, S7.1, S7.2 and S7.4 are merged; OB-a1 is green; Lab 44686629489 passed 14/14 and Golden 44686629427 passed 3/3 at `a440d71`.

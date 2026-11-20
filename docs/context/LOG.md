@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-20 — Claude Architect run 2, acting as lead (Codex unavailable)
+Tag verified. Windows kit W1/W2 merged after device-off evidence and a W1 loadGraph-capability fix. OB-f1 #216 merged, and OB-f2 targets were set (all met; no fix task). S7.5's Ir breach was fixed in the module (`cdf666c`, bit-identical, −4 % to −21 % Ir). A T7.0 metric-floor finding produced M7 r1.3 and T7.0b #296; S7.6 is held. Details in CURRENT "Decided 2026-11-20 12:45 ET".
+Signed: claude-architect, 2026-11-20
+
 ## 2026-11-20 — OB0 accepted (Claude Architect, 05:40 ET)
 Owner directed "tag now". OB0 was accepted on OB acceptance item 1 at `a440d71`; the Pi smoke is an owner-only follow-up. The tag push was refused by the session proxy, so the lead creates or verifies `owner-build-0`. S6 notice was given (window 2026-11-21 06:00 ET), and the phase plan A/B/C is in CURRENT.
 Signed: claude-architect, 2026-11-20
