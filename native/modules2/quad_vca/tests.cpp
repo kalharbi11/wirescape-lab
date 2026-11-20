@@ -219,6 +219,49 @@ void test_lpg_closing_darkens() {
     REQUIRE(held_lo > 0 && held_hi > 0 && tail_lo > 0 && tail_hi > 0);
     REQUIRE(tail_hi / held_hi < tail_lo / held_lo);
 }
+void test_mode_switch_crossfade() {
+    // Exercise all four stepped modes at native and off-native rates, across blocks.
+    // A constant input must produce nonconstant audio while the fade is active.
+    for (double rate : {44100., 48000., 96000.})
+        for (uint32_t k = 0; k < 4; ++k) {
+            Rig r({rate});
+            r.connect(0);
+            r.data->input[0][0][0] = .5f;
+            r.values[k] = .6f;
+            r.run(256);
+            const float vca = r.sample(k);
+            REQUIRE(vca == .3f || std::abs(vca - .3f) < 1e-6f);
+            const uint32_t fade_frames = uint32_t(rate * .015) + 1; // >10 ms
+
+            r.values[4 + k] = 1.f;
+            float previous = vca;
+            for (uint32_t frame = 0; frame < fade_frames; ++frame) {
+                r.run(1);
+                const float current = r.sample(k);
+                REQUIRE(std::isfinite(current));
+                REQUIRE(std::abs(current - previous) < .02f);
+                previous = current;
+            }
+            for (int n = 0; n < 8; ++n) r.run(256); // Settled LPG.
+            previous = r.sample(k, 0, 255);
+
+            r.values[4 + k] = 0.f;
+            r.run(1);
+            REQUIRE(!(r.outputs[k].flags & WS2_CONSTANT));
+            REQUIRE(std::abs(r.sample(k) - previous) < .02f);
+            previous = r.sample(k);
+            for (uint32_t frame = 1; frame < fade_frames; ++frame) {
+                r.run(1);
+                const float current = r.sample(k);
+                REQUIRE(std::isfinite(current));
+                REQUIRE(std::abs(current - previous) < .02f);
+                previous = current;
+            }
+            r.run(256);
+            REQUIRE(r.outputs[k].flags & WS2_CONSTANT);
+            REQUIRE(std::abs(r.sample(k) - vca) < 1e-6f);
+        }
+}
 } // namespace
 
 int main() {
@@ -228,5 +271,6 @@ int main() {
     test_frame_rate_voice_matrix();
     test_lpg_decay();
     test_lpg_closing_darkens();
-    std::puts("quad VCA: matrix, VCA, normalling, mix, LPG decay/spectrum, reset and no allocations PASS");
+    test_mode_switch_crossfade();
+    std::puts("quad VCA: matrix, VCA, normalling, mix, LPG decay/spectrum, rate-aware mode crossfade, reset and no allocations PASS");
 }
