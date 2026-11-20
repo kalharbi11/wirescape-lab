@@ -39,7 +39,7 @@ function measuredFrames(frames) {
     p50_ms:percentile(frames,50),p95_ms:percentile(frames,95),
     max_ms:Math.max(...frames)};
 }
-function correlatedAcks(sent,acks) {
+function correlatedAcks(sent,acks,downAt=null) {
   const candidates=sent.filter(x=>x.type==='setParam');
   const byId=new Map(acks.filter(x=>x.type==='setParam').map(x=>[x.id,x]));
   const matched=candidates.map(x=>{
@@ -53,10 +53,20 @@ function correlatedAcks(sent,acks) {
             module_id:x.moduleId,param_id:x.paramId,reply_gen:a.gen};
   });
   const values=matched.filter(x=>x.status==='measured').map(x=>x.latency_ms);
+  const successful=acks.filter(x=>x.type==='setParam'&&x.ok===true&&
+    sent.some(s=>s.id===x.id&&s.type==='setParam')&&
+    Number.isFinite(x.received_at_ms)).map(x=>x.received_at_ms);
+  const anchored=Number.isFinite(downAt)&&downAt!==null&&successful.length>0&&
+    successful.every(t=>t>=downAt);
+  const dragToFirst=anchored?Math.min(...successful)-downAt:null;
+  const dragToLast=anchored?Math.max(...successful)-downAt:null;
   return {status:candidates.length>0&&values.length===candidates.length?'measured':'unavailable',
           command_count:candidates.length,measured_count:values.length,
           p50_ms:percentile(values,50),p95_ms:percentile(values,95),
-          max_ms:values.length?Math.max(...values):null,observations:matched,
+          max_ms:values.length?Math.max(...values):null,
+          drag_to_first_native_ack_ms:dragToFirst,
+          drag_to_last_native_ack_ms:dragToLast,
+          observations:matched,
           reason:!candidates.length?'no native setParam issued by actual knob drag':
                  values.length!==candidates.length?'native setParam ACK incomplete/refused':null,
           definition:'browser performance.now() bridge.send(setParam) to correlated sidecar reply delivered via stdin/stdout bridge, includes transport and scheduling, not audio application latency'};
@@ -64,7 +74,7 @@ function correlatedAcks(sent,acks) {
 function consolidate(records) {
   return records.map(r=>{
     const frame=measuredFrames(r.frames);
-    const ack=r.action==='knob'?correlatedAcks(r.sent||[],r.acks||[]):
+    const ack=r.action==='knob'?correlatedAcks(r.sent||[],r.acks||[],r.down_at_ms):
       {status:'not_applicable',reason:'only knob drag issues setParam'};
     const tele=r.action==='telemetry'?
       (r.telemetry_count>0?{status:'measured',count:r.telemetry_count}:
