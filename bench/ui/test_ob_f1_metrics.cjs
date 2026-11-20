@@ -35,16 +35,19 @@ const sent=[{id:'u1',type:'setParam',moduleId:2,paramId:'gain',sent_at_ms:12},
             {id:'u2',type:'setParam',moduleId:2,paramId:'gain',sent_at_ms:22}];
 const acks=[{id:'u2',type:'setParam',ok:true,received_at_ms:27,gen:'2'},
             {id:'u1',type:'setParam',ok:true,received_at_ms:15,gen:'2'}];
-const ok=correlatedAcks(sent,acks);
+const ok=correlatedAcks(sent,acks,10);
 assert.equal(ok.status,'measured');
 assert.equal(ok.command_count,2);
 assert.equal(ok.measured_count,2);
 assert.equal(ok.p50_ms,3);
 assert.equal(ok.p95_ms,5);
 assert.equal(ok.max_ms,5);
+assert.equal(ok.drag_to_first_native_ack_ms,5);
+assert.equal(ok.drag_to_last_native_ack_ms,17);
 assert.deepEqual(ok.observations.map(x=>x.latency_ms),[3,5]);
 assert.equal(correlatedAcks(sent,acks.slice(0,1)).status,'unavailable');
 assert.equal(correlatedAcks([],[]).p50_ms,null);
+assert.equal(correlatedAcks([],[],null).drag_to_first_native_ack_ms,null);
 assert.equal(correlatedAcks(sent,[{id:'u1',type:'setParam',ok:false,
   code:'refused',received_at_ms:14}]).status,'unavailable');
 const fake=[{action:'knob',gesture_completed:true,frames:[15,16],
