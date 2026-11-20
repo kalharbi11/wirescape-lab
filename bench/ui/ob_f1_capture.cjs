@@ -232,6 +232,7 @@ async function main() {
         await frameStart(page);
         const gestureRecord=await gesture(page,action,patch);
         Object.assign(record,gestureRecord);
+        record.gesture_completed=gestureRecord.completed===true;
         await settleFrames(page,10);
         if(action==='knob'){
           await page.waitForFunction(()=>window.__obf1Bridge.allAcked(),{timeout:15000})
