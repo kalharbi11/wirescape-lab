@@ -1,0 +1,189 @@
+{
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Windows Eval 3 - OSC Loopback",
+  "description": "OSC In /pico1/knob/1 on loopback UDP 9000 drives OSC Out /ws/row/1 on loopback UDP 9001 at 100 Hz. The Monitor shows ingress; silent output is only for valid stereo patch routing.",
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 285,
+    "timing_mode": "immediate"
+  },
+  "outputs": [
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 4,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ],
+  "modules": [
+    {
+      "id": 1,
+      "module": "osc.in",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "version": 1,
+        "port": 9000,
+        "lan": false,
+        "rows": [
+          {
+            "pattern": "/pico1/knob/1",
+            "argument": 0,
+            "kind": "cv",
+            "input_min": 0,
+            "input_max": 1,
+            "output_min": 0,
+            "output_max": 1,
+            "smoothing_ms": 5,
+            "timeout_ms": 1000,
+            "stale": "hold"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "osc.out",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "version": 1,
+        "port": 9001,
+        "rate_hz": 100,
+        "rows": [
+          {
+            "address": "/ws/row/1",
+            "kind": "cv",
+            "deadband": 0.001
+          },
+          {
+            "address": "/ws/row/2",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/3",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/4",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/5",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/6",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/7",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/8",
+            "kind": "cv",
+            "enabled": false
+          }
+        ],
+        "notes": {
+          "address": "/ws/note",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "monitor",
+      "version": 1,
+      "parameters": {}
+    },
+    {
+      "id": 4,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    }
+  ],
+  "connections": [
+    {
+      "kind": "signal",
+      "from": {
+        "module": 1,
+        "port": "row1"
+      },
+      "to": {
+        "module": 2,
+        "port": "row1"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 1,
+        "port": "row1"
+      },
+      "to": {
+        "module": 3,
+        "port": "in1"
+      }
+    },
+    {
+      "kind": "event",
+      "from": {
+        "module": 1,
+        "port": "messages"
+      },
+      "to": {
+        "module": 3,
+        "port": "events"
+      }
+    }
+  ],
+  "ui": {
+    "positions": {
+      "1": [
+        100,
+        260
+      ],
+      "2": [
+        900,
+        260
+      ],
+      "3": [
+        900,
+        760
+      ],
+      "4": [
+        1650,
+        760
+      ]
+    },
+    "labels": {
+      "1": "OSC In - localhost 9000",
+      "2": "OSC Out - localhost 9001",
+      "3": "OSC ingress Monitor",
+      "4": "Silent stereo route"
+    },
+    "view": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}

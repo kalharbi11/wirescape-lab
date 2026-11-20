@@ -1,0 +1,357 @@
+{
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Windows Eval 4 - MIDI and OSC Combined",
+  "description": "MIDI mono synth with OSC In /pico1/knob/1 applied through Scale/Offset to VCO FM; a slow LFO and mono envelope are sent to OSC Out rows 1 and 2 at 100 Hz.",
+  "settings": {
+    "sample_rate": 48000,
+    "max_block_frames": 128,
+    "max_channels": 16,
+    "feedback_block": 32,
+    "seed": 285,
+    "timing_mode": "immediate"
+  },
+  "outputs": [
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 0
+    },
+    {
+      "module": 6,
+      "port": "audio",
+      "bus_channel": 1
+    }
+  ],
+  "modules": [
+    {
+      "id": 1,
+      "module": "midi.in",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "endpoint": "all_enabled"
+      }
+    },
+    {
+      "id": 2,
+      "module": "midi.to_cv",
+      "version": 1,
+      "parameters": {
+        "voice_count": 1,
+        "allocation_mode": 0,
+        "apply_bend": 1,
+        "pitch_bend_range_semitones": 2,
+        "channel_filter": 0
+      }
+    },
+    {
+      "id": 3,
+      "module": "essentials.vco",
+      "version": 2,
+      "parameters": {
+        "frequency": 220
+      }
+    },
+    {
+      "id": 4,
+      "module": "essentials.adsr",
+      "version": 2,
+      "parameters": {
+        "attack": 0.02,
+        "decay": 0.3,
+        "sustain": 0.65,
+        "release": 0.4
+      }
+    },
+    {
+      "id": 5,
+      "module": "essentials.vca",
+      "version": 2,
+      "parameters": {
+        "gain": 0.24
+      }
+    },
+    {
+      "id": 6,
+      "module": "essentials.output",
+      "version": 2,
+      "parameters": {}
+    },
+    {
+      "id": 7,
+      "module": "osc.in",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "version": 1,
+        "port": 9000,
+        "lan": false,
+        "rows": [
+          {
+            "pattern": "/pico1/knob/1",
+            "argument": 0,
+            "kind": "cv",
+            "input_min": 0,
+            "input_max": 1,
+            "output_min": 0,
+            "output_max": 1,
+            "smoothing_ms": 5,
+            "timeout_ms": 1000,
+            "stale": "hold"
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "module": "essentials.scale_offset",
+      "version": 2,
+      "parameters": {
+        "scale": 0.25,
+        "offset": 0
+      }
+    },
+    {
+      "id": 9,
+      "module": "essentials.lfo",
+      "version": 2,
+      "parameters": {
+        "rate": 0.5,
+        "depth": 0.5,
+        "offset": 0.5
+      }
+    },
+    {
+      "id": 10,
+      "module": "osc.out",
+      "version": 1,
+      "parameters": {},
+      "config": {
+        "version": 1,
+        "port": 9001,
+        "rate_hz": 100,
+        "rows": [
+          {
+            "address": "/ws/row/1",
+            "kind": "cv",
+            "deadband": 0.001
+          },
+          {
+            "address": "/ws/row/2",
+            "kind": "cv",
+            "deadband": 0.001
+          },
+          {
+            "address": "/ws/row/3",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/4",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/5",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/6",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/7",
+            "kind": "cv",
+            "enabled": false
+          },
+          {
+            "address": "/ws/row/8",
+            "kind": "cv",
+            "enabled": false
+          }
+        ],
+        "notes": {
+          "address": "/ws/note",
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "kind": "event",
+      "from": {
+        "module": 1,
+        "port": "midi"
+      },
+      "to": {
+        "module": 2,
+        "port": "midi"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "pitch"
+      },
+      "to": {
+        "module": 3,
+        "port": "pitch"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 2,
+        "port": "gate"
+      },
+      "to": {
+        "module": 4,
+        "port": "gate"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 3,
+        "port": "audio"
+      },
+      "to": {
+        "module": 5,
+        "port": "audio"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 4,
+        "port": "envelope"
+      },
+      "to": {
+        "module": 5,
+        "port": "gain_cv"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 5,
+        "port": "audio"
+      },
+      "to": {
+        "module": 6,
+        "port": "audio"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 7,
+        "port": "row1"
+      },
+      "to": {
+        "module": 8,
+        "port": "control"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 8,
+        "port": "control"
+      },
+      "to": {
+        "module": 3,
+        "port": "fm"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 9,
+        "port": "control"
+      },
+      "to": {
+        "module": 10,
+        "port": "row1"
+      }
+    },
+    {
+      "kind": "signal",
+      "from": {
+        "module": 4,
+        "port": "envelope"
+      },
+      "to": {
+        "module": 10,
+        "port": "row2"
+      }
+    }
+  ],
+  "ui": {
+    "positions": {
+      "1": [
+        60,
+        150
+      ],
+      "2": [
+        540,
+        150
+      ],
+      "3": [
+        1080,
+        150
+      ],
+      "4": [
+        1080,
+        650
+      ],
+      "5": [
+        1660,
+        150
+      ],
+      "6": [
+        2240,
+        150
+      ],
+      "7": [
+        60,
+        1050
+      ],
+      "8": [
+        590,
+        1050
+      ],
+      "9": [
+        1100,
+        1100
+      ],
+      "10": [
+        1850,
+        1050
+      ]
+    },
+    "labels": {
+      "1": "MIDI In - enabled device",
+      "2": "Mono MIDI to CV",
+      "3": "OSC-controlled FM",
+      "4": "Envelope also to OSC",
+      "5": "Audio amplifier",
+      "6": "Stereo Out",
+      "7": "OSC In - localhost 9000",
+      "8": "FM scaling",
+      "9": "LFO to OSC row1",
+      "10": "OSC Out - rows1/2"
+    },
+    "view": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}
