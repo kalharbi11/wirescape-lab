@@ -113,10 +113,11 @@ class T70Switch(unittest.TestCase):
             return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
 
         with patch.object(t7_0, "build_module_patch",
-                          return_value=({"modules": [], "outputs": []}, None)), \
+                          return_value=({"modules": [{"parameters": {}}], "outputs": []}, None)), \
              patch.object(t7_0, "run_wav", side_effect=fake_wav) as calls, \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             results = t7_0.capture_switches("unexecuted", catalogue)
         self.assertEqual(calls.call_count, 8)
@@ -155,7 +156,8 @@ class T70Switch(unittest.TestCase):
 
         with patch.object(t7_0, "run_wav", side_effect=fake_wav), \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             rows = t7_0.capture_switches("not-executed", desc)
         self.assertEqual(len(routed), 8)
