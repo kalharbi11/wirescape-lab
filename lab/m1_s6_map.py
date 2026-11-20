@@ -123,7 +123,7 @@ def git(root: Path, *args: str) -> bytes:
 def repository_plan(root: Path) -> dict:
     if git(root, "status", "--porcelain", "--untracked-files=no").strip():
         raise RuntimeError("STOP: tracked working tree has modifications")
-    tracked = [v.decode("utf-8") for v in git(root, "ls-files", "-z").split(b"\\0") if v]
+    tracked = [v.decode("utf-8") for v in git(root, "ls-files", "-z").split(bytes([0])) if v]
     result = plan(tracked)
     if result["ok"]:
         for src, dst in result["mapping"].items():
