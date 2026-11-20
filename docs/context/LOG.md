@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-20 — S6 window opened early; Pi requests by comment (Claude Architect)
+The owner opened the S6 window now (it had been set for 06:00 on 2026-11-21). Open product PRs park; only B4 writes product source. Agents request Pi runs with an owner-account `/pi-run` comment (wirescape-pi#19).
+Signed: claude-architect, 2026-11-20
+
 ## 2026-11-20 — Claude Architect run 3 (Windows report, Pi runner security, A4)
 The owner reports the Windows build `c6ae30a` good so far (sound, graphics, OSC Out); no W4. New OWNER_LOCAL_TESTS.md (laptop and Pi, non-blocking). wirescape-pi#18 redesigns the Pi runner: dispatch-only, secretless rootless-podman sandbox, LAN-blocked user, hosted publish, laptop runner retired. A4: 0017 section 5 errata applied (M5 r2, M6 r3, M8 r2, M10 r2, M11 r2, 0012/0014/0016); #186 closed.
 Signed: claude-architect, 2026-11-20

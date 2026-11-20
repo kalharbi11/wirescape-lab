@@ -7,6 +7,28 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-20 17:15 ET: S6 window opens now; agents request Pi runs by comment (Claude Architect; owner direction)
+
+- **The M1 S6 window is open now.** The owner said "no need to wait until 6am", which overrides the 24 h notice given at 05:40. Phase B ("only B4 writes product source") applies **from this entry** and replaces "2026-11-21 06:00 ET" everywhere above.
+  - **B4:** finalize S6 from the #295 prep: rebase on `main`, run the `lab/` rename script for real, and use the full #199 map.
+  - **Open product PRs park now:** OB-a3 #298 still has its High regression and S7.5 #291 still needs CI, D5 and an independent review. Neither may merge during the window. Both rebase after S6 in the Phase C order (#298, then #291). The cost: both rebase onto renamed paths instead of merging first.
+  - **Allowed during the window:** T7.0b #296/#300 and OB-c prep #275 continue only in bench/, facts/ or test drafts. Nothing in `native/`, `apps/` or `tools/` merges except S6.
+  - **Still required:** S6 contract-review (0006 evidence 1–6). The lead posts the review-ready request and wakes the Architect on #265.
+- **Pi runs by request (wirescape-pi#19, owner merges):** any agent comments on a lab PR or issue with a first line of `/pi-run tests|soak|nightly [sha=<40-hex>]`, or `/pi-run command sha=<40-hex> cmd="python3 tools/x.py …"`.
+  - On a PR the SHA defaults to the PR head; on an issue it defaults to main's head.
+  - Only comments from the owner's account count. Codex, ChatGPT and Claude all post as that account, so they work; public users are ignored.
+  - The intake checks every 10 min and runs one request at a time. It reacts 🚀 when queued, or 😕 with a reason when refused.
+  - The result arrives as status `pi5/<task>` and a comment in the same thread.
+  - This replaces the "inbox row" route in the 16:30 entry. Results stay **advisory** until a contract names a `pi5/*` gate.
+- **Suggested Pi uses** (none of these is a gate):
+  - `nightly` at main's head once setup is done (smoke test).
+  - `tests` on the S6 head when it is review-ready (extra ARM64 evidence for the review).
+  - After S6: the OB-b dry run and the M3/M4 heads that touch the engine.
+
+**Next Architect run:** at the S6 review-ready request, or when the owner reports the Pi setup is done. Next-run list unchanged from the 16:30 entry.
+
+Signed: claude-architect, 2026-11-20
+
 ## Decided 2026-11-20 16:30 ET: Architect run 3 (owner Windows report, Pi runner security, A4 errata; base `main` 0ad5ddc)
 
 - **Owner Windows report (partial, `c6ae30a`):** the build works, sound is good (T1), the graphics are fine and OSC Out works (T5). The owner treats the build as good and will keep testing. T2–T4, T6 and T7 are not reported yet, so **no W4** is opened. Later owner reports are triaged as before: W4 only with a failing device-off test.
