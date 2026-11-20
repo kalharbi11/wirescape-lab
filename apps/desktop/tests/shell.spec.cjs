@@ -389,9 +389,9 @@ test('v1 Open is read-only and first Save writes the exact sibling backup', asyn
     await app.evaluate(({ dialog }, filename) => {
       dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
     }, file);
-    await expect(page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), migrated))
-      .rejects.toThrow('Save As must choose a different patch file');
-    expect(fs.readFileSync(file, 'utf8')).toBe(migrated);
+    await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), migrated);
+    expect(fs.readFileSync(file, 'utf8')).toBe(migrated); // v2 destination, no second backup
+    expect(fs.existsSync(backup + '.2')).toBe(false);
     await app.evaluate(({ dialog }, filename) => {
       dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
     }, fresh);
@@ -400,6 +400,32 @@ test('v1 Open is read-only and first Save writes the exact sibling backup', asyn
     expect(fs.existsSync(fresh + '.bak-v1')).toBe(false);
     expect(fs.readFileSync(file, 'utf8')).toBe(migrated);
     expect(fs.readdirSync(dir).filter(name => name.endsWith('.tmp'))).toEqual([]);
+  } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('Save As to the opened v1 path backs up original bytes and writes the chosen destination', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-v1-same-path-'));
+  const filename = path.join(dir, 'legacy.json');
+  const original = ' ' + JSON.stringify({ format: 'wirescape.native.patch', version: 1,
+    modules: [], connections: [], outputNode: 0 }) + '\n';
+  const updated = JSON.stringify({ format: 'wirescape.native.patch', version: 2,
+    modules: [], connections: [], preserved: JSON.parse(original) });
+  fs.writeFileSync(filename, original);
+  const app = await launch();
+  try {
+    const page = await app.firstWindow();
+    await app.evaluate(({ dialog }, filepath) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filepath] });
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filepath });
+    }, filename);
+    const opened = await page.evaluate(() => window.wirescape.openPatch());
+    expect(opened.text).toBe(original);
+    expect(fs.readFileSync(filename, 'utf8')).toBe(original);
+    expect(fs.existsSync(filename + '.bak-v1')).toBe(false);
+    await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), updated);
+    expect(fs.readFileSync(filename + '.bak-v1', 'utf8')).toBe(original);
+    expect(fs.readFileSync(filename, 'utf8')).toBe(updated);
+    expect(fs.existsSync(filename + '.bak-v1.2')).toBe(false);
   } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
