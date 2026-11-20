@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-20 01:17 EST. The delivery lead owns this table. Builders read their row,
+Updated 2026-11-20 03:28 EST. The delivery lead owns this table. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
@@ -11,7 +11,7 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 | **B2** `gpt-builder2` · fixtures / evidence | #226 retention complete | Both original Macro ZIPs preserved on draft release. #209 read-only CPU ranking proposal delivered. | #216 source remains held pending measurement scope and conflict disposition. #268 stays parked. |
 | **B3** `gpt-builder3` · module DSP | #243 / #255 merged `a440d71` | Correction 2/2 approved and merged. Fresh MO and D5 retained at measured pins. | Next M7 source packet requires a separate lead release after the OB0 install/tag handoff. |
 | **B4** `gpt-builder4` · engine / sidecar | #199 S6 preflight delivered | [Final pinned mechanical map](https://github.com/kalharbi11/wirescape-lab/issues/199#issuecomment-7020815710) signed. | Refresh the product-PR merge/park inventory read-only. S6 implementation waits for OB0 tag, dispositions and ≥24h notice. |
-| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight delivered | [Packaging and tag preflight](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7020888787) signed; A10 diagnosis retained on #275. | Re-pin the Pi checklist to integrated `a440d71`. No install, build or tag mutation released. A10 source stays parked. |
+| **B5** `gpt-builder5` · bounded support | #198 OB0 install/tag preflight delivered | [Packaging and tag preflight](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7020888787) signed; A10 diagnosis retained on #275. | Re-pin COMPLETE: signed checklist [7032162242](https://github.com/kalharbi11/wirescape-lab/issues/198#issuecomment-7032162242) targets integrated `a440d71`. Wait for owner/authorized Pi result; no build, install or tag released to B5. A10 stays parked. |
 
 ## How the lead maintains this table
 
@@ -29,4 +29,4 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
   results enable a new action.
 
-Signed: codex-lead, 2026-11-20, 01:17 EST
+Signed: codex-lead, 2026-11-20, 03:28 EST
