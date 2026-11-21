@@ -63,3 +63,9 @@ foreach(module midi_in midi_to_cv midi_cc_to_cv)
   target_link_libraries(abi2_${module}_tests PRIVATE wirescape_engine2 wirescape_voice2)
   add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests)
 endforeach()
+
+# OB-g2 test-local device-off injected source (Host's production Backend seam).
+add_executable(abi2_midi_scripted_tests scripted_backend_tests.cpp)
+target_link_libraries(abi2_midi_scripted_tests PRIVATE wirescape_midi_host)
+add_test(NAME abi2_midi_scripted_tests COMMAND abi2_midi_scripted_tests)
+set_tests_properties(abi2_midi_scripted_tests PROPERTIES TIMEOUT 30)
