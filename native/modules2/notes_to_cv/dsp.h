@@ -15,18 +15,21 @@ struct NotesToCv {
     static constexpr ws::Info info{"essentials.notes_to_cv", "Notes to CV", 1};
     static constexpr std::array inputs{ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
     static constexpr std::array outputs{ws::port("pitch", "Pitch", WS2_PITCH), ws::port("gate", "Gate", WS2_GATE),
-                                        ws::port("velocity", "Velocity", WS2_CV_UNI)};
+                                        ws::port("velocity", "Velocity", WS2_CV_UNI),
+                                        ws::port("trig", "Trigger", WS2_GATE)};
     static constexpr std::array params{
         ws::param("voices", "Voices", 1, 16, 4, "", WS2_STEPPED | WS2_AUTOMATABLE, WS2_LINEAR, 0, 4, 1)};
 
     wirescape::voice::NoteToCv core;
     uint32_t max_channels = 16;
     int configured_voices = 0;
+    std::array<uint32_t, wirescape::voice::kMaxVoices> trig_left{};
 
     void prepare(const ws::Setup &s) { max_channels = s.max_channels(); }
     void reset() {
         core.reset();
         configured_voices = 0;
+        trig_left = {};
     }
     void process(ws::Block &b) {
         const int desired =
@@ -37,9 +40,11 @@ struct NotesToCv {
             cfg.mode = wirescape::voice::Mode::Rotate;
             core.configure(cfg);
             configured_voices = desired;
+            trig_left = {};
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
-        for (uint32_t p = 0; p < 3; ++p) {
+        const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
+        for (uint32_t p = 0; p < 4; ++p) {
             b.out(p).set_channels(n);
             b.out(p).mark_constant(false);
         }
@@ -53,6 +58,8 @@ struct NotesToCv {
                         // allowing the downstream envelope to retrigger.
                         b.out(1).ch(c)[i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
                         b.out(2).ch(c)[i] = v.velocity;
+                        b.out(3).ch(c)[i] = trig_left[c] ? 1.f : 0.f;
+                        if (trig_left[c]) --trig_left[c];
                     }
                     core.allocator().clear_triggers();
                 }
@@ -62,7 +69,12 @@ struct NotesToCv {
                     e.type == WS2_NOTE_EXPRESSION) {
                     // NotesToCv has signal outputs only. The allocator handles
                     // releases and expressions internally; it does not emit here.
-                    core.event(e, [](const ws2_event &) {});
+                    core.event(e, [&](const ws2_event &out) {
+                        // Only an accepted Note On assigned to this poly voice retriggers.
+                        if (e.type == WS2_NOTE_ON && out.type == WS2_NOTE_ON &&
+                            out.channel >= 0 && uint32_t(out.channel) < n)
+                            trig_left[uint32_t(out.channel)] = trig_frames;
+                    });
                 }
             });
     }
