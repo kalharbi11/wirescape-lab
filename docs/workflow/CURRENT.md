@@ -7,6 +7,45 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead follow-up — 2026-11-21 18:38 EST
+
+- [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) merged at `445123b` after exact-head Lab 44962290017 and a lead run of all 15 Python tests plus the three fault injections. Linux L0 is advisory and remains unrun. B5 moved to #317 Studio tests; B2 owns the bench integration and B1 can validate hosted OSC. A29 records the Architect's OB-g4 dependency clearing.
+- #311 correction 1 passed both scripted tests on Linux x64 and ASan. The default frozen S0 status snapshot then failed. Correction 2/2 scopes the counter transport to the explicit scripted MIDI path and preserves the snapshot byte-for-byte. SR17 applies if the protocol field is added, with schema drift coverage.
+
+Signed: codex-lead, 2026-11-21, 18:38 EST
+
+## Lead handoff — 2026-11-21 18:34 EST
+
+- A27 from #313 is applied. T7.0b remains merged. S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) now has the fixed x64 windows and ARM64 direction check and is queued for Phase C. A28 remains with the owner.
+- Lead ran both S6 script self-tests and the full no-write preview twice, at frozen `2344369` and current `b788500`. Both produced 446 mapped / 444 moves / 2 retained, 170 candidates, 76 unresolved. B4 has the [evidence and continuation](https://github.com/kalharbi11/wirescape-lab/pull/295#issuecomment-7070943488). Guarded apply and evidence 1–6 still precede Claude dispatch.
+- B5 #312 and B2 #311 each have correction 1/2. #312: require actual edit-related failure for A2 XFAIL and check shutdown bench failures independently. #311: fix the escaped-key assertion in the injected MIDI test and independently diagnose sanitizer. B1 #309 confirms workflow loading; the soak lanes were disabled. B3 #307 moved from its idle original chat to the dedicated B3 chat under SR12.
+- Next-day queue is recorded in [BUILDERS](BUILDERS.md) and [OB_PLAN](OB_PLAN.md). SR11, SR13, SR16, SR18, SR19 preserve review, exact-head CI, priority, neutral facts and unaffected work. This extended queue was owner-requested. Entry usage: five-hour 0% used, resets 23:27 EST; weekly 92% used, resets Nov 23 at 11:49 EST.
+
+Signed: codex-lead, 2026-11-21, 18:34 EST
+
+## Decided 2026-11-21 13:15 ET: A27 ruling and owner OSC question (Claude Architect; base `main` 31faddf)
+
+- **A27 → M7 r1.4. S7.6 is released to the lead.** Delay windows are fixed frame ranges taken from the x64 rows in [`facts/dsp/t7_0b_switch_rows_2026-11-21.md`](../../facts/dsp/t7_0b_switch_rows_2026-11-21.md): `mode` [48000,85201), `tone` [48000,67200), clocked `division` [48000,49200). The first-difference rule is retired for S7.6, because it reacts to tiny numeric differences and moves once a crossfade lands. The x64 before-numbers govern: +7.041, +2.446 and +3.081 dB. The S7.6 PR also reports ARM64 before and after over the same windows, and ARM64 must agree in direction. The unclocked `division` row is `no_effect` and has no target. Overturned by: an x64 rerun at these windows that does not reproduce the before-numbers within 0.1 dB.
+- **A28, owner question (later, nothing waits).** Poly chord CV from OSC In cannot reach OSC Out, because OSC Out rows read channel 0 only and `notes` takes events. Options:
+  - (1) A new **CV to Notes** module. It takes poly `pitch`/`gate`/`velocity` and emits note events: on at each gate rise, with the key latched; off at the fall. It is portable and mirrors `notes_to_cv`, with no format or protocol change. It also feeds Chord and OSC Out `notes`.
+  - (2) **Poly OSC Out rows** (`/ws/row/<n>/<ch>`, mirroring OSC In wildcards). This changes `OSC_OUT.md`, the OutBus and the sidecar wire format.
+  - The Architect recommends (1) first. The owner chooses, then the Architect writes the task.
+- **Held:** nothing new. Every other hold in the entries below stands.
+
+**Next Architect run:** at the S6 review-ready request, at OB-g1 review-ready (to draft OB-g4), or at the owner's A28 choice. Quick effort.
+**Next run should:** (1) S6 contract-review if it is pinned; (2) draft OB-g4 once OB-g1 merges; (3) write the A28 task after the owner chooses; (4) A3 stays parked until OB1.
+
+Signed: claude-architect, 2026-11-21
+
+## Lead quick check — 2026-11-21 12:34 EST
+
+- OB r2.4a is live. B5 takes [OB-g1 #305](https://github.com/kalharbi11/wirescape-lab/issues/305) after completing the #275 read-only prep. B1 drafts [OB-g7 #306](https://github.com/kalharbi11/wirescape-lab/issues/306) in a dedicated workflow only. B3 drafts [OB-g6 #307](https://github.com/kalharbi11/wirescape-lab/issues/307) in the MIDI to CV module scope. B2 drafts the [OB-g2 #308](https://github.com/kalharbi11/wirescape-lab/issues/308) scripted MIDI backend first. #305 owns the harness paths. Product merges still wait for S6; runner outcomes are advisory.
+- M1 S6 baseline pinned to `23443691b4950b4747ade943d7d8602d281938fc`. [#295](https://github.com/kalharbi11/wirescape-lab/pull/295) is a Lab-green script draft at `7d7f89e`. B4 continues the real-tree replay and evidence 1–6 before the Claude request. #298 and #291 remain parked in that rebase order. #298 still needs the per-entry-point pin 7 matrix; #291 still needs D5 and independent K1–K8 review.
+- T7.0b [#300](https://github.com/kalharbi11/wirescape-lab/pull/300) has exact-head [Lab](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981506) and [T7.0 capture](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981448) success at `58ac812` and merged as `fac9473` under SR18. A27 requests the S7.6 Delay mode baseline disposition. x64 reports +7.041 dB over 775.021 ms and ARM64 reports 0.000 dB over 400 ms. Keep both window lengths, and keep S7.6 held for the ruling.
+- SR11, SR13, SR16, SR18 and SR19. Five-hour usage 1% used, reset 17:30 EST. Weekly usage 91% used, reset Nov 23 at 11:49 EST. This run was explicitly owner-triggered.
+
+Signed: codex-lead, 2026-11-21, 12:34 EST
+
 ## Decided 2026-11-21: Architect run 4 — I/O endurance and triggered envelopes (Claude Architect; owner request; base `main` e13ba34)
 
 - **OB r2.4 adds OB-g** (design [`proposals/0019`](../../proposals/0019-io-endurance-and-triggered-envelopes.md)). Nothing in flight stops, and the S6 Phase B rule still binds.

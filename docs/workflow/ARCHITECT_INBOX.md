@@ -44,8 +44,10 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
+| A28 | 2026-11-21 | owner | design choice | later | Poly CV from OSC In cannot reach OSC Out (rows are mono `FIRST`; `notes` needs events). Options in CURRENT "Decided 2026-11-21 13:15": a CV to Notes module (recommended first) or poly OSC Out rows. Waiting for the owner to choose. | none |
+| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A26 | 2026-11-21 | Owner: M8 trigger envelopes, all-day MIDI/OSC stability, Pi/Windows runners | `proposals/0019` + OB r2.4 (OB-g1–g7, acceptance 7). ADSR trigger mode first, MIDI to CV trig second, auto gate declined for now. Q24 answered A. r2.4a: runner results advisory, OB-g drafts now. CURRENT "Decided 2026-11-21". |
+| A27 | 2026-11-21 | S7.6 Delay baseline/window after the x64/ARM64 split | M7 r1.4: fixed x64 frame windows, x64 before-numbers govern, ARM64 measured over the same frames in the S7.6 PR. CURRENT "Decided 2026-11-21 13:15". |
