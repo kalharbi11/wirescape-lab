@@ -14,7 +14,8 @@ struct MidiToCv {
                                         ws::port("bend", "Bend", WS2_CV_BI),
                                         ws::port("mod", "Mod", WS2_CV_UNI),
                                         ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT),
-                                        ws::port("last_note", "Last note", WS2_PITCH)};
+                                        ws::port("last_note", "Last note", WS2_PITCH),
+                                        ws::port("trig", "Trigger", WS2_GATE)};
     static constexpr uint32_t stepped = WS2_STEPPED | WS2_AUTOMATABLE;
     static constexpr std::array params{
         ws::param("voice_count", "Voices", 1, 16, 4, "", stepped, WS2_LINEAR, 0, 4, 1),
@@ -34,6 +35,7 @@ struct MidiToCv {
     uint32_t max_channels = 16; voice::Config configured{}; uint32_t filter = 0; bool valid_config = false, sustain_hold = true;
     uint64_t dropped = 0, ignored = 0;
     float last_note = 0; // mono raw NoteOn pitch, intentionally independent of bend/gate
+    std::array<uint32_t, voice::kMaxVoices> trig_left{}; // samples remaining per allocated voice
     void prepare(const ws::Setup& s) { max_channels = s.max_channels(); }
     void reset() {
         core.reset();
@@ -44,6 +46,7 @@ struct MidiToCv {
         sustain_hold = true;
         dropped = ignored = 0;
         last_note = 0;
+        trig_left = {};
     }
     Expression* expression(uint32_t source, uint32_t channel, bool create) {
         Expression* free = nullptr;
@@ -60,6 +63,7 @@ struct MidiToCv {
         b.out(7).set_channels(0);
         b.out(8).set_channels(1);
         b.out(8).mark_constant(false);
+        const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
         uint32_t retained = 0;
         for (uint32_t i = 0; i < pending_count; ++i) { auto e = pending[i]; e.offset = 0; if (!b.emit(7, e)) pending[retained++] = e; }
         pending_count = retained;
@@ -72,12 +76,15 @@ struct MidiToCv {
         const uint32_t requested_filter = uint32_t(std::clamp(std::lround(b.param(8).value(0, 0)), 0l, 16l));
         if (!valid_config || wanted.max_voices != configured.max_voices || wanted.mode != configured.mode || wanted.mono_priority != configured.mono_priority || wanted.legato != configured.legato || filter != requested_filter) {
             core.release_all(UINT32_MAX, cause, emit); core.configure(wanted); configured = wanted; filter = requested_filter; valid_config = true;
+            trig_left = {};
         }
         const bool hold = b.param(5).value(0, 0) > .5f;
         if (sustain_hold && !hold) for (auto& e : expressions) if (e.used && e.pedal) { core.sustain(e.source, int(e.channel), false, cause, emit); e.pedal = false; }
         sustain_hold = hold;
         const uint32_t n = uint32_t(core.allocator().voice_count());
         for (uint32_t p = 0; p < 7; ++p) { b.out(p).set_channels(n); b.out(p).mark_constant(false); }
+        b.out(9).set_channels(n);
+        b.out(9).mark_constant(false);
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) b.out(8).ch(0)[i] = last_note;
@@ -96,6 +103,8 @@ struct MidiToCv {
                         b.out(4).ch(c)[i] = v.pressure;
                         b.out(5).ch(c)[i] = bend;
                         b.out(6).ch(c)[i] = ex ? ex->mod : 0;
+                        b.out(9).ch(c)[i] = trig_left[c] ? 1.f : 0.f;
+                        if (trig_left[c]) --trig_left[c];
                     }
                 }
                 core.allocator().clear_triggers();
@@ -136,6 +145,11 @@ struct MidiToCv {
                     core.event(note, [&](const ws2_event &out) {
                         // Observe allocation before output-queue delivery can fail.
                         attack = attack || out.type == WS2_NOTE_ON;
+                        // One accepted attack starts a 1 ms pulse on its allocated poly lane,
+                        // even when mono legato keeps the gate continuously high.
+                        if (note.type == WS2_NOTE_ON && out.type == WS2_NOTE_ON &&
+                            out.channel >= 0 && uint32_t(out.channel) < n)
+                            trig_left[uint32_t(out.channel)] = trig_frames;
                         emit(out);
                     });
                     // Mono priority may accept a held note without selecting it to sound.
