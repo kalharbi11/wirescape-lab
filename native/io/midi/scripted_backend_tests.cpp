@@ -106,10 +106,12 @@ static void host_injection() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     CHECK(host.counters().release_panics > 0);
     CHECK(host.counters().send_fail > 0);
-    CHECK(host.diagnostics().find("\\\"release_panics\\\":") != std::string::npos);
+    CHECK(host.diagnostics().find("\"release_panics\":") != std::string::npos);
     host.stop();
     CHECK(!script->opened());
-    CHECK(host.diagnostics().find("\\\"release_panics\\\":") != std::string::npos);
+    const auto stopped_panics = host.counters().release_panics;
+    CHECK(stopped_panics > 0);
+    CHECK(host.diagnostics().find(std::string("\"release_panics\":") + std::to_string(stopped_panics)) != std::string::npos);
 }
 int main() {
     source_script();
