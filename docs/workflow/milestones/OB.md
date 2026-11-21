@@ -7,6 +7,7 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 **r2.2 (Architect, 2026-11-20, inbox A19):** OB-a3 pins: "older shape" = native patch `version` 1; backup `<filename>.bak-v1` (then `.bak-v1.<n>`, n ≥ 2, never overwritten; equal bytes → no write); written before the original is replaced, save refused if it cannot be; Save As never writes the source; the existing `<stem>.v1<ext>` naming is replaced in the OB-a3 PR; native loaders stay execution-only with one no-write test each. Full text: #287. Affects OB-a3 only; nothing in flight stops.
 **r2.2a (Architect, 2026-11-20 13:20 ET):** pin 4 "Save As never writes the source" forbids writing the source as a **side effect**. A path the user explicitly chooses in the save dialog is the destination, even when it is the opened file. It gets pins 2–3 if it is v1, otherwise the existing atomic replace. No same-path refusal. Found by the desktop suite: such a refusal breaks `refused-draft-files.spec.cjs` (#298). Affects OB-a3 only.
 **r2.3 (Architect, 2026-11-20, inbox A23):** OB-f2 targets, set from `facts/app/ui_cpu_rank_2026-11-20.md` (CI Linux, CPU-ranked winner `scene-03-black-ice-choir.json`). Per row (knob, module move, cable draw, telemetry), rAF interval p95 ≤ 17.5 ms and max ≤ 33.4 ms; native `setParam` send→ACK p95 ≤ 5 ms. OB-f1 at `cde8602` already meets every target (p95 16.7, max 16.8, ACK p95 2.1 ms). So **no OB-f2 fix task opens**. Acceptance item 6's CI half is re-checked once on the OB1 candidate by the existing OB-f1 advisory. Headless rAF is vsync-capped, so the Pi session's "no visible stutter" stays the deciding check. A row that fails at the OB1 candidate opens one `apps/studio/` fix with a before/after row. Affects OB-f2 only.
+**r2.4 (Architect, 2026-11-21, owner request, inbox A26):** adds OB-g (I/O endurance and triggered envelopes; design `proposals/0019`) and acceptance item 7. Nothing in flight stops. OB-g1 can start now under the S6 window (`bench/` only). OB-g2–OB-g6 and OB-g7's lab half wait for S6 to merge and use post-S6 paths.
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.
@@ -37,6 +38,22 @@ live editing (M2, M4) and sound (M1, M7). r2 adds the two that had no task. Noth
 **Added to acceptance:** 5. OB-e2 green for every module in the palette (a module that cannot be
 fixed before OB1 is hidden from the palette and listed). 6. OB-f2 targets met on CI, and the
 owner's Pi session finds no visible stutter during the 100 scripted edits.
+
+### r2.4 additions (Architect, 2026-11-21): OB-g I/O endurance and triggered envelopes
+Design and thresholds: `proposals/0019`. Every profile, ladder tier and stop rule is defined there.
+
+| Task | Class | Allowed paths | Depends on | Merge |
+|---|---|---|---|---|
+| **OB-g1** OSC endurance harness: `bench/io/` driver over the null-audio sidecar and localhost OSC, profiles `osc-gates`, `osc-heavy`, `osc-stress`, `still`/`config-edits`, ladder L0–L5, stop-and-report files; self-test against a fault-injected run (kill, dropped packet, stuck gate) | B | `bench/io/**` (new), `facts/perf/` (results) | none: **file now** (bench only during S6) | lead |
+| **OB-g2** injected MIDI source and counters: a device-off scripted MIDI backend selectable in the engine (uses `midi::Host`'s injected-backend path), a release-panic counter in `Host::deliver`, counters exposed through diagnostics; profiles `midi-m8`, `mixed` | B | `native/control/midi_host*`, `native/io/midi/` (test backend), engine flag, tests, `bench/io/` | S6 merged; OB-g1 | lead |
+| **OB-g3** MIDI endpoint change while running (W4): failing device-off test first for "enabled input dead until relaunch" through the Studio toggle path, then the fix in the file the test names | B | test in `native/` or `apps/studio/` tests; fix where named | S6 merged | lead |
+| **OB-g4** Pi tiers: wirescape-pi task `io-soak profile=<p> tier=<L>` with timeout = tier + 10 %, and one nightly cron that requests the next tier at main's head (0019 §3) | B | wirescape-pi only | OB-g1 | **owner** (Architect-only repo) |
+| **OB-g5** ADSR trigger mode: `mode` (Gate default / Trigger) and `hold`; Gate mode bit-identical (goldens unchanged); retrigger from current level; panel controls | B | ADSR module folder, its tests, its panel JSON | S6 merged | lead |
+| **OB-g6** MIDI to CV `trig` output: 1 ms pulse per accepted Note On per voice, legato included; Notes to CV too if it shares the voice code | B | MIDI to CV (and Notes to CV) folders, tests, panel JSON | OB-g5 | lead |
+| **OB-g7** scheduled hosted soak: Linux L0 per PR touching I/O; Windows and Linux hosted L0–L2 nightly on main (GitHub-hosted only) | B | `.github/workflows/` (SR17 order), `bench/io/` | OB-g1, OB-g2 for MIDI profiles | lead |
+
+**Added to acceptance:** 7. At the OB1 candidate, Pi `osc-heavy` and `mixed` pass in `still` mode
+through L2 (1 h) and `config-edits` through L1 (0019 §6). L3–L5 are recorded, not required.
 
 **Out of OB (P4, do not file):** third-party module drop-in, SDK, dev loop, panels, Daisy/hardware,
 protocol publication, web build features (M6 MT2+, M8–M12 beyond facts).

@@ -7,6 +7,28 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-21: Architect run 4 — I/O endurance and triggered envelopes (Claude Architect; owner request; base `main` e13ba34)
+
+- **OB r2.4 adds OB-g** (design [`proposals/0019`](../../proposals/0019-io-endurance-and-triggered-envelopes.md)). Nothing in flight stops, and the S6 Phase B rule still binds.
+  - **OB-g1 OSC endurance harness, file now.** It is `bench/` only, so it is allowed in the window. It is the owner's top priority. The lead gives it to the first free lane (B5 after #275 prep, or B2 after T7.0b).
+  - **After S6 merges (Phase C):** these run in free lanes and never take a writer from the OB1 chain.
+    - OB-g2: injected MIDI source and a release-panic counter.
+    - OB-g3: endpoint change while running (W4). A failing device-off test comes first. Suspect: `Host::select` throws while playing.
+    - OB-g5: ADSR trigger mode and `hold`.
+    - OB-g6: MIDI to CV `trig` output, after g5.
+    - OB-g7: hosted Linux/Windows nightly.
+  - **OB-g4 (wirescape-pi):** the `io-soak` task and a nightly cron that requests the next ladder tier at main's head. The Architect drafts it once OB-g1 merges; the owner merges.
+- **OB1 acceptance item 7:** the Pi passes `osc-heavy` and `mixed` in `still` mode through L2 (1 h), and `config-edits` through L1, at the OB1 candidate. L3–L5 are recorded only.
+- **Edit-time clicks and gate loss are A2.** M4 E5 removes them, so no separate fix is made. Until E5, `config-edits` runs as a strict expected failure. A failure in `still` mode is a real I/O defect and is fixed now (OB-c rule).
+- **Runners:** keep the wirescape-pi runner (#18/#19 sandbox). Never register a self-hosted runner on the public lab repo. Windows coverage uses GitHub-hosted runners (OB-g7).
+- **Owner question Q24:** should the Pi ALSA tier get `/dev/snd/seq` on main heads only? The default is no, and nothing waits on it.
+- **Held:** OB-g2–g7 product source until S6 merges. Everything else is unchanged from the 17:15 entry.
+
+**Next Architect run:** at the S6 review-ready request, or when OB-g1 is review-ready (to draft OB-g4). Quick effort.
+Next run should: (1) S6 contract-review when requested; (2) after Pi setup, `nightly` at main's head; (3) OB-g1 first Pi facts → confirm or replace the 0019 thresholds in one line; (4) draft wirescape-pi OB-g4; (5) T7.0b #296 → S7.6.
+
+Signed: claude-architect, 2026-11-21
+
 ## Decided 2026-11-20 17:15 ET: S6 window opens now; agents request Pi runs by comment (Claude Architect; owner direction)
 
 - **The M1 S6 window is open now.** The owner said "no need to wait until 6am", which overrides the 24 h notice given at 05:40. Phase B ("only B4 writes product source") applies **from this entry** and replaces "2026-11-21 06:00 ET" everywhere above.

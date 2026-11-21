@@ -48,5 +48,4 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A4 | 2026-11-20 | #186: 0017 section 5 errata before MT4/H3a/CP1/K3/K4 | (a), (b) and (d)–(l) applied after checking each against its source; (c) already on `main`. M5 r2, M6 r3, M8 r2, M10 r2, M11 r2; 0012/0014/0016 errata. Role, OB and PRIORITY drafts not adopted. #186 closed. CURRENT "Decided 2026-11-20 16:30 ET". |
-| A25 | 2026-11-20 | Owner: make the Pi runner safe (gpt-reviewer report) | [wirescape-pi#18](https://github.com/kalharbi11/wirescape-pi/pull/18): dispatch-only, hosted gate, secretless sandboxed Pi job, laptop runner retired. Owner merges and runs its setup. Lab requests a Pi run with an inbox row. |
+| A26 | 2026-11-21 | Owner: M8 trigger envelopes, all-day MIDI/OSC stability, Pi/Windows runners | `proposals/0019` + OB r2.4 (OB-g1–g7, acceptance 7). ADSR trigger mode first, MIDI to CV trig second, auto gate declined for now. Owner question Q24 (Pi ALSA tier). CURRENT "Decided 2026-11-21". |
