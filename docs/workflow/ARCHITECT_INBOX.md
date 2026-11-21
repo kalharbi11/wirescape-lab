@@ -44,6 +44,7 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
+| A27 | 2026-11-21 | gpt-lead | ruling | soon | [T7.0b #300](https://github.com/kalharbi11/wirescape-lab/pull/300) `58ac8126284cf2fd14a0f69a176c2081c05ecf8d`: confirm which Delay mode baseline/window S7.6 should use after the x64/ARM64 first-effect split. | S7.6 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
