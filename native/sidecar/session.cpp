@@ -1391,10 +1391,11 @@ Json Session::audio_status() const {
     return result;
 }
 Json Session::midi_status() const {
-    // Control-thread-only diagnostic surface. All counters, including the
-    // counted failed-release panic fallback, are actual Host/Service values.
-    Json result = {{"devices", midi_devices_}, {"activity", observer_->activity()},
-                   {"counters", Json::parse(midi_->diagnostics())}};
+    // Preserve the v0 default hello/status wire shape, including the pinned
+    // S0 byte snapshot. Opt-in scripted MIDI is the only counter transport.
+    Json result = {{"devices", midi_devices_}, {"activity", observer_->activity()}};
+    if (options_.scripted_midi)
+        result["counters"] = Json::parse(midi_->diagnostics()); // real Host/Service counters
     auto learn = observer_->learning();
     if (!learn.is_null()) result["learn"] = std::move(learn);
     return result;

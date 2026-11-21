@@ -20,6 +20,30 @@ def run():
             result = subprocess.run(invalid, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=8)
             assert result.returncode != 0, "scripted MIDI needs null audio and explicit settings"
 
+        # Default S0 transport remains byte-compatible: no opt-in counter
+        # object may appear in either the hello or the periodic status.
+        default = subprocess.Popen(
+            [binary, "--null-audio", "--settings", settings],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        try:
+            default_hello = json.loads(default.stdout.readline())
+            assert default_hello["type"] == "hello"
+            assert "counters" not in default_hello["midi"], default_hello["midi"]
+            default_status = None
+            deadline = time.monotonic() + 6
+            while time.monotonic() < deadline:
+                line = default.stdout.readline()
+                event = json.loads(line)
+                if event.get("type") == "status":
+                    default_status = event
+                    break
+            assert default_status is not None
+            assert "counters" not in default_status["status"]["midi"]
+        finally:
+            default.stdin.close()
+            default.wait(timeout=8)
+
         proc = subprocess.Popen(
             [binary, "--null-audio", "--scripted-midi", "--settings", settings],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
