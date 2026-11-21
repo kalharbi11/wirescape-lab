@@ -45,6 +45,7 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A28 | 2026-11-21 | owner | design choice | later | Poly CV from OSC In cannot reach OSC Out (rows are mono `FIRST`; `notes` needs events). Options in CURRENT "Decided 2026-11-21 13:15": a CV to Notes module (recommended first) or poly OSC Out rows. Waiting for the owner to choose. | none |
+| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
