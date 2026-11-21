@@ -1,0 +1,265 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# OB r2.4a / proposal 0019 section 3. Advisory everywhere: never a required gate.
+# DRAFT, intentionally not executing I/O: wait for OB-g1 #305 CLI/reports,
+# OB-g2 injected MIDI/counters, and post-S6 main rebase before un-parking lanes.
+name: OB-g7 hosted I/O soak (advisory draft)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/ob-g7-hosted-soak.yml'
+      - 'bench/io/**'
+      - 'native/**/osc/**'
+      - 'native/**/midi/**'
+      - 'native/**/osc_*'
+      - 'native/**/midi_*'
+      - 'native/control/midi_host*'
+      - 'native/sidecar/**'
+      - 'apps/studio/**/osc*'
+      - 'apps/studio/**/midi*'
+  # GitHub schedule executes on the default branch (main) only.
+  schedule:
+    - cron: '19 5 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ob-g7-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  draft-interface:
+    name: OB-g7 draft interface inventory (NOT a soak)
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Show head and unfulfilled interfaces without claiming a pass
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          {
+            echo "## OB-g7 draft (no I/O soak executed)"
+            echo ""
+            echo "- Exact PR head: $EXPECTED_HEAD"
+            echo "- OSC bench/io CLI and report.json/report.md: pending #305 validation"
+            echo "- Injected MIDI backend and counters: pending OB-g2"
+            echo "- Native paths: re-evaluate after S6 merge and rebase"
+            echo "- All L0-L2 jobs are deliberately parked; skip is not an acceptance result"
+            echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  pr-linux-osc-l0:
+    name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
+    # Only release after #305 supplies a verified device-off localhost CLI.
+    if: ${{ false }}
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [osc-gates, osc-heavy]
+        mode: [still, config-edits]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build null-audio native sidecar
+        shell: bash
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          python tools/dev.py build --headless --config Release
+      - name: Execute one Linux L0 (60s) on localhost only
+        shell: bash
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          report="build_reports/ob-g7/pr-${{ matrix.profile }}-${{ matrix.mode }}-L0"
+          mkdir -p "$report"
+          # Provisional OB-g1 adapter: verify flags with #305 before enabling.
+          python bench/io/soak.py --engine build/native/wirescape-engine \
+            --null-audio --localhost-only --profile "${{ matrix.profile }}" \
+            --mode "${{ matrix.mode }}" --tier L0 --report-dir "$report" ||
+            { echo "- $EXACT_HEAD Linux L0 ${{ matrix.profile }}/${{ matrix.mode }}: see report; open parallel fix row" >> "$report/fix-rows.md"; exit 1; }
+          test -s "$report/report.json" && test -s "$report/report.md"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-pr-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
+
+  nightly-osc:
+    name: Hosted OSC / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
+    # Only release after #305; schedule is main only and never blocks merges.
+    if: ${{ false }}
+    continue-on-error: true
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+        profile: [osc-gates, osc-heavy]
+        mode: [still, config-edits]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Pin Windows PortAudio source (same revision as Lab)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build Windows PortAudio
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Build null-audio native sidecar
+        run: python tools/dev.py build --headless --config Release
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first failure
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          engine="build/native/wirescape-engine"
+          if [ "$RUNNER_OS" = "Windows" ]; then engine="$engine.exe"; fi
+          for tier in L0 L1 L2; do
+            report="build_reports/ob-g7/nightly-osc-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}/$tier"
+            mkdir -p "$report"
+            # Provisional OB-g1 adapter: verify CLI and report schema with #305.
+            if ! python bench/io/soak.py --engine "$engine" --null-audio \
+              --localhost-only --profile "${{ matrix.profile }}" --mode "${{ matrix.mode }}" \
+              --tier "$tier" --report-dir "$report"; then
+              echo "- $EXACT_HEAD ${{ matrix.runner }} ${{ matrix.profile }}/${{ matrix.mode }} $tier: failed; parallel fix row required; see report" >> "$report/fix-rows.md"
+              exit 1
+            fi
+            test -s "$report/report.json" && test -s "$report/report.md" ||
+              { echo "- Missing report after $tier; file parallel fix row" >> "$report/fix-rows.md"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-nightly-osc-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
+
+  nightly-midi:
+    name: Hosted injected MIDI / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
+    # Only release after #305 AND OB-g2; no real MIDI/ALSA/WinMM devices.
+    if: ${{ false }}
+    continue-on-error: true
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+        profile: [midi-m8, mixed]
+        mode: [still, config-edits]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Pin Windows PortAudio source (same revision as Lab)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build Windows PortAudio
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Build device-off sidecar with injected MIDI
+        run: python tools/dev.py build --headless --config Release
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first failure
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          engine="build/native/wirescape-engine"
+          if [ "$RUNNER_OS" = "Windows" ]; then engine="$engine.exe"; fi
+          for tier in L0 L1 L2; do
+            report="build_reports/ob-g7/nightly-midi-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}/$tier"
+            mkdir -p "$report"
+            # Provisional OB-g2 adapter: verify flags and counters before enabling.
+            if ! python bench/io/soak.py --engine "$engine" --null-audio \
+              --localhost-only --injected-midi --profile "${{ matrix.profile }}" \
+              --mode "${{ matrix.mode }}" --tier "$tier" --report-dir "$report"; then
+              echo "- $EXACT_HEAD ${{ matrix.runner }} ${{ matrix.profile }}/${{ matrix.mode }} $tier: failed; parallel fix row required; see report" >> "$report/fix-rows.md"
+              exit 1
+            fi
+            test -s "$report/report.json" && test -s "$report/report.md" ||
+              { echo "- Missing report after $tier; file parallel fix row" >> "$report/fix-rows.md"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-nightly-midi-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
