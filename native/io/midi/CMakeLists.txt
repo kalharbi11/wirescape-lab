@@ -76,3 +76,9 @@ add_test(NAME abi2_midi_scripted_sidecar_tests
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripted_sidecar_tests.py
           $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_midi_scripted_sidecar_tests PROPERTIES TIMEOUT 40)
+
+# OB-g2 exercises merged B5 OB-g1 harness profiles without opening devices.
+add_test(NAME abi2_midi_io_soak_harness_tests
+  COMMAND ${Python3_EXECUTABLE} -m unittest discover
+          -s ${CMAKE_CURRENT_SOURCE_DIR}/../../../bench/io -p test_*.py -v)
+set_tests_properties(abi2_midi_io_soak_harness_tests PROPERTIES TIMEOUT 30)
