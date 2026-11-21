@@ -425,7 +425,8 @@ def step_metrics(audio, step_frame, rate=RATE):
 
 
 def switch_click_metrics(audio, switch_frame, rate=RATE, *,
-                         no_switch_audio=None, delay_time_s=None):
+                         no_switch_audio=None, delay_time_s=None,
+                         first_effect_frame=None):
     """T7.0b actual paired switch/no-switch high-pass peaks and excess in dB.
 
     Preserve the original step_metrics and 2 kHz 2nd-order causal Butterworth.
@@ -443,8 +444,15 @@ def switch_click_metrics(audio, switch_frame, rate=RATE, *,
         if not (math.isfinite(delay_time_s) and 0 < delay_time_s <= 2):
             return unavailable("invalid unclocked Delay time")
         begin = switch_frame
-        end = switch_frame + int(math.ceil((delay_time_s + .025) * rate))
-        window_kind = "delay_first_repeat"
+        if first_effect_frame is not None:
+            if (not isinstance(first_effect_frame, int) or
+                    first_effect_frame < switch_frame):
+                return unavailable("invalid first effect frame")
+            end = first_effect_frame + int(math.ceil(.025 * rate))
+            window_kind = "delay_first_observed_difference"
+        else:
+            end = switch_frame + int(math.ceil((delay_time_s + .025) * rate))
+            window_kind = "delay_first_repeat"
     else:
         half = int(.025 * rate)
         begin, end = switch_frame - half, switch_frame + half
@@ -499,6 +507,7 @@ def switch_click_metrics(audio, switch_frame, rate=RATE, *,
         "metric_source": "paired causal 2 kHz Butterworth high-pass peaks; 20log10(FS); dB subtraction"}
     if delay_time_s is not None:
         result["delay_time_s"] = delay_time_s
+        result["first_effect_frame"] = first_effect_frame
     return result
 
 

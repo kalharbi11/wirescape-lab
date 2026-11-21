@@ -14,6 +14,8 @@ import hashlib
 import json
 import math
 import subprocess
+
+import numpy as np
 from pathlib import Path
 
 from metrics import switch_click_metrics
@@ -102,16 +104,55 @@ def require_switch_descriptors(desc: dict) -> None:
             raise ValueError(f"missing native switch parameter: {module}.{param}")
 
 
+def measure_switch_pair(renderer: Path, patch: dict, identity: dict) -> dict:
+    """Actual identical-source PCM pair; never infer no effect from a short window."""
+    rate, seconds, frame = 48000, 2, 48000
+    events = [{"frame": frame, "type": "setParam", "node": 1,
+               "parameter": identity["parameter"], "value": identity["after"]}]
+    switched, result = run_wav(renderer, patch, events, seconds, rate=rate)
+    control, floor_result = run_wav(renderer, patch, [], seconds, rate=rate)
+    counters = dict(render_counters=result.get("counters"),
+                    no_switch_render_counters=floor_result.get("counters"))
+    if switched is None or control is None:
+        failed = result if switched is None else floor_result
+        return dict(identity, status="unavailable",
+                    reason=failed.get("reason") or "paired render failed", **counters)
+    switched, control = np.asarray(switched), np.asarray(control)
+    if (switched.ndim != 2 or switched.shape != control.shape or
+            switched.shape[1] != 2 or switched.shape[0] < frame + 2 or
+            not np.isfinite(switched).all() or not np.isfinite(control).all()):
+        return dict(identity, status="unavailable",
+                    reason="invalid, short, nonfinite or mismatched PCM", **counters)
+    if not np.array_equal(switched[:frame], control[:frame]):
+        return dict(identity, status="unavailable",
+                    reason="switched and no-switch PCM differ before event", **counters)
+    different = np.flatnonzero(np.any(switched[frame:] != control[frame:], axis=1))
+    first_effect = frame + int(different[0]) if different.size else None
+    delay_time = None
+    if identity["module"] == "fx.delay":
+        settings = patch["modules"][0].get("parameters", {})
+        delay_time = float(settings.get("time", identity["delay_default_time_s"]))
+    metric = dict(switch_click_metrics(
+        switched, frame, rate, no_switch_audio=control,
+        delay_time_s=delay_time, first_effect_frame=first_effect))
+    metric["first_effect_frame"] = first_effect
+    metric["pair_render_frames"] = len(switched)
+    if metric.get("status") == "measured" and first_effect is None:
+        metric.update(status="no_effect", click_excess_db=None,
+                      reason="bit-identical switched and no-switch PCM in full 2s capture")
+    return dict(identity, status=metric.get("status", "unavailable"),
+                **{key: value for key, value in metric.items() if key != "status"},
+                **counters)
+
+
 def capture_switches(renderer: Path, desc: dict) -> list[dict]:
-    rate, seconds, switch_frame = 48000, 2, 48000
     output = []
     for module, param, old, new, extra in SWITCHES:
         identity = dict(module=module, parameter=param, before=old, after=new,
-                        sample_rate_hz=rate, switch_frame=switch_frame)
+                        sample_rate_hz=48000, switch_frame=48000,
+                        fixture="unclocked")
         descriptor = desc.get(module)
         bounds = descriptor["parameters"].get(param) if descriptor else None
-        # Source-pinned switch list is authoritative: the metadata extractor
-        # cannot infer the kMode WS2_STEPPED alias in quad_vca/dsp.h.
         if not bounds or not (bounds["min"] <= old <= bounds["max"] and
                              bounds["min"] <= new <= bounds["max"]):
             output.append(dict(identity, status="unavailable",
@@ -122,34 +163,51 @@ def capture_switches(renderer: Path, desc: dict) -> list[dict]:
             output.append(dict(identity, status="unavailable",
                                reason=reason or "no renderer probe"))
             continue
-        # Exact same original source patch rendered a second time with no
-        # switch event; do not substitute a silence or a synthetic reference.
-        audio, result = run_wav(renderer, patch, [
-            {"frame": switch_frame, "type": "setParam", "node": 1,
-             "parameter": param, "value": new}], seconds, rate=rate)
-        floor_audio, floor_result = run_wav(renderer, patch, [], seconds, rate=rate)
-        if audio is None or floor_audio is None:
-            failed = result if audio is None else floor_result
-            output.append(dict(identity, status="unavailable",
-                               reason=failed.get("reason") or "paired render failed",
-                               render_counters=result.get("counters"),
-                               no_switch_render_counters=floor_result.get("counters")))
-            continue
-        delay_time = None
         if module == "fx.delay":
-            # The source fixture has no clock input: division is not an
-            # applied clock multiplier. The time default is 0.375 s on main.
-            settings = patch["modules"][0].get("parameters", {})
-            delay_time = float(settings.get("time",
-                descriptor["parameters"]["time"]["initial"]))
-        metric = switch_click_metrics(audio, switch_frame, rate,
-                                      no_switch_audio=floor_audio,
-                                      delay_time_s=delay_time)
-        output.append(dict(identity, status=metric.get("status", "unavailable"),
-                           **{k: v for k, v in metric.items() if k != "status"},
-                           render_counters=result.get("counters"),
-                           no_switch_render_counters=floor_result.get("counters")))
+            identity["delay_default_time_s"] = descriptor["parameters"]["time"]["initial"]
+        output.append(measure_switch_pair(renderer, patch, identity))
     return output
+
+
+def capture_clocked_division(renderer: Path, desc: dict) -> dict:
+    """Additional real clocked division pair, outside legacy 4-row projection."""
+    module, param, old, new, extra = SWITCHES[2]
+    identity = dict(module=module, parameter=param, before=old, after=new,
+                    sample_rate_hz=48000, switch_frame=48000,
+                    fixture="clocked", clock_source="essentials.clock",
+                    clock_bpm=120, clock_ticks_per_beat=4)
+    delay, clock = desc.get("fx.delay"), desc.get("essentials.clock")
+    if (not delay or not clock or
+            "clock" not in {p["port"] for p in delay.get("inputs", [])} or
+            "clock" not in {p["port"] for p in clock.get("outputs", [])}):
+        return dict(identity, status="unavailable",
+                    reason="Delay clock input or clock module unavailable")
+    patch, reason = build_module_patch(module, delay, {**extra, param: old})
+    if patch is None:
+        return dict(identity, status="unavailable",
+                    reason=reason or "no renderer probe")
+    clock_node = max(int(item["id"]) for item in patch["modules"]) + 1
+    patch["modules"].append({
+        "id": clock_node, "module": "essentials.clock", "version": clock["version"],
+        "parameters": {"bpm": 120, "ticks_per_beat": 4, "run": 1}})
+    patch["connections"].append({
+        "kind": "signal", "from": {"module": clock_node, "port": "clock"},
+        "to": {"module": 1, "port": "clock"}})
+    identity["clock_source_node"] = clock_node
+    identity["delay_default_time_s"] = delay["parameters"]["time"]["initial"]
+    return measure_switch_pair(renderer, patch, identity)
+
+
+def legacy_switch_rows(rows: list[dict]) -> list[dict]:
+    """Existing shared workflow only accepts measured/unavailable, not no_effect.
+
+    Preserve true no_effect in t7_0b_switch_rows; legacy projection reports
+    the row unavailable with an explanatory reason and no fabricated zero.
+    """
+    return [dict(row, status="unavailable",
+                 reason="no_effect: " + row.get("reason", ""), click_excess_db=None)
+            if row.get("status") == "no_effect" else dict(row)
+            for row in rows]
 
 
 def capture(build_dir: Path, out_dir: Path, head: str) -> dict:
@@ -175,7 +233,9 @@ def capture(build_dir: Path, out_dir: Path, head: str) -> dict:
     alias_json = out_dir / "dsp/oscillators.json"
     data = json.loads(alias_json.read_text(encoding="utf-8"))
     alias_rows = extract_chaos(data, head)
-    switch_rows = capture_switches(renderer, desc)
+    measured_switch_rows = capture_switches(renderer, desc)
+    clocked_division = capture_clocked_division(renderer, desc)
+    switch_rows = legacy_switch_rows(measured_switch_rows)
     return {
         "SPDX-License-Identifier": "GPL-3.0-only",
         "task": "M7 T7.0",
@@ -191,12 +251,14 @@ def capture(build_dir: Path, out_dir: Path, head: str) -> dict:
         },
         "alias_method": data.get("method_details"),
         "alias_rows": alias_rows,
-        "switch_method": ("T7.0b matched switched and no-switch source renders; "
-                          "2nd-order 2000 Hz Butterworth high-pass; peaks and "
-                          "click-excess dB; Quad VCA centered +/-25ms; Delay "
-                          "switch to unclocked delay time + 25ms; exact window "
-                          "frames and settings retained in each row"),
+        "switch_method": ("T7.0b exact paired 2-second switched/no-switch PCM, "
+                          "2 kHz second-order high-pass; Quad VCA +/-25ms; "
+                          "Delay ends 25ms after first observed PCM difference; "
+                          "identical pair is no_effect; extra clocked division "
+                          "fixture. Legacy switch_rows is a status-compatible "
+                          "projection; t7_0b_switch_rows is authoritative."),
         "switch_rows": switch_rows,
+        "t7_0b_switch_rows": measured_switch_rows + [clocked_division],
         "observed_alias_below_minus80": [
             {"sample_rate_hz": row["sample_rate_hz"],
              "waveform": row["waveform"], "target_hz": row["target_hz"],
@@ -225,7 +287,7 @@ def main(argv=None) -> None:
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text(json.dumps(results, indent=2, allow_nan=False) + "\n",
                             encoding="utf-8")
-    print("M7 T7.0: 24 CHAOS cases, 4 switch cases; see statuses and artifact hashes")
+    print("M7 T7.0b: 24 CHAOS cases, 4 switches + clocked division; see actual statuses")
 
 
 if __name__ == "__main__":

@@ -294,6 +294,21 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(refused["status"], "unavailable")
         self.assertIsNone(refused["click_excess_db"])
 
+    def test_t7_0b_window_captures_late_first_effect(self):
+        rate, switch, first = 48000, 48000, 84001
+        baseline = np.zeros((rate * 2, 2))
+        switched = baseline.copy()
+        switched[first] = .5
+        early = switch_click_metrics(switched, switch, rate,
+                                     no_switch_audio=baseline, delay_time_s=.375)
+        corrected = switch_click_metrics(switched, switch, rate,
+                                         no_switch_audio=baseline, delay_time_s=.375,
+                                         first_effect_frame=first)
+        self.assertEqual(early["switch_click_peak_fs"], 0.0)
+        self.assertGreater(corrected["switch_click_peak_fs"], .1)
+        self.assertEqual(corrected["window_kind"], "delay_first_observed_difference")
+        self.assertEqual(corrected["window_end_frame_exclusive"], first + 1200)
+
     def test_response_and_step(self):
         t = np.arange(48000) / 48000
         dry = np.column_stack([np.sin(t * math.tau * 440)] * 2)
