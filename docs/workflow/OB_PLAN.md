@@ -6,6 +6,22 @@ Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 a
 Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
 The dated dispatch entries below are history.
 
+## Next-day delivery queue — 2026-11-21 18:34 EST
+
+Start the current row for each builder. A numbered successor starts only when its release condition is met. Use one issue, branch and PR per task. Use hosted device-off CI and publish a signed Result with exact head and evidence.
+
+| Lane | Start or continue now | Independent work while blocked | Successors in order |
+|---|---|---|---|
+| B1 | [#309](https://github.com/kalharbi11/wirescape-lab/pull/309) align its dedicated workflow with #312 CLI, reports and tier baselines | Read-only #298 pin 7 matrix for CLI play, soak, golden, render, sidecar and web | After S6, rebase #298 first; get coverage/Claude review, then [#318](https://github.com/kalharbi11/wirescape-lab/issues/318) Pi script/docs and path-only dry run. In parallel, enable hosted OSC after #305 lands and MIDI after #308 integration. Revalidate mapped workflow paths after S6. |
+| B2 | [#311](https://github.com/kalharbi11/wirescape-lab/pull/311) fix scripted assertion and inspect sanitizer | Plan MIDI profile integration without editing bench/io; prepare OB-f1 candidate procedure | After #305 merge and bench writer handoff, add `midi-m8` and `mixed` to #308. Sync mapped paths and verify Lab after S6. Run OB-f1 at pinned candidate. [#319](https://github.com/kalharbi11/wirescape-lab/issues/319) is P3 reserve for a released idle slot. |
+| B3 | [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) finish MIDI to CV trigger draft and device-off evidence | Plan fixed-window evidence for #314 read-only | If #307 is handed off and S6 is open, draft [#316](https://github.com/kalharbi11/wirescape-lab/issues/316) ADSR. After S6, #291 is the second parked rebase and still needs D5 and K1–K8. Then [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) Delay → S7.7 VCF → S7.8 Ladder → S7.9 CHOKE, with separate scoped issues and ADSR writer held by one task at a time. |
+| B4 | [#295](https://github.com/kalharbi11/wirescape-lab/pull/295) classify and resolve 76 preview hits; guarded replay, full evidence and Claude review | Read-only next-stage inventory during check runs | S6 merge and mapped-path release → [#315](https://github.com/kalharbi11/wirescape-lab/issues/315) T1.6a → b → c (b and c require contract-review) → TR1e (full ER1 and contract-review) → E6 (ER1/ER2/ER6) → E4a → E4b. Actual predecessor merges and a released issue control each start. |
+| B5 | [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) correction, runner evidence when available | Read #317's Studio test seams while Lab runs | After #312 source review, give up the bench writer slot and draft [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) in Studio tests. #308 owns native MIDI/sidecar overlap until handed off. After S6, bounded OB-c one case at a time, starting with panic raw markers and PCM evidence once released; panic semantics require Architect disposition. |
+
+Phase B lets these five current packets run together: S6 apply work in B4's lane, explicitly authorized OB-g drafts in B2/B3 isolated branches, B1's dedicated workflow, and B5's bench-only correction. Keep product drafts unmerged during S6. The #305 bench writer goes to B2 only by recorded handoff; #317 begins with Studio tests only. Runner and soak outcomes are advisory. P4 stays parked. A28 needs the owner's design choice.
+
+Signed: codex-lead, 2026-11-21, 18:34 EST
+
 ## Four-builder queue — 2026-11-19 03:35 EST
 
 B1 now has independent OB-a2 #259. B2 continues #207/#214, B3 #243/#255, and B4 #253.
