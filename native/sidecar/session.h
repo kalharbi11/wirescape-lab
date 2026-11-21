@@ -6,6 +6,7 @@
 #include "../io/audio/portaudio_service.h"
 #include "devices.h"
 #include "midi_host.h"
+#include "scripted_backend.h"
 #include "null_sink_capture.h"
 #include "osc_host.h"
 #include <array>
@@ -15,6 +16,7 @@
 namespace wirescape::sidecar {
 struct Options {
     bool audio = false, midi = false, lan = false, null_audio = false, bench_summary = false;
+    bool scripted_midi = false; // explicit test-only flag, requires null audio + settings path
     std::string device, settings = "user_data/settings.json", directory;
     std::string capture_null_sink; // empty: no capture (unchanged behaviour)
     uint32_t rate = 48000, block = 256;
@@ -71,6 +73,9 @@ class Session {
     AppEngine *active_ = nullptr;
     std::unique_ptr<audio::Stream> stream_;
     ObservedMidi *observer_ = nullptr;
+    midi::ScriptedBackend *scripted_midi_ = nullptr; // borrowed from injected ObservedMidi
+    std::chrono::steady_clock::time_point scripted_started_{};
+    bool scripted_started_enabled_ = false;
     std::unique_ptr<monitor::Capture> monitor_;
     std::unique_ptr<midi::Host> midi_;
     std::unique_ptr<osc::Host> osc_;

@@ -69,3 +69,10 @@ add_executable(abi2_midi_scripted_tests scripted_backend_tests.cpp)
 target_link_libraries(abi2_midi_scripted_tests PRIVATE wirescape_midi_host)
 add_test(NAME abi2_midi_scripted_tests COMMAND abi2_midi_scripted_tests)
 set_tests_properties(abi2_midi_scripted_tests PROPERTIES TIMEOUT 30)
+
+# Test the real null-audio sidecar flag and the additive MIDI diagnostics shape.
+find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+add_test(NAME abi2_midi_scripted_sidecar_tests
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripted_sidecar_tests.py
+          $<TARGET_FILE:wirescape_engine_sidecar>)
+set_tests_properties(abi2_midi_scripted_sidecar_tests PROPERTIES TIMEOUT 40)

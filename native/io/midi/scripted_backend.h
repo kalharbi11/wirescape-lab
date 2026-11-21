@@ -52,6 +52,16 @@ public:
         }
     }
 
+    // Installed by the control owner before the first scripted callback.
+    // In particular, a sidecar handshake never retroactively makes MIDI late.
+    bool set_origin_ns(uint64_t origin_ns) noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (note_phase_ || clock_tick_ || sense_tick_ || cc_tick_ || sustain_tick_ || panic_tick_ != 1)
+            return false;
+        config_.origin_ns = origin_ns;
+        return true;
+    }
+
     bool opened() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return online_;
