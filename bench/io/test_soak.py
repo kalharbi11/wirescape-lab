@@ -95,6 +95,8 @@ class SoakTests(unittest.TestCase):
                 soak.check_counters(first, increased)
             self.assertEqual(caught.exception.check, "counter_rise")
         soak.check_counters(first, first)
+        self.assertEqual(soak.counters({"status": {"midi": {"release_panic": 0}}}),
+                         {"midi.release_panic": 0})
 
     def test_bench_fault(self):
         stats = soak.bench_line("notice\nbench blocks=12 p99=2.2 overruns=0 faults=0 overrun_render_count=0 overrun_wake_count=0\n")

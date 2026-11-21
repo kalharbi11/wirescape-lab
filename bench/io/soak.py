@@ -198,7 +198,7 @@ def counters(message):
                     result[f"osc.{kind}.{route.get('module', i)}.{name}"] = route[name]
     midi = state.get("midi", {})
     observed = midi.get("counters", midi)
-    for name in MIDI_STOP_FIELDS:
+    for name in (*MIDI_STOP_FIELDS, "release_panic"):
         if type(observed.get(name)) is int:
             result[f"midi.{name}"] = observed[name]
     return result
@@ -539,7 +539,10 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             next_seq = next_load = next_rss = start
             next_fall = None
             next_edit = start + 30
-            initial = None
+            # Use scripted hello's zero counters so early drops cannot hide
+            # before the first periodic status creates a baseline.
+            initial = (counters({"status": {"midi": child.hello.get("midi", {})}})
+                       if profile in MIDI_PROFILES else None)
             rss_anchor = None
             rss_peak = 0
             load_count = 0
