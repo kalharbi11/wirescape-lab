@@ -28,8 +28,8 @@ A2_FAILURES = ("missing_echo", "missing_gate_edge", "stuck_gate",
 
 
 class Stop(Exception):
-    def __init__(self, check, detail):
-        self.check, self.detail = check, detail
+    def __init__(self, check, detail, witness=None):
+        self.check, self.detail, self.witness = check, detail, witness
         super().__init__(f"{check}: {detail}")
 
 
@@ -240,10 +240,66 @@ class Watch:
         self.last_gate = 0
         self.gate_seen = False
         self.fall_at = None
+        self.high_edge = None
+        self.edit = None
         self.events = deque(maxlen=20000)
 
     def note(self, now, event):
         self.events.append((now, event))
+
+    def begin_edit(self, serial, now):
+        """Pin only the specific sends/edges already in flight at loadGraph start."""
+        self.edit = {
+            "serial": serial, "started_at": now, "completed_at": None,
+            "sequences": tuple(self.expected_seq),
+            "edges": tuple(self.expected_edges),
+            "active_high": self.high_edge if self.last_gate == 1 else None,
+        }
+        self.note(now, f"loadGraph start id={serial} seq={len(self.edit['sequences'])} "
+                  f"edges={len(self.edit['edges'])} high={self.edit['active_high'] is not None}")
+
+    def end_edit(self, now):
+        if self.edit is not None:
+            self.edit["completed_at"] = now
+            self.note(now, f"loadGraph end id={self.edit['serial']}")
+
+    def attribute_fault(self, failure, now):
+        """Return an A2 witness only for a pre-edit in-flight sentinel.
+
+        A later failure with the same check name is never made expected merely
+        because an older config edit occurred. At most 350ms after the actual
+        loadGraph response is attributable (250ms OSC echo budget + margin).
+        """
+        edit = self.edit
+        if (edit is None or edit["completed_at"] is None or
+                not edit["started_at"] <= now <= edit["completed_at"] + .350):
+            return None
+        witness = failure.witness
+        if failure.check == "missing_echo":
+            matched = witness in edit["sequences"]
+            kind = "sequence"
+        elif failure.check in ("missing_gate_edge", "gate_edge_order"):
+            matched = witness in edit["edges"]
+            kind = "edge"
+        elif failure.check == "stuck_gate":
+            matched = witness is not None and (
+                witness == edit["active_high"] or witness in edit["edges"])
+            kind = "high_edge"
+        else:
+            return None
+        if not matched:
+            return None
+        return {
+            "edit_id": edit["serial"],
+            "started_at": edit["started_at"],
+            "completed_at": edit["completed_at"],
+            "observed_at": now,
+            "pending_at_edit": {"sequences": len(edit["sequences"]),
+                                "edges": len(edit["edges"]),
+                                "active_high": edit["active_high"] is not None},
+            "witness": {"kind": kind, "value": witness[0], "sent_at": witness[1]},
+            "fault": {"check": failure.check, "detail": failure.detail},
+        }
 
     def send_seq(self, now):
         self.sequence += 1
@@ -281,17 +337,23 @@ class Watch:
                 raise Stop("unexpected_gate_edge", str(level))
             expected, _ = self.expected_edges.popleft()
             if level != expected:
-                raise Stop("gate_edge_order", f"expected={expected} actual={level}")
-            if not level:
+                raise Stop("gate_edge_order", f"expected={expected} actual={level}",
+                           (expected, _))
+            if level:
+                self.high_edge = (expected, _)
+            else:
+                self.high_edge = None
                 self.fall_at = None
 
     def check(self, now):
         if self.fall_at is not None and self.last_gate == 1 and now - self.fall_at > .050:
-            raise Stop("stuck_gate", "gate >50ms after scheduled fall")
+            raise Stop("stuck_gate", "gate >50ms after scheduled fall", self.high_edge)
         if self.expected_edges and now - self.expected_edges[0][1] > .050:
-            raise Stop("missing_gate_edge", str(self.expected_edges[0][0]))
+            raise Stop("missing_gate_edge", str(self.expected_edges[0][0]),
+                       self.expected_edges[0])
         if self.expected_seq and now - self.expected_seq[0][1] > .250:
-            raise Stop("missing_echo", f"seq value={self.expected_seq[0][0]:.6f}")
+            raise Stop("missing_echo", f"seq value={self.expected_seq[0][0]:.6f}",
+                       self.expected_seq[0])
 
 
 def bench_line(stderr):
@@ -305,12 +367,33 @@ def bench_line(stderr):
     return None
 
 
+BENCH_STOP_FIELDS = ("overruns", "faults", "overrun_render_count", "overrun_wake_count")
+
+
 def check_bench(bench):
     if bench is None:
         raise Stop("bench_missing", "expected --bench-summary on shutdown")
-    for key in ("overruns", "faults", "overrun_render_count", "overrun_wake_count"):
-        if bench.get(key, 0) > 0:
+    for key in BENCH_STOP_FIELDS:
+        if key not in bench or not isinstance(bench[key], (float, int)):
+            raise Stop("bench_missing", f"missing/invalid bench field: {key}")
+        if not math.isfinite(bench[key]) or bench[key] < 0:
+            raise Stop("bench_missing", f"invalid bench field: {key}={bench[key]}")
+        if bench[key] > 0:
             raise Stop("bench_fault", f"{key}={bench[key]}")
+
+
+def apply_shutdown_checks(result, exit_code, stderr):
+    """XFAIL retains its A2 witness, but cannot hide bench faults or engine exit."""
+    result["bench"] = bench_line(stderr)
+    if result["status"] not in ("passed", "xpass", "xfail"):
+        return
+    try:
+        if exit_code != 0:
+            raise Stop("engine_exit", f"shutdown exit={exit_code}")
+        check_bench(result["bench"])
+    except Stop as exc:
+        result["status"] = "failed"
+        result["first_failure"] = {"check": exc.check, "detail": exc.detail}
 
 
 def source_sha():
@@ -340,13 +423,17 @@ def load_baseline(path, source, profile, mode):
     return float(doc["p99_ms"])
 
 
-def classify(edit_mode, e5, edits, failure):
+def classify(edit_mode, e5, failure, a2_observation=None):
     if edit_mode != "config-edits" or e5:
         return ("failed", failure) if failure else ("passed", None)
     if failure is None:
-        return "xpass", {"check": "A2_unexpected_pass", "detail": "no measured pre-E5 edit-time disruption"}
-    if edits > 0 and failure["check"] in A2_FAILURES:
-        return "xfail", {"check": "A2_expected_failure", "detail": str(failure)}
+        return "xpass", {"check": "A2_unexpected_pass",
+                         "detail": "no measured pre-E5 edit-time disruption"}
+    if (a2_observation is not None and failure["check"] in A2_FAILURES and
+            a2_observation.get("fault") == failure):
+        return "xfail", {"check": "A2_expected_failure",
+                         "detail": str(failure),
+                         "edit_id": a2_observation["edit_id"]}
     return "failed", failure
 
 
@@ -364,7 +451,8 @@ def reports(dest, result):
              f"- Counters after: {json.dumps(result['counters_after'], sort_keys=True)}",
              f"- RTT p99 ms: {result['p99_ms']}; L0 baseline ms: {result['l0_p99_ms']}",
              f"- RSS peak bytes: {result['rss_peak_bytes']}; bench: {result['bench']}",
-             f"- Counter coverage: {result['counter_visibility']}", "",
+             f"- Counter coverage: {result['counter_visibility']}",
+             f"- Qualifying A2 edit observation: {json.dumps(result['a2_observation'], sort_keys=True)}", "",
              "## Last five seconds of events", "", "Events:",
              *result["events_last_5s"], "End events", ""]
     (dest / "report.md").write_text("\n".join(lines))
@@ -381,7 +469,8 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
               "first_failure": None, "counters_before": {}, "counters_after": {},
               "counter_visibility": {}, "bench": None, "p99_ms": None, "l0_p99_ms": None,
               "rss_peak_bytes": None, "events_last_5s": [], "elapsed_s": 0.0,
-              "load_edits": 0, "messages_sent": 0, "messages_received": 0}
+              "load_edits": 0, "messages_sent": 0, "messages_received": 0,
+              "a2_observation": None}
     try:
         if not engine.is_file() or not os.access(engine, os.X_OK):
             raise Stop("engine_missing", f"executable unavailable: {engine}")
@@ -505,8 +594,11 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                 watch.check(now)
                 if mode == "config-edits" and now >= next_edit:
                     result["load_edits"] += 1
-                    unprocessed.extend(child.load(graph, result["load_edits"]))
-                    watch.note(time.monotonic(), "loadGraph config edit")
+                    watch.begin_edit(result["load_edits"], time.monotonic())
+                    try:
+                        unprocessed.extend(child.load(graph, result["load_edits"]))
+                    finally:
+                        watch.end_edit(time.monotonic())
                     next_edit += 30
                 time.sleep(.0002)
             result["rate_hz_per_address"] = last_rate
@@ -524,29 +616,21 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             watch.check(time.monotonic())
             if watch.expected_seq or watch.expected_edges:
                 raise Stop("missing_echo", "pending seq/gate at boundary")
-            result["status"], result["first_failure"] = classify(mode, e5, result["load_edits"], None)
+            result["status"], result["first_failure"] = classify(mode, e5, None)
     except (Stop, OSError, ValueError, queue.Empty, subprocess.TimeoutExpired) as exc:
         check = exc.check if isinstance(exc, Stop) else type(exc).__name__
         detail = exc.detail if isinstance(exc, Stop) else str(exc)
+        failure = {"check": check, "detail": detail}
+        observation = watch.attribute_fault(exc, time.monotonic()) if isinstance(exc, Stop) else None
+        result["a2_observation"] = observation
         result["status"], result["first_failure"] = classify(
-            mode, e5, result["load_edits"], {"check": check, "detail": detail})
+            mode, e5, failure, observation)
         if check in ("engine_missing", "source_unpinned", "L0_baseline", "tier_prerequisite"):
             result["status"] = "blocked"
     finally:
         if child:
             exit_code, stderr = child.close()
-            result["bench"] = bench_line(stderr)
-            if result["status"] == "passed":
-                try:
-                    if exit_code:
-                        raise Stop("engine_exit", f"shutdown exit={exit_code}")
-                    check_bench(result["bench"])
-                except Stop as exc:
-                    result["status"] = "failed"
-                    result["first_failure"] = {"check": exc.check, "detail": exc.detail}
-            elif result["status"] == "xfail" and exit_code:
-                result["status"] = "failed"
-                result["first_failure"] = {"check": "engine_exit", "detail": f"shutdown exit={exit_code}"}
+            apply_shutdown_checks(result, exit_code, stderr)
         result["elapsed_s"] = time.monotonic() - started
         result["p99_ms"] = percentile(watch.latencies_ms, 99)
         cutoff = time.monotonic() - 5

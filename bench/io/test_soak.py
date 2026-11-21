@@ -80,12 +80,99 @@ class SoakTests(unittest.TestCase):
                 soak.load_baseline(path, "different", "osc-gates", "still")
 
     def test_expected_failure_requires_measured_edit_failure(self):
-        fault = {"check": "missing_echo", "detail": "A2 simulation"}
-        self.assertEqual(soak.classify("config-edits", False, 1, fault)[0], "xfail")
-        self.assertEqual(soak.classify("config-edits", False, 1, None)[0], "xpass")
-        self.assertEqual(soak.classify("config-edits", True, 1, None)[0], "passed")
-        self.assertEqual(soak.classify("config-edits", False, 0, fault)[0], "failed")
-        self.assertEqual(soak.classify("still", False, 0, fault)[0], "failed")
+        watch = soak.Watch()
+        watch.send_seq(10.0)
+        watch.begin_edit(1, 10.01)
+        watch.end_edit(10.03)
+        with self.assertRaises(soak.Stop) as caught:
+            watch.check(10.26)
+        failure = {"check": caught.exception.check, "detail": caught.exception.detail}
+        observation = watch.attribute_fault(caught.exception, 10.26)
+        self.assertIsNotNone(observation)
+        self.assertEqual(observation["edit_id"], 1)
+        self.assertEqual(observation["pending_at_edit"]["sequences"], 1)
+        self.assertEqual(soak.classify("config-edits", False, failure, observation)[0], "xfail")
+        self.assertEqual(soak.classify("config-edits", False, failure)[0], "failed")
+        self.assertEqual(soak.classify("config-edits", False, None)[0], "xpass")
+        self.assertEqual(soak.classify("config-edits", True, None)[0], "passed")
+        self.assertEqual(soak.classify("still", False, failure, observation)[0], "failed")
+
+    def test_later_unrelated_sequence_fault_after_prior_edit_is_failure(self):
+        watch = soak.Watch()
+        _, value = watch.send_seq(10.0)
+        watch.begin_edit(1, 10.01)
+        watch.end_edit(10.03)
+        watch.receive(10.04, "/io/echo", value)  # pre-edit in-flight seq resolved
+        watch.send_seq(10.05)                     # new, unrelated sequence
+        with self.assertRaises(soak.Stop) as caught:
+            watch.check(10.31)
+        self.assertEqual(caught.exception.check, "missing_echo")
+        self.assertIsNone(watch.attribute_fault(caught.exception, 10.31))
+        failure = {"check": caught.exception.check, "detail": caught.exception.detail}
+        self.assertEqual(soak.classify("config-edits", False, failure)[0], "failed")
+
+    def test_old_edit_does_not_excuse_late_fault(self):
+        watch = soak.Watch()
+        watch.send_seq(10)
+        watch.begin_edit(1, 10.01)
+        watch.end_edit(10.03)
+        with self.assertRaises(soak.Stop) as caught:
+            watch.check(11)
+        self.assertIsNone(watch.attribute_fault(caught.exception, 11))
+        failure = {"check": caught.exception.check, "detail": caught.exception.detail}
+        self.assertEqual(soak.classify("config-edits", False, failure)[0], "failed")
+
+    def test_unrelated_gate_edge_after_prior_edit_remains_failure(self):
+        watch = soak.Watch()
+        watch.send_seq(10)
+        watch.begin_edit(1, 10.01)
+        watch.end_edit(10.03)
+        watch.send_gate(10.04, True)  # rising edge is *not* part of edit snapshot
+        with self.assertRaises(soak.Stop) as caught:
+            watch.check(10.10)
+        self.assertEqual(caught.exception.check, "missing_gate_edge")
+        self.assertIsNone(watch.attribute_fault(caught.exception, 10.10))
+
+    def test_qualifying_gate_stuck_across_edit(self):
+        watch = soak.Watch()
+        watch.send_gate(10.0, True)
+        watch.receive(10.003, "/io/edge", 1.0)
+        watch.begin_edit(1, 10.01)
+        watch.end_edit(10.03)
+        watch.send_gate(10.04, False)
+        with self.assertRaises(soak.Stop) as caught:
+            watch.check(10.10)
+        self.assertEqual(caught.exception.check, "stuck_gate")
+        observation = watch.attribute_fault(caught.exception, 10.10)
+        self.assertIsNotNone(observation)
+        failure = {"check": caught.exception.check, "detail": caught.exception.detail}
+        self.assertEqual(soak.classify("config-edits", False, failure, observation)[0], "xfail")
+
+    def test_xfail_bad_shutdown_bench_remains_failure_and_retains_a2(self):
+        observation = {"edit_id": 1, "fault": {"check": "missing_echo",
+                                              "detail": "inflight seq 2"}}
+        result = {"status": "xfail", "first_failure": {"check": "A2_expected_failure"},
+                  "a2_observation": observation, "bench": None}
+        bad = "bench blocks=100 overruns=1 faults=0 overrun_render_count=0 overrun_wake_count=0"
+        soak.apply_shutdown_checks(result, 0, bad)
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["first_failure"]["check"], "bench_fault")
+        self.assertEqual(result["a2_observation"], observation)
+        self.assertEqual(result["bench"]["overruns"], 1)
+
+    def test_xfail_missing_bench_and_exit_also_fail(self):
+        for code, stderr, expected in [
+            (0, "bench blocks=100 overruns=0 faults=0", "bench_missing"),
+            (0, "invalid log with no bench line", "bench_missing"),
+            (137, "bench blocks=10 overruns=0 faults=0 "
+             "overrun_render_count=0 overrun_wake_count=0", "engine_exit"),
+        ]:
+            result = {"status": "xfail", "first_failure": {"check": "A2_expected_failure"},
+                      "a2_observation": {"edit_id": 1}, "bench": None}
+            soak.apply_shutdown_checks(result, code, stderr)
+            self.assertEqual(result["status"], "failed")
+            self.assertEqual(result["first_failure"]["check"], expected)
+            self.assertEqual(result["a2_observation"], {"edit_id": 1})
 
     def test_missing_engine_writes_both_reports(self):
         with tempfile.TemporaryDirectory() as temp:
