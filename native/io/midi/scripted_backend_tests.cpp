@@ -98,8 +98,18 @@ static void host_injection() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     CHECK(host.counters().received >= 5);
     CHECK(host.counters().dropped == 0 && host.counters().ring_full == 0);
+    // Render stays parked: >64 releases saturate the real engine's MIDI
+    // producer and exercise Host::deliver's counted panic fallback.
+    const uint8_t off[]{0x80, 60, 0};
+    for (unsigned i = 0; i < 128; ++i) CHECK(script->inject(off, sizeof(off), app_engine_clock_ns()));
+    while (!host.counters().release_panics && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    CHECK(host.counters().release_panics > 0);
+    CHECK(host.counters().send_fail > 0);
+    CHECK(host.diagnostics().find("\\\"release_panics\\\":") != std::string::npos);
     host.stop();
     CHECK(!script->opened());
+    CHECK(host.diagnostics().find("\\\"release_panics\\\":") != std::string::npos);
 }
 int main() {
     source_script();
