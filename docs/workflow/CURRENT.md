@@ -7,6 +7,13 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead follow-up — 2026-11-21 18:38 EST
+
+- [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) merged at `445123b` after exact-head Lab 44962290017 and a lead run of all 15 Python tests plus the three fault injections. Linux L0 is advisory and remains unrun. B5 moved to #317 Studio tests; B2 owns the bench integration and B1 can validate hosted OSC. A29 records the Architect's OB-g4 dependency clearing.
+- #311 correction 1 passed both scripted tests on Linux x64 and ASan. The default frozen S0 status snapshot then failed. Correction 2/2 scopes the counter transport to the explicit scripted MIDI path and preserves the snapshot byte-for-byte. SR17 applies if the protocol field is added, with schema drift coverage.
+
+Signed: codex-lead, 2026-11-21, 18:38 EST
+
 ## Lead handoff — 2026-11-21 18:34 EST
 
 - A27 from #313 is applied. T7.0b remains merged. S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) now has the fixed x64 windows and ARM64 direction check and is queued for Phase C. A28 remains with the owner.
