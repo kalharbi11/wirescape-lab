@@ -15,6 +15,44 @@
 #include <thread>
 #include <tuple>
 using namespace wirescape; using namespace midi;
+// Scope-local 10-output test specialization; do not change the shared MIDI fixture during S6.
+template<> struct MidiRig<wirescape::midi::MidiToCv> {
+    MidiArena arena; ws2_host host{sizeof(host), &arena, MidiArena::alloc};
+    const ws2_descriptor* d = ws::Module<wirescape::midi::MidiToCv>::descriptor(); void* instance = nullptr;
+    struct Buffers {
+        float output[10][16][256]{};
+    };
+    std::unique_ptr<Buffers> buffer = std::make_unique<Buffers>();
+    float values[32]{}; const float* parameter_rows[32]{}; ws2_signal params[32]{};
+    ws2_signal input{sizeof(ws2_signal), nullptr, 0, 0};
+    float *output_rows[10][16]{};
+    ws2_signal_out outputs[10]{};
+    ws2_event_out event_outputs[10]{};
+    ws2_event_list input_events{}; ws2_process ctx{};
+    std::vector<ws2_event> emitted; size_t event_limit = 20000;
+    static int WS2_CALL push(void* context, uint32_t port, const ws2_event* event) {
+        auto& r = *static_cast<MidiRig*>(context); if (r.emitted.size() >= r.event_limit) return WS2_CAPACITY;
+        auto copy = *event; copy.port = port; r.emitted.push_back(copy); return WS2_OK;
+    }
+    explicit MidiRig(const uint8_t* config = nullptr, uint32_t bytes = 0, double rate = 48000) {
+        emitted.reserve(20000); instance = d->create(&host); REQUIRE(instance);
+        ws2_config cfg{sizeof(cfg), rate, 256, 16, 42, config, bytes}; REQUIRE(d->prepare(instance, &cfg, &host) == WS2_OK);
+        for (uint32_t i = 0; i < d->param_count; ++i) { values[i] = d->params[i].initial; parameter_rows[i] = &values[i]; params[i] = {sizeof(ws2_signal), &parameter_rows[i], 1, WS2_CONSTANT}; }
+        for (uint32_t p = 0; p < d->output_count; ++p) { for (uint32_t c = 0; c < 16; ++c) output_rows[p][c] = buffer->output[p][c]; outputs[p] = {sizeof(ws2_signal_out), output_rows[p], 1, 0, 16}; event_outputs[p] = {sizeof(ws2_event_out), this, p, push}; }
+        ctx.struct_size = sizeof(ctx); ctx.sample_rate = rate; ctx.channels = 1; ctx.input_count = d->input_count; ctx.output_count = d->output_count; ctx.param_count = d->param_count;
+        ctx.inputs = &input; ctx.params = params; ctx.outputs = outputs; ctx.event_outputs = event_outputs; ctx.event_inputs = &input_events;
+    }
+    ~MidiRig() { d->destroy(instance); }
+    void run(std::vector<ws2_event> events = {}, uint32_t frames = 32) {
+        std::stable_sort(events.begin(), events.end(), [](const ws2_event& a, const ws2_event& b) { return a.offset < b.offset; });
+        input_events = {sizeof(ws2_event_list), uint32_t(events.size()), events.data()}; ctx.events = input_events; ctx.frames = frames;
+        int result; { allocation_watch::Scope scope; result = d->process(instance, &ctx); REQUIRE(scope.allocations() == 0); }
+        input_events = {}; ctx.events = {};
+        REQUIRE(result == WS2_OK); ctx.frame_position += frames;
+        for (uint32_t p = 0; p < d->output_count; ++p) if (d->outputs[p].kind == WS2_SIGNAL) for (uint32_t c = 0; c < outputs[p].channels; ++c) for (uint32_t i = 0; i < frames; ++i) REQUIRE(std::isfinite(buffer->output[p][c][i]));
+    }
+    float sample(uint32_t p, uint32_t channel = 0, uint32_t frame = 31) const { return buffer->output[p][channel][frame]; }
+};
 static void basic_and_steal() {
     MidiRig<MidiToCv> r; r.values[0] = 3;
     r.run({midi1(0x90, 60, 127), midi1(0x90, 69, 64), midi1(0x90, 72, 1)});
@@ -212,9 +250,9 @@ static void full_endpoint_channel_matrix() {
 
 static void last_note_mono_hold_and_restore() {
     MidiRig<MidiToCv> r;
-    REQUIRE(r.d->output_count == 9);
-    const char *ids[] = {"pitch", "gate", "velocity", "aftertouch", "pressure", "bend", "mod", "notes", "last_note"};
-    for (uint32_t i = 0; i < 9; ++i) REQUIRE(std::strcmp(r.d->outputs[i].id, ids[i]) == 0);
+    REQUIRE(r.d->output_count == 10);
+    const char *ids[] = {"pitch", "gate", "velocity", "aftertouch", "pressure", "bend", "mod", "notes", "last_note", "trig"};
+    for (uint32_t i = 0; i < 10; ++i) REQUIRE(std::strcmp(r.d->outputs[i].id, ids[i]) == 0);
     r.values[0] = 4;
     r.run();
     REQUIRE(r.outputs[8].channels == 1 && r.sample(8) == 0);
@@ -290,8 +328,76 @@ static void last_note_acceptance_modes_and_limits() {
     REQUIRE(rotate.sample(8) == 2);
     rotate.run({source_choke()});
 }
+
+static void trigger_pulse_exact_head_device_off() {
+    for (double rate : {44100., 48000., 96000.}) {
+        const uint32_t width = uint32_t(std::lround(rate / 1000.0));
+        MidiRig<MidiToCv> poly(nullptr, 0, rate);
+        poly.values[0] = 3;
+        poly.run({midi1(0x90, 60, 127, 3), midi1(0x90, 64, 127, 19),
+                  midi1(0x90, 67, 127, 34)}, width + 40);
+        REQUIRE(poly.outputs[9].channels == 3);
+        const uint32_t offsets[]{3, 19, 34};
+        for (uint32_t i = 0; i < width + 40; ++i) {
+            for (uint32_t c = 0; c < 3; ++c) {
+                REQUIRE(poly.sample(9, c, i) == float(i >= offsets[c] && i < offsets[c] + width));
+                REQUIRE(poly.sample(1, c, i) == float(i >= offsets[c]));
+            }
+        }
+        REQUIRE(poly.sample(0, 0, width + 39) == 0);
+        REQUIRE(poly.sample(0, 1, width + 39) == 4.f / 12.f);
+        REQUIRE(poly.sample(0, 2, width + 39) == 7.f / 12.f);
+
+        MidiRig<MidiToCv> tail(nullptr, 0, rate);
+        tail.run({midi1(0x90, 60, 127, 255), midi1(0x80, 60, 0, 255)}, 256);
+        REQUIRE(tail.sample(9, 0, 254) == 0 && tail.sample(9, 0, 255) == 1);
+        tail.run({}, width + 2);
+        for (uint32_t i = 0; i < width + 2; ++i)
+            REQUIRE(tail.sample(9, 0, i) == float(i < width - 1));
+        REQUIRE(tail.sample(1, 0, 0) == 0);
+        tail.d->reset(tail.instance);
+        tail.run();
+        for (uint32_t c = 0; c < 4; ++c) REQUIRE(tail.sample(9, c, 0) == 0);
+
+        MidiRig<MidiToCv> mono(nullptr, 0, rate);
+        mono.values[1] = 3;
+        mono.values[4] = 1; // legato: the gate must never drop for the second Note On
+        const uint32_t legato_at = width + 8;
+        mono.run({midi1(0x90, 60, 127, 0), midi1(0x90, 64, 127, legato_at)},
+                 legato_at + width + 2);
+        REQUIRE(mono.outputs[9].channels == 1);
+        for (uint32_t i = 0; i < legato_at + width + 2; ++i) {
+            REQUIRE(mono.sample(9, 0, i) ==
+                    float(i < width || (i >= legato_at && i < legato_at + width)));
+            REQUIRE(mono.sample(1, 0, i) == 1);
+            REQUIRE(mono.sample(0, 0, i) == (i < legato_at ? 0 : 4.f / 12.f));
+        }
+
+        // Mono low-priority can hold a Note On without allocating it a lane.
+        MidiRig<MidiToCv> held(nullptr, 0, rate);
+        held.values[1] = 3;
+        held.values[3] = 1; // lowest note
+        held.run({midi1(0x90, 60, 127, 0), midi1(0x90, 72, 127, width + 9)},
+                 width + 55);
+        for (uint32_t i = width + 9; i < width + 55; ++i)
+            REQUIRE(held.sample(9, 0, i) == 0);
+        REQUIRE(held.sample(1, 0, width + 54) == 1);
+
+        // MIDI 1 zero velocity is Note Off; MIDI 2 zero velocity remains Note On.
+        MidiRig<MidiToCv> zero(nullptr, 0, rate);
+        zero.run({midi1(0x90, 60, 0, 3), midi2(0x90, 64, 0, 10)}, width + 15);
+        for (uint32_t i = 0; i < width + 15; ++i) {
+            REQUIRE(zero.sample(9, 0, i) == float(i >= 10 && i < 10 + width));
+            REQUIRE(zero.sample(9, 1, i) == 0);
+        }
+    }
+}
+
 static void metadata_contract() {
     REQUIRE(MidiToCv::params.size() == 9);
+    REQUIRE(MidiToCv::outputs.size() == 10);
+    REQUIRE(std::strcmp(MidiToCv::outputs[8].id, "last_note") == 0);
+    REQUIRE(std::strcmp(MidiToCv::outputs[9].id, "trig") == 0);
     for (const auto& parameter : MidiToCv::params) REQUIRE(std::strcmp(parameter.id, "retrigger") != 0);
     REQUIRE(MidiToCv::params[5].legacy_index == 6);
     REQUIRE(MidiToCv::params[8].legacy_index == 9);
@@ -387,6 +493,7 @@ int main(int argc, char **argv) {
     coordinator_poly_soak(1, false);
     full_endpoint_channel_matrix();
     metadata_contract();
+    trigger_pulse_exact_head_device_off();
     basic_and_steal();
     last_note_mono_hold_and_restore();
     last_note_acceptance_modes_and_limits();
