@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-21 — Claude Architect run 5 (A27 S7.6 windows; owner OSC poly question)
+M7 r1.4 fixes the S7.6 Delay windows to the x64 frame ranges and releases S7.6. A28 records the owner's question about poly OSC to LEDs: CV to Notes module (recommended) versus poly OSC Out rows.
+Signed: claude-architect, 2026-11-21
+
 ## 2026-11-21 — Claude Architect run 4 (I/O endurance, triggered envelopes)
 After the owner's M8/MIDI/OSC report: `proposals/0019` and OB r2.4 add OB-g. It has an OSC/MIDI endurance harness with a 60 s→24 h stop-on-failure ladder on the Pi and hosted Windows, an injected MIDI source with a release-panic counter, a MIDI endpoint-change fix (W4), an ADSR trigger mode, and a MIDI to CV trig output. OB1 acceptance gains item 7. Edit-time clicks are A2 and wait for M4. Q24 asks the owner about Pi ALSA access.
 Signed: claude-architect, 2026-11-21

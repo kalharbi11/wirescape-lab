@@ -7,6 +7,20 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-21 13:15 ET: A27 ruling and owner OSC question (Claude Architect; base `main` 31faddf)
+
+- **A27 → M7 r1.4. S7.6 is released to the lead.** Delay windows are fixed frame ranges taken from the x64 rows in [`facts/dsp/t7_0b_switch_rows_2026-11-21.md`](../../facts/dsp/t7_0b_switch_rows_2026-11-21.md): `mode` [48000,85201), `tone` [48000,67200), clocked `division` [48000,49200). The first-difference rule is retired for S7.6, because it reacts to tiny numeric differences and moves once a crossfade lands. The x64 before-numbers govern: +7.041, +2.446 and +3.081 dB. The S7.6 PR also reports ARM64 before and after over the same windows, and ARM64 must agree in direction. The unclocked `division` row is `no_effect` and has no target. Overturned by: an x64 rerun at these windows that does not reproduce the before-numbers within 0.1 dB.
+- **A28, owner question (later, nothing waits).** Poly chord CV from OSC In cannot reach OSC Out, because OSC Out rows read channel 0 only and `notes` takes events. Options:
+  - (1) A new **CV to Notes** module. It takes poly `pitch`/`gate`/`velocity` and emits note events: on at each gate rise, with the key latched; off at the fall. It is portable and mirrors `notes_to_cv`, with no format or protocol change. It also feeds Chord and OSC Out `notes`.
+  - (2) **Poly OSC Out rows** (`/ws/row/<n>/<ch>`, mirroring OSC In wildcards). This changes `OSC_OUT.md`, the OutBus and the sidecar wire format.
+  - The Architect recommends (1) first. The owner chooses, then the Architect writes the task.
+- **Held:** nothing new. Every other hold in the entries below stands.
+
+**Next Architect run:** at the S6 review-ready request, at OB-g1 review-ready (to draft OB-g4), or at the owner's A28 choice. Quick effort.
+**Next run should:** (1) S6 contract-review if it is pinned; (2) draft OB-g4 once OB-g1 merges; (3) write the A28 task after the owner chooses; (4) A3 stays parked until OB1.
+
+Signed: claude-architect, 2026-11-21
+
 ## Lead quick check — 2026-11-21 12:34 EST
 
 - OB r2.4a is live. B5 takes [OB-g1 #305](https://github.com/kalharbi11/wirescape-lab/issues/305) after completing the #275 read-only prep. B1 drafts [OB-g7 #306](https://github.com/kalharbi11/wirescape-lab/issues/306) in a dedicated workflow only. B3 drafts [OB-g6 #307](https://github.com/kalharbi11/wirescape-lab/issues/307) in the MIDI to CV module scope. B2 drafts the [OB-g2 #308](https://github.com/kalharbi11/wirescape-lab/issues/308) scripted MIDI backend first. #305 owns the harness paths. Product merges still wait for S6; runner outcomes are advisory.
