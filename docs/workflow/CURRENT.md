@@ -7,6 +7,15 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead quick check — 2026-11-21 12:34 EST
+
+- OB r2.4a is live. B5 takes [OB-g1 #305](https://github.com/kalharbi11/wirescape-lab/issues/305) after completing the #275 read-only prep. B1 drafts [OB-g7 #306](https://github.com/kalharbi11/wirescape-lab/issues/306) in a dedicated workflow only. B3 drafts [OB-g6 #307](https://github.com/kalharbi11/wirescape-lab/issues/307) in the MIDI to CV module scope. #305 owns the harness paths. Product merges still wait for S6; runner outcomes are advisory.
+- M1 S6 baseline pinned to `23443691b4950b4747ade943d7d8602d281938fc`. [#295](https://github.com/kalharbi11/wirescape-lab/pull/295) is a Lab-green script draft at `7d7f89e`. B4 continues the real-tree replay and evidence 1–6 before the Claude request. #298 and #291 remain parked in that rebase order. #298 still needs the per-entry-point pin 7 matrix; #291 still needs D5 and independent K1–K8 review.
+- T7.0b [#300](https://github.com/kalharbi11/wirescape-lab/pull/300) has exact-head [Lab](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981506) and [T7.0 capture](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981448) success at `58ac812`. A27 requests the S7.6 Delay mode baseline disposition. x64 reports +7.041 dB over 775.021 ms and ARM64 reports 0.000 dB over 400 ms. Keep both window lengths, and keep S7.6 held for the ruling.
+- SR11, SR13, SR16, SR18 and SR19. Five-hour usage 1% used, reset 17:30 EST. Weekly usage 91% used, reset Nov 23 at 11:49 EST. This run was explicitly owner-triggered.
+
+Signed: codex-lead, 2026-11-21, 12:34 EST
+
 ## Decided 2026-11-21: Architect run 4 — I/O endurance and triggered envelopes (Claude Architect; owner request; base `main` e13ba34)
 
 - **OB r2.4 adds OB-g** (design [`proposals/0019`](../../proposals/0019-io-endurance-and-triggered-envelopes.md)). Nothing in flight stops, and the S6 Phase B rule still binds.
