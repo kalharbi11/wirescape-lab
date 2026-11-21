@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # OB r2.4a / proposal 0019 section 3. Advisory everywhere: never a required gate.
-# DRAFT, intentionally not executing I/O: wait for OB-g1 #305 CLI/reports,
-# OB-g2 injected MIDI/counters, and post-S6 main rebase before un-parking lanes.
+# DRAFT: OB-g1 CLI/report schema compared at #312 head 78d03724.
+# OSC gated until #305 merges; MIDI until #308 bench/io integration.
+# Post-S6: #298 first, then PR309 rebase and interface validation.
 name: OB-g7 hosted I/O soak (advisory draft)
 
 on:
@@ -10,6 +11,7 @@ on:
     paths:
       - '.github/workflows/ob-g7-hosted-soak.yml'
       - 'bench/io/**'
+      - 'native/io/**'
       - 'native/**/osc/**'
       - 'native/**/midi/**'
       - 'native/**/osc_*'
@@ -51,8 +53,10 @@ jobs:
             echo "## OB-g7 draft (no I/O soak executed)"
             echo ""
             echo "- Exact PR head: $EXPECTED_HEAD"
-            echo "- OSC bench/io CLI and report.json/report.md: pending #305 validation"
-            echo "- Injected MIDI backend and counters: pending OB-g2"
+            echo "- #312 CLI: --profile/--edit-mode/--tier/--report-dir (null audio and loopback internal)"
+            echo "- Reports: <root>/<profile>/<edit-mode>/<tier>/report.json and report.md"
+            echo "- L1/L2 need passed L0 p99 and adjacent passing tier at same SHA/profile/mode"
+            echo "- OSC #305 and injected MIDI #308 integrations are not merged"
             echo "- Native paths: re-evaluate after S6 merge and rebase"
             echo "- All L0-L2 jobs are deliberately parked; skip is not an acceptance result"
             echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
@@ -83,21 +87,43 @@ jobs:
         run: |
           python -m pip install cmake==4.2.3 ninja==1.13.0
           python tools/dev.py build --headless --config Release
-      - name: Execute one Linux L0 (60s) on localhost only
+      - name: OB-g1 Python self-tests after #305 merges
+        shell: bash
+        run: |
+          python -m unittest discover -s bench/io -p 'test_*.py' -v
+          python bench/io/soak.py --self-test
+      - name: Linux L0 (60s) / source-pinned JSON report check
         shell: bash
         env:
           EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
-          report="build_reports/ob-g7/pr-${{ matrix.profile }}-${{ matrix.mode }}-L0"
-          mkdir -p "$report"
-          # Provisional OB-g1 adapter: verify flags with #305 before enabling.
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
+          root="build_reports/ob-g7/pr"
+          report="$root/$profile/$mode/L0"
+          mkdir -p "$root"
+          # #312 internally runs the null-audio, localhost-only sidecar.
+          set +e
           python bench/io/soak.py --engine build/native/wirescape-engine \
-            --null-audio --localhost-only --profile "${{ matrix.profile }}" \
-            --mode "${{ matrix.mode }}" --tier L0 --report-dir "$report" ||
-            { echo "- $EXACT_HEAD Linux L0 ${{ matrix.profile }}/${{ matrix.mode }}: see report; open parallel fix row" >> "$report/fix-rows.md"; exit 1; }
-          test -s "$report/report.json" && test -s "$report/report.md"
+            --profile "$profile" --edit-mode "$mode" --tier L0 --report-dir "$root"
+          rc=$?
+          set -e
+          if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+            echo "- $EXACT_HEAD PR $profile/$mode L0: missing reports (exit=$rc)" >> "$root/fix-rows.md"
+            exit 1
+          fi
+          status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "L0")"
+          if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+            echo "- $profile/$mode L0: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+            echo "- $EXACT_HEAD $profile/$mode L0: observed pre-E5 A2 XFAIL; not tier PASS" >> "$root/fix-rows.md"
+            echo "- $profile/$mode L0: XFAIL, not PASS" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- $EXACT_HEAD $profile/$mode L0: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -108,7 +134,7 @@ jobs:
 
   nightly-osc:
     name: Hosted OSC / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
-    # Only release after #305; schedule is main only and never blocks merges.
+    # Gated until #305 merged and real CLI/report interface verified; main cron only.
     if: ${{ false }}
     continue-on-error: true
     runs-on: ${{ matrix.runner }}
@@ -156,26 +182,48 @@ jobs:
           "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
       - name: Build null-audio native sidecar
         run: python tools/dev.py build --headless --config Release
-      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first failure
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first nonpass
         env:
           EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
           engine="build/native/wirescape-engine"
-          if [ "$RUNNER_OS" = "Windows" ]; then engine="$engine.exe"; fi
+          if [ "$RUNNER_OS" = Windows ]; then engine="$engine.exe"; fi
+          test -f "$engine"
+          root="build_reports/ob-g7/nightly-osc-${{ matrix.runner }}"
+          mkdir -p "$root"
+          baseline="$root/$profile/$mode/L0/report.json"
+          previous=""
           for tier in L0 L1 L2; do
-            report="build_reports/ob-g7/nightly-osc-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}/$tier"
-            mkdir -p "$report"
-            # Provisional OB-g1 adapter: verify CLI and report schema with #305.
-            if ! python bench/io/soak.py --engine "$engine" --null-audio \
-              --localhost-only --profile "${{ matrix.profile }}" --mode "${{ matrix.mode }}" \
-              --tier "$tier" --report-dir "$report"; then
-              echo "- $EXACT_HEAD ${{ matrix.runner }} ${{ matrix.profile }}/${{ matrix.mode }} $tier: failed; parallel fix row required; see report" >> "$report/fix-rows.md"
+            report="$root/$profile/$mode/$tier"
+            args=(--engine "$engine" --profile "$profile" --edit-mode "$mode" --tier "$tier" --report-dir "$root")
+            if [ "$tier" != L0 ]; then
+              # #312 requires L0 measured p99 + adjacent PASS at same source head.
+              args+=(--baseline-report "$baseline" --previous-report "$previous")
+            fi
+            set +e
+            python bench/io/soak.py "${args[@]}"
+            rc=$?
+            set -e
+            if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: missing report (exit=$rc); fix row" >> "$root/fix-rows.md"
               exit 1
             fi
-            test -s "$report/report.json" && test -s "$report/report.md" ||
-              { echo "- Missing report after $tier; file parallel fix row" >> "$report/fix-rows.md"; exit 1; }
+            status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "$tier")"
+            if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+              echo "- osc/${{ matrix.runner }} $profile/$mode $tier: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+              previous="$report/report.json"
+            elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: pre-E5 observed A2 XFAIL, not PASS" >> "$root/fix-rows.md"
+              echo "- osc/${{ matrix.runner }} $profile/$mode $tier: XFAIL; no higher tier" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            else
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
           done
       - uses: actions/upload-artifact@v4
         if: always()
@@ -187,7 +235,8 @@ jobs:
 
   nightly-midi:
     name: Hosted injected MIDI / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
-    # Only release after #305 AND OB-g2; no real MIDI/ALSA/WinMM devices.
+    # Gated until #305 and #308 integrate midi-m8/mixed into bench/io/soak.py.
+    # Current #312 accepts OSC-only profiles; no invented injection flag or device use.
     if: ${{ false }}
     continue-on-error: true
     runs-on: ${{ matrix.runner }}
@@ -235,26 +284,48 @@ jobs:
           "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
       - name: Build device-off sidecar with injected MIDI
         run: python tools/dev.py build --headless --config Release
-      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first failure
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first nonpass
         env:
           EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
           engine="build/native/wirescape-engine"
-          if [ "$RUNNER_OS" = "Windows" ]; then engine="$engine.exe"; fi
+          if [ "$RUNNER_OS" = Windows ]; then engine="$engine.exe"; fi
+          test -f "$engine"
+          root="build_reports/ob-g7/nightly-midi-${{ matrix.runner }}"
+          mkdir -p "$root"
+          baseline="$root/$profile/$mode/L0/report.json"
+          previous=""
           for tier in L0 L1 L2; do
-            report="build_reports/ob-g7/nightly-midi-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}/$tier"
-            mkdir -p "$report"
-            # Provisional OB-g2 adapter: verify flags and counters before enabling.
-            if ! python bench/io/soak.py --engine "$engine" --null-audio \
-              --localhost-only --injected-midi --profile "${{ matrix.profile }}" \
-              --mode "${{ matrix.mode }}" --tier "$tier" --report-dir "$report"; then
-              echo "- $EXACT_HEAD ${{ matrix.runner }} ${{ matrix.profile }}/${{ matrix.mode }} $tier: failed; parallel fix row required; see report" >> "$report/fix-rows.md"
+            report="$root/$profile/$mode/$tier"
+            args=(--engine "$engine" --profile "$profile" --edit-mode "$mode" --tier "$tier" --report-dir "$root")
+            if [ "$tier" != L0 ]; then
+              # #312 requires L0 measured p99 + adjacent PASS at same source head.
+              args+=(--baseline-report "$baseline" --previous-report "$previous")
+            fi
+            set +e
+            python bench/io/soak.py "${args[@]}"
+            rc=$?
+            set -e
+            if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: missing report (exit=$rc); fix row" >> "$root/fix-rows.md"
               exit 1
             fi
-            test -s "$report/report.json" && test -s "$report/report.md" ||
-              { echo "- Missing report after $tier; file parallel fix row" >> "$report/fix-rows.md"; exit 1; }
+            status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "$tier")"
+            if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+              echo "- midi/${{ matrix.runner }} $profile/$mode $tier: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+              previous="$report/report.json"
+            elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: pre-E5 observed A2 XFAIL, not PASS" >> "$root/fix-rows.md"
+              echo "- midi/${{ matrix.runner }} $profile/$mode $tier: XFAIL; no higher tier" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            else
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
           done
       - uses: actions/upload-artifact@v4
         if: always()
