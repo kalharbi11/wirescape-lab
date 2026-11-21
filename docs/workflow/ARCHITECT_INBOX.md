@@ -48,4 +48,4 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A26 | 2026-11-21 | Owner: M8 trigger envelopes, all-day MIDI/OSC stability, Pi/Windows runners | `proposals/0019` + OB r2.4 (OB-g1–g7, acceptance 7). ADSR trigger mode first, MIDI to CV trig second, auto gate declined for now. Owner question Q24 (Pi ALSA tier). CURRENT "Decided 2026-11-21". |
+| A26 | 2026-11-21 | Owner: M8 trigger envelopes, all-day MIDI/OSC stability, Pi/Windows runners | `proposals/0019` + OB r2.4 (OB-g1–g7, acceptance 7). ADSR trigger mode first, MIDI to CV trig second, auto gate declined for now. Q24 answered A. r2.4a: runner results advisory, OB-g drafts now. CURRENT "Decided 2026-11-21". |

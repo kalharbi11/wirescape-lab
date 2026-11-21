@@ -118,9 +118,13 @@ gate loss. Patching edit-time clicks before M4 would be redone by M4. So:
 - edit-mode failures are recorded as A2 and wait for M4;
 - OB-g work runs in free lanes and never takes a writer from the OB1 chain.
 
-## 6. Gate
+## 6. Gate (amended 2026-11-21, owner: runner tests affirm, never restrict)
 
-OB1 acceptance gains **item 7**: at the OB1 candidate SHA, the Pi passes `osc-heavy` and `mixed`
+No runner result gates anything. The rows below are what OB1 acceptance **records**. A failure files a
+fix task, which runs in parallel and may land after the tag.
+
+
+OB1 acceptance records **item 7**: at the OB1 candidate SHA, the Pi passes `osc-heavy` and `mixed`
 in `still` mode through **L2 (1 h)**, and `config-edits` through L1. L3–L5 are recorded and not
 required, because a 24 h result must not hold the tag. The owner's all-day installation readiness is
 L5 on `mixed/still`, recorded in `facts/perf/pi5/io_soak_<date>.json`.

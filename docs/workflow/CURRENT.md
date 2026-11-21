@@ -21,8 +21,13 @@ Builders use their queue row and issue; Architect requests stay in the inbox.
 - **OB1 acceptance item 7:** the Pi passes `osc-heavy` and `mixed` in `still` mode through L2 (1 h), and `config-edits` through L1, at the OB1 candidate. L3–L5 are recorded only.
 - **Edit-time clicks and gate loss are A2.** M4 E5 removes them, so no separate fix is made. Until E5, `config-edits` runs as a strict expected failure. A failure in `still` mode is a real I/O defect and is fixed now (OB-c rule).
 - **Runners:** keep the wirescape-pi runner (#18/#19 sandbox). Never register a self-hosted runner on the public lab repo. Windows coverage uses GitHub-hosted runners (OB-g7).
-- **Owner question Q24:** should the Pi ALSA tier get `/dev/snd/seq` on main heads only? The default is no, and nothing waits on it.
-- **Held:** OB-g2–g7 product source until S6 merges. Everything else is unchanged from the 17:15 entry.
+- **r2.4a (owner, same day): "runner tests affirm, never restrict."**
+  - No `pi5/*` or soak result blocks a task, dispatch or merge. A failure files one parallel fix row.
+  - OB1 item 7 is recorded, not required.
+  - OB-g2–g7 may be **drafted now** on branches; only their merges wait for S6.
+  - OB-g6 no longer waits for OB-g5. Q24 is answered A (ALSA tier, main heads only).
+  - **Lead: dispatch freely.** Fill every idle lane with OB-g work, and do not wait for runner results.
+- **Held:** only OB-g merges that touch product paths, until S6 merges. Everything else is unchanged from the 17:15 entry.
 
 **Next Architect run:** at the S6 review-ready request, or when OB-g1 is review-ready (to draft OB-g4). Quick effort.
 Next run should: (1) S6 contract-review when requested; (2) after Pi setup, `nightly` at main's head; (3) OB-g1 first Pi facts → confirm or replace the 0019 thresholds in one line; (4) draft wirescape-pi OB-g4; (5) T7.0b #296 → S7.6.

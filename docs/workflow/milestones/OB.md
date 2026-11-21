@@ -50,11 +50,11 @@ Design and thresholds: `proposals/0019`. Every profile, ladder tier and stop rul
 | **OB-g3** MIDI endpoint change while running (W4): failing device-off test first for "enabled input dead until relaunch" through the Studio toggle path, then the fix in the file the test names | B | test in `native/` or `apps/studio/` tests; fix where named | S6 merged | lead |
 | **OB-g4** Pi tiers: wirescape-pi task `io-soak profile=<p> tier=<L>` with timeout = tier + 10 %, and one nightly cron that requests the next tier at main's head (0019 §3) | B | wirescape-pi only | OB-g1 | **owner** (Architect-only repo) |
 | **OB-g5** ADSR trigger mode: `mode` (Gate default / Trigger) and `hold`; Gate mode bit-identical (goldens unchanged); retrigger from current level; panel controls | B | ADSR module folder, its tests, its panel JSON | S6 merged | lead |
-| **OB-g6** MIDI to CV `trig` output: 1 ms pulse per accepted Note On per voice, legato included; Notes to CV too if it shares the voice code | B | MIDI to CV (and Notes to CV) folders, tests, panel JSON | OB-g5 | lead |
+| **OB-g6** MIDI to CV `trig` output: 1 ms pulse per accepted Note On per voice, legato included; Notes to CV too if it shares the voice code | B | MIDI to CV (and Notes to CV) folders, tests, panel JSON | S6 merged (merge only; draft now) | lead |
 | **OB-g7** scheduled hosted soak: Linux L0 per PR touching I/O; Windows and Linux hosted L0–L2 nightly on main (GitHub-hosted only) | B | `.github/workflows/` (SR17 order), `bench/io/` | OB-g1, OB-g2 for MIDI profiles | lead |
 
-**Added to acceptance:** 7. At the OB1 candidate, Pi `osc-heavy` and `mixed` pass in `still` mode
-through L2 (1 h) and `config-edits` through L1 (0019 §6). L3–L5 are recorded, not required.
+**Added to acceptance:** 7 (**recorded, not required**, r2.4a). At the OB1 candidate, record Pi `osc-heavy` and `mixed`
+in `still` mode through L2 (1 h) and `config-edits` through L1 (0019 §6). A failing row files a fix and never holds the tag.
 
 **Out of OB (P4, do not file):** third-party module drop-in, SDK, dev loop, panels, Daisy/hardware,
 protocol publication, web build features (M6 MT2+, M8–M12 beyond facts).
