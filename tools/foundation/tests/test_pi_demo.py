@@ -22,7 +22,7 @@ class PiDemoTests(unittest.TestCase):
         self.script = self.root / 'tools/pi/demo.sh'
         self.script.parent.mkdir(parents=True)
         shutil.copyfile(ROOT / 'tools/pi/demo.sh', self.script)
-        self.examples = self.root / 'native/examples'
+        self.examples = self.root / 'host/examples'
         self.examples.mkdir(parents=True)
         self.original = {'devices': [], 'modules': [], 'unknown': {'keep': True}}
         for i in range(1, 4):

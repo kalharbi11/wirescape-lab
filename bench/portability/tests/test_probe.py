@@ -13,8 +13,8 @@ class ProbeTests(unittest.TestCase):
         files, count = sources()
         self.assertEqual(count, 34)
         self.assertEqual(len(files), 35)
-        self.assertTrue(any(str(p).endswith("native/sdk/template/module.cpp") for p in files))
-        self.assertEqual(sum("native/sdk/examples/" in p.as_posix() for p in files), 2)
+        self.assertTrue(any(str(p).endswith("sdk/template/module.cpp") for p in files))
+        self.assertEqual(sum("sdk/examples/" in p.as_posix() for p in files), 2)
 
     def test_section_size_classification(self):
         output = ("obj.o :\nsection size addr\n"

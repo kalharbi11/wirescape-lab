@@ -12,7 +12,7 @@ from validate import ROOT, check_schema_subset, json_equal, parse_line, read_sch
 
 
 SPEC = ROOT / "docs" / "specs" / "ENGINE_PROTOCOL.md"
-SIDECAR = ROOT / "native" / "sidecar" / "protocol_tests.py"
+SIDECAR = ROOT / "host" / "sidecar" / "protocol_tests.py"
 
 
 class ProtocolV0Tests(unittest.TestCase):

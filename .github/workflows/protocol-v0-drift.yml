@@ -8,7 +8,7 @@ on:
       - 'docs/specs/ENGINE_PROTOCOL.md'
       - 'tools/protocol/**'
       - 'apps/studio/src/engine/generated/**'
-      - 'native/sidecar/generated/**'
+      - 'host/sidecar/generated/**'
       - '.github/workflows/protocol-v0-drift.yml'
   push:
     branches: [main]
@@ -64,7 +64,7 @@ jobs:
           build/pv1/protocol-v0-validator
       - name: Validate every emitted sidecar protocol-test line (null audio; no device/LAN)
         run: |
-          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples
+          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine host/examples
       - name: Q8 compare exact request-ID boundaries with real null-audio sidecar
         run: python tools/protocol/check_sidecar_request_ids.py build/pv1/wirescape-engine
       - name: Q13 check bus-channel bounds and applyGraph on real null-audio sidecar
