@@ -93,7 +93,7 @@ test('Pi ARM64: isolated Electron profile, real native round trip and clean shut
     // Save a real native document: the Electron file boundary refuses arbitrary JSON.
     // An opaque field also proves exact unknown-data persistence in this isolated profile.
     const patch = JSON.parse(fs.readFileSync(
-      path.resolve(__dirname, '../../../native/examples/class_demo_2_subtractive.json'), 'utf8'));
+      path.resolve(__dirname, '../../../host/examples/class_demo_2_subtractive.json'), 'utf8'));
     patch.pi = 'isolated';
     const bytes = JSON.stringify(patch);
     const saved = await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), bytes);

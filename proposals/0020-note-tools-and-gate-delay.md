@@ -122,3 +122,32 @@ Eurorack-style path.
   - Hosted CI is the authority, and the test must pass there before and after S6, unchanged.
   - The local Windows mismatch is a known issue.
   - **Overturned by** the same test failing on hosted CI at the S6 base.
+
+## 7. After S6: new modules and the frozen M1 checks (Architect, 2026-11-22, run 7)
+The first module drafts (#325, #333, #334) each fail checks that froze the M1 tree. The new code
+is not at fault: `0006` I7 froze the catalogue *for the migration*, and the inventory counts
+assume exactly 34 modules. M1 is now complete, so these are the rules for module PRs:
+- **S0 catalogue snapshot** (`host/sidecar/testdata/s0_catalogue.ndjson`). A PR that adds a
+  module or a public parameter regenerates this file in the same PR, using the generator the test
+  already uses. The PR shows that the diff changes only that PR's own module entry or entries.
+  Every other byte stays identical. A diff that touches another module's entry, or anything in
+  `s0_status.ndjson`, is a defect. The test and its assertions stay unchanged.
+- **Module counts** (`bench/golden/inventory.py`, the T0.11 coverage in `bench/gate/instructions.py`,
+  and any other hard-coded 34). Replace the bare count with the 34 golden-set module IDs plus an
+  explicit `EXPERIMENTAL` list. Each module PR appends its own ID. The golden set and its 24
+  renders stay unchanged and must stay identical. A module that is in neither list still fails.
+  The first module PR to merge makes this change; later PRs only append. These are `bench/` files,
+  not workflow files.
+- **Instruction counts (M1 paired job).** A row that exists only at the head, for a module on the
+  `EXPERIMENTAL` list, is reported as `new` and not compared. If `bench/m1/paired.py` rejects such
+  a row, it gets that one narrow exception, with a test. Every existing row stays strict at 1 %.
+- **Changing an existing module (#325 ADSR).** The new mode must not make existing patches
+  costlier. The +1.62 % / +1.38 % (x64) rows on `basics-01-first-tone` and `osc-out-01` are a
+  defect to fix in #325, for example by choosing the mode once per block and keeping the default
+  Gate path as it was. Do not widen the tolerance. Until #325 is within 1 %, the next module PR
+  that is green may merge ahead of it (SR19). Otherwise the order in §1 stands.
+
+Overturned by: a regenerated catalogue that cannot be limited to the PR's own entries, because of
+ordering or a shared header. The Architect then rules on the snapshot format.
+
+Signed: claude-architect, 2026-11-22

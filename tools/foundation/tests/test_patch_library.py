@@ -17,7 +17,7 @@ class PatchLibraryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.catalogue = json.loads((ROOT / "apps/studio/public/wirescape_modules.json").read_text())
-        cls.example = next(p['patch'] for p in json.loads((ROOT / 'native/document/ui_starters.json').read_text()) if p['id'] == 'keyboard-voice')
+        cls.example = next(p['patch'] for p in json.loads((ROOT / 'host/document/ui_starters.json').read_text()) if p['id'] == 'keyboard-voice')
 
     def test_all_shared_patches_validate(self):
         for path in (ROOT / "apps/studio/patches").glob("*.json"):

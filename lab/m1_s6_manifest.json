@@ -1,0 +1,3448 @@
+{
+ "schema": "wlab-m1-s6-manifest/1",
+ "main_base": "f98c73377987db518e5e8c5e623835ff0abdc04f",
+ "moves": 444,
+ "move_map_sha256": "a82a7ae758b671601e473968c95f3c23d0881472b046fe3e0a14b7625c91787d",
+ "audit_tokens": [
+  "(?<!build/)(?<!tests/)native/",
+  "\\bmodules2/",
+  "\\btests2/",
+  "\\bengine2/",
+  "\\bio/(?:audio|midi|osc|net)/"
+ ],
+ "classified": [
+  {
+   "class": "historical-record",
+   "path": "^(facts|proposals|docs/context|docs/workflow|ci/from-main)/",
+   "why": "dated records, planning and parked inactive workflows; cite the paths of their time"
+  },
+  {
+   "class": "s6-planning",
+   "path": "^lab/",
+   "why": "S6 map, preview, handoff and this manifest name base paths on purpose"
+  },
+  {
+   "class": "doc-prose",
+   "path": "(\\.md|\\.txt|\\.html)$|^docs/",
+   "why": "prose, not an executed consumer; documentation path pass is a follow-up outside S6 moves"
+  },
+  {
+   "class": "retained-path",
+   "path": ".",
+   "line": "native/(CMakeLists\\.txt|README\\.md)|native/\\*\\*|native/'?, '?engine/|cmake.*-S.*native|'-S', (str\\(ROOT / )?'native'",
+   "why": "native/CMakeLists.txt and native/README.md stay in native/ (m1_s6_map FILES)"
+  },
+  {
+   "class": "binary-dir",
+   "path": ".",
+   "line": "build[\\w./-]*/native|build[\\w./-]*/(engine2|modules2)/|BUILD_DIR / \\\"engine2\\\"|build / \\\"native\\\"|base/build/native|head/build/native",
+   "why": "CMake binary-directory names are kept (add_subdirectory binary dirs unchanged)"
+  },
+  {
+   "class": "nonpath",
+   "path": ".",
+   "line": "native/(Electron|tool\\b|tool source|WASM|anonymous|device)",
+   "why": "the word native, not a path"
+  },
+  {
+   "class": "synthetic-fixture",
+   "path": "^(tools/ci/test_static_checks\\.py|tools/foundation/tests/test_(changed_scope|launch_freshness|reporting|build_parallel)\\.py)$|^tools/(diagnostics|foundation/tests)/fixtures/",
+   "why": "synthetic paths in temporary trees or canned input; not files of this repository"
+  },
+  {
+   "class": "synthetic-fixture",
+   "path": "^bench/portability/tests/test_probe\\.py$",
+   "line": "native/module\\.cpp",
+   "why": "canned compiler output"
+  },
+  {
+   "class": "negative-assertion",
+   "path": "^tools/module/tests/test_module\\.py$",
+   "line": "assertNotRegex",
+   "why": "asserts old paths are absent"
+  },
+  {
+   "class": "historical-checkout",
+   "path": "^bench/evidence/(s7_1_193|reverb_s72)/",
+   "why": "collectors that read a pinned historical checkout of the old layout"
+  },
+  {
+   "class": "frozen-provenance",
+   "path": "^bench/reference/freeze\\.py$",
+   "line": "native/tests2/",
+   "why": "provenance strings written into frozen reference fixtures; changing them changes frozen bytes"
+  },
+  {
+   "class": "frozen-fixture",
+   "path": "^tests/native/compat/fixtures/",
+   "why": "committed frozen fixture bytes; S6 moves them unchanged"
+  },
+  {
+   "class": "vendor-path",
+   "path": "cppcheck-baseline\\.json$",
+   "line": "\"path\":\"(eurorack|stmlib)/",
+   "why": "upstream vendor source paths (plaits engine2/ directory), not this repository"
+  }
+ ],
+ "edits": [
+  {
+   "source": ".clang-tidy",
+   "blob": "5b94fbf1f47264d77c5c242ba14ef2a2b92ab0a5",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 4,
+     "before": "HeaderFilterRegex: 'native/.*'",
+     "after": "HeaderFilterRegex: '.*/(native|engine|host|modules|sdk|targets|tests/native|tools/render|tools/capture)/.*'"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/golden-renders.yml",
+   "blob": "db32d19df9f1b753fa35f014fcf5d63917d13144",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 8,
+     "before": "      - \"native/**\"",
+     "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\""
+    },
+    {
+     "line": 17,
+     "before": "      - \"native/**\"",
+     "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\""
+    },
+    {
+     "line": 164,
+     "before": "          git -C head diff --exit-code -- native/modules2/vco/dsp.h",
+     "after": "          git -C head diff --exit-code -- modules/vco/dsp.h"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/instruction-gate.yml",
+   "blob": "c2496f8881a091842ed66f3afe3648a246f969dd",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 7,
+     "before": "      - 'native/**'",
+     "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'"
+    },
+    {
+     "line": 14,
+     "before": "      - 'native/**'",
+     "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/m1-stage-evidence.yml",
+   "blob": "2640cf652af27a686666b57dad9a44df24d3b79b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 6,
+     "before": "      - \"native/**\"",
+     "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\""
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/module-tools.yml",
+   "blob": "c1db7ab206eb0c930c89ee7115469d2538aab08a",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 40,
+     "before": "        run: python tools/module/wsmod.py check native/sdk/template --json",
+     "after": "        run: python tools/module/wsmod.py check sdk/template --json"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/ob-e2-240-smoke.yml",
+   "blob": "87589c8fb5bc4cee045f685d7154984b85439d5b",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 7,
+     "before": "      - 'native/tests2/ob_e2_240_smoke.cpp'",
+     "after": "      - 'tests/native/abi2/ob_e2_240_smoke.cpp'"
+    },
+    {
+     "line": 8,
+     "before": "      - 'native/tests2/ob_e2_240_run.py'",
+     "after": "      - 'tests/native/abi2/ob_e2_240_run.py'"
+    },
+    {
+     "line": 43,
+     "before": "          sha256sum native/tests2/ob_e2_240_smoke.cpp native/tests2/ob_e2_240_run.py \\",
+     "after": "          sha256sum tests/native/abi2/ob_e2_240_smoke.cpp tests/native/abi2/ob_e2_240_run.py \\"
+    },
+    {
+     "line": 45,
+     "before": "            native/control/module_catalog.inc | tee build_reports/ob_e2_240/input-sha256.txt",
+     "after": "            engine/control/module_catalog.inc | tee build_reports/ob_e2_240/input-sha256.txt"
+    },
+    {
+     "line": 46,
+     "before": "          python3 -m py_compile native/tests2/ob_e2_240_run.py",
+     "after": "          python3 -m py_compile tests/native/abi2/ob_e2_240_run.py"
+    },
+    {
+     "line": 57,
+     "before": "          python3 native/tests2/ob_e2_240_run.py \\",
+     "after": "          python3 tests/native/abi2/ob_e2_240_run.py \\"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/offline-facts.yml",
+   "blob": "17546a7f878bd7352136c06d0d1550613f40ad19",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 9,
+     "before": "      - 'native/**'",
+     "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'"
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/portability.yml",
+   "blob": "d4e9f142df839c2d443d125cca108d2c18a06aef",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 8,
+     "before": "      - \"native/sdk/**\"",
+     "after": "      - \"sdk/**\""
+    },
+    {
+     "line": 9,
+     "before": "      - \"native/modules2/**\"",
+     "after": "      - \"modules/**\""
+    },
+    {
+     "line": 10,
+     "before": "      - \"native/include/**\"",
+     "after": "      - \"sdk/include/**\"\n      - \"engine/include/**\"\n      - \"host/include/**\""
+    },
+    {
+     "line": 16,
+     "before": "      - \"native/sdk/**\"",
+     "after": "      - \"sdk/**\""
+    },
+    {
+     "line": 17,
+     "before": "      - \"native/modules2/**\"",
+     "after": "      - \"modules/**\""
+    },
+    {
+     "line": 18,
+     "before": "      - \"native/include/**\"",
+     "after": "      - \"sdk/include/**\"\n      - \"engine/include/**\"\n      - \"host/include/**\""
+    },
+    {
+     "line": 79,
+     "before": "          source = Path(\"native/modules2/macro_oscillator/CMakeLists.txt\").read_text()",
+     "after": "          source = Path(\"modules/macro_oscillator/CMakeLists.txt\").read_text()"
+    },
+    {
+     "line": 102,
+     "before": "          patch_dir=\"$GITHUB_WORKSPACE/native/modules2/macro_oscillator/patches\"",
+     "after": "          patch_dir=\"$GITHUB_WORKSPACE/modules/macro_oscillator/patches\""
+    }
+   ]
+  },
+  {
+   "source": ".github/workflows/protocol-v0-drift.yml",
+   "blob": "bce18abd905617a16e955e792b0d66f2ee7c64aa",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 11,
+     "before": "      - 'native/sidecar/generated/**'",
+     "after": "      - 'host/sidecar/generated/**'"
+    },
+    {
+     "line": 67,
+     "before": "          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples",
+     "after": "          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine host/examples"
+    }
+   ]
+  },
+  {
+   "source": "apps/desktop/tests/app-e2e.spec.cjs",
+   "blob": "7eb3fa2bd4529c2010125f74d26588699c1a0267",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 10,
+     "before": "const example = path.join(root, 'native/examples/class_demo_2_subtractive.json');",
+     "after": "const example = path.join(root, 'host/examples/class_demo_2_subtractive.json');"
+    }
+   ]
+  },
+  {
+   "source": "apps/desktop/tests/pi-profile.spec.cjs",
+   "blob": "b5b6d4115e78b3667563d0a093dadbdb24ce0249",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 96,
+     "before": "      path.resolve(__dirname, '../../../native/examples/class_demo_2_subtractive.json'), 'utf8'));",
+     "after": "      path.resolve(__dirname, '../../../host/examples/class_demo_2_subtractive.json'), 'utf8'));"
+    }
+   ]
+  },
+  {
+   "source": "apps/desktop/tests/shell.spec.cjs",
+   "blob": "7429e198aea80735c4e5c23fc555bf768d7bb16d",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 316,
+     "before": "    const fixture = path.resolve(__dirname, '../../../native/tests/fixtures/legacy_documents');",
+     "after": "    const fixture = path.resolve(__dirname, '../../../tests/native/compat/fixtures/legacy_documents');"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/src/app/App.ts",
+   "blob": "11e459c78d1a80db538d369f12dbf4f9da9aa6bb",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 37,
+     "before": "import demoChaos from '../../../../native/examples/class_demo_1_chaos.json' with { type: 'json' };",
+     "after": "import demoChaos from '../../../../host/examples/class_demo_1_chaos.json' with { type: 'json' };"
+    },
+    {
+     "line": 38,
+     "before": "import demoSub from '../../../../native/examples/class_demo_2_subtractive.json' with { type: 'json' };",
+     "after": "import demoSub from '../../../../host/examples/class_demo_2_subtractive.json' with { type: 'json' };"
+    },
+    {
+     "line": 39,
+     "before": "import demoMacro from '../../../../native/examples/class_demo_3_macro.json' with { type: 'json' };",
+     "after": "import demoMacro from '../../../../host/examples/class_demo_3_macro.json' with { type: 'json' };"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/src/app/modulePresets.ts",
+   "blob": "d15b7710ece82252584e8993d8e63dd9fa0e3784",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 8,
+     "before": "    // Four starting points from native/modules2/chaos_lite/README.md.",
+     "after": "    // Four starting points from modules/chaos_lite/README.md."
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/src/app/oscCapture.ts",
+   "blob": "b28b89849aea65420828858c8139bb8e2ce11843",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 5,
+     "before": "/** UI counterpart of native/io/osc/pattern.h: bounded byte-level matching, no regex backtracking. */",
+     "after": "/** UI counterpart of host/osc/pattern.h: bounded byte-level matching, no regex backtracking. */"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/tests/chaos-presets.spec.ts",
+   "blob": "7489b9e92a230644dad22268050fa947d03bcaa8",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 174,
+     "before": "          resolve('../../native/tools/render/evidence.py'), '--render', renderer,",
+     "after": "          resolve('../../tools/render/evidence.py'), '--render', renderer,"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/tests/codec-roundtrip.spec.cjs",
+   "blob": "75166db15548f166034b238d35dcc32dc909a218",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 17,
+     "before": "  const fixture = resolve(root, 'native/document/ui_starters.json');",
+     "after": "  const fixture = resolve(root, 'host/document/ui_starters.json');"
+    },
+    {
+     "line": 137,
+     "before": "for (const filename of readdirSync(resolve(root, 'native/examples')).filter(p => p.endsWith('.json'))) {",
+     "after": "for (const filename of readdirSync(resolve(root, 'host/examples')).filter(p => p.endsWith('.json'))) {"
+    },
+    {
+     "line": 139,
+     "before": "    const source = JSON.parse(readFileSync(resolve(root, 'native/examples', filename), 'utf8'));",
+     "after": "    const source = JSON.parse(readFileSync(resolve(root, 'host/examples', filename), 'utf8'));"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/tests/legacy-documents.spec.cjs",
+   "blob": "f174d3cb37aea9e51b9a0349aaa06c7fc8a0aed4",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 9,
+     "before": "const fixtures = resolve(root, 'native/tests/fixtures/legacy_documents');",
+     "after": "const fixtures = resolve(root, 'tests/native/compat/fixtures/legacy_documents');"
+    }
+   ]
+  },
+  {
+   "source": "apps/studio/tests/session-autosave.spec.ts",
+   "blob": "b8e39ec2449bbae4ffdab062cfcde0510147f53c",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 4,
+     "before": "import sixEssentials from '../../../native/examples/Six_Essentials_Demo.json' with { type: 'json' };",
+     "after": "import sixEssentials from '../../../host/examples/Six_Essentials_Demo.json' with { type: 'json' };"
+    }
+   ]
+  },
+  {
+   "source": "bench/continuity/run.py",
+   "blob": "467e9c8901062507a186d2b7e759fd67af884443",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 273,
+     "before": "                                                                         'native', 'bench')),",
+     "after": "                                                                         'native', 'engine', 'host', 'modules', 'sdk', 'targets', 'tests/native', 'tools/render', 'tools/capture', 'bench')),"
+    }
+   ]
+  },
+  {
+   "source": "bench/gate/compare.py",
+   "blob": "391497db2ea888be0afb48cb49e891b80ec23c4f",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 34,
+     "before": "    module_ids.add(\"osc.out\")  # registered in native/control/module_catalog.inc",
+     "after": "    module_ids.add(\"osc.out\")  # registered in engine/control/module_catalog.inc"
+    }
+   ]
+  },
+  {
+   "source": "bench/gate/instructions.py",
+   "blob": "a00012f5cdbd12cd190a3a50cdaba00d296c1847",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 165,
+     "before": "    # native/control/module_catalog.inc registers 34. The extra built-in is",
+     "after": "    # engine/control/module_catalog.inc registers 34. The extra built-in is"
+    },
+    {
+     "line": 166,
+     "before": "    # osc.out, recorded by its own native/modules2/osc_out/module.json.",
+     "after": "    # osc.out, recorded by its own modules/osc_out/module.json."
+    },
+    {
+     "line": 169,
+     "before": "    osc_manifest = ROOT / \"native/modules2/osc_out/module.json\"",
+     "after": "    osc_manifest = ROOT / \"modules/osc_out/module.json\""
+    },
+    {
+     "line": 171,
+     "before": "    catalog = ROOT / \"native/control/module_catalog.inc\"",
+     "after": "    catalog = ROOT / \"engine/control/module_catalog.inc\""
+    }
+   ]
+  },
+  {
+   "source": "bench/golden/event_path_evidence.json",
+   "blob": "8bb22548907dd1dc0024526a5d07a66fae7aa0b5",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 12,
+     "before": "      \"test_file\": \"native/modules2/midi_in/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/midi_in/tests.cpp\","
+    },
+    {
+     "line": 22,
+     "before": "      \"test_file\": \"native/modules2/midi_to_cv/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/midi_to_cv/tests.cpp\","
+    },
+    {
+     "line": 32,
+     "before": "      \"test_file\": \"native/modules2/midi_cc_to_cv/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/midi_cc_to_cv/tests.cpp\","
+    },
+    {
+     "line": 42,
+     "before": "      \"test_file\": \"native/modules2/osc_in/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/osc_in/tests.cpp\","
+    },
+    {
+     "line": 52,
+     "before": "      \"test_file\": \"native/modules2/osc_out/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/osc_out/tests.cpp\","
+    },
+    {
+     "line": 62,
+     "before": "      \"test_file\": \"native/modules2/monitor/tests.cpp\",",
+     "after": "      \"test_file\": \"modules/monitor/tests.cpp\","
+    }
+   ]
+  },
+  {
+   "source": "bench/golden/experiment.py",
+   "blob": "b62733f8404df47f6aad4553b88e466557ce51cf",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 21,
+     "before": "SOURCE = \"native/modules2/vco/dsp.h\"",
+     "after": "SOURCE = \"modules/vco/dsp.h\""
+    }
+   ]
+  },
+  {
+   "source": "bench/golden/inventory.py",
+   "blob": "8dbe90b98b8bd1b96b23b9e03f82f9b078dfb102",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 18,
+     "before": "    catalogue=(root/\"native/control/module_catalog.inc\").read_text(encoding=\"utf-8\")",
+     "after": "    catalogue=(root/\"engine/control/module_catalog.inc\").read_text(encoding=\"utf-8\")"
+    },
+    {
+     "line": 20,
+     "before": "    modules=sorted((root/\"native/modules2\").glob(\"*/module.cpp\")) + \\",
+     "after": "    modules=sorted((root/\"modules\").glob(\"*/module.cpp\")) + \\"
+    },
+    {
+     "line": 21,
+     "before": "            sorted((root/\"native/sdk/examples\").glob(\"*/module.cpp\"))",
+     "after": "            sorted((root/\"sdk/examples\").glob(\"*/module.cpp\"))"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/electron_startup.cjs",
+   "blob": "2aa9febafd2fdb29bae7c9b6e376f2a1eccf49c0",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 83,
+     "before": "      const dir=path.join(ROOT,'native/examples');",
+     "after": "      const dir=path.join(ROOT,'host/examples');"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/memory_facts.py",
+   "blob": "2f9aae805bdcec8ab399d8051e62ff13f685a16c",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 47,
+     "before": "            for f in sorted((ROOT / 'native/examples').glob('*.json')):",
+     "after": "            for f in sorted((ROOT / 'host/examples').glob('*.json')):"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/protocol_facts.py",
+   "blob": "0026b460a05bd296e76a15cb6f81c07afcc5af60",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 143,
+     "before": "            for base in (ROOT / 'examples', ROOT / 'native/examples'):",
+     "after": "            for base in (ROOT / 'examples', ROOT / 'host/examples'):"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/r2_engine_probe.cpp",
+   "blob": "d65fd633fffe01b73df46f5f8617d90c3ab20cd8",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../native/engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../../native/sdk/wirescape_sdk.h\"",
+     "after": "#include \"../../sdk/wirescape_sdk.h\""
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/r2_probe.py",
+   "blob": "297a70edc5cf99d0e0a8883e1b4598b370a75341",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 47,
+     "before": "        \"-I\" + str(ROOT / \"native/include\"),",
+     "after": "        \"-I\" + str(ROOT / \"sdk/include\"),"
+    },
+    {
+     "line": 48,
+     "before": "        \"-I\" + str(ROOT / \"native/sdk\"),",
+     "after": "        \"-I\" + str(ROOT / \"sdk\"),"
+    },
+    {
+     "line": 49,
+     "before": "        \"-I\" + str(ROOT / \"native/engine2\"),",
+     "after": "        \"-I\" + str(ROOT / \"engine\"),"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/repo_facts.py",
+   "blob": "2916fbaa1d585c2fbe5b8118704334e8998edbdc",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 59,
+     "before": "                not (rel.startswith('native/') or rel.startswith('apps/studio/src/'))):",
+     "after": "                not (rel.startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'tools/render/', 'tools/capture/')) or rel.startswith('apps/studio/src/'))):"
+    },
+    {
+     "line": 112,
+     "before": "        if not path.is_file() or path.suffix not in CXX or not path.relative_to(ROOT).parts[0] == 'native':",
+     "after": "        if not path.is_file() or path.suffix not in CXX or not path.relative_to(ROOT).as_posix().startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'tools/render/', 'tools/capture/')):"
+    },
+    {
+     "line": 128,
+     "before": "        if not path.is_file() or path.suffix not in CXX or not rel.startswith(('native/engine2/', 'native/control/', 'native/sidecar/')):",
+     "after": "        if not path.is_file() or path.suffix not in CXX or not rel.startswith(('engine/', 'host/sidecar/')) or rel.startswith(('engine/voice/', 'engine/include/')):"
+    },
+    {
+     "line": 145,
+     "before": "        if not path.is_file() or not rel.startswith(('native/', 'apps/', 'tools/')) or path.suffix not in {'.cpp', '.h', '.hpp', '.py', '.ts', '.tsx', '.js', '.cjs', '.md', '.cmake'}:",
+     "after": "        if not path.is_file() or not rel.startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'apps/', 'tools/')) or path.suffix not in {'.cpp', '.h', '.hpp', '.py', '.ts', '.tsx', '.js', '.cjs', '.md', '.cmake'}:"
+    },
+    {
+     "line": 152,
+     "before": "    return {'scope': 'native/, apps/, tools/ tracked text files', 'patterns': {k: v.pattern for k, v in rules.items()},",
+     "after": "    return {'scope': 'native/, engine/, host/, modules/, sdk/, targets/, tests/native/, apps/, tools/ tracked text files', 'patterns': {k: v.pattern for k, v in rules.items()},"
+    },
+    {
+     "line": 211,
+     "before": "    for src in (ROOT / 'native').rglob('CMakeLists.txt'):",
+     "after": "    for src in [p for r in ('native', 'engine', 'host', 'modules', 'sdk', 'targets', 'tests/native', 'tools/render', 'tools/capture') for p in (ROOT / r).rglob('CMakeLists.txt')]:"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/run_all.py",
+   "blob": "f41e577aca87ed33fa0f10c0a629157f744f3989",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 70,
+     "before": "    for path in sorted((ROOT / \"native\").rglob(\"*.h\")):",
+     "after": "    for path in sorted(p for r in (\"native\", \"engine\", \"host\", \"modules\", \"sdk\", \"targets\", \"tests/native\", \"tools/render\", \"tools/capture\") for p in (ROOT / r).rglob(\"*.h\")):"
+    },
+    {
+     "line": 425,
+     "before": "                        \" (native/modules2/chord/dsp.h:54-56,\"",
+     "after": "                        \" (modules/chord/dsp.h:54-56,\""
+    },
+    {
+     "line": 426,
+     "before": "                        \" native/document/runtime_module_config.h:35-38)\")",
+     "after": "                        \" host/document/runtime_module_config.h:35-38)\")"
+    },
+    {
+     "line": 463,
+     "before": "                        \" passes zero (native/modules2/chord/dsp.h:54-56)\")",
+     "after": "                        \" passes zero (modules/chord/dsp.h:54-56)\")"
+    },
+    {
+     "line": 554,
+     "before": "                                            \"native/modules2/macro_oscillator/dsp.h\"))",
+     "after": "                                            \"modules/macro_oscillator/dsp.h\"))"
+    }
+   ]
+  },
+  {
+   "source": "bench/offline/test_t7_0.py",
+   "blob": "260afeb30d3fa038af1fe89a5ffd76e736777b88",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 136,
+     "before": "            (run_all.ROOT / \"native/modules2/quad_vca/module.json\").read_text(encoding=\"utf-8\"))",
+     "after": "            (run_all.ROOT / \"modules/quad_vca/module.json\").read_text(encoding=\"utf-8\"))"
+    }
+   ]
+  },
+  {
+   "source": "bench/portability/probe.py",
+   "blob": "fd9b8474e0d9442a008b8601440d9cd94c94afd0",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 26,
+     "before": "    catalog = (ROOT / \"native/control/module_catalog.inc\").read_text(encoding=\"utf-8\")",
+     "after": "    catalog = (ROOT / \"engine/control/module_catalog.inc\").read_text(encoding=\"utf-8\")"
+    },
+    {
+     "line": 28,
+     "before": "    modules = sorted((ROOT / \"native/modules2\").glob(\"*/module.cpp\"))",
+     "after": "    modules = sorted((ROOT / \"modules\").glob(\"*/module.cpp\"))"
+    },
+    {
+     "line": 29,
+     "before": "    examples = sorted((ROOT / \"native/sdk/examples\").glob(\"*/module.cpp\"))",
+     "after": "    examples = sorted((ROOT / \"sdk/examples\").glob(\"*/module.cpp\"))"
+    },
+    {
+     "line": 33,
+     "before": "    template = ROOT / \"native/sdk/template/module.cpp\"",
+     "after": "    template = ROOT / \"sdk/template/module.cpp\""
+    },
+    {
+     "line": 85,
+     "before": "        \"-I\", \"native/sdk\", \"-I\", \"native/include\", \"-I\", \"native/sdk/examples\",",
+     "after": "        \"-I\", \"sdk\", \"-I\", \"sdk/include\", \"-I\", \"sdk/examples\","
+    },
+    {
+     "line": 90,
+     "before": "                      \"-DTEST\", \"-include\", \"native/modules2/macro_oscillator/rng_scope.hpp\"))",
+     "after": "                      \"-DTEST\", \"-include\", \"modules/macro_oscillator/rng_scope.hpp\"))"
+    }
+   ]
+  },
+  {
+   "source": "bench/portability/tests/test_probe.py",
+   "blob": "74ae73bec337027d894f8d88de8b3ac4edf915e4",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 16,
+     "before": "        self.assertTrue(any(str(p).endswith(\"native/sdk/template/module.cpp\") for p in files))",
+     "after": "        self.assertTrue(any(str(p).endswith(\"sdk/template/module.cpp\") for p in files))"
+    },
+    {
+     "line": 17,
+     "before": "        self.assertEqual(sum(\"native/sdk/examples/\" in p.as_posix() for p in files), 2)",
+     "after": "        self.assertEqual(sum(\"sdk/examples/\" in p.as_posix() for p in files), 2)"
+    }
+   ]
+  },
+  {
+   "source": "bench/reference/test_unpack.py",
+   "blob": "03efad1f90b26253c5509b9ba8736c5c79dfcfcf",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 70,
+     "before": "        fixtures = root / \"native/tests/fixtures/abi2\"",
+     "after": "        fixtures = root / \"tests/native/compat/fixtures/abi2\""
+    }
+   ]
+  },
+  {
+   "source": "bench/sdk/out_of_tree_trial.py",
+   "blob": "156279f0a3021ac0dff78a9a9b7c83ccabd8dcd2",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 35,
+     "before": "CORE = [\"native/engine2/CMakeLists.txt\", \"native/control/module_catalog.h\",",
+     "after": "CORE = [\"engine/CMakeLists.txt\", \"engine/control/module_catalog.h\","
+    },
+    {
+     "line": 36,
+     "before": "        \"native/control/module_catalog.inc\", \"apps/studio/public/catalogue-presentation.json\",",
+     "after": "        \"engine/control/module_catalog.inc\", \"apps/studio/public/catalogue-presentation.json\","
+    },
+    {
+     "line": 38,
+     "before": "MODULE = \"native/modules2/trial_gain\"",
+     "after": "MODULE = \"modules/trial_gain\""
+    },
+    {
+     "line": 147,
+     "before": "        \"add_executable(abi2_trial_gain_tests tests.cpp ../../tests2/allocation_watch.cpp)\\n\"",
+     "after": "        \"add_executable(abi2_trial_gain_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)\\n\""
+    },
+    {
+     "line": 162,
+     "before": "    edit(CORE[0],\"add_subdirectory(../modules2/quantizer quantizer)\",",
+     "after": "    edit(CORE[0],\"add_subdirectory(../modules/quantizer quantizer)\","
+    },
+    {
+     "line": 163,
+     "before": "         \"add_subdirectory(../modules2/quantizer quantizer)\\n\"",
+     "after": "         \"add_subdirectory(../modules/quantizer quantizer)\\n\""
+    },
+    {
+     "line": 164,
+     "before": "         \"add_subdirectory(../modules2/trial_gain trial_gain)\")",
+     "after": "         \"add_subdirectory(../modules/trial_gain trial_gain)\")"
+    },
+    {
+     "line": 165,
+     "before": "    edit(CORE[1],'#include \"../modules2/quantizer/dsp.h\"',",
+     "after": "    edit(CORE[1],'#include \"../../modules/quantizer/dsp.h\"',"
+    },
+    {
+     "line": 166,
+     "before": "         '#include \"../modules2/quantizer/dsp.h\"\\n#include \"../modules2/trial_gain/dsp.h\"')",
+     "after": "         '#include \"../../modules/quantizer/dsp.h\"\\n#include \"../../modules/trial_gain/dsp.h\"')"
+    },
+    {
+     "line": 236,
+     "before": "    # The trial deliberately edits native/, apps/ and docs/ inside its working",
+     "after": "    # The trial deliberately edits engine/, modules/, apps/ and docs/ inside its working"
+    },
+    {
+     "line": 251,
+     "before": "                   \"copy native/sdk <external>/sdk\",True,",
+     "after": "                   \"copy sdk <external>/sdk\",True,"
+    },
+    {
+     "line": 252,
+     "before": "                   lambda: shutil.copytree(ROOT/\"native/sdk\",outside/\"sdk\"))",
+     "after": "                   lambda: shutil.copytree(ROOT/\"sdk\",outside/\"sdk\"))"
+    },
+    {
+     "line": 266,
+     "before": "        trial.step(\"Copy trial source into native/modules2\",DOC+\" \u00a7B.2 / \"+SDK+\" \u00a71\",",
+     "after": "        trial.step(\"Copy trial source into modules\",DOC+\" \u00a7B.2 / \"+SDK+\" \u00a71\","
+    },
+    {
+     "line": 267,
+     "before": "                   \"copy <external>/trial_gain native/modules2/trial_gain\",False,",
+     "after": "                   \"copy <external>/trial_gain modules/trial_gain\",False,"
+    },
+    {
+     "line": 271,
+     "before": "                   \"edit native/engine2/CMakeLists.txt, module_catalog.h, module_catalog.inc, catalogue-presentation.json\",",
+     "after": "                   \"edit engine/CMakeLists.txt, module_catalog.h, module_catalog.inc, catalogue-presentation.json\","
+    }
+   ]
+  },
+  {
+   "source": "native/CMakeLists.txt",
+   "blob": "0a126d25b54234ea118ba42b15a15411172b6996",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 9,
+     "before": "add_executable(wirescape_cli cli/main.cpp)",
+     "after": "add_executable(wirescape_cli ../host/cli/main.cpp)"
+    },
+    {
+     "line": 11,
+     "before": "add_subdirectory(document)",
+     "after": "add_subdirectory(../host/document document)"
+    },
+    {
+     "line": 14,
+     "before": "add_subdirectory(engine2)",
+     "after": "add_subdirectory(../engine engine2)"
+    },
+    {
+     "line": 16,
+     "before": "add_subdirectory(tools/render)",
+     "after": "add_subdirectory(../tools/render tools/render)"
+    },
+    {
+     "line": 19,
+     "before": "add_subdirectory(tools/capture)",
+     "after": "add_subdirectory(../tools/capture tools/capture)"
+    },
+    {
+     "line": 22,
+     "before": "add_library(wirescape_osc_service STATIC io/net/osc_service.cpp)",
+     "after": "add_library(wirescape_osc_service STATIC ../host/net/osc_service.cpp)"
+    },
+    {
+     "line": 23,
+     "before": "target_include_directories(wirescape_osc_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)",
+     "after": "target_include_directories(wirescape_osc_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/../engine/include ${CMAKE_CURRENT_SOURCE_DIR}/../host/include)"
+    },
+    {
+     "line": 28,
+     "before": "add_executable(abi2_osc_host_service_tests io/net/tests.cpp)",
+     "after": "add_executable(abi2_osc_host_service_tests ../host/net/tests.cpp)"
+    },
+    {
+     "line": 29,
+     "before": "target_include_directories(abi2_osc_host_service_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sdk)",
+     "after": "target_include_directories(abi2_osc_host_service_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk)"
+    },
+    {
+     "line": 36,
+     "before": "add_executable(abi2_osc_graph_ingress_tests io/net/graph_tests.cpp tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_osc_graph_ingress_tests ../host/net/graph_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 37,
+     "before": "target_include_directories(abi2_osc_graph_ingress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sdk)",
+     "after": "target_include_directories(abi2_osc_graph_ingress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk)"
+    },
+    {
+     "line": 46,
+     "before": "add_library(abi2_osc_fuzz_compile OBJECT io/osc/fuzz.cpp)",
+     "after": "add_library(abi2_osc_fuzz_compile OBJECT ../host/osc/fuzz.cpp)"
+    },
+    {
+     "line": 54,
+     "before": "    add_executable(abi2_osc_${kind}_fuzz io/osc/fuzz.cpp)",
+     "after": "    add_executable(abi2_osc_${kind}_fuzz ../host/osc/fuzz.cpp)"
+    },
+    {
+     "line": 68,
+     "before": "add_library(wirescape_osc_host STATIC control/osc_host.cpp control/osc_out_host.cpp)",
+     "after": "add_library(wirescape_osc_host STATIC ../engine/control/osc_host.cpp ../engine/control/osc_out_host.cpp)"
+    },
+    {
+     "line": 69,
+     "before": "target_include_directories(wirescape_osc_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control)",
+     "after": "target_include_directories(wirescape_osc_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../engine/control)"
+    },
+    {
+     "line": 72,
+     "before": "add_executable(wirescape_engine_sidecar sidecar/main.cpp sidecar/protocol.cpp sidecar/session.cpp sidecar/devices.cpp)",
+     "after": "add_executable(wirescape_engine_sidecar ../host/sidecar/main.cpp ../host/sidecar/protocol.cpp ../host/sidecar/session.cpp ../host/sidecar/devices.cpp)"
+    },
+    {
+     "line": 94,
+     "before": "add_test(NAME abi2_sidecar_protocol_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/protocol_tests.py",
+     "after": "add_test(NAME abi2_sidecar_protocol_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/protocol_tests.py"
+    },
+    {
+     "line": 95,
+     "before": "  $<TARGET_FILE:wirescape_engine_sidecar> ${PROJECT_SOURCE_DIR}/examples)",
+     "after": "  $<TARGET_FILE:wirescape_engine_sidecar> ${PROJECT_SOURCE_DIR}/../host/examples)"
+    },
+    {
+     "line": 97,
+     "before": "add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/apply_graph_tests.py",
+     "after": "add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/apply_graph_tests.py"
+    },
+    {
+     "line": 100,
+     "before": "add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/capture_tests.py",
+     "after": "add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/capture_tests.py"
+    },
+    {
+     "line": 103,
+     "before": "add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/golden_tests.py",
+     "after": "add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/golden_tests.py"
+    },
+    {
+     "line": 106,
+     "before": "add_executable(sidecar_protocol_unit_tests sidecar/protocol_unit_tests.cpp sidecar/protocol.cpp sidecar/devices.cpp tests2/allocation_watch.cpp)",
+     "after": "add_executable(sidecar_protocol_unit_tests ../host/sidecar/protocol_unit_tests.cpp ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 111,
+     "before": "add_executable(sidecar_audio_recovery_tests sidecar/audio_recovery_tests.cpp sidecar/session.cpp io/audio/device_identity.cpp",
+     "after": "add_executable(sidecar_audio_recovery_tests ../host/sidecar/audio_recovery_tests.cpp ../host/sidecar/session.cpp ../host/audio/device_identity.cpp"
+    },
+    {
+     "line": 112,
+     "before": "  sidecar/protocol.cpp sidecar/devices.cpp)",
+     "after": "  ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp)"
+    },
+    {
+     "line": 125,
+     "before": "file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar/session.cpp\" _s0_session_source)",
+     "after": "file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/session.cpp\" _s0_session_source)"
+    },
+    {
+     "line": 137,
+     "before": "  sidecar/snapshot_tests.cpp \"${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp\"",
+     "after": "  ../host/sidecar/snapshot_tests.cpp \"${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp\""
+    },
+    {
+     "line": 138,
+     "before": "  sidecar/protocol.cpp sidecar/devices.cpp)",
+     "after": "  ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp)"
+    },
+    {
+     "line": 140,
+     "before": "  \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar\" \"${CMAKE_CURRENT_SOURCE_DIR}/document\"",
+     "after": "  \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar\" \"${CMAKE_CURRENT_SOURCE_DIR}/../host/document\""
+    },
+    {
+     "line": 146,
+     "before": "  \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar/testdata\")",
+     "after": "  \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/testdata\")"
+    }
+   ]
+  },
+  {
+   "source": "native/cli/play.cpp",
+   "blob": "221ea4d2c526e020a0e2b8f9d06f9293a74b5805",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../io/audio/portaudio_service.h\"",
+     "after": "#include \"../audio/portaudio_service.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/app_engine_tests.cpp",
+   "blob": "64a091d8e9400b5a50f36a3fc02a4a6b0acbc876",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/midi_host_tests.cpp",
+   "blob": "f5d7fc93b008a3e4d96442e5803e724d37c01f2d",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/module_catalog.h",
+   "blob": "2d42d7c848226a1a19b02b1919ff1f6d15b8341d",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/adsr/dsp.h\"",
+     "after": "#include \"../../modules/adsr/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../modules2/blend/dsp.h\"",
+     "after": "#include \"../../modules/blend/dsp.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../modules2/chaos_lite/dsp.h\"",
+     "after": "#include \"../../modules/chaos_lite/dsp.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../modules2/chord/dsp.h\"",
+     "after": "#include \"../../modules/chord/dsp.h\""
+    },
+    {
+     "line": 7,
+     "before": "#include \"../modules2/clock/dsp.h\"",
+     "after": "#include \"../../modules/clock/dsp.h\""
+    },
+    {
+     "line": 8,
+     "before": "#include \"../modules2/delay/dsp.h\"",
+     "after": "#include \"../../modules/delay/dsp.h\""
+    },
+    {
+     "line": 9,
+     "before": "#include \"../modules2/function_envelope/dsp.h\"",
+     "after": "#include \"../../modules/function_envelope/dsp.h\""
+    },
+    {
+     "line": 10,
+     "before": "#include \"../modules2/groove/dsp.h\"",
+     "after": "#include \"../../modules/groove/dsp.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../modules2/host_keyboard/dsp.h\"",
+     "after": "#include \"../../modules/host_keyboard/dsp.h\""
+    },
+    {
+     "line": 12,
+     "before": "#include \"../modules2/ladder/dsp.h\"",
+     "after": "#include \"../../modules/ladder/dsp.h\""
+    },
+    {
+     "line": 13,
+     "before": "#include \"../modules2/lfo/dsp.h\"",
+     "after": "#include \"../../modules/lfo/dsp.h\""
+    },
+    {
+     "line": 14,
+     "before": "#include \"../modules2/macro_oscillator/dsp.h\"",
+     "after": "#include \"../../modules/macro_oscillator/dsp.h\""
+    },
+    {
+     "line": 15,
+     "before": "#include \"../modules2/midi_cc_to_cv/dsp.h\"",
+     "after": "#include \"../../modules/midi_cc_to_cv/dsp.h\""
+    },
+    {
+     "line": 16,
+     "before": "#include \"../modules2/midi_in/dsp.h\"",
+     "after": "#include \"../../modules/midi_in/dsp.h\""
+    },
+    {
+     "line": 17,
+     "before": "#include \"../modules2/midi_to_cv/dsp.h\"",
+     "after": "#include \"../../modules/midi_to_cv/dsp.h\""
+    },
+    {
+     "line": 18,
+     "before": "#include \"../modules2/mixer/dsp.h\"",
+     "after": "#include \"../../modules/mixer/dsp.h\""
+    },
+    {
+     "line": 19,
+     "before": "#include \"../modules2/monitor/dsp.h\"",
+     "after": "#include \"../../modules/monitor/dsp.h\""
+    },
+    {
+     "line": 20,
+     "before": "#include \"../modules2/noise/dsp.h\"",
+     "after": "#include \"../../modules/noise/dsp.h\""
+    },
+    {
+     "line": 21,
+     "before": "#include \"../modules2/notes_to_cv/dsp.h\"",
+     "after": "#include \"../../modules/notes_to_cv/dsp.h\""
+    },
+    {
+     "line": 22,
+     "before": "#include \"../modules2/osc_in/dsp.h\"",
+     "after": "#include \"../../modules/osc_in/dsp.h\""
+    },
+    {
+     "line": 23,
+     "before": "#include \"../modules2/osc_out/dsp.h\"",
+     "after": "#include \"../../modules/osc_out/dsp.h\""
+    },
+    {
+     "line": 24,
+     "before": "#include \"../modules2/output/dsp.h\"",
+     "after": "#include \"../../modules/output/dsp.h\""
+    },
+    {
+     "line": 25,
+     "before": "#include \"../modules2/quad_vca/dsp.h\"",
+     "after": "#include \"../../modules/quad_vca/dsp.h\""
+    },
+    {
+     "line": 26,
+     "before": "#include \"../modules2/quantizer/dsp.h\"",
+     "after": "#include \"../../modules/quantizer/dsp.h\""
+    },
+    {
+     "line": 27,
+     "before": "#include \"../modules2/resonator/dsp.h\"",
+     "after": "#include \"../../modules/resonator/dsp.h\""
+    },
+    {
+     "line": 28,
+     "before": "#include \"../modules2/reverb/dsp.h\"",
+     "after": "#include \"../../modules/reverb/dsp.h\""
+    },
+    {
+     "line": 29,
+     "before": "#include \"../modules2/scale_offset/dsp.h\"",
+     "after": "#include \"../../modules/scale_offset/dsp.h\""
+    },
+    {
+     "line": 30,
+     "before": "#include \"../modules2/slew/dsp.h\"",
+     "after": "#include \"../../modules/slew/dsp.h\""
+    },
+    {
+     "line": 31,
+     "before": "#include \"../modules2/spectral/dsp.h\"",
+     "after": "#include \"../../modules/spectral/dsp.h\""
+    },
+    {
+     "line": 32,
+     "before": "#include \"../modules2/vca/dsp.h\"",
+     "after": "#include \"../../modules/vca/dsp.h\""
+    },
+    {
+     "line": 33,
+     "before": "#include \"../modules2/vcf/dsp.h\"",
+     "after": "#include \"../../modules/vcf/dsp.h\""
+    },
+    {
+     "line": 34,
+     "before": "#include \"../modules2/vco/dsp.h\"",
+     "after": "#include \"../../modules/vco/dsp.h\""
+    },
+    {
+     "line": 35,
+     "before": "#include \"../sdk/examples/random_source/dsp.h\"",
+     "after": "#include \"../../sdk/examples/random_source/dsp.h\""
+    },
+    {
+     "line": 36,
+     "before": "#include \"../sdk/examples/step_sequencer/dsp.h\"",
+     "after": "#include \"../../sdk/examples/step_sequencer/dsp.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/monitor_capture.h",
+   "blob": "254207115813d87c098b508193998681cbacde4c",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../io/osc/codec.h\"",
+     "after": "#include \"../../host/osc/codec.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/osc_host.h",
+   "blob": "1e3449095ff13ee3a1616a11ef7c9f48d464cfb3",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../io/net/osc_service.h\"",
+     "after": "#include \"../../host/net/osc_service.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../io/osc/pattern.h\"",
+     "after": "#include \"../../host/osc/pattern.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/osc_out_host.cpp",
+   "blob": "e4af9a8e113480c780cfcaac12c1daa11e975ed5",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../document/runtime_module_config.h\"",
+     "after": "#include \"../../host/document/runtime_module_config.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../io/osc/codec.h\"",
+     "after": "#include \"../../host/osc/codec.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/control/osc_out_host.h",
+   "blob": "ac222e3d7955dfe71b49bc6251ad1c310028c301",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/osc_out/config.h\"",
+     "after": "#include \"../../modules/osc_out/config.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/CMakeLists.txt",
+   "blob": "7fbbb3f640b5559814dbd0b9cf5dde91da7f37fc",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 13,
+     "before": "add_executable(groove_observation_tests groove_observation_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(groove_observation_tests groove_observation_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 16,
+     "before": "add_executable(groove_runtime_tests groove_runtime_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(groove_runtime_tests groove_runtime_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 20,
+     "before": "add_executable(runtime_patch_tests runtime_patch_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(runtime_patch_tests runtime_patch_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 22,
+     "before": "add_test(NAME abi2_runtime_patch_tests COMMAND runtime_patch_tests \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+     "after": "add_test(NAME abi2_runtime_patch_tests COMMAND runtime_patch_tests \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")"
+    },
+    {
+     "line": 25,
+     "before": "add_executable(qt_free_patch_coverage_tests qt_free_patch_coverage_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(qt_free_patch_coverage_tests qt_free_patch_coverage_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 28,
+     "before": "  \"${PROJECT_SOURCE_DIR}/examples\" \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+     "after": "  \"${PROJECT_SOURCE_DIR}/../host/examples\" \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")"
+    },
+    {
+     "line": 30,
+     "before": "add_executable(builtin_source_tests builtin_source_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(builtin_source_tests builtin_source_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 42,
+     "before": "add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cli/play_tests.py $<TARGET_FILE:wirescape_cli> \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+     "after": "add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/../host/cli/play_tests.py $<TARGET_FILE:wirescape_cli> \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")"
+    },
+    {
+     "line": 50,
+     "before": "add_test(NAME class_demo_cc_depth COMMAND class_demo_cc_depth_tests \"${PROJECT_SOURCE_DIR}/examples\")",
+     "after": "add_test(NAME class_demo_cc_depth COMMAND class_demo_cc_depth_tests \"${PROJECT_SOURCE_DIR}/../host/examples\")"
+    },
+    {
+     "line": 59,
+     "before": "add_executable(golden_render ../tests/golden_render.cpp)",
+     "after": "add_executable(golden_render ../../tests/native/compat/golden_render.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/document/builtin_source_tests.cpp",
+   "blob": "3783a936980ceb7d29e5d3e48b11e7b5fe1de420",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/groove_observation_tests.cpp",
+   "blob": "9bbcd5a9fa33a052b23982ac5b3801b958335565",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/groove/dsp.h\"",
+     "after": "#include \"../../modules/groove/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/groove_runtime_tests.cpp",
+   "blob": "3af5c89713740b0da6ecccd17b4cdc3cbaaa9a9f",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/groove/dsp.h\"",
+     "after": "#include \"../../modules/groove/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../tests2/test_modules.h\"",
+     "after": "#include \"../../tests/native/abi2/test_modules.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/qt_free_patch_coverage_tests.cpp",
+   "blob": "1d57703a0c2f7a4a86e037376f0c8efa4d9f504b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../tests2/frozen_reference.h\"",
+     "after": "#include \"../../tests/native/abi2/frozen_reference.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/runtime_module_config.h",
+   "blob": "db24a14f1a0e5b218ab91eb0b09baf91f086d22f",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/groove/config.h\"",
+     "after": "#include \"../../modules/groove/config.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../modules2/midi_cc_to_cv/config.h\"",
+     "after": "#include \"../../modules/midi_cc_to_cv/config.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../modules2/osc_in/config.h\"",
+     "after": "#include \"../../modules/osc_in/config.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../modules2/osc_out/config.h\"",
+     "after": "#include \"../../modules/osc_out/config.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/document/runtime_patch_tests.cpp",
+   "blob": "35ec25d0bdcb05052780d8cf96de3172bf94471d",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 66,
+     "before": " const auto fixtures = std::filesystem::path(argv[1]).parent_path().parent_path() / \"tests/fixtures/legacy_documents\";",
+     "after": " const auto fixtures = std::filesystem::path(argv[1]).parent_path().parent_path().parent_path() / \"tests/native/compat/fixtures/legacy_documents\";"
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/CMakeLists.txt",
+   "blob": "c2dcbd5e3761dd6d1bcaba793ba842bc7944cf20",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "target_include_directories(wirescape_sdk2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk ${CMAKE_CURRENT_SOURCE_DIR}/../include)",
+     "after": "target_include_directories(wirescape_sdk2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../host/include)"
+    },
+    {
+     "line": 7,
+     "before": "target_include_directories(abi2_header_c99 PRIVATE ../include)",
+     "after": "target_include_directories(abi2_header_c99 PRIVATE ../sdk/include)"
+    },
+    {
+     "line": 17,
+     "before": "add_library(wirescape_voice2 STATIC ../voice/allocator.cpp)",
+     "after": "add_library(wirescape_voice2 STATIC voice/allocator.cpp)"
+    },
+    {
+     "line": 19,
+     "before": "target_include_directories(wirescape_voice2 PUBLIC ../voice)",
+     "after": "target_include_directories(wirescape_voice2 PUBLIC voice)"
+    },
+    {
+     "line": 21,
+     "before": "add_executable(abi2_voice_tests ../voice/tests.cpp)",
+     "after": "add_executable(abi2_voice_tests voice/tests.cpp)"
+    },
+    {
+     "line": 24,
+     "before": "add_executable(abi2_note_identity_tests ../voice/note_identity_tests.cpp)",
+     "after": "add_executable(abi2_note_identity_tests voice/note_identity_tests.cpp)"
+    },
+    {
+     "line": 40,
+     "before": "target_sources(abi2_engine_tests PRIVATE ../tests2/allocation_watch.cpp)",
+     "after": "target_sources(abi2_engine_tests PRIVATE ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 41,
+     "before": "add_executable(abi2_module_tests ../tests2/module_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_module_tests ../tests/native/abi2/module_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 45,
+     "before": "  add_executable(abi2_${mode}_ports ../tests2/module_tests.cpp)",
+     "after": "  add_executable(abi2_${mode}_ports ../tests/native/abi2/module_tests.cpp)"
+    },
+    {
+     "line": 62,
+     "before": "file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)",
+     "after": "file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)"
+    },
+    {
+     "line": 63,
+     "before": "add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark.json)",
+     "after": "add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark.json)"
+    },
+    {
+     "line": 66,
+     "before": "    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})",
+     "after": "    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark_${frames}.json --block ${frames})"
+    },
+    {
+     "line": 68,
+     "before": "add_executable(abi2_integration_tests ../tests2/integration_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_integration_tests ../tests/native/abi2/integration_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 70,
+     "before": "add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)",
+     "after": "add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)"
+    },
+    {
+     "line": 72,
+     "before": "  add_library(ws2_test_${module} SHARED ../tests2/${module}_module.cpp)",
+     "after": "  add_library(ws2_test_${module} SHARED ../tests/native/abi2/${module}_module.cpp)"
+    },
+    {
+     "line": 75,
+     "before": "add_executable(abi2_guide_tests ../tests2/guide_ringmod/tests.cpp)",
+     "after": "add_executable(abi2_guide_tests ../tests/native/abi2/guide_ringmod/tests.cpp)"
+    },
+    {
+     "line": 78,
+     "before": "add_library(ws2_guide_ringmod SHARED ../tests2/guide_ringmod/module.cpp)",
+     "after": "add_library(ws2_guide_ringmod SHARED ../tests/native/abi2/guide_ringmod/module.cpp)"
+    },
+    {
+     "line": 83,
+     "before": "  add_executable(abi2_example_${example}_tests ../sdk/examples/${example}/tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "  add_executable(abi2_example_${example}_tests ../sdk/examples/${example}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 90,
+     "before": "add_library(ws2_groove SHARED ../modules2/groove/module.cpp)",
+     "after": "add_library(ws2_groove SHARED ../modules/groove/module.cpp)"
+    },
+    {
+     "line": 92,
+     "before": "add_library(ws2_host_keyboard SHARED ../modules2/host_keyboard/module.cpp)",
+     "after": "add_library(ws2_host_keyboard SHARED ../modules/host_keyboard/module.cpp)"
+    },
+    {
+     "line": 96,
+     "before": "add_executable(abi2_osc_codec_tests ../io/osc/tests.cpp)",
+     "after": "add_executable(abi2_osc_codec_tests ../host/osc/tests.cpp)"
+    },
+    {
+     "line": 100,
+     "before": "  add_library(ws2_${module} SHARED ../modules2/${module}/module.cpp)",
+     "after": "  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)"
+    },
+    {
+     "line": 102,
+     "before": "  add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 109,
+     "before": "  add_library(ws2_${module} SHARED ../modules2/${module}/module.cpp)",
+     "after": "  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)"
+    },
+    {
+     "line": 126,
+     "before": "add_executable(wirescape_soak tests/soak.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(wirescape_soak tests/soak.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 136,
+     "before": "add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 139,
+     "before": "add_executable(abi2_staged_tests tests/staged_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_staged_tests tests/staged_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 142,
+     "before": "add_executable(abi2_live_replan_tests ../tests2/live_replan_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_live_replan_tests ../tests/native/abi2/live_replan_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 148,
+     "before": "  add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 172,
+     "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json\")",
+     "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_reference_hash_manifest.json\")"
+    },
+    {
+     "line": 174,
+     "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs\")",
+     "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/refs\")"
+    },
+    {
+     "line": 176,
+     "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_s4_qt_free_96000.json\")",
+     "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_s4_qt_free_96000.json\")"
+    },
+    {
+     "line": 208,
+     "before": "add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)",
+     "after": "add_executable(abi2_returned_filter_stress ../tests/native/abi2/abi2_returned_filter_stress.cpp)"
+    },
+    {
+     "line": 247,
+     "before": "add_subdirectory(../io/midi midi_io)",
+     "after": "add_subdirectory(../host/midi midi_io)"
+    },
+    {
+     "line": 248,
+     "before": "add_subdirectory(../modules2/macro_oscillator macro_oscillator)",
+     "after": "add_subdirectory(../modules/macro_oscillator macro_oscillator)"
+    },
+    {
+     "line": 250,
+     "before": "add_library(wirescape_app_engine STATIC ../control/app_engine.cpp)",
+     "after": "add_library(wirescape_app_engine STATIC control/app_engine.cpp)"
+    },
+    {
+     "line": 251,
+     "before": "target_include_directories(wirescape_app_engine PUBLIC ../control)",
+     "after": "target_include_directories(wirescape_app_engine PUBLIC control)"
+    },
+    {
+     "line": 259,
+     "before": "add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 276,
+     "before": "add_executable(abi2_host_keyboard_tests ../modules2/host_keyboard/tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_host_keyboard_tests ../modules/host_keyboard/tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 280,
+     "before": "add_library(wirescape_audio_service STATIC ../io/audio/portaudio_service.cpp ../io/audio/device_identity.cpp)",
+     "after": "add_library(wirescape_audio_service STATIC ../host/audio/portaudio_service.cpp ../host/audio/device_identity.cpp)"
+    },
+    {
+     "line": 284,
+     "before": "add_library(qt_free_fake_portaudio SHARED ../io/audio/fake_portaudio_stream_tests.cpp)",
+     "after": "add_library(qt_free_fake_portaudio SHARED ../host/audio/fake_portaudio_stream_tests.cpp)"
+    },
+    {
+     "line": 298,
+     "before": "add_executable(qt_free_stream_lifecycle_tests ../io/audio/stream_lifecycle_tests.cpp)",
+     "after": "add_executable(qt_free_stream_lifecycle_tests ../host/audio/stream_lifecycle_tests.cpp)"
+    },
+    {
+     "line": 309,
+     "before": "add_executable(audio_callback_live_midi_tests ../io/audio/callback_live_midi_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(audio_callback_live_midi_tests ../host/audio/callback_live_midi_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 314,
+     "before": "target_sources(wirescape_cli PRIVATE ../cli/play.cpp)",
+     "after": "target_sources(wirescape_cli PRIVATE ../host/cli/play.cpp)"
+    },
+    {
+     "line": 319,
+     "before": "add_library(wirescape_midi_host STATIC ../control/midi_host.cpp)",
+     "after": "add_library(wirescape_midi_host STATIC control/midi_host.cpp)"
+    },
+    {
+     "line": 320,
+     "before": "target_include_directories(wirescape_midi_host PUBLIC ../control)",
+     "after": "target_include_directories(wirescape_midi_host PUBLIC control)"
+    },
+    {
+     "line": 323,
+     "before": "add_executable(midi_host_tests ../control/midi_host_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(midi_host_tests control/midi_host_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 327,
+     "before": "add_executable(app_engine_tests ../control/app_engine_tests.cpp ../tests2/allocation_watch.cpp)",
+     "after": "add_executable(app_engine_tests control/app_engine_tests.cpp ../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 330,
+     "before": "  WS_KNOWN_MODULE_IDS=\"${CMAKE_CURRENT_SOURCE_DIR}/../../tools/foundation/fixtures/known_module_ids.txt\")",
+     "after": "  WS_KNOWN_MODULE_IDS=\"${CMAKE_CURRENT_SOURCE_DIR}/../tools/foundation/fixtures/known_module_ids.txt\")"
+    },
+    {
+     "line": 337,
+     "before": "  \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\" --rate 48000 --block 128 --seconds 0.01)",
+     "after": "  \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\" --rate 48000 --block 128 --seconds 0.01)"
+    },
+    {
+     "line": 339,
+     "before": "add_subdirectory(../modules2/chaos_lite chaos_lite)",
+     "after": "add_subdirectory(../modules/chaos_lite chaos_lite)"
+    },
+    {
+     "line": 340,
+     "before": "add_subdirectory(../modules2/blend blend)",
+     "after": "add_subdirectory(../modules/blend blend)"
+    },
+    {
+     "line": 341,
+     "before": "add_subdirectory(../modules2/resonator resonator)",
+     "after": "add_subdirectory(../modules/resonator resonator)"
+    },
+    {
+     "line": 342,
+     "before": "add_subdirectory(../modules2/spectral spectral)",
+     "after": "add_subdirectory(../modules/spectral spectral)"
+    },
+    {
+     "line": 343,
+     "before": "add_subdirectory(../modules2/delay delay)",
+     "after": "add_subdirectory(../modules/delay delay)"
+    },
+    {
+     "line": 344,
+     "before": "add_subdirectory(../modules2/reverb reverb)",
+     "after": "add_subdirectory(../modules/reverb reverb)"
+    },
+    {
+     "line": 345,
+     "before": "add_subdirectory(../modules2/quantizer quantizer)",
+     "after": "add_subdirectory(../modules/quantizer quantizer)"
+    },
+    {
+     "line": 346,
+     "before": "add_subdirectory(../modules2/quad_vca quad_vca)",
+     "after": "add_subdirectory(../modules/quad_vca quad_vca)"
+    },
+    {
+     "line": 347,
+     "before": "add_subdirectory(../modules2/notes_to_cv notes_to_cv)",
+     "after": "add_subdirectory(../modules/notes_to_cv notes_to_cv)"
+    },
+    {
+     "line": 348,
+     "before": "add_subdirectory(../modules2/chord chord)",
+     "after": "add_subdirectory(../modules/chord chord)"
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/benchmark.cpp",
+   "blob": "4b446de7a669fbeab4c6edec7d878b10fdc702b1",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/dsp_fixture.h\"",
+     "after": "#include \"../../tests/native/abi2/dsp_fixture.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/benchmark_graph.h",
+   "blob": "5bb48af5dc82ad6e7350cfbae49ece896df3ef7b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/dsp_fixture.h\"",
+     "after": "#include \"../../tests/native/abi2/dsp_fixture.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/cost_probe.cpp",
+   "blob": "d9c180c3140c4fa200bcd392a00158ae2797a9d2",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../modules2/quad_vca/dsp.h\"",
+     "after": "#include \"../../modules/quad_vca/dsp.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/engine_tests.cpp",
+   "blob": "cdd19473b394fe1529fb90992751494132959323",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../modules2/lfo/dsp.h\"",
+     "after": "#include \"../../modules/lfo/dsp.h\""
+    },
+    {
+     "line": 3,
+     "before": "#include \"../../modules2/vco/dsp.h\"",
+     "after": "#include \"../../modules/vco/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../../tests2/test_modules.h\"",
+     "after": "#include \"../../tests/native/abi2/test_modules.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/module_cpu_probe.cpp",
+   "blob": "5a7c516607a229025d7fef80b485f5cae212df43",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 7,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/panic_stress.cpp",
+   "blob": "26b08c061116498dd56db571b3ce2375280a7038",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/test_modules.h\"",
+     "after": "#include \"../../tests/native/abi2/test_modules.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/port_behavior_tests.cpp",
+   "blob": "f9b1047e2a7d0a21eabe7cc8393d497f145e98f6",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/dsp_fixture.h\"",
+     "after": "#include \"../../tests/native/abi2/dsp_fixture.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/soak.cpp",
+   "blob": "db9563be4f3613459666c18dd95aca8366028e19",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../modules2/noise/dsp.h\"",
+     "after": "#include \"../../modules/noise/dsp.h\""
+    },
+    {
+     "line": 3,
+     "before": "#include \"../../modules2/clock/dsp.h\"",
+     "after": "#include \"../../modules/clock/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../modules2/function_envelope/dsp.h\"",
+     "after": "#include \"../../modules/function_envelope/dsp.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../../modules2/slew/dsp.h\"",
+     "after": "#include \"../../modules/slew/dsp.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../../modules2/ladder/dsp.h\"",
+     "after": "#include \"../../modules/ladder/dsp.h\""
+    },
+    {
+     "line": 7,
+     "before": "#include \"../../modules2/output/dsp.h\"",
+     "after": "#include \"../../modules/output/dsp.h\""
+    },
+    {
+     "line": 8,
+     "before": "#include \"../../modules2/adsr/dsp.h\"",
+     "after": "#include \"../../modules/adsr/dsp.h\""
+    },
+    {
+     "line": 9,
+     "before": "#include \"../../modules2/vca/dsp.h\"",
+     "after": "#include \"../../modules/vca/dsp.h\""
+    },
+    {
+     "line": 10,
+     "before": "#include \"../../modules2/vcf/dsp.h\"",
+     "after": "#include \"../../modules/vcf/dsp.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../../modules2/vco/dsp.h\"",
+     "after": "#include \"../../modules/vco/dsp.h\""
+    },
+    {
+     "line": 12,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/engine2/tests/staged_tests.cpp",
+   "blob": "5b935e1ae09e68480465a632e9a9cc4b041044e6",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/dsp_fixture.h\"",
+     "after": "#include \"../../tests/native/abi2/dsp_fixture.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/test_modules.h\"",
+     "after": "#include \"../../tests/native/abi2/test_modules.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/audio/callback_live_midi_tests.cpp",
+   "blob": "4fd498ef4bd28a7f465f84e4d12d5f8e8f260c6b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/audio/fake_portaudio_stream_tests.cpp",
+   "blob": "66297b08fb4162045343aaef4fa65de9b14e6e6e",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../third_party/portaudio/portaudio.h\"",
+     "after": "#include \"../third_party/portaudio/portaudio.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/audio/portaudio_service.cpp",
+   "blob": "60b51b15ea39a51b86f3525afb4ecde543e36bfe",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../third_party/portaudio/portaudio.h\"",
+     "after": "#include \"../third_party/portaudio/portaudio.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/audio/stream_lifecycle_tests.cpp",
+   "blob": "668f69fe17e6fda9f77314297d37b7e5a47bdb0b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../document/runtime_patch.h\"",
+     "after": "#include \"../document/runtime_patch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/midi/CMakeLists.txt",
+   "blob": "78e85daff98cf0d0286c63877f8ef057cc13a53f",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 55,
+     "before": "add_executable(midi_service_tests service_tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(midi_service_tests service_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 60,
+     "before": "  add_library(ws2_${module} SHARED ../../modules2/${module}/module.cpp)",
+     "after": "  add_library(ws2_${module} SHARED ../../modules/${module}/module.cpp)"
+    },
+    {
+     "line": 62,
+     "before": "  add_executable(abi2_${module}_tests ../../modules2/${module}/tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "  add_executable(abi2_${module}_tests ../../modules/${module}/tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/io/midi/midi_service.cpp",
+   "blob": "75331725b7cd9e5c25daaf153ee93335a20dcb7a",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../engine2/midi_release.h\"",
+     "after": "#include \"../../engine/midi_release.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/midi/module_test_support.h",
+   "blob": "a397df1f256b65ed6db589dc98d4d42bb9cc374a",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/midi/service_tests.cpp",
+   "blob": "f5c660cdff566aaf03f8e103f891a269c031b4f1",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/io/net/graph_tests.cpp",
+   "blob": "0645296d0bfbcbacb86faa0ea8b5a002a1694c23",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/blend/CMakeLists.txt",
+   "blob": "20db8b17559e3c3d2f567590589aa3694b8d8f1c",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_blend_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_blend_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/blend/tests.cpp",
+   "blob": "a11725348cb68706bc56a5d9b40dceff1ad0e5f1",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/chaos_lite/CMakeLists.txt",
+   "blob": "e53131bf5ab8305e1a74a532d8ed2a3febaba590",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_chaos_lite_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_chaos_lite_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/chaos_lite/tests.cpp",
+   "blob": "397721608a1605636e1a9a476f76fdc5829d5bca",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/chord/CMakeLists.txt",
+   "blob": "03b6d886e3407b151176cdcd23d4666dd084fbb0",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_chord_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_chord_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/chord/tests.cpp",
+   "blob": "e593247ba6c31a977504df6a42f11a7297fba713",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 8,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 10,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../../tests2/test_modules.h\"",
+     "after": "#include \"../../tests/native/abi2/test_modules.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/clock/tests.cpp",
+   "blob": "006af650c75df31f00704aa7e7f5558b20e13e48",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/delay/CMakeLists.txt",
+   "blob": "d0eaa2be8e8382f385c394a35b8a1fae20c905ca",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_delay_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_delay_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/delay/tests.cpp",
+   "blob": "95a195a5f3f64abd2796c4e6fb8a6a9ecb689138",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/function_envelope/tests.cpp",
+   "blob": "e798206cab9991e5a2f86b4ed36c60bdcb342218",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/host_keyboard/dsp.h",
+   "blob": "bdf011feccb8d9fad0d5ac649f8b6c2426de33e8",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../voice/note_to_cv.h\"",
+     "after": "#include \"../../engine/voice/note_to_cv.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/host_keyboard/tests.cpp",
+   "blob": "ced57374918596fd262dc443c50f201a9d449b86",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/ladder/tests.cpp",
+   "blob": "1aad3e80942db07b5beb09dccf9a20f0994dfd94",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/macro_oscillator/CMakeLists.txt",
+   "blob": "4c48e4227b1d46f663853dec18ce79e0070da8f6",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 36,
+     "before": "add_executable(abi2_macro_oscillator_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_macro_oscillator_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    },
+    {
+     "line": 64,
+     "before": "  add_executable(macro_unpatched_reference tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "  add_executable(macro_unpatched_reference tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/macro_oscillator/cppcheck-baseline.json",
+   "blob": "20c789ed699378eff7c5188b5198717f8370e3e1",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 6,
+     "before": "    \"native/modules2/macro_oscillator/CMakeLists.txt\": \"dc6e321bc5ba0b412f5ceac3db2962a866965b66fa58cfdd06c7db4a478c042a\",",
+     "after": "    \"modules/macro_oscillator/CMakeLists.txt\": \"846ebcb1184c8a3ad57f8d94f7deb5af2145b0458d9ff428b0f26d276bce0076\","
+    },
+    {
+     "line": 7,
+     "before": "    \"native/modules2/macro_oscillator/rng_scope.hpp\": \"49c9b675cf877950cd169390f899f55e1c606f05d905613db1fb279160bb612d\",",
+     "after": "    \"modules/macro_oscillator/rng_scope.hpp\": \"49c9b675cf877950cd169390f899f55e1c606f05d905613db1fb279160bb612d\","
+    },
+    {
+     "line": 8,
+     "before": "    \"native/modules2/macro_oscillator/patches/apply.cmake\": \"a07a6e8d26e9ab1d3e6f642167baf313f4e8b93e6548440c2411659cb5acd23a\",",
+     "after": "    \"modules/macro_oscillator/patches/apply.cmake\": \"a07a6e8d26e9ab1d3e6f642167baf313f4e8b93e6548440c2411659cb5acd23a\","
+    },
+    {
+     "line": 9,
+     "before": "    \"native/modules2/macro_oscillator/patches/compare_reference.cmake\": \"4a8c503a560203d6696b1cff1b4d0632f3067aa6ffb952a3f6ccf9511f6c5c13\",",
+     "after": "    \"modules/macro_oscillator/patches/compare_reference.cmake\": \"4a8c503a560203d6696b1cff1b4d0632f3067aa6ffb952a3f6ccf9511f6c5c13\","
+    },
+    {
+     "line": 10,
+     "before": "    \"native/modules2/macro_oscillator/patches/empty-resource-table.patch\": \"e8db4607dfd0710cc77298ef5d4ac0504c4b783a02e144a0a8572c6b2d3bbc45\",",
+     "after": "    \"modules/macro_oscillator/patches/empty-resource-table.patch\": \"e8db4607dfd0710cc77298ef5d4ac0504c4b783a02e144a0a8572c6b2d3bbc45\","
+    },
+    {
+     "line": 11,
+     "before": "    \"native/modules2/macro_oscillator/patches/msvc-specializations.patch\": \"c4c4ab6ee9bd0c40db3fdacca8cbe6fd25e0d1289b2223c6c00700026d2b6c22\",",
+     "after": "    \"modules/macro_oscillator/patches/msvc-specializations.patch\": \"c4c4ab6ee9bd0c40db3fdacca8cbe6fd25e0d1289b2223c6c00700026d2b6c22\","
+    },
+    {
+     "line": 12,
+     "before": "    \"native/modules2/macro_oscillator/patches/stmlib-msvc-inline.patch\": \"f896c2c5ec9ca7ccd2593c8317b75260d6baf28bfbaee76da5b577fee6edfc50\",",
+     "after": "    \"modules/macro_oscillator/patches/stmlib-msvc-inline.patch\": \"f896c2c5ec9ca7ccd2593c8317b75260d6baf28bfbaee76da5b577fee6edfc50\","
+    },
+    {
+     "line": 13,
+     "before": "    \"native/modules2/macro_oscillator/patches/unsigned-pow2-shift.patch\": \"286c96cd595bffc64b3f6ad4d2d0cb58b772096bf8d3d2488f85aaf7bbe79342\"",
+     "after": "    \"modules/macro_oscillator/patches/unsigned-pow2-shift.patch\": \"286c96cd595bffc64b3f6ad4d2d0cb58b772096bf8d3d2488f85aaf7bbe79342\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/macro_oscillator/tests.cpp",
+   "blob": "a3692899d8543d02ab07aa7bb82051fc9efa4e1e",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/midi_cc_to_cv/tests.cpp",
+   "blob": "3707d31baca2bca2276395b691e756197a48de61",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/midi_in/dsp.h",
+   "blob": "1e7fe1aec9abbb23d36d148c9cd7057cf7b8fd75",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../engine2/midi_release.h\"",
+     "after": "#include \"../../engine/midi_release.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/midi_in/tests.cpp",
+   "blob": "6fbc377e0652858729a229e722ecc32585d3a7ab",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/midi_to_cv/dsp.h",
+   "blob": "6312f17bc71ef2dc7f6420a0c325c30bf567835f",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../../voice/note_to_cv.h\"",
+     "after": "#include \"../../engine/voice/note_to_cv.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/midi_to_cv/tests.cpp",
+   "blob": "092dff19a9e3cecdc56d33729c683896a2af44b9",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 3,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/mixer/tests.cpp",
+   "blob": "db79719b6fbc10f31137f6b8594c55b2bfdbe2c5",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/monitor/dsp.h",
+   "blob": "edf0d8880286227f775395da849332c838881b59",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../io/osc/codec.h\"",
+     "after": "#include \"../../host/osc/codec.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/monitor/tests.cpp",
+   "blob": "c2eae6b45d5521b44dd52b3f579f2f11a7f0d13e",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/noise/tests.cpp",
+   "blob": "575781da4daa0da45648b09d5bca73e6382a834e",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/notes_to_cv/CMakeLists.txt",
+   "blob": "b64d3a85e4d6da449c1ea85c35a9cbb4746884a3",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_notes_to_cv_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_notes_to_cv_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/notes_to_cv/dsp.h",
+   "blob": "2adf59f0ae6f4538e6ff5fac5c567d5844abb9cf",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../voice/note_to_cv.h\"",
+     "after": "#include \"../../engine/voice/note_to_cv.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/notes_to_cv/tests.cpp",
+   "blob": "c7113187645c5abb4d11bf9d01480c2d0d55fd73",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/osc_in/dsp.h",
+   "blob": "e3230dad51372deafc8fbd358802b2c544fb29bc",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 10,
+     "before": "#include \"../../io/osc/codec.h\"",
+     "after": "#include \"../../host/osc/codec.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../../io/osc/pattern.h\"",
+     "after": "#include \"../../host/osc/pattern.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/osc_in/tests.cpp",
+   "blob": "726b7ba8749579a917c225c73630d32d6d00c92d",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/osc_out/config.h",
+   "blob": "287a10e9e87479f7c67c121f5d33a3bad9496fb3",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../io/osc/out_bus.h\"",
+     "after": "#include \"../../host/osc/out_bus.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/osc_out/tests.cpp",
+   "blob": "413df5b150c0ec47aa648e337c83a35dba1317c3",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 2,
+     "before": "#include \"../../io/midi/module_test_support.h\"",
+     "after": "#include \"../../host/midi/module_test_support.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/output/tests.cpp",
+   "blob": "0bfc257ab92fbd8e437f627581042a4867cc53c4",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../../engine2/engine2.h\"",
+     "after": "#include \"../../engine/engine2.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/quad_vca/CMakeLists.txt",
+   "blob": "9b66d46832ed9c015898669449652779c5dd6c35",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_quad_vca_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_quad_vca_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/quad_vca/tests.cpp",
+   "blob": "9942136a36787f18bd66e19819f24ff17b36f883",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/quantizer/CMakeLists.txt",
+   "blob": "6b8198af0569ddf76b27e98c0e5c13532bfd8e20",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_quantizer_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_quantizer_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/quantizer/tests.cpp",
+   "blob": "53ba0b9c9e8550e436b7bf3c9d6972433caf1a04",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 5,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/resonator/CMakeLists.txt",
+   "blob": "cf00dc282fd1d9ba19fe8558eaa7b5e8ab889ae7",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_resonator_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_resonator_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/resonator/comb_body.h",
+   "blob": "f2ef22e07b7979bbd9c895b68d0a86e76668076b",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 9,
+     "before": "// Adapted from our own native/modules2/chaos_lite/comb_body.h.",
+     "after": "// Adapted from our own modules/chaos_lite/comb_body.h."
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/resonator/tests.cpp",
+   "blob": "ba79f1adb80e1688fb27bff4e19fa3f94968fc5c",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/reverb/CMakeLists.txt",
+   "blob": "dd1ab2e8bfff3d153119678021de5268b1362f48",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_reverb_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_reverb_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/reverb/tests.cpp",
+   "blob": "bbba0964dfe98f2275709b286cd2277560cfddda",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/scale_offset/tests.cpp",
+   "blob": "d997de9f7b2b8d9dab68dae7b3b6c6d70a307630",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/slew/tests.cpp",
+   "blob": "a083ea268b29e7f1797478abe5ae86167b495335",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/utility_port_tests.h\"",
+     "after": "#include \"../../tests/native/abi2/utility_port_tests.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/spectral/CMakeLists.txt",
+   "blob": "80e2991440f8a9893c0ffa31b3b99327b8961a31",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "add_executable(abi2_spectral_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+     "after": "add_executable(abi2_spectral_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)"
+    }
+   ]
+  },
+  {
+   "source": "native/modules2/spectral/tests.cpp",
+   "blob": "9ec7e2ce612942a658b813d20f20759a35cacabf",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sdk/examples/random_source/tests.cpp",
+   "blob": "69177dafca3a3a10152ef4fac5ae3dac4b47901a",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 6,
+     "before": "#include \"../../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sdk/examples/step_sequencer/tests.cpp",
+   "blob": "cf6889ed3c933e38a97846de77ab0746e2842439",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 6,
+     "before": "#include \"../../../tests2/allocation_watch.h\"",
+     "after": "#include \"../../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sdk/examples/test_support.h",
+   "blob": "85bac329166ecb4ccbbc396cf4ac1563369a383c",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 3,
+     "before": "// (the portable-source guard bans <vector> under native/sdk) and state byte sinks/sources.",
+     "after": "// (the portable-source guard bans <vector> under sdk/) and state byte sinks/sources."
+    }
+   ]
+  },
+  {
+   "source": "native/sidecar/audio_recovery_tests.cpp",
+   "blob": "ad9c788650c0796529971992d7d957ca2fde7e6b",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 10,
+     "before": "#include \"../io/osc/codec.h\"",
+     "after": "#include \"../osc/codec.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../modules2/osc_out/dsp.h\"",
+     "after": "#include \"../../modules/osc_out/dsp.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sidecar/devices.cpp",
+   "blob": "2ff0100e366be8e378ddc38e48d49c947add30ef",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../io/audio/portaudio_service.h\"",
+     "after": "#include \"../audio/portaudio_service.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sidecar/devices.h",
+   "blob": "65f5b0e881f547170ed0508aa0431078a1150c1f",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../io/audio/portaudio_service.h\"",
+     "after": "#include \"../audio/portaudio_service.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sidecar/protocol_unit_tests.cpp",
+   "blob": "0472e2a0fa19d32f5e9f2a2ecc848f59395b0fc3",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 7,
+     "before": "#include \"../io/audio/callback_render.h\"",
+     "after": "#include \"../audio/callback_render.h\""
+    },
+    {
+     "line": 8,
+     "before": "#include \"../io/audio/portaudio_service.h\"",
+     "after": "#include \"../audio/portaudio_service.h\""
+    },
+    {
+     "line": 9,
+     "before": "#include \"../tests2/allocation_watch.h\"",
+     "after": "#include \"../../tests/native/abi2/allocation_watch.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/sidecar/session.h",
+   "blob": "385080d9a3fede40a656083c14b9b557c3d5accd",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../control/osc_out_host.h\"",
+     "after": "#include \"../../engine/control/osc_out_host.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../io/audio/engine_slot.h\"",
+     "after": "#include \"../audio/engine_slot.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../io/audio/portaudio_service.h\"",
+     "after": "#include \"../audio/portaudio_service.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/tests2/dsp_fixture.h",
+   "blob": "e77dd013b49a7f1651b46d6fc1eb98327f11bc00",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"../modules2/vco/dsp.h\"",
+     "after": "#include \"../../../modules/vco/dsp.h\""
+    },
+    {
+     "line": 4,
+     "before": "#include \"../modules2/lfo/dsp.h\"",
+     "after": "#include \"../../../modules/lfo/dsp.h\""
+    },
+    {
+     "line": 5,
+     "before": "#include \"../modules2/vcf/dsp.h\"",
+     "after": "#include \"../../../modules/vcf/dsp.h\""
+    },
+    {
+     "line": 6,
+     "before": "#include \"../modules2/adsr/dsp.h\"",
+     "after": "#include \"../../../modules/adsr/dsp.h\""
+    },
+    {
+     "line": 7,
+     "before": "#include \"../modules2/vca/dsp.h\"",
+     "after": "#include \"../../../modules/vca/dsp.h\""
+    },
+    {
+     "line": 8,
+     "before": "#include \"../modules2/clock/dsp.h\"",
+     "after": "#include \"../../../modules/clock/dsp.h\""
+    },
+    {
+     "line": 9,
+     "before": "#include \"../modules2/ladder/dsp.h\"",
+     "after": "#include \"../../../modules/ladder/dsp.h\""
+    },
+    {
+     "line": 10,
+     "before": "#include \"../modules2/function_envelope/dsp.h\"",
+     "after": "#include \"../../../modules/function_envelope/dsp.h\""
+    },
+    {
+     "line": 11,
+     "before": "#include \"../modules2/mixer/dsp.h\"",
+     "after": "#include \"../../../modules/mixer/dsp.h\""
+    },
+    {
+     "line": 12,
+     "before": "#include \"../modules2/slew/dsp.h\"",
+     "after": "#include \"../../../modules/slew/dsp.h\""
+    },
+    {
+     "line": 13,
+     "before": "#include \"../modules2/scale_offset/dsp.h\"",
+     "after": "#include \"../../../modules/scale_offset/dsp.h\""
+    },
+    {
+     "line": 14,
+     "before": "#include \"../modules2/output/dsp.h\"",
+     "after": "#include \"../../../modules/output/dsp.h\""
+    },
+    {
+     "line": 15,
+     "before": "#include \"../modules2/noise/dsp.h\"",
+     "after": "#include \"../../../modules/noise/dsp.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/tests2/ob_e2_240_run.py",
+   "blob": "83899903d86f8d20c48744096525baaad18c2b19",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 20,
+     "before": "ROOT = Path(__file__).resolve().parents[2]",
+     "after": "ROOT = Path(__file__).resolve().parents[3]"
+    },
+    {
+     "line": 23,
+     "before": "CATALOG = ROOT / \"native/control/module_catalog.inc\"",
+     "after": "CATALOG = ROOT / \"engine/control/module_catalog.inc\""
+    },
+    {
+     "line": 24,
+     "before": "SOURCE = ROOT / \"native/tests2/ob_e2_240_smoke.cpp\"",
+     "after": "SOURCE = ROOT / \"tests/native/abi2/ob_e2_240_smoke.cpp\""
+    },
+    {
+     "line": 70,
+     "before": "               \"/native/engine2/tests/module_cpu_probe.cpp\")]",
+     "after": "               \"/engine/tests/module_cpu_probe.cpp\")]"
+    },
+    {
+     "line": 76,
+     "before": "           \"/native/engine2/tests/module_cpu_probe.cpp\")]",
+     "after": "           \"/engine/tests/module_cpu_probe.cpp\")]"
+    }
+   ]
+  },
+  {
+   "source": "native/tests2/ob_patch_roundtrip.spec.cjs",
+   "blob": "52956e977ab47c30ab1bcc7b6b303d530a5a37fa",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 6,
+     "before": "const { PatchDoc } = require('../../apps/studio/src/patch/PatchDoc');",
+     "after": "const { PatchDoc } = require('../../../apps/studio/src/patch/PatchDoc');"
+    }
+   ]
+  },
+  {
+   "source": "native/tests2/test_modules.h",
+   "blob": "4fceb4c86f6ac289c787612818881e70c31190f4",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "#include \"../voice/allocator.h\"",
+     "after": "#include \"../../../engine/voice/allocator.h\""
+    }
+   ]
+  },
+  {
+   "source": "native/tools/render/CMakeLists.txt",
+   "blob": "ed2407ccbbba26cf76354ad3d31f9295f9be8311",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 21,
+     "before": "    --patches ${CMAKE_CURRENT_SOURCE_DIR}/../../../apps/studio/patches)",
+     "after": "    --patches ${CMAKE_CURRENT_SOURCE_DIR}/../../apps/studio/patches)"
+    }
+   ]
+  },
+  {
+   "source": "native/tools/render/evidence.py",
+   "blob": "ba0cdc11a1d0a73498a15d9f5002f96de89055fa",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 101,
+     "before": "    root = Path(__file__).resolve().parents[3]",
+     "after": "    root = Path(__file__).resolve().parents[2]"
+    }
+   ]
+  },
+  {
+   "source": "native/web/CMakeLists.txt",
+   "blob": "5e1a684a416f05fe50d0780d734a8e903d382635",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 12,
+     "before": "set(native ${CMAKE_CURRENT_SOURCE_DIR}/..)",
+     "after": "set(native ${CMAKE_CURRENT_SOURCE_DIR}/../..)"
+    },
+    {
+     "line": 13,
+     "before": "# Same pinned revisions as native/document and native/modules2/macro_oscillator.",
+     "after": "# Same pinned revisions as host/document and modules/macro_oscillator."
+    },
+    {
+     "line": 18,
+     "before": "set(macro_dir ${native}/modules2/macro_oscillator)",
+     "after": "set(macro_dir ${native}/modules/macro_oscillator)"
+    },
+    {
+     "line": 40,
+     "before": "add_library(web_core STATIC ${native}/engine2/engine2.cpp ${native}/control/app_engine.cpp",
+     "after": "add_library(web_core STATIC ${native}/engine/engine2.cpp ${native}/engine/control/app_engine.cpp"
+    },
+    {
+     "line": 41,
+     "before": "  ${native}/document/runtime_patch.cpp ${native}/voice/allocator.cpp)",
+     "after": "  ${native}/host/document/runtime_patch.cpp ${native}/engine/voice/allocator.cpp)"
+    },
+    {
+     "line": 42,
+     "before": "target_include_directories(web_core PUBLIC ${native}/include ${native}/sdk ${native}/engine2 ${native}/control",
+     "after": "target_include_directories(web_core PUBLIC ${native}/sdk/include ${native}/engine/include ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/control"
+    },
+    {
+     "line": 43,
+     "before": "  ${native}/document ${native}/voice)",
+     "after": "  ${native}/host/document ${native}/engine/voice)"
+    },
+    {
+     "line": 63,
+     "before": "  add_test(NAME web_engine_tests COMMAND web_engine_tests ${native}/examples)",
+     "after": "  add_test(NAME web_engine_tests COMMAND web_engine_tests ${native}/host/examples)"
+    }
+   ]
+  },
+  {
+   "source": "native/web/web_engine.cpp",
+   "blob": "760b575cfd9bc5d86e231a8e6261e2c0759f77a5",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 8,
+     "before": "#include \"../document/telemetry_taps.h\"",
+     "after": "#include \"../../host/document/telemetry_taps.h\""
+    },
+    {
+     "line": 87,
+     "before": "    // Mirrors the sidecar's execution normalisation (native/sidecar/session.cpp).",
+     "after": "    // Mirrors the sidecar's execution normalisation (host/sidecar/session.cpp)."
+    }
+   ]
+  },
+  {
+   "source": "native/web/web_engine_tests.cpp",
+   "blob": "a247977223f588f729afa2229c22cf274e06e71e",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 74,
+     "before": "    const std::string examples = argc > 1 ? argv[1] : \"native/examples\";",
+     "after": "    const std::string examples = argc > 1 ? argv[1] : \"host/examples\";"
+    }
+   ]
+  },
+  {
+   "source": "tools/bench/abi2_foundation.py",
+   "blob": "88b7a22148aecd68bd65eb3bf469e21cd290811f",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 73,
+     "before": "    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/\"native/modules2\").glob(\"*/dsp.h\")",
+     "after": "    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/\"modules\").glob(\"*/dsp.h\")"
+    },
+    {
+     "line": 86,
+     "before": "    fixture_dir = ROOT/\"native/tests/fixtures/abi2\"",
+     "after": "    fixture_dir = ROOT/\"tests/native/compat/fixtures/abi2\""
+    }
+   ]
+  },
+  {
+   "source": "tools/chaos_two_probe.py",
+   "blob": "b25051eb9bac0e6838de6eef0c95fa31b5e6f825",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 30,
+     "before": "    command = [str(binary), '--patch', str(root / 'native/examples/chaos_two.json'),",
+     "after": "    command = [str(binary), '--patch', str(root / 'host/examples/chaos_two.json'),"
+    }
+   ]
+  },
+  {
+   "source": "tools/ci/static_checks.py",
+   "blob": "12c86d235720f932ea6252c8ddccc57732dab245",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 80,
+     "before": "    baseline_path = root / \"native/modules2/macro_oscillator/cppcheck-baseline.json\"",
+     "after": "    baseline_path = root / \"modules/macro_oscillator/cppcheck-baseline.json\""
+    }
+   ]
+  },
+  {
+   "source": "tools/ci/test_static_checks.py",
+   "blob": "bce45a4f1214ccd9482530743fb877ff8a8e5cbc",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 201,
+     "before": "        source = root / \"native/modules2/macro_oscillator/CMakeLists.txt\"",
+     "after": "        source = root / \"modules/macro_oscillator/CMakeLists.txt\""
+    }
+   ]
+  },
+  {
+   "source": "tools/cloud/git_deps.py",
+   "blob": "83336af3b28e35b3d531a1a60799cbd71dea8673",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 26,
+     "before": "PATCHES = ROOT / \"native\" / \"modules2\" / \"macro_oscillator\" / \"patches\"",
+     "after": "PATCHES = ROOT / \"modules\" / \"macro_oscillator\" / \"patches\""
+    },
+    {
+     "line": 27,
+     "before": "# Binary dir of native/modules2/macro_oscillator (added from engine2). Its",
+     "after": "# Binary dir of modules/macro_oscillator (added from engine/ as binary dir engine2). Its"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/helpers.py",
+   "blob": "0a635e7bef2fa063264e9516b18b561e0a732876",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 330,
+     "before": "    for folder in (root / \"native\", root / \"tools\"):",
+     "after": "    for folder in (root / \"native\", root / \"engine\", root / \"host\", root / \"modules\", root / \"sdk\", root / \"targets\", root / \"tests/native\", root / \"tools\"):"
+    },
+    {
+     "line": 345,
+     "before": "            \"scope\": \"native/ and tools/ excluding __pycache__\"}",
+     "after": "            \"scope\": \"native/, engine/, host/, modules/, sdk/, targets/, tests/native/, tools/ excluding __pycache__\"}"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_banned_includes.py",
+   "blob": "02256939466f97384ca1a3ac271a56523bd52060",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 16,
+     "before": "            for directory in ('native/modules2', 'native/sdk', 'native/voice')",
+     "after": "            for directory in ('modules', 'sdk', 'engine/voice')"
+    },
+    {
+     "line": 18,
+     "before": "            if (directory != 'native/modules2' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')",
+     "after": "            if (directory != 'modules' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')"
+    },
+    {
+     "line": 29,
+     "before": "            for tree in ('modules2', 'sdk', 'voice'):",
+     "after": "            for tree in ('modules', 'sdk', 'engine/voice'):"
+    },
+    {
+     "line": 30,
+     "before": "                file = root / 'native' / tree / 'nested/test.cpp'",
+     "after": "                file = root / tree / 'nested/test.cpp'"
+    },
+    {
+     "line": 38,
+     "before": "            module = root / 'native/modules2/example'",
+     "after": "            module = root / 'modules/example'"
+    },
+    {
+     "line": 43,
+     "before": "            self.assertEqual(violations(root), [('native/modules2/example/dsp.h', 'vector')])",
+     "after": "            self.assertEqual(violations(root), [('modules/example/dsp.h', 'vector')])"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_class_demo_patches.py",
+   "blob": "9b3b3a350238c840e1071a73cd9916a214daff29",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 16,
+     "before": "PATCHES = sorted((ROOT / 'native/examples').glob('class_demo_*.json'))",
+     "after": "PATCHES = sorted((ROOT / 'host/examples').glob('class_demo_*.json'))"
+    },
+    {
+     "line": 22,
+     "before": "        manifests = {m['id']: m for p in (ROOT / 'native/modules2').glob('*/module.json')",
+     "after": "        manifests = {m['id']: m for p in (ROOT / 'modules').glob('*/module.json')"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_legacy_fixtures.py",
+   "blob": "fa75426be799eaf862b580476c03b8b32fd8ed54",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 9,
+     "before": "        folder = Path(__file__).resolve().parents[3] / \"native/tests/fixtures/legacy_documents\"",
+     "after": "        folder = Path(__file__).resolve().parents[3] / \"tests/native/compat/fixtures/legacy_documents\""
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_patch_library.py",
+   "blob": "e9761d62de5aa740778bc1b68b049c86e89def7f",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 20,
+     "before": "        cls.example = next(p['patch'] for p in json.loads((ROOT / 'native/document/ui_starters.json').read_text()) if p['id'] == 'keyboard-voice')",
+     "after": "        cls.example = next(p['patch'] for p in json.loads((ROOT / 'host/document/ui_starters.json').read_text()) if p['id'] == 'keyboard-voice')"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_pi_demo.py",
+   "blob": "5631d343d956898df9b057baa7351cebf3fded96",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 25,
+     "before": "        self.examples = self.root / 'native/examples'",
+     "after": "        self.examples = self.root / 'host/examples'"
+    }
+   ]
+  },
+  {
+   "source": "tools/foundation/tests/test_ui_catalogue.py",
+   "blob": "fec651791f222dfffbebc82f895fea400d35b758",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 22,
+     "before": "        for pattern in ('native/modules2/*/module.json', 'native/modules2/*/dsp.h',",
+     "after": "        for pattern in ('modules/*/module.json', 'modules/*/dsp.h',"
+    },
+    {
+     "line": 23,
+     "before": "                        'native/sdk/examples/*/module.json', 'native/sdk/examples/*/dsp.h',",
+     "after": "                        'sdk/examples/*/module.json', 'sdk/examples/*/dsp.h',"
+    },
+    {
+     "line": 37,
+     "before": "        path = self.root / 'native/modules2/host_keyboard/dsp.h'",
+     "after": "        path = self.root / 'modules/host_keyboard/dsp.h'"
+    },
+    {
+     "line": 44,
+     "before": "        path = self.root / 'native/modules2/vco/module.json'",
+     "after": "        path = self.root / 'modules/vco/module.json'"
+    },
+    {
+     "line": 55,
+     "before": "        path = self.root / 'native/modules2/vco/module.json'",
+     "after": "        path = self.root / 'modules/vco/module.json'"
+    },
+    {
+     "line": 161,
+     "before": "            json.loads((root / \"native/modules2/chaos_lite/module.json\").read_text(encoding='utf-8')),",
+     "after": "            json.loads((root / \"modules/chaos_lite/module.json\").read_text(encoding='utf-8')),"
+    }
+   ]
+  },
+  {
+   "source": "tools/gen_ui_catalogue.py",
+   "blob": "8461a7e396b68b845fcb8262f1e0163769b7b2aa",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 14,
+     "before": "    paths = sorted((root / 'native/modules2').glob('*/module.json'))",
+     "after": "    paths = sorted((root / 'modules').glob('*/module.json'))"
+    },
+    {
+     "line": 15,
+     "before": "    paths += sorted((root / 'native/sdk/examples').glob('*/module.json'))",
+     "after": "    paths += sorted((root / 'sdk/examples').glob('*/module.json'))"
+    }
+   ]
+  },
+  {
+   "source": "tools/golden.py",
+   "blob": "c58465001d2ac4fc748b9967d040c47999bc4473",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 64,
+     "before": "    argument = \"--\" + args.command if args.command.endswith(\"self-test\") else str(ROOT / \"native/examples\")",
+     "after": "    argument = \"--\" + args.command if args.command.endswith(\"self-test\") else str(ROOT / \"host/examples\")"
+    },
+    {
+     "line": 79,
+     "before": "        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / \"native/examples\")],",
+     "after": "        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / \"host/examples\")],"
+    }
+   ]
+  },
+  {
+   "source": "tools/module/layout.json",
+   "blob": "8d194ad8cfc86d6c950333731deaafefd97ee3de",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 5,
+     "before": "    \"sdk\": \"native/sdk\",",
+     "after": "    \"sdk\": \"sdk\","
+    },
+    {
+     "line": 6,
+     "before": "    \"abi\": \"native/include\",",
+     "after": "    \"abi\": \"sdk/include\","
+    },
+    {
+     "line": 7,
+     "before": "    \"sdk_examples\": \"native/sdk/examples\",",
+     "after": "    \"sdk_examples\": \"sdk/examples\","
+    },
+    {
+     "line": 8,
+     "before": "    \"template\": \"native/sdk/template\",",
+     "after": "    \"template\": \"sdk/template\","
+    },
+    {
+     "line": 13,
+     "before": "    \"allocation_counter\": \"native/tests2/allocation_watch.cpp\",",
+     "after": "    \"allocation_counter\": \"tests/native/abi2/allocation_watch.cpp\","
+    },
+    {
+     "line": 14,
+     "before": "    \"allocation_include\": \"native/tests2\"",
+     "after": "    \"allocation_include\": \"tests/native/abi2\""
+    },
+    {
+     "line": 17,
+     "before": "    \"native/modules2/macro_oscillator\": {\"build_unsupported\": \"requires external patched upstream; v0 never downloads it\"},",
+     "after": "    \"modules/macro_oscillator\": {\"build_unsupported\": \"requires external patched upstream; v0 never downloads it\"},"
+    },
+    {
+     "line": 18,
+     "before": "    \"native/modules2/chord\": {\"config_bytes\": [1, 0, 0, 0]},",
+     "after": "    \"modules/chord\": {\"config_bytes\": [1, 0, 0, 0]},"
+    },
+    {
+     "line": 19,
+     "before": "    \"native/modules2/host_keyboard\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]},",
+     "after": "    \"modules/host_keyboard\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]},"
+    },
+    {
+     "line": 20,
+     "before": "    \"native/modules2/midi_to_cv\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]},",
+     "after": "    \"modules/midi_to_cv\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]},"
+    },
+    {
+     "line": 21,
+     "before": "    \"native/modules2/notes_to_cv\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]}",
+     "after": "    \"modules/notes_to_cv\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]}"
+    }
+   ]
+  },
+  {
+   "source": "tools/patch_roundtrip.py",
+   "blob": "7ac82fc014f231f9ec60b92add55ff0be331ef45",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 25,
+     "before": "SPEC = ROOT / \"native/tests2/ob_patch_roundtrip.spec.cjs\"",
+     "after": "SPEC = ROOT / \"tests/native/abi2/ob_patch_roundtrip.spec.cjs\""
+    }
+   ]
+  },
+  {
+   "source": "tools/pi/demo.sh",
+   "blob": "cc9e3c64e557df6862262d15738713d0caecb268",
+   "origin": "s6-active-consumer-gaps",
+   "lines": [
+    {
+     "line": 82,
+     "before": "matches = glob.glob(str(root / f'native/examples/class_demo_{action}_*.json'))",
+     "after": "matches = glob.glob(str(root / f'host/examples/class_demo_{action}_*.json'))"
+    }
+   ]
+  },
+  {
+   "source": "tools/protocol/generate.py",
+   "blob": "c450fcf49e3db3a48ccde0925ecd8dad5eaf2686",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 14,
+     "before": "    \"cpp\": ROOT / \"native\" / \"sidecar\" / \"generated\" / \"protocol_v0.hpp\",",
+     "after": "    \"cpp\": ROOT / \"host\" / \"sidecar\" / \"generated\" / \"protocol_v0.hpp\","
+    }
+   ]
+  },
+  {
+   "source": "tools/protocol/test_generated.cpp",
+   "blob": "337dc128e1390de9da385f62cf8bc8608f3d413b",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 3,
+     "before": "#include \"native/sidecar/generated/protocol_v0.hpp\"",
+     "after": "#include \"host/sidecar/generated/protocol_v0.hpp\""
+    }
+   ]
+  },
+  {
+   "source": "tools/protocol/test_protocol.py",
+   "blob": "f5b5c37033d59097715baddf0744c42a1ff8c278",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 15,
+     "before": "SIDECAR = ROOT / \"native\" / \"sidecar\" / \"protocol_tests.py\"",
+     "after": "SIDECAR = ROOT / \"host\" / \"sidecar\" / \"protocol_tests.py\""
+    }
+   ]
+  },
+  {
+   "source": "tools/protocol/validate_sidecar.py",
+   "blob": "85afd0f7c828b6c7afa1d9665e26c126fd0758a8",
+   "origin": "s6-native-wiring-plan",
+   "lines": [
+    {
+     "line": 4,
+     "before": "Usage: python tools/protocol/validate_sidecar.py PATH-TO-ENGINE native/examples",
+     "after": "Usage: python tools/protocol/validate_sidecar.py PATH-TO-ENGINE host/examples"
+    },
+    {
+     "line": 16,
+     "before": "TARGET = ROOT / \"native\" / \"sidecar\" / \"protocol_tests.py\"",
+     "after": "TARGET = ROOT / \"host\" / \"sidecar\" / \"protocol_tests.py\""
+    }
+   ]
+  },
+  {
+   "source": "tools/windows/setup.ps1",
+   "blob": "3464c682e3caff9bdae40b717616cf213e9bebde",
+   "origin": "claude-builder1",
+   "lines": [
+    {
+     "line": 10,
+     "before": "# never committed or redistributed). Pin: native/io/audio/DESIGN.md.",
+     "after": "# never committed or redistributed). Pin: host/audio/DESIGN.md."
+    }
+   ]
+  }
+ ]
+}

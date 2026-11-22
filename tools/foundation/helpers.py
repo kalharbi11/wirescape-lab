@@ -327,7 +327,7 @@ def source_provenance(root: Path) -> dict[str, Any]:
     """Fingerprint native/tool sources, including untracked files, without private data."""
     digest = hashlib.sha256()
     count = 0
-    for folder in (root / "native", root / "tools"):
+    for folder in (root / "native", root / "engine", root / "host", root / "modules", root / "sdk", root / "targets", root / "tests/native", root / "tools"):
         for path in sorted(folder.rglob("*")):
             if not path.is_file() or "__pycache__" in path.parts:
                 continue
@@ -342,7 +342,7 @@ def source_provenance(root: Path) -> dict[str, Any]:
     except (OSError, subprocess.TimeoutExpired):
         dirty = None
     return {"sha256": digest.hexdigest(), "file_count": count, "git_dirty": dirty,
-            "scope": "native/ and tools/ excluding __pycache__"}
+            "scope": "native/, engine/, host/, modules/, sdk/, targets/, tests/native/, tools/ excluding __pycache__"}
 
 
 def write_json(path: Path, data: Any) -> None:

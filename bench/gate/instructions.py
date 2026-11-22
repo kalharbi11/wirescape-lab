@@ -162,13 +162,13 @@ def difference(command_for_length, valgrind, lengths=COUNTS, module_probe=None):
 
 def modules():
     # The historical known-ID compatibility fixture contains 33 entries, but
-    # native/control/module_catalog.inc registers 34. The extra built-in is
-    # osc.out, recorded by its own native/modules2/osc_out/module.json.
+    # engine/control/module_catalog.inc registers 34. The extra built-in is
+    # osc.out, recorded by its own modules/osc_out/module.json.
     fixture = [line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
                if line.strip() and not line.startswith("#")]
-    osc_manifest = ROOT / "native/modules2/osc_out/module.json"
+    osc_manifest = ROOT / "modules/osc_out/module.json"
     osc_id = json.loads(osc_manifest.read_text(encoding="utf-8"))["id"]
-    catalog = ROOT / "native/control/module_catalog.inc"
+    catalog = ROOT / "engine/control/module_catalog.inc"
     entries = sum(line.strip().startswith("WS_APP_MODULE(")
                   for line in catalog.read_text(encoding="utf-8").splitlines())
     ids = fixture + [osc_id] if osc_id not in fixture else fixture

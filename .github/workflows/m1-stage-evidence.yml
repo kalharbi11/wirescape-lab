@@ -4,6 +4,14 @@ on:
   pull_request:
     paths:
       - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "modules/**"
+      - "sdk/**"
+      - "targets/**"
+      - "tests/native/**"
+      - "tools/render/**"
+      - "tools/capture/**"
       - "bench/m1/**"
       - ".github/workflows/m1-stage-evidence.yml"
   workflow_dispatch:

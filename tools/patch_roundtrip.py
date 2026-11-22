@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STUDIO = ROOT / "apps/studio"
 BUNDLES = STUDIO / "patches"
 SHAPES = ROOT / "tests/fixtures/patch_shapes"
-SPEC = ROOT / "native/tests2/ob_patch_roundtrip.spec.cjs"
+SPEC = ROOT / "tests/native/abi2/ob_patch_roundtrip.spec.cjs"
 SHAPE_IDS = {"no-config", "chord-empty", "groove-v1", "groove-v2",
              "midi-in", "midi-cc-to-cv", "osc-in", "osc-out"}
 METRICS = ("faults", "late_events", "dropped_events",

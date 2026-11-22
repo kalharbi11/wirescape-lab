@@ -6,6 +6,14 @@ on:
     types: [opened, synchronize, reopened, edited]
     paths:
       - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "modules/**"
+      - "sdk/**"
+      - "targets/**"
+      - "tests/native/**"
+      - "tools/render/**"
+      - "tools/capture/**"
       - "bench/golden/**"
       - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
@@ -15,6 +23,14 @@ on:
     branches: [main]
     paths:
       - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "modules/**"
+      - "sdk/**"
+      - "targets/**"
+      - "tests/native/**"
+      - "tools/render/**"
+      - "tools/capture/**"
       - "bench/golden/**"
       - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
@@ -161,7 +177,7 @@ jobs:
             --baseline-wavs "$RUNNER_TEMP/golden/wavs/after" \
             --changed-wavs "$RUNNER_TEMP/golden/experiment-wavs" \
             --report "$RUNNER_TEMP/golden/experiment.json"
-          git -C head diff --exit-code -- native/modules2/vco/dsp.h
+          git -C head diff --exit-code -- modules/vco/dsp.h
           echo "### Uncommitted DSP change detected, then explicitly declared" >> "$GITHUB_STEP_SUMMARY"
           python -c 'import json,sys; x=json.load(open(sys.argv[1])); print("first interleaved sample", x["primary_undeclared"]["first_differing_sample_index"], "time_s",x["primary_undeclared"]["first_differing_time_s"], "peak delta",x["primary_undeclared"]["peak_sample_difference_fs"], "declaration", x["primary_declared"]["status"])' "$RUNNER_TEMP/golden/experiment.json" >> "$GITHUB_STEP_SUMMARY"
       - name: Secondary committed architecture reference (0.01 dB warning only)
