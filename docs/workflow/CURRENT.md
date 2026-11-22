@@ -7,11 +7,138 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-22: Architect run 6, acting as lead (owner answers; base `main` a72f50d)
+
+- **S6 writer moves to `claude-builder1`** (cloud Claude session, started by the Architect at the owner's request), on the same #294, `task/294-m1-s6` and #295. B4 (gpt-builder4) stands down from S6: Codex cloud cannot resolve github.com for Git, and local Codex is low on usage. The Claude Architect does the contract-review. Design and reasons are in [`proposals/0020`](../../proposals/0020-note-tools-and-gate-delay.md) §6.
+- **S0 ruling:** the local Windows `s0_status.ndjson` mismatch (997 bytes against 469) is a known host-state issue, not an S6 defect. Hosted CI is the authority, and the snapshot stays unchanged. It is overturned if hosted CI fails at the S6 base.
+- **New experimental modules** (owner: be loose, test quickly). Draft now; merge after S6 in this order: ADSR trig #316 → CV to Notes [#327](https://github.com/kalharbi11/wirescape-lab/issues/327) → Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) → Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328) (owner, 2026-11-22: Poly Merge last). Each needs green Lab and unit tests. No contract-review and no workflow edits. The lead merges.
+- **Owner start list (owner, 04:50: GPT builders take everything except S6):** CB1 runs S6. The five GPT builders are re-tasked in [BUILDERS](BUILDERS.md): B1 #309; B2 #311; B3 #325 then #322; B4 Gate Delay #329; B5 #324, then CV to Notes #327, then Poly Merge #328. CB2 and CB3 are not used.
+- **Held:** product merges until S6. Modules #327–#329 merge after S6.
+
+**Next Architect run:** when CB1 posts an S6 review-ready Result. Long effort: the contract-review.
+**Next run should:** (1) S6 contract-review; (2) draft OB-g4, now that OB-g1 #312 has merged; (3) A3 stays parked.
+
+Signed: claude-architect, 2026-11-22
+
+## Lead follow-up — 2026-11-21 18:38 EST
+
+- [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) merged at `445123b` after exact-head Lab 44962290017 and a lead run of all 15 Python tests plus the three fault injections. Linux L0 is advisory and remains unrun. B5 moved to #317 Studio tests; B2 owns the bench integration and B1 can validate hosted OSC. A29 records the Architect's OB-g4 dependency clearing.
+- #311 correction 1 passed both scripted tests on Linux x64 and ASan. The default frozen S0 status snapshot then failed. Correction 2/2 scopes the counter transport to the explicit scripted MIDI path and preserves the snapshot byte-for-byte. SR17 applies if the protocol field is added, with schema drift coverage.
+
+Signed: codex-lead, 2026-11-21, 18:38 EST
+
+## Lead handoff — 2026-11-21 18:34 EST
+
+- A27 from #313 is applied. T7.0b remains merged. S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) now has the fixed x64 windows and ARM64 direction check and is queued for Phase C. A28 remains with the owner.
+- Lead ran both S6 script self-tests and the full no-write preview twice, at frozen `2344369` and current `b788500`. Both produced 446 mapped / 444 moves / 2 retained, 170 candidates, 76 unresolved. B4 has the [evidence and continuation](https://github.com/kalharbi11/wirescape-lab/pull/295#issuecomment-7070943488). Guarded apply and evidence 1–6 still precede Claude dispatch.
+- B5 #312 and B2 #311 each have correction 1/2. #312: require actual edit-related failure for A2 XFAIL and check shutdown bench failures independently. #311: fix the escaped-key assertion in the injected MIDI test and independently diagnose sanitizer. B1 #309 confirms workflow loading; the soak lanes were disabled. B3 #307 moved from its idle original chat to the dedicated B3 chat under SR12.
+- Next-day queue is recorded in [BUILDERS](BUILDERS.md) and [OB_PLAN](OB_PLAN.md). SR11, SR13, SR16, SR18, SR19 preserve review, exact-head CI, priority, neutral facts and unaffected work. This extended queue was owner-requested. Entry usage: five-hour 0% used, resets 23:27 EST; weekly 92% used, resets Nov 23 at 11:49 EST.
+
+Signed: codex-lead, 2026-11-21, 18:34 EST
+
+## Decided 2026-11-21 13:15 ET: A27 ruling and owner OSC question (Claude Architect; base `main` 31faddf)
+
+- **A27 → M7 r1.4. S7.6 is released to the lead.** Delay windows are fixed frame ranges taken from the x64 rows in [`facts/dsp/t7_0b_switch_rows_2026-11-21.md`](../../facts/dsp/t7_0b_switch_rows_2026-11-21.md): `mode` [48000,85201), `tone` [48000,67200), clocked `division` [48000,49200). The first-difference rule is retired for S7.6, because it reacts to tiny numeric differences and moves once a crossfade lands. The x64 before-numbers govern: +7.041, +2.446 and +3.081 dB. The S7.6 PR also reports ARM64 before and after over the same windows, and ARM64 must agree in direction. The unclocked `division` row is `no_effect` and has no target. Overturned by: an x64 rerun at these windows that does not reproduce the before-numbers within 0.1 dB.
+- **A28, owner question (later, nothing waits).** Poly chord CV from OSC In cannot reach OSC Out, because OSC Out rows read channel 0 only and `notes` takes events. Options:
+  - (1) A new **CV to Notes** module. It takes poly `pitch`/`gate`/`velocity` and emits note events: on at each gate rise, with the key latched; off at the fall. It is portable and mirrors `notes_to_cv`, with no format or protocol change. It also feeds Chord and OSC Out `notes`.
+  - (2) **Poly OSC Out rows** (`/ws/row/<n>/<ch>`, mirroring OSC In wildcards). This changes `OSC_OUT.md`, the OutBus and the sidecar wire format.
+  - The Architect recommends (1) first. The owner chooses, then the Architect writes the task.
+- **Held:** nothing new. Every other hold in the entries below stands.
+
+**Next Architect run:** at the S6 review-ready request, at OB-g1 review-ready (to draft OB-g4), or at the owner's A28 choice. Quick effort.
+**Next run should:** (1) S6 contract-review if it is pinned; (2) draft OB-g4 once OB-g1 merges; (3) write the A28 task after the owner chooses; (4) A3 stays parked until OB1.
+
+Signed: claude-architect, 2026-11-21
+
+## Lead quick check — 2026-11-21 12:34 EST
+
+- OB r2.4a is live. B5 takes [OB-g1 #305](https://github.com/kalharbi11/wirescape-lab/issues/305) after completing the #275 read-only prep. B1 drafts [OB-g7 #306](https://github.com/kalharbi11/wirescape-lab/issues/306) in a dedicated workflow only. B3 drafts [OB-g6 #307](https://github.com/kalharbi11/wirescape-lab/issues/307) in the MIDI to CV module scope. B2 drafts the [OB-g2 #308](https://github.com/kalharbi11/wirescape-lab/issues/308) scripted MIDI backend first. #305 owns the harness paths. Product merges still wait for S6; runner outcomes are advisory.
+- M1 S6 baseline pinned to `23443691b4950b4747ade943d7d8602d281938fc`. [#295](https://github.com/kalharbi11/wirescape-lab/pull/295) is a Lab-green script draft at `7d7f89e`. B4 continues the real-tree replay and evidence 1–6 before the Claude request. #298 and #291 remain parked in that rebase order. #298 still needs the per-entry-point pin 7 matrix; #291 still needs D5 and independent K1–K8 review.
+- T7.0b [#300](https://github.com/kalharbi11/wirescape-lab/pull/300) has exact-head [Lab](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981506) and [T7.0 capture](https://github.com/kalharbi11/wirescape-lab/actions/runs/44928981448) success at `58ac812` and merged as `fac9473` under SR18. A27 requests the S7.6 Delay mode baseline disposition. x64 reports +7.041 dB over 775.021 ms and ARM64 reports 0.000 dB over 400 ms. Keep both window lengths, and keep S7.6 held for the ruling.
+- SR11, SR13, SR16, SR18 and SR19. Five-hour usage 1% used, reset 17:30 EST. Weekly usage 91% used, reset Nov 23 at 11:49 EST. This run was explicitly owner-triggered.
+
+Signed: codex-lead, 2026-11-21, 12:34 EST
+
+## Decided 2026-11-21: Architect run 4 — I/O endurance and triggered envelopes (Claude Architect; owner request; base `main` e13ba34)
+
+- **OB r2.4 adds OB-g** (design [`proposals/0019`](../../proposals/0019-io-endurance-and-triggered-envelopes.md)). Nothing in flight stops, and the S6 Phase B rule still binds.
+  - **OB-g1 OSC endurance harness, file now.** It is `bench/` only, so it is allowed in the window. It is the owner's top priority. The lead gives it to the first free lane (B5 after #275 prep, or B2 after T7.0b).
+  - **After S6 merges (Phase C):** these run in free lanes and never take a writer from the OB1 chain.
+    - OB-g2: injected MIDI source and a release-panic counter.
+    - OB-g3: endpoint change while running (W4). A failing device-off test comes first. Suspect: `Host::select` throws while playing.
+    - OB-g5: ADSR trigger mode and `hold`.
+    - OB-g6: MIDI to CV `trig` output, after g5.
+    - OB-g7: hosted Linux/Windows nightly.
+  - **OB-g4 (wirescape-pi):** the `io-soak` task and a nightly cron that requests the next ladder tier at main's head. The Architect drafts it once OB-g1 merges; the owner merges.
+- **OB1 acceptance item 7:** the Pi passes `osc-heavy` and `mixed` in `still` mode through L2 (1 h), and `config-edits` through L1, at the OB1 candidate. L3–L5 are recorded only.
+- **Edit-time clicks and gate loss are A2.** M4 E5 removes them, so no separate fix is made. Until E5, `config-edits` runs as a strict expected failure. A failure in `still` mode is a real I/O defect and is fixed now (OB-c rule).
+- **Runners:** keep the wirescape-pi runner (#18/#19 sandbox). Never register a self-hosted runner on the public lab repo. Windows coverage uses GitHub-hosted runners (OB-g7).
+- **r2.4a (owner, same day): "runner tests affirm, never restrict."**
+  - No `pi5/*` or soak result blocks a task, dispatch or merge. A failure files one parallel fix row.
+  - OB1 item 7 is recorded, not required.
+  - OB-g2–g7 may be **drafted now** on branches; only their merges wait for S6.
+  - OB-g6 no longer waits for OB-g5. Q24 is answered A (ALSA tier, main heads only).
+  - **Lead: dispatch freely.** Fill every idle lane with OB-g work, and do not wait for runner results.
+- **Held:** only OB-g merges that touch product paths, until S6 merges. Everything else is unchanged from the 17:15 entry.
+
+**Next Architect run:** at the S6 review-ready request, or when OB-g1 is review-ready (to draft OB-g4). Quick effort.
+Next run should: (1) S6 contract-review when requested; (2) after Pi setup, `nightly` at main's head; (3) OB-g1 first Pi facts → confirm or replace the 0019 thresholds in one line; (4) draft wirescape-pi OB-g4; (5) T7.0b #296 → S7.6.
+
+Signed: claude-architect, 2026-11-21
+
+## Decided 2026-11-20 17:15 ET: S6 window opens now; agents request Pi runs by comment (Claude Architect; owner direction)
+
+- **The M1 S6 window is open now.** The owner said "no need to wait until 6am", which overrides the 24 h notice given at 05:40. Phase B ("only B4 writes product source") applies **from this entry** and replaces "2026-11-21 06:00 ET" everywhere above.
+  - **B4:** finalize S6 from the #295 prep: rebase on `main`, run the `lab/` rename script for real, and use the full #199 map.
+  - **Open product PRs park now:** OB-a3 #298 still has its High regression and S7.5 #291 still needs CI, D5 and an independent review. Neither may merge during the window. Both rebase after S6 in the Phase C order (#298, then #291). The cost: both rebase onto renamed paths instead of merging first.
+  - **Allowed during the window:** T7.0b #296/#300 and OB-c prep #275 continue only in bench/, facts/ or test drafts. Nothing in `native/`, `apps/` or `tools/` merges except S6.
+  - **Still required:** S6 contract-review (0006 evidence 1–6). The lead posts the review-ready request and wakes the Architect on #265.
+- **Pi runs by request (wirescape-pi#19, owner merges):** any agent comments on a lab PR or issue with a first line of `/pi-run tests|soak|nightly [sha=<40-hex>]`, or `/pi-run command sha=<40-hex> cmd="python3 tools/x.py …"`.
+  - On a PR the SHA defaults to the PR head; on an issue it defaults to main's head.
+  - Only comments from the owner's account count. Codex, ChatGPT and Claude all post as that account, so they work; public users are ignored.
+  - The intake checks every 10 min and runs one request at a time. It reacts 🚀 when queued, or 😕 with a reason when refused.
+  - The result arrives as status `pi5/<task>` and a comment in the same thread.
+  - This replaces the "inbox row" route in the 16:30 entry. Results stay **advisory** until a contract names a `pi5/*` gate.
+- **Suggested Pi uses** (none of these is a gate):
+  - `nightly` at main's head once setup is done (smoke test).
+  - `tests` on the S6 head when it is review-ready (extra ARM64 evidence for the review).
+  - After S6: the OB-b dry run and the M3/M4 heads that touch the engine.
+
+**Next Architect run:** at the S6 review-ready request, or when the owner reports the Pi setup is done. Next-run list unchanged from the 16:30 entry.
+
+Signed: claude-architect, 2026-11-20
+
+## Decided 2026-11-20 16:30 ET: Architect run 3 (owner Windows report, Pi runner security, A4 errata; base `main` 0ad5ddc)
+
+- **Owner Windows report (partial, `c6ae30a`):** the build works, sound is good (T1), the graphics are fine and OSC Out works (T5). The owner treats the build as good and will keep testing. T2–T4, T6 and T7 are not reported yet, so **no W4** is opened. Later owner reports are triaged as before: W4 only with a failing device-off test.
+- **Owner-local tests:** new [OWNER_LOCAL_TESTS.md](OWNER_LOCAL_TESTS.md) for a local agent on the laptop (L1–L5) or the Pi (P0–P3). **It never blocks a lane.** A lane waits only if a row here names it. Today nothing waits. Optional: L1 (finish T2–T7) and L3 (Windows benchmark numbers for OB-f/M7) when the owner chooses. P1 is the owner-only OB0 Pi smoke still owed on #198.
+- **Pi runner security (owner request; gpt-reviewer report 2026-11-20):** [wirescape-pi#18](https://github.com/kalharbi11/wirescape-pi/pull/18) replaces the bridge.
+  - No schedules or polling: dispatch only.
+  - A hosted gate admits only main's head or an open same-repo PR head of `wirescape-lab`.
+  - The Pi job holds no secret. Repo code runs only inside rootless podman, with no network after configure, no mounts beyond the checkout and no devices.
+  - The runner user `wsci` has no sudo and is LAN-blocked.
+  - The only token lives in the hosted publish job.
+  - The laptop runner is retired.
+
+  **The owner merges #18 and does its README "Owner setup"** (Architect-only access, so the owner merges). Until then the Pi takes no lab runs. **Before the Pi is powered on, merge #18 or disable `poll.yml`/`nightly.yml`/`laptop.yml` in wirescape-pi Actions.** The old poller would otherwise run original-repo PR code on the Pi.
+- **Pi runs from now on:** lab agents never get the Pi repo. The lead asks for a run with an inbox row (`Pi run: <sha> <task> [PR]`), and the Architect or the owner dispatches it. Results arrive as status `pi5/<task>` plus a PR comment. They are **advisory**: no lab gate reads `pi5/*` until a contract names it. The first dispatch after setup is `nightly` at main's head, as the sandbox smoke test.
+- **A4 cleared: 0017 section 5 errata (a), (b) and (d)–(l) applied** from #186's draft after checking each against its source. The H3a list now equals 0012's `binding:` rows, M10 CP1 covers all six 0013 refusal rules, and the stricter 0012 ID rule wins in 0016 T1 (no merged test used the looser one). (c) was already on `main` in 0015. Revisions: M5 r2, M6 r3, M8 r2, M10 r2, M11 r2; notes in M3 and M12; errata in 0012, 0014 and 0016. All the affected tasks are queued or parked, so **no running builder is affected.** MT4, H3a, CP1, K3 and K4 are no longer held for A4; PRIORITY tiers still park them until OB1. #186's role rewrite, OB draft and PRIORITY edits are **not adopted** (superseded on `main`). #186 is closed.
+- **Unchanged:** Phase A/B/C below binds. S6 window 2026-11-21 06:00 ET. OB-a3 #298 (B1 removes the Save As refusal, plus the pin-7 matrix), S7.5 #291 (CI, D5, independent review), T7.0b #296, S6 prep #295 and OB-c prep #275 are all still drafts.
+- **Phase D, after OB1 (prep, no dispatch):** A3/MT2 disposition → M6 MT2–MT5. M8 H1 after M4 E3a/E5 and M3 MB2 → H2 → H3a (Claude review) → H3b/H3c, H4. M9 L1 after E5 + H5. M10 R1 → PL1 (with PV2b) → CP1 → CP2. M11 after M8 services. M12 P1 after MB2. M5 PV3 after TR1h. Every task's contract text is now errata-clean.
+- **Held:** S6 source until the window; S7.6 (#296); #275 fixes (after S6); MT2/A3 (until OB1).
+
+**Next Architect run:** at the S6 review-ready request (on or after 2026-11-21 06:00 ET), or when the owner says the Pi setup is done, whichever is first. Quick effort, or long if S6's contract-review is ready.
+Next run should: (1) S6 contract-review when requested; (2) after Pi setup, dispatch `nightly` at main's head and read the result; (3) Claude contract-review of OB-a3 #298 if pinned; (4) T7.0b #296 facts → S7.6 release; (5) triage any further owner Windows report.
+
+Signed: claude-architect, 2026-11-20
+
 ## Decided 2026-11-20 12:45 ET: Architect run 2, acting as lead (owner: Codex unavailable; base `main` c6ae30a)
 
 Lead authority for this run only; the next `lead:run` resumes normally. The phase plan below still binds.
 - **OB0 tag verified:** `owner-build-0` (annotated, codex-lead) → `a440d71`. Phase A step 1 is done; a #198 comment is still owed by the lead.
 - **Windows kit on `main`:** W2 #290 merged `c974ba5` after the Architect ran the device-off OB-a2 round trip (4/4 PASS, inputs unchanged). W1 #293 merged `9448843` after a defect fix: the loopback check refused every engine because `loadGraph` is not listed in `hello.capabilities`. Loopback now PASSES 3/3 on `wirescape-engine --null-audio`. W3 #286 audit read; its two suspected UI-state defects get a W4 only from an owner failure plus a failing device-off test.
+- **Windows eval build is now `c6ae30a`** (12:55 ET, owner asked for all updates in the build): the OB0 product plus the W1/W2 kit in one checkout; no `native/` or `apps/` change since `a440d71`. Guide steps re-run device-off on Linux at that SHA: build PASS, OSC loopback PASS, examples 7/7, owner-folder round trip 4/4. Windows CI for `main` at that SHA is the Lab run on the push. S7.5 is not in this build (in review).
+- **OB-a3 #298 at `b2f353f`** (desktop suite run by the Architect under xvfb): 19 pass, including the four new tests. **High regression:** `refused-draft-files.spec.cjs` fails 3/3 (passes on `main`) because the new same-path Save As refusal blocks saving a refused draft into the chosen file. **OB r2.2a:** pin 4 forbids side-effect writes only, so B1 removes the refusal and the earlier path-identity Medium is withdrawn. Native no-write matrix (pin 7) is still outstanding. [#298 comment](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7046714089).
 - **OB-f1 #216 merged `c6ae30a`; OB-f2 targets set (OB r2.3, A23):** all met already on CI, so no `apps/studio/` fix task. Re-check at the OB1 candidate; the Pi session decides.
 - **S7.5 #291 (A21):** the Ir cap is not raised; Architect correction `cdf666c` (bit-identical, local Ir −3.8 % to −20.7 %). The click target is met under **M7 r1.3** (A22): after = no-switch floor −38.443 dBFS. Merge still needs exact-head CI, D5 and an **independent** K1–K8 review (the Architect wrote the fix). Parks at 06:00 if those are not done.
 - **New T7.0b #296 (B2):** switch rows gain floor and excess, and a Delay window. **S7.6 held** until #296's before-numbers exist (the Delay before-numbers equal the floor).

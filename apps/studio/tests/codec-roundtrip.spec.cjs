@@ -14,7 +14,7 @@ test('frozen native fixtures and current starters both round-trip without drift'
   execFileSync(process.platform === 'win32' ? 'python' : 'python3', ['tools/gen_ui_catalogue.py', '--check'], { cwd: root });
   // ui_starters.json is a historical native export snapshot, not a mirror of
   // the current application list. Retiring Qt starters must not rewrite it.
-  const fixture = resolve(root, 'native/document/ui_starters.json');
+  const fixture = resolve(root, 'host/document/ui_starters.json');
   const frozen = JSON.parse(readFileSync(fixture, 'utf8'));
   expect(frozen.map(s => s.id)).toEqual([
     'keyboard-voice', 'hollow-chapel', 'breathing-walls', 'black-ice-choir',
@@ -134,9 +134,9 @@ test('no-ui and explicit empty execution fields round trip without healing', () 
   }
 });
 
-for (const filename of readdirSync(resolve(root, 'native/examples')).filter(p => p.endsWith('.json'))) {
+for (const filename of readdirSync(resolve(root, 'host/examples')).filter(p => p.endsWith('.json'))) {
   test(`native example ${filename} loads in the UI and preserves all opaque data`, async ({ page }) => {
-    const source = JSON.parse(readFileSync(resolve(root, 'native/examples', filename), 'utf8'));
+    const source = JSON.parse(readFileSync(resolve(root, 'host/examples', filename), 'utf8'));
     source.future = { bytes: 'AAEC/w==', nested: [{ keep: false }, null, 'λ'] };
     source.modules[0].future = structuredClone(source.future);
     source.connections[0].future = structuredClone(source.future);

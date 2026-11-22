@@ -44,12 +44,9 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | errata review | soon | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed:** OB0 is now accepted. Rule each erratum before any of MT4, H3a, CP1, K3 or K4 is dispatched; best during the S6 window, when no other product writer runs. | MT4/H3a/CP1/K3/K4 dispatch only |
+| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A21 | 2026-11-20 | B3 #291: S7.5 Ir +12–16 % over M7's +3 % cap, ledger 2/2 | **Cap not raised.** Architect correction `cdf666c` (per-block mode paths, local voice state; bit-identical renders). Local Ir vs base −3.8 % to −20.7 % on all five rows. CI at `cdf666c`, D5 and an independent K1–K8 review are still needed. [Ruling](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7046424106), M7 r1.3(c). |
-| A22 | 2026-11-20 | Architect finding: T7.0 switch rows hit the stimulus floor | M7 r1.3(a,b): click targets are also met at the no-switch floor (±0.1 dB). S7.5 is met (−38.443 = floor). T7.0b [#296](https://github.com/kalharbi11/wirescape-lab/issues/296) (B2) adds floor and excess, and a Delay window. **S7.6 waits for #296.** |
-| A23 | 2026-11-20 | A20 follow-up: OB-f2 targets from OB-f1 (#216 merged `c6ae30a`) | OB r2.3: p95 ≤ 17.5 ms, max ≤ 33.4 ms per row, ACK p95 ≤ 5 ms. All already met on CI, so no OB-f2 fix task. Re-check at the OB1 candidate; the Pi session decides. |
-| A24 | 2026-11-20 | A18 kit: W1 #293 / W2 #290 | W2 4/4 device-off round trip (blocked builder evidence supplied); W1 loadGraph-capability defect fixed (`4869218`), loopback PASS. Both merged (`c974ba5`, `9448843`). W3 audit read; W4 stays reserved. |
+| A28 | 2026-11-22 | Owner: poly OSC to LEDs; trig/gate delay; combining mono cables | `proposals/0020`: CV to Notes #327, Poly Merge #328, Gate Delay #329 (experimental tier); S6 moves to claude-builder1; S0 ruling. |

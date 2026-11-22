@@ -313,7 +313,7 @@ test('unsupported opens never rebind Save and unsupported targets are never over
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filename] });
     }, good);
     await page.evaluate(() => window.wirescape.openPatch());
-    const fixture = path.resolve(__dirname, '../../../native/tests/fixtures/legacy_documents');
+    const fixture = path.resolve(__dirname, '../../../tests/native/compat/fixtures/legacy_documents');
     const invalid = fs.readdirSync(fixture).map(name => fs.readFileSync(path.join(fixture, name), 'utf8'));
     invalid.push('{broken', '[]', native(false).replace('"version":2', '"version":99'),
       native(false).replace('"unknown":false', '"unknown":1,"\\u0075nknown":2'),

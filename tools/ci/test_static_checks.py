@@ -198,7 +198,7 @@ class StaticChecksTests(unittest.TestCase):
 
 
     def baseline_fixture(self, root):
-        source = root / "native/modules2/macro_oscillator/CMakeLists.txt"
+        source = root / "modules/macro_oscillator/CMakeLists.txt"
         source.parent.mkdir(parents=True)
         source.write_text("pinned source config")
         data = {"schema": 1, "source_sha256": {
