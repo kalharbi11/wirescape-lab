@@ -18,6 +18,26 @@ struct Adsr {
         b.out(0).set_channels(b.channels());b.out(0).mark_constant(false);
         b.split([&](uint32_t first,uint32_t end){
             for(uint32_t group=0;group<b.channels();group+=4)for(uint32_t c=group;c<std::min(group+4,b.channels());++c){auto&v=voices[c];auto*out=b.out(0).ch(c);
+                // Use the exact pre-OB Gate loop for the default constant mode.
+                // Its hot path keeps the M1 instruction footprint and float order;
+                // Trigger/retrigger and automated mode changes take the general path.
+                const bool original_gate = !v.triggered && b.param(4).constant() &&
+                                           b.param(4).value(c,first) <= .5f;
+                if (original_gate) {
+                for(uint32_t i=first;i<end;++i){
+                    if(b.in(0).connected()){
+                        bool high=v.edge.process(b.in(0).value(c,i));
+                        if(high&&!v.gated){v.gated=true;start(v,1,b.param(0).value(c,i),b.sample_rate());}
+                        else if(!high&&v.gated){v.gated=false;start(v,4,b.param(3).value(c,i),b.sample_rate());}
+                    }
+                    float sustain=b.param(2).value(c,i);
+                    if(v.stage==1){v.level=v.start+(1-v.start)*static_cast<float>(++v.elapsed)/static_cast<float>(v.duration);if(v.elapsed>=v.duration){v.level=1;start(v,2,b.param(1).value(c,i),b.sample_rate());}}
+                    else if(v.stage==2){v.level=v.start+(sustain-v.start)*static_cast<float>(++v.elapsed)/static_cast<float>(v.duration);if(v.elapsed>=v.duration){v.level=sustain;v.stage=3;}}
+                    else if(v.stage==3)v.level=sustain;
+                    else if(v.stage==4){v.level=v.start*(1-static_cast<float>(++v.elapsed)/static_cast<float>(v.duration));if(v.elapsed>=v.duration){v.level=0;v.stage=0;}}
+                    out[i]=v.level;
+                }
+                } else {
                 for(uint32_t i=first;i<end;++i){
                     if(b.in(0).connected()){
                         bool high=v.edge.process(b.in(0).value(c,i));
@@ -35,6 +55,7 @@ struct Adsr {
                         start(v,4,b.param(3).value(c,i),b.sample_rate());}
                     else if(v.stage==4){v.level=v.start*(1-static_cast<float>(++v.elapsed)/static_cast<float>(v.duration));if(v.elapsed>=v.duration){v.level=0;v.stage=0;}}
                     out[i]=v.level;
+                }
                 }
             }
         },[&](const ws2_event&e){
