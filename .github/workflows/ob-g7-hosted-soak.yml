@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # OB r2.4a / proposal 0019 section 3. Advisory everywhere: never a required gate.
 # #305/#312 merged at 445123b; OB-g1 CLI/report schema verified on landed code.
-# Pre-S6 PR head predates the merge: separate SHA-pinned Linux OSC L0 pilot only.
-# PR-head OSC matrix stays gated until S6/#298 rebase; MIDI until #308 integration.
+# The one-time Linux L0 pilot on merged #305 SHA 445123b ran on PR309
+# at Actions 44963546005; results/artifacts are in PR309's signed Result.
+# Pilot code removed to avoid testing a historical SHA on future PR heads.
+# PR-head OSC remains gated until S6/#298 rebase; MIDI until #308 integration.
 # Post-S6: #298 first, then PR309 rebase and interface validation.
 name: OB-g7 hosted I/O soak (advisory draft)
 
@@ -58,109 +60,12 @@ jobs:
             echo "- Reports: <root>/<profile>/<edit-mode>/<tier>/report.json and report.md"
             echo "- L1/L2 need passed L0 p99 and adjacent passing tier at same SHA/profile/mode"
             echo "- #305 merged as 445123b; PR head still predates the harness" 
-            echo "- A separate Linux L0 pilot checks out exactly 445123b, not this PR head" 
+            echo "- Historical Linux L0 evidence: run 44963546005, source 445123b only" 
             echo "- MIDI #308 remains unmerged/unintegrated" 
             echo "- Native paths: re-evaluate after S6 merge and rebase"
-            echo "- PR-head/nightly L0-L2 jobs are parked; pilot L0 is independent advisory evidence" 
+            echo "- PR-head and nightly L0-L2 jobs are parked; no soak runs in this workflow" 
             echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  pilot-linux-osc-l0:
-    name: Post-#305 SHA-pinned Linux L0 pilot / ${{ matrix.profile }} / ${{ matrix.mode }}
-    # Temporary, separately identified pilot: PR309's pre-S6 head lacks the
-    # merged harness. No claim that this validates PR-head or nightly paths.
-    if: ${{ github.event_name == 'pull_request' }}
-    continue-on-error: true
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        profile: [osc-gates, osc-heavy]
-        mode: [still, config-edits]
-    steps:
-      - name: Checkout the actual merged OB-g1 source (not PR309's head)
-        uses: actions/checkout@v4
-        with:
-          ref: 445123b31c2a061f0c888cf3fb20508fd59484f4
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Verify exact source and build device-off sidecar
-        shell: bash
-        env:
-          EXPECTED_SOURCE_SHA: 445123b31c2a061f0c888cf3fb20508fd59484f4
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
-          test -f bench/io/soak.py
-          python -m pip install cmake==4.2.3 ninja==1.13.0
-          python tools/dev.py build --headless --config Release
-          test -x build/native/wirescape-engine
-      - name: Verify real harness self-tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m unittest discover -s bench/io -p 'test_*.py' -v
-          python bench/io/soak.py --self-test
-      - name: Run actual 60s Linux L0 and preserve JSON evidence
-        shell: bash
-        env:
-          EXACT_SOURCE_SHA: 445123b31c2a061f0c888cf3fb20508fd59484f4
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXACT_SOURCE_SHA"
-          profile="${{ matrix.profile }}"
-          mode="${{ matrix.mode }}"
-          root="build_reports/ob-g7/pilot-linux-445123b"
-          report="$root/$profile/$mode/L0"
-          mkdir -p "$root"
-          set +e
-          python bench/io/soak.py --engine build/native/wirescape-engine \
-            --profile "$profile" --edit-mode "$mode" --tier L0 --report-dir "$root"
-          rc=$?
-          set -e
-          echo "- Post-#305 source: $EXACT_SOURCE_SHA (NOT PR309 head)" >> "$GITHUB_STEP_SUMMARY"
-          if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
-            echo "- $EXACT_SOURCE_SHA $profile/$mode L0: no complete report (exit=$rc)" >> "$root/fix-rows.md"
-            exit 1
-          fi
-          python - "$report/report.json" "$EXACT_SOURCE_SHA" "$profile" "$mode" "$rc" "$root/fix-rows.md" <<'PY'
-          import json, sys
-          from pathlib import Path
-          d = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          source, profile, mode, rc = sys.argv[2:6]
-          issues = Path(sys.argv[6])
-          keys = (d.get("source_sha"), d.get("profile"), d.get("edit_mode"), d.get("tier"), d.get("advisory"))
-          expected = (source, profile, mode, "L0", True)
-          if keys != expected:
-              issues.write_text(f"- Invalid source/profile/mode/tier/advisory pins: {keys!r} != {expected!r}\n")
-              raise SystemExit("Report pin mismatch")
-          status = d.get("status", "missing")
-          failure = d.get("first_failure")
-          summary = f"- {source} Linux L0 {profile}/{mode}: status={status}; exit={rc}; elapsed={d.get('elapsed_s')}s; p99={d.get('p99_ms')}ms; first_failure={failure}"
-          print(summary)
-          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
-              stream.write(summary + "\n")
-          if status == "passed" and rc == "0":
-              pass
-          elif status == "xfail" and mode == "config-edits" and rc == "0":
-              with issues.open("a", encoding="utf-8") as stream:
-                  stream.write(summary + " (observed pre-E5 A2 XFAIL; not L0 PASS)\n")
-          else:
-              with issues.open("a", encoding="utf-8") as stream:
-                  stream.write(summary + " (parallel fix row; not L0 PASS)\n")
-              raise SystemExit("Nonpassing L0")
-          PY
-      - name: Publish immutable source-pinned pilot reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ob-g7-pilot-linux-445123b-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: build_reports/ob-g7/
-          if-no-files-found: warn
-          retention-days: 14
 
   pr-linux-osc-l0:
     name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
