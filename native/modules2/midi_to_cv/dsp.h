@@ -35,7 +35,8 @@ struct MidiToCv {
     uint32_t max_channels = 16; voice::Config configured{}; uint32_t filter = 0; bool valid_config = false, sustain_hold = true;
     uint64_t dropped = 0, ignored = 0;
     float last_note = 0; // mono raw NoteOn pitch, intentionally independent of bend/gate
-    std::array<uint32_t, voice::kMaxVoices> trig_left{}; // samples remaining per allocated voice
+    std::array<uint32_t, voice::kMaxVoices> trig_left{};
+    uint32_t trig_active_mask = 0; // avoid scanning all voices in idle blocks // samples remaining per allocated voice
     void prepare(const ws::Setup& s) { max_channels = s.max_channels(); }
     void reset() {
         core.reset();
@@ -47,6 +48,7 @@ struct MidiToCv {
         dropped = ignored = 0;
         last_note = 0;
         trig_left = {};
+        trig_active_mask = 0;
     }
     Expression* expression(uint32_t source, uint32_t channel, bool create) {
         Expression* free = nullptr;
@@ -77,6 +79,7 @@ struct MidiToCv {
         if (!valid_config || wanted.max_voices != configured.max_voices || wanted.mode != configured.mode || wanted.mono_priority != configured.mono_priority || wanted.legato != configured.legato || filter != requested_filter) {
             core.release_all(UINT32_MAX, cause, emit); core.configure(wanted); configured = wanted; filter = requested_filter; valid_config = true;
             trig_left = {};
+        trig_active_mask = 0;
         }
         const bool hold = b.param(5).value(0, 0) > .5f;
         if (sustain_hold && !hold) for (auto& e : expressions) if (e.used && e.pedal) { core.sustain(e.source, int(e.channel), false, cause, emit); e.pedal = false; }
@@ -85,9 +88,7 @@ struct MidiToCv {
         for (uint32_t p = 0; p < 7; ++p) { b.out(p).set_channels(n); b.out(p).mark_constant(false); }
         b.out(9).set_channels(n);
         // Constant zero avoids a per-sample trigger tax for idle MIDI blocks.
-        const bool silent_trigger = b.events().size() == 0 &&
-            std::all_of(trig_left.begin(), trig_left.begin() + n,
-                        [](uint32_t left) { return left == 0; });
+        const bool silent_trigger = b.events().size() == 0 && trig_active_mask == 0;
         b.out(9).mark_constant(silent_trigger);
         if (silent_trigger)
             for (uint32_t c = 0; c < n; ++c) b.out(9).ch(c)[0] = 0.f;
@@ -115,7 +116,8 @@ struct MidiToCv {
                         auto* trig = b.out(9).ch(c);
                         for (uint32_t i = first; i < end; ++i) {
                             trig[i] = trig_left[c] ? 1.f : 0.f;
-                            if (trig_left[c]) --trig_left[c];
+                            if (trig_left[c] && --trig_left[c] == 0)
+                                trig_active_mask &= ~(uint32_t{1} << c);
                         }
                     }
                 }
@@ -160,8 +162,10 @@ struct MidiToCv {
                         // One accepted attack starts a 1 ms pulse on its allocated poly lane,
                         // even when mono legato keeps the gate continuously high.
                         if (note.type == WS2_NOTE_ON && out.type == WS2_NOTE_ON &&
-                            out.channel >= 0 && uint32_t(out.channel) < n)
+                            out.channel >= 0 && uint32_t(out.channel) < n) {
                             trig_left[uint32_t(out.channel)] = trig_frames;
+                            trig_active_mask |= uint32_t{1} << uint32_t(out.channel);
+                        }
                         emit(out);
                     });
                     // Mono priority may accept a held note without selecting it to sound.
