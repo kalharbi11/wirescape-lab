@@ -1,0 +1,288 @@
+{
+  "schema": "wlab-s6-gap-audit/1",
+  "description": "Supplemental verified GitHub source-line candidates not yet incorporated into the complete guarded migration manifest. Not runnable acceptance evidence.",
+  "head": "a72f50d84b1051401c65e9babf74bf2ff6b49778",
+  "existing_partial_plan": "lab/s6_handoff/s6-native-wiring-plan.json",
+  "ready_for_apply": false,
+  "source_files": 11,
+  "replacement_lines": 34,
+  "entry_point_edits": [
+    {
+      "source": ".github/workflows/module-tools.yml",
+      "destination": ".github/workflows/module-tools.yml",
+      "blob_sha": "c1db7ab206eb0c930c89ee7115469d2538aab08a",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Active module tools check target",
+      "replacements": [
+        {
+          "line": 40,
+          "before": "        run: python tools/module/wsmod.py check native/sdk/template --json",
+          "after": "        run: python tools/module/wsmod.py check sdk/template --json"
+        }
+      ]
+    },
+    {
+      "source": ".github/workflows/ob-e2-240-smoke.yml",
+      "destination": ".github/workflows/ob-e2-240-smoke.yml",
+      "blob_sha": "87589c8fb5bc4cee045f685d7154984b85439d5b",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Preserve OB-e2 trigger coverage, command inputs and checksums",
+      "replacements": [
+        {
+          "line": 7,
+          "before": "      - 'native/tests2/ob_e2_240_smoke.cpp'",
+          "after": "      - 'tests/native/abi2/ob_e2_240_smoke.cpp'"
+        },
+        {
+          "line": 8,
+          "before": "      - 'native/tests2/ob_e2_240_run.py'",
+          "after": "      - 'tests/native/abi2/ob_e2_240_run.py'"
+        },
+        {
+          "line": 43,
+          "before": "          sha256sum native/tests2/ob_e2_240_smoke.cpp native/tests2/ob_e2_240_run.py \\",
+          "after": "          sha256sum tests/native/abi2/ob_e2_240_smoke.cpp tests/native/abi2/ob_e2_240_run.py \\"
+        },
+        {
+          "line": 45,
+          "before": "            native/control/module_catalog.inc | tee build_reports/ob_e2_240/input-sha256.txt",
+          "after": "            engine/control/module_catalog.inc | tee build_reports/ob_e2_240/input-sha256.txt"
+        },
+        {
+          "line": 46,
+          "before": "          python3 -m py_compile native/tests2/ob_e2_240_run.py",
+          "after": "          python3 -m py_compile tests/native/abi2/ob_e2_240_run.py"
+        },
+        {
+          "line": 57,
+          "before": "          python3 native/tests2/ob_e2_240_run.py \\",
+          "after": "          python3 tests/native/abi2/ob_e2_240_run.py \\"
+        }
+      ]
+    },
+    {
+      "source": ".github/workflows/protocol-v0-drift.yml",
+      "destination": ".github/workflows/protocol-v0-drift.yml",
+      "blob_sha": "bce18abd905617a16e955e792b0d66f2ee7c64aa",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Preserve generated protocol drift trigger and validation fixture path",
+      "replacements": [
+        {
+          "line": 11,
+          "before": "      - 'native/sidecar/generated/**'",
+          "after": "      - 'host/sidecar/generated/**'"
+        },
+        {
+          "line": 67,
+          "before": "          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine native/examples",
+          "after": "          python tools/protocol/validate_sidecar.py build/pv1/wirescape-engine host/examples"
+        }
+      ]
+    },
+    {
+      "source": "tools/gen_ui_catalogue.py",
+      "destination": "tools/gen_ui_catalogue.py",
+      "blob_sha": "8461a7e396b68b845fcb8262f1e0163769b7b2aa",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Live module catalogue discovery",
+      "replacements": [
+        {
+          "line": 14,
+          "before": "    paths = sorted((root / 'native/modules2').glob('*/module.json'))",
+          "after": "    paths = sorted((root / 'modules').glob('*/module.json'))"
+        },
+        {
+          "line": 15,
+          "before": "    paths += sorted((root / 'native/sdk/examples').glob('*/module.json'))",
+          "after": "    paths += sorted((root / 'sdk/examples').glob('*/module.json'))"
+        }
+      ]
+    },
+    {
+      "source": "tools/module/layout.json",
+      "destination": "tools/module/layout.json",
+      "blob_sha": "8d194ad8cfc86d6c950333731deaafefd97ee3de",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Physical SDK/module layout registry, including extra sources",
+      "replacements": [
+        {
+          "line": 5,
+          "before": "    \"sdk\": \"native/sdk\",",
+          "after": "    \"sdk\": \"sdk\","
+        },
+        {
+          "line": 6,
+          "before": "    \"abi\": \"native/include\",",
+          "after": "    \"abi\": \"sdk/include\","
+        },
+        {
+          "line": 7,
+          "before": "    \"sdk_examples\": \"native/sdk/examples\",",
+          "after": "    \"sdk_examples\": \"sdk/examples\","
+        },
+        {
+          "line": 8,
+          "before": "    \"template\": \"native/sdk/template\",",
+          "after": "    \"template\": \"sdk/template\","
+        },
+        {
+          "line": 13,
+          "before": "    \"allocation_counter\": \"native/tests2/allocation_watch.cpp\",",
+          "after": "    \"allocation_counter\": \"tests/native/abi2/allocation_watch.cpp\","
+        },
+        {
+          "line": 14,
+          "before": "    \"allocation_include\": \"native/tests2\"",
+          "after": "    \"allocation_include\": \"tests/native/abi2\""
+        },
+        {
+          "line": 17,
+          "before": "    \"native/modules2/macro_oscillator\": {\"build_unsupported\": \"requires external patched upstream; v0 never downloads it\"},",
+          "after": "    \"modules/macro_oscillator\": {\"build_unsupported\": \"requires external patched upstream; v0 never downloads it\"},"
+        },
+        {
+          "line": 18,
+          "before": "    \"native/modules2/chord\": {\"config_bytes\": [1, 0, 0, 0]},",
+          "after": "    \"modules/chord\": {\"config_bytes\": [1, 0, 0, 0]},"
+        },
+        {
+          "line": 19,
+          "before": "    \"native/modules2/host_keyboard\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]},",
+          "after": "    \"modules/host_keyboard\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]},"
+        },
+        {
+          "line": 20,
+          "before": "    \"native/modules2/midi_to_cv\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]},",
+          "after": "    \"modules/midi_to_cv\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]},"
+        },
+        {
+          "line": 21,
+          "before": "    \"native/modules2/notes_to_cv\": {\"extra_sources\": [\"native/voice/allocator.cpp\"]}",
+          "after": "    \"modules/notes_to_cv\": {\"extra_sources\": [\"engine/voice/allocator.cpp\"]}"
+        }
+      ]
+    },
+    {
+      "source": "tools/foundation/tests/test_class_demo_patches.py",
+      "destination": "tools/foundation/tests/test_class_demo_patches.py",
+      "blob_sha": "9b3b3a350238c840e1071a73cd9916a214daff29",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Active class-demo fixture and module manifest discovery",
+      "replacements": [
+        {
+          "line": 16,
+          "before": "PATCHES = sorted((ROOT / 'native/examples').glob('class_demo_*.json'))",
+          "after": "PATCHES = sorted((ROOT / 'host/examples').glob('class_demo_*.json'))"
+        },
+        {
+          "line": 22,
+          "before": "        manifests = {m['id']: m for p in (ROOT / 'native/modules2').glob('*/module.json')",
+          "after": "        manifests = {m['id']: m for p in (ROOT / 'modules').glob('*/module.json')"
+        }
+      ]
+    },
+    {
+      "source": "tools/golden.py",
+      "destination": "tools/golden.py",
+      "blob_sha": "c58465001d2ac4fc748b9967d040c47999bc4473",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Golden harness CLI source patch directory",
+      "replacements": [
+        {
+          "line": 64,
+          "before": "    argument = \"--\" + args.command if args.command.endswith(\"self-test\") else str(ROOT / \"native/examples\")",
+          "after": "    argument = \"--\" + args.command if args.command.endswith(\"self-test\") else str(ROOT / \"host/examples\")"
+        },
+        {
+          "line": 79,
+          "before": "        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / \"native/examples\")],",
+          "after": "        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / \"host/examples\")],"
+        }
+      ]
+    },
+    {
+      "source": "tools/pi/demo.sh",
+      "destination": "tools/pi/demo.sh",
+      "blob_sha": "cc9e3c64e557df6862262d15738713d0caecb268",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Owner-only demo patch lookup path (no Pi execution)",
+      "replacements": [
+        {
+          "line": 82,
+          "before": "matches = glob.glob(str(root / f'native/examples/class_demo_{action}_*.json'))",
+          "after": "matches = glob.glob(str(root / f'host/examples/class_demo_{action}_*.json'))"
+        }
+      ]
+    },
+    {
+      "source": "bench/golden/inventory.py",
+      "destination": "bench/golden/inventory.py",
+      "blob_sha": "8dbe90b98b8bd1b96b23b9e03f82f9b078dfb102",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Device-off Golden module/source inventory",
+      "replacements": [
+        {
+          "line": 18,
+          "before": "    catalogue=(root/\"native/control/module_catalog.inc\").read_text(encoding=\"utf-8\")",
+          "after": "    catalogue=(root/\"engine/control/module_catalog.inc\").read_text(encoding=\"utf-8\")"
+        },
+        {
+          "line": 20,
+          "before": "    modules=sorted((root/\"native/modules2\").glob(\"*/module.cpp\")) + \\",
+          "after": "    modules=sorted((root/\"modules\").glob(\"*/module.cpp\")) + \\"
+        },
+        {
+          "line": 21,
+          "before": "            sorted((root/\"native/sdk/examples\").glob(\"*/module.cpp\"))",
+          "after": "            sorted((root/\"sdk/examples\").glob(\"*/module.cpp\"))"
+        }
+      ]
+    },
+    {
+      "source": "bench/golden/experiment.py",
+      "destination": "bench/golden/experiment.py",
+      "blob_sha": "b62733f8404df47f6aad4553b88e466557ce51cf",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Experimental source patch selector; preserve original experiment parameters",
+      "replacements": [
+        {
+          "line": 21,
+          "before": "SOURCE = \"native/modules2/vco/dsp.h\"",
+          "after": "SOURCE = \"modules/vco/dsp.h\""
+        }
+      ]
+    },
+    {
+      "source": "apps/studio/tests/codec-roundtrip.spec.cjs",
+      "destination": "apps/studio/tests/codec-roundtrip.spec.cjs",
+      "blob_sha": "75166db15548f166034b238d35dcc32dc909a218",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Studio roundtrip's real fixture paths",
+      "replacements": [
+        {
+          "line": 17,
+          "before": "  const fixture = resolve(root, 'native/document/ui_starters.json');",
+          "after": "  const fixture = resolve(root, 'host/document/ui_starters.json');"
+        },
+        {
+          "line": 137,
+          "before": "for (const filename of readdirSync(resolve(root, 'native/examples')).filter(p => p.endsWith('.json'))) {",
+          "after": "for (const filename of readdirSync(resolve(root, 'host/examples')).filter(p => p.endsWith('.json'))) {"
+        },
+        {
+          "line": 139,
+          "before": "    const source = JSON.parse(readFileSync(resolve(root, 'native/examples', filename), 'utf8'));",
+          "after": "    const source = JSON.parse(readFileSync(resolve(root, 'host/examples', filename), 'utf8'));"
+        }
+      ]
+    }
+  ],
+  "do_not_rewrite": [
+    "build/native output paths",
+    "historical facts and source citations",
+    "synthetic fixture tests",
+    "frozen S0 snapshots and provenance",
+    "public ABI header bytes"
+  ],
+  "pending": "Merge these exact candidates into the deterministic replay plan only after clean-tree inspection; also inspect partially covered workflow globs and split-root include paths, and complete whole-tree consumer audit."
+}
