@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-3.0-only
+"""S6 audit tokens and classification of old-root references left in the moved tree on purpose."""
+TOKENS = [r"(?<!build/)(?<!tests/)native/", r"\bmodules2/", r"\btests2/", r"\bengine2/", r"\bio/(?:audio|midi|osc|net)/"]
+CLASSIFIED = [
+ {"class": "historical-record", "path": r"^(facts|proposals|docs/context|docs/workflow|ci/from-main)/",
+  "why": "dated records, planning and parked inactive workflows; cite the paths of their time"},
+ {"class": "s6-planning", "path": r"^lab/", "why": "S6 map, preview, handoff and this manifest name base paths on purpose"},
+ {"class": "doc-prose", "path": r"(\.md|\.txt|\.html)$|^docs/",
+  "why": "prose, not an executed consumer; documentation path pass is a follow-up outside S6 moves"},
+ {"class": "retained-path", "path": r".", "line": r"native/(CMakeLists\.txt|README\.md)|native/\*\*|native/'?, '?engine/|cmake.*-S.*native|'-S', (str\(ROOT / )?'native'",
+  "why": "native/CMakeLists.txt and native/README.md stay in native/ (m1_s6_map FILES)"},
+ {"class": "binary-dir", "path": r".", "line": r"build[\w./-]*/native|build[\w./-]*/(engine2|modules2)/|BUILD_DIR / \"engine2\"|build / \"native\"|base/build/native|head/build/native",
+  "why": "CMake binary-directory names are kept (add_subdirectory binary dirs unchanged)"},
+ {"class": "nonpath", "path": r".", "line": r"native/(Electron|tool\b|tool source|WASM|anonymous|device)",
+  "why": "the word native, not a path"},
+ {"class": "synthetic-fixture", "path": r"^(tools/ci/test_static_checks\.py|tools/foundation/tests/test_(changed_scope|launch_freshness|reporting|build_parallel)\.py)$|^tools/(diagnostics|foundation/tests)/fixtures/",
+  "why": "synthetic paths in temporary trees or canned input; not files of this repository"},
+ {"class": "synthetic-fixture", "path": r"^bench/portability/tests/test_probe\.py$", "line": r"native/module\.cpp",
+  "why": "canned compiler output"},
+ {"class": "negative-assertion", "path": r"^tools/module/tests/test_module\.py$", "line": r"assertNotRegex",
+  "why": "asserts old paths are absent"},
+ {"class": "historical-checkout", "path": r"^bench/evidence/(s7_1_193|reverb_s72)/",
+  "why": "collectors that read a pinned historical checkout of the old layout"},
+ {"class": "frozen-provenance", "path": r"^bench/reference/freeze\.py$", "line": r"native/tests2/",
+  "why": "provenance strings written into frozen reference fixtures; changing them changes frozen bytes"},
+ {"class": "frozen-fixture", "path": r"^tests/native/compat/fixtures/",
+  "why": "committed frozen fixture bytes; S6 moves them unchanged"},
+ {"class": "vendor-path", "path": r"cppcheck-baseline\.json$", "line": r'"path":"(eurorack|stmlib)/',
+  "why": "upstream vendor source paths (plaits engine2/ directory), not this repository"},
+]

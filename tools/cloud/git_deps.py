@@ -23,8 +23,8 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD_DIR = ROOT / "build" / "native"
 CACHE_DIR = ROOT / "build" / "deps-cache"
 INIT_CACHE = CACHE_DIR / "fetchcontent.cmake"
-PATCHES = ROOT / "native" / "modules2" / "macro_oscillator" / "patches"
-# Binary dir of native/modules2/macro_oscillator (added from engine2). Its
+PATCHES = ROOT / "modules" / "macro_oscillator" / "patches"
+# Binary dir of modules/macro_oscillator (added from engine/ as binary dir engine2). Its
 # CMakeLists puts `<binary>/upstream` on the include path for `stmlib/...`.
 MACRO_BINARY_DIR = BUILD_DIR / "engine2" / "macro_oscillator"
 

@@ -270,7 +270,7 @@ def provenance(binary: str | None = None, built_head: str | None = None) -> dict
                 toolchain=dict(cmake=sh('cmake', '--version').splitlines()[:1],
                                cxx=sh('c++', '--version').splitlines()[:1]),
                 dirty=bool(sh('git', 'status', '--porcelain', '--',
-                                                                         'native', 'bench')),
+                                                                         'native', 'engine', 'host', 'modules', 'sdk', 'targets', 'tests/native', 'tools/render', 'tools/capture', 'bench')),
                 machine=dict(system=platform.system(), arch=platform.machine(), cpu=cpu,
                              python=platform.python_version(), kind='cloud container, null sink, devices off'),
                 date_utc=now.strftime('%Y-%m-%dT%H:%MZ'), rate=RATE, block=BLOCK)

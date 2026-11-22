@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def generate(root=ROOT):
     presentation = json.loads((root / 'apps/studio/public/catalogue-presentation.json').read_text(encoding='utf-8'))
-    paths = sorted((root / 'native/modules2').glob('*/module.json'))
-    paths += sorted((root / 'native/sdk/examples').glob('*/module.json'))
+    paths = sorted((root / 'modules').glob('*/module.json'))
+    paths += sorted((root / 'sdk/examples').glob('*/module.json'))
     manifests = {}
     for path in paths:
         manifest = json.loads(path.read_text(encoding='utf-8'))

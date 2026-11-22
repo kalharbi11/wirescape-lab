@@ -5,6 +5,14 @@ on:
   pull_request:
     paths:
       - 'native/**'
+      - 'engine/**'
+      - 'host/**'
+      - 'modules/**'
+      - 'sdk/**'
+      - 'targets/**'
+      - 'tests/native/**'
+      - 'tools/render/**'
+      - 'tools/capture/**'
       - 'bench/gate/**'
       - 'facts/perf/linux-*/instruction_baseline.json'
       - '.github/workflows/instruction-gate.yml'
@@ -12,6 +20,14 @@ on:
     branches: [main]
     paths:
       - 'native/**'
+      - 'engine/**'
+      - 'host/**'
+      - 'modules/**'
+      - 'sdk/**'
+      - 'targets/**'
+      - 'tests/native/**'
+      - 'tools/render/**'
+      - 'tools/capture/**'
       - 'bench/gate/**'
       - 'facts/perf/linux-*/instruction_baseline.json'
       - '.github/workflows/instruction-gate.yml'

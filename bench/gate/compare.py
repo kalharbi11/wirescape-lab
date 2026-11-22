@@ -31,7 +31,7 @@ def expected_ids(root=None):
     fixture = root / "tools/foundation/fixtures/known_module_ids.txt"
     module_ids = {line.strip() for line in fixture.read_text(encoding="utf-8").splitlines()
                   if line.strip() and not line.startswith("#")}
-    module_ids.add("osc.out")  # registered in native/control/module_catalog.inc
+    module_ids.add("osc.out")  # registered in engine/control/module_catalog.inc
     patches = sorted((root / "apps/studio/patches").glob("*.json"))
     if len(module_ids) != 34 or len(patches) != 24:
         raise ValueError(f"unexpected catalogue coverage: {len(module_ids)} modules, "

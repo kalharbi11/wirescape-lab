@@ -13,9 +13,9 @@ PATTERN = re.compile(r'^\s*#\s*include\s*[<"](' + '|'.join(BANNED) + r')[>"]', r
 
 def violations(root):
     return [(file.relative_to(root).as_posix(), match.group(1))
-            for directory in ('native/modules2', 'native/sdk', 'native/voice')
+            for directory in ('modules', 'sdk', 'engine/voice')
             for file in sorted((root / directory).rglob('*'))
-            if (directory != 'native/modules2' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')
+            if (directory != 'modules' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')
             for match in PATTERN.finditer(re.sub(r'/\*.*?\*/|//[^\n]*', '', file.read_text(), flags=re.S))]
 
 
@@ -26,8 +26,8 @@ class IncludeTests(unittest.TestCase):
     def test_guard_rejects_every_banned_header_in_each_source_tree(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            for tree in ('modules2', 'sdk', 'voice'):
-                file = root / 'native' / tree / 'nested/test.cpp'
+            for tree in ('modules', 'sdk', 'engine/voice'):
+                file = root / tree / 'nested/test.cpp'
                 file.parent.mkdir(parents=True)
                 file.write_text('\n'.join(f'# include <{name}>' for name in BANNED))
             self.assertEqual(len(violations(root)), 3 * len(BANNED))
@@ -35,9 +35,9 @@ class IncludeTests(unittest.TestCase):
     def test_module_host_tests_are_exempt_but_dsp_is_strict(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            module = root / 'native/modules2/example'
+            module = root / 'modules/example'
             module.mkdir(parents=True)
             (module / 'tests.cpp').write_text('#include <vector>')
             self.assertEqual(violations(root), [])
             (module / 'dsp.h').write_text('#include <vector>')
-            self.assertEqual(violations(root), [('native/modules2/example/dsp.h', 'vector')])
+            self.assertEqual(violations(root), [('modules/example/dsp.h', 'vector')])

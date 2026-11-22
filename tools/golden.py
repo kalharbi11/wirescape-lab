@@ -61,7 +61,7 @@ def main():
     candidates = [ROOT / "build/native/golden_render", ROOT / "build/native/Release/golden_render.exe",
                   ROOT / "build/native/golden_render.exe"]
     renderer = args.renderer or next((p for p in candidates if p.is_file()), candidates[0])
-    argument = "--" + args.command if args.command.endswith("self-test") else str(ROOT / "native/examples")
+    argument = "--" + args.command if args.command.endswith("self-test") else str(ROOT / "host/examples")
     result = subprocess.run([str(renderer.resolve()), argument], check=True, capture_output=True, text=True)
     raw = json.loads(result.stdout)
     if args.command == "serialization-self-test":
@@ -76,7 +76,7 @@ def main():
         return 0
     report = validate(report)
     if args.compare_renderer:
-        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / "native/examples")],
+        old = subprocess.run([str(args.compare_renderer.resolve()), str(ROOT / "host/examples")],
                              check=True, capture_output=True, text=True)
         previous = validate(json.loads(old.stdout))
         def key(case):
