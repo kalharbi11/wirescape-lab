@@ -8,8 +8,8 @@ S6 comes first: everything below adds folders under `native/modules2/`, which S6
 After S6, in this order:
 1. ADSR trigger mode, OB-g5 #316 (`0019` §4).
 2. CV to Notes.
-3. Poly Merge.
-4. Gate Delay.
+3. Gate Delay.
+4. Poly Merge (owner, 2026-11-22: last).
 
 All three new modules may be **drafted now** on their own branches, so the owner can build and
 play them early. They **merge only after S6**, rebased onto the mapped paths. A new folder before
