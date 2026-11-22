@@ -42,6 +42,7 @@ struct Rig {
     ws2_process ctx{};
     uint64_t cursor = 0;
     uint32_t channels = 1;
+    float time_cv = 0.f;
     size_t process_allocations = 0;
     std::array<std::array<std::vector<float>, 16>, 3> rendered{};
 
@@ -80,7 +81,7 @@ struct Rig {
                     const uint64_t t = cursor + i;
                     input_storage[0][c][i] = source(t, c);
                     input_storage[1][c][i] = float(c + 1) * .25f;
-                    input_storage[2][c][i] = 0.f;
+                    input_storage[2][c][i] = time_cv;
                 }
             input[0].channels = channels;
             input[1].channels = channels;
@@ -155,6 +156,19 @@ static void strum_order_and_repeats() {
             for (uint32_t c = 0; c < 3; ++c) REQUIRE(a.rendered[0][c] == same.rendered[0][c]);
         }
     }
+    Rig alternating;
+    alternating.channels = 2;
+    alternating.values[GateDelay::kTime] = 0;
+    alternating.values[GateDelay::kSpread] = 5;
+    alternating.values[GateDelay::kStrum] = 2;
+    alternating.render(1200, 64, [](uint64_t t, uint32_t) {
+        return t < 24 || (t >= 720 && t < 744) ? 1.f : 0.f;
+    });
+    // The first chord is Down; once all inputs fall, the next chord is Up.
+    REQUIRE(alternating.at(0, 1, 0) == 1.f && alternating.at(0, 0, 0) == 0.f);
+    REQUIRE(alternating.at(0, 0, 240) == 1.f);
+    REQUIRE(alternating.at(0, 0, 720) == 1.f && alternating.at(0, 1, 720) == 0.f);
+    REQUIRE(alternating.at(0, 1, 960) == 1.f);
     Rig ratchet;
     ratchet.values[GateDelay::kTime] = 4;
     ratchet.values[GateDelay::kRepeats] = 2;
@@ -188,6 +202,12 @@ static void time_latched_and_block_invariant() {
     }
 }
 static void signal_step_and_overflow() {
+    Rig negative_cv;
+    negative_cv.values[GateDelay::kTime] = 500;
+    negative_cv.time_cv = -.5f; // -1 V = -1 s: -0.5 V exactly cancels 500 ms.
+    negative_cv.render(80, 11, [](uint64_t t, uint32_t) { return t < 24 ? 1.f : 0.f; });
+    REQUIRE(negative_cv.at(0, 0, 0) == 1.f && negative_cv.at(0, 0, 23) == 1.f);
+    REQUIRE(negative_cv.at(0, 0, 24) == 0.f);
     Rig s;
     s.values[GateDelay::kMode] = 1;
     s.values[GateDelay::kTime] = 10;
