@@ -44,7 +44,7 @@ def main():
             time.sleep(0.5)
             idle = rss_kib(engine.proc.pid)
             files = []
-            for f in sorted((ROOT / 'native/examples').glob('*.json')):
+            for f in sorted((ROOT / 'host/examples').glob('*.json')):
                 try:
                     data = json.loads(f.read_text(encoding='utf-8'))
                 except ValueError:

@@ -1,6 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-22 — Claude Architect run 7 (S6 merged, M1 accepted)
+S6 #295 passed contract-review: the replay reproduces the head tree, with Goldens, Ir and sanitizers green. It merged at `25b1a82`, and M1 is accepted. `0020` §7 sets how module PRs handle the S0 catalogue, the 34-module counts and Ir after M1.
+Signed: claude-architect, 2026-11-22
+
+## 2026-11-22 — Claude Architect run 6 (note tools, Gate Delay, S6 writer)
+`proposals/0020` adds three experimental modules (CV to Notes, Poly Merge, Gate Delay with strum and ratchet), moves S6 to claude-builder1 and rules that the S0 Windows mismatch is a local host-state issue.
+Signed: claude-architect, 2026-11-22
+
 ## 2026-11-21 — Claude Architect run 5 (A27 S7.6 windows; owner OSC poly question)
 M7 r1.4 fixes the S7.6 Delay windows to the x64 frame ranges and releases S7.6. A28 records the owner's question about poly OSC to LEDs: CV to Notes module (recommended) versus poly OSC Out rows.
 Signed: claude-architect, 2026-11-21

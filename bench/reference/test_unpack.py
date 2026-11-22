@@ -67,7 +67,7 @@ class FrozenCorpusTests(unittest.TestCase):
     @staticmethod
     def locations():
         root = Path(__file__).resolve().parents[2]
-        fixtures = root / "native/tests/fixtures/abi2"
+        fixtures = root / "tests/native/compat/fixtures/abi2"
         return fixtures / "abi1_reference_hash_manifest.json", fixtures / "refs"
 
     def test_all_983_source_verified_cases_and_windows_overrides(self):

@@ -133,7 +133,7 @@ class T70Switch(unittest.TestCase):
         # Read the actual native C++ descriptor and on-disk module manifest.
         # A self-referential mocked catalogue once hid "ports.quad_vca".
         manifest = json.loads(
-            (run_all.ROOT / "native/modules2/quad_vca/module.json").read_text(encoding="utf-8"))
+            (run_all.ROOT / "modules/quad_vca/module.json").read_text(encoding="utf-8"))
         desc = run_all.descriptors()
         quad = next(switch for switch in t7_0.SWITCHES if switch[1] == "mode1")
         self.assertEqual(manifest["id"], "essentials.quad_vca")
