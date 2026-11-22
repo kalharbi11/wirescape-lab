@@ -13,14 +13,33 @@ from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[2]
 
+# The M1 Golden set is frozen at 34 IDs (33 known IDs plus osc.out).
+# New modules must be reviewed into this explicit tier, never blindly counted.
+EXPERIMENTAL = frozenset({"essentials.cv_to_notes"})
+
+def golden_ids(root=ROOT):
+    fixture = root / "tools/foundation/fixtures/known_module_ids.txt"
+    ids = {s.strip() for s in fixture.read_text(encoding="utf-8").splitlines()
+           if s.strip() and not s.startswith("#")}
+    if len(ids) != 33 or "osc.out" in ids:
+        raise ValueError("frozen Golden compatibility IDs changed")
+    return frozenset(ids | {"osc.out"})
+
+def allowed_ids(root=ROOT):
+    golden = golden_ids(root)
+    if golden & EXPERIMENTAL:
+        raise ValueError("experimental ID conflicts with Golden ID")
+    return golden | EXPERIMENTAL
+
 
 def registry(root):
     catalogue=(root/"engine/control/module_catalog.inc").read_text(encoding="utf-8")
     count=len(re.findall(r"(?m)^WS_APP_MODULE\(",catalogue))
     modules=sorted((root/"modules").glob("*/module.cpp")) + \
             sorted((root/"sdk/examples").glob("*/module.cpp"))
-    if count!=34 or len(modules)!=count:
-        raise ValueError(f"registry/source inventory mismatch: catalog={count}, translation_units={len(modules)}")
+    permitted=allowed_ids(root)
+    if count!=len(permitted) or len(modules)!=count:
+        raise ValueError(f"registry/source inventory mismatch: catalog={count}, translation_units={len(modules)}, permitted={len(permitted)}")
     result={}
     for source in modules:
         descriptor=source.parent/"dsp.h"
@@ -40,6 +59,8 @@ def registry(root):
             "coverage_measurements":[],
             "contribution_status":"unverified",
         }
+    if set(result) != permitted:
+        raise ValueError(f"unlisted or missing module IDs: extra={sorted(set(result)-permitted)}, missing={sorted(permitted-set(result))}")
     return result
 
 
@@ -153,9 +174,10 @@ def main():
           "measured",sum(v["contribution_status"].startswith("measured_")
                          for v in data["modules"].values()),flush=True)
     measured=[module for module,row in data["modules"].items() if row["contribution_status"].startswith("measured_")]
-    if len(measured)!=34:
-        missing=sorted(set(data["modules"])-set(measured))
-        print(f"::warning::T0.11 contribution coverage incomplete: {len(measured)}/34 measured; "
+    measured_golden=set(measured) & golden_ids(ROOT)
+    if len(measured_golden)!=len(golden_ids(ROOT)):
+        missing=sorted(golden_ids(ROOT)-measured_golden)
+        print(f"::warning::T0.11 contribution coverage incomplete: {len(measured_golden)}/{len(golden_ids(ROOT))} Golden IDs measured; "
               f"unverified IDs: {', '.join(missing)}",flush=True)
     compact=json.dumps(data,separators=(",",":"),allow_nan=False)
     for i in range(0,len(compact),1400):
