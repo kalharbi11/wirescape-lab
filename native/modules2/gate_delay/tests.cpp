@@ -194,7 +194,7 @@ static void signal_step_and_overflow() {
     s.render(1000, 23, [](uint64_t t, uint32_t) { return t >= 48 ? 1.f : 0.f; });
     uint32_t first = 0;
     while (first < 1000 && s.at(0, 0, first) < .5f) ++first;
-    REQUIRE(first >= 528 && first <= 576); // 1 kHz grid: <= 1 ms of input quantisation.
+    REQUIRE(first >= 480 && first <= 576); // 1 kHz linear interpolation: threshold within 1 ms.
     REQUIRE(s.at(1, 0, first) == 1.f && s.process_allocations == 0);
     GateDelay delay;
     for (uint32_t i = 0; i < 80; ++i) delay.enqueue(0, 1000 + i, bool(i & 1), 0.f);
