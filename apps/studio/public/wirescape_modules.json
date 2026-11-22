@@ -5665,6 +5665,150 @@
    "legacy_parameters": {
     "voices": 0
    }
+  },
+  {
+   "id": "essentials.gate_delay",
+   "name": "Gate Delay",
+   "category": "Utility",
+   "ports": [
+    {
+     "id": "in",
+     "name": "In",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "cv",
+     "name": "Pitch CV",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "pitch",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "time_cv",
+     "name": "Time CV",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "mono",
+     "stereo_pair": null
+    },
+    {
+     "id": "out",
+     "name": "Out",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "trig",
+     "name": "Trig",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "trigger",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "cv_out",
+     "name": "Pitch CV Out",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "pitch",
+     "poly": "poly",
+     "stereo_pair": null
+    }
+   ],
+   "parameters": [
+    {
+     "id": "mode",
+     "name": "Mode",
+     "minimum": 0,
+     "maximum": 1,
+     "default": 0,
+     "unit": "",
+     "taper": "linear",
+     "step": 1,
+     "decimals": 0,
+     "modulatable": false
+    },
+    {
+     "id": "time",
+     "name": "Time",
+     "minimum": 0,
+     "maximum": 2000,
+     "default": 250,
+     "unit": "ms",
+     "taper": "linear",
+     "step": 0,
+     "decimals": 1,
+     "modulatable": true
+    },
+    {
+     "id": "spread",
+     "name": "Spread",
+     "minimum": 0,
+     "maximum": 500,
+     "default": 0,
+     "unit": "ms",
+     "taper": "linear",
+     "step": 0,
+     "decimals": 1,
+     "modulatable": false
+    },
+    {
+     "id": "strum",
+     "name": "Strum",
+     "minimum": 0,
+     "maximum": 3,
+     "default": 0,
+     "unit": "",
+     "taper": "linear",
+     "step": 1,
+     "decimals": 0,
+     "modulatable": false
+    },
+    {
+     "id": "humanize",
+     "name": "Humanize",
+     "minimum": 0,
+     "maximum": 50,
+     "default": 0,
+     "unit": "ms",
+     "taper": "linear",
+     "step": 0,
+     "decimals": 1,
+     "modulatable": false
+    },
+    {
+     "id": "repeats",
+     "name": "Repeats",
+     "minimum": 0,
+     "maximum": 4,
+     "default": 0,
+     "unit": "",
+     "taper": "linear",
+     "step": 1,
+     "decimals": 0,
+     "modulatable": false
+    }
+   ],
+   "version": 1,
+   "legacy_parameters": {
+    "mode": 0,
+    "time": 1,
+    "spread": 2,
+    "strum": 3,
+    "humanize": 4,
+    "repeats": 5
+   }
   }
  ]
 }
