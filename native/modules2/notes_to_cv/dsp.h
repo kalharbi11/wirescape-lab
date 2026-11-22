@@ -44,10 +44,18 @@ struct NotesToCv {
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
         const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
+        // The common no-event path has no live trigger: represent it as a
+        // constant zero without a per-sample pulse/decrement branch.
+        const bool silent_trigger = b.events().size() == 0 &&
+            std::all_of(trig_left.begin(), trig_left.begin() + n,
+                        [](uint32_t left) { return left == 0; });
         for (uint32_t p = 0; p < 4; ++p) {
             b.out(p).set_channels(n);
             b.out(p).mark_constant(false);
         }
+        b.out(3).mark_constant(silent_trigger);
+        if (silent_trigger)
+            for (uint32_t c = 0; c < n; ++c) b.out(3).ch(c)[0] = 0.f;
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) {
@@ -58,10 +66,19 @@ struct NotesToCv {
                         // allowing the downstream envelope to retrigger.
                         b.out(1).ch(c)[i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
                         b.out(2).ch(c)[i] = v.velocity;
-                        b.out(3).ch(c)[i] = trig_left[c] ? 1.f : 0.f;
-                        if (trig_left[c]) --trig_left[c];
                     }
                     core.allocator().clear_triggers();
+                }
+                // Event-bearing blocks and pulses crossing a block boundary
+                // retain sample-accurate 1 ms output on every allocated lane.
+                if (!silent_trigger) {
+                    for (uint32_t c = 0; c < n; ++c) {
+                        auto* trig = b.out(3).ch(c);
+                        for (uint32_t i = first; i < end; ++i) {
+                            trig[i] = trig_left[c] ? 1.f : 0.f;
+                            if (trig_left[c]) --trig_left[c];
+                        }
+                    }
                 }
             },
             [&](const ws2_event &e) {
