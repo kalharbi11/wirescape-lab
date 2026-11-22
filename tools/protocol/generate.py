@@ -11,7 +11,7 @@ HOME = ROOT / "tools" / "protocol"
 SCHEMA = ROOT / "docs" / "specs" / "protocol.schema.json"
 OUTPUTS = {
     "ts": ROOT / "apps" / "studio" / "src" / "engine" / "generated" / "protocol_v0.ts",
-    "cpp": ROOT / "native" / "sidecar" / "generated" / "protocol_v0.hpp",
+    "cpp": ROOT / "host" / "sidecar" / "generated" / "protocol_v0.hpp",
     "table": HOME / "generated" / "command_error_tables.md",
 }
 
