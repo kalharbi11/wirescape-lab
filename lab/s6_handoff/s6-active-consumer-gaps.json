@@ -4,8 +4,8 @@
   "head": "a72f50d84b1051401c65e9babf74bf2ff6b49778",
   "existing_partial_plan": "lab/s6_handoff/s6-native-wiring-plan.json",
   "ready_for_apply": false,
-  "source_files": 11,
-  "replacement_lines": 34,
+  "source_files": 18,
+  "replacement_lines": 43,
   "entry_point_edits": [
     {
       "source": ".github/workflows/module-tools.yml",
@@ -275,6 +275,114 @@
           "after": "    const source = JSON.parse(readFileSync(resolve(root, 'host/examples', filename), 'utf8'));"
         }
       ]
+    },
+    {
+      "source": "bench/offline/memory_facts.py",
+      "destination": "bench/offline/memory_facts.py",
+      "blob_sha": "2f9aae805bdcec8ab399d8051e62ff13f685a16c",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Current memory-facts patch scan",
+      "replacements": [
+        {
+          "line": 47,
+          "before": "            for f in sorted((ROOT / 'native/examples').glob('*.json')):",
+          "after": "            for f in sorted((ROOT / 'host/examples').glob('*.json')):"
+        }
+      ]
+    },
+    {
+      "source": "bench/offline/protocol_facts.py",
+      "destination": "bench/offline/protocol_facts.py",
+      "blob_sha": "0026b460a05bd296e76a15cb6f81c07afcc5af60",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Protocol facts current patch fallback (preserve old examples fallback)",
+      "replacements": [
+        {
+          "line": 143,
+          "before": "            for base in (ROOT / 'examples', ROOT / 'native/examples'):",
+          "after": "            for base in (ROOT / 'examples', ROOT / 'host/examples'):"
+        }
+      ]
+    },
+    {
+      "source": "bench/offline/electron_startup.cjs",
+      "destination": "bench/offline/electron_startup.cjs",
+      "blob_sha": "2aa9febafd2fdb29bae7c9b6e376f2a1eccf49c0",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Electron measured-startup source patch lookup",
+      "replacements": [
+        {
+          "line": 83,
+          "before": "      const dir=path.join(ROOT,'native/examples');",
+          "after": "      const dir=path.join(ROOT,'host/examples');"
+        }
+      ]
+    },
+    {
+      "source": "apps/desktop/tests/app-e2e.spec.cjs",
+      "destination": "apps/desktop/tests/app-e2e.spec.cjs",
+      "blob_sha": "7eb3fa2bd4529c2010125f74d26588699c1a0267",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Desktop E2E real example path",
+      "replacements": [
+        {
+          "line": 10,
+          "before": "const example = path.join(root, 'native/examples/class_demo_2_subtractive.json');",
+          "after": "const example = path.join(root, 'host/examples/class_demo_2_subtractive.json');"
+        }
+      ]
+    },
+    {
+      "source": "tools/patch_roundtrip.py",
+      "destination": "tools/patch_roundtrip.py",
+      "blob_sha": "7ac82fc014f231f9ec60b92add55ff0be331ef45",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Patch roundtrip spec physical path",
+      "replacements": [
+        {
+          "line": 25,
+          "before": "SPEC = ROOT / \"native/tests2/ob_patch_roundtrip.spec.cjs\"",
+          "after": "SPEC = ROOT / \"tests/native/abi2/ob_patch_roundtrip.spec.cjs\""
+        }
+      ]
+    },
+    {
+      "source": "tools/bench/abi2_foundation.py",
+      "destination": "tools/bench/abi2_foundation.py",
+      "blob_sha": "88b7a22148aecd68bd65eb3bf469e21cd290811f",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Module header and ABI2 frozen fixture discovery",
+      "replacements": [
+        {
+          "line": 73,
+          "before": "    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/\"native/modules2\").glob(\"*/dsp.h\")",
+          "after": "    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/\"modules\").glob(\"*/dsp.h\")"
+        },
+        {
+          "line": 86,
+          "before": "    fixture_dir = ROOT/\"native/tests/fixtures/abi2\"",
+          "after": "    fixture_dir = ROOT/\"tests/native/compat/fixtures/abi2\""
+        }
+      ]
+    },
+    {
+      "source": "bench/gate/instructions.py",
+      "destination": "bench/gate/instructions.py",
+      "blob_sha": "a00012f5cdbd12cd190a3a50cdaba00d296c1847",
+      "disposition": "path_only_candidate_needs_exact_checkout_replay",
+      "reason": "Actual instruction gate catalog/manifest sources; preserve build/native binary outputs and historical comments",
+      "replacements": [
+        {
+          "line": 169,
+          "before": "    osc_manifest = ROOT / \"native/modules2/osc_out/module.json\"",
+          "after": "    osc_manifest = ROOT / \"modules/osc_out/module.json\""
+        },
+        {
+          "line": 171,
+          "before": "    catalog = ROOT / \"native/control/module_catalog.inc\"",
+          "after": "    catalog = ROOT / \"engine/control/module_catalog.inc\""
+        }
+      ]
     }
   ],
   "do_not_rewrite": [
@@ -284,5 +392,31 @@
     "frozen S0 snapshots and provenance",
     "public ABI header bytes"
   ],
-  "pending": "Merge these exact candidates into the deterministic replay plan only after clean-tree inspection; also inspect partially covered workflow globs and split-root include paths, and complete whole-tree consumer audit."
+  "pending": "Merge these exact candidates into the deterministic replay plan only after clean-tree inspection; also inspect partially covered workflow globs and split-root include paths, and complete whole-tree consumer audit.",
+  "coordinated_review_required": [
+    {
+      "source": ".github/workflows/portability.yml",
+      "reason": "Already has partial include-glob rewrite at lines 10,18; additionally migrate native/sdk/** and native/modules2/** triggers and two live macro_oscillator paths at lines 8,9,16,17,79,102 in the same entry."
+    },
+    {
+      "source": ".github/workflows/golden-renders.yml",
+      "reason": "Already has native/** expanded trigger plan; additionally rewrite active source diff selector at line 164 from native/modules2/vco/dsp.h to modules/vco/dsp.h in the same entry."
+    },
+    {
+      "source": "bench/reference/freeze.py",
+      "reason": "Pinned source file list at lines 108–110 uses native/tests2; determine historical-reference vs live current-source freeze before changing."
+    },
+    {
+      "source": "tools/foundation/tests/test_ui_catalogue.py",
+      "reason": "Distinguish synthetic fixture paths and live data paths before re-anchoring native/modules2 and native/sdk examples."
+    },
+    {
+      "source": "bench/sdk/out_of_tree_trial.py",
+      "reason": "Out-of-tree test edits filenames and has documentation string literals; coordinate SDK/module/engine path changes with preserved contract and test assertions."
+    },
+    {
+      "source": "bench/portability/probe.py",
+      "reason": "Split SDK, engine, host include roots and CMake source paths; avoid naive -I replacement, preserve probe coverage."
+    }
+  ]
 }
