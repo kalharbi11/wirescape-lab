@@ -110,5 +110,8 @@ test('RED baseline: refused running endpoint toggle must not display an unapplie
   // Expected RED on current main: App.ts leaves the switch at OFF even though
   // the bridge rejected the operation and still reports this endpoint enabled.
   // No product code is changed in #317; a separately released fix is required.
+  // Mark XFAIL only after the correlated refusal and authoritative-state checks:
+  // unexpected setup failures must remain normal CI failures, not masked XFAILs.
+  test.fail(true, '#317: expected Studio MIDI toggle refusal UI inconsistency');
   await expect(enabled).toHaveAttribute('aria-pressed', 'true');
 });
