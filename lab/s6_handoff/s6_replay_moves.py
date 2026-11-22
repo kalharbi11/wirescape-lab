@@ -51,11 +51,10 @@ def replay(root, manifest, entry_plan=None):
             old, new = row["source"], row["destination"]
             if moves.get(old, old) != new or new in rewritten:
                 raise ValueError(f"Unexpected rewrite destination {new}")
-            raw = (root / old).read_bytes()
-            if hashlib.sha256(raw).hexdigest() != row["source_sha256"]:
-                raise ValueError(f"Edited source changed since planning: {old}")
             mode, object_id = source[old]
             original = git(root, "cat-file", "blob", object_id.decode())
+            if hashlib.sha256(original).hexdigest() != row["source_sha256"]:
+                raise ValueError(f"Edited source blob changed since planning: {old}")
             lines = original.decode().splitlines(keepends=True)
             seen = set()
             for replacement in row["replacements"]:

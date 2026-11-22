@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 
+from s6_replay_moves import git
+
 
 ENGINE_RELATIVE = {
     "voice": "voice", "tests2": "../tests/native/abi2", "modules2": "../modules",
@@ -72,7 +74,7 @@ def make_plan(root, audit):
                 changes.append({"line": number, "before": original, "after": updated})
         if changes:
             records.append({"source": src, "destination": dst,
-                            "source_sha256": hashlib.sha256(raw).hexdigest(), "replacements": changes})
+                            "source_sha256": hashlib.sha256(git(root, "show", f"HEAD:{src}")).hexdigest(), "replacements": changes})
     return {"head": audit["head"], "ready_for_apply": False, "entry_point_edits": records}
 
 

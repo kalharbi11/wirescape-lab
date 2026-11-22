@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 
+from s6_replay_moves import git
+
 
 PRODUCT_ROOTS = ("engine", "host", "modules", "sdk", "targets", "tests/native")
 TRIGGER_ROOTS = (*PRODUCT_ROOTS, "tools/render", "tools/capture")
@@ -79,7 +81,7 @@ def collect(root, head):
         if not replacements:
             raise ValueError(f"No changes planned for {source}")
         records.append({"source": source, "destination": source,
-                        "source_sha256": hashlib.sha256(raw).hexdigest(), "replacements": replacements})
+                        "source_sha256": hashlib.sha256(git(root, "show", f"HEAD:{source}")).hexdigest(), "replacements": replacements})
     return {"head": head, "ready_for_apply": False, "entry_point_edits": records}
 
 

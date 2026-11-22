@@ -150,7 +150,7 @@
         }
       ],
       "source": "native/CMakeLists.txt",
-      "source_sha256": "682d0878ea554044d6afbc56e943f489e68209af3732b8ac486dbbe95bd018e9"
+      "source_sha256": "17a8d9061821a978ca0e476d459b59752768b2e789e92336bb9f685f70c1cfe8"
     },
     {
       "destination": "targets/web/CMakeLists.txt",
@@ -197,7 +197,7 @@
         }
       ],
       "source": "native/web/CMakeLists.txt",
-      "source_sha256": "70175db077a234d27b3871a8583bae75ecdae17392e2e96b9a1303b512f2645e"
+      "source_sha256": "1de787d13c9c8fdedd3317205f5a25904d80c5fccbe3fae350f6bdf23968bc8c"
     },
     {
       "destination": ".github/workflows/golden-renders.yml",
@@ -214,7 +214,7 @@
         }
       ],
       "source": ".github/workflows/golden-renders.yml",
-      "source_sha256": "c84bdbb60e89fde107bc03d219f17fbf760fffb24c6ed9685ee096dbfb10b2f0"
+      "source_sha256": "a200026e8712329733dc2a1642f65afbef8dacc3ef8af1112f2a606a59146409"
     },
     {
       "destination": ".github/workflows/instruction-gate.yml",
@@ -231,7 +231,7 @@
         }
       ],
       "source": ".github/workflows/instruction-gate.yml",
-      "source_sha256": "6d82bf4be03629ed0afd532d55e486ba95f719ff0e4b3f28ccadadc316407f2e"
+      "source_sha256": "9373db1c21b9dce3a507497fe1c84ff82a0ecd52ff7e7ce02cc2f3be17c089dc"
     },
     {
       "destination": ".github/workflows/m1-stage-evidence.yml",
@@ -243,7 +243,7 @@
         }
       ],
       "source": ".github/workflows/m1-stage-evidence.yml",
-      "source_sha256": "ee59c90e15c899086084c402433f0cae30924d2cb3bfa2c76b7f812c6ffef972"
+      "source_sha256": "bd030318b784f30e6b9b9876a7f4ae11c32553a1c4a78a4f8e5e526431d7a3df"
     },
     {
       "destination": ".github/workflows/offline-facts.yml",
@@ -255,7 +255,7 @@
         }
       ],
       "source": ".github/workflows/offline-facts.yml",
-      "source_sha256": "c8b5a5be24f35a85dafea4310c71d25ec030b6cec9c049f7e6811f8d942d1bf6"
+      "source_sha256": "efb9733ac2f2eb6e2ec516bfe9d88326a657fb74d7b9708b1a19c85f6054d782"
     },
     {
       "destination": ".github/workflows/portability.yml",
@@ -272,7 +272,7 @@
         }
       ],
       "source": ".github/workflows/portability.yml",
-      "source_sha256": "4a1aaf5db0b444236c5b2b4b8020ec7f618233367b265d7ef378a9544f4176ce"
+      "source_sha256": "e98a796c892bbb28705b1d5985a653b54dca0479ad2bf9887e4455762ceae1b2"
     },
     {
       "destination": "tools/foundation/helpers.py",
@@ -289,7 +289,7 @@
         }
       ],
       "source": "tools/foundation/helpers.py",
-      "source_sha256": "a37d649b3625aaac96f28f5ed6576258cbf1c8e6620ef30cadd66072576ed1ea"
+      "source_sha256": "c3898bdc90e3bd68de131d1c071404a4c2c3c136aa1efda9535bb4f9ead917ad"
     },
     {
       "destination": "tools/cloud/git_deps.py",
@@ -301,7 +301,7 @@
         }
       ],
       "source": "tools/cloud/git_deps.py",
-      "source_sha256": "a873c7a1e88f82c5e87d629a78f80d5a11ab3def4eb88d852403c4e5842c32fa"
+      "source_sha256": "f97418fc30184c47465dd745527cc3ebfaf22e1c8e904a3dbeeb02792f0134cc"
     },
     {
       "destination": "tools/protocol/generate.py",
@@ -313,7 +313,7 @@
         }
       ],
       "source": "tools/protocol/generate.py",
-      "source_sha256": "fcf736141c57ea7954ce86316fe41c965d759175beb0f45e722fd108dd887dc8"
+      "source_sha256": "353d59cf4132718544e443f53592e58259fba52aa616050f0bb4c92f779d88f9"
     },
     {
       "destination": "tools/protocol/test_protocol.py",
@@ -325,7 +325,7 @@
         }
       ],
       "source": "tools/protocol/test_protocol.py",
-      "source_sha256": "9e655dfef3b4b52d91516eb1c6be3373488c841b518813398663ce85b2745bb1"
+      "source_sha256": "fd65a2fc67d37cea80d3f64c959d0617cc91640f3c1fa00f14bf8657839f14da"
     },
     {
       "destination": "tools/protocol/validate_sidecar.py",
@@ -337,7 +337,7 @@
         }
       ],
       "source": "tools/protocol/validate_sidecar.py",
-      "source_sha256": "f7022174562f41e0ecc22891ba2ca21c5e4c22ebf82281af7d6ea007a9d65606"
+      "source_sha256": "44305d3bcf597aec0775a2b95e0d435488e2a54ef0cd028aa306f8c8a55be7ae"
     },
     {
       "destination": "tools/foundation/tests/test_banned_includes.py",
@@ -374,7 +374,7 @@
         }
       ],
       "source": "tools/foundation/tests/test_banned_includes.py",
-      "source_sha256": "11b3a58c67e59cb4e658027c48196599eb1d139c67627f0546d76ba3ebfba85b"
+      "source_sha256": "bff4c35172288b77fbcd78fe61b4a748d42d080aa47f575f6f85e595a9f5550e"
     },
     {
       "destination": "bench/offline/r2_engine_probe.cpp",
@@ -391,7 +391,7 @@
         }
       ],
       "source": "bench/offline/r2_engine_probe.cpp",
-      "source_sha256": "4c6b44e74d615d4ebe1ada6294973907c61b6dd521f849038a070749456ee57d"
+      "source_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f"
     },
     {
       "destination": "host/cli/play.cpp",
@@ -403,7 +403,7 @@
         }
       ],
       "source": "native/cli/play.cpp",
-      "source_sha256": "d0694b8a439573cd8fc4b220486ff3b5337fc6dd6fd73d50caba5236468f4c01"
+      "source_sha256": "45c46661465f88a5af7ed3124f88d2dbbdf2b1ea01dbfe21d939edead7c0a724"
     },
     {
       "destination": "engine/control/app_engine_tests.cpp",
@@ -415,7 +415,7 @@
         }
       ],
       "source": "native/control/app_engine_tests.cpp",
-      "source_sha256": "9beeb3dc7f072c447b7b6283181dc2f4fa25fc28eb584dec7b6976b9e36164f5"
+      "source_sha256": "f4489b5a250c37e4d85b1baa369a9192c9e506c30efa228278d97e178383b211"
     },
     {
       "destination": "engine/control/midi_host_tests.cpp",
@@ -427,7 +427,7 @@
         }
       ],
       "source": "native/control/midi_host_tests.cpp",
-      "source_sha256": "a28da402a49a6d4f447cbf4c5f3efeea8aaf0d52c88669b309ca5fad0698e414"
+      "source_sha256": "24e5f596aca3241ab9e073fdde436f3f93e06ce57e3e52d95ab52c33268e1779"
     },
     {
       "destination": "engine/control/module_catalog.h",
@@ -604,7 +604,7 @@
         }
       ],
       "source": "native/control/module_catalog.h",
-      "source_sha256": "94c341f34f2b8a8067e57d25f32e51c4c8d3774d14ec635fa3ba4dee4065e66a"
+      "source_sha256": "65f3bb7f98f8832284fdf34c36e0d6695ca2873267b32290faae3b1a268ed407"
     },
     {
       "destination": "engine/control/monitor_capture.h",
@@ -616,7 +616,7 @@
         }
       ],
       "source": "native/control/monitor_capture.h",
-      "source_sha256": "6042b251b28500e73c7ff8f26d491bd9488f5d79d32cf7cc399167615f3db533"
+      "source_sha256": "67887c64f21346d254c9212a44ede52aa6118366bed65839516f090cf1b49bba"
     },
     {
       "destination": "engine/control/osc_host.h",
@@ -633,7 +633,7 @@
         }
       ],
       "source": "native/control/osc_host.h",
-      "source_sha256": "c4c132596fbc972845f424a78c83fba21cc7541a358b8b5fe708f906e51388b2"
+      "source_sha256": "a82539f878ecb9f46fb8c948e0a739ad676b8591949eef3e518ca0a7d46b2882"
     },
     {
       "destination": "engine/control/osc_out_host.cpp",
@@ -650,7 +650,7 @@
         }
       ],
       "source": "native/control/osc_out_host.cpp",
-      "source_sha256": "b9dac5bd8f21db8739cba5777c9dfa19c6c9655e532524efcedddf6ff44b031c"
+      "source_sha256": "89b720e305263d3b68d3b2e4574a1d456c7fca8310ea46f9dd38ecc22263293f"
     },
     {
       "destination": "engine/control/osc_out_host.h",
@@ -662,7 +662,7 @@
         }
       ],
       "source": "native/control/osc_out_host.h",
-      "source_sha256": "99ddda9cbf2595ba5cff8c4d625b82f453e59f3777c109deeda9b3d516a519af"
+      "source_sha256": "10ff724f6460c0636dc0e1bee955ac7b52aadb9c348fd4b2d00ecf8c61bae1e6"
     },
     {
       "destination": "host/document/builtin_source_tests.cpp",
@@ -674,7 +674,7 @@
         }
       ],
       "source": "native/document/builtin_source_tests.cpp",
-      "source_sha256": "c30008429ae2d99872c0da18a19821126a5e266e23c23a0e6576fd4f15a25428"
+      "source_sha256": "f4338f68152786d83484e75186973034faffac2fe02a7ee8966c2d44a8480f67"
     },
     {
       "destination": "host/document/groove_observation_tests.cpp",
@@ -696,7 +696,7 @@
         }
       ],
       "source": "native/document/groove_observation_tests.cpp",
-      "source_sha256": "2e8783812f318c2b74471cabf3480b40093fc5b2bb142db2dfe3b83e62b1c75c"
+      "source_sha256": "f0f200d701596f0bed2dfc5313b3ff9ed45aa35b40945e47c29313f6bf1a17cb"
     },
     {
       "destination": "host/document/groove_runtime_tests.cpp",
@@ -718,7 +718,7 @@
         }
       ],
       "source": "native/document/groove_runtime_tests.cpp",
-      "source_sha256": "af27fb27078686c69badeb69ff754e8a13b6387a196f52301b0bceebb0cb6a4d"
+      "source_sha256": "df471d8d5771d6b3b01f85c39c4e77869c64326b4fbe9678b7897197ba85d3db"
     },
     {
       "destination": "host/document/qt_free_patch_coverage_tests.cpp",
@@ -740,7 +740,7 @@
         }
       ],
       "source": "native/document/qt_free_patch_coverage_tests.cpp",
-      "source_sha256": "36fa5bbbdca512e80dcc8d6e9105ca5c0644a31055063861c2c4fbf8dbe1462d"
+      "source_sha256": "728bfb04a73f577bdcd49ac124ca69a316fef234ff10204aa36adab0274764b3"
     },
     {
       "destination": "host/document/runtime_module_config.h",
@@ -767,7 +767,7 @@
         }
       ],
       "source": "native/document/runtime_module_config.h",
-      "source_sha256": "84fe7e131042241df7a9126736571794381d8fdecc55b8b831326275a62e41fa"
+      "source_sha256": "2e05b62ea638dd8a5b6d92e7c9827c047f07445aecd0963c80f71d16dbd0bda1"
     },
     {
       "destination": "host/document/runtime_patch_tests.cpp",
@@ -784,7 +784,7 @@
         }
       ],
       "source": "native/document/runtime_patch_tests.cpp",
-      "source_sha256": "0285b232aa928a8bc89f4cf4b26a5ee874456fa9525a23e66023036a94fca8ef"
+      "source_sha256": "d9ea088ccf9e3c6378fcf10c267d40d1237f0a4c81685de8b895f89ae336a46e"
     },
     {
       "destination": "engine/tests/benchmark.cpp",
@@ -796,7 +796,7 @@
         }
       ],
       "source": "native/engine2/tests/benchmark.cpp",
-      "source_sha256": "4498118c43fe877df0973bf0362bfea6653e3813da4bcad08d55e7cbe79128dd"
+      "source_sha256": "56d62f70f3d895262184a2f4e395cf62b75055572c8852ee3fdcf309ed5a9f27"
     },
     {
       "destination": "engine/tests/benchmark_graph.h",
@@ -808,7 +808,7 @@
         }
       ],
       "source": "native/engine2/tests/benchmark_graph.h",
-      "source_sha256": "e0836f092f8da1a4e49162ade7e1ab9acbcdabba43de2f5349bc58dd6d0cb0d7"
+      "source_sha256": "53d3e763d76c588e6c1a86da763bd1360966e7c8607a3fdb056da3feba1fb674"
     },
     {
       "destination": "engine/tests/cost_probe.cpp",
@@ -820,7 +820,7 @@
         }
       ],
       "source": "native/engine2/tests/cost_probe.cpp",
-      "source_sha256": "8484ca2b002c8f4780932ce89044156b210ec7125183e19a5de8bbd76146ed1a"
+      "source_sha256": "02ac152b86592abfbb8fa773531ea7ca65d2e453715453039a78a31faa61093c"
     },
     {
       "destination": "engine/tests/engine_tests.cpp",
@@ -847,7 +847,7 @@
         }
       ],
       "source": "native/engine2/tests/engine_tests.cpp",
-      "source_sha256": "ce505508f8239f442a956c7dc41840f9c7845f227bc763c844dff02438fd7acc"
+      "source_sha256": "fda7b92b97c5c57cbc7855e82c2be6502de51c1627f6c9efe613410f0f0a51b7"
     },
     {
       "destination": "engine/tests/module_cpu_probe.cpp",
@@ -859,7 +859,7 @@
         }
       ],
       "source": "native/engine2/tests/module_cpu_probe.cpp",
-      "source_sha256": "3cd752300199ff729a24c9abfc5a744820b3fe6dc30f347ee0e6e6a24004ac8e"
+      "source_sha256": "b52687d7db542775a7be92afbd1db76e6977a05837d1cf27990de1800cf261da"
     },
     {
       "destination": "engine/tests/panic_stress.cpp",
@@ -871,7 +871,7 @@
         }
       ],
       "source": "native/engine2/tests/panic_stress.cpp",
-      "source_sha256": "2af162e1bbb5cb50dcf562ffce49b711dd7ab5c9346ffa1de5a5ed64d633104b"
+      "source_sha256": "e258ff435f7f1cb9c12bfc640a5a23e93264b830016be03e647d11b3734cb3cd"
     },
     {
       "destination": "engine/tests/port_behavior_tests.cpp",
@@ -888,7 +888,7 @@
         }
       ],
       "source": "native/engine2/tests/port_behavior_tests.cpp",
-      "source_sha256": "f439d1f23c5c057ad87c17b8a15698e05f60c315e6740bd5e2f600aafab9d1a4"
+      "source_sha256": "fc6a60634d7a4ab822e5f4dd8ed4493cfb88fe27beb5421fc119e2cfa6afe5a3"
     },
     {
       "destination": "engine/tests/soak.cpp",
@@ -950,7 +950,7 @@
         }
       ],
       "source": "native/engine2/tests/soak.cpp",
-      "source_sha256": "be23a346ee58934452b8a8d8337ed1eb6d3c9c24248b9a26f191cc4425909ca4"
+      "source_sha256": "9f84c7bc69143c555f701f6fd3c21f3db3d3dc365d6ab10fe9a05a8857fa5962"
     },
     {
       "destination": "engine/tests/staged_tests.cpp",
@@ -972,7 +972,7 @@
         }
       ],
       "source": "native/engine2/tests/staged_tests.cpp",
-      "source_sha256": "7df17a22fb52c128f3d0cb13ebcf8e74401fd3be77304a6c0376c70d8b3612d4"
+      "source_sha256": "4eb91d0ffa8c24c9c4a9f4c5642938b8eb352b823bbe75e3ef851899ffcb5c3b"
     },
     {
       "destination": "host/audio/callback_live_midi_tests.cpp",
@@ -984,7 +984,7 @@
         }
       ],
       "source": "native/io/audio/callback_live_midi_tests.cpp",
-      "source_sha256": "162e74393d10c005897e2dbf37fc1f4688f0abcd57de923f566d89c72c52bd56"
+      "source_sha256": "5fc1821732e67407f42fc0fd7b5a1111bfcc63c4afb454e2a7a0616d96de6a46"
     },
     {
       "destination": "host/audio/fake_portaudio_stream_tests.cpp",
@@ -996,7 +996,7 @@
         }
       ],
       "source": "native/io/audio/fake_portaudio_stream_tests.cpp",
-      "source_sha256": "262080fa07f4aaa1e6aa9ec036efd81f03e861e66cb5d5f1b28f41a3d079fd26"
+      "source_sha256": "4e23f0dbcdfb15e2d132cf8c3bdcbf62c6e9477f2bdd3b19fd0d1113b082b448"
     },
     {
       "destination": "host/audio/portaudio_service.cpp",
@@ -1008,7 +1008,7 @@
         }
       ],
       "source": "native/io/audio/portaudio_service.cpp",
-      "source_sha256": "f5cd4ead824859a5b38cb2e16daf97bc9e86cfa5d4444ba6acd8a6e4d4548f60"
+      "source_sha256": "5095b9323ffc226a4e116ac43c20f623e6b484dac459959b8684055cec51bc68"
     },
     {
       "destination": "host/audio/stream_lifecycle_tests.cpp",
@@ -1020,7 +1020,7 @@
         }
       ],
       "source": "native/io/audio/stream_lifecycle_tests.cpp",
-      "source_sha256": "aa9310f3de22040a065a0a6ffeede70389ba9a5e549601a3a1efe31764e0f62a"
+      "source_sha256": "57185e00babb6a2924e6292830aa4569b1772e8aebe9ecec7f06576bdc40e798"
     },
     {
       "destination": "host/midi/midi_service.cpp",
@@ -1032,7 +1032,7 @@
         }
       ],
       "source": "native/io/midi/midi_service.cpp",
-      "source_sha256": "c83e5a6940e73de3f1c3b6cd003558f8c60ce14376ee783558a5688cec1f19b5"
+      "source_sha256": "87fb6fa34058f44332f8ec2f8fe8f70cd6b8af092f95a501169fa6fbcfce7982"
     },
     {
       "destination": "host/midi/module_test_support.h",
@@ -1044,7 +1044,7 @@
         }
       ],
       "source": "native/io/midi/module_test_support.h",
-      "source_sha256": "68eb68b5d54bb26368b6346740e3c0390ce7815d930e16f288f71b4a61980820"
+      "source_sha256": "9df4f6b40f3af37c184d1581c9890904195f609524764b90616e69fc445a48cd"
     },
     {
       "destination": "host/midi/service_tests.cpp",
@@ -1056,7 +1056,7 @@
         }
       ],
       "source": "native/io/midi/service_tests.cpp",
-      "source_sha256": "6dbb07e340657a5b8949e1857c7bc893da477ac1edf2f509a59ec41f193cb509"
+      "source_sha256": "59945a3a7545fc0a32258896d69a5643303f5e3a5d770de089380832a6f07cff"
     },
     {
       "destination": "host/net/graph_tests.cpp",
@@ -1068,7 +1068,7 @@
         }
       ],
       "source": "native/io/net/graph_tests.cpp",
-      "source_sha256": "94d430f7f971129554b52fa599f0b8c7384cce00408e1a8dc5c512c684166309"
+      "source_sha256": "f53d18ad7c0f597ef1d57de2ed9e5b589e6f53239d8b7c9193b6e59f2cb28284"
     },
     {
       "destination": "modules/blend/tests.cpp",
@@ -1080,7 +1080,7 @@
         }
       ],
       "source": "native/modules2/blend/tests.cpp",
-      "source_sha256": "453ae5fac560e8fdad3217e2462d069cc623a9a0cee2af0a0fc50ca7a2a3d597"
+      "source_sha256": "8f0be0f7e1c9f2a390ca435e28cacdc62c7ecde130fc9b83096aec14f3af2a94"
     },
     {
       "destination": "modules/chaos_lite/tests.cpp",
@@ -1097,7 +1097,7 @@
         }
       ],
       "source": "native/modules2/chaos_lite/tests.cpp",
-      "source_sha256": "a2113c2c242b9b9df73142610b605b7a8cf8d98e83df32a0ecbc70a8284a8529"
+      "source_sha256": "397b872da9bc47cd0089f9c86846031125661144bd5c711f93d026b45528a66b"
     },
     {
       "destination": "modules/chord/tests.cpp",
@@ -1119,7 +1119,7 @@
         }
       ],
       "source": "native/modules2/chord/tests.cpp",
-      "source_sha256": "d7f2bec4f0cb26fb39d8947111f1d7ebb4e340ffc6713254d9f68ba39ad16cab"
+      "source_sha256": "58f1185f54b40bae1422a5aa51b060109af05bd7db4069cca0899fffdca37a80"
     },
     {
       "destination": "modules/clock/tests.cpp",
@@ -1131,7 +1131,7 @@
         }
       ],
       "source": "native/modules2/clock/tests.cpp",
-      "source_sha256": "9afea5bcc77d4d209f74e82f4d1255e14464d612f885617ff160ef380fb53d8b"
+      "source_sha256": "4b1082fa988315a633052ff099379be324785fe2fd79b830df9672100778e803"
     },
     {
       "destination": "modules/delay/tests.cpp",
@@ -1143,7 +1143,7 @@
         }
       ],
       "source": "native/modules2/delay/tests.cpp",
-      "source_sha256": "25a5376be62dce3275388efb9e9db00850406ab2f89cb07ddfb2a103eacbcea0"
+      "source_sha256": "795cea1beb34a86ceae1dd476b9a9c16919b0747b7278901757a158675bd47b5"
     },
     {
       "destination": "modules/function_envelope/tests.cpp",
@@ -1155,7 +1155,7 @@
         }
       ],
       "source": "native/modules2/function_envelope/tests.cpp",
-      "source_sha256": "ac4478361e37f8d429aa203936a4d0ac3823c088ca5fc427c9f27dba343af4b8"
+      "source_sha256": "34e1fab119245f86bcc1a4092f030070dc2d316a5a89037a167e69f3f8b9ae80"
     },
     {
       "destination": "modules/host_keyboard/dsp.h",
@@ -1167,7 +1167,7 @@
         }
       ],
       "source": "native/modules2/host_keyboard/dsp.h",
-      "source_sha256": "9b78c4d24fc45770f40bb6d1bdb481f815d497c829320f83764768d0f3aee703"
+      "source_sha256": "37a6cda3d1caf0ef3d04c5f0d61af3751a18dcb702d07f7f48d1c14adb277285"
     },
     {
       "destination": "modules/host_keyboard/tests.cpp",
@@ -1184,7 +1184,7 @@
         }
       ],
       "source": "native/modules2/host_keyboard/tests.cpp",
-      "source_sha256": "c8ec025922603e5a54fe9c89e244ed6feb09f680d0c45f60295410b9c88fe935"
+      "source_sha256": "60e3e20c7df2565ce35bd83739f0598b165806900b8935f8b9ae4bcefec62671"
     },
     {
       "destination": "modules/ladder/tests.cpp",
@@ -1196,7 +1196,7 @@
         }
       ],
       "source": "native/modules2/ladder/tests.cpp",
-      "source_sha256": "aa08b6c637cdb2eeb1b37d593862b568bd92d6c4f57531e1045dac13a84032d0"
+      "source_sha256": "3e5c646d80cb7cebfc95422fa691a4660fbceab747a40fb8f670043ca72990d2"
     },
     {
       "destination": "modules/macro_oscillator/tests.cpp",
@@ -1213,7 +1213,7 @@
         }
       ],
       "source": "native/modules2/macro_oscillator/tests.cpp",
-      "source_sha256": "d24fff1daa626fa909addbd9aa4891358792beb5ced6b7046522f5b2954d48ac"
+      "source_sha256": "1b1c2b54594e83afcffd804ef6d129f424121060e52bf432359a4454e0816573"
     },
     {
       "destination": "modules/midi_cc_to_cv/tests.cpp",
@@ -1225,7 +1225,7 @@
         }
       ],
       "source": "native/modules2/midi_cc_to_cv/tests.cpp",
-      "source_sha256": "526d5a692682a43dce44cc2769d95ae731fd1de4607a20b24e3daef75bf819ac"
+      "source_sha256": "4ebe2ee792176a537cb9cb1e11d936ff9e09e8939e3803150b948d770de3267d"
     },
     {
       "destination": "modules/midi_in/dsp.h",
@@ -1237,7 +1237,7 @@
         }
       ],
       "source": "native/modules2/midi_in/dsp.h",
-      "source_sha256": "c83e38636cf88d552d032ea3e91c20f82c924b200a6576aaa122d5c241fd9f34"
+      "source_sha256": "3dc282691dfc751c11543e293b2bc8556e830e50c995982fe698927b847560ea"
     },
     {
       "destination": "modules/midi_in/tests.cpp",
@@ -1249,7 +1249,7 @@
         }
       ],
       "source": "native/modules2/midi_in/tests.cpp",
-      "source_sha256": "ad379acf6a598d165b069d10e3c1631e2bb114572dc9c05d606e402340261050"
+      "source_sha256": "1d7316d8a3f82b89b12252ae6780f26a402b5c808e2e9b8ffcc6ce9b0a061dbf"
     },
     {
       "destination": "modules/midi_to_cv/dsp.h",
@@ -1261,7 +1261,7 @@
         }
       ],
       "source": "native/modules2/midi_to_cv/dsp.h",
-      "source_sha256": "ae3714a6c9778b24f90e4e611c81cbaac17cc0b4b41dcd7eb277dac6907724a5"
+      "source_sha256": "1396f8ad30e4aa119ae26f5faa5a53f3bf565ab084b2633c9e9a946c068320c8"
     },
     {
       "destination": "modules/midi_to_cv/tests.cpp",
@@ -1278,7 +1278,7 @@
         }
       ],
       "source": "native/modules2/midi_to_cv/tests.cpp",
-      "source_sha256": "4089ef54e574808be56e1554ce08cbc650c397ea98a4e84433e850e45337344c"
+      "source_sha256": "7d2a9999a76e99c2677ca42236a2b20bb696a503c41ca5e20a72b162b0203b55"
     },
     {
       "destination": "modules/mixer/tests.cpp",
@@ -1290,7 +1290,7 @@
         }
       ],
       "source": "native/modules2/mixer/tests.cpp",
-      "source_sha256": "35c2165490b7d005b287616d44309128120b94a451c321eb12e81546203a300c"
+      "source_sha256": "74b837c12e44b3f1027c7bdd84a409f89968d2d56f0b92272ace21a4f86e080d"
     },
     {
       "destination": "modules/monitor/dsp.h",
@@ -1302,7 +1302,7 @@
         }
       ],
       "source": "native/modules2/monitor/dsp.h",
-      "source_sha256": "683a58fb033769f3bd964f024bfb1834dff84a5e4b946b15c63c6212c6fbe3db"
+      "source_sha256": "11a134fbed947ab64f538eed7bdff1cfd380a819ea5d7396d2d1b468521b9b09"
     },
     {
       "destination": "modules/monitor/tests.cpp",
@@ -1314,7 +1314,7 @@
         }
       ],
       "source": "native/modules2/monitor/tests.cpp",
-      "source_sha256": "31f103c58cfef63fcaef236852c529736807092a7e3e61e79b7fc2cbf0d4c012"
+      "source_sha256": "b548c00fa155ac5efe731667aa3390c17d87e356dc0b8835f4b4e933a3abd17f"
     },
     {
       "destination": "modules/noise/tests.cpp",
@@ -1326,7 +1326,7 @@
         }
       ],
       "source": "native/modules2/noise/tests.cpp",
-      "source_sha256": "ecf2608c9e35f93ea6e31ccefe2025d4a7a606c1bfd9e1f1babdc9019e9c6b61"
+      "source_sha256": "7a0ce42197f28701cfd5ff08f78769fc0c55341a27a81264d69dc1f9c5bc0785"
     },
     {
       "destination": "modules/notes_to_cv/dsp.h",
@@ -1338,7 +1338,7 @@
         }
       ],
       "source": "native/modules2/notes_to_cv/dsp.h",
-      "source_sha256": "0ee9a483e253bb9ad115b6ad6dcbf273e95e234e817435fb7fe151d1ff9ce6fd"
+      "source_sha256": "1ddc06b91feea12a6c32ed530a6bd0cebae8a68493b5501ecd97b965eec3e685"
     },
     {
       "destination": "modules/notes_to_cv/tests.cpp",
@@ -1355,7 +1355,7 @@
         }
       ],
       "source": "native/modules2/notes_to_cv/tests.cpp",
-      "source_sha256": "0ce0048f7b70ececf6a6a967abad103d948897b196aebb0a872fc3739bf5be78"
+      "source_sha256": "c3da5e876495e2363c9abc5f86ab5965e0f219e9a96770591c3ec34e67e8eac4"
     },
     {
       "destination": "modules/osc_in/dsp.h",
@@ -1372,7 +1372,7 @@
         }
       ],
       "source": "native/modules2/osc_in/dsp.h",
-      "source_sha256": "a27de72026bc8236b07a6e67c1252227b8226a36c6432cadceb0799a5228e0ed"
+      "source_sha256": "8b6933715fa0fdf5558758633ef43e935135b70d86e5fac1d6e60bbc248d6b10"
     },
     {
       "destination": "modules/osc_in/tests.cpp",
@@ -1384,7 +1384,7 @@
         }
       ],
       "source": "native/modules2/osc_in/tests.cpp",
-      "source_sha256": "0779aff65bb86bdf95f5c242b28a419df4d6358d694e576122bdbbffdde99b09"
+      "source_sha256": "2ada3b01cd762edd415b5428869a6934b49fd75e0604d6488dbdca2166edce4f"
     },
     {
       "destination": "modules/osc_out/config.h",
@@ -1396,7 +1396,7 @@
         }
       ],
       "source": "native/modules2/osc_out/config.h",
-      "source_sha256": "95cdf8d52bb8d01aa234b7a01daceff8bd2d313c6bd002fcbef881bff76c25a7"
+      "source_sha256": "ea5a95b42811483e5603fceaf2e3faf608432c9873f2145b78c2a3a83d8f8410"
     },
     {
       "destination": "modules/osc_out/tests.cpp",
@@ -1408,7 +1408,7 @@
         }
       ],
       "source": "native/modules2/osc_out/tests.cpp",
-      "source_sha256": "76bbf17da2c2b4785c585a608f2aeb19d810bf356e62b02bc44bb9b9bb0e4233"
+      "source_sha256": "b74b364c1eb5704ff087e6e0eefb141127f4332f30e95d52efbfe2b05de72f73"
     },
     {
       "destination": "modules/output/tests.cpp",
@@ -1425,7 +1425,7 @@
         }
       ],
       "source": "native/modules2/output/tests.cpp",
-      "source_sha256": "d783eefe829b4f87f219411e2c4f60de1be818234315431b73b108987046edcf"
+      "source_sha256": "4e260f971f2515971a18691768f18072df394718193f5aff68c35b45f0218f03"
     },
     {
       "destination": "modules/quad_vca/tests.cpp",
@@ -1437,7 +1437,7 @@
         }
       ],
       "source": "native/modules2/quad_vca/tests.cpp",
-      "source_sha256": "3c3644017999aef34401f3c096866615b9e77c9b8aa335ebd4ee504287ddcaf3"
+      "source_sha256": "7f819ace1354be63679ff4115c6a44873f2b09e24e9fc00d53f982c15b41121e"
     },
     {
       "destination": "modules/quantizer/tests.cpp",
@@ -1449,7 +1449,7 @@
         }
       ],
       "source": "native/modules2/quantizer/tests.cpp",
-      "source_sha256": "5bac5647dac308ccfadc9a2c8adeff5d255baf11870977eaf89c6cf4c3a6d502"
+      "source_sha256": "492c9aacdb64a100bdc594789d1d3168b054bb90163fa1575af64d37122524d8"
     },
     {
       "destination": "modules/resonator/tests.cpp",
@@ -1461,7 +1461,7 @@
         }
       ],
       "source": "native/modules2/resonator/tests.cpp",
-      "source_sha256": "16d64faf991864d4eb73e36a27e049ea8750d0d1a327d5db3e8b2aac437ee414"
+      "source_sha256": "0dd4bd53d87b5c463776722a896605b7f6fbd178454071e84a637a6cfd6867c0"
     },
     {
       "destination": "modules/reverb/tests.cpp",
@@ -1473,7 +1473,7 @@
         }
       ],
       "source": "native/modules2/reverb/tests.cpp",
-      "source_sha256": "8d023faa38c10ef77ef64d8692286bde90af932d4dd62bd8fbc38169e88e4d8c"
+      "source_sha256": "3d0f9b89b9a891a5de924d0e7c4001804548a362642433f7848a46a885fcb7a1"
     },
     {
       "destination": "modules/scale_offset/tests.cpp",
@@ -1485,7 +1485,7 @@
         }
       ],
       "source": "native/modules2/scale_offset/tests.cpp",
-      "source_sha256": "ba37edc29a51cf38ca2c656a81065f8151bb86a4ce2b0cbc9fa7fa6d667cd9ae"
+      "source_sha256": "c7c07be53c1e4f3434aee0b6d4c270a2bcff9aae7a5052f860803805b260a7ef"
     },
     {
       "destination": "modules/slew/tests.cpp",
@@ -1497,7 +1497,7 @@
         }
       ],
       "source": "native/modules2/slew/tests.cpp",
-      "source_sha256": "2580248a8a96e1f627db26fc57cae02d57c97c99291624d07fead06c65b856da"
+      "source_sha256": "ebea6f1e87135e9fa9373f023442682bdfa2312237fb0c2763206e4d53d8d8d0"
     },
     {
       "destination": "modules/spectral/tests.cpp",
@@ -1509,7 +1509,7 @@
         }
       ],
       "source": "native/modules2/spectral/tests.cpp",
-      "source_sha256": "25881e4f52cff5e0616b43d02aef775a73c80122d345a8747a3eb2fa1e7e9a07"
+      "source_sha256": "6f65261624197b5bc184625719905bff68845b9b071e641ba30ec826fff3bab5"
     },
     {
       "destination": "sdk/examples/random_source/tests.cpp",
@@ -1521,7 +1521,7 @@
         }
       ],
       "source": "native/sdk/examples/random_source/tests.cpp",
-      "source_sha256": "35cba3dff3ab424ce382d825f8e11b5ff740e0ea4a1cdbafe039638ffb4dfce1"
+      "source_sha256": "28f2fbec551705a5e2e6b14f9debfe6c18c1a0e23767979d2a15e467a9e4c8ec"
     },
     {
       "destination": "sdk/examples/step_sequencer/tests.cpp",
@@ -1533,7 +1533,7 @@
         }
       ],
       "source": "native/sdk/examples/step_sequencer/tests.cpp",
-      "source_sha256": "adce5c80c0c2d658f7b4cf651609ce48606eafdf237c18f30627a75e8f9c9a2c"
+      "source_sha256": "eaae19583bef3b8d0ff8b59b0d4810bfaa1435994e63a62febcd234c5e27714c"
     },
     {
       "destination": "host/sidecar/audio_recovery_tests.cpp",
@@ -1550,7 +1550,7 @@
         }
       ],
       "source": "native/sidecar/audio_recovery_tests.cpp",
-      "source_sha256": "f510bc83d3b131d5159fa15359b951c36b8f7d0be07355e8fe256bbdd1b924f5"
+      "source_sha256": "f699fa7f9e6d2226538c599ddfd9dbef03cc7ce72a38b85ceba75d98b6684e93"
     },
     {
       "destination": "host/sidecar/devices.cpp",
@@ -1562,7 +1562,7 @@
         }
       ],
       "source": "native/sidecar/devices.cpp",
-      "source_sha256": "d12ce21eb6854c2c8740c2e0ece13bd2990c8bdcc19f563546fa9fad7a739869"
+      "source_sha256": "c0ac0dea5e6123bd199ceffb0df17106c530e79645abaec8436237afa9441657"
     },
     {
       "destination": "host/sidecar/devices.h",
@@ -1574,7 +1574,7 @@
         }
       ],
       "source": "native/sidecar/devices.h",
-      "source_sha256": "7609e1544e0d40cc91506d60bc1eeee348da7b6b689d7b676b37fbc0f878c6d0"
+      "source_sha256": "5d7f3b7c8aab23824ae0dcd80dcfdc7043705baf958e79e303e25ad15a0a4f17"
     },
     {
       "destination": "host/sidecar/protocol_unit_tests.cpp",
@@ -1596,7 +1596,7 @@
         }
       ],
       "source": "native/sidecar/protocol_unit_tests.cpp",
-      "source_sha256": "a632178e9db6aa69c1010c1b70bc97f5053f81c92e0ba66762af9cb117e51343"
+      "source_sha256": "0b6c61d9734bbdf00745cdd2e02f5127382b4cd4c1ea632e96185fd79e5cdfd3"
     },
     {
       "destination": "host/sidecar/session.h",
@@ -1618,7 +1618,7 @@
         }
       ],
       "source": "native/sidecar/session.h",
-      "source_sha256": "80a3bf2305e77c0bad481421995cbc3ca080c112a894dcd7a3eb75f9cd995da1"
+      "source_sha256": "571425fc9cf59839334c43ecc849425e9197a3ef5629f0258db4648564f44369"
     },
     {
       "destination": "tests/native/abi2/dsp_fixture.h",
@@ -1690,7 +1690,7 @@
         }
       ],
       "source": "native/tests2/dsp_fixture.h",
-      "source_sha256": "148d1c451d3ac9a718fe7c5d2941e33dc185620c9abeab0fda7b4c75389c5614"
+      "source_sha256": "1f5ae05626a7a1092c2f11cc8a1004f4dbe421ac73865759636b4632aefec3b1"
     },
     {
       "destination": "tests/native/abi2/test_modules.h",
@@ -1702,7 +1702,7 @@
         }
       ],
       "source": "native/tests2/test_modules.h",
-      "source_sha256": "c28f3517e6a1ddac18f1bdb73ac128bc77be76cc2e75bb2fe856489473e60ed4"
+      "source_sha256": "338bd2fba2d772de51b7a79c4d3986fb47c2133af46fd0ed185a330157ea48f6"
     },
     {
       "destination": "targets/web/web_engine.cpp",
@@ -1714,7 +1714,7 @@
         }
       ],
       "source": "native/web/web_engine.cpp",
-      "source_sha256": "4d025ed9d79c883ef30ac40d7d2180f557c54003a87cdc54815ac2016b2b5251"
+      "source_sha256": "aa998697d5c98081b9fcdf660d70b8d86c50758109f46d0da6cc6b3dce506178"
     },
     {
       "destination": "host/document/CMakeLists.txt",
@@ -1771,7 +1771,7 @@
         }
       ],
       "source": "native/document/CMakeLists.txt",
-      "source_sha256": "4acde20a3792dfb025c4e6de3a49a27d0161e68457316c322a1389e1b7f37ab7"
+      "source_sha256": "fb3e38c012df1a3961abaadcb765b2f9190eedd93093089737f8ef1a12d372c8"
     },
     {
       "destination": "engine/CMakeLists.txt",
@@ -2078,7 +2078,7 @@
         }
       ],
       "source": "native/engine2/CMakeLists.txt",
-      "source_sha256": "ae9c524e165d2ce8db11c09a5f9d2980540106f43f21581f0a944c8f0eea41c9"
+      "source_sha256": "d976fc667d65d0efeac3ae625c3a583959dce63672400a0a916350998f7a329e"
     },
     {
       "destination": "host/midi/CMakeLists.txt",
@@ -2100,7 +2100,7 @@
         }
       ],
       "source": "native/io/midi/CMakeLists.txt",
-      "source_sha256": "02c1b68a33b387ddaa9b4181f9ed493779ade99a8e1f8faab4739e8350b3a78e"
+      "source_sha256": "2eed49c8c55c0fddc4d754d12d99e43ab56376da9520333085232d2c1b7b2423"
     },
     {
       "destination": "modules/blend/CMakeLists.txt",
@@ -2112,7 +2112,7 @@
         }
       ],
       "source": "native/modules2/blend/CMakeLists.txt",
-      "source_sha256": "0bd5e17cd63afa0504182b6ae2a6a49bd76889fecef611c97ed8e3074d7385ab"
+      "source_sha256": "4ba75cad2006654a4c3d8b4b543b74f69e8853882f3d7e7ca233ab0e4c8b15c7"
     },
     {
       "destination": "modules/chaos_lite/CMakeLists.txt",
@@ -2124,7 +2124,7 @@
         }
       ],
       "source": "native/modules2/chaos_lite/CMakeLists.txt",
-      "source_sha256": "eb1f817639a3876223c51448680008e31ce68bf96d4df7f4f71e038376e3f2b5"
+      "source_sha256": "11f1beb06f959ca576611338578efeec37954da2b44c21a60df404365bd0a06c"
     },
     {
       "destination": "modules/chord/CMakeLists.txt",
@@ -2136,7 +2136,7 @@
         }
       ],
       "source": "native/modules2/chord/CMakeLists.txt",
-      "source_sha256": "a20990b8a09b52a8d3a94a4a1f52cbae5faaad86d0da68f6ae512ec5d348b667"
+      "source_sha256": "906c6f94aafb2247cf46be9e0a6538605ea8d8f6860c244dc826f5b35312be39"
     },
     {
       "destination": "modules/delay/CMakeLists.txt",
@@ -2148,7 +2148,7 @@
         }
       ],
       "source": "native/modules2/delay/CMakeLists.txt",
-      "source_sha256": "6fbd6989d54a9653e6015261acb1668a55165a6c0c733e7d320ac30414fc4ea5"
+      "source_sha256": "8f5e9d0ca14edb1fda8550a9136b858819d30d6c6d68e44f28ffe7352bb80caa"
     },
     {
       "destination": "modules/macro_oscillator/CMakeLists.txt",
@@ -2165,7 +2165,7 @@
         }
       ],
       "source": "native/modules2/macro_oscillator/CMakeLists.txt",
-      "source_sha256": "dde1cd851368dab76e12755f253f237628d6444e3c78662a820f9be0db0a1c1a"
+      "source_sha256": "dc6e321bc5ba0b412f5ceac3db2962a866965b66fa58cfdd06c7db4a478c042a"
     },
     {
       "destination": "modules/notes_to_cv/CMakeLists.txt",
@@ -2177,7 +2177,7 @@
         }
       ],
       "source": "native/modules2/notes_to_cv/CMakeLists.txt",
-      "source_sha256": "7c13074a27635a5c245bbf717485b4c096ded9fd241781a3e93f52011c06b5c3"
+      "source_sha256": "98a0b8a9c785ab12dd5f584b41475d0a919f2f7dc3d3436df4072dbc99815586"
     },
     {
       "destination": "modules/quad_vca/CMakeLists.txt",
@@ -2189,7 +2189,7 @@
         }
       ],
       "source": "native/modules2/quad_vca/CMakeLists.txt",
-      "source_sha256": "d44768a1b160ddf5c0f10419aa121133ccc1c4389c1b89106c55eb27ef392b70"
+      "source_sha256": "c2bfcd66fb8dafe6e3c182f0ebe71449d63c836e86ab01452c8aa949d3359773"
     },
     {
       "destination": "modules/quantizer/CMakeLists.txt",
@@ -2201,7 +2201,7 @@
         }
       ],
       "source": "native/modules2/quantizer/CMakeLists.txt",
-      "source_sha256": "2887077fc1d2539326689d73e515ab59d42a80519aa6389224553086d3d019cc"
+      "source_sha256": "7df7a876d68b99948f811e61e095cd90a86279fea490797be4d3da21ac0ad5e3"
     },
     {
       "destination": "modules/resonator/CMakeLists.txt",
@@ -2213,7 +2213,7 @@
         }
       ],
       "source": "native/modules2/resonator/CMakeLists.txt",
-      "source_sha256": "32c9633af897b3f25be61edc5b1bf4fb7a637298a1faffefc0bf9e004d346d21"
+      "source_sha256": "97c673bf2755ce95c412660e79db85b459d7bd397fcf0982013f1641e1683db7"
     },
     {
       "destination": "modules/reverb/CMakeLists.txt",
@@ -2225,7 +2225,7 @@
         }
       ],
       "source": "native/modules2/reverb/CMakeLists.txt",
-      "source_sha256": "1e16632356dcc6a020818913943ba42965e055a092247f78aa2aed715a83056c"
+      "source_sha256": "f0c8c6901f1ab8346438f3b517a214ece79dad5707af55cfd446bba50b48a77b"
     },
     {
       "destination": "modules/spectral/CMakeLists.txt",
@@ -2237,7 +2237,7 @@
         }
       ],
       "source": "native/modules2/spectral/CMakeLists.txt",
-      "source_sha256": "144ab77ad1c340f434b73e581330d2909a71c11083a9c5551d586f278c58c915"
+      "source_sha256": "e3d3a72fa47722d949667265dcec42e2c7d5888a27521fe45430d832803996cd"
     },
     {
       "destination": "tools/render/CMakeLists.txt",
@@ -2249,7 +2249,7 @@
         }
       ],
       "source": "native/tools/render/CMakeLists.txt",
-      "source_sha256": "8e121187eada8baa352a47f764283b00f34bed580fae0ce1b186470f269fdac7"
+      "source_sha256": "b3befe3a3958292001b8276a8c4ec015715eb55ffab2868ff5a4dc91c337d71c"
     }
   ],
   "head": "a72f50d84b1051401c65e9babf74bf2ff6b49778",

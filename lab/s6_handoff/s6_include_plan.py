@@ -7,6 +7,8 @@ from pathlib import Path
 import posixpath
 import re
 
+from s6_replay_moves import git
+
 
 INCLUDE = re.compile(r'^(\s*#\s*include\s*")([^"\n]+)(".*)$')
 PUBLIC_HEADER = "native/include/wirescape/module2.h"
@@ -46,7 +48,7 @@ def plan(root, audit):
             replacements.append({"line": number, "before": original,
                                  "after": match[1] + repaired + match[3]})
         records.append({"source": source, "destination": destination,
-                        "source_sha256": digest, "replacements": replacements})
+                        "source_sha256": hashlib.sha256(git(root, "show", f"HEAD:{source}")).hexdigest(), "replacements": replacements})
     return {"head": audit["head"], "ready_for_apply": False, "entry_point_edits": records}
 
 

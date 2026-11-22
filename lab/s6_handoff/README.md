@@ -18,7 +18,7 @@ python3 lab/s6_handoff/s6_reference_audit.py "$SOURCE" /tmp/s6-preview.json > /t
 python3 lab/s6_handoff/s6_replay_moves.py "$SOURCE" /tmp/s6-reference-audit.json --entry-plan lab/s6_handoff/s6-native-wiring-plan.json
 ```
 
-Expected partial tree: `3a23a1cd0832f1e5d98c9ac94df05779a57e713d`. The replay writes scratch Git objects and an isolated index. It checks source SHA-256 and exact Git blob line anchors, then verifies the generated tree and leaves the checkout clean. Use the four plan scripts to reconstruct the reviewed subsets from the same preview; the combined JSON is the exact replay input.
+Expected partial tree: `3a23a1cd0832f1e5d98c9ac94df05779a57e713d`. The replay writes scratch Git objects and an isolated index. It checks source Git-blob SHA-256 and exact line anchors regardless of checkout line endings, then verifies the generated tree and leaves the checkout clean. Use the four plan scripts to reconstruct the reviewed subsets from the same preview; the combined JSON is the exact replay input.
 
 ## Next
 

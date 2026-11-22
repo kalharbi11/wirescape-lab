@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 
+from s6_replay_moves import git
+
 
 def replace_once(line, before, after):
     if line.count(before) != 1:
@@ -84,7 +86,7 @@ def plan(root, audit):
         after = before.copy()
         edit(after)
         result.append({"source": source, "destination": destination,
-                       "source_sha256": hashlib.sha256(data).hexdigest(),
+                       "source_sha256": hashlib.sha256(git(root, "show", f"HEAD:{source}")).hexdigest(),
                        "replacements": [{"line": i, "before": old, "after": new}
                                         for i, (old, new) in enumerate(zip(before, after, strict=True), 1)
                                         if old != new]})
