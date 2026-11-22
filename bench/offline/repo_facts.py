@@ -56,7 +56,7 @@ def complexity(paths, dest):
     for path in paths:
         rel = path.relative_to(ROOT).as_posix()
         if (path.suffix not in CXX | {'.ts', '.tsx', '.js'} or
-                not (rel.startswith('native/') or rel.startswith('apps/studio/src/'))):
+                not (rel.startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'tools/render/', 'tools/capture/')) or rel.startswith('apps/studio/src/'))):
             continue
         try:
             data = lizard.analyze_file(str(path))
@@ -109,7 +109,7 @@ def cloc(paths, dest):
 def long_lines(paths, dest):
     rows = []
     for path in paths:
-        if not path.is_file() or path.suffix not in CXX or not path.relative_to(ROOT).parts[0] == 'native':
+        if not path.is_file() or path.suffix not in CXX or not path.relative_to(ROOT).as_posix().startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'tools/render/', 'tools/capture/')):
             continue
         lengths = [len(line) for line in path.read_text(encoding='utf-8', errors='replace').splitlines()]
         rows.append({'path': path.relative_to(ROOT).as_posix(), 'over_120': sum(n > 120 for n in lengths),
@@ -125,7 +125,7 @@ def includes(paths, dest):
     regex = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', flags=re.MULTILINE)
     for path in paths:
         rel = path.relative_to(ROOT).as_posix()
-        if not path.is_file() or path.suffix not in CXX or not rel.startswith(('native/engine2/', 'native/control/', 'native/sidecar/')):
+        if not path.is_file() or path.suffix not in CXX or not rel.startswith(('engine/', 'host/sidecar/')) or rel.startswith(('engine/voice/', 'engine/include/')):
             continue
         for header in regex.findall(path.read_text(encoding='utf-8', errors='replace')):
             rows.append({'source': rel, 'header': header, 'area': rel.split('/')[1]})
@@ -142,14 +142,14 @@ def residue(paths, dest):
     rows = []
     for path in paths:
         rel = path.relative_to(ROOT).as_posix()
-        if not path.is_file() or not rel.startswith(('native/', 'apps/', 'tools/')) or path.suffix not in {'.cpp', '.h', '.hpp', '.py', '.ts', '.tsx', '.js', '.cjs', '.md', '.cmake'}:
+        if not path.is_file() or not rel.startswith(('native/', 'engine/', 'host/', 'modules/', 'sdk/', 'targets/', 'tests/native/', 'apps/', 'tools/')) or path.suffix not in {'.cpp', '.h', '.hpp', '.py', '.ts', '.tsx', '.js', '.cjs', '.md', '.cmake'}:
             continue
         source = path.read_text(encoding='utf-8', errors='replace')
         row = {'path': rel, **{key: len(regex.findall(source)) for key, regex in rules.items()}}
         if any(row[key] for key in rules):
             rows.append(row)
     write_csv(dest / 'residue_by_file.csv', rows, ['path', *rules])
-    return {'scope': 'native/, apps/, tools/ tracked text files', 'patterns': {k: v.pattern for k, v in rules.items()},
+    return {'scope': 'native/, engine/, host/, modules/, sdk/, targets/, tests/native/, apps/, tools/ tracked text files', 'patterns': {k: v.pattern for k, v in rules.items()},
             'totals': {k: sum(row[k] for row in rows) for k in rules}, 'matched_files': len(rows)}
 
 
@@ -208,7 +208,7 @@ def dependencies(dest):
                 if name.startswith('node_modules/'):
                     rows.append({'name': name[len('node_modules/'):], 'version_or_commit': rec.get('version', ''),
                                  'license': rec.get('license', 'not specified in lock'), 'pinned_at': pkg})
-    for src in (ROOT / 'native').rglob('CMakeLists.txt'):
+    for src in [p for r in ('native', 'engine', 'host', 'modules', 'sdk', 'targets', 'tests/native', 'tools/render', 'tools/capture') for p in (ROOT / r).rglob('CMakeLists.txt')]:
         data = src.read_text(encoding='utf-8', errors='replace')
         for match in re.finditer(r'(?is)FetchContent_Declare\s*\(\s*([A-Za-z0-9_]+)(.*?)\)', data):
             block = match.group(2)

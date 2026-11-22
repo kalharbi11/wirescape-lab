@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
-const example = path.join(root, 'native/examples/class_demo_2_subtractive.json');
+const example = path.join(root, 'host/examples/class_demo_2_subtractive.json');
 const desktop = path.resolve(__dirname, '../build/main.js');
 const electronPath = require('electron');
 let scratch, executable;

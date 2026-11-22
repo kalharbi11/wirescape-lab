@@ -2,7 +2,7 @@
 import type { PatchDoc } from '../patch/PatchDoc';
 import type { Telemetry } from '../engine/EngineClient';
 
-/** UI counterpart of native/io/osc/pattern.h: bounded byte-level matching, no regex backtracking. */
+/** UI counterpart of host/osc/pattern.h: bounded byte-level matching, no regex backtracking. */
 type Token = { kind: 'literal' | 'any' | 'star' | 'class' | 'alt';
   byte?: number; mask?: Uint8Array; options?: Token[][] };
 const patterns = new Map<string, Token[] | null>();

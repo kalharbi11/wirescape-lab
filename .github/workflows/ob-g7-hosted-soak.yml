@@ -4,8 +4,9 @@
 # The one-time Linux L0 pilot on merged #305 SHA 445123b ran on PR309
 # at Actions 44963546005; results/artifacts are in PR309's signed Result.
 # Pilot code removed to avoid testing a historical SHA on future PR heads.
-# PR-head OSC remains gated until S6/#298 rebase; MIDI until #308 integration.
-# Post-S6: #298 first, then PR309 rebase and interface validation.
+# S6 merged at 25b1a822; #298 integrated S6 first at 67c60fa6.
+# PR-head OSC remains parked pending exact-head interface checks and lane release.
+# MIDI remains parked until #308/PR311 integration and diagnostic verification.
 name: OB-g7 hosted I/O soak (advisory draft)
 
 on:
@@ -14,13 +15,18 @@ on:
     paths:
       - '.github/workflows/ob-g7-hosted-soak.yml'
       - 'bench/io/**'
-      - 'native/io/**'
-      - 'native/**/osc/**'
-      - 'native/**/midi/**'
-      - 'native/**/osc_*'
-      - 'native/**/midi_*'
-      - 'native/control/midi_host*'
-      - 'native/sidecar/**'
+      - 'host/audio/**'
+      - 'host/midi/**'
+      - 'host/net/**'
+      - 'host/osc/**'
+      - 'host/sidecar/**'
+      - 'engine/control/midi_host*'
+      - 'modules/osc_in/**'
+      - 'modules/osc_out/**'
+      - 'modules/midi_in/**'
+      - 'modules/midi_to_cv/**'
+      - 'modules/midi_cc_to_cv/**'
+      - 'native/CMakeLists.txt'
       - 'apps/studio/**/osc*'
       - 'apps/studio/**/midi*'
   # GitHub schedule executes on the default branch (main) only.
@@ -59,10 +65,10 @@ jobs:
             echo "- #312 CLI: --profile/--edit-mode/--tier/--report-dir (null audio and loopback internal)"
             echo "- Reports: <root>/<profile>/<edit-mode>/<tier>/report.json and report.md"
             echo "- L1/L2 need passed L0 p99 and adjacent passing tier at same SHA/profile/mode"
-            echo "- #305 merged as 445123b; PR head still predates the harness" 
+            echo "- #305 merged as 445123b; S6 merged as 25b1a822; verify this PR-head harness" 
             echo "- Historical Linux L0 evidence: run 44963546005, source 445123b only" 
-            echo "- MIDI #308 remains unmerged/unintegrated" 
-            echo "- Native paths: re-evaluate after S6 merge and rebase"
+            echo "- MIDI #308/PR311 remains unmerged/unintegrated" 
+            echo "- S6 mapped I/O paths: host/, engine/control/midi_host*, modules/osc_*/midi_*"
             echo "- PR-head and nightly L0-L2 jobs are parked; no soak runs in this workflow" 
             echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
           } >> "$GITHUB_STEP_SUMMARY"

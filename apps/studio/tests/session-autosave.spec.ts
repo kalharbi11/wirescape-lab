@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect, type Page } from '@playwright/test';
 import { STARTERS, DEFAULT_STARTER } from '../src/app/starters';
-import sixEssentials from '../../../native/examples/Six_Essentials_Demo.json' with { type: 'json' };
+import sixEssentials from '../../../host/examples/Six_Essentials_Demo.json' with { type: 'json' };
 import { boot, state } from './helpers';
 
 const KEY = 'wirescape.autosave.v2';
