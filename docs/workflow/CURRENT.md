@@ -7,6 +7,19 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-22: Architect run 6, acting as lead (owner answers; base `main` a72f50d)
+
+- **S6 writer moves to `claude-builder1`** (cloud Claude session, started by the Architect at the owner's request), on the same #294, `task/294-m1-s6` and #295. B4 (gpt-builder4) stands down from S6: Codex cloud cannot resolve github.com for Git, and local Codex is low on usage. The Claude Architect does the contract-review. Design and reasons are in [`proposals/0020`](../../proposals/0020-note-tools-and-gate-delay.md) §6.
+- **S0 ruling:** the local Windows `s0_status.ndjson` mismatch (997 bytes against 469) is a known host-state issue, not an S6 defect. Hosted CI is the authority, and the snapshot stays unchanged. It is overturned if hosted CI fails at the S6 base.
+- **New experimental modules** (owner: be loose, test quickly). Draft now; merge after S6 in this order: ADSR trig #316 → CV to Notes [#327](https://github.com/kalharbi11/wirescape-lab/issues/327) → Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328) → Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329). Each needs green Lab and unit tests. No contract-review and no workflow edits. The lead merges.
+- **Owner start list:** CB2 `2:run` (#327) and CB3 `3:run` (#329) can start now. B1, B2, B3 and B5 rows are unchanged ([BUILDERS](BUILDERS.md)).
+- **Held:** product merges until S6. Modules #327–#329 merge after S6.
+
+**Next Architect run:** when CB1 posts an S6 review-ready Result. Long effort: the contract-review.
+**Next run should:** (1) S6 contract-review; (2) draft OB-g4, now that OB-g1 #312 has merged; (3) A3 stays parked.
+
+Signed: claude-architect, 2026-11-22
+
 ## Lead follow-up — 2026-11-21 18:38 EST
 
 - [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) merged at `445123b` after exact-head Lab 44962290017 and a lead run of all 15 Python tests plus the three fault injections. Linux L0 is advisory and remains unrun. B5 moved to #317 Studio tests; B2 owns the bench integration and B1 can validate hosted OSC. A29 records the Architect's OB-g4 dependency clearing.
