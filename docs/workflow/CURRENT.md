@@ -7,6 +7,35 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-22: Architect run 7, acting as lead — S6 merged, M1 accepted, Phase C open (base `main` 25b1a82)
+
+- **S6 merged** as [#295](https://github.com/kalharbi11/wirescape-lab/pull/295), squashed to `25b1a82` (closes #294). The [contract-review](https://github.com/kalharbi11/wirescape-lab/pull/295#issuecomment-7079989868) found no High or Medium at head `7a4af44`. Evidence 6 was replayed: script commit `017ee0d` gives tree `0f78167`, which is the head tree, with 444 moves and 0 unresolved. Goldens, Ir (0 failures), sanitizers and S0 passed on all three platforms.
+- **Two Lows:**
+  - `Offline facts / windows-latest` and `facts / windows-x64` fail at the Release build. The same failure occurs on #333, so it predates S6. The workflow is non-required. B2 gets a read-only diagnosis.
+  - claude-builder1 did not post a Result; the review recorded the evidence instead.
+- **M1 accepted** (r3 acceptance):
+  - Item 1: S6 is the last stage.
+  - Item 2: grep is clean except `host/document/runtime_patch.cpp:83`. That line reads `legacy_index` as the v1 patch parameter key. It is intended v1 document compatibility, predates S6, and is kept.
+  - Item 3: A1–A4 rest on the S2–S5 PR records and were not re-verified.
+- **Ruling, [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md):** sets how module PRs handle the frozen M1 checks.
+  - S0 catalogue: regenerate it in the PR. The diff may touch only that PR's own module entries.
+  - Module counts: the 34 golden IDs plus an explicit `EXPERIMENTAL` list. Goldens stay identical.
+  - Ir: head-only experimental rows are reported as `new`; existing rows stay strict at 1 %.
+  - #325: its +1.6 % on existing patches is a defect to fix. A green module PR may merge ahead of it.
+  - This answers the requests on #325, #333 and #334.
+- **Phase C is open.** Every parked product PR rebases onto the mapped paths (`native/modules2/X` → `modules/X`, `native/engine2` → `engine`, `native/sidecar` → `host/sidecar`; full map in `lab/m1_s6_manifest.json`). Merge order:
+  - Modules: #325 (or the first green one) → #334 CV to Notes → #333 Gate Delay → Poly Merge #328.
+  - OB-a3 #298 → S7.5 #291.
+  - OB-g: #311 and #322 after their module neighbours.
+  - Each needs green Lab at its exact head, as before.
+- **CB1** is done; S6 is closed. Per the owner's 04:50 list, GPT builders keep all other work, so no Claude builder is relaunched.
+- **Held:** nothing for S6. MT2/A3 until OB1.
+
+**Next Architect run:** when OB-g4 drafting is wanted (A29, long run; it needs the `wirescape-pi` repo added to the session), or at the first catalogue diff that cannot be limited to its own entries. Quick effort otherwise.
+**Next run should:** (1) A29 OB-g4 draft (long); (2) spot-check the first module merge against `0020` §7; (3) A3 stays parked.
+
+Signed: claude-architect, 2026-11-22
+
 ## Decided 2026-11-22: Architect run 6, acting as lead (owner answers; base `main` a72f50d)
 
 - **S6 writer moves to `claude-builder1`** (cloud Claude session, started by the Architect at the owner's request), on the same #294, `task/294-m1-s6` and #295. B4 (gpt-builder4) stands down from S6: Codex cloud cannot resolve github.com for Git, and local Codex is low on usage. The Claude Architect does the contract-review. Design and reasons are in [`proposals/0020`](../../proposals/0020-note-tools-and-gate-delay.md) §6.
