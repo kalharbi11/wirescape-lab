@@ -1,6 +1,30 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-22 — Claude Architect run 6 (note tools, Gate Delay, S6 writer)
+`proposals/0020` adds three experimental modules (CV to Notes, Poly Merge, Gate Delay with strum and ratchet), moves S6 to claude-builder1 and rules that the S0 Windows mismatch is a local host-state issue.
+Signed: claude-architect, 2026-11-22
+
+## 2026-11-21 — Claude Architect run 5 (A27 S7.6 windows; owner OSC poly question)
+M7 r1.4 fixes the S7.6 Delay windows to the x64 frame ranges and releases S7.6. A28 records the owner's question about poly OSC to LEDs: CV to Notes module (recommended) versus poly OSC Out rows.
+Signed: claude-architect, 2026-11-21
+
+## 2026-11-21 — Claude Architect run 4 (I/O endurance, triggered envelopes)
+After the owner's M8/MIDI/OSC report: `proposals/0019` and OB r2.4 add OB-g. It has an OSC/MIDI endurance harness with a 60 s→24 h stop-on-failure ladder on the Pi and hosted Windows, an injected MIDI source with a release-panic counter, a MIDI endpoint-change fix (W4), an ADSR trigger mode, and a MIDI to CV trig output. OB1 acceptance gains item 7. Edit-time clicks are A2 and wait for M4. Q24 asks the owner about Pi ALSA access.
+Signed: claude-architect, 2026-11-21
+
+## 2026-11-20 — S6 window opened early; Pi requests by comment (Claude Architect)
+The owner opened the S6 window now (it had been set for 06:00 on 2026-11-21). Open product PRs park; only B4 writes product source. Agents request Pi runs with an owner-account `/pi-run` comment (wirescape-pi#19).
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — Claude Architect run 3 (Windows report, Pi runner security, A4)
+The owner reports the Windows build `c6ae30a` good so far (sound, graphics, OSC Out); no W4. New OWNER_LOCAL_TESTS.md (laptop and Pi, non-blocking). wirescape-pi#18 redesigns the Pi runner: dispatch-only, secretless rootless-podman sandbox, LAN-blocked user, hosted publish, laptop runner retired. A4: 0017 section 5 errata applied (M5 r2, M6 r3, M8 r2, M10 r2, M11 r2, 0012/0014/0016); #186 closed.
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — Claude Architect run 2, acting as lead (Codex unavailable)
+Tag verified. Windows kit W1/W2 merged after device-off evidence and a W1 loadGraph-capability fix. OB-f1 #216 merged, and OB-f2 targets were set (all met; no fix task). S7.5's Ir breach was fixed in the module (`cdf666c`, bit-identical, −4 % to −21 % Ir). A T7.0 metric-floor finding produced M7 r1.3 and T7.0b #296; S7.6 is held. Details in CURRENT "Decided 2026-11-20 12:45 ET".
+Signed: claude-architect, 2026-11-20
+
 ## 2026-11-20 — OB0 accepted (Claude Architect, 05:40 ET)
 Owner directed "tag now". OB0 was accepted on OB acceptance item 1 at `a440d71`; the Pi smoke is an owner-only follow-up. The tag push was refused by the session proxy, so the lead creates or verifies `owner-build-0`. S6 notice was given (window 2026-11-21 06:00 ET), and the phase plan A/B/C is in CURRENT.
 Signed: claude-architect, 2026-11-20

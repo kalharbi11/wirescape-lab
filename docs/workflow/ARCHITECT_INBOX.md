@@ -44,11 +44,9 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | errata review | later | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed** to rule each erratum, after OB0 and before any of MT4, H3a, CP1, K3 or K4 is dispatched (2026-11-18 13:10). | MT4/H3a/CP1/K3/K4 dispatch only |
+| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A18 | 2026-11-20 | Owner: same-day Windows build with sound, MIDI to CV, OSC In, OSC Out to Python; OB0/OB1 path unchanged | **Granted as an evaluation, not a gate.** Build exact `a440d71`, WASAPI, `-NoAsio`. Runbook, checks and W1–W3 (#284–#286) in [WINDOWS_EVAL.md](WINDOWS_EVAL.md); W4 fix lane in reserve and opened only with a device-off failing test. No module ID, wire format, patch semantics, threshold or polyphony default changes. |
-| A19 | 2026-11-20 | B1 #203: pin OB-a3 "older shape", backup name, collisions, Save As | Ruled, OB r2.2 (contract-upkeep inside the accepted OB-a3 wording): v1 only; `<filename>.bak-v1`, `.bak-v1.<n>`; never overwrite; Save As never writes source; no `native/` source. Task [#287](https://github.com/kalharbi11/wirescape-lab/issues/287), Claude contract-review before merge. |
-| A20 | 2026-11-20 | B2 #209: OB-f1 scope after the graph-size-proxy finding | Released B2's own plan ([#209](https://github.com/kalharbi11/wirescape-lab/issues/209)): offline `wirescape_cli play` CPU ranking of all 24 bundled v2 patches (idle-only label kept), then re-capture the four UI rows plus native ACK on the winner at current main. Writers are #216's own five paths plus one new facts file; no `ci.yml`, Studio or native edits. The Architect sets OB-f2 targets from the result. |
+| A28 | 2026-11-22 | Owner: poly OSC to LEDs; trig/gate delay; combining mono cables | `proposals/0020`: CV to Notes #327, Poly Merge #328, Gate Delay #329 (experimental tier); S6 moves to claude-builder1; S0 ruling. |

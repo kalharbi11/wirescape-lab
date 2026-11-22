@@ -608,3 +608,15 @@ Two answers differ from the recommendation: host packets keep the born test (ER1
 sidecar lane does not make M4 wait for PV2b/TR1h/PV3 (section 3).
 
 Signed: Fable, 2026-11-17
+
+## Q24 — Pi ALSA MIDI tier: give the sandbox `/dev/snd/seq`? (ANSWERED A, 2026-11-21)
+**Context:** `proposals/0019` §3. The Pi sandbox has no devices, so the injected-MIDI soak (OB-g2)
+covers everything above the OS MIDI driver, but not ALSA enumeration, open or reopen.
+**Option A (recommended):** a separate `io-soak-alsa` task that maps only `/dev/snd/seq`, keeps
+`--network none`, and runs **only at `main`'s head** (never on PR heads). It loads `snd-seq-dummy` at
+boot; the sender creates a virtual port inside the container. Risk: code from `main` (your own merged
+code) can talk to the ALSA sequencer on the Pi. It cannot reach the network, the runner files or other devices.
+**Option B:** no device access. The ALSA layer stays covered by owner-local runs only.
+**Default until answered:** B. Nothing else waits on this answer.
+**ANSWERED 2026-11-21: A.** The owner delegated the call ("you make the decision… more testing"). The ALSA tier maps `/dev/snd/seq` only, keeps `--network none`, and runs at main heads only. It is drafted with OB-g4. Results are advisory (OB r2.4a).
+Signed: claude-architect, 2026-11-21
