@@ -24,12 +24,14 @@ struct NotesToCv {
     uint32_t max_channels = 16;
     int configured_voices = 0;
     std::array<uint32_t, wirescape::voice::kMaxVoices> trig_left{};
+    uint32_t trig_active_mask = 0; // avoid scanning all voices in idle blocks
 
     void prepare(const ws::Setup &s) { max_channels = s.max_channels(); }
     void reset() {
         core.reset();
         configured_voices = 0;
         trig_left = {};
+        trig_active_mask = 0;
     }
     void process(ws::Block &b) {
         const int desired =
@@ -41,14 +43,13 @@ struct NotesToCv {
             core.configure(cfg);
             configured_voices = desired;
             trig_left = {};
+        trig_active_mask = 0;
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
         const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
         // The common no-event path has no live trigger: represent it as a
         // constant zero without a per-sample pulse/decrement branch.
-        const bool silent_trigger = b.events().size() == 0 &&
-            std::all_of(trig_left.begin(), trig_left.begin() + n,
-                        [](uint32_t left) { return left == 0; });
+        const bool silent_trigger = b.events().size() == 0 && trig_active_mask == 0;
         for (uint32_t p = 0; p < 4; ++p) {
             b.out(p).set_channels(n);
             b.out(p).mark_constant(false);
@@ -76,7 +77,8 @@ struct NotesToCv {
                         auto* trig = b.out(3).ch(c);
                         for (uint32_t i = first; i < end; ++i) {
                             trig[i] = trig_left[c] ? 1.f : 0.f;
-                            if (trig_left[c]) --trig_left[c];
+                            if (trig_left[c] && --trig_left[c] == 0)
+                                trig_active_mask &= ~(uint32_t{1} << c);
                         }
                     }
                 }
@@ -89,8 +91,10 @@ struct NotesToCv {
                     core.event(e, [&](const ws2_event &out) {
                         // Only an accepted Note On assigned to this poly voice retriggers.
                         if (e.type == WS2_NOTE_ON && out.type == WS2_NOTE_ON &&
-                            out.channel >= 0 && uint32_t(out.channel) < n)
+                            out.channel >= 0 && uint32_t(out.channel) < n) {
                             trig_left[uint32_t(out.channel)] = trig_frames;
+                            trig_active_mask |= uint32_t{1} << uint32_t(out.channel);
+                        }
                     });
                 }
             });
