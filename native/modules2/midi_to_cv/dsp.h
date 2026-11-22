@@ -84,7 +84,13 @@ struct MidiToCv {
         const uint32_t n = uint32_t(core.allocator().voice_count());
         for (uint32_t p = 0; p < 7; ++p) { b.out(p).set_channels(n); b.out(p).mark_constant(false); }
         b.out(9).set_channels(n);
-        b.out(9).mark_constant(false);
+        // Constant zero avoids a per-sample trigger tax for idle MIDI blocks.
+        const bool silent_trigger = b.events().size() == 0 &&
+            std::all_of(trig_left.begin(), trig_left.begin() + n,
+                        [](uint32_t left) { return left == 0; });
+        b.out(9).mark_constant(silent_trigger);
+        if (silent_trigger)
+            for (uint32_t c = 0; c < n; ++c) b.out(9).ch(c)[0] = 0.f;
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) b.out(8).ch(0)[i] = last_note;
@@ -103,8 +109,14 @@ struct MidiToCv {
                         b.out(4).ch(c)[i] = v.pressure;
                         b.out(5).ch(c)[i] = bend;
                         b.out(6).ch(c)[i] = ex ? ex->mod : 0;
-                        b.out(9).ch(c)[i] = trig_left[c] ? 1.f : 0.f;
-                        if (trig_left[c]) --trig_left[c];
+                    }
+                    // Pulse work is off the unchanged pitch/gate hot path.
+                    if (!silent_trigger) {
+                        auto* trig = b.out(9).ch(c);
+                        for (uint32_t i = first; i < end; ++i) {
+                            trig[i] = trig_left[c] ? 1.f : 0.f;
+                            if (trig_left[c]) --trig_left[c];
+                        }
                     }
                 }
                 core.allocator().clear_triggers();
