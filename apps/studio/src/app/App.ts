@@ -34,9 +34,9 @@ import type { GrooveConfig } from '../groove/pattern';
 import { MidiLearn } from './MidiLearn';
 import { MODULE_PRESETS } from './modulePresets';
 import { commitLearn, forgetLearn, learnedCables, type LearnCapture, type LearnServices, type LearnTarget } from './ccLearn';
-import demoChaos from '../../../../native/examples/class_demo_1_chaos.json' with { type: 'json' };
-import demoSub from '../../../../native/examples/class_demo_2_subtractive.json' with { type: 'json' };
-import demoMacro from '../../../../native/examples/class_demo_3_macro.json' with { type: 'json' };
+import demoChaos from '../../../../host/examples/class_demo_1_chaos.json' with { type: 'json' };
+import demoSub from '../../../../host/examples/class_demo_2_subtractive.json' with { type: 'json' };
+import demoMacro from '../../../../host/examples/class_demo_3_macro.json' with { type: 'json' };
 
 const AUTOSAVE_KEY = 'wirescape.autosave.v2';
 const ACTIVE_SESSION_KEY = 'wirescape.session.active.v1';

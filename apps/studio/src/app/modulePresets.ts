@@ -5,7 +5,7 @@ export interface ModulePreset { name: string; params: Readonly<Record<string, nu
 /** Data keyed by module type. Preset names remain UI-only, never saved to patches. */
 export const MODULE_PRESETS: Readonly<Record<string, readonly ModulePreset[]>> = {
   'essentials.chaos_lite': [
-    // Four starting points from native/modules2/chaos_lite/README.md.
+    // Four starting points from modules/chaos_lite/README.md.
     { name: 'Warm fifth', params: { shape_a: 2, shape_b: 2, detune: 7, body_mix: 0.15, roughness: 0 } },
     { name: 'Bent wire', params: { route: 2, depth: 0.8, body_mix: 0.65, feedback: 0.7, drift: 0.25 } },
     { name: 'Broken bell', params: { route: 1, depth: 0.9, shape_a: 2, octave_b: 1, body_tune: 1, fall: 0.1 } },

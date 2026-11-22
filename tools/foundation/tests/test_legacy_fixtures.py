@@ -6,7 +6,7 @@ from pathlib import Path
 
 class LegacyFixtureInventoryTests(unittest.TestCase):
     def test_evidenced_shapes_and_preservation_payloads(self):
-        folder = Path(__file__).resolve().parents[3] / "native/tests/fixtures/legacy_documents"
+        folder = Path(__file__).resolve().parents[3] / "tests/native/compat/fixtures/legacy_documents"
         documents = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in folder.glob("*.json")}
         expected = {"patch_v1.json": ("wirescape.patch", 1), "patch_v2.json": ("wirescape.patch", 2),
                     "patch_v3_unknown.json": ("wirescape.patch", 3), "visual_study_v4.json": ("wirescape.visual.study", 4),

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // T0.5 R2: device-free engine-process probe. No production code modified.
 // Compiled from bench/offline/ against the existing Release engine2 static lib.
-#include "../../native/engine2/engine2.h"
-#include "../../native/sdk/wirescape_sdk.h"
+#include "../../engine/engine2.h"
+#include "../../sdk/wirescape_sdk.h"
 #include <algorithm>
 #include <array>
 #include <chrono>

@@ -1,0 +1,2257 @@
+{
+  "entry_point_edits": [
+    {
+      "destination": "native/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(wirescape_cli ../host/cli/main.cpp)",
+          "before": "add_executable(wirescape_cli cli/main.cpp)",
+          "line": 9
+        },
+        {
+          "after": "add_subdirectory(../host/document document)",
+          "before": "add_subdirectory(document)",
+          "line": 11
+        },
+        {
+          "after": "add_subdirectory(../engine engine2)",
+          "before": "add_subdirectory(engine2)",
+          "line": 14
+        },
+        {
+          "after": "add_subdirectory(../tools/render tools/render)",
+          "before": "add_subdirectory(tools/render)",
+          "line": 16
+        },
+        {
+          "after": "add_subdirectory(../tools/capture tools/capture)",
+          "before": "add_subdirectory(tools/capture)",
+          "line": 19
+        },
+        {
+          "after": "add_library(wirescape_osc_service STATIC ../host/net/osc_service.cpp)",
+          "before": "add_library(wirescape_osc_service STATIC io/net/osc_service.cpp)",
+          "line": 22
+        },
+        {
+          "after": "target_include_directories(wirescape_osc_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/../engine/include ${CMAKE_CURRENT_SOURCE_DIR}/../host/include)",
+          "before": "target_include_directories(wirescape_osc_service PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)",
+          "line": 23
+        },
+        {
+          "after": "add_executable(abi2_osc_host_service_tests ../host/net/tests.cpp)",
+          "before": "add_executable(abi2_osc_host_service_tests io/net/tests.cpp)",
+          "line": 28
+        },
+        {
+          "after": "target_include_directories(abi2_osc_host_service_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk)",
+          "before": "target_include_directories(abi2_osc_host_service_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sdk)",
+          "line": 29
+        },
+        {
+          "after": "add_executable(abi2_osc_graph_ingress_tests ../host/net/graph_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_osc_graph_ingress_tests io/net/graph_tests.cpp tests2/allocation_watch.cpp)",
+          "line": 36
+        },
+        {
+          "after": "target_include_directories(abi2_osc_graph_ingress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk)",
+          "before": "target_include_directories(abi2_osc_graph_ingress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sdk)",
+          "line": 37
+        },
+        {
+          "after": "add_library(abi2_osc_fuzz_compile OBJECT ../host/osc/fuzz.cpp)",
+          "before": "add_library(abi2_osc_fuzz_compile OBJECT io/osc/fuzz.cpp)",
+          "line": 46
+        },
+        {
+          "after": "    add_executable(abi2_osc_${kind}_fuzz ../host/osc/fuzz.cpp)",
+          "before": "    add_executable(abi2_osc_${kind}_fuzz io/osc/fuzz.cpp)",
+          "line": 54
+        },
+        {
+          "after": "add_library(wirescape_osc_host STATIC ../engine/control/osc_host.cpp ../engine/control/osc_out_host.cpp)",
+          "before": "add_library(wirescape_osc_host STATIC control/osc_host.cpp control/osc_out_host.cpp)",
+          "line": 68
+        },
+        {
+          "after": "target_include_directories(wirescape_osc_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../engine/control)",
+          "before": "target_include_directories(wirescape_osc_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control)",
+          "line": 69
+        },
+        {
+          "after": "add_executable(wirescape_engine_sidecar ../host/sidecar/main.cpp ../host/sidecar/protocol.cpp ../host/sidecar/session.cpp ../host/sidecar/devices.cpp)",
+          "before": "add_executable(wirescape_engine_sidecar sidecar/main.cpp sidecar/protocol.cpp sidecar/session.cpp sidecar/devices.cpp)",
+          "line": 72
+        },
+        {
+          "after": "add_test(NAME abi2_sidecar_protocol_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/protocol_tests.py",
+          "before": "add_test(NAME abi2_sidecar_protocol_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/protocol_tests.py",
+          "line": 94
+        },
+        {
+          "after": "  $<TARGET_FILE:wirescape_engine_sidecar> ${PROJECT_SOURCE_DIR}/../host/examples)",
+          "before": "  $<TARGET_FILE:wirescape_engine_sidecar> ${PROJECT_SOURCE_DIR}/examples)",
+          "line": 95
+        },
+        {
+          "after": "add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/apply_graph_tests.py",
+          "before": "add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/apply_graph_tests.py",
+          "line": 97
+        },
+        {
+          "after": "add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/capture_tests.py",
+          "before": "add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/capture_tests.py",
+          "line": 100
+        },
+        {
+          "after": "add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/golden_tests.py",
+          "before": "add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/sidecar/golden_tests.py",
+          "line": 103
+        },
+        {
+          "after": "add_executable(sidecar_protocol_unit_tests ../host/sidecar/protocol_unit_tests.cpp ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(sidecar_protocol_unit_tests sidecar/protocol_unit_tests.cpp sidecar/protocol.cpp sidecar/devices.cpp tests2/allocation_watch.cpp)",
+          "line": 106
+        },
+        {
+          "after": "add_executable(sidecar_audio_recovery_tests ../host/sidecar/audio_recovery_tests.cpp ../host/sidecar/session.cpp ../host/audio/device_identity.cpp",
+          "before": "add_executable(sidecar_audio_recovery_tests sidecar/audio_recovery_tests.cpp sidecar/session.cpp io/audio/device_identity.cpp",
+          "line": 111
+        },
+        {
+          "after": "  ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp)",
+          "before": "  sidecar/protocol.cpp sidecar/devices.cpp)",
+          "line": 112
+        },
+        {
+          "after": "file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/session.cpp\" _s0_session_source)",
+          "before": "file(READ \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar/session.cpp\" _s0_session_source)",
+          "line": 125
+        },
+        {
+          "after": "  ../host/sidecar/snapshot_tests.cpp \"${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp\"",
+          "before": "  sidecar/snapshot_tests.cpp \"${CMAKE_CURRENT_BINARY_DIR}/s0_snapshot_session.cpp\"",
+          "line": 137
+        },
+        {
+          "after": "  ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp)",
+          "before": "  sidecar/protocol.cpp sidecar/devices.cpp)",
+          "line": 138
+        },
+        {
+          "after": "  \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar\" \"${CMAKE_CURRENT_SOURCE_DIR}/../host/document\"",
+          "before": "  \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar\" \"${CMAKE_CURRENT_SOURCE_DIR}/document\"",
+          "line": 140
+        },
+        {
+          "after": "  \"${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/testdata\")",
+          "before": "  \"${CMAKE_CURRENT_SOURCE_DIR}/sidecar/testdata\")",
+          "line": 146
+        }
+      ],
+      "source": "native/CMakeLists.txt",
+      "source_sha256": "17a8d9061821a978ca0e476d459b59752768b2e789e92336bb9f685f70c1cfe8"
+    },
+    {
+      "destination": "targets/web/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "set(native ${CMAKE_CURRENT_SOURCE_DIR}/../..)",
+          "before": "set(native ${CMAKE_CURRENT_SOURCE_DIR}/..)",
+          "line": 12
+        },
+        {
+          "after": "# Same pinned revisions as host/document and modules/macro_oscillator.",
+          "before": "# Same pinned revisions as native/document and native/modules2/macro_oscillator.",
+          "line": 13
+        },
+        {
+          "after": "set(macro_dir ${native}/modules/macro_oscillator)",
+          "before": "set(macro_dir ${native}/modules2/macro_oscillator)",
+          "line": 18
+        },
+        {
+          "after": "add_library(web_core STATIC ${native}/engine/engine2.cpp ${native}/engine/control/app_engine.cpp",
+          "before": "add_library(web_core STATIC ${native}/engine2/engine2.cpp ${native}/control/app_engine.cpp",
+          "line": 40
+        },
+        {
+          "after": "  ${native}/host/document/runtime_patch.cpp ${native}/engine/voice/allocator.cpp)",
+          "before": "  ${native}/document/runtime_patch.cpp ${native}/voice/allocator.cpp)",
+          "line": 41
+        },
+        {
+          "after": "target_include_directories(web_core PUBLIC ${native}/sdk/include ${native}/engine/include ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/control",
+          "before": "target_include_directories(web_core PUBLIC ${native}/include ${native}/sdk ${native}/engine2 ${native}/control",
+          "line": 42
+        },
+        {
+          "after": "  ${native}/host/document ${native}/engine/voice)",
+          "before": "  ${native}/document ${native}/voice)",
+          "line": 43
+        },
+        {
+          "after": "  add_test(NAME web_engine_tests COMMAND web_engine_tests ${native}/host/examples)",
+          "before": "  add_test(NAME web_engine_tests COMMAND web_engine_tests ${native}/examples)",
+          "line": 63
+        }
+      ],
+      "source": "native/web/CMakeLists.txt",
+      "source_sha256": "1de787d13c9c8fdedd3317205f5a25904d80c5fccbe3fae350f6bdf23968bc8c"
+    },
+    {
+      "destination": ".github/workflows/golden-renders.yml",
+      "replacements": [
+        {
+          "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\"",
+          "before": "      - \"native/**\"",
+          "line": 8
+        },
+        {
+          "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\"",
+          "before": "      - \"native/**\"",
+          "line": 17
+        }
+      ],
+      "source": ".github/workflows/golden-renders.yml",
+      "source_sha256": "a200026e8712329733dc2a1642f65afbef8dacc3ef8af1112f2a606a59146409"
+    },
+    {
+      "destination": ".github/workflows/instruction-gate.yml",
+      "replacements": [
+        {
+          "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'",
+          "before": "      - 'native/**'",
+          "line": 7
+        },
+        {
+          "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'",
+          "before": "      - 'native/**'",
+          "line": 14
+        }
+      ],
+      "source": ".github/workflows/instruction-gate.yml",
+      "source_sha256": "9373db1c21b9dce3a507497fe1c84ff82a0ecd52ff7e7ce02cc2f3be17c089dc"
+    },
+    {
+      "destination": ".github/workflows/m1-stage-evidence.yml",
+      "replacements": [
+        {
+          "after": "      - \"native/**\"\n      - \"engine/**\"\n      - \"host/**\"\n      - \"modules/**\"\n      - \"sdk/**\"\n      - \"targets/**\"\n      - \"tests/native/**\"\n      - \"tools/render/**\"\n      - \"tools/capture/**\"",
+          "before": "      - \"native/**\"",
+          "line": 6
+        }
+      ],
+      "source": ".github/workflows/m1-stage-evidence.yml",
+      "source_sha256": "bd030318b784f30e6b9b9876a7f4ae11c32553a1c4a78a4f8e5e526431d7a3df"
+    },
+    {
+      "destination": ".github/workflows/offline-facts.yml",
+      "replacements": [
+        {
+          "after": "      - 'native/**'\n      - 'engine/**'\n      - 'host/**'\n      - 'modules/**'\n      - 'sdk/**'\n      - 'targets/**'\n      - 'tests/native/**'\n      - 'tools/render/**'\n      - 'tools/capture/**'",
+          "before": "      - 'native/**'",
+          "line": 9
+        }
+      ],
+      "source": ".github/workflows/offline-facts.yml",
+      "source_sha256": "efb9733ac2f2eb6e2ec516bfe9d88326a657fb74d7b9708b1a19c85f6054d782"
+    },
+    {
+      "destination": ".github/workflows/portability.yml",
+      "replacements": [
+        {
+          "after": "      - \"sdk/include/**\"\n      - \"engine/include/**\"\n      - \"host/include/**\"",
+          "before": "      - \"native/include/**\"",
+          "line": 10
+        },
+        {
+          "after": "      - \"sdk/include/**\"\n      - \"engine/include/**\"\n      - \"host/include/**\"",
+          "before": "      - \"native/include/**\"",
+          "line": 18
+        }
+      ],
+      "source": ".github/workflows/portability.yml",
+      "source_sha256": "e98a796c892bbb28705b1d5985a653b54dca0479ad2bf9887e4455762ceae1b2"
+    },
+    {
+      "destination": "tools/foundation/helpers.py",
+      "replacements": [
+        {
+          "after": "    for folder in (root / \"native\", root / \"engine\", root / \"host\", root / \"modules\", root / \"sdk\", root / \"targets\", root / \"tests/native\", root / \"tools\"):",
+          "before": "    for folder in (root / \"native\", root / \"tools\"):",
+          "line": 330
+        },
+        {
+          "after": "            \"scope\": \"native/, engine/, host/, modules/, sdk/, targets/, tests/native/, tools/ excluding __pycache__\"}",
+          "before": "            \"scope\": \"native/ and tools/ excluding __pycache__\"}",
+          "line": 345
+        }
+      ],
+      "source": "tools/foundation/helpers.py",
+      "source_sha256": "c3898bdc90e3bd68de131d1c071404a4c2c3c136aa1efda9535bb4f9ead917ad"
+    },
+    {
+      "destination": "tools/cloud/git_deps.py",
+      "replacements": [
+        {
+          "after": "PATCHES = ROOT / \"modules\" / \"macro_oscillator\" / \"patches\"",
+          "before": "PATCHES = ROOT / \"native\" / \"modules2\" / \"macro_oscillator\" / \"patches\"",
+          "line": 26
+        }
+      ],
+      "source": "tools/cloud/git_deps.py",
+      "source_sha256": "f97418fc30184c47465dd745527cc3ebfaf22e1c8e904a3dbeeb02792f0134cc"
+    },
+    {
+      "destination": "tools/protocol/generate.py",
+      "replacements": [
+        {
+          "after": "    \"cpp\": ROOT / \"host\" / \"sidecar\" / \"generated\" / \"protocol_v0.hpp\",",
+          "before": "    \"cpp\": ROOT / \"native\" / \"sidecar\" / \"generated\" / \"protocol_v0.hpp\",",
+          "line": 14
+        }
+      ],
+      "source": "tools/protocol/generate.py",
+      "source_sha256": "353d59cf4132718544e443f53592e58259fba52aa616050f0bb4c92f779d88f9"
+    },
+    {
+      "destination": "tools/protocol/test_protocol.py",
+      "replacements": [
+        {
+          "after": "SIDECAR = ROOT / \"host\" / \"sidecar\" / \"protocol_tests.py\"",
+          "before": "SIDECAR = ROOT / \"native\" / \"sidecar\" / \"protocol_tests.py\"",
+          "line": 15
+        }
+      ],
+      "source": "tools/protocol/test_protocol.py",
+      "source_sha256": "fd65a2fc67d37cea80d3f64c959d0617cc91640f3c1fa00f14bf8657839f14da"
+    },
+    {
+      "destination": "tools/protocol/validate_sidecar.py",
+      "replacements": [
+        {
+          "after": "TARGET = ROOT / \"host\" / \"sidecar\" / \"protocol_tests.py\"",
+          "before": "TARGET = ROOT / \"native\" / \"sidecar\" / \"protocol_tests.py\"",
+          "line": 16
+        }
+      ],
+      "source": "tools/protocol/validate_sidecar.py",
+      "source_sha256": "44305d3bcf597aec0775a2b95e0d435488e2a54ef0cd028aa306f8c8a55be7ae"
+    },
+    {
+      "destination": "tools/foundation/tests/test_banned_includes.py",
+      "replacements": [
+        {
+          "after": "            for directory in ('modules', 'sdk', 'engine/voice')",
+          "before": "            for directory in ('native/modules2', 'native/sdk', 'native/voice')",
+          "line": 16
+        },
+        {
+          "after": "            if (directory != 'modules' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')",
+          "before": "            if (directory != 'native/modules2' or file.name != 'tests.cpp') and file.is_file() and file.suffix in ('.h', '.hpp', '.c', '.cpp', '.cc')",
+          "line": 18
+        },
+        {
+          "after": "            for tree in ('modules', 'sdk', 'engine/voice'):",
+          "before": "            for tree in ('modules2', 'sdk', 'voice'):",
+          "line": 29
+        },
+        {
+          "after": "                file = root / tree / 'nested/test.cpp'",
+          "before": "                file = root / 'native' / tree / 'nested/test.cpp'",
+          "line": 30
+        },
+        {
+          "after": "            module = root / 'modules/example'",
+          "before": "            module = root / 'native/modules2/example'",
+          "line": 38
+        },
+        {
+          "after": "            self.assertEqual(violations(root), [('modules/example/dsp.h', 'vector')])",
+          "before": "            self.assertEqual(violations(root), [('native/modules2/example/dsp.h', 'vector')])",
+          "line": 43
+        }
+      ],
+      "source": "tools/foundation/tests/test_banned_includes.py",
+      "source_sha256": "bff4c35172288b77fbcd78fe61b4a748d42d080aa47f575f6f85e595a9f5550e"
+    },
+    {
+      "destination": "bench/offline/r2_engine_probe.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../native/engine2/engine2.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../sdk/wirescape_sdk.h\"",
+          "before": "#include \"../../native/sdk/wirescape_sdk.h\"",
+          "line": 5
+        }
+      ],
+      "source": "bench/offline/r2_engine_probe.cpp",
+      "source_sha256": "966ccc46db28e6175bebafd8347fa1b675cf13ab55b3fa4542e6619b381c6f0f"
+    },
+    {
+      "destination": "host/cli/play.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../audio/portaudio_service.h\"",
+          "before": "#include \"../io/audio/portaudio_service.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/cli/play.cpp",
+      "source_sha256": "45c46661465f88a5af7ed3124f88d2dbbdf2b1ea01dbfe21d939edead7c0a724"
+    },
+    {
+      "destination": "engine/control/app_engine_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/control/app_engine_tests.cpp",
+      "source_sha256": "f4489b5a250c37e4d85b1baa369a9192c9e506c30efa228278d97e178383b211"
+    },
+    {
+      "destination": "engine/control/midi_host_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/control/midi_host_tests.cpp",
+      "source_sha256": "24e5f596aca3241ab9e073fdde436f3f93e06ce57e3e52d95ab52c33268e1779"
+    },
+    {
+      "destination": "engine/control/module_catalog.h",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/adsr/dsp.h\"",
+          "before": "#include \"../modules2/adsr/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../modules/blend/dsp.h\"",
+          "before": "#include \"../modules2/blend/dsp.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../modules/chaos_lite/dsp.h\"",
+          "before": "#include \"../modules2/chaos_lite/dsp.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../../modules/chord/dsp.h\"",
+          "before": "#include \"../modules2/chord/dsp.h\"",
+          "line": 6
+        },
+        {
+          "after": "#include \"../../modules/clock/dsp.h\"",
+          "before": "#include \"../modules2/clock/dsp.h\"",
+          "line": 7
+        },
+        {
+          "after": "#include \"../../modules/delay/dsp.h\"",
+          "before": "#include \"../modules2/delay/dsp.h\"",
+          "line": 8
+        },
+        {
+          "after": "#include \"../../modules/function_envelope/dsp.h\"",
+          "before": "#include \"../modules2/function_envelope/dsp.h\"",
+          "line": 9
+        },
+        {
+          "after": "#include \"../../modules/groove/dsp.h\"",
+          "before": "#include \"../modules2/groove/dsp.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../modules/host_keyboard/dsp.h\"",
+          "before": "#include \"../modules2/host_keyboard/dsp.h\"",
+          "line": 11
+        },
+        {
+          "after": "#include \"../../modules/ladder/dsp.h\"",
+          "before": "#include \"../modules2/ladder/dsp.h\"",
+          "line": 12
+        },
+        {
+          "after": "#include \"../../modules/lfo/dsp.h\"",
+          "before": "#include \"../modules2/lfo/dsp.h\"",
+          "line": 13
+        },
+        {
+          "after": "#include \"../../modules/macro_oscillator/dsp.h\"",
+          "before": "#include \"../modules2/macro_oscillator/dsp.h\"",
+          "line": 14
+        },
+        {
+          "after": "#include \"../../modules/midi_cc_to_cv/dsp.h\"",
+          "before": "#include \"../modules2/midi_cc_to_cv/dsp.h\"",
+          "line": 15
+        },
+        {
+          "after": "#include \"../../modules/midi_in/dsp.h\"",
+          "before": "#include \"../modules2/midi_in/dsp.h\"",
+          "line": 16
+        },
+        {
+          "after": "#include \"../../modules/midi_to_cv/dsp.h\"",
+          "before": "#include \"../modules2/midi_to_cv/dsp.h\"",
+          "line": 17
+        },
+        {
+          "after": "#include \"../../modules/mixer/dsp.h\"",
+          "before": "#include \"../modules2/mixer/dsp.h\"",
+          "line": 18
+        },
+        {
+          "after": "#include \"../../modules/monitor/dsp.h\"",
+          "before": "#include \"../modules2/monitor/dsp.h\"",
+          "line": 19
+        },
+        {
+          "after": "#include \"../../modules/noise/dsp.h\"",
+          "before": "#include \"../modules2/noise/dsp.h\"",
+          "line": 20
+        },
+        {
+          "after": "#include \"../../modules/notes_to_cv/dsp.h\"",
+          "before": "#include \"../modules2/notes_to_cv/dsp.h\"",
+          "line": 21
+        },
+        {
+          "after": "#include \"../../modules/osc_in/dsp.h\"",
+          "before": "#include \"../modules2/osc_in/dsp.h\"",
+          "line": 22
+        },
+        {
+          "after": "#include \"../../modules/osc_out/dsp.h\"",
+          "before": "#include \"../modules2/osc_out/dsp.h\"",
+          "line": 23
+        },
+        {
+          "after": "#include \"../../modules/output/dsp.h\"",
+          "before": "#include \"../modules2/output/dsp.h\"",
+          "line": 24
+        },
+        {
+          "after": "#include \"../../modules/quad_vca/dsp.h\"",
+          "before": "#include \"../modules2/quad_vca/dsp.h\"",
+          "line": 25
+        },
+        {
+          "after": "#include \"../../modules/quantizer/dsp.h\"",
+          "before": "#include \"../modules2/quantizer/dsp.h\"",
+          "line": 26
+        },
+        {
+          "after": "#include \"../../modules/resonator/dsp.h\"",
+          "before": "#include \"../modules2/resonator/dsp.h\"",
+          "line": 27
+        },
+        {
+          "after": "#include \"../../modules/reverb/dsp.h\"",
+          "before": "#include \"../modules2/reverb/dsp.h\"",
+          "line": 28
+        },
+        {
+          "after": "#include \"../../modules/scale_offset/dsp.h\"",
+          "before": "#include \"../modules2/scale_offset/dsp.h\"",
+          "line": 29
+        },
+        {
+          "after": "#include \"../../modules/slew/dsp.h\"",
+          "before": "#include \"../modules2/slew/dsp.h\"",
+          "line": 30
+        },
+        {
+          "after": "#include \"../../modules/spectral/dsp.h\"",
+          "before": "#include \"../modules2/spectral/dsp.h\"",
+          "line": 31
+        },
+        {
+          "after": "#include \"../../modules/vca/dsp.h\"",
+          "before": "#include \"../modules2/vca/dsp.h\"",
+          "line": 32
+        },
+        {
+          "after": "#include \"../../modules/vcf/dsp.h\"",
+          "before": "#include \"../modules2/vcf/dsp.h\"",
+          "line": 33
+        },
+        {
+          "after": "#include \"../../modules/vco/dsp.h\"",
+          "before": "#include \"../modules2/vco/dsp.h\"",
+          "line": 34
+        },
+        {
+          "after": "#include \"../../sdk/examples/random_source/dsp.h\"",
+          "before": "#include \"../sdk/examples/random_source/dsp.h\"",
+          "line": 35
+        },
+        {
+          "after": "#include \"../../sdk/examples/step_sequencer/dsp.h\"",
+          "before": "#include \"../sdk/examples/step_sequencer/dsp.h\"",
+          "line": 36
+        }
+      ],
+      "source": "native/control/module_catalog.h",
+      "source_sha256": "65f3bb7f98f8832284fdf34c36e0d6695ca2873267b32290faae3b1a268ed407"
+    },
+    {
+      "destination": "engine/control/monitor_capture.h",
+      "replacements": [
+        {
+          "after": "#include \"../../host/osc/codec.h\"",
+          "before": "#include \"../io/osc/codec.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/control/monitor_capture.h",
+      "source_sha256": "67887c64f21346d254c9212a44ede52aa6118366bed65839516f090cf1b49bba"
+    },
+    {
+      "destination": "engine/control/osc_host.h",
+      "replacements": [
+        {
+          "after": "#include \"../../host/net/osc_service.h\"",
+          "before": "#include \"../io/net/osc_service.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../host/osc/pattern.h\"",
+          "before": "#include \"../io/osc/pattern.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/control/osc_host.h",
+      "source_sha256": "a82539f878ecb9f46fb8c948e0a739ad676b8591949eef3e518ca0a7d46b2882"
+    },
+    {
+      "destination": "engine/control/osc_out_host.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/document/runtime_module_config.h\"",
+          "before": "#include \"../document/runtime_module_config.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../host/osc/codec.h\"",
+          "before": "#include \"../io/osc/codec.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/control/osc_out_host.cpp",
+      "source_sha256": "89b720e305263d3b68d3b2e4574a1d456c7fca8310ea46f9dd38ecc22263293f"
+    },
+    {
+      "destination": "engine/control/osc_out_host.h",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/osc_out/config.h\"",
+          "before": "#include \"../modules2/osc_out/config.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/control/osc_out_host.h",
+      "source_sha256": "10ff724f6460c0636dc0e1bee955ac7b52aadb9c348fd4b2d00ecf8c61bae1e6"
+    },
+    {
+      "destination": "host/document/builtin_source_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/document/builtin_source_tests.cpp",
+      "source_sha256": "f4338f68152786d83484e75186973034faffac2fe02a7ee8966c2d44a8480f67"
+    },
+    {
+      "destination": "host/document/groove_observation_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/groove/dsp.h\"",
+          "before": "#include \"../modules2/groove/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../engine2/engine2.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/document/groove_observation_tests.cpp",
+      "source_sha256": "f0f200d701596f0bed2dfc5313b3ff9ed45aa35b40945e47c29313f6bf1a17cb"
+    },
+    {
+      "destination": "host/document/groove_runtime_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/groove/dsp.h\"",
+          "before": "#include \"../modules2/groove/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/test_modules.h\"",
+          "before": "#include \"../tests2/test_modules.h\"",
+          "line": 5
+        }
+      ],
+      "source": "native/document/groove_runtime_tests.cpp",
+      "source_sha256": "df471d8d5771d6b3b01f85c39c4e77869c64326b4fbe9678b7897197ba85d3db"
+    },
+    {
+      "destination": "host/document/qt_free_patch_coverage_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../engine2/engine2.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/frozen_reference.h\"",
+          "before": "#include \"../tests2/frozen_reference.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/document/qt_free_patch_coverage_tests.cpp",
+      "source_sha256": "728bfb04a73f577bdcd49ac124ca69a316fef234ff10204aa36adab0274764b3"
+    },
+    {
+      "destination": "host/document/runtime_module_config.h",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/groove/config.h\"",
+          "before": "#include \"../modules2/groove/config.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../modules/midi_cc_to_cv/config.h\"",
+          "before": "#include \"../modules2/midi_cc_to_cv/config.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../modules/osc_in/config.h\"",
+          "before": "#include \"../modules2/osc_in/config.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../../modules/osc_out/config.h\"",
+          "before": "#include \"../modules2/osc_out/config.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/document/runtime_module_config.h",
+      "source_sha256": "2e05b62ea638dd8a5b6d92e7c9827c047f07445aecd0963c80f71d16dbd0bda1"
+    },
+    {
+      "destination": "host/document/runtime_patch_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../engine2/engine2.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/document/runtime_patch_tests.cpp",
+      "source_sha256": "d9ea088ccf9e3c6378fcf10c267d40d1237f0a4c81685de8b895f89ae336a46e"
+    },
+    {
+      "destination": "engine/tests/benchmark.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/dsp_fixture.h\"",
+          "before": "#include \"../../tests2/dsp_fixture.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/engine2/tests/benchmark.cpp",
+      "source_sha256": "56d62f70f3d895262184a2f4e395cf62b75055572c8852ee3fdcf309ed5a9f27"
+    },
+    {
+      "destination": "engine/tests/benchmark_graph.h",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/dsp_fixture.h\"",
+          "before": "#include \"../../tests2/dsp_fixture.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/engine2/tests/benchmark_graph.h",
+      "source_sha256": "53d3e763d76c588e6c1a86da763bd1360966e7c8607a3fdb056da3feba1fb674"
+    },
+    {
+      "destination": "engine/tests/cost_probe.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/quad_vca/dsp.h\"",
+          "before": "#include \"../../modules2/quad_vca/dsp.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/engine2/tests/cost_probe.cpp",
+      "source_sha256": "02ac152b86592abfbb8fa773531ea7ca65d2e453715453039a78a31faa61093c"
+    },
+    {
+      "destination": "engine/tests/engine_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/lfo/dsp.h\"",
+          "before": "#include \"../../modules2/lfo/dsp.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../modules/vco/dsp.h\"",
+          "before": "#include \"../../modules2/vco/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/test_modules.h\"",
+          "before": "#include \"../../tests2/test_modules.h\"",
+          "line": 5
+        }
+      ],
+      "source": "native/engine2/tests/engine_tests.cpp",
+      "source_sha256": "fda7b92b97c5c57cbc7855e82c2be6502de51c1627f6c9efe613410f0f0a51b7"
+    },
+    {
+      "destination": "engine/tests/module_cpu_probe.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 7
+        }
+      ],
+      "source": "native/engine2/tests/module_cpu_probe.cpp",
+      "source_sha256": "b52687d7db542775a7be92afbd1db76e6977a05837d1cf27990de1800cf261da"
+    },
+    {
+      "destination": "engine/tests/panic_stress.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/test_modules.h\"",
+          "before": "#include \"../../tests2/test_modules.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/engine2/tests/panic_stress.cpp",
+      "source_sha256": "e258ff435f7f1cb9c12bfc640a5a23e93264b830016be03e647d11b3734cb3cd"
+    },
+    {
+      "destination": "engine/tests/port_behavior_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/dsp_fixture.h\"",
+          "before": "#include \"../../tests2/dsp_fixture.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/engine2/tests/port_behavior_tests.cpp",
+      "source_sha256": "fc6a60634d7a4ab822e5f4dd8ed4493cfb88fe27beb5421fc119e2cfa6afe5a3"
+    },
+    {
+      "destination": "engine/tests/soak.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../modules/noise/dsp.h\"",
+          "before": "#include \"../../modules2/noise/dsp.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../modules/clock/dsp.h\"",
+          "before": "#include \"../../modules2/clock/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../modules/function_envelope/dsp.h\"",
+          "before": "#include \"../../modules2/function_envelope/dsp.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../modules/slew/dsp.h\"",
+          "before": "#include \"../../modules2/slew/dsp.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../../modules/ladder/dsp.h\"",
+          "before": "#include \"../../modules2/ladder/dsp.h\"",
+          "line": 6
+        },
+        {
+          "after": "#include \"../../modules/output/dsp.h\"",
+          "before": "#include \"../../modules2/output/dsp.h\"",
+          "line": 7
+        },
+        {
+          "after": "#include \"../../modules/adsr/dsp.h\"",
+          "before": "#include \"../../modules2/adsr/dsp.h\"",
+          "line": 8
+        },
+        {
+          "after": "#include \"../../modules/vca/dsp.h\"",
+          "before": "#include \"../../modules2/vca/dsp.h\"",
+          "line": 9
+        },
+        {
+          "after": "#include \"../../modules/vcf/dsp.h\"",
+          "before": "#include \"../../modules2/vcf/dsp.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../modules/vco/dsp.h\"",
+          "before": "#include \"../../modules2/vco/dsp.h\"",
+          "line": 11
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 12
+        }
+      ],
+      "source": "native/engine2/tests/soak.cpp",
+      "source_sha256": "9f84c7bc69143c555f701f6fd3c21f3db3d3dc365d6ab10fe9a05a8857fa5962"
+    },
+    {
+      "destination": "engine/tests/staged_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/dsp_fixture.h\"",
+          "before": "#include \"../../tests2/dsp_fixture.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/test_modules.h\"",
+          "before": "#include \"../../tests2/test_modules.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/engine2/tests/staged_tests.cpp",
+      "source_sha256": "4eb91d0ffa8c24c9c4a9f4c5642938b8eb352b823bbe75e3ef851899ffcb5c3b"
+    },
+    {
+      "destination": "host/audio/callback_live_midi_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/io/audio/callback_live_midi_tests.cpp",
+      "source_sha256": "5fc1821732e67407f42fc0fd7b5a1111bfcc63c4afb454e2a7a0616d96de6a46"
+    },
+    {
+      "destination": "host/audio/fake_portaudio_stream_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../third_party/portaudio/portaudio.h\"",
+          "before": "#include \"../../third_party/portaudio/portaudio.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/io/audio/fake_portaudio_stream_tests.cpp",
+      "source_sha256": "4e23f0dbcdfb15e2d132cf8c3bdcbf62c6e9477f2bdd3b19fd0d1113b082b448"
+    },
+    {
+      "destination": "host/audio/portaudio_service.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../third_party/portaudio/portaudio.h\"",
+          "before": "#include \"../../third_party/portaudio/portaudio.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/io/audio/portaudio_service.cpp",
+      "source_sha256": "5095b9323ffc226a4e116ac43c20f623e6b484dac459959b8684055cec51bc68"
+    },
+    {
+      "destination": "host/audio/stream_lifecycle_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../document/runtime_patch.h\"",
+          "before": "#include \"../../document/runtime_patch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/io/audio/stream_lifecycle_tests.cpp",
+      "source_sha256": "57185e00babb6a2924e6292830aa4569b1772e8aebe9ecec7f06576bdc40e798"
+    },
+    {
+      "destination": "host/midi/midi_service.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/midi_release.h\"",
+          "before": "#include \"../../engine2/midi_release.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/io/midi/midi_service.cpp",
+      "source_sha256": "87fb6fa34058f44332f8ec2f8fe8f70cd6b8af092f95a501169fa6fbcfce7982"
+    },
+    {
+      "destination": "host/midi/module_test_support.h",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/io/midi/module_test_support.h",
+      "source_sha256": "9df4f6b40f3af37c184d1581c9890904195f609524764b90616e69fc445a48cd"
+    },
+    {
+      "destination": "host/midi/service_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/io/midi/service_tests.cpp",
+      "source_sha256": "59945a3a7545fc0a32258896d69a5643303f5e3a5d770de089380832a6f07cff"
+    },
+    {
+      "destination": "host/net/graph_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/io/net/graph_tests.cpp",
+      "source_sha256": "f53d18ad7c0f597ef1d57de2ed9e5b589e6f53239d8b7c9193b6e59f2cb28284"
+    },
+    {
+      "destination": "modules/blend/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/blend/tests.cpp",
+      "source_sha256": "8f0be0f7e1c9f2a390ca435e28cacdc62c7ecde130fc9b83096aec14f3af2a94"
+    },
+    {
+      "destination": "modules/chaos_lite/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/chaos_lite/tests.cpp",
+      "source_sha256": "397b872da9bc47cd0089f9c86846031125661144bd5c711f93d026b45528a66b"
+    },
+    {
+      "destination": "modules/chord/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 8
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/test_modules.h\"",
+          "before": "#include \"../../tests2/test_modules.h\"",
+          "line": 11
+        }
+      ],
+      "source": "native/modules2/chord/tests.cpp",
+      "source_sha256": "58f1185f54b40bae1422a5aa51b060109af05bd7db4069cca0899fffdca37a80"
+    },
+    {
+      "destination": "modules/clock/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/clock/tests.cpp",
+      "source_sha256": "4b1082fa988315a633052ff099379be324785fe2fd79b830df9672100778e803"
+    },
+    {
+      "destination": "modules/delay/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/delay/tests.cpp",
+      "source_sha256": "795cea1beb34a86ceae1dd476b9a9c16919b0747b7278901757a158675bd47b5"
+    },
+    {
+      "destination": "modules/function_envelope/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/function_envelope/tests.cpp",
+      "source_sha256": "34e1fab119245f86bcc1a4092f030070dc2d316a5a89037a167e69f3f8b9ae80"
+    },
+    {
+      "destination": "modules/host_keyboard/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/voice/note_to_cv.h\"",
+          "before": "#include \"../../voice/note_to_cv.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/host_keyboard/dsp.h",
+      "source_sha256": "37a6cda3d1caf0ef3d04c5f0d61af3751a18dcb702d07f7f48d1c14adb277285"
+    },
+    {
+      "destination": "modules/host_keyboard/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/host_keyboard/tests.cpp",
+      "source_sha256": "60e3e20c7df2565ce35bd83739f0598b165806900b8935f8b9ae4bcefec62671"
+    },
+    {
+      "destination": "modules/ladder/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/ladder/tests.cpp",
+      "source_sha256": "3e5c646d80cb7cebfc95422fa691a4660fbceab747a40fb8f670043ca72990d2"
+    },
+    {
+      "destination": "modules/macro_oscillator/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/macro_oscillator/tests.cpp",
+      "source_sha256": "1b1c2b54594e83afcffd804ef6d129f424121060e52bf432359a4454e0816573"
+    },
+    {
+      "destination": "modules/midi_cc_to_cv/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/midi_cc_to_cv/tests.cpp",
+      "source_sha256": "4ebe2ee792176a537cb9cb1e11d936ff9e09e8939e3803150b948d770de3267d"
+    },
+    {
+      "destination": "modules/midi_in/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/midi_release.h\"",
+          "before": "#include \"../../engine2/midi_release.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/midi_in/dsp.h",
+      "source_sha256": "3dc282691dfc751c11543e293b2bc8556e830e50c995982fe698927b847560ea"
+    },
+    {
+      "destination": "modules/midi_in/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/midi_in/tests.cpp",
+      "source_sha256": "1d7316d8a3f82b89b12252ae6780f26a402b5c808e2e9b8ffcc6ce9b0a061dbf"
+    },
+    {
+      "destination": "modules/midi_to_cv/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/voice/note_to_cv.h\"",
+          "before": "#include \"../../voice/note_to_cv.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/midi_to_cv/dsp.h",
+      "source_sha256": "1396f8ad30e4aa119ae26f5faa5a53f3bf565ab084b2633c9e9a946c068320c8"
+    },
+    {
+      "destination": "modules/midi_to_cv/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/midi_to_cv/tests.cpp",
+      "source_sha256": "7d2a9999a76e99c2677ca42236a2b20bb696a503c41ca5e20a72b162b0203b55"
+    },
+    {
+      "destination": "modules/mixer/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/mixer/tests.cpp",
+      "source_sha256": "74b837c12e44b3f1027c7bdd84a409f89968d2d56f0b92272ace21a4f86e080d"
+    },
+    {
+      "destination": "modules/monitor/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../host/osc/codec.h\"",
+          "before": "#include \"../../io/osc/codec.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/monitor/dsp.h",
+      "source_sha256": "11a134fbed947ab64f538eed7bdff1cfd380a819ea5d7396d2d1b468521b9b09"
+    },
+    {
+      "destination": "modules/monitor/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/modules2/monitor/tests.cpp",
+      "source_sha256": "b548c00fa155ac5efe731667aa3390c17d87e356dc0b8835f4b4e933a3abd17f"
+    },
+    {
+      "destination": "modules/noise/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/noise/tests.cpp",
+      "source_sha256": "7a0ce42197f28701cfd5ff08f78769fc0c55341a27a81264d69dc1f9c5bc0785"
+    },
+    {
+      "destination": "modules/notes_to_cv/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/voice/note_to_cv.h\"",
+          "before": "#include \"../../voice/note_to_cv.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/notes_to_cv/dsp.h",
+      "source_sha256": "1ddc06b91feea12a6c32ed530a6bd0cebae8a68493b5501ecd97b965eec3e685"
+    },
+    {
+      "destination": "modules/notes_to_cv/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 2
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/notes_to_cv/tests.cpp",
+      "source_sha256": "c3da5e876495e2363c9abc5f86ab5965e0f219e9a96770591c3ec34e67e8eac4"
+    },
+    {
+      "destination": "modules/osc_in/dsp.h",
+      "replacements": [
+        {
+          "after": "#include \"../../host/osc/codec.h\"",
+          "before": "#include \"../../io/osc/codec.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../host/osc/pattern.h\"",
+          "before": "#include \"../../io/osc/pattern.h\"",
+          "line": 11
+        }
+      ],
+      "source": "native/modules2/osc_in/dsp.h",
+      "source_sha256": "8b6933715fa0fdf5558758633ef43e935135b70d86e5fac1d6e60bbc248d6b10"
+    },
+    {
+      "destination": "modules/osc_in/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/modules2/osc_in/tests.cpp",
+      "source_sha256": "2ada3b01cd762edd415b5428869a6934b49fd75e0604d6488dbdca2166edce4f"
+    },
+    {
+      "destination": "modules/osc_out/config.h",
+      "replacements": [
+        {
+          "after": "#include \"../../host/osc/out_bus.h\"",
+          "before": "#include \"../../io/osc/out_bus.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/osc_out/config.h",
+      "source_sha256": "ea5a95b42811483e5603fceaf2e3faf608432c9873f2145b78c2a3a83d8f8410"
+    },
+    {
+      "destination": "modules/osc_out/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/midi/module_test_support.h\"",
+          "before": "#include \"../../io/midi/module_test_support.h\"",
+          "line": 2
+        }
+      ],
+      "source": "native/modules2/osc_out/tests.cpp",
+      "source_sha256": "b74b364c1eb5704ff087e6e0eefb141127f4332f30e95d52efbfe2b05de72f73"
+    },
+    {
+      "destination": "modules/output/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../engine/engine2.h\"",
+          "before": "#include \"../../engine2/engine2.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/output/tests.cpp",
+      "source_sha256": "4e260f971f2515971a18691768f18072df394718193f5aff68c35b45f0218f03"
+    },
+    {
+      "destination": "modules/quad_vca/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/quad_vca/tests.cpp",
+      "source_sha256": "7f819ace1354be63679ff4115c6a44873f2b09e24e9fc00d53f982c15b41121e"
+    },
+    {
+      "destination": "modules/quantizer/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 5
+        }
+      ],
+      "source": "native/modules2/quantizer/tests.cpp",
+      "source_sha256": "492c9aacdb64a100bdc594789d1d3168b054bb90163fa1575af64d37122524d8"
+    },
+    {
+      "destination": "modules/resonator/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/resonator/tests.cpp",
+      "source_sha256": "0dd4bd53d87b5c463776722a896605b7f6fbd178454071e84a637a6cfd6867c0"
+    },
+    {
+      "destination": "modules/reverb/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/reverb/tests.cpp",
+      "source_sha256": "3d0f9b89b9a891a5de924d0e7c4001804548a362642433f7848a46a885fcb7a1"
+    },
+    {
+      "destination": "modules/scale_offset/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/scale_offset/tests.cpp",
+      "source_sha256": "c7c07be53c1e4f3434aee0b6d4c270a2bcff9aae7a5052f860803805b260a7ef"
+    },
+    {
+      "destination": "modules/slew/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/utility_port_tests.h\"",
+          "before": "#include \"../../tests2/utility_port_tests.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/slew/tests.cpp",
+      "source_sha256": "ebea6f1e87135e9fa9373f023442682bdfa2312237fb0c2763206e4d53d8d8d0"
+    },
+    {
+      "destination": "modules/spectral/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../tests2/allocation_watch.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/modules2/spectral/tests.cpp",
+      "source_sha256": "6f65261624197b5bc184625719905bff68845b9b071e641ba30ec826fff3bab5"
+    },
+    {
+      "destination": "sdk/examples/random_source/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../../tests2/allocation_watch.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/sdk/examples/random_source/tests.cpp",
+      "source_sha256": "28f2fbec551705a5e2e6b14f9debfe6c18c1a0e23767979d2a15e467a9e4c8ec"
+    },
+    {
+      "destination": "sdk/examples/step_sequencer/tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../../../tests2/allocation_watch.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/sdk/examples/step_sequencer/tests.cpp",
+      "source_sha256": "eaae19583bef3b8d0ff8b59b0d4810bfaa1435994e63a62febcd234c5e27714c"
+    },
+    {
+      "destination": "host/sidecar/audio_recovery_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../osc/codec.h\"",
+          "before": "#include \"../io/osc/codec.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../modules/osc_out/dsp.h\"",
+          "before": "#include \"../modules2/osc_out/dsp.h\"",
+          "line": 11
+        }
+      ],
+      "source": "native/sidecar/audio_recovery_tests.cpp",
+      "source_sha256": "f699fa7f9e6d2226538c599ddfd9dbef03cc7ce72a38b85ceba75d98b6684e93"
+    },
+    {
+      "destination": "host/sidecar/devices.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../audio/portaudio_service.h\"",
+          "before": "#include \"../io/audio/portaudio_service.h\"",
+          "line": 3
+        }
+      ],
+      "source": "native/sidecar/devices.cpp",
+      "source_sha256": "c0ac0dea5e6123bd199ceffb0df17106c530e79645abaec8436237afa9441657"
+    },
+    {
+      "destination": "host/sidecar/devices.h",
+      "replacements": [
+        {
+          "after": "#include \"../audio/portaudio_service.h\"",
+          "before": "#include \"../io/audio/portaudio_service.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/sidecar/devices.h",
+      "source_sha256": "5d7f3b7c8aab23824ae0dcd80dcfdc7043705baf958e79e303e25ad15a0a4f17"
+    },
+    {
+      "destination": "host/sidecar/protocol_unit_tests.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../audio/callback_render.h\"",
+          "before": "#include \"../io/audio/callback_render.h\"",
+          "line": 7
+        },
+        {
+          "after": "#include \"../audio/portaudio_service.h\"",
+          "before": "#include \"../io/audio/portaudio_service.h\"",
+          "line": 8
+        },
+        {
+          "after": "#include \"../../tests/native/abi2/allocation_watch.h\"",
+          "before": "#include \"../tests2/allocation_watch.h\"",
+          "line": 9
+        }
+      ],
+      "source": "native/sidecar/protocol_unit_tests.cpp",
+      "source_sha256": "0b6c61d9734bbdf00745cdd2e02f5127382b4cd4c1ea632e96185fd79e5cdfd3"
+    },
+    {
+      "destination": "host/sidecar/session.h",
+      "replacements": [
+        {
+          "after": "#include \"../../engine/control/osc_out_host.h\"",
+          "before": "#include \"../control/osc_out_host.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../audio/engine_slot.h\"",
+          "before": "#include \"../io/audio/engine_slot.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../audio/portaudio_service.h\"",
+          "before": "#include \"../io/audio/portaudio_service.h\"",
+          "line": 6
+        }
+      ],
+      "source": "native/sidecar/session.h",
+      "source_sha256": "571425fc9cf59839334c43ecc849425e9197a3ef5629f0258db4648564f44369"
+    },
+    {
+      "destination": "tests/native/abi2/dsp_fixture.h",
+      "replacements": [
+        {
+          "after": "#include \"../../../modules/vco/dsp.h\"",
+          "before": "#include \"../modules2/vco/dsp.h\"",
+          "line": 3
+        },
+        {
+          "after": "#include \"../../../modules/lfo/dsp.h\"",
+          "before": "#include \"../modules2/lfo/dsp.h\"",
+          "line": 4
+        },
+        {
+          "after": "#include \"../../../modules/vcf/dsp.h\"",
+          "before": "#include \"../modules2/vcf/dsp.h\"",
+          "line": 5
+        },
+        {
+          "after": "#include \"../../../modules/adsr/dsp.h\"",
+          "before": "#include \"../modules2/adsr/dsp.h\"",
+          "line": 6
+        },
+        {
+          "after": "#include \"../../../modules/vca/dsp.h\"",
+          "before": "#include \"../modules2/vca/dsp.h\"",
+          "line": 7
+        },
+        {
+          "after": "#include \"../../../modules/clock/dsp.h\"",
+          "before": "#include \"../modules2/clock/dsp.h\"",
+          "line": 8
+        },
+        {
+          "after": "#include \"../../../modules/ladder/dsp.h\"",
+          "before": "#include \"../modules2/ladder/dsp.h\"",
+          "line": 9
+        },
+        {
+          "after": "#include \"../../../modules/function_envelope/dsp.h\"",
+          "before": "#include \"../modules2/function_envelope/dsp.h\"",
+          "line": 10
+        },
+        {
+          "after": "#include \"../../../modules/mixer/dsp.h\"",
+          "before": "#include \"../modules2/mixer/dsp.h\"",
+          "line": 11
+        },
+        {
+          "after": "#include \"../../../modules/slew/dsp.h\"",
+          "before": "#include \"../modules2/slew/dsp.h\"",
+          "line": 12
+        },
+        {
+          "after": "#include \"../../../modules/scale_offset/dsp.h\"",
+          "before": "#include \"../modules2/scale_offset/dsp.h\"",
+          "line": 13
+        },
+        {
+          "after": "#include \"../../../modules/output/dsp.h\"",
+          "before": "#include \"../modules2/output/dsp.h\"",
+          "line": 14
+        },
+        {
+          "after": "#include \"../../../modules/noise/dsp.h\"",
+          "before": "#include \"../modules2/noise/dsp.h\"",
+          "line": 15
+        }
+      ],
+      "source": "native/tests2/dsp_fixture.h",
+      "source_sha256": "1f5ae05626a7a1092c2f11cc8a1004f4dbe421ac73865759636b4632aefec3b1"
+    },
+    {
+      "destination": "tests/native/abi2/test_modules.h",
+      "replacements": [
+        {
+          "after": "#include \"../../../engine/voice/allocator.h\"",
+          "before": "#include \"../voice/allocator.h\"",
+          "line": 4
+        }
+      ],
+      "source": "native/tests2/test_modules.h",
+      "source_sha256": "338bd2fba2d772de51b7a79c4d3986fb47c2133af46fd0ed185a330157ea48f6"
+    },
+    {
+      "destination": "targets/web/web_engine.cpp",
+      "replacements": [
+        {
+          "after": "#include \"../../host/document/telemetry_taps.h\"",
+          "before": "#include \"../document/telemetry_taps.h\"",
+          "line": 8
+        }
+      ],
+      "source": "native/web/web_engine.cpp",
+      "source_sha256": "aa998697d5c98081b9fcdf660d70b8d86c50758109f46d0da6cc6b3dce506178"
+    },
+    {
+      "destination": "host/document/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(groove_observation_tests groove_observation_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(groove_observation_tests groove_observation_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 13
+        },
+        {
+          "after": "add_executable(groove_runtime_tests groove_runtime_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(groove_runtime_tests groove_runtime_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 16
+        },
+        {
+          "after": "add_executable(runtime_patch_tests runtime_patch_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(runtime_patch_tests runtime_patch_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 20
+        },
+        {
+          "after": "add_test(NAME abi2_runtime_patch_tests COMMAND runtime_patch_tests \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")",
+          "before": "add_test(NAME abi2_runtime_patch_tests COMMAND runtime_patch_tests \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+          "line": 22
+        },
+        {
+          "after": "add_executable(qt_free_patch_coverage_tests qt_free_patch_coverage_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(qt_free_patch_coverage_tests qt_free_patch_coverage_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 25
+        },
+        {
+          "after": "  \"${PROJECT_SOURCE_DIR}/../host/examples\" \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")",
+          "before": "  \"${PROJECT_SOURCE_DIR}/examples\" \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+          "line": 28
+        },
+        {
+          "after": "add_executable(builtin_source_tests builtin_source_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(builtin_source_tests builtin_source_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 30
+        },
+        {
+          "after": "add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/../host/cli/play_tests.py $<TARGET_FILE:wirescape_cli> \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\")",
+          "before": "add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cli/play_tests.py $<TARGET_FILE:wirescape_cli> \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\")",
+          "line": 42
+        },
+        {
+          "after": "add_test(NAME class_demo_cc_depth COMMAND class_demo_cc_depth_tests \"${PROJECT_SOURCE_DIR}/../host/examples\")",
+          "before": "add_test(NAME class_demo_cc_depth COMMAND class_demo_cc_depth_tests \"${PROJECT_SOURCE_DIR}/examples\")",
+          "line": 50
+        },
+        {
+          "after": "add_executable(golden_render ../../tests/native/compat/golden_render.cpp)",
+          "before": "add_executable(golden_render ../tests/golden_render.cpp)",
+          "line": 59
+        }
+      ],
+      "source": "native/document/CMakeLists.txt",
+      "source_sha256": "fb3e38c012df1a3961abaadcb765b2f9190eedd93093089737f8ef1a12d372c8"
+    },
+    {
+      "destination": "engine/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "target_include_directories(wirescape_sdk2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../host/include)",
+          "before": "target_include_directories(wirescape_sdk2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk ${CMAKE_CURRENT_SOURCE_DIR}/../include)",
+          "line": 4
+        },
+        {
+          "after": "target_include_directories(abi2_header_c99 PRIVATE ../sdk/include)",
+          "before": "target_include_directories(abi2_header_c99 PRIVATE ../include)",
+          "line": 7
+        },
+        {
+          "after": "add_library(wirescape_voice2 STATIC voice/allocator.cpp)",
+          "before": "add_library(wirescape_voice2 STATIC ../voice/allocator.cpp)",
+          "line": 17
+        },
+        {
+          "after": "target_include_directories(wirescape_voice2 PUBLIC voice)",
+          "before": "target_include_directories(wirescape_voice2 PUBLIC ../voice)",
+          "line": 19
+        },
+        {
+          "after": "add_executable(abi2_voice_tests voice/tests.cpp)",
+          "before": "add_executable(abi2_voice_tests ../voice/tests.cpp)",
+          "line": 21
+        },
+        {
+          "after": "add_executable(abi2_note_identity_tests voice/note_identity_tests.cpp)",
+          "before": "add_executable(abi2_note_identity_tests ../voice/note_identity_tests.cpp)",
+          "line": 24
+        },
+        {
+          "after": "target_sources(abi2_engine_tests PRIVATE ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "target_sources(abi2_engine_tests PRIVATE ../tests2/allocation_watch.cpp)",
+          "line": 40
+        },
+        {
+          "after": "add_executable(abi2_module_tests ../tests/native/abi2/module_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_module_tests ../tests2/module_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 41
+        },
+        {
+          "after": "  add_executable(abi2_${mode}_ports ../tests/native/abi2/module_tests.cpp)",
+          "before": "  add_executable(abi2_${mode}_ports ../tests2/module_tests.cpp)",
+          "line": 45
+        },
+        {
+          "after": "file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)",
+          "before": "file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)",
+          "line": 62
+        },
+        {
+          "after": "add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark.json)",
+          "before": "add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark.json)",
+          "line": 63
+        },
+        {
+          "after": "    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark_${frames}.json --block ${frames})",
+          "before": "    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2/benchmark_${frames}.json --block ${frames})",
+          "line": 66
+        },
+        {
+          "after": "add_executable(abi2_integration_tests ../tests/native/abi2/integration_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_integration_tests ../tests2/integration_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 68
+        },
+        {
+          "after": "add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)",
+          "before": "add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../../build_reports/abi2)",
+          "line": 70
+        },
+        {
+          "after": "  add_library(ws2_test_${module} SHARED ../tests/native/abi2/${module}_module.cpp)",
+          "before": "  add_library(ws2_test_${module} SHARED ../tests2/${module}_module.cpp)",
+          "line": 72
+        },
+        {
+          "after": "add_executable(abi2_guide_tests ../tests/native/abi2/guide_ringmod/tests.cpp)",
+          "before": "add_executable(abi2_guide_tests ../tests2/guide_ringmod/tests.cpp)",
+          "line": 75
+        },
+        {
+          "after": "add_library(ws2_guide_ringmod SHARED ../tests/native/abi2/guide_ringmod/module.cpp)",
+          "before": "add_library(ws2_guide_ringmod SHARED ../tests2/guide_ringmod/module.cpp)",
+          "line": 78
+        },
+        {
+          "after": "  add_executable(abi2_example_${example}_tests ../sdk/examples/${example}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "  add_executable(abi2_example_${example}_tests ../sdk/examples/${example}/tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 83
+        },
+        {
+          "after": "add_library(ws2_groove SHARED ../modules/groove/module.cpp)",
+          "before": "add_library(ws2_groove SHARED ../modules2/groove/module.cpp)",
+          "line": 90
+        },
+        {
+          "after": "add_library(ws2_host_keyboard SHARED ../modules/host_keyboard/module.cpp)",
+          "before": "add_library(ws2_host_keyboard SHARED ../modules2/host_keyboard/module.cpp)",
+          "line": 92
+        },
+        {
+          "after": "add_executable(abi2_osc_codec_tests ../host/osc/tests.cpp)",
+          "before": "add_executable(abi2_osc_codec_tests ../io/osc/tests.cpp)",
+          "line": 96
+        },
+        {
+          "after": "  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)",
+          "before": "  add_library(ws2_${module} SHARED ../modules2/${module}/module.cpp)",
+          "line": 100
+        },
+        {
+          "after": "  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "  add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 102
+        },
+        {
+          "after": "  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)",
+          "before": "  add_library(ws2_${module} SHARED ../modules2/${module}/module.cpp)",
+          "line": 109
+        },
+        {
+          "after": "add_executable(wirescape_soak tests/soak.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(wirescape_soak tests/soak.cpp ../tests2/allocation_watch.cpp)",
+          "line": 126
+        },
+        {
+          "after": "add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 136
+        },
+        {
+          "after": "add_executable(abi2_staged_tests tests/staged_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_staged_tests tests/staged_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 139
+        },
+        {
+          "after": "add_executable(abi2_live_replan_tests ../tests/native/abi2/live_replan_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_live_replan_tests ../tests2/live_replan_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 142
+        },
+        {
+          "after": "  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "  add_executable(abi2_${module}_tests ../modules2/${module}/tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 148
+        },
+        {
+          "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_reference_hash_manifest.json\")",
+          "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_reference_hash_manifest.json\")",
+          "line": 172
+        },
+        {
+          "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/refs\")",
+          "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/refs\")",
+          "line": 174
+        },
+        {
+          "after": "  \"${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_s4_qt_free_96000.json\")",
+          "before": "  \"${CMAKE_SOURCE_DIR}/tests/fixtures/abi2/abi1_s4_qt_free_96000.json\")",
+          "line": 176
+        },
+        {
+          "after": "add_executable(abi2_returned_filter_stress ../tests/native/abi2/abi2_returned_filter_stress.cpp)",
+          "before": "add_executable(abi2_returned_filter_stress ../tests2/abi2_returned_filter_stress.cpp)",
+          "line": 208
+        },
+        {
+          "after": "add_subdirectory(../host/midi midi_io)",
+          "before": "add_subdirectory(../io/midi midi_io)",
+          "line": 247
+        },
+        {
+          "after": "add_subdirectory(../modules/macro_oscillator macro_oscillator)",
+          "before": "add_subdirectory(../modules2/macro_oscillator macro_oscillator)",
+          "line": 248
+        },
+        {
+          "after": "add_library(wirescape_app_engine STATIC control/app_engine.cpp)",
+          "before": "add_library(wirescape_app_engine STATIC ../control/app_engine.cpp)",
+          "line": 250
+        },
+        {
+          "after": "target_include_directories(wirescape_app_engine PUBLIC control)",
+          "before": "target_include_directories(wirescape_app_engine PUBLIC ../control)",
+          "line": 251
+        },
+        {
+          "after": "add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests2/allocation_watch.cpp)",
+          "line": 259
+        },
+        {
+          "after": "add_executable(abi2_host_keyboard_tests ../modules/host_keyboard/tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_host_keyboard_tests ../modules2/host_keyboard/tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 276
+        },
+        {
+          "after": "add_library(wirescape_audio_service STATIC ../host/audio/portaudio_service.cpp ../host/audio/device_identity.cpp)",
+          "before": "add_library(wirescape_audio_service STATIC ../io/audio/portaudio_service.cpp ../io/audio/device_identity.cpp)",
+          "line": 280
+        },
+        {
+          "after": "add_library(qt_free_fake_portaudio SHARED ../host/audio/fake_portaudio_stream_tests.cpp)",
+          "before": "add_library(qt_free_fake_portaudio SHARED ../io/audio/fake_portaudio_stream_tests.cpp)",
+          "line": 284
+        },
+        {
+          "after": "add_executable(qt_free_stream_lifecycle_tests ../host/audio/stream_lifecycle_tests.cpp)",
+          "before": "add_executable(qt_free_stream_lifecycle_tests ../io/audio/stream_lifecycle_tests.cpp)",
+          "line": 298
+        },
+        {
+          "after": "add_executable(audio_callback_live_midi_tests ../host/audio/callback_live_midi_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(audio_callback_live_midi_tests ../io/audio/callback_live_midi_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 309
+        },
+        {
+          "after": "target_sources(wirescape_cli PRIVATE ../host/cli/play.cpp)",
+          "before": "target_sources(wirescape_cli PRIVATE ../cli/play.cpp)",
+          "line": 314
+        },
+        {
+          "after": "add_library(wirescape_midi_host STATIC control/midi_host.cpp)",
+          "before": "add_library(wirescape_midi_host STATIC ../control/midi_host.cpp)",
+          "line": 319
+        },
+        {
+          "after": "target_include_directories(wirescape_midi_host PUBLIC control)",
+          "before": "target_include_directories(wirescape_midi_host PUBLIC ../control)",
+          "line": 320
+        },
+        {
+          "after": "add_executable(midi_host_tests control/midi_host_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(midi_host_tests ../control/midi_host_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 323
+        },
+        {
+          "after": "add_executable(app_engine_tests control/app_engine_tests.cpp ../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(app_engine_tests ../control/app_engine_tests.cpp ../tests2/allocation_watch.cpp)",
+          "line": 327
+        },
+        {
+          "after": "  WS_KNOWN_MODULE_IDS=\"${CMAKE_CURRENT_SOURCE_DIR}/../tools/foundation/fixtures/known_module_ids.txt\")",
+          "before": "  WS_KNOWN_MODULE_IDS=\"${CMAKE_CURRENT_SOURCE_DIR}/../../tools/foundation/fixtures/known_module_ids.txt\")",
+          "line": 330
+        },
+        {
+          "after": "  \"${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json\" --rate 48000 --block 128 --seconds 0.01)",
+          "before": "  \"${PROJECT_SOURCE_DIR}/examples/Six_Essentials_Demo.json\" --rate 48000 --block 128 --seconds 0.01)",
+          "line": 337
+        },
+        {
+          "after": "add_subdirectory(../modules/chaos_lite chaos_lite)",
+          "before": "add_subdirectory(../modules2/chaos_lite chaos_lite)",
+          "line": 339
+        },
+        {
+          "after": "add_subdirectory(../modules/blend blend)",
+          "before": "add_subdirectory(../modules2/blend blend)",
+          "line": 340
+        },
+        {
+          "after": "add_subdirectory(../modules/resonator resonator)",
+          "before": "add_subdirectory(../modules2/resonator resonator)",
+          "line": 341
+        },
+        {
+          "after": "add_subdirectory(../modules/spectral spectral)",
+          "before": "add_subdirectory(../modules2/spectral spectral)",
+          "line": 342
+        },
+        {
+          "after": "add_subdirectory(../modules/delay delay)",
+          "before": "add_subdirectory(../modules2/delay delay)",
+          "line": 343
+        },
+        {
+          "after": "add_subdirectory(../modules/reverb reverb)",
+          "before": "add_subdirectory(../modules2/reverb reverb)",
+          "line": 344
+        },
+        {
+          "after": "add_subdirectory(../modules/quantizer quantizer)",
+          "before": "add_subdirectory(../modules2/quantizer quantizer)",
+          "line": 345
+        },
+        {
+          "after": "add_subdirectory(../modules/quad_vca quad_vca)",
+          "before": "add_subdirectory(../modules2/quad_vca quad_vca)",
+          "line": 346
+        },
+        {
+          "after": "add_subdirectory(../modules/notes_to_cv notes_to_cv)",
+          "before": "add_subdirectory(../modules2/notes_to_cv notes_to_cv)",
+          "line": 347
+        },
+        {
+          "after": "add_subdirectory(../modules/chord chord)",
+          "before": "add_subdirectory(../modules2/chord chord)",
+          "line": 348
+        }
+      ],
+      "source": "native/engine2/CMakeLists.txt",
+      "source_sha256": "d976fc667d65d0efeac3ae625c3a583959dce63672400a0a916350998f7a329e"
+    },
+    {
+      "destination": "host/midi/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(midi_service_tests service_tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(midi_service_tests service_tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 55
+        },
+        {
+          "after": "  add_library(ws2_${module} SHARED ../../modules/${module}/module.cpp)",
+          "before": "  add_library(ws2_${module} SHARED ../../modules2/${module}/module.cpp)",
+          "line": 60
+        },
+        {
+          "after": "  add_executable(abi2_${module}_tests ../../modules/${module}/tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "  add_executable(abi2_${module}_tests ../../modules2/${module}/tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 62
+        }
+      ],
+      "source": "native/io/midi/CMakeLists.txt",
+      "source_sha256": "2eed49c8c55c0fddc4d754d12d99e43ab56376da9520333085232d2c1b7b2423"
+    },
+    {
+      "destination": "modules/blend/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_blend_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_blend_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/blend/CMakeLists.txt",
+      "source_sha256": "4ba75cad2006654a4c3d8b4b543b74f69e8853882f3d7e7ca233ab0e4c8b15c7"
+    },
+    {
+      "destination": "modules/chaos_lite/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_chaos_lite_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_chaos_lite_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/chaos_lite/CMakeLists.txt",
+      "source_sha256": "11f1beb06f959ca576611338578efeec37954da2b44c21a60df404365bd0a06c"
+    },
+    {
+      "destination": "modules/chord/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_chord_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_chord_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/chord/CMakeLists.txt",
+      "source_sha256": "906c6f94aafb2247cf46be9e0a6538605ea8d8f6860c244dc826f5b35312be39"
+    },
+    {
+      "destination": "modules/delay/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_delay_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_delay_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/delay/CMakeLists.txt",
+      "source_sha256": "8f5e9d0ca14edb1fda8550a9136b858819d30d6c6d68e44f28ffe7352bb80caa"
+    },
+    {
+      "destination": "modules/macro_oscillator/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_macro_oscillator_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_macro_oscillator_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 36
+        },
+        {
+          "after": "  add_executable(macro_unpatched_reference tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "  add_executable(macro_unpatched_reference tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 64
+        }
+      ],
+      "source": "native/modules2/macro_oscillator/CMakeLists.txt",
+      "source_sha256": "dc6e321bc5ba0b412f5ceac3db2962a866965b66fa58cfdd06c7db4a478c042a"
+    },
+    {
+      "destination": "modules/notes_to_cv/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_notes_to_cv_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_notes_to_cv_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/notes_to_cv/CMakeLists.txt",
+      "source_sha256": "98a0b8a9c785ab12dd5f584b41475d0a919f2f7dc3d3436df4072dbc99815586"
+    },
+    {
+      "destination": "modules/quad_vca/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_quad_vca_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_quad_vca_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/quad_vca/CMakeLists.txt",
+      "source_sha256": "c2bfcd66fb8dafe6e3c182f0ebe71449d63c836e86ab01452c8aa949d3359773"
+    },
+    {
+      "destination": "modules/quantizer/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_quantizer_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_quantizer_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/quantizer/CMakeLists.txt",
+      "source_sha256": "7df7a876d68b99948f811e61e095cd90a86279fea490797be4d3da21ac0ad5e3"
+    },
+    {
+      "destination": "modules/resonator/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_resonator_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_resonator_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/resonator/CMakeLists.txt",
+      "source_sha256": "97c673bf2755ce95c412660e79db85b459d7bd397fcf0982013f1641e1683db7"
+    },
+    {
+      "destination": "modules/reverb/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_reverb_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_reverb_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/reverb/CMakeLists.txt",
+      "source_sha256": "f0c8c6901f1ab8346438f3b517a214ece79dad5707af55cfd446bba50b48a77b"
+    },
+    {
+      "destination": "modules/spectral/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "add_executable(abi2_spectral_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)",
+          "before": "add_executable(abi2_spectral_tests tests.cpp ../../tests2/allocation_watch.cpp)",
+          "line": 4
+        }
+      ],
+      "source": "native/modules2/spectral/CMakeLists.txt",
+      "source_sha256": "e3d3a72fa47722d949667265dcec42e2c7d5888a27521fe45430d832803996cd"
+    },
+    {
+      "destination": "tools/render/CMakeLists.txt",
+      "replacements": [
+        {
+          "after": "    --patches ${CMAKE_CURRENT_SOURCE_DIR}/../../apps/studio/patches)",
+          "before": "    --patches ${CMAKE_CURRENT_SOURCE_DIR}/../../../apps/studio/patches)",
+          "line": 21
+        }
+      ],
+      "source": "native/tools/render/CMakeLists.txt",
+      "source_sha256": "b3befe3a3958292001b8276a8c4ec015715eb55ffab2868ff5a4dc91c337d71c"
+    }
+  ],
+  "head": "a72f50d84b1051401c65e9babf74bf2ff6b49778",
+  "ready_for_apply": false
+}

@@ -80,7 +80,7 @@ async function sample() {
     const idle=await processMetrics(app);
     let loaded=null;
     try {
-      const dir=path.join(ROOT,'native/examples');
+      const dir=path.join(ROOT,'host/examples');
       const candidates=readdirSync(dir).filter(f=>f.endsWith('.json')).map(f=>{
         const file=path.join(dir,f), document=JSON.parse(readFileSync(file,'utf8'));
         return {file,document,size:statSync(file).size};
