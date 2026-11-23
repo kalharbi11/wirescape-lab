@@ -16,6 +16,7 @@ PAIRED_IR = re.compile(
     r"^FAIL: module/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+:"
     r"\s*\+(\d+(?:\.\d+)?)% exceeds strict \+1%\s*$"
 )
+ACTION_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z[ \t]+")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 MAX = 2000000
 
@@ -63,7 +64,7 @@ def safe(value, limit=220):
 
 
 def parse(log):
-    lines = [safe(x) for x in log[:MAX].splitlines()]
+    lines = [safe(ACTION_TIMESTAMP.sub("", x, count=1)) for x in log[:MAX].splitlines()]
     return {
         "errors": [x for x in lines if MATCH.search(x)][:15],
         "tests": list(dict.fromkeys(x for x in lines if re.search(r"FAILED|FAIL:|test_\w+", x)))[:8],
