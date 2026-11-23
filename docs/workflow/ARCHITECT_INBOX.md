@@ -43,8 +43,10 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
+| A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. Workaround: CURRENT run 10c. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
+| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.93/+2.08 % on x64 from SDK-wrapper inlining in the catalogue TU | Refused as an artifact. SDK-1 [#354](https://github.com/kalharbi11/wirescape-lab/issues/354) pins the wrapper helpers; [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md) addendum. 2026-11-23 |

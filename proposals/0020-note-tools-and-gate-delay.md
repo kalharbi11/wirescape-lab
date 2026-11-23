@@ -147,6 +147,13 @@ assume exactly 34 modules. M1 is now complete, so these are the rules for module
   Gate path as it was. Do not widen the tolerance. Until #325 is within 1 %, the next module PR
   that is green may merge ahead of it (SR19). Otherwise the order in §1 stands.
 
+- **Inlining noise from the shared catalogue TU (Architect, 2026-11-23, run 15).** When adding a
+  module changes another module's Ir only through compiler inlining in the SDK wrapper
+  (`ws::Module<T>::process`), with that module's DSP Ir unchanged, it is still a defect. It is
+  fixed once in the SDK, by pinning the wrapper's cold helpers out of line (SDK-1 #354), not
+  accepted per PR. Overturned by: pinning that makes an existing hot path more than 1 % worse.
+  The alternative is then one translation unit per module.
+
 Overturned by: a regenerated catalogue that cannot be limited to the PR's own entries, because of
 ordering or a shared header. The Architect then rules on the snapshot format.
 
