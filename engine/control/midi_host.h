@@ -2,6 +2,7 @@
 #pragma once
 #include "app_engine.h"
 #include "midi_backend.h"
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,6 +19,7 @@ class Host {
     AppEngine *engine_ = nullptr;
     bool authorized_ = false;
     std::string last_statistics_;
+    std::atomic<uint64_t> release_panics_{0}; // failed release enqueue -> global engine panic
     std::vector<Endpoint> enabled_;
     monitor::Capture *monitor_ = nullptr;
     static int deliver(void *, uint32_t, const ws2_event &, uint64_t) noexcept;

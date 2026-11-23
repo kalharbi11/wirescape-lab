@@ -22,7 +22,10 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 HOST = "127.0.0.1"
 TIERS = {"L0": 60, "L1": 600, "L2": 3600, "L3": 14400, "L4": 43200, "L5": 86400}
-PROFILES = ("osc-gates", "osc-heavy", "osc-stress")
+PROFILES = ("osc-gates", "osc-heavy", "osc-stress", "midi-m8", "mixed")
+MIDI_PROFILES = frozenset(("midi-m8", "mixed"))
+OSC_LOAD_PROFILES = frozenset(("osc-heavy", "osc-stress", "mixed"))
+MIDI_STOP_FIELDS = ("dropped", "ring_full", "malformed", "send_fail", "release_panics")
 A2_FAILURES = ("missing_echo", "missing_gate_edge", "stuck_gate",
                "gate_edge_order", "unexpected_gate_edge")
 
@@ -75,7 +78,7 @@ def patch(profile, port_in, port_out):
                     "rows": [{"address": "/io/echo", "kind": "cv", "deadband": 0},
                              {"address": "/io/edge", "kind": "gate", "deadband": 0}]}},
         {"id": 90, "module": "essentials.output", "version": 2}]
-    if profile != "osc-gates":
+    if profile in OSC_LOAD_PROFILES:
         # Each OSC In module permits 8 configured rows, not 64.
         for group in range(8):
             modules.append({"id": 10 + group, "module": "osc.in", "version": 1,
@@ -83,23 +86,43 @@ def patch(profile, port_in, port_out):
                                        "rows": [row(f"/io/load/{group * 8 + i:02d}",
                                                     "gate" if (group * 8 + i) % 2 else "cv")
                                                 for i in range(8)]}})
+    connections = [{"kind": "signal",
+                    "from": {"module": 1, "port": f"row{i}"},
+                    "to": {"module": 2, "port": f"row{i}"}} for i in (1, 2)]
+    if profile in MIDI_PROFILES:
+        modules.extend([
+            {"id": 80, "module": "midi.in", "version": 1,
+             "config": {"endpoint": "all_enabled"}},
+            {"id": 81, "module": "midi.to_cv", "version": 1,
+             "parameters": {"voice_count": 4}},
+        ])
+        connections.append({"kind": "event",
+                            "from": {"module": 80, "port": "midi"},
+                            "to": {"module": 81, "port": "midi"}})
     return {"format": "wirescape.native.patch", "version": 2,
             "settings": {"sample_rate": 48000, "max_block_frames": 128,
                          "max_channels": 16, "seed": 305},
             "modules": modules,
-            "connections": [{"kind": "signal",
-                             "from": {"module": 1, "port": f"row{i}"},
-                             "to": {"module": 2, "port": f"row{i}"}} for i in (1, 2)],
+            "connections": connections,
             "outputs": [{"module": 90, "port": "audio", "bus_channel": i}
                         for i in (0, 1)]}
 
 
+def sidecar_args(engine, settings, profile):
+    if profile not in PROFILES:
+        raise ValueError(profile)
+    flags = [str(engine), "--null-audio", "--bench-summary", "--settings", str(settings)]
+    if profile in MIDI_PROFILES:
+        flags.append("--scripted-midi")
+    return flags
+
+
 class Sidecar:
-    def __init__(self, engine, settings):
+    def __init__(self, engine, settings, profile="osc-gates"):
         self.messages = queue.Queue()
         self.errors = deque(maxlen=300)
         self.proc = subprocess.Popen(
-            [str(engine), "--null-audio", "--bench-summary", "--settings", str(settings)],
+            sidecar_args(engine, settings, profile),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         threading.Thread(target=self._read, daemon=True).start()
         threading.Thread(target=self._err, daemon=True).start()
@@ -174,10 +197,19 @@ def counters(message):
                 if type(route.get(name)) is int:
                     result[f"osc.{kind}.{route.get('module', i)}.{name}"] = route[name]
     midi = state.get("midi", {})
-    for name in ("dropped", "ring_full", "malformed", "send_fail", "release_panic"):
-        if type(midi.get(name)) is int:
-            result[f"midi.{name}"] = midi[name]
+    observed = midi.get("counters", midi)
+    for name in (*MIDI_STOP_FIELDS, "release_panic"):
+        if type(observed.get(name)) is int:
+            result[f"midi.{name}"] = observed[name]
     return result
+
+
+def midi_received(status):
+    details = status.get("midi", {}).get("counters")
+    if not isinstance(details, dict) or any(
+            type(details.get(name)) is not int for name in ("received", *MIDI_STOP_FIELDS)):
+        raise Stop("midi_counters_unavailable", "scripted Host counters absent or invalid")
+    return details["received"]
 
 
 def check_counters(before, after):
@@ -441,7 +473,7 @@ def reports(dest, result):
     dest.mkdir(parents=True, exist_ok=True)
     (dest / "report.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     failure = result.get("first_failure") or {}
-    lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->", "# OSC endurance — OB-g1", "",
+    lines = ["<!-- SPDX-License-Identifier: GPL-3.0-only -->", "# I/O endurance — OB-g1/g2", "",
              f"- Status: {result['status']} (advisory, OB r2.4a)",
              f"- Source: {result['source_sha']}; engine: {result['engine_sha']}",
              f"- Profile/mode/tier: {result['profile']}/{result['edit_mode']}/{result['tier']}",
@@ -452,6 +484,7 @@ def reports(dest, result):
              f"- RTT p99 ms: {result['p99_ms']}; L0 baseline ms: {result['l0_p99_ms']}",
              f"- RSS peak bytes: {result['rss_peak_bytes']}; bench: {result['bench']}",
              f"- Counter coverage: {result['counter_visibility']}",
+             f"- Scripted MIDI received before/after: {result['midi_received_before']} / {result['midi_received_after']}",
              f"- Qualifying A2 edit observation: {json.dumps(result['a2_observation'], sort_keys=True)}", "",
              "## Last five seconds of events", "", "Events:",
              *result["events_last_5s"], "End events", ""]
@@ -470,6 +503,8 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
               "counter_visibility": {}, "bench": None, "p99_ms": None, "l0_p99_ms": None,
               "rss_peak_bytes": None, "events_last_5s": [], "elapsed_s": 0.0,
               "load_edits": 0, "messages_sent": 0, "messages_received": 0,
+              "scripted_midi": profile in MIDI_PROFILES,
+              "midi_received_before": None, "midi_received_after": None,
               "a2_observation": None}
     try:
         if not engine.is_file() or not os.access(engine, os.X_OK):
@@ -491,7 +526,10 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             rx.bind((HOST, out_port))
             rx.setblocking(False)
             tx.bind((HOST, 0))
-            child = Sidecar(engine, Path(temp) / "settings.json")
+            child = Sidecar(engine, Path(temp) / "settings.json", profile)
+            if profile in MIDI_PROFILES:
+                result["midi_received_before"] = midi_received({"midi": child.hello.get("midi", {})})
+                result["midi_received_after"] = result["midi_received_before"]
             engine_sha = str(child.hello.get("engine", {}).get("sha", "unknown"))
             result["engine_sha"] = engine_sha
             if engine_sha != "unknown" and len(engine_sha) >= 7 and not source.startswith(engine_sha):
@@ -501,11 +539,15 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             next_seq = next_load = next_rss = start
             next_fall = None
             next_edit = start + 30
-            initial = None
+            # Use scripted hello's zero counters so early drops cannot hide
+            # before the first periodic status creates a baseline.
+            initial = (counters({"status": {"midi": child.hello.get("midi", {})}})
+                       if profile in MIDI_PROFILES else None)
             rss_anchor = None
             rss_peak = 0
             load_count = 0
             last_rate = 10
+            midi_last_progress = start
             while time.monotonic() - start < TIERS[tier]:
                 now = time.monotonic()
                 if child.proc.poll() is not None:
@@ -523,7 +565,7 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                     tx.sendto(encode(addr, val), (HOST, in_port))
                     result["messages_sent"] += 1
                     next_fall = None
-                if profile != "osc-gates" and now >= next_load:
+                if profile in OSC_LOAD_PROFILES and now >= next_load:
                     rate = min(1600, 200 * (2 ** int((now - start) // 15))) \
                         if profile == "osc-stress" else 200
                     last_rate = rate
@@ -568,6 +610,16 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                             if route.get("state") != "sending":
                                 raise Stop("osc_out_unavailable", str(route))
                         current = counters(msg)
+                        if profile in MIDI_PROFILES:
+                            received = midi_received(status)
+                            if received < result["midi_received_after"]:
+                                raise Stop("midi_counter_reset", "received count decreased")
+                            if received > result["midi_received_after"]:
+                                midi_last_progress = now
+                                watch.note(now, f"midi received={received}")
+                            result["midi_received_after"] = received
+                            if now - midi_last_progress > 2.0:
+                                raise Stop("midi_stalled", "no scripted Host receives for >2s")
                         if initial is None and current:
                             initial = dict(current)
                         if initial is not None:
@@ -602,6 +654,8 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                     next_edit += 30
                 time.sleep(.0002)
             result["rate_hz_per_address"] = last_rate
+            if profile in MIDI_PROFILES and result["midi_received_after"] <= result["midi_received_before"]:
+                raise Stop("midi_stalled", "no scripted MIDI received during tier")
             until = time.monotonic() + .250
             while time.monotonic() < until and (watch.expected_seq or watch.expected_edges):
                 try:
@@ -637,7 +691,8 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
         result["events_last_5s"] = [f"{t:.6f} {event}" for t, event in watch.events if t >= cutoff]
         result["counter_visibility"] = {
             "available": sorted(result["counters_after"]),
-            "unexposed_on_current_engine": ["osc.in.malformed", "osc.in.truncated", "midi.* (pre-OB-g2)"]}
+            "unexposed_on_current_engine": ["osc.in.malformed", "osc.in.truncated"] +
+                ([] if profile in MIDI_PROFILES else ["midi.counters (requires --scripted-midi)"])}
         reports(output / profile / mode / tier, result)
     return result
 
