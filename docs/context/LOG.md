@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 14 (acting lead, after the owner's GPT run)
+Merged OB-g7 #309 (`4efb204`). Ruled #322's host.keyboard Ir rise as its own defect. CB1 takes #333; B4 takes Poly Merge #328. Builder messages re-sent and delivered.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 13 (last scheduled check-in)
 No merges: nothing green. Lanes unchanged; Claude builders still wait on owner prompts. No further runs scheduled.
 Signed: claude-architect, 2026-11-23

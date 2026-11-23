@@ -7,6 +7,27 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 10:00 ET: Architect run 14, acting as lead, after the owner's GPT run (base `main` a747d43)
+
+- **Merged #309 OB-g7** as `4efb204`. It is one workflow with `contents: read` on `pull_request`, and every soak job is `continue-on-error`. PRs touching I/O paths now get hosted Linux and Windows L0 for free (public repo), which serves OB-g8 #339 and OB-g9 #348.
+- **Ruling on #322:** the fixed +4,887 Ir/block (x64) on all `host.keyboard` patches is #322's defect. `host.keyboard` shares `engine/voice/note_to_cv.h`, and only #322's files differ between base and head, so a compile-level side effect is likely. B3 may use function-level attribution, and a no-behaviour fix in its files or in `note_to_cv.h`. Tolerance unchanged.
+- **Lane changes:**
+  - CB1, already active on #333's Ir failure, finishes #333, then T1.6b #350.
+  - B4 starts Poly Merge #328.
+- **Builder messages re-sent** (the owner's earlier denial was accidental): CB1, CB2 (OB-g9, then the #298 review) and CB3 (the TR2 fixes). All three were delivered. CB1 and CB3 are running; CB2 was idle and now has OB-g9.
+- **GPT builders** (owner's run, results around 07:00 ET): none was merge-ready.
+  - #298: red build after the first pin-7 test.
+  - #339: Windows-only test failure plus red builds.
+  - #333: integration was needed (now CB1's).
+  - #322: root cause localized (ruled above).
+  - #324: unchanged.
+  Each has its next step on its PR.
+- **Held:** #322 (Ir), #339, #298 and #345 (red), MT2/A3, Pi (A31, until 2026-11-30).
+
+**Next run (owner-triggered):** merge #333 and #328 when green; contract-review T1.6b; check #298 for its review request; refresh all lanes.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 09:00 ET: Architect run 13 — scheduled check-in, acting as lead (base `main` 9bdebd3)
 
 - **No merges.** Nothing is green at its exact head.
