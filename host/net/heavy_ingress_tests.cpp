@@ -153,7 +153,7 @@ void reproduce() {
     for (const auto &route : initial) REQUIRE(std::string(route.state) == "listening");
 
     std::atomic<bool> rendering{true};
-    std::atomic<uint32_t> render_failures{0};
+    std::atomic<uint32_t> render_failures{0}, render_blocks{0};
     std::thread render([&] {
         std::array<float, 128> left{}, right{};
         float *out[] = {left.data(), right.data()};
@@ -161,6 +161,7 @@ void reproduce() {
         while (rendering.load(std::memory_order_acquire)) {
             if (app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns()) != WS2_OK)
                 render_failures.fetch_add(1, std::memory_order_relaxed);
+            render_blocks.fetch_add(1, std::memory_order_relaxed);
             next += 2666667ns; // 128 frames at 48 kHz
             wait_for_callback(next);
         }
@@ -242,8 +243,12 @@ void reproduce() {
             next_sequence += 100ms;
         }
         if (fall_pending && now >= next_fall) {
+            // Record the scheduled fall before sendto: a localhost UDP worker
+            // can enqueue the datagram before sendto returns. Sampling after
+            // sendto incorrectly calls an actually on-time fall "too early".
+            const auto fall_sent_at = Clock::now();
             sender_ok &= send_osc("/io/gate", 0.f);
-            sent_falls.push_back(Clock::now());
+            sent_falls.push_back(fall_sent_at);
             fall_pending = false;
         }
         if (now >= next_load) {
@@ -274,6 +279,7 @@ void reproduce() {
     }
     rendering.store(false, std::memory_order_release);
     render.join();
+    const auto meter = app_engine_native(engine.get()).meter();
     host.stop();
 #ifdef _WIN32
     closesocket(sender);
@@ -282,11 +288,18 @@ void reproduce() {
 #endif
     std::fprintf(stderr,
         "OB-g8 device-off: 64x200Hz 400ms; load_sent=%zu seq=%zu falls=%zu observed=%zu "
-        "route_received=%llu route_dropped=%llu render_errors=%u sender_ok=%d late=%d seq_seen=%zu\n",
+        "route_received=%llu route_dropped=%llu render_errors=%u render_blocks=%u "
+        "ring_full=%llu engine_dropped=%llu arena_full=%llu engine_events=%llu "
+        "sender_ok=%d late=%d seq_seen=%zu\n",
         sent_load, sent_sequences, sent_falls.size(), seen_falls,
         static_cast<unsigned long long>(route_received),
         static_cast<unsigned long long>(route_dropped),
-        render_failures.load(), int(sender_ok), int(fall_late), seen_sequences);
+        render_failures.load(), render_blocks.load(),
+        static_cast<unsigned long long>(meter.ring_full),
+        static_cast<unsigned long long>(meter.dropped),
+        static_cast<unsigned long long>(meter.arena_full),
+        static_cast<unsigned long long>(meter.events),
+        int(sender_ok), int(fall_late), seen_sequences);
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
     REQUIRE(sent_load >= 64 * 70); // at least 350ms of the unaltered 200Hz profile
