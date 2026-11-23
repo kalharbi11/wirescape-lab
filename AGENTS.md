@@ -81,6 +81,7 @@ writers and cleared dependencies.
   `build*/`, or audio files over 1 MB (see `bench/README.md` for where recordings go).
 - SPDX header on new files: MIT under `native/sdk/` and `native/voice/`, GPL-3.0-only elsewhere.
 - No force-push, no history rewrite, no commits to `main`.
+- `kalharbi11/wirescape-pi`: only the Claude Architect merges (owner, 2026-11-23). Claude builders merge there only with the Architect's explicit permission or its auto-merge. GPT agents never write there and use `/pi-run` comments instead.
 - No model run polls unchanged state. A builder may schedule a one-shot same-task continuation under the rules above. Scripts and GitHub Actions may watch CI and events.
 
 ## Handoff template

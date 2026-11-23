@@ -43,10 +43,9 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
+| A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. Workaround: CURRENT run 10c. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. **Long run needed** (run 7): the session must add `wirescape-pi`; next long Architect run. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A30 | 2026-11-22 | S6 contract-review; module PRs #325/#333/#334 blocked on frozen S0 catalogue, 34-module counts and Ir | #295 approved and merged `25b1a82`; M1 accepted; [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md) module-gate ruling. See CURRENT run 7. |

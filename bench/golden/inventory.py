@@ -15,22 +15,34 @@ ROOT=Path(__file__).resolve().parents[2]
 
 # The M1 Golden set is frozen at 34 IDs (33 known IDs plus osc.out).
 # New modules must be reviewed into this explicit tier, never blindly counted.
-EXPERIMENTAL = frozenset({"essentials.cv_to_notes"})
+def module_sets(root=ROOT):
+    """The frozen Golden module IDs and explicit post-M1 experimental additions."""
+    data=json.loads((Path(root)/"bench/module_sets.json").read_text(encoding="utf-8"))
+    golden, experimental=data["golden_set"],data["experimental"]
+    if (len(golden)!=34 or len(set(golden))!=34
+            or len(experimental)!=len(set(experimental))
+            or set(golden)&set(experimental)):
+        raise ValueError("invalid Golden/experimental module set")
+    return frozenset(golden),frozenset(experimental)
+
+EXPERIMENTAL = module_sets(ROOT)[1]
 
 def golden_ids(root=ROOT):
-    fixture = root / "tools/foundation/fixtures/known_module_ids.txt"
-    ids = {s.strip() for s in fixture.read_text(encoding="utf-8").splitlines()
-           if s.strip() and not s.startswith("#")}
-    if len(ids) != 33 or "osc.out" in ids:
-        raise ValueError("frozen Golden compatibility IDs changed")
-    return frozenset(ids | {"osc.out"})
+    fixture=root/"tools/foundation/fixtures/known_module_ids.txt"
+    ids={s.strip() for s in fixture.read_text(encoding="utf-8").splitlines()
+         if s.strip() and not s.startswith("#")}
+    if len(ids)!=33 or "osc.out" in ids:
+        raise ValueError("frozen Golden compatibility fixture changed")
+    golden,_=module_sets(root)
+    if golden != ids | {"osc.out"}:
+        raise ValueError("Golden module set changed from frozen 34-ID fixture")
+    return golden
 
 def allowed_ids(root=ROOT):
-    golden = golden_ids(root)
-    if golden & EXPERIMENTAL:
-        raise ValueError("experimental ID conflicts with Golden ID")
-    return golden | EXPERIMENTAL
-
+    golden,experimental=module_sets(root)
+    if golden != golden_ids(root):
+        raise ValueError("invalid Golden IDs")
+    return golden | experimental
 
 def registry(root):
     catalogue=(root/"engine/control/module_catalog.inc").read_text(encoding="utf-8")
