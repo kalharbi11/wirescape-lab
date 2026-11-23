@@ -7,6 +7,25 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 07:15 ET: Architect run 12, owner "run now", acting as lead (base `main` 3eeedd6)
+
+- **T1.6a #344 merged** as `ef11118` on the Architect's verified evidence: 0007 rule 1(a) holds (verbatim move, whitespace only, Goldens and M1 paired green). CB1 had not posted a Result because its session waits on an owner prompt, so the critical path did not wait.
+- **T1.6b [#350](https://github.com/kalharbi11/wirescape-lab/issues/350) issued to CB1.**
+  - Contract-review criteria: 0007 rules 2, 3, 5, 6 and the field table.
+  - A field with no clear side escalates through QUESTIONS.
+  - The Architect reviews; the lead merges.
+- **Web demo:** the `main` run at `92747e4` succeeded and deployed to Pages.
+- **Unchanged since run 11 (one hour):**
+  - #298 has its first pin-7 test; CI is running.
+  - #333: B4 diagnosed it and needs the post-#334 integration.
+  - #345, #339 and #322 are red.
+  - All three Claude builders wait on owner prompts.
+- **Held:** as in run 11.
+
+**Next run (08:59 ET scheduled):** check #298 CI and Result; merge #333 or #309 if green; check the Claude builders after the owner answers their prompts; refresh B1–B5.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 06:30 ET: Architect run 11, scheduled check-in, acting as lead (base `main` 6a2f0bd)
 
 - **Merged** after exact-head checks (only the non-required `Offline facts / windows-latest` failed):
