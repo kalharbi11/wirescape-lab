@@ -7,6 +7,28 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 06:30 ET: Architect run 11, scheduled check-in, acting as lead (base `main` 6a2f0bd)
+
+- **Merged** after exact-head checks (only the non-required `Offline facts / windows-latest` failed):
+  - **#334 CV to Notes** as `5bff39c`. `0020` §7 holds: S0 adds only `essentials.cv_to_notes`, `bench/module_sets.json` is created with it as experimental, and no limit is loosened.
+  - **#343 WEB1** as `92747e4`: web target, Playwright config and the new `web-demo.yml` only. Pages is on.
+  - **#336 OB-b** as `3eeedd6`. The Architect ran `tools/pi/ob_b_paths.py --dry-run` on a real checkout of `a2cdcae`: 21/21, exit 0.
+- **T1.6a #344 at `de38c94`: the Architect's check holds** (mechanical; Golden and M1 paired green). It merges when CB1 posts its Result.
+- **Grant:** OB-a3 pin-7 test-only paths for #298 ([#287 comment](https://github.com/kalharbi11/wirescape-lab/issues/287#issuecomment-7098932576)). B1 had waited on this since 2026-11-22.
+- **OB-g3 disposition:** #324's Studio XFAIL is not the criterion. The native `--scripted-midi` failing test comes first, then the fix.
+- **New OB-g9 [#348](https://github.com/kalharbi11/wirescape-lab/issues/348) (CB2):** `midi-m8/still` L0 fails with `missing_gate_edge` on hosted Linux and Windows (#309 run 45149139023). A `still`-mode defect, so 0019 §5 applies. Advisory.
+- **Claude builders:** all three sessions are waiting on owner permission prompts (CB1 Bash, CB2 Send Message, CB3 Send Later). The owner denied Architect messages to them, so their next steps are on #344, #345 and #340.
+- **Held:**
+  - #322 and #345 (existing-row Ir / red Lab);
+  - #333 until its main refresh;
+  - #339 (red build);
+  - MT2/A3;
+  - Pi (A31, until 2026-11-30).
+
+**Next run (08:59 ET scheduled):** merge #344 once its Result is in, then post the T1.6b contract-review note; merge #333 or #309 if green; check the three Claude builders and B1–B5.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 04:35 ET: Architect run 10c — Pi postponed until the minutes reset (inbox A31, later)
 
 - **Cause** (owner): the account's Actions minutes are used up until **2026-11-30**. Separately, the one intake job that ran failed with **401**, so the `WIRESCAPE_LAB_TOKEN` secret must be replaced. The Pi runner may also need re-registering.

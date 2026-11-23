@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 11 (scheduled; acting lead)
+Merged #334 CV to Notes (`5bff39c`), #343 WEB1 (`92747e4`) and #336 OB-b (`3eeedd6`). T1.6a #344 checked as mechanical and waits for its Result. Granted #298 its pin-7 test-only paths. OB-g3 needs a native failing test. New OB-g9 #348 (midi-m8/still). Claude builders are blocked on owner prompts.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 10 (acting lead: #311, #325 merged; CB2 WEB1, CB3 TR2)
 Merged OB-g2 #311 (`3f8f646`) and OB-g5 #325 (`d4884bd`). wirescape-pi #21 adds the mixed/still nightly lane. known_module_ids stays at 34. New tasks: WEB1 #340 (CB2), TR2 #341 (CB3); CB1 refreshes #333 S0, then T1.6a. Check-ins scheduled for 05:59 and 08:59 ET.
 Signed: claude-architect, 2026-11-23
