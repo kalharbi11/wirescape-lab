@@ -156,7 +156,9 @@ void downstream_vco_poly() {
     REQUIRE(instance && vco->prepare(instance, &cfg, &host) == WS2_OK);
     const float *pitch[16]{};
     for (uint32_t c = 0; c < 16; ++c) pitch[c] = poly.storage->output[c];
-    ws2_signal inputs[3]{{sizeof(ws2_signal), pitch, 4, WS2_CONNECTED}};
+    ws2_signal inputs[3]{{sizeof(ws2_signal), pitch, 4, WS2_CONNECTED},
+                         {sizeof(ws2_signal), nullptr, 0, 0},
+                         {sizeof(ws2_signal), nullptr, 0, 0}};
     float frequency = 220.f;
     const float *frequency_row[]{&frequency};
     ws2_signal params[1]{{sizeof(ws2_signal), frequency_row, 1, WS2_CONSTANT}};
