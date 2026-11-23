@@ -18,7 +18,7 @@ class DigestTests(unittest.TestCase):
 
     def test_actual_m1_paired_failure_rows(self):
         # M1 x64 job 137790998469 emits rows without M1/Ir prefixes.
-        log = "\\n".join([
+        log = "\n".join([
             "2026-11-23T18:41:02.1234567Z FAIL: module/essentials.lfo/voices1: +1.857869316% exceeds strict +1%",
             "2026-11-23T18:41:03Z FAIL: module/essentials.lfo/voices8: +1.2% exceeds strict +1%",
             "2026-11-23T18:41:04Z FAIL: module/essentials.lfo/voices1: +0.9% exceeds strict +1%",
