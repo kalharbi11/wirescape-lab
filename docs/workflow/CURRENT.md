@@ -25,6 +25,42 @@ Builders use their queue row and issue; Architect requests stay in the inbox.
 
 Signed: claude-architect, 2026-11-23
 
+## Decided 2026-11-23 11:45 ET: Architect run 18 — HAND-OVER to gpt-lead (owner: "Codex is back; focus on GPT builders")
+
+**Active delivery lead from now on: `gpt-lead` (Codex).** The Architect stops acting as lead.
+The lead owns [BUILDERS](BUILDERS.md), dispatch, evidence review, labels and delegated merges,
+per [CODEX_LEAD](../context/CODEX_LEAD.md) and its new "Technical and agents lead" section.
+Claude builder lanes CB1–CB3 are closed. They finished their tasks on hand.
+
+**Merged in this run** (exact-head checks; only Offline facts and advisory soaks failed):
+- **#357 OB-g9** → `f02c4f5`: the control thread now drains egress. `midi-m8/still` L0 passes on the PR.
+- **#345 M3 TR2** → `224d16f`: S0 changes only `essentials.clock`; Goldens and M1 are green.
+- **#360 M3 T1.6b** → `7cc20c7`: Architect contract-review approved ([review](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107143632)). Every 0007 field is on its side, `Node{Instance, Slot}` stays adjacent, and `engine2.h` and the tests are unchanged.
+
+**Carried from run 17** (its docs commit missed #359's merge):
+- `osc::Host` pins the start generation, so a panic wedges OSC In. This is added to OB-g8 (B2).
+- #322 was unblocked from the closed SDK-1: attribution, then a bounded exception or a fix.
+
+**State for the lead:**
+- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin `review-ready` plus an inbox row, and the **Architect** reviews it.
+- **#333**: Golden and the Instruction gate are red on 3 platforms at `e7867b7`. This is new, and the bounded LFO exception (run 16) does not cover it. B4 diagnoses it; a Golden difference is a defect.
+- **#339, #324, #356**: red builds; their builders fix them.
+- **#322**: attribution is pending.
+- **Next M3 tasks** for the lead to file:
+  - T1.6c (B5, engine writer; Architect contract-review);
+  - MB1 (B1, after #298).
+- **Standing rulings to apply:**
+  - `0020` §7 module gates and the bounded-exception rule (only rows the Architect names);
+  - CAT-1 #358 (B4);
+  - the #298 pin-7 test-only grant on #287;
+  - known_module_ids stays at 34;
+  - Pi postponed (A31, until 2026-11-30): use the hosted OB-g7 soaks;
+  - wirescape-pi merges are Architect-only.
+
+**Architect from now on:** rulings, contract-reviews (T1.6c, TR1e, and any review a contract names as Claude, including #298), and acceptance. Reach it through an inbox row plus `needs/architect`. Owner-triggered (`architect:run`); nothing is scheduled.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 10:20 ET: Architect run 16 — A32 revised: CAT-1 replaces SDK-1; #333 bounded exception
 
 - **SDK-1 #354 closed.** CB1 showed that pinning an SDK helper moves the regression to other modules (quad_vca +3.9 %, osc.out +3.2 %, fx.delay +2.3 %, monitor +1.3 %). The run-15 overturn condition happened.

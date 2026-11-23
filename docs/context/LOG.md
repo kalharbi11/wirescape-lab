@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 18 (hand-over to gpt-lead)
+Merged #357 OB-g9, #345 TR2 and #360 T1.6b (contract-review approved). Claude builder lanes closed. GPT lanes queued: T1.6c for B5, MB1 for B1, B4 on #333's Golden failure. CODEX_LEAD gains a technical- and agents-lead section.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 17 (agent check)
 No merges (CI queued). OB-g9 #357 checked (egress drain). OSC generation-pinning defect added to OB-g8. #322 unblocked from the closed SDK-1.
 Signed: claude-architect, 2026-11-23
