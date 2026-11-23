@@ -191,21 +191,42 @@ void reproduce(bool panic_only) {
         return;
     }
 
+    constexpr auto render_period = 2666667ns; // 128 frames at 48 kHz
+    constexpr auto load_period = 5ms;
     std::atomic<bool> rendering{true};
-    std::atomic<uint32_t> render_failures{0}, render_blocks{0};
+    // Render-thread counters are read only after join.
+    uint32_t render_failures = 0, render_blocks = 0;
+    uint32_t render_late_starts = 0, render_long_calls = 0;
+    Clock::duration render_max_interval{}, render_max_call{}, render_total_call{};
+    Clock::duration render_max_lateness{}, render_max_wait_overshoot{};
     std::thread render([&] {
         std::array<float, 128> left{}, right{};
         float *out[] = {left.data(), right.data()};
-        auto next = Clock::now();
+        auto next = Clock::now(), previous_start = next, previous_end = next;
         while (rendering.load(std::memory_order_acquire)) {
-            if (app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns()) != WS2_OK)
-                render_failures.fetch_add(1, std::memory_order_relaxed);
-            render_blocks.fetch_add(1, std::memory_order_relaxed);
-            next += 2666667ns; // 128 frames at 48 kHz
+            const auto started = Clock::now();
+            const auto lateness = started - next;
+            render_max_lateness = (std::max)(render_max_lateness, lateness);
+            render_late_starts += lateness >= render_period;
+            if (render_blocks) {
+                render_max_interval = (std::max)(render_max_interval, started - previous_start);
+                render_max_wait_overshoot = (std::max)(render_max_wait_overshoot,
+                    started - (std::max)(next, previous_end));
+            }
+            const int result = app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns());
+            const auto finished = Clock::now();
+            const auto duration = finished - started;
+            render_max_call = (std::max)(render_max_call, duration);
+            render_total_call += duration;
+            render_long_calls += duration >= render_period;
+            render_failures += result != WS2_OK;
+            ++render_blocks;
+            previous_start = started;
+            previous_end = finished;
+            next += render_period;
             wait_for_callback(next);
         }
     });
-
     std::vector<Clock::time_point> sent_falls;
     size_t seen_falls = 0, seen_sequences = 0, sent_load = 0, sent_sequences = 0;
     bool sender_ok = true, fall_late = false;
@@ -267,6 +288,10 @@ void reproduce(bool panic_only) {
     };
     const auto start = Clock::now(), end = start + 400ms;
     auto next_load = start, next_sequence = start, next_fall = end + 1s;
+    Clock::time_point previous_load{};
+    Clock::duration load_max_lateness{}, load_max_send{}, gate_max_lateness{}, sequence_max_lateness{};
+    auto load_min_interval = (Clock::duration::max)();
+    uint32_t load_overdue = 0, load_short_intervals = 0;
     size_t load_cycle = 0;
     bool fall_pending = false;
     while (Clock::now() < end) {
@@ -274,6 +299,7 @@ void reproduce(bool panic_only) {
         const auto now = Clock::now();
         if (now >= next_sequence) {
             // A unique sequence identifies each 100 ms sentinel cycle.
+            sequence_max_lateness = (std::max)(sequence_max_lateness, now - next_sequence);
             ++sent_sequences;
             sender_ok &= send_osc("/io/seq", float(sent_sequences) / 4096);
             sender_ok &= send_osc("/io/gate", 1.f);
@@ -286,11 +312,22 @@ void reproduce(bool panic_only) {
             // can enqueue the datagram before sendto returns. Sampling after
             // sendto incorrectly calls an actually on-time fall "too early".
             const auto fall_sent_at = Clock::now();
+            gate_max_lateness = (std::max)(gate_max_lateness, fall_sent_at - next_fall);
             sender_ok &= send_osc("/io/gate", 0.f);
             sent_falls.push_back(fall_sent_at);
             fall_pending = false;
         }
         if (now >= next_load && load_cycle < 80) {
+            const auto load_started = Clock::now();
+            const auto lateness = load_started - next_load;
+            load_max_lateness = (std::max)(load_max_lateness, lateness);
+            load_overdue += lateness >= load_period;
+            if (load_cycle) {
+                const auto interval = load_started - previous_load;
+                load_min_interval = (std::min)(load_min_interval, interval);
+                load_short_intervals += interval < load_period / 2;
+            }
+            previous_load = load_started;
             // Match the L0 harness: one datagram per address per 5ms cycle.
             for (unsigned i = 0; i < 64; ++i) {
                 char address[32]{};
@@ -301,8 +338,9 @@ void reproduce(bool panic_only) {
                 sender_ok &= send_osc(address, value);
                 ++sent_load;
             }
+            load_max_send = (std::max)(load_max_send, Clock::now() - load_started);
             ++load_cycle;
-            next_load += 5ms;
+            next_load += load_period;
         }
         auto wake = (std::min)(end, (std::min)(next_load, next_sequence));
         if (fall_pending) wake = (std::min)(wake, next_fall);
@@ -339,13 +377,26 @@ void reproduce(bool panic_only) {
         sent_load, sent_sequences, sent_falls.size(), seen_falls,
         static_cast<unsigned long long>(route_received),
         static_cast<unsigned long long>(route_dropped),
-        render_failures.load(), render_blocks.load(),
+        render_failures, render_blocks,
         static_cast<unsigned long long>(meter.ring_full),
         static_cast<unsigned long long>(meter.dropped),
         static_cast<unsigned long long>(meter.arena_full),
         static_cast<unsigned long long>(meter.events),
         int(sender_ok), int(fall_late), seen_sequences,
         worst_fall_ms, early_falls, late_falls);
+    const auto ms = [](Clock::duration d) { return std::chrono::duration<double, std::milli>(d).count(); };
+    std::fprintf(stderr,
+        "OB-g8 timing ms: render_interval_max=%.3f render_call_max=%.3f render_call_total=%.3f "
+        "render_start_late_max=%.3f render_wait_overshoot_max=%.3f "
+        "render_starts_late_by_period=%u render_calls_over_period=%u\n",
+        ms(render_max_interval), ms(render_max_call), ms(render_total_call), ms(render_max_lateness),
+        ms(render_max_wait_overshoot), render_late_starts, render_long_calls);
+    std::fprintf(stderr,
+        "OB-g8 timing ms: load_interval_min=%.3f load_send_max=%.3f load_start_late_max=%.3f "
+        "load_starts_late_by_period=%u load_intervals_under_half_period=%u "
+        "sequence_send_late_max=%.3f gate_fall_send_late_max=%.3f\n",
+        load_cycle > 1 ? ms(load_min_interval) : 0., ms(load_max_send), ms(load_max_lateness),
+        load_overdue, load_short_intervals, ms(sequence_max_lateness), ms(gate_max_lateness));
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
     REQUIRE(sent_load >= 64 * 70); // at least 350ms of the unaltered 200Hz profile
