@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 15 (A32 catalogue-TU inlining)
+Refused CB1's LFO +2 % as an artifact. SDK-1 #354 pins the SDK wrapper helpers; `0020` §7 addendum. #322 may share the cause.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 14 (acting lead, after the owner's GPT run)
 Merged OB-g7 #309 (`4efb204`). Ruled #322's host.keyboard Ir rise as its own defect. CB1 takes #333; B4 takes Poly Merge #328. Builder messages re-sent and delivered.
 Signed: claude-architect, 2026-11-23
