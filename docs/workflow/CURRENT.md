@@ -7,6 +7,38 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 01:00 ET: Architect run 8 — OB-g4 drafted, #326 becomes OB-g8, agent check (base `main` fd564d4)
+
+- **OB-g4 drafted** as [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20) at `550debc`. The **owner merges** it.
+  - New tasks `io-soak` (profile, mode, tier) and `io-nightly` (main head only).
+  - Each tier runs only after every lower tier passed at the same SHA. The Pi keeps a validated per-tier summary between runs.
+  - One scheduled nightly request runs at about 01:23 ET.
+  - The PR also fixes `soak`/`nightly`: S6 moved `Six_Essentials_Demo.json` to `host/examples/`, so **today's Pi `soak` and `nightly` fail on main until #20 merges**.
+  - Bridge tests: 40 OK. The real lab harness accepted the Pi-seeded L0 and L1 summaries at `fd564d4`.
+  - The first owner check after merge is `/pi-run io-soak profile=osc-gates tier=L0` on any lab issue.
+- **OB r2.4b**, which changes only the tasks it names:
+  - OB-g4: timeout + 60 s start-up; nightly lanes.
+  - Item 7: `config-edits` is recorded at L0 until M4 E5, because a pre-E5 `xfail` cannot meet the harness's pass-below rule.
+  - Q24: `io-soak-alsa` is deferred until a lab ALSA profile exists and the owner's setup allows `/dev/snd/seq`.
+- **OB-g8 ([#326](https://github.com/kalharbi11/wirescape-lab/issues/326)), released to the lead.** `osc-heavy/still` fails L0 in 0.1 s on hosted Linux, with route `dropped` already about 600. That is a `still`-mode I/O defect, so 0019 §5 "fixed now" applies; advisory status does not make it optional.
+  - First a bounded device-off failing test below the harness, then the fix in the stage it names (`host/net/` or `engine/control/`).
+  - The profile, the 50 ms gate rule and the zero-drop rule stay unchanged.
+  - Suggested lane: B2 after #311, since it owns `bench/io` context.
+  - **Overturned by:** facts showing the loss is in the Python sender or the kernel UDP buffer rather than the engine route. The profile then changes (0019 §6).
+- **Agent check** (no merges since run 7; main `fd564d4`):
+  - **#325** ADSR trig at `0865ff4`: the existing-row Ir is now within 1 % (M1 paired green). It still needs a Result showing the ADSR unit tests **run in hosted CTest**, as the module rule requires green Lab *and* unit tests. Then the lead merges it first.
+  - **#334** CV to Notes at `6de69a7`: B5 says it is not review-ready, and its head shows red Lab jobs. B5 confirms the head CI, fixes it, then posts the Result.
+  - **#333** Gate Delay: B4 is blocked because Codex cloud cannot resolve github.com, and its base is still pre-S6 `e3badcc`. **Owner:** start claude-builder1 on the #333 rebase (BUILDERS CB1 row), or give B4 a working Git host. No design change.
+  - **#322** OB-g6 at `f97946c`: M1 paired fails on x64 and ARM64 for existing Notes to CV and MIDI to CV rows. Under `0020` §7 that is a defect. Hold until every existing row is within 1 %.
+  - **#311 / #309 / #336 / #298:** rebased onto post-S6; only the known non-required `Offline facts / windows-latest` fails. They continue as BUILDERS says. #298 still needs its pin-7 matrix and the Claude review request.
+  - **#324, #291, #275, #230** are still pre-S6 and parked in their BUILDERS order.
+- **Held:** #322 (existing-row Ir); #333 (Git access); MT2/A3 until OB1. Nothing else.
+
+**Next Architect run:** quick effort, at the first of: the first module merge (spot-check `0020` §7), an OB-g8 failing test posted, or the owner's first Pi `io-soak` result after wirescape-pi #20 merges.
+**Next run should:** (1) spot-check the first module merge against `0020` §7; (2) read the first Pi `io-soak` L0 and confirm or replace the 0019 thresholds in one line; (3) when OB-g2 #311 merges, add `mixed/still` to wirescape-pi `NIGHTLY_LANES`; (4) A3 stays parked.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-22: Architect run 7, acting as lead — S6 merged, M1 accepted, Phase C open (base `main` 25b1a82)
 
 - **S6 merged** as [#295](https://github.com/kalharbi11/wirescape-lab/pull/295), squashed to `25b1a82` (closes #294). The [contract-review](https://github.com/kalharbi11/wirescape-lab/pull/295#issuecomment-7079989868) found no High or Medium at head `7a4af44`. Evidence 6 was replayed: script commit `017ee0d` gives tree `0f78167`, which is the head tree, with 444 moves and 0 unresolved. Goldens, Ir (0 failures), sanitizers and S0 passed on all three platforms.
