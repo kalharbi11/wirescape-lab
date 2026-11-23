@@ -1037,6 +1037,116 @@ static void test_chord_to_notes_cv() {
               "chord graph remains bounded on requested block sizes");
     }
 }
+// M3 TR2 (0008 decision 7): tempo_source defaults to internal and is then bit-identical with or
+// without a host transport; host follows the host sixteenth grid and holds while the host stops.
+static void test_tempo_source() {
+    using namespace groove;
+    {
+        Json v2 = {{"version", 2}, {"bpm", 120}, {"tracks", Json::array({{{"length", 8}, {"steps", pattern().at("tracks")[0].at("steps")}}})}};
+        Config decoded;
+        auto bytes = wirescape::document::runtime_module_config("sequencing.groove", v2, 3);
+        check(decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded) &&
+                  decoded.tempo_source == TempoInternal, "absent tempo_source is internal");
+        v2["tempo_source"] = "host";
+        bytes = wirescape::document::runtime_module_config("sequencing.groove", v2, 3);
+        check(decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded) &&
+                  decoded.tempo_source == TempoHost, "tempo_source host maps exactly");
+        v2["tempo_source"] = "internal";
+        bytes = wirescape::document::runtime_module_config("sequencing.groove", v2, 3);
+        check(decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded) &&
+                  decoded.tempo_source == TempoInternal, "tempo_source internal maps exactly");
+        for (const Json bad : {Json("HOST"), Json(1), Json(true)}) {
+            v2["tempo_source"] = bad;
+            bool refused = false;
+            try { wirescape::document::runtime_module_config("sequencing.groove", v2, 3); }
+            catch (const std::exception &) { refused = true; }
+            check(refused, "invalid tempo_source refused");
+        }
+        Json v1 = pattern();
+        v1["tempo_source"] = "host";
+        bool refused = false;
+        try { wirescape::document::runtime_module_config("sequencing.groove", v1, 3); }
+        catch (const std::exception &) { refused = true; }
+        check(refused, "tempo_source is a v2 field");
+        Config raw;
+        raw.tempo_source = 2;
+        check(!decode(reinterpret_cast<const uint8_t *>(&raw), sizeof(raw), decoded), "decode refuses an unknown tempo source");
+    }
+    auto program = [](GrooveV2Rig &rig) {
+        auto &track = rig.seq.pattern.tracks[0];
+        for (uint32_t i = 0; i < 8; ++i) track.steps[i] = {Note, int32_t(60 + i), 1.f, 0.f, 0.f, 4};
+        for (uint32_t i = 0; i < 8; ++i) track.steps[i].keys[0] = 60 + int32_t(i);
+        rig.seq.pattern.authored_version = 2;
+        rig.raw.sample_rate = 16.;
+    };
+    {
+        // Internal: a host transport (any tempo, playing or not) changes no output byte.
+        GrooveV2Rig a, b;
+        program(a);
+        program(b);
+        ws2_transport t{sizeof(t), WS2_PLAYING, 77, 0, 0, 4, 4, 0, 0};
+        b.raw.transport = &t;
+        a.start();
+        b.start();
+        for (uint32_t n = 0; n < 200; ++n) {
+            t.beat += .3;
+            t.flags = n % 7 ? WS2_PLAYING : 0u;
+            a.render();
+            b.render();
+            check(std::memcmp(a.values.data(), b.values.data(), sizeof(a.values)) == 0 && a.count == b.count,
+                  "internal tempo source ignores the host transport");
+        }
+    }
+    {
+        GrooveV2Rig rig;
+        program(rig);
+        rig.seq.pattern.tempo_source = TempoHost;
+        // 60 BPM at 16 Hz: one sixteenth is four samples; the test drives the beat directly.
+        ws2_transport t{sizeof(t), 0u, 60, 0, 0, 4, 4, 0, 0};
+        rig.raw.transport = &t;
+        rig.start();
+        for (uint32_t n = 0; n < 8; ++n) rig.render();
+        check(rig.count == 0 && !rig.seq.running, "host stopped: Run waits for the host");
+        t.flags = WS2_PLAYING;
+        std::vector<int32_t> on_keys;
+        std::vector<uint32_t> on_frames;
+        for (uint32_t n = 0; n < 32; ++n) {
+            const uint32_t before = rig.count;
+            rig.render();
+            for (uint32_t e = before; e < rig.count; ++e)
+                if (rig.accepted[e].type == WS2_NOTE_ON) { on_keys.push_back(rig.accepted[e].key); on_frames.push_back(n); }
+            t.beat += 1. / 16.;
+            if (rig.count > 12) rig.count = 0; // keep room; events already recorded
+        }
+        check(on_keys.size() == 8 && on_frames[0] == 0, "host start lands on the host downbeat");
+        for (uint32_t k = 0; k < on_keys.size(); ++k)
+            check(on_keys[k] == int32_t(60 + k) && on_frames[k] == 4 * k, "one step per host sixteenth");
+        // Host stops: gate closes, position holds, the module's own run state stays on.
+        t.flags = 0u;
+        const uint32_t held = rig.seq.step_t[0];
+        rig.count = 0;
+        rig.render();
+        check(rig.count == 1 && rig.accepted[0].type == WS2_NOTE_OFF && rig.values[1] == 0,
+              "host stop releases the sounding step once");
+        for (uint32_t n = 0; n < 40; ++n) rig.render();
+        check(rig.count == 1 && rig.seq.step_t[0] == held && rig.seq.running, "host stop holds the step");
+        // Host tempo change: the step length follows the beat, not Groove's own bpm.
+        t.flags = WS2_PLAYING;
+        t.bpm = 120;
+        rig.count = 0;
+        uint32_t ons = 0;
+        for (uint32_t n = 0; n < 16; ++n) {
+            const uint32_t before = rig.count;
+            rig.render();
+            for (uint32_t e = before; e < rig.count; ++e) ons += rig.accepted[e].type == WS2_NOTE_ON;
+            t.beat += 1. / 8.; // 120 BPM at 16 Hz: two samples per sixteenth.
+            if (rig.count > 12) rig.count = 0;
+        }
+        check(ons == 8, "resumed steps follow the host tempo");
+        check(rig.seq.samples_per_step == 2., "gate length tracks the host tempo");
+    }
+}
+
 int main() {
     try {
         wirescape::engine2::Config cfg{};
@@ -1051,6 +1161,7 @@ int main() {
         test_chord_to_notes_cv();
         test_v2_config_and_conditions(cat.get());
         test_v2_gates_and_skipped_ties();
+        test_tempo_source();
         test_s1_transport(cat.get());
         test_s1_deliberate_saturation();
         test_s1_many_cycles(cat.get());

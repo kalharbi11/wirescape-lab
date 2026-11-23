@@ -843,6 +843,28 @@
        "label": "Run"
       }
      ]
+    },
+    {
+     "id": "sync",
+     "name": "Sync",
+     "minimum": 0,
+     "maximum": 1,
+     "default": 0,
+     "unit": "",
+     "taper": "linear",
+     "step": 1,
+     "decimals": 3,
+     "modulatable": false,
+     "choices": [
+      {
+       "value": 0,
+       "label": "Internal"
+      },
+      {
+       "value": 1,
+       "label": "Host"
+      }
+     ]
     }
    ],
    "version": 2,
@@ -850,7 +872,8 @@
     "bpm": 0,
     "ticks_per_beat": 1,
     "duty": 2,
-    "run": 3
+    "run": 3,
+    "sync": 4
    }
   },
   {
