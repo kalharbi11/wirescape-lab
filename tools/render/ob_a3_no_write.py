@@ -52,7 +52,8 @@ def main() -> None:
         modern_wav = output / "control.wav"
         accepted = invoke(modern, modern_wav)
         assert accepted.returncode == 0, accepted.stderr[-1200:]
-        assert modern_wav.read_bytes()[:12] == b"RIFF" + modern_wav.read_bytes()[4:8] + b"WAVE"
+        wav_bytes = modern_wav.read_bytes()
+        assert wav_bytes[:4] == b"RIFF" and wav_bytes[8:12] == b"WAVE"
         assert "render_metrics " in accepted.stdout, accepted.stdout[-600:]
         assert snapshot(inputs) == before, "renderer v2 control mutated input bytes or siblings"
         assert not any(".bak-v1" in p.name or p.name.endswith(".v1.json")
