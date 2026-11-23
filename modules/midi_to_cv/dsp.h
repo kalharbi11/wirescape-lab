@@ -83,9 +83,15 @@ struct MidiToCv {
         sustain_hold = hold;
         const uint32_t n = uint32_t(core.allocator().voice_count());
         for (uint32_t p = 0; p < 7; ++p) { b.out(p).set_channels(n); b.out(p).mark_constant(false); }
+        // Signal buffers are stable across event-split spans: resolve them once.
+        std::array<std::array<float*, voice::kMaxVoices>, 7> output_rows{};
+        for (uint32_t p = 0; p < 7; ++p)
+            for (uint32_t c = 0; c < n; ++c)
+                output_rows[p][c] = b.out(p).ch(c);
+        float* last_note_row = b.out(8).ch(0);
         b.split(
             [&](uint32_t first, uint32_t end) {
-                for (uint32_t i = first; i < end; ++i) b.out(8).ch(0)[i] = last_note;
+                for (uint32_t i = first; i < end; ++i) last_note_row[i] = last_note;
                 for (uint32_t c = 0; c < n; ++c) {
                     const auto &v = core.allocator().voice(int(c));
                     const auto *ex = v.assigned
@@ -93,14 +99,14 @@ struct MidiToCv {
                                          : nullptr;
                     const float bend = ex ? ex->bend : 0;
                     for (uint32_t i = first; i < end; ++i) {
-                        b.out(0).ch(c)[i] =
+                        output_rows[0][c][i] =
                             v.pitch + (b.param(7).value(0, i) > .5f ? bend * b.param(6).value(0, i) / 12.f : 0);
-                        b.out(1).ch(c)[i] = v.gate ? 1.f : 0.f;
-                        b.out(2).ch(c)[i] = v.velocity;
-                        b.out(3).ch(c)[i] = ex ? ex->aftertouch : 0;
-                        b.out(4).ch(c)[i] = v.pressure;
-                        b.out(5).ch(c)[i] = bend;
-                        b.out(6).ch(c)[i] = ex ? ex->mod : 0;
+                        output_rows[1][c][i] = v.gate ? 1.f : 0.f;
+                        output_rows[2][c][i] = v.velocity;
+                        output_rows[3][c][i] = ex ? ex->aftertouch : 0;
+                        output_rows[4][c][i] = v.pressure;
+                        output_rows[5][c][i] = bend;
+                        output_rows[6][c][i] = ex ? ex->mod : 0;
                     }
                 }
                 core.allocator().clear_triggers();
@@ -225,9 +231,15 @@ struct MidiToCv {
         b.out(9).mark_constant(silent_trigger);
         if (silent_trigger)
             for (uint32_t c = 0; c < n; ++c) b.out(9).ch(c)[0] = 0.f;
+        // Signal buffers are stable across event-split spans: resolve them once.
+        std::array<std::array<float*, voice::kMaxVoices>, 7> output_rows{};
+        for (uint32_t p = 0; p < 7; ++p)
+            for (uint32_t c = 0; c < n; ++c)
+                output_rows[p][c] = b.out(p).ch(c);
+        float* last_note_row = b.out(8).ch(0);
         b.split(
             [&](uint32_t first, uint32_t end) {
-                for (uint32_t i = first; i < end; ++i) b.out(8).ch(0)[i] = last_note;
+                for (uint32_t i = first; i < end; ++i) last_note_row[i] = last_note;
                 for (uint32_t c = 0; c < n; ++c) {
                     const auto &v = core.allocator().voice(int(c));
                     const auto *ex = v.assigned
@@ -235,14 +247,14 @@ struct MidiToCv {
                                          : nullptr;
                     const float bend = ex ? ex->bend : 0;
                     for (uint32_t i = first; i < end; ++i) {
-                        b.out(0).ch(c)[i] =
+                        output_rows[0][c][i] =
                             v.pitch + (b.param(7).value(0, i) > .5f ? bend * b.param(6).value(0, i) / 12.f : 0);
-                        b.out(1).ch(c)[i] = v.gate ? 1.f : 0.f;
-                        b.out(2).ch(c)[i] = v.velocity;
-                        b.out(3).ch(c)[i] = ex ? ex->aftertouch : 0;
-                        b.out(4).ch(c)[i] = v.pressure;
-                        b.out(5).ch(c)[i] = bend;
-                        b.out(6).ch(c)[i] = ex ? ex->mod : 0;
+                        output_rows[1][c][i] = v.gate ? 1.f : 0.f;
+                        output_rows[2][c][i] = v.velocity;
+                        output_rows[3][c][i] = ex ? ex->aftertouch : 0;
+                        output_rows[4][c][i] = v.pressure;
+                        output_rows[5][c][i] = bend;
+                        output_rows[6][c][i] = ex ? ex->mod : 0;
                     }
                     // Pulse work is off the unchanged pitch/gate hot path.
                     if (!silent_trigger) {
