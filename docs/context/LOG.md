@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 10 (acting lead: #311, #325 merged; CB2 WEB1, CB3 TR2)
+Merged OB-g2 #311 (`3f8f646`) and OB-g5 #325 (`d4884bd`). wirescape-pi #21 adds the mixed/still nightly lane. known_module_ids stays at 34. New tasks: WEB1 #340 (CB2), TR2 #341 (CB3); CB1 refreshes #333 S0, then T1.6a. Check-ins scheduled for 05:59 and 08:59 ET.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 9 (agent check, tasks, path upkeep)
 wirescape-pi #20 merged by the owner; first Pi io-soak requested on #318. `0020` §7 holds on #333. M3 r1.1 / M4 r2.1 map contract paths through S6. Tasks: CB1 T1.6a #315, CB2 reviews #298, B2 OB-g8 #326, B4 Poly Merge #328. No lead is active, so the owner was asked to start one. Web target facts recorded in CURRENT.
 Signed: claude-architect, 2026-11-23

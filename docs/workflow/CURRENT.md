@@ -7,6 +7,31 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 04:00 ET: Architect run 10, acting as lead — two merges, three Claude lanes, Pi mixed lane (base `main` 3bab20e)
+
+- **Merged** after an exact-head check (only the non-required `Offline facts / windows-latest` failed):
+  - **#311 OB-g2** as `3f8f646`. SR17 holds: schema, generated files and the drift test are in the PR. The counters appear only with `--scripted-midi --null-audio --settings`. The release-panic counter is a relaxed atomic, with no allocation or lock.
+  - **#325 OB-g5 ADSR trigger/hold** as `d4884bd`: M1 paired green (existing rows within 1 %), and the ADSR tests run in hosted CTest.
+- **Pi:** [wirescape-pi #21](https://github.com/kalharbi11/wirescape-pi/pull/21) puts `mixed/still` first in the nightly lanes (owner merges). `mixed` carries the `osc-heavy` load, so it fails L0 until OB-g8 lands.
+- **Ruling:** `tools/foundation/fixtures/known_module_ids.txt` stays at the 34 golden IDs. Experimental modules live only in `bench/module_sets.json`. Moving a module out of `EXPERIMENTAL` is a separate Architect decision.
+- **Claude lanes** ([BUILDERS](BUILDERS.md)):
+  - **CB1:** the #333 S0 refresh after #325, then T1.6a #315.
+  - **CB2:** new WEB1 [#340](https://github.com/kalharbi11/wirescape-lab/issues/340), the quick browser demo with every module except `midi.*` and `osc.*` (owner request).
+  - **CB3:** new M3 TR2 [#341](https://github.com/kalharbi11/wirescape-lab/issues/341).
+  - CB2 and CB3 sessions were started by the Architect.
+- **GPT lanes:**
+  - B2 starts OB-g8 #326 now.
+  - B3 continues #322, which still fails M1 paired at `c6df8f5`.
+  - B4 waits for CB1's #333 refresh, then Poly Merge #328.
+  - B5: #334 (its CI was running), then #324.
+  - B1: #298 pin-7, then #336 ready.
+- **Scheduled Architect check-ins (owner request):** 2026-11-23 05:59 and 08:59 ET, both acting as lead.
+- **Held:** #322 (existing-row Ir) and MT2/A3.
+
+**Next run should:** (1) check CB1, CB2 and CB3, and nudge any that are stuck; (2) merge green #334, #333 and #336 in order; (3) read the Pi `io-soak` result on #318; (4) assign idle lanes.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 03:40 ET: Architect run 9 — agent check, tasks assigned, M3/M4 path upkeep (base `main` c008a81)
 
 - **wirescape-pi #20 merged** (`9e77ee5`, owner). The owner asked for the first Pi `io-soak` on [#318](https://github.com/kalharbi11/wirescape-lab/issues/318) at 08:08 UTC. It had not been picked up at 03:30 ET. The result arrives as `pi5/io-soak` and a #318 comment.
