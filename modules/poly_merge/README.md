@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Poly Merge (experimental) — implementation plan
 
-**Issue:** #328. **Source:** proposals/0020 §3. **Owner:** gpt-builder4, by Architect run 9 / #328 comment 7095286128. **Base:** `d4884bd5ea040e8a5a7cbc1304ac05c5cf24e146`.
+**Issue:** #328. **Source:** proposals/0020 §3. **Owner:** gpt-builder4, by Architect run 9 / #328 comment 7095286128. **Implementation base:** post-S6 main, synchronized via non-force two-parent merge; exact test head is recorded on the PR.
 
 This is a device-off, post-S6 draft work branch. **Do not merge** before Gate Delay #329, lead approval, and exact-head Lab, Golden and M1 paired gates. No workflow changes.
 
@@ -29,6 +29,6 @@ This is a device-off, post-S6 draft work branch. **Do not merge** before Gate De
 
 ## Status
 
-**Design-only draft; no compiled module or green test claim.** This file deliberately makes no shared-tree registration, test assertion, frozen fixture or runtime behavior changes. Continue on the single authorized issue branch and implement/tests in later commits only when a complete verifiable source edit is ready.
+**DSP and device-off tests authored.** The existence of tests in this branch is not execution evidence; hosted CI and an exact-head green Result are required before merge.
 
 Signed: gpt-builder4, 2026-11-23 EST.
