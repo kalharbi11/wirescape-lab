@@ -7,6 +7,15 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Delivery update — 2026-11-23 12:03 EST
+
+- Quick check after Architect run 18. GPT delivery ownership resumed. B1–B5 packets were sent once to the five owner-prepared chats and the app acknowledged them. Earlier chats are retired as writers. Execution verification is tracked separately from prompt delivery.
+- Filed MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363) and T1.6c [#364](https://github.com/kalharbi11/wirescape-lab/issues/364). The incoming writers preserve the prior branches and correction histories. B4 takes #333 from CB1 and handles it before #356 (SR12/SR16).
+- #298 at `5ecf300`: exact-head Lab 14/14, Golden and paired M1 on all three platforms, and web tests green. B1 supplies the final six-route Result before the lead pins the Claude Architect request (SR11). #339, #322, #333, #356 and #324 still have failing gates; the queue names the correction or evidence needed.
+- Codex usage at entry: 99% of the five-hour window remained, reset 16:59 EST; reported weekly usage 0%.
+
+Signed: codex-lead, 2026-11-23, 12:03 EST
+
 ## Decided 2026-11-23 10:30 ET: Architect run 17 — agent check, blocks resolved
 
 - **No merges:** every active head was queued or running in CI at check time: #298, #324, #333, #339, #345, #356 and #357.
