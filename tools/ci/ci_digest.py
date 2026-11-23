@@ -39,6 +39,7 @@ def download_log(api_url, token, opener=None):
     if dest.scheme != "https" or not dest.hostname or dest.username or dest.password or dest.port not in (None, 443):
         raise ValueError("unsafe log redirect")
     # Explicitly no Authorization header on redirected object-storage request.
+    # Reject any further redirect: only the first GitHub-issued HTTPS URL is trusted.
     with opener.open(urllib.request.Request(target), timeout=30) as response:
         return bounded(response)
 
