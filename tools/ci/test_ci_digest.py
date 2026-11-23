@@ -16,6 +16,18 @@ class DigestTests(unittest.TestCase):
         self.assertTrue(result["golden"])
         self.assertEqual(len(result["ir"]), 1)
 
+    def test_actual_m1_paired_failure_rows(self):
+        # M1 x64 job 137790998469 emits rows without M1/Ir prefixes.
+        log = ("FAIL: module/essentials.lfo/voices1: +1.857869316% exceeds strict +1%\\n"
+               "FAIL: module/essentials.lfo/voices8: +1.2% exceeds strict +1%\\n"
+               "FAIL: module/essentials.lfo/voices1: +0.9% exceeds strict +1%\\n"
+               "FAIL: module/essentials.lfo/voices1: +1.0% exceeds strict +1%\\n"
+               "noise: +8.0% exceeds strict +1%")
+        result = parse(log)
+        self.assertEqual(len(result["ir"]), 2)
+        self.assertIn("+1.857869316%", result["ir"][0])
+        self.assertIn("voices8", result["ir"][1])
+
     def test_green_fixture(self):
         self.assertEqual(parse("all tests passed\nIr +0.5%"), {
             "errors": [], "tests": [], "golden": [], "ir": []})
