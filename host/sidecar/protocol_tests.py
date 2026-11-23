@@ -942,6 +942,60 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
         assert saw_no_listener
         out_engine.close()
 
+# OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
+# endpoint toggle. The opt-in scripted backend has one virtual identity; this
+# covers re-enabling it without restarting the running null-audio engine, NOT
+# discovery/open of a second physical MIDI device. Never infer delivery from ACK
+# or received counters alone: Monitor sees MIDI delivered to midi.in.
+with tempfile.TemporaryDirectory() as midi_dir:
+    running = Engine(Path(midi_dir) / 'settings.json', '--scripted-midi')
+    try:
+        scripted = [d for d in running.hello['midi']['devices']
+                    if d['system_name'] == 'scripted:midi-m8:0']
+        assert len(scripted) == 1, scripted
+        device = scripted[0]
+        assert device['enabled'] is True, device
+        patch = minimal()
+        patch['modules'] += [
+            dict(id=20, module='midi.in',
+                 config=dict(endpoint=device['name'], system_name=device['system_name'])),
+            dict(id=21, module='monitor'),
+        ]
+        patch['connections'] = [edge('event', 20, 'midi', 21, 'events')]
+        gen = running.call('loadGraph', patch=patch)['gen']
+
+        def notes(snapshot):
+            return [e for e in snapshot.get('monitor', {}).get('21', [])
+                    if e.get('kind') == 'midi' and e.get('args', [0])[0] == 9]
+
+        initial = telemetry_when(running, gen, lambda t: bool(notes(t)))
+        last_on = max(e['t'] for e in notes(initial))
+        # The audio session is already running. A disable is followed by a
+        # same-session re-enable, without reloading the graph or restarting.
+        off = running.call('setMidiEnabled', deviceId=device['id'], on=False)
+        assert off['gen'] == gen, off
+        off_status = learn_status_when(
+            running, lambda m: any(d['id'] == device['id'] and not d['enabled']
+                                   for d in m['devices']))
+        assert not next(d for d in off_status['devices']
+                        if d['id'] == device['id'])['enabled']
+        on = running.call('setMidiEnabled', deviceId=device['id'], on=True)
+        assert on['gen'] == gen, on
+        # A successful reply means nothing unless this same graph receives
+        # a fresh Note On from the re-opened production Host/Service callback.
+        delivered = telemetry_when(
+            running, gen,
+            lambda t: any(e['t'] > last_on and e['args'][0] == 9
+                          for e in notes(t)), timeout=8.0)
+        assert any(e['t'] > last_on for e in notes(delivered))
+        seen = learn_status_when(
+            running, lambda m: any(d['id'] == device['id'] and d['enabled']
+                                   for d in m['devices']))
+        assert next(d for d in seen['devices'] if d['id'] == device['id'])['enabled']
+        assert running.process.poll() is None, running.stderr()
+    finally:
+        running.close()
+
 # Real, short, device-free end-to-end benchmark ingestion on the production sidecar.
 harness = Path(__file__).resolve().parents[2] / 'tools' / 'sidecar_edit_soak.py'
 smoke = subprocess.run([sys.executable, str(harness), '--engine', BINARY,
