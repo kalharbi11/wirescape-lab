@@ -55,22 +55,12 @@ def compare_pair(base, head, base_sha, head_sha, machine):
         failures.append("missing architecture")
     try:
         before, after = indexed(base), indexed(head)
-        required = expected_ids(ROOT)
-        experimental = experimental_row_ids(ROOT)
-    except (TypeError, ValueError, AttributeError, OSError) as error:
+        permitted_new = experimental_row_ids()
+        required = expected_ids(ROOT) | (before.keys() & permitted_new)
+        new_keys = (after.keys() - before.keys()) & permitted_new
+    except (TypeError, ValueError, AttributeError) as error:
         return {"status": "failed", "failures": failures + [str(error)],
-                "exceptions": exceptions, "measured": measured, "retired": retired, "new": new}
-    # 0020 section 7: an experimental-module row present on both sides is compared
-    # strictly like every other row; one present only at the head is reported as
-    # new and not compared. Any other unilateral row still fails.
-    required = required | (experimental & before.keys())
-    for key in sorted((experimental & after.keys()) - before.keys()):
-        row = after.pop(key)
-        if row.get("status") == "measured" and valid_measured_row(row, True):
-            new.append({"id": key, "head_ir": row["ir_per_block"], "head_totals": row["totals"],
-                        "disposition": "new experimental module row; NOT compared"})
-        else:
-            failures.append(f"{key}: new experimental row is not a valid measurement")
+                "exceptions": exceptions, "measured": measured, "retired": retired}
     # The base may carry the genuine historic ABI1 measurement; the head may not.
     # Retired evidence is disclosed separately, excluded from both the 96-row
     # comparison and the measured/pass counts. Unknown extras still fail closed.
@@ -84,11 +74,25 @@ def compare_pair(base, head, base_sha, head_sha, machine):
         failures.append("head: retired ABI1 metric must not be collected")
     for name, rows in (("base", before), ("head", after)):
         missing = required - rows.keys()
-        extra = rows.keys() - required
+        extra = rows.keys() - required - (new_keys if name == "head" else set())
         if missing:
             failures.append(f"{name}: missing IDs: {', '.join(sorted(missing))}")
         if extra:
             failures.append(f"{name}: unexpected IDs: {', '.join(sorted(extra))}")
+    for key in sorted(new_keys):
+        row = after[key]
+        if row.get("status") == "measured":
+            if not valid_measured_row(row, True):
+                failures.append(f"{key}: invalid new experimental Callgrind evidence")
+            else:
+                new.append({"id": key, "status": "new", "current_ir": row["ir_per_block"],
+                            "disposition": "head-only experimental; no base or 1% comparison"})
+        elif row.get("status") == "unavailable":
+            new.append({"id": key, "status": "new", "measurement_status": "unavailable",
+                        "reason": row.get("reason", "no numeric Ir"),
+                        "disposition": "head-only experimental; no base or 1% comparison"})
+        else:
+            failures.append(f"{key}: invalid new experimental status")
     for key in sorted(required & before.keys() & after.keys()):
         b, h = before[key], after[key]
         if b.get("status") == h.get("status") == "unavailable" and key in CHORD:
@@ -122,9 +126,9 @@ def compare_pair(base, head, base_sha, head_sha, machine):
     return {"status": "failed" if failures else "passed", "base_sha": base_sha,
             "head_sha": head_sha, "machine": machine,
             "expected_count": len(required), "measured_count": len(measured),
-            "paired_unavailable_count": len(exceptions), "retired_count": len(retired), "new_count": len(new),
+            "paired_unavailable_count": len(exceptions), "retired_count": len(retired),
             "failures": failures, "exceptions": exceptions, "measured": measured,
-            "retired": retired, "new": new}
+            "retired": retired, "new": new, "new_count": len(new)}
 
 
 def main(argv=None):
@@ -149,7 +153,6 @@ def main(argv=None):
           f"measured={result.get('measured_count', 0)}; "
           f"paired-unavailable={len(result['exceptions'])}; "
           f"retired={len(result.get('retired', []))}; "
-          f"new={len(result.get('new', []))}; "
           f"failures={len(result['failures'])}", flush=True)
     for err in result["failures"]:
         print("FAIL: " + err, file=sys.stderr)

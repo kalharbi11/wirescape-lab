@@ -2,7 +2,7 @@
 """Synthetic, device-free instruction regression gate tests."""
 import unittest
 
-from compare import compare, expected_ids, experimental_row_ids, indexed, render
+from compare import compare, expected_ids, indexed, render
 
 
 def facts(rows, machine="linux-x64"):
@@ -83,6 +83,20 @@ class CompareTests(unittest.TestCase):
         self.assertIn("module/osc.out/voices1", required)
         self.assertIn("module/osc.out/voices8", required)
 
+    def test_head_only_experimental_is_new_but_unlisted_is_rejected(self):
+        base = facts([("fixed/abi2_mono", "measured", 100)])
+        head = facts([("fixed/abi2_mono", "measured", 100),
+                      ("module/essentials.cv_to_notes/voices1", "measured", 120)])
+        for document in (base, head):
+            for row in document["rows"]:
+                row["totals"] = [1000, 3000] if row["id"].startswith("fixed/") else [1000, 2440]
+        changes, errors = compare(base, head, required_ids={"fixed/abi2_mono"}, verify_totals=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(next(r["status"] for r in changes if "cv_to_notes" in r["id"]), "new")
+        head["rows"].append({"id": "module/unlisted/voices1", "status": "measured",
+                             "ir_per_block": 50, "totals": [1000, 1600]})
+        self.assertTrue(compare(base, head, required_ids={"fixed/abi2_mono"}, verify_totals=True)[1])
+
     def test_single_historic_retired_row_is_disclosed_not_passed(self):
         old = facts([("fixed/abi1_mono", "measured", 100),
                      ("fixed/abi2_mono", "measured", 100)])
@@ -142,23 +156,6 @@ class CompareTests(unittest.TestCase):
         self.assertIn("r14", text)
         self.assertIn("**Exceeded threshold", text)
         self.assertNotIn("| r0 |", text)
-
-
-
-class ExperimentalNewRowTests(unittest.TestCase):
-    """0020 section 7: only listed experimental head-only rows are new."""
-
-    def test_head_only_rows(self):
-        key = sorted(experimental_row_ids())[0]
-        before = facts([("a", "measured", 100)])
-        after = facts([("a", "measured", 100), (key, "measured", 900)])
-        changes, errors = compare(before, after, new_ids=experimental_row_ids())
-        self.assertEqual(errors, [])
-        self.assertEqual([r["status"] for r in changes if r["id"] == key], ["new"])
-        self.assertIn(key, render(changes, errors, 3.0))
-        self.assertTrue(compare(before, after)[1])  # not listed as new: still fails
-        bad = facts([("a", "measured", 100), (key, "unavailable", None)])
-        self.assertTrue(compare(before, bad, new_ids=experimental_row_ids())[1])
 
 
 if __name__ == "__main__":

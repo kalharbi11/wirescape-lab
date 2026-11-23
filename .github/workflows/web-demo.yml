@@ -1,0 +1,139 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Web demo (WEB1, #340): the real engine compiled to WebAssembly behind the Studio UI, as a
+# static site. Device-free: no MIDI, OSC, sockets or files; Chromium runs headless with fake
+# media devices. Not a required check. Deploys to GitHub Pages from main only, once the owner
+# sets Settings -> Pages -> Source: GitHub Actions; until then the deploy job may fail.
+name: Web demo
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'targets/web/**'
+      - 'engine/**'
+      - 'host/document/**'
+      - 'host/examples/**'
+      - 'modules/**'
+      - 'sdk/**'
+      - 'apps/studio/**'
+      - '.github/workflows/web-demo.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'targets/web/**'
+      - 'engine/**'
+      - 'host/document/**'
+      - 'host/examples/**'
+      - 'modules/**'
+      - 'sdk/**'
+      - 'apps/studio/**'
+      - '.github/workflows/web-demo.yml'
+permissions:
+  contents: read
+concurrency:
+  group: web-demo-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  EMSDK_VERSION: 3.1.74
+  WIRESCAPE_BASE: /${{ github.event.repository.name }}/
+jobs:
+  native:
+    name: native web_engine_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Ninja
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build
+      - name: Build and run web_engine_tests
+        run: |
+          cmake -S targets/web -B build/web-native -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/web-native
+          ctest --test-dir build/web-native --output-on-failure --no-tests=error
+
+  wasm:
+    name: Emscripten wirescape.wasm
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Ninja
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build
+      - name: Install Emscripten ${{ env.EMSDK_VERSION }}
+        run: |
+          git clone --depth 1 --branch "$EMSDK_VERSION" https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
+      - name: Build wirescape.wasm
+        run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          emcmake cmake -S targets/web -B build/web-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/web-wasm
+          ls -l build/web-wasm/wirescape.wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wirescape-wasm
+          path: build/web-wasm/wirescape.wasm
+          if-no-files-found: error
+
+  site:
+    name: Studio web build and Chromium smoke
+    needs: wasm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/studio
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: wirescape-wasm
+          path: apps/studio/public/web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - run: npm ci
+      - name: Locate runner Chromium
+        run: |
+          browser="$(command -v chromium || command -v chromium-browser || command -v google-chrome)"
+          test -x "$browser"
+          echo "WIRESCAPE_CHROMIUM=$browser" >> "$GITHUB_ENV"
+      # Builds the site with VITE_WIRESCAPE_WEB=1, then loads the page, a starter patch and
+      # checks a nonzero output peak from the AudioWorklet (tests-web/).
+      - name: Web demo smoke
+        run: npx playwright test -c playwright.web.config.ts
+      - name: Upload failure output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-demo-failures-${{ github.sha }}
+          path: apps/studio/test-results/
+          if-no-files-found: ignore
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/studio/dist
+
+  deploy:
+    name: Pages deploy (main only)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [native, site]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

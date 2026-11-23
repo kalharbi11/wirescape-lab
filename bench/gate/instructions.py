@@ -3,7 +3,7 @@
 """Device-off, architecture-specific Callgrind Ir per audio block.
 
 Profiles five existing ABI2 cost modes, every bundled golden-render patch,
-and all catalogued modules (34 golden set plus bench/module_sets.json experimental) at 1 and 8 probe voices (channels). Two lengths
+and 34 frozen Golden IDs plus the explicit experimental tier at 1 and 8 voices. Two lengths
 are subtracted to remove fixed startup, patch-loading and module-init cost.
 Audio devices, MIDI devices and LAN sockets are never opened.
 """
@@ -26,8 +26,8 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from bench.golden.render import events_for_patch, sources  # noqa: E402
+from bench.golden.inventory import EXPERIMENTAL, allowed_ids  # noqa: E402
 from tools.bench.abi2_cost import MODES, instructions as read_ir  # noqa: E402
-from bench.gate.compare import module_sets  # noqa: E402
 
 RATE = 48000
 FRAMES = 128
@@ -162,26 +162,19 @@ def difference(command_for_length, valgrind, lengths=COUNTS, module_probe=None):
 
 
 def modules():
-    # The historical known-ID compatibility fixture contains 33 entries, but
-    # engine/control/module_catalog.inc registers 34. The extra built-in is
-    # osc.out, recorded by its own modules/osc_out/module.json.
+    # Frozen compatibility fixture has 33 IDs; osc.out is Golden ID #34.
     fixture = [line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
                if line.strip() and not line.startswith("#")]
-    osc_manifest = ROOT / "modules/osc_out/module.json"
-    osc_id = json.loads(osc_manifest.read_text(encoding="utf-8"))["id"]
-    catalog = ROOT / "engine/control/module_catalog.inc"
+    osc_id = json.loads((ROOT / "modules/osc_out/module.json").read_text(encoding="utf-8"))["id"]
+    catalogue = ROOT / "engine/control/module_catalog.inc"
     entries = sum(line.strip().startswith("WS_APP_MODULE(")
-                  for line in catalog.read_text(encoding="utf-8").splitlines())
-    ids = fixture + [osc_id] if osc_id not in fixture else fixture
-    # 0020 section 7: the catalogue holds the 34 golden-set modules plus the
-    # explicit experimental list; a module in neither list fails.
-    golden, experimental = module_sets(ROOT)
-    if (len(ids) != len(set(ids)) or set(ids) != set(golden) or osc_id != "osc.out"
-            or entries != len(golden) + len(experimental)):
+                  for line in catalogue.read_text(encoding="utf-8").splitlines())
+    ids = fixture + ([osc_id] if osc_id not in fixture else []) + sorted(EXPERIMENTAL)
+    if (len(ids) != len(set(ids)) or set(ids) != allowed_ids(ROOT)
+            or entries != len(ids) or osc_id != "osc.out"):
         raise ValueError(f"catalogue coverage mismatch: fixture={len(fixture)}, "
-                         f"union={len(set(ids))}, native={entries}, "
-                         f"experimental={len(experimental)}, osc={osc_id}")
-    return sorted(ids) + sorted(experimental)
+                         f"union={len(set(ids))}, native={entries}, osc={osc_id}")
+    return sorted(ids)
 
 
 def fixed_modes(build, valgrind):
@@ -295,8 +288,8 @@ def main(argv=None):
         raise RuntimeError("four surviving fixed cost modes required")
     if len([r for r in rows if r["id"].startswith("bundled/")]) < 24:
         raise RuntimeError("all 24 bundled golden patches required")
-    if len([r for r in rows if r["id"].startswith("module/")]) != 2 * len(modules()):
-        raise RuntimeError("one- and eight-voice rows required for every module")
+    if len([r for r in rows if r["id"].startswith("module/")]) != 2*len(modules()):
+        raise RuntimeError("one- and eight-voice rows required for every registered module")
     record = {
         "SPDX-License-Identifier": "GPL-3.0-only", "schema": 1,
         "commit": commit, "date_et": datetime.now(ZoneInfo("America/New_York")).date().isoformat(),

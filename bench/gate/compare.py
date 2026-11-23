@@ -9,6 +9,14 @@ import math
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from bench.golden.inventory import EXPERIMENTAL, golden_ids  # noqa: E402
+
+def experimental_row_ids():
+    return {f"module/{m}/voices{voices}" for m in EXPERIMENTAL for voices in (1, 8)}
+
 
 def indexed(document):
     rows = document.get("rows")
@@ -25,39 +33,17 @@ def indexed(document):
     return found
 
 
-def module_sets(root=None):
-    """Golden-set and experimental module IDs (proposals/0020 section 7)."""
-    root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
-    data = json.loads((root / "bench/module_sets.json").read_text(encoding="utf-8"))
-    golden, experimental = data["golden_set"], data["experimental"]
-    if (len(golden) != 34 or len(set(golden)) != 34 or len(set(experimental)) != len(experimental)
-            or set(golden) & set(experimental)):
-        raise ValueError("bench/module_sets.json: golden set must hold 34 unique IDs, "
-                         "disjoint from a duplicate-free experimental list")
-    return tuple(golden), tuple(experimental)
-
-
-def experimental_row_ids(root=None):
-    """Module rows a head may add for experimental modules; reported as new, not compared."""
-    return {f"module/{m}/voices{voices}" for m in module_sets(root)[1] for voices in (1, 8)}
-
-
 def expected_ids(root=None):
-    """Authoritative graph inventory for command-line benchmark comparisons."""
-    root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
-    fixture = root / "tools/foundation/fixtures/known_module_ids.txt"
-    module_ids = {line.strip() for line in fixture.read_text(encoding="utf-8").splitlines()
-                  if line.strip() and not line.startswith("#")}
-    module_ids.add("osc.out")  # registered in engine/control/module_catalog.inc
+    """Only the 96 frozen Golden/canonical rows, never experimental heads."""
+    root = Path(root) if root is not None else ROOT
+    modules = golden_ids(root)
     patches = sorted((root / "apps/studio/patches").glob("*.json"))
-    if module_ids != set(module_sets(root)[0]) or len(patches) != 24:
-        raise ValueError(f"unexpected catalogue coverage: {len(module_ids)} modules, "
-                         f"{len(patches)} patches")
-    modes = ("abi2_mono", "abi2_modulated", "abi2_poly8",
-             "abi2_quad_vca_lpg8")
+    if len(modules) != 34 or len(patches) != 24:
+        raise ValueError(f"unexpected Golden coverage: {len(modules)} modules, {len(patches)} patches")
+    modes = ("abi2_mono", "abi2_modulated", "abi2_poly8", "abi2_quad_vca_lpg8")
     return ({f"fixed/{m}" for m in modes}
             | {f"bundled/{p.name}" for p in patches}
-            | {f"module/{m}/voices{voices}" for m in module_ids for voices in (1, 8)})
+            | {f"module/{m}/voices{v}" for m in modules for v in (1, 8)})
 
 
 def valid_measured_row(row, verify_totals):
@@ -79,7 +65,7 @@ def valid_measured_row(row, verify_totals):
 
 
 def compare(baseline, current, threshold=3.0, required_ids=None,
-            verify_totals=False, new_ids=frozenset()):
+            verify_totals=False):
     if not math.isfinite(threshold) or threshold < 0:
         raise ValueError("threshold must be finite and nonnegative")
     if baseline.get("schema") != 1 or current.get("schema") != 1:
@@ -106,14 +92,19 @@ def compare(baseline, current, threshold=3.0, required_ids=None,
             changes.append({"id": retired, "percent": None, "status": "retired"})
         if new is not None:
             failures.append(f"{retired}: retired metric must not appear in current evidence")
-    for key in sorted(before.keys() | after.keys() | (set(required_ids) if required_ids else set())):
+    experimental = experimental_row_ids() if required_ids is not None else set()
+    required = set(required_ids) if required_ids is not None else set()
+    for key in sorted(before.keys() | after.keys() | required):
         old, new = before.get(key), after.get(key)
-        if old is None and new is not None and key in new_ids:
-            # 0020 section 7: a head-only row of an experimental module is new.
+        if key in experimental and key not in required and old is None and new is not None:
+            # Validated head-only measurements cannot be compared to a nonexistent base.
             if new.get("status") == "measured" and valid_measured_row(new, verify_totals):
-                changes.append({"id": key, "percent": None, "status": "new"})
+                changes.append({"id": key, "percent": None, "status": "new", "current_ir": new["ir_per_block"]})
+            elif new.get("status") == "unavailable":
+                changes.append({"id": key, "percent": None, "status": "new",
+                                "measurement_status": "unavailable", "reason": new.get("reason", "no numeric Ir")})
             else:
-                failures.append(f"{key}: new experimental row is not a valid measurement")
+                failures.append(f"{key}: invalid new experimental instruction evidence")
             continue
         if old is None or new is None:
             failures.append(f"{key}: missing {'baseline' if old is None else 'current'} row")
@@ -161,8 +152,6 @@ def render(changes, failures, threshold, markdown=False):
     if markdown:
         lines = [f"### Callgrind gate — threshold +{threshold:g}%",
                  f"Measured comparisons: {measured}; failures: {len(failures)}",
-                 f"New experimental rows (not compared): "
-                 f"{', '.join(r['id'] for r in changes if r['status'] == 'new') or 'none'}",
                  "| Graph | Δ Ir/block | Baseline Ir | Current Ir |",
                  "|---|---:|---:|---:|"]
         for r in changes[:10]:
@@ -175,8 +164,6 @@ def render(changes, failures, threshold, markdown=False):
                          ["- " + message for message in failures])
         return "\n".join(lines)
     lines = [f"Callgrind delta: {measured} measured rows; threshold +{threshold:g}%",
-             "New experimental rows (not compared): "
-             + (", ".join(r["id"] for r in changes if r["status"] == "new") or "none"),
              "Ten largest absolute percentage changes:"]
     for r in changes[:10]:
         diff = "n/a" if r["percent"] is None else f"{r['percent']:+.2f}%"
@@ -196,8 +183,7 @@ def main(argv=None):
         baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
         current = json.loads(args.current.read_text(encoding="utf-8"))
         changes, failures = compare(baseline, current, args.threshold,
-                                    required_ids=expected_ids(), verify_totals=True,
-                                    new_ids=experimental_row_ids())
+                                    required_ids=expected_ids(), verify_totals=True)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"Callgrind gate: {exc}", file=sys.stderr)
         return 2

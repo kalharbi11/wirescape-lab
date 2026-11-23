@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Portability probe parsing tests; no toolchain or hardware needed."""
-import json
 import sys
 from pathlib import Path
 import unittest
@@ -12,10 +11,11 @@ from probe import first_error, section_sizes, sources, symbol_flags
 class ProbeTests(unittest.TestCase):
     def test_source_inventory_covers_catalog_and_sdk(self):
         files, count = sources()
-        sets = json.loads((Path(__file__).resolve().parents[2] / "module_sets.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(sets["golden_set"]), 34)
-        self.assertEqual(count, 34 + len(sets["experimental"]))  # 0020 section 7
-        self.assertEqual(len(files), count + 1)
+        from bench.golden.inventory import EXPERIMENTAL, allowed_ids, golden_ids
+        self.assertEqual(count, len(allowed_ids()))
+        self.assertEqual(len(golden_ids()), 34)
+        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes"})
+        self.assertEqual(len(files), 36)
         self.assertTrue(any(str(p).endswith("sdk/template/module.cpp") for p in files))
         self.assertEqual(sum("sdk/examples/" in p.as_posix() for p in files), 2)
 

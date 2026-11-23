@@ -3,17 +3,17 @@
 import unittest
 
 from instructions import modules
-from compare import compare, module_sets
+from compare import compare
 
 
 class InventoryTests(unittest.TestCase):
-    def test_all_34_runtime_catalogue_entries_are_included(self):
+    def test_frozen_34_and_explicit_experimental_entries_are_included(self):
         catalogue = modules()
-        golden, experimental = module_sets()
-        self.assertEqual(len(golden), 34)
-        self.assertEqual(catalogue[:34], sorted(golden))
-        self.assertEqual(catalogue[34:], sorted(experimental))  # 0020 section 7
-        self.assertEqual(len(set(catalogue)), len(catalogue))
+        from bench.golden.inventory import EXPERIMENTAL, allowed_ids, golden_ids
+        self.assertEqual(set(catalogue), allowed_ids())
+        self.assertEqual(len(golden_ids()), 34)
+        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes"})
+        self.assertEqual(len(catalogue), 35)
         self.assertIn("osc.out", catalogue)
 
     def test_missing_osc_out_rows_fail_coverage(self):
