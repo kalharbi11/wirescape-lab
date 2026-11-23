@@ -71,6 +71,9 @@ class Session {
     engine2::Config config_;
     audio::EngineOwner catalogue_, engine_;
     AppEngine *active_ = nullptr;
+    // Per 100 ms poll: 4096 pops (each pop itself bounded) outpaces both 256-slot rings.
+    static constexpr uint32_t kEgressDrainPerPoll = 4096;
+    void drain_egress() noexcept;
     std::unique_ptr<audio::Stream> stream_;
     ObservedMidi *observer_ = nullptr;
     midi::ScriptedBackend *scripted_midi_ = nullptr; // borrowed from injected ObservedMidi
