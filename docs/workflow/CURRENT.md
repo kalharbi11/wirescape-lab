@@ -7,6 +7,34 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 03:40 ET: Architect run 9 — agent check, tasks assigned, M3/M4 path upkeep (base `main` c008a81)
+
+- **wirescape-pi #20 merged** (`9e77ee5`, owner). The owner asked for the first Pi `io-soak` on [#318](https://github.com/kalharbi11/wirescape-lab/issues/318) at 08:08 UTC. It had not been picked up at 03:30 ET. The result arrives as `pi5/io-soak` and a #318 comment.
+- **`0020` §7 spot-check, #333 at `99cb2ea`: holds.**
+  - The S0 catalogue goes from 34 to 35 modules, and only `essentials.gate_delay` is added. No other entry changes.
+  - `bench/module_sets.json` holds the 34 golden IDs plus `EXPERIMENTAL`. Inventory, instruction and paired checks use it, and head-only experimental rows report as `new`.
+  - Existing rows stay strict; the threshold is unchanged; there are no workflow edits.
+  - claude-builder1 did the rebase (owner-directed), and B4 keeps the lane.
+- **M3 r1.1 / M4 r2.1 path upkeep:** every `native/…` cell reads through `lab/m1_s6_map.py`. The engine single-writer area is `engine/` minus `control/` and `voice/`; a module's one-line registration does not make it a writer.
+- **Tasks assigned** (see [BUILDERS](BUILDERS.md)):
+  - **CB1: M3 T1.6a [#315](https://github.com/kalharbi11/wirescape-lab/issues/315).** This is the start of the OB1 chain, moved from B4, whose Codex cloud cannot reach github.com.
+  - **CB2 (claude-reviewer):** the OB-a3 #298 review when B1 pins it.
+  - **B2: OB-g8 [#326](https://github.com/kalharbi11/wirescape-lab/issues/326)** after #311.
+  - **B4: Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328)** after #333, moved from B5.
+  - B1, B3 and B5 continue their PRs.
+- **Ready for a lead merge once exact-head Golden finishes:** #336 and #311. Modules follow in order, the first green one going first under SR19: #325 `9e94769`, #334 `24ae7dd`, #333 `99cb2ea`. #322's correction `c6df8f5` is still in CI.
+- **No delivery lead is active** (last: the Architect acting as lead in run 7). **Owner:** start `claude lead: run`, or tell the Architect to act as lead, so these merges land.
+- **Web target (fact, for the owner's question; no decision):**
+  - `targets/web/` (the wasm AudioWorklet engine) and `apps/studio/src/web/` exist. S6 mapped their paths.
+  - Their CI (`ci/from-main/web-demo.yml`) is parked with pre-S6 path filters, so nothing has built the web target since S6.
+  - The web engine hides `midi.*` and `osc.*` modules, and it has no `applyGraph`. Studio therefore falls back to `loadGraph` there, and every structural edit rebuilds the graph with a 10 ms crossfade.
+- **Held:** #322 (existing-row Ir) and MT2/A3, unchanged.
+
+**Next Architect run:** quick effort, at the first of: CB1's T1.6a Result (check it is mechanical; T1.6b's contract-review follows its merge), the first Pi `io-soak` result, or a module merge.
+**Next run should:** (1) Pi `io-soak` L0 on #318 → confirm or replace the 0019 thresholds in one line; (2) when #311 merges, add `mixed/still` to wirescape-pi `NIGHTLY_LANES`; (3) T1.6a: confirm the diff is mechanical and the Goldens are identical; (4) A3 stays parked.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 01:00 ET: Architect run 8 — OB-g4 drafted, #326 becomes OB-g8, agent check (base `main` fd564d4)
 
 - **OB-g4 drafted** as [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20) at `550debc`. The **owner merges** it.

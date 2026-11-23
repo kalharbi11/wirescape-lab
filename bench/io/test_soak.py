@@ -15,12 +15,51 @@ class SoakTests(unittest.TestCase):
             self.assertEqual(graph["format"], "wirescape.native.patch")
             self.assertFalse(graph["modules"][0]["config"]["lan"])
             self.assertEqual(graph["modules"][1]["config"]["port"], 9001)
-            if profile != "osc-gates":
-                rows = [row for module in graph["modules"] if 10 <= module["id"] < 18
-                        for row in module["config"]["rows"]]
-                self.assertEqual(len(rows), 64)
-                self.assertEqual(len({row["pattern"] for row in rows}), 64)
+            rows = [row for module in graph["modules"] if 10 <= module["id"] < 18
+                    for row in module["config"]["rows"]]
+            self.assertEqual(len(rows), 64 if profile in soak.OSC_LOAD_PROFILES else 0)
+            self.assertEqual(len({row["pattern"] for row in rows}), len(rows))
+            if rows:
                 self.assertEqual({row["kind"] for row in rows}, {"cv", "gate"})
+            midi = [m for m in graph["modules"] if m["module"] == "midi.in"]
+            converter = [m for m in graph["modules"] if m["module"] == "midi.to_cv"]
+            self.assertEqual(len(midi), int(profile in soak.MIDI_PROFILES))
+            self.assertEqual(len(converter), len(midi))
+            if midi:
+                self.assertEqual(midi[0]["config"]["endpoint"], "all_enabled")
+                self.assertEqual(converter[0]["parameters"]["voice_count"], 4)
+                self.assertIn({"kind": "event",
+                               "from": {"module": 80, "port": "midi"},
+                               "to": {"module": 81, "port": "midi"}}, graph["connections"])
+
+    def test_midi_profile_uses_injected_flag_only(self):
+        for profile in soak.PROFILES:
+            args = soak.sidecar_args("engine", "settings.json", profile)
+            self.assertEqual(args[:5], ["engine", "--null-audio", "--bench-summary",
+                                        "--settings", "settings.json"])
+            self.assertEqual("--scripted-midi" in args, profile in soak.MIDI_PROFILES)
+            self.assertNotIn("--confirm-midi", args)
+            self.assertNotIn("--confirm-lan", args)
+
+    def test_midi_release_panic_and_missing_counter_coverage(self):
+        data = {"received": 16, "dropped": 0, "ring_full": 0,
+                "malformed": 0, "send_fail": 0, "release_panics": 0}
+        status = {"midi": {"counters": data}}
+        self.assertEqual(soak.midi_received(status), 16)
+        first = soak.counters({"status": status})
+        for name in soak.MIDI_STOP_FIELDS:
+            increased = dict(first)
+            increased["midi." + name] += 1
+            with self.assertRaises(soak.Stop) as error:
+                soak.check_counters(first, increased)
+            self.assertEqual(error.exception.check, "counter_rise")
+        for invalid in ({"midi": {}},
+                        {"midi": {"counters": {**data, "received": True}}},
+                        {"midi": {"counters": {k: v for k, v in data.items()
+                                              if k != "release_panics"}}}):
+            with self.assertRaises(soak.Stop) as error:
+                soak.midi_received(invalid)
+            self.assertEqual(error.exception.check, "midi_counters_unavailable")
 
     def test_osc_codec(self):
         for value in (0, .2, .5, 1):
@@ -56,6 +95,8 @@ class SoakTests(unittest.TestCase):
                 soak.check_counters(first, increased)
             self.assertEqual(caught.exception.check, "counter_rise")
         soak.check_counters(first, first)
+        self.assertEqual(soak.counters({"status": {"midi": {"release_panic": 0}}}),
+                         {"midi.release_panic": 0})
 
     def test_bench_fault(self):
         stats = soak.bench_line("notice\nbench blocks=12 p99=2.2 overruns=0 faults=0 overrun_render_count=0 overrun_wake_count=0\n")

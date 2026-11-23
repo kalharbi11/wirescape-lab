@@ -69,8 +69,10 @@ int Host::deliver(void *opaque, uint32_t node, const ws2_event &e, uint64_t ns) 
     auto &engine = app_engine_native(h.engine_);
     int result = engine.enqueue(1, node, WS2_DIRECT_PORT, e, ns, wirescape::engine2::Timing::Timestamped,
                                 engine.meter().generation);
-    if (result != WS2_OK && (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE || wirescape::engine2::midi_release(e)))
+    if (result != WS2_OK && (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE || wirescape::engine2::midi_release(e))) {
+        h.release_panics_.fetch_add(1, std::memory_order_relaxed);
         engine.panic();
+    }
     if (result == WS2_OK && h.monitor_) h.monitor_->midi(node, e, ns);
     return result;
 }
@@ -136,8 +138,13 @@ std::string Host::diagnostics() const {
     return nlohmann::json{{"received", c.received},   {"dropped", c.dropped},
                           {"malformed", c.malformed}, {"oversize", c.oversize},
                           {"ring_full", c.ring_full}, {"disconnects", c.disconnects},
-                          {"send_fail", c.send_fail}, {"ports", ports}}
+                          {"send_fail", c.send_fail}, {"ignored_rpn", c.ignored_rpn},
+                          {"release_panics", c.release_panics}, {"ports", ports}}
         .dump();
 }
-Counters Host::counters()const noexcept{return service_?service_->counters():Counters{};}
+Counters Host::counters()const noexcept{
+    auto c = service_ ? service_->counters() : Counters{};
+    c.release_panics = release_panics_.load(std::memory_order_relaxed);
+    return c;
+}
 }
