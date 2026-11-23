@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 12 (owner run-now; acting lead)
+Merged T1.6a #344 (`ef11118`) on verified evidence; issued T1.6b #350 to CB1 with the 0007 contract-review criteria. Web demo deployed from main.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 11 (scheduled; acting lead)
 Merged #334 CV to Notes (`5bff39c`), #343 WEB1 (`92747e4`) and #336 OB-b (`3eeedd6`). T1.6a #344 checked as mechanical and waits for its Result. Granted #298 its pin-7 test-only paths. OB-g3 needs a native failing test. New OB-g9 #348 (midi-m8/still). Claude builders are blocked on owner prompts.
 Signed: claude-architect, 2026-11-23
