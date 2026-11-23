@@ -48,16 +48,21 @@ struct NotesToCv {
             b.out(p).set_channels(n);
             b.out(p).mark_constant(false);
         }
+        // Cache stable signal output rows once per block, not per sample.
+        std::array<std::array<float*, wirescape::voice::kMaxVoices>, 3> output_rows{};
+        for (uint32_t p = 0; p < 3; ++p)
+            for (uint32_t c = 0; c < n; ++c)
+                output_rows[p][c] = b.out(p).ch(c);
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) {
                     for (uint32_t c = 0; c < n; ++c) {
                         const auto &v = core.allocator().voice(static_cast<int>(c));
-                        b.out(0).ch(c)[i] = v.pitch;
+                        output_rows[0][c][i] = v.pitch;
                         // A stolen/retriggered voice drops gate for one sample,
                         // allowing the downstream envelope to retrigger.
-                        b.out(1).ch(c)[i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
-                        b.out(2).ch(c)[i] = v.velocity;
+                        output_rows[1][c][i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
+                        output_rows[2][c][i] = v.velocity;
                     }
                     core.allocator().clear_triggers();
                 }
@@ -104,16 +109,21 @@ struct NotesToCv {
         b.out(3).mark_constant(silent_trigger);
         if (silent_trigger)
             for (uint32_t c = 0; c < n; ++c) b.out(3).ch(c)[0] = 0.f;
+        // Cache stable signal output rows once per block, not per sample.
+        std::array<std::array<float*, wirescape::voice::kMaxVoices>, 3> output_rows{};
+        for (uint32_t p = 0; p < 3; ++p)
+            for (uint32_t c = 0; c < n; ++c)
+                output_rows[p][c] = b.out(p).ch(c);
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) {
                     for (uint32_t c = 0; c < n; ++c) {
                         const auto &v = core.allocator().voice(static_cast<int>(c));
-                        b.out(0).ch(c)[i] = v.pitch;
+                        output_rows[0][c][i] = v.pitch;
                         // A stolen/retriggered voice drops gate for one sample,
                         // allowing the downstream envelope to retrigger.
-                        b.out(1).ch(c)[i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
-                        b.out(2).ch(c)[i] = v.velocity;
+                        output_rows[1][c][i] = v.gate && !(v.trigger && v.retrigger) ? 1.f : 0.f;
+                        output_rows[2][c][i] = v.velocity;
                     }
                     core.allocator().clear_triggers();
                 }
