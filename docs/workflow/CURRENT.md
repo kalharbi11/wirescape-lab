@@ -7,6 +7,89 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 10:00 ET: Architect run 14, acting as lead, after the owner's GPT run (base `main` a747d43)
+
+- **Merged #309 OB-g7** as `4efb204`. It is one workflow with `contents: read` on `pull_request`, and every soak job is `continue-on-error`. PRs touching I/O paths now get hosted Linux and Windows L0 for free (public repo), which serves OB-g8 #339 and OB-g9 #348.
+- **Ruling on #322:** the fixed +4,887 Ir/block (x64) on all `host.keyboard` patches is #322's defect. `host.keyboard` shares `engine/voice/note_to_cv.h`, and only #322's files differ between base and head, so a compile-level side effect is likely. B3 may use function-level attribution, and a no-behaviour fix in its files or in `note_to_cv.h`. Tolerance unchanged.
+- **Lane changes:**
+  - CB1, already active on #333's Ir failure, finishes #333, then T1.6b #350.
+  - B4 starts Poly Merge #328.
+- **Builder messages re-sent** (the owner's earlier denial was accidental): CB1, CB2 (OB-g9, then the #298 review) and CB3 (the TR2 fixes). All three were delivered. CB1 and CB3 are running; CB2 was idle and now has OB-g9.
+- **GPT builders** (owner's run, results around 07:00 ET): none was merge-ready.
+  - #298: red build after the first pin-7 test.
+  - #339: Windows-only test failure plus red builds.
+  - #333: integration was needed (now CB1's).
+  - #322: root cause localized (ruled above).
+  - #324: unchanged.
+  Each has its next step on its PR.
+- **Held:** #322 (Ir), #339, #298 and #345 (red), MT2/A3, Pi (A31, until 2026-11-30).
+
+**Next run (owner-triggered):** merge #333 and #328 when green; contract-review T1.6b; check #298 for its review request; refresh all lanes.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 09:00 ET: Architect run 13 — scheduled check-in, acting as lead (base `main` 9bdebd3)
+
+- **No merges.** Nothing is green at its exact head.
+  - #298 `71bd210`: native build red after the first pin-7 test.
+  - #339 `3616336`: red.
+  - #333 `a001a44`: waits for B4's post-#334 refresh.
+  - #345 `1a9b581`: red.
+  - #322: unchanged.
+- **T1.6a** merged earlier (`ef11118`, run 12); **T1.6b #350** is released to CB1. The Architect's contract-review is required before it merges.
+- **No GPT builder has pushed since about 07:05 ET.** All three Claude builder sessions are still waiting on owner permission prompts (CB1 Bash, CB2 Send Message, CB3 Send Later). Every lane already holds its next task in [BUILDERS](BUILDERS.md); no lane is idle by assignment.
+- **This was the last scheduled check-in** the owner asked for. No further runs are scheduled.
+- **Held:** #322, #345 and #339 (red); #333 (refresh); MT2/A3; Pi (A31, until 2026-11-30).
+
+**Next run (owner-triggered):**
+1. Merge #333 once it is refreshed and green.
+2. Contract-review T1.6b when CB1 files its inbox row.
+3. Check #298 and #309.
+4. Refresh B1–B5 and CB1–CB3.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 07:15 ET: Architect run 12, owner "run now", acting as lead (base `main` 3eeedd6)
+
+- **T1.6a #344 merged** as `ef11118` on the Architect's verified evidence: 0007 rule 1(a) holds (verbatim move, whitespace only, Goldens and M1 paired green). CB1 had not posted a Result because its session waits on an owner prompt, so the critical path did not wait.
+- **T1.6b [#350](https://github.com/kalharbi11/wirescape-lab/issues/350) issued to CB1.**
+  - Contract-review criteria: 0007 rules 2, 3, 5, 6 and the field table.
+  - A field with no clear side escalates through QUESTIONS.
+  - The Architect reviews; the lead merges.
+- **Web demo:** the `main` run at `92747e4` succeeded and deployed to Pages.
+- **Unchanged since run 11 (one hour):**
+  - #298 has its first pin-7 test; CI is running.
+  - #333: B4 diagnosed it and needs the post-#334 integration.
+  - #345, #339 and #322 are red.
+  - All three Claude builders wait on owner prompts.
+- **Held:** as in run 11.
+
+**Next run (08:59 ET scheduled):** check #298 CI and Result; merge #333 or #309 if green; check the Claude builders after the owner answers their prompts; refresh B1–B5.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 06:30 ET: Architect run 11, scheduled check-in, acting as lead (base `main` 6a2f0bd)
+
+- **Merged** after exact-head checks (only the non-required `Offline facts / windows-latest` failed):
+  - **#334 CV to Notes** as `5bff39c`. `0020` §7 holds: S0 adds only `essentials.cv_to_notes`, `bench/module_sets.json` is created with it as experimental, and no limit is loosened.
+  - **#343 WEB1** as `92747e4`: web target, Playwright config and the new `web-demo.yml` only. Pages is on.
+  - **#336 OB-b** as `3eeedd6`. The Architect ran `tools/pi/ob_b_paths.py --dry-run` on a real checkout of `a2cdcae`: 21/21, exit 0.
+- **T1.6a #344 at `de38c94`: the Architect's check holds** (mechanical; Golden and M1 paired green). It merges when CB1 posts its Result.
+- **Grant:** OB-a3 pin-7 test-only paths for #298 ([#287 comment](https://github.com/kalharbi11/wirescape-lab/issues/287#issuecomment-7098932576)). B1 had waited on this since 2026-11-22.
+- **OB-g3 disposition:** #324's Studio XFAIL is not the criterion. The native `--scripted-midi` failing test comes first, then the fix.
+- **New OB-g9 [#348](https://github.com/kalharbi11/wirescape-lab/issues/348) (CB2):** `midi-m8/still` L0 fails with `missing_gate_edge` on hosted Linux and Windows (#309 run 45149139023). A `still`-mode defect, so 0019 §5 applies. Advisory.
+- **Claude builders:** all three sessions are waiting on owner permission prompts (CB1 Bash, CB2 Send Message, CB3 Send Later). The owner denied Architect messages to them, so their next steps are on #344, #345 and #340.
+- **Held:**
+  - #322 and #345 (existing-row Ir / red Lab);
+  - #333 until its main refresh;
+  - #339 (red build);
+  - MT2/A3;
+  - Pi (A31, until 2026-11-30).
+
+**Next run (08:59 ET scheduled):** merge #344 once its Result is in, then post the T1.6b contract-review note; merge #333 or #309 if green; check the three Claude builders and B1–B5.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 04:35 ET: Architect run 10c — Pi postponed until the minutes reset (inbox A31, later)
 
 - **Cause** (owner): the account's Actions minutes are used up until **2026-11-30**. Separately, the one intake job that ran failed with **401**, so the `WIRESCAPE_LAB_TOKEN` secret must be replaced. The Pi runner may also need re-registering.
