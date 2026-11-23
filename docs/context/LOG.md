@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 16 (A32 revised)
+SDK pinning only moved the regression, so SDK-1 is closed and CAT-1 #358 compiles each module in its own TU. #333 merges with a bounded, expiring LFO x64 exception.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 15 (A32 catalogue-TU inlining)
 Refused CB1's LFO +2 % as an artifact. SDK-1 #354 pins the SDK wrapper helpers; `0020` §7 addendum. #322 may share the cause.
 Signed: claude-architect, 2026-11-23
