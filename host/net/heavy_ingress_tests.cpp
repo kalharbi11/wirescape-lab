@@ -14,6 +14,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -137,7 +138,13 @@ void reproduce() {
     REQUIRE(bool(engine));
 
     wirescape::monitor::Capture monitor;
+    // Capture::Entry::t is measured against its internal steady-clock epoch.
+    // Bracket the configure call so we can compare actual *ingress timestamps*
+    // with the sender's gate-fall send times. JSON polling latency must not be
+    // mistaken for native queue latency, especially under ASan/UBSan.
+    const auto epoch_before = Clock::now();
     monitor.configure(sentinel_monitor_patch());
+    const auto epoch_after = Clock::now();
     wirescape::osc::Host host;
     host.observe(&monitor);
     host.start(engine.get(), patch.dump());
@@ -179,25 +186,44 @@ void reproduce() {
     };
 
     std::vector<Clock::time_point> sent_falls;
-    size_t seen_falls = 0, sent_load = 0, sent_sequences = 0;
+    size_t seen_falls = 0, seen_sequences = 0, sent_load = 0, sent_sequences = 0;
     bool sender_ok = true, fall_late = false;
-    double last_gate_timestamp = -1;
-    auto observe = [&] {
+    // Read the fixed 32-entry ingress monitor *after* the bounded send window.
+    // Frequent monitor.snapshot() JSON allocation during the 200Hz sender loop
+    // previously consumed a large fraction of CPU under sanitizers, turning
+    // the diagnostic collector itself into an extra load producer. The true
+    // ingress timestamp is still checked against 50ms, without forgiveness.
+    const auto observe = [&] {
         const auto samples = monitor.snapshot();
         if (!samples.contains("100")) return;
-        const auto observed_at = Clock::now();
+        double previous = -1;
         for (const auto &e : samples.at("100")) {
-            if (e.value("address", std::string{}) != "/io/gate") continue;
-            const double timestamp = e.at("t").get<double>();
-            if (timestamp <= last_gate_timestamp) continue;
-            last_gate_timestamp = timestamp;
+            const double when = e.at("t").get<double>();
+            if (when < previous) { fall_late = true; continue; }
+            previous = when;
+            const auto address = e.value("address", std::string{});
             const auto &args = e.at("args");
-            if (!args.empty() && args.at(0).get<double>() < 0.5) {
-                if (seen_falls < sent_falls.size()) {
-                    if (observed_at - sent_falls[seen_falls] > 50ms) fall_late = true;
-                    ++seen_falls;
-                }
+            if (args.empty()) continue;
+            if (address == "/io/seq") {
+                ++seen_sequences;
+                if (seen_sequences > sent_sequences ||
+                    std::abs(args.at(0).get<double>() -
+                             double(seen_sequences) / 4096.) > 1e-6)
+                    fall_late = true; // the gate sentinel must be numbered
             }
+            if (address != "/io/gate" || args.at(0).get<double>() >= 0.5) continue;
+            if (seen_falls < sent_falls.size()) {
+                const auto received_by = epoch_after +
+                    std::chrono::duration_cast<Clock::duration>(
+                        std::chrono::duration<double>(when));
+                const auto received_not_before = epoch_before +
+                    std::chrono::duration_cast<Clock::duration>(
+                        std::chrono::duration<double>(when));
+                if (received_by - sent_falls[seen_falls] > 50ms ||
+                    received_not_before < sent_falls[seen_falls])
+                    fall_late = true; // unchanged 50ms, actual ingress timestamps
+                ++seen_falls;
+            } else fall_late = true;
         }
     };
 
@@ -232,14 +258,12 @@ void reproduce() {
             }
             next_load += 5ms; // 200 Hz per address, not a reduced test rate
         }
-        observe();
         short_pause();
     }
+    // Give the real loopback worker a short bounded drain window; judge the
+    // four gate falls by their recorded ingress timestamps, not readout time.
     const auto witness_deadline = Clock::now() + 55ms;
-    while (Clock::now() < witness_deadline && seen_falls < sent_falls.size()) {
-        observe();
-        short_pause();
-    }
+    while (Clock::now() < witness_deadline) short_pause();
     observe();
 
     const auto states = host.states();
@@ -258,17 +282,19 @@ void reproduce() {
 #endif
     std::fprintf(stderr,
         "OB-g8 device-off: 64x200Hz 400ms; load_sent=%zu seq=%zu falls=%zu observed=%zu "
-        "route_received=%llu route_dropped=%llu render_errors=%u sender_ok=%d late=%d\n",
+        "route_received=%llu route_dropped=%llu render_errors=%u sender_ok=%d late=%d seq_seen=%zu\n",
         sent_load, sent_sequences, sent_falls.size(), seen_falls,
         static_cast<unsigned long long>(route_received),
         static_cast<unsigned long long>(route_dropped),
-        render_failures.load(), int(sender_ok), int(fall_late));
+        render_failures.load(), int(sender_ok), int(fall_late), seen_sequences);
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
     REQUIRE(sent_load >= 64 * 70); // at least 350ms of the unaltered 200Hz profile
     REQUIRE(render_failures == 0);
+    REQUIRE(seen_sequences == sent_sequences); // numbered independent sentinel
     REQUIRE(seen_falls == sent_falls.size() && !fall_late); // strict 50ms gate fall
     REQUIRE(route_dropped == 0); // never waive nonzero engine-route drops
+    REQUIRE(route_received == sent_load + 3 * sent_sequences); // no unreceived UDP work
 }
 } // namespace
 
