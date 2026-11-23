@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Internal engine value types (proposals/0007, T1.6a). Included only by engine2.cpp.
+// Internal engine value types (proposal 0007).
 #pragma once
 #include "engine2.h"
 #include "wirescape_sdk.h"
@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace wirescape::engine2 {
-namespace {
 struct Node;
 struct AlignedDelete {
     void operator()(float *p) const { ::operator delete[](p, std::align_val_t(32)); }
@@ -123,5 +122,4 @@ struct Bus {
     uint32_t node, port, channel;
     Node *source = nullptr;
 };
-} // namespace
 } // namespace wirescape::engine2
