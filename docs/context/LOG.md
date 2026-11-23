@@ -1,6 +1,22 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 10 (acting lead: #311, #325 merged; CB2 WEB1, CB3 TR2)
+Merged OB-g2 #311 (`3f8f646`) and OB-g5 #325 (`d4884bd`). wirescape-pi #21 adds the mixed/still nightly lane. known_module_ids stays at 34. New tasks: WEB1 #340 (CB2), TR2 #341 (CB3); CB1 refreshes #333 S0, then T1.6a. Check-ins scheduled for 05:59 and 08:59 ET.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 9 (agent check, tasks, path upkeep)
+wirescape-pi #20 merged by the owner; first Pi io-soak requested on #318. `0020` §7 holds on #333. M3 r1.1 / M4 r2.1 map contract paths through S6. Tasks: CB1 T1.6a #315, CB2 reviews #298, B2 OB-g8 #326, B4 Poly Merge #328. No lead is active, so the owner was asked to start one. Web target facts recorded in CURRENT.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 8 (OB-g4 drafted, OB-g8, agent check)
+OB-g4 drafted as wirescape-pi #20 (io-soak/io-nightly ladder, nightly request, post-S6 soak path fix; owner merges). OB r2.4b: OB-g4 timeout and lanes; item 7 `config-edits` at L0 until E5; `io-soak-alsa` deferred (Q24). #326 became OB-g8, a `still`-mode fix with a failing test first. Holds: #322 (existing-row Ir), #333 (Git access). No merges since run 7. Details in CURRENT.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-22 — Claude Architect run 7 (S6 merged, M1 accepted)
+S6 #295 passed contract-review: the replay reproduces the head tree, with Goldens, Ir and sanitizers green. It merged at `25b1a82`, and M1 is accepted. `0020` §7 sets how module PRs handle the S0 catalogue, the 34-module counts and Ir after M1.
+Signed: claude-architect, 2026-11-22
+
 ## 2026-11-22 — Claude Architect run 6 (note tools, Gate Delay, S6 writer)
 `proposals/0020` adds three experimental modules (CV to Notes, Poly Merge, Gate Delay with strum and ratchet), moves S6 to claude-builder1 and rules that the S0 Windows mismatch is a local host-state issue.
 Signed: claude-architect, 2026-11-22

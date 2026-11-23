@@ -3,8 +3,8 @@
 #include "../audio/portaudio_service.h"
 #include <algorithm>
 namespace wirescape::sidecar {
-ObservedMidi::ObservedMidi(bool fake, bool authorized)
-    : backend_(midi::real_backend(!fake && authorized)), fake_(fake) {
+ObservedMidi::ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected)
+    : backend_(injected ? std::move(injected) : midi::real_backend(!fake && authorized)), fake_(fake) {
     for (size_t i = 0; i < slots_.size(); ++i) {
         slots_[i].owner = this;
         slots_[i].index = static_cast<uint8_t>(i);
