@@ -3,7 +3,7 @@
 """Device-off, architecture-specific Callgrind Ir per audio block.
 
 Profiles five existing ABI2 cost modes, every bundled golden-render patch,
-and all 34 catalogued modules at 1 and 8 probe voices (channels). Two lengths
+and all catalogued modules (34 golden set plus bench/module_sets.json experimental) at 1 and 8 probe voices (channels). Two lengths
 are subtracted to remove fixed startup, patch-loading and module-init cost.
 Audio devices, MIDI devices and LAN sockets are never opened.
 """
@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from bench.golden.render import events_for_patch, sources  # noqa: E402
 from tools.bench.abi2_cost import MODES, instructions as read_ir  # noqa: E402
+from bench.gate.compare import module_sets  # noqa: E402
 
 RATE = 48000
 FRAMES = 128
@@ -172,10 +173,15 @@ def modules():
     entries = sum(line.strip().startswith("WS_APP_MODULE(")
                   for line in catalog.read_text(encoding="utf-8").splitlines())
     ids = fixture + [osc_id] if osc_id not in fixture else fixture
-    if len(ids) != len(set(ids)) or len(ids) != entries or entries != 34 or osc_id != "osc.out":
+    # 0020 section 7: the catalogue holds the 34 golden-set modules plus the
+    # explicit experimental list; a module in neither list fails.
+    golden, experimental = module_sets(ROOT)
+    if (len(ids) != len(set(ids)) or set(ids) != set(golden) or osc_id != "osc.out"
+            or entries != len(golden) + len(experimental)):
         raise ValueError(f"catalogue coverage mismatch: fixture={len(fixture)}, "
-                         f"union={len(set(ids))}, native={entries}, osc={osc_id}")
-    return sorted(ids)
+                         f"union={len(set(ids))}, native={entries}, "
+                         f"experimental={len(experimental)}, osc={osc_id}")
+    return sorted(ids) + sorted(experimental)
 
 
 def fixed_modes(build, valgrind):

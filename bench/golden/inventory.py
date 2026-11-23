@@ -14,14 +14,22 @@ from zoneinfo import ZoneInfo
 ROOT=Path(__file__).resolve().parents[2]
 
 
+def module_sets(root):
+    """Golden-set and experimental module IDs (proposals/0020 section 7)."""
+    data=json.loads((Path(root)/"bench/module_sets.json").read_text(encoding="utf-8"))
+    return tuple(data["golden_set"]),tuple(data["experimental"])
+
+
 def registry(root):
     catalogue=(root/"engine/control/module_catalog.inc").read_text(encoding="utf-8")
     count=len(re.findall(r"(?m)^WS_APP_MODULE\(",catalogue))
     modules=sorted((root/"modules").glob("*/module.cpp")) + \
             sorted((root/"sdk/examples").glob("*/module.cpp"))
-    if count!=34 or len(modules)!=count:
+    golden,experimental=module_sets(root)
+    if count!=len(golden)+len(experimental) or len(modules)!=count:
         raise ValueError(f"registry/source inventory mismatch: catalog={count}, translation_units={len(modules)}")
     result={}
+    seen=set()
     for source in modules:
         descriptor=source.parent/"dsp.h"
         text=descriptor.read_text(encoding="utf-8")
@@ -29,8 +37,11 @@ def registry(root):
         if not match:
             raise ValueError(f"descriptor has no module ID: {descriptor}")
         module_id=match.group(1)
-        if module_id in result:
+        if module_id in seen:
             raise ValueError(f"duplicate runtime ID: {module_id}")
+        seen.add(module_id)
+        if module_id in experimental:
+            continue  # 0020 section 7: not part of the 34-module golden coverage
         result[module_id]={
             "descriptor_source":descriptor.relative_to(root).as_posix(),
             "translation_unit":source.relative_to(root).as_posix(),
@@ -40,6 +51,8 @@ def registry(root):
             "coverage_measurements":[],
             "contribution_status":"unverified",
         }
+    if set(result)!=set(golden) or seen!=set(golden)|set(experimental):
+        raise ValueError("registry IDs differ from bench/module_sets.json golden set plus experimental list")
     return result
 
 

@@ -4,7 +4,7 @@ import copy
 import unittest
 
 from bench.m1.paired import CHORD, FIELDS, REASON, compare_pair
-from bench.gate.compare import expected_ids
+from bench.gate.compare import expected_ids, experimental_row_ids
 
 BASE = "a" * 40
 HEAD = "b" * 40
@@ -128,6 +128,50 @@ class StrictPairedTests(unittest.TestCase):
             h["rows"][0]["ir_per_block"] = bad
             with self.subTest(bad=bad):
                 self.assertEqual(self.run_pair(b, h)["status"], "failed")
+
+
+
+class ExperimentalNewRowTests(unittest.TestCase):
+    """0020 section 7: head-only experimental rows are new; everything else stays strict."""
+
+    @staticmethod
+    def row(key, ir=100.0):
+        return {"id": key, "status": "measured", "ir_per_block": ir,
+                "totals": [1000, 1000 + int(ir * 12)]}
+
+    def test_head_only_experimental_row_is_new_not_compared(self):
+        b, h = fixture()
+        key = sorted(experimental_row_ids())[0]
+        h["rows"].append(self.row(key, 900.0))
+        result = compare_pair(b, h, BASE, HEAD, "linux-x64")
+        self.assertEqual(result["status"], "passed", result["failures"])
+        self.assertEqual([r["id"] for r in result["new"]], [key])
+        self.assertNotIn(key, [r["id"] for r in result["measured"]])
+
+    def test_invalid_head_only_experimental_row_fails(self):
+        b, h = fixture()
+        key = sorted(experimental_row_ids())[0]
+        h["rows"].append({"id": key, "status": "unavailable", "reason": "x"})
+        self.assertEqual(compare_pair(b, h, BASE, HEAD, "linux-x64")["status"], "failed")
+
+    def test_experimental_row_on_both_sides_stays_strict(self):
+        b, h = fixture()
+        key = sorted(experimental_row_ids())[0]
+        b["rows"].append(self.row(key, 100.0))
+        h["rows"].append(self.row(key, 100.0))
+        self.assertEqual(compare_pair(b, h, BASE, HEAD, "linux-x64")["status"], "passed")
+        h["rows"][-1] = self.row(key, 102.0)
+        self.assertEqual(compare_pair(b, h, BASE, HEAD, "linux-x64")["status"], "failed")
+
+    def test_experimental_row_lost_at_head_fails(self):
+        b, h = fixture()
+        b["rows"].append(self.row(sorted(experimental_row_ids())[0]))
+        self.assertEqual(compare_pair(b, h, BASE, HEAD, "linux-x64")["status"], "failed")
+
+    def test_head_only_golden_or_unknown_row_still_fails(self):
+        b, h = fixture()
+        h["rows"].append(self.row("module/not.listed/voices1"))
+        self.assertEqual(compare_pair(b, h, BASE, HEAD, "linux-x64")["status"], "failed")
 
 
 if __name__ == "__main__":

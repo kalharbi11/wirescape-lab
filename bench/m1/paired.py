@@ -12,7 +12,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from bench.gate.compare import expected_ids, indexed, valid_measured_row
+from bench.gate.compare import expected_ids, experimental_row_ids, indexed, valid_measured_row
 
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 RETIRED = "fixed/abi1_mono"  # exact S4 historical-only metric; never measured on head
@@ -24,7 +24,7 @@ FIELDS = ("schema", "machine", "architecture", "valgrind_version", "method",
 
 
 def compare_pair(base, head, base_sha, head_sha, machine):
-    failures, exceptions, measured, retired = [], [], [], []
+    failures, exceptions, measured, retired, new = [], [], [], [], []
     if not all(SHA.fullmatch(x or "") for x in (base_sha, head_sha)):
         failures.append("both revision pins must be 40 lowercase hexadecimal characters")
     if base_sha == head_sha:
@@ -56,9 +56,21 @@ def compare_pair(base, head, base_sha, head_sha, machine):
     try:
         before, after = indexed(base), indexed(head)
         required = expected_ids(ROOT)
-    except (TypeError, ValueError, AttributeError) as error:
+        experimental = experimental_row_ids(ROOT)
+    except (TypeError, ValueError, AttributeError, OSError) as error:
         return {"status": "failed", "failures": failures + [str(error)],
-                "exceptions": exceptions, "measured": measured, "retired": retired}
+                "exceptions": exceptions, "measured": measured, "retired": retired, "new": new}
+    # 0020 section 7: an experimental-module row present on both sides is compared
+    # strictly like every other row; one present only at the head is reported as
+    # new and not compared. Any other unilateral row still fails.
+    required = required | (experimental & before.keys())
+    for key in sorted((experimental & after.keys()) - before.keys()):
+        row = after.pop(key)
+        if row.get("status") == "measured" and valid_measured_row(row, True):
+            new.append({"id": key, "head_ir": row["ir_per_block"], "head_totals": row["totals"],
+                        "disposition": "new experimental module row; NOT compared"})
+        else:
+            failures.append(f"{key}: new experimental row is not a valid measurement")
     # The base may carry the genuine historic ABI1 measurement; the head may not.
     # Retired evidence is disclosed separately, excluded from both the 96-row
     # comparison and the measured/pass counts. Unknown extras still fail closed.
@@ -110,9 +122,9 @@ def compare_pair(base, head, base_sha, head_sha, machine):
     return {"status": "failed" if failures else "passed", "base_sha": base_sha,
             "head_sha": head_sha, "machine": machine,
             "expected_count": len(required), "measured_count": len(measured),
-            "paired_unavailable_count": len(exceptions), "retired_count": len(retired),
+            "paired_unavailable_count": len(exceptions), "retired_count": len(retired), "new_count": len(new),
             "failures": failures, "exceptions": exceptions, "measured": measured,
-            "retired": retired}
+            "retired": retired, "new": new}
 
 
 def main(argv=None):
@@ -137,6 +149,7 @@ def main(argv=None):
           f"measured={result.get('measured_count', 0)}; "
           f"paired-unavailable={len(result['exceptions'])}; "
           f"retired={len(result.get('retired', []))}; "
+          f"new={len(result.get('new', []))}; "
           f"failures={len(result['failures'])}", flush=True)
     for err in result["failures"]:
         print("FAIL: " + err, file=sys.stderr)

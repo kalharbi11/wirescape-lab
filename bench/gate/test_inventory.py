@@ -3,14 +3,17 @@
 import unittest
 
 from instructions import modules
-from compare import compare
+from compare import compare, module_sets
 
 
 class InventoryTests(unittest.TestCase):
     def test_all_34_runtime_catalogue_entries_are_included(self):
         catalogue = modules()
-        self.assertEqual(len(catalogue), 34)
-        self.assertEqual(len(set(catalogue)), 34)
+        golden, experimental = module_sets()
+        self.assertEqual(len(golden), 34)
+        self.assertEqual(catalogue[:34], sorted(golden))
+        self.assertEqual(catalogue[34:], sorted(experimental))  # 0020 section 7
+        self.assertEqual(len(set(catalogue)), len(catalogue))
         self.assertIn("osc.out", catalogue)
 
     def test_missing_osc_out_rows_fail_coverage(self):

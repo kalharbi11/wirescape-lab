@@ -2,7 +2,7 @@
 """Synthetic, device-free instruction regression gate tests."""
 import unittest
 
-from compare import compare, expected_ids, indexed, render
+from compare import compare, expected_ids, experimental_row_ids, indexed, render
 
 
 def facts(rows, machine="linux-x64"):
@@ -142,6 +142,23 @@ class CompareTests(unittest.TestCase):
         self.assertIn("r14", text)
         self.assertIn("**Exceeded threshold", text)
         self.assertNotIn("| r0 |", text)
+
+
+
+class ExperimentalNewRowTests(unittest.TestCase):
+    """0020 section 7: only listed experimental head-only rows are new."""
+
+    def test_head_only_rows(self):
+        key = sorted(experimental_row_ids())[0]
+        before = facts([("a", "measured", 100)])
+        after = facts([("a", "measured", 100), (key, "measured", 900)])
+        changes, errors = compare(before, after, new_ids=experimental_row_ids())
+        self.assertEqual(errors, [])
+        self.assertEqual([r["status"] for r in changes if r["id"] == key], ["new"])
+        self.assertIn(key, render(changes, errors, 3.0))
+        self.assertTrue(compare(before, after)[1])  # not listed as new: still fails
+        bad = facts([("a", "measured", 100), (key, "unavailable", None)])
+        self.assertTrue(compare(before, bad, new_ids=experimental_row_ids())[1])
 
 
 if __name__ == "__main__":
