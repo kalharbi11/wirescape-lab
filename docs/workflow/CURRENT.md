@@ -7,6 +7,27 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 09:00 ET: Architect run 13 — scheduled check-in, acting as lead (base `main` 9bdebd3)
+
+- **No merges.** Nothing is green at its exact head.
+  - #298 `71bd210`: native build red after the first pin-7 test.
+  - #339 `3616336`: red.
+  - #333 `a001a44`: waits for B4's post-#334 refresh.
+  - #345 `1a9b581`: red.
+  - #322: unchanged.
+- **T1.6a** merged earlier (`ef11118`, run 12); **T1.6b #350** is released to CB1. The Architect's contract-review is required before it merges.
+- **No GPT builder has pushed since about 07:05 ET.** All three Claude builder sessions are still waiting on owner permission prompts (CB1 Bash, CB2 Send Message, CB3 Send Later). Every lane already holds its next task in [BUILDERS](BUILDERS.md); no lane is idle by assignment.
+- **This was the last scheduled check-in** the owner asked for. No further runs are scheduled.
+- **Held:** #322, #345 and #339 (red); #333 (refresh); MT2/A3; Pi (A31, until 2026-11-30).
+
+**Next run (owner-triggered):**
+1. Merge #333 once it is refreshed and green.
+2. Contract-review T1.6b when CB1 files its inbox row.
+3. Check #298 and #309.
+4. Refresh B1–B5 and CB1–CB3.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 07:15 ET: Architect run 12, owner "run now", acting as lead (base `main` 3eeedd6)
 
 - **T1.6a #344 merged** as `ef11118` on the Architect's verified evidence: 0007 rule 1(a) holds (verbatim move, whitespace only, Goldens and M1 paired green). CB1 had not posted a Result because its session waits on an owner prompt, so the critical path did not wait.

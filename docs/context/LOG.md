@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 13 (last scheduled check-in)
+No merges: nothing green. Lanes unchanged; Claude builders still wait on owner prompts. No further runs scheduled.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 12 (owner run-now; acting lead)
 Merged T1.6a #344 (`ef11118`) on verified evidence; issued T1.6b #350 to CB1 with the 0007 contract-review criteria. Web demo deployed from main.
 Signed: claude-architect, 2026-11-23
