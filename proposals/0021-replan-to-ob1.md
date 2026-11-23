@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # 0021 — Replan to OB1: fewer tracks, one serial chain, CI as the builder's computer
 
-**Status:** proposed by the Claude Architect, 2026-11-23 12:40 ET, at the owner's request ("step back,
+**Status:** owner answered D1–D6 on 2026-11-23 (§6), and **§6 is in effect**. Proposed by the Claude Architect, 2026-11-23 12:40 ET, at the owner's request ("step back,
 zoom out, reorganize"). Section 5 lists owner decisions D1–D6, each with a recommended default.
 **In effect now** (Architect authority, no contract meaning changes): §4 rules R1–R3 and the
 engine draft-ahead rule in §2. Everything else waits for the owner's answers.
@@ -80,5 +80,43 @@ The paid resource is the agent's own sandbox. The builds themselves cost nothing
 
 **What would overturn this plan:** the E chain gets shorter (an E task found to be unneeded), or a sound
 task turns out to need the engine writer. Either one reorders the tracks, not the rules.
+
+## 6. Owner answers and rulings (2026-11-23 14:30 ET)
+
+- **D1: yes.** E3a, E3b and E3c move to **OB1.1**. The OB1 engine chain is T1.6c → TR1e → E6 → E4a → E4b → E5, with E7.
+  The owner adds: "Groove needs to be solid as a module". This becomes **G-W1 [#368](https://github.com/kalharbi11/wirescape-lab/issues/368)**: scrolling on a note changes it at once, with no click first. It is an OB1 item in lane B1, after #298 and before the OB-c fixes. The owner adds further Groove problems to #368.
+- **D2: freeze, except the owner's LED path.**
+  - CV to Notes is **already merged** (#334, `5bff39c`).
+  - Gate Delay #333 **parks**; its branch is kept, and so is its bounded LFO exception.
+  - Poly Merge #356 **parks** until the owner answers the Poly Split question below.
+  - CAT-1 + MB1 become one task after OB1 (MB1 #363 and CAT-1 #358 stay open, parked).
+  - **The owner's goal:** separate notes, a different envelope per note, and LEDs that follow the envelopes.
+    - One envelope shape for every note works today: poly ADSR, one envelope per voice, into an OSC Out `row` input.
+    - A *different* envelope per note needs a **Poly Split** (one poly input → 8 mono outputs, the mirror of Poly Merge).
+    - If the owner confirms, Poly Split joins #356 as one PR. That means one catalogue and S0 change instead of two.
+- **D3 (Architect):**
+  - B5 hands #324 to B2 after its current correction round and starts T1.6c.
+  - #322 parks; it is re-measured after CAT-1+MB.
+  - B3 runs C1 first, then S7.5 #291.
+- **D4: yes.** C1 is [#367](https://github.com/kalharbi11/wirescape-lab/issues/367) (B3, chat mode). It is the first chat-mode trial.
+- **D5:** chat mode has GitHub write access. The owner troubleshoots if it fails. The lead marks new issues `env/chat` or `env/sandbox` (C4).
+- **D6:** the screenshot shows **Copilot Student AI credits: 43 of 200 used, about 157 left**, resetting 2026-11-30.
+  - They pay for Copilot model use (GPT-5.3-Codex, GPT-5.6 Luna). They are not Actions minutes, so lab CI never uses them.
+  - Possible later use: the Copilot coding agent as an extra builder. It runs in a GitHub Actions VM, which is free on this public repo, and a `copilot-setup-steps.yml` could pre-install the toolchain. Not filed: decide after C1 shows how chat mode does.
+- **Pi:** the private repo's *hosted* jobs use the minutes. These are the hourly intake, nightly, gate, publish and bridge tests. The Pi job itself is self-hosted and free.
+  - **Ruling: keep wirescape-pi private.** A public repo with a self-hosted runner lets a fork pull request ask for the Pi runner. That breaks the bridge's rule that a compromised change never reaches the owner's machine.
+  - **Do instead: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369).** Dispatch and publish move to the public lab repo (free minutes, event-driven instead of hourly). `gate` and the bridge tests move onto the Pi. Hosted publish is removed.
+  - Private minutes used: zero. `WIRESCAPE_LAB_TOKEN` (the 401) is retired.
+  - The owner creates one fine-grained token, held in a `main`-only lab environment.
+  - Connecting more agents does not help: anything they trigger in the private repo still uses its minutes.
+
+## Lanes after §6
+| Lane | Now | Then |
+|---|---|---|
+| B1 | #298 | G-W1 #368 → OB-c fixes #275/#203 → S7.3 |
+| B2 | #339 | #324 (from B5) → PI-1 lab half #369 once the owner's token exists |
+| B3 | C1 #367 | S7.5 #291 → S7.6 #314 → S7.9 |
+| B4 | (#333 and #356 parked) | S7.7 → S7.8; Poly Merge + Split if the owner confirms |
+| B5 | #324 (one round) | T1.6c #364 → TR1e → E6 → E4a → E4b → E5 → E7 |
 
 Signed: claude-architect, 2026-11-23
