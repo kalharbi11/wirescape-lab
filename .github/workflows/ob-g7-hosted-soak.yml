@@ -5,8 +5,9 @@
 # at Actions 44963546005; results/artifacts are in PR309's signed Result.
 # Pilot code removed to avoid testing a historical SHA on future PR heads.
 # S6 merged at 25b1a822; #298 integrated S6 first at 67c60fa6.
-# PR-head OSC remains parked pending exact-head interface checks and lane release.
-# MIDI remains parked until #308/PR311 integration and diagnostic verification.
+# PR-head Linux OSC L0 is released after #305 merge, S6 path reconciliation and exact-head Lab green.
+# Nightly OSC remains parked pending first PR-head L0 evidence and Windows lane validation.
+# MIDI remains parked until #308/PR311 merges and diagnostic verification.
 name: OB-g7 hosted I/O soak (advisory draft)
 
 on:
@@ -59,7 +60,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           {
-            echo "## OB-g7 draft (no I/O soak executed)"
+            echo "## OB-g7 advisory interface inventory (see PR OSC jobs for executed L0)"
             echo ""
             echo "- Exact PR head: $EXPECTED_HEAD"
             echo "- #312 CLI: --profile/--edit-mode/--tier/--report-dir (null audio and loopback internal)"
@@ -69,14 +70,16 @@ jobs:
             echo "- Historical Linux L0 evidence: run 44963546005, source 445123b only" 
             echo "- MIDI #308/PR311 remains unmerged/unintegrated" 
             echo "- S6 mapped I/O paths: host/, engine/control/midi_host*, modules/osc_*/midi_*"
-            echo "- PR-head and nightly L0-L2 jobs are parked; no soak runs in this workflow" 
+            echo "- PR-head Linux OSC L0 lanes active: verify each individual JSON/report artifact; workflow top-level green is advisory" 
+            echo "- Hosted nightly OSC and MIDI remain parked; no L1/L2 or MIDI claim" 
             echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
           } >> "$GITHUB_STEP_SUMMARY"
 
   pr-linux-osc-l0:
-    name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
-    # Only release after #305 supplies a verified device-off localhost CLI.
-    if: ${{ false }}
+    name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
+    # #305 merged; same CLI passed hosted Linux pilot 44963546005 at historical 445123b.
+    # New runs check out this PR's exact head; no source-pinned pilot is reinstated.
+    if: ${{ github.event_name == 'pull_request' }}
     continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 30
