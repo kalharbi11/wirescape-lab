@@ -12,6 +12,10 @@ NAMES = ("Lab CI", "Golden patch renders (same-runner base/head gate)",
          "M1 paired stage evidence (nonrequired)", "Instruction count gate (advisory)")
 MATCH = re.compile(r"error|FAILED|Assertion|mismatch", re.I)
 IR = re.compile(r"(?:\bIr\b|instruction|\bM1\b).*?\+(\d+(?:\.\d+)?)%", re.I)
+PAIRED_IR = re.compile(
+    r"^FAIL: module/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+:"
+    r"\s*\+(\d+(?:\.\d+)?)% exceeds strict \+1%\s*$"
+)
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 MAX = 2000000
 
