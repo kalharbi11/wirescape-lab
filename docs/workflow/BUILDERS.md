@@ -11,7 +11,7 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - B1: #298 → G-W1 #368 → OB-c.
 - B2: #339 → #324 → PI-1 #369.
 - B3: C1 #367 → #291.
-- B4: #333 and #356 parked → S7.7 → S7.8.
+- B4: Poly Merge + Poly Split #356 (owner confirmed, run 19c) → S7.7 → S7.8. #333 stays parked.
 - B5: one round on #324 → T1.6c #364.
 The lead rewrites the rows below to match on its next run.
 
