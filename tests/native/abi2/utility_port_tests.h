@@ -9,13 +9,16 @@
 #include <vector>
 static std::vector<uint8_t>port_save(DspFixture&f){std::vector<uint8_t>bytes;ws2_writer w{sizeof(w),&bytes,[](void*ctx,const void*p,uint32_t n){auto&b=*static_cast<std::vector<uint8_t>*>(ctx);auto*first=static_cast<const uint8_t*>(p);b.insert(b.end(),first,first+n);return int(WS2_OK);}};VERIFY(f.d->save_state(f.state,&w)==WS2_OK);return bytes;}
 static int port_load(DspFixture&f,const std::vector<uint8_t>&bytes){struct Cursor{const std::vector<uint8_t>&b;size_t pos=0;}cursor{bytes};ws2_reader r{sizeof(r),&cursor,[](void*ctx,void*p,uint32_t n){auto&c=*static_cast<Cursor*>(ctx);if(n>c.b.size()-c.pos)return int(WS2_INVALID);std::memcpy(p,c.b.data()+c.pos,n);c.pos+=n;return int(WS2_OK);},uint32_t(bytes.size())};return f.d->load_state(f.state,&r);}
-static int utility_port_tests(const char*name,int argc,char**argv){
+// `appended`: parameters added after the frozen ABI1 table (0008 K3). They must take the next
+// legacy indices; the frozen samples below run them at their defaults, proving default identity.
+static int utility_port_tests(const char*name,int argc,char**argv,uint32_t appended=0){
  VERIFY(argc==2);ModuleLoader loader(argv[1]);auto old=abi1_frozen_descriptor(name);auto*d=loader.abi2(name);
  VERIFY(!std::strcmp(d->id,old.id.c_str()));
- VERIFY(d->input_count==old.input_count&&d->output_count==old.output_count&&d->param_count==old.parameter_count);
+ VERIFY(d->input_count==old.input_count&&d->output_count==old.output_count&&d->param_count==old.parameter_count+appended);
  for(uint32_t p=0;p<d->input_count;++p)VERIFY(!std::strcmp(d->inputs[p].id,old.inputs[p].c_str()));
  for(uint32_t p=0;p<d->output_count;++p)VERIFY(!std::strcmp(d->outputs[p].id,old.outputs[p].c_str()));
- for(uint32_t p=0;p<d->param_count;++p){
+ for(uint32_t p=old.parameter_count;p<d->param_count;++p)VERIFY(d->params[p].legacy_index==p);
+ for(uint32_t p=0;p<old.parameter_count;++p){
   VERIFY(d->params[p].legacy_index==old.parameters[p].legacy_index);
   VERIFY(d->params[p].initial==old.parameters[p].initial);
   VERIFY(d->params[p].minimum==old.parameters[p].minimum&&d->params[p].maximum==old.parameters[p].maximum);

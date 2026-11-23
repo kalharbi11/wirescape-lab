@@ -83,6 +83,9 @@ struct Sequencer {
     bool clock_connected = false, run_connected = false, reset_connected = false;
     bool clock_seen = false, run_start_pending = false;
     uint64_t clock_samples = 0;
+    // Host tempo source: last host sixteenth seen while the host played (0008 decision 6).
+    int64_t host_sixteenth = 0;
+    bool host_seen = false, host_was_playing = false;
     uint32_t step = 0;
     std::array<uint32_t, kTracks> step_t{};
     uint32_t rng_seed = 1;
@@ -129,6 +132,8 @@ struct Sequencer {
         clock_connected = run_connected = reset_connected = false;
         clock_seen = run_start_pending = false;
         clock_samples = 0;
+        host_sixteenth = 0;
+        host_seen = host_was_playing = false;
     }
 
     // Quiescent module-state envelope; never part of authored config JSON.
@@ -413,6 +418,17 @@ struct Sequencer {
         clock_connected = external_clock;
         run_connected = external_run;
         reset_connected = external_reset;
+        // Host tempo source: an external clock cable still wins. Chosen once per block, so
+        // the default internal source runs the same per-sample path as before.
+        const ws2_transport *host = pattern.tempo_source == TempoHost && !external_clock ? b.transport() : nullptr;
+        const bool host_mode = pattern.tempo_source == TempoHost && !external_clock;
+        const bool host_playing = host && (host->flags & WS2_PLAYING) && host->bpm > 0.;
+        const bool clocked = external_clock || host_mode;
+        double host_step = 0.;
+        if (host_playing) {
+            samples_per_step = b.sample_rate() * 15. / host->bpm;
+            host_step = host->bpm * 4. / (60. * b.sample_rate());
+        }
         for (uint32_t t = 0; t < kTracks; ++t) {
             const uint32_t base = t * 5;
             for (uint32_t p = 0; p < 4; ++p) {
@@ -438,6 +454,23 @@ struct Sequencer {
                 flush(b, t, i);
             }
             bool clock_rise = false, run_rise = false, run_fall = false, reset_rise = false;
+            bool tick = false;
+            if (host_mode) {
+                if (host_playing) {
+                    // Sixteenth position derives from the beat; it is not integrated here.
+                    const double position = (host->beat * 4.) + (static_cast<double>(i) * host_step);
+                    const double floor_position = std::floor(position);
+                    const auto index = static_cast<int64_t>(floor_position);
+                    tick = host_seen ? index != host_sixteenth : position == floor_position;
+                    host_sixteenth = index;
+                    host_seen = true;
+                } else if (host_was_playing || host_seen) {
+                    // Host stopped: steps hold, owed gates close, own run state is kept.
+                    release_all(b, i);
+                    host_seen = false;
+                }
+                host_was_playing = host_playing;
+            }
             if (external_clock) {
                 const bool now = clock_schmitt.process(b.in(0).ch(0)[i]);
                 clock_rise = now && !clock_high;
@@ -448,6 +481,7 @@ struct Sequencer {
                     clock_seen = true;
                     clock_samples = 0;
                 }
+                tick = clock_rise;
             }
             if (external_run) {
                 const bool now = run_schmitt.process(b.in(1).ch(0)[i]);
@@ -516,23 +550,24 @@ struct Sequencer {
                 }
                 if (rise[0] && !rise[1]) {
                     if (running) stop_queued = false;
+                    else if (host_mode) run_start_pending = true; // Step 1 lands on the host grid.
                     else {
                         start_transport(b, i);
                         started = true;
                     }
                 }
-                if (run_start_pending && !running && !external_clock) phase += 1.;
+                if (run_start_pending && !running && !clocked) phase += 1.;
                 if (run_start_pending && !running && !run_rise &&
-                    (external_clock ? clock_rise : phase >= samples_per_step)) {
+                    (clocked ? tick : phase >= samples_per_step)) {
                     start_transport(b, i);
                     started = true;
                 }
                 if (running && !started) {
-                    if (external_clock || ++phase >= samples_per_step) {
-                        if (external_clock && !clock_rise) {
+                    if (clocked || ++phase >= samples_per_step) {
+                        if (clocked && !tick) {
                             // A missing master pulse holds position but gate ages still advance.
                         } else {
-                            if (!external_clock) phase -= samples_per_step;
+                            if (!clocked) phase -= samples_per_step;
                             if (reset_wait) {
                                 step = 0;
                                 step_t.fill(0);
