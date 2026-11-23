@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 9 (agent check, tasks, path upkeep)
+wirescape-pi #20 merged by the owner; first Pi io-soak requested on #318. `0020` §7 holds on #333. M3 r1.1 / M4 r2.1 map contract paths through S6. Tasks: CB1 T1.6a #315, CB2 reviews #298, B2 OB-g8 #326, B4 Poly Merge #328. No lead is active, so the owner was asked to start one. Web target facts recorded in CURRENT.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 8 (OB-g4 drafted, OB-g8, agent check)
 OB-g4 drafted as wirescape-pi #20 (io-soak/io-nightly ladder, nightly request, post-S6 soak path fix; owner merges). OB r2.4b: OB-g4 timeout and lanes; item 7 `config-edits` at L0 until E5; `io-soak-alsa` deferred (Q24). #326 became OB-g8, a `still`-mode fix with a failing test first. Holds: #322 (existing-row Ir), #333 (Git access). No merges since run 7. Details in CURRENT.
 Signed: claude-architect, 2026-11-23
