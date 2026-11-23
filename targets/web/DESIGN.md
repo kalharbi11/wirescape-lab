@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Web demo engine (`native/web`)
+# Web demo engine (`targets/web`)
 
 A standalone CMake project that compiles only Qt-free, device-free sources:
-`engine2`, `control/app_engine.cpp` (builtin catalogue), `document/runtime_patch.cpp`,
-the ABI1 `src/engine.cpp` that AppEngine links, the voice allocator and the
+`engine/engine2.cpp`, `engine/control/app_engine.cpp` (builtin catalogue),
+`host/document/runtime_patch.cpp`, the voice allocator and the
 pinned Plaits sources used by the Macro Oscillator. No PortAudio, libremidi,
 threads, files or sockets.
 
@@ -20,12 +20,12 @@ worklet thread, between render quanta. There is no cross-thread state.
 **Not the product's realtime path.** A graph commit parses JSON, builds the
 candidate with `load_runtime_patch` and crossfades over 10 ms from the old graph,
 all on the worklet thread. That is acceptable for a demo and is why this code
-lives outside `native/sidecar`. The sidecar's D5 and live-replan paths stay the
+lives outside `host/sidecar`. The sidecar's D5 and live-replan paths stay the
 reference. `web_engine.cpp::execution` mirrors `Session::execution`. Keep them in
 step when the protocol changes; the shared Studio conformance work (#250) is the
 long-term fix for drift.
 
-**Scope.** `midi.*` modules are hidden from the catalogue and refused as
+**Scope.** `midi.*` and `osc.*` modules are hidden from the catalogue and refused as
 `unknown-module`. Device and OSC commands are answered by the TS bridge
 (empty device lists, ignored selections).
 

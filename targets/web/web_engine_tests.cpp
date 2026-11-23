@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Native tests for the browser demo engine's C surface (device-free).
 #include "web_engine.h"
+#include "app_engine.h"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <memory>
+#include <set>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
@@ -86,6 +89,25 @@ int main(int argc, char **argv) {
     CHECK(has_vco);
     CHECK(!has_midi);
     CHECK(!has_osc);
+    {
+        // The web catalogue is the engine catalogue minus midi.* and osc.*: no second list,
+        // so a module registered in module_catalog.inc reaches the browser by itself.
+        wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 128;
+        config.max_nodes = 64;
+        config.event_budget = 2048;
+        std::unique_ptr<AppEngine, void (*)(AppEngine *)> engine{app_engine_create(&config), app_engine_destroy};
+        CHECK(engine != nullptr);
+        std::set<std::string> expected, actual;
+        for (uint32_t i = 0; engine && i < app_engine_module_count(engine.get()); ++i) {
+            const std::string id = app_engine_module(engine.get(), i)->id;
+            if (id.rfind("midi.", 0) != 0 && id.rfind("osc.", 0) != 0) expected.insert(id);
+        }
+        for (auto &m : catalogue["modules"]) actual.insert(m["id"].get<std::string>());
+        CHECK(!expected.empty());
+        CHECK(actual == expected);
+    }
 
     // No graph yet: silence, and edits are refused.
     CHECK(loudest(4) == 0);

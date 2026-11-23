@@ -1,23 +1,43 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-23 04:00 ET (claude-architect run 10, acting as lead: #311 and #325 merged; CB2 and CB3 started). The delivery lead owns this table; with no lead active since run 7, the Architect refreshed it. Builders read their row,
+Updated 2026-11-23 12:03 EST (gpt-lead, Architect run 18 handoff). The five fresh B1–B5 chats are the designated continuations. Earlier GPT chats are retired as writers. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
-**Merged run 10:** #311 `3f8f646`, #325 `d4884bd`. **Merge order (lead):** #336 when B1 marks it ready. Modules: #334 → #333 (each merges `main` and regenerates the single-line S0 catalogue after the previous one), or the first that is green (SR19). The first module to merge creates `bench/module_sets.json`; later ones append their ID only. Poly Merge #328 goes last. Then #298 → #291. Each needs exact-head green Lab, Golden and M1 paired; only the non-required `Offline facts / windows-latest` may fail.
+**Merged today:**
+
+| PR | Task | Merge commit |
+|---|---|---|
+| #311 | OB-g2 | `3f8f646` |
+| #325 | ADSR trigger | `d4884bd` |
+| #334 | CV to Notes | `5bff39c` |
+| #343 | WEB1 | `92747e4` |
+| #336 | OB-b | `3eeedd6` |
+| #344 | T1.6a | `ef11118` |
+| #309 | OB-g7 | `4efb204` |
+| #357 | OB-g9 | `f02c4f5` |
+| #345 | TR2 | `224d16f` |
+| #360 | T1.6b | `7cc20c7` |
+
+**Merge order (lead):**
+1. #298, after the Architect's Claude review.
+2. #333 (bounded LFO exception, see below).
+3. Poly Merge #356.
+4. #324, #339 and #322 when green.
+5. T1.6c.
+6. CAT-1 #358.
+
+Each needs green Lab, Golden and M1 paired at its exact head. Only the non-required `Offline facts / windows-latest` and advisory soak jobs may fail.
 
 | Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
 |---|---|---|---|
-| **B1** `gpt-builder1` · Studio / install | OB-a3 [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) `67c60fa`; OB-g7 [#309](https://github.com/kalharbi11/wirescape-lab/pull/309); OB-b [#336](https://github.com/kalharbi11/wirescape-lab/pull/336) `a2cdcae` | #336: Lab green (14/14). Mark it ready for the lead's merge, and watch the owner's `/pi-run io-soak` on #318. #298: add the pin-7 matrix, then post the Result and pin a review request naming **claude-reviewer** (CB2 below). Then #309. | OB-a3 merge, then #291 rebases on it. |
-| **B2** `gpt-builder2` · evidence / injected MIDI | OB-g2 [#308](https://github.com/kalharbi11/wirescape-lab/issues/308) / [#311](https://github.com/kalharbi11/wirescape-lab/pull/311) `c06517d` | **#311 merged `3f8f646` (run 10).** wirescape-pi #21 adds `mixed/still` to the nightly. **Start OB-g8 now.** | **OB-g8 [#326](https://github.com/kalharbi11/wirescape-lab/issues/326), released now** (OB r2.4b): bounded device-off failing test below the harness first (64 × 200 Hz into `host/net/` OSC service + numbered gate sentinel; fall within 50 ms, route `dropped` = 0), then the fix in the stage it names. The profile and limits do not change. New branch `task/326-ob-g8`. |
-| **B3** `gpt-builder3` · module DSP | OB-g5 [#316](https://github.com/kalharbi11/wirescape-lab/issues/316) / [#325](https://github.com/kalharbi11/wirescape-lab/pull/325) `9e94769`; OB-g6 [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) / [#322](https://github.com/kalharbi11/wirescape-lab/pull/322) `c6df8f5`; S7.5 [#291](https://github.com/kalharbi11/wirescape-lab/pull/291) parked | **#325 merged `d4884bd` (run 10).** #322: correction `c6df8f5` is in CI. The old head was +1.2–1.6 % on existing rows; every existing row must be within 1 %, and the tolerance is not widened. | #291 rebases after #298; then Delay [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) (S7.6) → S7.7 → S7.8 → S7.9. Serialize ADSR with S7.9. |
-| **B4** `gpt-builder4` · Gate Delay, then Poly Merge | Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) / [#333](https://github.com/kalharbi11/wirescape-lab/pull/333) `99cb2ea` (CB1 rebased it) | #325's merge changed the single-line S0 file, so CB1 merges `main` in and regenerates it (run 10), then hands back. The Architect spot-checked `0020` §7 at this head and it holds: the S0 catalogue gains only `essentials.gate_delay` (34 → 35), and the bench changes are the allowed 34-plus-`EXPERIMENTAL` list and `new` rows. If another module merges first, append to its `bench/module_sets.json` rather than recreating it. | **Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328), moved here from B5** (run 9), on `task/328-poly-merge`, built on the mapped paths with `0020` §7 from the start. It merges last. T1.6a moved to CB1. |
-| **B5** `gpt-builder5` · bounded support / note tools | CV to Notes [#327](https://github.com/kalharbi11/wirescape-lab/issues/327) / [#334](https://github.com/kalharbi11/wirescape-lab/pull/334) `24ae7dd`; OB-g3 [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) / [#324](https://github.com/kalharbi11/wirescape-lab/pull/324) `3bf1e02` | #334: the one-byte S0 fix (`legato` decimals) is in CI. When Golden and M1 paired are green, post the Result. Then rebase #324 onto the post-S6 paths and post its first Result. | Then the bounded OB-c marker/PCM proof. Poly Merge moved to B4. |
-| **CB1** `claude-builder1` · engine writer (OB1 chain) | First the #333 S0 refresh (run 10), then M3 T1.6a [#315](https://github.com/kalharbi11/wirescape-lab/issues/315) | Branch `task/315-t1-6a`, one PR `Closes #315`. Mechanical only, inside `engine/` minus `control/` and `voice/` (M3 r1.1): formatting, and internal types moved into `engine/types.h`. Behaviour, public headers, targets, build entry points and test expectations do not change. **Goldens identical and every Ir row within 1 %; any Golden difference is a defect.** No T1.6b split. Lab, Golden and M1 paired green at the exact head, then the Result. The lead merges. | T1.6b (contract-review by the Architect) once T1.6a is on `main`, then T1.6c → TR1e. CB1 is the single engine writer for this chain. |
-| **CB2** `claude-builder2` · web | **WEB1 [#340](https://github.com/kalharbi11/wirescape-lab/issues/340)**, session started run 10 | Revive `targets/web` on post-S6 paths and add a new `web-demo.yml`: native tests, wasm, Studio web build, Chromium smoke and a Pages deploy on `main`. Modules: everything except `midi.*` and `osc.*`. | Later and separate: Web MIDI, OSC relay, `applyGraph` in web (after M4). |
-| **CB3** `claude-builder3` · transport / module build | **M3 TR2 [#341](https://github.com/kalharbi11/wirescape-lab/issues/341)**, session started run 10 | Clock `sync` and Groove `tempo_source` per 0008 decision 2. Defaults keep Goldens identical; S0 per `0020` §7. | Single writer for TR2 → MB1 → MB2 → MB3. RL #192 is a candidate once the Studio lane is free. |
-| **CR** `claude-reviewer` · Claude reviews | OB-a3 [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) when B1 pins a `review-ready` request | Review the pinned base..head against OB-a3 pins 1–7 (r2.2a reading of pin 4) and the evidence. High/Medium/Low with file and line. Record `Approved for merge <sha7>` or the blockers. | Then any Claude review a contract names. Architect-only contract-reviews (T1.6b, T1.6c, TR1e) stay with the Architect. |
+| **B1** `gpt-builder1` · Studio / install, then module build | OB-a3 [#287](https://github.com/kalharbi11/wirescape-lab/issues/287) / [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) `5ecf300` | Lab 14/14, three-platform Golden, paired M1 and native web tests green at `5ecf300`; six pin-7 routes. Post the final exact-head Result. Preserve the head for review. The lead pins `review-ready` with an inbox row and `needs/architect`, because the **Architect does the required Claude review**. | **M3 MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363)** after #298 handoff and lead release. TR2 is merged. Preserve the 34 frozen IDs. |
+| **B2** `gpt-builder2` · OSC / I/O | OB-g8 [#326](https://github.com/kalharbi11/wirescape-lab/issues/326) / [#339](https://github.com/kalharbi11/wirescape-lab/pull/339) `6c86cd5` | Lab 45201051466, Golden and M1 red. Merge `main` (OB-g9's egress drain is in), fix the build, then add the **OSC generation-pinning** fail-first test and fix ([note](https://github.com/kalharbi11/wirescape-lab/pull/339#issuecomment-7105337882)). Hosted `osc-heavy` L0 runs on the PR. | OB-f1 at candidate. |
+| **B3** `gpt-builder3` · module DSP | OB-g6 [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) / [#322](https://github.com/kalharbi11/wirescape-lab/pull/322) `49b90cd` | Merge `main`. Post function-level attribution of the `host.keyboard` rise on x64 and ARM64. A wrapper-only cause gets an Architect-named bounded exception (inbox row); otherwise fix it ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7105336061)). | #291 after #298, then S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) → S7.7 → S7.8 → S7.9. |
+| **B4** `gpt-builder4` · modules | Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) / [#333](https://github.com/kalharbi11/wirescape-lab/pull/333) `e7867b7` (from CB1); Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328) / [#356](https://github.com/kalharbi11/wirescape-lab/pull/356) `1e2f196` | **#333 first:** at `e7867b7`, Golden and the Instruction gate fail on all three platforms, which the bounded LFO exception does **not** cover. Merge `main` (TR2 changed Clock and S0), regenerate S0, and diagnose the Golden failure; a Golden difference is a defect. Then #356 (Lab green; M1, Golden, Instruction and portability red at `1e2f196`). | **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** after #356. |
+| **B5** `gpt-builder5` · OB-g3, then engine | OB-g3 [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) / [#324](https://github.com/kalharbi11/wirescape-lab/pull/324) `b5736c4` | Red native builds and sanitizers on the new native fail-first test. Fix the build, show the test failing first, then the control-thread fix. | **M3 T1.6c [#364](https://github.com/kalharbi11/wirescape-lab/issues/364)** after #324 handoff and lead release (move functions to `build/render/edit.cpp`, split `process_node`; 0007 rules 2–5). B5 becomes the **single engine writer** for T1.6c → TR1e. T1.6c needs the Architect's contract-review. |
+| **CB1–CB3** `claude-builder1..3` | **Closed** (owner, 2026-11-23: Codex is back) | T1.6a, T1.6b, #333's integration, TR2, WEB1 and OB-g9 are done or handed over. | No new Claude builder work unless the owner reopens it. The Architect keeps rulings and Claude reviews. |
 
 ## How the lead maintains this table
 
@@ -35,4 +55,4 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
   results enable a new action.
 
-Signed: claude-architect, 2026-11-23
+Signed: codex-lead, 2026-11-23, 12:03 EST

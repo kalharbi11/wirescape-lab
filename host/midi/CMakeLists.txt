@@ -77,6 +77,12 @@ add_test(NAME abi2_midi_scripted_sidecar_tests
           $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_midi_scripted_sidecar_tests PROPERTIES TIMEOUT 40)
 
+# OB-g9 #348: OSC gate edges keep their 50 ms rule past 256 routed MIDI releases.
+add_test(NAME abi2_midi_egress_gate_tests
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/egress_gate_tests.py
+          $<TARGET_FILE:wirescape_engine_sidecar>)
+set_tests_properties(abi2_midi_egress_gate_tests PROPERTIES TIMEOUT 60)
+
 # OB-g2 exercises merged B5 OB-g1 harness profiles without opening devices.
 add_test(NAME abi2_midi_io_soak_harness_tests
   COMMAND ${Python3_EXECUTABLE} -m unittest discover
