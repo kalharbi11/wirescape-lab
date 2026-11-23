@@ -17,7 +17,9 @@ export default defineConfig({
     baseURL: live ?? 'http://localhost:4174' + base,
     headless: true,
     trace: 'off',
-    launchOptions: { executablePath, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] },
+    launchOptions: { executablePath, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required',
+      // Devices off: fake media devices and no permission prompts.
+      '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
   },
   projects: [{ name: 'web', use: { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 900 } } }],
   webServer: live ? undefined : {
