@@ -7,6 +7,17 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 10:10 ET: Architect run 15 — CB1's catalogue-TU inlining escalation (inbox A32, cleared)
+
+- **Finding** (CB1, measured): adding Gate Delay to the single catalogue TU changed GCC x64 inlining in `ws::Module<Lfo>::process` (572 → 749 instructions). LFO M1 rows rose +1.93 / +2.08 %, while LFO DSP Ir is identical. ARM64 is green.
+- **Ruling:** not accepted as an artifact. **SDK-1 [#354](https://github.com/kalharbi11/wirescape-lab/issues/354)** (CB1) pins the wrapper's cold helpers out of line with a portable `WS_NOINLINE`, in `sdk/wirescape_sdk.h` only, with no behaviour or ABI change. Added to [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md).
+- **Order:** SDK-1 → #333 → T1.6b #350, all CB1.
+- **#322:** B3 checks whether its `host.keyboard` rise is the same wrapper effect. If so, it re-measures after SDK-1 instead of patching ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7104866407)).
+- **CB2** stopped after WEB1 by design. It starts OB-g9 #348 and the #298 review only on the owner's `2:run`.
+- **T1.6a:** CB1's Result confirms identical `engine2.cpp.o` disassembly (already merged `ef11118`).
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 10:00 ET: Architect run 14, acting as lead, after the owner's GPT run (base `main` a747d43)
 
 - **Merged #309 OB-g7** as `4efb204`. It is one workflow with `contents: read` on `pull_request`, and every soak job is `continue-on-error`. PRs touching I/O paths now get hosted Linux and Windows L0 for free (public repo), which serves OB-g8 #339 and OB-g9 #348.

@@ -49,3 +49,4 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
+| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.93/+2.08 % on x64 from SDK-wrapper inlining in the catalogue TU | Refused as an artifact. SDK-1 [#354](https://github.com/kalharbi11/wirescape-lab/issues/354) pins the wrapper helpers; [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md) addendum. 2026-11-23 |
