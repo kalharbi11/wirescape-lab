@@ -5,10 +5,15 @@ on:
     workflows:
       - Lab CI
       - Golden patch renders (same-runner base/head gate)
-      - M1 paired
+      - M1 paired stage evidence (nonrequired)
       - Instruction count gate (advisory)
     types: [completed]
 permissions: {}
+# A repository-wide group safely serializes even events without a PR number.
+# This avoids concurrent first-comment creation and stale overwrite races.
+concurrency:
+  group: ci-digest-sticky-global
+  cancel-in-progress: false
 jobs:
   digest:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.repository.full_name == github.repository
