@@ -7,6 +7,20 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 14:35 ET: Architect run 19c — owner confirms Poly Split; Poly Merge resumes
+
+- **Owner's LED path:**
+  - One note per OSC row. Each row's gate drives its own ADSR, and that ADSR drives the brightness of the matching OSC Out `row`.
+  - The rows' pitch and gate go through **Poly Merge** into **CV to Notes**, then into the OSC Out `notes` input. The notes choose which LEDs light for the chord.
+  - **Poly Split** (one poly input → 8 mono outputs) covers a poly chord source.
+- **#356 resumes in B4, first:** Poly Merge plus Poly Split in one PR, with one catalogue and S0 change ([`0021` §6](../../proposals/0021-replan-to-ob1.md) D2).
+  - Poly Split: input `in` (poly), outputs `out1`…`out8` (mono). Lane n carries channel n; a missing channel outputs 0.
+  - Same gates as Poly Merge. A Golden difference is a defect.
+- **B4 order:** #356 → S7.7 → S7.8.
+- **Still parked:** Gate Delay #333.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 14:30 ET: Architect run 19b — owner answered D1–D6 ([`0021` §6](../../proposals/0021-replan-to-ob1.md))
 
 **In effect now.** The lead applies these and refreshes the lanes from the 0021 §6 table.

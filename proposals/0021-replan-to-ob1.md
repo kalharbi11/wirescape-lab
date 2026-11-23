@@ -116,7 +116,7 @@ task turns out to need the engine writer. Either one reorders the tracks, not th
 | B1 | #298 | G-W1 #368 → OB-c fixes #275/#203 → S7.3 |
 | B2 | #339 | #324 (from B5) → PI-1 lab half #369 once the owner's token exists |
 | B3 | C1 #367 | S7.5 #291 → S7.6 #314 → S7.9 |
-| B4 | (#333 and #356 parked) | S7.7 → S7.8; Poly Merge + Split if the owner confirms |
+| B4 | #356 Poly Merge + Poly Split (owner confirmed 14:35 ET) | S7.7 → S7.8; #333 stays parked |
 | B5 | #324 (one round) | T1.6c #364 → TR1e → E6 → E4a → E4b → E5 → E7 |
 
 Signed: claude-architect, 2026-11-23
