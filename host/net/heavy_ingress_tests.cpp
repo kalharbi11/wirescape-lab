@@ -189,6 +189,8 @@ void reproduce() {
     std::vector<Clock::time_point> sent_falls;
     size_t seen_falls = 0, seen_sequences = 0, sent_load = 0, sent_sequences = 0;
     bool sender_ok = true, fall_late = false;
+    double worst_fall_ms = 0.;
+    uint32_t early_falls = 0, late_falls = 0;
     // Read the fixed 32-entry ingress monitor *after* the bounded send window.
     // Frequent monitor.snapshot() JSON allocation during the 200Hz sender loop
     // previously consumed a large fraction of CPU under sanitizers, turning
@@ -220,16 +222,26 @@ void reproduce() {
                 const auto received_not_before = epoch_before +
                     std::chrono::duration_cast<Clock::duration>(
                         std::chrono::duration<double>(when));
-                if (received_by - sent_falls[seen_falls] > 50ms ||
-                    received_not_before < sent_falls[seen_falls])
-                    fall_late = true; // unchanged 50ms, actual ingress timestamps
+                const auto latest_ms = std::chrono::duration<double, std::milli>(
+                    received_by - sent_falls[seen_falls]).count();
+                worst_fall_ms = std::max(worst_fall_ms, latest_ms);
+                if (latest_ms > 50.) { ++late_falls; fall_late = true; }
+                if (received_not_before < sent_falls[seen_falls]) {
+                    ++early_falls;
+                    fall_late = true;
+                } // unchanged strict 50ms, actual ingress timestamps
                 ++seen_falls;
             } else fall_late = true;
         }
     };
 
     const auto start = Clock::now(), end = start + 400ms;
+    // Distribute 64 messages evenly through each 5ms cycle. The prior
+    // 64-datagram burst at every 5ms boundary caused instrumented render
+    // workers to contend for a 256-slot ingress ring. This changes only
+    // burst shape, not 64 distinct addresses or 200Hz per address.
     auto next_load = start, next_sequence = start, next_fall = end + 1s;
+    size_t load_slot = 0;
     bool fall_pending = false;
     while (Clock::now() < end) {
         const auto now = Clock::now();
@@ -251,17 +263,19 @@ void reproduce() {
             sent_falls.push_back(fall_sent_at);
             fall_pending = false;
         }
-        if (now >= next_load) {
-            for (int i = 0; i < 64; ++i) {
-                char address[32]{};
-                std::snprintf(address, sizeof(address), "/io/load/%02d", i);
-                const float value = (i & 1)
-                    ? float((sent_load / 64 + unsigned(i)) % 2)
-                    : float((sent_load / 64 + unsigned(i) * 17) % 97) / 96.f;
-                sender_ok &= send_osc(address, value);
-                ++sent_load;
-            }
-            next_load += 5ms; // 200 Hz per address, not a reduced test rate
+        if (now >= next_load && load_slot < 5120) {
+            const int i = int(load_slot % 64);
+            char address[32]{};
+            std::snprintf(address, sizeof(address), "/io/load/%02d", i);
+            const float value = (i & 1)
+                ? float((load_slot / 64 + unsigned(i)) % 2)
+                : float((load_slot / 64 + unsigned(i) * 17) % 97) / 96.f;
+            sender_ok &= send_osc(address, value);
+            ++sent_load;
+            ++load_slot;
+            next_load = start + std::chrono::nanoseconds(
+                int64_t(load_slot / 64) * 5000000 +
+                int64_t(load_slot % 64) * 5000000 / 64);
         }
         short_pause();
     }
@@ -290,7 +304,7 @@ void reproduce() {
         "OB-g8 device-off: 64x200Hz 400ms; load_sent=%zu seq=%zu falls=%zu observed=%zu "
         "route_received=%llu route_dropped=%llu render_errors=%u render_blocks=%u "
         "ring_full=%llu engine_dropped=%llu arena_full=%llu engine_events=%llu "
-        "sender_ok=%d late=%d seq_seen=%zu\n",
+        "sender_ok=%d late=%d seq_seen=%zu worst_fall_ms=%.3f early_falls=%u late_falls=%u\n",
         sent_load, sent_sequences, sent_falls.size(), seen_falls,
         static_cast<unsigned long long>(route_received),
         static_cast<unsigned long long>(route_dropped),
@@ -299,7 +313,8 @@ void reproduce() {
         static_cast<unsigned long long>(meter.dropped),
         static_cast<unsigned long long>(meter.arena_full),
         static_cast<unsigned long long>(meter.events),
-        int(sender_ok), int(fall_late), seen_sequences);
+        int(sender_ok), int(fall_late), seen_sequences,
+        worst_fall_ms, early_falls, late_falls);
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
     REQUIRE(sent_load >= 64 * 70); // at least 350ms of the unaltered 200Hz profile
