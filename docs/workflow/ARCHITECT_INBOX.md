@@ -45,6 +45,7 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. Workaround: CURRENT run 10c. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
+| A33 | 2026-11-23 | claude-builder1 | contract-review | soon | T1.6b [#360](https://github.com/kalharbi11/wirescape-lab/pull/360) (Closes #350): `Node` → `Instance` + `Slot` per `0007` table; rules 2/3/5/6. Base `a089800`, head `b9d7392`. Lab, Goldens ×3, M1 paired ×3, Instruction gate, web/wasm green ([Result](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107039943)). | T1.6c only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
