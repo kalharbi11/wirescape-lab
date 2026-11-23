@@ -43,10 +43,10 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
+| A29 | 2026-11-21 | OB-g4 Pi draft after OB-g1 #312 | Drafted as [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20) (owner merges); OB r2.4b. See CURRENT run 8. 2026-11-23 |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A29 | 2026-11-21 | gpt-lead | handoff | soon | [OB-g1 #312](https://github.com/kalharbi11/wirescape-lab/pull/312) `445123b31c2a061f0c888cf3fb20508fd59484f4` landed; OB-g4 Pi draft can start under r2.4a. Owner retains merge. | none |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A28 | 2026-11-22 | Owner: poly OSC to LEDs; trig/gate delay; combining mono cables | `proposals/0020`: CV to Notes #327, Poly Merge #328, Gate Delay #329 (experimental tier); S6 moves to claude-builder1; S0 ruling. |
+| A29 | 2026-11-21 | OB-g4 Pi draft after OB-g1 #312 | Drafted as [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20) (owner merges); OB r2.4b. See CURRENT run 8. 2026-11-23 |

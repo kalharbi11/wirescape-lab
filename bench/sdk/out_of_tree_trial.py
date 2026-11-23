@@ -32,10 +32,10 @@ def new_york_date():
         return (utc + dt.timedelta(hours=hours)).date().isoformat()
 
 ROOT = Path(__file__).resolve().parents[2]
-CORE = ["native/engine2/CMakeLists.txt", "native/control/module_catalog.h",
-        "native/control/module_catalog.inc", "apps/studio/public/catalogue-presentation.json",
+CORE = ["engine/CMakeLists.txt", "engine/control/module_catalog.h",
+        "engine/control/module_catalog.inc", "apps/studio/public/catalogue-presentation.json",
         "apps/studio/public/wirescape_modules.json"]
-MODULE = "native/modules2/trial_gain"
+MODULE = "modules/trial_gain"
 DOC = "docs/MODULE_BUILD_GUIDE.md"
 SDK = "docs/SDK_AUTHOR_GUIDE.md"
 
@@ -144,7 +144,7 @@ def prepare_template(destination, template):
         "# SPDX-License-Identifier: MIT\n"
         "add_library(ws2_trial_gain SHARED module.cpp)\n"
         "target_link_libraries(ws2_trial_gain PRIVATE wirescape_sdk2)\n"
-        "add_executable(abi2_trial_gain_tests tests.cpp ../../tests2/allocation_watch.cpp)\n"
+        "add_executable(abi2_trial_gain_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)\n"
         "target_link_libraries(abi2_trial_gain_tests PRIVATE wirescape_engine2)\n"
         "add_test(NAME abi2_trial_gain_tests COMMAND abi2_trial_gain_tests)\n",
         encoding="utf-8")
@@ -159,11 +159,11 @@ def prepare_template(destination, template):
 
 
 def edit_registrations():
-    edit(CORE[0],"add_subdirectory(../modules2/quantizer quantizer)",
-         "add_subdirectory(../modules2/quantizer quantizer)\n"
-         "add_subdirectory(../modules2/trial_gain trial_gain)")
-    edit(CORE[1],'#include "../modules2/quantizer/dsp.h"',
-         '#include "../modules2/quantizer/dsp.h"\n#include "../modules2/trial_gain/dsp.h"')
+    edit(CORE[0],"add_subdirectory(../modules/quantizer quantizer)",
+         "add_subdirectory(../modules/quantizer quantizer)\n"
+         "add_subdirectory(../modules/trial_gain trial_gain)")
+    edit(CORE[1],'#include "../../modules/quantizer/dsp.h"',
+         '#include "../../modules/quantizer/dsp.h"\n#include "../../modules/trial_gain/dsp.h"')
     edit(CORE[2],"WS_APP_MODULE(quantizer::Quantizer)",
          "WS_APP_MODULE(quantizer::Quantizer)\nWS_APP_MODULE(Gain)")
     path=ROOT/CORE[3]
@@ -233,7 +233,7 @@ def main():
     p.add_argument("--platform",required=True,choices=("linux-x64","windows-x64"))
     p.add_argument("--results",type=Path,default=ROOT/"bench/sdk/results")
     args=p.parse_args()
-    # The trial deliberately edits native/, apps/ and docs/ inside its working
+    # The trial deliberately edits engine/, modules/, apps/ and docs/ inside its working
     # tree. Never permit accidental use against an owner's local checkout.
     workspace=os.environ.get("GITHUB_WORKSPACE")
     if os.environ.get("GITHUB_ACTIONS") != "true" or not workspace:
@@ -248,8 +248,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix="wirescape-sdk-trial-") as tmp:
         outside=Path(tmp)
         trial.step("Copy native SDK to external directory",DOC+" §B.0 / "+SDK+" §1",
-                   "copy native/sdk <external>/sdk",True,
-                   lambda: shutil.copytree(ROOT/"native/sdk",outside/"sdk"))
+                   "copy sdk <external>/sdk",True,
+                   lambda: shutil.copytree(ROOT/"sdk",outside/"sdk"))
         trial.step("Rename template to trial.gain",DOC+" §B.1-B.2 / "+SDK+" §1-§2",
                    "copy sdk/template and rename descriptor and manifest",True,
                    lambda: prepare_template(outside/"trial_gain",outside/"sdk/template"))
@@ -263,12 +263,12 @@ def main():
                    "-DCMAKE_BUILD_TYPE=Release"],True,timeout=90,cwd=outside)
         # Stop out of tree at the first inability; run remaining tasks in a
         # disposable checkout. The committed repository is never modified.
-        trial.step("Copy trial source into native/modules2",DOC+" §B.2 / "+SDK+" §1",
-                   "copy <external>/trial_gain native/modules2/trial_gain",False,
+        trial.step("Copy trial source into modules",DOC+" §B.2 / "+SDK+" §1",
+                   "copy <external>/trial_gain modules/trial_gain",False,
                    lambda: shutil.copytree(outside/"trial_gain",ROOT/MODULE),files=(MODULE,))
         trial.step("Register module in CMake, native catalogue and presentation",
                    DOC+" §B.3 #1-#4 / "+SDK+" §1",
-                   "edit native/engine2/CMakeLists.txt, module_catalog.h, module_catalog.inc, catalogue-presentation.json",
+                   "edit engine/CMakeLists.txt, module_catalog.h, module_catalog.inc, catalogue-presentation.json",
                    False,edit_registrations,files=CORE[:4])
         trial.run("Generate registration file #5",DOC+" §B.3 #5",
                   [sys.executable,"tools/gen_ui_catalogue.py"],files=(CORE[4],))

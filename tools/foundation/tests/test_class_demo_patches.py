@@ -13,13 +13,13 @@ ROOT = Path(__file__).resolve().parents[3]
 CLI = None
 if __name__ == '__main__' and len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
     CLI = sys.argv.pop(1)
-PATCHES = sorted((ROOT / 'native/examples').glob('class_demo_*.json'))
+PATCHES = sorted((ROOT / 'host/examples').glob('class_demo_*.json'))
 
 
 class ClassDemoPatches(unittest.TestCase):
     def test_patch_contracts(self):
         self.assertEqual(len(PATCHES), 3)
-        manifests = {m['id']: m for p in (ROOT / 'native/modules2').glob('*/module.json')
+        manifests = {m['id']: m for p in (ROOT / 'modules').glob('*/module.json')
                      for m in [json.loads(p.read_text())]}
         for path in PATCHES:
             with self.subTest(patch=path.name):

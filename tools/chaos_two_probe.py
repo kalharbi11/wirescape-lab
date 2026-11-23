@@ -27,7 +27,7 @@ def validate_result(result):
 def main():
     root = Path(__file__).resolve().parents[1]
     binary = root / 'build/native' / ('wirescape_soak.exe' if sys.platform == 'win32' else 'wirescape_soak')
-    command = [str(binary), '--patch', str(root / 'native/examples/chaos_two.json'),
+    command = [str(binary), '--patch', str(root / 'host/examples/chaos_two.json'),
                '--rate', '48000', '--block', '128', '--seconds', '120']
     run = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=180)
     if run.returncode:
