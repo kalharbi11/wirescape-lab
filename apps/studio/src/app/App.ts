@@ -1615,6 +1615,7 @@ export class App {
     this.settings.body.replaceChildren();
     const b = this.settings.body;
     let stopMonitor: (() => void) | undefined;
+    let stopMidiRefusal: (() => void) | undefined;
 
     b.append(el('h3', 'settings-group', 'Audio'));
     const audioFields = el('div', 'settings-audio');
@@ -1794,6 +1795,21 @@ export class App {
       };
       midiFields.append(field('Input device', selected), field('Enabled', toggleSlot));
       refreshToggle();
+      // A refused native switch must restore the authoritative applied state,
+      // not leave switchButton's optimistic aria-pressed value on screen.
+      stopMidiRefusal = engine.onRefusal?.(r => {
+        if (r.type !== 'setMidiEnabled' || !b.isConnected) return;
+        void engine.listMidiDevices().then(applied => {
+          if (!b.isConnected) return;
+          for (const d of devices) {
+            const actual = applied.find(a => a.id === d.id);
+            if (actual) d.enabled = actual.enabled;
+          }
+          refreshToggle();
+        }).catch(() => {
+          if (b.isConnected) this.toasts.show('MIDI device state could not be checked.', 'error');
+        });
+      });
     }).catch(() => {
       if (b.contains(midiFields)) midiFields.textContent = 'MIDI devices could not be listed.';
     });
@@ -1881,7 +1897,7 @@ export class App {
     debug.addEventListener('click', () => { this.settings.close(); this.devPanel.toggle(true); });
     b.append(debug);
 
-    this.settings.open('Settings', () => stopMonitor?.());
+    this.settings.open('Settings', () => { stopMonitor?.(); stopMidiRefusal?.(); });
   }
 
   private setPref(patch: Partial<Preferences>): void {
