@@ -64,7 +64,7 @@ def parse(log):
         "errors": [x for x in lines if MATCH.search(x)][:15],
         "tests": list(dict.fromkeys(x for x in lines if re.search(r"FAILED|FAIL:|test_\w+", x)))[:8],
         "golden": list(dict.fromkeys(x for x in lines if re.search(r"golden|\.wav", x, re.I) and MATCH.search(x)))[:8],
-        "ir": list(dict.fromkeys(x for x in lines if (m := IR.search(x)) and float(m.group(1)) > 1))[:8],
+        "ir": list(dict.fromkeys(x for x in lines if (m := (PAIRED_IR.fullmatch(x) or IR.search(x))) and float(m.group(1)) > 1))[:8],
     }
 
 
