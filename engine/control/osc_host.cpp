@@ -9,7 +9,7 @@ int Host::deliver(void *context, uint32_t node, const ws2_event &event, uint64_t
     if (!self.engine_) return WS2_INVALID;
     auto &graph = app_engine_native(self.engine_);
     const int result = graph.enqueue(2, node, WS2_DIRECT_PORT, event, timestamp, engine2::Timing::Timestamped,
-                                     self.engine_generation_);
+                                     app_engine_generation(self.engine_));
     if (result == WS2_OK && self.monitor_) self.monitor_->osc(node, event, timestamp);
     return result;
 }
@@ -126,7 +126,6 @@ void Host::start(AppEngine *engine, const std::string &document) {
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;
-    engine_generation_ = app_engine_native(engine_).meter().generation;
     // Busy ports report unavailable status; they never refuse the patch.
     (void)service_->start();
 }
@@ -139,7 +138,6 @@ void Host::stop() noexcept {
     filters_.clear();
     for (auto &entry : cached_matches_) entry.valid = false;
     engine_ = nullptr;
-    engine_generation_ = 0;
 }
 std::vector<RouteState> Host::states() const {
     auto out = service_ ? service_->states() : std::vector<RouteState>{};

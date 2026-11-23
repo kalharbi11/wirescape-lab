@@ -43,13 +43,6 @@ void wait_for_callback(Clock::time_point deadline) {
     std::this_thread::sleep_until(deadline);
 #endif
 }
-void short_pause() {
-    // A 200us sleep per packet caps the 64x200Hz sender well below
-    // 12,800 packets/s on hosted Linux (observed 1453-1519/5120).
-    // Yield without a fixed delay; absolute next_load still sets the rate.
-    std::this_thread::yield();
-}
-
 // Reserve an OS-assigned port rather than colliding with another CI process.
 // Host validates a nonzero configured OSC port, so release the reservation
 // immediately before its loopback-only listener starts.
@@ -116,7 +109,7 @@ json sentinel_monitor_patch() {
     return patch;
 }
 
-void reproduce() {
+void reproduce(bool panic_only) {
     const auto port = loopback_port();
     const json patch = heavy_patch(port);
     wirescape::engine2::Config config{};
@@ -141,7 +134,6 @@ void reproduce() {
     // Bracket the configure call so we can compare actual *ingress timestamps*
     // with the sender's gate-fall send times. JSON polling latency must not be
     // mistaken for native queue latency, especially under ASan/UBSan.
-    const auto epoch_before = Clock::now();
     monitor.configure(sentinel_monitor_patch());
     const auto epoch_after = Clock::now();
     wirescape::osc::Host host;
@@ -150,21 +142,6 @@ void reproduce() {
     const auto initial = host.states();
     REQUIRE(initial.size() == 9);
     for (const auto &route : initial) REQUIRE(std::string(route.state) == "listening");
-
-    std::atomic<bool> rendering{true};
-    std::atomic<uint32_t> render_failures{0}, render_blocks{0};
-    std::thread render([&] {
-        std::array<float, 128> left{}, right{};
-        float *out[] = {left.data(), right.data()};
-        auto next = Clock::now();
-        while (rendering.load(std::memory_order_acquire)) {
-            if (app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns()) != WS2_OK)
-                render_failures.fetch_add(1, std::memory_order_relaxed);
-            render_blocks.fetch_add(1, std::memory_order_relaxed);
-            next += 2666667ns; // 128 frames at 48 kHz
-            wait_for_callback(next);
-        }
-    });
 
     const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in destination{};
@@ -184,6 +161,50 @@ void reproduce() {
             sendto(sender, reinterpret_cast<const char *>(bytes), int(size), 0,
                    reinterpret_cast<sockaddr *>(&destination), sizeof(destination)) == int(size);
     };
+
+    if (panic_only) {
+        auto &graph = app_engine_native(engine.get());
+        const auto generation = app_engine_generation(engine.get());
+        graph.panic();
+        std::array<float, 128> output{};
+        float *channels[] = {output.data()};
+        REQUIRE(app_engine_render_live(engine.get(), channels, 1, 128, app_engine_clock_ns()) == WS2_OK);
+        REQUIRE(app_engine_generation(engine.get()) != generation);
+        REQUIRE(send_osc("/io/seq", .75f));
+        const auto deadline = Clock::now() + 500ms;
+        while (Clock::now() < deadline) {
+            const auto route = host.states().front();
+            if (route.received || route.dropped) break;
+            std::this_thread::sleep_for(1ms);
+        }
+        const auto route = host.states().front();
+        host.stop();
+#ifdef _WIN32
+        closesocket(sender);
+#else
+        close(sender);
+#endif
+        REQUIRE(route.received == 1 && route.dropped == 0);
+        for (int block = 0; block < 2; ++block)
+            REQUIRE(app_engine_render_live(engine.get(), channels, 1, 128, app_engine_clock_ns()) == WS2_OK);
+        REQUIRE(graph.output_sample(1, 0, 0, 127) == .75f);
+        return;
+    }
+
+    std::atomic<bool> rendering{true};
+    std::atomic<uint32_t> render_failures{0}, render_blocks{0};
+    std::thread render([&] {
+        std::array<float, 128> left{}, right{};
+        float *out[] = {left.data(), right.data()};
+        auto next = Clock::now();
+        while (rendering.load(std::memory_order_acquire)) {
+            if (app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns()) != WS2_OK)
+                render_failures.fetch_add(1, std::memory_order_relaxed);
+            render_blocks.fetch_add(1, std::memory_order_relaxed);
+            next += 2666667ns; // 128 frames at 48 kHz
+            wait_for_callback(next);
+        }
+    });
 
     std::vector<Clock::time_point> sent_falls;
     size_t seen_falls = 0, seen_sequences = 0, sent_load = 0, sent_sequences = 0;
@@ -218,12 +239,9 @@ void reproduce() {
                 const auto received_by = epoch_after +
                     std::chrono::duration_cast<Clock::duration>(
                         std::chrono::duration<double>(when));
-                const auto received_not_before = epoch_before +
-                    std::chrono::duration_cast<Clock::duration>(
-                        std::chrono::duration<double>(when));
                 const auto latest_ms = std::chrono::duration<double, std::milli>(
                     received_by - sent_falls[seen_falls]).count();
-                worst_fall_ms = std::max(worst_fall_ms, latest_ms);
+                worst_fall_ms = (std::max)(worst_fall_ms, latest_ms);
                 if (latest_ms > 50.) { ++late_falls; fall_late = true; }
                 // The monitor clock epoch is known only within the
                 // configure() bracket. An ingress is *proven* early only
@@ -240,15 +258,19 @@ void reproduce() {
         }
     };
 
+    auto &graph = app_engine_native(engine.get());
+    const auto drain_egress = [&] {
+        // Mirror the sidecar's bounded control-thread drain. The render
+        // thread remains the producer and this thread is the sole consumer.
+        wirescape::engine2::Outgoing message;
+        for (unsigned i = 0; i < 256 && graph.pop_egress(message); ++i) {}
+    };
     const auto start = Clock::now(), end = start + 400ms;
-    // Distribute 64 messages evenly through each 5ms cycle. The prior
-    // 64-datagram burst at every 5ms boundary caused instrumented render
-    // workers to contend for a 256-slot ingress ring. This changes only
-    // burst shape, not 64 distinct addresses or 200Hz per address.
     auto next_load = start, next_sequence = start, next_fall = end + 1s;
-    size_t load_slot = 0;
+    size_t load_cycle = 0;
     bool fall_pending = false;
     while (Clock::now() < end) {
+        drain_egress();
         const auto now = Clock::now();
         if (now >= next_sequence) {
             // A unique sequence identifies each 100 ms sentinel cycle.
@@ -268,26 +290,30 @@ void reproduce() {
             sent_falls.push_back(fall_sent_at);
             fall_pending = false;
         }
-        if (now >= next_load && load_slot < 5120) {
-            const int i = int(load_slot % 64);
-            char address[32]{};
-            std::snprintf(address, sizeof(address), "/io/load/%02d", i);
-            const float value = (i & 1)
-                ? float((load_slot / 64 + unsigned(i)) % 2)
-                : float((load_slot / 64 + unsigned(i) * 17) % 97) / 96.f;
-            sender_ok &= send_osc(address, value);
-            ++sent_load;
-            ++load_slot;
-            next_load = start + std::chrono::nanoseconds(
-                int64_t(load_slot / 64) * 5000000 +
-                int64_t(load_slot % 64) * 5000000 / 64);
+        if (now >= next_load && load_cycle < 80) {
+            // Match the L0 harness: one datagram per address per 5ms cycle.
+            for (unsigned i = 0; i < 64; ++i) {
+                char address[32]{};
+                std::snprintf(address, sizeof(address), "/io/load/%02u", i);
+                const float value = (i & 1)
+                    ? float((load_cycle + i) % 2)
+                    : float((load_cycle + i * 17) % 97) / 96.f;
+                sender_ok &= send_osc(address, value);
+                ++sent_load;
+            }
+            ++load_cycle;
+            next_load += 5ms;
         }
-        short_pause();
+        auto wake = (std::min)(end, (std::min)(next_load, next_sequence));
+        if (fall_pending) wake = (std::min)(wake, next_fall);
+        wait_for_callback(wake);
     }
-    // Give the real loopback worker a short bounded drain window; judge the
-    // four gate falls by their recorded ingress timestamps, not readout time.
+    // Drain accepted traffic and judge falls by their ingress timestamps.
     const auto witness_deadline = Clock::now() + 55ms;
-    while (Clock::now() < witness_deadline) short_pause();
+    while (Clock::now() < witness_deadline) {
+        drain_egress();
+        std::this_thread::sleep_for(1ms);
+    }
     observe();
 
     const auto states = host.states();
@@ -331,7 +357,11 @@ void reproduce() {
 }
 } // namespace
 
-int main() {
-    reproduce();
+int main(int argc, char **) {
+    reproduce(argc > 1);
+    if (argc > 1) {
+        std::puts("PASS OSC delivery after engine panic");
+        return 0;
+    }
     std::puts("PASS OB-g8 localhost OSC heavy ingress and numbered gate fall");
 }

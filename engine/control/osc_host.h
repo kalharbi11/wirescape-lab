@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 namespace wirescape::osc {
-// Control-owner host; worker delivery retains the graph generation from start.
+// Control-owner host; the worker reads the current graph generation on delivery.
 class Host {
     std::unique_ptr<Service> service_;
     std::vector<RouteState> disabled_; // modules with every row disabled: no socket (#612)
@@ -32,7 +32,6 @@ class Host {
     std::array<AddressMatch, 128> cached_matches_{};
     static bool accept(void *, uint32_t, std::string_view) noexcept;
     AppEngine *engine_ = nullptr;
-    uint64_t engine_generation_ = 0;
     bool authorized_ = false;
     monitor::Capture *monitor_ = nullptr;
     static int deliver(void *, uint32_t, const ws2_event &, uint64_t) noexcept;
