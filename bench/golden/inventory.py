@@ -15,10 +15,10 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def registry(root):
-    catalogue=(root/"native/control/module_catalog.inc").read_text(encoding="utf-8")
+    catalogue=(root/"engine/control/module_catalog.inc").read_text(encoding="utf-8")
     count=len(re.findall(r"(?m)^WS_APP_MODULE\(",catalogue))
-    modules=sorted((root/"native/modules2").glob("*/module.cpp")) + \
-            sorted((root/"native/sdk/examples").glob("*/module.cpp"))
+    modules=sorted((root/"modules").glob("*/module.cpp")) + \
+            sorted((root/"sdk/examples").glob("*/module.cpp"))
     if count!=34 or len(modules)!=count:
         raise ValueError(f"registry/source inventory mismatch: catalog={count}, translation_units={len(modules)}")
     result={}

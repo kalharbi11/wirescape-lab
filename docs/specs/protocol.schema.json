@@ -381,6 +381,89 @@
         }
       }
     },
+    "midiCounters": {
+      "type": "object",
+      "required": [
+        "received",
+        "dropped",
+        "malformed",
+        "oversize",
+        "ring_full",
+        "disconnects",
+        "send_fail",
+        "ignored_rpn",
+        "release_panics",
+        "ports"
+      ],
+      "properties": {
+        "received": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "malformed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oversize": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ring_full": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "disconnects": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "send_fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ignored_rpn": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "release_panics": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "system_name",
+              "received",
+              "online"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "system_name": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "received": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "online": {
+                "type": "boolean"
+              }
+            }
+          },
+          "maxItems": 256
+        }
+      }
+    },
     "midi": {
       "type": "object",
       "required": [
@@ -400,6 +483,9 @@
         },
         "learn": {
           "$ref": "#/$defs/midiLearnStatus"
+        },
+        "counters": {
+          "$ref": "#/$defs/midiCounters"
         }
       }
     },

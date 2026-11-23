@@ -171,7 +171,7 @@ test('offline WAV: all eight presets render finite, audible left/right bus level
         mkdirSync(out);
         writeFileSync(casePath, JSON.stringify(source));
         const child = spawnSync('python', [
-          resolve('../../native/tools/render/evidence.py'), '--render', renderer,
+          resolve('../../tools/render/evidence.py'), '--render', renderer,
           '--case', casePath, '--out', out, '--configuration', 'Release',
         ], { encoding: 'utf8', timeout: 60000 });
         expect(child.status, preset.name + '/' + port + ': ' + child.stderr).toBe(0);

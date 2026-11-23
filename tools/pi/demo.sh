@@ -79,7 +79,7 @@ if action == 'stop':
         stop(name)
     raise SystemExit(0)
 
-matches = glob.glob(str(root / f'native/examples/class_demo_{action}_*.json'))
+matches = glob.glob(str(root / f'host/examples/class_demo_{action}_*.json'))
 if len(matches) != 1:
     raise SystemExit('Expected exactly one class demo patch; install P0A patches first')
 patch = json.loads(Path(matches[0]).read_text())
