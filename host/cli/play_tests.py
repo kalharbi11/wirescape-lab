@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix="play-", dir=Path.cwd()) as work:
     # OB-a3 pin 7: invoke the real offline CLI with a copied native v1
     # document, not merely the shared loader. Rendering may create an output
     # WAV only in a separate disposable directory; the source remains inert.
-    legacy = Path(__file__).resolve().parents[2] / "tests/native/compat/fixtures/legacy_documents/patch_v1.json"
+    legacy = Path(patch)\n    assert json.loads(legacy.read_text())["version"] == 1, "CLI regression requires executable native v1"
     v1dir = Path(work) / "legacy-input"
     v1dir.mkdir()
     v1 = v1dir / "patch_v1.json"
