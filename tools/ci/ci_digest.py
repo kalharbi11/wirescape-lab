@@ -4,14 +4,50 @@ import json
 import os
 import re
 import urllib.request
+import urllib.error
+from urllib.parse import urlsplit
 
 MARKER = "<!-- wirescape-ci-digest-v1 -->"
 NAMES = ("Lab CI", "Golden patch renders (same-runner base/head gate)",
-         "M1 paired", "Instruction count gate (advisory)")
+         "M1 paired stage evidence (nonrequired)", "Instruction count gate (advisory)")
 MATCH = re.compile(r"error|FAILED|Assertion|mismatch", re.I)
 IR = re.compile(r"(?:\bIr\b|instruction|\bM1\b).*?\+(\d+(?:\.\d+)?)%", re.I)
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 MAX = 2000000
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def download_log(api_url, token, opener=None):
+    """Never forward Authorization on a GitHub log redirect."""
+    if urlsplit(api_url).scheme != "https" or urlsplit(api_url).hostname != "api.github.com":
+        raise ValueError("log API must use api.github.com HTTPS")
+    opener = opener or urllib.request.build_opener(NoRedirect())
+    req = urllib.request.Request(api_url, headers={"Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github+json"})
+    try:
+        with opener.open(req, timeout=30) as response:
+            return bounded(response)
+    except urllib.error.HTTPError as exc:
+        if exc.code not in (301, 302, 303, 307, 308):
+            raise
+        target = exc.headers.get("Location", "")
+    dest = urlsplit(target)
+    if dest.scheme != "https" or not dest.hostname or dest.username or dest.password or dest.port not in (None, 443):
+        raise ValueError("unsafe log redirect")
+    # Explicitly no Authorization header on redirected object-storage request.
+    with opener.open(urllib.request.Request(target), timeout=30) as response:
+        return bounded(response)
+
+
+def bounded(response):
+    body = response.read(MAX + 1)
+    if len(body) > MAX:
+        raise ValueError("log exceeds limit")
+    return body.decode("utf-8", "replace")
 
 
 def safe(value, limit=220):
@@ -114,14 +150,22 @@ def run(api, event, repo):
                 step = next((s.get("name", "?") for s in job.get("steps", [])
                              if s.get("conclusion") == "failure"), "?")
                 try:
-                    log = api.get("/actions/jobs/" + str(job["id"]) + "/logs", raw=True)
+                    log = download_log(api.root + "/actions/jobs/" + str(job["id"]) + "/logs", api.token)
                 except (OSError, ValueError):
                     log = "error: log unavailable"
                 failures.append((job.get("name", "?"), step, parse(log)))
         body = render(sha, latest, failures)
+        # Final current-head guard: never publish a stale digest after slow log reads.
+        current = api.get("/pulls/" + str(number))
+        if current.get("state") != "open" or current["head"]["sha"] != sha:
+            return "stale event: head changed before comment write"
         comments = api.pages("/issues/" + str(number) + "/comments")
         own = [c for c in comments if MARKER in c.get("body", "") and
                c.get("user", {}).get("login") == "github-actions[bot]"]
+        # Repeat immediately before the mutating call, after comment enumeration.
+        current = api.get("/pulls/" + str(number))
+        if current.get("state") != "open" or current["head"]["sha"] != sha:
+            return "stale event: head changed before comment write"
         if own:
             api.get("/issues/comments/" + str(own[0]["id"]), "PATCH", {"body": body})
         else:
