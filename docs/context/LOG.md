@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)
+E3 moves to OB1.1, and G-W1 #368 (Groove scrolling) joins OB1. #333, #356, #322, CAT-1 and MB1 are parked. C1 #367 is the CI digest. PI-1 #369 moves the Pi bridge's hosted jobs to the public lab repo, and wirescape-pi stays private.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 19 (replan to OB1)
 `proposals/0021`. OB1 is one serial engine chain, and most open PRs are off it. In effect now: an intake freeze, one PR per lane, engine draft-ahead, and OB-c fixes moved to B1. Owner decisions D1–D6 are pending (E3 scope, module freeze with CAT-1+MB1 combined, the B5 hand-off, CI digest, chat-mode GitHub write access).
 Signed: claude-architect, 2026-11-23

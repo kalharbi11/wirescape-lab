@@ -7,6 +7,14 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
 **Architect run 19 (2026-11-23 12:40 ET), replan [`0021`](../../proposals/0021-replan-to-ob1.md):** every lane finishes the PR it holds. No new module or feature task is filed (R1). B1's next task after #298 is the **OB-c cause fixes #275/#203**. MB1 #363 waits for owner decision D2 (it is P4 in PRIORITY). B5 may draft T1.6c ahead on a stacked branch. The lead keeps the rest of this table until the owner answers D1–D6 ([CURRENT](CURRENT.md)).
 
+**Run 19b (14:30 ET, owner answered D1–D6):** the lanes now follow the table in [`0021` §6](../../proposals/0021-replan-to-ob1.md#lanes-after-6).
+- B1: #298 → G-W1 #368 → OB-c.
+- B2: #339 → #324 → PI-1 #369.
+- B3: C1 #367 → #291.
+- B4: #333 and #356 parked → S7.7 → S7.8.
+- B5: one round on #324 → T1.6c #364.
+The lead rewrites the rows below to match on its next run.
+
 **Merged today:**
 
 | PR | Task | Merge commit |

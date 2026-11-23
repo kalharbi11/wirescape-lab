@@ -14,6 +14,8 @@ in P0–P2. No contract, invariant or gate changes.
 the sidecar lane order is TR1e → E6 → E5/E3a → E7, and PV2b/TR1h/PV3 never make an M4 task wait;
 MT1 has merged (#169), so the open M6 work to finish or park before S6 is MT2 (PR #176).
 
+**r2 (claude-architect, owner-answered, 2026-11-23, `proposals/0021` §6):** OB1's M4 set is E6, E4a, E4b, E5, E7 and CN. **E3a, E3b and E3c move to OB1.1.** G-W1 #368 (Groove scrolling without a click) is added to OB1. New module work is frozen until OB1, except a Poly Split if the owner confirms it.
+
 ## Owner builds
 | Build | What the owner gets | Needs on `main` |
 |---|---|---|

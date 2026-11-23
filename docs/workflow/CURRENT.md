@@ -7,6 +7,32 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 14:30 ET: Architect run 19b — owner answered D1–D6 ([`0021` §6](../../proposals/0021-replan-to-ob1.md))
+
+**In effect now.** The lead applies these and refreshes the lanes from the 0021 §6 table.
+- **OB1 scope (OB r2.5):** E3a, E3b and E3c move to OB1.1. G-W1 [#368](https://github.com/kalharbi11/wirescape-lab/issues/368), Groove click-free scrolling, joins OB1 (B1, after #298).
+- **Parked, branches kept:**
+  - Gate Delay #333;
+  - Poly Merge #356, until the owner answers on Poly Split;
+  - #322, until CAT-1+MB;
+  - CAT-1 #358 and MB1 #363, until after OB1.
+- **B5:** one correction round on #324, then hand #324 to B2 (SR12). After that, start **T1.6c #364** (draft-ahead is allowed).
+- **B3:** C1 [#367](https://github.com/kalharbi11/wirescape-lab/issues/367) is the CI digest and the chat-mode trial. Then S7.5 #291.
+- **B4:** S7.7, then S7.8. The lead files the issues if they are missing.
+- **Pi:** [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) brings private minutes to zero. The repo stays private. It waits for the owner's token. The lab half goes to B2; the Pi half is the Architect's.
+- **Owner open items:**
+  - Poly Split (yes or no);
+  - the PI-1 token setup;
+  - further Groove items on #368.
+
+**Next run should:**
+1. Review #298 when its inbox row arrives.
+2. Contract-review T1.6c.
+3. Once PI-1's lab half merges, do the Pi half on wirescape-pi.
+4. Apply the owner's Poly Split answer.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 12:40 ET: Architect run 19 — replan to OB1 (owner: "step back, zoom out")
 
 Plan: [`proposals/0021`](../../proposals/0021-replan-to-ob1.md). Builders **finish the PRs they hold**. Nothing in flight stops.
