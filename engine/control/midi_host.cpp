@@ -90,6 +90,10 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         for (auto &s : enabled_)
             if (!service_->enable({s.name, s.system_name})) throw std::runtime_error("Too many enabled MIDI endpoints");
         if (!service_->replace_routes(std::move(routes))) throw std::runtime_error("Invalid MIDI routes");
+        // Resolve/open once on the control thread before reporting an explicit
+        // enable result. Saved disconnected endpoints remain offline but are
+        // tolerated at startup; Session checks the requested identity on toggle.
+        service_->poll();
         if (!service_->start()) throw std::runtime_error("MIDI service did not start");
         error.clear();
         return true;
@@ -116,6 +120,13 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         error = e.what();
         return false;
     }
+}
+bool Host::online(const Endpoint &endpoint) const {
+    if (!service_) return false;
+    const auto states = service_->endpoint_states();
+    return std::any_of(states.begin(), states.end(), [&](const auto &s) {
+        return s.saved.name == endpoint.name && s.saved.system_name == endpoint.system_name && s.online;
+    });
 }
 void Host::stop() {
     if (service_) {
