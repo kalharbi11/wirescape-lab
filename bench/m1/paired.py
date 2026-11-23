@@ -12,7 +12,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from bench.gate.compare import expected_ids, indexed, valid_measured_row
+from bench.gate.compare import expected_ids, experimental_row_ids, indexed, valid_measured_row
 
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 RETIRED = "fixed/abi1_mono"  # exact S4 historical-only metric; never measured on head
@@ -24,7 +24,7 @@ FIELDS = ("schema", "machine", "architecture", "valgrind_version", "method",
 
 
 def compare_pair(base, head, base_sha, head_sha, machine):
-    failures, exceptions, measured, retired = [], [], [], []
+    failures, exceptions, measured, retired, new = [], [], [], [], []
     if not all(SHA.fullmatch(x or "") for x in (base_sha, head_sha)):
         failures.append("both revision pins must be 40 lowercase hexadecimal characters")
     if base_sha == head_sha:
@@ -55,7 +55,9 @@ def compare_pair(base, head, base_sha, head_sha, machine):
         failures.append("missing architecture")
     try:
         before, after = indexed(base), indexed(head)
-        required = expected_ids(ROOT)
+        permitted_new = experimental_row_ids()
+        required = expected_ids(ROOT) | (before.keys() & permitted_new)
+        new_keys = (after.keys() - before.keys()) & permitted_new
     except (TypeError, ValueError, AttributeError) as error:
         return {"status": "failed", "failures": failures + [str(error)],
                 "exceptions": exceptions, "measured": measured, "retired": retired}
@@ -72,11 +74,25 @@ def compare_pair(base, head, base_sha, head_sha, machine):
         failures.append("head: retired ABI1 metric must not be collected")
     for name, rows in (("base", before), ("head", after)):
         missing = required - rows.keys()
-        extra = rows.keys() - required
+        extra = rows.keys() - required - (new_keys if name == "head" else set())
         if missing:
             failures.append(f"{name}: missing IDs: {', '.join(sorted(missing))}")
         if extra:
             failures.append(f"{name}: unexpected IDs: {', '.join(sorted(extra))}")
+    for key in sorted(new_keys):
+        row = after[key]
+        if row.get("status") == "measured":
+            if not valid_measured_row(row, True):
+                failures.append(f"{key}: invalid new experimental Callgrind evidence")
+            else:
+                new.append({"id": key, "status": "new", "current_ir": row["ir_per_block"],
+                            "disposition": "head-only experimental; no base or 1% comparison"})
+        elif row.get("status") == "unavailable":
+            new.append({"id": key, "status": "new", "measurement_status": "unavailable",
+                        "reason": row.get("reason", "no numeric Ir"),
+                        "disposition": "head-only experimental; no base or 1% comparison"})
+        else:
+            failures.append(f"{key}: invalid new experimental status")
     for key in sorted(required & before.keys() & after.keys()):
         b, h = before[key], after[key]
         if b.get("status") == h.get("status") == "unavailable" and key in CHORD:
@@ -112,7 +128,7 @@ def compare_pair(base, head, base_sha, head_sha, machine):
             "expected_count": len(required), "measured_count": len(measured),
             "paired_unavailable_count": len(exceptions), "retired_count": len(retired),
             "failures": failures, "exceptions": exceptions, "measured": measured,
-            "retired": retired}
+            "retired": retired, "new": new, "new_count": len(new)}
 
 
 def main(argv=None):

@@ -14,6 +14,8 @@ tools/examples/osc_loopback_check.py protocol without modifying tools/.
     python3 bench/io/soak.py --engine build/native/wirescape-engine --profile osc-heavy --edit-mode still --ladder
     python3 bench/io/soak.py --engine build/native/wirescape-engine --profile osc-stress --edit-mode still --tier L0
     python3 bench/io/soak.py --engine build/native/wirescape-engine --profile osc-gates --edit-mode config-edits --tier L0
+    python3 bench/io/soak.py --engine build/native/wirescape-engine --profile midi-m8 --edit-mode still --tier L0
+    python3 bench/io/soak.py --engine build/native/wirescape-engine --profile mixed --edit-mode still --tier L0
 
 Ladder durations: L0=60s, L1=600s, L2=3600s, L3=14400s,
 L4=43200s, L5=86400s. Each tier starts only after the previous tier
@@ -31,6 +33,20 @@ modules, not one oversized row list. Seeding and values are deterministic.
 A 500Hz OSC Out cannot echo every individual heavy packet; separate 10Hz
 numbered echo verifies end-to-end responsiveness, while real ingress/drop
 counters assess heavy traffic. This is not a per-packet delivery proof.
+
+OB-g2 extends the same CLI, stop rules, tier ladder and report formats with
+`midi-m8` and `mixed`. These profiles automatically pass `--scripted-midi`
+to the null-audio sidecar with an explicit temporary `--settings`; no OS MIDI
+endpoint or LAN is opened. The deterministic injected source sends four-voice
+Note On/Off, 24 ppqn clock, active sensing, CC floods, sustain and a 10-minute
+Panic. The native graph routes `midi.in.midi` into `midi.to_cv.midi`.
+Both profiles retain the OSC 10Hz echo/gate sentinel to observe edit-induced
+A2 disruptions; `mixed` additionally sends 64 × 200Hz OSC ingress.
+The actual opt-in `status.midi.counters` must be present with forward
+`received` progress at least every 2 s, and any increase in dropped,
+ring_full, malformed, send_fail or release_panics stops the tier.
+Before/after MIDI received totals appear in both reports; default OSC
+profiles still omit counters and preserve the frozen S0 protocol snapshot.
 
 The still mode never edits the graph. config-edits sends loadGraph every 30s
 to exercise known A2. Before M4 E5, an *observed* disruption after an edit is

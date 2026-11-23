@@ -11,8 +11,11 @@ from probe import first_error, section_sizes, sources, symbol_flags
 class ProbeTests(unittest.TestCase):
     def test_source_inventory_covers_catalog_and_sdk(self):
         files, count = sources()
-        self.assertEqual(count, 34)
-        self.assertEqual(len(files), 35)
+        from bench.golden.inventory import EXPERIMENTAL, allowed_ids, golden_ids
+        self.assertEqual(count, len(allowed_ids()))
+        self.assertEqual(len(golden_ids()), 34)
+        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes"})
+        self.assertEqual(len(files), 36)
         self.assertTrue(any(str(p).endswith("sdk/template/module.cpp") for p in files))
         self.assertEqual(sum("sdk/examples/" in p.as_posix() for p in files), 2)
 

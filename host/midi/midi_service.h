@@ -20,7 +20,7 @@ struct Sink {
     // Timestamp is SystemMonotonic nanoseconds. The host maps it through engine D13.
     int (*emit)(void*, uint32_t node, const ws2_event&, uint64_t timestamp_ns) noexcept = nullptr;
 };
-struct Counters { uint64_t received = 0, dropped = 0, malformed = 0, oversize = 0, ring_full = 0, disconnects = 0, send_fail = 0, ignored_rpn = 0; };
+struct Counters { uint64_t received = 0, dropped = 0, malformed = 0, oversize = 0, ring_full = 0, disconnects = 0, send_fail = 0, ignored_rpn = 0, release_panics = 0; };
 struct EndpointState {
     Selection saved;
     uint32_t source_id = 0;
