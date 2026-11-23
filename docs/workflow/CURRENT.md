@@ -7,6 +7,21 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 04:20 ET: Architect run 10b — owner rules; Pi Actions not starting (base `main` after #342)
+
+- **Owner rules** (written into `CLAUDE.md`, `AGENTS.md` and [wirescape-pi #22](https://github.com/kalharbi11/wirescape-pi/pull/22)):
+  - Only the Claude Architect merges on wirescape-pi. Claude builders merge there only with the Architect's explicit permission or its auto-merge.
+  - Every Architect run refreshes the B1–B5 and CB1–CB3 rows and gives idle lanes a task.
+- **Pi: no jobs, because wirescape-pi's GitHub-hosted jobs never start.**
+  - No workflow run of any kind since 2026-11-19 (the last ones were cancelled after hanging). No `Bridge tests` ran on #18–#22.
+  - A manual `requests.yml` dispatch at 09:10 UTC (run 45144729346, run #1, so the 10-minute schedule had never fired) is still `queued` with 0 jobs.
+  - So `/pi-run` on #318 is never read, and the self-hosted Pi never gets work.
+  - **Owner:** check account Settings → Billing → Actions (private-repo minutes or spending limit), then repo Settings → Actions → General ("Allow all actions" and Actions enabled).
+  - Once hosted jobs start, the queued run picks up #318's request by itself.
+- **Builder queue:** unchanged since run 10 (20 min). CB1 has its lane; CB2 and CB3 are running.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 04:00 ET: Architect run 10, acting as lead — two merges, three Claude lanes, Pi mixed lane (base `main` 3bab20e)
 
 - **Merged** after an exact-head check (only the non-required `Offline facts / windows-latest` failed):
