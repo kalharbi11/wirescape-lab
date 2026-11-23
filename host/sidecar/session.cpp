@@ -300,7 +300,8 @@ Session::Session(Options options)
         scripted_source = std::move(scripted);
     }
     auto observed = std::make_unique<ObservedMidi>(options_.null_audio && !options_.scripted_midi,
-                                                    options_.midi, std::move(scripted_source));
+                                                    options_.midi, std::move(scripted_source),
+                                                    options_.scripted_midi);
     observer_ = observed.get();
     observer_->endpoints();
     monitor_ = std::make_unique<monitor::Capture>();

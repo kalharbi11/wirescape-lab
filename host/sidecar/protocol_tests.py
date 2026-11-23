@@ -970,6 +970,19 @@ with tempfile.TemporaryDirectory() as midi_dir:
 
         initial = telemetry_when(running, gen, lambda t: bool(notes(t)))
         last_on = max(e['t'] for e in notes(initial))
+
+        # A second advertised scripted input cannot open while the first
+        # source is delivering. The production sidecar must refuse this
+        # control-thread request (not ACK success and leave a dead endpoint).
+        busy = [d for d in running.hello['midi']['devices']
+                if d['system_name'] == 'scripted:midi-m8:busy']
+        assert len(busy) == 1 and busy[0]['enabled'] is False, busy
+        refused = running.call(
+            'setMidiEnabled', False, deviceId=busy[0]['id'], on=True)
+        assert refused['code'] == 'unavailable', refused
+        assert refused['gen'] == gen, refused
+        assert running.process.poll() is None, running.stderr()
+
         # The audio session is already running. A disable is followed by a
         # same-session re-enable, without reloading the graph or restarting.
         off = running.call('setMidiEnabled', deviceId=device['id'], on=False)
