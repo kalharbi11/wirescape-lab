@@ -36,7 +36,7 @@ def run() -> None:
         shutil.copy2(a.legacy, old)
         shutil.copy2(a.modern, new)
         before = snapshot(sources)
-        assert tuple(p.name for p in sources.iterdir()) == ("native-v1.json", "control-v2.json")
+        assert {p.name for p in sources.iterdir()} == {"native-v1.json", "control-v2.json"}
         if a.mode == "soak":
             for patch in (old, new):
                 process = subprocess.run(
