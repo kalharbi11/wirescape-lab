@@ -13,13 +13,23 @@ namespace wirescape::osc {
 class Host {
     std::unique_ptr<Service> service_;
     std::vector<RouteState> disabled_; // modules with every row disabled: no socket (#612)
-    // Partly disabled modules: compiled row patterns, read-only while the worker runs.
+    // Every configured OSC In route has compiled patterns, including all-enabled
+    // routes. Service owns one worker, so its read-only route configuration and
+    // bounded address cache have exactly one ingress-thread writer.
     struct Filter {
         uint32_t node = 0;
+        uint16_t port = 0;
         std::array<Pattern, 8> patterns{};
         std::array<bool, 8> enabled{};
     };
     std::vector<std::unique_ptr<Filter>> filters_;
+    struct AddressMatch {
+        std::array<char, 256> address{};
+        uint16_t port = 0, length = 0;
+        uint32_t enabled_mask = 0; // one bit per configured OSC In filter (maximum 32)
+        bool valid = false, known = false;
+    };
+    std::array<AddressMatch, 128> cached_matches_{};
     static bool accept(void *, uint32_t, std::string_view) noexcept;
     AppEngine *engine_ = nullptr;
     uint64_t engine_generation_ = 0;
