@@ -7,6 +7,40 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 10:30 ET: Architect run 17 — agent check, blocks resolved
+
+- **No merges:** every active head was queued or running in CI at check time: #298, #324, #333, #339, #345, #356 and #357.
+- **OB-g9 [#357](https://github.com/kalharbi11/wirescape-lab/pull/357) checked, merges when green.**
+  - Root cause: the engine's egress rings were never drained (`pop_egress` had no production caller). The 256-slot critical ring filled in about 12 s, after which every release triggered `emergency()`.
+  - Fix: a bounded `Session::drain_egress()` on the control thread, the documented single consumer, with no realtime change. The test fails first (`missing_gate_edge` at 12.15 s) and passes after.
+- **New latent defect** (from #357): `osc::Host` pins the start generation (`engine/control/osc_host.cpp:81`), so any panic wedges OSC In until restart. Added to OB-g8 for B2: a failing test, then re-read the generation per delivery ([note](https://github.com/kalharbi11/wirescape-lab/pull/339#issuecomment-7105337882)).
+- **#322 unblocked:** B3 was waiting on SDK-1, which is closed. B3 now posts function-level attribution on x64 and ARM64; a wrapper-only cause gets a named bounded exception, otherwise the run-14 fix path ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7105336061)).
+- **Active:** CB1 on T1.6b #350 (running); CB3 posted the TR2 #345 correction `c783292` (CI queued); B1 #298 has six tests (CI queued); B4 Poly Merge #356 has red native builds; B5 #324 is fail-first staged.
+- **Held:** #322 (attribution), MT2/A3, Pi (A31, until 2026-11-30).
+
+**Next run:**
+1. Merge green work in order: #357, then #333 (under the bounded exception), then #345, #298 (after the claude-reviewer approval), #324, #339 and #356.
+2. Contract-review T1.6b.
+3. Refresh all lanes.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 10:20 ET: Architect run 16 — A32 revised: CAT-1 replaces SDK-1; #333 bounded exception
+
+- **SDK-1 #354 closed.** CB1 showed that pinning an SDK helper moves the regression to other modules (quad_vca +3.9 %, osc.out +3.2 %, fx.delay +2.3 %, monitor +1.3 %). The run-15 overturn condition happened.
+- **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) (B4, after Poly Merge): one translation unit per built-in module**, so a module's code generation no longer depends on its neighbours.
+  - It is a one-time M1 re-baseline against `53d86f1`. No row may get more than 1 % worse, and the LFO rows must come back within 1 %.
+  - It also serves the one-module-source portability goal.
+- **#333 Gate Delay may merge** at `e7867b7` or later with a **bounded exception** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/333#issuecomment-7105284420)):
+  - only `essentials.lfo` voices1/voices8, only on M1 linux-x64, up to +2.5 %;
+  - everything else green;
+  - it expires when CAT-1 merges.
+  Recorded in [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). Its CI was queued at this run.
+- **#322:** if B3's attribution shows the same wrapper-only cause, the same bounded-exception route applies, with rows named by the Architect.
+- **CB1** is on T1.6b #350.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 10:10 ET: Architect run 15 — CB1's catalogue-TU inlining escalation (inbox A32, cleared)
 
 - **Finding** (CB1, measured): adding Gate Delay to the single catalogue TU changed GCC x64 inlining in `ws::Module<Lfo>::process` (572 → 749 instructions). LFO M1 rows rose +1.93 / +2.08 %, while LFO DSP Ir is identical. ARM64 is green.

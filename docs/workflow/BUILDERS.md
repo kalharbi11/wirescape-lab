@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue
 
-Updated 2026-11-23 10:00 ET (claude-architect run 14, acting lead: #309 merged; lanes re-sent after the owner's GPT run). The delivery lead owns this table; with no lead active, the Architect refreshes it every run. Builders read their row,
+Updated 2026-11-23 10:30 ET (claude-architect run 17: agent check, blocks resolved). The delivery lead owns this table; with no lead active, the Architect refreshes it every run. Builders read their row,
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
@@ -15,7 +15,7 @@ handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 - #309 OB-g7 `4efb204`
 
 **Merge order (lead):**
-1. #333 Gate Delay.
+1. #333 Gate Delay at `e7867b7`, under the run-16 bounded LFO exception ([condition](https://github.com/kalharbi11/wirescape-lab/pull/333#issuecomment-7105284420)).
 2. Poly Merge #328, last among the modules.
 3. #298, then #291.
 4. TR2 #345.
@@ -29,10 +29,10 @@ Each needs green Lab, Golden and M1 paired at its exact head; only the non-requi
 | **B1** `gpt-builder1` · Studio / install | OB-a3 [#287](https://github.com/kalharbi11/wirescape-lab/issues/287) / [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) `71bd210` | Fix the red native build and sanitizers. Merge `main`. Write the remaining five pin-7 cases in the granted paths. Result, then `review-ready` for claude-reviewer (CB2) ([direction](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7104617999)). | #291 rebases after #298. |
 | **B2** `gpt-builder2` · OSC heavy load | OB-g8 [#326](https://github.com/kalharbi11/wirescape-lab/issues/326) / [#339](https://github.com/kalharbi11/wirescape-lab/pull/339) `3616336` | Merge `main`. Fix the Windows `abi2_osc_heavy_ingress_tests` failure and the red builds and sanitizers. The hosted `osc-heavy` L0 now runs automatically (#309 merged) ([direction](https://github.com/kalharbi11/wirescape-lab/pull/339#issuecomment-7104616666)). | OB-f1 at candidate. |
 | **B3** `gpt-builder3` · module DSP | OB-g6 [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) / [#322](https://github.com/kalharbi11/wirescape-lab/pull/322) `49b90cd` | **Ruling:** the +4,887 Ir/block on `host.keyboard` patches is #322's defect to fix. Use function-level attribution, and fix it in #322's files or with a no-behaviour change to `engine/voice/note_to_cv.h`. Merge `main` and regenerate S0 ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7104614163)). | #291 after #298, then S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) → S7.7 → S7.8 → S7.9. |
-| **B4** `gpt-builder4` · Poly Merge | **Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328)** (new start, run 14) | `task/328-poly-merge` on main with `0020` §7. Append to `bench/module_sets.json` `experimental` and regenerate S0. It merges after #333. #333 moved to CB1, which was already on it. | T1.6a done; the next engine work stays with CB1. |
+| **B4** `gpt-builder4` · Poly Merge | **Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328)** (new start, run 14), then **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** | `task/328-poly-merge` on main with `0020` §7. Append to `bench/module_sets.json` `experimental` and regenerate S0. It merges after #333. #333 moved to CB1, which was already on it. | T1.6a done; the next engine work stays with CB1. |
 | **B5** `gpt-builder5` · OB-g3 | OB-g3 [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) / [#324](https://github.com/kalharbi11/wirescape-lab/pull/324) `9228093` | A native `--scripted-midi` failing test (enable an endpoint while running, inject, assert delivery), then the control-thread fix ([disposition](https://github.com/kalharbi11/wirescape-lab/pull/324#issuecomment-7098921069)). | Bounded OB-c marker/PCM proof. |
-| **CB1** `claude-builder1` · engine writer | **SDK-1 [#354](https://github.com/kalharbi11/wirescape-lab/issues/354)** → Gate Delay [#333](https://github.com/kalharbi11/wirescape-lab/pull/333) `a001a44` → **T1.6b [#350](https://github.com/kalharbi11/wirescape-lab/issues/350)** | Run 15 ruling: the LFO +2 % comes from SDK-wrapper inlining in the catalogue TU. SDK-1 pins the wrapper's cold helpers (`sdk/wirescape_sdk.h` only). Then #333 merges `main` and shows the LFO rows within 1 %. | T1.6b → Architect contract-review → T1.6c → TR1e. |
-| **CB2** `claude-builder2` · I/O and reviews | **OB-g9 [#348](https://github.com/kalharbi11/wirescape-lab/issues/348)**: **waits for the owner's `2:run`** (the session was started for WEB1 only) | `midi-m8/still` missing gate edge: failing test first, then the fix. The hosted L0 runs on its PR. | claude-reviewer for #298 when pinned. |
+| **CB1** `claude-builder1` · engine writer | **T1.6b [#350](https://github.com/kalharbi11/wirescape-lab/issues/350)** (#333 done by CB1 at `e7867b7`; SDK-1 closed) | Split `Node` into `Instance` + `Slot` per the 0007 table, then the inbox row for the Architect's contract-review. | T1.6c → TR1e. |
+| **CB2** `claude-builder2` · I/O and reviews | **OB-g9 [#348](https://github.com/kalharbi11/wirescape-lab/issues/348) / [#357](https://github.com/kalharbi11/wirescape-lab/pull/357) `fc51089`** (a Claude session; the old CB2 session is idle) | Root cause: nothing drained the engine's egress rings, so after about 12 s every release became an emergency and OSC In was wedged. Fix: `Session::drain_egress()` on the control thread, with a fail-first test. The Architect's check holds; it merges when CI is green. | claude-reviewer for #298 when pinned. |
 | **CB3** `claude-builder3` · transport / module build | M3 TR2 [#341](https://github.com/kalharbi11/wirescape-lab/issues/341) / [#345](https://github.com/kalharbi11/wirescape-lab/pull/345) `1a9b581` | Fix the Lab build, keep existing rows within 1 %, merge `main` and regenerate S0, then the Result. | MB1 → MB2 → MB3 after TR2. |
 
 ## How the lead maintains this table
