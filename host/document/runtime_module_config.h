@@ -65,7 +65,8 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
     if (value.empty() && type != "osc.out") return {};
     if (type == "sequencing.groove") {
         using namespace groove;
-        require(value.size() == 3 && value.contains("version") && value.contains("bpm") && value.contains("tracks"),
+        require(value.contains("version") && value.contains("bpm") && value.contains("tracks") &&
+                    value.size() == 3u + (value.contains("tempo_source") ? 1u : 0u),
                 "Groove requires version, bpm and tracks");
         require(value.at("version").is_number_integer(), "Invalid Groove version");
         const auto version = value.at("version").get<int64_t>();
@@ -82,6 +83,13 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
         // v1 had no chance conditions; preserving its old render seed is intentional.
         config.instance_seed = version == 2 ? instance_id : 0;
         config.authored_version = static_cast<uint32_t>(version);
+        if (value.contains("tempo_source")) {
+            const auto &source = value.at("tempo_source");
+            require(version == 2 && source.is_string(), "Groove tempo_source must be a v2 string");
+            const auto name = source.get<std::string>();
+            require(name == "internal" || name == "host", "Groove tempo_source must be internal or host");
+            config.tempo_source = name == "host" ? TempoHost : TempoInternal;
+        }
         for (size_t t = 0; t < tracks.size(); ++t) {
             const auto &track = tracks[t];
             require(track.is_object() && track.contains("steps"), "Invalid Groove track");

@@ -37,8 +37,12 @@ struct Config {
     uint32_t instance_seed = 0; // Off-render graph numeric ID, never authored JSON.
     uint32_t authored_version = 1; // Preserve old 32-step entry timing for v1; v2 enters at bar 16.
     std::array<Track, 4> tracks{};
+    // 0008 decision 7 (M3 TR2): 0 = internal (own bpm), 1 = host (steps follow the host beat).
+    // Appended so every earlier field keeps its offset.
+    uint32_t tempo_source = 0;
 };
-static_assert(sizeof(Step) == 48 && sizeof(Track) == 3088 && sizeof(Config) == 12372,
+enum TempoSource : uint32_t { TempoInternal = 0, TempoHost = 1 };
+static_assert(sizeof(Step) == 48 && sizeof(Track) == 3088 && sizeof(Config) == 12376,
               "Groove v2 fixed 4x64 POD layout requires contract review");
 
 // The previous transient v1 layout is read only for compatibility with direct
@@ -113,7 +117,8 @@ inline bool decode(const uint8_t *data, uint32_t bytes, Config &out) {
     }
     if (next.version != 2 || !std::isfinite(next.bpm) || next.bpm < 20 || next.bpm > 300 ||
         next.track_count < 1 || next.track_count > 2 ||
-        (next.authored_version != 1 && next.authored_version != 2)) return false;
+        (next.authored_version != 1 && next.authored_version != 2) ||
+        next.tempo_source > TempoHost || (next.tempo_source == TempoHost && next.authored_version != 2)) return false;
     for (const auto &track : next.tracks) {
         if (track.armed > 1 || track.mute > 1 ||
             (track.length != 8 && track.length != 16 && track.length != 32 && track.length != 64) ||

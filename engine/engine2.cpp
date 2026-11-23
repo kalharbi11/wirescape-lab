@@ -31,26 +31,23 @@ struct Allocation {
     size_t alignment, bytes;
     uint32_t hint;
 };
-struct Node {
-    uint32_t id = 0, index = 0, component = 0;
+// proposals/0007 (T1.6b): what belongs to one module instance (survives an edit).
+struct Instance {
+    uint32_t id = 0;
     const ws2_descriptor *d = nullptr;
     uint64_t born_revision = 0;
     void *instance = nullptr;
     std::vector<ws2_port> inputs, outputs;
     std::vector<ws2_param> parameters;
-    std::vector<Edge *> incoming, signal_edges;
-    std::vector<std::vector<Edge *>> modulation, outgoing;
     std::vector<Parameter> state;
     std::vector<uint8_t> config, preserved;
     std::vector<Allocation> allocations;
-    std::vector<Buffer> in, local_out, global_out, param;
+    std::vector<Buffer> local_out, global_out, param;
     std::vector<double> modulation_sum;
-    std::vector<ws2_signal> in_view, param_view;
     std::vector<ws2_signal_out> out_view;
     std::vector<std::vector<ws2_event>> port_events;
     std::vector<ws2_event_list> event_view;
     std::vector<ws2_event_out> event_outputs;
-    std::vector<uint32_t> event_tap_slots; // Precomputed event-output -> telemetry slot; empty when untapped.
     // Render-owned oscillator observation, never read by the control owner.
     struct Pitch {
         bool enabled = false, vco = false;
@@ -63,10 +60,8 @@ struct Node {
     std::vector<Item> pending;
     int forced_channels = -1;
     uint32_t channels = 1, latency = 0;
-    bool loop = false, touched = false;
     size_t requested_fast = 0, requested_large = 0;
     void *emit_context = nullptr;
-    ~Node() { clear_instance(); }
     void clear_instance() {
         if (instance) {
             if (d) d->destroy(instance);
@@ -77,7 +72,7 @@ struct Node {
         requested_fast = requested_large = 0;
     }
     static void *WS2_CALL allocate(void *ctx, size_t bytes, size_t alignment, uint32_t hint) {
-        auto &n = *static_cast<Node *>(ctx);
+        auto &n = *static_cast<Instance *>(ctx);
         if (n.allocations.size() == n.allocations.capacity() || !alignment || (alignment & (alignment - 1)) ||
             bytes > 128 * 1024 * 1024)
             return nullptr;
@@ -93,33 +88,49 @@ struct Node {
     }
     ws2_host host() { return {sizeof(ws2_host), this, allocate}; }
 };
-bool pitch_layout(const Node *node, Node::Pitch &pitch) {
+// proposals/0007 (T1.6b): what belongs to one topology (rebuilt by an edit).
+struct Slot {
+    uint32_t index = 0, component = 0;
+    bool loop = false, touched = false;
+    std::vector<Edge *> incoming, signal_edges;
+    std::vector<std::vector<Edge *>> modulation, outgoing;
+    std::vector<Buffer> in;
+    std::vector<ws2_signal> in_view, param_view;
+    std::vector<uint32_t> event_tap_slots; // Precomputed event-output -> telemetry slot; empty when untapped.
+};
+// In T1.6 a Slot lives beside its Instance and both move together, as Node did.
+struct Node {
+    Instance instance;
+    Slot slot;
+    ~Node() { instance.clear_instance(); }
+};
+bool pitch_layout(const Node *node, Instance::Pitch &pitch) {
     if (!node) return false;
-    pitch.vco = !std::strcmp(node->d->id, "essentials.vco");
-    if (!pitch.vco && std::strcmp(node->d->id, "ports.macro_oscillator")) return false;
+    pitch.vco = !std::strcmp(node->instance.d->id, "essentials.vco");
+    if (!pitch.vco && std::strcmp(node->instance.d->id, "ports.macro_oscillator")) return false;
     const auto index = [](const auto &ports, const char *id) {
         for (uint32_t i = 0; i < ports.size(); ++i)
             if (ports[i].id && !std::strcmp(ports[i].id, id)) return i;
         return UINT32_MAX;
     };
-    pitch.input = index(node->inputs, "pitch");
-    pitch.tune = index(node->parameters, pitch.vco ? "frequency" : "coarse");
+    pitch.input = index(node->instance.inputs, "pitch");
+    pitch.tune = index(node->instance.parameters, pitch.vco ? "frequency" : "coarse");
     if (!pitch.vco) {
-        pitch.trigger = index(node->inputs, "trigger");
-        pitch.gate = index(node->inputs, "gate");
+        pitch.trigger = index(node->instance.inputs, "trigger");
+        pitch.gate = index(node->instance.inputs, "gate");
     }
-    return pitch.input < node->in.size() && pitch.tune < node->param.size() &&
-           (pitch.vco || (pitch.trigger < node->in.size() && pitch.gate < node->in.size()));
+    return pitch.input < node->slot.in.size() && pitch.tune < node->instance.param.size() &&
+           (pitch.vco || (pitch.trigger < node->slot.in.size() && pitch.gate < node->slot.in.size()));
 }
 bool valid_tap(const Node *node, const Tap &tap) {
     if (!node || tap.kind > Tap::OscPitch) return false;
     if (tap.kind == Tap::OscPitch) {
-        Node::Pitch layout;
+        Instance::Pitch layout;
         return tap.index == 0 && pitch_layout(node, layout);
     }
-    if (tap.kind == Tap::Param) return tap.index < node->parameters.size();
-    return tap.index < node->outputs.size() &&
-           node->outputs[tap.index].kind == (tap.kind == Tap::EventOut ? WS2_EVENT : WS2_SIGNAL);
+    if (tap.kind == Tap::Param) return tap.index < node->instance.parameters.size();
+    return tap.index < node->instance.outputs.size() &&
+           node->instance.outputs[tap.index].kind == (tap.kind == Tap::EventOut ? WS2_EVENT : WS2_SIGNAL);
 }
 enum class Park : uint8_t { Running, Requested, Parked, Cancelled };
 } // namespace
@@ -173,7 +184,7 @@ struct Engine::Impl {
             return it != node_table.end() && it->first == id ? it->second : nullptr;
         }
         for (auto &n : nodes)
-            if (n->id == id) return n.get();
+            if (n->instance.id == id) return n.get();
         return nullptr;
     }
     bool fail(const char *s) {
@@ -209,16 +220,16 @@ struct Engine::Impl {
     }
     void reset_processors() noexcept {
         for (auto &n : nodes) {
-            n->d->reset(n->instance);
-            n->pitch.latest = 0;
-            n->pitch.note_on.fill(false);
-            n->pitch.high.fill(false);
-            n->pitch.value = std::numeric_limits<float>::quiet_NaN();
-            for (auto &p : n->state) {
+            n->instance.d->reset(n->instance.instance);
+            n->instance.pitch.latest = 0;
+            n->instance.pitch.note_on.fill(false);
+            n->instance.pitch.high.fill(false);
+            n->instance.pitch.value = std::numeric_limits<float>::quiet_NaN();
+            for (auto &p : n->instance.state) {
                 p.base.reset();
                 p.offset.fill(0);
             }
-            n->pending.clear();
+            n->instance.pending.clear();
         }
         for (auto &e : edges)
             if (e.back) {
@@ -242,8 +253,8 @@ struct Engine::Impl {
         if (!event || event->struct_size < sizeof(ws2_event)) return WS2_INVALID;
         auto &engine = *static_cast<Impl *>(ctx);
         const bool accepted = engine.route(port, *event);
-        if (accepted && engine.processing && port < engine.processing->event_tap_slots.size()) {
-            const uint32_t slot = engine.processing->event_tap_slots[port];
+        if (accepted && engine.processing && port < engine.processing->slot.event_tap_slots.size()) {
+            const uint32_t slot = engine.processing->slot.event_tap_slots[port];
             if (slot != UINT32_MAX) engine.tap_counts[slot].fetch_add(1, std::memory_order_relaxed);
         }
         return accepted ? WS2_OK : WS2_CAPACITY;
@@ -251,33 +262,33 @@ struct Engine::Impl {
 };
 
 bool Engine::Impl::setup(Node &n) {
-    n.clear_instance();
-    n.allocations.reserve(64);
+    n.instance.clear_instance();
+    n.instance.allocations.reserve(64);
     ws2_config config{sizeof(ws2_config),
                       cfg.sample_rate,
                       cfg.max_block,
                       cfg.max_channels,
-                      cfg.seed + n.id,
-                      n.config.data(),
-                      static_cast<uint32_t>(n.config.size())};
-    auto host = n.host();
-    n.instance = n.d->create(&host);
-    if (!n.instance) return fail("ABI2 create failed");
+                      cfg.seed + n.instance.id,
+                      n.instance.config.data(),
+                      static_cast<uint32_t>(n.instance.config.size())};
+    auto host = n.instance.host();
+    n.instance.instance = n.instance.d->create(&host);
+    if (!n.instance.instance) return fail("ABI2 create failed");
     ws2_ports ports{sizeof(ports), 0, 0, nullptr, nullptr};
-    if (n.d->query_ports(n.instance, &config, &ports) != WS2_OK || ports.input_count > WS2_MAX_PORTS ||
-        ports.output_count > WS2_MAX_PORTS || (ports.input_count && !ports.inputs) ||
-        (ports.output_count && !ports.outputs))
+    if (n.instance.d->query_ports(n.instance.instance, &config, &ports) != WS2_OK ||
+        ports.input_count > WS2_MAX_PORTS || ports.output_count > WS2_MAX_PORTS ||
+        (ports.input_count && !ports.inputs) || (ports.output_count && !ports.outputs))
         return fail("ABI2 query_ports failed");
-    n.inputs.clear();
-    n.outputs.clear();
-    if (ports.input_count) n.inputs.assign(ports.inputs, ports.inputs + ports.input_count);
-    if (ports.output_count) n.outputs.assign(ports.outputs, ports.outputs + ports.output_count);
-    if (n.d->prepare(n.instance, &config, &host) != WS2_OK) return fail("ABI2 prepare failed");
+    n.instance.inputs.clear();
+    n.instance.outputs.clear();
+    if (ports.input_count) n.instance.inputs.assign(ports.inputs, ports.inputs + ports.input_count);
+    if (ports.output_count) n.instance.outputs.assign(ports.outputs, ports.outputs + ports.output_count);
+    if (n.instance.d->prepare(n.instance.instance, &config, &host) != WS2_OK) return fail("ABI2 prepare failed");
     ws2_memory memory{sizeof(memory), 0, 0, 0};
-    if (n.d->memory_requirements(&config, &memory) != WS2_OK || memory.fast_bytes < n.requested_fast ||
-        memory.large_bytes < n.requested_large)
+    if (n.instance.d->memory_requirements(&config, &memory) != WS2_OK ||
+        memory.fast_bytes < n.instance.requested_fast || memory.large_bytes < n.instance.requested_large)
         return fail("Module memory report understates requested storage");
-    n.latency = n.d->latency_frames(n.instance);
+    n.instance.latency = n.instance.d->latency_frames(n.instance.instance);
     auto check_ports = [&](const std::vector<ws2_port> &ports) {
         for (size_t i = 0; i < ports.size(); ++i) {
             const auto &p = ports[i];
@@ -289,29 +300,31 @@ bool Engine::Impl::setup(Node &n) {
         }
         return true;
     };
-    if (!check_ports(n.inputs) || !check_ports(n.outputs)) return fail("Invalid/duplicate port descriptor");
-    n.in.resize(n.inputs.size());
-    n.local_out.resize(n.outputs.size());
-    n.global_out.resize(n.outputs.size());
-    n.param.resize(n.parameters.size());
-    for (auto *buffers : {&n.in, &n.local_out, &n.global_out, &n.param})
+    if (!check_ports(n.instance.inputs) || !check_ports(n.instance.outputs))
+        return fail("Invalid/duplicate port descriptor");
+    n.slot.in.resize(n.instance.inputs.size());
+    n.instance.local_out.resize(n.instance.outputs.size());
+    n.instance.global_out.resize(n.instance.outputs.size());
+    n.instance.param.resize(n.instance.parameters.size());
+    for (auto *buffers : {&n.slot.in, &n.instance.local_out, &n.instance.global_out, &n.instance.param})
         for (auto &b : *buffers) b.prepare(cfg.max_channels, cfg.max_block);
-    n.modulation_sum.resize(size_t(cfg.max_channels) * cfg.max_block);
-    n.in_view.resize(n.in.size());
-    n.out_view.resize(n.local_out.size());
-    n.param_view.resize(n.param.size());
-    n.port_events.resize(n.inputs.size());
-    n.event_view.resize(n.inputs.size());
-    n.event_outputs.resize(n.outputs.size());
-    for (auto &events : n.port_events) events.reserve(cfg.event_budget);
-    n.events.reserve(cfg.event_budget);
-    n.pending.reserve(cfg.event_budget);
-    for (auto &p : n.state) {
+    n.instance.modulation_sum.resize(size_t(cfg.max_channels) * cfg.max_block);
+    n.slot.in_view.resize(n.slot.in.size());
+    n.instance.out_view.resize(n.instance.local_out.size());
+    n.slot.param_view.resize(n.instance.param.size());
+    n.instance.port_events.resize(n.instance.inputs.size());
+    n.instance.event_view.resize(n.instance.inputs.size());
+    n.instance.event_outputs.resize(n.instance.outputs.size());
+    for (auto &events : n.instance.port_events) events.reserve(cfg.event_budget);
+    n.instance.events.reserve(cfg.event_budget);
+    n.instance.pending.reserve(cfg.event_budget);
+    for (auto &p : n.instance.state) {
         p.base.prepare(cfg.sample_rate);
         p.offset.fill(0);
     }
-    for (uint32_t i = 0; i < n.outputs.size(); ++i) n.event_outputs[i] = {sizeof(ws2_event_out), this, i, emit};
-    setup_bytes += n.requested_fast + n.requested_large;
+    for (uint32_t i = 0; i < n.instance.outputs.size(); ++i)
+        n.instance.event_outputs[i] = {sizeof(ws2_event_out), this, i, emit};
+    setup_bytes += n.instance.requested_fast + n.instance.requested_large;
     return true;
 }
 
@@ -319,21 +332,21 @@ bool Engine::Impl::resolve_taps() {
     tap_nodes.clear();
     tap_nodes.reserve(taps.size());
     for (auto &node : nodes) {
-        node->event_tap_slots.clear();
-        node->pitch.enabled = false;
+        node->slot.event_tap_slots.clear();
+        node->instance.pitch.enabled = false;
     }
     for (uint32_t i = 0; i < taps.size(); ++i) {
         const auto &t = taps[i];
         auto *n = find(t.node);
         if (!valid_tap(n, t)) return fail("Telemetry tap endpoint changed during prepare");
         if (t.kind == Tap::OscPitch) {
-            if (!pitch_layout(n, n->pitch)) return fail("Oscillator pitch layout changed during prepare");
-            n->pitch.enabled = true;
+            if (!pitch_layout(n, n->instance.pitch)) return fail("Oscillator pitch layout changed during prepare");
+            n->instance.pitch.enabled = true;
         }
         tap_nodes.push_back(n);
         if (t.kind == Tap::EventOut) {
-            if (n->event_tap_slots.empty()) n->event_tap_slots.assign(n->outputs.size(), UINT32_MAX);
-            n->event_tap_slots[t.index] = i;
+            if (n->slot.event_tap_slots.empty()) n->slot.event_tap_slots.assign(n->instance.outputs.size(), UINT32_MAX);
+            n->slot.event_tap_slots[t.index] = i;
         }
     }
     return true;
@@ -343,7 +356,7 @@ bool Engine::Impl::finish_prepare() {
     if (!topology()) return false;
     for (auto &bus : buses) {
         auto *n = find(bus.node);
-        if (!n || bus.port >= n->outputs.size()) return fail("Output no longer exists");
+        if (!n || bus.port >= n->instance.outputs.size()) return fail("Output no longer exists");
         bus.source = n;
     }
     if (!resolve_taps()) return false;
@@ -363,21 +376,22 @@ void Engine::Impl::recompute_latency() noexcept {
             uint32_t upstream = 0;
             for (auto &e : edges)
                 if (!e.removed && !e.back && e.kind == 0 && e.destination == n)
-                    upstream = std::max(upstream, distance[e.source->index]);
-            distance[n->index] = static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, uint64_t(upstream) + n->latency));
+                    upstream = std::max(upstream, distance[e.source->slot.index]);
+            distance[n->slot.index] =
+                static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, uint64_t(upstream) + n->instance.latency));
         }
     for (const auto &bus : buses) {
         auto *n = find(bus.node);
         if (!n) continue;
-        bus_latency[bus.channel] = std::max(bus_latency[bus.channel], distance[n->index]);
+        bus_latency[bus.channel] = std::max(bus_latency[bus.channel], distance[n->slot.index]);
         maximum = std::max(maximum, bus_latency[bus.channel]);
     }
     latency.store(maximum, std::memory_order_relaxed);
 }
 
 bool Engine::Impl::topology() {
-    std::sort(nodes.begin(), nodes.end(), [](const auto &a, const auto &b) { return a->id < b->id; });
-    for (uint32_t i = 0; i < nodes.size(); ++i) nodes[i]->index = i;
+    std::sort(nodes.begin(), nodes.end(), [](const auto &a, const auto &b) { return a->instance.id < b->instance.id; });
+    for (uint32_t i = 0; i < nodes.size(); ++i) nodes[i]->slot.index = i;
     std::sort(edges.begin(), edges.end(), [](const Edge &a, const Edge &b) {
         return std::tie(a.from, a.output, a.to, a.input, a.kind, a.amount) <
                std::tie(b.from, b.output, b.to, b.input, b.kind, b.amount);
@@ -387,30 +401,31 @@ bool Engine::Impl::topology() {
         e.destination = find(e.to);
         e.back = false;
         if (e.removed) continue;
-        if (!e.source || !e.destination || e.output >= e.source->outputs.size() ||
-            (e.kind == 2 ? e.input >= e.destination->parameters.size() : e.input >= e.destination->inputs.size()))
+        if (!e.source || !e.destination || e.output >= e.source->instance.outputs.size() ||
+            (e.kind == 2 ? e.input >= e.destination->instance.parameters.size()
+                         : e.input >= e.destination->instance.inputs.size()))
             return fail("Unavailable cable endpoint");
         if (e.kind == 2) {
-            if (e.source->outputs[e.output].kind != WS2_SIGNAL ||
-                !(e.destination->parameters[e.input].flags & WS2_MODULATABLE))
+            if (e.source->instance.outputs[e.output].kind != WS2_SIGNAL ||
+                !(e.destination->instance.parameters[e.input].flags & WS2_MODULATABLE))
                 return fail("Invalid modulation target");
-        } else if (e.source->outputs[e.output].kind != e.destination->inputs[e.input].kind)
+        } else if (e.source->instance.outputs[e.output].kind != e.destination->instance.inputs[e.input].kind)
             return fail("Signal/event kind mismatch");
     }
     node_table.clear();
     for (auto &n : nodes) {
-        node_table.emplace_back(n->id, n.get());
-        n->incoming.assign(n->inputs.size(), nullptr);
-        n->signal_edges.clear();
-        n->modulation.assign(n->parameters.size(), {});
-        n->outgoing.assign(n->outputs.size(), {});
+        node_table.emplace_back(n->instance.id, n.get());
+        n->slot.incoming.assign(n->instance.inputs.size(), nullptr);
+        n->slot.signal_edges.clear();
+        n->slot.modulation.assign(n->instance.parameters.size(), {});
+        n->slot.outgoing.assign(n->instance.outputs.size(), {});
     }
     for (auto &e : edges)
         if (!e.removed) {
-            if (e.kind == 0) e.destination->incoming[e.input] = &e;
-            if (e.kind == 2) e.destination->modulation[e.input].push_back(&e);
-            if (e.kind == 1) e.source->outgoing[e.output].push_back(&e);
-            else e.destination->signal_edges.push_back(&e);
+            if (e.kind == 0) e.destination->slot.incoming[e.input] = &e;
+            if (e.kind == 2) e.destination->slot.modulation[e.input].push_back(&e);
+            if (e.kind == 1) e.source->slot.outgoing[e.output].push_back(&e);
+            else e.destination->slot.signal_edges.push_back(&e);
         }
     const uint32_t count = static_cast<uint32_t>(nodes.size());
     std::vector<int> index(count, -1), low(count), stack;
@@ -422,8 +437,8 @@ bool Engine::Impl::topology() {
         stack.push_back(v);
         on[v] = true;
         for (auto &e : edges)
-            if (!e.removed && e.source->index == v) {
-                uint32_t w = e.destination->index;
+            if (!e.removed && e.source->slot.index == v) {
+                uint32_t w = e.destination->slot.index;
                 if (index[w] < 0) {
                     visit(w);
                     low[v] = std::min(low[v], low[w]);
@@ -435,7 +450,7 @@ bool Engine::Impl::topology() {
                 auto w = static_cast<uint32_t>(stack.back());
                 stack.pop_back();
                 on[w] = false;
-                nodes[w]->component = static_cast<uint32_t>(components.size());
+                nodes[w]->slot.component = static_cast<uint32_t>(components.size());
                 component.nodes.push_back(nodes[w].get());
                 if (w == v) break;
             }
@@ -446,48 +461,51 @@ bool Engine::Impl::topology() {
         if (index[i] < 0) visit(i);
     feedback_count = 0;
     for (auto &component : components) {
-        std::sort(component.nodes.begin(), component.nodes.end(), [](auto *a, auto *b) { return a->id < b->id; });
+        std::sort(component.nodes.begin(), component.nodes.end(),
+                  [](auto *a, auto *b) { return a->instance.id < b->instance.id; });
         component.loop = component.nodes.size() > 1;
         std::vector<uint8_t> colour(count, 0);
         std::function<void(Node *)> dfs = [&](Node *n) {
-            colour[n->index] = 1;
+            colour[n->slot.index] = 1;
             for (auto &e : edges)
-                if (!e.removed && e.source == n && e.destination->component == n->component) {
-                    auto c = colour[e.destination->index];
+                if (!e.removed && e.source == n && e.destination->slot.component == n->slot.component) {
+                    auto c = colour[e.destination->slot.index];
                     if (c == 1) {
                         e.back = true;
                         component.loop = true;
                         ++feedback_count;
                     } else if (c == 0) dfs(e.destination);
                 }
-            colour[n->index] = 2;
+            colour[n->slot.index] = 2;
         };
         for (auto *n : component.nodes)
-            if (!colour[n->index]) dfs(n);
+            if (!colour[n->slot.index]) dfs(n);
         std::vector<uint32_t> degree(count, 0);
         for (auto &e : edges)
-            if (!e.removed && !e.back && e.source->component == e.destination->component &&
-                e.source->component == component.nodes.front()->component)
-                ++degree[e.destination->index];
+            if (!e.removed && !e.back && e.source->slot.component == e.destination->slot.component &&
+                e.source->slot.component == component.nodes.front()->slot.component)
+                ++degree[e.destination->slot.index];
         std::vector<Node *> sorted;
         while (sorted.size() < component.nodes.size()) {
             Node *chosen = nullptr;
             for (auto *n : component.nodes)
-                if (degree[n->index] == 0 && std::find(sorted.begin(), sorted.end(), n) == sorted.end()) {
+                if (degree[n->slot.index] == 0 && std::find(sorted.begin(), sorted.end(), n) == sorted.end()) {
                     chosen = n;
                     break;
                 }
             if (!chosen) return fail("Feedback back-edge removal did not produce DAG");
             sorted.push_back(chosen);
             for (auto &e : edges)
-                if (!e.removed && !e.back && e.source == chosen && e.destination->component == chosen->component)
-                    --degree[e.destination->index];
+                if (!e.removed && !e.back && e.source == chosen &&
+                    e.destination->slot.component == chosen->slot.component)
+                    --degree[e.destination->slot.index];
         }
         component.nodes = std::move(sorted);
     }
     std::vector<uint32_t> degree(components.size(), 0);
     for (auto &e : edges)
-        if (!e.removed && e.source->component != e.destination->component) ++degree[e.destination->component];
+        if (!e.removed && e.source->slot.component != e.destination->slot.component)
+            ++degree[e.destination->slot.component];
     std::vector<Component> ordered_components;
     std::vector<bool> used(components.size(), false);
     while (ordered_components.size() < components.size()) {
@@ -495,7 +513,7 @@ bool Engine::Impl::topology() {
         for (uint32_t i = 0; i < components.size(); ++i)
             if (!used[i] && !degree[i]) {
                 uint32_t id = UINT32_MAX;
-                for (auto *n : components[i].nodes) id = std::min(id, n->id);
+                for (auto *n : components[i].nodes) id = std::min(id, n->instance.id);
                 if (id < best) {
                     best = id;
                     chosen = i;
@@ -504,8 +522,8 @@ bool Engine::Impl::topology() {
         if (chosen == UINT32_MAX) return fail("Invalid component graph");
         used[chosen] = true;
         for (auto &e : edges)
-            if (!e.removed && e.source->component == chosen && e.destination->component != chosen)
-                --degree[e.destination->component];
+            if (!e.removed && e.source->slot.component == chosen && e.destination->slot.component != chosen)
+                --degree[e.destination->slot.component];
         ordered_components.push_back(std::move(components[chosen]));
     }
     components = std::move(ordered_components);
@@ -516,7 +534,7 @@ bool Engine::Impl::topology() {
             e.head = 0;
         }
     for (auto &component : components)
-        for (auto *n : component.nodes) n->loop = component.loop;
+        for (auto *n : component.nodes) n->slot.loop = component.loop;
     // Scratch is sized during topology/prepare, never during a status refresh.
     distance.resize(nodes.size());
     recompute_latency();
@@ -524,10 +542,12 @@ bool Engine::Impl::topology() {
 }
 
 bool Engine::Impl::valid_target(const Node &n, uint32_t port, const ws2_event &e) const {
-    if (port != WS2_DIRECT_PORT && (port >= n.inputs.size() || n.inputs[port].kind != WS2_EVENT)) return false;
+    if (port != WS2_DIRECT_PORT && (port >= n.instance.inputs.size() || n.instance.inputs[port].kind != WS2_EVENT))
+        return false;
     if (e.type == WS2_PARAM || e.type == WS2_PARAM_MOD) {
-        if (e.index >= n.parameters.size()) return false;
-        if (e.type == WS2_PARAM && (e.value < n.parameters[e.index].minimum || e.value > n.parameters[e.index].maximum))
+        if (e.index >= n.instance.parameters.size()) return false;
+        if (e.type == WS2_PARAM &&
+            (e.value < n.instance.parameters[e.index].minimum || e.value > n.instance.parameters[e.index].maximum))
             return false;
     }
     return true;
@@ -541,11 +561,11 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
     auto e = source;
     e.port = port;
     const bool critical = release(e);
-    bool full = n.pending.size() >= cfg.event_budget || ordinary_used + critical_used >= cfg.event_budget ||
+    bool full = n.instance.pending.size() >= cfg.event_budget || ordinary_used + critical_used >= cfg.event_budget ||
                 (!critical && ordinary_used >= cfg.event_budget - cfg.release_reserve);
     if (full) {
         if (e.type == WS2_PARAM)
-            for (auto &old : n.pending)
+            for (auto &old : n.instance.pending)
                 if (old.event.type == WS2_PARAM && old.event.index == e.index && old.event.source_id == e.source_id &&
                     old.event.channel == e.channel) {
                     old = {e, frame, order};
@@ -566,7 +586,7 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
         e.data = arena.data() + arena_used;
         arena_used += e.bytes;
     }
-    n.pending.push_back({e, frame, order, cleanup});
+    n.instance.pending.push_back({e, frame, order, cleanup});
     if (critical) ++critical_used;
     else ++ordinary_used;
     ++event_count;
@@ -574,7 +594,7 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
 }
 
 void Engine::Impl::collect() {
-    for (auto &n : nodes) n->pending.clear();
+    for (auto &n : nodes) n->instance.pending.clear();
     Packet p;
     const uint64_t gen = generation.load(std::memory_order_acquire);
     for (auto target : replan_chokes) {
@@ -599,7 +619,7 @@ void Engine::Impl::collect() {
                     continue;
                 }
                 auto *target = find(p.node);
-                if (!target || p.revision < target->born_revision) {
+                if (!target || p.revision < target->instance.born_revision) {
                     ++stale;
                     continue;
                 }
@@ -630,7 +650,7 @@ void Engine::Impl::collect() {
             continue;
         }
         Node *n = find(packet.node);
-        if (!n || packet.revision < n->born_revision) {
+        if (!n || packet.revision < n->instance.born_revision) {
             ++stale;
             continue;
         }
@@ -653,8 +673,9 @@ void Engine::Impl::collect() {
 }
 
 bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
-    if (!processing || port >= processing->outputs.size() || processing->outputs[port].kind != WS2_EVENT ||
-        source.offset >= processing_frames || !ws::valid_event(source))
+    if (!processing || port >= processing->instance.outputs.size() ||
+        processing->instance.outputs[port].kind != WS2_EVENT || source.offset >= processing_frames ||
+        !ws::valid_event(source))
         return false;
     if (ordinary_used + critical_used >= cfg.event_budget ||
         (!release(source) && ordinary_used >= cfg.event_budget - cfg.release_reserve)) {
@@ -667,7 +688,7 @@ bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
     ++event_count;
     const uint64_t frame = block_start + processing_start + source.offset;
     bool routed = false, okay = true;
-    for (auto *edge : processing->outgoing[port]) {
+    for (auto *edge : processing->slot.outgoing[port]) {
         auto &e = *edge;
         routed = true;
         const uint64_t destination_frame = frame + (e.back ? cfg.feedback_block : 0);
@@ -698,7 +719,7 @@ bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
     // Every module output is also available to a fake/external dispatcher. Track C
     // will choose endpoint sinks; this headless slice does not perform I/O.
     Packet out;
-    out.node = processing->id;
+    out.node = processing->instance.id;
     out.port = port;
     out.when = frame;
     out.order = sequence++;
@@ -716,19 +737,19 @@ bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
 }
 
 void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
-    const bool direct = !n.loop;
-    n.events.clear();
-    for (auto &v : n.port_events) v.clear();
-    std::sort(n.pending.begin(), n.pending.end(), ordered);
-    for (const auto &item : n.pending)
+    const bool direct = !n.slot.loop;
+    n.instance.events.clear();
+    for (auto &v : n.instance.port_events) v.clear();
+    std::sort(n.instance.pending.begin(), n.instance.pending.end(), ordered);
+    for (const auto &item : n.instance.pending)
         if (item.frame >= block_start + start && item.frame < block_start + start + frames) {
             auto event = item.event;
             event.offset = static_cast<uint32_t>(item.frame - block_start - start);
-            n.events.push_back(event);
-            if (event.port < n.port_events.size()) n.port_events[event.port].push_back(event);
+            n.instance.events.push_back(event);
+            if (event.port < n.instance.port_events.size()) n.instance.port_events[event.port].push_back(event);
         }
     auto raw_channels = [&](const Edge &e) {
-        if (!e.back) return e.source->global_out[e.output].channels;
+        if (!e.back) return e.source->instance.global_out[e.output].channels;
         uint32_t count = 0;
         for (uint32_t i = 0; i < frames; ++i)
             count = std::max(count, e.delay_channels[(e.head + i) % cfg.feedback_block]);
@@ -741,34 +762,36 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
             if (count == 1) channel = 0;
             return channel < count ? e.delay.data[channel][pos] : 0.f;
         }
-        const auto &buffer = e.source->global_out[e.output];
+        const auto &buffer = e.source->instance.global_out[e.output];
         if (buffer.channels == 1) channel = 0;
         return channel < buffer.channels ? buffer.data[channel][(buffer.flags & WS2_CONSTANT) ? 0 : start + i] : 0.f;
     };
-    uint32_t channels = n.forced_channels > 0 ? static_cast<uint32_t>(n.forced_channels) : 1;
-    for (const auto *edge : n.signal_edges) {
+    uint32_t channels = n.instance.forced_channels > 0 ? static_cast<uint32_t>(n.instance.forced_channels) : 1;
+    for (const auto *edge : n.slot.signal_edges) {
         const auto &e = *edge;
-        if (e.kind == 2 ? (n.parameters[e.input].flags & WS2_PER_VOICE) != 0 : n.inputs[e.input].poly == WS2_POLY)
+        if (e.kind == 2 ? (n.instance.parameters[e.input].flags & WS2_PER_VOICE) != 0
+                        : n.instance.inputs[e.input].poly == WS2_POLY)
             channels = std::max(channels, raw_channels(e));
     }
     channels = std::min(channels, cfg.max_channels);
-    n.channels = channels;
-    for (uint32_t j = 0; j < n.inputs.size(); ++j) {
-        const auto &port = n.inputs[j];
-        auto &buffer = n.in[j];
+    n.instance.channels = channels;
+    for (uint32_t j = 0; j < n.instance.inputs.size(); ++j) {
+        const auto &port = n.instance.inputs[j];
+        auto &buffer = n.slot.in[j];
         const Edge *source = nullptr;
-        if (port.kind == WS2_SIGNAL) source = n.incoming[j];
+        if (port.kind == WS2_SIGNAL) source = n.slot.incoming[j];
         uint32_t source_channels = source ? raw_channels(*source) : 0;
         bool connected = source_channels > 0;
         bool constant =
-            !connected || (!source->back && (source->source->global_out[source->output].flags & WS2_CONSTANT));
+            !connected || (!source->back && (source->source->instance.global_out[source->output].flags & WS2_CONSTANT));
         buffer.channels = port.kind == WS2_EVENT ? 0 : port.poly == WS2_POLY ? channels : 1;
         buffer.flags = (constant ? WS2_CONSTANT : 0) | (connected ? WS2_CONNECTED : 0);
         const bool alias = direct && connected && !source->back &&
                            (source_channels == 1 || (port.poly == WS2_POLY && source_channels == buffer.channels));
         for (uint32_t c = 0; c < buffer.channels; ++c)
             buffer.read[c] =
-                alias ? source->source->global_out[source->output].data[source_channels == 1 ? 0 : c] : buffer.data[c];
+                alias ? source->source->instance.global_out[source->output].data[source_channels == 1 ? 0 : c]
+                      : buffer.data[c];
         if (!alias)
             for (uint32_t c = 0; c < buffer.channels; ++c)
                 for (uint32_t i = 0; i < (constant ? 1u : frames); ++i) {
@@ -781,21 +804,21 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
                     }
                     buffer.data[c][i] = sample;
                 }
-        n.in_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
-        n.event_view[j] = {sizeof(ws2_event_list), static_cast<uint32_t>(n.port_events[j].size()),
-                           n.port_events[j].data()};
+        n.slot.in_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
+        n.instance.event_view[j] = {sizeof(ws2_event_list), static_cast<uint32_t>(n.instance.port_events[j].size()),
+                                    n.instance.port_events[j].data()};
     }
-    for (uint32_t j = 0; j < n.parameters.size(); ++j) {
-        auto &p = n.state[j];
-        auto &buffer = n.param[j];
+    for (uint32_t j = 0; j < n.instance.parameters.size(); ++j) {
+        auto &p = n.instance.state[j];
+        auto &buffer = n.instance.param[j];
         bool poly = false, constant = p.base.constant();
         for (uint32_t c = 1; c < channels; ++c) poly |= p.offset[c] != p.offset[0];
-        for (const auto *edge : n.modulation[j]) {
+        for (const auto *edge : n.slot.modulation[j]) {
             const auto &e = *edge;
             poly |= raw_channels(e) > 1;
-            constant &= !e.back && (e.source->global_out[e.output].flags & WS2_CONSTANT);
+            constant &= !e.back && (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
         }
-        for (const auto &e : n.events)
+        for (const auto &e : n.instance.events)
             if ((e.type == WS2_PARAM || e.type == WS2_PARAM_MOD) && e.index == j) {
                 constant = false;
                 if (e.type == WS2_PARAM_MOD && e.channel >= 0) poly = true;
@@ -804,18 +827,18 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
         buffer.flags = constant ? WS2_CONSTANT : 0;
         uint32_t cursor = 0;
         const uint32_t length = constant ? 1 : frames;
-        const bool modulated = !n.modulation[j].empty();
+        const bool modulated = !n.slot.modulation[j].empty();
         if (modulated)
             for (uint32_t c = 0; c < buffer.channels; ++c) {
-                double *sum = n.modulation_sum.data() + size_t(c) * cfg.max_block;
+                double *sum = n.instance.modulation_sum.data() + size_t(c) * cfg.max_block;
                 std::fill_n(sum, length, 0.);
-                for (const auto *edge : n.modulation[j])
+                for (const auto *edge : n.slot.modulation[j])
                     for (uint32_t i = 0; i < length; ++i) sum[i] += edge->amount * value(*edge, c, i);
             }
         bool actually_constant = true;
         for (uint32_t i = 0; i < length; ++i) {
-            while (cursor < n.events.size() && n.events[cursor].offset <= i) {
-                const auto &e = n.events[cursor++];
+            while (cursor < n.instance.events.size() && n.instance.events[cursor].offset <= i) {
+                const auto &e = n.instance.events[cursor++];
                 if (e.index == j && e.type == WS2_PARAM) {
                     double target = ws::to_normal(p.info, e.value);
                     if (p.info.flags & WS2_STEPPED) p.base.jump(target);
@@ -830,22 +853,23 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
             const double base = p.base.next();
             for (uint32_t c = 0; c < buffer.channels; ++c) {
                 double effective = base + p.offset[c];
-                if (modulated) effective += n.modulation_sum[size_t(c) * cfg.max_block + i];
+                if (modulated) effective += n.instance.modulation_sum[size_t(c) * cfg.max_block + i];
                 buffer.data[c][i] = static_cast<float>(p.plain(effective));
                 if (i && buffer.data[c][i] != buffer.data[c][0]) actually_constant = false;
             }
         }
         if (actually_constant) buffer.flags |= WS2_CONSTANT;
-        n.param_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
+        n.slot.param_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
     }
-    for (uint32_t j = 0; j < n.outputs.size(); ++j)
-        n.out_view[j] = {sizeof(ws2_signal_out), (direct ? n.global_out[j] : n.local_out[j]).data.data(), channels, 0,
-                         cfg.max_channels};
+    for (uint32_t j = 0; j < n.instance.outputs.size(); ++j)
+        n.instance.out_view[j] = {sizeof(ws2_signal_out),
+                                  (direct ? n.instance.global_out[j] : n.instance.local_out[j]).data.data(), channels,
+                                  0, cfg.max_channels};
     processing = &n;
     processing_start = start;
     processing_frames = frames;
-    if (n.forced_channels == 0) {
-        for (auto &o : n.out_view) {
+    if (n.instance.forced_channels == 0) {
+        for (auto &o : n.instance.out_view) {
             o.channels = 0;
             o.flags = WS2_CONSTANT;
         }
@@ -860,25 +884,26 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
                                 0,
                                 0};
         transport.bar_start = std::floor(transport.beat / 4) * 4;
-        ws2_process context{sizeof(ws2_process),
-                            frames,
-                            block_start + start,
-                            generation.load(),
-                            cfg.sample_rate,
-                            channels,
-                            static_cast<uint32_t>(n.inputs.size()),
-                            static_cast<uint32_t>(n.outputs.size()),
-                            static_cast<uint32_t>(n.parameters.size()),
-                            n.in_view.data(),
-                            n.out_view.data(),
-                            n.param_view.data(),
-                            n.event_view.data(),
-                            n.event_outputs.data(),
-                            {sizeof(ws2_event_list), static_cast<uint32_t>(n.events.size()), n.events.data()},
-                            &transport};
-        if (n.d->process(n.instance, &context) != WS2_OK) {
+        ws2_process context{
+            sizeof(ws2_process),
+            frames,
+            block_start + start,
+            generation.load(),
+            cfg.sample_rate,
+            channels,
+            static_cast<uint32_t>(n.instance.inputs.size()),
+            static_cast<uint32_t>(n.instance.outputs.size()),
+            static_cast<uint32_t>(n.instance.parameters.size()),
+            n.slot.in_view.data(),
+            n.instance.out_view.data(),
+            n.slot.param_view.data(),
+            n.instance.event_view.data(),
+            n.instance.event_outputs.data(),
+            {sizeof(ws2_event_list), static_cast<uint32_t>(n.instance.events.size()), n.instance.events.data()},
+            &transport};
+        if (n.instance.d->process(n.instance.instance, &context) != WS2_OK) {
             ++faults;
-            for (auto &o : n.out_view) {
+            for (auto &o : n.instance.out_view) {
                 o.channels = channels;
                 o.flags = WS2_CONSTANT;
                 for (uint32_t c = 0; c < channels; ++c) o.data[c][0] = 0;
@@ -886,15 +911,15 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
         }
     }
     processing = nullptr;
-    for (uint32_t j = 0; j < n.outputs.size(); ++j) {
-        auto &o = n.out_view[j];
-        auto &global = n.global_out[j];
+    for (uint32_t j = 0; j < n.instance.outputs.size(); ++j) {
+        auto &o = n.instance.out_view[j];
+        auto &global = n.instance.global_out[j];
         if (direct) {
             global.channels = o.channels;
             global.flags = o.flags;
             continue;
         }
-        if (!n.touched) {
+        if (!n.slot.touched) {
             global.channels = o.channels;
             global.flags = o.flags;
         } else {
@@ -909,15 +934,15 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
             for (uint32_t i = 0; i < frames; ++i)
                 global.data[c][start + i] = c < o.channels ? o.data[c][(o.flags & WS2_CONSTANT) ? 0 : i] : 0;
     }
-    n.touched = true;
-    if (n.pitch.enabled && frames && n.channels) {
+    n.slot.touched = true;
+    if (n.instance.pitch.enabled && frames && n.instance.channels) {
         // A typed coordinate avoids accidentally swapping three similar indices.
         struct SignalIndex {
             uint32_t input, channel, sample;
         };
         // For direct edges, the read pointer aliases a whole-block source buffer.
         auto signal = [&](SignalIndex at) {
-            const auto &buffer = n.in[at.input];
+            const auto &buffer = n.slot.in[at.input];
             const uint32_t channel = std::min(at.channel, buffer.channels - 1);
             const uint32_t sample =
                 (buffer.flags & WS2_CONSTANT)
@@ -926,49 +951,51 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
             return buffer.read[channel][sample];
         };
         auto parameter = [&](uint32_t index, uint32_t channel) {
-            const auto &buffer = n.param[index];
+            const auto &buffer = n.instance.param[index];
             const uint32_t ch = std::min(channel, buffer.channels - 1);
             return buffer.data[ch][(buffer.flags & WS2_CONSTANT) ? 0u : frames - 1];
         };
-        if (n.pitch.vco) {
-            for (const auto &event : n.events) {
+        if (n.instance.pitch.vco) {
+            for (const auto &event : n.instance.events) {
                 const uint32_t channel = event.channel < 0 ? 0u : static_cast<uint32_t>(event.channel);
-                if (channel >= n.channels) continue;
+                if (channel >= n.instance.channels) continue;
                 if (event.type == WS2_NOTE_ON) {
-                    n.pitch.note[channel] = event.key;
-                    n.pitch.note_on[channel] = true;
-                    n.pitch.latest = channel;
+                    n.instance.pitch.note[channel] = event.key;
+                    n.instance.pitch.note_on[channel] = true;
+                    n.instance.pitch.latest = channel;
                 } else if (event.type == WS2_NOTE_CHOKE) {
-                    n.pitch.note_on[channel] = false;
+                    n.instance.pitch.note_on[channel] = false;
                 }
             }
         } else {
             // Plaits renders at most eight voices in 12-frame blocks; scan strikes and held gates.
             for (uint32_t i = 0; i < frames; ++i) {
-                for (uint32_t channel = 0; channel < std::min(n.channels, 8u); ++channel) {
-                    const bool high =
-                        std::max(signal({n.pitch.trigger, channel, i}), signal({n.pitch.gate, channel, i})) > 0.5f;
-                    if (high && !n.pitch.high[channel]) n.pitch.latest = channel;
-                    n.pitch.high[channel] = high;
+                for (uint32_t channel = 0; channel < std::min(n.instance.channels, 8u); ++channel) {
+                    const bool high = std::max(signal({n.instance.pitch.trigger, channel, i}),
+                                               signal({n.instance.pitch.gate, channel, i})) > 0.5f;
+                    if (high && !n.instance.pitch.high[channel]) n.instance.pitch.latest = channel;
+                    n.instance.pitch.high[channel] = high;
                 }
             }
         }
-        const uint32_t channel = std::min(n.pitch.latest, n.channels - 1);
-        if (n.pitch.vco) {
-            const float tune = parameter(n.pitch.tune, channel);
+        const uint32_t channel = std::min(n.instance.pitch.latest, n.instance.channels - 1);
+        if (n.instance.pitch.vco) {
+            const float tune = parameter(n.instance.pitch.tune, channel);
             double hz = tune;
-            if (n.in[n.pitch.input].flags & WS2_CONNECTED) {
-                hz = 261.6255653005986 * std::pow(2., signal({n.pitch.input, channel, frames - 1})) * (tune / 220.);
-            } else if (n.pitch.note_on[channel]) {
-                hz = 440. * std::pow(2., (n.pitch.note[channel] - 69.) / 12.);
+            if (n.slot.in[n.instance.pitch.input].flags & WS2_CONNECTED) {
+                hz = 261.6255653005986 * std::pow(2., signal({n.instance.pitch.input, channel, frames - 1})) *
+                     (tune / 220.);
+            } else if (n.instance.pitch.note_on[channel]) {
+                hz = 440. * std::pow(2., (n.instance.pitch.note[channel] - 69.) / 12.);
             }
             // VCO tap stores Hz; the control owner converts to equal-tempered MIDI.
-            n.pitch.value = std::numeric_limits<float>::quiet_NaN();
-            if (std::isfinite(hz) && hz > 0) n.pitch.value = static_cast<float>(hz);
+            n.instance.pitch.value = std::numeric_limits<float>::quiet_NaN();
+            if (std::isfinite(hz) && hz > 0) n.instance.pitch.value = static_cast<float>(hz);
         } else {
             // Macro tap stores nominal MIDI note. FM and Plaits internal FM excluded.
-            n.pitch.value = 60.f + parameter(n.pitch.tune, channel) +
-                            std::clamp(12.f * signal({n.pitch.input, channel, frames - 1}), -96.f, 96.f);
+            n.instance.pitch.value =
+                60.f + parameter(n.instance.pitch.tune, channel) +
+                std::clamp(12.f * signal({n.instance.pitch.input, channel, frames - 1}), -96.f, 96.f);
         }
     }
 }
@@ -988,13 +1015,13 @@ bool Engine::add_node(uint32_t id, const ws2_descriptor *d, const std::vector<ui
         (d->output_count && !d->outputs) || (d->param_count && !d->params))
         return p.fail("Invalid ABI2 node");
     auto n = std::make_unique<Node>();
-    n->id = id;
-    n->d = d;
-    n->config = config;
-    if (d->input_count) n->inputs.assign(d->inputs, d->inputs + d->input_count);
-    if (d->output_count) n->outputs.assign(d->outputs, d->outputs + d->output_count);
-    if (d->param_count) n->parameters.assign(d->params, d->params + d->param_count);
-    for (const auto &info : n->parameters) n->state.emplace_back(info);
+    n->instance.id = id;
+    n->instance.d = d;
+    n->instance.config = config;
+    if (d->input_count) n->instance.inputs.assign(d->inputs, d->inputs + d->input_count);
+    if (d->output_count) n->instance.outputs.assign(d->outputs, d->outputs + d->output_count);
+    if (d->param_count) n->instance.parameters.assign(d->params, d->params + d->param_count);
+    for (const auto &info : n->instance.parameters) n->instance.state.emplace_back(info);
     // Resolve configuration-dependent ports quiescently before cable authoring.
     if (!p.setup(*n)) return false;
     p.nodes.push_back(std::move(n));
@@ -1003,10 +1030,10 @@ bool Engine::add_node(uint32_t id, const ws2_descriptor *d, const std::vector<ui
 bool Engine::connect(uint32_t from, uint32_t output, uint32_t to, uint32_t input) {
     auto &p = *p_;
     auto *a = p.find(from), *b = p.find(to);
-    if (p.prepared || !a || !b || output >= a->outputs.size() || input >= b->inputs.size())
+    if (p.prepared || !a || !b || output >= a->instance.outputs.size() || input >= b->instance.inputs.size())
         return p.fail("Invalid connection");
-    auto kind = a->outputs[output].kind;
-    if (kind != b->inputs[input].kind) return p.fail("Signal/event kind mismatch");
+    auto kind = a->instance.outputs[output].kind;
+    if (kind != b->instance.inputs[input].kind) return p.fail("Signal/event kind mismatch");
     if (kind == WS2_SIGNAL)
         for (auto &e : p.edges)
             if (e.kind == 0 && e.to == to && e.input == input) return p.fail("Signal input already connected");
@@ -1016,8 +1043,8 @@ bool Engine::connect(uint32_t from, uint32_t output, uint32_t to, uint32_t input
 bool Engine::modulate(uint32_t from, uint32_t output, uint32_t to, uint32_t param, float amount) {
     auto &p = *p_;
     auto *a = p.find(from), *b = p.find(to);
-    if (p.prepared || !a || !b || output >= a->outputs.size() || param >= b->parameters.size() ||
-        a->outputs[output].kind != WS2_SIGNAL || !(b->parameters[param].flags & WS2_MODULATABLE) ||
+    if (p.prepared || !a || !b || output >= a->instance.outputs.size() || param >= b->instance.parameters.size() ||
+        a->instance.outputs[output].kind != WS2_SIGNAL || !(b->instance.parameters[param].flags & WS2_MODULATABLE) ||
         !std::isfinite(amount) || amount < -1 || amount > 1)
         return p.fail("Invalid modulation cable");
     p.edges.push_back({from, output, to, param, 2, amount});
@@ -1026,7 +1053,8 @@ bool Engine::modulate(uint32_t from, uint32_t output, uint32_t to, uint32_t para
 bool Engine::output(uint32_t node, uint32_t port, uint32_t channel) {
     auto &p = *p_;
     auto *n = p.find(node);
-    if (p.prepared || !n || port >= n->outputs.size() || n->outputs[port].kind != WS2_SIGNAL || channel >= 32)
+    if (p.prepared || !n || port >= n->instance.outputs.size() || n->instance.outputs[port].kind != WS2_SIGNAL ||
+        channel >= 32)
         return p.fail("Invalid output bus");
     p.buses.push_back({node, port, channel});
     return true;
@@ -1104,8 +1132,8 @@ bool Engine::prepare() {
 bool Engine::set_parameter(uint32_t node, uint32_t index, float plain) {
     auto &p = *p_;
     auto *n = p.find(node);
-    if (!n || index >= n->parameters.size() || !std::isfinite(plain)) return false;
-    auto &v = n->state[index];
+    if (!n || index >= n->instance.parameters.size() || !std::isfinite(plain)) return false;
+    auto &v = n->instance.state[index];
     if (plain < v.info.minimum || plain > v.info.maximum) return false;
     if (p.prepared && p.position.load() != 0) return p.fail("Use PARAM ingress for live changes");
     v.base.set(ws::to_normal(v.info, plain));
@@ -1115,7 +1143,7 @@ bool Engine::set_parameter(uint32_t node, uint32_t index, float plain) {
 bool Engine::set_channels(uint32_t node, uint32_t channels) {
     auto *n = p_->find(node);
     if (!n || channels > p_->cfg.max_channels) return false;
-    n->forced_channels = static_cast<int>(channels);
+    n->instance.forced_channels = static_cast<int>(channels);
     return true;
 }
 
@@ -1213,7 +1241,7 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     }
     p.arena_used.store(0);
     p.ordinary_used = p.critical_used = 0;
-    for (auto &n : p.nodes) n->touched = false;
+    for (auto &n : p.nodes) n->slot.touched = false;
     p.collect();
     if (p.generation.load() != p.applied.load()) {
         p.reset_processors();
@@ -1226,8 +1254,8 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
             for (auto *n : component.nodes) p.process_node(*n, start, length);
             if (component.loop)
                 for (auto &e : p.edges)
-                    if (e.back && e.kind != 1 && e.source->component == component.nodes.front()->component) {
-                        auto &source = e.source->global_out[e.output];
+                    if (e.back && e.kind != 1 && e.source->slot.component == component.nodes.front()->slot.component) {
+                        auto &source = e.source->instance.global_out[e.output];
                         for (uint32_t i = 0; i < length; ++i) {
                             auto at = (e.head + i) % p.cfg.feedback_block;
                             e.delay_channels[at] = source.channels;
@@ -1242,7 +1270,7 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     bool bus_written[32]{};
     for (auto &bus : p.buses)
         if (bus.channel < output_channels) {
-            const auto &buffer = bus.source->global_out[bus.port];
+            const auto &buffer = bus.source->instance.global_out[bus.port];
             for (uint32_t c = 0; c < buffer.channels; ++c) {
                 for (uint32_t i = 0; i < frames; ++i) {
                     const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
@@ -1261,13 +1289,13 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
             const auto *n = p.tap_nodes[i];
             float sample = 0;
             if (t.kind == Tap::Param) {
-                const auto &b = n->param[t.index];
-                const uint32_t last = n->loop ? (frames - 1) % p.cfg.feedback_block : frames - 1;
+                const auto &b = n->instance.param[t.index];
+                const uint32_t last = n->slot.loop ? (frames - 1) % p.cfg.feedback_block : frames - 1;
                 sample = b.data[0][(b.flags & WS2_CONSTANT) ? 0 : last];
             } else if (t.kind == Tap::OscPitch) {
-                sample = n->pitch.value;
+                sample = n->instance.pitch.value;
             } else if (t.kind == Tap::Output) {
-                const auto &b = n->global_out[t.index];
+                const auto &b = n->instance.global_out[t.index];
                 const uint32_t at = (b.flags & WS2_CONSTANT) ? 0 : frames - 1;
                 if (b.channels) {
                     sample = b.data[0][at];
@@ -1386,20 +1414,20 @@ Meter Engine::meter() const noexcept {
 const std::string &Engine::error() const { return p_->error; }
 const ws2_descriptor *Engine::descriptor(uint32_t node) const {
     auto *n = p_->find(node);
-    return n ? n->d : nullptr;
+    return n ? n->instance.d : nullptr;
 }
 uint32_t Engine::output_channels(uint32_t node, uint32_t port) const {
     auto *n = p_->find(node);
-    return n && port < n->global_out.size() ? n->global_out[port].channels : 0;
+    return n && port < n->instance.global_out.size() ? n->instance.global_out[port].channels : 0;
 }
 bool Engine::output_constant(uint32_t node, uint32_t port) const {
     auto *n = p_->find(node);
-    return n && port < n->global_out.size() && (n->global_out[port].flags & WS2_CONSTANT);
+    return n && port < n->instance.global_out.size() && (n->instance.global_out[port].flags & WS2_CONSTANT);
 }
 float Engine::output_sample(uint32_t node, uint32_t port, uint32_t channel, uint32_t frame) const {
     auto *n = p_->find(node);
-    if (!n || port >= n->global_out.size()) return 0;
-    auto &b = n->global_out[port];
+    if (!n || port >= n->instance.global_out.size()) return 0;
+    auto &b = n->instance.global_out[port];
     return channel < b.channels && frame < p_->cfg.max_block ? b.data[channel][(b.flags & WS2_CONSTANT) ? 0 : frame]
                                                              : 0;
 }
@@ -1409,7 +1437,8 @@ void Engine::refresh_latency() noexcept {
     auto &p = *p_;
     if (!p.prepared) return;
     for (auto &n : p.nodes)
-        if (n->d && n->instance) n->latency = n->d->latency_frames(n->instance);
+        if (n->instance.d && n->instance.instance)
+            n->instance.latency = n->instance.d->latency_frames(n->instance.instance);
     p.recompute_latency();
 }
 uint32_t Engine::latency_frames(uint32_t bus) const { return bus < p_->bus_latency.size() ? p_->bus_latency[bus] : 0; }
@@ -1419,7 +1448,7 @@ std::vector<FeedbackLoop> Engine::feedback_loops() const {
         if (component.loop) {
             FeedbackLoop loop;
             loop.delay_frames = p_->cfg.feedback_block;
-            for (auto *n : component.nodes) loop.nodes.push_back(n->id);
+            for (auto *n : component.nodes) loop.nodes.push_back(n->instance.id);
             std::sort(loop.nodes.begin(), loop.nodes.end());
             result.push_back(std::move(loop));
         }
@@ -1429,7 +1458,7 @@ std::vector<FeedbackLoop> Engine::feedback_loops() const {
 std::vector<uint8_t> Engine::save_state(uint32_t node) {
     auto *n = p_->find(node);
     if (!n) return {};
-    if (!n->preserved.empty()) return n->preserved;
+    if (!n->instance.preserved.empty()) return n->instance.preserved;
     std::vector<uint8_t> bytes;
     ws2_writer writer{sizeof(writer), &bytes, [](void *ctx, const void *data, uint32_t count) {
                           auto &out = *static_cast<std::vector<uint8_t> *>(ctx);
@@ -1438,7 +1467,7 @@ std::vector<uint8_t> Engine::save_state(uint32_t node) {
                           out.insert(out.end(), p, p + count);
                           return int(WS2_OK);
                       }};
-    return n->d->save_state(n->instance, &writer) == WS2_OK ? bytes : std::vector<uint8_t>{};
+    return n->instance.d->save_state(n->instance.instance, &writer) == WS2_OK ? bytes : std::vector<uint8_t>{};
 }
 int Engine::load_state(uint32_t node, const std::vector<uint8_t> &bytes) {
     auto *n = p_->find(node);
@@ -1456,14 +1485,14 @@ int Engine::load_state(uint32_t node, const std::vector<uint8_t> &bytes) {
                           return int(WS2_OK);
                       },
                       static_cast<uint32_t>(bytes.size())};
-    int result = n->d->load_state(n->instance, &reader);
-    if (result == WS2_UNSUPPORTED) n->preserved = bytes;
-    else if (result == WS2_OK) n->preserved.clear();
+    int result = n->instance.d->load_state(n->instance.instance, &reader);
+    if (result == WS2_UNSUPPORTED) n->instance.preserved = bytes;
+    else if (result == WS2_OK) n->instance.preserved.clear();
     return result;
 }
 const std::vector<uint8_t> &Engine::preserved_state(uint32_t node) const {
     auto *n = p_->find(node);
-    if (n) return n->preserved;
+    if (n) return n->instance.preserved;
     static const std::vector<uint8_t> empty;
     return empty;
 }
@@ -1472,7 +1501,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     auto &old = *p_;
     auto *changed = old.find(node);
     if (!old.prepared || !changed) return false;
-    if (config == changed->config) {
+    if (config == changed->instance.config) {
         old.dropped_connections = 0;
         return true;
     }
@@ -1480,22 +1509,23 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     auto &fresh = *next.p_;
     // Stage metadata for retained nodes; only the changed node creates/prepares DSP.
     for (auto &n : old.nodes) {
-        if (n->id == node) {
-            if (!next.add_node(n->id, n->d, config)) return old.fail("Cannot stage reconfiguration");
+        if (n->instance.id == node) {
+            if (!next.add_node(n->instance.id, n->instance.d, config)) return old.fail("Cannot stage reconfiguration");
             auto *target = fresh.find(node);
-            target->config = config;
-            target->forced_channels = n->forced_channels;
-            target->state = n->state;
-            for (uint32_t i = 0; i < target->state.size(); ++i) target->state[i].info = target->parameters[i];
+            target->instance.config = config;
+            target->instance.forced_channels = n->instance.forced_channels;
+            target->instance.state = n->instance.state;
+            for (uint32_t i = 0; i < target->instance.state.size(); ++i)
+                target->instance.state[i].info = target->instance.parameters[i];
         } else {
             auto target = std::make_unique<Node>();
-            target->id = n->id;
-            target->d = n->d;
-            target->inputs = n->inputs;
-            target->outputs = n->outputs;
-            target->parameters = n->parameters;
-            target->forced_channels = n->forced_channels;
-            target->latency = n->latency;
+            target->instance.id = n->instance.id;
+            target->instance.d = n->instance.d;
+            target->instance.inputs = n->instance.inputs;
+            target->instance.outputs = n->instance.outputs;
+            target->instance.parameters = n->instance.parameters;
+            target->instance.forced_channels = n->instance.forced_channels;
+            target->instance.latency = n->instance.latency;
             fresh.nodes.push_back(std::move(target));
         }
     }
@@ -1507,10 +1537,10 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     for (auto &e : old.edges)
         if (!e.removed) {
             auto *a = fresh.find(e.from), *b = fresh.find(e.to);
-            auto sp = index_of(a->outputs, e.source->outputs[e.output].id);
+            auto sp = index_of(a->instance.outputs, e.source->instance.outputs[e.output].id);
             uint32_t dp = UINT32_MAX;
-            if (e.kind == 2) dp = index_of(b->parameters, e.destination->parameters[e.input].id);
-            else dp = index_of(b->inputs, e.destination->inputs[e.input].id);
+            if (e.kind == 2) dp = index_of(b->instance.parameters, e.destination->instance.parameters[e.input].id);
+            else dp = index_of(b->instance.inputs, e.destination->instance.inputs[e.input].id);
             if (sp == UINT32_MAX || dp == UINT32_MAX) {
                 ++fresh.dropped_connections;
                 continue;
@@ -1521,7 +1551,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         }
     for (auto &bus : old.buses) {
         auto *source = old.find(bus.node), *target = fresh.find(bus.node);
-        uint32_t port = index_of(target->outputs, source->outputs[bus.port].id);
+        uint32_t port = index_of(target->instance.outputs, source->instance.outputs[bus.port].id);
         if (port == UINT32_MAX) {
             ++fresh.dropped_connections;
             continue;
@@ -1543,8 +1573,10 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         }
         const auto *prior = old.find(t.node);
         const auto *target = fresh.find(t.node);
-        const char *id = t.kind == Tap::Param ? prior->parameters[t.index].id : prior->outputs[t.index].id;
-        const uint32_t index = t.kind == Tap::Param ? index_of(target->parameters, id) : index_of(target->outputs, id);
+        const char *id =
+            t.kind == Tap::Param ? prior->instance.parameters[t.index].id : prior->instance.outputs[t.index].id;
+        const uint32_t index =
+            t.kind == Tap::Param ? index_of(target->instance.parameters, id) : index_of(target->instance.outputs, id);
         if (index == UINT32_MAX) return old.fail("Reconfiguration removes telemetry tap endpoint");
         auto mapped = t;
         mapped.index = index;
@@ -1559,7 +1591,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     }
     std::vector<Node *> actual;
     actual.reserve(fresh.nodes.size());
-    for (auto &n : fresh.nodes) actual.push_back(n->id == node ? n.get() : old.find(n->id));
+    for (auto &n : fresh.nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
     // Preserve unchanged loop delay lines as well as processor state.
     std::vector<bool> used(old.edges.size(), false);
     std::vector<std::pair<size_t, size_t>> delays;
@@ -1579,31 +1611,31 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     }
     // Commit: all potentially failing work/allocations precede these swaps.
     for (size_t i = 0; i < fresh.nodes.size(); ++i)
-        if (fresh.nodes[i]->id != node) {
+        if (fresh.nodes[i]->instance.id != node) {
             auto &retained = *old.nodes[i];
             auto &layout = *fresh.nodes[i];
-            retained.index = layout.index;
-            retained.component = layout.component;
-            retained.loop = layout.loop;
-            retained.incoming.swap(layout.incoming);
-            retained.signal_edges.swap(layout.signal_edges);
-            retained.modulation.swap(layout.modulation);
-            retained.outgoing.swap(layout.outgoing);
-            retained.event_tap_slots.swap(layout.event_tap_slots);
-            retained.pitch.enabled = layout.pitch.enabled;
-            for (uint32_t j = 0; j < retained.event_outputs.size(); ++j)
-                retained.event_outputs[j] = {sizeof(ws2_event_out), &fresh, j, Impl::emit};
+            retained.slot.index = layout.slot.index;
+            retained.slot.component = layout.slot.component;
+            retained.slot.loop = layout.slot.loop;
+            retained.slot.incoming.swap(layout.slot.incoming);
+            retained.slot.signal_edges.swap(layout.slot.signal_edges);
+            retained.slot.modulation.swap(layout.slot.modulation);
+            retained.slot.outgoing.swap(layout.slot.outgoing);
+            retained.slot.event_tap_slots.swap(layout.slot.event_tap_slots);
+            retained.instance.pitch.enabled = layout.instance.pitch.enabled;
+            for (uint32_t j = 0; j < retained.instance.event_outputs.size(); ++j)
+                retained.instance.event_outputs[j] = {sizeof(ws2_event_out), &fresh, j, Impl::emit};
             fresh.nodes[i].swap(old.nodes[i]);
         }
     for (auto &e : fresh.edges) {
-        e.source = actual[e.source->index];
-        e.destination = actual[e.destination->index];
+        e.source = actual[e.source->slot.index];
+        e.destination = actual[e.destination->slot.index];
     }
     for (auto &component : fresh.components)
-        for (auto *&n : component.nodes) n = actual[n->index];
-    for (auto *&n : fresh.tap_nodes) n = actual[n->index];
-    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->index];
-    for (auto &bus : fresh.buses) bus.source = actual[bus.source->index];
+        for (auto *&n : component.nodes) n = actual[n->slot.index];
+    for (auto *&n : fresh.tap_nodes) n = actual[n->slot.index];
+    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->slot.index];
+    for (auto &bus : fresh.buses) bus.source = actual[bus.source->slot.index];
     for (auto pair : delays) {
         auto &e = fresh.edges[pair.first];
         auto &v = old.edges[pair.second];
@@ -1612,7 +1644,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         std::swap(e.head, v.head);
     }
     fresh.setup_bytes = 0;
-    for (auto &n : fresh.nodes) fresh.setup_bytes += n->requested_fast + n->requested_large;
+    for (auto &n : fresh.nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
     fresh.position.store(old.position.load());
     fresh.beat = old.beat;
     fresh.anchor_frame = old.anchor_frame;
@@ -1649,15 +1681,16 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     retained.reserve(fresh.nodes.size());
     for (size_t i = 0; i < fresh.nodes.size(); ++i) {
         auto &n = *fresh.nodes[i];
-        auto *prior = old.find(n.id);
-        if (prior && prior->d == n.d && prior->config == n.config) {
-            if (prior->inputs.size() != n.inputs.size() || prior->outputs.size() != n.outputs.size() ||
-                prior->parameters.size() != n.parameters.size())
+        auto *prior = old.find(n.instance.id);
+        if (prior && prior->instance.d == n.instance.d && prior->instance.config == n.instance.config) {
+            if (prior->instance.inputs.size() != n.instance.inputs.size() ||
+                prior->instance.outputs.size() != n.instance.outputs.size() ||
+                prior->instance.parameters.size() != n.instance.parameters.size())
                 return old.fail("Surviving node ports changed");
             actual.push_back(prior);
-            retained.emplace_back(i, prior->index);
+            retained.emplace_back(i, prior->slot.index);
         } else {
-            n.born_revision = next_revision;
+            n.instance.born_revision = next_revision;
             actual.push_back(&n);
         }
     }
@@ -1667,15 +1700,15 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
             bool kept = false;
             for (size_t i = 0; i < fresh.edges.size(); ++i)
                 if (!used[i] && !fresh.edges[i].removed && key(e) == key(fresh.edges[i]) &&
-                    actual[fresh.edges[i].source->index] == e.source &&
-                    actual[fresh.edges[i].destination->index] == e.destination) {
+                    actual[fresh.edges[i].source->slot.index] == e.source &&
+                    actual[fresh.edges[i].destination->slot.index] == e.destination) {
                     used[i] = true;
                     kept = true;
                     break;
                 }
             auto *destination = fresh.find(e.to);
             if (!kept) removed_routes.push_back({e.from, e.output, e.to, e.input});
-            if (!kept && destination && actual[destination->index] == e.destination) {
+            if (!kept && destination && actual[destination->slot.index] == e.destination) {
                 if (chokes.size() == old.cfg.release_reserve) return old.fail("Too many edge releases for one edit");
                 chokes.emplace_back(e.to, e.input);
             }
@@ -1686,7 +1719,8 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         for (size_t j = 0; j < old.edges.size(); ++j) {
             auto &prior = old.edges[j];
             if (!delay_used[j] && !prior.removed && prior.back && key(e) == key(prior) &&
-                actual[e.source->index] == prior.source && actual[e.destination->index] == prior.destination) {
+                actual[e.source->slot.index] == prior.source &&
+                actual[e.destination->slot.index] == prior.destination) {
                 delay_used[j] = true;
                 delays.emplace_back(i, j);
                 break;
@@ -1725,28 +1759,28 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     for (auto pair : retained) {
         auto &node = *old.nodes[pair.second];
         auto &layout = *fresh.nodes[pair.first];
-        node.index = layout.index;
-        node.component = layout.component;
-        node.loop = layout.loop;
-        node.incoming.swap(layout.incoming);
-        node.signal_edges.swap(layout.signal_edges);
-        node.modulation.swap(layout.modulation);
-        node.outgoing.swap(layout.outgoing);
-        node.event_tap_slots.swap(layout.event_tap_slots);
+        node.slot.index = layout.slot.index;
+        node.slot.component = layout.slot.component;
+        node.slot.loop = layout.slot.loop;
+        node.slot.incoming.swap(layout.slot.incoming);
+        node.slot.signal_edges.swap(layout.slot.signal_edges);
+        node.slot.modulation.swap(layout.slot.modulation);
+        node.slot.outgoing.swap(layout.slot.outgoing);
+        node.slot.event_tap_slots.swap(layout.slot.event_tap_slots);
         fresh.nodes[pair.first].swap(old.nodes[pair.second]);
     }
     for (auto *n : actual)
-        for (uint32_t i = 0; i < n->event_outputs.size(); ++i)
-            n->event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
-    for (auto *&node : fresh.tap_nodes) node = actual[node->index];
+        for (uint32_t i = 0; i < n->instance.event_outputs.size(); ++i)
+            n->instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
+    for (auto *&node : fresh.tap_nodes) node = actual[node->slot.index];
     for (auto &e : fresh.edges) {
-        e.source = actual[e.source->index];
-        e.destination = actual[e.destination->index];
+        e.source = actual[e.source->slot.index];
+        e.destination = actual[e.destination->slot.index];
     }
     for (auto &component : fresh.components)
-        for (auto *&n : component.nodes) n = actual[n->index];
-    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->index];
-    for (auto &bus : fresh.buses) bus.source = actual[bus.source->index];
+        for (auto *&n : component.nodes) n = actual[n->slot.index];
+    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->slot.index];
+    for (auto &bus : fresh.buses) bus.source = actual[bus.source->slot.index];
     for (auto pair : delays) {
         auto &e = fresh.edges[pair.first];
         auto &prior = old.edges[pair.second];
@@ -1770,7 +1804,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     old.feedback_count.store(fresh.feedback_count.load());
     old.latency.store(fresh.latency.load());
     size_t bytes = 0;
-    for (auto &node : old.nodes) bytes += node->requested_fast + node->requested_large;
+    for (auto &node : old.nodes) bytes += node->instance.requested_fast + node->instance.requested_large;
     old.setup_bytes.store(bytes);
     old.replan_chokes.swap(chokes);
     old.revision.store(next_revision, std::memory_order_release);

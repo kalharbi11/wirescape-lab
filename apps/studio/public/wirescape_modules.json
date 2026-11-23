@@ -843,6 +843,28 @@
        "label": "Run"
       }
      ]
+    },
+    {
+     "id": "sync",
+     "name": "Sync",
+     "minimum": 0,
+     "maximum": 1,
+     "default": 0,
+     "unit": "",
+     "taper": "linear",
+     "step": 1,
+     "decimals": 3,
+     "modulatable": false,
+     "choices": [
+      {
+       "value": 0,
+       "label": "Internal"
+      },
+      {
+       "value": 1,
+       "label": "Host"
+      }
+     ]
     }
    ],
    "version": 2,
@@ -850,7 +872,8 @@
     "bpm": 0,
     "ticks_per_beat": 1,
     "duty": 2,
-    "run": 3
+    "run": 3,
+    "sync": 4
    }
   },
   {
@@ -5847,6 +5870,97 @@
      "kind": "signal",
      "hint": "cv_bi",
      "poly": "poly",
+     "stereo_pair": null
+    }
+   ],
+   "parameters": [],
+   "version": 1,
+   "legacy_parameters": {}
+  },
+  {
+   "id": "essentials.poly_split",
+   "name": "Poly Split",
+   "category": "Utility",
+   "ports": [
+    {
+     "id": "in",
+     "name": "In",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "out1",
+     "name": "Out 1",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out2",
+     "name": "Out 2",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out3",
+     "name": "Out 3",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out4",
+     "name": "Out 4",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out5",
+     "name": "Out 5",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out6",
+     "name": "Out 6",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out7",
+     "name": "Out 7",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out8",
+     "name": "Out 8",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
      "stereo_pair": null
     }
    ],

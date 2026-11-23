@@ -1548,11 +1548,25 @@ bool Session::poll_audio(std::chrono::steady_clock::time_point now, bool enumera
     }
     return previous != audio_state_;
 }
+// OB-g9 #348: the control owner is the single egress consumer (ABI2_SPEC D13). Render copies
+// every routed module event to the egress rings; COMMUNICATION_MODULES_PLAN's I/O dispatcher
+// will send them. No endpoint sink exists yet, so drained events are discarded. Undrained, a
+// full critical ring turns each further release (e.g. MIDI note-off into midi.to_cv) into an
+// engine emergency: the generation moves, all DSP resets and OSC In can no longer enqueue.
+// Control thread only, like every other active_ swap, so this never races a graph change.
+void Session::drain_egress() noexcept {
+    if (!active_) return;
+    auto &live = app_engine_native(active_);
+    engine2::Outgoing discarded;
+    for (uint32_t i = 0; i < kEgressDrainPerPoll && live.pop_egress(discarded); ++i) {
+    }
+}
 bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (scripted_midi_ && scripted_started_enabled_ && now >= scripted_started_) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - scripted_started_).count();
         scripted_midi_->advance_to(uint64_t(elapsed), 4096); // bounded; no OS device, no callback allocation
     }
+    drain_egress();
     observer_->expire_learning(now);
     auto old_audio = audio_devices_, old_midi = midi_devices_;
     const auto old_unavailable = unavailable_audio_drivers_;

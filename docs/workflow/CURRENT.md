@@ -7,6 +7,165 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 14:35 ET: Architect run 19c — owner confirms Poly Split; Poly Merge resumes
+
+- **Owner's LED path:**
+  - One note per OSC row. Each row's gate drives its own ADSR, and that ADSR drives the brightness of the matching OSC Out `row`.
+  - The rows' pitch and gate go through **Poly Merge** into **CV to Notes**, then into the OSC Out `notes` input. The notes choose which LEDs light for the chord.
+  - **Poly Split** (one poly input → 8 mono outputs) covers a poly chord source.
+- **#356 resumes in B4, first:** Poly Merge plus Poly Split in one PR, with one catalogue and S0 change ([`0021` §6](../../proposals/0021-replan-to-ob1.md) D2).
+  - Poly Split: input `in` (poly), outputs `out1`…`out8` (mono). Lane n carries channel n; a missing channel outputs 0.
+  - Same gates as Poly Merge. A Golden difference is a defect.
+- **B4 order:** #356 → S7.7 → S7.8.
+- **Still parked:** Gate Delay #333.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 14:30 ET: Architect run 19b — owner answered D1–D6 ([`0021` §6](../../proposals/0021-replan-to-ob1.md))
+
+**In effect now.** The lead applies these and refreshes the lanes from the 0021 §6 table.
+- **OB1 scope (OB r2.5):** E3a, E3b and E3c move to OB1.1. G-W1 [#368](https://github.com/kalharbi11/wirescape-lab/issues/368), Groove click-free scrolling, joins OB1 (B1, after #298).
+- **Parked, branches kept:**
+  - Gate Delay #333;
+  - Poly Merge #356, until the owner answers on Poly Split;
+  - #322, until CAT-1+MB;
+  - CAT-1 #358 and MB1 #363, until after OB1.
+- **B5:** one correction round on #324, then hand #324 to B2 (SR12). After that, start **T1.6c #364** (draft-ahead is allowed).
+- **B3:** C1 [#367](https://github.com/kalharbi11/wirescape-lab/issues/367) is the CI digest and the chat-mode trial. Then S7.5 #291.
+- **B4:** S7.7, then S7.8. The lead files the issues if they are missing.
+- **Pi:** [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) brings private minutes to zero. The repo stays private. It waits for the owner's token. The lab half goes to B2; the Pi half is the Architect's.
+- **Owner open items:**
+  - Poly Split (yes or no);
+  - the PI-1 token setup;
+  - further Groove items on #368.
+
+**Next run should:**
+1. Review #298 when its inbox row arrives.
+2. Contract-review T1.6c.
+3. Once PI-1's lab half merges, do the Pi half on wirescape-pi.
+4. Apply the owner's Poly Split answer.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 12:40 ET: Architect run 19 — replan to OB1 (owner: "step back, zoom out")
+
+Plan: [`proposals/0021`](../../proposals/0021-replan-to-ob1.md). Builders **finish the PRs they hold**. Nothing in flight stops.
+
+**In effect now (lead applies these):**
+- **R1 intake freeze:** no new module or feature task is filed until the Architect places it in a 0021 track. Ideas go to the list below.
+- **R2:** one active PR per lane. The E-track writer (B5) may also hold one draft-ahead branch.
+- **R3:** the critical path comes first. An off-path module PR that is red because of shared code parks behind CAT-1+MB and opens no new diagnosis loop. No gate or tolerance changes.
+- **Engine draft-ahead (M3/M4 process ruling):** the single engine writer may draft task N+1 on a branch stacked on task N's head. Merge order and every "Depends on … merged" condition are unchanged. This affects T1.6c → TR1e → E6 → E4a → E4b → E5 only.
+- **OB-c cause fixes (#275/#203) are B1's next task after #298.** Today no lane holds them, and OB1 acceptance 2 needs them.
+
+**Pending owner decisions (0021 §5).** Until the owner answers, the lead keeps the current queue:
+- **D1:** E3a/E3b/E3c move to OB1.1.
+- **D2:** new modules stay frozen, and CAT-1 + MB1 become one task in B4.
+- **D3:** B5 hands #324 to B2 and starts T1.6c; #322 parks behind CAT-1+MB.
+- **D4:** the CI digest workflow gets `pull-requests: write`.
+- **D5:** can chat mode write to GitHub?
+- **D6:** what are the "GitHub credits"?
+
+**Ideas parked until OB1 (R1):** any new module from `0020` beyond #333/#356; M3 MB2/MB3; anything in PRIORITY P4.
+
+**Next run should:**
+1. Read the owner's D1–D6 answers.
+2. Apply them to OB.md, PRIORITY, BUILDERS and ROADMAP (contract revisions where D1 changes scope).
+3. File C1 if D4 is yes.
+4. Review #298 when its inbox row arrives.
+
+Signed: claude-architect, 2026-11-23
+
+## Delivery update — 2026-11-23 12:03 EST
+
+- Quick check after Architect run 18. GPT delivery ownership resumed. B1–B5 packets were sent once to the five owner-prepared chats and the app acknowledged them. Earlier chats are retired as writers. Execution verification is tracked separately from prompt delivery.
+- Filed MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363) and T1.6c [#364](https://github.com/kalharbi11/wirescape-lab/issues/364). The incoming writers preserve the prior branches and correction histories. B4 takes #333 from CB1 and handles it before #356 (SR12/SR16).
+- #298 at `5ecf300`: exact-head Lab 14/14, Golden and paired M1 on all three platforms, and web tests green. B1 supplies the final six-route Result before the lead pins the Claude Architect request (SR11). #339, #322, #333, #356 and #324 still have failing gates; the queue names the correction or evidence needed.
+- Codex usage at entry: 99% of the five-hour window remained, reset 16:59 EST; reported weekly usage 0%.
+
+Signed: codex-lead, 2026-11-23, 12:03 EST
+
+## Decided 2026-11-23 10:30 ET: Architect run 17 — agent check, blocks resolved
+
+- **No merges:** every active head was queued or running in CI at check time: #298, #324, #333, #339, #345, #356 and #357.
+- **OB-g9 [#357](https://github.com/kalharbi11/wirescape-lab/pull/357) checked, merges when green.**
+  - Root cause: the engine's egress rings were never drained (`pop_egress` had no production caller). The 256-slot critical ring filled in about 12 s, after which every release triggered `emergency()`.
+  - Fix: a bounded `Session::drain_egress()` on the control thread, the documented single consumer, with no realtime change. The test fails first (`missing_gate_edge` at 12.15 s) and passes after.
+- **New latent defect** (from #357): `osc::Host` pins the start generation (`engine/control/osc_host.cpp:81`), so any panic wedges OSC In until restart. Added to OB-g8 for B2: a failing test, then re-read the generation per delivery ([note](https://github.com/kalharbi11/wirescape-lab/pull/339#issuecomment-7105337882)).
+- **#322 unblocked:** B3 was waiting on SDK-1, which is closed. B3 now posts function-level attribution on x64 and ARM64; a wrapper-only cause gets a named bounded exception, otherwise the run-14 fix path ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7105336061)).
+- **Active:** CB1 on T1.6b #350 (running); CB3 posted the TR2 #345 correction `c783292` (CI queued); B1 #298 has six tests (CI queued); B4 Poly Merge #356 has red native builds; B5 #324 is fail-first staged.
+- **Held:** #322 (attribution), MT2/A3, Pi (A31, until 2026-11-30).
+
+**Next run:**
+1. Merge green work in order: #357, then #333 (under the bounded exception), then #345, #298 (after the claude-reviewer approval), #324, #339 and #356.
+2. Contract-review T1.6b.
+3. Refresh all lanes.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 11:45 ET: Architect run 18 — HAND-OVER to gpt-lead (owner: "Codex is back; focus on GPT builders")
+
+**Active delivery lead from now on: `gpt-lead` (Codex).** The Architect stops acting as lead.
+The lead owns [BUILDERS](BUILDERS.md), dispatch, evidence review, labels and delegated merges,
+per [CODEX_LEAD](../context/CODEX_LEAD.md) and its new "Technical and agents lead" section.
+Claude builder lanes CB1–CB3 are closed. They finished their tasks on hand.
+
+**Merged in this run** (exact-head checks; only Offline facts and advisory soaks failed):
+- **#357 OB-g9** → `f02c4f5`: the control thread now drains egress. `midi-m8/still` L0 passes on the PR.
+- **#345 M3 TR2** → `224d16f`: S0 changes only `essentials.clock`; Goldens and M1 are green.
+- **#360 M3 T1.6b** → `7cc20c7`: Architect contract-review approved ([review](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107143632)). Every 0007 field is on its side, `Node{Instance, Slot}` stays adjacent, and `engine2.h` and the tests are unchanged.
+
+**Carried from run 17** (its docs commit missed #359's merge):
+- `osc::Host` pins the start generation, so a panic wedges OSC In. This is added to OB-g8 (B2).
+- #322 was unblocked from the closed SDK-1: attribution, then a bounded exception or a fix.
+
+**State for the lead:**
+- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin `review-ready` plus an inbox row, and the **Architect** reviews it.
+- **#333**: Golden and the Instruction gate are red on 3 platforms at `e7867b7`. This is new, and the bounded LFO exception (run 16) does not cover it. B4 diagnoses it; a Golden difference is a defect.
+- **#339, #324, #356**: red builds; their builders fix them.
+- **#322**: attribution is pending.
+- **Next M3 tasks** for the lead to file:
+  - T1.6c (B5, engine writer; Architect contract-review);
+  - MB1 (B1, after #298).
+- **Standing rulings to apply:**
+  - `0020` §7 module gates and the bounded-exception rule (only rows the Architect names);
+  - CAT-1 #358 (B4);
+  - the #298 pin-7 test-only grant on #287;
+  - known_module_ids stays at 34;
+  - Pi postponed (A31, until 2026-11-30): use the hosted OB-g7 soaks;
+  - wirescape-pi merges are Architect-only.
+
+**Architect from now on:** rulings, contract-reviews (T1.6c, TR1e, and any review a contract names as Claude, including #298), and acceptance. Reach it through an inbox row plus `needs/architect`. Owner-triggered (`architect:run`); nothing is scheduled.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 10:20 ET: Architect run 16 — A32 revised: CAT-1 replaces SDK-1; #333 bounded exception
+
+- **SDK-1 #354 closed.** CB1 showed that pinning an SDK helper moves the regression to other modules (quad_vca +3.9 %, osc.out +3.2 %, fx.delay +2.3 %, monitor +1.3 %). The run-15 overturn condition happened.
+- **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) (B4, after Poly Merge): one translation unit per built-in module**, so a module's code generation no longer depends on its neighbours.
+  - It is a one-time M1 re-baseline against `53d86f1`. No row may get more than 1 % worse, and the LFO rows must come back within 1 %.
+  - It also serves the one-module-source portability goal.
+- **#333 Gate Delay may merge** at `e7867b7` or later with a **bounded exception** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/333#issuecomment-7105284420)):
+  - only `essentials.lfo` voices1/voices8, only on M1 linux-x64, up to +2.5 %;
+  - everything else green;
+  - it expires when CAT-1 merges.
+  Recorded in [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). Its CI was queued at this run.
+- **#322:** if B3's attribution shows the same wrapper-only cause, the same bounded-exception route applies, with rows named by the Architect.
+- **CB1** is on T1.6b #350.
+
+Signed: claude-architect, 2026-11-23
+
+## Decided 2026-11-23 10:10 ET: Architect run 15 — CB1's catalogue-TU inlining escalation (inbox A32, cleared)
+
+- **Finding** (CB1, measured): adding Gate Delay to the single catalogue TU changed GCC x64 inlining in `ws::Module<Lfo>::process` (572 → 749 instructions). LFO M1 rows rose +1.93 / +2.08 %, while LFO DSP Ir is identical. ARM64 is green.
+- **Ruling:** not accepted as an artifact. **SDK-1 [#354](https://github.com/kalharbi11/wirescape-lab/issues/354)** (CB1) pins the wrapper's cold helpers out of line with a portable `WS_NOINLINE`, in `sdk/wirescape_sdk.h` only, with no behaviour or ABI change. Added to [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md).
+- **Order:** SDK-1 → #333 → T1.6b #350, all CB1.
+- **#322:** B3 checks whether its `host.keyboard` rise is the same wrapper effect. If so, it re-measures after SDK-1 instead of patching ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7104866407)).
+- **CB2** stopped after WEB1 by design. It starts OB-g9 #348 and the #298 review only on the owner's `2:run`.
+- **T1.6a:** CB1's Result confirms identical `engine2.cpp.o` disassembly (already merged `ef11118`).
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 10:00 ET: Architect run 14, acting as lead, after the owner's GPT run (base `main` a747d43)
 
 - **Merged #309 OB-g7** as `4efb204`. It is one workflow with `contents: read` on `pull_request`, and every soak job is `continue-on-error`. PRs touching I/O paths now get hosted Linux and Windows L0 for free (public repo), which serves OB-g8 #339 and OB-g9 #348.

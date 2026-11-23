@@ -147,6 +147,14 @@ assume exactly 34 modules. M1 is now complete, so these are the rules for module
   Gate path as it was. Do not widen the tolerance. Until #325 is within 1 %, the next module PR
   that is green may merge ahead of it (SR19). Otherwise the order in §1 stands.
 
+- **Inlining noise from the shared catalogue TU (Architect, 2026-11-23, runs 15–16).** Every
+  module's SDK-wrapper code generation depends on the whole catalogue translation unit. Adding
+  Gate Delay made LFO +2 % on x64 with identical DSP Ir. Pinning one SDK helper (SDK-1) only moved
+  the cost to other modules. The fix is **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358):
+  one translation unit per built-in module**. Until it lands, a module PR may merge with a
+  *named, bounded* exception: the specific rows the Architect lists, a stated ceiling, and
+  measured DSP-identical attribution. It expires at CAT-1. No general tolerance change.
+
 Overturned by: a regenerated catalogue that cannot be limited to the PR's own entries, because of
 ordering or a shared header. The Architect then rules on the snapshot format.
 

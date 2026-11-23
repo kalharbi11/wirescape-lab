@@ -9,7 +9,8 @@
     "bpm": 0,
     "ticks_per_beat": 1,
     "duty": 2,
-    "run": 3
+    "run": 3,
+    "sync": 4
   },
   "inputs": {
     "reset": "signal"

@@ -13,6 +13,11 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 - **OB-g4** is drafted as [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20). Step timeout = tier + 10 % + 60 s for engine start-up. Nightly lanes are `osc-heavy/still`, then `osc-gates/still`, with `mixed/still` first once OB-g2 merges. The `io-soak-alsa` tier is deferred until a lab harness profile opens an ALSA port (Q24).
 - **Item 7:** `config-edits` is recorded at **L0** until M4 E5. The harness requires a pass below every tier, so a pre-E5 `xfail` cannot climb. After E5 it climbs like `still`.
 - **New OB-g8** ([#326](https://github.com/kalharbi11/wirescape-lab/issues/326)): `osc-heavy/still` failing L0 is a `still`-mode I/O defect, so 0019 §5 "fixed now" applies. The lead releases it to a free lane.
+**r2.5 (Architect, 2026-11-23, owner D1, `proposals/0021` §6):**
+- Acceptance 2 reads the PRIORITY OB1 row as revised. M4 E3a, E3b and E3c are **OB1.1** and no longer hold the `owner-build-1` tag.
+- G-W1 [#368](https://github.com/kalharbi11/wirescape-lab/issues/368) is added to the OB1 rows (lead merge).
+- Affects only the tag condition. Nothing in flight stops.
+
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.
