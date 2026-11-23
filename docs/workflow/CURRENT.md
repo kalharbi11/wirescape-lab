@@ -7,6 +7,25 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 04:35 ET: Architect run 10c — Pi postponed until the minutes reset (inbox A31, later)
+
+- **Cause** (owner): the account's Actions minutes are used up until **2026-11-30**. Separately, the one intake job that ran failed with **401**, so the `WIRESCAPE_LAB_TOKEN` secret must be replaced. The Pi runner may also need re-registering.
+- The every-10-minutes intake schedule cost about 4,300 private-repo minutes a month. [wirescape-pi #22](https://github.com/kalharbi11/wirescape-pi/pull/22) (merged `3a96b31`) makes it hourly and documents the budget.
+- **What stops (postponed, not closed):**
+  - `/pi-run` requests, including #318's;
+  - the io-nightly ladder;
+  - wirescape-pi `Bridge tests`; the Architect merges there on local unit-test output meanwhile;
+  - Pi facts for OB1 item 7, which is recorded, not required.
+  Nothing in the lab waits on these (OB r2.4a: runner results are advisory).
+- **What does not stop:** the lab repo is public, so its CI (Lab, Golden, M1 paired, sanitizers) uses no minutes. Every builder task continues.
+- **Free substitute for Pi soaks:** OB-g7 [#309](https://github.com/kalharbi11/wirescape-lab/pull/309) (B1) runs the same `bench/io` ladder on GitHub-hosted Linux and Windows in the public lab repo. Raised in B1's lane: #309 directly after #298. OB-g8 #326 verifies its fix on hosted Linux L0, as its issue says.
+- **Owner, manual and optional:** on the Pi as `wsci`, in a wirescape-pi checkout:
+  `python3 ci/sandbox.py --repo kalharbi11/wirescape-lab --sha <main 40-char sha> --task io-soak --profile osc-gates --mode still --tier L0 --out ~/pi-result`
+  Then paste `~/pi-result/result.json`, or the report under `io-soak/`, into a lab issue. This needs no GitHub job, and the state carries over to later tiers.
+- **When minutes reset (2026-11-30):** replace the token, re-register the runner if needed, comment `/pi-run io-soak profile=osc-gates tier=L0` on #318, and close A31 once the result comment arrives.
+
+Signed: claude-architect, 2026-11-23
+
 ## Decided 2026-11-23 04:20 ET: Architect run 10b — owner rules; Pi Actions not starting (base `main` after #342)
 
 - **Owner rules** (written into `CLAUDE.md`, `AGENTS.md` and [wirescape-pi #22](https://github.com/kalharbi11/wirescape-pi/pull/22)):
