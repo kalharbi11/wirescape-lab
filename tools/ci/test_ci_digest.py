@@ -18,11 +18,14 @@ class DigestTests(unittest.TestCase):
 
     def test_actual_m1_paired_failure_rows(self):
         # M1 x64 job 137790998469 emits rows without M1/Ir prefixes.
-        log = ("FAIL: module/essentials.lfo/voices1: +1.857869316% exceeds strict +1%\\n"
-               "FAIL: module/essentials.lfo/voices8: +1.2% exceeds strict +1%\\n"
-               "FAIL: module/essentials.lfo/voices1: +0.9% exceeds strict +1%\\n"
-               "FAIL: module/essentials.lfo/voices1: +1.0% exceeds strict +1%\\n"
-               "noise: +8.0% exceeds strict +1%")
+        log = "\\n".join([
+            "2026-11-23T18:41:02.1234567Z FAIL: module/essentials.lfo/voices1: +1.857869316% exceeds strict +1%",
+            "2026-11-23T18:41:03Z FAIL: module/essentials.lfo/voices8: +1.2% exceeds strict +1%",
+            "2026-11-23T18:41:04Z FAIL: module/essentials.lfo/voices1: +0.9% exceeds strict +1%",
+            "2026-11-23T18:41:05Z FAIL: module/essentials.lfo/voices1: +1.0% exceeds strict +1%",
+            "2026-11-23T18:41:06Z noise: +8.0% exceeds strict +1%",
+            "prefix 2026-11-23T18:41:07Z FAIL: module/essentials.lfo/voices1: +3.0% exceeds strict +1%",
+        ])
         result = parse(log)
         self.assertEqual(len(result["ir"]), 2)
         self.assertIn("+1.857869316%", result["ir"][0])
