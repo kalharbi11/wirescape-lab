@@ -90,7 +90,7 @@ test('running input off/on: correlated ACK, fresh device state and scripted CC o
   expect(after).toEqual(before);
 });
 
-test('RED baseline: refused running endpoint toggle must not display an unapplied switch state', async ({ page }) => {
+test('refused running endpoint toggle restores the applied switch state', async ({ page }) => {
   await page.getByTestId('open-settings').click();
   await expect(page.getByTestId('midi-device')).toHaveValue(DEVICE);
   const enabled = page.getByTestId('midi-enabled');
@@ -107,11 +107,7 @@ test('RED baseline: refused running endpoint toggle must not display an unapplie
     .toMatchObject({ re: cmd.id, ok: false, code: 'busy' });
   await expect.poll(() => appliedEnabled(page)).toBe(true);
 
-  // Expected RED on current main: App.ts leaves the switch at OFF even though
-  // the bridge rejected the operation and still reports this endpoint enabled.
-  // No product code is changed in #317; a separately released fix is required.
-  // Mark XFAIL only after the correlated refusal and authoritative-state checks:
-  // unexpected setup failures must remain normal CI failures, not masked XFAILs.
-  test.fail(true, '#317: expected Studio MIDI toggle refusal UI inconsistency');
+  // A correlated refusal must leave the visible switch equal to the applied
+  // device state, with no expected-failure annotation or optimistic UI shortcut.
   await expect(enabled).toHaveAttribute('aria-pressed', 'true');
 });
