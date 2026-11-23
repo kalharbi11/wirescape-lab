@@ -35,6 +35,8 @@ class Host {
     void select(Endpoint, bool);
     void restore(const std::string &document);
     bool start(AppEngine *, const std::string &document, std::string &error);
+    // Control-thread admission check: online means the backend opened this identity.
+    bool online(const Endpoint &) const;
     // Atomically accept a prepared graph and its subscriptions on the control thread.
     // Refusal (including a busy MIDI worker) preserves graph and routes for retry.
     bool replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error);
