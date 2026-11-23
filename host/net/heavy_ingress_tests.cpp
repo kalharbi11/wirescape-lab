@@ -44,11 +44,10 @@ void wait_for_callback(Clock::time_point deadline) {
 #endif
 }
 void short_pause() {
-#ifdef _WIN32
+    // A 200us sleep per packet caps the 64x200Hz sender well below
+    // 12,800 packets/s on hosted Linux (observed 1453-1519/5120).
+    // Yield without a fixed delay; absolute next_load still sets the rate.
     std::this_thread::yield();
-#else
-    std::this_thread::sleep_for(200us);
-#endif
 }
 
 // Reserve an OS-assigned port rather than colliding with another CI process.
