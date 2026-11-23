@@ -7,6 +7,35 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 12:40 ET: Architect run 19 — replan to OB1 (owner: "step back, zoom out")
+
+Plan: [`proposals/0021`](../../proposals/0021-replan-to-ob1.md). Builders **finish the PRs they hold**. Nothing in flight stops.
+
+**In effect now (lead applies these):**
+- **R1 intake freeze:** no new module or feature task is filed until the Architect places it in a 0021 track. Ideas go to the list below.
+- **R2:** one active PR per lane. The E-track writer (B5) may also hold one draft-ahead branch.
+- **R3:** the critical path comes first. An off-path module PR that is red because of shared code parks behind CAT-1+MB and opens no new diagnosis loop. No gate or tolerance changes.
+- **Engine draft-ahead (M3/M4 process ruling):** the single engine writer may draft task N+1 on a branch stacked on task N's head. Merge order and every "Depends on … merged" condition are unchanged. This affects T1.6c → TR1e → E6 → E4a → E4b → E5 only.
+- **OB-c cause fixes (#275/#203) are B1's next task after #298.** Today no lane holds them, and OB1 acceptance 2 needs them.
+
+**Pending owner decisions (0021 §5).** Until the owner answers, the lead keeps the current queue:
+- **D1:** E3a/E3b/E3c move to OB1.1.
+- **D2:** new modules stay frozen, and CAT-1 + MB1 become one task in B4.
+- **D3:** B5 hands #324 to B2 and starts T1.6c; #322 parks behind CAT-1+MB.
+- **D4:** the CI digest workflow gets `pull-requests: write`.
+- **D5:** can chat mode write to GitHub?
+- **D6:** what are the "GitHub credits"?
+
+**Ideas parked until OB1 (R1):** any new module from `0020` beyond #333/#356; M3 MB2/MB3; anything in PRIORITY P4.
+
+**Next run should:**
+1. Read the owner's D1–D6 answers.
+2. Apply them to OB.md, PRIORITY, BUILDERS and ROADMAP (contract revisions where D1 changes scope).
+3. File C1 if D4 is yes.
+4. Review #298 when its inbox row arrives.
+
+Signed: claude-architect, 2026-11-23
+
 ## Delivery update — 2026-11-23 12:03 EST
 
 - Quick check after Architect run 18. GPT delivery ownership resumed. B1–B5 packets were sent once to the five owner-prepared chats and the app acknowledged them. Earlier chats are retired as writers. Execution verification is tracked separately from prompt delivery.
