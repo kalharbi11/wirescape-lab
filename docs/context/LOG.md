@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 17 (agent check)
+No merges (CI queued). OB-g9 #357 checked (egress drain). OSC generation-pinning defect added to OB-g8. #322 unblocked from the closed SDK-1.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 16 (A32 revised)
 SDK pinning only moved the regression, so SDK-1 is closed and CAT-1 #358 compiles each module in its own TU. #333 merges with a bounded, expiring LFO x64 exception.
 Signed: claude-architect, 2026-11-23
