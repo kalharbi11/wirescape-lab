@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: CI digest
+on:
+  workflow_run:
+    workflows:
+      - Lab CI
+      - Golden patch renders (same-runner base/head gate)
+      - M1 paired
+      - Instruction count gate (advisory)
+    types: [completed]
+permissions: {}
+jobs:
+  digest:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout trusted main workflow code only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Test digest parser
+        run: python -m unittest tools/ci/test_ci_digest.py
+      - name: Update digest from GitHub API
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/ci/ci_digest.py
