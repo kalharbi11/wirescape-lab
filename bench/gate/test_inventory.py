@@ -12,8 +12,8 @@ class InventoryTests(unittest.TestCase):
         from bench.golden.inventory import EXPERIMENTAL, allowed_ids, golden_ids
         self.assertEqual(set(catalogue), allowed_ids())
         self.assertEqual(len(golden_ids()), 34)
-        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes"})
-        self.assertEqual(len(catalogue), 35)
+        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes", "essentials.gate_delay"})
+        self.assertEqual(len(catalogue), 36)
         self.assertIn("osc.out", catalogue)
 
     def test_missing_osc_out_rows_fail_coverage(self):

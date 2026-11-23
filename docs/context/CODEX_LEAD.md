@@ -37,6 +37,48 @@ Milestone end: one acceptance report mapping every criterion to its evidence (PR
 or fact file), then file the acceptance in the Architect inbox and apply `needs/architect` to the issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 
+## Technical and agents lead (owner, 2026-11-23)
+
+Codex resumes as **both technical lead and agents lead**. The Architect (Claude) keeps design
+rulings, contract-reviews and acceptance; Claude builders are off unless the owner reopens them.
+Start every `lead: run` from the newest CURRENT entry, then BUILDERS.
+
+**Technical lead.** Judge evidence, not colour:
+- **Exact-head evidence.** Merge only at the PR's exact head, with Lab, Golden and M1 paired
+  green. The only allowed failures are `Offline facts / windows-latest` (pre-existing,
+  non-required) and `(advisory)` soak jobs.
+- **Module PRs** follow `proposals/0020` §7:
+  - S0 is regenerated with its generator, and the parsed diff touches only the PR's own entries;
+  - append the module to `bench/module_sets.json` `experimental`;
+  - head-only rows report as `new`;
+  - existing rows stay strict at 1 %.
+- **Rising rows.** When an existing row rises and the module's DSP Ir is unchanged (catalogue-TU
+  inlining), do not loosen anything. File an inbox row with function-level attribution; only the
+  Architect can name a bounded, expiring exception. CAT-1 #358 removes the cause.
+- **Golden differences** in a structural or module PR are defects until proven otherwise.
+- **Engine chain.** One writer at a time in `engine/` (minus `control/` and `voice/`), in order:
+  T1.6c → TR1e → M4. Each needs an Architect contract-review before merge (0007 rules 2–5;
+  TR1e quotes ER1 in full).
+- **Still-mode I/O failures** in the hosted OB-g7 soaks are fixed now: a fail-first test, then the
+  fix (0019 §5). Config-edits failures are A2 and wait for M4.
+
+**Agents lead.**
+- Every run checks B1–B5, refreshes BUILDERS, and gives each builder a one-to-three-task
+  ordered queue with scope, acceptance and stop condition.
+- File issues for released work, starting with T1.6c (B5) and MB1 (B1).
+- Send corrections on the same branch; apply SR6 after two rounds.
+- Builders take tasks only from a `<n>:run` packet. Put the whole packet in one message.
+
+**Escalate** (inbox row + `needs/architect`):
+- design or architecture;
+- a tolerance, gate or invariant;
+- an unplaced field in the engine split;
+- a bounded-exception request;
+- any review a contract reserves for Claude (e.g. #298 OB-a3).
+
+**Do not touch** wirescape-pi (Architect-only merges). Pi runs are postponed until 2026-11-30
+(inbox A31).
+
 ## Review dispatch (owner, 2026-11-19)
 
 Use the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).

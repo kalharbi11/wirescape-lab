@@ -503,6 +503,35 @@ The library example `basics-08-clocked-groove` wires Clock → Groove
 `clock`, constant run gate → Groove `run`, `t1_pitch` → Quantizer → VCO,
 and `t1_gate` → ADSR → VCA → Delay → stereo Output.
 
+## Following the host tempo: Clock `sync`, Groove `tempo_source` (M3 TR2)
+
+Both are opt-in and default to the old behaviour, so saved patches sound
+the same (`proposals/0008-transport.md` decision 7).
+
+- **Clock `sync`** (parameter index 4, stepped 0/1, default 0). With
+  `sync=0` the clock runs from its own `bpm` exactly as before. With
+  `sync=1` the tick phase is `frac(beat × ticks_per_beat)` taken from the
+  host transport: the `bpm` parameter and the `reset` input are ignored,
+  `duty` and `run` still apply, and the output stays low while the host is
+  stopped. Two synced clocks always agree, and a locate moves them together.
+- **Groove `tempo_source`** (optional v2 config key, `"internal"` or
+  `"host"`, default `"internal"`). With `"host"`, steps advance on the host
+  sixteenth grid (`floor(beat × 4)` changing) instead of Groove's own
+  `bpm`, and short gates use the host tempo. Groove runs only while both the
+  host and its own run state are on: Run while the host is stopped starts at
+  the first host sixteenth after the host plays; a host stop closes sounding
+  gates and holds the step until the host resumes. A patched `clock` cable
+  still wins over `"host"`. A locate moves the next step boundary; it does
+  not jump the step position.
+
+```json
+{"type": "sequencing.groove", "config": {"version": 2, "bpm": 120,
+  "tempo_source": "host", "tracks": [{"steps": []}]}}
+```
+
+Until TR1 lands, the host transport is fixed at 120 BPM and always
+playing; the Studio transport control (TR3) sets it.
+
 ## Groove observation outputs (PR #501)
 
 Groove observation outputs append to its existing pitch/gate/mod/notes ports:

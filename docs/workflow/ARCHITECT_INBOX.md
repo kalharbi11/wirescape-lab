@@ -49,3 +49,5 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
+| A33 | 2026-11-23 | T1.6b #360 contract-review (CB1) | Approved and merged `7cc20c7` ([review](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107143632)). 2026-11-23 |
+| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.9/+2.1 % on x64 from SDK-wrapper inlining in the catalogue TU | Run 16: SDK pinning only moves the cost, so CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) gives one TU per module. #333 merges with a bounded exception (two LFO rows, x64, up to +2.5 %, expires at CAT-1). [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). 2026-11-23 |
