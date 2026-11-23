@@ -8,7 +8,9 @@
     "attack": 0,
     "decay": 1,
     "sustain": 2,
-    "release": 3
+    "release": 3,
+    "mode": 4,
+    "hold": 5
   },
   "inputs": {
     "gate": "signal",

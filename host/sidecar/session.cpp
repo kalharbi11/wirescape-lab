@@ -201,13 +201,14 @@ Json catalogue(AppEngine *engine) {
 Options parse_options(int argc, char **argv) {
     Options o;
     o.directory = std::filesystem::absolute(argv[0]).parent_path().string();
-    bool cli_rate = false, cli_block = false;
+    bool cli_rate = false, cli_block = false, cli_settings = false;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--confirm-audio") o.audio = true;
         else if (arg == "--confirm-midi") o.midi = true;
         else if (arg == "--confirm-lan") o.lan = true;
         else if (arg == "--null-audio") o.null_audio = true;
+        else if (arg == "--scripted-midi") o.scripted_midi = true;
         else if (arg == "--bench-summary") o.bench_summary = true;
         else if (arg == "--capture-null-sink") {
             need(++i < argc);
@@ -218,7 +219,7 @@ Options parse_options(int argc, char **argv) {
             std::string v = argv[i];
             need(!v.empty());
             if (arg == "--device") o.device = v;
-            else if (arg == "--settings") o.settings = v;
+            else if (arg == "--settings") { o.settings = v; cli_settings = true; }
             else {
                 need(v.find_first_not_of("0123456789") == std::string::npos);
                 auto n = std::stoull(v);
@@ -261,6 +262,8 @@ Options parse_options(int argc, char **argv) {
         }
     }
     need(!o.bench_summary || o.null_audio, "invalid", "--bench-summary requires --null-audio");
+    need(!o.scripted_midi || (o.null_audio && cli_settings), "invalid",
+         "--scripted-midi requires --null-audio and an explicit --settings path");
     need(o.capture_null_sink.empty() || o.null_audio, "invalid", "--capture-null-sink requires --null-audio");
     if (o.null_audio) o.audio = o.midi = false;
     return o;
@@ -290,7 +293,14 @@ Session::Session(Options options)
     } catch (...) {
         preferences_ = Json::object();
     }
-    auto observed = std::make_unique<ObservedMidi>(options_.null_audio, options_.midi);
+    std::unique_ptr<midi::Backend> scripted_source;
+    if (options_.scripted_midi) {
+        auto scripted = std::make_unique<midi::ScriptedBackend>();
+        scripted_midi_ = scripted.get();
+        scripted_source = std::move(scripted);
+    }
+    auto observed = std::make_unique<ObservedMidi>(options_.null_audio && !options_.scripted_midi,
+                                                    options_.midi, std::move(scripted_source));
     observer_ = observed.get();
     observer_->endpoints();
     monitor_ = std::make_unique<monitor::Capture>();
@@ -301,6 +311,9 @@ Session::Session(Options options)
     osc_ = std::make_unique<osc::Host>(options_.lan && !options_.null_audio);
     osc_->observe(monitor_.get());
     if ((options_.midi || options_.null_audio) && preferences_.contains("devices")) midi_->restore(preferences_.dump());
+    // The synthetic endpoint has its own identity and is selected only on an
+    // explicit null-audio invocation. Never consult the physical MIDI observer.
+    if (scripted_midi_) midi_->select(scripted_midi_->identity(), true);
     patch_ = {{"format", "wirescape.native.patch"},
               {"version", 2},
               {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}}})},
@@ -326,6 +339,12 @@ void Session::start(std::chrono::steady_clock::time_point now) {
         start_audio(now);
         start_midi();
         start_osc();
+        if (scripted_midi_) {
+            scripted_started_ = std::chrono::steady_clock::now();
+            need(scripted_midi_->set_origin_ns(app_engine_clock_ns()), "invalid",
+                 "Scripted MIDI source started before its origin was set");
+            scripted_started_enabled_ = true;
+        }
         if (stream_) persist();
     } catch (...) {
         osc_out_->stop();
@@ -1372,7 +1391,11 @@ Json Session::audio_status() const {
     return result;
 }
 Json Session::midi_status() const {
+    // Preserve the v0 default hello/status wire shape, including the pinned
+    // S0 byte snapshot. Opt-in scripted MIDI is the only counter transport.
     Json result = {{"devices", midi_devices_}, {"activity", observer_->activity()}};
+    if (options_.scripted_midi)
+        result["counters"] = Json::parse(midi_->diagnostics()); // real Host/Service counters
     auto learn = observer_->learning();
     if (!learn.is_null()) result["learn"] = std::move(learn);
     return result;
@@ -1526,6 +1549,10 @@ bool Session::poll_audio(std::chrono::steady_clock::time_point now, bool enumera
     return previous != audio_state_;
 }
 bool Session::poll(std::chrono::steady_clock::time_point now) {
+    if (scripted_midi_ && scripted_started_enabled_ && now >= scripted_started_) {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - scripted_started_).count();
+        scripted_midi_->advance_to(uint64_t(elapsed), 4096); // bounded; no OS device, no callback allocation
+    }
     observer_->expire_learning(now);
     auto old_audio = audio_devices_, old_midi = midi_devices_;
     const auto old_unavailable = unavailable_audio_drivers_;
