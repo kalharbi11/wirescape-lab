@@ -32,6 +32,24 @@ using json = nlohmann::json;
 using Clock = std::chrono::steady_clock;
 using namespace std::chrono_literals;
 
+// Windows' default sleep timer is often ~15ms; sleeping for 200us silently
+// lowers this load to ~64Hz/address. Yield instead of altering the required
+// 200Hz profile. The CI test remains bounded to 400ms of input traffic.
+void wait_for_callback(Clock::time_point deadline) {
+#ifdef _WIN32
+    while (Clock::now() < deadline) std::this_thread::yield();
+#else
+    std::this_thread::sleep_until(deadline);
+#endif
+}
+void short_pause() {
+#ifdef _WIN32
+    std::this_thread::yield();
+#else
+    std::this_thread::sleep_for(200us);
+#endif
+}
+
 // Reserve an OS-assigned port rather than colliding with another CI process.
 // Host validates a nonzero configured OSC port, so release the reservation
 // immediately before its loopback-only listener starts.
@@ -137,7 +155,7 @@ void reproduce() {
             if (app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns()) != WS2_OK)
                 render_failures.fetch_add(1, std::memory_order_relaxed);
             next += 2666667ns; // 128 frames at 48 kHz
-            std::this_thread::sleep_until(next);
+            wait_for_callback(next);
         }
     });
 
@@ -215,12 +233,12 @@ void reproduce() {
             next_load += 5ms; // 200 Hz per address, not a reduced test rate
         }
         observe();
-        std::this_thread::sleep_for(200us);
+        short_pause();
     }
     const auto witness_deadline = Clock::now() + 55ms;
     while (Clock::now() < witness_deadline && seen_falls < sent_falls.size()) {
         observe();
-        std::this_thread::sleep_for(300us);
+        short_pause();
     }
     observe();
 
