@@ -225,7 +225,13 @@ void reproduce() {
                     received_by - sent_falls[seen_falls]).count();
                 worst_fall_ms = std::max(worst_fall_ms, latest_ms);
                 if (latest_ms > 50.) { ++late_falls; fall_late = true; }
-                if (received_not_before < sent_falls[seen_falls]) {
+                // The monitor clock epoch is known only within the
+                // configure() bracket. An ingress is *proven* early only
+                // when even its latest possible time precedes sendto.
+                // Checking the earliest bound rejected valid immediate
+                // loopback deliveries while leaving the 50ms upper bound
+                // unchanged.
+                if (received_by < sent_falls[seen_falls]) {
                     ++early_falls;
                     fall_late = true;
                 } // unchanged strict 50ms, actual ingress timestamps
