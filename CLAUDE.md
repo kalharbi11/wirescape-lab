@@ -138,6 +138,18 @@ so no agent works from stale instructions. One docs PR with auto-merge, then sto
 
 Scheduled runs are suggested to the owner, not created, unless the owner asks for one.
 
+**Every run updates the builder queue (owner, 2026-11-23).** Each Architect run checks every
+GPT builder lane (B1–B5) and every Claude builder lane (CB1–CB3): PR head, exact-head CI,
+latest Result. It refreshes each row's next action in `docs/workflow/BUILDERS.md`, and gives an
+idle lane its next task (an issue with a label and an assignment comment). This applies even
+when a delivery lead is active; the lead's own dispatch then wins on conflict.
+
+**wirescape-pi merges (owner, 2026-11-23).** Only the Claude Architect merges PRs on
+`kalharbi11/wirescape-pi`, after reading the diff and seeing `Bridge tests` green. A Claude
+builder may merge there only when the Architect explicitly allows that PR, or through
+auto-merge the Architect enabled. GPT agents never write to wirescape-pi; they ask with
+`/pi-run` comments. The owner keeps full rights.
+
 ## Fable's deputy (Opus), from 2026-11-17
 
 The owner runs the design-authority seat on an Opus session for the week; Fable returns only now

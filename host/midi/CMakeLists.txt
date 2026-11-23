@@ -63,3 +63,22 @@ foreach(module midi_in midi_to_cv midi_cc_to_cv)
   target_link_libraries(abi2_${module}_tests PRIVATE wirescape_engine2 wirescape_voice2)
   add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests)
 endforeach()
+
+# OB-g2 test-local device-off injected source (Host's production Backend seam).
+add_executable(abi2_midi_scripted_tests scripted_backend_tests.cpp)
+target_link_libraries(abi2_midi_scripted_tests PRIVATE wirescape_midi_host)
+add_test(NAME abi2_midi_scripted_tests COMMAND abi2_midi_scripted_tests)
+set_tests_properties(abi2_midi_scripted_tests PROPERTIES TIMEOUT 30)
+
+# Test the real null-audio sidecar flag and the additive MIDI diagnostics shape.
+find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+add_test(NAME abi2_midi_scripted_sidecar_tests
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripted_sidecar_tests.py
+          $<TARGET_FILE:wirescape_engine_sidecar>)
+set_tests_properties(abi2_midi_scripted_sidecar_tests PROPERTIES TIMEOUT 40)
+
+# OB-g2 exercises merged B5 OB-g1 harness profiles without opening devices.
+add_test(NAME abi2_midi_io_soak_harness_tests
+  COMMAND ${Python3_EXECUTABLE} -m unittest discover
+          -s ${CMAKE_CURRENT_SOURCE_DIR}/../../bench/io -p test_*.py -v)
+set_tests_properties(abi2_midi_io_soak_harness_tests PROPERTIES TIMEOUT 30)
