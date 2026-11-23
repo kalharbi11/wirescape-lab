@@ -418,17 +418,6 @@ struct Sequencer {
         clock_connected = external_clock;
         run_connected = external_run;
         reset_connected = external_reset;
-        // Host tempo source: an external clock cable still wins. Chosen once per block, so
-        // the default internal source runs the same per-sample path as before.
-        const ws2_transport *host = pattern.tempo_source == TempoHost && !external_clock ? b.transport() : nullptr;
-        const bool host_mode = pattern.tempo_source == TempoHost && !external_clock;
-        const bool host_playing = host && (host->flags & WS2_PLAYING) && host->bpm > 0.;
-        const bool clocked = external_clock || host_mode;
-        double host_step = 0.;
-        if (host_playing) {
-            samples_per_step = b.sample_rate() * 15. / host->bpm;
-            host_step = host->bpm * 4. / (60. * b.sample_rate());
-        }
         for (uint32_t t = 0; t < kTracks; ++t) {
             const uint32_t base = t * 5;
             for (uint32_t p = 0; p < 4; ++p) {
@@ -443,6 +432,28 @@ struct Sequencer {
                 b.out(port).mark_constant(false);
             }
         }
+        // Host tempo source (M3 TR2): an external clock cable still wins. The source is chosen
+        // once per block and the frame loop is instantiated per source, so the default internal
+        // source compiles to the same per-sample path as before.
+        if (pattern.tempo_source == TempoHost && !external_clock) {
+            const ws2_transport *host = b.transport();
+            const bool host_playing = host && (host->flags & WS2_PLAYING) && host->bpm > 0.;
+            double host_step = 0.;
+            if (host_playing) {
+                samples_per_step = b.sample_rate() * 15. / host->bpm;
+                host_step = host->bpm * 4. / (60. * b.sample_rate());
+            }
+            frames<true>(b, external_clock, external_run, external_reset, host, host_playing, host_step);
+        } else {
+            frames<false>(b, external_clock, external_run, external_reset, nullptr, false, 0.);
+        }
+    }
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): mirrors the per-block locals of process().
+    template <bool HostMode>
+    void frames(ws::Block &b, bool external_clock, bool external_run, bool external_reset,
+                [[maybe_unused]] const ws2_transport *host, [[maybe_unused]] bool host_playing,
+                [[maybe_unused]] double host_step) {
+        const bool clocked = HostMode || external_clock;
         for (uint32_t i = 0; i < b.frames(); ++i) {
             for (uint32_t t = 0; t < kTracks; ++t) {
                 auto &p = players[t];
@@ -455,7 +466,7 @@ struct Sequencer {
             }
             bool clock_rise = false, run_rise = false, run_fall = false, reset_rise = false;
             bool tick = false;
-            if (host_mode) {
+            if constexpr (HostMode) {
                 if (host_playing) {
                     // Sixteenth position derives from the beat; it is not integrated here.
                     const double position = (host->beat * 4.) + (static_cast<double>(i) * host_step);
@@ -550,7 +561,7 @@ struct Sequencer {
                 }
                 if (rise[0] && !rise[1]) {
                     if (running) stop_queued = false;
-                    else if (host_mode) run_start_pending = true; // Step 1 lands on the host grid.
+                    else if constexpr (HostMode) run_start_pending = true; // Step 1 lands on the host grid.
                     else {
                         start_transport(b, i);
                         started = true;
