@@ -295,7 +295,7 @@ def main(argv=None):
         raise RuntimeError("four surviving fixed cost modes required")
     if len([r for r in rows if r["id"].startswith("bundled/")]) < 24:
         raise RuntimeError("all 24 bundled golden patches required")
-    if len([r for r in rows if r["id"].startswith("module/")]) != 68:
+    if len([r for r in rows if r["id"].startswith("module/")]) != 2 * len(modules()):
         raise RuntimeError("one- and eight-voice rows required for every module")
     record = {
         "SPDX-License-Identifier": "GPL-3.0-only", "schema": 1,
