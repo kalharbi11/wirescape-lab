@@ -1180,17 +1180,21 @@ Json Session::apply(const Json &command) {
             std::find_if(midi_devices_.begin(), midi_devices_.end(), [&](const Json &d) { return d.at("id") == id; });
         need(found != midi_devices_.end(), "not-found", "No such MIDI input");
         need(options_.midi || options_.null_audio, "unavailable", "MIDI device access is not authorized");
+        const midi::Endpoint selection{found->at("name").get<std::string>(),
+                                       found->at("system_name").get<std::string>()};
+        const bool enable = command.at("on").get<bool>();
         auto old = midi_->enabled();
         midi_->stop();
-        midi_->select({found->at("name").get<std::string>(), found->at("system_name").get<std::string>()},
-                      command.at("on").get<bool>());
+        midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
             start_midi();
+            // An ACK for a newly enabled input must mean its backend opened.
+            // Startup restore still tolerates saved disconnected endpoints.
+            if (enable) need(midi_->online(selection), "unavailable", "MIDI input could not be opened");
             persist();
         } catch (...) {
             midi_->stop();
-            for (auto &e : midi_->enabled()) (void)e;
             auto selected = midi_->enabled();
             for (auto &e : selected) midi_->select(e, false);
             for (auto &e : old) midi_->select(e, true);
