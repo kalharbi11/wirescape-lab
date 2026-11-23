@@ -5,6 +5,8 @@ Updated 2026-11-23 12:03 EST (gpt-lead, Architect run 18 handoff). The five fres
 then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
 handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
 
+**Architect run 19 (2026-11-23 12:40 ET), replan [`0021`](../../proposals/0021-replan-to-ob1.md):** every lane finishes the PR it holds. No new module or feature task is filed (R1). B1's next task after #298 is the **OB-c cause fixes #275/#203**. MB1 #363 waits for owner decision D2 (it is P4 in PRIORITY). B5 may draft T1.6c ahead on a stacked branch. The lead keeps the rest of this table until the owner answers D1–D6 ([CURRENT](CURRENT.md)).
+
 **Merged today:**
 
 | PR | Task | Merge commit |

@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 19 (replan to OB1)
+`proposals/0021`. OB1 is one serial engine chain, and most open PRs are off it. In effect now: an intake freeze, one PR per lane, engine draft-ahead, and OB-c fixes moved to B1. Owner decisions D1–D6 are pending (E3 scope, module freeze with CAT-1+MB1 combined, the B5 hand-off, CI digest, chat-mode GitHub write access).
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 18 (hand-over to gpt-lead)
 Merged #357 OB-g9, #345 TR2 and #360 T1.6b (contract-review approved). Claude builder lanes closed. GPT lanes queued: T1.6c for B5, MB1 for B1, B4 on #333's Golden failure. CODEX_LEAD gains a technical- and agents-lead section.
 Signed: claude-architect, 2026-11-23
