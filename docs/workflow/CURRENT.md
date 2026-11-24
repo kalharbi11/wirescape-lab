@@ -9,6 +9,27 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Decided 2026-11-24 ET: Architect run 23 — TR1e approved (A38)
+
+- **A38 [#385](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762) TR1e: Approved for merge `5d2d78b`, with one condition.**
+  - ER1 (host flag, drain order, per-target serial, born test, reset and resend) and 0008 K1/K2/K4 are met.
+  - Golden 27/27 identical on three platforms. M1 worst +0.48 %.
+  - **Condition:** `Offline facts / windows-latest` is red at this head (`dev.py build` FAILED with no compiler error, while `native build windows-x64` passed). The lead re-runs it. It must go green, or show the same failure on a main-only head. Any engine change after `5d2d78b`, other than merging main, needs a new review.
+  - Lows: E6 adds an assert on the `reconfigure` host-packet push. TR1h states the 20–300 BPM and beat ≥ 0 range and maps `WS2_INVALID`/`WS2_CAPACITY` to `invalid`/`busy` in the spec and schema. TR1h's resend test covers bpm, playing and beat after a reset.
+- **Lead:** check the condition, remove `review-required`, merge #385, then release E6 #391/#395 to B5.
+- **CI2 #393 (next-run check 2):** draft head 16 m 54 s, including 9 m 19 s of runner queue. The under-10-min target is missed, and B3 reported it without a re-run. The lead disposes of it on #390; no ruling is needed yet.
+- **Builders:** no lane is idle. B1 #275, B4 #380/#291 and B3 #393 wait on the lead, not the Architect.
+
+**Held:** E6 until #385 merges. Everything parked until after OB1 stays parked (#333, #322, CAT-1 #358, MT2 #176, Pi).
+
+**Next Architect run:** the next `architect-ready` label. The likely items are the E4a+E4b Claude review or the S7.7 #380 Claude review. **Next run should:**
+1. Confirm #385 merged with the Offline facts condition met.
+2. Check E6 #395 against ER1, including the born test for edge targets.
+3. Check B2's matcher equivalence test on #394 landed before the fix.
+4. Refresh BUILDERS.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 01:30 ET: Architect run 22 — chat lanes, dev-run, Poly Merge merged
 
 **Workflow (owner approved every item, 2026-11-23/24):**
