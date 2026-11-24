@@ -30,7 +30,8 @@ labels are retired. Update any external automation that still matches them.
 | `status/blocked` | The task cannot proceed. Record the dependency and how it clears. | Replace as soon as the lead releases work again. |
 | `review-required` | A contract, Architect ruling or owner instruction makes independent review a merge condition. May be recorded before the PR is ready. This label never dispatches review. | Clear after valid approval at the current head, or closure. Restore if the head changes and the gate still applies. |
 | `review-ready` | The lead verified a non-draft PR, the signed Result and evidence needed for review at its current head. After posting the pinned request, add this label to the PR to dispatch. Both review labels may coexist. **Regular reviewer only:** never on an Architect-only review (Architect, 2026-11-23). | Clear after a signed result, loss of readiness, head change, cancellation or closure. Keep `review-required` on findings or missing evidence. |
-| `needs/architect` | Architect ruling, acceptance or Architect-only review with an Open inbox row. Dispatched by the batched `architect-wake` on #265, not by `review-ready`. | Clear when the ruling/acceptance is recorded and the row resolved. |
+| `architect-ready` | The lead verified a ready Architect item (Open inbox row, `needs/architect`, pinned request). Starts an Architect run; one per lead run. | The Architect removes it when the item is handled. |
+| `needs/architect` | Architect ruling, acceptance or Architect-only review with an Open inbox row. Dispatched by `architect-ready`, never by `review-ready`. | Clear when the ruling/acceptance is recorded and the row resolved. |
 
 Update labels when ownership, state, PR head or review routing changes. At each lead
 run, compare every builder's issue and PR with its queue row. Keep one work-status
@@ -42,7 +43,7 @@ For a review request, name the authorized reviewer or role, full base/head SHAs,
 criteria and the evidence to check. If the contract needs Claude or reserves a review for
 the Architect, only that role qualifies unless the owner explicitly changes the requirement.
 An Architect-only review gets `needs/architect`, an [Open inbox row](ARCHITECT_INBOX.md) and the pinned
-request when it is ready, but **not** `review-ready`; the lead dispatches it with the next `architect-wake`. Record planning conditions on the task and in the builder
+request when it is ready, but **not** `review-ready`; the lead dispatches it with [`architect-ready`](#architect-dispatch-architect-ready). Record planning conditions on the task and in the builder
 queue without requesting an Architect run. Rulings and milestone acceptance keep their own
 inbox process. Before acting on an event, verify that the PR is still open and non-draft,
 `review-ready` is still present, the pinned request matches the live head and the reviewer
@@ -61,25 +62,25 @@ If scheduling is unavailable, leave a signed handoff with the exact resume trigg
 CLI job can be scheduled only where the job and its output survive the wake.
 No recurring polling, automatic CI reruns, extra correction rounds or new task authority.
 
-## Intentional Architect wake
+## Architect dispatch: `architect-ready`
 
-The owner verified the Claude label trigger on 2026-11-19. The [Architect inbox](ARCHITECT_INBOX.md)
-still records questions and rulings. Routine comments and inbox labels do not wake the Architect.
+(Architect run 20, 2026-11-23; replaces the #265 `architect-wake`/`/architect-run` wake, which was never used.)
+`architect-ready` works like `review-ready`, but it starts the **Claude Architect** instead of the regular reviewer.
+The owner wires the Claude integration to start an `architect:run` session when `architect-ready` is
+**added** to a PR or issue in this repository. Label removal and comments do not trigger it.
 
-1. Only the delivery lead may dispatch. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending `architect-wake` and avoid duplicate batches. Use a wake for a critical-path blocker that cannot wait or a useful batch of ready Architect-only work.
-2. Post a new comment on #265 with exact first line `/architect-run`. Include inbox IDs, linked tasks, pinned heads/evidence, what waits and why now. **Then add `architect-wake` to #265.** The label addition is the trigger. Keep #265 limited to this purpose.
-3. The Architect reads the newest `/architect-run` comment on #265 as scope, uses the linked inbox/evidence, records its signed result and removes `architect-wake` when done. The removal resets the next wake. The lead does not clear an active wake to resend.
+1. **Lead, when an Architect item is ready** (review, ruling or acceptance): the inbox row is Open, the item
+   has `needs/architect` (plus `review-required` for a review gate), and a pinned request names full base/head
+   SHAs, criteria and evidence. **Then add `architect-ready` to one item per lead run, the most urgent.** Other
+   ready rows ride along: every Architect run clears all ready Open rows, so one trigger serves the whole batch
+   and the duplicate runs that one label per item would cause are avoided. Never put `review-ready` on
+   Architect-only work.
+2. **Architect:** reads the inbox as usual, handles every ready row, and removes `architect-ready` (and
+   `needs/architect`, review labels) from each item it finishes. A run that finds nothing new stops at the quick check.
+3. **Lead:** reads the outcome in the inbox Cleared table and CURRENT at its next run. No timer is needed.
+   Builders and reviewers ask through the lead.
 
-4. After successfully adding the label, schedule one lead check 20 minutes after dispatch, tied
-   to the wake comment and inbox IDs. Check signed rulings and status once, update the queue,
-   apply cleared decisions and advance ready work. Record the pending trigger if no ruling has
-   landed. Arrange the timer from the local lead when the dispatching runtime lacks scheduling.
-
-Keep `review-ready` for pinned regular-reviewer PR reviews. Ready Architect-only reviews ride the same wake as rulings:
-list their inbox IDs and pinned heads in the `/architect-run` comment, so one Architect run clears the batch.
-Builders and reviewers route wake requests through the lead.
-If the Claude integration is reconfigured, match a label addition for `architect-wake` on #265,
-not comments, label removal or this label on another item.
+#265 and `architect-wake` are retired. The owner may remove that trigger.
 
 ## Templates
 

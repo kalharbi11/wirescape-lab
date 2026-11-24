@@ -58,7 +58,7 @@ builder checks the quoted invariants on the exact head; nothing High means the l
 records the merge condition with `review-required`. When the current head is ready, the lead
 posts the pinned review request once and adds `review-ready` per the [label lifecycle](README.md#github-labels-for-work-and-review).
 Only Architect-only work needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md); it never gets `review-ready`
-(that label starts the regular reviewer) and is dispatched by the lead's `architect-wake` batch.
+(that label starts the regular reviewer) and is dispatched by the lead's `architect-ready` label.
 The lead tells the owner once and continues unaffected tasks.
 Where a contract from M3 on says contract-review without the word **Claude**, and no Claude
 session has answered within 24 hours, a fresh `gpt-reviewer` chat may run the same checklist; the

@@ -124,7 +124,7 @@ the lead) needs:
 2. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
 3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add `review-ready` to an
    Architect-only review**: that label starts the regular cloud reviewer, not the Architect. Dispatch ready Architect
-   reviews and rulings together with one [`architect-wake`](../workflow/README.md#intentional-architect-wake) on #265.
+   items with [`architect-ready`](../workflow/README.md#architect-dispatch-architect-ready), one per lead run.
 4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
    withdrawn, say so in the row; do not leave a stale Open row.
 An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
@@ -157,16 +157,9 @@ On any lead or builder chat rotation,
 transfer still-authorized pending check-ins with their remaining times and expiry. Verify
 the replacement before retiring the old schedule.
 
-Only the delivery lead may send a batched Architect wake. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending
-`architect-wake` or duplicate batch. Post the scoped `/architect-run` comment first, then
-add `architect-wake` to #265. Only the label addition dispatches Claude. The Architect removes
-it when done. Keep routine inbox traffic quiet and dispatch only for urgency or a useful ready
-batch. After every successful label addition, schedule a one-shot lead check 20 minutes
-after dispatch. Pin the wake comment and inbox IDs, check for signed rulings and live status
-once, record and apply cleared decisions, and move eligible work forward. If the ruling is
-pending, record the next event that can unblock it and continue unaffected work. Use the
-local lead if the dispatching runtime cannot schedule. See the
-[verified event contract](../workflow/README.md#intentional-architect-wake).
+Only the delivery lead dispatches the Architect: add `architect-ready` to the most urgent ready
+Architect item, one per lead run; the other ready inbox rows ride along. Read results in the inbox and
+CURRENT at the next lead run; no timer. See [Architect dispatch](../workflow/README.md#architect-dispatch-architect-ready).
 Do not grant a reviewer a role their task contract or owner has not authorized.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET

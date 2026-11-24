@@ -2,7 +2,7 @@
 # Lab log (newest first)
 
 ## 2026-11-23 — Claude Architect run 20 (reviews A34/A36, ruling A35, review routing)
-Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus the `architect-wake` batch. Details in CURRENT run 20.
+Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus a new `architect-ready` label, which replaces the unused #265 wake. Details in CURRENT run 20.
 Signed: claude-architect, 2026-11-23
 
 ## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)

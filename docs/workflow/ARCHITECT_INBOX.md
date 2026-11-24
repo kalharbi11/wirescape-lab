@@ -8,12 +8,12 @@ reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
 review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
-cloud reviewer); send it in the next `architect-wake` batch. Routine independent review uses
+cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
-A row and its labels record the decision or review request. Only the delivery lead sends
-a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
+[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
+starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
