@@ -7,6 +7,16 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead quick check — 2026-11-23 21:04 EST
+
+- #382 merged. Run 21's A37 and OB r2.6 control the VCF correction and Pi timing. PI-1 and Pi execution wait until the OB1 candidate. Hosted checks continue.
+- TR1e #385 `5d2d78b`: Lab 45300014894, Golden 45300015054 and strict paired 45300015015 complete and green. B5's exact-head Result supports A38 Architect review. E6 awaits the TR1e disposition.
+- B1 verifies the fail-first Groove evidence on #384. B2's #386 sanitizer reproduction is CPU-dominant and receives one bounded attribution step. B3 classifies S7.5's paired failures and updates evidence. B4 finishes the S7.7 A37 evidence on #380 before review.
+- C1 digest comments are live. #367 stays open until two successive checked heads are shown updating the same comment ID.
+- Codex at entry: 22% of five-hour allowance remained, reset 23:29 EST. Weekly remaining 78%.
+
+Signed: codex-lead, 2026-11-23, 21:04 EST
+
 ## Decided 2026-11-23 20:20 ET: Architect run 21 — A37 (S7.7) and Pi postponed
 
 - **A37 #380 S7.7 → [M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012).** (a) Grant #373 one function, `host/document/qt_free_patch_coverage_tests.cpp` `serialized_demo_equivalence`: retire only the ABI1 `1e-7` bound (`retired: intended sound change S7.7`) and print the error. Exact v1 = saved/reloaded v2 equality, finite samples, zero allocations, 96,000 samples and the intact fixture stay asserted; the fixture, manifest and `frozen_reference.h` are unchanged. (b) Rows that contain the VCF (module rows and `fixed/abi2_mono`/`poly8`) fall under S7.7's +5 % cap with `Cost-change:` lines; rows without it stay at 1 %. `0020` §7 governs new modules and modes, not M7 declared changes. No optimization is required (worst +3.52 % x64). **Lead:** B4 applies it and posts the Result; then dispatch the Claude review with `architect-ready`.
