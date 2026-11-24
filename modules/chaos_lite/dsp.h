@@ -98,10 +98,38 @@ struct ChaosLite {
             v.last_pitch_in = 0; v.pitch_seen = false;
         }
     }
-    static float wave(float phase, float shape) {
+    // Wider cubic PolyBLEP: integrate the parabolic smoothing kernel over
+    // +/-1.65 samples. The ordinary two-sample quadratic correction leaves
+    // too much energy in the first folded harmonics. Cap phase support below
+    // half a cycle so the fundamental cannot cross the kernel's first null.
+    static float blep_residual(float u) {
+        const float t = 1.f - u;
+        return t * t * (1.f + .5f * u);
+    }
+    static float falling_blep(float phase, float width, float inverse_width) {
+        float result = 0.f;
+        if (phase < width) result += blep_residual(phase * inverse_width);
+        if (1.f - phase < width) result -= blep_residual((1.f - phase) * inverse_width);
+        return result;
+    }
+    static float wave(float phase, float shape, float step) {
         const float saw = phase * 2.f - 1.f, square = phase < .5f ? 1.f : -1.f;
-        if (shape < 1.f) return saw + shape * (square - saw);
-        return square + (shape - 1.f) * (std::sin(6.28318530718f * phase) - square);
+        // Preserve the exact old arithmetic at pure sine, including rounding.
+        if (shape >= 2.f) return square + (shape - 1.f) * (std::sin(6.28318530718f * phase) - square);
+        const float width = std::min(1.65f * step, .45f);
+        const float inverse_width = 1.f / width;
+        const float edge = falling_blep(phase, width, inverse_width);
+        // Frequency-continuous level compensation for removed harmonic energy.
+        // Bound gain at high normalized pitch. No change to sine gain.
+        const float d = std::min(step, .18f);
+        const float common = 11.f * d;
+        const float saw_bl = (saw + edge) * (1.f + d * (1.9f + common));
+        if (shape <= 0.f) return saw_bl;
+        const float half_phase = phase < .5f ? phase + .5f : phase - .5f;
+        const float square_bl = (square - edge + falling_blep(half_phase, width, inverse_width)) *
+                                (1.f + d * (1.6f + common));
+        if (shape < 1.f) return saw_bl + shape * (square_bl - saw_bl);
+        return square_bl + (shape - 1.f) * (std::sin(6.28318530718f * phase) - square_bl);
     }
     static void advance(float& phase, float step) { phase += step; phase -= std::floor(phase); }
     static float bound(float x, float lo, float hi) { return std::clamp(x, lo, hi); }
@@ -151,8 +179,9 @@ struct ChaosLite {
                 const float pitch = bound(pitch_in + .25f * b.in(3).value(c, i) + instability, -4, 6);
                 const float fa = bound(261.625565f * std::exp2(bound(pitch + std::round(p(3)) + (target == 0 ? mod : 0), -4, 8)), 16, rate * .45f);
                 const float fb = bound(261.625565f * std::exp2(bound(pitch + std::round(p(4)) + p(2) / 1200.f, -4, 8)), 16, rate * .45f);
-                const float a = wave(v.phase_a, p(0)) * p(5), bb = wave(v.phase_b, p(1)) * p(6);
-                advance(v.phase_a, fa / rate); advance(v.phase_b, fb / rate);
+                const float step_a = fa / rate, step_b = fb / rate;
+                const float a = wave(v.phase_a, p(0), step_a) * p(5), bb = wave(v.phase_b, p(1), step_b) * p(6);
+                advance(v.phase_a, step_a); advance(v.phase_b, step_b);
                 advance(v.rough_phase, p(16) / rate);
                 if (v.rough_phase < p(16) / rate) v.rough = v.drift.random.bipolar();
                 const float rough_gain = 1.f - p(15) * (.5f + .5f * v.rough);

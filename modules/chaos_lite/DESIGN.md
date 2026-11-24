@@ -11,6 +11,19 @@ pitch-related ratios (1, 1.4983, 2.003) and saturating feedback. The stereo A/B 
 law is linear, with independent left/right resonator and coupler histories. A
 one-pole post filter, DC blocker, rational soft clip and −1 dBFS ceiling bound output.
 
+S7.3 uses a centered cubic PolyBLEP correction for the saw reset and both square
+edges. The residual is (1-u)^2(1+u/2) on each side of an edge, from the
+integral of a parabolic smoothing kernel. The support is 1.65 samples per side,
+capped at 0.45 cycles at high normalized pitch to avoid the first kernel null.
+The phase increment drives both correction and phase advance. For normalized
+increment d capped at 0.18, the saw and square level factors are respectively
+1+d(1.9+11d) and 1+d(1.6+11d), chosen to compensate for lost harmonic energy
+without discontinuous tuning or unbounded high-pitch gain. Shape morphing
+interpolates the corrected endpoints; pure sine retains the original expression.
+The correction is stateless and allocation-free; state v1/v2 loading is unchanged.
+The T7.0 restricted alias bins measure the complete output including the nonlinear
+post stage, so a lower result is not a claim of zero aliasing.
+
 All comb and coupler storage is requested with WS2_LARGE in prepare. The memory
 query conservatively includes alignment padding; allocation and destruction belong
 to the host. At 48 kHz eight prepared voices reserve approximately 0.60 MB plus
