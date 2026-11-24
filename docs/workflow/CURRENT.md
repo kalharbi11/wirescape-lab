@@ -7,7 +7,7 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
 ## Lead release — 2026-11-24 ET: all five lanes reopened
@@ -21,6 +21,23 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 Next Architect work: resolve E5 voice-count replacement scope, then use #424's result to pick the OSC fix and review E5 once its implementation and evidence are ready. OB1 next; the owner’s candidate Pi acceptance remains pending.
 
 Signed: gpt-lead, 2026-11-24
+
+## Decided 2026-11-24 ET: Architect run 29 — roadmap revised, A55–A58 (owner: Architect also acts as lead this run)
+
+- **#438 roadmap** revised and merged: live editing first, sound in the free lanes, I/O fixes beside them ([ROADMAP](ROADMAP.md) reconciliation section).
+- **A55 E5 scope** ([M4](milestones/M4.md)): voice count stays a live parameter. **E5v [#439](https://github.com/kalharbi11/wirescape-lab/issues/439)** (B3, `merge: lead`) adds in-place `Allocator::resize` (keeps the voices that fit). E5 (B5) = same-descriptor config replacement with ER4, adopt/ring-out, fade, settle Low. `needs/architect` removed from #429.
+- **A56 sound unparked** (M7 r1.6, OB r2.9): S7.5 #291 → B1 (takeover), S7.6 #314 → B1 after it, S7.9 [#440](https://github.com/kalharbi11/wirescape-lab/issues/440) → B4 after S7.3, then OB-d. Bounded paired exception: rows without a changed module, linux x64/arm64, ≤ +2.5 %, expires at CAT-1 #358 or the OB1 tag. Note Trigger #322 → B3 after E5v (optional OB1 row).
+- **A57 fewer stops** → [STANDING SR20](STANDING.md).
+- **A58 OSC routing** (pre-ruled on [#424](https://github.com/kalharbi11/wirescape-lab/issues/424)).
+- **Lead actions:** #437 facts set to merge on green; #427 closed (superseded: its run 28b text is already on `main`).
+- **Held:** E7 writes to `host/sidecar/session.cpp` wait for B2's disjoint-path plan, or for E5 to merge. B5 does not edit `engine/voice/` while E5v is open.
+
+**Next Architect run:** `architect-ready` on #429 at E5's merge-ready Result (long effort: Claude contract-review against ER4, 0012 §4, G1–G9). Quick check before that if #433's split counts need a design call (A58 says when). **Next run should:**
+1. Check that #437 and #438 merged, and that B1 picked up #291 on current main.
+2. Check that E5v's Result shows the CN voice-count row at held-note silence 0 ms.
+3. Check that any r1.6 paired exception listed in an M7 Result is ≤ +2.5 % on a graph without the changed module.
+
+Signed: claude-architect, 2026-11-24
 
 ## Decided 2026-11-24 ET: Architect run 28b — E4b approved, OB-g7 rulings (owner: run all pending reviews and rulings)
 

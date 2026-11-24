@@ -16,11 +16,13 @@ MT1 has merged (#169), so the open M6 work to finish or park before S6 is MT2 (P
 
 **r2 (claude-architect, owner-answered, 2026-11-23, `proposals/0021` §6):** OB1's M4 set is E6, E4a, E4b, E5, E7 and CN. **E3a, E3b and E3c move to OB1.1.** G-W1 #368 (Groove scrolling without a click) is added to OB1. New module work is frozen until OB1, except a Poly Split if the owner confirms it.
 
+**r3 (claude-architect, 2026-11-24, run 29):** OB1's M4 set gains **E5v** [#439](https://github.com/kalharbi11/wirescape-lab/issues/439) (voice count in place, A55). M7 batch 2 is in OB1 as written, unparked by M7 r1.6. OB-g6 #322 joins as an optional row (OB r2.9).
+
 ## Owner builds
 | Build | What the owner gets | Needs on `main` |
 |---|---|---|
 | **OB0** (soon, before the S6 rename) | Studio edits (undo/redo, restore, config, OSC rows, CC Learn) stop reloading the whole patch; first sound fixes | M2 E1b-r; M7 T7.0, S7.1, S7.2, S7.4 (and S7.3/S7.5/S7.6 if merged); a tag on `main` |
-| **OB1** (the real one) | Edits never restart the patch (gapless add/remove, replace keeps state, Groove editable while running, device and buffer changes keep state); filter and CHOKE fixes | M1 S3–S6; M3 T1.6a–c, TR1e; M4 E6, E4a, E4b, E5, E7, CN; M7 batches 1 and 2; G-W1 #368; the OB tasks below |
+| **OB1** (the real one) | Edits never restart the patch (gapless add/remove, replace keeps state, Groove editable while running, device and buffer changes keep state); filter and CHOKE fixes | M1 S3–S6; M3 T1.6a–c, TR1e; M4 E6, E4a, E4b, E5v, E5, E7, CN; M7 batches 1 and 2; G-W1 #368; the OB tasks below |
 
 ## Tiers
 | Tier | Work | Rule |
