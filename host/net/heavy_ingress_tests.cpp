@@ -23,6 +23,17 @@
 #if defined(__linux__)
 #include <time.h>
 #endif
+#if defined(__linux__) && defined(__x86_64__) && defined(__SANITIZE_ADDRESS__)
+#include <algorithm>
+#include <cerrno>
+#include <csignal>
+#include <cstring>
+#include <map>
+#include <sanitizer/common_interface_defs.h>
+#include <sys/syscall.h>
+#include <ucontext.h>
+#define OB_G8_RENDER_SAMPLES
+#endif
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -61,6 +72,50 @@ struct RenderCpuTiming {
         ++samples;
     }
 };
+#endif
+
+#ifdef OB_G8_RENDER_SAMPLES
+// One bounded Linux ASan observation. Capture only the interrupted PC in
+// the handler, then symbolize it after the render thread has exited.
+constexpr unsigned sample_limit = 512;
+std::atomic<bool> sampling_render{false};
+std::atomic<unsigned> sample_count{0};
+std::atomic<uintptr_t> sample_pcs[sample_limit]{};
+static_assert(std::atomic<bool>::is_always_lock_free &&
+              std::atomic<unsigned>::is_always_lock_free &&
+              std::atomic<uintptr_t>::is_always_lock_free);
+
+__attribute__((no_sanitize_address, no_sanitize_undefined))
+void sample_render(int, siginfo_t *signal, void *context) noexcept {
+    if (signal->si_code != SI_TIMER || !sampling_render.load(std::memory_order_relaxed)) return;
+    const unsigned index = sample_count.load(std::memory_order_relaxed);
+    if (index >= sample_limit) return;
+    const auto &registers = static_cast<const ucontext_t *>(context)->uc_mcontext.gregs;
+    sample_pcs[index].store(static_cast<uintptr_t>(registers[REG_RIP]), std::memory_order_relaxed);
+    sample_count.store(index + 1, std::memory_order_relaxed);
+}
+
+void report_render_samples(int setup_error, int timer_error) {
+    const unsigned count = sample_count.load(std::memory_order_relaxed);
+    std::fprintf(stderr, "OB-g8 render samples: count=%u limit=%u setup_errno=%d timer_errno=%d\n",
+                 count, sample_limit, setup_error, timer_error);
+    std::map<std::string, unsigned> histogram;
+    for (unsigned i = 0; i < count; ++i) {
+        char frames[2048]{};
+        const auto pc = sample_pcs[i].load(std::memory_order_relaxed);
+        __sanitizer_symbolize_pc(reinterpret_cast<void *>(pc + 1), "%f", frames, sizeof(frames));
+        const char *outer = frames;
+        for (const char *frame = frames; *frame; frame += std::strlen(frame) + 1) outer = frame;
+        std::string location = frames[0] ? frames : "<unresolved>";
+        if (outer != frames) location += std::string(" in ") + outer;
+        ++histogram[location];
+    }
+    std::vector<std::pair<unsigned, std::string>> ranked;
+    for (const auto &entry : histogram) ranked.emplace_back(entry.second, entry.first);
+    std::sort(ranked.rbegin(), ranked.rend());
+    for (size_t i = 0; i < ranked.size() && i < 12; ++i)
+        std::fprintf(stderr, "OB-g8 render sample: %u %s\n", ranked[i].first, ranked[i].second.c_str());
+}
 #endif
 
 // Windows' default sleep timer is often ~15ms; sleeping for 200us silently
@@ -232,7 +287,31 @@ void reproduce(bool panic_only) {
 #if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
     RenderCpuTiming cpu_timing;
 #endif
+#ifdef OB_G8_RENDER_SAMPLES
+    struct sigaction action{}, old_action{};
+    action.sa_sigaction = sample_render;
+    action.sa_flags = SA_SIGINFO | SA_RESTART;
+    sigemptyset(&action.sa_mask);
+    const int signal_error = sigaction(SIGPROF, &action, &old_action) == 0 ? 0 : errno;
+    int timer_error = 0;
+#endif
     std::thread render([&] {
+#ifdef OB_G8_RENDER_SAMPLES
+        timer_t sample_timer{};
+        bool timer_created = false;
+        if (!signal_error) {
+            sigevent event{};
+            event.sigev_notify = SIGEV_THREAD_ID;
+            event.sigev_signo = SIGPROF;
+            event._sigev_un._tid = static_cast<pid_t>(syscall(SYS_gettid));
+            timer_created = timer_create(CLOCK_THREAD_CPUTIME_ID, &event, &sample_timer) == 0;
+            if (!timer_created) timer_error = errno;
+            if (timer_created) {
+                const itimerspec interval{{0, 1000000}, {0, 1000000}};
+                if (timer_settime(sample_timer, 0, &interval, nullptr) != 0) timer_error = errno;
+            }
+        }
+#endif
 #if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
         timespec resolution{};
         cpu_timing.resolution_error = clock_getres(CLOCK_THREAD_CPUTIME_ID, &resolution) != 0;
@@ -256,7 +335,13 @@ void reproduce(bool panic_only) {
             timespec cpu_before{}, cpu_after{};
             const auto wall_before = Clock::now();
             const bool before_ok = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &cpu_before) == 0;
+#ifdef OB_G8_RENDER_SAMPLES
+            sampling_render.store(true, std::memory_order_relaxed);
+#endif
             const int result = app_engine_render_live(engine.get(), out, 2, 128, callback_time);
+#ifdef OB_G8_RENDER_SAMPLES
+            sampling_render.store(false, std::memory_order_relaxed);
+#endif
             const bool after_ok = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &cpu_after) == 0;
             const auto finished = Clock::now();
             cpu_timing.read_errors += unsigned(!before_ok) + unsigned(!after_ok);
@@ -279,6 +364,9 @@ void reproduce(bool panic_only) {
             next += render_period;
             wait_for_callback(next);
         }
+#ifdef OB_G8_RENDER_SAMPLES
+        if (timer_created && timer_delete(sample_timer) != 0 && !timer_error) timer_error = errno;
+#endif
     });
     std::vector<Clock::time_point> sent_falls;
     size_t seen_falls = 0, seen_sequences = 0, sent_load = 0, sent_sequences = 0;
@@ -464,6 +552,10 @@ void reproduce(bool panic_only) {
         cpu_ms(cpu_timing.largest_gap.cpu), cpu_ms(cpu_timing.total.wall), cpu_ms(cpu_timing.total.cpu),
         cpu_timing.samples, cpu_timing.over_period, cpu_timing.read_errors,
         static_cast<long long>(cpu_timing.resolution.count()), unsigned(cpu_timing.resolution_error));
+#endif
+#ifdef OB_G8_RENDER_SAMPLES
+    if (!signal_error) sigaction(SIGPROF, &old_action, nullptr);
+    report_render_samples(signal_error, timer_error);
 #endif
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
