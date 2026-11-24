@@ -575,6 +575,68 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 165, 21, false);
 }
+// ER4 ingress-only scaffold: a config-shaped synthetic voice owner has the
+// same descriptor and ID on either side of an edit. Seed a held note in
+// the successor explicitly, so this test isolates birth from the pending
+// adopt/replay implementation. A pre-adoption note-off must reach it.
+// Conversely, removing the ID and introducing it in a separate edit
+// invalidates the old packet; it must not release the newly held note.
+static void replacement_packet_birth() {
+    Config config;
+    config.max_block = 4096;
+    auto make = [&](uint8_t voices) {
+        auto e = std::make_unique<Engine>(config);
+        CHECK(e->add_node(9, ws::Module<Source>::descriptor()));
+        if (voices) {
+            CHECK(e->add_node(1, ws::Module<ws2test::NotesToCv>::descriptor(), {voices}));
+            CHECK(e->output(1, 1, 0));
+        }
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto replan = [&](Engine &live, Engine &candidate) {
+        std::atomic<bool> done{false};
+        bool ok = false;
+        std::thread control([&] {
+            ok = live.replan(candidate, 200000000);
+            done.store(true, std::memory_order_release);
+        });
+        while (!done.load(std::memory_order_acquire)) {
+            render(live, 16);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+        control.join();
+        CHECK(ok);
+    };
+    auto held = [&](Engine &live) {
+        CHECK(live.enqueue(0, 1, 0, event(WS2_NOTE_ON, .75f), 0, Timing::Immediate) == WS2_OK);
+        render(live, 16);
+        CHECK(live.output_sample(1, 1, 0, 15) == 1.f);
+    };
+    for (bool replace : {false, true}) {
+        auto live = make(1);
+        held(*live);
+        const auto stale = live->meter().stale;
+        const uint64_t due = live->meter().frame + 65536;
+        CHECK(live->enqueue(0, 1, 0, event(WS2_NOTE_OFF, 0), due) == WS2_OK);
+        render(*live, 16); // Packet now lives in the future queue.
+        auto successor = make(2);
+        if (!replace) {
+            auto absent = make(0);
+            replan(*live, *absent);
+            CHECK(live->meter().stale == stale + 1);
+        }
+        replan(*live, *successor);
+        CHECK(live->meter().frame < due);
+        held(*live); // Deliberately independent of adopt/replay (tested separately).
+        CHECK(live->meter().stale == stale + (replace ? 0 : 1));
+        while (live->meter().frame <= due) render(*live, 4096);
+        render(*live, 16);
+        CHECK(live->output_sample(1, 1, 0, 15) == (replace ? 0.f : 1.f));
+        CHECK(live->meter().stale == stale + (replace ? 0 : 1));
+    }
+}
 // E4a: topology entries must not embed DSP instances. Two layouts must
 // be able to refer to the same instance without moving its address.
 static void layout_instance_separation(){
@@ -670,6 +732,7 @@ int main(){
  transport_ring();
  transport_serial();
  transport_replan();
+ replacement_packet_birth();
  parameter_channels();
  modulation_spans();
  telemetry();
