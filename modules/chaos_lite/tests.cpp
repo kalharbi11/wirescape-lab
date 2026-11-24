@@ -407,6 +407,7 @@ static void s73_alias_rows() {
                     alias_ok && rms_ok ? "PASS" : "FAIL");
         all_pass = all_pass && alias_ok && rms_ok;
     }
+    std::fflush(stdout); // Preserve all row diagnostics even on assertion failure.
     REQUIRE(all_pass);
 }
 
