@@ -366,8 +366,26 @@ static void signal_ramp_interrupted() {
     for (unsigned i = 1; i < 240; ++i) render();
     CHECK(sample[0] == 0);
 
-    // Prebuilt steady housekeeping must be silent on the wire and must
-    // not resurrect the removed cable or retire the live witness.
+    // E5 Low: a settled layout can be waiting for housekeeping when the
+    // audio stream stops. At most the first refresh may wait a full
+    // publication deadline; unchanged-position status ticks must not stall.
+    const auto stopped_frame = live->meter().frame;
+    live->refresh_latency();
+    constexpr unsigned stopped_ticks = 8;
+    const auto bound = std::chrono::nanoseconds(uint64_t(frames) * 3 * 1000000000 / 48000);
+    const auto start = Clock::now();
+    for (unsigned i = 0; i < stopped_ticks; ++i) live->refresh_latency();
+    const auto elapsed = Clock::now() - start;
+    CHECK(live->meter().frame == stopped_frame);
+    // Aggregate wall-clock margin: the defect waits >= 8 deadlines; allow
+    // four deadlines for hosted scheduling noise on the nonwaiting path.
+    CHECK(elapsed < 4 * bound);
+
+    // Resume callbacks before attempting housekeeping again. It must be
+    // silent on the wire and must not resurrect the removed cable or
+    // retire the live witness.
+    render();
+    CHECK(sample[0] == 0);
     std::atomic<bool> done{false};
     std::thread control([&] {
         live->refresh_latency();
