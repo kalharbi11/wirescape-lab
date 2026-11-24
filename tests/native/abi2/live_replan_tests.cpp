@@ -265,6 +265,40 @@ struct Audio {
     }
     void resume() { enabled = true; }
 };
+// E4b: an unrelated topology edit cannot attenuate a held witness bus.
+static void untouched_witness_no_dip() {
+    auto live = graph({false, true, false});
+    auto candidate = graph({true, true, false});
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float subject[frames]{}, witness[frames]{};
+    float *out[]{subject, witness};
+    for (unsigned i = 0; i < 4; ++i) CHECK(live->render(out, 2, frames) == WS2_OK);
+    const float held = witness[frames - 1];
+    CHECK(held == .75f);
+    std::atomic<bool> done{false}, success{false};
+    std::thread control([&] {
+        success = live->replan(*candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    bool identical = true;
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        {
+            allocation_watch::ThreadScope watch;
+            CHECK(live->render(out, 2, frames) == WS2_OK);
+            CHECK(watch.allocations() == 0);
+        }
+        for (float sample : witness) identical &= sample == held;
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    CHECK(success.load());
+    candidate.reset();
+    CHECK(live->render(out, 2, frames) == WS2_OK);
+    for (float sample : witness) identical &= sample == held;
+    CHECK(identical);
+}
+
 static void allocation_scope_is_thread_local() {
     std::atomic<bool> go{false}, done{false};
     std::thread control([&] {
@@ -546,6 +580,7 @@ int main(int argc, char **argv) {
     else CHECK(argc == 1);
     const char *strict = std::getenv("WIRESCAPE_REPLAN_STRICT");
     if (max_gap_ms > 0 || (strict && std::strcmp(strict, "1") == 0)) replan_attempts = 1;
+    untouched_witness_no_dip();
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
