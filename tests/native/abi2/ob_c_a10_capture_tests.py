@@ -62,7 +62,7 @@ class A10Capture(unittest.TestCase):
         return seg, marks, stderr
 
     def test_panic_drone_gap_and_contiguous_frames(self):
-        """OB r2.8 P1: allow the required phase reset, gate the audio gap."""
+        """OB r2.8a P1: allow the required phase reset, gate the audio gap."""
         # Keep the original captures in the hosted artifact even on a red oracle.
         evidence = os.environ.get("WIRESCAPE_OB_C_PANIC_EVIDENCE")
         if evidence:
@@ -143,32 +143,45 @@ class A10Capture(unittest.TestCase):
             first_required_block = (deadline + block - 1) // block
             silent_blocks = [b for b in range(first_required_block, got_segments[0]["blocks"])
                              if not nonzero(actual[b * block:(b + 1) * block])]
-            # Compare phase landmarks (sign and direction, not PCM identity)
-            # on the continuous drone epochs. The known VCO may restart at
-            # phase zero within the mark bracket. Allow the reported latency
-            # for that transition, then require uninterrupted progression.
+            # Preserve the existing pre-reset check. A52 replaces the
+            # post-reset landmark comparison with exact sample identity.
             def landmarks(samples):
                 return [(v > 0, v < 0, w > v, w < v)
                         for v, w in zip(samples, samples[1:])]
 
             pre = landmarks(actual[first_actual:lo])
             pre_ok = pre == landmarks(control[first_ref:first_ref + lo - first_actual])
-            post_start = first_required_block * block
-            post = landmarks(actual[post_start:])
-            # The reference starts at the first nonzero sample, one sample
-            # after phase zero. Test all block-boundary resets consistent
-            # with the marks, rather than using the observed mismatch to
-            # choose the boundary. A delayed audible start within the
-            # reported latency is also permitted by the gap oracle.
+            # The first nonzero sample follows the VCO's phase-zero sample.
+            # Search only the contracted block-boundary reset origins and
+            # compare from each candidate through the entire captured tail.
+            # Do not trim a mismatch or select an origin from the PCM itself.
+            reference_origin = first_ref - 1
+            self.assertGreaterEqual(reference_origin, 0)
+            self.assertEqual(control[reference_origin], 0.0,
+                             "INFRA: reference has no phase-zero origin")
             matching_origins = []
-            for origin in range(lo, min(post_start, mark["b1"] * block + latency_frames) + 1, block):
-                ref_start = first_ref - 1 + post_start - origin
-                if ref_start >= 0 and ref_start + len(actual) - post_start <= len(control):
-                    if post == landmarks(control[ref_start:ref_start + len(actual) - post_start]):
-                        matching_origins.append(origin)
-            # Repeated adjacent audible samples are reflected in the direction
-            # landmarks; exact repeated complete audible blocks are checked
-            # separately. The format does not carry absolute engine frame IDs.
+            origin_reports = []
+            for origin in range(lo, deadline + 1, block):
+                count = len(actual) - origin
+                self.assertGreater(count, 0, "INFRA: reset origin outside capture")
+                self.assertLessEqual(reference_origin + count, len(control),
+                                     "INFRA: reference too short for full post-reset comparison")
+                mismatch = next((i for i in range(count)
+                                 if actual[origin + i] != control[reference_origin + i]), None)
+                origin_reports.append({
+                    "origin_capture_frame": origin,
+                    "reference_origin_frame": reference_origin,
+                    "required_samples": count,
+                    "first_mismatch_index": mismatch,
+                    "first_mismatch_capture_frame": None if mismatch is None else origin + mismatch,
+                    "first_mismatch_reference_frame": None if mismatch is None else reference_origin + mismatch,
+                    "reference_value": None if mismatch is None else control[reference_origin + mismatch],
+                    "panic_value": None if mismatch is None else actual[origin + mismatch],
+                })
+                if mismatch is None:
+                    matching_origins.append(origin)
+            # Independently check adjacent repeated complete audible blocks.
+            # Capture format still does not expose absolute engine frame IDs.
             repeated_blocks = [b for b in range(first_required_block + 1, got_segments[0]["blocks"])
                                if actual[(b - 1) * block:b * block] == actual[b * block:(b + 1) * block]]
             report = {
@@ -207,6 +220,7 @@ class A10Capture(unittest.TestCase):
                 "repeated_adjacent_blocks_past_latency": repeated_blocks,
                 "pre_reset_phase_landmarks_match": pre_ok,
                 "post_reset_matching_phase_origins": matching_origins,
+                "post_reset_sample_identity_by_origin": origin_reports,
                 "independent_absolute_engine_frame_ids_available": False,
             }
             (root / "panic-report.json").write_text(
@@ -225,8 +239,10 @@ class A10Capture(unittest.TestCase):
                             "INFRA: capture ends before reported latency")
             self.assertFalse(silent_blocks, "PRODUCT_A10_PANIC: silent block past reported latency")
             self.assertFalse(repeated_blocks, "PRODUCT_A10_PANIC: repeated audible block")
-            self.assertTrue(pre_ok and matching_origins,
-                            "PRODUCT_A10_PANIC: discontinuous drone phase progression outside reset window")
+            self.assertTrue(pre_ok, "PRODUCT_A10_PANIC: discontinuous pre-reset drone phase progression")
+            self.assertTrue(matching_origins,
+                            "PRODUCT_A10_PANIC: no sample-identical block-boundary reset origin; "
+                            + json.dumps(origin_reports, sort_keys=True))
             print("OB-C-A10-PANIC-FULL-FRAME-FACT " + json.dumps({
                 "architecture": __import__("platform").machine(),
                 "aligned_first_reference_frame": first_ref,
