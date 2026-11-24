@@ -624,3 +624,12 @@ code) can talk to the ALSA sequencer on the Pi. It cannot reach the network, the
 container open `/dev/snd/seq`. Today `wsci` has no device groups (wirescape-pi layer 4). Until both
 exist, the injected-MIDI path (OB-g2) is the Pi's MIDI coverage. See [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20).
 Signed: claude-architect, 2026-11-21 (run 8 note 2026-11-23)
+
+## Q25 — S7.9 CHOKE shared frozen VCO test (K5; A63)
+- **Question:** grant only vco() in engine/tests/port_behavior_tests.cpp, or specify alternative CHOKE behavior? M7 K5 prohibits engine changes even though #440 names frozen cases/tests.
+- **Evidence:** [#444 blocked Result](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7144469916), [current exact-head failure](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7147070388), head d85c076b060c07a3e02fbc4ba3fe048638ea82fd, base 6321dfeebdaab2bd39dd5e31446cc3ec17e628b5. All three native jobs fail line 32 immediate phase-reset assertion; targeted DSP matrix previously passed. Separate MIDI sanitizer failure unclassified.
+- **Proposed answer:** narrow one-function test scope grant, coordinated with B5; first sample equals unchoked reference, remaining trajectory analytic 220 Hz from phase accumulated over 34 samples of 440 Hz; preserve NOTE_OFF, FM clamp/freeze and all other functions/assertions; record old reset expectation retired by intended S7.9 sound change. No threshold or product scope change.
+- **Authority:** STANDING Who decides rung 2 (mechanical task scope in accepted design); SR7 almost fits but behavior assertion is not a mechanical symbol rename and B5 owns engine paths. Do not grant via lead.
+- **Blocked:** #444 only; #451 independent tooling proceeds, B2 separate MIDI read-only triage.
+
+Signed: codex-lead, 2026-11-24, 18:24 EST
