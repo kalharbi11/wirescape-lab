@@ -247,10 +247,10 @@ Each line below is a standalone JSON wire line. `>` denotes renderer→engine st
 < {"v":0,"session":"s1","re":"r6","ok":true,"gen":"3"}
 ```
 
-**T07 — modulation amount changes live without advancing generation (precondition: the named modulation cable exists).**
+**T07 — modulation amount changes live without advancing generation (precondition: the named modulation cable exists at generation 4).**
 ```text
 > {"v":0,"id":"r7","type":"setModAmount","connection":{"kind":"modulation","from":{"module":10,"port":"control"},"to":{"module":9,"port":"frequency"},"amount":0.2},"amount":-0.5}
-< {"v":0,"session":"s1","re":"r7","ok":true,"gen":"3"}
+< {"v":0,"session":"s1","re":"r7","ok":true,"gen":"4"}
 ```
 
 **T08 — keyboard NoteOn/NoteOff and priority panic do not advance graph generation.**

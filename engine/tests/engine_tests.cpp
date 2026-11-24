@@ -398,6 +398,31 @@ static void live_modulation_amount() {
     CHECK(engine.output_sample(2, 0, 0, 239) == 10.f);
 }
 
+static void modulation_edge_birth() {
+    Engine engine;
+    CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {1}));
+    CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
+    CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {1}));
+    CHECK(engine.modulate(1, 0, 2, 0, 0));
+    CHECK(engine.register_producer() == 0);
+    CHECK(engine.prepare());
+    render(engine, 16);
+
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .25f) == WS2_OK);
+    const auto stale = engine.meter().stale;
+    CHECK(engine.reconfigure(3, {2})); // A surviving edge keeps its pending update.
+    render(engine, 240);
+    CHECK(engine.meter().stale == stale);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .525)) < 2e-5);
+
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .75f) == WS2_OK);
+    CHECK(engine.reconfigure(1, {2})); // Same endpoint names, a new edge birth.
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .5f) == WS2_OK);
+    render(engine, 240);
+    CHECK(engine.meter().stale == stale + 1);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .55)) < 2e-5);
+}
+
 struct TransportProbe {
     static constexpr ws::Info info{"test.transport", "Transport", 1};
     static constexpr std::array<ws2_port, 0> inputs{};
@@ -558,6 +583,7 @@ int main(){
 #endif
  invalid_events();
  live_modulation_amount();
+ modulation_edge_birth();
  transport_ring();
  transport_serial();
  transport_replan();
