@@ -277,6 +277,38 @@ def jump_ratio(x: Sequence[float], rate: int, edit: int, late: int | None = None
     return _max_step(x[lo:hi]) / ref
 
 
+def paired_window(x: Sequence[float], control: Sequence[float], rate: int,
+                  edit: int, late: int) -> tuple[Sequence[float], Sequence[float]]:
+    """A50 comparison window: one second on either side of the edit bracket."""
+    lo, hi = edit - rate, late + rate
+    if lo < 0 or late < edit or hi > min(len(x), len(control)):
+        raise ValueError('A50 comparison window outside the aligned captures')
+    actual, expected = x[lo:hi], control[lo:hi]
+    if not all(math.isfinite(v) for samples in (actual, expected) for v in samples):
+        raise ValueError('A50 comparison window has non-finite or uncovered samples')
+    return actual, expected
+
+
+def paired_levels(actual: Sequence[float], expected: Sequence[float], rate: int) -> dict:
+    """Compare aligned windows; a silent control contributes no dip denominator."""
+    floor = 10.0 ** (SILENCE_DBFS / 20.0)
+    longest = count = 0
+    for sample, control in zip(actual, expected):
+        count = count + 1 if abs(sample) < floor <= abs(control) else 0
+        longest = max(longest, count)
+    width = max(1, _n(1.0, rate))
+    ratios = (a / b for a, b in zip(_sliding_rms(actual, width), _sliding_rms(expected, width))
+              if b >= floor)
+    lowest = min(ratios, default=None)
+    return dict(silence_ms=_ms(longest, rate), dip_db=None if lowest is None else _db(lowest))
+
+
+def paired_steps(actual: Sequence[float], expected: Sequence[float]) -> float | None:
+    """Compare peak steps within the same window on the edited and control captures."""
+    control_step = _max_step(expected)
+    return _max_step(actual) / control_step if control_step else None
+
+
 # 5. disturbed_ms
 def disturbed_ms(x: Sequence[float], continuation: Sequence[float], rate: int, edit: int,
                  late: int | None = None) -> float:

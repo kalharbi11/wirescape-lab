@@ -93,6 +93,19 @@ file states numbers and sources; it never says what should be done.
 the task it names. Every other ready task proceeds. An acceptance report is filed when a
 milestone's tasks are merged; the next milestone's tasks start on their own "Depends on" cells.
 
+**SR20 Fewer stops (Architect, 2026-11-24, run 29, A57; owner: "move forward without many stops
+until merge-ready").** (a) **Self-release:** a builder starts the next task in its BUILDERS queue
+when its predecessor merges; if the issue does not exist it opens one quoting the contract row.
+No lead assignment comment is needed. (b) **Low findings never block a merge.** They become one
+follow-up line in the lane queue. (c) **`merge: lead` with no review condition:** exact-head
+required checks plus a signed Result are enough; the lead (or the Architect) merges or enables
+auto-merge without a separate pinned request. (d) **Facts-only PRs** (`facts/` only, no product
+path) auto-merge on required checks under SR18. (e) **Rulings travel:** when a written ruling
+covers a case (for example A58's OSC fix routing), the lead releases the task without asking the
+Architect again. (f) A Claude contract-review is asked **once**, at the head the builder calls
+merge-ready; intermediate heads are not reviewed. None of this changes a gate, a tolerance or a
+"Fixed" item.
+
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.
 2. **The design authority in session** (Fable, or Fable's deputy on an Opus session; see
