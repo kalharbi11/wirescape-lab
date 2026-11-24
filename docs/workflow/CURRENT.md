@@ -9,6 +9,21 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead delivery update — 2026-11-24 03:17 EST
+
+- #380 merged `540024d` after D5. B4 holds #374, B2 holds #399 under Architect run 24,
+  and E6 #395 still awaits its signed Result before review. No review dispatch is due.
+- #275 has green Lab, Golden and paired runs at `070db7a`; the dedicated A10 behavioral
+  disposition remains separate. #291 T7.0 capture completed at `733cff4` (run 45352415110),
+  with metric verification, R3 and D5 remaining. #393 still needs its signed K1 Result and the
+  T7.0 capture-workflow retirement check.
+- Owner approved the revised [coordination trial](../context/COORDINATION_MANAGER.md).
+  Fresh lead windows are eight hours apart, twelve at 50% weekly remaining, manual only at
+  25%. Terra posts closeout reports and usage snapshots to [#402](https://github.com/kalharbi11/wirescape-lab/issues/402).
+  Current manager routing remains manual until the first scheduled lead window.
+
+Signed: codex-lead, 2026-11-24, 03:17 EST
+
 ## Decided 2026-11-24 ET: Architect run 24 — quick check, B2 gets #399
 
 - **Last run's list, checked:**
