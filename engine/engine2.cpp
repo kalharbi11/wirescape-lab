@@ -30,7 +30,8 @@ uint32_t Engine::feedback_edges() const { return p_->feedback_count; }
 uint32_t Engine::latency_frames(uint32_t bus) const { return bus < p_->layout->bus_latency.size() ? p_->layout->bus_latency[bus] : 0; }
 std::vector<FeedbackLoop> Engine::feedback_loops() const {
     std::vector<FeedbackLoop> result;
-    for (auto &component : p_->layout->components)
+    const auto *target = p_->steady_layout ? p_->steady_layout.get() : p_->layout.get();
+    for (auto &component : target->components)
         if (component.loop) {
             FeedbackLoop loop;
             loop.delay_frames = p_->cfg.feedback_block;

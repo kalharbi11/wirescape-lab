@@ -147,16 +147,18 @@ bool Engine::Impl::finish_prepare() {
 
 
 bool Engine::Impl::wire_edges() {
-    std::sort(layout->nodes.begin(), layout->nodes.end(), [](const auto &a, const auto &b) { return a->instance.id < b->instance.id; });
+    std::stable_sort(layout->nodes.begin(), layout->nodes.end(), [](const auto &a, const auto &b) {
+        return std::tie(a->instance.id, a->retired) < std::tie(b->instance.id, b->retired);
+    });
     for (uint32_t i = 0; i < layout->nodes.size(); ++i) layout->nodes[i]->slot.index = i;
-    std::sort(layout->edges.begin(), layout->edges.end(), [](const Edge &a, const Edge &b) {
+    std::stable_sort(layout->edges.begin(), layout->edges.end(), [](const Edge &a, const Edge &b) {
         return a.key() < b.key();
     });
     for (auto &e : layout->edges) {
-        e.source = find(e.from);
-        e.destination = find(e.to);
+        if (!e.source) e.source = find(e.from);
+        if (!e.destination) e.destination = find(e.to);
         e.back = false;
-        if (e.removed) continue;
+        if (e.removed && !e.ramped) continue;
         if (!e.source || !e.destination || e.output >= e.source->instance.outputs.size() ||
             (e.kind == 2 ? e.input >= e.destination->instance.parameters.size()
                          : e.input >= e.destination->instance.inputs.size()))
@@ -170,19 +172,32 @@ bool Engine::Impl::wire_edges() {
     }
     layout->node_table.clear();
     for (auto &n : layout->nodes) {
-        layout->node_table.emplace_back(n->instance.id, n.get());
+        if (!n->retired) layout->node_table.emplace_back(n->instance.id, n.get());
         n->slot.incoming.assign(n->instance.inputs.size(), nullptr);
         n->slot.signal_edges.clear();
+        n->slot.transition_inputs.clear();
         n->slot.modulation.assign(n->instance.parameters.size(), {});
         n->slot.outgoing.assign(n->instance.outputs.size(), {});
     }
     for (auto &e : layout->edges)
-        if (!e.removed) {
-            if (e.kind == 0) e.destination->slot.incoming[e.input] = &e;
+        if (!e.removed || e.ramped) {
+            if (e.kind == 0) {
+                auto &slot = e.destination->slot;
+                if (!slot.incoming[e.input] || !e.removed) slot.incoming[e.input] = &e;
+                if (e.ramped && slot.transition_inputs.empty()) slot.transition_inputs.resize(slot.incoming.size());
+            }
             if (e.kind == 2) e.destination->slot.modulation[e.input].push_back(&e);
             if (e.kind == 1) e.source->slot.outgoing[e.output].push_back(&e);
             else e.destination->slot.signal_edges.push_back(&e);
         }
+    for (auto &e : layout->edges)
+        if (e.kind == 0 && (!e.removed || e.ramped) && !e.destination->slot.transition_inputs.empty())
+            e.destination->slot.transition_inputs[e.input].push_back(&e);
+    // Only affected input ports use the copy/blend path.
+    for (auto &n : layout->nodes)
+        for (auto &inputs : n->slot.transition_inputs)
+            if (std::none_of(inputs.begin(), inputs.end(), [](const Edge *e) { return e->ramped; }))
+                inputs.clear();
     return true;
 }
 
@@ -197,7 +212,7 @@ void Engine::Impl::find_components() {
         stack.push_back(v);
         on[v] = true;
         for (auto &e : layout->edges)
-            if (!e.removed && e.source->slot.index == v) {
+            if ((!e.removed || e.ramped) && e.source->slot.index == v) {
                 uint32_t w = e.destination->slot.index;
                 if (index[w] < 0) {
                     visit(w);
@@ -232,7 +247,7 @@ bool Engine::Impl::order_feedback_components() {
         std::function<void(Node *)> dfs = [&](Node *n) {
             colour[n->slot.index] = 1;
             for (auto &e : layout->edges)
-                if (!e.removed && e.source == n && e.destination->slot.component == n->slot.component) {
+                if ((!e.removed || e.ramped) && e.source == n && e.destination->slot.component == n->slot.component) {
                     auto c = colour[e.destination->slot.index];
                     if (c == 1) {
                         e.back = true;
@@ -246,7 +261,7 @@ bool Engine::Impl::order_feedback_components() {
             if (!colour[n->slot.index]) dfs(n);
         std::vector<uint32_t> degree(count, 0);
         for (auto &e : layout->edges)
-            if (!e.removed && !e.back && e.source->slot.component == e.destination->slot.component &&
+            if ((!e.removed || e.ramped) && !e.back && e.source->slot.component == e.destination->slot.component &&
                 e.source->slot.component == component.nodes.front()->slot.component)
                 ++degree[e.destination->slot.index];
         std::vector<Node *> sorted;
@@ -260,7 +275,7 @@ bool Engine::Impl::order_feedback_components() {
             if (!chosen) return fail("Feedback back-edge removal did not produce DAG");
             sorted.push_back(chosen);
             for (auto &e : layout->edges)
-                if (!e.removed && !e.back && e.source == chosen &&
+                if ((!e.removed || e.ramped) && !e.back && e.source == chosen &&
                     e.destination->slot.component == chosen->slot.component)
                     --degree[e.destination->slot.index];
         }
@@ -272,7 +287,7 @@ bool Engine::Impl::order_feedback_components() {
 bool Engine::Impl::order_components() {
     std::vector<uint32_t> degree(layout->components.size(), 0);
     for (auto &e : layout->edges)
-        if (!e.removed && e.source->slot.component != e.destination->slot.component)
+        if ((!e.removed || e.ramped) && e.source->slot.component != e.destination->slot.component)
             ++degree[e.destination->slot.component];
     std::vector<Component> ordered_components;
     std::vector<bool> used(layout->components.size(), false);
@@ -290,7 +305,7 @@ bool Engine::Impl::order_components() {
         if (chosen == UINT32_MAX) return fail("Invalid component graph");
         used[chosen] = true;
         for (auto &e : layout->edges)
-            if (!e.removed && e.source->slot.component == chosen && e.destination->slot.component != chosen)
+            if ((!e.removed || e.ramped) && e.source->slot.component == chosen && e.destination->slot.component != chosen)
                 --degree[e.destination->slot.component];
         ordered_components.push_back(std::move(layout->components[chosen]));
     }
@@ -310,6 +325,12 @@ bool Engine::Impl::topology() {
             state->delay_channels.assign(cfg.feedback_block, 0);
         }
         e.state = state.get();
+        edge_states.emplace(state.get(), std::move(state));
+    }
+    for (auto &bus : layout->buses) {
+        if (!bus.source) bus.source = find(bus.node);
+        auto state = std::make_unique<EdgeState>();
+        bus.state = state.get();
         edge_states.emplace(state.get(), std::move(state));
     }
     for (auto &component : layout->components)

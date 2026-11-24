@@ -8,7 +8,7 @@ struct Slot {
     bool loop = false, touched = false;
     Instance::Pitch pitch; // Layout-owned observation mapping; live pitch history stays in Instance.
     std::vector<Edge *> incoming, signal_edges;
-    std::vector<std::vector<Edge *>> modulation, outgoing;
+    std::vector<std::vector<Edge *>> modulation, outgoing, transition_inputs;
     std::vector<Buffer> in;
     std::vector<ws2_signal> in_view, param_view;
     std::vector<uint32_t> event_tap_slots; // Precomputed event-output -> telemetry slot; empty when untapped.
@@ -18,6 +18,7 @@ struct Slot {
 struct Node {
     Instance &instance;
     Slot slot;
+    bool retired = false; // Process only for outgoing fades, not ingress or descriptor lookup.
     explicit Node(Instance &value) : instance(value) {}
     Node(const Node &) = delete;
     Node &operator=(const Node &) = delete;
@@ -39,11 +40,15 @@ struct Layout {
     std::unique_ptr<std::atomic<uint32_t>[]> tap_counts;
 
     uint64_t revision = 0;
+    bool housekeeping = false;
+    std::vector<EdgeGain *> ramps;
+    struct GainAdoption { EdgeState *state, *prior; float target; };
+    std::vector<GainAdoption> gain_adoption;
     uint32_t feedback_count = 0;
     size_t setup_bytes = 0;
     std::vector<std::array<uint32_t, 4>> removed_routes;
     std::vector<std::pair<uint32_t, uint32_t>> chokes;
-    struct ModAdoption { Edge *edge; EdgeState *prior; bool authored; };
+    struct ModAdoption { Edge *edge; EdgeState *prior; bool authored; bool reborn = false; };
     std::vector<ModAdoption> modulation_adoption;
     Node *find(uint32_t id) const noexcept {
         auto it = std::lower_bound(node_table.begin(), node_table.end(), id,

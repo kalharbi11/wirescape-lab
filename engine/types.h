@@ -158,8 +158,36 @@ struct ModAmount {
         return current;
     }
 };
+// Render-owned linear edge envelope. Sample zero advances one frame; a
+// retarget begins from the actual last sample, not the prior authored target.
+struct EdgeGain {
+    float start = 1, target = 1;
+    uint32_t length = 0, position = 0;
+    float current() const noexcept {
+        return position >= length ? target : float(start + (target - start) * (double(position) / length));
+    }
+    float at(uint32_t offset) const noexcept {
+        const auto n = std::min<uint64_t>(length, uint64_t(position) + offset + 1);
+        return n >= length ? target : float(start + (target - start) * (double(n) / length));
+    }
+    void jump(float value) noexcept { start = target = value; length = position = 0; }
+    void set(float value, uint32_t frames) noexcept {
+        if (value == target) return;
+        const float now = current();
+        start = now;
+        target = value;
+        length = now == value ? 0 : frames;
+        position = 0;
+    }
+    bool advance(uint32_t frames) noexcept {
+        position = static_cast<uint32_t>(std::min<uint64_t>(length, uint64_t(position) + frames));
+        return position == length;
+    }
+    bool silent() const noexcept { return target == 0 && position == length; }
+};
 struct EdgeState {
     ModAmount modulation;
+    EdgeGain gain;
     Buffer delay;
     std::vector<uint32_t> delay_channels;
     uint32_t head = 0;
@@ -173,7 +201,7 @@ struct Edge {
     uint64_t sent_serial = 0; // Control-owned.
     auto key() const noexcept { return std::tie(from, output, to, input, kind); }
     Node *source = nullptr, *destination = nullptr;
-    bool back = false, removed = false;
+    bool back = false, removed = false, ramped = false;
 };
 struct Component {
     std::vector<Node *> nodes;
@@ -182,5 +210,8 @@ struct Component {
 struct Bus {
     uint32_t node, port, channel;
     Node *source = nullptr;
+    EdgeState *state = nullptr;
+    bool removed = false, ramped = false;
+    auto key() const noexcept { return std::tie(node, port, channel); }
 };
 } // namespace wirescape::engine2

@@ -15,6 +15,8 @@ struct Engine::Impl {
     // Control-owned storage, independent of the layout's topology entries.
     std::map<uint32_t, std::unique_ptr<Instance>> instances;
     std::map<EdgeState *, std::unique_ptr<EdgeState>> edge_states;
+    std::vector<std::unique_ptr<Instance>> retired_instances;
+    std::unique_ptr<Layout> steady_layout;
     std::unique_ptr<Layout> layout = std::make_unique<Layout>(); // control-only
     Layout *render_layout = nullptr; // render-only after prepare
     std::atomic<Layout *> pending_layout{nullptr};
@@ -27,7 +29,7 @@ struct Engine::Impl {
     std::atomic_flag rendering = ATOMIC_FLAG_INIT;
     std::atomic<uint64_t> tap_sequence{0};
     std::atomic<uint64_t> tap_frame{0};
-    std::atomic<uint64_t> published_revision{0}, adopted_revision{0};
+    std::atomic<uint64_t> published_revision{0}, adopted_revision{0}, settled_revision{0};
     std::atomic<uint64_t> position{0}, generation{1}, applied{1}, event_count{0}, dropped{0}, coalesced{0},
         ring_full{0}, stale{0}, late{0}, emergencies{0}, arena_full{0}, faults{0};
     std::atomic<bool> egress_emergency{false};
@@ -49,7 +51,7 @@ struct Engine::Impl {
     Node *find(uint32_t id) const {
         if (prepared) return layout->find(id);
         for (auto &n : layout->nodes)
-            if (n->instance.id == id) return n.get();
+            if (!n->retired && n->instance.id == id) return n.get();
         return nullptr;
     }
     bool fail(const char *s) {
@@ -118,6 +120,9 @@ struct Engine::Impl {
                                std::vector<std::pair<size_t, size_t>> &delays);
     void recompute_latency() noexcept;
     void adopt_layout(Layout *) noexcept;
+    bool publish_layout(Layout *, uint64_t) noexcept;
+    void prune_edge_states() noexcept;
+    void settle_layout() noexcept;
     bool finish_prepare();
     bool resolve_taps();
     bool setup(Node &);

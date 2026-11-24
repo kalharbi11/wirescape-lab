@@ -188,6 +188,7 @@ bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
         processing->instance.outputs[port].kind != WS2_EVENT || source.offset >= processing_frames ||
         source.type == WS2_TRANSPORT_EVENT || !ws::valid_event(source))
         return false;
+    if (processing->retired) return true; // Retired sources deliver only their fading signal output.
     if (ordinary_used + critical_used >= cfg.event_budget ||
         (!release(source) && ordinary_used >= cfg.event_budget - cfg.release_reserve)) {
         if (release(source)) emergency();
@@ -269,6 +270,7 @@ WS_RENDER_INLINE void Engine::Impl::gather_events(Instance &instance, uint32_t s
 }
 
 WS_RENDER_INLINE uint32_t Engine::Impl::edge_channels(const Edge &e, uint32_t frames) const {
+    if (e.ramped && e.state->gain.silent()) return 0;
     if (!e.back) return e.source->instance.global_out[e.output].channels;
     uint32_t count = 0;
     for (uint32_t i = 0; i < frames; ++i)
@@ -306,6 +308,35 @@ WS_RENDER_INLINE void Engine::Impl::gather_inputs(Instance &instance, Slot &slot
     for (uint32_t j = 0; j < instance.inputs.size(); ++j) {
         const auto &port = instance.inputs[j];
         auto &buffer = slot.in[j];
+        if (!slot.transition_inputs.empty() && !slot.transition_inputs[j].empty()) {
+            // A removed and an added cable may share a destination port during
+            // the fade. Blend relative to the port's unpatched value.
+            buffer.channels = port.poly == WS2_POLY ? channels : 1;
+            bool connected = false;
+            for (uint32_t c = 0; c < buffer.channels; ++c) {
+                buffer.read[c] = buffer.data[c];
+                std::fill_n(buffer.data[c], frames, port.unpatched_value);
+            }
+            for (const auto *edge : slot.transition_inputs[j]) {
+                const auto count = edge_channels(*edge, frames);
+                if (!count) continue;
+                connected = true;
+                for (uint32_t c = 0; c < buffer.channels; ++c)
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        float sample = 0;
+                        if (port.poly == WS2_SUM)
+                            for (uint32_t k = 0; k < count; ++k) sample += edge_sample(*edge, k, i, start);
+                        else sample = edge_sample(*edge, port.poly == WS2_FIRST ? 0 : c, i, start);
+                        const float gain = edge->ramped ? edge->state->gain.at(start + i) : 1.f;
+                        buffer.data[c][i] += gain * (sample - port.unpatched_value);
+                    }
+            }
+            buffer.flags = connected ? WS2_CONNECTED : 0;
+            slot.in_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
+            instance.event_view[j] = {sizeof(ws2_event_list), static_cast<uint32_t>(instance.port_events[j].size()),
+                                      instance.port_events[j].data()};
+            continue;
+        }
         const Edge *source = nullptr;
         if (port.kind == WS2_SIGNAL) source = slot.incoming[j];
         uint32_t source_channels = source ? edge_channels(*source, frames) : 0;
@@ -348,7 +379,7 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
         for (const auto *edge : slot.modulation[j]) {
             const auto &e = *edge;
             poly |= edge_channels(e, frames) > 1;
-            constant &= !e.state->modulation.remaining && !e.back &&
+            constant &= !e.ramped && !e.state->modulation.remaining && !e.back &&
                         (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
         }
         for (const auto &e : instance.events)
@@ -367,7 +398,16 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
                 std::fill_n(sum, length, 0.);
                 for (auto *edge : slot.modulation[j]) {
                     auto &state = edge->state->modulation;
-                    if (!state.remaining) {
+                    if (edge->ramped) {
+                        if (edge->state->gain.silent()) continue;
+                        auto ramp = state;
+                        const auto duration = mod_ramp_frames();
+                        for (uint32_t i = 0; i < length; ++i) {
+                            const float amount = ramp.remaining ? ramp.next(duration) : ramp.current;
+                            sum[i] += (amount * edge->state->gain.at(start + i)) * edge_sample(*edge, c, i, start);
+                        }
+                        if (c + 1 == buffer.channels) state = ramp;
+                    } else if (!state.remaining) {
                         const float amount = state.current;
                         for (uint32_t i = 0; i < length; ++i) sum[i] += amount * edge_sample(*edge, c, i, start);
                     } else {
@@ -583,7 +623,8 @@ WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs,
             const auto &buffer = bus.source->instance.global_out[bus.port];
             for (uint32_t c = 0; c < buffer.channels; ++c) {
                 for (uint32_t i = 0; i < frames; ++i) {
-                    const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
+                    float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
+                    if (bus.ramped) sample *= bus.state->gain.at(i);
                     if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
                     else outputs[bus.channel][i] += sample;
                 }
@@ -632,7 +673,7 @@ WS_RENDER_INLINE void Engine::Impl::apply_pending_reset() {
 void Engine::Impl::adopt_layout(Layout *next) noexcept {
     // All adoption work uses preallocated storage. The old layout is not
     // accessed after the acknowledgement; the control owner may retire it.
-    future.erase(std::remove_if(future.begin(), future.end(), [&](const Packet &p) {
+    if (!next->housekeeping) future.erase(std::remove_if(future.begin(), future.end(), [&](const Packet &p) {
         const std::array<uint32_t, 4> route{p.routed_from, p.routed_output, p.node, p.port};
         if (!p.routed_from || !std::binary_search(next->removed_routes.begin(), next->removed_routes.end(), route))
             return false;
@@ -642,20 +683,35 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
     for (const auto &update : next->modulation_adoption) {
         auto &edge = *update.edge;
         if (edge.state != update.prior) edge.state->modulation = update.prior->modulation;
+        if (update.reborn) edge.state->modulation.applied_serial = 0;
         if (update.authored) {
             edge.state->modulation.applied_serial = edge.sent_serial;
             edge.state->modulation.set(edge.amount, mod_ramp_frames());
         }
     }
+    for (const auto &update : next->gain_adoption) {
+        auto &gain = update.state->gain;
+        if (!update.prior) gain.jump(0);
+        else if (update.prior != update.state) gain = update.prior->gain;
+        gain.set(update.target, mod_ramp_frames());
+    }
     for (auto &node : next->nodes) {
         auto &instance = node->instance;
         instance.latency.store(instance.d->latency_frames(instance.instance), std::memory_order_relaxed);
     }
-    tap_sequence.store(0, std::memory_order_relaxed);
-    tap_frame.store(0, std::memory_order_release);
+    if (next->housekeeping) {
+        for (size_t i = 0; i < next->taps.size(); ++i) {
+            next->tap_values[i].store(render_layout->tap_values[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
+            next->tap_counts[i].store(render_layout->tap_counts[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
+        }
+    } else {
+        tap_sequence.store(0, std::memory_order_relaxed);
+        tap_frame.store(0, std::memory_order_release);
+    }
     feedback_count.store(next->feedback_count, std::memory_order_relaxed);
     setup_bytes.store(next->setup_bytes, std::memory_order_relaxed);
     render_layout = next;
+    if (next->ramps.empty()) settled_revision.store(next->revision, std::memory_order_release);
     adopted_revision.store(next->revision, std::memory_order_release);
 }
 
@@ -794,6 +850,12 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
         }
     }
     p.publish_block_outputs(outputs, output_channels, frames);
+    if (!p.render_layout->ramps.empty() &&
+        p.settled_revision.load(std::memory_order_relaxed) < p.render_layout->revision) {
+        bool settled = true;
+        for (auto *gain : p.render_layout->ramps) settled &= gain->advance(frames);
+        if (settled) p.settled_revision.store(p.render_layout->revision, std::memory_order_release);
+    }
     if (p.cfg.playing) p.beat += frames * p.cfg.bpm / (60. * p.cfg.sample_rate);
     p.position.store(p.block_start + frames, std::memory_order_release);
     p.apply_pending_reset();

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <new>
+#include <random>
 #include <thread>
 using namespace wirescape::engine2;
 using Clock = std::chrono::steady_clock;
@@ -688,7 +689,110 @@ static void telemetry_replan_layout() {
     CHECK(live->read_telemetry(values,counts,2,frame)==0&&frame==0);
     CHECK(live->descriptor(1)==nullptr); // Removed nodes cannot retain a stale tap.
 }
+// Device-free random valid topology stress. Render, control and independent
+// ingress producer run concurrently; count successful edits, not attempts.
+static void random_edit_stress(unsigned count) {
+    auto cfg = config();
+    cfg.max_channels = 1;
+    cfg.max_nodes = 8;
+    cfg.max_block = 1024;
+    auto make = [&](uint32_t mask) {
+        auto e = std::make_unique<Engine>(cfg);
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, ws::Module<Pass>::descriptor()));
+        CHECK(e->add_node(4, ws::Module<Voice>::descriptor()));
+        if (mask & 1) {
+            CHECK(e->add_node(3, ws::Module<Pass>::descriptor()));
+            CHECK(e->connect((mask & 2) ? 2 : 1, 0, 3, 0));
+        }
+        if ((mask & 1) && (mask & 4)) CHECK(e->connect(3, 0, 2, 0));
+        else if (mask & 8) CHECK(e->connect(1, 0, 2, 0));
+        if (mask & 16) CHECK(e->connect(1, 1, 4, 0));
+        if (mask & 32) CHECK(e->modulate(2, 0, 4, 0, (mask & 64) ? .25f : -.25f));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->output(4, 0, 2));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->register_producer() == 1);
+        if (mask & 128) CHECK(e->set_telemetry_taps({{Tap::Param, 4, 0}, {Tap::Output, 1, 0}}));
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(0);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    const auto generation = live->meter().generation;
+    std::atomic<bool> run{true}, started{false};
+    std::thread render([&] {
+        float a[32]{}, b[32]{}, c[32]{};
+        float *out[]{a, b, c};
+        while (run.load(std::memory_order_acquire)) {
+            {
+                allocation_watch::ThreadScope watch;
+                CHECK(live->render(out, 3, 32) == WS2_OK);
+                CHECK(watch.allocations() == 0);
+            }
+            for (float sample : b) CHECK(sample == .75f);
+            for (float sample : a) CHECK(std::isfinite(sample));
+            for (float sample : c) CHECK(std::isfinite(sample));
+            Outgoing event;
+            while (live->pop_egress(event)) {}
+            started.store(true, std::memory_order_release);
+            std::this_thread::yield();
+        }
+    });
+    std::thread ingress([&] {
+        auto event = note();
+        event.type = WS2_PARAM_MOD;
+        event.index = 0;
+        event.value = .125f;
+        while (run.load(std::memory_order_acquire)) {
+            const int status = live->enqueue(1, 4, WS2_DIRECT_PORT, event, 0, Timing::Immediate);
+            CHECK(status == WS2_OK || status == WS2_CAPACITY);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+    });
+    while (!started.load(std::memory_order_acquire)) std::this_thread::yield();
+    std::mt19937 random(0xE4B2026u);
+    unsigned timeouts = 0;
+    for (unsigned i = 0; i < count; ++i) {
+        const uint32_t mask = random() & 255u;
+        auto candidate = make(mask);
+        bool committed = false;
+        for (unsigned attempt = 0; attempt < 20 && !committed; ++attempt) {
+            committed = live->replan(*candidate, uint64_t(cfg.max_block) * 3 * 1000000000 / 48000);
+            if (!committed) {
+                CHECK(live->error() == "Audio did not adopt before the edit deadline");
+                ++timeouts;
+            }
+        }
+        CHECK(committed);
+        candidate.reset();
+        CHECK(live->meter().generation == generation);
+        CHECK(live->meter().faults == 0);
+        CHECK((live->descriptor(3) != nullptr) == bool(mask & 1));
+        if (mask & 32) {
+            const int status = live->set_mod_amount(2, 0, 4, 0, .5f);
+            CHECK(status == WS2_OK || status == WS2_CAPACITY);
+        }
+        float values[2]{};
+        uint32_t counts[2]{};
+        uint64_t frame = 0;
+        CHECK(live->read_telemetry(values, counts, 2, frame) == ((mask & 128) ? 2u : 0u));
+        if (i % 3 == 0) live->refresh_latency();
+    }
+    run.store(false, std::memory_order_release);
+    ingress.join();
+    render.join();
+    CHECK(live->meter().faults == 0);
+    std::printf("PASS E4b random valid edits: %u committed, %u cancelled attempts, generation unchanged, no render allocations\n", count, timeouts);
+}
 int main(int argc, char **argv) {
+    if (argc == 3 && std::strcmp(argv[1], "--stress") == 0) {
+        const unsigned count = static_cast<unsigned>(std::strtoul(argv[2], nullptr, 10));
+        CHECK(count >= 10000);
+        random_edit_stress(count);
+        return 0;
+    }
     double max_gap_ms = 0;
     if (argc == 3 && std::strcmp(argv[1], "--max-gap-ms") == 0) max_gap_ms = std::strtod(argv[2], nullptr);
     else CHECK(argc == 1);
