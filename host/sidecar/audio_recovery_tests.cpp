@@ -308,10 +308,24 @@ void test_e7_state_restart(const std::filesystem::path &root) {
         {"format", "wirescape.native.patch"}, {"version", 2},
         {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
                                  {{"id", 2}, {"module", "essentials.noise"}},
-                                 {{"id", 3}, {"module", "essentials.vco"}}})},
+                                 {{"id", 3}, {"module", "essentials.vco"}},
+                                 {{"id", 4}, {"module", "essentials.clock"},
+                                  {"parameters", {{"bpm", 300}, {"ticks_per_beat", 24}, {"duty", 0.5}}}},
+                                 {{"id", 5}, {"module", "essentials.function_envelope"},
+                                  {"parameters", {{"rise", 0.0001}, {"fall", 0.5}}}},
+                                 {{"id", 6}, {"module", "host.keyboard"},
+                                  {"parameters", {{"voices", 1}}}},
+                                 {{"id", 7}, {"module", "essentials.adsr"},
+                                  {"parameters", {{"attack", 0.0001}, {"decay", 0.01}, {"sustain", 0.7}}}}})},
         {"connections", Json::array({{{"kind", "signal"},
                                       {"from", {{"module", 2}, {"port", "audio"}}},
-                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}
+                                      {"to", {{"module", 1}, {"port", "audio"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 4}, {"port", "clock"}}},
+                                      {"to", {{"module", 5}, {"port", "gate"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 6}, {"port", "gate"}}},
+                                      {"to", {{"module", 7}, {"port", "gate"}}}}})}
     };
     check(call("e7-load", "loadGraph", {{"patch", patch}})["ok"] == true,
           "E7 state witness patch must load with a paced fake callback");
@@ -322,6 +336,28 @@ void test_e7_state_restart(const std::filesystem::path &root) {
     std::array<float, 256> samples{};
     check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
           "E7 witness render must advance actual noise state");
+    check(call("e7-held", "noteOn", {{"note", 60}, {"velocity", 0.8}})["ok"] == true,
+          "E7 hold a keyboard note before the stream edit");
+    auto render = [&](uint32_t frames) {
+        check(app_engine_render(fake::engine, samples.data(), frames) == WS2_OK,
+              "E7 manual witness render must succeed");
+    };
+    auto witness = [&](uint32_t id, uint32_t port, uint32_t frame) {
+        return app_engine_native(fake::engine).output_sample(id, port, 0, frame);
+    };
+    // 300 BPM × 24 ticks: 400 samples/cycle. Find a real falling gate
+    // with an envelope tail, without depending on the paced startup phase.
+    for (int n = 0; n < 160; ++n) {
+        render(16);
+        if (witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+            witness(7, 0, 15) > 0.5f) break;
+    }
+    check(witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+              witness(7, 0, 15) > 0.5f,
+          "E7 witnesses must be a live falling envelope tail and held note");
+    const auto clock_state = app_engine_native(fake::engine).save_state(4);
+    const auto envelope_state = app_engine_native(fake::engine).save_state(5);
+    check(!clock_state.empty() && !envelope_state.empty(), "E7 clock and envelope must serialize state");
     const auto state = app_engine_native(fake::engine).save_state(2);
     check(!state.empty() && state != state_before_step,
           "E7 noise witness must have nontrivial, advancing state");
@@ -332,43 +368,68 @@ void test_e7_state_restart(const std::filesystem::path &root) {
     check(call("e7-fit", "setBufferFrames", {{"frames", 256}})["ok"] == true &&
               fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
           "E7 original prepared capacity must remain usable after a smaller stream");
+    check(app_engine_native(fake::engine).save_state(4) == clock_state &&
+              app_engine_native(fake::engine).save_state(5) == envelope_state,
+          "E7 smaller buffer must preserve clock and tail state exactly");
+    render(16);
+    check(witness(7, 0, 15) > 0.5f && witness(5, 0, 15) > 0.5f,
+          "E7 smaller buffer must render the held note envelope and tail after resume");
+    const auto next_noise = app_engine_native(fake::engine).save_state(2);
+    const auto next_clock = app_engine_native(fake::engine).save_state(4);
+    const auto next_envelope = app_engine_native(fake::engine).save_state(5);
+    // Deliberately exercise the engine's unsupported-blob retention: this is
+    // not a live VCO snapshot and must not be carried by E7 as one.
+    const std::vector<uint8_t> unsupported{99, 0, 0, 0};
+    check(app_engine_native(fake::engine).load_state(3, unsupported) == WS2_UNSUPPORTED &&
+              app_engine_native(fake::engine).preserved_state(3) == unsupported,
+          "E7 unsupported state witness must be retained by the old engine");
     auto larger = call("e7-large", "setBufferFrames", {{"frames", 512}});
     check(larger["ok"] == true && fake::engine != prepared,
           "E7 larger buffer must rebuild a runnable engine");
-    check(app_engine_native(fake::engine).save_state(2) == state,
+    check(app_engine_native(fake::engine).save_state(2) == next_noise,
           "E7 larger buffer must restore nontrivial stopped-instance state");
-    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}}});
+    check(app_engine_native(fake::engine).save_state(4) == next_clock &&
+              app_engine_native(fake::engine).save_state(5) == next_envelope &&
+              app_engine_native(fake::engine).preserved_state(3).empty(),
+          "E7 larger buffer must restore clock/tail but not stale unsupported bytes");
+    render(16);
+    check(witness(5, 0, 15) > 0.5f,
+          "E7 larger buffer must render the saved envelope tail after resume");
+    const auto restored_noise = app_engine_native(fake::engine).save_state(2);
+    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}},
+                                       {{"moduleId", 6}, {"module", "host.keyboard"}},
+                                       {{"moduleId", 7}, {"module", "essentials.adsr"}}});
     check(larger["result"]["freshModules"] == fresh_vco,
           "E7 must name the module without a save hook, not the restored Noise");
     auto rate = call("e7-rate", "setSampleRate", {{"hz", 44100}});
     check(rate["ok"] == true && rate["result"]["freshModules"] == fresh_vco &&
-              app_engine_native(fake::engine).save_state(2) == state,
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 rate change must attempt saved state and name unavailable hooks");
     const auto *at_rate = fake::engine;
     fake::rejected_rate = 96000;
     check(call("e7-rate-refused", "setSampleRate", {{"hz", 96000}})["ok"] == false &&
-              fake::engine == at_rate && app_engine_native(fake::engine).save_state(2) == state &&
+              fake::engine == at_rate && app_engine_native(fake::engine).save_state(2) == restored_noise &&
               audio(s)["sampleRate"] == 44100,
           "E7 refused rate must roll back the original graph and state");
     fake::rejected_rate = 0;
     fake::outputs.push_back(output("E7 second stereo", 1));
     auto device = call("e7-device", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
     check(device["ok"] == true && !device.contains("result") && fake::engine == at_rate &&
-              app_engine_native(fake::engine).save_state(2) == state,
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 ordinary device switch must retain the prepared engine");
     fake::accept_block = 128;
     fake::preferred = 128;
     auto smaller_driver = call("e7-driver-small", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
     check(smaller_driver["ok"] == true && !smaller_driver.contains("result") &&
               fake::engine == at_rate && audio(s)["bufferFrames"] == 128 &&
-              app_engine_native(fake::engine).save_state(2) == state,
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 preferred driver size inside prepared capacity must retain the graph");
     fake::accept_block = 1024;
     fake::preferred = 1024;
     auto larger_driver = call("e7-driver-large", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
     check(larger_driver["ok"] == true && larger_driver["result"]["freshModules"] == fresh_vco &&
               fake::engine != at_rate && audio(s)["bufferFrames"] == 1024 &&
-              app_engine_native(fake::engine).save_state(2) == state,
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 preferred driver size beyond capacity must restore matching stopped state");
     fake::accept_block = 0;
     fake::preferred = 0;
