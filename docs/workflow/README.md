@@ -15,6 +15,16 @@ owns each task's branch and PR → a PR result comment records evidence and disp
 `proposals/0004-execution-plan.md` remain the policy sources; this README supplies
 copyable templates and the label lifecycle.
 
+## Codex coordination trial
+
+The owner-authorized trial is described in the [Terra manager rules](../context/COORDINATION_MANAGER.md)
+and [Luna coordinator instructions](../../CODEX.md). Its two-cycle cadence, chat rotation and
+bounded mechanical dispatch delegation apply only to named trial roles. The criteria, pinned
+requests, eligible reviewers and merge authority below still apply. Builders in a closeout
+cycle finish open work and leave successors queued. The coordinator pauses its batch timer
+after a verified stop and waits for updated tasks. Final reports go to
+[#402](https://github.com/kalharbi11/wirescape-lab/issues/402).
+
 ## GitHub labels for work and review
 
 The review labels describe two different states. For the GitHub `pull_request: labeled`

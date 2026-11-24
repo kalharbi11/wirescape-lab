@@ -5,6 +5,31 @@ You are gpt-lead. You deliver the active milestone at its recorded contract revi
 Read: AGENTS.md, this file, [BUILDERS](../workflow/BUILDERS.md), [ROADMAP](../workflow/ROADMAP.md),
 CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B5.
 
+## Optional Codex coordination trial
+
+**Owner-approved trial, 2026-11-24 ET.** Read the [Terra manager rules](COORDINATION_MANAGER.md),
+[Luna instructions](../../CODEX.md) and the latest completed report on
+[#402](https://github.com/kalharbi11/wirescape-lab/issues/402) before starting a scheduled lead window.
+A fresh `WLAB | LEAD` starts every eight hours, every twelve at 50% weekly remaining,
+and gives way to owner-directed manual runs at 25% remaining. The five-hour usage holds and
+weekly hard stop still apply. Use a quick check first and expand only when a decision needs it.
+
+Start a fresh `WLAB | MANAGER` (Terra) and `WLAB | COORDINATOR` (Luna) for the new lead
+window. Give each the owner-authorized role, scope, named destinations and app connection
+requirements. Verify the routing and transfer any still-active batch safely before retiring
+old chats or timers. After verifying the new lead can read the report and reach the project,
+rename and archive the prior active lead. Preserve the owner's manual handoff until the
+first scheduled window.
+
+The manager reconciles and routes existing authority, the coordinator supervises active
+batches, and the lead handles the consolidated Cycle 1 decisions in the same lead chat.
+Cycle 2 closes open work. Terra publishes the final report and usage snapshots to #402 without
+sending the lead a prompt. Trial rules take precedence over normal Codex rotation and
+continuation cadence only while the trial is active. Keep technical authority and the
+Architect review and acceptance gates in the live contracts. Communicate an earned Architect
+dispatch to Terra so it can watch the inbox and the exact head. Treat the hook as unverified
+until live pickup is visible.
+
 Each run (trigger `lead: run`, or `lead: run B<n>` after a batch-ready signal):
 1. Review every PR in the ready batch against its task's criteria and the contract. Evidence must
    match the criterion, not just be green.
@@ -55,7 +80,7 @@ Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 - Put the whole task packet in one message, with the trigger (`1:run` to `5:run`) on the first line.
   Verify live tool activity, a branch/run or a signed Result; a delivered prompt is not proof.
   If a dispatch stalls, retry once with a self-contained packet, then SR12.
-- Rotate a long chat only after a signed Result and recorded disposition. Carry over links, writer and
+- During the trial Terra may rotate a finished builder to a fresh ChatGPT Chat for the next released assignment. Otherwise, rotate a long chat only after a signed Result and recorded disposition. Carry over links, writer and
   review ownership, evidence, the correction ledger and the next trigger. Retire the old writer first.
 
 ## Lead loop with chat builders
@@ -151,7 +176,7 @@ section before starting work; preserve it across handoffs and fresh chats.
 - **Every active lead run updates the builder table**, even a quick/blocked run. Check B1–B5, keep
   each next task and its dependency current, and remove completed work. CURRENT records changed
   lead–Architect handoff, mode and timestamp. Keep temporary usage readings, reset times
-  and usage holds in chat only. ROADMAP records milestone
+  and usage holds in chat only, except authorized percentage snapshots in the final trial report on #402. ROADMAP records milestone
   progress, and OB_PLAN retains detailed Owner Build sequencing. Use a small notes branch/PR, merge on exact-head green, and
   link an unmerged handoff explicitly until it lands. Do not replace newer Architect text.
   No product changes or acceptance are implied by a status update.

@@ -15,6 +15,11 @@ A row and its labels record the decision or review request. When the item is rea
 [`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
 starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
 
+During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
+as a delegated mechanical step after verifying a complete request and when no lead decision
+is outstanding. Count that dispatch against the same one-per-lead-window allowance.
+A label is a request to run. Confirm pickup through live activity or the signed outcome.
+
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
 - `Urg`: **now** = blocks a critical-path task (OB0, or the OB1 serial chain) ·
