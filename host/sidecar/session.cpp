@@ -386,7 +386,7 @@ void Session::shutdown() {
                   << " overrun_wake_max_us=" << bench_.overrun_wake_max_us << '\n';
     }
 }
-void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGraph *rollback) {
+void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGraph *rollback, Json *fresh) {
     stop_sink_.store(false);
     audio_reason_.clear();
     if (options_.audio) {
@@ -413,7 +413,7 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
                 stream_ = std::make_unique<audio::Stream>(engine_, audio::StreamSelection{options_.directory, device_},
                                                           options_.rate, options_.block, [this] { midi_->stop(); });
             } catch (const audio::PreferredBufferSize &driver) {
-                open_at_driver_block(driver.frames(), rollback); // exactly one retry; throws on refusal
+                open_at_driver_block(driver.frames(), rollback, fresh); // exactly one retry; throws on refusal
             }
             audio_state_ = "running";
             audio_error_.clear(); // an actual successful reopen clears the last error
@@ -495,16 +495,56 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
 }
 // Control thread, no stream running (the failed open returned engine_). Keel's
 // #627 ruling: same quiescent path as setBufferFrames, one open, no persistence.
-Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next_config) {
+Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next_config, Json *fresh) {
+    // E7: both instances are quiescent. The same committed document supplies
+    // IDs, types and configs to both graphs; never replay a stored document
+    // snapshot as if it were current runtime state. In particular, an earlier
+    // unsupported blob retained by Engine::load_state is not a live snapshot.
+    struct Snapshot {
+        uint32_t id;
+        std::string type;
+        const ws2_descriptor *descriptor;
+        std::vector<uint8_t> bytes;
+    };
+    std::vector<Snapshot> snapshots;
+    auto runtime = patch_;
+    auto &old = app_engine_native(engine_.get());
+    for (auto &m : runtime["modules"]) {
+        const auto id = m["id"].get<uint32_t>();
+        const auto type = m["module"].get<std::string>();
+        const auto *d = old.descriptor(id);
+        Snapshot snapshot{id, type, d, {}};
+        if (d && type == d->id && old.preserved_state(id).empty())
+            snapshot.bytes = old.save_state(id);
+        snapshots.push_back(std::move(snapshot));
+        // The normal patch loader remains strict; only this rebuild copy omits
+        // authored state so a rate-dependent live state refusal is nonfatal.
+        m.erase("state");
+    }
     StoppedGraph next;
     next.telemetry = document::telemetry::Sampler(
         document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
     next.out = std::make_unique<osc::OutHost>(patch_.dump());
     document::ScopedOutBuses staged_out(next.out->buses());
     std::string error;
-    next.engine.reset(document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config, error,
+    next.engine.reset(document::load_runtime_patch(runtime.dump(), catalogue_.get(), next_config, error,
                                                   &next.telemetry.taps()));
-    if (next.engine) app_engine_prepare_master_fade_in(next.engine.get());
+    if (!next.engine) return next;
+    auto &candidate = app_engine_native(next.engine.get());
+    for (const auto &snapshot : snapshots) {
+        // Current built-in state writers with a successful hook write at least
+        // a version word. Engine::save_state returns empty for unsupported/error.
+        // Match the actual descriptor as well as the unchanged document config.
+        const bool restored = snapshot.descriptor && candidate.descriptor(snapshot.id) == snapshot.descriptor &&
+                              !snapshot.bytes.empty() &&
+                              candidate.load_state(snapshot.id, snapshot.bytes) == WS2_OK;
+        if (!restored && fresh) {
+            Json entry = {{"moduleId", snapshot.id}, {"module", snapshot.type}};
+            if (std::find(fresh->begin(), fresh->end(), entry) == fresh->end())
+                fresh->push_back(std::move(entry));
+        }
+    }
+    app_engine_prepare_master_fade_in(next.engine.get());
     return next;
 }
 
@@ -515,7 +555,7 @@ void Session::swap_stopped_graph(StoppedGraph &other) noexcept {
     active_ = engine_.get();
 }
 
-void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback) {
+void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh) {
     if (frames < 1 || frames > 4096)
         throw std::runtime_error("ASIO driver requires " + std::to_string(frames) + " frames (supported 1-4096)");
     const auto block = uint32_t(frames);
@@ -556,7 +596,7 @@ void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback) {
         }
     };
     std::unique_ptr<void, decltype(resume_midi)> midi_restart(this, resume_midi);
-    auto previous = prepare_stopped_graph(next_config);
+    auto previous = prepare_stopped_graph(next_config, fresh);
     if (!previous.engine)
         throw std::runtime_error("Graph cannot prepare at the ASIO driver's " + std::to_string(block) + " frames");
     swap_stopped_graph(previous);
@@ -1081,12 +1121,13 @@ Json Session::apply(const Json &command) {
         midi_->stop();
         stop_audio();
         StoppedGraph previous;
+        Json fresh = Json::array();
         try {
             if (rebuild) {
                 engine2::Config next_config = config_;
                 next_config.sample_rate = next_rate;
                 next_config.max_block = next_block;
-                previous = prepare_stopped_graph(next_config);
+                previous = prepare_stopped_graph(next_config, &fresh);
                 need(bool(previous.engine), "unavailable", "Graph cannot prepare at requested stream configuration");
                 swap_stopped_graph(previous);
                 config_ = next_config;
@@ -1094,16 +1135,17 @@ Json Session::apply(const Json &command) {
             options_.rate = next_rate;
             options_.block = next_block;
             requested_block_ = 0;
-            start_audio(std::chrono::steady_clock::now(), &previous);
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || (stream_ && stream_->running()), "unavailable",
                  "Audio device refused the new stream");
             start_midi();
             preferences_["audio"]["sampleRate"] = next_rate;
             preferences_["audio"]["bufferFrames"] = next_block;
+            Json result = previous.engine ? Json{{"freshModules", std::move(fresh)}} : Json(nullptr);
             persist(); // only after the replacement stream is running
             ++generation_;
             if (previous.engine) keyboard_.fill(false);
-            return nullptr;
+            return result;
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             midi_->stop();
@@ -1143,6 +1185,7 @@ Json Session::apply(const Json &command) {
         const auto old_config = config_;
         const auto old_block = options_.block, old_requested = requested_block_;
         StoppedGraph previous;
+        Json fresh = Json::array(), result;
         // A device switch also tears down an audio worker. Join the packet
         // producer first, and resume against the same committed graph on
         // both success and restored-device failure paths.
@@ -1161,10 +1204,12 @@ Json Session::apply(const Json &command) {
         stop_audio();
         device_ = id;
         try {
-            start_audio(std::chrono::steady_clock::now(), &previous);
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || bool(stream_), "unavailable", "Cannot open audio output");
             start_midi();
+            if (previous.engine) result = Json{{"freshModules", std::move(fresh)}};
             persist();
+            if (previous.engine) keyboard_.fill(false);
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             // Preserve the attempted PortAudio/ASIO failure before a successful
@@ -1184,7 +1229,7 @@ Json Session::apply(const Json &command) {
             throw;
         }
         refresh_devices(true, false);
-        return nullptr;
+        return result;
     }
     if (type == "setMidiEnabled") {
         need(command.at("deviceId").is_string() && command.at("on").is_boolean());

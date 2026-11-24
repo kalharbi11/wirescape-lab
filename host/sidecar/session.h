@@ -120,12 +120,12 @@ class Session {
         std::unique_ptr<osc::OutHost> out;
         audio::EngineOwner engine{nullptr, app_engine_destroy};
     };
-    StoppedGraph prepare_stopped_graph(const engine2::Config &);
+    StoppedGraph prepare_stopped_graph(const engine2::Config &, Json *fresh);
     void swap_stopped_graph(StoppedGraph &) noexcept;
     void start_audio(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
-                     StoppedGraph *rollback = nullptr);
+                     StoppedGraph *rollback = nullptr, Json *fresh = nullptr);
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
-    void open_at_driver_block(int64_t frames, StoppedGraph *rollback);
+    void open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh);
     void stop_audio();
     void start_midi();
     void start_osc();
