@@ -84,7 +84,8 @@ struct Engine::Impl {
         egress_emergency.store(true, std::memory_order_release);
     }
     void reset_processors() noexcept {
-        for (auto &n : render_layout->nodes) {
+        auto *active = render_layout ? render_layout : layout.get();
+        for (auto &n : active->nodes) {
             n->instance.d->reset(n->instance.instance);
             n->instance.pitch.latest = 0;
             n->instance.pitch.note_on.fill(false);
@@ -96,7 +97,7 @@ struct Engine::Impl {
             }
             n->instance.pending.clear();
         }
-        for (auto &e : render_layout->edges)
+        for (auto &e : active->edges)
             if (e.back && e.kind != 1) {
                 e.state->head = 0;
                 std::fill(e.state->delay_channels.begin(), e.state->delay_channels.end(), 0);

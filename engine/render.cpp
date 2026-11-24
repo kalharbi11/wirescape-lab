@@ -2,6 +2,7 @@
 #include "impl.h"
 #include "midi_release.h"
 #include "wirescape_sdk.h"
+#include <cassert>
 #include <cstring>
 #include <tuple>
 #if defined(__SSE2__) || defined(_M_X64)
@@ -113,9 +114,9 @@ void Engine::Impl::collect() {
         auto &source = *producers[producer];
         for (Ring *ring : {&source.critical, &source.normal}) {
             // Snapshot-like bounded drain. A busy producer cannot extend this indefinitely.
-            for (uint32_t work = 0; work < cfg.ring_capacity && ring->peek(p); ++work) {
-                if (p.revision > render_layout->revision) break;
-                if (!ring->pop(p)) break;
+            uint64_t blocked = 0;
+            for (uint32_t work = 0; work < cfg.ring_capacity &&
+                 ring->pop_adopted(p, render_layout->revision, blocked); ++work) {
                 if (p.host) {
                     apply_host_packet(p);
                     continue;
@@ -144,6 +145,10 @@ void Engine::Impl::collect() {
                     continue;
                 }
                 future.push_back(p);
+            }
+            if (blocked && blocked > published_revision.load(std::memory_order_acquire)) {
+                ++faults;
+                assert(false && "Producer stamped an unpublished revision");
             }
         }
     }

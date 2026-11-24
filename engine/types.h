@@ -82,6 +82,20 @@ struct Ring {
         tail.store((t + 1) % static_cast<uint32_t>(slots.size()), std::memory_order_release);
         return true;
     }
+    // ER3: inspect only the revision before consuming a packet; no extra
+    // payload copy and no advancement of a future-revision ring head.
+    bool pop_adopted(Packet &p, uint64_t adopted, uint64_t &blocked) noexcept {
+        auto t = tail.load(std::memory_order_relaxed);
+        if (t == head.load(std::memory_order_acquire)) return false;
+        if (slots[t].revision > adopted) {
+            blocked = slots[t].revision;
+            return false;
+        }
+        p = slots[t];
+        p.fix();
+        tail.store((t + 1) % static_cast<uint32_t>(slots.size()), std::memory_order_release);
+        return true;
+    }
     bool peek(Packet &p) const noexcept {
         auto t = tail.load(std::memory_order_relaxed);
         if (t == head.load(std::memory_order_acquire)) return false;
