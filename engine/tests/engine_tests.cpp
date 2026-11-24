@@ -575,12 +575,27 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 165, 21, false);
 }
-// ER4 ingress-only scaffold: a config-shaped synthetic voice owner has the
-// same descriptor and ID on either side of an edit. Seed a held note in
-// the successor explicitly, so this test isolates birth from the pending
-// adopt/replay implementation. A pre-adoption note-off must reach it.
+// ER4: a config-shaped synthetic voice owner has the same descriptor and ID
+// on either side of an edit. The replacement must replay the existing held
+// note without a new attack from the test. A pre-adoption note-off must reach it.
 // Conversely, removing the ID and introducing it in a separate edit
 // invalidates the old packet; it must not release the newly held note.
+static void append_only_descriptor_registration() {
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    // Deliberately poison bytes beyond the advertised size: they are absent.
+    d.struct_size = offsetof(ws2_descriptor, data_slot_count);
+    d.data_slot_count = 1;
+    Engine legacy;
+    CHECK(legacy.add_node(1, &d));
+    CHECK(legacy.output(1, 0, 0));
+    CHECK(legacy.prepare());
+    render(legacy, 16);
+    CHECK(legacy.output_sample(1, 0, 0, 15) == 1.f);
+    ws2_descriptor unsupported = d;
+    unsupported.struct_size = sizeof(unsupported);
+    Engine not_yet;
+    CHECK(!not_yet.add_node(1, &unsupported));
+}
 static void replacement_packet_birth() {
     Config config;
     config.max_block = 4096;
@@ -629,7 +644,11 @@ static void replacement_packet_birth() {
         }
         replan(*live, *successor);
         CHECK(live->meter().frame < due);
-        held(*live); // Deliberately independent of adopt/replay (tested separately).
+        if (!replace) held(*live); // A newly born ID needs its own attack.
+        else {
+            render(*live, 16);
+            CHECK(live->output_sample(1, 1, 0, 15) == 1.f);
+        }
         CHECK(live->meter().stale == stale + (replace ? 0 : 1));
         while (live->meter().frame <= due) render(*live, 4096);
         render(*live, 16);
@@ -732,6 +751,7 @@ int main(){
  transport_ring();
  transport_serial();
  transport_replan();
+ append_only_descriptor_registration();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();

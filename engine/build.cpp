@@ -347,12 +347,15 @@ bool Engine::add_node(uint32_t id, const ws2_descriptor *d, const std::vector<ui
     if (!p.cfg.max_channels || p.cfg.max_channels > 16 || !p.cfg.max_block || p.cfg.max_block > 4096)
         return p.fail("Invalid setup bounds");
     if (p.prepared || !id || p.find(id) || p.layout->nodes.size() >= p.cfg.max_nodes || !d ||
-        d->struct_size < sizeof(ws2_descriptor) || d->abi_version != 2 || !d->id || !d->name || !d->create ||
+        d->struct_size < offsetof(ws2_descriptor, data_slot_count) || d->abi_version != 2 || !d->id || !d->name || !d->create ||
         !d->destroy || !d->query_ports || !d->memory_requirements || !d->prepare || !d->reset || !d->process ||
         !d->save_state || !d->load_state || !d->latency_frames || d->input_count > WS2_MAX_PORTS ||
         d->output_count > WS2_MAX_PORTS || d->param_count > WS2_MAX_PARAMS || (d->input_count && !d->inputs) ||
         (d->output_count && !d->outputs) || (d->param_count && !d->params))
         return p.fail("Invalid ABI2 node");
+    if (d->struct_size >= offsetof(ws2_descriptor, data_slot_count) + sizeof(d->data_slot_count) &&
+        d->data_slot_count != 0)
+        return p.fail("Data slots unsupported until E3a");
     auto instance = std::make_unique<Instance>();
     auto n = std::make_unique<Node>(*instance);
     n->instance.id = id;
