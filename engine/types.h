@@ -188,6 +188,8 @@ struct EdgeGain {
 struct EdgeState {
     ModAmount modulation;
     EdgeGain gain;
+    // Render publishes retirement completion; control never reads gain fields.
+    std::atomic<bool> faded_out{false};
     Buffer delay;
     std::vector<uint32_t> delay_channels;
     uint32_t head = 0;

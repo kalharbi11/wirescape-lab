@@ -462,6 +462,9 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     const auto next_revision = old.published_revision.load(std::memory_order_acquire) + 1;
     if (!next_revision) return old.fail("Live graph revision exhausted");
     const bool settled = old.settled_revision.load(std::memory_order_acquire) >= old.layout->revision;
+    auto finished_removal = [&](const auto &edge) {
+        return edge.removed && (settled || edge.state->faded_out.load(std::memory_order_acquire));
+    };
 
     Impl staged(fresh.cfg), steady(fresh.cfg);
     auto &next = *staged.layout;
@@ -508,14 +511,14 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     // An output bus is an outgoing signal edge. Keep its source if its old
     // contribution must fade, but never keep output-less removed sinks.
     for (const auto &bus : old.layout->buses)
-        if (!bus.removed || !settled) include_retired(bus.source->instance);
+        if (!finished_removal(bus)) include_retired(bus.source->instance);
     // Keep the old upstream signal/modulation path only when it can reach
     // a destination or a bus which remains in the transition.
     bool added;
     do {
         added = false;
         for (const auto &edge : old.layout->edges)
-            if (edge.kind != 1 && (!edge.removed || !settled) &&
+            if (edge.kind != 1 && !finished_removal(edge) &&
                 transition_nodes.count(&edge.destination->instance))
                 added |= include_retired(edge.source->instance);
     } while (added);
@@ -539,7 +542,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         bool matched = false;
         for (size_t i = 0; i < old.layout->edges.size(); ++i) {
             const auto &prior = old.layout->edges[i];
-            if (old_edges_used[i] || (prior.removed && settled) || !same_edge(edge, prior)) continue;
+            if (old_edges_used[i] || finished_removal(prior) || !same_edge(edge, prior)) continue;
             old_edges_used[i] = true;
             matched = true;
             edge.ramped = edge.kind != 1 && (prior.removed || (prior.ramped && !settled));
@@ -550,7 +553,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     }
     for (size_t i = 0; i < old.layout->edges.size(); ++i) {
         const auto &prior = old.layout->edges[i];
-        if (old_edges_used[i] || prior.kind == 1 || (prior.removed && settled) ||
+        if (old_edges_used[i] || prior.kind == 1 || finished_removal(prior) ||
             !transition_nodes.count(&prior.source->instance) || !transition_nodes.count(&prior.destination->instance))
             continue;
         Edge edge{prior.from, prior.output, prior.to, prior.input, prior.kind, prior.amount};
@@ -568,7 +571,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         bool matched = false;
         for (size_t i = 0; i < old.layout->buses.size(); ++i) {
             const auto &prior = old.layout->buses[i];
-            if (old_buses_used[i] || (prior.removed && settled) || !same_bus(bus, prior)) continue;
+            if (old_buses_used[i] || finished_removal(prior) || !same_bus(bus, prior)) continue;
             old_buses_used[i] = true;
             matched = true;
             bus.ramped = prior.removed || (prior.ramped && !settled);
@@ -579,7 +582,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     }
     for (size_t i = 0; i < old.layout->buses.size(); ++i) {
         const auto &prior = old.layout->buses[i];
-        if (old_buses_used[i] || (prior.removed && settled)) continue;
+        if (old_buses_used[i] || finished_removal(prior)) continue;
         Bus bus{prior.node, prior.port, prior.channel};
         bus.source = transition_nodes.at(&prior.source->instance);
         bus.removed = bus.ramped = true;
@@ -619,7 +622,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         const Edge *prior = nullptr;
         for (size_t i = 0; i < old.layout->edges.size(); ++i) {
             const auto &candidate_edge = old.layout->edges[i];
-            if (old_edges_used[i] || (candidate_edge.removed && settled) || !same_edge(edge, candidate_edge)) continue;
+            if (old_edges_used[i] || finished_removal(candidate_edge) || !same_edge(edge, candidate_edge)) continue;
             old_edges_used[i] = true;
             prior = &candidate_edge;
             break;
@@ -637,7 +640,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         }
         if (edge.ramped) {
             next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr, edge.removed ? 0.f : 1.f});
-            next.ramps.push_back(&edge.state->gain);
+            next.ramps.push_back(edge.state);
         } else if (prior && edge.state != prior->state)
             next.gain_adoption.push_back({edge.state, prior->state, 1.f});
     }
@@ -646,7 +649,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         const Bus *prior = nullptr;
         for (size_t i = 0; i < old.layout->buses.size(); ++i) {
             const auto &candidate_bus = old.layout->buses[i];
-            if (old_buses_used[i] || (candidate_bus.removed && settled) || !same_bus(bus, candidate_bus)) continue;
+            if (old_buses_used[i] || finished_removal(candidate_bus) || !same_bus(bus, candidate_bus)) continue;
             old_buses_used[i] = true;
             prior = &candidate_bus;
             break;
@@ -654,7 +657,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         if (prior) bus.state = prior->state;
         if (bus.ramped) {
             next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f});
-            next.ramps.push_back(&bus.state->gain);
+            next.ramps.push_back(bus.state);
         }
     }
     std::vector<bool> transition_used(next.edges.size(), false);

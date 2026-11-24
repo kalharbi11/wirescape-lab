@@ -41,7 +41,7 @@ struct Layout {
 
     uint64_t revision = 0;
     bool housekeeping = false;
-    std::vector<EdgeGain *> ramps;
+    std::vector<EdgeState *> ramps;
     struct GainAdoption { EdgeState *state, *prior; float target; };
     std::vector<GainAdoption> gain_adoption;
     uint32_t feedback_count = 0;

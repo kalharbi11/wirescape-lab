@@ -704,6 +704,7 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         if (!update.prior) gain.jump(0);
         else if (update.prior != update.state) gain = update.prior->gain;
         gain.set(update.target, mod_ramp_frames());
+        update.state->faded_out.store(gain.silent(), std::memory_order_release);
     }
     for (auto &node : next->nodes) {
         auto &instance = node->instance;
@@ -863,7 +864,11 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     if (!p.render_layout->ramps.empty() &&
         p.settled_revision.load(std::memory_order_relaxed) < p.render_layout->revision) {
         bool settled = true;
-        for (auto *gain : p.render_layout->ramps) settled &= gain->advance(frames);
+        for (auto *state : p.render_layout->ramps) {
+            const bool done = state->gain.advance(frames);
+            settled &= done;
+            if (done && state->gain.silent()) state->faded_out.store(true, std::memory_order_release);
+        }
         if (settled) p.settled_revision.store(p.render_layout->revision, std::memory_order_release);
     }
     if (p.cfg.playing) p.beat += frames * p.cfg.bpm / (60. * p.cfg.sample_rate);
