@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead quick check — 2026-11-24, 16:07 EST
+
+- B1 posted the exact-head S7.5 numerical Result on [#291](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7144258674); D5 release publication and independent review remain. S7.6 [#449](https://github.com/kalharbi11/wirescape-lab/pull/449) is draft-ahead.
+- B2 posted the E7 disjoint-path plan and two fail-first probes. [#442](https://github.com/kalharbi11/wirescape-lab/pull/442) continues at `6f5b74a`. A62 requests the capture ownership, witness and reply ruling; E5 precedes E7 if they share `commit`.
+- B3's [#433 Result](https://github.com/kalharbi11/wirescape-lab/pull/433#issuecomment-7143352337) does not reproduce natural drops. A61 requests serializer scope before hosted attribution or a product-fix release. E5v [#441](https://github.com/kalharbi11/wirescape-lab/pull/441) is independently ready for evidence; paired and CN witness remain.
+- B4 [#444](https://github.com/kalharbi11/wirescape-lab/pull/444) fast-forwarded to the two-parent sync `d85c076` with its five-file diff unchanged. B5 runs [#448](https://github.com/kalharbi11/wirescape-lab/pull/448) at `64c55bd` before resuming [#436](https://github.com/kalharbi11/wirescape-lab/pull/436); draft Lab and E4b stress passed, ready-head checks are pending.
+- OB1 still needs E5v/E5/E7, refreshed CN evidence, remaining sound and OB-d/OB-f1, then the owner’s candidate-only Pi checks and Architect acceptance.
+
+Signed: gpt-lead, 2026-11-24
+
 ## Lead release — 2026-11-24 ET: all five lanes reopened
 
 - Merged [OB-c #275](https://github.com/kalharbi11/wirescape-lab/pull/275) as `6d2de36` at approved `3aad6e3`. Required Lab, Golden, paired and A10 green; advisory Windows Offline was explicitly tracked under #406. Owner approval and S7.3 release are recorded in the [#275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7141836048) and [#202](https://github.com/kalharbi11/wirescape-lab/issues/202#issuecomment-7141838083) comments.
