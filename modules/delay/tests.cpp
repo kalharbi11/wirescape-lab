@@ -580,6 +580,68 @@ static bool division_switch_crossfade() {
     return smooth;
 }
 
+// Interrupt the 10 ms transitions with new targets before they settle.
+// Same sample schedule must produce the same bits across block boundaries;
+// resetting during a transition must discard all transient state.
+static void interrupted_switches() {
+    constexpr size_t length = 32768, at = 16384;
+    for (double rate : {44100., 48000., 96000.}) {
+        auto run = [&](Rig &r, uint32_t block, size_t count) {
+            wet_only(r, .125f, .65f);
+            r.values[kMode] = 0.f;
+            r.values[kTone] = 0.f;
+            r.values[kDivision] = 5.f;
+            r.left(noise(length, 101, .5f));
+            r.right(noise(length, 102, .5f));
+            r.clock(pulses(length, 6000));
+            return r.run(count, block, [&](size_t first) {
+                if (first == at) {
+                    r.values[kMode] = 1.f;
+                    r.values[kTone] = 1.f;
+                    r.values[kDivision] = 6.f;
+                } else if (first == at + 128) {
+                    r.values[kMode] = 0.f;
+                    r.values[kTone] = -1.f;
+                    r.values[kDivision] = 4.f;
+                } else if (first == at + 256) {
+                    r.values[kMode] = 1.f;
+                    r.values[kTone] = 0.f;
+                    r.values[kDivision] = 5.f;
+                }
+            }, true);
+        };
+        Rig a(rate), b(rate), c(rate);
+        const Result reference = run(a, 128, length);
+        REQUIRE(finite_within(reference.l, 1.6f) && finite_within(reference.r, 1.6f));
+        const Result smaller = run(b, 16, length);
+        REQUIRE(smaller.l == reference.l && smaller.r == reference.r);
+        run(c, 64, at + 320); // reset with a division fade in progress
+        c.d->reset(c.instance);
+        const Result reset = run(c, 64, length);
+        REQUIRE(reset.l == reference.l && reset.r == reference.r);
+    }
+
+    // Multiple division requests within one fade: the last request wins.
+    // With zero feedback, the eventual output is exactly the selected tap.
+    Rig changed, settled;
+    for (Rig *r : {&changed, &settled}) {
+        wet_only(*r, .125f, 0.f);
+        r->left(noise(length, 103, .5f));
+        r->clock(pulses(length, 6000));
+    }
+    settled.values[kDivision] = 4.f;
+    const Result endpoint = settled.run(length, 64);
+    const Result got = changed.run(length, 64, [&](size_t first) {
+        if (first == at) changed.values[kDivision] = 6.f;
+        if (first == at + 128) changed.values[kDivision] = 5.f;
+        if (first == at + 256) changed.values[kDivision] = 4.f;
+    }, true);
+    for (size_t i = length - 64; i < length; ++i) {
+        REQUIRE(std::fabs(got.l[i] - endpoint.l[i]) < 1e-4f);
+        REQUIRE(std::fabs(got.r[i] - endpoint.r[i]) < 1e-4f);
+    }
+}
+
 int main() {
     echo_position();
     feedback_decay();
@@ -595,6 +657,7 @@ int main() {
     const bool division_smooth = division_switch_crossfade();
     REQUIRE(tone_smooth);
     REQUIRE(division_smooth);
+    interrupted_switches();
     matrices();
     state_and_extremes();
     std::puts("fx.delay tests passed");
