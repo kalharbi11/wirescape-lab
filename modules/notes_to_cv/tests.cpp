@@ -152,20 +152,41 @@ static void anonymous_fifo_and_repeated_roots() {
 
 static void voice_count_change_and_reset() {
     Rig a;
-    a.run({note({WS2_NOTE_ON, 60, 0})});
-    REQUIRE(a.outs[0].channels == 4 && a.value(1, 0, 1) == 1.f);
-
+    a.run({note({WS2_NOTE_ON, 60, 0}), note({WS2_NOTE_ON, 64, 1}),
+           note({WS2_NOTE_ON, 67, 2}), note({WS2_NOTE_ON, 71, 3})});
+    REQUIRE(a.outs[0].channels == 4);
+    const auto check_kept = [&] {
+        for (uint32_t frame = 0; frame < 128; ++frame) {
+            REQUIRE(a.value(1, 0, frame) == 1.f && a.value(1, 1, frame) == 1.f);
+            REQUIRE(a.value(0, 0, frame) == 0.f && a.value(0, 1, frame) == 4.f / 12.f);
+            REQUIRE(a.value(2, 0, frame) == .75f && a.value(2, 1, frame) == .75f);
+        }
+    };
     a.voice_param = 2.f;
-    a.run();
+    {
+        allocation_watch::Scope scope;
+        a.run();
+        REQUIRE(scope.allocations() == 0);
+    }
     REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    check_kept();
+    a.run(); // same count is a no-op
+    check_kept();
 
-    a.run({note({WS2_NOTE_ON, 64, 1})});
-    REQUIRE(a.outs[0].channels == 2 && a.value(1, 0, 1) == 1.f);
+    a.voice_param = 4.f;
+    a.run();
+    REQUIRE(a.outs[0].channels == 4);
+    check_kept();
+    for (uint32_t c = 2; c < 4; ++c)
+        for (uint32_t frame = 0; frame < 128; ++frame)
+            REQUIRE(a.value(1, c, frame) == 0.f);
+    a.run({note({WS2_NOTE_OFF, 67, 2}), note({WS2_NOTE_OFF, 71, 3})});
+    check_kept(); // retired notes must not close the retained voices
+    a.run({note({WS2_NOTE_OFF, 60, 0})});
+    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 1.f);
     a.desc->reset(a.state);
     a.run();
-    REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    for (uint32_t c = 0; c < 4; ++c) REQUIRE(a.value(1, c, 0) == 0.f);
 }
 static void voice_count_bounds_and_host_cap() {
     struct Case {
