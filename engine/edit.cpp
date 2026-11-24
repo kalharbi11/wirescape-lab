@@ -695,7 +695,12 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     retired.reserve(next.nodes.size());
     for (auto id : introduced) {
         auto &instance = *fresh.instances.at(id);
-        instance.born_revision = next_revision;
+        // ER4 / A55: only a same-descriptor config replacement inherits birth.
+        // find() excludes retired nodes: remove/readd gets a fresh revision.
+        const auto *predecessor = old.find(id);
+        instance.born_revision = predecessor && predecessor->instance.d == instance.d &&
+                                 predecessor->instance.config != instance.config
+                                     ? predecessor->instance.born_revision : next_revision;
         for (uint32_t i = 0; i < instance.event_outputs.size(); ++i)
             instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
     }
