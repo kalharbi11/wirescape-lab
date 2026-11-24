@@ -13,6 +13,8 @@ import sys
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from bench.golden.inventory import allowed_ids  # noqa: E402
 FPUS = ("fpv5-d16", "fpv5-sp-d16")
 SHA256_TOOLCHAIN = "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823"
 
@@ -23,14 +25,18 @@ def run(argv, timeout=120):
 
 
 def sources():
-    catalog = (ROOT / "native/control/module_catalog.inc").read_text(encoding="utf-8")
+    catalog = (ROOT / "engine/control/module_catalog.inc").read_text(encoding="utf-8")
     n_catalog = len(re.findall(r"(?m)^\s*WS_APP_MODULE\(", catalog))
-    modules = sorted((ROOT / "native/modules2").glob("*/module.cpp"))
-    examples = sorted((ROOT / "native/sdk/examples").glob("*/module.cpp"))
-    if len(modules) + len(examples) != n_catalog:
+    modules = sorted((ROOT / "modules").glob("*/module.cpp"))
+    examples = sorted((ROOT / "sdk/examples").glob("*/module.cpp"))
+    permitted = allowed_ids(ROOT)
+    observed = {json.loads(p.with_name("module.json").read_text(encoding="utf-8"))["id"]
+                for p in modules + examples}
+    if len(modules) + len(examples) != n_catalog or observed != permitted or n_catalog != len(permitted):
         raise RuntimeError(f"catalog has {n_catalog} entries, found {len(modules)} module TUs "
-                           f"and {len(examples)} SDK example TUs")
-    template = ROOT / "native/sdk/template/module.cpp"
+                           f"and {len(examples)} SDK example TUs, "
+                           f"unlisted={sorted(observed-permitted)}, missing={sorted(permitted-observed)}")
+    template = ROOT / "sdk/template/module.cpp"
     if not template.is_file():
         raise RuntimeError("missing SDK template module.cpp")
     return modules + examples + [template], n_catalog
@@ -82,12 +88,12 @@ def compile_one(compiler, size_cmd, nm_cmd, source, fpu, object_dir):
         "-std=c++17", "-mcpu=cortex-m7", "-mthumb", f"-mfpu={fpu}",
         "-mfloat-abi=hard", "-fno-exceptions", "-fno-rtti", "-Os",
         "-ffunction-sections", "-fdata-sections", "-DWS_SIMD_SCALAR",
-        "-I", "native/sdk", "-I", "native/include", "-I", "native/sdk/examples",
+        "-I", "sdk", "-I", "sdk/include", "-I", "sdk/examples",
     ]
     if "macro_oscillator" in source.parts:
         flags.extend(("-I", ".tools/portability-context/eurorack",
                       "-I", ".tools/portability-context",
-                      "-DTEST", "-include", "native/modules2/macro_oscillator/rng_scope.hpp"))
+                      "-DTEST", "-include", "modules/macro_oscillator/rng_scope.hpp"))
     outcome = run([compiler, *flags, "-c", rel, "-o", str(dest)], timeout=180)
     if outcome.returncode:
         return {"compiles": False, "first_error": first_error(outcome.stderr),

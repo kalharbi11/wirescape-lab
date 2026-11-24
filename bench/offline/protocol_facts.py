@@ -140,7 +140,7 @@ def main():
             result['disconnect'] = stats(disconnect_ms)
             load_times = []
             seen = set()
-            for base in (ROOT / 'examples', ROOT / 'native/examples'):
+            for base in (ROOT / 'examples', ROOT / 'host/examples'):
                 if not base.exists():
                     continue
                 for path in sorted(base.rglob('*.json')):

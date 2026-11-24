@@ -1,0 +1,354 @@
+# ABI2 foundation is isolated from all ABI1 app targets.
+enable_language(C)
+add_library(wirescape_sdk2 INTERFACE)
+target_include_directories(wirescape_sdk2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../host/include)
+target_compile_features(wirescape_sdk2 INTERFACE cxx_std_17)
+add_executable(abi2_header_c99 tests/header_c99.c)
+target_include_directories(abi2_header_c99 PRIVATE ../sdk/include)
+set_target_properties(abi2_header_c99 PROPERTIES C_STANDARD 99)
+add_test(NAME abi2_header_c99 COMMAND abi2_header_c99)
+add_executable(abi2_sdk_tests tests/sdk_tests.cpp)
+target_link_libraries(abi2_sdk_tests PRIVATE wirescape_sdk2)
+add_test(NAME abi2_sdk_tests COMMAND abi2_sdk_tests)
+add_executable(abi2_sdk_scalar_tests tests/sdk_tests.cpp)
+target_compile_definitions(abi2_sdk_scalar_tests PRIVATE WS_SIMD_SCALAR)
+target_link_libraries(abi2_sdk_scalar_tests PRIVATE wirescape_sdk2)
+add_test(NAME abi2_sdk_scalar_tests COMMAND abi2_sdk_scalar_tests)
+add_library(wirescape_voice2 STATIC voice/allocator.cpp)
+set_target_properties(wirescape_voice2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(wirescape_voice2 PUBLIC voice)
+target_compile_features(wirescape_voice2 PUBLIC cxx_std_17)
+add_executable(abi2_voice_tests voice/tests.cpp)
+target_link_libraries(abi2_voice_tests PRIVATE wirescape_voice2)
+add_test(NAME abi2_voice_tests COMMAND abi2_voice_tests)
+add_executable(abi2_note_identity_tests voice/note_identity_tests.cpp)
+target_link_libraries(abi2_note_identity_tests PRIVATE wirescape_voice2 wirescape_sdk2)
+add_test(NAME abi2_note_identity_tests COMMAND abi2_note_identity_tests)
+add_library(ws2_sdk_template SHARED ../sdk/template/module.cpp)
+target_link_libraries(ws2_sdk_template PRIVATE wirescape_sdk2)
+
+add_executable(abi2_template_tests ../sdk/template/tests.cpp)
+target_link_libraries(abi2_template_tests PRIVATE wirescape_sdk2)
+add_test(NAME abi2_template_tests COMMAND abi2_template_tests)
+
+add_library(wirescape_engine2 STATIC engine2.cpp build.cpp render.cpp edit.cpp)
+target_include_directories(wirescape_engine2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(wirescape_engine2 PUBLIC wirescape_sdk2)
+add_executable(abi2_engine_tests tests/engine_tests.cpp)
+target_link_libraries(abi2_engine_tests PRIVATE wirescape_engine2 wirescape_voice2)
+add_test(NAME abi2_engine_tests COMMAND abi2_engine_tests)
+target_sources(abi2_engine_tests PRIVATE ../tests/native/abi2/allocation_watch.cpp)
+add_executable(abi2_module_tests ../tests/native/abi2/module_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_module_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
+add_test(NAME abi2_module_tests COMMAND abi2_module_tests ${CMAKE_BINARY_DIR}/abi2_equivalence.json)
+foreach(mode scalar portable)
+  add_executable(abi2_${mode}_ports ../tests/native/abi2/module_tests.cpp)
+  target_compile_definitions(abi2_${mode}_ports PRIVATE WS2_PORTABLE_TEST)
+  target_link_libraries(abi2_${mode}_ports PRIVATE wirescape_sdk2)
+  if(mode STREQUAL scalar)
+    target_compile_definitions(abi2_${mode}_ports PRIVATE WS_SIMD_SCALAR)
+  else()
+    if(MSVC)
+      target_compile_options(abi2_${mode}_ports PRIVATE /EHs-c- /GR-)
+      target_compile_definitions(abi2_${mode}_ports PRIVATE _HAS_EXCEPTIONS=0)
+    else()
+      target_compile_options(abi2_${mode}_ports PRIVATE -fno-exceptions -fno-rtti)
+    endif()
+  endif()
+  add_test(NAME abi2_${mode}_ports COMMAND abi2_${mode}_ports)
+endforeach()
+add_executable(abi2_benchmark tests/benchmark.cpp)
+target_link_libraries(abi2_benchmark PRIVATE wirescape_engine2 ${CMAKE_DL_LIBS})
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)
+add_test(NAME abi2_benchmark COMMAND abi2_benchmark $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark.json)
+foreach(frames IN ITEMS 64 128 256)
+  add_test(NAME abi2_benchmark_${frames} COMMAND abi2_benchmark
+    $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2/benchmark_${frames}.json --block ${frames})
+endforeach()
+add_executable(abi2_integration_tests ../tests/native/abi2/integration_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_integration_tests PRIVATE wirescape_engine2 wirescape_voice2 ${CMAKE_DL_LIBS})
+add_test(NAME abi2_integration_tests COMMAND abi2_integration_tests $<TARGET_FILE_DIR:ws2_vco> ${CMAKE_CURRENT_SOURCE_DIR}/../build_reports/abi2)
+add_executable(ob_c_midi_to_cv_audio ../tests/native/abi2/ob_c_midi_to_cv_audio.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(ob_c_midi_to_cv_audio PRIVATE wirescape_engine2 wirescape_voice2 ${CMAKE_DL_LIBS})
+add_test(NAME ob_c_midi_to_cv_audio COMMAND ob_c_midi_to_cv_audio)
+foreach(module notes rows)
+  add_library(ws2_test_${module} SHARED ../tests/native/abi2/${module}_module.cpp)
+  target_link_libraries(ws2_test_${module} PRIVATE wirescape_sdk2 wirescape_voice2)
+endforeach()
+add_executable(abi2_guide_tests ../tests/native/abi2/guide_ringmod/tests.cpp)
+target_link_libraries(abi2_guide_tests PRIVATE wirescape_sdk2)
+add_test(NAME abi2_guide_tests COMMAND abi2_guide_tests)
+add_library(ws2_guide_ringmod SHARED ../tests/native/abi2/guide_ringmod/module.cpp)
+target_link_libraries(ws2_guide_ringmod PRIVATE wirescape_sdk2)
+foreach(example random_source step_sequencer)
+  add_library(ws2_example_${example} SHARED ../sdk/examples/${example}/module.cpp)
+  target_link_libraries(ws2_example_${example} PRIVATE wirescape_sdk2)
+  add_executable(abi2_example_${example}_tests ../sdk/examples/${example}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+  target_link_libraries(abi2_example_${example}_tests PRIVATE wirescape_sdk2)
+  add_test(NAME abi2_example_${example}_tests COMMAND abi2_example_${example}_tests)
+endforeach()
+
+add_library(wirescape_catalog_dependencies INTERFACE)
+target_link_libraries(wirescape_catalog_dependencies INTERFACE wirescape_voice2)
+add_library(ws2_groove SHARED ../modules/groove/module.cpp)
+target_link_libraries(ws2_groove PRIVATE wirescape_sdk2)
+add_library(ws2_host_keyboard SHARED ../modules/host_keyboard/module.cpp)
+target_link_libraries(ws2_host_keyboard PRIVATE wirescape_sdk2 wirescape_voice2)
+
+# Portable OSC codec and ABI2 modules; no UDP socket or sidecar worker in this slice.
+add_executable(abi2_osc_codec_tests ../host/osc/tests.cpp)
+target_link_libraries(abi2_osc_codec_tests PRIVATE wirescape_sdk2)
+add_test(NAME abi2_osc_codec_tests COMMAND abi2_osc_codec_tests)
+foreach(module osc_in osc_out monitor)
+  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)
+  target_link_libraries(ws2_${module} PRIVATE wirescape_sdk2)
+  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+  target_link_libraries(abi2_${module}_tests PRIVATE wirescape_sdk2)
+  add_dependencies(abi2_${module}_tests ws2_${module})
+  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests)
+endforeach()
+
+foreach(module vco lfo vcf adsr vca clock function_envelope ladder mixer noise output scale_offset slew)
+  add_library(ws2_${module} SHARED ../modules/${module}/module.cpp)
+  target_link_libraries(ws2_${module} PRIVATE wirescape_sdk2)
+endforeach()
+
+add_executable(abi2_cost_probe tests/cost_probe.cpp)
+target_link_libraries(abi2_cost_probe PRIVATE wirescape_engine2 ${CMAKE_DL_LIBS})
+add_executable(abi2_panic_stress tests/panic_stress.cpp)
+target_link_libraries(abi2_panic_stress PRIVATE wirescape_engine2 wirescape_voice2 Threads::Threads)
+add_test(NAME abi2_panic_stress COMMAND abi2_panic_stress)
+set_tests_properties(abi2_panic_stress PROPERTIES TIMEOUT 30)
+add_executable(abi2_feedback_tests tests/feedback_tests.cpp)
+target_link_libraries(abi2_feedback_tests PRIVATE wirescape_engine2)
+add_test(NAME abi2_feedback_tests COMMAND abi2_feedback_tests)
+find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+add_test(NAME abi2_banned_includes COMMAND ${Python3_EXECUTABLE} -m unittest discover
+  -s ${PROJECT_SOURCE_DIR}/../tools/foundation/tests -p test_banned_includes.py -v)
+
+add_executable(wirescape_soak tests/soak.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(wirescape_soak PRIVATE wirescape_engine2 ${CMAKE_DL_LIBS} Threads::Threads)
+add_test(NAME abi2_soak_smoke COMMAND wirescape_soak --graph poly8 --rate 48000 --block 128 --seconds 1)
+set_tests_properties(abi2_soak_smoke PROPERTIES TIMEOUT 30)
+add_executable(abi2_soak_stats_tests tests/soak_stats_tests.cpp)
+add_test(NAME abi2_soak_stats_tests COMMAND abi2_soak_stats_tests)
+add_test(NAME abi2_soak_cli COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/../tools/foundation/tests/test_soak.py
+  $<TARGET_FILE:wirescape_soak> $<TARGET_FILE_DIR:ws2_vco>)
+set_tests_properties(abi2_soak_cli PROPERTIES TIMEOUT 60)
+
+add_executable(abi2_port_behavior_tests tests/port_behavior_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_port_behavior_tests PRIVATE wirescape_engine2)
+add_test(NAME abi2_port_behavior_tests COMMAND abi2_port_behavior_tests)
+add_executable(abi2_staged_tests tests/staged_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_staged_tests PRIVATE wirescape_engine2)
+add_test(NAME abi2_staged_tests COMMAND abi2_staged_tests)
+add_executable(abi2_live_replan_tests ../tests/native/abi2/live_replan_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_live_replan_tests PRIVATE wirescape_engine2 Threads::Threads)
+add_test(NAME abi2_live_replan_tests COMMAND abi2_live_replan_tests)
+set_tests_properties(abi2_live_replan_tests PROPERTIES TIMEOUT 15)
+
+foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
+  add_executable(abi2_${module}_tests ../modules/${module}/tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+  target_link_libraries(abi2_${module}_tests PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
+  add_dependencies(abi2_${module}_tests ws2_${module})
+  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests $<TARGET_FILE_DIR:ws2_${module}>)
+endforeach()
+
+target_link_libraries(abi2_output_tests PRIVATE wirescape_engine2)
+
+# Test the source-freezing parser with known-answer/synthetic byte streams.
+add_test(NAME abi2_reference_freezer_tests COMMAND ${Python3_EXECUTABLE}
+  -m unittest discover -s ${CMAKE_SOURCE_DIR}/../bench/reference
+  -p "test_*.py" -v)
+
+# T1.1: every ABI2 comparison consumes committed, source-verified ABI1
+# fixture words; no comparison target links the original ABI1 engine.
+if(WIN32)
+  set(ABI1_FROZEN_MACHINE windows-x64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+  set(ABI1_FROZEN_MACHINE linux-arm64)
+else()
+  set(ABI1_FROZEN_MACHINE linux-x64)
+endif()
+set(ABI1_FROZEN_DIR "${CMAKE_BINARY_DIR}/abi1_frozen")
+set(ABI1_REFERENCE_MANIFEST
+  "${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_reference_hash_manifest.json")
+set(ABI1_REFERENCE_CORPUS
+  "${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/refs")
+set(ABI1_S4_QT_FREE_FIXTURE
+  "${CMAKE_SOURCE_DIR}/../tests/native/compat/fixtures/abi2/abi1_s4_qt_free_96000.json")
+add_custom_target(abi2_frozen_reference_unpack ALL
+  COMMAND ${Python3_EXECUTABLE}
+    "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+    --manifest "${ABI1_REFERENCE_MANIFEST}"
+    --corpus-dir "${ABI1_REFERENCE_CORPUS}"
+    --destination "${ABI1_FROZEN_DIR}"
+    --machine "${ABI1_FROZEN_MACHINE}"
+    --s4-fixture "${ABI1_S4_QT_FREE_FIXTURE}"
+  BYPRODUCTS "${ABI1_FROZEN_DIR}/capture_source.json"
+  COMMENT "Unpack and SHA-256-verify committed, frozen ABI1 reference words"
+  VERBATIM)
+# Independent decoded-file SHA check: it cannot be replaced by a corpus-only pass.
+add_test(NAME abi1_s4_frozen_hash COMMAND ${Python3_EXECUTABLE}
+  "${CMAKE_SOURCE_DIR}/../bench/reference/unpack.py"
+  --verify-s4 "${ABI1_FROZEN_DIR}/qt_free_saved_v2_abi1_48000_128_96000.f32le"
+  --destination "${ABI1_FROZEN_DIR}" --machine "${ABI1_FROZEN_MACHINE}")
+target_compile_definitions(qt_free_patch_coverage_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(qt_free_patch_coverage_tests abi2_frozen_reference_unpack)
+target_compile_definitions(abi2_module_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+target_compile_definitions(abi2_integration_tests PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_dependencies(abi2_module_tests abi2_frozen_reference_unpack)
+add_dependencies(abi2_integration_tests abi2_frozen_reference_unpack)
+foreach(module clock function_envelope ladder mixer noise output scale_offset slew)
+  target_compile_definitions(abi2_${module}_tests PRIVATE
+    ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+  add_dependencies(abi2_${module}_tests abi2_frozen_reference_unpack)
+endforeach()
+
+add_executable(abi2_returned_filter_stress ../tests/native/abi2/abi2_returned_filter_stress.cpp)
+target_link_libraries(abi2_returned_filter_stress PRIVATE wirescape_sdk2 ${CMAKE_DL_LIBS})
+# The stress cases are compiled from a test-only helper that has no ABI1
+# engine loader. No dead-code stripping workaround or ABI1 link is needed.
+add_dependencies(abi2_returned_filter_stress ws2_ladder abi2_frozen_reference_unpack)
+target_compile_definitions(abi2_returned_filter_stress PRIVATE
+  ABI1_FROZEN_DIR="${ABI1_FROZEN_DIR}")
+add_test(NAME abi2_returned_filter_stress COMMAND abi2_returned_filter_stress $<TARGET_FILE_DIR:ws2_ladder>)
+
+# Inspect direct AND interface/transitive links, not just the visible -l token.
+# These are comparison targets; separate ABI1 production/bench targets remain
+# Fable-owned T1.2 and are not removed.
+function(abi2_assert_no_abi1_engine target_name)
+  get_property(already GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}")
+  if(already)
+    return()
+  endif()
+  set_property(GLOBAL PROPERTY "ABI1_LINK_CHECKED_${target_name}" TRUE)
+  get_target_property(direct_links "${target_name}" LINK_LIBRARIES)
+  get_target_property(interface_links "${target_name}" INTERFACE_LINK_LIBRARIES)
+  message(STATUS "T1.1 comparison links ${target_name}: ${direct_links}")
+  foreach(link_item IN LISTS direct_links interface_links)
+    if(link_item MATCHES "(^|[^a-zA-Z0-9_])wirescape_engine($|[^a-zA-Z0-9_])")
+      message(FATAL_ERROR "T1.1 comparison ${target_name} resolves the ABI1 engine: ${link_item}")
+    endif()
+    if(TARGET "${link_item}")
+      abi2_assert_no_abi1_engine("${link_item}")
+    endif()
+  endforeach()
+endfunction()
+foreach(compare_target IN ITEMS abi2_integration_tests abi2_module_tests
+        abi2_returned_filter_stress
+        abi2_clock_tests abi2_function_envelope_tests abi2_ladder_tests
+        abi2_mixer_tests abi2_noise_tests abi2_output_tests
+        abi2_scale_offset_tests abi2_slew_tests)
+  abi2_assert_no_abi1_engine("${compare_target}")
+endforeach()
+
+
+add_subdirectory(../host/midi midi_io)
+add_subdirectory(../modules/macro_oscillator macro_oscillator)
+target_link_libraries(wirescape_catalog_dependencies INTERFACE macro_upstream)
+add_library(wirescape_app_engine STATIC control/app_engine.cpp)
+target_include_directories(wirescape_app_engine PUBLIC control)
+target_link_libraries(wirescape_app_engine PUBLIC wirescape_engine2 wirescape_catalog_dependencies)
+target_link_libraries(wirescape_cli PRIVATE wirescape_app_engine)
+
+# Device-free, deterministic benchmark shared by all built-in modules.
+add_executable(abi2_module_cpu_probe_output_tests tests/module_cpu_probe_output_tests.cpp)
+target_link_libraries(abi2_module_cpu_probe_output_tests PRIVATE wirescape_engine2)
+add_test(NAME abi2_module_cpu_probe_output_tests COMMAND abi2_module_cpu_probe_output_tests)
+add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_module_cpu_probe PRIVATE wirescape_app_engine)
+add_test(NAME abi2_module_cpu_probe_smoke COMMAND abi2_module_cpu_probe --module sound.blend --seconds 0.2)
+foreach(frames IN ITEMS 64 128 256)
+  add_test(NAME abi2_module_cpu_probe_tiny_${frames} COMMAND abi2_module_cpu_probe
+    --module essentials.vco --seconds 0.2 --block ${frames} --input-mode denormal)
+endforeach()
+set_tests_properties(abi2_module_cpu_probe_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0")
+add_test(NAME abi2_module_cpu_probe_stress_smoke COMMAND abi2_module_cpu_probe --module sound.blend --seconds 0.2 --param balance=0.25 --alternate mode=0:1:4)
+set_tests_properties(abi2_module_cpu_probe_stress_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0")
+add_test(NAME abi2_module_cpu_probe_poly_smoke COMMAND abi2_module_cpu_probe --module essentials.vco --seconds 0.2 --channels 8)
+set_tests_properties(abi2_module_cpu_probe_poly_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"channels\":8.*\"allocations\":0,\"faults\":0")
+add_test(NAME abi2_module_cpu_probe_spectral_smoke COMMAND abi2_module_cpu_probe --module sound.spectral --seconds 0.2 --param size=3 --param pitch=1 --alternate mode=0:1:32)
+set_tests_properties(abi2_module_cpu_probe_spectral_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0")
+add_test(NAME abi2_module_cpu_probe_unit COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/../tools/foundation/tests/test_module_cpu_probe.py)
+
+add_executable(abi2_host_keyboard_tests ../modules/host_keyboard/tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(abi2_host_keyboard_tests PRIVATE wirescape_engine2 wirescape_voice2)
+add_test(NAME abi2_host_keyboard_tests COMMAND abi2_host_keyboard_tests)
+
+add_library(wirescape_audio_service STATIC ../host/audio/portaudio_service.cpp ../host/audio/device_identity.cpp)
+target_link_libraries(wirescape_audio_service PUBLIC wirescape_app_engine PRIVATE ${CMAKE_DL_LIBS} Threads::Threads)
+
+# Production Stream lifecycle through a fake dynamic PortAudio library (devices stay off).
+add_library(qt_free_fake_portaudio SHARED ../host/audio/fake_portaudio_stream_tests.cpp)
+set_target_properties(qt_free_fake_portaudio PROPERTIES
+  WINDOWS_EXPORT_ALL_SYMBOLS ON
+  # The production sidecar loads PortAudio from its own executable directory first.
+  # Never let this device-off test DLL/so override or get packaged as the real backend.
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/fake_portaudio/$<CONFIG>"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/fake_portaudio/$<CONFIG>"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/fake_portaudio/$<CONFIG>")
+target_link_libraries(qt_free_fake_portaudio PRIVATE Threads::Threads)
+if(WIN32)
+  set_target_properties(qt_free_fake_portaudio PROPERTIES OUTPUT_NAME "libportaudio64bit")
+else()
+  set_target_properties(qt_free_fake_portaudio PROPERTIES OUTPUT_NAME "portaudio" VERSION 2.0 SOVERSION 2)
+endif()
+add_executable(qt_free_stream_lifecycle_tests ../host/audio/stream_lifecycle_tests.cpp)
+target_link_libraries(qt_free_stream_lifecycle_tests PRIVATE wirescape_runtime_document wirescape_audio_service Threads::Threads ${CMAKE_DL_LIBS})
+add_dependencies(qt_free_stream_lifecycle_tests qt_free_fake_portaudio)
+add_test(NAME qt_free_stream_lifecycle_tests COMMAND qt_free_stream_lifecycle_tests
+  "$<TARGET_FILE_DIR:qt_free_fake_portaudio>" "$<TARGET_FILE:qt_free_fake_portaudio>"
+  "$<TARGET_FILE_DIR:wirescape_engine_sidecar>")
+
+if(WIN32)
+  target_link_libraries(wirescape_audio_service PRIVATE advapi32)
+endif()
+target_link_libraries(wirescape_cli PRIVATE wirescape_runtime_document wirescape_audio_service)
+add_executable(audio_callback_live_midi_tests ../host/audio/callback_live_midi_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(audio_callback_live_midi_tests PRIVATE wirescape_app_engine)
+add_test(NAME abi2_audio_callback_live_midi_tests COMMAND audio_callback_live_midi_tests)
+set_tests_properties(abi2_audio_callback_live_midi_tests PROPERTIES TIMEOUT 30)
+
+target_sources(wirescape_cli PRIVATE ../host/cli/play.cpp)
+add_executable(abi2_midi_release_tests tests/midi_release_tests.cpp)
+target_link_libraries(abi2_midi_release_tests PRIVATE wirescape_engine2)
+add_test(NAME abi2_midi_release_tests COMMAND abi2_midi_release_tests)
+
+add_library(wirescape_midi_host STATIC control/midi_host.cpp)
+target_include_directories(wirescape_midi_host PUBLIC control)
+target_link_libraries(wirescape_midi_host PUBLIC wirescape_app_engine wirescape_midi_service wirescape_midi_backend PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(wirescape_cli PRIVATE wirescape_midi_host)
+add_executable(midi_host_tests control/midi_host_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(midi_host_tests PRIVATE wirescape_midi_host)
+add_test(NAME midi_host_tests COMMAND midi_host_tests)
+add_test(NAME abi2_midi_live_host_tests COMMAND midi_host_tests)
+add_executable(app_engine_tests control/app_engine_tests.cpp ../tests/native/abi2/allocation_watch.cpp)
+target_link_libraries(app_engine_tests PRIVATE wirescape_app_engine)
+target_compile_definitions(app_engine_tests PRIVATE
+  WS_KNOWN_MODULE_IDS="${CMAKE_CURRENT_SOURCE_DIR}/../tools/foundation/fixtures/known_module_ids.txt")
+add_test(NAME app_engine_tests COMMAND app_engine_tests)
+# The sanitizer workflow runs -R abi2; execute the real facade test under ASan/UBSan too.
+add_test(NAME abi2_app_engine_sanitizer_tests COMMAND app_engine_tests)
+# Document soak uses the same Qt-free execution copy as the sidecar.
+target_link_libraries(wirescape_soak PRIVATE wirescape_runtime_document)
+add_test(NAME app_document_soak COMMAND wirescape_soak --patch
+  "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json" --rate 48000 --block 128 --seconds 0.01)
+set_tests_properties(app_document_soak PROPERTIES TIMEOUT 15)
+add_subdirectory(../modules/chaos_lite chaos_lite)
+add_subdirectory(../modules/blend blend)
+add_subdirectory(../modules/resonator resonator)
+add_subdirectory(../modules/spectral spectral)
+add_subdirectory(../modules/delay delay)
+add_subdirectory(../modules/reverb reverb)
+add_subdirectory(../modules/quantizer quantizer)
+add_subdirectory(../modules/quad_vca quad_vca)
+add_subdirectory(../modules/notes_to_cv notes_to_cv)
+add_subdirectory(../modules/cv_to_notes cv_to_notes)
+add_subdirectory(../modules/poly_merge poly_merge)
+add_subdirectory(../modules/poly_split poly_split)
+add_subdirectory(../modules/chord chord)

@@ -12,7 +12,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/"bench/golden"))
 from render import coverage_manifest, sources, CENTERS_HZ
 from compare import compare, parse_sound_changes
-from inventory import registry, render_inventory
+from inventory import EXPERIMENTAL, allowed_ids, golden_ids, registry, render_inventory
 
 CASES=("chord-notes.json","notes-to-cv.json","spectral-cross.json")
 
@@ -135,10 +135,14 @@ class CoverageTests(unittest.TestCase):
             self.assertTrue(all(path.is_relative_to(head)
                                 for scope,path in entries if scope=="coverage"))
 
-    def test_registry_and_bundled_patch_inventory_is_all_34(self):
+    def test_exact_golden_and_experimental_inventory(self):
         from inventory import registry, render_inventory
         modules=registry(ROOT)
-        self.assertEqual(len(modules),34)
+        self.assertEqual(set(modules), allowed_ids(ROOT))
+        self.assertEqual(len(golden_ids(ROOT)), 34)
+        self.assertEqual(EXPERIMENTAL, {
+            "essentials.cv_to_notes", "essentials.poly_merge", "essentials.poly_split",
+        })
         self.assertIn("osc.out",modules)
         self.assertIn("midi.in",modules)
         self.assertIn("monitor",modules)
@@ -159,7 +163,8 @@ class CoverageTests(unittest.TestCase):
         facts=render_inventory(ROOT,render,"https://example.test/known-answer")
         self.assertEqual(facts["source_commit"],"test-engine-sha")
         self.assertEqual(facts["fixture_source_commit"],"test-fixture-sha")
-        self.assertEqual(len(facts["modules"]),34)
+        self.assertEqual(set(facts["modules"]), allowed_ids(ROOT))
+        self.assertEqual(facts["modules"]["essentials.cv_to_notes"]["contribution_status"], "not_exercised_offline")
         self.assertEqual(facts["bundled_patch_count"],24)
         self.assertEqual(facts["coverage_fixture_count"],3)
         self.assertEqual(facts["modules"]["essentials.chord"]["contribution_status"],

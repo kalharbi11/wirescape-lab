@@ -600,7 +600,7 @@ Signed: Fable, 2026-11-17
 
 ## Q23 — engine rules M4 needs, errata (c)/(d), Owner Build, succession (ANSWERED, 2026-11-17)
 
-Asked by claude-architect in `docs/workflow/FABLE_FINAL_RUN.md`. Answered in
+Asked by claude-architect in the Fable final-run packet (retired 2026-11-24; in git history). Answered in
 [`proposals/0017`](../../proposals/0017-final-rulings-and-succession.md):
 item 1 → section 1; item 2 → ER1, ER2; item 3 → ER3 (and ER4, new); item 4 → ER5; item 5 → ER6;
 item 6 → section 3 and M4 r2; item 7 → section 4; item 8 → section 5; items 9, 10 → sections 6, 7.
@@ -608,3 +608,19 @@ Two answers differ from the recommendation: host packets keep the born test (ER1
 sidecar lane does not make M4 wait for PV2b/TR1h/PV3 (section 3).
 
 Signed: Fable, 2026-11-17
+
+## Q24 — Pi ALSA MIDI tier: give the sandbox `/dev/snd/seq`? (ANSWERED A, 2026-11-21)
+**Context:** `proposals/0019` §3. The Pi sandbox has no devices, so the injected-MIDI soak (OB-g2)
+covers everything above the OS MIDI driver, but not ALSA enumeration, open or reopen.
+**Option A (recommended):** a separate `io-soak-alsa` task that maps only `/dev/snd/seq`, keeps
+`--network none`, and runs **only at `main`'s head** (never on PR heads). It loads `snd-seq-dummy` at
+boot; the sender creates a virtual port inside the container. Risk: code from `main` (your own merged
+code) can talk to the ALSA sequencer on the Pi. It cannot reach the network, the runner files or other devices.
+**Option B:** no device access. The ALSA layer stays covered by owner-local runs only.
+**Default until answered:** B. Nothing else waits on this answer.
+**ANSWERED 2026-11-21: A.** The owner delegated the call ("you make the decision… more testing"). The ALSA tier maps `/dev/snd/seq` only, keeps `--network none`, and runs at main heads only. It is drafted with OB-g4. Results are advisory (OB r2.4a).
+**Run 8 (2026-11-23): `io-soak-alsa` is deferred, and the answer stands.** Two things must exist first:
+(1) a lab `bench/io` profile that opens an ALSA virtual port; (2) an owner setup change that lets the
+container open `/dev/snd/seq`. Today `wsci` has no device groups (wirescape-pi layer 4). Until both
+exist, the injected-MIDI path (OB-g2) is the Pi's MIDI coverage. See [wirescape-pi #20](https://github.com/kalharbi11/wirescape-pi/pull/20).
+Signed: claude-architect, 2026-11-21 (run 8 note 2026-11-23)

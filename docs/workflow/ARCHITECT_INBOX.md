@@ -7,12 +7,13 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. Routine independent review uses
+review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
+cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
-A row and its labels record the decision or review request. Only the delivery lead sends
-a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
+[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
+starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -26,27 +27,14 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
-## Historical lead queue sync — 2026-11-18 19:33 EST
-
-Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
-PR #242 now needs independent **reviewer-level** Claude review at
-`fd413424197cec2f4ae04c7c866636d4483e41ed`, base
-`004a1b469c6d87fb7886f53ca8ac8f4c273eb6d8`; all five recorded workflows completed green.
-The queue is its `claude-review/reviewer` label, not a new Architect-only Open row.
-The Architect may fulfill that review, or the owner may run claude-reviewer.
-B1/B2 test wiring is released under SR8 and needs no Architect ruling.
-A3/A4 below retain their original waits. No cleared ruling is reopened.
-Lead actions and exact next runs are in CURRENT's Cloud-1 delivery sync.
-
-Signed: codex-lead, 2026-11-18, 19:33 EST
-
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
+| A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | errata review | later | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed** to rule each erratum, after OB0 and before any of MT4, H3a, CP1, K3 or K4 is dispatched (2026-11-18 13:10). | MT4/H3a/CP1/K3/K4 dispatch only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A17 | 2026-11-19 | #253 S5b preflight: CLI/Golden consumers and returned-filter test | Granted, bounded: M1 r3.2. CLI event/status migration with behaviour unchanged; golden_render `WS_OK` line only; tests2 returned-filter bridge converted to ABI2, not deleted, case bodies identical; no CMake, no retired-name shim. Limits in CURRENT "Decided 2026-11-19". B4 resumes. |
+| A38 | 2026-11-24 | TR1e #385 Architect review (ER1, 0008 K1/K2/K4) | [Approved `5d2d78b` with one condition](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762): the red `Offline facts / windows-latest` job goes green on a re-run, or shows the same failure on main. No High or Medium findings; 3 Low (one for E6, two for TR1h) |
+| A43 | 2026-11-24 | S7.7 #380 Claude contract-review and the 96 kHz evidence question (owner) | [Approved after one pre-approved one-line correction](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7124107855): restore the `baseline_peak` check. No 96 kHz measurement is needed. A38's Windows condition is [met](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124108736) |

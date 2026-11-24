@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Reverb S7.2 full module evidence (advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'bench/evidence/reverb_s72/**'
+      - '.github/workflows/reverb-s72-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      BASE_SHA: 3d3c8437131ac40b3275eae221ba7728e48a766c
+      HEAD_SHA: da1952996c9c5f5b44b904208de9abf63a13abcb
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify PR 255 source and create separate detached worktrees
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EVIDENCE="$RUNNER_TEMP/reverb-s72-evidence"
+          echo "EVIDENCE=$EVIDENCE" >> "$GITHUB_ENV"
+          mkdir -p "$EVIDENCE"
+          gh api "repos/$GITHUB_REPOSITORY/pulls/255" \
+            --jq '{state, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255.json"
+          jq -e --arg head "$HEAD_SHA" --arg base "$BASE_SHA" \
+            '.state == "open" and .head == $head and .base == $base' "$EVIDENCE/pr-255.json"
+          git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+          git worktree add --detach "$RUNNER_TEMP/reverb-s72-before" "$BASE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/reverb-s72-head" "$HEAD_SHA"
+      - name: Install build and collector dependencies
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0 \
+            -r "$RUNNER_TEMP/reverb-s72-before/bench/offline/requirements.txt" \
+            -r "$RUNNER_TEMP/reverb-s72-head/bench/offline/requirements.txt"
+      - name: Build and measure both sources with devices off
+        shell: bash
+        run: |
+          helper="$GITHUB_WORKSPACE/bench/evidence/reverb_s72/collect.py"
+          failed=0
+          for label in before head; do
+            if [[ "$label" == before ]]; then pin="$BASE_SHA"; else pin="$HEAD_SHA"; fi
+            source="$RUNNER_TEMP/reverb-s72-$label"
+            out="$EVIDENCE/$label"
+            mkdir -p "$out"
+            build_status=0
+            (cd "$source" && python tools/dev.py build --headless --config Release) \
+              2>&1 | tee "$out/build.log" || build_status=$?
+            if [[ -d "$source/build_reports/foundation" ]]; then
+              cp -r "$source/build_reports/foundation" "$out/build-reports"
+            fi
+            if (( build_status != 0 )); then
+              failed=1
+              continue
+            fi
+            if ! (cd "$source" && python "$helper" measure "$source" "$pin" "$out") \
+                2>&1 | tee "$out/measure.log"; then
+              failed=1
+            fi
+          done
+          exit "$failed"
+      - name: Verify matched outputs and report the existing head peak criterion
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/pulls/255" \
+            --jq '{state, base: .base.sha, head: .head.sha}' > "$EVIDENCE/pr-255-after.json"
+          cmp "$EVIDENCE/pr-255.json" "$EVIDENCE/pr-255-after.json"
+          python bench/evidence/reverb_s72/collect.py compare "$EVIDENCE" "$BASE_SHA" "$HEAD_SHA"
+      - name: Upload source pins, original reports, raw captures and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reverb-s72-linux-x64
+          path: ${{ runner.temp }}/reverb-s72-evidence
+          if-no-files-found: warn
+          retention-days: 7

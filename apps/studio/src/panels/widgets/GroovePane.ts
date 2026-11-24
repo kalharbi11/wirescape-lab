@@ -77,6 +77,7 @@ export class GroovePane {
   private applying = false;
   private pop: HTMLElement | null = null;
   private wheelAcc = 0;
+  private wheelStep = -1;
   private clipboard: Step[] | null = null;
   private readonly toastEl = el('span', 'g-toast');
   private toastTimer: number | undefined;
@@ -1020,8 +1021,21 @@ export class GroovePane {
     const t = this.t, i = Number(pad.dataset.i), src = sourceOf(this.cfg, t, i);
     if (src < 0) return;
     e.preventDefault(); e.stopPropagation();
-    this.wheelAcc += e.deltaY || e.deltaX;
-    if (Math.abs(this.wheelAcc) < 40) return;
+    // WheelEvent deltaMode is lines or pages on some mouse wheels, pixels on
+    // trackpads. Normalize before applying the gesture threshold.
+    const raw = e.deltaY || e.deltaX;
+    const unit = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16
+      : e.deltaMode === WheelEvent.DOM_DELTA_PAGE ? Math.max(1, this.grid.clientHeight) : 1;
+    const delta = raw * unit;
+    if (!Number.isFinite(delta) || delta === 0) return;
+    // A partial gesture on another step or in the opposite direction must not
+    // move this note. Keep small same-direction trackpad deltas cumulative.
+    const wheelStep = t * 128 + i;
+    if (wheelStep !== this.wheelStep || (this.wheelAcc && Math.sign(delta) !== Math.sign(this.wheelAcc)))
+      this.wheelAcc = 0;
+    this.wheelStep = wheelStep;
+    this.wheelAcc += delta;
+    if (Math.abs(this.wheelAcc) < 30) return;
     const n = this.wheelAcc < 0 ? 1 : -1;
     this.wheelAcc = 0;
     if (this.view.sel[t] !== i || !this.view.selected[t]) this.select(i);

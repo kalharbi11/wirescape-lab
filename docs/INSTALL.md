@@ -75,7 +75,7 @@ earlier beta; just close it before launching 1.0 so they don't share audio and
 MIDI devices.
 
 ```powershell
-git clone https://github.com/kalharbi11/wirescape.git C:\src\wirescape-1.0
+git clone https://github.com/kalharbi11/wirescape-lab.git C:\src\wirescape-1.0
 cd C:\src\wirescape-1.0
 # 1.0 is the commit named in docs/releases/v1.0.md. Before it is pinned, use current main:
 $Ref = (git rev-parse origin/main).Trim()
@@ -138,6 +138,30 @@ Device-off launch (silent, for checking the window only):
 
 ## Raspberry Pi 5
 
+**Post-S6 source-layout dry run (OB-b).** On an exact-commit checkout
+of the current mapped source tree, before installing or building anything, run:
+
+```sh
+python3 tools/pi/ob_b_paths.py --dry-run
+```
+
+This read-only check verifies 17 tracked source files across the retained
+`native/CMakeLists.txt` build root and relocated `engine/`, `host/` and
+`modules/` directories, plus the Electron/Studio and Pi support entry points.
+It also rejects four obsolete pre-S6 source paths (21 path assertions total).
+It does not call Git, install packages, build, launch the app, inspect actual
+devices or change files. `PASS 21/21` means only that source *paths* are
+consistent; it does **not** establish Pi ARM64 compilation, source provenance,
+device-off smoke, or sound/MIDI/LAN readiness. A missing path is a stop to
+inspect the selected checkout, not permission to move or overwrite any files.
+
+Run the existing `tools/pi/preflight.py --check-only`, pinned
+`tools/pi/update-and-build.sh <full SHA>`, device-off tests and app smoke
+below as separate steps. Those owner-managed install/update commands are
+unchanged. The immutable pre-S6 `owner-build-0` checkout retains its
+original source layout; this new post-S6 checker does not apply to that tag
+and does not replace its installation/rollback procedure.
+
 Use 64-bit Raspberry Pi OS (desktop). The full owner runbook, with package list,
 preflight, isolated profile and rollback, is [PI_FRESH_INSTALL.md](PI_FRESH_INSTALL.md).
 In short:
@@ -157,7 +181,7 @@ of current `main` (it includes the OSC In range scaling, #742, and the ESP32
 launcher, #748):
 
 ```sh
-git clone https://github.com/kalharbi11/wirescape.git ~/wirescape-test
+git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape-test
 cd ~/wirescape-test
 Ref=$(git rev-parse origin/main) && git switch --detach "$Ref"
 python3 tools/pi/preflight.py --check-only

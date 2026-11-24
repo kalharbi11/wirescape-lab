@@ -44,9 +44,9 @@ def build_probe(build, destination):
     binary = Path(destination) / "wirescape-r2-engine-probe"
     command = [
         compiler, "-std=c++17", "-O2", str(PROBE_SOURCE), str(library[0]),
-        "-I" + str(ROOT / "native/include"),
-        "-I" + str(ROOT / "native/sdk"),
-        "-I" + str(ROOT / "native/engine2"),
+        "-I" + str(ROOT / "sdk/include"),
+        "-I" + str(ROOT / "sdk"),
+        "-I" + str(ROOT / "engine"),
         "-pthread", "-ldl", "-o", str(binary),
     ]
     result = subprocess.run(command, cwd=ROOT, stdin=subprocess.DEVNULL,
