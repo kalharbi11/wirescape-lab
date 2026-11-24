@@ -89,8 +89,8 @@ public:
     bool output_constant(uint32_t node,uint32_t port)const;
     float output_sample(uint32_t node,uint32_t port,uint32_t channel,uint32_t frame)const;
     uint32_t feedback_edges()const;
-    // Control-owner-only, may overlap render; modules publish dynamic latency
-    // atomically from process(). Uses pre-sized scratch and performs no allocations.
+    // Control-owner-only, may overlap render; reads atomic per-instance latency
+    // refreshed by render on parameter changes and adoption. No allocation.
     void refresh_latency() noexcept;
     uint32_t latency_frames(uint32_t bus_channel)const;
     std::vector<FeedbackLoop> feedback_loops()const;
@@ -99,7 +99,7 @@ public:
     const std::vector<uint8_t>&preserved_state(uint32_t node)const;
     bool reconfigure(uint32_t node,const std::vector<uint8_t>&config);
     // One control owner stages a prepared candidate while render remains active.
-    // A timed-out park never changes the live graph. Candidate retirement is control-side.
+    // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
     uint32_t dropped_connections()const;
 };

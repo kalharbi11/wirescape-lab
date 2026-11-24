@@ -5,6 +5,9 @@
 #include "../../tests/native/abi2/test_modules.h"
 #include "engine2.h"
 #include "types.h"
+#include "layout.h"
+#include "publication.h"
+#include <type_traits>
 #include "wirescape_sdk.h"
 #include <array>
 #include <atomic>
@@ -572,7 +575,87 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 165, 21, false);
 }
+// E4a: topology entries must not embed DSP instances. Two layouts must
+// be able to refer to the same instance without moving its address.
+static void layout_instance_separation(){
+ CHECK(std::is_reference_v<decltype(Node::instance)>);
+ Instance instance;
+ instance.id = 7;
+ Layout first, second;
+ first.nodes.push_back(std::make_unique<Node>(instance));
+ second.nodes.push_back(std::make_unique<Node>(instance));
+ first.nodes[0]->slot.index = 1;
+ second.nodes[0]->slot.index = 2;
+ CHECK(&first.nodes[0]->instance == &second.nodes[0]->instance);
+ CHECK(first.nodes[0]->slot.index != second.nodes[0]->slot.index);
+ first.nodes.clear();
+ CHECK(second.nodes[0]->instance.id == 7);
+}
+static void removed_mod_edge_lookup(){
+ Layout layout;
+ layout.edges.push_back({1, 0, 2, 0, 2, .1f});
+ layout.edges.push_back({2, 0, 3, 0, 2, .2f});
+ layout.edges.push_back({2, 0, 3, 0, 2, .3f});
+ layout.edges.push_back({3, 0, 4, 0, 2, .4f});
+ layout.edges[1].removed = true;
+ CHECK(layout.find_mod_edge(2, 0, 3, 0) == &layout.edges[2]);
+ layout.edges[2].removed = true;
+ CHECK(layout.find_mod_edge(2, 0, 3, 0) == nullptr);
+ CHECK(layout.find_mod_edge(1, 0, 2, 0) == &layout.edges[0]);
+ CHECK(layout.find_mod_edge(3, 0, 4, 0) == &layout.edges[3]);
+ CHECK(layout.find_mod_edge(2, 0, 4, 0) == nullptr);
+}
+static void edge_envelope_and_publication(){
+ EdgeGain gain;
+ gain.jump(0);
+ gain.set(1, 240);
+ CHECK(gain.at(0) == float(1. / 240));
+ CHECK(gain.at(59) == .25f);
+ CHECK(!gain.advance(60));
+ CHECK(gain.current() == .25f);
+ gain.set(1, 240); // Same target must not restart an in-flight ramp.
+ CHECK(gain.at(0) == float(61. / 240));
+ gain.set(0, 240);
+ CHECK(gain.at(0) == float(.25 * (239. / 240)));
+ CHECK(gain.advance(240) && gain.silent());
+ gain.set(1, 0);
+ CHECK(gain.current() == 1);
+
+ int next = 7;
+ std::atomic<int *> pending{nullptr};
+ std::atomic<uint64_t> adopted{0};
+ unsigned tick = 0;
+ CHECK(!publish_and_wait(pending, adopted, &next, 1, 3u,
+     [&]{return tick;}, [&]{++tick;}));
+ CHECK(!pending.load() && adopted.load() == 0);
+ tick = 0;
+ CHECK(publish_and_wait(pending, adopted, &next, 1, 3u,
+     [&]{return tick;}, [&]{
+         ++tick;
+         if (tick == 1) CHECK(pending.exchange(nullptr) == &next);
+         // Claim before deadline, acknowledge after it: timeout CAS loses.
+         if (tick == 5) adopted.store(1);
+     }));
+ CHECK(!pending.load() && adopted.load() == 1 && tick == 5);
+
+ Ring ring(3);
+ Packet a{}, b{}, c{}, out{};
+ a.revision = 1; a.order = 1;
+ b.revision = 2; b.order = 2;
+ c.revision = 1; c.order = 3;
+ CHECK(ring.push(a) && ring.push(b) && ring.push(c));
+ uint64_t blocked = 0;
+ CHECK(ring.pop_adopted(out, 1, blocked) && out.order == 1);
+ CHECK(!ring.pop_adopted(out, 1, blocked) && blocked == 2);
+ CHECK(!ring.pop_adopted(out, 1, blocked) && blocked == 2);
+ CHECK(ring.pop_adopted(out, 2, blocked) && out.order == 2);
+ CHECK(ring.pop_adopted(out, 2, blocked) && out.order == 3);
+ CHECK(!ring.pop_adopted(out, 2, blocked));
+}
 int main(){
+ edge_envelope_and_publication();
+ layout_instance_separation();
+ removed_mod_edge_lookup();
 #ifdef _MSC_VER
  _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
 #endif
