@@ -42,7 +42,8 @@ void Engine::reset() {
     }
     p.reset_processors();
     p.position.store(0);
-    p.beat = 0;
+    if (p.prepared) p.reset_beat = true;
+    else p.beat = 0;
     p.anchor_frame = 0;
     p.anchor_ns = p.cfg.epoch_ns;
     p.frames_per_ns = p.cfg.sample_rate / 1.e9;
@@ -52,12 +53,28 @@ void Engine::reset() {
     p.fade_in = false;
     p.park.store(Park::Running);
 }
-void Engine::transport(double bpm, bool playing, double beat) {
-    if (std::isfinite(bpm) && bpm > 0 && std::isfinite(beat)) {
-        p_->cfg.bpm = bpm;
-        p_->cfg.playing = playing;
-        p_->beat = beat;
+int Engine::transport(double bpm, bool playing, std::optional<double> beat) noexcept {
+    if (!std::isfinite(bpm) || bpm < 20. || bpm > 300. ||
+        (beat && (!std::isfinite(*beat) || *beat < 0.)))
+        return WS2_INVALID;
+    auto &p = *p_;
+    const TransportUpdate update{bpm, beat.value_or(0.), playing, beat.has_value()};
+    if (!p.prepared) {
+        update.set_values(p.cfg, p.beat);
+        return WS2_OK;
     }
+    if (!p.producer_count || p.transport_sent == UINT64_MAX) return WS2_STATE;
+    Packet packet;
+    packet.host = true;
+    packet.event.type = WS2_TRANSPORT_EVENT;
+    packet.order = p.transport_sent + 1;
+    std::memcpy(packet.payload.data(), &update, sizeof(update));
+    if (!p.producers[0]->critical.push(packet)) {
+        ++p.ring_full;
+        return WS2_CAPACITY;
+    }
+    p.transport_sent = packet.order;
+    return WS2_OK;
 }
 
 void Engine::refresh_latency() noexcept {
@@ -205,6 +222,10 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     Engine next(old.cfg);
     auto &fresh = *next.p_;
     if (!old.stage_reconfiguration(next, node, config)) return false;
+    fresh.beat = old.beat;
+    fresh.reset_beat = old.reset_beat;
+    fresh.transport_sent = old.transport_sent;
+    fresh.transport_applied = old.transport_applied;
     if (!fresh.finish_prepare()) return old.fail("Staged graph prepare failed");
     auto bytes = save_state(node);
     if (!bytes.empty()) {
@@ -268,13 +289,19 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     fresh.setup_bytes = 0;
     for (auto &n : fresh.nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
     fresh.position.store(old.position.load());
-    fresh.beat = old.beat;
     fresh.anchor_frame = old.anchor_frame;
     fresh.anchor_ns = old.anchor_ns;
     fresh.frames_per_ns = old.frames_per_ns;
     fresh.revision.store(old.revision.load());
     fresh.generation.store(old.generation.load() + 1);
     fresh.applied.store(fresh.generation.load());
+    // Quiescent replacement retires module ingress but keeps acknowledged
+    // host updates in send order. The new ring is empty and the same capacity.
+    if (old.producer_count) {
+        Packet packet;
+        while (old.producers[0]->critical.pop(packet))
+            if (packet.host) fresh.producers[0]->critical.push(packet);
+    }
     p_.swap(next.p_);
     return true;
 }

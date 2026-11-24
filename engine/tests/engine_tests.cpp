@@ -4,9 +4,11 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "../../tests/native/abi2/test_modules.h"
 #include "engine2.h"
+#include "types.h"
 #include "wirescape_sdk.h"
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -349,6 +351,155 @@ static void modulation(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<ParamProbe>::descriptor()));CHECK(e.register_producer()==0);CHECK(e.prepare());render(e,17);CHECK(e.enqueue(0,1,WS2_DIRECT_PORT,event(WS2_PARAM,100),17)==WS2_OK);render(e,17);CHECK(!e.output_constant(1,0));CHECK(std::abs(e.output_sample(1,0,0,0)-std::pow(100.,.5+.5/240))<1e-5);
  Engine latency(cfg());CHECK(latency.add_node(1,ws::Module<LatencyProbe>::descriptor()));CHECK(latency.add_node(2,ws::Module<LatencyProbe>::descriptor()));CHECK(latency.connect(1,0,2,0));CHECK(latency.output(2,0,0));CHECK(latency.prepare());CHECK(latency.meter().latency_frames==14);
 }
+struct TransportProbe {
+    static constexpr ws::Info info{"test.transport", "Transport", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("bpm", "BPM"), ws::port("beat", "Beat"),
+                                        ws::port("playing", "Playing")};
+    static constexpr std::array<ws2_param, 0> params{};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &block) {
+        const auto &transport = *block.transport();
+        const float values[]{float(transport.bpm), float(transport.beat),
+                             transport.flags & WS2_PLAYING ? 1.f : 0.f};
+        for (uint32_t port = 0; port < 3; ++port) {
+            block.out(port).set_channels(1);
+            block.out(port).mark_constant();
+            block.out(port).ch(0)[0] = values[port];
+        }
+    }
+};
+
+static void check_transport(Engine &engine, float bpm, float beat, bool playing) {
+    CHECK(engine.output_sample(1, 0, 0, 0) == bpm);
+    CHECK(std::abs(engine.output_sample(1, 1, 0, 0) - beat) < 1.e-5f);
+    CHECK(engine.output_sample(1, 2, 0, 0) == float(playing));
+}
+
+static void transport_ring() {
+    Config config;
+    config.ring_capacity = 2;
+    config.future_capacity = 1;
+    config.event_budget = 2;
+    config.release_reserve = 1;
+    Engine engine(config);
+    CHECK(engine.transport(85, true, 2.) == WS2_OK);
+    CHECK(engine.transport(90, false) == WS2_OK);
+    CHECK(engine.transport(301, true) == WS2_INVALID);
+    CHECK(engine.transport(90, true, -1.) == WS2_INVALID);
+    CHECK(engine.add_node(1, ws::Module<TransportProbe>::descriptor()));
+    CHECK(engine.add_node(2, ws::Module<Receiver>::descriptor()));
+    CHECK(engine.register_producer() == 0);
+    CHECK(engine.prepare());
+    render(engine, 16);
+    check_transport(engine, 90, 2, false);
+
+    // Neither ordinary future storage nor a node's event budget may limit transport.
+    CHECK(engine.enqueue(0, 2, 0, event(WS2_NOTE_ON, .5f), 160) == WS2_OK);
+    CHECK(engine.enqueue(0, 2, 0, event(WS2_TRANSPORT_EVENT), 0) == WS2_INVALID);
+    render(engine, 16); // Future is now full.
+    {
+        allocation_watch::Scope watch;
+        CHECK(engine.transport(110, true, 4.) == WS2_OK);
+        CHECK(engine.transport(100, false) == WS2_OK);
+        CHECK(engine.transport(200, true, 9.) == WS2_CAPACITY);
+        check_transport(engine, 90, 2, false); // Neither send changed the previous block.
+        render(engine, 16);
+        CHECK(watch.allocations() == 0);
+    }
+    check_transport(engine, 100, 4, false); // Both ring entries ran, in send order.
+    CHECK(engine.meter().ring_full == 1 && engine.meter().events == 0 && engine.meter().dropped == 0);
+    while (engine.meter().frame <= 160) render(engine, 16);
+    check_transport(engine, 100, 4, false);
+    CHECK(engine.output_sample(2, 0, 0, 0) == .5f); // Stop freezes beat but DSP and notes keep running.
+
+    CHECK(engine.transport(120, true) == WS2_OK);
+    engine.panic();
+    CHECK(engine.transport(150, false, 6.) == WS2_OK);
+    render(engine, 16);
+    check_transport(engine, 150, 6, false);
+    CHECK(engine.output_sample(2, 0, 0, 0) == 0);
+    // A pre-panic packet must apply even if no later packet could mask its loss.
+    CHECK(engine.transport(180, true, 7.) == WS2_OK);
+    engine.panic();
+    render(engine, 16);
+    check_transport(engine, 180, 7, true);
+    CHECK(engine.transport(60, false) == WS2_OK);
+    render(engine, 16);
+    check_transport(engine, 60, 7.001f, false);
+
+    CHECK(engine.transport(300, true, 20.) == WS2_OK);
+    engine.reset(); // Drops pending host ingress and resets the beat at the next render.
+    render(engine, 16);
+    check_transport(engine, 60, 0, false);
+    CHECK(engine.transport(300, true, 20.) == WS2_OK); // Control owner resends document state.
+    render(engine, 16);
+    check_transport(engine, 300, 20, true);
+}
+
+static void transport_serial() {
+    Config config;
+    uint64_t serial = 0;
+    double beat = 0;
+    TransportUpdate{120, 8, false, true}.apply(10, serial, config, beat);
+    TransportUpdate{200, 1, true, true}.apply(9, serial, config, beat);
+    TransportUpdate{200, 2, true, true}.apply(10, serial, config, beat);
+    CHECK(serial == 10 && config.bpm == 120 && !config.playing && beat == 8);
+    TransportUpdate{140, 0, true, false}.apply(11, serial, config, beat);
+    CHECK(serial == 11 && config.bpm == 140 && config.playing && beat == 8);
+}
+
+static void transport_replan() {
+    Config config;
+    config.max_block = 4096; // Ample wall-clock window for the control/render handshake.
+    Engine live(config), candidate(config);
+    auto replaced = *ws::Module<Receiver>::descriptor();
+    CHECK(candidate.transport(250, true, 99.) == WS2_OK);
+    for (auto *engine : {&live, &candidate}) {
+        CHECK(engine->add_node(1, ws::Module<TransportProbe>::descriptor()));
+        CHECK(engine->add_node(2, engine == &live ? ws::Module<Receiver>::descriptor() : &replaced));
+        CHECK(engine->add_node(4, ws::Module<ws2test::Rows>::descriptor(), {1}));
+        CHECK(engine->register_producer() == 0);
+        CHECK(engine->prepare());
+    }
+    CHECK(live.transport(130, false, 12.) == WS2_OK);
+    CHECK(live.enqueue(0, 2, 0, event(WS2_NOTE_ON, 1.f), 100000) == WS2_OK);
+    CHECK(live.enqueue(0, 3, 0, event(WS2_NOTE_ON, 1.f), 100000) == WS2_OK);
+    render(live, 16);
+    check_transport(live, 130, 12, false);
+    const auto stale = live.meter().stale;
+    CHECK(stale == 1); // Missing node is counted immediately.
+
+    std::atomic<bool> complete{false};
+    bool replanned = false;
+    std::thread control([&] {
+        replanned = live.replan(candidate, 200000000);
+        complete.store(true, std::memory_order_release);
+    });
+    while (!complete.load(std::memory_order_acquire)) {
+        render(live, 16);
+        std::this_thread::yield();
+    }
+    control.join();
+    CHECK(replanned);
+    render(live, 16);
+    check_transport(live, 130, 12, false);
+    CHECK(live.meter().stale == stale + 1); // Queued event predates replacement node's birth.
+    CHECK(live.output_sample(2, 0, 0, 0) == 0);
+    CHECK(live.transport(135, false, 13.) == WS2_OK);
+    render(live, 16);
+    check_transport(live, 135, 13, false);
+
+    // Quiescent replacement carries the current serial and queued host updates.
+    CHECK(live.transport(170, false, 21.) == WS2_OK);
+    CHECK(live.reconfigure(4, {2}));
+    render(live, 16);
+    check_transport(live, 170, 21, false);
+    CHECK(live.transport(165, false) == WS2_OK);
+    render(live, 16);
+    check_transport(live, 165, 21, false);
+}
 int main(){
 #ifdef _MSC_VER
  _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
@@ -359,6 +510,9 @@ int main(){
  _CrtMemState before{},after{},difference{};_CrtMemCheckpoint(&before);
 #endif
  invalid_events();
+ transport_ring();
+ transport_serial();
+ transport_replan();
  parameter_channels();
  modulation_spans();
  telemetry();

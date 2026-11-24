@@ -40,6 +40,9 @@ struct Engine::Impl {
     std::atomic<bool> egress_emergency{false};
     uint64_t anchor_frame = 0, anchor_ns = 0, sequence = 0, block_start = 0;
     double frames_per_ns = 0, beat = 0;
+    uint64_t transport_sent = 0; // Control owner only.
+    uint64_t transport_applied = 0; // Render owner after prepare.
+    bool reset_beat = false; // Set only by quiescent reset, consumed by render.
     std::atomic<uint32_t> arena_used{0};
     uint32_t block_frames = 0, ordinary_used = 0, critical_used = 0;
     std::atomic<uint32_t> feedback_count{0}, latency{0};
@@ -129,6 +132,7 @@ struct Engine::Impl {
     bool setup(Node &);
     bool valid_target(const Node &, uint32_t, const ws2_event &) const;
     bool admit(Node &, uint32_t, const ws2_event &, uint64_t, uint64_t, bool cleanup = false);
+    void apply_host_packet(const Packet &) noexcept;
     void collect();
     bool route(uint32_t, const ws2_event &);
     void process_node(Node &, uint32_t, uint32_t);

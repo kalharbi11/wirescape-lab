@@ -32,7 +32,8 @@ struct Buffer {
     }
 };
 struct Packet {
-    uint32_t node = 0, port = WS2_DIRECT_PORT, producer = 0;
+    uint32_t node = 0, port = WS2_DIRECT_PORT;
+    bool host = false;
     Timing mode = Timing::Frames;
     uint32_t routed_from = 0, routed_output = 0; // Zero source denotes external ingress.
     uint64_t when = 0, generation = 1, order = 0, mapped_time_ns = 0, revision = 0;
@@ -40,6 +41,25 @@ struct Packet {
     std::array<uint8_t, WS2_MAX_PAYLOAD> payload{};
     void fix() { event.data = event.bytes ? payload.data() : nullptr; }
 };
+// Host-only payload, copied into Packet storage at ingress. Transport is the
+// engine-wide target, so it has a serial but no instance birth revision.
+struct TransportUpdate {
+    double bpm, beat;
+    bool playing, locate;
+
+    void apply(uint64_t serial, uint64_t &last, Config &cfg, double &current_beat) const noexcept {
+        if (serial <= last) return;
+        set_values(cfg, current_beat);
+        last = serial;
+    }
+    void set_values(Config &cfg, double &current_beat) const noexcept {
+        cfg.bpm = bpm;
+        cfg.playing = playing;
+        if (locate) current_beat = beat;
+    }
+};
+static_assert(sizeof(TransportUpdate) <= WS2_MAX_PAYLOAD);
+
 // One producer/one consumer per ring. The registry never changes while running.
 struct Ring {
     std::vector<Packet> slots;
