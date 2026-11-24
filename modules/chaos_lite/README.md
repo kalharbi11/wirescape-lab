@@ -14,8 +14,9 @@ It is not a Surge port and does not reproduce the legacy CHAOS sound.
 | `left`, `right` | Stereo pair `stereo`; channels represent voices |
 
 Prepared voices are capped at 8. If the host provides 9–16 channels, those channels
-are explicitly silent. This processor follows its input channel count. Oscillators
-are intentionally simple (not band-limited); high-pitched saw/square tones can alias.
+are explicitly silent. This processor follows its input channel count. Saw and square in both oscillators use a wider cubic PolyBLEP correction with bounded
+frequency-dependent level compensation; the sine endpoint and phase advance are unchanged.
+This reduces discontinuity aliasing rather than promising a brick-wall band limit.
 Gate amplitude is immediate; patch an envelope externally when a release is desired.
 
 Parameter slots are stable and listed in `module.json`; ranges/defaults are in the
