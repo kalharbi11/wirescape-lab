@@ -202,6 +202,10 @@ def command_build(args: argparse.Namespace) -> int:
         write_json(BUILD_DIR / "build-metadata.json", previous)
     configure = [cmake, "-S", str(ROOT / "native"), "-B", str(BUILD_DIR), "-G", generator]
     configure += ["-A", "x64"] if generator.startswith("Visual Studio") else [f"-DCMAKE_BUILD_TYPE={args.config}"]
+    # Forward the optional Visual Studio toolset explicitly: -G can override
+    # CMake's environment-based generator defaults.
+    if generator.startswith("Visual Studio") and os.environ.get("CMAKE_GENERATOR_TOOLSET"):
+        configure += ["-T", os.environ["CMAKE_GENERATOR_TOOLSET"]]
     # Cloud fallback: tools/cloud/git_deps.py writes this when codeload is blocked.
     git_deps_cache = ROOT / "build" / "deps-cache" / "fetchcontent.cmake"
     if git_deps_cache.is_file():

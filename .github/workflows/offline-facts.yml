@@ -40,16 +40,16 @@ jobs:
       - name: Pure DSP metric tests
         run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
       # VS 2026's default MSVC 14.52 rejects libremidi/system_error2.hpp.
-      # Use the installed VS 2022 v143 toolset, as in the passing native Lab build.
+      # Pin the installed 14.44 minor version used by the passing native Lab build.
       - name: Select compatible Windows MSVC toolset
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # CMake honors the toolset environment default only with CMAKE_GENERATOR set.
+          # dev.py forwards this selection explicitly to CMake's -T option.
           $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
           if ($LASTEXITCODE -ne 0 -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
           "CMAKE_GENERATOR=$generator" >> $env:GITHUB_ENV
-          "CMAKE_GENERATOR_TOOLSET=v143" >> $env:GITHUB_ENV
+          "CMAKE_GENERATOR_TOOLSET=v143,version=14.44" >> $env:GITHUB_ENV
       - name: Release headless build
         run: python tools/dev.py build --headless --config Release
       - name: Record Windows compiler and toolset
