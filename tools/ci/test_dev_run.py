@@ -30,13 +30,18 @@ class ParseTests(unittest.TestCase):
         s = dev_run.parse_request('/dev-run cmd cmd="valgrind --tool=callgrind build/native/wirescape_render x.json"')
         self.assertEqual(s["cmd"][0], "valgrind")
 
+    def test_targets(self):
+        s = dev_run.parse_request("/dev-run asan target=abi2_osc_heavy_ingress_tests filter=abi2_osc_heavy")
+        self.assertEqual(s["targets"], ["abi2_osc_heavy_ingress_tests"])
+        self.assertEqual(dev_run.parse_request("/dev-run test")["targets"], [])
+
     def test_refusals(self):
         bad = [
             "/dev-run", "/dev-run shell", "/dev-run test foo", "/dev-run test platform=windows-x64",
             "/dev-run test filter=a;rm", "/dev-run test build=asan", "/dev-run cmd",
             '/dev-run cmd cmd="bash -c x"', '/dev-run cmd cmd="build/native/../../x"',
             '/dev-run test cmd="build/native/x"', "/dev-run test timeout=0", "/dev-run test repeat=99",
-            "/dev-run studio platform=linux-arm64", "/dev-run test filter=a filter=b", '/dev-run cmd cmd="x',
+            "/dev-run studio platform=linux-arm64", "/dev-run test filter=a filter=b", "/dev-run test target=a;b", "/dev-run studio target=x", '/dev-run cmd cmd="x',
         ]
         for text in bad:
             with self.subTest(text=text), self.assertRaises(dev_run.RequestError):

@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -27,7 +28,8 @@ PLATFORMS = ("linux-x64", "linux-arm64")
 RUNNERS = {"linux-x64": "ubuntu-latest", "linux-arm64": "ubuntu-24.04-arm"}
 CMD_PREFIXES = ("build/native/", "build/asan/", "python3 tools/", "valgrind ", "ctest ")
 FILTER_RE = re.compile(r"^[A-Za-z0-9_.*+?|^$()\[\] -]{1,200}$")
-KEYS = {"platform", "filter", "cmd", "build", "timeout", "repeat"}
+KEYS = {"platform", "filter", "cmd", "build", "timeout", "repeat", "target"}
+TARGET_RE = re.compile(r"^[A-Za-z0-9_]{1,80}$")
 TAIL_LINES = 150
 MAX_COMMENT = 60000
 ASAN_FLAGS = "-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"
@@ -94,6 +96,13 @@ def parse_request(text: str) -> dict:
         raise RequestError("repeat must be 1..20")
     spec["timeout"] = timeout
     spec["repeat"] = repeat
+
+    targets = [t for t in opts.get("target", "").split(",") if t]
+    if any(not TARGET_RE.match(t) for t in targets) or len(targets) > 10:
+        raise RequestError("target is up to 10 comma-separated CMake target names")
+    if targets and profile == "studio":
+        raise RequestError("target= is for native profiles")
+    spec["targets"] = targets
 
     cmd = opts.get("cmd", "")
     if profile == "cmd":
@@ -168,24 +177,31 @@ def execute(spec: dict, platform: str, out: Path) -> int:
         if spec["repeat"] > 1:
             argv += ["--repeat-each", str(spec["repeat"])]
         ok = r.run("studio playwright", argv, timeout=3600, cwd="apps/studio") == 0
-    elif spec["build"] == "asan":
-        env = {"ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"}
-        ok = r.run("configure asan", ["cmake", "-S", "native", "-B", "build/asan", "-G", "Ninja",
-                                       "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-                                       "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
-                                       f"-DCMAKE_CXX_FLAGS={ASAN_FLAGS}", f"-DCMAKE_C_FLAGS={ASAN_FLAGS}"]) == 0
-        ok = ok and r.run("build asan", ["cmake", "--build", "build/asan"]) == 0
-        if ok and profile == "asan":
-            ok = r.run("ctest asan", _ctest("build/asan", spec), timeout=7200, env=env) == 0
-        elif ok:
-            ok = r.run("cmd", spec["cmd"], timeout=spec["timeout"] * spec["repeat"] + 60, env=env) == 0
     else:
-        ok = r.run("build headless", [sys.executable, "tools/dev.py", "build", "--headless"]) == 0
-        if ok and profile == "test":
-            ok = r.run("ctest", _ctest("build/native", spec), timeout=7200) == 0
+        asan = spec["build"] == "asan"
+        bdir = "build/asan" if asan else "build/native"
+        env = {"ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"} if asan else {}
+        # Same configure as tools/dev.py (Release, Ninja) or the Lab CI sanitizers job, plus ccache.
+        configure = ["cmake", "-S", "native", "-B", bdir, "-G", "Ninja"]
+        if asan:
+            configure += ["-DCMAKE_BUILD_TYPE=RelWithDebInfo", "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                          f"-DCMAKE_CXX_FLAGS={ASAN_FLAGS}", f"-DCMAKE_C_FLAGS={ASAN_FLAGS}"]
+        else:
+            configure += ["-DCMAKE_BUILD_TYPE=Release"]
+        if shutil.which("ccache"):
+            configure += ["-DCMAKE_C_COMPILER_LAUNCHER=ccache", "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache"]
+        ok = r.run("configure " + spec["build"], configure) == 0
+        build = ["cmake", "--build", bdir]
+        if spec["targets"]:
+            build += ["--target", *spec["targets"]]
+        ok = ok and r.run("build " + spec["build"] + (" (targets only)" if spec["targets"] else ""), build) == 0
+        if shutil.which("ccache"):
+            r.run("ccache stats", ["ccache", "-s"])
+        if ok and profile in ("test", "asan"):
+            ok = r.run("ctest", _ctest(bdir, spec), timeout=7200, env=env) == 0
         elif ok and profile == "cmd":
             for i in range(spec["repeat"]):
-                ok = r.run(f"cmd #{i + 1}", spec["cmd"], timeout=spec["timeout"] + 60) == 0 and ok
+                ok = r.run(f"cmd #{i + 1}", spec["cmd"], timeout=spec["timeout"] + 60, env=env) == 0 and ok
     r.log.close()
     lines = (out / "log.txt").read_text(encoding="utf-8", errors="replace").splitlines()
     failed = []
@@ -264,7 +280,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "parse":
         try:
             spec = parse_request(os.environ.get("DEV_RUN_REQUEST", ""))
-            spec["matrix"] = {"include": [{"platform": p, "runner": RUNNERS[p]} for p in spec["platforms"]]}
+            spec["matrix"] = {"include": [{"platform": p, "runner": RUNNERS[p], "build": spec["build"],
+                                          "profile": spec["profile"]} for p in spec["platforms"]]}
             spec["error"] = ""
         except RequestError as exc:
             spec = {"error": str(exc), "request": _clean(os.environ.get("DEV_RUN_REQUEST", ""), 300)}

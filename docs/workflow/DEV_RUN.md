@@ -21,20 +21,22 @@ link to the full logs. You do not need to download artifacts.
 
 ```
 /dev-run <profile> [platform=linux-x64|linux-arm64|both] [filter=<ctest regex>]
-         [build=release|asan] [cmd="<command>"] [timeout=<seconds>] [repeat=<n>]
+         [target=<a,b>] [build=release|asan] [cmd="<command>"] [timeout=<seconds>] [repeat=<n>]
 ```
 | Profile | Does | Notes |
 |---|---|---|
-| `test` | `tools/dev.py build --headless`, then `ctest` (`-R filter`) | same build as Lab CI; default timeout 60 s per test, as in CI |
+| `test` | Release build (the same configure as `tools/dev.py build --headless`), then `ctest` (`-R filter`) | default timeout 60 s per test, as in CI |
 | `asan` | ASan+UBSan build (the Lab CI `sanitizers` flags), then `ctest` | `halt_on_error=1` |
 | `cmd` | builds (`build=release` → `build/native`, `build=asan` → `build/asan`), then runs one command | `cmd` must start with `build/native/`, `build/asan/`, `python3 tools/`, `valgrind ` or `ctest `. It runs without a shell, so no pipes or `;`. `repeat` runs it n times |
 | `studio` | `npm ci`, Chromium, `npm test` in `apps/studio` (`-g filter`) | linux-x64 only |
 
+**Keep runs short.** Add `target=<test executable>[,…]` to build only what the test needs. A full build is about as long as Lab CI; a target build with the shared compiler cache usually takes a few minutes. Ask for `platform=both` only when the arm64 result matters.
+
 Examples:
 ```
-/dev-run test filter=abi2_osc
+/dev-run test target=abi2_osc_graph_ingress_tests filter=abi2_osc_graph_ingress
 /dev-run asan platform=both filter=abi2_osc_(host_service|graph_ingress)_tests timeout=600
-/dev-run cmd build=asan cmd="build/asan/abi2_osc_graph_ingress_tests" timeout=900
+/dev-run cmd build=asan target=abi2_osc_graph_ingress_tests cmd="build/asan/abi2_osc_graph_ingress_tests" timeout=900
 /dev-run cmd cmd="valgrind --tool=callgrind --callgrind-out-file=cg.out build/native/wirescape_render <args>"
 /dev-run test filter=engine2 repeat=5
 /dev-run studio filter="groove wheel"

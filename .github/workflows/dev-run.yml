@@ -101,7 +101,7 @@ jobs:
             echo '<!-- dev-run -->'
             echo "**dev-run refused:** $(jq -r .error spec.json | sed 's/@/@​/g')"
             echo
-            echo 'Usage: `/dev-run test|asan|cmd|studio [platform=linux-x64|linux-arm64|both] [filter=<regex>] [cmd="..."] [build=release|asan] [timeout=<s>] [repeat=<n>]` (see `docs/workflow/DEV_RUN.md`).'
+            echo 'Usage: `/dev-run test|asan|cmd|studio [platform=linux-x64|linux-arm64|both] [filter=<regex>] [target=<a,b>] [cmd="..."] [build=release|asan] [timeout=<s>] [repeat=<n>]` (see `docs/workflow/DEV_RUN.md`).'
           } > body.md
           gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null
 
@@ -138,22 +138,44 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install pinned CMake and Ninja
+        if: matrix.profile != 'studio'
         run: |
           python -m pip install cmake==4.2.3 ninja==1.13.0
           echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" >> "$GITHUB_ENV"
-      - name: Install valgrind (cmd profile only)
+          echo "Runner cores: $(nproc)"
+      - name: Install ccache (and valgrind for a valgrind cmd)
+        if: matrix.profile != 'studio'
         run: |
-          if jq -e '.cmd[0] == "valgrind"' .dev-run-spec/spec.json > /dev/null; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
-          fi
-      - name: Set up Node and Chromium (studio profile only)
+          pkgs=ccache
+          if jq -e '.cmd[0] == "valgrind"' .dev-run-spec/spec.json > /dev/null; then pkgs="$pkgs valgrind"; fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq $pkgs
+          echo "CCACHE_DIR=$HOME/.cache/ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_MAXSIZE=500M" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+      # Saved from the default-branch context, so every later dev-run (any PR) restores it.
+      - name: Restore and save the compiler cache
+        if: matrix.profile != 'studio'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: dev-run-ccache-v1-${{ matrix.platform }}-${{ matrix.build }}-${{ github.run_id }}
+          restore-keys: |
+            dev-run-ccache-v1-${{ matrix.platform }}-${{ matrix.build }}-
+      - name: Set up Node (studio profile only)
+        if: matrix.profile == 'studio'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: Install Studio packages and Chromium (studio profile only)
+        if: matrix.profile == 'studio'
+        working-directory: apps/studio
         run: |
-          if jq -e '.profile == "studio"' .dev-run-spec/spec.json > /dev/null; then
-            cd apps/studio
-            npm ci
-            npx playwright install --with-deps chromium
-            echo "WIRESCAPE_CHROMIUM=$(node -e "console.log(require('playwright').chromium.executablePath())")" >> "$GITHUB_ENV"
-          fi
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright install ffmpeg
+          echo "WIRESCAPE_CHROMIUM=$(node -e "console.log(require('playwright').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Run the request
         env:
           DEV_RUN_SHA: ${{ needs.request.outputs.sha }}
