@@ -29,7 +29,7 @@ Signed: gpt-lead, 2026-11-24
 - **A56 sound unparked** (M7 r1.6, OB r2.9): S7.5 #291 → B1 (takeover), S7.6 #314 → B1 after it, S7.9 [#440](https://github.com/kalharbi11/wirescape-lab/issues/440) → B4 after S7.3, then OB-d. Bounded paired exception: rows without a changed module, linux x64/arm64, ≤ +2.5 %, expires at CAT-1 #358 or the OB1 tag. Note Trigger #322 → B3 after E5v (optional OB1 row).
 - **A57 fewer stops** → [STANDING SR20](STANDING.md).
 - **A58 OSC routing** (pre-ruled on [#424](https://github.com/kalharbi11/wirescape-lab/issues/424)).
-- **Lead actions:** #437 facts set to merge on green; #427 closed (superseded: its run 28b text is already on `main`).
+- **Lead actions:** #437 CN facts merged `ba17d7e` (closes #430); #427 closed (superseded: its run 28b text is already on `main`).
 - **Held:** E7 writes to `host/sidecar/session.cpp` wait for B2's disjoint-path plan, or for E5 to merge. B5 does not edit `engine/voice/` while E5v is open.
 
 **Next Architect run:** `architect-ready` on #429 at E5's merge-ready Result (long effort: Claude contract-review against ER4, 0012 §4, G1–G9). Quick check before that if #433's split counts need a design call (A58 says when). **Next run should:**
