@@ -109,9 +109,9 @@ struct Engine::Impl {
         }
         for (auto &e : edges)
             if (e.back) {
-                e.head = 0;
-                std::fill(e.delay_channels.begin(), e.delay_channels.end(), 0);
-                if (e.delay.memory) std::fill_n(e.delay.memory.get(), cfg.max_channels * e.delay.stride, 0.f);
+                e.state.head = 0;
+                std::fill(e.state.delay_channels.begin(), e.state.delay_channels.end(), 0);
+                if (e.state.delay.memory) std::fill_n(e.state.delay.memory.get(), cfg.max_channels * e.state.delay.stride, 0.f);
             }
         future.clear();
     }
@@ -132,6 +132,8 @@ struct Engine::Impl {
     bool setup(Node &);
     bool valid_target(const Node &, uint32_t, const ws2_event &) const;
     bool admit(Node &, uint32_t, const ws2_event &, uint64_t, uint64_t, bool cleanup = false);
+    Edge *find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept;
+    uint32_t mod_ramp_frames() const noexcept { return static_cast<uint32_t>(cfg.sample_rate * .005); }
     void apply_host_packet(const Packet &) noexcept;
     void collect();
     bool route(uint32_t, const ws2_event &);

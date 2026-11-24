@@ -71,9 +71,19 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
 }
 
 void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
-    // TR1e defines one host-wide target. Reject other target/type pairs before
-    // reading the payload. Instance-addressed host commands must additionally
-    // pass the target birth check when they are introduced.
+    if (packet.event.type == WS2_PARAM_MOD) {
+        auto *edge = find_mod_edge(packet.routed_from, packet.routed_output, packet.node, packet.port);
+        if (!edge || packet.revision < edge->born_revision) {
+            ++stale;
+            return;
+        }
+        auto &state = edge->state.modulation;
+        if (packet.order > state.applied_serial) {
+            state.applied_serial = packet.order;
+            state.set(packet.event.value, mod_ramp_frames());
+        }
+        return;
+    }
     if (packet.node || packet.event.type != WS2_TRANSPORT_EVENT) {
         ++stale;
         return;
@@ -255,16 +265,16 @@ WS_RENDER_INLINE uint32_t Engine::Impl::edge_channels(const Edge &e, uint32_t fr
     if (!e.back) return e.source->instance.global_out[e.output].channels;
     uint32_t count = 0;
     for (uint32_t i = 0; i < frames; ++i)
-        count = std::max(count, e.delay_channels[(e.head + i) % cfg.feedback_block]);
+        count = std::max(count, e.state.delay_channels[(e.state.head + i) % cfg.feedback_block]);
     return count;
 }
 
 WS_RENDER_INLINE float Engine::Impl::edge_sample(const Edge &e, uint32_t channel, uint32_t i, uint32_t start) const {
     if (e.back) {
-        auto pos = (e.head + i) % cfg.feedback_block;
-        auto count = e.delay_channels[pos];
+        auto pos = (e.state.head + i) % cfg.feedback_block;
+        auto count = e.state.delay_channels[pos];
         if (count == 1) channel = 0;
-        return channel < count ? e.delay.data[channel][pos] : 0.f;
+        return channel < count ? e.state.delay.data[channel][pos] : 0.f;
     }
     const auto &buffer = e.source->instance.global_out[e.output];
     if (buffer.channels == 1) channel = 0;
@@ -331,7 +341,8 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
         for (const auto *edge : slot.modulation[j]) {
             const auto &e = *edge;
             poly |= edge_channels(e, frames) > 1;
-            constant &= !e.back && (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
+            constant &= !e.state.modulation.remaining && !e.back &&
+                        (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
         }
         for (const auto &e : instance.events)
             if ((e.type == WS2_PARAM || e.type == WS2_PARAM_MOD) && e.index == j) {
@@ -347,8 +358,22 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
             for (uint32_t c = 0; c < buffer.channels; ++c) {
                 double *sum = instance.modulation_sum.data() + size_t(c) * cfg.max_block;
                 std::fill_n(sum, length, 0.);
-                for (const auto *edge : slot.modulation[j])
-                    for (uint32_t i = 0; i < length; ++i) sum[i] += edge->amount * edge_sample(*edge, c, i, start);
+                for (auto *edge : slot.modulation[j]) {
+                    auto &state = edge->state.modulation;
+                    if (!state.remaining) {
+                        const float amount = state.current;
+                        for (uint32_t i = 0; i < length; ++i) sum[i] += amount * edge_sample(*edge, c, i, start);
+                    } else {
+                        auto ramp = state;
+                        const uint32_t duration = mod_ramp_frames();
+                        const uint32_t ramp_length = std::min(length, ramp.remaining);
+                        for (uint32_t i = 0; i < ramp_length; ++i)
+                            sum[i] += ramp.next(duration) * edge_sample(*edge, c, i, start);
+                        for (uint32_t i = ramp_length; i < length; ++i)
+                            sum[i] += ramp.current * edge_sample(*edge, c, i, start);
+                        if (c + 1 == buffer.channels) state = ramp;
+                    }
+                }
             }
         bool actually_constant = true;
         for (uint32_t i = 0; i < length; ++i) {
@@ -723,12 +748,12 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
                     if (e.back && e.kind != 1 && e.source->slot.component == component.nodes.front()->slot.component) {
                         auto &source = e.source->instance.global_out[e.output];
                         for (uint32_t i = 0; i < length; ++i) {
-                            auto at = (e.head + i) % p.cfg.feedback_block;
-                            e.delay_channels[at] = source.channels;
+                            auto at = (e.state.head + i) % p.cfg.feedback_block;
+                            e.state.delay_channels[at] = source.channels;
                             for (uint32_t c = 0; c < p.cfg.max_channels; ++c)
-                                e.delay.data[c][at] = c < source.channels ? source.data[c][start + i] : 0;
+                                e.state.delay.data[c][at] = c < source.channels ? source.data[c][start + i] : 0;
                         }
-                        e.head = (e.head + length) % p.cfg.feedback_block;
+                        e.state.head = (e.state.head + length) % p.cfg.feedback_block;
                     }
         }
     }

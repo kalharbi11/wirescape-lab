@@ -149,8 +149,7 @@ bool Engine::Impl::wire_edges() {
     std::sort(nodes.begin(), nodes.end(), [](const auto &a, const auto &b) { return a->instance.id < b->instance.id; });
     for (uint32_t i = 0; i < nodes.size(); ++i) nodes[i]->slot.index = i;
     std::sort(edges.begin(), edges.end(), [](const Edge &a, const Edge &b) {
-        return std::tie(a.from, a.output, a.to, a.input, a.kind, a.amount) <
-               std::tie(b.from, b.output, b.to, b.input, b.kind, b.amount);
+        return a.key() < b.key();
     });
     for (auto &e : edges) {
         e.source = find(e.from);
@@ -304,9 +303,9 @@ bool Engine::Impl::topology() {
     if (!order_feedback_components() || !order_components()) return false;
     for (auto &e : edges)
         if (e.back && e.kind != 1) {
-            e.delay.prepare(cfg.max_channels, cfg.feedback_block);
-            e.delay_channels.assign(cfg.feedback_block, 0);
-            e.head = 0;
+            e.state.delay.prepare(cfg.max_channels, cfg.feedback_block);
+            e.state.delay_channels.assign(cfg.feedback_block, 0);
+            e.state.head = 0;
         }
     for (auto &component : components)
         for (auto *n : component.nodes) n->slot.loop = component.loop;
@@ -360,6 +359,9 @@ bool Engine::modulate(uint32_t from, uint32_t output, uint32_t to, uint32_t para
         a->instance.outputs[output].kind != WS2_SIGNAL || !(b->instance.parameters[param].flags & WS2_MODULATABLE) ||
         !std::isfinite(amount) || amount < -1 || amount > 1)
         return p.fail("Invalid modulation cable");
+    for (const auto &edge : p.edges)
+        if (!edge.removed && edge.key() == std::tuple{from, output, to, param, 2})
+            return p.fail("Duplicate modulation cable");
     p.edges.push_back({from, output, to, param, 2, amount});
     return true;
 }

@@ -76,7 +76,7 @@ Wire `type` is the `EngineClient` method name, except `ccMap.set`. Numbers are f
 | `connect` | `connection:Connection` | swap | edit |
 | `disconnect` | `connection:Connection` (identity: kind/from/to; amount ignored) | swap | edit |
 | `setParam` | `moduleId:uint32`, `paramId:string`, `value:number` (parameter's native units) | live | block |
-| `setModAmount` | `connection:Connection` (identity: kind/from/to; nested amount ignored), `amount:number` in [-1,1] (top-level wins) | swap | edit |
+| `setModAmount` | `connection:Connection` (identity: kind/from/to; nested amount ignored), `amount:number` in [-1,1] (top-level wins) | live | edit |
 | `noteOn` | `note:integer` 0..127, `velocity:number` 0..1 | live | block |
 | `noteOff` | `note:integer` 0..127 (never silently drop) | live, priority | block |
 | `panic` | `{}` | live, priority release-all | block |
@@ -110,11 +110,12 @@ A `swap` command acknowledges only **after** the candidate graph successfully va
 
 UI `PatchV2` is the authority for saving: `format:"wirescape.native.patch"`, root `version:2`, `modules`, `connections`, optional `ui`, and arbitrary unknown fields. Each module has stable numeric `id`, stable string `module`, `parameters` and unknown fields. The v2 runtime additionally requires root `settings`, positive per-module `version`, and nonempty `outputs` entries `{module,port,bus_channel}`.
 
+- On stored `loadGraph`, duplicate modulation cables with the same endpoints keep the first position and metadata. Their amounts are summed and clamped to [-1,1]. If any were merged, the successful reply includes `result.warnings` with one string naming each merged cable. Other duplicate cables are refused.
 - `loadGraph` makes a **deep execution copy**. If `settings` is absent, use `{}` **only in that copy**. If a module's `version` is absent, fill the positive version from its native descriptor **only in that copy**; do not overwrite an explicitly supplied version. Existing `config`, `state`, unknown keys, order and exact saved document bytes belong to the UI.
 - If `outputs` is **absent**, use the lowest-numbered `essentials.output` module with an `audio` output port; in the execution copy route its `audio` port to `bus_channel` 0 and 1 (the present native mono-to-stereo output convention). If no valid Output module exists, refuse `refused`. If `outputs` exists, validate it verbatim; do not replace an empty/invalid array or silently heal dangling routes.
 - Refuse atomically: unknown/inactive modules (`unknown-module`/`unavailable`), unknown parameters/ports (`not-found`), invalid event-to-signal cables (`kind-mismatch`), duplicate IDs/edges (`duplicate`), >64 modules, >128 connections, patch/wire >2 MiB or nesting >64 (`limit`/`invalid` as appropriate), out-of-range parameters, or invalid output/config/state (`refused`/`invalid`). Preserve every unsupported object/field in the **UI** document; show its module as “not available” rather than removing it. Cable hints (audio/pitch/CV) never block connections; only signal/event kind and descriptor validity do.
 - **Module ID namespace (Keel ruling, 2026-11-06, refines D7):** module IDs are the document's saved IDs and are never rewritten. "Never reused" applies to incremental edits within the currently loaded document: after a `removeModule`, that ID is not accepted by a later `addModule` until the next successful `loadGraph`. A successful `loadGraph` starts a fresh ID namespace (new `gen`), so switching between patches that use the same IDs for different modules (e.g. the three `class_demo_*` patches) is valid. Before the swap the engine drains MIDI/control work bound to the old graph and releases its held notes; replies and telemetry carry the new `gen`, and anything tagged with an older `gen` is ignored by the UI.
-- Incremental edit validation is against the currently committed graph and native catalogue. Parameter modulation is normalized, additive, clamped and tapered in the engine, with the same stable parameter IDs. `setModAmount` is a graph swap, **not** a realtime knob event.
+- Incremental edit validation is against the currently committed graph and native catalogue. Parameter modulation is normalized, additive, clamped and tapered in the engine, with the same stable parameter IDs. `setModAmount` updates the existing edge at a render block boundary, with a 5 ms transition and no graph generation change. A full control queue returns `busy` and leaves the committed amount unchanged.
 
 ## 6. Device catalogue, MIDI endpoint selection and persistence
 
@@ -246,10 +247,10 @@ Each line below is a standalone JSON wire line. `>` denotes renderer→engine st
 < {"v":0,"session":"s1","re":"r6","ok":true,"gen":"3"}
 ```
 
-**T07 — modulation amount change uses D5 swap (precondition: the named modulation cable exists).**
+**T07 — modulation amount changes live without advancing generation (precondition: the named modulation cable exists).**
 ```text
 > {"v":0,"id":"r7","type":"setModAmount","connection":{"kind":"modulation","from":{"module":10,"port":"control"},"to":{"module":9,"port":"frequency"},"amount":0.2},"amount":-0.5}
-< {"v":0,"session":"s1","re":"r7","ok":true,"gen":"4"}
+< {"v":0,"session":"s1","re":"r7","ok":true,"gen":"3"}
 ```
 
 **T08 — keyboard NoteOn/NoteOff and priority panic do not advance graph generation.**

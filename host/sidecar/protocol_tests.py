@@ -193,12 +193,11 @@ with tempfile.TemporaryDirectory() as a44_dir:
         refused = a44.call('loadGraph', False,
                            patch={**clean, 'connections': [signal, signal]})
         assert refused['code'] == 'duplicate' and refused['gen'] == connected
-        # The normalized load response exposes the retained authored cables
-        # and warnings; the response shape must be specified with the fix.
+        # The load result reports only the normalization warning.
         loaded = a44.call('loadGraph', patch=patch)
         assert loaded['gen'] != connected
         result = loaded['result']
-        assert result['connections'] == [{**first, 'amount': 1.0}, signal]
+        assert set(result) == {'warnings'}, result
         warnings = result['warnings']
         assert len(warnings) == 1, warnings
         assert all(token in warnings[0] for token in

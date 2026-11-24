@@ -54,6 +54,39 @@ void Engine::reset() {
     p.fade_in = false;
     p.park.store(Park::Running);
 }
+Edge *Engine::Impl::find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
+    const auto key = std::tuple{from, output, to, input, 2};
+    auto edge = std::lower_bound(edges.begin(), edges.end(), key,
+                                 [](const Edge &e, const auto &k) { return e.key() < k; });
+    return edge != edges.end() && edge->key() == key && !edge->removed ? &*edge : nullptr;
+}
+
+int Engine::set_mod_amount(uint32_t from, uint32_t output, uint32_t to, uint32_t input, float amount) noexcept {
+    auto &p = *p_;
+    if (!p.prepared || !p.producer_count) return WS2_STATE;
+    if (!std::isfinite(amount) || std::abs(amount) > 1) return WS2_INVALID;
+    auto *edge = p.find_mod_edge(from, output, to, input);
+    if (!edge) return WS2_INVALID;
+    if (edge->sent_serial == UINT64_MAX) return WS2_STATE;
+    Packet packet;
+    packet.host = true;
+    packet.event.type = WS2_PARAM_MOD;
+    packet.event.value = amount;
+    packet.node = to;
+    packet.port = input;
+    packet.routed_from = from;
+    packet.routed_output = output;
+    packet.revision = p.revision.load(std::memory_order_acquire);
+    packet.order = edge->sent_serial + 1;
+    if (!p.producers[0]->critical.push(packet)) {
+        ++p.ring_full;
+        return WS2_CAPACITY;
+    }
+    edge->sent_serial = packet.order;
+    edge->amount = amount;
+    return WS2_OK;
+}
+
 int Engine::transport(double bpm, bool playing, std::optional<double> beat) noexcept {
     if (!std::isfinite(bpm) || bpm < 20. || bpm > 300. ||
         (beat && (!std::isfinite(*beat) || *beat < 0.)))
@@ -237,6 +270,18 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     actual.reserve(fresh.nodes.size());
     for (auto &n : fresh.nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
     // Preserve unchanged loop delay lines as well as processor state.
+    const auto next_revision = old.revision.load() + 1;
+    if (!next_revision) return old.fail("Live graph revision exhausted");
+    for (auto &e : fresh.edges) {
+        if (e.kind != 2) continue;
+        e.born_revision = next_revision;
+        if (e.from == node || e.to == node) continue;
+        auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
+        if (!prior) continue;
+        e.state.modulation = prior->state.modulation;
+        e.born_revision = prior->born_revision;
+        e.sent_serial = prior->sent_serial;
+    }
     std::vector<bool> used(old.edges.size(), false);
     std::vector<std::pair<size_t, size_t>> delays;
     for (size_t i = 0; i < fresh.edges.size(); ++i) {
@@ -245,8 +290,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         for (size_t j = 0; j < old.edges.size(); ++j) {
             auto &v = old.edges[j];
             if (!used[j] && !v.removed && v.back &&
-                std::tie(e.from, e.output, e.to, e.input, e.kind, e.amount) ==
-                    std::tie(v.from, v.output, v.to, v.input, v.kind, v.amount)) {
+                e.key() == v.key()) {
                 used[j] = true;
                 delays.emplace_back(i, j);
                 break;
@@ -283,9 +327,9 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     for (auto pair : delays) {
         auto &e = fresh.edges[pair.first];
         auto &v = old.edges[pair.second];
-        std::swap(e.delay, v.delay);
-        e.delay_channels.swap(v.delay_channels);
-        std::swap(e.head, v.head);
+        std::swap(e.state.delay, v.state.delay);
+        e.state.delay_channels.swap(v.state.delay_channels);
+        std::swap(e.state.head, v.state.head);
     }
     fresh.setup_bytes = 0;
     for (auto &n : fresh.nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
@@ -293,7 +337,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     fresh.anchor_frame = old.anchor_frame;
     fresh.anchor_ns = old.anchor_ns;
     fresh.frames_per_ns = old.frames_per_ns;
-    fresh.revision.store(old.revision.load());
+    fresh.revision.store(next_revision);
     fresh.generation.store(old.generation.load() + 1);
     fresh.applied.store(fresh.generation.load());
     // Quiescent replacement retires module ingress but keeps acknowledged
@@ -317,12 +361,11 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
                                          std::vector<std::array<uint32_t, 4>> &removed_routes,
                                          std::vector<std::pair<size_t, size_t>> &delays) {
     auto &old = *this;
-    auto key = [](const Edge &e) { return std::tie(e.from, e.output, e.to, e.input, e.kind, e.amount); };
     for (auto &e : old.edges)
         if (!e.removed && e.kind == 1) {
             bool kept = false;
             for (size_t i = 0; i < fresh.edges.size(); ++i)
-                if (!used[i] && !fresh.edges[i].removed && key(e) == key(fresh.edges[i]) &&
+                if (!used[i] && !fresh.edges[i].removed && e.key() == fresh.edges[i].key() &&
                     actual[fresh.edges[i].source->slot.index] == e.source &&
                     actual[fresh.edges[i].destination->slot.index] == e.destination) {
                     used[i] = true;
@@ -341,7 +384,7 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
         if (!e.back || e.kind == 1) continue;
         for (size_t j = 0; j < old.edges.size(); ++j) {
             auto &prior = old.edges[j];
-            if (!delay_used[j] && !prior.removed && prior.back && key(e) == key(prior) &&
+            if (!delay_used[j] && !prior.removed && prior.back && e.key() == prior.key() &&
                 actual[e.source->slot.index] == prior.source &&
                 actual[e.destination->slot.index] == prior.destination) {
                 delay_used[j] = true;
@@ -449,9 +492,23 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     for (auto pair : delays) {
         auto &e = fresh.edges[pair.first];
         auto &prior = old.edges[pair.second];
-        std::swap(e.delay, prior.delay);
-        e.delay_channels.swap(prior.delay_channels);
-        std::swap(e.head, prior.head);
+        std::swap(e.state.delay, prior.state.delay);
+        e.state.delay_channels.swap(prior.state.delay_channels);
+        std::swap(e.state.head, prior.state.head);
+    }
+    for (auto &e : fresh.edges) {
+        if (e.kind != 2) continue;
+        e.born_revision = next_revision;
+        auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
+        if (!prior || prior->source != e.source || prior->destination != e.destination) continue;
+        e.born_revision = prior->born_revision;
+        e.sent_serial = prior->sent_serial;
+        e.state.modulation = prior->state.modulation;
+        // A newer authored graph value supersedes pending packets for this edge.
+        if (e.amount != prior->amount) {
+            e.state.modulation.applied_serial = prior->sent_serial;
+            e.state.modulation.set(e.amount, old.mod_ramp_frames());
+        }
     }
     old.nodes.swap(fresh.nodes);
     old.edges.swap(fresh.edges);
