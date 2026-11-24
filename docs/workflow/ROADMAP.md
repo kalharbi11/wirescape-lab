@@ -6,7 +6,7 @@ Updated 2026-11-23 19:48 EST. This page shows order, completion and the next gat
 [OB_PLAN](OB_PLAN.md) and the linked contracts control scope and release criteria.
 
 **OB0 accepted 2026-11-20** (tag `owner-build-0` → `a440d71`; Pi smoke is an owner-only follow-up). **Next delivery is OB1.** M1 S6 merged and Phase C is active.
-OB1 has a separate engine chain and owner Pi acceptance.
+OB1 has a separate engine chain and owner Pi acceptance. **Pi testing is postponed to the OB1 candidate** (OB r2.6, owner 2026-11-23).
 
 | Order | Milestone or path | State | Done | Next / completion condition |
 |---|---|---|---|---|
