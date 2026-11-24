@@ -28,6 +28,7 @@ uint32_t rejected_rate = 0;
 // Fake ASIO buffer negotiation: when accept_block is set, any other block fails to
 // open; a first attempt then reports `preferred` (0 = driver offers no size).
 uint32_t accept_block = 0;
+std::string accept_block_device; // empty: all fake devices; otherwise only this endpoint
 int64_t preferred = 0;
 std::vector<uint32_t> blocks;
 std::string rate_refused_id;
@@ -64,7 +65,8 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     : impl_(std::make_unique<Impl>()) {
     fake::attempts.push_back(selection.name);
     fake::blocks.push_back(block);
-    if (fake::accept_block && block != fake::accept_block) {
+    if (fake::accept_block && block != fake::accept_block &&
+        (fake::accept_block_device.empty() || selection.name == fake::accept_block_device)) {
         if (allow_preferred_retry && fake::preferred) throw PreferredBufferSize(fake::preferred);
         throw std::runtime_error("fake ASIO buffer refused");
     }
@@ -431,6 +433,43 @@ void test_e7_state_restart(const std::filesystem::path &root) {
               fake::engine != at_rate && audio(s)["bufferFrames"] == 1024 &&
               app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 preferred driver size beyond capacity must restore matching stopped state");
+    // The replacement stream can open successfully, then persistence can fail.
+    // Force that exact path; the old device must still accept its old block.
+    const auto *before_failed_persist = fake::engine;
+    const auto before_failed_gen = s.status()["gen"];
+    const auto before_failed_clock = app_engine_native(fake::engine).save_state(4);
+    const auto before_failed_envelope = app_engine_native(fake::engine).save_state(5);
+    auto read_preferences = [&] {
+        std::ifstream file(options.settings);
+        Json saved;
+        file >> saved;
+        return saved;
+    };
+    const auto before_failed_prefs = read_preferences();
+    auto temp = std::filesystem::path(options.settings);
+    temp += ".tmp";
+    check(std::filesystem::create_directory(temp), "E7 obstruct the temporary settings file");
+    fake::accept_block = 2048;
+    fake::preferred = 2048;
+    fake::accept_block_device = "E7 stereo";
+    const auto before_failed_attempts = fake::attempts.size();
+    auto failed_persist = call("e7-persist-refused", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
+    check(fake::attempts.size() == before_failed_attempts + 3 &&
+              fake::blocks[fake::blocks.size() - 3] == 1024 &&
+              fake::blocks[fake::blocks.size() - 2] == 2048 &&
+              fake::blocks.back() == 1024,
+          "E7 must actually open the larger candidate then reopen the original block");
+    check(failed_persist["ok"] == false && !failed_persist.contains("result") &&
+              fake::engine == before_failed_persist && s.status()["gen"] == before_failed_gen &&
+              audio(s)["state"] == "running" && audio(s)["deviceId"] == "E7 second stereo" &&
+              audio(s)["bufferFrames"] == 1024 && read_preferences() == before_failed_prefs,
+          "E7 failed persistence must restore the original graph, stream and settings");
+    check(app_engine_native(fake::engine).save_state(2) == restored_noise &&
+              app_engine_native(fake::engine).save_state(4) == before_failed_clock &&
+              app_engine_native(fake::engine).save_state(5) == before_failed_envelope,
+          "E7 post-open rollback must preserve the original stopped DSP state");
+    std::filesystem::remove(temp);
+    fake::accept_block_device.clear();
     fake::accept_block = 0;
     fake::preferred = 0;
     s.shutdown();
