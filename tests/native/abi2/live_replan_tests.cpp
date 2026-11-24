@@ -62,6 +62,35 @@ struct Pass {
         for (uint32_t i = 0; i < b.frames(); ++i) b.out(0).ch(0)[i] = b.in(0).value(0, i);
     }
 };
+// E5 synthetic no-adopt module. A release leaves an audible tail whose
+// level follows the signal input, so a muted predecessor input, missing
+// release-all, or missing successor replay has a distinct sample result.
+struct ReplacementTail {
+    static constexpr ws::Info info{"test.replacement_tail", "Replacement tail", 1};
+    static constexpr std::array inputs{
+        ws::port("signal", "Signal"),
+        ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("signal", "Signal")};
+    static constexpr std::array<ws2_param, 0> params{};
+    float gain = 1, level = 0;
+    bool held = false;
+    void prepare(const ws::Setup &s) { gain = s.config.bytes ? float(s.config.data[0]) : 1.f; }
+    void reset() { level = 0; held = false; }
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(false);
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i)
+                b.out(0).ch(0)[i] = level * b.in(0).value(0, i);
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) { held = true; level = gain; }
+            else if (held && (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE)) {
+                held = false;
+                level = .5f; // deterministic ring-out witness (not a silence/reset).
+            }
+        });
+    }
+};
 struct Feedback : Pass {
     static constexpr ws::Info info{"test.live_feedback", "Live feedback", 1};
     void process(ws::Block &b) {
@@ -109,6 +138,67 @@ static ws2_event note(ws2_event_type type = WS2_NOTE_ON, float value = .75f) {
     e.key = 60;
     e.value = value;
     return e;
+}
+static void replacement_ring_out() {
+    auto make = [](uint8_t gain) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, ws::Module<ReplacementTail>::descriptor(), {gain}));
+        CHECK(e->connect(1, 0, 2, 0));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), successor = make(2);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    CHECK(live->enqueue(0, 2, 1, note(), 0, Timing::Immediate) == WS2_OK);
+    float sample[1]{}, witness[1]{};
+    float *out[]{sample, witness};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(witness[0] == .75f);
+    };
+    render();
+    CHECK(sample[0] == .75f);
+    const auto generation = live->meter().generation;
+    std::atomic<bool> done{false};
+    bool ok = false;
+    std::thread control([&] {
+        ok = live->replan(*successor, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    bool changed = false;
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        render();
+        if (sample[0] != .75f) { changed = true; break; }
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    if (!ok) std::fprintf(stderr, "replacement_ring_out replan: %s\n", live->error().c_str());
+    CHECK(ok);
+    CHECK(changed);
+    successor.reset();
+    // Old receives release-all and keeps its signal input, N receives
+    // held-note replay and a full-strength signal input. Only consumer
+    // contributions crossfade: .375 -> 1.5 in exactly 960 samples (20 ms).
+    constexpr uint32_t fade = 960;
+    for (uint32_t n = 1; n <= fade; ++n) {
+        if (n != 1) render();
+        const float expected = .375f + (1.5f - .375f) * float(n) / fade;
+        CHECK(std::abs(sample[0] - expected) < 2.e-6f);
+    }
+    render();
+    CHECK(sample[0] == 1.5f);
+    CHECK(live->enqueue(0, 2, 1, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    render();
+    CHECK(sample[0] == .375f);
+    CHECK(live->meter().generation == generation);
+    CHECK(live->meter().faults == 0);
 }
 struct EventSink : Voice {
     static constexpr ws::Info info{"test.live_sink", "Live sink", 1};
@@ -835,6 +925,7 @@ int main(int argc, char **argv) {
     untouched_witness_no_dip();
     osc_out_retirement();
     signal_ramp_interrupted();
+    replacement_ring_out();
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
