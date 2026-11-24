@@ -1,0 +1,218 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Dev-run: on-demand diagnostics on a PR head, on free hosted runners (docs/workflow/DEV_RUN.md).
+# Trigger: a PR comment whose first line starts with `/dev-run`, posted by the owner's account
+# (all lab agents post as that account), or a manual dispatch.
+# Trust: `request` and `report` run only main's code and never check out the PR. `execute`
+# builds and runs the PR's code with a read-only token, no secrets and no persisted credentials.
+# Results are diagnostics only, never contract evidence.
+name: Dev run
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Same-repo PR number to test (its current head)
+        required: true
+      request:
+        description: 'Request without the /dev-run prefix, e.g. test filter=osc platform=both'
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: dev-run-pr-${{ github.event.issue.number || inputs.pr }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  request:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '/dev-run') &&
+       github.event.comment.user.login == 'kalharbi11' &&
+       github.event.comment.author_association == 'OWNER')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    outputs:
+      ok: ${{ steps.spec.outputs.ok }}
+      matrix: ${{ steps.spec.outputs.matrix }}
+      sha: ${{ steps.pr.outputs.sha }}
+      pr: ${{ steps.pr.outputs.pr }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Resolve PR head (same-repo PRs only)
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.issue.number || inputs.pr }}
+          REPO: ${{ github.repository }}
+        run: |
+          [[ "$PR" =~ ^[1-9][0-9]*$ ]] || { echo "bad PR number"; exit 1; }
+          gh api "repos/$REPO/pulls/$PR" > pr.json
+          head_repo="$(jq -r .head.repo.full_name pr.json)"
+          state="$(jq -r .state pr.json)"
+          sha="$(jq -r .head.sha pr.json)"
+          [ "$head_repo" = "$REPO" ] || { echo "PR head is not in $REPO (fork refused)"; exit 1; }
+          [ "$state" = "open" ] || { echo "PR is not open"; exit 1; }
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "bad head sha"; exit 1; }
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Acknowledge the request
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: gh api -X POST "repos/$REPO/issues/comments/$COMMENT_ID/reactions" -f content=eyes > /dev/null || true
+      - name: Parse request
+        id: spec
+        env:
+          DEV_RUN_REQUEST: ${{ github.event.comment.body || inputs.request }}
+        run: |
+          python3 tools/ci/dev_run.py parse --out spec.json
+          error="$(jq -r .error spec.json)"
+          if [ -n "$error" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "matrix=$(jq -c .matrix spec.json)" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dev-run-spec
+          path: spec.json
+      - name: Refuse an invalid request
+        if: steps.spec.outputs.ok != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.pr }}
+        run: |
+          {
+            echo '<!-- dev-run -->'
+            echo "**dev-run refused:** $(jq -r .error spec.json | sed 's/@/@​/g')"
+            echo
+            echo 'Usage: `/dev-run test|asan|cmd|studio [platform=linux-x64|linux-arm64|both] [filter=<regex>] [target=<a,b>] [cmd="..."] [build=release|asan] [timeout=<s>] [repeat=<n>]` (see `docs/workflow/DEV_RUN.md`).'
+          } > body.md
+          gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null
+
+  execute:
+    needs: request
+    if: needs.request.outputs.ok == 'true'
+    name: execute ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.request.outputs.matrix) }}
+    steps:
+      - name: Check out the PR head (untrusted code)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.request.outputs.sha }}
+          persist-credentials: false
+      - name: Check out main's dev-run tool (trusted)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: .dev-run-tool
+          sparse-checkout: tools/ci/dev_run.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: dev-run-spec
+          path: .dev-run-spec
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned CMake and Ninja
+        if: matrix.profile != 'studio'
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" >> "$GITHUB_ENV"
+          echo "Runner cores: $(nproc)"
+      - name: Install ccache (and valgrind for a valgrind cmd)
+        if: matrix.profile != 'studio'
+        run: |
+          pkgs=ccache
+          if jq -e '.cmd[0] == "valgrind"' .dev-run-spec/spec.json > /dev/null; then pkgs="$pkgs valgrind"; fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq $pkgs
+          echo "CCACHE_DIR=$HOME/.cache/ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_MAXSIZE=500M" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+      # Saved from the default-branch context, so every later dev-run (any PR) restores it.
+      - name: Restore and save the compiler cache
+        if: matrix.profile != 'studio'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: dev-run-ccache-v1-${{ matrix.platform }}-${{ matrix.build }}-${{ github.run_id }}
+          restore-keys: |
+            dev-run-ccache-v1-${{ matrix.platform }}-${{ matrix.build }}-
+      - name: Set up Node (studio profile only)
+        if: matrix.profile == 'studio'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: Install Studio packages and Chromium (studio profile only)
+        if: matrix.profile == 'studio'
+        working-directory: apps/studio
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright install ffmpeg
+          echo "WIRESCAPE_CHROMIUM=$(node -e "console.log(require('playwright').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Run the request
+        env:
+          DEV_RUN_SHA: ${{ needs.request.outputs.sha }}
+        run: python .dev-run-tool/tools/ci/dev_run.py execute --spec .dev-run-spec/spec.json --platform "${{ matrix.platform }}" --out dev-run-out
+      - name: Upload log and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-run-${{ matrix.platform }}
+          path: dev-run-out/
+          if-no-files-found: ignore
+
+  report:
+    needs: [request, execute]
+    if: always() && needs.request.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+      - name: Post the result comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ needs.request.outputs.pr }}
+          DEV_RUN_SHA: ${{ needs.request.outputs.sha }}
+          DEV_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 tools/ci/dev_run.py report --spec results/dev-run-spec/spec.json --results results --out body.md
+          gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null

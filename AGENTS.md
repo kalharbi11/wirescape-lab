@@ -53,6 +53,7 @@ writers and cleared dependencies.
    dispatch and merge decisions.
 
 ## Rules
+- **Build and test without a sandbox (Architect, 2026-11-23):** your PR is your environment. Push to run Lab CI; post `/dev-run …` on the PR for a targeted build, test, sanitizer or callgrind run whose result comes back as a comment. See [DEV_RUN](docs/workflow/DEV_RUN.md). Do not hand a task to Codex just to compile or test.
 - **Review labels (owner, 2026-11-19):** `review-required` records a merge condition only.
   `review-ready` is the dispatch signal. Apply it only after the lead validates a review-ready
   Result, a non-draft PR and relevant evidence at the current head, and posts a request with
