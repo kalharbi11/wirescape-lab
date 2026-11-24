@@ -7,7 +7,8 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. Routine independent review uses
+review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
+cloud reviewer); send it in the next `architect-wake` batch. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
 A row and its labels record the decision or review request. Only the delivery lead sends
@@ -45,12 +46,11 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A34 | 2026-11-23 | gpt-lead | Claude contract-review | now | [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) head `5ecf300e87e7eec5dcd11e7dcc490efaf41cfe39`, tested base `a0898006d35a3b684d1d21ab7ebcf74333186212`: OB r2.2/r2.2a safe-save and six pin-7 routes. [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7117181191). | OB-a3 only |
-| A35 | 2026-11-23 | gpt-lead | ruling | soon | [C1 #367 / PR #375](https://github.com/kalharbi11/wirescape-lab/pull/375) at `3267a171057e279fd6a909648b86d9cfb669b7d1` (8/8 network-free tests passed, including real M1 row format): the approved main-only trigger cannot demonstrate a real two-head comment update before deployment. Authorize a staged verification sequence after corrections and network-free red/green, single-comment and head-race tests, or name a safe pre-merge fixture. Keep the real two-head test as acceptance. Closest SRs: SR4/SR8. | C1 merge only |
-| A36 | 2026-11-23 | gpt-lead | Claude contract-review | now | [#376](https://github.com/kalharbi11/wirescape-lab/pull/376) head `418d4a736ffa4a00afffb9be452645a4af297c39`, tested base `2d992aaf58eeb2345a510c5e3fcf4518c8e17196`. Proposal 0007 rules 2–5. [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7117553658). | T1.6c only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A33 | 2026-11-23 | T1.6b #360 contract-review (CB1) | Approved and merged `7cc20c7` ([review](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107143632)). 2026-11-23 |
+| A34 | 2026-11-23 | OB-a3 #298 contract-review | **Approved for merge 5ecf300**, pins 1–7 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537)). 2026-11-23 |
+| A35 | 2026-11-23 | C1 #375 verification sequence | Merge-then-verify: the two-head check becomes acceptance on #367, with a security floor and a rollback that disables the workflow ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653)). 2026-11-23 |
+| A36 | 2026-11-23 | T1.6c #376 contract-review | **Approved for merge 418d4a7**, 0007 rules 2–5 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713)). 2026-11-23 |
 | A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.9/+2.1 % on x64 from SDK-wrapper inlining in the catalogue TU | Run 16: SDK pinning only moves the cost, so CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) gives one TU per module. #333 merges with a bounded exception (two LFO rows, x64, up to +2.5 %, expires at CAT-1). [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). 2026-11-23 |
