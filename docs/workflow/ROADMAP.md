@@ -27,10 +27,16 @@ OB1 has a separate engine chain and owner Pi acceptance. **Pi testing is postpon
 ## Lead progress delta — 2026-11-24, 18:24 EST
 
 - E4b Windows test pacing [#448](https://github.com/kalharbi11/wirescape-lab/pull/448) merged `95e18ff` after exact-head review; E5 unblocked. E5v #441 still strict G8 red (two changed keyboard rows), second correction then [#452](https://github.com/kalharbi11/wirescape-lab/issues/452) CN witness. E7 #442 fake-backend rollback verification and A62 pending. E5 first if shared commit.
-- S7.5 #291 D5 release publication and independent review still block; S7.6 #449 endpoint assertion correction plus [#451](https://github.com/kalharbi11/wirescape-lab/issues/451) A27 evidence route; S7.9 #444 awaits A63 narrow frozen-test scope. No gate waived. OSC A61 remains diagnostic; MIDI sanitizer failure under read-only triage.
+- S7.5 #291 D5 release publication and independent review still block; S7.6 #449 endpoint assertion correction plus [#451](https://github.com/kalharbi11/wirescape-lab/issues/451) A27 evidence route; S7.9 #444 had awaited A63 narrow frozen-test scope; Architect run 30 granted M7 r1.7 (only vco() test function, exact oracle). No gate waived. OSC A61 remains diagnostic; MIDI sanitizer failure under read-only triage.
 - No change to the OB1 release order, acceptance or candidate-only owner steps below. #451/#452 are evidence tasks, not new product scope.
 
 Signed: codex-lead, 2026-11-24, 18:24 EST
+
+## Lead continuation after Architect run 30 — 2026-11-24, 18:34 EST
+
+A63 granted: B4 resumes S7.9, with #451 independent while checks run. A61/A62 remain open. B2 rollback tests and Lab passed; final E7 evidence/review not complete. B1 Delay full Lab red, endpoint diagnosis continues. Other critical-path gates and owner candidate checks unchanged.
+
+Signed: codex-lead, 2026-11-24, 18:34 EST
 
 ## OB1 release-gate reconciliation (Architect, run 29)
 
