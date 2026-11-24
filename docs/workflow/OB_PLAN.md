@@ -6,13 +6,18 @@ Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 a
 Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
 The dated dispatch entries below are history.
 
-## Active OB1 sequence — 2026-11-23 19:48 EST
+## Active OB1 sequence — 2026-11-24 18:24 EST
 
-- Engine: T1.6c #376 merged. TR1e #378 → E6 → E4a → E4b → E5 and E7 with CN evidence.
-- Parallel: Groove #368 → OB-c, S7.5 #291 → S7.6 → S7.9, S7.7 #380 → S7.8, and OSC #383. Finish M7 after-facts and OB-d.
-- Candidate: recheck OB-f1, run the owner-folder round trip, record the owner's Pi session with 100 edits, zero xruns, no visible stutter and both CN costs, and submit for acceptance before tagging `owner-build-1`. E3a/E3b/E3c are OB1.1.
+This section and BUILDERS supersede historical assignments and estimates below. OB0 and M1 accepted; M3 OB1 prerequisites, E6, E4a/E4b, CN harness and initial CN facts merged. OB-c merged. A55–A60 and OB r2.9/M7 r1.6a control the current order.
 
-Signed: codex-lead, 2026-11-23, 19:48 EST
+- **Engine critical path:** E4b pacing #448 merged 95e18ff; B5 E5 #436 resumes (A55/A59). B3 E5v #441 strict G8 correction round 2 → #452 CN voice-count capture → merge. B2 E7 #442 proceeds on disjoint stopped-stream handlers; A62 governs reply and CN. E5 precedes E7 if shared commit. Exact-head Lab/Golden/paired/stress/CN and designated reviews remain required. After all three merge, B1 refreshes CN facts and KNOWN_ISSUES A2.
+- **Sound parallel:** B1 S7.5 #291 D5 release publication and independent review → S7.6 #449 draft-ahead endpoint correction and #451 A27 fixed-window evidence. B4 S7.9 #444 blocked A63 frozen VCO test scope; independent #451 while waiting, then S7.9 exact-head M7 evidence/review and OB-d sound list. No shared catalogue/S0 writers. S7.3/7/8 already merged.
+- **I/O parallel:** #425 MIDI merged; #433 OSC diagnostic A61 before A58 cause-specific routing. B2 read-only triages the unrelated MIDI sanitizer failure on #444. Note Trigger #322 optional after E5v; advisory soaks remain advisory.
+- **Candidate:** OB-f1, owner's real-patch folder round trip, install, owner Pi 100 edits with zero xruns/no visible stutter and both CN costs. PI-1 and Pi soaks postponed to candidate (A31). Architect acceptance then immutable owner-build-1 tag; retain OB0. E3a/b/c are OB1.1. Gate Delay #333, CAT-1/MB1, MT2 remain parked.
+
+No new delivery date inferred from historical estimates; current blockers are strict G8/CN, E5 implementation, E7 ruling, D5 and M7 evidence/reviews. All old queue and task-ledger entries below are historical planning snapshots, not live assignments or gates.
+
+Signed: codex-lead, 2026-11-24, 18:24 EST
 
 ## Next-day delivery queue — 2026-11-21 18:34 EST
 
