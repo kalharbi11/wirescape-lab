@@ -9,6 +9,19 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+
+## Lead release — 2026-11-24 ET: all five lanes reopened
+
+- Merged [OB-c #275](https://github.com/kalharbi11/wirescape-lab/pull/275) as `6d2de36` at approved `3aad6e3`. Required Lab, Golden, paired and A10 green; advisory Windows Offline was explicitly tracked under #406. Owner approval and S7.3 release are recorded in the [#275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7141836048) and [#202](https://github.com/kalharbi11/wirescape-lab/issues/202#issuecomment-7141838083) comments.
+- Merged [E4b #416](https://github.com/kalharbi11/wirescape-lab/pull/416) as `cb25a2c` at approved `8e8783b`. Repository disables merge commits; used the explicit A40 fallback. Preserved E4a checkpoint `b3e11ea3242aa2711054c0b177002e85499c8d9c`, Golden 45369039868, Lab 45369040002 and paired G8 45369039828 in the merge message and this record. Architect accepted A50 repeat-noise explanation. CN harness #422 uses branch-protected auto-merge; B1 refreshes facts in #430 before M4 acceptance.
+- Merged [#419](https://github.com/kalharbi11/wirescape-lab/pull/419) as `7096cdf` at `40e1a11`. Required Lab passed; four advised soak failures remain documented product findings. Architect run 28b released B3 #424 (diagnostics only) and B2 #425 (session-cumulative MIDI). B2 E7 #431 follows #425, with the shared E5/E7 commit gate.
+- B4 S7.3 #428 begins under the owner’s run 28c B4 alternative. Verified all 12 gated T7.0 before-numbers on main. B5 E5 #429 begins the stopped-stream settle Low and pre-code inventory; real voice-count replacement waits for the [scope ruling](https://github.com/kalharbi11/wirescape-lab/issues/429#issuecomment-7142199713).
+- The owner closed the Terra/Luna batch. These lanes were released directly to existing builder chats. Cycle limits apply to coordination and usage; released builder queues follow their contracts independently.
+
+Next Architect work: resolve E5 voice-count replacement scope, then use #424's result to pick the OSC fix and review E5 once its implementation and evidence are ready. OB1 next; the owner’s candidate Pi acceptance remains pending.
+
+Signed: gpt-lead, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 28b — E4b approved, OB-g7 rulings (owner: run all pending reviews and rulings)
 
 - **#416 E4a+E4b approved `8e8783b`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/416#issuecomment-7141760132)). G1–G8, ER3, ER5 and A51 hold. The 18 E4a dip-range differences are repeat noise: the same park fade lands on a different block. The lead merges with a merge commit (A40). `review-required` and `needs/architect` are removed. One Low for E5: while the stream is stopped, `settle_layout` spends three block periods on each status tick. Before M4 acceptance, CN harness #422 must merge and `facts/dsp/edit_continuity.md` must be refreshed.
