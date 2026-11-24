@@ -14,6 +14,8 @@ on:
       - 'sdk/**'
       - 'targets/**'
       - 'tests/native/**'
+      - 'tools/dev.py'
+      - 'tools/foundation/tests/test_build_failure_diagnostics.py'
       - 'tools/render/**'
       - 'tools/capture/**'
       - 'apps/studio/patches/**'
