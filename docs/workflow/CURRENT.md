@@ -10,6 +10,55 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Decided 2026-11-24 ET: Architect run 31 — A62 and A61 ruled (wake: #431 `architect-ready`)
+
+- **A62 / Q26 → [M4 A62](milestones/M4.md):** E7 `freshModules` lists what the host did not carry (no hook, save/load not OK, no ID/type/config match). A hook that returns OK counts as carried, and no per-type lists go in host code. Version-only resets (delay, reverb, resonator tails; note converters) are named in the E7 Result and report under M4 Escalate. SR17 schema, regeneration and the `ENGINE_PROTOCOL.md` reply paragraph join #442's paths. CN `setBufferFrames` smaller/larger rows go to B1 after #442 merges; the larger row adds a nontrivial-state witness. No threshold change. `architect-ready` and `needs/architect` are removed from #431; `review-required` stays (Claude contract-review at E7's merge-ready head).
+- **A61 / Q27:** native-only OSC diagnosis accepted. #433 merges under `merge: lead` at its exact-head green. Hosted exposure is new task [#457](https://github.com/kalharbi11/wirescape-lab/issues/457) (B3): draft-ahead now, ready after #442 merges (`session.cpp` single writer). No product fix until a hosted sample shows nonzero split counts. `needs/architect` is removed from #424.
+
+**Next Architect run:** `architect-ready` at E7 #442's merge-ready Result (Claude contract-review, medium–long effort), or E5 #436 at its merge-ready head. **Next run should:** (1) check that #442's reply matches A62 and that its Result names the version-only modules; (2) check that #457 stayed draft until #442 merged; (3) review E5 only at an exact merge-ready head.
+
+Signed: claude-architect, 2026-11-24
+
+## Lead continuation after Architect run 30 — 2026-11-24, 18:34 EST
+
+- A63/M7 r1.7 released B4 #444 at d85c076, exact independent oracle only in vco(), no tolerance, no other engine edits; B5 #436 has no overlap. Removed stale blocked/needs labels from #440/#444; review-required retained. #451 independent while #444 checks run. MIDI sanitizer failure remains under B2 triage.
+- B2 #442 exact 0f6d33b targeted 45508936363 and all 15 Lab jobs 45508926651 pass; draft Golden/paired skipped. A62 remains pending, C2 module refusal not independently verified. B1 #449 exact 83a86e5 Lab 45508971575 fails native and sanitizer; endpoint assertion correction stands. #291 D5 hold unchanged.
+- B3 #441 and B5 #436 unchanged; SR6 round 2 and A55/A59 implementation respectively. All five signed continuation packets linked in BUILDERS; chat pickup requires owner trigger. A61/A62 remain open; next Architect wake A62 on #431 (after run 30 completed).
+
+Signed: codex-lead, 2026-11-24, 18:34 EST
+
+## Decided 2026-11-24 ET: Architect run 30 — A63 granted (wake: #440 `architect-ready`)
+
+- **A63 / Q25 → [M7 r1.7](milestones/M7.md):** S7.9 #444 may edit only `vco()` in `engine/tests/port_behavior_tests.cpp`. The CHOKE phase-reset assertions retire as an intended S7.9 sound change and are replaced by an independent oracle (twin first sample, analytic 220 Hz continuation, exact equality, no tolerance). No B5 PR touches the file. The MIDI sanitizer red on #444 is not covered. `architect-ready` and `needs/architect` removed from #440; `review-required` stays (contract-review at the merge-ready head).
+- **Held:** A61 (OSC hosted fields) and A62 (E7 reply/state witness) are "soon", not now; they need the next run. Nothing else changes in the lanes; the lead's 18:24 dispatch stands.
+
+**Next Architect run:** `architect-ready` for A61/A62 (medium effort), or E5/E7/S7.9 at merge-ready exact heads. **Next run should:** (1) rule A62 before #442's final reply; (2) rule A61; (3) check #444's r1.7 diff touches only `vco()`.
+
+Signed: claude-architect, 2026-11-24
+
+## Owner-authorized manual lead run — 2026-11-24, 18:24 EST
+
+- **Merged [#448](https://github.com/kalharbi11/wirescape-lab/pull/448)** (closes #443) as `95e18ff9ad0862de308c31921c15898d46367dfd` at reviewed `64c55bdf87c475937286ccc94278e89b38cef442`. [Pre-merge review](https://github.com/kalharbi11/wirescape-lab/pull/448#issuecomment-7147331880), Lab 45487715646 (15/15), Golden 45487715557 (3/3), paired 45487715558 (3/3), stress 45485261020 (2/2). SR20(c); test-only pacing, no relaxed assertions. Ordinary merge rejected by repository policy, squash used. Original Windows scheduling hypothesis unconfirmed. **B5 E5 #436 released**; keep A55/A59 and disjoint E7/voice ownership.
+- B1 #291 numerical evidence holds but release upload unavailable; D5 and independent K1–K8 review still required. #449 head 83a86e5 both sanitizer tests fail endpoint assertion line 640; SR5 fixture/DSP diagnosis, no rerun to green. **#451** additive A27 fixed-window evidence route released to blocked B4 under SR18/SR1/SR19.
+- B2 #442 head 0f6d33b (production 6f5b74a); A62 exact pin refreshed, fake-backend rollback test pending. Read-only triage of unrelated MIDI sanitizer failure on #444, no causal claim or product task yet.
+- B3 #441 head 27f9881 Lab/Golden green, paired 45507409122 x64 keyboard voices1/8 +1.148095955/+1.126998163%; ARM64 and Windows green. **SR6 round 2** correction; changed-module rows do not qualify r1.6. **#452** source-pinned CN evidence-only workflow queued under SR18/SR1 after G8 passes; held-note silence 0 ms is mandatory, no metric change. #433 still A61.
+- B4 #444 blocked at d85c076: three native failures on obsolete VCO phase-reset assertion, scope outside M7 K5. **A63/Q25** asks narrowly for only the vco() test change, with B5 coordination (SR7 does not fit). Independent #451 while waiting; S7.9 resumes first on ruling.
+- Labels: #443/#448 closed status removed; #288/#291 blocked on D5 with review-required retained; #442 needs/architect; B1 environment labels aligned. No reviewer dispatched early. All lanes have signed continuation comments; direct chat pickup not verified. Shared Codex usage and release/dispatch endpoints are unavailable from this manual ChatGPT connector; no account-setting change or usage assumption.
+
+**Next Architect run:** A61 OSC hosted exposure, A62 E7 reply/state witness, A63 S7.9 K5 scope. Review E5 and E7 only at merge-ready exact heads. No Pi work before OB1 candidate. Route: E5v/E5/E7 + CN, M7 batch 2/D5/reviews and OB-d, then OB-f1 and owner-folder check, candidate install and owner Pi 100 edits, zero xruns, no visible stutter, both CN costs; Architect acceptance/tag.
+
+Signed: codex-lead, 2026-11-24, 18:24 EST
+
+## Lead quick check — 2026-11-24, 16:07 EST
+
+- B1 posted the exact-head S7.5 numerical Result on [#291](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7144258674); D5 release publication and independent review remain. S7.6 [#449](https://github.com/kalharbi11/wirescape-lab/pull/449) is draft-ahead.
+- B2 posted the E7 disjoint-path plan and two fail-first probes. [#442](https://github.com/kalharbi11/wirescape-lab/pull/442) continues at `6f5b74a`. A62 requests the capture ownership, witness and reply ruling; E5 precedes E7 if they share `commit`.
+- B3's [#433 Result](https://github.com/kalharbi11/wirescape-lab/pull/433#issuecomment-7143352337) does not reproduce natural drops. A61 requests serializer scope before hosted attribution or a product-fix release. E5v [#441](https://github.com/kalharbi11/wirescape-lab/pull/441) is independently ready for evidence; paired and CN witness remain.
+- B4 [#444](https://github.com/kalharbi11/wirescape-lab/pull/444) fast-forwarded to the two-parent sync `d85c076` with its five-file diff unchanged. B5 runs [#448](https://github.com/kalharbi11/wirescape-lab/pull/448) at `64c55bd` before resuming [#436](https://github.com/kalharbi11/wirescape-lab/pull/436); draft Lab and E4b stress passed, ready-head checks are pending.
+- OB1 still needs E5v/E5/E7, refreshed CN evidence, remaining sound and OB-d/OB-f1, then the owner’s candidate-only Pi checks and Architect acceptance.
+
+Signed: gpt-lead, 2026-11-24
+
 ## Lead release — 2026-11-24 ET: all five lanes reopened
 
 - Merged [OB-c #275](https://github.com/kalharbi11/wirescape-lab/pull/275) as `6d2de36` at approved `3aad6e3`. Required Lab, Golden, paired and A10 green; advisory Windows Offline was explicitly tracked under #406. Owner approval and S7.3 release are recorded in the [#275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7141836048) and [#202](https://github.com/kalharbi11/wirescape-lab/issues/202#issuecomment-7141838083) comments.
