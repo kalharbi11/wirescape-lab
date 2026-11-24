@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <vector>
 
 struct OriginalGate {
     float level = 0, start = 0;
@@ -173,10 +174,90 @@ static void cable_trigger_restarts_from_release_tail() {
     VERIFY(f->output[0][0][130] > f->output[0][0][129]);
     VERIFY(f->output[0][0][130] < .7f);
 }
+
+// S7.9 draft-ahead: exact callback-level 2 s CHOKE/no-CHOKE pair. Reuse
+// the T7.0 causal Butterworth 2 kHz, +/-25 ms window at 48 kHz. The
+// historic T7.0/T7.0b files contain no ADSR or VCO CHOKE rows, so the
+// unchanged source's diagnostic before-numbers must be captured first.
+static double choke_peak_dbfs(const std::vector<float>& pcm, size_t at) {
+    constexpr double rate = 48000., tau = 6.28318530717958647692;
+    const double w = tau * 2000. / rate, c = std::cos(w);
+    const double alpha = std::sin(w) / std::sqrt(2.);
+    const double b0 = (1. + c) / (2. * (1. + alpha));
+    const double b1 = -2. * b0, b2 = b0;
+    const double a1 = -2. * c / (1. + alpha), a2 = (1. - alpha) / (1. + alpha);
+    double x1 = 0., x2 = 0., y1 = 0., y2 = 0., peak = 0.;
+    for (size_t i = 0; i < at + 1200; ++i) {
+        const double x = pcm[i], y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+        x2 = x1; x1 = x; y2 = y1; y1 = y;
+        if (i >= at - 1200) peak = std::max(peak, std::abs(y));
+    }
+    return 20. * std::log10(std::max(peak, 1e-15));
+}
+static std::vector<float> choke_capture(bool oscillator, bool trigger, bool choke) {
+    const auto* d = oscillator ? ws::Module<ws2ports::Vco>::descriptor() :
+                                 ws::Module<ws2ports::Adsr>::descriptor();
+    auto f = std::make_unique<DspFixture>(d, 48000., 1);
+    f->ins[0].flags = 0;
+    if (oscillator) {
+        f->ins[1].flags = 0;
+        std::fill_n(f->input[1][0], DspFixture::frames, 0.f);
+        std::fill_n(f->parameter[0][0], DspFixture::frames, 220.f);
+    } else {
+        f->parameter[0][0][0] = .001f;
+        f->parameter[1][0][0] = .001f;
+        f->parameter[2][0][0] = .6f;
+        f->parameter[4][0][0] = trigger ? 1.f : 0.f;
+        f->parameter[5][0][0] = 30.f;
+    }
+    std::vector<float> pcm(96000);
+    for (uint32_t first = 0; first < pcm.size(); first += 128) {
+        ws2_event e{};
+        uint32_t count = 0;
+        if (first == 0) { e = note(WS2_NOTE_ON, 17); e.key = 69; count = 1; }
+        if (choke && first == 48000) { e = note(WS2_NOTE_CHOKE, 0); e.key = 69; count = 1; }
+        f->process.events = {sizeof(ws2_event_list), count, count ? &e : nullptr};
+        f->run(128);
+        std::copy_n(f->output[0][0], 128, pcm.data() + first);
+    }
+    return pcm;
+}
+static void s79_choke_fail_first() {
+    bool all_pass = true;
+    for (int mode : {0, 1, 2}) {
+        const bool oscillator = mode == 2, trigger = mode == 1;
+        const auto ref = choke_capture(oscillator, trigger, false);
+        const auto switched = choke_capture(oscillator, trigger, true);
+        VERIFY(std::equal(ref.begin(), ref.begin()+48000, switched.begin()));
+        VERIFY(std::all_of(switched.begin(), switched.end(), [](float x){ return std::isfinite(x); }));
+        if (!oscillator) {
+            // Ordinary note-on attack must still reach 1 in 48 samples.
+            const auto first = std::find(ref.begin(), ref.begin()+256, 1.f);
+            VERIFY(first - ref.begin() == 17+47);
+        } else {
+            // NOTE_ON preserves phase; no retrigger reset at frame 17.
+            constexpr double tau = 6.28318530717958647692;
+            VERIFY(std::abs(ref[17] - std::sin(tau * 220. * 17. / 48000.)) < 1e-6);
+        }
+        const double before = choke_peak_dbfs(switched, 48000);
+        const double floor = choke_peak_dbfs(ref, 48000);
+        // Absolute/floor alternative from M7. The relative target will
+        // additionally be bound to the captured before row in the fix.
+        const bool pass = before < -60. || std::abs(before - floor) <= .1;
+        std::printf("S7.9 %s CHOKE peak_dbfs=%.9f no_switch_floor_dbfs=%.9f %s\n",
+                    oscillator ? "VCO" : trigger ? "ADSR-trigger" : "ADSR-gate",
+                    before, floor, pass ? "PASS" : "FAIL");
+        all_pass = all_pass && pass;
+    }
+    std::fflush(stdout);
+    VERIFY(all_pass);
+}
+
 int main() {
     default_gate_bit_identical();
     triggered_gate_timed_hold();
     note_retrigger_from_current_level_and_choke();
     cable_trigger_restarts_from_release_tail();
     std::puts("OB-g5 ADSR device-off source tests PASS");
+    s79_choke_fail_first();
 }
