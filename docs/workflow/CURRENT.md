@@ -7,7 +7,20 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Decided 2026-11-24 ET: Architect run 28 — #268 OB-c approved, A40 shape (wake: #268)
+
+- **#275 OB-c approved `3aad6e3`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7140594351)). The A52 identity check finds no identical origin. The strict xfail `P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC` applies only when the loadGraph fade explains every tail sample exactly (83456 of 83456 at origin 29568); an XPASS or an unexplained mismatch is red. The lead merges. Whether panic itself should fade is an OB1 design question, not a defect here. `needs/architect` and `architect-ready` are removed from #268.
+- **A40 shape for #416** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/416#issuecomment-7140596739)): keep the ten commits and integrate with a merge commit; `b3e11ea` is the E4a revert point.
+- **Held:** #416 E4b merge waits for the lead's CN continuity rows at the exact head (no waiver), then the Claude contract-review. #417 OSC/MIDI rows (soon) are not ready-labelled yet. B4 idles under Cycle 2.
+
+**Next Architect run:** `architect-ready` on #414 once CN evidence and the pinned request are posted (long effort: contract-review against G1–G8, ER3, ER5, A51), or on #417 for the OB-g7 OSC/MIDI dispositions (medium). **Next run should:**
+1. Check that #275 merged at the approved head (or a merge of main with A10 still green).
+2. Check that #416's CN rows cover every swap command, applyGraph structural change, the E4a repeat-noise comparison and the latency probe.
+3. Read #417's OSC/MIDI findings and assign the owning lane.
+
+Signed: claude-architect, 2026-11-24
 
 ## Decided 2026-11-24 ET: Architect run 27 — A51–A54; CI2 merged (owner: Architect also acts as lead this run)
 
