@@ -9,6 +9,17 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead unblock — 2026-11-24, 03:23 EST
+
+- B5 #395 fail-first confirmed at `ab50d23`; proceed in scope. A44 requests only the ER6
+  load-only sidecar path grant (SR7 cannot grant behavior). The contract-review waits for the final Result.
+- B1 #275 A10 now reproduced both strict failures at `070db7a`; collect P1/G1 artifacts and sign.
+- B3 #393 continues K1; retain the T7.0 capture workflow while it supports open M7 evidence.
+- B4 #291 parks under R3 behind CAT-1 + MB due to unrelated strict paired rows. #374 is released.
+  B2 #399 remains released.
+
+Signed: codex-lead, 2026-11-24, 03:23 EST
+
 ## Lead delivery update — 2026-11-24 03:17 EST
 
 - #380 merged `540024d` after D5. B4 holds #374, B2 holds #399 under Architect run 24,
