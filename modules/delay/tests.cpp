@@ -462,6 +462,52 @@ static void state_and_extremes() {
             memory.large_bytes >= size_t(2) * 2 * 96000 * sizeof(float));
 }
 
+// Constant inputs isolate the mode-routing step from source transients and feedback.
+// A real switch must transition smoothly in both directions at every supported rate;
+// no-switch startup and the settled routes must retain their exact values.
+static void mode_switch_crossfade() {
+    constexpr size_t length = 32768, at = 8192;
+    for (double rate : {44100., 48000., 96000.}) {
+        for (uint32_t initial : {0u, 1u}) {
+            Rig r(rate), control(rate);
+            for (Rig *q : {&r, &control}) {
+                wet_only(*q, .0625f, 0.f);
+                q->values[kMode] = static_cast<float>(initial);
+                q->left(Wave(length, .4f));
+                q->right(Wave(length, .2f));
+            }
+            const Result before = control.run(length, 64);
+            const Result after = r.run(length, 64, [&](size_t first) {
+                if (first == at) r.values[kMode] = static_cast<float>(1u - initial);
+            }, true);
+            REQUIRE(finite_within(after.l, 1.f) && finite_within(after.r, 1.f));
+            // No switch-related output change until the edit; the propagation
+            // through the line is deliberately not assumed to land on a block.
+            for (size_t i = 0; i < at; ++i) {
+                REQUIRE(after.l[i] == before.l[i]);
+                REQUIRE(after.r[i] == before.r[i]);
+            }
+            float peak_step = 0.f;
+            for (size_t i = at; i < length; ++i) {
+                peak_step = std::max(peak_step, std::fabs(after.l[i] - after.l[i - 1]));
+                peak_step = std::max(peak_step, std::fabs(after.r[i] - after.r[i - 1]));
+            }
+            std::printf("delay mode switch rate=%.0f from=%u peak_step=%.9g\n",
+                        rate, initial, static_cast<double>(peak_step));
+            std::fflush(stdout);
+            // With this DC stimulus the old step is .2 FS. A transition
+            // reduces its adjacent-sample peak by at least 20 dB (.02 FS).
+            REQUIRE(peak_step <= .02f);
+            const float left = initial == 0 ? .3f : .4f;
+            const float right = initial == 0 ? 0.f : .2f;
+            for (size_t i = length - 64; i < length; ++i) {
+                REQUIRE(std::fabs(after.l[i] - left) < 1e-6f);
+                REQUIRE(std::fabs(after.r[i] - right) < 1e-6f);
+            }
+        }
+    }
+}
+
 int main() {
     echo_position();
     feedback_decay();
@@ -472,6 +518,7 @@ int main() {
     poly_sum();
     loop_safety();
     tone_shapes_loop();
+    mode_switch_crossfade();
     matrices();
     state_and_extremes();
     std::puts("fx.delay tests passed");
