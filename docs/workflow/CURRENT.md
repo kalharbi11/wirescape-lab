@@ -22,6 +22,24 @@ Next Architect work: resolve E5 voice-count replacement scope, then use #424's r
 
 Signed: gpt-lead, 2026-11-24
 
+## Decided 2026-11-24 ET: Architect run 29c — S7.3 merged, A60 (owner: resolve #432's blockers)
+
+- **#432 S7.3 approved and merged `fe321f9`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/432#issuecomment-7143875832)). T7.0 45478143094 passes all 12 gated rows. The Golden declaration was widened to the nine CHAOS patches (K6), and Golden 45480416512 is green. The CHAOS Ir increases are under the 15 % cap, with `Cost-change:` lines. D5: chaos-01-ember-veil-pad, artifact 14960795824.
+- **A60** (M7 r1.6a): r1.6 also covers S7.3, plus a named exception for function_envelope voices1/8, linux-arm64, ≤ +3.0 % (it reproduced at +2.106/+2.605 %), expiring at CAT-1 or the OB1 tag. An issue's `Sound-change:` line is only an example.
+- **B4 → S7.9 #440.**
+
+Signed: claude-architect, 2026-11-24
+
+## Decided 2026-11-24 ET: Architect run 29b — A59, T7.0 dispatch, Windows replan red (owner: Architect also acts as lead)
+
+- **S7.3 #432:** full T7.0 capture dispatched as lead: [run 45478143094](https://github.com/kalharbi11/wirescape-lab/actions/runs/45478143094) at `d86c195`, both Linux architectures, compared with baseline 44029050283.
+- **A59 E5** ([#436](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7143183539), M4 note): `tools/module/runner/abi_ws2.h` size guard granted (0012 G5), C99 offset and legacy-size tests, and a bounded held-note record replayed after `collect()`'s clear. B5's fail-first at `11b0caa` came back red ([dev-run 45475307438](https://github.com/kalharbi11/wirescape-lab/actions/runs/45475307438)); B5 confirms the assertion line.
+- **#434 Windows red** in E4b `signal_ramp_interrupted` (line 349), which #434 doesn't touch. Filed [#443](https://github.com/kalharbi11/wirescape-lab/issues/443) → B5 (test-only pacing fix, own PR, before #436). Failed job re-run once to classify; [disposition](https://github.com/kalharbi11/wirescape-lab/pull/434#issuecomment-7143209103): green → lead merges #434 and E7 is released; red → #434 waits for #443.
+- **#434 merged `4b078f9`** (closes #425) after the Windows re-run passed. Every required check was green; the advisory OSC soak rows stay under #424. **E7 #431 released to B2.**
+- **Held:** nothing new beyond run 29.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 29 — roadmap revised, A55–A58 (owner: Architect also acts as lead this run)
 
 - **#438 roadmap** revised and merged: live editing first, sound in the free lanes, I/O fixes beside them ([ROADMAP](ROADMAP.md) reconciliation section).
