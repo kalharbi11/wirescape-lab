@@ -37,3 +37,4 @@ Cleared rows older than one run are deleted (git history keeps them).
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
 | A38 | 2026-11-24 | TR1e #385 Architect review (ER1, 0008 K1/K2/K4) | [Approved `5d2d78b` with one condition](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762): the red `Offline facts / windows-latest` job goes green on a re-run, or shows the same failure on main. No High or Medium findings; 3 Low (one for E6, two for TR1h) |
+| A43 | 2026-11-24 | S7.7 #380 Claude contract-review and the 96 kHz evidence question (owner) | [Approved after one pre-approved one-line correction](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7124107855): restore the `baseline_peak` check. No 96 kHz measurement is needed. A38's Windows condition is [met](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124108736) |
