@@ -24,6 +24,23 @@ keeps them consistent. Run: `python bench/continuity/run.py --engine <build>/nat
 The JSON records every run's full marks (edit run and reference), the alignment offset, the
 allowed range and the residual. `--keep` retains each raw capture and marks file for an artifact.
 
+## A50 control comparison
+
+Each repeat reuses a no-edit capture only for edits with the same setup patch. Over the aligned
+window from 48,000 samples before the bracket to 48,000 samples after it, the report records
+sample equality, first mismatch relative to the bracket start and maximum absolute residual.
+Silence is the longest newly silent run while the control is sounding. Dip is the minimum
+edited-to-control ratio of corresponding 1 ms RMS windows with a sounding control. Jump compares
+the peak step in each corresponding capture window. Tone slip is the phase displacement relative
+to control, wrapped to one period. Clock slip compares corresponding onsets and reports their
+counts. The legacy absolute measurements remain in the report. Failed alignments and undefined
+denominators remain unavailable. The harness applies no contract acceptance thresholds.
+
+The separate report-only latency probe connects a silent Spectral output to the still-playing
+10 Hz witness bus, changing the declared upstream latency without adding audible input. It
+reports the phase displacement against a matched no-edit capture. A zero measured shift is a
+measurement of the current implementation, with no assumption about compensation.
+
 Run the tests with `python -m unittest discover -s bench/continuity/tests` (stdlib only). CI: `.github/workflows/continuity.yml`.
 
 ## Metric choices §4 leaves open
