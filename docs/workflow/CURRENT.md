@@ -9,6 +9,20 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Decided 2026-11-24 ET: Architect run 28b — E4b approved, OB-g7 rulings (owner: run all pending reviews and rulings)
+
+- **#416 E4a+E4b approved `8e8783b`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/416#issuecomment-7141760132)). G1–G8, ER3, ER5 and A51 hold. The 18 E4a dip-range differences are repeat noise: the same park fade lands on a different block. The lead merges with a merge commit (A40). `review-required` and `needs/architect` are removed. One Low for E5: while the stream is stopped, `settle_layout` spends three block periods on each status tick. Before M4 acceptance, CN harness #422 must merge and `facts/dsp/edit_continuity.md` must be refreshed.
+- **#417 OSC → [#424](https://github.com/kalharbi11/wirescape-lab/issues/424) (B3)**: product delivery loss. Split the drop counters and write a fail-first soak-profile test before any fix.
+- **#417 MIDI → [#425](https://github.com/kalharbi11/wirescape-lab/issues/425) (B2)**: not E5. MIDI counters stay cumulative for the session across `Host` stop/start; B2 takes it after #406 (merged) and before E7.
+- **Held:** E5 waits for the #416 merge. E7 waits for E4b, and E5 merges first if both touch `commit`. #275 is with the lead to merge.
+
+**Next Architect run:** `architect-ready` at the #424 Result to pick the OSC product fix (medium effort), or at E5's Claude contract-review (long). **Next run should:**
+1. Check that #416 merged as a merge commit at `8e8783b`, and that #275 merged.
+2. Check that E5's pre-code post (voice-count behaviour) carries the settle-stall Low.
+3. Read #424's split counts and choose the OSC fix and its lane.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 28 — #268 OB-c approved, A40 shape (wake: #268)
 
 - **#275 OB-c approved `3aad6e3`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7140594351)). The A52 identity check finds no identical origin. The strict xfail `P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC` applies only when the loadGraph fade explains every tail sample exactly (83456 of 83456 at origin 29568); an XPASS or an unexplained mismatch is red. The lead merges. Whether panic itself should fade is an OB1 design question, not a defect here. `needs/architect` and `architect-ready` are removed from #268.
