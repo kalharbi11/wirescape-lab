@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "impl.h"
 #include "wirescape_sdk.h"
+#include <cassert>
 #include <chrono>
 #include <cstring>
 #include <thread>
@@ -300,7 +301,11 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     if (old.producer_count) {
         Packet packet;
         while (old.producers[0]->critical.pop(packet))
-            if (packet.host) fresh.producers[0]->critical.push(packet);
+            if (packet.host) {
+                const bool pushed = fresh.producers[0]->critical.push(packet);
+                assert(pushed && "host packet must fit in replacement ring");
+                (void)pushed;
+            }
     }
     p_.swap(next.p_);
     return true;
