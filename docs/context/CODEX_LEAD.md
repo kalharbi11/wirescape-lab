@@ -79,6 +79,29 @@ Start every `lead: run` from the newest CURRENT entry, then BUILDERS.
 **Do not touch** wirescape-pi (Architect-only merges). Pi runs are postponed until 2026-11-30
 (inbox A31).
 
+## Builder environments (owner direction, 2026-11-23)
+
+Default to existing ChatGPT Chat-mode builder chats for `env/chat`: GitHub issue/PR and CI evidence,
+docs, Studio TypeScript, test-only changes, and scoped module or mechanical changes with an existing
+hosted test loop. Use GitHub connector reads and writes on the assigned branch and let hosted CI
+run the gates. B3 created and corrected #375 through the connector, and B1 and B2 completed
+GitHub evidence work. Connector access and Git CLI/network access are separate. Chat mode has
+previously returned `fatal: not a git repository` or failed GitHub DNS resolution, and it has no
+assured shell, checkout, Python/native runner, or Callgrind. Do not repeat clone probes. If connector
+writes fail, have Chat return a precise patch and blocker for one authorized writer to apply.
+
+Use an existing Codex or Work-mode sandbox only for the lowest-cost bounded operation that needs
+it: E-track engine work, native catalogue generation, real native tests, or sanitizer/profiler
+attribution. Verify checkout capability in that environment before promising results. Keep a single
+writer, use an isolated checkout, run focused device-off tests, and send the platform matrix to
+hosted CI. Return routine follow-up to Chat once the sandbox is no longer needed. Copilot Student
+credits are separate from hosted Actions and remain subject to 0021 §6 D6.
+
+Chat cross-thread send acknowledgment means delivery was requested. Some packets appeared late
+or sat idle without a response. Confirm a repo artifact, signed Result or actual tool activity;
+check once and retry once only when no active writer is competing. Do not spend Codex turns polling
+CI. Check usage at lead entry and use the existing one-shot continuation process for a real gate.
+
 ## Review dispatch (owner, 2026-11-19)
 
 Use the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).

@@ -7,6 +7,34 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead chat handoff — 2026-11-23 19:15 EST
+
+Next fresh Codex chat: use `lead:run`. Read the lead brief, live BUILDERS/ROADMAP, this entry,
+and the Open Architect inbox. Start by checking signed rulings, exact current heads and usage once.
+Preserve the existing chats, task branches, review pins and results.
+
+1. **Architect batch:** A34 reviews safe save #298 at `5ecf300`; A35 rules on when to run C1's
+   live two-head acceptance; A36 reviews T1.6c #376 at `418d4a7` against 0007 rules 2–5.
+   Run Architect after the A36 docs row lands and #376 has `review-ready`. If that handoff is
+   delayed, A34/A35 already exist on main from #377. After approvals, lead merges eligible
+   reviewed heads and releases G-W1 #368 to B1 Chat and TR1e #378 to B5. C1 requires the actual
+   two-head check per the ruling.
+2. **B4:** #356 parks under 0021 R3. Exact-head paired run 45290856558 failed only LFO voices1/8
+   on both Linux architectures; other core checks passed. #333 remains parked. B4 next is
+   S7.7 #373 with Chat and hosted CI, followed by S7.8 #374 after merge.
+3. **B2:** #339 head `f18e83d` is blocked after the final targeted diagnostic; sanitizer
+   45291130572 puts the delay inside the timed render call but does not separate CPU cost from
+   in-call preemption. Decide SR6 disposition before new code. PI-1 #369 still waits for owner
+   token setup. B2 Chat evidence is available; use Codex only for a separately released measurement.
+4. **B3:** #375 `3267a17` passed Lab 45292152975 and lead-run 8/8 parser tests. The main-only
+   trigger makes A35 the gate to the real two-head check. #322 is parked; S7.5 #291 follows C1
+   and its existing release gates. Chat connector writes are verified; Git clone and a local
+   runtime remain unverified capabilities in Chat.
+5. **Usage:** 54% of the five-hour window remaining at entry, reset 23:29 EST; 83% weekly.
+   Use the Chat-first instructions in CODEX_LEAD. No recurring polling or usage reset.
+
+Signed: codex-lead, 2026-11-23, 19:15 EST
+
 ## Delivery update — 2026-11-23 18:32 EST
 
 - Applied Architect runs 19–19c and OB r2.5. Released #364 (B5, sole engine writer) and resumed #356 with Poly Split (B4). Kept #333 and #322 parked. Filed B4's queued S7.7 #373 and S7.8 #374.
