@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// A10/OB r2.1: device-free, frame-stamped internal/external Groove transport.
+// A10/OB r2.8: device-free, frame-stamped internal/external Groove transport.
 // Compile as an isolated native CTest when the lead grants new target wiring.
 #include "../../../modules/groove/dsp.h"
 #include <algorithm>
@@ -110,29 +110,6 @@ void stop_snapshot(const Rig &rig, const char *stage, size_t &event_cursor) {
     std::fflush(stderr);
 }
 
-void diagnostic_stop_replay() {
-    Rig replay;
-    size_t cursor = 0;
-    replay.render();
-    replay.controls[0] = 1.f;
-    replay.render();
-    replay.controls[0] = 0.f;
-    replay.render();
-    stop_snapshot(replay, "replay-before-stop", cursor);
-    replay.controls[1] = 1.f;
-    replay.render();
-    stop_snapshot(replay, "replay-one-block", cursor);
-    // Cover the nominal master cycle plus two blocks, bounded even if stuck.
-    constexpr uint32_t limit = 8 * 256 / kBlock + 2;
-    for (uint32_t i = 0; i < limit && replay.sequencer.running; ++i) {
-        replay.render();
-        stop_snapshot(replay, "replay-followup", cursor);
-    }
-    std::fprintf(stderr, "OB-C-A10-G1 replay_finished running=%d end_frame=%llu\n",
-                 int(replay.sequencer.running), static_cast<unsigned long long>(replay.frame));
-    std::fflush(stderr);
-}
-
 void internal_start_stop() {
     Rig rig;
     rig.render();
@@ -150,14 +127,29 @@ void internal_start_stop() {
     size_t diagnostic_cursor = 0;
     stop_snapshot(rig, "original-before-stop", diagnostic_cursor);
     rig.controls[1] = 1.f; // STOP applies at exactly this frame.
-    rig.render();
-    stop_snapshot(rig, "original-one-block", diagnostic_cursor);
-    if (rig.sequencer.running) diagnostic_stop_replay();
-    ORACLE(!rig.sequencer.running, "internal_stop_waits_for_cycle_end_not_one_block");
-    std::printf("OB-C-A10-GROOVE internal start=%llu gate=%llu stop=%llu stopped_before=%llu\n",
+    // A46: STOP is queued until the documented master cycle ends.
+    // The fixture has one eight-step track at 256 frames per step.
+    // Compute the cycle end from START and the fixture, not observed STOP.
+    const uint64_t cycle_end = start + uint64_t(rig.sequencer.pattern.tracks[0].length) * 256;
+    const uint64_t deadline = cycle_end + kBlock;
+    INFRA(stop < cycle_end);
+    uint64_t last_running_end = rig.frame;
+    while (rig.sequencer.running && rig.frame < deadline) {
+        rig.render();
+        stop_snapshot(rig, "cycle-end-oracle", diagnostic_cursor);
+        if (rig.sequencer.running) last_running_end = rig.frame;
+        if (rig.frame < cycle_end)
+            ORACLE(rig.sequencer.running, "internal_stop_before_documented_cycle_end");
+    }
+    ORACLE(!rig.sequencer.running && rig.frame <= deadline,
+           "internal_stop_exceeded_one_block_after_cycle_end");
+    std::printf("OB-C-A10-GROOVE internal start=%llu gate=%llu stop=%llu cycle_end=%llu deadline=%llu last_running_end=%llu stopped_before=%llu\n",
                 static_cast<unsigned long long>(start),
                 static_cast<unsigned long long>(rig.first_note()),
                 static_cast<unsigned long long>(stop),
+                static_cast<unsigned long long>(cycle_end),
+                static_cast<unsigned long long>(deadline),
+                static_cast<unsigned long long>(last_running_end),
                 static_cast<unsigned long long>(rig.frame));
 }
 
