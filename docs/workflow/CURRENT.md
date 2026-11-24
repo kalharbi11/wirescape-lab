@@ -9,6 +9,28 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Decided 2026-11-24 ET: Architect run 26b — E6 #395 approved `2d1db86` (owner: lighten the lead's run)
+
+- **A50 correction.** The capture cannot show the subject's `restarted` for an edit that changes
+  its sound: `bench/continuity/run.py:112` returns `None` on purpose. For a data edit the property
+  is "no instance rebuilt or reset". It is shown by `setModAmount` returning before any candidate
+  or commit (`session.cpp`), `set_mod_amount` only pushing an edge packet, and the protocol test's
+  unchanged generation (1 → 1 in all repeats). No new capture is needed.
+- **E6 contract-review: [Approved for merge `2d1db86`](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7127643131).**
+  No High or Medium findings. Two Low follow-ups: the direct loader prints warnings with `fprintf`
+  (return them instead; E3a/E5), and `find_mod_edge` versus removed same-key edges (assert; E4a).
+- **Lead, minimum steps:** mark #395 ready, post a three-line signed Result that links the
+  approval, and merge it (`merge: lead`). A new push voids the approval, except a pure main merge
+  with Golden unchanged. Then release E4a+E4b to B5 (A40, one PR, one Claude review).
+
+**Next Architect run:** `architect-ready` on the E4a+E4b issue once its Result is posted, or on
+#275 once the OB r2.8 rewrite is signed. **Next run should:**
+1. Check that #395 merged at `2d1db86`, or that its only delta is a main merge.
+2. Check that #275's P1/G1 match OB r2.8 exactly.
+3. Check that #399's fail-first test landed before its fix.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 26 — A50, A45, A46, A47 (wake: #391)
 
 - **Run 25 (#409) lands with this PR.** A44 stays cleared as written there.
