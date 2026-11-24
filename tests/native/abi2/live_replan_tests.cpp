@@ -346,7 +346,9 @@ static void signal_ramp_interrupted() {
             // Pace single-sample callbacks so staging cannot consume the
             // entire 240-frame ramp before a reversal is requested.
             const auto wait_start = Clock::now();
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            // Test-only short wait: do not round 100us to the host timer tick.
+            const auto next_callback = wait_start + std::chrono::microseconds(100);
+            while (Clock::now() < next_callback) {}
             const auto wait_us = uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(
                 Clock::now() - wait_start).count());
             max_sleep_us = std::max(max_sleep_us, wait_us);
