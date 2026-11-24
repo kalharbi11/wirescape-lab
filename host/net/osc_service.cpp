@@ -41,12 +41,15 @@ struct Service::Impl {
     std::array<Route, 32> routes{};
     std::array<bool, 32> route_enabled{};
     std::array<std::atomic<uint64_t>, 32> route_received{}, route_dropped{};
+    std::array<std::atomic<uint64_t>, 32> route_budget{}, route_enqueue{};
     uint32_t route_count = 0;
     std::array<Listener, 32> listeners{};
+    std::array<std::atomic<uint64_t>, 32> listener_budget{}, listener_enqueue{};
     uint32_t listener_count = 0;
     std::array<uint8_t, 65507> packet{};
     std::array<uint8_t, WS2_MAX_PAYLOAD> normalized{};
     std::atomic<uint64_t> received{0}, malformed{0}, dropped{0}, truncated{0};
+    std::atomic<uint64_t> budget_dropped{0}, enqueue_dropped{0};
     std::atomic<uint32_t> sockets{0};
     std::atomic<bool> running{false};
     std::thread worker;
@@ -199,9 +202,14 @@ struct Service::Impl {
                     const bool valid = parse(packet.data(), size_t(length), [&](const Message &message) {
                         if (messages >= 64) {
                             dropped.fetch_add(1, std::memory_order_relaxed);
-                            for (uint32_t r = 0; r < route_count; ++r)
-                                if (route_enabled[r] && routes[r].port == listeners[i].requested)
+                            budget_dropped.fetch_add(1, std::memory_order_relaxed);
+                            listener_budget[i].fetch_add(1, std::memory_order_relaxed);
+                            for (uint32_t r = 0; r < route_count; ++r) {
+                                if (route_enabled[r] && routes[r].port == listeners[i].requested) {
                                     route_dropped[r].fetch_add(1, std::memory_order_relaxed);
+                                    route_budget[r].fetch_add(1, std::memory_order_relaxed);
+                                }
+                            }
                             return;
                         }
                         ++messages;
@@ -227,6 +235,9 @@ struct Service::Impl {
                             if (!deliver || deliver(sink.context, routes[r].node, event, timestamp) != WS2_OK) {
                                 dropped.fetch_add(1, std::memory_order_relaxed);
                                 route_dropped[r].fetch_add(1, std::memory_order_relaxed);
+                                route_enqueue[r].fetch_add(1, std::memory_order_relaxed);
+                                listener_enqueue[i].fetch_add(1, std::memory_order_relaxed);
+                                enqueue_dropped.fetch_add(1, std::memory_order_relaxed);
                             } else {
                                 route_received[r].fetch_add(1, std::memory_order_relaxed);
                             }
@@ -256,9 +267,11 @@ std::vector<RouteState> Service::states() const {
         const auto &route = impl_->routes[i];
         const auto effective_lan = route.lan && impl_->confirmed;
         const Impl::Listener *listener = nullptr;
+        uint32_t listener_index = impl_->listener_count;
         for (uint32_t j = 0; j < impl_->listener_count; ++j)
             if (impl_->listeners[j].requested == route.port && impl_->listeners[j].lan == effective_lan) {
                 listener = &impl_->listeners[j];
+                listener_index = j;
                 break;
             }
         const bool listening = impl_->route_enabled[i] && listener && listener->socket != invalid_socket;
@@ -270,12 +283,29 @@ std::vector<RouteState> Service::states() const {
         report.state = !listening ? "port-busy" : route.lan && !impl_->confirmed ? "lan-not-confirmed" : "listening";
         report.received = impl_->route_received[i].load(std::memory_order_relaxed);
         report.dropped = impl_->route_dropped[i].load(std::memory_order_relaxed);
+        report.budget_dropped = impl_->route_budget[i].load(std::memory_order_relaxed);
+        report.enqueue_dropped = impl_->route_enqueue[i].load(std::memory_order_relaxed);
+        if (impl_->route_enabled[i] && listener_index < impl_->listener_count) {
+            report.listener_budget_dropped = impl_->listener_budget[listener_index].load(std::memory_order_relaxed);
+            report.listener_enqueue_dropped = impl_->listener_enqueue[listener_index].load(std::memory_order_relaxed);
+        }
         out.push_back(report);
     }
     return out;
 }
+std::vector<ListenerState> Service::listener_states() const {
+    std::vector<ListenerState> out;
+    out.reserve(impl_->listener_count);
+    for (uint32_t i = 0; i < impl_->listener_count; ++i) {
+        const auto budget = impl_->listener_budget[i].load(std::memory_order_relaxed);
+        const auto enqueue = impl_->listener_enqueue[i].load(std::memory_order_relaxed);
+        out.push_back({impl_->listeners[i].bound, budget + enqueue, budget, enqueue});
+    }
+    return out;
+}
 Counters Service::counters() const noexcept {
-    return {impl_->received, impl_->malformed, impl_->dropped, impl_->truncated, impl_->sockets};
+    return {impl_->received, impl_->malformed, impl_->dropped, impl_->truncated, impl_->sockets,
+            impl_->budget_dropped, impl_->enqueue_dropped};
 }
 uint16_t Service::bound_port(uint32_t i) const { return i < impl_->listener_count ? impl_->listeners[i].bound : 0; }
 } // namespace wirescape::osc
