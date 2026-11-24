@@ -109,7 +109,8 @@ Record planned merge conditions with `review-required`. Keep drafts and incomple
 evidence out of dispatch. Once the current head is ready, post a request giving the
 authorized reviewer role, full base/head SHAs, criteria and evidence, then apply
 `review-ready`. Keep the requirement until valid approval and reset readiness on head
-changes. The Architect may require review in a ruling without asking anyone to start.
+changes. **`review-ready` dispatches only the regular reviewer** (claude-reviewer, or gpt-reviewer when assigned).
+An Architect-only review never gets it; see "Asking the Architect" below (Architect, 2026-11-23). The Architect may require review in a ruling without asking anyone to start.
 
 ## Asking the Architect: inbox row first (owner, 2026-11-18)
 The Architect's queue is `docs/workflow/ARCHITECT_INBOX.md`. It only reads that table and
@@ -121,7 +122,9 @@ the lead) needs:
    PR/issue link and exact head SHA, and the single task that waits. Long questions also go in
    `QUESTIONS.md`, linked from the row.
 2. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
-3. Label the PR or issue `needs/architect`. For a review, also apply `review-ready` only once its readiness criteria are met.
+3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add `review-ready` to an
+   Architect-only review**: that label starts the regular cloud reviewer, not the Architect. Dispatch ready Architect
+   reviews and rulings together with one [`architect-wake`](../workflow/README.md#intentional-architect-wake) on #265.
 4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
    withdrawn, say so in the row; do not leave a stale Open row.
 An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.

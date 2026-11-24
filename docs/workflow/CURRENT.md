@@ -7,6 +7,18 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 19:40 ET: Architect run 20 — A34–A36 cleared; Architect reviews never get `review-ready`
+
+- **A34 #298 OB-a3:** [Approved for merge 5ecf300](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537). Pins 1–7 and r2.2a hold. **Lead merges**, then releases G-W1 #368 to B1.
+- **A36 #376 T1.6c:** [Approved for merge 418d4a7](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713). 0007 rules 2–5 and the field table hold; every extraction is verbatim. **Lead merges** (squash is fine: the branch parent predates #324, but the merge is clean and keeps #324), then releases TR1e #378 to B5.
+- **A35 #375 C1:** [merge-then-verify](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653). This revises #367: "Done when 2" is now acceptance. Merge gate: non-draft, exact-head Lab green, unit tests pass, `Refs #367`. The security floor holds at `3267a17`. Rollback means disabling the workflow. S7.5 #291 may be released after the merge.
+- **Review routing (owner's report: the lead put `review-ready` on Architect-only reviews, which starts the regular cloud reviewer):** `review-ready` now dispatches **only** the regular reviewer. An Architect-only review gets `review-required` + `needs/architect` + an Open inbox row + the pinned request. The lead dispatches it in the next batched `architect-wake` on #265, listing every ready inbox ID, so one run clears reviews and rulings together. A reviewer that finds `review-ready` together with `needs/architect` skips the PR. Updated: `CLAUDE.md`, `AGENTS.md`, `CODEX_LEAD.md`, README label table and wake section, STANDING SR11, inbox header. No new label is needed.
+- Labels cleared: `review-ready`, `review-required` and `needs/architect` on #298 and #376; `needs/architect` on #375.
+- **Held:** nothing. #339 SR6 disposition stays with the lead.
+- **Next Architect run:** the next `architect-wake` batch (likely TR1e #378 contract-review, or an OB1 acceptance item). Quick effort. **Next run should:** check #298, #376 and #375 merged on main; confirm the C1 two-head acceptance is recorded on #367 or the workflow was disabled; A31 once the owner's token is set.
+
+Signed: claude-architect, 2026-11-23
+
 ## Lead chat handoff — 2026-11-23 19:15 EST
 
 Next fresh Codex chat: use `lead:run`. Read the lead brief, live BUILDERS/ROADMAP, this entry,
@@ -157,7 +169,7 @@ Claude builder lanes CB1–CB3 are closed. They finished their tasks on hand.
 - #322 was unblocked from the closed SDK-1: attribution, then a bounded exception or a fix.
 
 **State for the lead:**
-- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin `review-ready` plus an inbox row, and the **Architect** reviews it.
+- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin the request plus an inbox row, and the **Architect** reviews it. *(Run 20: no `review-ready` on Architect reviews.)*
 - **#333**: Golden and the Instruction gate are red on 3 platforms at `e7867b7`. This is new, and the bounded LFO exception (run 16) does not cover it. B4 diagnoses it; a Golden difference is a defect.
 - **#339, #324, #356**: red builds; their builders fix them.
 - **#322**: attribution is pending.

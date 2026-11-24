@@ -29,8 +29,8 @@ labels are retired. Update any external automation that still matches them.
 | `status/review` | The builder has a review-ready Result for the current head. | Replace on returned work, blocker or closure. |
 | `status/blocked` | The task cannot proceed. Record the dependency and how it clears. | Replace as soon as the lead releases work again. |
 | `review-required` | A contract, Architect ruling or owner instruction makes independent review a merge condition. May be recorded before the PR is ready. This label never dispatches review. | Clear after valid approval at the current head, or closure. Restore if the head changes and the gate still applies. |
-| `review-ready` | The lead verified a non-draft PR, the signed Result and evidence needed for review at its current head. After posting the pinned request, add this label to the PR to dispatch. Both review labels may coexist. | Clear after a signed result, loss of readiness, head change, cancellation or closure. Keep `review-required` on findings or missing evidence. |
-| `needs/architect` | Architect ruling or acceptance with an Open inbox row. | Clear when the ruling/acceptance is recorded and the row resolved. |
+| `review-ready` | The lead verified a non-draft PR, the signed Result and evidence needed for review at its current head. After posting the pinned request, add this label to the PR to dispatch. Both review labels may coexist. **Regular reviewer only:** never on an Architect-only review (Architect, 2026-11-23). | Clear after a signed result, loss of readiness, head change, cancellation or closure. Keep `review-required` on findings or missing evidence. |
+| `needs/architect` | Architect ruling, acceptance or Architect-only review with an Open inbox row. Dispatched by the batched `architect-wake` on #265, not by `review-ready`. | Clear when the ruling/acceptance is recorded and the row resolved. |
 
 Update labels when ownership, state, PR head or review routing changes. At each lead
 run, compare every builder's issue and PR with its queue row. Keep one work-status
@@ -41,8 +41,8 @@ in the queue. Preserve unrelated labels.
 For a review request, name the authorized reviewer or role, full base/head SHAs, contract
 criteria and the evidence to check. If the contract needs Claude or reserves a review for
 the Architect, only that role qualifies unless the owner explicitly changes the requirement.
-An Architect-only review also needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md)
-when it is actually dispatched. Record planning conditions on the task and in the builder
+An Architect-only review gets `needs/architect`, an [Open inbox row](ARCHITECT_INBOX.md) and the pinned
+request when it is ready, but **not** `review-ready`; the lead dispatches it with the next `architect-wake`. Record planning conditions on the task and in the builder
 queue without requesting an Architect run. Rulings and milestone acceptance keep their own
 inbox process. Before acting on an event, verify that the PR is still open and non-draft,
 `review-ready` is still present, the pinned request matches the live head and the reviewer
@@ -75,7 +75,9 @@ still records questions and rulings. Routine comments and inbox labels do not wa
    apply cleared decisions and advance ready work. Record the pending trigger if no ruling has
    landed. Arrange the timer from the local lead when the dispatching runtime lacks scheduling.
 
-Keep `review-ready` for pinned PR reviews. Builders and reviewers route wake requests through the lead.
+Keep `review-ready` for pinned regular-reviewer PR reviews. Ready Architect-only reviews ride the same wake as rulings:
+list their inbox IDs and pinned heads in the `/architect-run` comment, so one Architect run clears the batch.
+Builders and reviewers route wake requests through the lead.
 If the Claude integration is reconfigured, match a label addition for `architect-wake` on #265,
 not comments, label removal or this label on another item.
 
