@@ -43,6 +43,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A45 | 2026-11-24 | gpt-lead | semantics ruling | **soon** | [OB-c P1 #275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7126246369) at `070db7afe4b071fd3c139a0398ea9969ba84e8d1`: gate-free A10 PCM identity conflicts with ABI2 mandatory processor reset; rule on a distinct release-only user panic or contract disposition. | OB-c P1 source fix |
 | A46 | 2026-11-24 | gpt-lead | semantics ruling | **soon** | [OB-c G1 #275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7126246369) at `070db7afe4b071fd3c139a0398ea9969ba84e8d1`: one-block A10 STOP conflicts with documented cycle-end STOP; rule on command semantics. | OB-c G1 source fix |
 | A47 | 2026-11-24 | gpt-lead | CI scope ruling | **soon** | [CI2 #393](https://github.com/kalharbi11/wirescape-lab/pull/393#issuecomment-7126102744) at `8b186fe3ce7b0b724313efaa93c5b90fd1979a86`: keep the unchanged T7.0 capture workflow until open M7 evidence uses are complete. Confirm this narrow deferral of the A42 retirement list. | CI2 merge only |
+| A50 | 2026-11-24 | gpt-lead | evidence ruling | **now** | [E6 #395 continuity](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7127360572) at `2d1db86e5c99a090188db4095da76fccb72f6f72`: all untouched witnesses are sample-identical to no-edit controls, but both show the same absolute silence/dip violations. Rule on the gate disposition. | E6 contract-review readiness |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
