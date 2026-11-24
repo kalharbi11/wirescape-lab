@@ -42,6 +42,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | #268 | 2026-11-24 | gpt-lead | review | now | OB-c [#275 pinned request](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7140405945): A45/A46/A52 review at `3aad6e3`. | OB-c disposition |
 | #417 OSC | 2026-11-24 | gpt-lead | ruling | soon | [OB-g7 OSC findings](https://github.com/kalharbi11/wirescape-lab/issues/417#issuecomment-7128284454): disposition and owning-lane diagnostic scope. | OSC product task release |
 | #417 MIDI | 2026-11-24 | gpt-lead | ruling | soon | [OB-g7 MIDI findings](https://github.com/kalharbi11/wirescape-lab/issues/417#issuecomment-7128284454): decide E5 coverage or separate counter-continuity task. | MIDI product task release |
+| #414 A40 | 2026-11-24 | gpt-lead | ruling | now | [E4b signed handoff](https://github.com/kalharbi11/wirescape-lab/pull/416#issuecomment-7140374043): confirm integration disposition for retained fail-first/correction commits and the two-stage evidence under A40. No history rewrite. | E4b integration disposition |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
