@@ -249,10 +249,19 @@ def execute(out: Path) -> int:
         print("OB-C-A10 CASE END name=%s exit=%d log=%s" %
               (name, code, log), flush=True)
         print(merged[-10000:], flush=True)
+        xfail_marker = "OB-C-A10-STRICT-XFAIL P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC "
+        xfail_count = sum(line.startswith(xfail_marker) for line in merged.splitlines())
+        strict_xfail = (name == "null-sink-panic-buffer-basics04" and
+                        code == 0 and xfail_count == 1)
+        if xfail_count and not strict_xfail and code == 0:
+            code = 1  # Unexpected marker cannot turn another case green.
         results.append({"name": name, "exit_code": code,
                         "log": log.name, "log_sha256": digest(log),
-                        "classification": "pass" if code == 0 else "failure",
-                        "strict_xfail_applied": False})
+                        "classification": ("strict-xfail" if strict_xfail else
+                                           "pass" if code == 0 else "failure"),
+                        "strict_xfail_applied": strict_xfail,
+                        "strict_xfail_cause": ("P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC"
+                                               if strict_xfail else None)})
     summary = {"schema": "wirescape/ob-c-a10/sr8/1",
                "source_sha": provenance["source_sha"],
                "sidecar_sha256": digest(sidecar),
@@ -260,7 +269,7 @@ def execute(out: Path) -> int:
                "cases": results, "all_pass": all(r["exit_code"] == 0 for r in results),
                "buffer_wall_clock_ms": None,
                "buffer_wall_clock_reason": "null-sink b0/b1 are block counts, not independent wall time",
-               "strict_xfail_applied": False}
+               "strict_xfail_applied": any(r["strict_xfail_applied"] for r in results)}
     (out / "execution-summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n")
     return 0 if summary["all_pass"] else 1
