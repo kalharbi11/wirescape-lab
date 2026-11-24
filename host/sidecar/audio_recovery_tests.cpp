@@ -35,6 +35,9 @@ int stopped = 0, exchanges = 0;
 std::vector<wirescape::audio::DeviceQuery> queries;
 std::atomic<uint64_t> completed_blocks{0};
 AppEngine *engine = nullptr;
+// Test-only: join the paced callback without closing the fake stream, so state
+// snapshots and manually stepped renders have a single, quiescent owner.
+std::function<void()> freeze_render;
 }
 // Legacy-shaped fake output: the id is the bare name, as before host-API identity.
 wirescape::audio::Device output(const std::string &name, int index, bool is_default = false) {
@@ -73,7 +76,7 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     impl_->producers = std::move(producers);
     fake::engine = impl_->engine.get();
     fake::active = true;
-    if (fake::render)
+    if (fake::render) {
         impl_->callback = std::thread([impl = impl_.get(), live = impl_->engine.get(), block, rate]() mutable {
             std::vector<float> left(block), right(block);
             float *rows[] = {left.data(), right.data()};
@@ -85,12 +88,18 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
                 std::this_thread::sleep_for(period);
             }
         });
+        fake::freeze_render = [impl = impl_.get()] {
+            impl->quit.store(true);
+            if (impl->callback.joinable()) impl->callback.join();
+        };
+    }
 }
 Stream::~Stream() { stop(); }
 EngineOwner Stream::stop() {
     impl_->quit.store(true);
     if (impl_->callback.joinable()) impl_->callback.join();
     if (impl_->engine) {
+        fake::freeze_render = {};
         if (impl_->producers) impl_->producers();
         ++fake::stopped;
     }
@@ -280,6 +289,55 @@ void test_osc_out_held_gate_reset_sender() {
     consume(3);
     check(injected_values[0] == 0.f && injected_values[1] == 1.f && injected_values[2] == 0.f,
           "sender emits only the initial low, actual rise and actual fall");
+}
+
+void test_e7_state_restart(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // link-time fake only
+    options.settings = (root / "e7-state.json").string();
+    fake::outputs = {output("E7 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "essentials.vco"}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}
+    };
+    check(call("e7-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "E7 state witness patch must load with a paced fake callback");
+    check(bool(fake::freeze_render), "E7 fake must expose its quiescence seam");
+    fake::freeze_render();
+    fake::render = false; // subsequent fake streams are manually stepped
+    const auto state_before_step = app_engine_native(fake::engine).save_state(2);
+    std::array<float, 256> samples{};
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "E7 witness render must advance actual noise state");
+    const auto state = app_engine_native(fake::engine).save_state(2);
+    check(!state.empty() && state != state_before_step,
+          "E7 noise witness must have nontrivial, advancing state");
+    const auto *prepared = fake::engine;
+    check(call("e7-small", "setBufferFrames", {{"frames", 128}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 smaller buffer must retain both engine and exact quiescent state");
+    check(call("e7-fit", "setBufferFrames", {{"frames", 256}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 original prepared capacity must remain usable after a smaller stream");
+    check(call("e7-large", "setBufferFrames", {{"frames", 512}})["ok"] == true &&
+              fake::engine != prepared,
+          "E7 larger buffer must rebuild a runnable engine");
+    check(app_engine_native(fake::engine).save_state(2) == state,
+          "E7 larger buffer must restore nontrivial stopped-instance state");
+    s.shutdown();
 }
 
 int main() {
@@ -939,6 +997,7 @@ int main() {
         fake::accept_block = 0;
         fake::preferred = 0;
         options.block = saved_block;
+        test_e7_state_restart(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
