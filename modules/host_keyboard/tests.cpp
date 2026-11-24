@@ -132,7 +132,16 @@ static void live_voice_resize() {
                   "resize kept pitches");
         }
     };
-    check(engine.set_parameter(1, 0, 2.f), "shrink");
+    const auto parameter = [&](uint32_t index, float value) {
+        ws2_event e{};
+        e.struct_size = sizeof(e);
+        e.type = WS2_PARAM;
+        e.index = index;
+        e.value = value;
+        check(engine.enqueue(producer, 1, WS2_DIRECT_PORT, e, engine.meter().frame) == WS2_OK,
+              "live parameter enqueue");
+    };
+    parameter(0, 2.f);
     render();
     check(engine.output_channels(1, 1) == 2, "shrink width");
     kept();
@@ -144,11 +153,11 @@ static void live_voice_resize() {
         ++offs;
     }
     check(offs == 2, "shrink two releases");
-    check(engine.set_parameter(1, 0, 2.f), "same count");
+    parameter(0, 2.f);
     render();
     kept();
     while (engine.pop_egress(event)) check(event.node != 1 || event.port != 3, "same count emits no notes");
-    check(engine.set_parameter(1, 0, 4.f), "grow");
+    parameter(0, 4.f);
     render();
     check(engine.output_channels(1, 1) == 4, "grow width");
     kept();
@@ -156,7 +165,7 @@ static void live_voice_resize() {
         for (uint32_t i = 0; i < 128; ++i)
             check(engine.output_sample(1, 1, c, i) == 0, "new lanes idle");
     while (engine.pop_egress(event)) check(event.node != 1 || event.port != 3, "grow emits no notes");
-    check(engine.set_parameter(1, 1, 3.f), "change allocation mode");
+    parameter(1, 3.f);
     render();
     check(engine.output_channels(1, 1) == 1 && engine.output_sample(1, 1, 0, 127) == 0,
           "mode change retains existing release semantics");
