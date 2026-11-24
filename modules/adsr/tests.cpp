@@ -284,5 +284,5 @@ int main() {
     note_retrigger_from_current_level_and_choke();
     cable_trigger_restarts_from_release_tail();
     std::puts("OB-g5 ADSR device-off source tests PASS");
-    s79_choke_fail_first();
+    s79_choke_metric();
 }
