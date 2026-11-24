@@ -41,6 +41,14 @@ jobs:
         run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
       - name: Release headless build
         run: python tools/dev.py build --headless --config Release
+      - name: Print full failed Windows build log
+        if: ${{ failure() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path build_reports/foundation -Filter 'build-*.log' -File | ForEach-Object {
+            Write-Host "Build log: $($_.Name)"
+            Get-Content -LiteralPath $_.FullName
+          }
       - name: Offline fact pack
         run: python bench/offline/run_all.py --quick --out-dir '${{ runner.temp }}/wirescape-offline-facts'
       - name: Validate mandatory fact evidence
