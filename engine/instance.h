@@ -40,6 +40,7 @@ struct Instance {
     uint32_t channels = 1, latency = 0;
     size_t requested_fast = 0, requested_large = 0;
     void *emit_context = nullptr;
+    ~Instance() { clear_instance(); }
     void clear_instance() {
         if (instance) {
             if (d) d->destroy(instance);

@@ -9,23 +9,23 @@
 
 namespace wirescape::engine2 {
 void Engine::Impl::recompute_latency() noexcept {
-    std::fill(distance.begin(), distance.end(), 0);
-    bus_latency.fill(0);
+    std::fill(layout->distance.begin(), layout->distance.end(), 0);
+    layout->bus_latency.fill(0);
     uint32_t maximum = 0;
-    for (auto &component : components)
+    for (auto &component : layout->components)
         for (auto *n : component.nodes) {
             uint32_t upstream = 0;
-            for (auto &e : edges)
+            for (auto &e : layout->edges)
                 if (!e.removed && !e.back && e.kind == 0 && e.destination == n)
-                    upstream = std::max(upstream, distance[e.source->slot.index]);
-            distance[n->slot.index] =
+                    upstream = std::max(upstream, layout->distance[e.source->slot.index]);
+            layout->distance[n->slot.index] =
                 static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, uint64_t(upstream) + n->instance.latency));
         }
-    for (const auto &bus : buses) {
+    for (const auto &bus : layout->buses) {
         auto *n = find(bus.node);
         if (!n) continue;
-        bus_latency[bus.channel] = std::max(bus_latency[bus.channel], distance[n->slot.index]);
-        maximum = std::max(maximum, bus_latency[bus.channel]);
+        layout->bus_latency[bus.channel] = std::max(layout->bus_latency[bus.channel], layout->distance[n->slot.index]);
+        maximum = std::max(maximum, layout->bus_latency[bus.channel]);
     }
     latency.store(maximum, std::memory_order_relaxed);
 }
@@ -56,9 +56,9 @@ void Engine::reset() {
 }
 Edge *Engine::Impl::find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
     const auto key = std::tuple{from, output, to, input, 2};
-    auto edge = std::lower_bound(edges.begin(), edges.end(), key,
+    auto edge = std::lower_bound(layout->edges.begin(), layout->edges.end(), key,
                                  [](const Edge &e, const auto &k) { return e.key() < k; });
-    return edge != edges.end() && edge->key() == key && !edge->removed ? &*edge : nullptr;
+    return edge != layout->edges.end() && edge->key() == key && !edge->removed ? &*edge : nullptr;
 }
 
 int Engine::set_mod_amount(uint32_t from, uint32_t output, uint32_t to, uint32_t input, float amount) noexcept {
@@ -114,7 +114,7 @@ int Engine::transport(double bpm, bool playing, std::optional<double> beat) noex
 void Engine::refresh_latency() noexcept {
     auto &p = *p_;
     if (!p.prepared) return;
-    for (auto &n : p.nodes)
+    for (auto &n : p.layout->nodes)
         if (n->instance.d && n->instance.instance)
             n->instance.latency = n->instance.d->latency_frames(n->instance.instance);
     p.recompute_latency();
@@ -167,7 +167,7 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
     auto &old = *this;
     auto &fresh = *next.p_;
     // Stage metadata for retained nodes; only the changed node creates/prepares DSP.
-    for (auto &n : old.nodes) {
+    for (auto &n : old.layout->nodes) {
         if (n->instance.id == node) {
             if (!next.add_node(n->instance.id, n->instance.d, config)) return old.fail("Cannot stage reconfiguration");
             auto *target = fresh.find(node);
@@ -177,7 +177,8 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
             for (uint32_t i = 0; i < target->instance.state.size(); ++i)
                 target->instance.state[i].info = target->instance.parameters[i];
         } else {
-            auto target = std::make_unique<Node>();
+            auto instance = std::make_unique<Instance>();
+            auto target = std::make_unique<Node>(*instance);
             target->instance.id = n->instance.id;
             target->instance.d = n->instance.d;
             target->instance.inputs = n->instance.inputs;
@@ -185,7 +186,8 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
             target->instance.parameters = n->instance.parameters;
             target->instance.forced_channels = n->instance.forced_channels;
             target->instance.latency = n->instance.latency;
-            fresh.nodes.push_back(std::move(target));
+            fresh.instances.emplace(n->instance.id, std::move(instance));
+            fresh.layout->nodes.push_back(std::move(target));
         }
     }
     auto index_of = [](const auto &ports, const char *id) {
@@ -193,7 +195,7 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
             if (!std::strcmp(ports[i].id, id)) return i;
         return UINT32_MAX;
     };
-    for (auto &e : old.edges)
+    for (auto &e : old.layout->edges)
         if (!e.removed) {
             auto *a = fresh.find(e.from), *b = fresh.find(e.to);
             auto sp = index_of(a->instance.outputs, e.source->instance.outputs[e.output].id);
@@ -208,7 +210,7 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
                 if (!next.modulate(e.from, sp, e.to, dp, e.amount)) return old.fail("Staged modulation failed");
             } else if (!next.connect(e.from, sp, e.to, dp)) return old.fail("Staged connection failed");
         }
-    for (auto &bus : old.buses) {
+    for (auto &bus : old.layout->buses) {
         auto *source = old.find(bus.node), *target = fresh.find(bus.node);
         uint32_t port = index_of(target->instance.outputs, source->instance.outputs[bus.port].id);
         if (port == UINT32_MAX) {
@@ -223,8 +225,8 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
     // indices can shift, so resolve the old endpoint ID against the new layout.
     // Refuse a removed tap endpoint rather than silently shifting reader slots.
     std::vector<Tap> remapped;
-    remapped.reserve(old.taps.size());
-    for (const auto &t : old.taps) {
+    remapped.reserve(old.layout->taps.size());
+    for (const auto &t : old.layout->taps) {
         if (t.kind == Tap::OscPitch) {
             if (!valid_tap(fresh.find(t.node), t)) return old.fail("Reconfiguration removes oscillator pitch layout");
             remapped.push_back(t);
@@ -267,12 +269,12 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         if (r != WS2_OK && r != WS2_UNSUPPORTED) return old.fail("Staged state restore failed");
     }
     std::vector<Node *> actual;
-    actual.reserve(fresh.nodes.size());
-    for (auto &n : fresh.nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
+    actual.reserve(fresh.layout->nodes.size());
+    for (auto &n : fresh.layout->nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
     // Preserve unchanged loop delay lines as well as processor state.
     const auto next_revision = old.revision.load() + 1;
     if (!next_revision) return old.fail("Live graph revision exhausted");
-    for (auto &e : fresh.edges) {
+    for (auto &e : fresh.layout->edges) {
         if (e.kind != 2) continue;
         e.born_revision = next_revision;
         if (e.from == node || e.to == node) continue;
@@ -282,13 +284,13 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         e.born_revision = prior->born_revision;
         e.sent_serial = prior->sent_serial;
     }
-    std::vector<bool> used(old.edges.size(), false);
+    std::vector<bool> used(old.layout->edges.size(), false);
     std::vector<std::pair<size_t, size_t>> delays;
-    for (size_t i = 0; i < fresh.edges.size(); ++i) {
-        auto &e = fresh.edges[i];
+    for (size_t i = 0; i < fresh.layout->edges.size(); ++i) {
+        auto &e = fresh.layout->edges[i];
         if (!e.back || e.kind == 1 || e.from == node || e.to == node) continue;
-        for (size_t j = 0; j < old.edges.size(); ++j) {
-            auto &v = old.edges[j];
+        for (size_t j = 0; j < old.layout->edges.size(); ++j) {
+            auto &v = old.layout->edges[j];
             if (!used[j] && !v.removed && v.back &&
                 e.key() == v.key()) {
                 used[j] = true;
@@ -297,42 +299,45 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
             }
         }
     }
+    std::vector<std::unique_ptr<Node>> entries(fresh.layout->nodes.size());
+    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i)
+        if (fresh.layout->nodes[i]->instance.id != node)
+            entries[i] = std::make_unique<Node>(actual[i]->instance);
     // Commit: all potentially failing work/allocations precede these swaps.
-    for (size_t i = 0; i < fresh.nodes.size(); ++i)
-        if (fresh.nodes[i]->instance.id != node) {
-            auto &retained = *old.nodes[i];
-            auto &layout = *fresh.nodes[i];
-            retained.slot.index = layout.slot.index;
-            retained.slot.component = layout.slot.component;
-            retained.slot.loop = layout.slot.loop;
-            retained.slot.incoming.swap(layout.slot.incoming);
-            retained.slot.signal_edges.swap(layout.slot.signal_edges);
-            retained.slot.modulation.swap(layout.slot.modulation);
-            retained.slot.outgoing.swap(layout.slot.outgoing);
-            retained.slot.event_tap_slots.swap(layout.slot.event_tap_slots);
-            retained.instance.pitch.enabled = layout.instance.pitch.enabled;
+    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i)
+        if (entries[i]) {
+            auto &retained = *actual[i];
+            auto &entry = *entries[i];
+            entry.slot = std::move(fresh.layout->nodes[i]->slot);
+            entry.slot.in.swap(retained.slot.in);
+            entry.slot.in_view.swap(retained.slot.in_view);
+            entry.slot.param_view.swap(retained.slot.param_view);
+            retained.instance.pitch.enabled = fresh.layout->nodes[i]->instance.pitch.enabled;
             for (uint32_t j = 0; j < retained.instance.event_outputs.size(); ++j)
                 retained.instance.event_outputs[j] = {sizeof(ws2_event_out), &fresh, j, Impl::emit};
-            fresh.nodes[i].swap(old.nodes[i]);
+            old.instances.find(retained.instance.id)->second.swap(fresh.instances.find(retained.instance.id)->second);
+            actual[i] = &entry;
         }
-    for (auto &e : fresh.edges) {
+    for (auto &e : fresh.layout->edges) {
         e.source = actual[e.source->slot.index];
         e.destination = actual[e.destination->slot.index];
     }
-    for (auto &component : fresh.components)
+    for (auto &component : fresh.layout->components)
         for (auto *&n : component.nodes) n = actual[n->slot.index];
-    for (auto *&n : fresh.tap_nodes) n = actual[n->slot.index];
-    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->slot.index];
-    for (auto &bus : fresh.buses) bus.source = actual[bus.source->slot.index];
+    for (auto *&n : fresh.layout->tap_nodes) n = actual[n->slot.index];
+    for (auto &entry : fresh.layout->node_table) entry.second = actual[entry.second->slot.index];
+    for (auto &bus : fresh.layout->buses) bus.source = actual[bus.source->slot.index];
+    for (size_t i = 0; i < entries.size(); ++i)
+        if (entries[i]) fresh.layout->nodes[i].swap(entries[i]);
     for (auto pair : delays) {
-        auto &e = fresh.edges[pair.first];
-        auto &v = old.edges[pair.second];
+        auto &e = fresh.layout->edges[pair.first];
+        auto &v = old.layout->edges[pair.second];
         std::swap(e.state.delay, v.state.delay);
         e.state.delay_channels.swap(v.state.delay_channels);
         std::swap(e.state.head, v.state.head);
     }
     fresh.setup_bytes = 0;
-    for (auto &n : fresh.nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
+    for (auto &n : fresh.layout->nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
     fresh.position.store(old.position.load());
     fresh.anchor_frame = old.anchor_frame;
     fresh.anchor_ns = old.anchor_ns;
@@ -361,13 +366,13 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
                                          std::vector<std::array<uint32_t, 4>> &removed_routes,
                                          std::vector<std::pair<size_t, size_t>> &delays) {
     auto &old = *this;
-    for (auto &e : old.edges)
+    for (auto &e : old.layout->edges)
         if (!e.removed && e.kind == 1) {
             bool kept = false;
-            for (size_t i = 0; i < fresh.edges.size(); ++i)
-                if (!used[i] && !fresh.edges[i].removed && e.key() == fresh.edges[i].key() &&
-                    actual[fresh.edges[i].source->slot.index] == e.source &&
-                    actual[fresh.edges[i].destination->slot.index] == e.destination) {
+            for (size_t i = 0; i < fresh.layout->edges.size(); ++i)
+                if (!used[i] && !fresh.layout->edges[i].removed && e.key() == fresh.layout->edges[i].key() &&
+                    actual[fresh.layout->edges[i].source->slot.index] == e.source &&
+                    actual[fresh.layout->edges[i].destination->slot.index] == e.destination) {
                     used[i] = true;
                     kept = true;
                     break;
@@ -379,11 +384,11 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
                 chokes.emplace_back(e.to, e.input);
             }
         }
-    for (size_t i = 0; i < fresh.edges.size(); ++i) {
-        auto &e = fresh.edges[i];
+    for (size_t i = 0; i < fresh.layout->edges.size(); ++i) {
+        auto &e = fresh.layout->edges[i];
         if (!e.back || e.kind == 1) continue;
-        for (size_t j = 0; j < old.edges.size(); ++j) {
-            auto &prior = old.edges[j];
+        for (size_t j = 0; j < old.layout->edges.size(); ++j) {
+            auto &prior = old.layout->edges[j];
             if (!delay_used[j] && !prior.removed && prior.back && e.key() == prior.key() &&
                 actual[e.source->slot.index] == prior.source &&
                 actual[e.destination->slot.index] == prior.destination) {
@@ -414,13 +419,13 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     std::vector<std::pair<size_t, size_t>> retained, delays;
     std::vector<std::pair<uint32_t, uint32_t>> chokes;
     std::vector<std::array<uint32_t, 4>> removed_routes;
-    std::vector<bool> used(fresh.edges.size(), false), delay_used(old.edges.size(), false);
+    std::vector<bool> used(fresh.layout->edges.size(), false), delay_used(old.layout->edges.size(), false);
     const auto next_revision = old.revision.load() + 1;
     if (!next_revision) return old.fail("Live graph revision exhausted");
-    actual.reserve(fresh.nodes.size());
-    retained.reserve(fresh.nodes.size());
-    for (size_t i = 0; i < fresh.nodes.size(); ++i) {
-        auto &n = *fresh.nodes[i];
+    actual.reserve(fresh.layout->nodes.size());
+    retained.reserve(fresh.layout->nodes.size());
+    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i) {
+        auto &n = *fresh.layout->nodes[i];
         auto *prior = old.find(n.instance.id);
         if (prior && prior->instance.d == n.instance.d && prior->instance.config == n.instance.config) {
             if (prior->instance.inputs.size() != n.instance.inputs.size() ||
@@ -436,6 +441,11 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     }
     if (!old.plan_edge_transitions(fresh, actual, used, delay_used, chokes, removed_routes, delays))
         return false;
+    // Allocate distinct topology entries before parking. A failed park leaves
+    // the candidate's slots and the current layout untouched.
+    std::vector<std::unique_ptr<Node>> entries(fresh.layout->nodes.size());
+    for (auto pair : retained)
+        entries[pair.first] = std::make_unique<Node>(actual[pair.first]->instance);
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::nanoseconds(timeout_ns);
     auto expected = Park::Running;
     if (!old.park.compare_exchange_strong(expected, Park::Requested, std::memory_order_acq_rel))
@@ -465,42 +475,42 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                                     }),
                      old.future.end());
     for (auto pair : retained) {
-        auto &node = *old.nodes[pair.second];
-        auto &layout = *fresh.nodes[pair.first];
-        node.slot.index = layout.slot.index;
-        node.slot.component = layout.slot.component;
-        node.slot.loop = layout.slot.loop;
-        node.slot.incoming.swap(layout.slot.incoming);
-        node.slot.signal_edges.swap(layout.slot.signal_edges);
-        node.slot.modulation.swap(layout.slot.modulation);
-        node.slot.outgoing.swap(layout.slot.outgoing);
-        node.slot.event_tap_slots.swap(layout.slot.event_tap_slots);
-        fresh.nodes[pair.first].swap(old.nodes[pair.second]);
+        auto &node = *old.layout->nodes[pair.second];
+        auto &entry = *entries[pair.first];
+        entry.slot = std::move(fresh.layout->nodes[pair.first]->slot);
+        entry.slot.in.swap(node.slot.in);
+        entry.slot.in_view.swap(node.slot.in_view);
+        entry.slot.param_view.swap(node.slot.param_view);
+        old.instances.find(node.instance.id)->second.swap(fresh.instances.find(node.instance.id)->second);
+        actual[pair.first] = &entry;
     }
     for (auto *n : actual)
         for (uint32_t i = 0; i < n->instance.event_outputs.size(); ++i)
             n->instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
-    for (auto *&node : fresh.tap_nodes) node = actual[node->slot.index];
-    for (auto &e : fresh.edges) {
+    for (auto *&node : fresh.layout->tap_nodes) node = actual[node->slot.index];
+    for (auto &e : fresh.layout->edges) {
         e.source = actual[e.source->slot.index];
         e.destination = actual[e.destination->slot.index];
     }
-    for (auto &component : fresh.components)
+    for (auto &component : fresh.layout->components)
         for (auto *&n : component.nodes) n = actual[n->slot.index];
-    for (auto &entry : fresh.node_table) entry.second = actual[entry.second->slot.index];
-    for (auto &bus : fresh.buses) bus.source = actual[bus.source->slot.index];
+    for (auto &entry : fresh.layout->node_table) entry.second = actual[entry.second->slot.index];
+    for (auto &bus : fresh.layout->buses) bus.source = actual[bus.source->slot.index];
+    for (size_t i = 0; i < entries.size(); ++i)
+        if (entries[i]) fresh.layout->nodes[i].swap(entries[i]);
     for (auto pair : delays) {
-        auto &e = fresh.edges[pair.first];
-        auto &prior = old.edges[pair.second];
+        auto &e = fresh.layout->edges[pair.first];
+        auto &prior = old.layout->edges[pair.second];
         std::swap(e.state.delay, prior.state.delay);
         e.state.delay_channels.swap(prior.state.delay_channels);
         std::swap(e.state.head, prior.state.head);
     }
-    for (auto &e : fresh.edges) {
+    for (auto &e : fresh.layout->edges) {
         if (e.kind != 2) continue;
         e.born_revision = next_revision;
         auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
-        if (!prior || prior->source != e.source || prior->destination != e.destination) continue;
+        if (!prior || &prior->source->instance != &e.source->instance ||
+            &prior->destination->instance != &e.destination->instance) continue;
         e.born_revision = prior->born_revision;
         e.sent_serial = prior->sent_serial;
         e.state.modulation = prior->state.modulation;
@@ -510,23 +520,14 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
             e.state.modulation.set(e.amount, old.mod_ramp_frames());
         }
     }
-    old.nodes.swap(fresh.nodes);
-    old.edges.swap(fresh.edges);
-    old.components.swap(fresh.components);
-    old.node_table.swap(fresh.node_table);
-    old.buses.swap(fresh.buses);
-    old.bus_latency.swap(fresh.bus_latency);
-    old.distance.swap(fresh.distance);
-    old.taps.swap(fresh.taps);
-    old.tap_nodes.swap(fresh.tap_nodes);
-    old.tap_values.swap(fresh.tap_values);
-    old.tap_counts.swap(fresh.tap_counts);
+    old.instances.swap(fresh.instances);
+    old.layout.swap(fresh.layout);
     old.tap_sequence.store(0, std::memory_order_relaxed);
     old.tap_frame.store(0, std::memory_order_release);
     old.feedback_count.store(fresh.feedback_count.load());
     old.latency.store(fresh.latency.load());
     size_t bytes = 0;
-    for (auto &node : old.nodes) bytes += node->instance.requested_fast + node->instance.requested_large;
+    for (auto &node : old.layout->nodes) bytes += node->instance.requested_fast + node->instance.requested_large;
     old.setup_bytes.store(bytes);
     old.replan_chokes.swap(chokes);
     old.revision.store(next_revision, std::memory_order_release);

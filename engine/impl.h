@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "layout.h"
+#include <map>
 #include <utility>
 
 namespace wirescape::engine2 {
@@ -11,13 +12,9 @@ bool valid_tap(const Node *, const Tap &);
 struct Engine::Impl {
     Config cfg;
     std::string error;
-    std::vector<std::unique_ptr<Node>> nodes;
-    std::vector<Edge> edges;
-    std::vector<Component> components;
-    std::vector<std::pair<uint32_t, Node *>> node_table;
-    std::array<uint32_t, 32> bus_latency{};
-    std::vector<uint32_t> distance;
-    std::vector<Bus> buses;
+    // Control-owned storage, independent of the layout's topology entries.
+    std::map<uint32_t, std::unique_ptr<Instance>> instances;
+    std::unique_ptr<Layout> layout = std::make_unique<Layout>();
     std::array<std::unique_ptr<Producer>, 32> producers;
     uint32_t producer_count = 0, dropped_connections = 0;
     std::unique_ptr<Producer> egress;
@@ -25,11 +22,7 @@ struct Engine::Impl {
     std::vector<uint8_t> arena;
     bool prepared = false;
     std::atomic_flag rendering = ATOMIC_FLAG_INIT;
-    std::vector<Tap> taps;
-    std::vector<Node *> tap_nodes;
     std::atomic<uint64_t> tap_sequence{0};
-    std::unique_ptr<std::atomic<float>[]> tap_values;
-    std::unique_ptr<std::atomic<uint32_t>[]> tap_counts;
     std::atomic<uint64_t> tap_frame{0};
     std::atomic<Park> park{Park::Running};
     std::atomic<uint64_t> revision{0};
@@ -50,16 +43,16 @@ struct Engine::Impl {
     Node *processing = nullptr;
     uint32_t processing_start = 0, processing_frames = 0;
     explicit Impl(Config c) : cfg(c), anchor_ns(c.epoch_ns), frames_per_ns(c.sample_rate / 1.e9) {
-        nodes.reserve(cfg.max_nodes);
+        layout->nodes.reserve(cfg.max_nodes);
         future.reserve(cfg.future_capacity);
     }
     Node *find(uint32_t id) const {
         if (prepared) {
-            auto it = std::lower_bound(node_table.begin(), node_table.end(), id,
+            auto it = std::lower_bound(layout->node_table.begin(), layout->node_table.end(), id,
                                        [](const auto &entry, uint32_t key) { return entry.first < key; });
-            return it != node_table.end() && it->first == id ? it->second : nullptr;
+            return it != layout->node_table.end() && it->first == id ? it->second : nullptr;
         }
-        for (auto &n : nodes)
+        for (auto &n : layout->nodes)
             if (n->instance.id == id) return n.get();
         return nullptr;
     }
@@ -95,7 +88,7 @@ struct Engine::Impl {
         egress_emergency.store(true, std::memory_order_release);
     }
     void reset_processors() noexcept {
-        for (auto &n : nodes) {
+        for (auto &n : layout->nodes) {
             n->instance.d->reset(n->instance.instance);
             n->instance.pitch.latest = 0;
             n->instance.pitch.note_on.fill(false);
@@ -107,7 +100,7 @@ struct Engine::Impl {
             }
             n->instance.pending.clear();
         }
-        for (auto &e : edges)
+        for (auto &e : layout->edges)
             if (e.back) {
                 e.state.head = 0;
                 std::fill(e.state.delay_channels.begin(), e.state.delay_channels.end(), 0);
@@ -155,7 +148,7 @@ struct Engine::Impl {
         const bool accepted = engine.route(port, *event);
         if (accepted && engine.processing && port < engine.processing->slot.event_tap_slots.size()) {
             const uint32_t slot = engine.processing->slot.event_tap_slots[port];
-            if (slot != UINT32_MAX) engine.tap_counts[slot].fetch_add(1, std::memory_order_relaxed);
+            if (slot != UINT32_MAX) engine.layout->tap_counts[slot].fetch_add(1, std::memory_order_relaxed);
         }
         return accepted ? WS2_OK : WS2_CAPACITY;
     }

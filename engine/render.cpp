@@ -94,7 +94,7 @@ void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
 }
 
 void Engine::Impl::collect() {
-    for (auto &n : nodes) n->instance.pending.clear();
+    for (auto &n : layout->nodes) n->instance.pending.clear();
     Packet p;
     const uint64_t gen = generation.load(std::memory_order_acquire);
     for (auto target : replan_chokes) {
@@ -566,7 +566,7 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
 WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs, uint32_t output_channels, uint32_t frames) {
     for (uint32_t c = 0; c < output_channels; ++c) std::fill_n(outputs[c], frames, 0.f);
     bool bus_written[32]{};
-    for (auto &bus : buses)
+    for (auto &bus : layout->buses)
         if (bus.channel < output_channels) {
             const auto &buffer = bus.source->instance.global_out[bus.port];
             for (uint32_t c = 0; c < buffer.channels; ++c) {
@@ -578,13 +578,13 @@ WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs,
                 bus_written[bus.channel] = true;
             }
         }
-    if (!taps.empty()) {
+    if (!layout->taps.empty()) {
         // Render-owned, post-DSP snapshots. Feedback loops process in chunks, so
         // their parameter buffer's last chunk is shorter than the full block.
         tap_sequence.fetch_add(1, std::memory_order_acq_rel);
-        for (size_t i = 0; i < taps.size(); ++i) {
-            const auto &t = taps[i];
-            const auto *n = tap_nodes[i];
+        for (size_t i = 0; i < layout->taps.size(); ++i) {
+            const auto &t = layout->taps[i];
+            const auto *n = layout->tap_nodes[i];
             float sample = 0;
             if (t.kind == Tap::Param) {
                 const auto &b = n->instance.param[t.index];
@@ -601,7 +601,7 @@ WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs,
                         for (uint32_t c = 1; c < b.channels; ++c) sample = std::max(sample, b.data[c][at]);
                 }
             }
-            tap_values[i].store(sample, std::memory_order_relaxed);
+            layout->tap_values[i].store(sample, std::memory_order_relaxed);
         }
         tap_frame.store(block_start + frames, std::memory_order_relaxed);
         tap_sequence.fetch_add(1, std::memory_order_release);
@@ -620,24 +620,24 @@ WS_RENDER_INLINE void Engine::Impl::apply_pending_reset() {
 uint32_t Engine::read_telemetry(float *values, uint32_t *counts, uint32_t capacity, uint64_t &frame) const noexcept {
     const auto &p = *p_;
     frame = 0;
-    if (capacity < p.taps.size() || (!p.taps.empty() && (!values || !counts))) return 0;
+    if (capacity < p.layout->taps.size() || (!p.layout->taps.empty() && (!values || !counts))) return 0;
     // A bounded non-render read must not combine two blocks (in particular
     // Groove's split uint32 loop and release-safe position observations).
     for (uint32_t attempt = 0; attempt < 3; ++attempt) {
         const auto before = p.tap_sequence.load(std::memory_order_acquire);
         if (before & 1u) continue;
         const auto observed = p.tap_frame.load(std::memory_order_relaxed);
-        for (size_t i = 0; i < p.taps.size(); ++i) {
-            values[i] = p.tap_values[i].load(std::memory_order_relaxed);
-            counts[i] = p.tap_counts[i].load(std::memory_order_relaxed);
+        for (size_t i = 0; i < p.layout->taps.size(); ++i) {
+            values[i] = p.layout->tap_values[i].load(std::memory_order_relaxed);
+            counts[i] = p.layout->tap_counts[i].load(std::memory_order_relaxed);
         }
         std::atomic_thread_fence(std::memory_order_acquire);
         if (before == p.tap_sequence.load(std::memory_order_relaxed)) {
             frame = observed;
-            return static_cast<uint32_t>(p.taps.size());
+            return static_cast<uint32_t>(p.layout->taps.size());
         }
     }
-    return static_cast<uint32_t>(p.taps.size()); // frame=0: unavailable, never a torn snapshot.
+    return static_cast<uint32_t>(p.layout->taps.size()); // frame=0: unavailable, never a torn snapshot.
 }
 
 int Engine::enqueue(uint32_t producer, uint32_t node, uint32_t port, const ws2_event &event, uint64_t time, Timing mode,
@@ -735,16 +735,16 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     p.apply_pending_reset();
     p.arena_used.store(0);
     p.ordinary_used = p.critical_used = 0;
-    for (auto &n : p.nodes) n->slot.touched = false;
+    for (auto &n : p.layout->nodes) n->slot.touched = false;
     p.collect();
     p.apply_pending_reset();
-    for (auto &component : p.components) {
+    for (auto &component : p.layout->components) {
         uint32_t chunk = component.loop ? p.cfg.feedback_block : frames;
         for (uint32_t start = 0; start < frames; start += chunk) {
             uint32_t length = std::min(chunk, frames - start);
             for (auto *n : component.nodes) p.process_node(*n, start, length);
             if (component.loop)
-                for (auto &e : p.edges)
+                for (auto &e : p.layout->edges)
                     if (e.back && e.kind != 1 && e.source->slot.component == component.nodes.front()->slot.component) {
                         auto &source = e.source->instance.global_out[e.output];
                         for (uint32_t i = 0; i < length; ++i) {
