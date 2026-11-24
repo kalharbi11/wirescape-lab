@@ -1,33 +1,44 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Builder queue
+# Builder queue: five GPT chat lanes
 
-Updated 2026-11-23 19:48 EST; Architect run 21 refreshed B2/B4 at 20:20 EST. Architect runs 19–19c and [0021 §6](../../proposals/0021-replan-to-ob1.md#6-owner-answers-and-rulings-2026-11-23-1430-et) govern release. Use the existing issues, branches and PRs. Keep one active PR per lane, with one engine draft-ahead slot. Each issue names its execution environment.
+Rewritten by the Architect, 2026-11-24 (run 22, owner: "chat mode for every builder"). Every builder is a
+**ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
+run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
+Codex is the **lead** only.
 
-| Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
+**How a lane works**
+- **Long-running sessions.** A lane is a queue, not a single task. Keep working through it: implement,
+  push, read CI, correct, post the Result, then start or draft the next task. Do not end the session
+  while your lane has work ([continuation rules](README.md#builder-continuation-after-ci)).
+- **Standing release.** A task is released when its predecessor in the same lane merges on `main`.
+  Start it without asking, on its own `task/<issue#>-<slug>` branch and PR.
+- **Draft-ahead.** While a PR waits on review or merge, you may open the next task in your lane as a
+  draft PR. It rebases after its predecessor merges, and only merges after that.
+- **Writers.** Stay inside your lane's paths. Shared files (catalogues, `CMakeLists.txt`, workflows)
+  follow the merge order named in the row. A file in another lane needs that lane's PR merged first.
+- **Auto-merge (owner, 2026-11-24).** For a task whose contract says `merge: lead` and has no review
+  condition, the lead turns on auto-merge at release. It merges itself when the Result is posted and
+  exact-head required checks are green. A reviewed task waits for its reviewer, then the lead or the Architect merges it.
+- **Questions never stop a lane.** Add an [inbox](ARCHITECT_INBOX.md) row plus `needs/architect`, then
+  work on the next independent item in your lane.
+
+| Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B1** `gpt-builder1` · Studio / OB-c | [G-W1 #368](https://github.com/kalharbi11/wirescape-lab/issues/368) | Chat draft #384 has the fail-first wheel test. Read hosted evidence, then apply the scoped fix. | OB-c #275/#203 after release → S7.3. |
-| **B2** `gpt-builder2` · OSC / I/O | [OB-g8 #383](https://github.com/kalharbi11/wirescape-lab/issues/383) | #339 closed unmerged under SR6(c). Chat first for bounded CPU versus preemption diagnosis. One Linux test-only measurement released to the existing Codex sandbox. | PI-1 #369 **postponed to the OB1 candidate** (OB r2.6). OB-f1 at the OB1 candidate. |
-| **B3** `gpt-builder3` · CI / sound | [S7.5 #288 / #291](https://github.com/kalharbi11/wirescape-lab/pull/291) | Released in Chat after C1 #375 merged `7993a28`. Refresh exact-head evidence, ARM64 Ir and D5. Independent K1–K8 review. Lead owns C1 acceptance on #367. | S7.6 #314 → S7.9. #322 stays parked behind CAT-1+MB. |
-| **B4** `gpt-builder4` · modules | [S7.7 #373 / #380](https://github.com/kalharbi11/wirescape-lab/pull/380) | **A37 ruled** ([M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012)): retire only the S4 whole-graph ABI1 bound in `serialized_demo_equivalence` (all other assertions stay), add `Cost-change:` lines for VCF-containing rows (cap +5 %; rows without VCF stay at 1 %), then post the Result. The lead dispatches the Claude review with `architect-ready`. | S7.8 #374 after merge. #333 and #356 stay parked. |
-| **B5** `gpt-builder5` · OB1 engine | [TR1e #378](https://github.com/kalharbi11/wirescape-lab/issues/378) | Released after #376 merged `519d53a`. Codex draft #385 for native tests and paired evidence. ER1 and 0008 K1/K2/K4, then Architect review. | E6 → E4a → E4b → E5 → E7. One stacked draft after explicit release. |
-| **CB1–CB3** | Closed | Architect retains design, required review and acceptance. | Owner controls future Claude builder starts. |
+| **B5** `gpt-builder5` · **Engine** (critical path) | `engine/` (engine2), engine tests; sole engine writer | TR1e [#385](https://github.com/kalharbi11/wirescape-lab/pull/385) is ready. It waits for the Architect review (A38). Answer review findings on the same PR. **Draft-ahead now:** E6 [#391](https://github.com/kalharbi11/wirescape-lab/issues/391) | E6 → **E4a+E4b in one PR** (two commits, one Claude review; A40) → E5. M4 contracts are unchanged otherwise |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/` (net, osc, sidecar, midi), `modules/osc_in/`, `engine/control/` handlers | **OB-g8 fix** (A41): fast path for literal OSC patterns, tracked on [#383](https://github.com/kalharbi11/wirescape-lab/issues/383). The [#386](https://github.com/kalharbi11/wirescape-lab/pull/386) diagnostic is complete; close it unmerged and keep the branch | **E7** buffer/device changes keep state (M4) once B5's E4b merges (E7 is parallel to E5; E5 merges first if both touch sidecar `commit`) |
+| **B4** `gpt-builder4` · **Sound** | `modules/` DSP, `facts/sound/`, module tests | Two chains. Work on one while the other waits: S7.7 [#380](https://github.com/kalharbi11/wirescape-lab/pull/380) (apply M7 r1.5, post the Result), then S7.8 [#374](https://github.com/kalharbi11/wirescape-lab/issues/374). Also S7.5 [#291](https://github.com/kalharbi11/wirescape-lab/pull/291) (refresh exact-head evidence, ARM64 Ir, D5) | S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) after #291 → S7.9 → OB-d list after M7 batch 2. Catalogue/S0 edits are serialised: one sound PR at a time touches them |
+| **B1** `gpt-builder1` · **Studio / OB-c** | `apps/studio/`, Studio tests, OB-c oracles | OB-c [#275](https://github.com/kalharbi11/wirescape-lab/pull/275)/[#203](https://github.com/kalharbi11/wirescape-lab/issues/203): panic PCM and Groove STOP oracles with the production sidecar, then cause-specific fixes. Take #275 over from the lead's draft on the same branch | S7.3 (as released in M7) → UI recheck at the OB1 candidate (OB-f1 rows) |
+| **B3** `gpt-builder3` · **Floater** | Only the paths of its assigned task | **CI2** [#390](https://github.com/kalharbi11/wirescape-lab/issues/390) (A42): shorter Lab CI for drafts | On call: the lead or the Architect assigns independent tasks (owner priorities such as #356, CI, facts) without disturbing other lanes. Between tasks, post one lane-status comment and wait |
 
-Parked branches are retained: #333, #356, #322, #358 and #363. CAT-1 and MB1 combine after OB1. Exact-head evidence stays required; authorized exceptions are limited to their named rows. Hosted soak results are advisory.
+**Parked until after OB1** (branches kept): Gate Delay #333, Note Trigger #322, CAT-1 #358 (+MB1), MT2 #176.
+**Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
 
 ## How the lead maintains this table
+- Each lead run checks every lane: PR heads, exact-head CI, latest Result, labels. Refresh the
+  "Now" cell and move finished tasks out. Keep evidence on GitHub.
+- When a lane runs dry, add its next task from the roadmap. If none fits, lend the builder to the
+  floater pool.
+- The Architect refreshes this table on every Architect run as well. On a conflict, the lead's
+  dispatch wins.
 
-- Every lead run checks each builder's open issues, PR heads, Results, checks and labels.
-  Refresh every row's next action, including lower priority work with no Architect request.
-  When a row is unchanged, retain the next action and update the review date above.
-- Keep each builder's active and queued work visible. Put serial tasks in order. Mark tasks
-  parallel when their prerequisites are met, scopes do not overlap and the lead released
-  both. Each keeps its own issue, writer, branch and PR. A queued entry is planning only.
-- Prefer continuity in each lane. Fill a free slot with ready independent work. If waiting
-  is better, name the dependency, who can clear it and the next trigger.
-- Remove finished tasks after merge or final disposition. Keep final evidence on GitHub
-  and completed milestones on the roadmap. Update issue and PR labels in the same handoff.
-  See [label rules](README.md#github-labels-for-work-and-review).
-- In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
-  results enable a new action.
-
-Signed: codex-lead, 2026-11-23, 19:48 EST
+Signed: claude-architect, 2026-11-24
