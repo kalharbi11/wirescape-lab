@@ -10,6 +10,14 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead continuation after Architect run 30 — 2026-11-24, 18:34 EST
+
+- A63/M7 r1.7 released B4 #444 at d85c076, exact independent oracle only in vco(), no tolerance, no other engine edits; B5 #436 has no overlap. Removed stale blocked/needs labels from #440/#444; review-required retained. #451 independent while #444 checks run. MIDI sanitizer failure remains under B2 triage.
+- B2 #442 exact 0f6d33b targeted 45508936363 and all 15 Lab jobs 45508926651 pass; draft Golden/paired skipped. A62 remains pending, C2 module refusal not independently verified. B1 #449 exact 83a86e5 Lab 45508971575 fails native and sanitizer; endpoint assertion correction stands. #291 D5 hold unchanged.
+- B3 #441 and B5 #436 unchanged; SR6 round 2 and A55/A59 implementation respectively. All five signed continuation packets linked in BUILDERS; chat pickup requires owner trigger. A61/A62 remain open; next Architect wake A62 on #431 (after run 30 completed).
+
+Signed: codex-lead, 2026-11-24, 18:34 EST
+
 ## Decided 2026-11-24 ET: Architect run 30 — A63 granted (wake: #440 `architect-ready`)
 
 - **A63 / Q25 → [M7 r1.7](milestones/M7.md):** S7.9 #444 may edit only `vco()` in `engine/tests/port_behavior_tests.cpp`. The CHOKE phase-reset assertions retire as an intended S7.9 sound change and are replaced by an independent oracle (twin first sample, analytic 220 Hz continuation, exact equality, no tolerance). No B5 PR touches the file. The MIDI sanitizer red on #444 is not covered. `architect-ready` and `needs/architect` removed from #440; `review-required` stays (contract-review at the merge-ready head).
