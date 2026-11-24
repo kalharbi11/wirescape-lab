@@ -66,6 +66,20 @@ endif()
 
 # Qt-free stdio engine process; no devices without explicit confirmation.
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+# OB-a3 pin 7: real executable load-only paths against disposable v1/v2 files.
+# All output is temporary, no native source or fixture write is permitted.
+add_test(NAME abi2_ob_a3_soak_no_write COMMAND ${Python3_EXECUTABLE}
+  "${PROJECT_SOURCE_DIR}/../tests/native/ob_a3_execution_paths.py" soak
+  $<TARGET_FILE:wirescape_soak>
+  "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json"
+  "${PROJECT_SOURCE_DIR}/../host/examples/chaos_two.json")
+add_test(NAME abi2_ob_a3_golden_no_write COMMAND ${Python3_EXECUTABLE}
+  "${PROJECT_SOURCE_DIR}/../tests/native/ob_a3_execution_paths.py" golden
+  $<TARGET_FILE:golden_render>
+  "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json"
+  "${PROJECT_SOURCE_DIR}/../host/examples/chaos_two.json")
+set_tests_properties(abi2_ob_a3_soak_no_write abi2_ob_a3_golden_no_write
+  PROPERTIES TIMEOUT 180)
 execute_process(COMMAND git rev-parse --short=12 HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   OUTPUT_VARIABLE engine_sha OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 add_library(wirescape_osc_host STATIC ../engine/control/osc_host.cpp ../engine/control/osc_out_host.cpp)
@@ -100,6 +114,14 @@ set_tests_properties(abi2_sidecar_protocol_tests PROPERTIES TIMEOUT 90)
 add_test(NAME abi2_sidecar_apply_graph_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/apply_graph_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_sidecar_apply_graph_tests PROPERTIES TIMEOUT 120)
+# OB-a3 pin 7: actual null-audio sidecar v1 loadGraph/applyGraph refusal,
+# followed by a valid v2 control, without any source-file write.
+add_test(NAME abi2_ob_a3_sidecar_no_write COMMAND ${Python3_EXECUTABLE}
+  "${PROJECT_SOURCE_DIR}/../host/sidecar/ob_a3_no_write.py"
+  $<TARGET_FILE:wirescape_engine_sidecar>
+  "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json"
+  "${PROJECT_SOURCE_DIR}/../host/examples/chaos_two.json")
+set_tests_properties(abi2_ob_a3_sidecar_no_write PROPERTIES TIMEOUT 60)
 add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/capture_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_sidecar_capture_tests PROPERTIES TIMEOUT 90)

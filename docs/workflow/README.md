@@ -64,7 +64,7 @@ No recurring polling, automatic CI reruns, extra correction rounds or new task a
 
 ## Architect dispatch: `architect-ready`
 
-(Architect run 20, 2026-11-23; replaces the #265 `architect-wake`/`/architect-run` wake, which was never used.)
+(Architect run 20, 2026-11-23; replaces the #265 `architect-wake`/`/architect-run` wake, which was tested once.)
 `architect-ready` works like `review-ready`, but it starts the **Claude Architect** instead of the regular reviewer.
 The owner wires the Claude integration to start an `architect:run` session when `architect-ready` is
 **added** to a PR or issue in this repository. Label removal and comments do not trigger it.

@@ -129,7 +129,7 @@ the lead) needs:
    withdrawn, say so in the row; do not leave a stale Open row.
 An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
 
-## Builder scheduling and Architect wakes
+## Builder scheduling and Architect dispatch
 
 Builders continue released independent work while CI or a long test runs. For a check that
 controls their next action, schedule one same-task continuation at its estimated finish,
