@@ -20,6 +20,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#if defined(__linux__)
+#include <time.h>
+#endif
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -32,6 +35,33 @@ namespace {
 using json = nlohmann::json;
 using Clock = std::chrono::steady_clock;
 using namespace std::chrono_literals;
+
+#if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
+std::chrono::nanoseconds cpu_duration(const timespec &value) noexcept {
+    return std::chrono::seconds(value.tv_sec) + std::chrono::nanoseconds(value.tv_nsec);
+}
+
+struct RenderCpuTiming {
+    struct Sample {
+        std::chrono::nanoseconds wall{}, cpu{};
+        auto gap() const noexcept { return wall - cpu; }
+    };
+
+    Sample longest_wall{}, largest_gap{}, total{};
+    uint32_t samples = 0, read_errors = 0, over_period = 0;
+    std::chrono::nanoseconds resolution{};
+    bool resolution_error = false;
+
+    void record(Sample sample, std::chrono::nanoseconds period) noexcept {
+        if (!samples || sample.wall > longest_wall.wall) longest_wall = sample;
+        if (!samples || sample.gap() > largest_gap.gap()) largest_gap = sample;
+        total.wall += sample.wall;
+        total.cpu += sample.cpu;
+        over_period += sample.wall >= period;
+        ++samples;
+    }
+};
+#endif
 
 // Windows' default sleep timer is often ~15ms; sleeping for 200us silently
 // lowers this load to ~64Hz/address. Yield instead of altering the required
@@ -199,7 +229,15 @@ void reproduce(bool panic_only) {
     uint32_t render_late_starts = 0, render_long_calls = 0;
     Clock::duration render_max_interval{}, render_max_call{}, render_total_call{};
     Clock::duration render_max_lateness{}, render_max_wait_overshoot{};
+#if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
+    RenderCpuTiming cpu_timing;
+#endif
     std::thread render([&] {
+#if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
+        timespec resolution{};
+        cpu_timing.resolution_error = clock_getres(CLOCK_THREAD_CPUTIME_ID, &resolution) != 0;
+        if (!cpu_timing.resolution_error) cpu_timing.resolution = cpu_duration(resolution);
+#endif
         std::array<float, 128> left{}, right{};
         float *out[] = {left.data(), right.data()};
         auto next = Clock::now(), previous_start = next, previous_end = next;
@@ -213,8 +251,23 @@ void reproduce(bool panic_only) {
                 render_max_wait_overshoot = (std::max)(render_max_wait_overshoot,
                     started - (std::max)(next, previous_end));
             }
+#if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
+            const auto callback_time = app_engine_clock_ns();
+            timespec cpu_before{}, cpu_after{};
+            const auto wall_before = Clock::now();
+            const bool before_ok = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &cpu_before) == 0;
+            const int result = app_engine_render_live(engine.get(), out, 2, 128, callback_time);
+            const bool after_ok = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &cpu_after) == 0;
+            const auto finished = Clock::now();
+            cpu_timing.read_errors += unsigned(!before_ok) + unsigned(!after_ok);
+            if (before_ok && after_ok) {
+                cpu_timing.record({std::chrono::duration_cast<std::chrono::nanoseconds>(finished - wall_before),
+                                   cpu_duration(cpu_after) - cpu_duration(cpu_before)}, render_period);
+            }
+#else
             const int result = app_engine_render_live(engine.get(), out, 2, 128, app_engine_clock_ns());
             const auto finished = Clock::now();
+#endif
             const auto duration = finished - started;
             render_max_call = (std::max)(render_max_call, duration);
             render_total_call += duration;
@@ -397,6 +450,21 @@ void reproduce(bool panic_only) {
         "sequence_send_late_max=%.3f gate_fall_send_late_max=%.3f\n",
         load_cycle > 1 ? ms(load_min_interval) : 0., ms(load_max_send), ms(load_max_lateness),
         load_overdue, load_short_intervals, ms(sequence_max_lateness), ms(gate_max_lateness));
+#if defined(__linux__) && defined(CLOCK_THREAD_CPUTIME_ID)
+    const auto cpu_ms = [](std::chrono::nanoseconds d) {
+        return std::chrono::duration<double, std::milli>(d).count();
+    };
+    std::fprintf(stderr,
+        "OB-g8 render CPU/wall ms: longest_wall=%.3f paired_cpu=%.3f "
+        "largest_gap=%.3f gap_wall=%.3f gap_cpu=%.3f total_wall=%.3f total_cpu=%.3f "
+        "paired_calls=%u paired_over_period=%u cpu_clock_read_errors=%u "
+        "cpu_clock_resolution_ns=%lld cpu_clock_resolution_errors=%u\n",
+        cpu_ms(cpu_timing.longest_wall.wall), cpu_ms(cpu_timing.longest_wall.cpu),
+        cpu_ms(cpu_timing.largest_gap.gap()), cpu_ms(cpu_timing.largest_gap.wall),
+        cpu_ms(cpu_timing.largest_gap.cpu), cpu_ms(cpu_timing.total.wall), cpu_ms(cpu_timing.total.cpu),
+        cpu_timing.samples, cpu_timing.over_period, cpu_timing.read_errors,
+        static_cast<long long>(cpu_timing.resolution.count()), unsigned(cpu_timing.resolution_error));
+#endif
     REQUIRE(sender_ok);
     REQUIRE(sent_sequences == 4 && sent_falls.size() == 4);
     REQUIRE(sent_load >= 64 * 70); // at least 350ms of the unaltered 200Hz profile
