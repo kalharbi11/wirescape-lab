@@ -1,0 +1,5 @@
+{
+  "base": "6321dfeebdaab2bd39dd5e31446cc3ec17e628b5",
+  "subject": "e7726284a0116ba50f44946f48a4bf9720f36f6e",
+  "purpose": "diagnostic only; repin to B1 merge-ready base/head after S7.5 merges"
+}
