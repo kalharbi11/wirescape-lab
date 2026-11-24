@@ -298,6 +298,74 @@ static void untouched_witness_no_dip() {
 
 // A51 regression: the actual output-less OSC Out holds a host-owned bus.
 // On successful adoption the host is allowed to free that bus immediately.
+// A new signal cable ramps for exactly 5 ms. Reverse the edit while the
+// first ramp is still moving, and require the new ramp to start at its actual
+// previous sample, rather than jumping to the first ramp's target.
+static void signal_ramp_interrupted() {
+    auto make = [](bool connected) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, ws::Module<Pass>::descriptor()));
+        if (connected) CHECK(e->connect(1, 0, 2, 0));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(false), add = make(true), remove = make(false);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float sample[1]{}, witness[1]{};
+    float *out[]{sample, witness};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(witness[0] == .75f);
+    };
+    render();
+    CHECK(sample[0] == 0);
+    auto edit_until = [&](Engine &candidate, auto changed) {
+        std::atomic<bool> done{false}, success{false};
+        std::thread control([&] {
+            success = live->replan(candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
+            done.store(true, std::memory_order_release);
+        });
+        bool observed = false;
+        const auto deadline = Clock::now() + std::chrono::seconds(2);
+        do {
+            const float previous = sample[0];
+            render();
+            if (changed(previous, sample[0])) {
+                observed = true;
+                break;
+            }
+            // Pace single-sample callbacks so staging cannot consume the
+            // entire 240-frame ramp before a reversal is requested.
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+        control.join();
+        CHECK(success.load());
+        CHECK(observed);
+    };
+    edit_until(*add, [](float, float next) { return next > 0; });
+    CHECK(std::abs(sample[0] - .75f / 240) < 1.e-6f);
+    add.reset();
+    for (unsigned i = 0; i < 59; ++i) render();
+    CHECK(std::abs(sample[0] - .75f / 4) < 1.e-6f);
+    float turn = 0;
+    edit_until(*remove, [&](float prior, float next) {
+        if (next >= prior) return false;
+        turn = prior;
+        return true;
+    });
+    CHECK(turn > 0 && turn < .75f);
+    CHECK(std::abs(sample[0] - turn * (239.f / 240)) < 1.e-6f);
+    remove.reset();
+    for (unsigned i = 1; i < 240; ++i) render();
+    CHECK(sample[0] == 0);
+}
+
 static void osc_out_retirement() {
     using namespace wirescape::osc;
     for (bool replacement : {false, true}) {
@@ -628,6 +696,7 @@ int main(int argc, char **argv) {
     if (max_gap_ms > 0 || (strict && std::strcmp(strict, "1") == 0)) replan_attempts = 1;
     untouched_witness_no_dip();
     osc_out_retirement();
+    signal_ramp_interrupted();
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
