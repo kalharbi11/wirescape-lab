@@ -43,6 +43,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
+| #436 A59 | 2026-11-24 | E5 descriptor-size guard outside B5 paths; replay design | **A59** ([#436](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7143183539)): `tools/module/runner/abi_ws2.h` size guard granted under 0012 G5; bounded held-note record, replayed after `collect()` clears pending |
 | #429 scope | 2026-11-24 | E5 voice-count replacement scope | **A55** ([M4 note](milestones/M4.md), [#429](https://github.com/kalharbi11/wirescape-lab/issues/429)): voice count stays a live parameter, no ID/document change; in-place `Allocator::resize` as **E5v #439** (B3, `merge: lead`). E5 = same-descriptor config replacement with ER4, adopt/ring-out, settle Low |
 | #438 | 2026-11-24 | Roadmap status review; M7 batch 2 vs R3 inconsistency | **A56**: M7 r1.6 unparks S7.5/S7.6/S7.9 for OB1 with a bounded paired-row exception (≤ +2.5 %, rows without a changed module, linux, expires at CAT-1 or the OB1 tag). OB r2.9 adds optional #322. Roadmap revised and merged |
 | run 29 process | 2026-11-24 | Owner: fewer stops before merge-ready | **A57** → STANDING SR20 (self-release, Lows never block, lead merges `merge: lead` on green + Result, facts auto-merge, one Claude review at the merge-ready head) |

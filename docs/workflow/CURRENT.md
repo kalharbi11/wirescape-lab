@@ -22,6 +22,15 @@ Next Architect work: resolve E5 voice-count replacement scope, then use #424's r
 
 Signed: gpt-lead, 2026-11-24
 
+## Decided 2026-11-24 ET: Architect run 29b — A59, T7.0 dispatch, Windows replan red (owner: Architect also acts as lead)
+
+- **S7.3 #432:** full T7.0 capture dispatched as lead: [run 45478143094](https://github.com/kalharbi11/wirescape-lab/actions/runs/45478143094) at `d86c195`, both Linux architectures, compared with baseline 44029050283.
+- **A59 E5** ([#436](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7143183539), M4 note): `tools/module/runner/abi_ws2.h` size guard granted (0012 G5), C99 offset and legacy-size tests, and a bounded held-note record replayed after `collect()`'s clear. B5's fail-first at `11b0caa` came back red ([dev-run 45475307438](https://github.com/kalharbi11/wirescape-lab/actions/runs/45475307438)); B5 confirms the assertion line.
+- **#434 Windows red** in E4b `signal_ramp_interrupted` (line 349), which #434 doesn't touch. Filed [#443](https://github.com/kalharbi11/wirescape-lab/issues/443) → B5 (test-only pacing fix, own PR, before #436). Failed job re-run once to classify; [disposition](https://github.com/kalharbi11/wirescape-lab/pull/434#issuecomment-7143209103): green → lead merges #434 and E7 is released; red → #434 waits for #443.
+- **Held:** nothing new beyond run 29.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 29 — roadmap revised, A55–A58 (owner: Architect also acts as lead this run)
 
 - **#438 roadmap** revised and merged: live editing first, sound in the free lanes, I/O fixes beside them ([ROADMAP](ROADMAP.md) reconciliation section).
