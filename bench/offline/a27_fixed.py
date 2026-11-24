@@ -24,7 +24,8 @@ WINDOWS = {"mode": (48000, 85201), "tone": (48000, 67200),
            "division_clocked": (48000, 49200)}
 CASES = (*WINDOWS, "division_unclocked")
 BEFORE_X64 = {"mode": 7.041270, "tone": 2.445507, "division_clocked": 3.080779}
-COUNTERS = ("faults", "dropped", "late", "stale", "arena_full", "ring_full")
+COUNTERS = ("faults", "dropped_events", "late_events", "stale_events",
+            "arena_full_events", "ring_full_events")
 
 
 def require_pin(pin):
