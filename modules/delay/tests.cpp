@@ -636,10 +636,25 @@ static void interrupted_switches() {
         if (first == at + 128) changed.values[kDivision] = 5.f;
         if (first == at + 256) changed.values[kDivision] = 4.f;
     }, true);
+    // Division 4 is 3/4 of the measured 6000-frame period: 4500 samples.
+    // The unchanged acquisition glide in the static reference starts at 6000
+    // and still has ~.022 sample residual here. It is not an exact-tap oracle.
+    // At feedback=0, wet=1, stereo, unpatched right and |source|<=.5,
+    // the settled output on both channels is the original input at i-4500.
+    // Keep the old reference as a diagnostic, not as the expected samples.
+    constexpr size_t final_tap = 4500;
+    float reference_error = 0.f, actual_error = 0.f;
     for (size_t i = length - 64; i < length; ++i) {
-        REQUIRE(std::fabs(got.l[i] - endpoint.l[i]) < 1e-4f);
-        REQUIRE(std::fabs(got.r[i] - endpoint.r[i]) < 1e-4f);
+        const float expected = changed.in[0].ch[0][i - final_tap];
+        reference_error = std::max(reference_error, std::fabs(endpoint.l[i] - expected));
+        reference_error = std::max(reference_error, std::fabs(endpoint.r[i] - expected));
+        actual_error = std::max(actual_error, std::fabs(got.l[i] - expected));
+        actual_error = std::max(actual_error, std::fabs(got.r[i] - expected));
     }
+    std::printf("delay retarget endpoint: static_reference_error=%.9g actual_error=%.9g\n",
+                static_cast<double>(reference_error), static_cast<double>(actual_error));
+    std::fflush(stdout);
+    REQUIRE(actual_error < 1e-4f);
 }
 
 int main() {
