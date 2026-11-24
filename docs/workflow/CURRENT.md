@@ -9,10 +9,10 @@ Builders use their queue row and issue; Architect requests stay in the inbox.
 
 ## Lead delivery update — 2026-11-23 19:48 EST
 
-- A34 and A36 applied. #298 merged as `b80b424` and #376 as `519d53a` with signed Architect approvals and exact-head CI. B1 starts G-W1 #368 in Chat. B5 starts TR1e #378 in the existing Codex sandbox for native build and paired evidence.
+- A34 and A36 applied. #298 merged as `b80b424` and #376 as `519d53a` with signed Architect approvals and exact-head CI. B1 starts G-W1 #368/#384 in Chat. B5 starts TR1e #378/#385 in the existing Codex sandbox for native build and paired evidence.
 - A35 applied. C1 #375 merged as `7993a28` after Lab, 8/8 parser tests and the signed Result. #367 stays open for the live two-head, same-comment check. B3 resumes S7.5 #291 in Chat.
-- SR6(c): #339 closed unmerged, branch kept. Its final sanitizer run reproduced 2,973 drops and measured a 56.665 ms render call. B2 starts #383 in Chat to stage a bounded CPU-versus-preemption diagnostic. PI-1 #369 awaits the owner token.
-- B4 continues #373/#380 in Chat. Lab native tests failed on all three platforms and strict paired evidence failed on both Linux architectures at `c78da9f`. #333, #356 and #322 stay parked.
+- SR6(c): #339 closed unmerged, branch kept. Its final sanitizer run reproduced 2,973 drops and measured a 56.665 ms render call. B2 completed the Chat diagnostic and handed the one Linux test-only CPU/wall measurement to the existing Codex session. PI-1 #369 awaits the owner token.
+- B4's #373/#380 is blocked at `c78da9f`. A37 asks for a ruling on M1 S4's immutable Six Essentials comparison. The strict paired +1% gate remains. #333, #356 and #322 stay parked.
 - #382 consolidates review routing. The owner still needs to wire the Claude `architect-ready` label-addition event. A31 and A3 retain their recorded dependencies.
 - Usage at entry: 47% of the five-hour window remained, reset 23:29 EST, and 82% weekly remained.
 

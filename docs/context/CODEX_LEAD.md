@@ -33,6 +33,8 @@ tolerance, a protected constraint, or the milestone's scope. Keep unaffected tas
 You never: edit proposals/, CONSTRAINTS.md, the contract, AGENTS.md or CLAUDE.md; weaken a gate;
 run device tests; force-push; re-check unchanged state in a loop.
 
+End every lead run with the route to the next milestone, its active blocker, and the owner’s remaining acceptance steps.
+
 Milestone end: one acceptance report mapping every criterion to its evidence (PR, head SHA, run
 or fact file), then file the acceptance in the Architect inbox and apply `needs/architect` to the issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
