@@ -1,153 +1,48 @@
 # SPDX-License-Identifier: GPL-3.0-only
-name: applyGraph continuity source-pinned capture (advisory)
+name: E6 continuity capture
 on:
-  pull_request:
-    paths:
-      - 'bench/continuity/**'
-      - '.github/workflows/applygraph-continuity-capture.yml'
   workflow_dispatch:
+    inputs:
+      e6_head:
+        description: Exact E6 commit to build and measure
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   capture:
-    name: applyGraph continuity capture / ubuntu-24.04
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 25
     env:
-      CAPTURE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+      E6_HEAD: ${{ inputs.e6_head }}
     steps:
-      - name: Checkout exact original PR head
-        uses: actions/checkout@v4
+      - name: Verify source pin
+        run: '[[ "$E6_HEAD" =~ ^[0-9a-f]{40}$ ]]'
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ env.CAPTURE_HEAD }}
+          ref: ${{ inputs.e6_head }}
           persist-credentials: false
-      - name: Install Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install pinned native build tools
         run: python -m pip install cmake==4.2.3 ninja==1.13.0
-      - name: Verify head and record source and machine class
-        shell: bash
+      - name: Build the exact head
         run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$CAPTURE_HEAD"
-          {
-            printf 'source_sha=%s\n' "$CAPTURE_HEAD"
-            printf 'runner_image=%s\nrunner_image_version=%s\n' "$ImageOS" "$ImageVersion"
-            printf 'runner_arch=%s\narchitecture=%s\n' "$RUNNER_ARCH" "$(uname -m)"
-            printf 'runner_label=ubuntu-24.04\n'
-            printf 'date_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            python --version
-            cmake --version | head -n 1
-            c++ --version | head -n 1
-          } | tee "$RUNNER_TEMP/applygraph-run-info.txt"
-      - name: Configure pinned native Release
-        run: cmake -S native -B build/continuity -G Ninja -DCMAKE_BUILD_TYPE=Release
-      - name: Build native null-sink sidecar
-        run: cmake --build build/continuity --target wirescape_engine_sidecar --parallel 4
-      - name: Run all existing synthetic continuity regressions
-        run: python -m unittest discover -s bench/continuity/tests -v
-      - name: Capture eight applyGraph edits and three no-edit references, three repeats
-        shell: bash
+          test "$(git rev-parse HEAD)" = "$E6_HEAD"
+          cmake -S native -B build/continuity -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/continuity --target wirescape_engine_sidecar --parallel 4
+      - name: Capture three E6 continuity repeats with null audio and no MIDI
         run: |
-          set -euo pipefail
           python bench/continuity/run.py \
             --engine build/continuity/wirescape-engine \
-            --built-head "$CAPTURE_HEAD" --repeats 3 \
-            --only "applyGraph identical" "applyGraph Groove steps" \
-              "applyGraph Groove length" "applyGraph voice count" \
-              "applyGraph OSC In row" "applyGraph one parameter" \
-              "applyGraph deleted module" "applyGraph restored module" \
-            --keep "$RUNNER_TEMP/applygraph-raw" \
-            --out "$RUNNER_TEMP/applygraph-measured"
-      - name: Verify 45 witness rows and independently hash 27 raw plus 27 marks
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import hashlib
-          import json
-          import os
-          from pathlib import Path
-
-          root = Path(os.environ["RUNNER_TEMP"])
-          doc = json.loads((root / "applygraph-measured.json").read_text(encoding="utf-8"))
-          assert doc["provenance"]["lab_commit"] == os.environ["CAPTURE_HEAD"]
-          assert doc["provenance"]["built_head_claim"] == os.environ["CAPTURE_HEAD"]
-          assert doc["provenance"]["engine_sha256"] == hashlib.sha256(
-              Path("build/continuity/wirescape-engine").read_bytes()).hexdigest()
-          assert doc["repeats"] == 3 and len(doc["rows"]) == 45
-          assert doc["unsupported"] == []
-          assert len(doc["artifacts"]) == 8
-          expected = {
-              "applyGraph identical": 6, "applyGraph Groove steps": 6,
-              "applyGraph Groove length": 6, "applyGraph voice count": 6,
-              "applyGraph OSC In row": 5, "applyGraph one parameter": 6,
-              "applyGraph deleted module": 5, "applyGraph restored module": 5,
-          }
-          for edit, n in expected.items():
-              rows = [r for r in doc["rows"] if r["edit"] == edit]
-              assert len(rows) == n and len({r["witness"] for r in rows}) == n, edit
-              assert len(doc["artifacts"][edit]) == 3, edit
-              for row in rows:
-                  assert len(row["replies"]) == len(row["repeats"]) == 3
-                  assert len(row["marks"]) == len(row["applygraph_results"]) == 3
-                  assert all("b0" in m and "b1" in m and m["run"] and m["reference"]
-                             for m in row["marks"])
-          assert {r["edit"] for r in doc["rows"]} == set(expected)
-          raw_files, mark_files = set(), set()
-          audit = {}
-          for edit, runs in doc["artifacts"].items():
-              for result in runs:
-                  assert result["repeat"] in (1, 2, 3)
-                  for label in ("edited", "reference"):
-                      for kind, filename, collection in (
-                          ("raw", "capture.f32", raw_files),
-                          ("marks", "capture.f32.marks", mark_files)):
-                          info = result[label][kind]
-                          name = info["relative_path"]
-                          parts = Path(name).parts
-                          assert len(parts) == 2 and parts[-1] == filename, name
-                          src = root / "applygraph-raw" / name
-                          assert src.is_file() and src.stat().st_size == info["bytes"] > 0
-                          sha = hashlib.sha256(src.read_bytes()).hexdigest()
-                          assert sha == info["sha256"], name
-                          collection.add(name)
-                          if name in audit:
-                              assert audit[name] == sha
-                          audit[name] = sha
-          assert len(raw_files) == len(mark_files) == 27
-          assert all(name.replace("capture.f32.marks", "capture.f32") in raw_files
-                     for name in mark_files)
-          actual = {p.relative_to(root / "applygraph-raw").as_posix()
-                    for p in (root / "applygraph-raw").rglob("*") if p.is_file()}
-          assert actual == raw_files | mark_files, "Unexpected or missing raw/marks file"
-          (root / "applygraph-hashes.json").write_text(
-              json.dumps({"source_sha": os.environ["CAPTURE_HEAD"],
-                          "raw_count": len(raw_files), "marks_count": len(mark_files),
-                          "sha256": dict(sorted(audit.items()))}, indent=2) + "\n",
-              encoding="utf-8")
-          print("Source-pinned inventory: 45 witness rows, 8 cases x 3 repeats, "
-                "27 raw captures + 27 marks, SHA-256 independently verified")
-          PY
-      - name: Upload raw float32 and matching marks (not committed to git)
-        uses: actions/upload-artifact@v4
+            --built-head "$E6_HEAD" --repeats 3 --only setModAmount \
+            --out "$RUNNER_TEMP/e6-continuity/rows" \
+            --keep "$RUNNER_TEMP/e6-continuity/raw"
+          cat "$RUNNER_TEMP/e6-continuity/rows.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
         with:
-          name: applygraph-continuity-raw-ubuntu-24.04
-          path: ${{ runner.temp }}/applygraph-raw/
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload measured rows and provenance (advisory)
-        uses: actions/upload-artifact@v4
-        with:
-          name: applygraph-continuity-summary-ubuntu-24.04
-          path: |
-            ${{ runner.temp }}/applygraph-measured.json
-            ${{ runner.temp }}/applygraph-measured.md
-            ${{ runner.temp }}/applygraph-hashes.json
-            ${{ runner.temp }}/applygraph-run-info.txt
-          if-no-files-found: error
-          retention-days: 7
+          name: e6-continuity
+          path: ${{ runner.temp }}/e6-continuity
