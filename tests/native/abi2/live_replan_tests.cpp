@@ -333,6 +333,8 @@ static void signal_ramp_interrupted() {
             done.store(true, std::memory_order_release);
         });
         bool observed = false;
+        uint64_t max_sleep_us = 0;
+        unsigned paced_waits = 0;
         const auto deadline = Clock::now() + std::chrono::seconds(2);
         do {
             const float previous = sample[0];
@@ -343,9 +345,17 @@ static void signal_ramp_interrupted() {
             }
             // Pace single-sample callbacks so staging cannot consume the
             // entire 240-frame ramp before a reversal is requested.
+            const auto wait_start = Clock::now();
             std::this_thread::sleep_for(std::chrono::microseconds(100));
+            const auto wait_us = uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(
+                Clock::now() - wait_start).count());
+            max_sleep_us = std::max(max_sleep_us, wait_us);
+            ++paced_waits;
         } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
         control.join();
+        std::fprintf(stderr, "#443 pacing: waits=%u max_wait_us=%llu adoption=%s error=%s\n",
+                     paced_waits, static_cast<unsigned long long>(max_sleep_us),
+                     success.load() ? "ok" : "failed", live->error().c_str());
         CHECK(success.load());
         CHECK(observed);
     };
