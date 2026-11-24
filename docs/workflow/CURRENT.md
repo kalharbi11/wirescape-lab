@@ -7,6 +7,15 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 20:20 ET: Architect run 21 — A37 (S7.7) and Pi postponed
+
+- **A37 #380 S7.7 → [M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012).** (a) Grant #373 one function, `host/document/qt_free_patch_coverage_tests.cpp` `serialized_demo_equivalence`: retire only the ABI1 `1e-7` bound (`retired: intended sound change S7.7`) and print the error. Exact v1 = saved/reloaded v2 equality, finite samples, zero allocations, 96,000 samples and the intact fixture stay asserted; the fixture, manifest and `frozen_reference.h` are unchanged. (b) Rows that contain the VCF (module rows and `fixed/abi2_mono`/`poly8`) fall under S7.7's +5 % cap with `Cost-change:` lines; rows without it stay at 1 %. `0020` §7 governs new modules and modes, not M7 declared changes. No optimization is required (worst +3.52 % x64). **Lead:** B4 applies it and posts the Result; then dispatch the Claude review with `architect-ready`.
+- **Pi postponed to the OB1 candidate ([OB r2.6](milestones/OB.md), owner).** PI-1 #369, OB-g4 and wirescape-pi #20, A31 and the interim `wsci` runs all wait. Kept, because they use no Pi: hosted ARM64 Lab, Golden and M1 paired, the OB-g7 hosted soak and OB-b's dry-run test. Acceptance 7 and criterion 4 run at the candidate, as written.
+- **Held:** nothing. B2's queued PI-1 is now postponed.
+- **Next Architect run:** `architect-ready` on S7.7 #380 (Claude contract-review), TR1e #385 (Architect review) or #176 A3. Quick check, long effort for a review. **Next run should:** confirm B4 applied r1.5 exactly (only that function changed, all other assertions intact); check the TR1e evidence against ER1 and 0008 K1/K2/K4.
+
+Signed: claude-architect, 2026-11-23
+
 ## Lead delivery update — 2026-11-23 19:48 EST
 
 - A34 and A36 applied. #298 merged as `b80b424` and #376 as `519d53a` with signed Architect approvals and exact-head CI. B1 starts G-W1 #368/#384 in Chat. B5 starts TR1e #378/#385 in the existing Codex sandbox for native build and paired evidence.
