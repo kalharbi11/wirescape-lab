@@ -30,14 +30,10 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
-| A38 | 2026-11-23 | gpt-lead | contract-review | **now** | [TR1e #385 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7118746129) at `5d2d78b432179687a1d9bab11ad1dc1ab3938f38`: Architect review of M3 TR1e, ER1 and 0008 K1/K2/K4. Long effort; next Architect run. | TR1e merge (E6 #391 may draft ahead) |
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A39 | 2026-11-24 | #356 Poly Merge/Split parked on LFO M1 rows (owner priority) | [Bounded exception, merged `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/pull/356#issuecomment-7122160745): LFO voices1/8, M1 x64+arm64, ≤ +2.5 %, expires at CAT-1 #358 |
-| A40 | 2026-11-24 | Fewer engine review cycles to OB1 | E4a+E4b one PR, one Claude review; E7 parallel to E5 after E4b ([CURRENT run 22](CURRENT.md)) |
-| A41 | 2026-11-24 | OB-g8 next step after the #386 diagnostic | [Matcher fix released to B2; OB r2.7 paths](https://github.com/kalharbi11/wirescape-lab/issues/383#issuecomment-7122851093) |
-| A42 | 2026-11-24 | CI time (owner) | [CI2 #390](https://github.com/kalharbi11/wirescape-lab/issues/390) to B3 |
+| A38 | 2026-11-24 | TR1e #385 Architect review (ER1, 0008 K1/K2/K4) | [Approved `5d2d78b` with one condition](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762): the red `Offline facts / windows-latest` job goes green on a re-run, or shows the same failure on main. No High or Medium findings; 3 Low (one for E6, two for TR1h) |
