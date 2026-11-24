@@ -90,7 +90,7 @@ and keep the pinned PR request and review requirement on the PR. A PR wake requi
 
 1. **Lead, when an Architect item is ready** (review, ruling or acceptance): the inbox row is Open, the item
    has `needs/architect` (plus `review-required` for a review gate), and a pinned request names full base/head
-   SHAs, criteria and evidence. **Then add `architect-ready` to one item per lead run, the most urgent.** Other
+   SHAs, criteria and evidence. **Then add `architect-ready` to the linked issue for the most urgent item, once per lead run.** Other
    ready rows ride along: every Architect run clears all ready Open rows, so one trigger serves the whole batch
    and the duplicate runs that one label per item would cause are avoided. Never put `review-ready` on
    Architect-only work.
