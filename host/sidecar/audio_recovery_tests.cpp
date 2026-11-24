@@ -487,10 +487,15 @@ int main() {
             check(rate["ok"] == true && rate["gen"] == "1" && audio(s)["state"] == "running" &&
                       audio(s)["sampleRate"] == 44100 && audio(s)["bufferFrames"] == 256,
                   "rate ack requires a running new stream");
+            // E7: the prepared 256-frame engine must survive a smaller stream.
+            const auto prepared_engine = fake::engine;
+            const auto before_buffer_restart = fake::stopped;
             auto frames = call("frames", "setBufferFrames", {{"frames", 128}});
             check(frames["ok"] == true && frames["gen"] == "2" && audio(s)["sampleRate"] == 44100 &&
                       audio(s)["bufferFrames"] == 128,
                   "buffer restart must keep selected rate");
+            check(fake::engine == prepared_engine && fake::stopped == before_buffer_restart + 1,
+                  "E7 smaller buffer must restart the stream without rebuilding the prepared engine");
             std::ifstream saved(options.settings);
             Json prefs;
             saved >> prefs;
