@@ -154,7 +154,7 @@ struct Edge {
     uint32_t from, output, to, input;
     int kind;
     float amount; // Authored target, control-owned after prepare.
-    EdgeState state{{amount, amount}};
+    EdgeState *state = nullptr; // Control-owned, stable across adopted layouts.
     uint64_t born_revision = 0;
     uint64_t sent_serial = 0; // Control-owned.
     auto key() const noexcept { return std::tie(from, output, to, input, kind); }

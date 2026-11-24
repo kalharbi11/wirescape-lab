@@ -110,15 +110,15 @@ bool Engine::Impl::resolve_taps() {
     layout->tap_nodes.reserve(layout->taps.size());
     for (auto &node : layout->nodes) {
         node->slot.event_tap_slots.clear();
-        node->instance.pitch.enabled = false;
+        node->slot.pitch.enabled = false;
     }
     for (uint32_t i = 0; i < layout->taps.size(); ++i) {
         const auto &t = layout->taps[i];
         auto *n = find(t.node);
         if (!valid_tap(n, t)) return fail("Telemetry tap endpoint changed during prepare");
         if (t.kind == Tap::OscPitch) {
-            if (!pitch_layout(n, n->instance.pitch)) return fail("Oscillator pitch layout changed during prepare");
-            n->instance.pitch.enabled = true;
+            if (!pitch_layout(n, n->slot.pitch)) return fail("Oscillator pitch layout changed during prepare");
+            n->slot.pitch.enabled = true;
         }
         layout->tap_nodes.push_back(n);
         if (t.kind == Tap::EventOut) {
@@ -140,6 +140,7 @@ bool Engine::Impl::finish_prepare() {
     arena.resize(cfg.message_arena_bytes);
     egress = std::make_unique<Producer>(cfg.ring_capacity);
     prepared = true;
+    render_layout = layout.get();
     applied.store(generation.load());
     return true;
 }
@@ -301,12 +302,16 @@ bool Engine::Impl::topology() {
     if (!wire_edges()) return false;
     find_components();
     if (!order_feedback_components() || !order_components()) return false;
-    for (auto &e : layout->edges)
+    for (auto &e : layout->edges) {
+        auto state = std::make_unique<EdgeState>();
+        state->modulation.current = state->modulation.target = e.amount;
         if (e.back && e.kind != 1) {
-            e.state.delay.prepare(cfg.max_channels, cfg.feedback_block);
-            e.state.delay_channels.assign(cfg.feedback_block, 0);
-            e.state.head = 0;
+            state->delay.prepare(cfg.max_channels, cfg.feedback_block);
+            state->delay_channels.assign(cfg.feedback_block, 0);
         }
+        e.state = state.get();
+        edge_states.emplace(state.get(), std::move(state));
+    }
     for (auto &component : layout->components)
         for (auto *n : component.nodes) n->slot.loop = component.loop;
     // Scratch is sized during topology/prepare, never during a status refresh.

@@ -37,7 +37,8 @@ struct Instance {
     std::vector<ws2_event> events;
     std::vector<Item> pending;
     int forced_channels = -1;
-    uint32_t channels = 1, latency = 0;
+    uint32_t channels = 1;
+    std::atomic<uint32_t> latency{0};
     size_t requested_fast = 0, requested_large = 0;
     void *emit_context = nullptr;
     ~Instance() { clear_instance(); }

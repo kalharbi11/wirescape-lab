@@ -6,6 +6,7 @@ namespace wirescape::engine2 {
 struct Slot {
     uint32_t index = 0, component = 0;
     bool loop = false, touched = false;
+    Instance::Pitch pitch; // Layout-owned observation mapping; live pitch history stays in Instance.
     std::vector<Edge *> incoming, signal_edges;
     std::vector<std::vector<Edge *>> modulation, outgoing;
     std::vector<Buffer> in;
@@ -36,6 +37,19 @@ struct Layout {
     std::vector<Node *> tap_nodes;
     std::unique_ptr<std::atomic<float>[]> tap_values;
     std::unique_ptr<std::atomic<uint32_t>[]> tap_counts;
+
+    uint64_t revision = 0;
+    uint32_t feedback_count = 0;
+    size_t setup_bytes = 0;
+    std::vector<std::array<uint32_t, 4>> removed_routes;
+    std::vector<std::pair<uint32_t, uint32_t>> chokes;
+    struct ModAdoption { Edge *edge; EdgeState *prior; bool authored; };
+    std::vector<ModAdoption> modulation_adoption;
+    Node *find(uint32_t id) const noexcept {
+        auto it = std::lower_bound(node_table.begin(), node_table.end(), id,
+                                   [](const auto &entry, uint32_t key) { return entry.first < key; });
+        return it != node_table.end() && it->first == id ? it->second : nullptr;
+    }
 
     Edge *find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
         const auto key = std::tuple{from, output, to, input, 2};

@@ -5,7 +5,7 @@
 #include <utility>
 
 namespace wirescape::engine2 {
-enum class Park : uint8_t { Running, Requested, Parked, Cancelled };
+static_assert(std::atomic<Layout *>::is_always_lock_free, "Layout publication must be lock-free");
 
 bool valid_tap(const Node *, const Tap &);
 
@@ -14,7 +14,10 @@ struct Engine::Impl {
     std::string error;
     // Control-owned storage, independent of the layout's topology entries.
     std::map<uint32_t, std::unique_ptr<Instance>> instances;
-    std::unique_ptr<Layout> layout = std::make_unique<Layout>();
+    std::map<EdgeState *, std::unique_ptr<EdgeState>> edge_states;
+    std::unique_ptr<Layout> layout = std::make_unique<Layout>(); // control-only
+    Layout *render_layout = nullptr; // render-only after prepare
+    std::atomic<Layout *> pending_layout{nullptr};
     std::array<std::unique_ptr<Producer>, 32> producers;
     uint32_t producer_count = 0, dropped_connections = 0;
     std::unique_ptr<Producer> egress;
@@ -24,10 +27,7 @@ struct Engine::Impl {
     std::atomic_flag rendering = ATOMIC_FLAG_INIT;
     std::atomic<uint64_t> tap_sequence{0};
     std::atomic<uint64_t> tap_frame{0};
-    std::atomic<Park> park{Park::Running};
-    std::atomic<uint64_t> revision{0};
-    std::vector<std::pair<uint32_t, uint32_t>> replan_chokes;
-    bool fade_in = false;
+    std::atomic<uint64_t> published_revision{0}, adopted_revision{0};
     std::atomic<uint64_t> position{0}, generation{1}, applied{1}, event_count{0}, dropped{0}, coalesced{0},
         ring_full{0}, stale{0}, late{0}, emergencies{0}, arena_full{0}, faults{0};
     std::atomic<bool> egress_emergency{false};
@@ -47,11 +47,7 @@ struct Engine::Impl {
         future.reserve(cfg.future_capacity);
     }
     Node *find(uint32_t id) const {
-        if (prepared) {
-            auto it = std::lower_bound(layout->node_table.begin(), layout->node_table.end(), id,
-                                       [](const auto &entry, uint32_t key) { return entry.first < key; });
-            return it != layout->node_table.end() && it->first == id ? it->second : nullptr;
-        }
+        if (prepared) return layout->find(id);
         for (auto &n : layout->nodes)
             if (n->instance.id == id) return n.get();
         return nullptr;
@@ -88,7 +84,7 @@ struct Engine::Impl {
         egress_emergency.store(true, std::memory_order_release);
     }
     void reset_processors() noexcept {
-        for (auto &n : layout->nodes) {
+        for (auto &n : render_layout->nodes) {
             n->instance.d->reset(n->instance.instance);
             n->instance.pitch.latest = 0;
             n->instance.pitch.note_on.fill(false);
@@ -100,11 +96,11 @@ struct Engine::Impl {
             }
             n->instance.pending.clear();
         }
-        for (auto &e : layout->edges)
-            if (e.back) {
-                e.state.head = 0;
-                std::fill(e.state.delay_channels.begin(), e.state.delay_channels.end(), 0);
-                if (e.state.delay.memory) std::fill_n(e.state.delay.memory.get(), cfg.max_channels * e.state.delay.stride, 0.f);
+        for (auto &e : render_layout->edges)
+            if (e.back && e.kind != 1) {
+                e.state->head = 0;
+                std::fill(e.state->delay_channels.begin(), e.state->delay_channels.end(), 0);
+                if (e.state->delay.memory) std::fill_n(e.state->delay.memory.get(), cfg.max_channels * e.state->delay.stride, 0.f);
             }
         future.clear();
     }
@@ -120,6 +116,7 @@ struct Engine::Impl {
                                std::vector<std::array<uint32_t, 4>> &removed_routes,
                                std::vector<std::pair<size_t, size_t>> &delays);
     void recompute_latency() noexcept;
+    void adopt_layout(Layout *) noexcept;
     bool finish_prepare();
     bool resolve_taps();
     bool setup(Node &);
@@ -148,7 +145,7 @@ struct Engine::Impl {
         const bool accepted = engine.route(port, *event);
         if (accepted && engine.processing && port < engine.processing->slot.event_tap_slots.size()) {
             const uint32_t slot = engine.processing->slot.event_tap_slots[port];
-            if (slot != UINT32_MAX) engine.layout->tap_counts[slot].fetch_add(1, std::memory_order_relaxed);
+            if (slot != UINT32_MAX) engine.render_layout->tap_counts[slot].fetch_add(1, std::memory_order_relaxed);
         }
         return accepted ? WS2_OK : WS2_CAPACITY;
     }

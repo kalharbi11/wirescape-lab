@@ -19,7 +19,7 @@ void Engine::Impl::recompute_latency() noexcept {
                 if (!e.removed && !e.back && e.kind == 0 && e.destination == n)
                     upstream = std::max(upstream, layout->distance[e.source->slot.index]);
             layout->distance[n->slot.index] =
-                static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, uint64_t(upstream) + n->instance.latency));
+                static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, uint64_t(upstream) + n->instance.latency.load(std::memory_order_relaxed)));
         }
     for (const auto &bus : layout->buses) {
         auto *n = find(bus.node);
@@ -41,7 +41,7 @@ void Engine::reset() {
         p.egress->normal.clear();
         p.egress->critical.clear();
     }
-    p.reset_processors();
+    if (p.render_layout) p.reset_processors();
     p.position.store(0);
     if (p.prepared) p.reset_beat = true;
     else p.beat = 0;
@@ -50,9 +50,7 @@ void Engine::reset() {
     p.frames_per_ns = p.cfg.sample_rate / 1.e9;
     p.generation.fetch_add(1);
     p.applied.store(p.generation.load());
-    p.replan_chokes.clear();
-    p.fade_in = false;
-    p.park.store(Park::Running);
+    if (p.render_layout) p.render_layout->chokes.clear();
 }
 Edge *Engine::Impl::find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
     return layout->find_mod_edge(from, output, to, input);
@@ -73,7 +71,7 @@ int Engine::set_mod_amount(uint32_t from, uint32_t output, uint32_t to, uint32_t
     packet.port = input;
     packet.routed_from = from;
     packet.routed_output = output;
-    packet.revision = p.revision.load(std::memory_order_acquire);
+    packet.revision = p.published_revision.load(std::memory_order_acquire);
     packet.order = edge->sent_serial + 1;
     if (!p.producers[0]->critical.push(packet)) {
         ++p.ring_full;
@@ -98,6 +96,7 @@ int Engine::transport(double bpm, bool playing, std::optional<double> beat) noex
     Packet packet;
     packet.host = true;
     packet.event.type = WS2_TRANSPORT_EVENT;
+    packet.revision = p.published_revision.load(std::memory_order_acquire);
     packet.order = p.transport_sent + 1;
     std::memcpy(packet.payload.data(), &update, sizeof(update));
     if (!p.producers[0]->critical.push(packet)) {
@@ -111,9 +110,6 @@ int Engine::transport(double bpm, bool playing, std::optional<double> beat) noex
 void Engine::refresh_latency() noexcept {
     auto &p = *p_;
     if (!p.prepared) return;
-    for (auto &n : p.layout->nodes)
-        if (n->instance.d && n->instance.instance)
-            n->instance.latency = n->instance.d->latency_frames(n->instance.instance);
     p.recompute_latency();
 }
 
@@ -182,7 +178,7 @@ bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
             target->instance.outputs = n->instance.outputs;
             target->instance.parameters = n->instance.parameters;
             target->instance.forced_channels = n->instance.forced_channels;
-            target->instance.latency = n->instance.latency;
+            target->instance.latency.store(n->instance.latency.load(std::memory_order_relaxed));
             fresh.instances.emplace(n->instance.id, std::move(instance));
             fresh.layout->nodes.push_back(std::move(target));
         }
@@ -269,7 +265,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     actual.reserve(fresh.layout->nodes.size());
     for (auto &n : fresh.layout->nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
     // Preserve unchanged loop delay lines as well as processor state.
-    const auto next_revision = old.revision.load() + 1;
+    const auto next_revision = old.published_revision.load() + 1;
     if (!next_revision) return old.fail("Live graph revision exhausted");
     for (auto &e : fresh.layout->edges) {
         if (e.kind != 2) continue;
@@ -277,7 +273,7 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
         if (e.from == node || e.to == node) continue;
         auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
         if (!prior) continue;
-        e.state.modulation = prior->state.modulation;
+        e.state->modulation = prior->state->modulation;
         e.born_revision = prior->born_revision;
         e.sent_serial = prior->sent_serial;
     }
@@ -309,7 +305,6 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
             entry.slot.in.swap(retained.slot.in);
             entry.slot.in_view.swap(retained.slot.in_view);
             entry.slot.param_view.swap(retained.slot.param_view);
-            retained.instance.pitch.enabled = fresh.layout->nodes[i]->instance.pitch.enabled;
             for (uint32_t j = 0; j < retained.instance.event_outputs.size(); ++j)
                 retained.instance.event_outputs[j] = {sizeof(ws2_event_out), &fresh, j, Impl::emit};
             old.instances.find(retained.instance.id)->second.swap(fresh.instances.find(retained.instance.id)->second);
@@ -329,9 +324,9 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     for (auto pair : delays) {
         auto &e = fresh.layout->edges[pair.first];
         auto &v = old.layout->edges[pair.second];
-        std::swap(e.state.delay, v.state.delay);
-        e.state.delay_channels.swap(v.state.delay_channels);
-        std::swap(e.state.head, v.state.head);
+        std::swap(e.state->delay, v.state->delay);
+        e.state->delay_channels.swap(v.state->delay_channels);
+        std::swap(e.state->head, v.state->head);
     }
     fresh.setup_bytes = 0;
     for (auto &n : fresh.layout->nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
@@ -339,7 +334,9 @@ bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
     fresh.anchor_frame = old.anchor_frame;
     fresh.anchor_ns = old.anchor_ns;
     fresh.frames_per_ns = old.frames_per_ns;
-    fresh.revision.store(next_revision);
+    fresh.published_revision.store(next_revision);
+    fresh.adopted_revision.store(next_revision);
+    fresh.layout->revision = next_revision;
     fresh.generation.store(old.generation.load() + 1);
     fresh.applied.store(fresh.generation.load());
     // Quiescent replacement retires module ingress but keeps acknowledged
@@ -402,137 +399,133 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
 bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     auto &old = *p_;
     auto &fresh = *candidate.p_;
-    if (this == &candidate || !old.prepared || !fresh.prepared || old.park.load() != Park::Running)
-        return old.fail("Live graph is unavailable or already parking");
+    if (this == &candidate || !old.prepared || !fresh.prepared || old.pending_layout.load())
+        return old.fail("Live graph is unavailable or already publishing");
     auto limits = [](const Config &c) {
         return std::tie(c.sample_rate, c.max_block, c.max_channels, c.max_nodes, c.event_budget, c.release_reserve,
-                        c.ring_capacity, c.future_capacity, c.message_arena_bytes, c.feedback_block, c.seed,
-                        c.max_taps);
+                        c.ring_capacity, c.future_capacity, c.message_arena_bytes, c.feedback_block, c.seed, c.max_taps);
     };
     const auto bound = uint64_t(3.e9 * old.cfg.max_block / old.cfg.sample_rate);
     if (limits(old.cfg) != limits(fresh.cfg) || !timeout_ns || timeout_ns > bound)
-        return old.fail("Live graph configuration or park deadline differs");
-    std::vector<Node *> actual;
-    std::vector<std::pair<size_t, size_t>> retained, delays;
-    std::vector<std::pair<uint32_t, uint32_t>> chokes;
-    std::vector<std::array<uint32_t, 4>> removed_routes;
-    std::vector<bool> used(fresh.layout->edges.size(), false), delay_used(old.layout->edges.size(), false);
-    const auto next_revision = old.revision.load() + 1;
+        return old.fail("Live graph configuration or adoption deadline differs");
+    const auto next_revision = old.published_revision.load(std::memory_order_acquire) + 1;
     if (!next_revision) return old.fail("Live graph revision exhausted");
-    actual.reserve(fresh.layout->nodes.size());
-    retained.reserve(fresh.layout->nodes.size());
-    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i) {
-        auto &n = *fresh.layout->nodes[i];
-        auto *prior = old.find(n.instance.id);
-        if (prior && prior->instance.d == n.instance.d && prior->instance.config == n.instance.config) {
-            if (prior->instance.inputs.size() != n.instance.inputs.size() ||
-                prior->instance.outputs.size() != n.instance.outputs.size() ||
-                prior->instance.parameters.size() != n.instance.parameters.size())
+
+    // Build a separate layout without writing the current render layout or DSP.
+    // The candidate remains intact on a timeout (the stopped-stream fallback
+    // can still use it). All layout scratch and state storage are allocated here.
+    Impl staged(fresh.cfg);
+    auto &next = *staged.layout;
+    next.revision = next_revision;
+    std::vector<uint32_t> retained, introduced;
+    for (auto &candidate_node : fresh.layout->nodes) {
+        auto &candidate_instance = candidate_node->instance;
+        auto *prior = old.find(candidate_instance.id);
+        Instance *instance = &candidate_instance;
+        if (prior && prior->instance.d == instance->d && prior->instance.config == instance->config) {
+            if (prior->instance.inputs.size() != instance->inputs.size() ||
+                prior->instance.outputs.size() != instance->outputs.size() ||
+                prior->instance.parameters.size() != instance->parameters.size())
                 return old.fail("Surviving node ports changed");
-            actual.push_back(prior);
-            retained.emplace_back(i, prior->slot.index);
-        } else {
-            n.instance.born_revision = next_revision;
-            actual.push_back(&n);
+            instance = &prior->instance;
+            retained.push_back(instance->id);
+        } else introduced.push_back(instance->id);
+        auto entry = std::make_unique<Node>(*instance);
+        entry->slot.in.resize(instance->inputs.size());
+        for (auto &buffer : entry->slot.in) buffer.prepare(old.cfg.max_channels, old.cfg.max_block);
+        entry->slot.in_view.resize(instance->inputs.size());
+        entry->slot.param_view.resize(instance->parameters.size());
+        next.setup_bytes += instance->requested_fast + instance->requested_large;
+        next.nodes.push_back(std::move(entry));
+    }
+    for (const auto &edge : fresh.layout->edges)
+        if (!edge.removed) next.edges.push_back({edge.from, edge.output, edge.to, edge.input, edge.kind, edge.amount});
+    next.buses = fresh.layout->buses;
+    next.taps = fresh.layout->taps;
+    next.tap_values = std::make_unique<std::atomic<float>[]>(next.taps.size());
+    next.tap_counts = std::make_unique<std::atomic<uint32_t>[]>(next.taps.size());
+    for (size_t i = 0; i < next.taps.size(); ++i) {
+        next.tap_values[i].store(0, std::memory_order_relaxed);
+        next.tap_counts[i].store(0, std::memory_order_relaxed);
+    }
+    if (!staged.topology()) return old.fail("Cannot build live layout");
+    for (auto &bus : next.buses) bus.source = staged.find(bus.node);
+    if (!staged.resolve_taps()) return old.fail("Cannot build live tap layout");
+    next.feedback_count = staged.feedback_count.load();
+    std::vector<Node *> actual;
+    for (auto &n : next.nodes) {
+        auto *prior = old.find(n->instance.id);
+        actual.push_back(prior && &prior->instance == &n->instance ? prior : n.get());
+    }
+    std::vector<bool> used(next.edges.size(), false), delay_used(old.layout->edges.size(), false);
+    std::vector<std::pair<size_t, size_t>> delays;
+    if (!old.plan_edge_transitions(staged, actual, used, delay_used, next.chokes, next.removed_routes, delays))
+        return false;
+    for (auto &edge : next.edges) {
+        edge.born_revision = next_revision;
+        auto prior = std::lower_bound(old.layout->edges.begin(), old.layout->edges.end(), edge.key(),
+                                      [](const Edge &e, const auto &key) { return e.key() < key; });
+        for (; prior != old.layout->edges.end() && prior->key() == edge.key(); ++prior) {
+            if (prior->removed || &prior->source->instance != &edge.source->instance ||
+                &prior->destination->instance != &edge.destination->instance) continue;
+            edge.born_revision = prior->born_revision;
+            edge.sent_serial = prior->sent_serial;
+            // Same feedback classification: retain the state object itself.
+            // A newly introduced delay has its own preallocated storage.
+            if (edge.back == prior->back) edge.state = prior->state;
+            if (edge.kind == 2)
+                next.modulation_adoption.push_back({&edge, prior->state, edge.amount != prior->amount});
+            break;
         }
     }
-    if (!old.plan_edge_transitions(fresh, actual, used, delay_used, chokes, removed_routes, delays))
-        return false;
-    // Allocate distinct topology entries before parking. A failed park leaves
-    // the candidate's slots and the current layout untouched.
-    std::vector<std::unique_ptr<Node>> entries(fresh.layout->nodes.size());
-    for (auto pair : retained)
-        entries[pair.first] = std::make_unique<Node>(actual[pair.first]->instance);
+    // New instances are quiescent until adoption. Retained emitters already
+    // refer to this Impl and are not rewritten from the control thread.
+    for (auto id : introduced) {
+        auto &instance = *fresh.instances.at(id);
+        instance.born_revision = next_revision;
+        for (uint32_t i = 0; i < instance.event_outputs.size(); ++i)
+            instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
+    }
+    auto *published = &next;
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::nanoseconds(timeout_ns);
-    auto expected = Park::Running;
-    if (!old.park.compare_exchange_strong(expected, Park::Requested, std::memory_order_acq_rel))
-        return old.fail("Another graph edit is pending");
-    while (old.park.load(std::memory_order_acquire) != Park::Parked) {
-        if (std::chrono::steady_clock::now() >= deadline) {
-            expected = Park::Requested;
-            if (old.park.compare_exchange_strong(expected, Park::Cancelled, std::memory_order_acq_rel))
-                return old.fail("Audio did not park before the edit deadline");
-            if (expected == Park::Parked) break;
+    old.pending_layout.store(published, std::memory_order_release);
+    bool claimed = false;
+    while (old.adopted_revision.load(std::memory_order_acquire) < next_revision) {
+        if (!claimed && std::chrono::steady_clock::now() >= deadline) {
+            auto *expected = published;
+            if (old.pending_layout.compare_exchange_strong(expected, nullptr, std::memory_order_acq_rel)) {
+                for (auto id : introduced) {
+                    auto &instance = *fresh.instances.at(id);
+                    instance.born_revision = 0;
+                    for (uint32_t i = 0; i < instance.event_outputs.size(); ++i)
+                        instance.event_outputs[i] = {sizeof(ws2_event_out), &fresh, i, Impl::emit};
+                }
+                return old.fail("Audio did not adopt before the edit deadline");
+            }
+            // A51: a lost cancellation race is a claim, never a refusal.
+            claimed = true;
         }
         std::this_thread::yield();
     }
-    // All allocation and fallible work precedes the ack. Keep this Impl and its
-    // ingress/egress rings, clock, future packets and generation in place.
-    // A disconnected feedback edge must not replay an old NoteOn after its choke.
-    // Preserve independently scheduled producer events to surviving targets.
-    old.future.erase(std::remove_if(old.future.begin(), old.future.end(),
-                                    [&](const Packet &p) {
-                                        const std::array<uint32_t, 4> route{p.routed_from, p.routed_output, p.node,
-                                                                            p.port};
-                                        if (!p.routed_from ||
-                                            !std::binary_search(removed_routes.begin(), removed_routes.end(), route))
-                                            return false;
-                                        ++old.stale;
-                                        return true;
-                                    }),
-                     old.future.end());
-    for (auto pair : retained) {
-        auto &node = *old.layout->nodes[pair.second];
-        auto &entry = *entries[pair.first];
-        entry.slot = std::move(fresh.layout->nodes[pair.first]->slot);
-        entry.slot.in.swap(node.slot.in);
-        entry.slot.in_view.swap(node.slot.in_view);
-        entry.slot.param_view.swap(node.slot.param_view);
-        old.instances.find(node.instance.id)->second.swap(fresh.instances.find(node.instance.id)->second);
-        actual[pair.first] = &entry;
-    }
-    for (auto *n : actual)
-        for (uint32_t i = 0; i < n->instance.event_outputs.size(); ++i)
-            n->instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
-    for (auto *&node : fresh.layout->tap_nodes) node = actual[node->slot.index];
-    for (auto &e : fresh.layout->edges) {
-        e.source = actual[e.source->slot.index];
-        e.destination = actual[e.destination->slot.index];
-    }
-    for (auto &component : fresh.layout->components)
-        for (auto *&n : component.nodes) n = actual[n->slot.index];
-    for (auto &entry : fresh.layout->node_table) entry.second = actual[entry.second->slot.index];
-    for (auto &bus : fresh.layout->buses) bus.source = actual[bus.source->slot.index];
-    for (size_t i = 0; i < entries.size(); ++i)
-        if (entries[i]) fresh.layout->nodes[i].swap(entries[i]);
-    for (auto pair : delays) {
-        auto &e = fresh.layout->edges[pair.first];
-        auto &prior = old.layout->edges[pair.second];
-        std::swap(e.state.delay, prior.state.delay);
-        e.state.delay_channels.swap(prior.state.delay_channels);
-        std::swap(e.state.head, prior.state.head);
-    }
-    for (auto &e : fresh.layout->edges) {
-        if (e.kind != 2) continue;
-        e.born_revision = next_revision;
-        auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
-        if (!prior || &prior->source->instance != &e.source->instance ||
-            &prior->destination->instance != &e.destination->instance) continue;
-        e.born_revision = prior->born_revision;
-        e.sent_serial = prior->sent_serial;
-        e.state.modulation = prior->state.modulation;
-        // A newer authored graph value supersedes pending packets for this edge.
-        if (e.amount != prior->amount) {
-            e.state.modulation.applied_serial = prior->sent_serial;
-            e.state.modulation.set(e.amount, old.mod_ramp_frames());
-        }
-    }
+    // No render can touch the previous layout after the acquire above.
+    // Transfer control ownership without allocation, then retire the previous
+    // layout and unreferenced state. The render pointer is never control-written.
+    for (auto id : retained) old.instances.at(id).swap(fresh.instances.at(id));
     old.instances.swap(fresh.instances);
-    old.layout.swap(fresh.layout);
-    old.tap_sequence.store(0, std::memory_order_relaxed);
-    old.tap_frame.store(0, std::memory_order_release);
-    old.feedback_count.store(fresh.feedback_count.load());
-    old.latency.store(fresh.latency.load());
-    size_t bytes = 0;
-    for (auto &node : old.layout->nodes) bytes += node->instance.requested_fast + node->instance.requested_large;
-    old.setup_bytes.store(bytes);
-    old.replan_chokes.swap(chokes);
-    old.revision.store(next_revision, std::memory_order_release);
+    for (auto &edge : next.edges) {
+        auto state = old.edge_states.extract(edge.state);
+        if (!state.empty()) staged.edge_states.insert(std::move(state));
+    }
+    old.layout.swap(staged.layout);
+    old.edge_states.swap(staged.edge_states);
+    for (auto it = old.edge_states.begin(); it != old.edge_states.end();) {
+        if (std::none_of(next.edges.begin(), next.edges.end(), [&](const Edge &edge) { return edge.state == it->first; }))
+            it = old.edge_states.erase(it);
+        else ++it;
+    }
+    old.recompute_latency();
+    old.published_revision.store(next_revision, std::memory_order_release);
     old.error.clear();
-    // Retained instances may have advanced their reported latency since the
-    // candidate was prepared. Publish the live result before the park ack.
-    refresh_latency();
-    old.park.store(Park::Running, std::memory_order_release);
     return true;
 }
 } // namespace wirescape::engine2
