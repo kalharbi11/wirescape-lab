@@ -35,11 +35,14 @@ struct HostKeyboard {
             e.struct_size = sizeof(e);
             e.offset = i;
             e.source_id = UINT32_MAX;
-            core.release_all(UINT32_MAX, e, emit);
-            wirescape::voice::Config cfg;
-            cfg.max_voices = count;
-            cfg.mode = static_cast<wirescape::voice::Mode>(policy);
-            core.configure(cfg);
+            if (voices && policy == mode) core.resize(count, e, emit);
+            else {
+                core.release_all(UINT32_MAX, e, emit);
+                wirescape::voice::Config cfg;
+                cfg.max_voices = count;
+                cfg.mode = static_cast<wirescape::voice::Mode>(policy);
+                core.configure(cfg);
+            }
             voices = count;
             mode = policy;
         }
