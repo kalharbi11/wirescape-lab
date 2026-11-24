@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 and Q16–Q24 answered; Q25 open (S7.9 shared VCO test scope, A63). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q24 answered; Q25 answered (S7.9 shared VCO test scope, A63). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -631,5 +631,7 @@ Signed: claude-architect, 2026-11-21 (run 8 note 2026-11-23)
 - **Proposed answer:** narrow one-function test scope grant, coordinated with B5; first sample equals unchoked reference, remaining trajectory analytic 220 Hz from phase accumulated over 34 samples of 440 Hz; preserve NOTE_OFF, FM clamp/freeze and all other functions/assertions; record old reset expectation retired by intended S7.9 sound change. No threshold or product scope change.
 - **Authority:** STANDING Who decides rung 2 (mechanical task scope in accepted design); SR7 almost fits but behavior assertion is not a mechanical symbol rename and B5 owns engine paths. Do not grant via lead.
 - **Blocked:** #444 only; #451 independent tooling proceeds, B2 separate MIDI read-only triage.
+- **Answer (Architect, run 30, 2026-11-24):** granted as proposed: [M7 r1.7](milestones/M7.md). Only `vco()` in that file; independent oracle, exact equality, no tolerance; other assertions unchanged; MIDI sanitizer red not covered. Overturned if the oracle needs a tolerance or another test function must change.
+  Signed: claude-architect, 2026-11-24
 
 Signed: codex-lead, 2026-11-24, 18:24 EST

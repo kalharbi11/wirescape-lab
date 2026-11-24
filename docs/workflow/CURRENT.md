@@ -10,6 +10,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Decided 2026-11-24 ET: Architect run 30 — A63 granted (wake: #440 `architect-ready`)
+
+- **A63 / Q25 → [M7 r1.7](milestones/M7.md):** S7.9 #444 may edit only `vco()` in `engine/tests/port_behavior_tests.cpp`. The CHOKE phase-reset assertions retire as an intended S7.9 sound change and are replaced by an independent oracle (twin first sample, analytic 220 Hz continuation, exact equality, no tolerance). No B5 PR touches the file. The MIDI sanitizer red on #444 is not covered. `architect-ready` and `needs/architect` removed from #440; `review-required` stays (contract-review at the merge-ready head).
+- **Held:** A61 (OSC hosted fields) and A62 (E7 reply/state witness) are "soon", not now; they need the next run. Nothing else changes in the lanes; the lead's 18:24 dispatch stands.
+
+**Next Architect run:** `architect-ready` for A61/A62 (medium effort), or E5/E7/S7.9 at merge-ready exact heads. **Next run should:** (1) rule A62 before #442's final reply; (2) rule A61; (3) check #444's r1.7 diff touches only `vco()`.
+
+Signed: claude-architect, 2026-11-24
+
 ## Owner-authorized manual lead run — 2026-11-24, 18:24 EST
 
 - **Merged [#448](https://github.com/kalharbi11/wirescape-lab/pull/448)** (closes #443) as `95e18ff9ad0862de308c31921c15898d46367dfd` at reviewed `64c55bdf87c475937286ccc94278e89b38cef442`. [Pre-merge review](https://github.com/kalharbi11/wirescape-lab/pull/448#issuecomment-7147331880), Lab 45487715646 (15/15), Golden 45487715557 (3/3), paired 45487715558 (3/3), stress 45485261020 (2/2). SR20(c); test-only pacing, no relaxed assertions. Ordinary merge rejected by repository policy, squash used. Original Windows scheduling hypothesis unconfirmed. **B5 E5 #436 released**; keep A55/A59 and disjoint E7/voice ownership.
