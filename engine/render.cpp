@@ -70,6 +70,19 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
     return true;
 }
 
+void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
+    // TR1e defines one host-wide target. Reject other target/type pairs before
+    // reading the payload. Instance-addressed host commands must additionally
+    // pass the target birth check when they are introduced.
+    if (packet.node || packet.event.type != WS2_TRANSPORT_EVENT) {
+        ++stale;
+        return;
+    }
+    TransportUpdate update{};
+    std::memcpy(&update, packet.payload.data(), sizeof(update));
+    update.apply(packet.order, transport_applied, cfg, beat);
+}
+
 void Engine::Impl::collect() {
     for (auto &n : nodes) n->instance.pending.clear();
     Packet p;
@@ -91,6 +104,10 @@ void Engine::Impl::collect() {
         for (Ring *ring : {&source.critical, &source.normal}) {
             // Snapshot-like bounded drain. A busy producer cannot extend this indefinitely.
             for (uint32_t work = 0; work < cfg.ring_capacity && ring->pop(p); ++work) {
+                if (p.host) {
+                    apply_host_packet(p);
+                    continue;
+                }
                 if (p.generation != gen) {
                     ++stale;
                     continue;
@@ -152,7 +169,7 @@ void Engine::Impl::collect() {
 bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
     if (!processing || port >= processing->instance.outputs.size() ||
         processing->instance.outputs[port].kind != WS2_EVENT || source.offset >= processing_frames ||
-        !ws::valid_event(source))
+        source.type == WS2_TRANSPORT_EVENT || !ws::valid_event(source))
         return false;
     if (ordinary_used + critical_used >= cfg.event_budget ||
         (!release(source) && ordinary_used >= cfg.event_budget - cfg.release_reserve)) {
@@ -605,14 +622,13 @@ int Engine::enqueue(uint32_t producer, uint32_t node, uint32_t port, const ws2_e
     const auto gen = p.generation.load(std::memory_order_acquire);
     if (gen != p.applied.load(std::memory_order_acquire) || (wanted_generation && wanted_generation != gen))
         return WS2_STATE;
-    if (!ws::valid_event(event)) return WS2_INVALID;
+    if (event.type == WS2_TRANSPORT_EVENT || !ws::valid_event(event)) return WS2_INVALID;
     auto &source = *p.producers[producer];
     Packet packet;
     packet.node = node;
     packet.port = port;
     packet.when = time;
     packet.mode = mode;
-    packet.producer = producer;
     packet.generation = gen;
     packet.revision = p.revision.load(std::memory_order_acquire);
     packet.order = (static_cast<uint64_t>(producer) << 48) | (source.serial++ & UINT64_C(0x0000ffffffffffff));
@@ -678,6 +694,10 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     } guard(p.rendering);
     p.block_start = p.position.load(std::memory_order_relaxed);
     p.block_frames = frames;
+    if (p.reset_beat) {
+        p.beat = 0;
+        p.reset_beat = false;
+    }
     if (callback_time_ns != UINT64_MAX) publish_clock(p.block_start, callback_time_ns);
     const auto parked = p.park.load(std::memory_order_acquire);
     if (parked == Park::Parked) {

@@ -3,6 +3,7 @@
 #include "wirescape/module2.h"
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 namespace wirescape::engine2 {
@@ -72,7 +73,10 @@ public:
     bool pop_egress(Outgoing&)noexcept;
     void panic()noexcept;
     void reset();
-    void transport(double bpm,bool playing,double beat=0);
+    // Control-owner-only. After prepare, uses producer 0's critical ring; its
+    // enqueue calls on handle 0 must have the same writer. WS2_CAPACITY means busy.
+    // Omit beat to keep phase continuous. After reset, resend document state.
+    [[nodiscard]] int transport(double bpm,bool playing,std::optional<double> beat=std::nullopt) noexcept;
     // Render-thread-only: publishes anchors owned by render; never call concurrently.
     bool publish_clock(uint64_t frame,uint64_t time_ns);
     Meter meter()const noexcept;
