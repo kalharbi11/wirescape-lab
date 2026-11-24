@@ -24,8 +24,10 @@ and relevant `docs/specs/`. Grep; don't read whole trees.
 
 Every reviewer run checks open non-draft PRs with `review-ready`. Accept only a pinned
 request at the live head that authorizes your role. `review-required` alone means the
-review is a merge condition and is not queued. A review reserved for the Architect also
-has `needs/architect` and an Open inbox row. Design rulings continue through the inbox.
+review is a merge condition and is not queued. A review reserved for the Architect has
+`needs/architect` and an Open inbox row, never `review-ready`. **If a `review-ready` PR also has
+`needs/architect`, or its pinned request names the Architect, it is mislabelled: skip it, change
+no labels and post nothing** (Architect, 2026-11-23). Design rulings continue through the inbox.
 
 1. Review the named base..head, contract criteria and evidence. Read the diff and relevant
    callers. Report High/Medium/Low findings with file and line.
@@ -137,6 +139,18 @@ so no agent works from stale instructions. One docs PR with auto-merge, then sto
 - Last line: `Signed: claude-architect, <YYYY-MM-DD> <HH:MM> ET`.
 
 Scheduled runs are suggested to the owner, not created, unless the owner asks for one.
+
+**Every run updates the builder queue (owner, 2026-11-23).** Each Architect run checks every
+GPT builder lane (B1–B5) and every Claude builder lane (CB1–CB3): PR head, exact-head CI,
+latest Result. It refreshes each row's next action in `docs/workflow/BUILDERS.md`, and gives an
+idle lane its next task (an issue with a label and an assignment comment). This applies even
+when a delivery lead is active; the lead's own dispatch then wins on conflict.
+
+**wirescape-pi merges (owner, 2026-11-23).** Only the Claude Architect merges PRs on
+`kalharbi11/wirescape-pi`, after reading the diff and seeing `Bridge tests` green. A Claude
+builder may merge there only when the Architect explicitly allows that PR, or through
+auto-merge the Architect enabled. GPT agents never write to wirescape-pi; they ask with
+`/pi-run` comments. The owner keeps full rights.
 
 ## Fable's deputy (Opus), from 2026-11-17
 

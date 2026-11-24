@@ -313,7 +313,7 @@ test('unsupported opens never rebind Save and unsupported targets are never over
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filename] });
     }, good);
     await page.evaluate(() => window.wirescape.openPatch());
-    const fixture = path.resolve(__dirname, '../../../native/tests/fixtures/legacy_documents');
+    const fixture = path.resolve(__dirname, '../../../tests/native/compat/fixtures/legacy_documents');
     const invalid = fs.readdirSync(fixture).map(name => fs.readFileSync(path.join(fixture, name), 'utf8'));
     invalid.push('{broken', '[]', native(false).replace('"version":2', '"version":99'),
       native(false).replace('"unknown":false', '"unknown":1,"\\u0075nknown":2'),
@@ -350,26 +350,32 @@ test('unsupported opens never rebind Save and unsupported targets are never over
     expect((await page.evaluate(() => window.wirescape.openPatch())).text).toBe(opaque);
     await page.evaluate(text => window.wirescape.savePatch(text), opaque);
     expect(fs.readFileSync(rejected, 'utf8')).toBe(opaque);
-    expect(fs.readdirSync(dir).some(name => name.endsWith('.tmp') || name.endsWith('.v1.json'))).toBe(false);
+    expect(fs.readdirSync(dir).some(name => name.endsWith('.tmp') || name.includes('.bak-v1'))).toBe(false);
   } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('v1 Save and Save As publish exact no-clobber backups and atomic v2 documents', async () => {
+
+test('v1 Open is read-only and first Save writes the exact sibling backup', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-v1-backup-'));
-  const file = path.join(dir, 'source.json'), second = path.join(dir, 'copy.json');
-  const original = ' \n' + JSON.stringify({ format: 'wirescape.native.patch', version: 1,
-    modules: [], connections: [], outputNode: 0, vendor: { untouched: true } }) + '\n';
-  fs.writeFileSync(file, original);
+  const file = path.join(dir, 'source.json'), fresh = path.join(dir, 'fresh.json');
+  const original = ' ' + String.fromCharCode(10) +
+    JSON.stringify({ format: 'wirescape.native.patch', version: 1,
+      modules: [], connections: [], outputNode: 0, vendor: { untouched: true } }) + String.fromCharCode(10);
   const migrated = JSON.stringify({ format: 'wirescape.native.patch', version: 2,
-    modules: [], connections: [], preserved: JSON.parse(original), vendor: { untouched: true } }) + '\n';
+    modules: [], connections: [], preserved: JSON.parse(original), vendor: { untouched: true } });
+  fs.writeFileSync(file, original);
   const app = await launch();
   try {
     const page = await app.firstWindow();
+    const before = fs.statSync(file).mtimeMs;
     await app.evaluate(({ dialog }, filename) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filename] });
     }, file);
     await page.evaluate(() => window.wirescape.openPatch());
-    const backup = path.join(dir, 'source.v1.json');
+    expect(fs.readFileSync(file, 'utf8')).toBe(original);
+    expect(fs.statSync(file).mtimeMs).toBe(before);
+    expect(fs.existsSync(file + '.bak-v1')).toBe(false);
+    const backup = file + '.bak-v1';
     fs.mkdirSync(backup);
     await expect(page.evaluate(text => window.wirescape.savePatch(text), migrated))
       .rejects.toThrow('Could not create original patch backup; target was kept');
@@ -378,23 +384,109 @@ test('v1 Save and Save As publish exact no-clobber backups and atomic v2 documen
     await page.evaluate(text => window.wirescape.savePatch(text), migrated);
     expect(fs.readFileSync(backup, 'utf8')).toBe(original);
     expect(fs.readFileSync(file, 'utf8')).toBe(migrated);
-    fs.writeFileSync(backup, 'existing backup');
     await page.evaluate(text => window.wirescape.savePatch(text), migrated);
-    expect(fs.readFileSync(backup, 'utf8')).toBe('existing backup');
+    expect(fs.existsSync(backup + '.2')).toBe(false);
     await app.evaluate(({ dialog }, filename) => {
       dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
-    }, second);
+    }, file);
     await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), migrated);
-    expect(fs.readFileSync(path.join(dir, 'copy.v1.json'), 'utf8')).toBe(original);
-    expect(fs.readFileSync(second, 'utf8')).toBe(migrated);
+    expect(fs.readFileSync(file, 'utf8')).toBe(migrated); // v2 destination, no second backup
+    expect(fs.existsSync(backup + '.2')).toBe(false);
     await app.evaluate(({ dialog }, filename) => {
-      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filename] });
-      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename + '.new.json' });
-    }, second);
-    await page.evaluate(() => window.wirescape.openPatch());
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
+    }, fresh);
     await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), migrated);
-    expect(fs.existsSync(second + '.new.v1.json')).toBe(false);
+    expect(fs.readFileSync(fresh, 'utf8')).toBe(migrated);
+    expect(fs.existsSync(fresh + '.bak-v1')).toBe(false);
+    expect(fs.readFileSync(file, 'utf8')).toBe(migrated);
     expect(fs.readdirSync(dir).filter(name => name.endsWith('.tmp'))).toEqual([]);
+  } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('Save As to the opened v1 path backs up original bytes and writes the chosen destination', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-v1-same-path-'));
+  const filename = path.join(dir, 'legacy.json');
+  const original = ' ' + JSON.stringify({ format: 'wirescape.native.patch', version: 1,
+    modules: [], connections: [], outputNode: 0 }) + '\n';
+  const updated = JSON.stringify({ format: 'wirescape.native.patch', version: 2,
+    modules: [], connections: [], preserved: JSON.parse(original) });
+  fs.writeFileSync(filename, original);
+  const app = await launch();
+  try {
+    const page = await app.firstWindow();
+    await app.evaluate(({ dialog }, filepath) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filepath] });
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filepath });
+    }, filename);
+    const opened = await page.evaluate(() => window.wirescape.openPatch());
+    expect(opened.text).toBe(original);
+    expect(fs.readFileSync(filename, 'utf8')).toBe(original);
+    expect(fs.existsSync(filename + '.bak-v1')).toBe(false);
+    await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), updated);
+    expect(fs.readFileSync(filename + '.bak-v1', 'utf8')).toBe(original);
+    expect(fs.readFileSync(filename, 'utf8')).toBe(updated);
+    expect(fs.existsSync(filename + '.bak-v1.2')).toBe(false);
+  } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('Save As to an existing v1 destination uses lowest free backup; equal bytes are reused', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-v1-collision-'));
+  const original = JSON.stringify({ format: 'wirescape.native.patch', version: 1,
+    modules: [], connections: [], outputNode: 0 });
+  const output = JSON.stringify({ format: 'wirescape.native.patch', version: 2,
+    modules: [], connections: [] });
+  const target = path.join(dir, 'target.json'), equal = path.join(dir, 'equal.json');
+  const backup = target + '.bak-v1';
+  fs.writeFileSync(target, original);
+  fs.writeFileSync(backup, 'different first backup');
+  fs.writeFileSync(backup + '.2', 'different second backup');
+  fs.writeFileSync(equal, original);
+  fs.writeFileSync(equal + '.bak-v1', original);
+  const app = await launch();
+  try {
+    const page = await app.firstWindow();
+    await app.evaluate(({ dialog }, filename) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
+    }, target);
+    await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), output);
+    expect(fs.readFileSync(target, 'utf8')).toBe(output);
+    expect(fs.readFileSync(backup, 'utf8')).toBe('different first backup');
+    expect(fs.readFileSync(backup + '.2', 'utf8')).toBe('different second backup');
+    expect(fs.readFileSync(backup + '.3', 'utf8')).toBe(original);
+    await app.evaluate(({ dialog }, filename) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: filename });
+    }, equal);
+    const before = fs.statSync(equal + '.bak-v1').mtimeMs;
+    await page.evaluate(text => window.wirescape.savePatch(text, { saveAs: true }), output);
+    expect(fs.readFileSync(equal, 'utf8')).toBe(output);
+    expect(fs.statSync(equal + '.bak-v1').mtimeMs).toBe(before);
+    expect(fs.existsSync(equal + '.bak-v1.2')).toBe(false);
+    expect(fs.readdirSync(dir).filter(name => name.endsWith('.tmp'))).toEqual([]);
+  } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('v1 library read and listing preserve disk bytes and exclude backup files', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-v1-library-'));
+  const folder = path.join(dir, 'patches'), file = path.join(folder, 'Legacy.json');
+  fs.mkdirSync(folder);
+  const original = JSON.stringify({ format: 'wirescape.native.patch', version: 1,
+    modules: [], connections: [], outputNode: 0 });
+  fs.writeFileSync(file, original);
+  const app = await launch();
+  try {
+    await app.evaluate(({ app }, directory) => app.setPath('userData', directory), dir);
+    const page = await app.firstWindow();
+    const before = fs.statSync(file).mtimeMs;
+    const listed = await page.evaluate(() => window.wirescape.openPatch({ library: 'list' }));
+    expect(JSON.parse(listed.text)).toContain('Legacy.json');
+    const opened = await page.evaluate(() => window.wirescape.openPatch({ library: 'read', name: 'Legacy.json' }));
+    expect(opened.text).toBe(original);
+    expect(fs.readFileSync(file, 'utf8')).toBe(original);
+    expect(fs.statSync(file).mtimeMs).toBe(before);
+    expect(fs.existsSync(file + '.bak-v1')).toBe(false);
+    fs.writeFileSync(file + '.bak-v1', original);
+    const again = await page.evaluate(() => window.wirescape.openPatch({ library: 'list' }));
+    expect(JSON.parse(again.text)).toEqual(['Legacy.json']);
   } finally { await app.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

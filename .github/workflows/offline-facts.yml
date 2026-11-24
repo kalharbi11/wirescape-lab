@@ -7,6 +7,14 @@ on:
       - 'bench/offline/**'
       - '.github/workflows/offline-facts.yml'
       - 'native/**'
+      - 'engine/**'
+      - 'host/**'
+      - 'modules/**'
+      - 'sdk/**'
+      - 'targets/**'
+      - 'tests/native/**'
+      - 'tools/render/**'
+      - 'tools/capture/**'
       - 'apps/studio/patches/**'
 
 jobs:

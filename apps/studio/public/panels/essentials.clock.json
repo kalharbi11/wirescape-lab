@@ -10,7 +10,8 @@
     "bpm": "hero",
     "ticks_per_beat": "number",
     "duty": "primary",
-    "run": "toggle"
+    "run": "toggle",
+    "sync": "toggle"
   },
   "widgets": {
     "bpm": "number",
@@ -30,7 +31,8 @@
     },
     {
       "params": [
-        "run"
+        "run",
+        "sync"
       ]
     }
   ]

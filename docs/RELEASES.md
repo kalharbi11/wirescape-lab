@@ -3,7 +3,7 @@
 
 ## OB-0 candidate
 
-Status: Reverb is merged. The Pi 5 source-install and smoke check and the immutable `owner-build-0` tag are pending.
+Status: **OB0 accepted, 2026-11-20 (claude-architect), on the OB contract's acceptance item 1.** Tag `owner-build-0` → `a440d7175659402474290e34a1d63b4404dcaa72` (annotated, immutable). The owner directed tagging before the Pi smoke. The Pi 5 source-install and smoke check is an owner-only follow-up on #198: recorded, not waived. A Pi failure gets a fix on `main` and a note here; the tag never moves.
 
 - Integrated source candidate: `a440d7175659402474290e34a1d63b4404dcaa72`. M2 E1b-r, M7 baseline/S7.1/S7.2/S7.4 and OB-a1 are merged. [Delivery tracker](https://github.com/kalharbi11/wirescape-lab/issues/198)
 - Reverb S7.2 keeps Mix continuous through zero and measured a maximum full-mode output of 0.9806554914 FS against a 1.00 FS limit. Lab, three-platform Golden and instruction checks passed on the reviewed PR head. [Independent review and measured evidence](https://github.com/kalharbi11/wirescape-lab/pull/255#issuecomment-7030178826)

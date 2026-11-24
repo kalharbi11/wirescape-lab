@@ -58,7 +58,8 @@ writers and cleared dependencies.
   Result, a non-draft PR and relevant evidence at the current head, and posts a request with
   full base/head SHAs, criteria and the authorized reviewer role. Reviewer eligibility still
   comes from the contract or explicit owner authorization. Architect-only reviews also need
-  an Open inbox row and `needs/architect`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+  an Open inbox row and `needs/architect`, and never get `review-ready`: the lead sends them in the
+  `architect-wake` batch on #265. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 - **Builder continuation:** when an active task depends on a running CLI build or test,
   keep doing independent work and schedule one same-task resume near expected completion
   if scheduling is available. Continue this pattern until done or genuinely blocked.
@@ -81,6 +82,7 @@ writers and cleared dependencies.
   `build*/`, or audio files over 1 MB (see `bench/README.md` for where recordings go).
 - SPDX header on new files: MIT under `native/sdk/` and `native/voice/`, GPL-3.0-only elsewhere.
 - No force-push, no history rewrite, no commits to `main`.
+- `kalharbi11/wirescape-pi`: only the Claude Architect merges (owner, 2026-11-23). Claude builders merge there only with the Architect's explicit permission or its auto-merge. GPT agents never write there and use `/pi-run` comments instead.
 - No model run polls unchanged state. A builder may schedule a one-shot same-task continuation under the rules above. Scripts and GitHub Actions may watch CI and events.
 
 ## Handoff template

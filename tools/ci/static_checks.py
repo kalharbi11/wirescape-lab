@@ -77,7 +77,7 @@ def analysis_units(root, files, builds=("build/static", "build/static-web")):
 
 def pinned_cppcheck_baseline(root, output, code):
     """Recognize exact historical vendor findings, never first-party or new ones."""
-    baseline_path = root / "native/modules2/macro_oscillator/cppcheck-baseline.json"
+    baseline_path = root / "modules/macro_oscillator/cppcheck-baseline.json"
     if not baseline_path.exists():
         return output, code, 0
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))

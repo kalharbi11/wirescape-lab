@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $paSha = '147dd722548358763a8b649b3e4b41dfffbcfbb6'
 # Steinberg ASIO SDK (dual licence; used under its GPL-3.0 option, built locally,
-# never committed or redistributed). Pin: native/io/audio/DESIGN.md.
+# never committed or redistributed). Pin: host/audio/DESIGN.md.
 $asioUrl = 'https://download.steinberg.net/sdk_downloads/ASIO-SDK_2.3.4_2025-10-15.zip'
 $asioSha = 'D5EBF0C20DD2C5F43771FD0C1418F4B361BF52434EE670097CFA6B3A335E2ECA'
 

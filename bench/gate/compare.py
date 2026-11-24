@@ -9,6 +9,14 @@ import math
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from bench.golden.inventory import EXPERIMENTAL, golden_ids  # noqa: E402
+
+def experimental_row_ids():
+    return {f"module/{m}/voices{voices}" for m in EXPERIMENTAL for voices in (1, 8)}
+
 
 def indexed(document):
     rows = document.get("rows")
@@ -26,21 +34,16 @@ def indexed(document):
 
 
 def expected_ids(root=None):
-    """Authoritative graph inventory for command-line benchmark comparisons."""
-    root = Path(root) if root is not None else Path(__file__).resolve().parents[2]
-    fixture = root / "tools/foundation/fixtures/known_module_ids.txt"
-    module_ids = {line.strip() for line in fixture.read_text(encoding="utf-8").splitlines()
-                  if line.strip() and not line.startswith("#")}
-    module_ids.add("osc.out")  # registered in native/control/module_catalog.inc
+    """Only the 96 frozen Golden/canonical rows, never experimental heads."""
+    root = Path(root) if root is not None else ROOT
+    modules = golden_ids(root)
     patches = sorted((root / "apps/studio/patches").glob("*.json"))
-    if len(module_ids) != 34 or len(patches) != 24:
-        raise ValueError(f"unexpected catalogue coverage: {len(module_ids)} modules, "
-                         f"{len(patches)} patches")
-    modes = ("abi2_mono", "abi2_modulated", "abi2_poly8",
-             "abi2_quad_vca_lpg8")
+    if len(modules) != 34 or len(patches) != 24:
+        raise ValueError(f"unexpected Golden coverage: {len(modules)} modules, {len(patches)} patches")
+    modes = ("abi2_mono", "abi2_modulated", "abi2_poly8", "abi2_quad_vca_lpg8")
     return ({f"fixed/{m}" for m in modes}
             | {f"bundled/{p.name}" for p in patches}
-            | {f"module/{m}/voices{voices}" for m in module_ids for voices in (1, 8)})
+            | {f"module/{m}/voices{v}" for m in modules for v in (1, 8)})
 
 
 def valid_measured_row(row, verify_totals):
@@ -89,8 +92,20 @@ def compare(baseline, current, threshold=3.0, required_ids=None,
             changes.append({"id": retired, "percent": None, "status": "retired"})
         if new is not None:
             failures.append(f"{retired}: retired metric must not appear in current evidence")
-    for key in sorted(before.keys() | after.keys() | (set(required_ids) if required_ids else set())):
+    experimental = experimental_row_ids() if required_ids is not None else set()
+    required = set(required_ids) if required_ids is not None else set()
+    for key in sorted(before.keys() | after.keys() | required):
         old, new = before.get(key), after.get(key)
+        if key in experimental and key not in required and old is None and new is not None:
+            # Validated head-only measurements cannot be compared to a nonexistent base.
+            if new.get("status") == "measured" and valid_measured_row(new, verify_totals):
+                changes.append({"id": key, "percent": None, "status": "new", "current_ir": new["ir_per_block"]})
+            elif new.get("status") == "unavailable":
+                changes.append({"id": key, "percent": None, "status": "new",
+                                "measurement_status": "unavailable", "reason": new.get("reason", "no numeric Ir")})
+            else:
+                failures.append(f"{key}: invalid new experimental instruction evidence")
+            continue
         if old is None or new is None:
             failures.append(f"{key}: missing {'baseline' if old is None else 'current'} row")
             continue

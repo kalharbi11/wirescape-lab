@@ -6,7 +6,7 @@ const { PatchDoc } = require('../src/patch/PatchDoc');
 const { EMPTY_PATCH } = require('../src/patch/types');
 const { boot } = require('./helpers');
 const root = resolve(__dirname, '../../..');
-const fixtures = resolve(root, 'native/tests/fixtures/legacy_documents');
+const fixtures = resolve(root, 'tests/native/compat/fixtures/legacy_documents');
 
 for (const file of readdirSync(fixtures).filter(n => n.endsWith('.json'))) {
   test(`inspection-only ${file} refuses native import without replacing the current document`, () => {

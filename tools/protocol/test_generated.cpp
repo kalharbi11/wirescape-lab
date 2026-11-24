@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Standalone generated-header compilation and validation; not wired to runtime.
-#include "native/sidecar/generated/protocol_v0.hpp"
+#include "host/sidecar/generated/protocol_v0.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>

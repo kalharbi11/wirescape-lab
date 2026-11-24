@@ -67,7 +67,7 @@ def parameter_info(text):
 
 def descriptors():
     result = {}
-    for path in sorted((ROOT / "native").rglob("*.h")):
+    for path in sorted(p for r in ("native", "engine", "host", "modules", "sdk", "targets", "tests/native", "tools/render", "tools/capture") for p in (ROOT / r).rglob("*.h")):
         if path.stat().st_size > 100000:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -422,8 +422,8 @@ def cpu_sections(probes, mods, meta, out, quick, soak_seconds=None):
                     # requires the document adapter's four-byte instance tag.
                     result["reason"] += (
                         "; direct probe passes zero config bytes; Chord needs four"
-                        " (native/modules2/chord/dsp.h:54-56,"
-                        " native/document/runtime_module_config.h:35-38)")
+                        " (modules/chord/dsp.h:54-56,"
+                        " host/document/runtime_module_config.h:35-38)")
                     result["input_mode"] = "direct_descriptor_without_chord_instance_tag"
                 ns = result.get("render_ns", {}).get("p99") if result.get("status") == "measured" else None
                 entry.update(result)
@@ -460,7 +460,7 @@ def cpu_sections(probes, mods, meta, out, quick, soak_seconds=None):
                 if ident == "essentials.chord":
                     row["reason"] += (
                         "; Chord requires four config bytes, but the direct probe"
-                        " passes zero (native/modules2/chord/dsp.h:54-56)")
+                        " passes zero (modules/chord/dsp.h:54-56)")
             denorm.append(row)
     save(out, "perf", "denormal_spikes", meta, denorm,
          {"input": "1e-30 constant on first and second signal inputs",
@@ -551,7 +551,7 @@ def oscillator_sections(renderer, desc, meta, out, quick, rates=(44100, 48000, 9
                 if ident == "ports.macro_oscillator" and rate != 48000:
                     rows.append(dict(entry, status="unsupported_rate",
                                      reason="Macro Oscillator prepare() requires 48000 Hz; "
-                                            "native/modules2/macro_oscillator/dsp.h"))
+                                            "modules/macro_oscillator/dsp.h"))
                     continue
                 if ident == "essentials.vco":
                     patch = direct_source(ident, descriptor["version"],

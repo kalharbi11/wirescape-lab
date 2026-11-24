@@ -7,7 +7,8 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. Routine independent review uses
+review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
+cloud reviewer); send it in the next `architect-wake` batch. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
 A row and its labels record the decision or review request. Only the delivery lead sends
@@ -43,12 +44,13 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
+| A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A4 | 2026-11-17 | Architect | errata review | later | #186 must **not** be closed: it carries 0017 §5 errata not on `main` (0012 load/rate, 0014 fallback/Transport, 0016 T1 ids/lazy metrics; M6 r3, M8 r2, M10 r2, M11 r2). **Long run needed** to rule each erratum, after OB0 and before any of MT4, H3a, CP1, K3 or K4 is dispatched (2026-11-18 13:10). | MT4/H3a/CP1/K3/K4 dispatch only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A18 | 2026-11-20 | Owner: same-day Windows build with sound, MIDI to CV, OSC In, OSC Out to Python; OB0/OB1 path unchanged | **Granted as an evaluation, not a gate.** Build exact `a440d71`, WASAPI, `-NoAsio`. Runbook, checks and W1–W3 (#284–#286) in [WINDOWS_EVAL.md](WINDOWS_EVAL.md); W4 fix lane in reserve and opened only with a device-off failing test. No module ID, wire format, patch semantics, threshold or polyphony default changes. |
-| A19 | 2026-11-20 | B1 #203: pin OB-a3 "older shape", backup name, collisions, Save As | Ruled, OB r2.2 (contract-upkeep inside the accepted OB-a3 wording): v1 only; `<filename>.bak-v1`, `.bak-v1.<n>`; never overwrite; Save As never writes source; no `native/` source. Task [#287](https://github.com/kalharbi11/wirescape-lab/issues/287), Claude contract-review before merge. |
-| A20 | 2026-11-20 | B2 #209: OB-f1 scope after the graph-size-proxy finding | Released B2's own plan ([#209](https://github.com/kalharbi11/wirescape-lab/issues/209)): offline `wirescape_cli play` CPU ranking of all 24 bundled v2 patches (idle-only label kept), then re-capture the four UI rows plus native ACK on the winner at current main. Writers are #216's own five paths plus one new facts file; no `ci.yml`, Studio or native edits. The Architect sets OB-f2 targets from the result. |
+| A34 | 2026-11-23 | OB-a3 #298 contract-review | **Approved for merge 5ecf300**, pins 1–7 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537)). 2026-11-23 |
+| A35 | 2026-11-23 | C1 #375 verification sequence | Merge-then-verify: the two-head check becomes acceptance on #367, with a security floor and a rollback that disables the workflow ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653)). 2026-11-23 |
+| A36 | 2026-11-23 | T1.6c #376 contract-review | **Approved for merge 418d4a7**, 0007 rules 2–5 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713)). 2026-11-23 |
+| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.9/+2.1 % on x64 from SDK-wrapper inlining in the catalogue TU | Run 16: SDK pinning only moves the cost, so CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) gives one TU per module. #333 merges with a bounded exception (two LFO rows, x64, up to +2.5 %, expires at CAT-1). [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). 2026-11-23 |

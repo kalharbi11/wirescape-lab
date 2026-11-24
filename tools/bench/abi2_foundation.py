@@ -70,7 +70,7 @@ def main() -> int:
     changed = [path for path, expected in baseline["protected_sources"].items()
                if not (ROOT/path).is_file() or hashlib.sha256((ROOT/path).read_bytes()).hexdigest() != expected]
     forbidden = re.compile(r"#\s*include\s*<(vector|string|thread|mutex|iostream|filesystem)>")
-    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/"native/modules2").glob("*/dsp.h")
+    bad_headers = [str(p.relative_to(ROOT)) for p in (ROOT/"modules").glob("*/dsp.h")
                    if forbidden.search(p.read_text(encoding="utf-8"))]
     exports = []
     for path in sorted(binary.glob("ws2_*.dll")):
@@ -83,7 +83,7 @@ def main() -> int:
         except (OSError, AttributeError) as error:
             exports.append({"library": path.name, "passed": False, "error": str(error)})
     waves = [wav_stats(p) for p in sorted(OUT.glob("*.wav"))]
-    fixture_dir = ROOT/"native/tests/fixtures/abi2"
+    fixture_dir = ROOT/"tests/native/compat/fixtures/abi2"
     fixture_manifest = json.loads((fixture_dir/"manifest.json").read_text(encoding="utf-8"))
     fixture_changes = [name for name, expected in fixture_manifest["files"].items()
                        if not (OUT/name).is_file() or hashlib.sha256((OUT/name).read_bytes()).hexdigest() != expected]

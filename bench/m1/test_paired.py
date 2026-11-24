@@ -45,6 +45,23 @@ class StrictPairedTests(unittest.TestCase):
         h["rows"][0]["totals"][1] = 1000 + 102 * blocks
         self.assertEqual(self.run_pair(b, h)["status"], "failed")
 
+    def test_head_only_experimental_is_new_and_existing_rows_still_strict(self):
+        b, h = fixture()
+        fresh = {"id": "module/essentials.cv_to_notes/voices1", "status": "measured",
+                 "ir_per_block": 100.0, "totals": [1000, 2200]}
+        h["rows"].append(fresh)
+        result = self.run_pair(b, h)
+        self.assertEqual(result["status"], "passed", result["failures"])
+        self.assertEqual(result["new_count"], 1)
+        self.assertEqual(result["new"][0]["status"], "new")
+        self.assertEqual(result["measured_count"], 96)
+        b["rows"].append(fresh.copy())
+        h["rows"][-1] = dict(fresh, ir_per_block=102.0, totals=[1000, 2224])
+        self.assertEqual(self.run_pair(b, h)["status"], "failed")
+        b["rows"].pop()
+        h["rows"][-1]["id"] = "module/unlisted/voices1"
+        self.assertEqual(self.run_pair(b, h)["status"], "failed")
+
     def test_missing_duplicate_and_unexpected_row(self):
         for mutation in ("missing", "duplicate", "extra"):
             b, h = fixture()
