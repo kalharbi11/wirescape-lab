@@ -33,6 +33,8 @@ tolerance, a protected constraint, or the milestone's scope. Keep unaffected tas
 You never: edit proposals/, CONSTRAINTS.md, the contract, AGENTS.md or CLAUDE.md; weaken a gate;
 run device tests; force-push; re-check unchanged state in a loop.
 
+End every lead run with the route to the next milestone, its active blocker, and the owner’s remaining acceptance steps.
+
 Milestone end: one acceptance report mapping every criterion to its evidence (PR, head SHA, run
 or fact file), then file the acceptance in the Architect inbox and apply `needs/architect` to the issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
@@ -79,6 +81,29 @@ Start every `lead: run` from the newest CURRENT entry, then BUILDERS.
 **Do not touch** wirescape-pi (Architect-only merges). Pi runs are postponed until 2026-11-30
 (inbox A31).
 
+## Builder environments (owner direction, 2026-11-23)
+
+Default to existing ChatGPT Chat-mode builder chats for `env/chat`: GitHub issue/PR and CI evidence,
+docs, Studio TypeScript, test-only changes, and scoped module or mechanical changes with an existing
+hosted test loop. Use GitHub connector reads and writes on the assigned branch and let hosted CI
+run the gates. B3 created and corrected #375 through the connector, and B1 and B2 completed
+GitHub evidence work. Connector access and Git CLI/network access are separate. Chat mode has
+previously returned `fatal: not a git repository` or failed GitHub DNS resolution, and it has no
+assured shell, checkout, Python/native runner, or Callgrind. Do not repeat clone probes. If connector
+writes fail, have Chat return a precise patch and blocker for one authorized writer to apply.
+
+Use an existing Codex or Work-mode sandbox only for the lowest-cost bounded operation that needs
+it: E-track engine work, native catalogue generation, real native tests, or sanitizer/profiler
+attribution. Verify checkout capability in that environment before promising results. Keep a single
+writer, use an isolated checkout, run focused device-off tests, and send the platform matrix to
+hosted CI. Return routine follow-up to Chat once the sandbox is no longer needed. Copilot Student
+credits are separate from hosted Actions and remain subject to 0021 §6 D6.
+
+Chat cross-thread send acknowledgment means delivery was requested. Some packets appeared late
+or sat idle without a response. Confirm a repo artifact, signed Result or actual tool activity;
+check once and retry once only when no active writer is competing. Do not spend Codex turns polling
+CI. Check usage at lead entry and use the existing one-shot continuation process for a real gate.
+
 ## Review dispatch (owner, 2026-11-19)
 
 Use the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).
@@ -86,7 +111,8 @@ Record planned merge conditions with `review-required`. Keep drafts and incomple
 evidence out of dispatch. Once the current head is ready, post a request giving the
 authorized reviewer role, full base/head SHAs, criteria and evidence, then apply
 `review-ready`. Keep the requirement until valid approval and reset readiness on head
-changes. The Architect may require review in a ruling without asking anyone to start.
+changes. **`review-ready` dispatches only the regular reviewer** (claude-reviewer, or gpt-reviewer when assigned).
+An Architect-only review never gets it; see "Asking the Architect" below (Architect, 2026-11-23). The Architect may require review in a ruling without asking anyone to start.
 
 ## Asking the Architect: inbox row first (owner, 2026-11-18)
 The Architect's queue is `docs/workflow/ARCHITECT_INBOX.md`. It only reads that table and
@@ -98,12 +124,14 @@ the lead) needs:
    PR/issue link and exact head SHA, and the single task that waits. Long questions also go in
    `QUESTIONS.md`, linked from the row.
 2. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
-3. Label the PR or issue `needs/architect`. For a review, also apply `review-ready` only once its readiness criteria are met.
+3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add `review-ready` to an
+   Architect-only review**: that label starts the regular cloud reviewer, not the Architect. Dispatch ready Architect
+   items with [`architect-ready`](../workflow/README.md#architect-dispatch-architect-ready), one per lead run.
 4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
    withdrawn, say so in the row; do not leave a stale Open row.
 An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
 
-## Builder scheduling and Architect wakes
+## Builder scheduling and Architect dispatch
 
 Builders continue released independent work while CI or a long test runs. For a check that
 controls their next action, schedule one same-task continuation at its estimated finish,
@@ -131,16 +159,9 @@ On any lead or builder chat rotation,
 transfer still-authorized pending check-ins with their remaining times and expiry. Verify
 the replacement before retiring the old schedule.
 
-Only the delivery lead may send a batched Architect wake. Check [#265](https://github.com/kalharbi11/wirescape-lab/issues/265) for a pending
-`architect-wake` or duplicate batch. Post the scoped `/architect-run` comment first, then
-add `architect-wake` to #265. Only the label addition dispatches Claude. The Architect removes
-it when done. Keep routine inbox traffic quiet and dispatch only for urgency or a useful ready
-batch. After every successful label addition, schedule a one-shot lead check 20 minutes
-after dispatch. Pin the wake comment and inbox IDs, check for signed rulings and live status
-once, record and apply cleared decisions, and move eligible work forward. If the ruling is
-pending, record the next event that can unblock it and continue unaffected work. Use the
-local lead if the dispatching runtime cannot schedule. See the
-[verified event contract](../workflow/README.md#intentional-architect-wake).
+Only the delivery lead dispatches the Architect: add `architect-ready` to the most urgent ready
+Architect item, one per lead run; the other ready inbox rows ride along. Read results in the inbox and
+CURRENT at the next lead run; no timer. See [Architect dispatch](../workflow/README.md#architect-dispatch-architect-ready).
 Do not grant a reviewer a role their task contract or owner has not authorized.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET

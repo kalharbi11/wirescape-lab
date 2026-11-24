@@ -7,12 +7,13 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. Routine independent review uses
+review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
+cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
-A row and its labels record the decision or review request. Only the delivery lead sends
-a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
+[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
+starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -43,11 +44,10 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
-| A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
+| A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A33 | 2026-11-23 | T1.6b #360 contract-review (CB1) | Approved and merged `7cc20c7` ([review](https://github.com/kalharbi11/wirescape-lab/pull/360#issuecomment-7107143632)). 2026-11-23 |
-| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.9/+2.1 % on x64 from SDK-wrapper inlining in the catalogue TU | Run 16: SDK pinning only moves the cost, so CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) gives one TU per module. #333 merges with a bounded exception (two LFO rows, x64, up to +2.5 %, expires at CAT-1). [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). 2026-11-23 |
+| A37 | 2026-11-23 | S7.7 #380: frozen S4 whole-graph reference; VCF cost vs the 1 % rule | [M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012): retire only the S4 ABI1 bound (all other assertions stay); VCF-containing rows fall under the +5 % task cap with `Cost-change:`; other rows stay at 1 %. 2026-11-23 |

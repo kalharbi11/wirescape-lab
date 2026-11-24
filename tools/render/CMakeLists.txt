@@ -29,3 +29,12 @@ set_tests_properties(render_evidence_late_negative PROPERTIES TIMEOUT 90)
 add_test(NAME render_evidence_negative COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/evidence.py --negative)
 set_tests_properties(render_evidence_negative PROPERTIES TIMEOUT 30)
+
+# OB-a3 pin 7: preserve v1 on real renderer refusal; valid v2 still renders.
+# Test-only registration, with a separate disposable WAV output directory.
+add_test(NAME abi2_ob_a3_renderer_no_write COMMAND ${Python3_EXECUTABLE}
+  "${CMAKE_CURRENT_SOURCE_DIR}/ob_a3_no_write.py"
+  $<TARGET_FILE:wirescape_render>
+  "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cases/frequency-step.json")
+set_tests_properties(abi2_ob_a3_renderer_no_write PROPERTIES TIMEOUT 120)

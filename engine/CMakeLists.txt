@@ -31,7 +31,7 @@ add_executable(abi2_template_tests ../sdk/template/tests.cpp)
 target_link_libraries(abi2_template_tests PRIVATE wirescape_sdk2)
 add_test(NAME abi2_template_tests COMMAND abi2_template_tests)
 
-add_library(wirescape_engine2 STATIC engine2.cpp)
+add_library(wirescape_engine2 STATIC engine2.cpp build.cpp render.cpp edit.cpp)
 target_include_directories(wirescape_engine2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(wirescape_engine2 PUBLIC wirescape_sdk2)
 add_executable(abi2_engine_tests tests/engine_tests.cpp)

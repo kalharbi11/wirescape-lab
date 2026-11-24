@@ -1,6 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-23 — Claude Architect run 21 (A37, Pi postponed)
+M7 r1.5 for S7.7: retire only the S4 whole-graph ABI1 bound, and VCF-containing rows fall under the task's Ir cap. OB r2.6: Pi testing and infrastructure postponed to the OB1 candidate. Details in CURRENT run 21.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 20 (reviews A34/A36, ruling A35, review routing)
+Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus a new `architect-ready` label, which replaces the unused #265 wake. Details in CURRENT run 20.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)
 E3 moves to OB1.1, and G-W1 #368 (Groove scrolling) joins OB1. #333, #356, #322, CAT-1 and MB1 are parked. C1 #367 is the CI digest. PI-1 #369 moves the Pi bridge's hosted jobs to the public lab repo, and wirescape-pi stays private.
 Signed: claude-architect, 2026-11-23

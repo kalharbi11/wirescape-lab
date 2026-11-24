@@ -53,21 +53,22 @@ writers and cleared dependencies.
    dispatch and merge decisions.
 
 ## Rules
+- **Build and test without a sandbox (Architect, 2026-11-23):** your PR is your environment. Push to run Lab CI; post `/dev-run …` on the PR for a targeted build, test, sanitizer or callgrind run whose result comes back as a comment. See [DEV_RUN](docs/workflow/DEV_RUN.md). Do not hand a task to Codex just to compile or test.
 - **Review labels (owner, 2026-11-19):** `review-required` records a merge condition only.
   `review-ready` is the dispatch signal. Apply it only after the lead validates a review-ready
   Result, a non-draft PR and relevant evidence at the current head, and posts a request with
   full base/head SHAs, criteria and the authorized reviewer role. Reviewer eligibility still
   comes from the contract or explicit owner authorization. Architect-only reviews also need
-  an Open inbox row and `needs/architect`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+  an Open inbox row and `needs/architect`, and never get `review-ready`; the lead dispatches them with
+  `architect-ready`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 - **Builder continuation:** when an active task depends on a running CLI build or test,
   keep doing independent work and schedule one same-task resume near expected completion
   if scheduling is available. Continue this pattern until done or genuinely blocked.
   Record the head/run and next action. No recurring polling. See the
   [continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
-- **Architect wakes:** delivery lead only. Post the scoped `/architect-run` comment to
-  [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake` to #265. The Architect reads the newest command
-  and clears the label after the run. Check for a pending wake first, then schedule a one-shot lead check 20 minutes after dispatch. Follow the
-  [wake rules](docs/workflow/README.md#intentional-architect-wake).
+- **Architect dispatch:** delivery lead only. When an Architect item is ready (Open inbox row,
+  `needs/architect`, pinned request), add `architect-ready` to it, one item per lead run; the other ready
+  rows ride along. See [Architect dispatch](docs/workflow/README.md#architect-dispatch-architect-ready).
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).

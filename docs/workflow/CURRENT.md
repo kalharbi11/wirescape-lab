@@ -7,6 +7,74 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Decided 2026-11-23 20:20 ET: Architect run 21 — A37 (S7.7) and Pi postponed
+
+- **A37 #380 S7.7 → [M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012).** (a) Grant #373 one function, `host/document/qt_free_patch_coverage_tests.cpp` `serialized_demo_equivalence`: retire only the ABI1 `1e-7` bound (`retired: intended sound change S7.7`) and print the error. Exact v1 = saved/reloaded v2 equality, finite samples, zero allocations, 96,000 samples and the intact fixture stay asserted; the fixture, manifest and `frozen_reference.h` are unchanged. (b) Rows that contain the VCF (module rows and `fixed/abi2_mono`/`poly8`) fall under S7.7's +5 % cap with `Cost-change:` lines; rows without it stay at 1 %. `0020` §7 governs new modules and modes, not M7 declared changes. No optimization is required (worst +3.52 % x64). **Lead:** B4 applies it and posts the Result; then dispatch the Claude review with `architect-ready`.
+- **Pi postponed to the OB1 candidate ([OB r2.6](milestones/OB.md), owner).** PI-1 #369, OB-g4 and wirescape-pi #20, A31 and the interim `wsci` runs all wait. Kept, because they use no Pi: hosted ARM64 Lab, Golden and M1 paired, the OB-g7 hosted soak and OB-b's dry-run test. Acceptance 7 and criterion 4 run at the candidate, as written.
+- **Held:** nothing. B2's queued PI-1 is now postponed.
+- **Next Architect run:** `architect-ready` on S7.7 #380 (Claude contract-review), TR1e #385 (Architect review) or #176 A3. Quick check, long effort for a review. **Next run should:** confirm B4 applied r1.5 exactly (only that function changed, all other assertions intact); check the TR1e evidence against ER1 and 0008 K1/K2/K4.
+
+Signed: claude-architect, 2026-11-23
+
+## Lead delivery update — 2026-11-23 19:48 EST
+
+- A34 and A36 applied. #298 merged as `b80b424` and #376 as `519d53a` with signed Architect approvals and exact-head CI. B1 starts G-W1 #368/#384 in Chat. B5 starts TR1e #378/#385 in the existing Codex sandbox for native build and paired evidence.
+- A35 applied. C1 #375 merged as `7993a28` after Lab, 8/8 parser tests and the signed Result. #367 stays open for the live two-head, same-comment check. B3 resumes S7.5 #291 in Chat.
+- SR6(c): #339 closed unmerged, branch kept. Its final sanitizer run reproduced 2,973 drops and measured a 56.665 ms render call. B2 completed the Chat diagnostic and handed the one Linux test-only CPU/wall measurement to the existing Codex session. PI-1 #369 awaits the owner token.
+- B4's #373/#380 is blocked at `c78da9f`. A37 asks for a ruling on M1 S4's immutable Six Essentials comparison. The strict paired +1% gate remains. #333, #356 and #322 stay parked.
+- #382 consolidates review routing. The owner still needs to wire the Claude `architect-ready` label-addition event. A31 and A3 retain their recorded dependencies.
+- Usage at entry: 47% of the five-hour window remained, reset 23:29 EST, and 82% weekly remained.
+
+Signed: codex-lead, 2026-11-23, 19:48 EST
+
+## Decided 2026-11-23 19:40 ET: Architect run 20 — A34–A36 cleared; Architect reviews never get `review-ready`
+
+- **A34 #298 OB-a3:** [Approved for merge 5ecf300](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537). Pins 1–7 and r2.2a hold. **Lead merges**, then releases G-W1 #368 to B1.
+- **A36 #376 T1.6c:** [Approved for merge 418d4a7](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713). 0007 rules 2–5 and the field table hold; every extraction is verbatim. **Lead merges** (squash is fine: the branch parent predates #324, but the merge is clean and keeps #324), then releases TR1e #378 to B5.
+- **A35 #375 C1:** [merge-then-verify](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653). This revises #367: "Done when 2" is now acceptance. Merge gate: non-draft, exact-head Lab green, unit tests pass, `Refs #367`. The security floor holds at `3267a17`. Rollback means disabling the workflow. S7.5 #291 may be released after the merge.
+- **Review routing (owner's report: the lead put `review-ready` on Architect-only reviews, which starts the regular cloud reviewer):** `review-ready` now dispatches **only** the regular reviewer. An Architect-only review gets `review-required` + `needs/architect` + an Open inbox row + the pinned request. The lead dispatches it by adding **`architect-ready`** to the most urgent ready item, one per lead run; that Architect run clears every ready Open row. *(Revised in the same run: the #265 `architect-wake` had been used only once, as a test on 2026-11-19, so it is retired.)* **Owner:** wire the Claude trigger to start `architect:run` when `architect-ready` is added to a PR or issue here; the #265 trigger can be removed. A reviewer that finds `review-ready` together with `needs/architect` skips the PR. Updated: `CLAUDE.md`, `AGENTS.md`, `CODEX_LEAD.md`, README label table and wake section, STANDING SR11, inbox header.
+- Labels cleared: `review-ready`, `review-required` and `needs/architect` on #298 and #376; `needs/architect` on #375.
+- **Held:** nothing. #339 SR6 disposition stays with the lead.
+- **Next Architect run:** the next `architect-ready` label (likely TR1e #378 contract-review, or an OB1 acceptance item). Quick effort. **Next run should:** check #298, #376 and #375 merged on main; confirm the C1 two-head acceptance is recorded on #367 or the workflow was disabled; A31 once the owner's token is set.
+
+Signed: claude-architect, 2026-11-23
+
+## Lead chat handoff — 2026-11-23 19:15 EST
+
+Next fresh Codex chat: use `lead:run`. Read the lead brief, live BUILDERS/ROADMAP, this entry,
+and the Open Architect inbox. Start by checking signed rulings, exact current heads and usage once.
+Preserve the existing chats, task branches, review pins and results.
+
+1. **Architect batch:** A34 reviews safe save #298 at `5ecf300`; A35 rules on when to run C1's
+   live two-head acceptance; A36 reviews T1.6c #376 at `418d4a7` against 0007 rules 2–5.
+   A36 was queued under the routing then in use. If that handoff is
+   delayed, A34/A35 already exist on main from #377. After approvals, lead merges eligible
+   reviewed heads and releases G-W1 #368 to B1 Chat and TR1e #378 to B5. A35 places the live two-head check after merge.
+2. **B4:** #356 parks under 0021 R3. Exact-head paired run 45290856558 failed only LFO voices1/8
+   on both Linux architectures; other core checks passed. #333 remains parked. B4 next is
+   S7.7 #373 with Chat and hosted CI, followed by S7.8 #374 after merge.
+3. **B2:** #339 head `f18e83d` is blocked after the final targeted diagnostic; sanitizer
+   45291130572 puts the delay inside the timed render call but does not separate CPU cost from
+   in-call preemption. Decide SR6 disposition before new code. PI-1 #369 still waits for owner
+   token setup. B2 Chat evidence is available; use Codex only for a separately released measurement.
+4. **B3:** #375 `3267a17` passed Lab 45292152975 and lead-run 8/8 parser tests. The main-only
+   trigger makes A35 the gate to the real two-head check. #322 is parked; S7.5 #291 follows C1
+   and its existing release gates. Chat connector writes are verified; Git clone and a local
+   runtime remain unverified capabilities in Chat.
+5. **Usage:** 54% of the five-hour window remaining at entry, reset 23:29 EST; 83% weekly.
+   Use the Chat-first instructions in CODEX_LEAD. No recurring polling or usage reset.
+
+Signed: codex-lead, 2026-11-23, 19:15 EST
+
+## Delivery update — 2026-11-23 18:32 EST
+
+- Applied Architect runs 19–19c and OB r2.5. Released #364 (B5, sole engine writer) and resumed #356 with Poly Split (B4). Kept #333 and #322 parked. Filed B4's queued S7.7 #373 and S7.8 #374.
+- Merged #324 at `2d992aaf58eeb2345a510c5e3fcf4518c8e17196` from signed head `9e382ac`. Lab 45227119623, Golden 45227119550 and paired M1 45227119601 passed. Native refusal and restored graph delivery and the former Studio XFAIL were verified. No B2 writer transfer needed.
+- Chat-mode evidence: B1 posted #298's final signed exact-head Result (A34); B2 diagnosed #339 from hosted logs and source, with the existing Codex session retaining the branch; B3 created #375 through the connector and proves branch/PR write access. C1 needs a verification-sequence ruling (A35). Devices stay off.
+- Usage at entry: 99% of the five-hour window remaining (reset 23:29 EST), 90% weekly remaining. Chat uses connector writes and hosted tests; reserve Codex for the engine, native generators and instrumented diagnosis. No Git CLI was needed by the lead.
+
+Signed: codex-lead, 2026-11-23, 18:32 EST
+
 ## Decided 2026-11-23 14:35 ET: Architect run 19c — owner confirms Poly Split; Poly Merge resumes
 
 - **Owner's LED path:**
@@ -120,7 +188,7 @@ Claude builder lanes CB1–CB3 are closed. They finished their tasks on hand.
 - #322 was unblocked from the closed SDK-1: attribution, then a bounded exception or a fix.
 
 **State for the lead:**
-- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin `review-ready` plus an inbox row, and the **Architect** reviews it.
+- **#298** is green at `5ecf300`. It needs the contract's Claude review: pin the request plus an inbox row, and the **Architect** reviews it. *(Run 20: no `review-ready` on Architect reviews.)*
 - **#333**: Golden and the Instruction gate are red on 3 platforms at `e7867b7`. This is new, and the bounded LFO exception (run 16) does not cover it. B4 diagnoses it; a Golden difference is a defect.
 - **#339, #324, #356**: red builds; their builders fix them.
 - **#322**: attribution is pending.

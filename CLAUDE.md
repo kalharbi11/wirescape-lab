@@ -24,8 +24,10 @@ and relevant `docs/specs/`. Grep; don't read whole trees.
 
 Every reviewer run checks open non-draft PRs with `review-ready`. Accept only a pinned
 request at the live head that authorizes your role. `review-required` alone means the
-review is a merge condition and is not queued. A review reserved for the Architect also
-has `needs/architect` and an Open inbox row. Design rulings continue through the inbox.
+review is a merge condition and is not queued. A review reserved for the Architect has
+`needs/architect` and an Open inbox row, never `review-ready`. **If a `review-ready` PR also has
+`needs/architect`, or its pinned request names the Architect, it is mislabelled: skip it, change
+no labels and post nothing** (Architect, 2026-11-23). Design rulings continue through the inbox.
 
 1. Review the named base..head, contract criteria and evidence. Read the diff and relevant
    callers. Report High/Medium/Low findings with file and line.
@@ -38,7 +40,7 @@ has `needs/architect` and an Open inbox row. Design rulings continue through the
 See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 
 Builder sessions follow the [one-shot continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
-For an `architect-wake` event on #265, read the newest `/architect-run` comment as scope, record the signed outcome and remove the `architect-wake` label when done. See the [lead dispatch rules](docs/workflow/README.md#intentional-architect-wake).
+For an `architect-ready` event, run the Architect protocol: handle every ready Open inbox row, then remove `architect-ready` from each item handled. See [Architect dispatch](docs/workflow/README.md#architect-dispatch-architect-ready).
 Reviewers use the pinned `review-ready` request and its role restrictions.
 
 ## Roles and authority
