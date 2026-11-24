@@ -171,6 +171,42 @@ def edge(kind, source, output, dest, port, **extra):
                             'to': dict(module=dest, port=port)}, **extra)
 
 
+# A44 / ER6: only saved-patch loading normalizes duplicate modulation.
+with tempfile.TemporaryDirectory() as a44_dir:
+    a44 = Engine(Path(a44_dir) / 'settings.json')
+    try:
+        patch = minimal()
+        patch['modules'] += [dict(id=9, module='essentials.vco'),
+                             dict(id=10, module='essentials.lfo')]
+        signal = edge('signal', 9, 'audio', 7, 'audio')
+        first = edge('modulation', 10, 'control', 9, 'frequency',
+                     amount=0.7, opaque='first')
+        second = {**first, 'amount': 0.6, 'opaque': 'second'}
+        patch['connections'] = [first, signal, second]
+        clean = {**patch, 'connections': [signal]}
+        gen = a44.call('loadGraph', patch=clean)['gen']
+        refused = a44.call('applyGraph', False, patch=patch)
+        assert refused['code'] == 'duplicate' and refused['gen'] == gen
+        connected = a44.call('connect', connection=first)['gen']
+        refused = a44.call('connect', False, connection=second)
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        refused = a44.call('loadGraph', False,
+                           patch={**clean, 'connections': [signal, signal]})
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        # The normalized load response exposes the retained authored cables
+        # and warnings; the response shape must be specified with the fix.
+        loaded = a44.call('loadGraph', patch=patch)
+        assert loaded['gen'] != connected
+        result = loaded['result']
+        assert result['connections'] == [{**first, 'amount': 1.0}, signal]
+        warnings = result['warnings']
+        assert len(warnings) == 1, warnings
+        assert all(token in warnings[0] for token in
+                   ('10', 'control', '9', 'frequency')), warnings
+    finally:
+        a44.close()
+
+
 with tempfile.TemporaryDirectory() as directory:
     settings = Path(directory) / 'settings.json'
     engine = Engine(settings, '--confirm-audio', '--confirm-midi', '--confirm-lan')  # null overrides audio/MIDI; no OSC routes
