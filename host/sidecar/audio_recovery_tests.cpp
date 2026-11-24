@@ -475,6 +475,71 @@ void test_e7_state_restart(const std::filesystem::path &root) {
     s.shutdown();
 }
 
+
+void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // fake backend only
+    options.rate = 96000;
+    options.settings = (root / "e7-c2.json").string();
+    fake::outputs = {output("E7 C2 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "sound.spectral"}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 3}, {"port", "a"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 3}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}
+    };
+    check(call("c2-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "C2 spectral witness must prepare at 96 kHz");
+    check(bool(fake::freeze_render), "C2 callback quiescence seam available");
+    fake::freeze_render();
+    fake::render = false;
+    // Spectral v2 state: second LE u32 is hop_pos. At default size 2048
+    // the hop is 1024 at 96 kHz and 512 at 48 kHz. Obtain a valid live
+    // high-rate position that the lower-rate module explicitly refuses.
+    auto hop = [](const std::vector<uint8_t> &bytes) {
+        check(bytes.size() == 13 * sizeof(uint32_t), "C2 spectral v2 state shape");
+        return uint32_t(bytes[4]) | (uint32_t(bytes[5]) << 8) |
+               (uint32_t(bytes[6]) << 16) | (uint32_t(bytes[7]) << 24);
+    };
+    std::array<float, 64> samples{};
+    auto state = app_engine_native(fake::engine).save_state(3);
+    for (unsigned n = 0; n < 32 && hop(state) < 512; ++n) {
+        check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+              "C2 step the live high-rate spectral engine");
+        state = app_engine_native(fake::engine).save_state(3);
+    }
+    check(hop(state) >= 512 && hop(state) < 1024,
+          "C2 real saved hop must be valid at 96 kHz but invalid at 48 kHz");
+    const auto noise = app_engine_native(fake::engine).save_state(2);
+    const auto *before = fake::engine;
+    const auto reply = call("c2-rate", "setSampleRate", {{"hz", 48000}});
+    check(reply["ok"] == true && fake::engine != before &&
+              audio(s)["sampleRate"] == 48000 && audio(s)["state"] == "running",
+          "C2 actual module refusal must not refuse the stream change");
+    const Json refused = Json::array({{{"moduleId", 3}, {"module", "sound.spectral"}}});
+    check(reply["result"]["freshModules"] == refused &&
+              hop(app_engine_native(fake::engine).save_state(3)) == 0 &&
+              app_engine_native(fake::engine).save_state(2) == noise,
+          "C2 refused Spectral starts fresh and compatible Noise restores");
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "C2 new stream remains runnable after the module refusal");
+    s.shutdown();
+}
+
 int main() {
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
@@ -1133,6 +1198,7 @@ int main() {
         fake::preferred = 0;
         options.block = saved_block;
         test_e7_state_restart(root);
+        test_e7_rate_dependent_state_refusal(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
