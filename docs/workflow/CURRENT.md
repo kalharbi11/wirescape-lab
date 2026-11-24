@@ -20,10 +20,21 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 - **CI2 #393 (next-run check 2):** draft head 16 m 54 s, including 9 m 19 s of runner queue. The under-10-min target is missed, and B3 reported it without a re-run. The lead disposes of it on #390; no ruling is needed yet.
 - **Builders:** no lane is idle. B1 #275, B4 #380/#291 and B3 #393 wait on the lead, not the Architect.
 
+- **Run 23b (owner: "do all Claude reviews needed; resolve #380"):**
+  - **A38 condition met** ([#385](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124108736)). The Windows `Offline facts` job fails the same way on #380 and #291: a tooling failure that predates them. **The #385 approval is unconditional.** Lead: merge it, then release E6.
+  - **S7.7 [#380](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7124107855) Claude contract-review: approved after one correction, which is pre-approved.**
+    - The criteria are met at 48 kHz.
+    - **96 kHz needs no further measurement.** S7.7 names no rate, and the 96 kHz anomaly comes from the Welch bin spacing.
+    - The peak frequency is unchanged by construction.
+    - The strict paired check is red only on VCF rows, which r1.5(b) covers.
+    - **Correction (Medium):** restore the `baseline_peak` fixture non-silence check in `serialized_demo_equivalence`, beside the new check. If the delta is only that and Lab CI and Golden are green, the lead merges without another review, after publishing the D5 FLAC pair. S7.8 #374 is then released to B4.
+  - **No other Claude review is due.** S7.5 #291 is `merge: lead` with no Claude review in M7; it waits on lead items (T7.0 dispatch, R3 shared-red disposition, D5). E6 #395 is a draft. Its contract-review comes after #385 merges and its Result is in.
+  - **Lead:** file a CI issue for B3 about `Offline facts / windows-latest` (`dev.py build` FAILED with no compiler error).
+
 **Held:** E6 until #385 merges. Everything parked until after OB1 stays parked (#333, #322, CAT-1 #358, MT2 #176, Pi).
 
 **Next Architect run:** the next `architect-ready` label. The likely items are the E4a+E4b Claude review or the S7.7 #380 Claude review. **Next run should:**
-1. Confirm #385 merged with the Offline facts condition met.
+1. Confirm #385 merged and #380 merged with only the pre-approved correction.
 2. Check E6 #395 against ER1, including the born test for edge targets.
 3. Check B2's matcher equivalence test on #394 landed before the fix.
 4. Refresh BUILDERS.
