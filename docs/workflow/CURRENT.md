@@ -11,7 +11,7 @@ Builders use their queue row and issue; Architect requests stay in the inbox.
 
 - #382 merged. Run 21's A37 and OB r2.6 control the VCF correction and Pi timing. PI-1 and Pi execution wait until the OB1 candidate. Hosted checks continue.
 - TR1e #385 `5d2d78b`: Lab 45300014894, Golden 45300015054 and strict paired 45300015015 complete and green. B5's exact-head Result supports A38 Architect review. E6 awaits the TR1e disposition.
-- B1 verifies the fail-first Groove evidence on #384. B2's #386 sanitizer reproduction is CPU-dominant and receives one bounded attribution step. B3 classifies S7.5's paired failures and updates evidence. B4 finishes the S7.7 A37 evidence on #380 before review.
+- B1's #384 merged `7a750b4` after two reproduced wheel failures and exact-head Lab success. B1 starts read-only OB-c triage. B2's #386 sanitizer reproduction is CPU-dominant and receives one bounded attribution step. S7.5 parks under 0021 R3 after B3 identified two strict failures in patches without Quad VCA. B4 finishes the S7.7 A37 evidence on #380 before review.
 - C1 digest comments are live. #367 stays open until two successive checked heads are shown updating the same comment ID.
 - Codex at entry: 22% of five-hour allowance remained, reset 23:29 EST. Weekly remaining 78%.
 
