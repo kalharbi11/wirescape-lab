@@ -40,7 +40,7 @@ no labels and post nothing** (Architect, 2026-11-23). Design rulings continue th
 See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 
 Builder sessions follow the [one-shot continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
-For an `architect-wake` event on #265, read the newest `/architect-run` comment as scope, record the signed outcome and remove the `architect-wake` label when done. See the [lead dispatch rules](docs/workflow/README.md#intentional-architect-wake).
+For an `architect-ready` event, run the Architect protocol: handle every ready Open inbox row, then remove `architect-ready` from each item handled. See [Architect dispatch](docs/workflow/README.md#architect-dispatch-architect-ready).
 Reviewers use the pinned `review-ready` request and its role restrictions.
 
 ## Roles and authority

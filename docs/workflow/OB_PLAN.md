@@ -6,6 +6,14 @@ Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 a
 Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
 The dated dispatch entries below are history.
 
+## Active OB1 sequence — 2026-11-23 19:48 EST
+
+- Engine: T1.6c #376 merged. TR1e #378 → E6 → E4a → E4b → E5 and E7 with CN evidence.
+- Parallel: Groove #368 → OB-c, S7.5 #291 → S7.6 → S7.9, S7.7 #380 → S7.8, and OSC #383. Finish M7 after-facts and OB-d.
+- Candidate: recheck OB-f1, run the owner-folder round trip, record the owner's Pi session with 100 edits, zero xruns, no visible stutter and both CN costs, and submit for acceptance before tagging `owner-build-1`. E3a/E3b/E3c are OB1.1.
+
+Signed: codex-lead, 2026-11-23, 19:48 EST
+
 ## Next-day delivery queue — 2026-11-21 18:34 EST
 
 Start the current row for each builder. A numbered successor starts only when its release condition is met. Use one issue, branch and PR per task. Use hosted device-off CI and publish a signed Result with exact head and evidence.

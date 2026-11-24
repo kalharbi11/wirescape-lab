@@ -58,17 +58,16 @@ writers and cleared dependencies.
   Result, a non-draft PR and relevant evidence at the current head, and posts a request with
   full base/head SHAs, criteria and the authorized reviewer role. Reviewer eligibility still
   comes from the contract or explicit owner authorization. Architect-only reviews also need
-  an Open inbox row and `needs/architect`, and never get `review-ready`: the lead sends them in the
-  `architect-wake` batch on #265. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+  an Open inbox row and `needs/architect`, and never get `review-ready`; the lead dispatches them with
+  `architect-ready`. See the [complete lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 - **Builder continuation:** when an active task depends on a running CLI build or test,
   keep doing independent work and schedule one same-task resume near expected completion
   if scheduling is available. Continue this pattern until done or genuinely blocked.
   Record the head/run and next action. No recurring polling. See the
   [continuation rules](docs/workflow/README.md#builder-continuation-after-ci).
-- **Architect wakes:** delivery lead only. Post the scoped `/architect-run` comment to
-  [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake` to #265. The Architect reads the newest command
-  and clears the label after the run. Check for a pending wake first, then schedule a one-shot lead check 20 minutes after dispatch. Follow the
-  [wake rules](docs/workflow/README.md#intentional-architect-wake).
+- **Architect dispatch:** delivery lead only. When an Architect item is ready (Open inbox row,
+  `needs/architect`, pinned request), add `architect-ready` to it, one item per lead run; the other ready
+  rows ride along. See [Architect dispatch](docs/workflow/README.md#architect-dispatch-architect-ready).
 - **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
   PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).

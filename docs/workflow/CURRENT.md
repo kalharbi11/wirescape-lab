@@ -7,15 +7,26 @@ below replaces them; this page is the chronological lead–Architect handoff. Th
 [BUILDERS](BUILDERS.md) for assignments and [ROADMAP](ROADMAP.md) for milestone delivery.
 Builders use their queue row and issue; Architect requests stay in the inbox.
 
+## Lead delivery update — 2026-11-23 19:48 EST
+
+- A34 and A36 applied. #298 merged as `b80b424` and #376 as `519d53a` with signed Architect approvals and exact-head CI. B1 starts G-W1 #368/#384 in Chat. B5 starts TR1e #378/#385 in the existing Codex sandbox for native build and paired evidence.
+- A35 applied. C1 #375 merged as `7993a28` after Lab, 8/8 parser tests and the signed Result. #367 stays open for the live two-head, same-comment check. B3 resumes S7.5 #291 in Chat.
+- SR6(c): #339 closed unmerged, branch kept. Its final sanitizer run reproduced 2,973 drops and measured a 56.665 ms render call. B2 completed the Chat diagnostic and handed the one Linux test-only CPU/wall measurement to the existing Codex session. PI-1 #369 awaits the owner token.
+- B4's #373/#380 is blocked at `c78da9f`. A37 asks for a ruling on M1 S4's immutable Six Essentials comparison. The strict paired +1% gate remains. #333, #356 and #322 stay parked.
+- #382 consolidates review routing. The owner still needs to wire the Claude `architect-ready` label-addition event. A31 and A3 retain their recorded dependencies.
+- Usage at entry: 47% of the five-hour window remained, reset 23:29 EST, and 82% weekly remained.
+
+Signed: codex-lead, 2026-11-23, 19:48 EST
+
 ## Decided 2026-11-23 19:40 ET: Architect run 20 — A34–A36 cleared; Architect reviews never get `review-ready`
 
 - **A34 #298 OB-a3:** [Approved for merge 5ecf300](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537). Pins 1–7 and r2.2a hold. **Lead merges**, then releases G-W1 #368 to B1.
 - **A36 #376 T1.6c:** [Approved for merge 418d4a7](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713). 0007 rules 2–5 and the field table hold; every extraction is verbatim. **Lead merges** (squash is fine: the branch parent predates #324, but the merge is clean and keeps #324), then releases TR1e #378 to B5.
 - **A35 #375 C1:** [merge-then-verify](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653). This revises #367: "Done when 2" is now acceptance. Merge gate: non-draft, exact-head Lab green, unit tests pass, `Refs #367`. The security floor holds at `3267a17`. Rollback means disabling the workflow. S7.5 #291 may be released after the merge.
-- **Review routing (owner's report: the lead put `review-ready` on Architect-only reviews, which starts the regular cloud reviewer):** `review-ready` now dispatches **only** the regular reviewer. An Architect-only review gets `review-required` + `needs/architect` + an Open inbox row + the pinned request. The lead dispatches it in the next batched `architect-wake` on #265, listing every ready inbox ID, so one run clears reviews and rulings together. A reviewer that finds `review-ready` together with `needs/architect` skips the PR. Updated: `CLAUDE.md`, `AGENTS.md`, `CODEX_LEAD.md`, README label table and wake section, STANDING SR11, inbox header. No new label is needed.
+- **Review routing (owner's report: the lead put `review-ready` on Architect-only reviews, which starts the regular cloud reviewer):** `review-ready` now dispatches **only** the regular reviewer. An Architect-only review gets `review-required` + `needs/architect` + an Open inbox row + the pinned request. The lead dispatches it by adding **`architect-ready`** to the most urgent ready item, one per lead run; that Architect run clears every ready Open row. *(Revised in the same run: the #265 `architect-wake` had been used only once, as a test on 2026-11-19, so it is retired.)* **Owner:** wire the Claude trigger to start `architect:run` when `architect-ready` is added to a PR or issue here; the #265 trigger can be removed. A reviewer that finds `review-ready` together with `needs/architect` skips the PR. Updated: `CLAUDE.md`, `AGENTS.md`, `CODEX_LEAD.md`, README label table and wake section, STANDING SR11, inbox header.
 - Labels cleared: `review-ready`, `review-required` and `needs/architect` on #298 and #376; `needs/architect` on #375.
 - **Held:** nothing. #339 SR6 disposition stays with the lead.
-- **Next Architect run:** the next `architect-wake` batch (likely TR1e #378 contract-review, or an OB1 acceptance item). Quick effort. **Next run should:** check #298, #376 and #375 merged on main; confirm the C1 two-head acceptance is recorded on #367 or the workflow was disabled; A31 once the owner's token is set.
+- **Next Architect run:** the next `architect-ready` label (likely TR1e #378 contract-review, or an OB1 acceptance item). Quick effort. **Next run should:** check #298, #376 and #375 merged on main; confirm the C1 two-head acceptance is recorded on #367 or the workflow was disabled; A31 once the owner's token is set.
 
 Signed: claude-architect, 2026-11-23
 
@@ -27,10 +38,9 @@ Preserve the existing chats, task branches, review pins and results.
 
 1. **Architect batch:** A34 reviews safe save #298 at `5ecf300`; A35 rules on when to run C1's
    live two-head acceptance; A36 reviews T1.6c #376 at `418d4a7` against 0007 rules 2–5.
-   Run Architect after the A36 docs row lands and #376 has `review-ready`. If that handoff is
+   A36 was queued under the routing then in use. If that handoff is
    delayed, A34/A35 already exist on main from #377. After approvals, lead merges eligible
-   reviewed heads and releases G-W1 #368 to B1 Chat and TR1e #378 to B5. C1 requires the actual
-   two-head check per the ruling.
+   reviewed heads and releases G-W1 #368 to B1 Chat and TR1e #378 to B5. A35 places the live two-head check after merge.
 2. **B4:** #356 parks under 0021 R3. Exact-head paired run 45290856558 failed only LFO voices1/8
    on both Linux architectures; other core checks passed. #333 remains parked. B4 next is
    S7.7 #373 with Chat and hosted CI, followed by S7.8 #374 after merge.

@@ -8,12 +8,12 @@ reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
 review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
-cloud reviewer); send it in the next `architect-wake` batch. Routine independent review uses
+cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
-A row and its labels record the decision or review request. Only the delivery lead sends
-a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
+[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
+starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -46,6 +46,8 @@ Signed: codex-lead, 2026-11-18, 19:33 EST
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
+
+| A37 | 2026-11-23 | gpt-lead | ruling | now | [#380](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118466395) `c78da9f3f5a778c9479b309743f26494a78f1b4b`: S7.7 gain changes M1 S4 frozen Six Essentials PCM. Rule on bounded shared-test treatment that retains the original capture and loader, conversion, and zero-allocation guarantees. The +1% paired gate stays. | S7.7 / #380 |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
