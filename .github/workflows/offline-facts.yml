@@ -39,8 +39,22 @@ jobs:
         run: python -m pip install -r bench/offline/requirements.txt
       - name: Pure DSP metric tests
         run: python -m unittest discover -s bench/offline -p 'test_*.py' -v
+      # VS 2026's default MSVC 14.52 rejects libremidi/system_error2.hpp.
+      # Use the installed VS 2022 v143 toolset, as in the passing native Lab build.
+      - name: Select compatible Windows MSVC toolset
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "CMAKE_GENERATOR_TOOLSET=v143" >> $env:GITHUB_ENV
       - name: Release headless build
         run: python tools/dev.py build --headless --config Release
+      - name: Record Windows compiler and toolset
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Select-String -Path build/native/CMakeCache.txt -Pattern '^CMAKE_GENERATOR(:|_TOOLSET:)'
+          Get-ChildItem -Path build/native/CMakeFiles -Recurse -Filter CMakeCXXCompiler.cmake -File |
+            Select-String -Pattern '^set\(CMAKE_CXX_COMPILER(_VERSION)? '
       - name: Print full failed Windows build log
         if: ${{ failure() && runner.os == 'Windows' }}
         shell: pwsh
