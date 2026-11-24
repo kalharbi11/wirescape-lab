@@ -88,7 +88,7 @@ Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 1. Check each lane in BUILDERS: PR head, exact-head CI, latest Result, labels.
 2. At release of a `merge: lead` task with no review condition, enable auto-merge (D4).
 3. Merge a reviewed task after its reviewer posts `Approved for merge <sha7>` at the live head.
-4. Dispatch ready Architect items with `architect-ready` (one per run; see below).
+4. Dispatch ready Architect items with `architect-ready` on the linked task issue (one per run; see below).
 5. Refresh the BUILDERS "Now" cells, drop finished tasks, give an idle lane its next task.
 6. The owner nudges a waiting chat with "continue". Do not poll for it.
 7. Update CURRENT for lead-Architect handoff changes; end with the route to the next milestone.
@@ -137,6 +137,8 @@ as a comment or chat line is missed. For every ruling, question, acceptance or A
 3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add
    `review-ready` to an Architect-only review.** Dispatch ready Architect items with
    [`architect-ready`](../workflow/README.md#architect-dispatch-architect-ready), one per lead run;
+   use the linked **task issue** for the wake. Keep evidence and review requirements on the PR.
+   The deployed trigger is Issues → Labeled. #265 is retired. Verify pickup separately;
    the other ready rows ride along. Read results in the inbox and CURRENT at the next lead run.
 4. After a new head, update the row's SHA and re-label. Close answered or withdrawn rows.
 An independent review that is not Architect-only needs no inbox row.

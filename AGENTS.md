@@ -45,11 +45,13 @@ A trigger never grants authority beyond the accepted contract.
 ## Rules
 - **Review labels:** `review-required` marks a merge condition. `review-ready` dispatches the
   regular reviewer after the lead pins a request (full base/head SHAs, criteria, reviewer role).
-  Architect reviews get an inbox row plus `needs/architect` and are dispatched with `architect-ready`,
+  Architect reviews get an inbox row plus `needs/architect` and are dispatched with `architect-ready` on the linked task **issue**,
   never `review-ready`. See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
 - **Auto-merge (owner, 2026-11-24):** for `merge: lead` tasks with no review condition, the lead
   enables auto-merge at release. Required exact-head checks still gate it.
 - **Reaching the Architect:** one row in `docs/workflow/ARCHITECT_INBOX.md` plus `needs/architect`.
+  Keep `review-required`, `needs/architect` and the pinned evidence on the PR as applicable.
+  The lead (or explicitly delegated Terra) sends one issue wake per batch. #265 is retired.
   Its decisions land in the inbox, CURRENT and the contract, never only in chat.
 - **Never loosen to pass:** no skipped test, raised tolerance, widened path list or changed load
   to turn red into green. A golden difference in a structural PR is a defect until proven otherwise.

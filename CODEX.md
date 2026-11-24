@@ -10,6 +10,10 @@ Use the named destinations supplied by Terra and verify them before dispatch. Gi
 review dispatch are assigned to Terra or the lead, unless Terra separately assigns a scoped
 report publication to a Luna helper.
 
+An Architect wake uses `architect-ready` on the linked GitHub **issue**, once per batch.
+Keep the evidence and review requirement on the PR. Luna watches GitHub for pickup and
+reports the ruling to Terra. The lead or delegated Terra applies the wake.
+
 ## Active batch
 
 Start only on the manager's updated task packet. Check shared usage, owner pause and the active
