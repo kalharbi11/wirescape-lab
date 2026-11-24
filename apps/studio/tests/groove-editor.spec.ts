@@ -222,7 +222,7 @@ async function unselectedWheelNote(page: Page): Promise<void> {
   }, 'Unselected wheel note'), initial);
   await showGroove(page);
   await expect(pad(page, 3)).toHaveAttribute('data-kind', 'note');
-  await expect(pad(page, 3)).not.toHaveClass(/\\bsel\\b/);
+  await expect(pad(page, 3)).not.toHaveClass(/sel/);
   await page.evaluate(() => (document.activeElement as HTMLElement).blur());
   expect(await page.evaluate(() => document.activeElement?.closest('.groove-pane') === null)).toBe(true);
 }
