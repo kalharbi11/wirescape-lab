@@ -10,6 +10,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Decided 2026-11-24 ET: Architect run 31 — A62 and A61 ruled (wake: #431 `architect-ready`)
+
+- **A62 / Q26 → [M4 A62](milestones/M4.md):** E7 `freshModules` lists what the host did not carry (no hook, save/load not OK, no ID/type/config match). A hook that returns OK counts as carried, and no per-type lists go in host code. Version-only resets (delay, reverb, resonator tails; note converters) are named in the E7 Result and report under M4 Escalate. SR17 schema, regeneration and the `ENGINE_PROTOCOL.md` reply paragraph join #442's paths. CN `setBufferFrames` smaller/larger rows go to B1 after #442 merges; the larger row adds a nontrivial-state witness. No threshold change. `architect-ready` and `needs/architect` are removed from #431; `review-required` stays (Claude contract-review at E7's merge-ready head).
+- **A61 / Q27:** native-only OSC diagnosis accepted. #433 merges under `merge: lead` at its exact-head green. Hosted exposure is new task [#457](https://github.com/kalharbi11/wirescape-lab/issues/457) (B3): draft-ahead now, ready after #442 merges (`session.cpp` single writer). No product fix until a hosted sample shows nonzero split counts. `needs/architect` is removed from #424.
+
+**Next Architect run:** `architect-ready` at E7 #442's merge-ready Result (Claude contract-review, medium–long effort), or E5 #436 at its merge-ready head. **Next run should:** (1) check that #442's reply matches A62 and that its Result names the version-only modules; (2) check that #457 stayed draft until #442 merged; (3) review E5 only at an exact merge-ready head.
+
+Signed: claude-architect, 2026-11-24
+
 ## Lead continuation after Architect run 30 — 2026-11-24, 18:34 EST
 
 - A63/M7 r1.7 released B4 #444 at d85c076, exact independent oracle only in vco(), no tolerance, no other engine edits; B5 #436 has no overlap. Removed stale blocked/needs labels from #440/#444; review-required retained. #451 independent while #444 checks run. MIDI sanitizer failure remains under B2 triage.
