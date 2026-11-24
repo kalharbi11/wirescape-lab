@@ -34,9 +34,15 @@ struct Delay {
     float dc_r = 0.999f, lp[2]{}, dc_x[2]{}, dc_y[2]{};
     bool primed = false;
     float mode_blend = 0.f, mode_step = 0.f;
+    uint32_t fade_frames = 1;
+    long division_seen = -1;
+    uint32_t division_left = 0;
+    double division_to = 0;
     // tone cache (a pure function of the tone parameter)
     float tone_seen = 9.f, tone_a = 0, tone_k = 0;
     int tone_kind = 0;
+    float tone_current_a = 0, tone_low = 0, tone_high = 0;
+    uint32_t tone_left = 0;
     // clock follower
     ws::Schmitt schmitt;
     bool high = false, seen = false;
@@ -60,6 +66,7 @@ struct Delay {
         }
         alpha = 1.0 - std::exp(-1.0 / (kGlide * rate));
         mode_step = static_cast<float>(1.0 / (0.010 * rate));
+        fade_frames = std::max(1u, static_cast<uint32_t>(std::ceil(.010 * rate)));
         dc_r = static_cast<float>(1.0 - 6.283185307179586 * 10.0 / rate);
         reset();
         return true;
@@ -71,6 +78,11 @@ struct Delay {
         cur = 0;
         primed = false;
         mode_blend = 0.f;
+        division_seen = -1;
+        division_left = tone_left = 0;
+        division_to = 0;
+        tone_seen = 9.f;
+        tone_current_a = tone_low = tone_high = 0.f;
         for (int i = 0; i < 2; ++i) lp[i] = dc_x[i] = dc_y[i] = 0.f;
         clock_reset();
     }
@@ -119,6 +131,8 @@ struct Delay {
     }
     void update_tone(float tone) {
         if (tone == tone_seen) return;
+        const int old_kind = tone_kind;
+        const bool initial = tone_seen == 9.f;
         tone_seen = tone;
         const double t = std::clamp(static_cast<double>(tone), -1.0, 1.0);
         double fc = 0;
@@ -134,11 +148,33 @@ struct Delay {
         fc = std::min(fc, 0.45 * rate);
         tone_a = static_cast<float>(1.0 - std::exp(-6.283185307179586 * fc / rate));
         tone_k = static_cast<float>(std::min(1.0, 4.0 * std::fabs(t))); // fades in, so tone 0 is exactly flat
+        if (!initial && (old_kind != tone_kind || tone_left)) {
+            // Preserve the live filter state and ramp the low/high-pass mix
+            // across bypass. Retarget from the current coefficients.
+            if (tone_low == 0.f && tone_high == 0.f) tone_current_a = tone_a;
+            tone_left = fade_frames;
+        } else {
+            tone_current_a = tone_a;
+            tone_low = tone_kind < 0 ? tone_k : 0.f;
+            tone_high = tone_kind > 0 ? tone_k : 0.f;
+        }
+    }
+    void advance_tone() {
+        if (!tone_left) return;
+        const float fraction = 1.f / static_cast<float>(tone_left);
+        // Keep the old cutoff while fading out to a flat bypass.
+        if (tone_kind) tone_current_a += fraction * (tone_a - tone_current_a);
+        tone_low += fraction * ((tone_kind < 0 ? tone_k : 0.f) - tone_low);
+        tone_high += fraction * ((tone_kind > 0 ? tone_k : 0.f) - tone_high);
+        --tone_left;
     }
     // Feedback path of one line: tone filter, then DC blocker.
     float loop(int ch, float x) {
         float y = x;
-        if (tone_kind) {
+        if (tone_left) {
+            lp[ch] = flush(lp[ch] + tone_current_a * (x - lp[ch]));
+            y = x + tone_low * (lp[ch] - x) + tone_high * ((x - lp[ch]) - x);
+        } else if (tone_kind) {
             lp[ch] = flush(lp[ch] + tone_a * (x - lp[ch]));
             const float f = tone_kind < 0 ? lp[ch] : x - lp[ch];
             y = x + tone_k * (f - x);
@@ -195,6 +231,16 @@ struct Delay {
             if (clocked && applied > 0) {
                 const long d = std::clamp(std::lround(p_div.ch(0)[i]), 0l, 7l);
                 target = applied * kDivisions[d];
+                if (!division_left && division_seen >= 0 && d != division_seen) {
+                    // Only a division edit crossfades taps; clock acquisition,
+                    // tempo changes and free time retain their original glide.
+                    division_to = std::clamp(target, lo, hi);
+                    division_left = fade_frames;
+                }
+                // Coalesce a retarget until the current bounded fade ends.
+                if (!division_left || division_left == fade_frames) division_seen = d;
+            } else {
+                division_seen = -1;
             }
             target = std::clamp(target, lo, hi);
             const bool ping_pong = std::lround(p_mode.ch(0)[i]) >= 1;
@@ -202,13 +248,28 @@ struct Delay {
                 mode_blend = ping_pong ? 1.f : 0.f; // No startup fade for a settled patch.
                 cur = target;
                 primed = true;
-            } else {
+            } else if (!division_left) {
                 const double diff = target - cur;
                 cur += std::fabs(diff) < 1e-4 ? diff : std::clamp(diff * alpha, -kSlew, kSlew);
             }
-            const float dl = std::clamp(read(line[0], cur), -kWetMax, kWetMax);
-            const float dr = std::clamp(read(line[1], cur), -kWetMax, kWetMax);
+            float dl = std::clamp(read(line[0], cur), -kWetMax, kWetMax);
+            float dr = std::clamp(read(line[1], cur), -kWetMax, kWetMax);
+            if (division_left) {
+                const float blend = static_cast<float>(fade_frames - division_left + 1) /
+                                    static_cast<float>(fade_frames);
+                const float nl = std::clamp(read(line[0], division_to), -kWetMax, kWetMax);
+                const float nr = std::clamp(read(line[1], division_to), -kWetMax, kWetMax);
+                if (--division_left == 0) {
+                    cur = division_to;
+                    dl = nl;
+                    dr = nr;
+                } else {
+                    dl += blend * (nl - dl);
+                    dr += blend * (nr - dr);
+                }
+            }
             update_tone(p_tone.ch(0)[i]);
+            advance_tone();
             const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
             const float fl = loop(0, dl), fr = loop(1, dr);
             // Crossfade the input and feedback routing, not two complete delay
