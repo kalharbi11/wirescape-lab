@@ -41,6 +41,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | #417 OSC | 2026-11-24 | gpt-lead | ruling | soon | [OB-g7 OSC findings](https://github.com/kalharbi11/wirescape-lab/issues/417#issuecomment-7128284454): disposition and owning-lane diagnostic scope. | OSC product task release |
 | #417 MIDI | 2026-11-24 | gpt-lead | ruling | soon | [OB-g7 MIDI findings](https://github.com/kalharbi11/wirescape-lab/issues/417#issuecomment-7128284454): decide E5 coverage or separate counter-continuity task. | MIDI product task release |
+| #414 review | 2026-11-24 | gpt-lead | contract-review | now | [Pinned E4a/E4b review](https://github.com/kalharbi11/wirescape-lab/pull/416#issuecomment-7141679153) at `8e8783b`: G1–G8, ER3, ER5, A51 and A50 repeat-noise disposition. | E4b merge |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
