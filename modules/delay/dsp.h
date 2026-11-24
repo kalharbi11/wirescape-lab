@@ -33,6 +33,7 @@ struct Delay {
     double rate = 48000, cur = 0, alpha = 0;
     float dc_r = 0.999f, lp[2]{}, dc_x[2]{}, dc_y[2]{};
     bool primed = false;
+    float mode_blend = 0.f, mode_step = 0.f;
     // tone cache (a pure function of the tone parameter)
     float tone_seen = 9.f, tone_a = 0, tone_k = 0;
     int tone_kind = 0;
@@ -58,6 +59,7 @@ struct Delay {
             if (!l) return false;
         }
         alpha = 1.0 - std::exp(-1.0 / (kGlide * rate));
+        mode_step = static_cast<float>(1.0 / (0.010 * rate));
         dc_r = static_cast<float>(1.0 - 6.283185307179586 * 10.0 / rate);
         reset();
         return true;
@@ -68,6 +70,7 @@ struct Delay {
         w = 0;
         cur = 0;
         primed = false;
+        mode_blend = 0.f;
         for (int i = 0; i < 2; ++i) lp[i] = dc_x[i] = dc_y[i] = 0.f;
         clock_reset();
     }
@@ -194,7 +197,9 @@ struct Delay {
                 target = applied * kDivisions[d];
             }
             target = std::clamp(target, lo, hi);
+            const bool ping_pong = std::lround(p_mode.ch(0)[i]) >= 1;
             if (!primed) {
+                mode_blend = ping_pong ? 1.f : 0.f; // No startup fade for a settled patch.
                 cur = target;
                 primed = true;
             } else {
@@ -206,12 +211,21 @@ struct Delay {
             update_tone(p_tone.ch(0)[i]);
             const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
             const float fl = loop(0, dl), fr = loop(1, dr);
-            if (std::lround(p_mode.ch(0)[i]) >= 1) { // ping-pong: mono in, bounce L -> R -> L
+            // Crossfade the input and feedback routing, not two complete delay
+            // instances. Retarget from the current blend on a rapid reversal.
+            if (ping_pong && mode_blend >= 1.f) {
                 line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
                 line[1][w] = limit(fb * fl);
-            } else {
+            } else if (!ping_pong && mode_blend <= 0.f) {
                 line[0][w] = limit(xl + fb * fl);
                 line[1][w] = limit(xr + fb * fr);
+            } else {
+                mode_blend = ping_pong ? std::min(1.f, mode_blend + mode_step)
+                                       : std::max(0.f, mode_blend - mode_step);
+                const float sl = xl + fb * fl, sr = xr + fb * fr;
+                const float pl = 0.5f * (xl + xr) + fb * fr, pr = fb * fl;
+                line[0][w] = limit(sl + mode_blend * (pl - sl));
+                line[1][w] = limit(sr + mode_blend * (pr - sr));
             }
             if (++w == size) w = 0;
             if (i == 0 || !mix_constant) {
