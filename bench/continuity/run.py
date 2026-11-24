@@ -6,7 +6,8 @@
 For every edit and repeat: one sidecar run on the null sink with the capture flag,
 load probe patch -> ~2 s -> noteOn (held-note witness) -> ~2 s -> edit -> ~2 s -> stop, and one
 shared no-edit reference run per repeat. The edit's position comes only from its mark (b0, b1).
-A reference is aligned on the marks of a shared earlier command (`load` or `note`, per witness);
+A reference uses the edited capture's setup and is aligned on the marks of a shared earlier
+command (`load` or `note`, per witness);
 inside the offsets those two brackets allow, the offset whose pre-edit samples match exactly (or
 best) is chosen and its residual reported. Writes facts/dsp/edit_continuity.{json,md}. Numbers
 only: no thresholds, no pass/fail.
@@ -146,6 +147,29 @@ def applygraph_reply(reply: dict, mark: mk.Mark, gen_before: str) -> dict:
                 replaced=replaced, unapplied=unapplied)
 
 
+def compare_control(x, cont, name, edit, late) -> dict:
+    actual, expected = m.paired_window(x, cont, RATE, edit, late)
+    first = next((i - RATE for i, (a, b) in enumerate(zip(actual, expected)) if a != b), None)
+    compared = dict(samples=len(actual), identical=first is None, first_mismatch_from_edit=first,
+                    max_abs_difference=max(abs(a - b) for a, b in zip(actual, expected)))
+    if name in ('tone', 'tail', 'held_note'):
+        compared.update({key: finite(value) for key, value in m.paired_levels(actual, expected, RATE).items()})
+    if name in ('tone', 'tail', 'held_note', 'clock'):
+        compared['jump_ratio'] = m.paired_steps(actual, expected)
+    if name == 'slip_tone':
+        a = m.time_slip_tone_ms(x, RATE, edit, probe.SLIP_HZ, late)
+        b = m.time_slip_tone_ms(cont, RATE, edit, probe.SLIP_HZ, late)
+        period = 1000 / probe.SLIP_HZ
+        compared['time_slip_ms'] = None if a is None or b is None else (a - b + period / 2) % period - period / 2
+    if name == 'clock':
+        _, hi = m.window(x, RATE, edit, late)
+        starts = [[i for i in m.onsets(signal[:hi], RATE, 0.1) if i >= edit] for signal in (x, cont)]
+        offsets = [(a - b) * 1000 / RATE for a, b in zip(*starts)]
+        compared['time_slip_ms'] = max(offsets, key=abs, default=None)
+        compared['edited_onsets'], compared['control_onsets'] = map(len, starts)
+    return compared
+
+
 def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False) -> dict:
     mark = mk.locate(run.marks, 'edit')
     geo = mk.Geometry.of(run.segments)
@@ -180,6 +204,8 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
             if e:
                 errors[key] = e
             row[key] = finite(v) if not isinstance(v, dict) else v
+        if cont is not None and name != 'subject':
+            put('control_comparison', compare_control, x, cont, name, edit, late)
         if name == 'slip_tone':
             put('time_slip_ms', m.time_slip_tone_ms, x, RATE, edit, probe.SLIP_HZ, late)
         elif name == 'subject':
@@ -254,23 +280,26 @@ def binary_hash(binary: str) -> str:
     return digest.hexdigest()
 
 
-def provenance(binary: str | None = None, built_head: str | None = None) -> dict:
-    sh = lambda *a: subprocess.run(a, capture_output=True, text=True, cwd=ROOT).stdout.strip()
+def provenance(binary: str | None = None, built_head: str | None = None,
+               engine_source: Path = ROOT) -> dict:
+    def sh(*args, cwd=ROOT):
+        return subprocess.run(args, capture_output=True, text=True, cwd=cwd).stdout.strip()
     cpu = ''
     try:
         cpu = next((l.split(':', 1)[1].strip() for l in open('/proc/cpuinfo') if l.startswith('model name')), '')
     except OSError:
         pass
     now = datetime.datetime.now(datetime.timezone.utc)
-    head = sh('git', 'rev-parse', 'HEAD')
+    head = sh('git', 'rev-parse', 'HEAD', cwd=engine_source)
     if built_head and built_head != head:
         raise ValueError(f'built source pin {built_head} does not match checkout {head}')
     return dict(lab_commit=head, built_head_claim=built_head,
+                harness_commit=sh('git', 'rev-parse', 'HEAD'),
+                harness_dirty=bool(sh('git', 'status', '--porcelain', '--', 'bench/continuity')),
                 engine_sha256=binary_hash(binary) if binary else None,
                 toolchain=dict(cmake=sh('cmake', '--version').splitlines()[:1],
                                cxx=sh('c++', '--version').splitlines()[:1]),
-                dirty=bool(sh('git', 'status', '--porcelain', '--',
-                                                                         'native', 'engine', 'host', 'modules', 'sdk', 'targets', 'tests/native', 'tools/render', 'tools/capture', 'bench')),
+                dirty=bool(sh('git', 'status', '--porcelain', cwd=engine_source)),
                 machine=dict(system=platform.system(), arch=platform.machine(), cpu=cpu,
                              python=platform.python_version(), kind='cloud container, null sink, devices off'),
                 date_utc=now.strftime('%Y-%m-%dT%H:%MZ'), rate=RATE, block=BLOCK)
@@ -284,22 +313,33 @@ def main(argv=None):
     ap.add_argument('--out', default=str(ROOT / 'facts' / 'dsp' / 'edit_continuity'))
     ap.add_argument('--keep', help='directory to keep every raw capture and marks file (for an artifact)')
     ap.add_argument('--built-head', help='assert sidecar built at this exact checkout SHA')
+    ap.add_argument('--engine-source', type=Path, default=ROOT,
+                    help='separate engine source checkout for an exact-head capture')
     a = ap.parse_args(argv)
-    known = {e['name'] for e in probe.edits()}
+    cases = [*probe.edits(), probe.latency_probe(probe.base())]
+    known = {e['name'] for e in cases}
     if a.only and (unknown := set(a.only) - known):
         ap.error('unknown edit(s): ' + ', '.join(sorted(unknown)))
     if a.repeats < 1:
         ap.error('--repeats must be positive')
-    edits = [e for e in probe.edits() if not a.only or e['name'] in a.only]
+    source = provenance(a.engine, a.built_head, a.engine_source)
+    edits = [e for e in cases if not a.only or e['name'] in a.only]
     per_edit = {e['name']: [] for e in edits}
     artifact_rows = {}
 
     for rep in range(a.repeats):
         keep = lambda tag: str(Path(a.keep) / f'r{rep + 1}-{tag}') if a.keep else None
-        ref = eng.run(a.engine, script(None, None), keep=keep('reference'), expected_head=a.built_head)
+        references = {}
         for e in edits:
             print(f'repeat {rep + 1}/{a.repeats}: {e["name"]}', flush=True)
-            run = eng.run(a.engine, script(e, e.get('setup')), keep=keep(e['name'].replace(' ', '_')),
+            setup = e.get('setup')
+            setup_key = json.dumps(setup, sort_keys=True)
+            if setup_key not in references:
+                references[setup_key] = eng.run(a.engine, script(None, setup),
+                                                keep=keep(f'reference-{len(references)}'),
+                                                expected_head=a.built_head)
+            ref = references[setup_key]
+            run = eng.run(a.engine, script(e, setup), keep=keep(e['name'].replace(' ', '_')),
                           expected_head=a.built_head)
             per_edit[e['name']].append(analyse(run, ref, e['subject'], e.get('changes_subject', False)))
             if a.keep:
@@ -312,7 +352,8 @@ def main(argv=None):
         names = list(reps[0]['witnesses'])
         for w in names:
             keys = sorted({k for r in reps for k in r['witnesses'][w]
-                           if k not in ('alignment', 'not_measured', 'restarted_note', 'divergence')})
+                           if k not in ('alignment', 'not_measured', 'restarted_note', 'divergence',
+                                        'control_comparison')})
             row = dict(edit=e['name'], command=e['cmd'][0], witness=w,
                        channel=e['subject'] if w == 'subject' else next(c for c, n in probe.WITNESS.items() if n == w),
                        replies=[dict(ok=r['ok'], code=r['code']) for r in reps],
@@ -322,11 +363,13 @@ def main(argv=None):
                        marks=[dict(b0=r['b0'], b1=r['b1'], gen_before=r['gen_before'], gen_after=r['gen_after'],
                                    segments=r['segments'], run=r['all_marks'], reference=r['reference_marks'])
                               for r in reps])
+            if e.get('report_only'):
+                row['report_only'] = True
             if e['cmd'][0] == 'applyGraph':
                 row['applygraph_results'] = [r['applygraph'] for r in reps]
             rows.append(row)
-    doc = dict(provenance=provenance(a.engine, a.built_head), repeats=a.repeats,
-               method='proposals/0005 section 4 as amended by M0 r3 ruling R7; bench/continuity/DESIGN.md',
+    doc = dict(provenance=source, repeats=a.repeats,
+               method='proposals/0005 sections 4–5, R7 and A50; bench/continuity/DESIGN.md',
                rows=rows, unsupported=probe.UNSUPPORTED, artifacts=artifact_rows)
     out = Path(a.out)
     if out.with_suffix('.json').exists() or out.with_suffix('.md').exists():
@@ -355,6 +398,19 @@ def markdown(doc: dict) -> str:
         reply = 'ok' if all(x['ok'] for x in r['replies']) else ', '.join(sorted({str(x['code']) for x in r['replies']}))
         lines.append(f'| {r["edit"]} | {r["witness"]} | {r["channel"]} | {reply} | {r["bracket_blocks"]} | ' +
                      ' | '.join(fmt(r['worst'].get(c)) for c in cols) + ' |')
+    paired_cols = ['silence_ms', 'dip_db', 'time_slip_ms', 'jump_ratio']
+    lines += ['', '## Aligned no-edit comparison by repeat', '',
+              '| edit | witness | repeat | report only | identical | first mismatch (samples) | '
+              + ' | '.join(paired_cols) + ' |', '|' + '---|' * (6 + len(paired_cols))]
+    for row in doc['rows']:
+        for i, repeat in enumerate(row['repeats'], 1):
+            comparison = repeat.get('control_comparison')
+            if comparison is None:
+                continue
+            fields = [row['edit'], row['witness'], i, 'yes' if row.get('report_only') else '',
+                      comparison['identical'], comparison['first_mismatch_from_edit']]
+            fields.extend(comparison.get(key) for key in paired_cols)
+            lines.append('| ' + ' | '.join(map(fmt, fields)) + ' |')
     lines += ['', '## Not measured (not supported today)', '']
     lines += [f'- {u["name"]}: {u["reason"]}' for u in doc['unsupported']]
     return '\n'.join(lines) + '\n'

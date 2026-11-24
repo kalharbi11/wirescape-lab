@@ -155,6 +155,14 @@ def edits() -> list[dict]:
     ] + applygraph_edits(B, groove_steps, groove_length, voices, osc_row, param)
 
 
+def latency_probe(base_patch):
+    """Connect a silent, latency-reporting source to the still-playing slip-tone bus."""
+    setup = copy.deepcopy(base_patch)
+    setup['modules'].append({'id': 92, 'module': 'sound.spectral'})
+    return dict(name='latency compensation limit', report_only=True, setup=setup, subject=None,
+                cmd=('connect', dict(connection=sig(92, 'audio', 4, 'audio'))))
+
+
 # All eight formerly unsupported M2 variants use the existing probe and
 # unchanged metric semantics; the captured sidecar must advertise applyGraph.
 APPLYGRAPH_KINDS = ('identical', 'Groove steps', 'Groove length', 'voice count',
