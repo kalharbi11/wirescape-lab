@@ -206,8 +206,13 @@ with tempfile.TemporaryDirectory() as directory:
     assert engine.call('panic')['gen'] == '5'
     engine.call('addModule', moduleId=10, moduleType='essentials.lfo')
     modulation = edge('modulation', 10, 'control', 9, 'frequency', amount=0.2)
-    engine.call('connect', connection=modulation)
-    assert engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)['gen'] == '8'
+    mod_gen = engine.call('connect', connection=modulation)['gen']
+    # E6 / ER6: amount is not part of a cable's identity. A second cable is
+    # refused even if its amount differs, and an amount edit must not swap.
+    duplicate = engine.call('connect', False, connection={**modulation, 'amount': -0.5})
+    assert duplicate['code'] == 'duplicate' and duplicate['gen'] == mod_gen
+    changed = engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)
+    assert changed['gen'] == mod_gen, 'E6 setModAmount must not advance graph generation'
     engine.call('addModule', moduleId=12, moduleType='midi.cc_to_cv')
     engine.call('ccMap.set', moduleId=12, row=0, mapping=dict(channel=0, controller=21, fourteen_bit=False, bipolar=False, smoothing_ms=10))
     assert engine.call('ccMap.set', False, moduleId=12, row=8, mapping={})['code'] == 'limit'
