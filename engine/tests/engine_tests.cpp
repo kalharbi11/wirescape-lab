@@ -5,6 +5,8 @@
 #include "../../tests/native/abi2/test_modules.h"
 #include "engine2.h"
 #include "types.h"
+#include "layout.h"
+#include <type_traits>
 #include "wirescape_sdk.h"
 #include <array>
 #include <atomic>
@@ -572,7 +574,13 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 165, 21, false);
 }
+// E4a: topology entries must not embed DSP instances. Two layouts must
+// be able to refer to the same instance without moving its address.
+static void layout_instance_separation(){
+ CHECK(std::is_reference_v<decltype(Node::instance)>);
+}
 int main(){
+ layout_instance_separation();
 #ifdef _MSC_VER
  _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
 #endif
