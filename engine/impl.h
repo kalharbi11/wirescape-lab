@@ -17,6 +17,7 @@ struct Engine::Impl {
     std::map<EdgeState *, std::unique_ptr<EdgeState>> edge_states;
     std::vector<std::unique_ptr<Instance>> retired_instances;
     std::unique_ptr<Layout> steady_layout;
+    std::optional<uint64_t> last_settle_attempt_position; // Control owner only.
     std::unique_ptr<Layout> layout = std::make_unique<Layout>(); // control-only
     Layout *render_layout = nullptr; // render-only after prepare
     std::atomic<Layout *> pending_layout{nullptr};

@@ -45,6 +45,7 @@ void Engine::reset() {
     }
     if (p.render_layout) p.reset_processors();
     p.position.store(0);
+    p.last_settle_attempt_position.reset();
     if (p.prepared) p.reset_beat = true;
     else p.beat = 0;
     p.anchor_frame = 0;
@@ -423,6 +424,11 @@ void Engine::Impl::prune_edge_states() noexcept {
 
 void Engine::Impl::settle_layout() noexcept {
     if (!steady_layout || settled_revision.load(std::memory_order_acquire) < layout->revision) return;
+    // Retry only after a callback advances the render position. If audio
+    // stopped, repeated status refreshes must not each wait three blocks.
+    const auto frame = position.load(std::memory_order_acquire);
+    if (last_settle_attempt_position == frame) return;
+    last_settle_attempt_position = frame;
     // The next edit may also fold this housekeeping into its transition.
     // A stopped stream can cancel this attempt without changing the graph.
     auto &steady = *steady_layout;
@@ -441,6 +447,7 @@ void Engine::Impl::settle_layout() noexcept {
     if (!publish_layout(&steady, bound)) return;
     layout.swap(steady_layout);
     steady_layout.reset();
+    last_settle_attempt_position.reset();
     retired_instances.clear();
     prune_edge_states();
     published_revision.store(revision, std::memory_order_release);
@@ -726,6 +733,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     transfer(target);
     old.layout.swap(staged.layout);
     old.steady_layout = std::move(steady.layout);
+    old.last_settle_attempt_position.reset();
     old.edge_states.swap(staged.edge_states);
     old.prune_edge_states();
     old.recompute_latency();
