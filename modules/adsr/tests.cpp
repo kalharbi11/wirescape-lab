@@ -148,11 +148,19 @@ static void note_retrigger_from_current_level_and_choke() {
     f->process.events = {sizeof(ws2_event_list), 1, &obsolete};
     f->run(1);
     VERIFY(f->output[0][0][0] > .5f);
-    // A matching CHOKE clears the active tail immediately, as in Gate mode.
+    // S7.9 intended sound change: matching CHOKE clears the note identity
+    // immediately, then releases the old level to zero in exactly 5 ms.
+    const float level = f->output[0][0][0];
     auto choke = note(WS2_NOTE_CHOKE, 0, 7, 22);
     f->process.events = {sizeof(ws2_event_list), 1, &choke};
     f->run(64);
-    for (uint32_t i = 0; i < 64; ++i) VERIFY(f->output[0][0][i] == 0);
+    for (uint32_t i = 0; i < 64; ++i)
+        VERIFY(std::abs(f->output[0][0][i] - level * (1.f - float(i+1)/240.f)) < 1e-6f);
+    // An old repeated CHOKE cannot prolong this tail.
+    f->run(176);
+    for (uint32_t i = 0; i < 176; ++i)
+        VERIFY(std::abs(f->output[0][0][i] - level * (1.f - float(i+65)/240.f)) < 1e-6f);
+    VERIFY(f->output[0][0][175] == 0.f);
     f->reset();
     f->process.events = {sizeof(ws2_event_list), 0, nullptr};
     f->run(64);
@@ -222,7 +230,7 @@ static std::vector<float> choke_capture(bool oscillator, bool trigger, bool chok
     }
     return pcm;
 }
-static void s79_choke_fail_first() {
+static void s79_choke_metric() {
     bool all_pass = true;
     for (int mode : {0, 1, 2}) {
         const bool oscillator = mode == 2, trigger = mode == 1;
@@ -239,14 +247,31 @@ static void s79_choke_fail_first() {
             constexpr double tau = 6.28318530717958647692;
             VERIFY(std::abs(ref[17] - std::sin(tau * 220. * 17. / 48000.)) < 1e-6);
         }
-        const double before = choke_peak_dbfs(switched, 48000);
+        const double after = choke_peak_dbfs(switched, 48000);
         const double floor = choke_peak_dbfs(ref, 48000);
-        // Absolute/floor alternative from M7. The relative target will
-        // additionally be bound to the captured before row in the fix.
-        const bool pass = before < -60. || std::abs(before - floor) <= .1;
-        std::printf("S7.9 %s CHOKE peak_dbfs=%.9f no_switch_floor_dbfs=%.9f %s\n",
+        // Fail-first source dfc3736595839875f2c9be7c1bd29cfd38ea0f2d,
+        // hosted 45478523246 (both architectures, same windows).
+        const double before = oscillator ? -7.429097628 : -6.046020153;
+        const double reduction = before - after;
+        const bool pass = reduction >= 20. || after < -60. || std::abs(after - floor) <= .1;
+        if (oscillator) {
+            // CHOKE preserves the instantaneous phase sample and reverts to
+            // the free-running 220 Hz frequency (the event note was 440 Hz).
+            VERIFY(switched[48000] == ref[48000]);
+            VERIFY(std::abs(switched[48200] - switched[48000]) > .01f);
+            constexpr double tau = 6.28318530717958647692;
+            const double phase = tau*(220.*17. + 440.*(48000.-17.))/48000.;
+            for (size_t i=0; i<240; ++i)
+                VERIFY(std::abs(switched[48000+i] - std::sin(phase+tau*220.*i/48000.)) < 1e-6);
+        } else {
+            const float start = switched[47999];
+            for (size_t i=0; i<240; ++i)
+                VERIFY(std::abs(switched[48000+i]-start*(1.f-float(i+1)/240.f)) < 1e-6f);
+            VERIFY(std::all_of(switched.begin()+48239, switched.end(), [](float x){return x==0.f;}));
+        }
+        std::printf("S7.9 %s CHOKE peak_dbfs=%.9f reduction_db=%.9f no_switch_floor_dbfs=%.9f %s\n",
                     oscillator ? "VCO" : trigger ? "ADSR-trigger" : "ADSR-gate",
-                    before, floor, pass ? "PASS" : "FAIL");
+                    after, reduction, floor, pass ? "PASS" : "FAIL");
         all_pass = all_pass && pass;
     }
     std::fflush(stdout);
