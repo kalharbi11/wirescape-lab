@@ -20,6 +20,7 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 - Affects only the tag condition. Nothing in flight stops.
 
 **r2.7 (Architect, 2026-11-24, run 22, A41):** OB-g8 allowed paths gain `host/osc/` and `modules/osc_in/`, because the #386 diagnostic names `Pattern::match`. Affects OB-g8 only; nothing in flight stops.
+**r2.8 (Architect, 2026-11-24, run 26, A45/A46):** two r2.1 oracles are corrected to the written design. They affect OB-c only. **P1 (panic gap):** ABI2 `panic()` MUST reset processors (`docs/specs/ABI2_SPEC.md:69`), so a stateless VCO restarts its phase. P1 now gates the reported defect, the gap: block positions run without a missing or repeated frame, 0 overruns, and no capture block after the reset boundary is silent past the reported latency. Bit identity to the no-panic run is reported, not gated. P4's `click_events` row is unchanged. **G1 (Groove stop):** STOP queues to the documented cycle end (`modules/groove/README.md:43`). G1 is now `running` = 0 within one block of that cycle-end frame. START and the external-clock row are unchanged. Neither row gets a tolerance.
 
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
