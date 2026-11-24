@@ -56,6 +56,22 @@ void verify_split(const T &state, uint64_t budget, uint64_t enqueue, long) {
     REQUIRE(false);
 }
 
+// Listener counts represent one physical UDP listener; budget counts once
+// per discarded decoded message, enqueue once per failed route delivery.
+template<class S>
+auto verify_listener(const S &service, uint64_t budget, uint64_t enqueue, int)
+    -> decltype(service.listener_states(), void()) {
+    const auto listeners = service.listener_states();
+    REQUIRE(listeners.size() == 1);
+    REQUIRE(listeners[0].port == service.bound_port());
+    REQUIRE(listeners[0].dropped == budget + enqueue);
+    verify_split(listeners[0], budget, enqueue, 0);
+}
+template<class S>
+void verify_listener(const S &, uint64_t, uint64_t, long) {
+    REQUIRE(false);
+}
+
 // The service-level sink has exactly the nine route matches of the soak.
 // A bounded deliberate scheduling stall queues one 64-address cycle behind
 // the gate rise. One selected sink refusal witnesses enqueue accounting;
@@ -139,12 +155,12 @@ void soak_backlog_split() {
         std::this_thread::sleep_for(1ms);
     // Join before asserting cross-counter identities: concurrent snapshots
     // are intentionally not a transactional read.
-    service.stop();
 #ifdef _WIN32
     closesocket(sender);
 #else
     close(sender);
 #endif
+    service.stop();
     const auto states = service.states();
     const auto total = service.counters();
     std::fprintf(stderr, "OSC 64x200Hz backlog: datagrams=%llu dropped=%llu seq=%u falls=%u\n",
@@ -165,6 +181,7 @@ void soak_backlog_split() {
     for (const auto &state : states)
         verify_split(state, 0, state.node == 17 ? 4 : 0, 0);
     verify_split(total, 0, 4, 0);
+    verify_listener(service, 0, 4, 0);
 }
 } // namespace
 
@@ -294,6 +311,7 @@ int main() {
     REQUIRE(bundled.counters().dropped == 16);
     verify_split(bundled.states()[0], 16, 0, 0);
     verify_split(bundled.counters(), 16, 0, 0);
+    verify_listener(bundled, 16, 0, 0);
 #ifdef _WIN32
     closesocket(bundle_sender);
 #else
