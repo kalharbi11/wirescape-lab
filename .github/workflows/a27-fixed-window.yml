@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: A27 fixed-window Delay capture (advisory)
+on:
+  pull_request:
+    paths:
+      - 'bench/offline/a27_fixed.py'
+      - 'bench/offline/test_a27_fixed.py'
+      - 'bench/offline/a27_pins.json'
+      - '.github/workflows/a27-fixed-window.yml'
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: 'Full base source SHA'
+        required: true
+        type: string
+      subject_sha:
+        description: 'Full subject source SHA'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    env:
+      TOOL_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      INPUT_BASE: ${{ inputs.base_sha }}
+      INPUT_SUBJECT: ${{ inputs.subject_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TOOL_SHA }}
+          path: tooling
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tooling/bench/offline/requirements.txt
+      - name: Validate source pins and fixed-window tests
+        id: pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C tooling rev-parse HEAD)" = "$TOOL_SHA"
+          python -m unittest discover -s tooling/bench/offline -p test_a27_fixed.py -v
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          pins = json.loads(Path("tooling/bench/offline/a27_pins.json").read_text())
+          if os.environ["GITHUB_EVENT_NAME"] == "workflow_dispatch":
+              pins = {"base": os.environ["INPUT_BASE"], "subject": os.environ["INPUT_SUBJECT"],
+                      "purpose": "explicit dispatch pins; evidence disposition by lead"}
+          for role in ("base", "subject"):
+              if not re.fullmatch(r"[0-9a-f]{40}", pins.get(role, "")):
+                  raise ValueError("full source SHA required")
+          if pins["base"] == pins["subject"]:
+              raise ValueError("distinct base and subject required")
+          out = Path(os.environ["RUNNER_TEMP"]) / "a27"
+          out.mkdir()
+          (out / "pins.json").write_text(json.dumps(dict(pins, tooling=os.environ["TOOL_SHA"]), indent=2))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              for role in ("base", "subject"):
+                  f.write(role + "=" + pins[role] + "\n")
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pins.outputs.base }}
+          path: base-source
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pins.outputs.subject }}
+          path: subject-source
+          persist-credentials: false
+      - name: Build and capture paired source trees
+        env:
+          BASE_SHA: ${{ steps.pins.outputs.base }}
+          SUBJECT_SHA: ${{ steps.pins.outputs.subject }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'tooling_sha=%s\nbase_sha=%s\nsubject_sha=%s\n' "$TOOL_SHA" "$BASE_SHA" "$SUBJECT_SHA"
+            printf 'runner_image=%s\nrunner_image_version=%s\nrunner_arch=%s\n' "$ImageOS" "$ImageVersion" "$RUNNER_ARCH"
+            date -u
+            python --version
+            c++ --version
+          } > "$RUNNER_TEMP/a27/run-info.txt"
+          for role in base subject; do
+            if [ "$role" = base ]; then pin="$BASE_SHA"; else pin="$SUBJECT_SHA"; fi
+            source="$GITHUB_WORKSPACE/$role-source"
+            test "$(git -C "$source" rev-parse HEAD)" = "$pin"
+            (cd "$source" && python tools/dev.py build --headless --config Release)
+            python tooling/bench/offline/a27_fixed.py capture --source "$source" \
+              --build "$source/build/native" --out "$RUNNER_TEMP/a27/$role" --pin "$pin"
+          done
+          python tooling/bench/offline/a27_fixed.py pair --root "$RUNNER_TEMP/a27" \
+            --base-pin "$BASE_SHA" --subject-pin "$SUBJECT_SHA"
+      - name: Upload raw PCM, exact pins and paired report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a27-fixed-window-${{ matrix.runner }}
+          path: ${{ runner.temp }}/a27/
+          if-no-files-found: error
