@@ -8,12 +8,19 @@ reach the Architect; do not rely on PR comments alone.
 
 A planned review condition goes on the task with `review-required`. Open an Architect-only
 review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
-cloud reviewer); send it in the next `architect-wake` batch. Routine independent review uses
+cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
 `review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
 
-A row and its labels record the decision or review request. Only the delivery lead sends
-a separate [intentional Architect wake](README.md#intentional-architect-wake) when urgency
-or a ready batch justifies it: comment `/architect-run` on [#265](https://github.com/kalharbi11/wirescape-lab/issues/265), then add `architect-wake`. The Architect reads the newest command and clears the label when done.
+A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
+[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
+starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
+
+During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
+as a delegated mechanical step after verifying a complete request and when no lead decision
+is outstanding. Count that dispatch against the same one-per-lead-window allowance.
+Use the linked issue for the wake while only Issues → Labeled is configured. Keep review
+material and its head pinned on the PR. A label requests a run. Confirm pickup from live
+activity or the signed outcome.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -27,30 +34,16 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
-## Historical lead queue sync — 2026-11-18 19:33 EST
-
-Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
-PR #242 now needs independent **reviewer-level** Claude review at
-`fd413424197cec2f4ae04c7c866636d4483e41ed`, base
-`004a1b469c6d87fb7886f53ca8ac8f4c273eb6d8`; all five recorded workflows completed green.
-The queue is its `claude-review/reviewer` label, not a new Architect-only Open row.
-The Architect may fulfill that review, or the owner may run claude-reviewer.
-B1/B2 test wiring is released under SR8 and needs no Architect ruling.
-A3/A4 below retain their original waits. No cleared ruling is reopened.
-Lead actions and exact next runs are in CURRENT's Cloud-1 delivery sync.
-
-Signed: codex-lead, 2026-11-18, 19:33 EST
-
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
-| A31 | 2026-11-23 | owner | blocker (Pi) | later | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
+| A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A34 | 2026-11-23 | OB-a3 #298 contract-review | **Approved for merge 5ecf300**, pins 1–7 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/298#issuecomment-7118079537)). 2026-11-23 |
-| A35 | 2026-11-23 | C1 #375 verification sequence | Merge-then-verify: the two-head check becomes acceptance on #367, with a security floor and a rollback that disables the workflow ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/375#issuecomment-7118103653)). 2026-11-23 |
-| A36 | 2026-11-23 | T1.6c #376 contract-review | **Approved for merge 418d4a7**, 0007 rules 2–5 hold; lead merges ([review](https://github.com/kalharbi11/wirescape-lab/pull/376#issuecomment-7118076713)). 2026-11-23 |
-| A32 | 2026-11-23 | CB1 escalation on #333: LFO +1.9/+2.1 % on x64 from SDK-wrapper inlining in the catalogue TU | Run 16: SDK pinning only moves the cost, so CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) gives one TU per module. #333 merges with a bounded exception (two LFO rows, x64, up to +2.5 %, expires at CAT-1). [`0020` §7](../../proposals/0020-note-tools-and-gate-delay.md). 2026-11-23 |
+| #429 scope | 2026-11-24 | E5 voice-count replacement scope | **A55** ([M4 note](milestones/M4.md), [#429](https://github.com/kalharbi11/wirescape-lab/issues/429)): voice count stays a live parameter, no ID/document change; in-place `Allocator::resize` as **E5v #439** (B3, `merge: lead`). E5 = same-descriptor config replacement with ER4, adopt/ring-out, settle Low |
+| #438 | 2026-11-24 | Roadmap status review; M7 batch 2 vs R3 inconsistency | **A56**: M7 r1.6 unparks S7.5/S7.6/S7.9 for OB1 with a bounded paired-row exception (≤ +2.5 %, rows without a changed module, linux, expires at CAT-1 or the OB1 tag). OB r2.9 adds optional #322. Roadmap revised and merged |
+| run 29 process | 2026-11-24 | Owner: fewer stops before merge-ready | **A57** → STANDING SR20 (self-release, Lows never block, lead merges `merge: lead` on green + Result, facts auto-merge, one Claude review at the merge-ready head) |
+| #424 routing | 2026-11-24 | OSC fix after the split counts | **A58** (pre-ruled): see [#424](https://github.com/kalharbi11/wirescape-lab/issues/424). The lead routes the fix without a new row unless it changes a limit, queue size, load or the soak profile |

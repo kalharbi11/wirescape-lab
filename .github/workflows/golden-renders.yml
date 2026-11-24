@@ -3,7 +3,7 @@ name: Golden patch renders (same-runner base/head gate)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
     paths:
       - "native/**"
       - "engine/**"
@@ -49,6 +49,7 @@ permissions:
 
 jobs:
   golden:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Same-runner golden / ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90

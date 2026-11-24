@@ -1246,6 +1246,12 @@
             "result": {
               "type": "object",
               "properties": {
+                "warnings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "path": {
                   "enum": [
                     "live",

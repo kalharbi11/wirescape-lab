@@ -165,6 +165,29 @@ def _cmake_and_generator() -> tuple[str | None, str | None, str | None]:
     toolchain = discover_toolchain()
     return toolchain["cmake"], toolchain["generator"], toolchain["architecture"]
 
+def _print_build_failure(stage: dict[str, Any]) -> None:
+    """Expose a bounded diagnostic without changing JSON stdout or the full log."""
+    print(f"Build step {stage['name']} failed (exit {stage['exit_code']})", file=sys.stderr)
+    if stage.get("command"):
+        print(f"Command: {json.dumps(stage['command'])}", file=sys.stderr)
+    if stage.get("error"):
+        print(f"Error: {stage['error']}", file=sys.stderr)
+    if not stage.get("log"):
+        return
+    path = Path(stage["log"])
+    try:
+        with path.open("rb") as stream:
+            size = stream.seek(0, os.SEEK_END)
+            stream.seek(max(0, size - 65536))
+            tail = stream.read(65536).decode("utf-8", errors="replace").splitlines()[-100:]
+    except OSError as error:
+        print(f"Cannot read build log {path}: {error}", file=sys.stderr)
+        return
+    print(f"Last build log lines (full log: {path}):", file=sys.stderr)
+    for line in tail:
+        print(line, file=sys.stderr)
+
+
 def command_build(args: argparse.Namespace) -> int:
     record = _base_record("build", args.config)
     source_before = record["source"]
@@ -179,6 +202,10 @@ def command_build(args: argparse.Namespace) -> int:
         write_json(BUILD_DIR / "build-metadata.json", previous)
     configure = [cmake, "-S", str(ROOT / "native"), "-B", str(BUILD_DIR), "-G", generator]
     configure += ["-A", "x64"] if generator.startswith("Visual Studio") else [f"-DCMAKE_BUILD_TYPE={args.config}"]
+    # Forward the optional Visual Studio toolset explicitly: -G can override
+    # CMake's environment-based generator defaults.
+    if generator.startswith("Visual Studio") and os.environ.get("CMAKE_GENERATOR_TOOLSET"):
+        configure += ["-T", os.environ["CMAKE_GENERATOR_TOOLSET"]]
     # Cloud fallback: tools/cloud/git_deps.py writes this when codeload is blocked.
     git_deps_cache = ROOT / "build" / "deps-cache" / "fetchcontent.cmake"
     if git_deps_cache.is_file():
@@ -204,6 +231,8 @@ def command_build(args: argparse.Namespace) -> int:
         write_json(BUILD_DIR / "build-metadata.json", metadata)
     record.update(steps=steps, command_result=steps[-1], tools={"cmake": cmake, "generator": generator, "architecture": architecture},
                   status="failed" if failed else "passed", summary=f"{failed['name']} failed" if failed else f"Built {args.config}" )
+    if failed:
+        _print_build_failure(failed)
     return _finish(record, args, failed["exit_code"] if failed else 0)
 
 def command_test(args: argparse.Namespace) -> int:

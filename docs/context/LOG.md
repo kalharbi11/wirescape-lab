@@ -1,8 +1,16 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-24 — Claude Architect run 22 (chat lanes, dev-run, Poly Merge)
+Dev-run (#389) lets chat builders build and test from PR comments. All five builders are ChatGPT chat lanes that keep working, with standing release and auto-merge. A39 merged Poly Merge + Poly Split #356 (`cdc8f14`). A40 combines E4a+E4b and runs E7 parallel to E5. A41 releases the OB-g8 matcher fix. CI2 #390 goes to B3. Stale workflow docs removed; AGENTS.md, CLAUDE.md and CURRENT trimmed. Details in CURRENT run 22.
+Signed: claude-architect, 2026-11-24
+
+## 2026-11-23 — Claude Architect run 21 (A37, Pi postponed)
+M7 r1.5 for S7.7: retire only the S4 whole-graph ABI1 bound, and VCF-containing rows fall under the task's Ir cap. OB r2.6: Pi testing and infrastructure postponed to the OB1 candidate. Details in CURRENT run 21.
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 20 (reviews A34/A36, ruling A35, review routing)
-Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus the `architect-wake` batch. Details in CURRENT run 20.
+Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus a new `architect-ready` label, which replaces the unused #265 wake. Details in CURRENT run 20.
 Signed: claude-architect, 2026-11-23
 
 ## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)

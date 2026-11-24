@@ -86,6 +86,16 @@ add_library(wirescape_osc_host STATIC ../engine/control/osc_host.cpp ../engine/c
 target_include_directories(wirescape_osc_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../engine/control)
 target_link_libraries(wirescape_osc_host PUBLIC wirescape_osc_service wirescape_runtime_document
   nlohmann_json::nlohmann_json)
+# OB-g8: device-off, bounded 64 x 200 Hz OSC ingress and panic recovery regressions.
+# Keep this below bench/io and use the actual Host, service and engine queue.
+add_executable(abi2_osc_heavy_ingress_tests ../host/net/heavy_ingress_tests.cpp)
+target_include_directories(abi2_osc_heavy_ingress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../sdk)
+target_link_libraries(abi2_osc_heavy_ingress_tests PRIVATE
+  wirescape_osc_host wirescape_runtime_document nlohmann_json::nlohmann_json)
+add_test(NAME abi2_osc_heavy_ingress_tests COMMAND abi2_osc_heavy_ingress_tests)
+add_test(NAME abi2_osc_panic_recovery_tests COMMAND abi2_osc_heavy_ingress_tests panic)
+set_tests_properties(abi2_osc_heavy_ingress_tests abi2_osc_panic_recovery_tests PROPERTIES TIMEOUT 30)
+
 add_executable(wirescape_engine_sidecar ../host/sidecar/main.cpp ../host/sidecar/protocol.cpp ../host/sidecar/session.cpp ../host/sidecar/devices.cpp)
 set_target_properties(wirescape_engine_sidecar PROPERTIES OUTPUT_NAME wirescape-engine)
 # Compile native catalogue categories from the same presentation source as

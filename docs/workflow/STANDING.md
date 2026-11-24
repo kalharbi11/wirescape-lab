@@ -47,7 +47,7 @@ job; no `continue-on-error`; not a required check. `ci.yml` is edited only by it
 The file counts as part of the task's allowed paths. Precedent: Q11.
 **SR9 Evidence substitutions.** Hosted-runner results satisfy a criterion that names no machine.
 Hosted timing is an advisory fact, never a pass mark. Device-only rows stay device-only: no agent
-run fills them. Local or worker builds support diagnosis; merge needs hosted exact-head CI. "Golden
+run fills them. `/dev-run` and local builds support diagnosis; merge needs hosted exact-head CI. "Golden
 24 identical" is always three platforms. Precedent: R2, M0 acceptance table.
 **SR10 Unmeasured rows.** Record `unmeasured`, `not_built_*`, `unavailable` or `device-only`
 with the reason. Never zero, never interpolated or copied from another row. Carry it into the
@@ -58,7 +58,7 @@ builder checks the quoted invariants on the exact head; nothing High means the l
 records the merge condition with `review-required`. When the current head is ready, the lead
 posts the pinned review request once and adds `review-ready` per the [label lifecycle](README.md#github-labels-for-work-and-review).
 Only Architect-only work needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md); it never gets `review-ready`
-(that label starts the regular reviewer) and is dispatched by the lead's `architect-wake` batch.
+(that label starts the regular reviewer) and is dispatched by the lead's `architect-ready` label.
 The lead tells the owner once and continues unaffected tasks.
 Where a contract from M3 on says contract-review without the word **Claude**, and no Claude
 session has answered within 24 hours, a fresh `gpt-reviewer` chat may run the same checklist; the
@@ -66,8 +66,8 @@ PR records which reviewer it was. Where the contract says **Claude**, and for M1
 Claude session counts. Precedent: M1 contract-review rule.
 **SR12 Staffing.** The lead may move a task to another builder when the writer gave no substantive
 result after one supported retry, or stopped. The old writer is told to stop first; the branch, PR and
-round count carry over; a handoff comment records the change. At most four builders. New Claude
-builder tasks and lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
+round count carry over; a handoff comment records the change. At most five builders (B1–B5, all ChatGPT chat sessions; no Codex builder sandboxes, 2026-11-24).
+Claude builder lanes (CB1–CB3) are off. Lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
 **SR13 Doc-only PRs.** CURRENT, LOG, QUESTIONS and `facts/` PRs merge on green under the scope
 rule. A facts PR also gets a neutral-wording review. A required check that hangs on a doc-only PR is
 a CI defect to fix under SR3, never a waiver. Precedent: Q7, CODEX_LEAD step 5.
@@ -92,6 +92,19 @@ file states numbers and sources; it never says what should be done.
 **SR19 Nothing waits for the design authority.** A question or review that is pending blocks only
 the task it names. Every other ready task proceeds. An acceptance report is filed when a
 milestone's tasks are merged; the next milestone's tasks start on their own "Depends on" cells.
+
+**SR20 Fewer stops (Architect, 2026-11-24, run 29, A57; owner: "move forward without many stops
+until merge-ready").** (a) **Self-release:** a builder starts the next task in its BUILDERS queue
+when its predecessor merges; if the issue does not exist it opens one quoting the contract row.
+No lead assignment comment is needed. (b) **Low findings never block a merge.** They become one
+follow-up line in the lane queue. (c) **`merge: lead` with no review condition:** exact-head
+required checks plus a signed Result are enough; the lead (or the Architect) merges or enables
+auto-merge without a separate pinned request. (d) **Facts-only PRs** (`facts/` only, no product
+path) auto-merge on required checks under SR18. (e) **Rulings travel:** when a written ruling
+covers a case (for example A58's OSC fix routing), the lead releases the task without asking the
+Architect again. (f) A Claude contract-review is asked **once**, at the head the builder calls
+merge-ready; intermediate heads are not reviewed. None of this changes a gate, a tolerance or a
+"Fixed" item.
 
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.

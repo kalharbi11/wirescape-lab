@@ -4,6 +4,7 @@
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
+#include "runtime_patch_normalize.h"
 #include "wirescape_sidecar_categories.h"
 #include <algorithm>
 #include <chrono>
@@ -1252,11 +1253,45 @@ Json Session::apply(const Json &command) {
         m["parameters"][param] = value;
         return nullptr;
     }
-    Json candidate = patch_;
     if (type == "loadGraph") {
-        commit(command.at("patch"), true);
+        auto loaded = command.at("patch");
+        auto &connections = loaded.at("connections");
+        need(connections.is_array());
+        need(connections.size() <= 128, "limit", "Graph capacity exceeded");
+        std::vector<std::string> warnings;
+        try {
+            warnings = document::normalize_stored_modulation(connections, 2);
+        } catch (const std::invalid_argument &e) {
+            throw Refusal("invalid", e.what());
+        }
+        commit(std::move(loaded), true);
+        if (!warnings.empty()) return Json{{"warnings", std::move(warnings)}};
         return nullptr;
     }
+    if (type == "setModAmount") {
+        const auto key = identity(command.at("connection"));
+        auto &cables = patch_.at("connections");
+        auto found = std::find_if(cables.begin(), cables.end(),
+                                  [&](const Json &cable) { return identity(cable) == key; });
+        need(found != cables.end(), "not-found", "No such connection");
+        need(found->at("kind") == "modulation");
+        const auto from = integer(key.at("from").at("module"));
+        const auto to = integer(key.at("to").at("module"));
+        const auto amount = number(command.at("amount"), -1, 1);
+        auto &engine = app_engine_native(active_);
+        auto *source = engine.descriptor(from);
+        auto *destination = engine.descriptor(to);
+        need(source && destination, "not-found", "No such module");
+        auto *out = port(source, key.at("from").at("port").get<std::string>(), true);
+        auto *param = parameter(destination, key.at("to").at("port").get<std::string>());
+        const auto result = engine.set_mod_amount(from, uint32_t(out - source->outputs), to,
+                                                  uint32_t(param - destination->params), float(amount));
+        need(result != WS2_CAPACITY, "busy", "Event queue full");
+        need(result == WS2_OK, "unavailable", "Modulation edge unavailable");
+        (*found)["amount"] = amount;
+        return nullptr;
+    }
+    Json candidate = patch_;
     if (type == "applyGraph") {
         // Same validation and execution copy as loadGraph, but in the current ID namespace and
         // through the live replan: unchanged modules keep their instances (0005 section 3).
@@ -1284,7 +1319,7 @@ Json Session::apply(const Json &command) {
         auto &outputs = candidate["outputs"];
         outputs.erase(std::remove_if(outputs.begin(), outputs.end(), [&](const Json &o) { return o["module"] == id; }),
                       outputs.end());
-    } else if (type == "connect" || type == "disconnect" || type == "setModAmount") {
+    } else if (type == "connect" || type == "disconnect") {
         auto connection = command.at("connection");
         need(connection.is_object());
         auto &cables = candidate["connections"];
@@ -1295,11 +1330,7 @@ Json Session::apply(const Json &command) {
             cables.push_back(connection);
         } else {
             need(found != cables.end(), "not-found", "No such connection");
-            if (type == "disconnect") cables.erase(found);
-            else {
-                need(found->at("kind") == "modulation");
-                (*found)["amount"] = number(command.at("amount"), -1, 1);
-            }
+            cables.erase(found);
         }
     } else if (type == "ccMap.set") {
         auto &m = node(candidate, integer(command.at("moduleId")));

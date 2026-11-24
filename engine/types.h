@@ -9,6 +9,7 @@
 #include <cmath>
 #include <memory>
 #include <new>
+#include <tuple>
 #include <vector>
 
 namespace wirescape::engine2 {
@@ -32,7 +33,8 @@ struct Buffer {
     }
 };
 struct Packet {
-    uint32_t node = 0, port = WS2_DIRECT_PORT, producer = 0;
+    uint32_t node = 0, port = WS2_DIRECT_PORT;
+    bool host = false;
     Timing mode = Timing::Frames;
     uint32_t routed_from = 0, routed_output = 0; // Zero source denotes external ingress.
     uint64_t when = 0, generation = 1, order = 0, mapped_time_ns = 0, revision = 0;
@@ -40,6 +42,25 @@ struct Packet {
     std::array<uint8_t, WS2_MAX_PAYLOAD> payload{};
     void fix() { event.data = event.bytes ? payload.data() : nullptr; }
 };
+// Host-only payload, copied into Packet storage at ingress. Transport is the
+// engine-wide target, so it has a serial but no instance birth revision.
+struct TransportUpdate {
+    double bpm, beat;
+    bool playing, locate;
+
+    void apply(uint64_t serial, uint64_t &last, Config &cfg, double &current_beat) const noexcept {
+        if (serial <= last) return;
+        set_values(cfg, current_beat);
+        last = serial;
+    }
+    void set_values(Config &cfg, double &current_beat) const noexcept {
+        cfg.bpm = bpm;
+        cfg.playing = playing;
+        if (locate) current_beat = beat;
+    }
+};
+static_assert(sizeof(TransportUpdate) <= WS2_MAX_PAYLOAD);
+
 // One producer/one consumer per ring. The registry never changes while running.
 struct Ring {
     std::vector<Packet> slots;
@@ -56,6 +77,20 @@ struct Ring {
     bool pop(Packet &p) noexcept {
         auto t = tail.load(std::memory_order_relaxed);
         if (t == head.load(std::memory_order_acquire)) return false;
+        p = slots[t];
+        p.fix();
+        tail.store((t + 1) % static_cast<uint32_t>(slots.size()), std::memory_order_release);
+        return true;
+    }
+    // ER3: inspect only the revision before consuming a packet; no extra
+    // payload copy and no advancement of a future-revision ring head.
+    bool pop_adopted(Packet &p, uint64_t adopted, uint64_t &blocked) noexcept {
+        auto t = tail.load(std::memory_order_relaxed);
+        if (t == head.load(std::memory_order_acquire)) return false;
+        if (slots[t].revision > adopted) {
+            blocked = slots[t].revision;
+            return false;
+        }
         p = slots[t];
         p.fix();
         tail.store((t + 1) % static_cast<uint32_t>(slots.size()), std::memory_order_release);
@@ -104,15 +139,71 @@ struct Parameter {
         return std::clamp(value, static_cast<double>(p.minimum), static_cast<double>(p.maximum));
     }
 };
-struct Edge {
-    uint32_t from, output, to, input;
-    int kind;
-    float amount;
-    Node *source = nullptr, *destination = nullptr;
-    bool back = false, removed = false;
+struct ModAmount {
+    float current = 0, target = 0;
+    double start = 0;
+    uint32_t remaining = 0;
+    uint64_t applied_serial = 0;
+
+    void set(float value, uint32_t duration) noexcept {
+        if (value == target) return;
+        target = value;
+        start = current;
+        remaining = current == target ? 0 : duration;
+    }
+
+    float next(uint32_t duration) noexcept {
+        const double fraction = double(duration - --remaining) / duration;
+        current = remaining ? float(start + (target - start) * fraction) : target;
+        return current;
+    }
+};
+// Render-owned linear edge envelope. Sample zero advances one frame; a
+// retarget begins from the actual last sample, not the prior authored target.
+struct EdgeGain {
+    float start = 1, target = 1;
+    uint32_t length = 0, position = 0;
+    float current() const noexcept {
+        return position >= length ? target : float(start + (target - start) * (double(position) / length));
+    }
+    float at(uint32_t offset) const noexcept {
+        const auto n = std::min<uint64_t>(length, uint64_t(position) + offset + 1);
+        return n >= length ? target : float(start + (target - start) * (double(n) / length));
+    }
+    void jump(float value) noexcept { start = target = value; length = position = 0; }
+    void set(float value, uint32_t frames) noexcept {
+        if (value == target) return;
+        const float now = current();
+        start = now;
+        target = value;
+        length = now == value ? 0 : frames;
+        position = 0;
+    }
+    bool advance(uint32_t frames) noexcept {
+        position = static_cast<uint32_t>(std::min<uint64_t>(length, uint64_t(position) + frames));
+        return position == length;
+    }
+    bool silent() const noexcept { return target == 0 && position == length; }
+};
+struct EdgeState {
+    ModAmount modulation;
+    EdgeGain gain;
+    // Render publishes retirement completion; control never reads gain fields.
+    std::atomic<bool> faded_out{false};
     Buffer delay;
     std::vector<uint32_t> delay_channels;
     uint32_t head = 0;
+};
+struct Edge {
+    uint32_t from, output, to, input;
+    int kind;
+    float amount; // Authored target, control-owned after prepare.
+    EdgeState *state = nullptr; // Control-owned, stable across adopted layouts.
+    uint64_t born_revision = 0;
+    uint64_t sent_serial = 0; // Control-owned.
+    auto key() const noexcept { return std::tie(from, output, to, input, kind); }
+    Node *source = nullptr, *destination = nullptr;
+    bool back = false, removed = false, ramped = false;
 };
 struct Component {
     std::vector<Node *> nodes;
@@ -121,5 +212,8 @@ struct Component {
 struct Bus {
     uint32_t node, port, channel;
     Node *source = nullptr;
+    EdgeState *state = nullptr;
+    bool removed = false, ramped = false;
+    auto key() const noexcept { return std::tie(node, port, channel); }
 };
 } // namespace wirescape::engine2

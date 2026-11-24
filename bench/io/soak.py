@@ -221,6 +221,29 @@ def check_counters(before, after):
                 raise Stop("counter_reset", f"{name}: {before[name]} -> {value}")
 
 
+def record_counters(result, baseline, current):
+    """Keep the actual failing sample and include fresh-service stop counters.
+
+    OSC route/out counters start at zero when the graph creates the service.
+    MIDI hello supplies the pre-load baseline for its own counters. A newly
+    exposed OSC key (including mixed profiles) must not hide early losses.
+    """
+    for name in current:
+        baseline.setdefault(name, 0)
+    result["counters_before"] = dict(baseline)
+    result["counters_after"] = dict(current)
+    check_counters(baseline, current)
+
+
+def record_midi_received(result, received):
+    """Retain the observed sample even when the monotonicity check fails."""
+    previous = result["midi_received_after"]
+    result["midi_received_after"] = received
+    if received < previous:
+        raise Stop("midi_counter_reset", f"received count decreased: {previous} -> {received}")
+    return received > previous
+
+
 def percentile(values, percent):
     if not values:
         return None
@@ -539,10 +562,10 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             next_seq = next_load = next_rss = start
             next_fall = None
             next_edit = start + 30
-            # Use scripted hello's zero counters so early drops cannot hide
-            # before the first periodic status creates a baseline.
+            # MIDI hello provides pre-load counts. Fresh OSC service stop
+            # counters have a zero baseline, including before the first status.
             initial = (counters({"status": {"midi": child.hello.get("midi", {})}})
-                       if profile in MIDI_PROFILES else None)
+                       if profile in MIDI_PROFILES else {})
             rss_anchor = None
             rss_peak = 0
             load_count = 0
@@ -610,22 +633,14 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                             if route.get("state") != "sending":
                                 raise Stop("osc_out_unavailable", str(route))
                         current = counters(msg)
+                        record_counters(result, initial, current)
                         if profile in MIDI_PROFILES:
                             received = midi_received(status)
-                            if received < result["midi_received_after"]:
-                                raise Stop("midi_counter_reset", "received count decreased")
-                            if received > result["midi_received_after"]:
+                            if record_midi_received(result, received):
                                 midi_last_progress = now
                                 watch.note(now, f"midi received={received}")
-                            result["midi_received_after"] = received
                             if now - midi_last_progress > 2.0:
                                 raise Stop("midi_stalled", "no scripted Host receives for >2s")
-                        if initial is None and current:
-                            initial = dict(current)
-                        if initial is not None:
-                            check_counters(initial, current)
-                        result["counters_before"] = dict(initial or {})
-                        result["counters_after"] = current
                 if now >= next_rss:
                     mem = rss_bytes(child.proc.pid)
                     if mem is not None:

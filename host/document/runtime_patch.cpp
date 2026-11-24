@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "runtime_patch.h"
+#include "runtime_patch_normalize.h"
+#include <algorithm>
+#include <tuple>
 #include "runtime_module_config.h"
 #include <cmath>
 #include <cstdio>
@@ -26,6 +29,43 @@ std::vector<uint8_t> state_bytes(const Json&s){
  }return out;
 }
 }
+std::vector<std::string> normalize_stored_modulation(Json &connections, int version) {
+    using Key = std::tuple<uint32_t, std::string, uint32_t, std::string>;
+    struct Amount { size_t index; double sum; bool duplicate = false; };
+    std::map<Key, Amount> amounts;
+    Json retained = Json::array();
+    std::vector<std::string> warnings;
+    for (const auto &cable : connections) {
+        if (cable.at("kind") == "modulation") {
+            uint32_t from = id(version == 1 ? cable.at("fromNode") : cable.at("from").at("module"));
+            uint32_t to = id(version == 1 ? cable.at("toNode") : cable.at("to").at("module"));
+            auto output = (version == 1 ? cable.at("fromPort") : cable.at("from").at("port")).get<std::string>();
+            auto input = (version == 1 ? cable.at("toPort") : cable.at("to").at("port")).get<std::string>();
+            const auto &value = cable.at("amount");
+            if (!value.is_number()) throw std::invalid_argument("Invalid modulation amount");
+            double amount = value.get<double>();
+            if (!std::isfinite(amount) || std::abs(amount) > 1)
+                throw std::invalid_argument("Invalid modulation amount");
+            auto [entry, first] = amounts.try_emplace({from, output, to, input}, Amount{retained.size(), amount});
+            if (!first) {
+                auto &record = entry->second;
+                record.sum += amount;
+                if (!record.duplicate) {
+                    record.duplicate = true;
+                    warnings.push_back("Merged duplicate modulation cable " + std::to_string(from) + ":" +
+                                       output + " -> " + std::to_string(to) + ":" + input);
+                }
+                continue;
+            }
+        }
+        retained.push_back(cable);
+    }
+    if (warnings.empty()) return warnings;
+    for (const auto &[key, record] : amounts)
+        if (record.duplicate) retained[record.index]["amount"] = std::clamp(record.sum, -1.0, 1.0);
+    connections = std::move(retained);
+    return warnings;
+}
 AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const engine2::Config&config,std::string&error,const std::vector<engine2::Tap>*telemetry_taps){
  try{
   need(bytes.size()<=RuntimePatchLimit,"Patch exceeds 2 MiB limit");std::vector<std::set<std::string>> keys;
@@ -33,9 +73,10 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
    if(event==Json::parse_event_t::object_start)keys.emplace_back();
    if(event==Json::parse_event_t::key)need(keys.back().insert(value.get<std::string>()).second,"Duplicate JSON key");
    if(event==Json::parse_event_t::object_end)keys.pop_back();return true;};
-  const auto patch=Json::parse(bytes,callback);need(patch.is_object()&&patch.at("format")=="wirescape.native.patch","Not a native patch");
+  auto patch=Json::parse(bytes,callback);need(patch.is_object()&&patch.at("format")=="wirescape.native.patch","Not a native patch");
   need(patch.at("version").is_number_integer(),"Invalid patch version");int version=patch.at("version").get<int>();need(version==1||version==2,"Unsupported patch version");
-  const auto&modules=patch.at("modules");const auto&cables=patch.at("connections");need(modules.is_array()&&modules.size()<=64&&cables.is_array()&&cables.size()<=128,"Invalid graph size/types");
+  const auto&modules=patch.at("modules");auto&cables=patch.at("connections");need(modules.is_array()&&modules.size()<=64&&cables.is_array()&&cables.size()<=128,"Invalid graph size/types");
+  const auto warnings = normalize_stored_modulation(cables, version);
   auto native=config; // Native config, before applying saved-patch settings.
   if(version==2){const auto&settings=patch.at("settings");need(settings.is_object(),"Invalid settings");
    if(settings.contains("sample_rate"))need(settings["sample_rate"].is_number()&&std::isfinite(settings["sample_rate"].get<double>())&&settings["sample_rate"].get<double>()>0,"Invalid saved sample rate");
@@ -66,13 +107,14 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
   }
   auto port=[&](uint32_t node,const std::string&name,bool output){need(nodes.count(node),"Missing cable/output module");auto*d=nodes.at(node);auto*p=output?d->outputs:d->inputs;uint32_t n=output?d->output_count:d->input_count;for(uint32_t i=0;i<n;++i)if(name==p[i].id)return i;throw std::runtime_error("Unknown port");};
   auto&graph=app_engine_native(engine.get());
+  std::set<std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>> connections;
   for(const auto&c:cables){need(c.is_object(),"Invalid cable");std::string kind=c.at("kind").get<std::string>();
    uint32_t from=id(version==1?c.at("fromNode"):c.at("from").at("module")),to=id(version==1?c.at("toNode"):c.at("to").at("module"));
    std::string out=version==1?c.at("fromPort").get<std::string>():c.at("from").at("port").get<std::string>();
    std::string in=version==1?c.at("toPort").get<std::string>():c.at("to").at("port").get<std::string>();
    uint32_t a=port(from,out,true);bool ok=false;
    if(kind=="modulation"){need(c.at("amount").is_number(),"Invalid modulation amount");float amount=c.at("amount").get<float>();need(std::isfinite(amount)&&std::abs(amount)<=1,"Invalid modulation amount");auto*d=graph.descriptor(to);if(d)for(uint32_t i=0;i<d->param_count;++i)if(in==d->params[i].id)ok=graph.modulate(from,a,to,i,amount);}
-   else{need(kind=="signal"||kind=="event"||(version==1&&(kind=="audio"||kind=="control")),"Invalid connection kind");uint32_t b=port(to,in,false);auto*ad=graph.descriptor(from);auto*bd=graph.descriptor(to);if(ad&&bd)need((kind=="event")==bool(ad->outputs[a].kind==WS2_EVENT&&bd->inputs[b].kind==WS2_EVENT),"Cable kind mismatch");ok=graph.connect(from,a,to,b);}
+   else{need(kind=="signal"||kind=="event"||(version==1&&(kind=="audio"||kind=="control")),"Invalid connection kind");uint32_t b=port(to,in,false);auto*ad=graph.descriptor(from);auto*bd=graph.descriptor(to);if(ad&&bd)need((kind=="event")==bool(ad->outputs[a].kind==WS2_EVENT&&bd->inputs[b].kind==WS2_EVENT),"Cable kind mismatch");need(connections.emplace(from,a,to,b).second,"Duplicate connection");ok=graph.connect(from,a,to,b);}
    need(ok,"Invalid cable graph");
   }
   if(version==1){uint32_t output=id(patch.at("outputNode"));need(graph.output(output,0,0)&&graph.output(output,0,1),"Invalid output");}
@@ -91,6 +133,7 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
       }
       std::fprintf(stderr, "OSC load ignored unknown config keys: %s\n", message.c_str());
   }
+  for (const auto &warning : warnings) std::fprintf(stderr, "%s\n", warning.c_str());
   error.clear();return engine.release();
  }catch(const std::exception&e){error=e.what();return nullptr;}
 }

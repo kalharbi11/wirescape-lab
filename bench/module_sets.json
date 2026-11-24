@@ -38,6 +38,8 @@
   "sound.spectral"
  ],
  "experimental": [
-  "essentials.cv_to_notes"
+  "essentials.cv_to_notes",
+  "essentials.poly_merge",
+  "essentials.poly_split"
  ]
 }

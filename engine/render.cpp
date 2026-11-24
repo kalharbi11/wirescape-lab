@@ -2,6 +2,7 @@
 #include "impl.h"
 #include "midi_release.h"
 #include "wirescape_sdk.h"
+#include <cassert>
 #include <cstring>
 #include <tuple>
 #if defined(__SSE2__) || defined(_M_X64)
@@ -70,11 +71,35 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
     return true;
 }
 
+void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
+    if (packet.event.type == WS2_PARAM_MOD) {
+        auto *edge = render_layout->find_mod_edge(packet.routed_from, packet.routed_output, packet.node, packet.port);
+        if (!edge || packet.revision < edge->born_revision) {
+            ++stale;
+            return;
+        }
+        auto &state = edge->state->modulation;
+        if (packet.order > state.applied_serial) {
+            state.applied_serial = packet.order;
+            state.set(packet.event.value, mod_ramp_frames());
+            edge->destination->instance.latency_dirty = true;
+        }
+        return;
+    }
+    if (packet.node || packet.event.type != WS2_TRANSPORT_EVENT) {
+        ++stale;
+        return;
+    }
+    TransportUpdate update{};
+    std::memcpy(&update, packet.payload.data(), sizeof(update));
+    update.apply(packet.order, transport_applied, cfg, beat);
+}
+
 void Engine::Impl::collect() {
-    for (auto &n : nodes) n->instance.pending.clear();
+    for (auto &n : render_layout->nodes) n->instance.pending.clear();
     Packet p;
     const uint64_t gen = generation.load(std::memory_order_acquire);
-    for (auto target : replan_chokes) {
+    for (auto target : render_layout->chokes) {
         ws2_event e{};
         e.struct_size = sizeof(e);
         e.type = WS2_NOTE_CHOKE;
@@ -82,20 +107,26 @@ void Engine::Impl::collect() {
         e.note_id = -1;
         e.channel = -1;
         e.flags = 1;
-        if (auto *n = find(target.first)) admit(*n, target.second, e, block_start, 0, true);
+        if (auto *n = render_layout->find(target.first)) admit(*n, target.second, e, block_start, 0, true);
         else ++stale;
     }
-    replan_chokes.clear();
+    render_layout->chokes.clear();
     for (uint32_t producer = 0; producer < producer_count; ++producer) {
         auto &source = *producers[producer];
         for (Ring *ring : {&source.critical, &source.normal}) {
             // Snapshot-like bounded drain. A busy producer cannot extend this indefinitely.
-            for (uint32_t work = 0; work < cfg.ring_capacity && ring->pop(p); ++work) {
+            uint64_t blocked = 0;
+            for (uint32_t work = 0; work < cfg.ring_capacity &&
+                 ring->pop_adopted(p, render_layout->revision, blocked); ++work) {
+                if (p.host) {
+                    apply_host_packet(p);
+                    continue;
+                }
                 if (p.generation != gen) {
                     ++stale;
                     continue;
                 }
-                auto *target = find(p.node);
+                auto *target = render_layout->find(p.node);
                 if (!target || p.revision < target->instance.born_revision) {
                     ++stale;
                     continue;
@@ -116,6 +147,10 @@ void Engine::Impl::collect() {
                 }
                 future.push_back(p);
             }
+            if (blocked && blocked > published_revision.load(std::memory_order_acquire)) {
+                ++faults;
+                assert(false && "Producer stamped an unpublished revision");
+            }
         }
     }
     size_t keep = 0;
@@ -126,7 +161,7 @@ void Engine::Impl::collect() {
             ++stale;
             continue;
         }
-        Node *n = find(packet.node);
+        Node *n = render_layout->find(packet.node);
         if (!n || packet.revision < n->instance.born_revision) {
             ++stale;
             continue;
@@ -152,8 +187,9 @@ void Engine::Impl::collect() {
 bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
     if (!processing || port >= processing->instance.outputs.size() ||
         processing->instance.outputs[port].kind != WS2_EVENT || source.offset >= processing_frames ||
-        !ws::valid_event(source))
+        source.type == WS2_TRANSPORT_EVENT || !ws::valid_event(source))
         return false;
+    if (processing->retired) return true; // Retired sources deliver only their fading signal output.
     if (ordinary_used + critical_used >= cfg.event_budget ||
         (!release(source) && ordinary_used >= cfg.event_budget - cfg.release_reserve)) {
         if (release(source)) emergency();
@@ -186,7 +222,7 @@ bool Engine::Impl::route(uint32_t port, const ws2_event &source) {
             p.event = source;
             p.when = destination_frame;
             p.generation = generation.load();
-            p.revision = revision.load();
+            p.revision = render_layout->revision;
             p.order = (UINT64_C(1) << 63) | sequence++;
             if (source.bytes) std::memcpy(p.payload.data(), source.data, source.bytes);
             p.fix();
@@ -235,19 +271,20 @@ WS_RENDER_INLINE void Engine::Impl::gather_events(Instance &instance, uint32_t s
 }
 
 WS_RENDER_INLINE uint32_t Engine::Impl::edge_channels(const Edge &e, uint32_t frames) const {
+    if (e.ramped && e.state->gain.silent()) return 0;
     if (!e.back) return e.source->instance.global_out[e.output].channels;
     uint32_t count = 0;
     for (uint32_t i = 0; i < frames; ++i)
-        count = std::max(count, e.delay_channels[(e.head + i) % cfg.feedback_block]);
+        count = std::max(count, e.state->delay_channels[(e.state->head + i) % cfg.feedback_block]);
     return count;
 }
 
 WS_RENDER_INLINE float Engine::Impl::edge_sample(const Edge &e, uint32_t channel, uint32_t i, uint32_t start) const {
     if (e.back) {
-        auto pos = (e.head + i) % cfg.feedback_block;
-        auto count = e.delay_channels[pos];
+        auto pos = (e.state->head + i) % cfg.feedback_block;
+        auto count = e.state->delay_channels[pos];
         if (count == 1) channel = 0;
-        return channel < count ? e.delay.data[channel][pos] : 0.f;
+        return channel < count ? e.state->delay.data[channel][pos] : 0.f;
     }
     const auto &buffer = e.source->instance.global_out[e.output];
     if (buffer.channels == 1) channel = 0;
@@ -272,6 +309,35 @@ WS_RENDER_INLINE void Engine::Impl::gather_inputs(Instance &instance, Slot &slot
     for (uint32_t j = 0; j < instance.inputs.size(); ++j) {
         const auto &port = instance.inputs[j];
         auto &buffer = slot.in[j];
+        if (!slot.transition_inputs.empty() && !slot.transition_inputs[j].empty()) {
+            // A removed and an added cable may share a destination port during
+            // the fade. Blend relative to the port's unpatched value.
+            buffer.channels = port.poly == WS2_POLY ? channels : 1;
+            bool connected = false;
+            for (uint32_t c = 0; c < buffer.channels; ++c) {
+                buffer.read[c] = buffer.data[c];
+                std::fill_n(buffer.data[c], frames, port.unpatched_value);
+            }
+            for (const auto *edge : slot.transition_inputs[j]) {
+                const auto count = edge_channels(*edge, frames);
+                if (!count) continue;
+                connected = true;
+                for (uint32_t c = 0; c < buffer.channels; ++c)
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        float sample = 0;
+                        if (port.poly == WS2_SUM)
+                            for (uint32_t k = 0; k < count; ++k) sample += edge_sample(*edge, k, i, start);
+                        else sample = edge_sample(*edge, port.poly == WS2_FIRST ? 0 : c, i, start);
+                        const float gain = edge->ramped ? edge->state->gain.at(start + i) : 1.f;
+                        buffer.data[c][i] += gain * (sample - port.unpatched_value);
+                    }
+            }
+            buffer.flags = connected ? WS2_CONNECTED : 0;
+            slot.in_view[j] = {sizeof(ws2_signal), buffer.read.data(), buffer.channels, buffer.flags};
+            instance.event_view[j] = {sizeof(ws2_event_list), static_cast<uint32_t>(instance.port_events[j].size()),
+                                      instance.port_events[j].data()};
+            continue;
+        }
         const Edge *source = nullptr;
         if (port.kind == WS2_SIGNAL) source = slot.incoming[j];
         uint32_t source_channels = source ? edge_channels(*source, frames) : 0;
@@ -314,7 +380,8 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
         for (const auto *edge : slot.modulation[j]) {
             const auto &e = *edge;
             poly |= edge_channels(e, frames) > 1;
-            constant &= !e.back && (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
+            constant &= !e.ramped && !e.state->modulation.remaining && !e.back &&
+                        (e.source->instance.global_out[e.output].flags & WS2_CONSTANT);
         }
         for (const auto &e : instance.events)
             if ((e.type == WS2_PARAM || e.type == WS2_PARAM_MOD) && e.index == j) {
@@ -330,20 +397,45 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
             for (uint32_t c = 0; c < buffer.channels; ++c) {
                 double *sum = instance.modulation_sum.data() + size_t(c) * cfg.max_block;
                 std::fill_n(sum, length, 0.);
-                for (const auto *edge : slot.modulation[j])
-                    for (uint32_t i = 0; i < length; ++i) sum[i] += edge->amount * edge_sample(*edge, c, i, start);
+                for (auto *edge : slot.modulation[j]) {
+                    auto &state = edge->state->modulation;
+                    if (edge->ramped) {
+                        if (edge->state->gain.silent()) continue;
+                        auto ramp = state;
+                        const auto duration = mod_ramp_frames();
+                        for (uint32_t i = 0; i < length; ++i) {
+                            const float amount = ramp.remaining ? ramp.next(duration) : ramp.current;
+                            sum[i] += (amount * edge->state->gain.at(start + i)) * edge_sample(*edge, c, i, start);
+                        }
+                        if (c + 1 == buffer.channels) state = ramp;
+                    } else if (!state.remaining) {
+                        const float amount = state.current;
+                        for (uint32_t i = 0; i < length; ++i) sum[i] += amount * edge_sample(*edge, c, i, start);
+                    } else {
+                        auto ramp = state;
+                        const uint32_t duration = mod_ramp_frames();
+                        const uint32_t ramp_length = std::min(length, ramp.remaining);
+                        for (uint32_t i = 0; i < ramp_length; ++i)
+                            sum[i] += ramp.next(duration) * edge_sample(*edge, c, i, start);
+                        for (uint32_t i = ramp_length; i < length; ++i)
+                            sum[i] += ramp.current * edge_sample(*edge, c, i, start);
+                        if (c + 1 == buffer.channels) state = ramp;
+                    }
+                }
             }
         bool actually_constant = true;
         for (uint32_t i = 0; i < length; ++i) {
             while (cursor < instance.events.size() && instance.events[cursor].offset <= i) {
                 const auto &e = instance.events[cursor++];
                 if (e.index == j && e.type == WS2_PARAM) {
+                    instance.latency_dirty = true;
                     double target = ws::to_normal(p.info, e.value);
                     if (p.info.flags & WS2_STEPPED) p.base.jump(target);
                     else p.base.set(target);
                     p.requested = true;
                 }
                 if (e.index == j && e.type == WS2_PARAM_MOD) {
+                    instance.latency_dirty = true;
                     if (e.channel < 0) p.offset.fill(e.value);
                     else if (static_cast<uint32_t>(e.channel) < cfg.max_channels) p.offset[e.channel] = e.value;
                 }
@@ -445,7 +537,7 @@ WS_RENDER_INLINE void Engine::Impl::publish_outputs(Instance &instance, Slot &sl
 }
 
 WS_RENDER_INLINE void Engine::Impl::observe_pitch(Instance &instance, const Slot &slot, uint32_t start, uint32_t frames) {
-    if (instance.pitch.enabled && frames && instance.channels) {
+    if (slot.pitch.enabled && frames && instance.channels) {
         // A typed coordinate avoids accidentally swapping three similar indices.
         struct SignalIndex {
             uint32_t input, channel, sample;
@@ -465,7 +557,7 @@ WS_RENDER_INLINE void Engine::Impl::observe_pitch(Instance &instance, const Slot
             const uint32_t ch = std::min(channel, buffer.channels - 1);
             return buffer.data[ch][(buffer.flags & WS2_CONSTANT) ? 0u : frames - 1];
         };
-        if (instance.pitch.vco) {
+        if (slot.pitch.vco) {
             for (const auto &event : instance.events) {
                 const uint32_t channel = event.channel < 0 ? 0u : static_cast<uint32_t>(event.channel);
                 if (channel >= instance.channels) continue;
@@ -481,19 +573,19 @@ WS_RENDER_INLINE void Engine::Impl::observe_pitch(Instance &instance, const Slot
             // Plaits renders at most eight voices in 12-frame blocks; scan strikes and held gates.
             for (uint32_t i = 0; i < frames; ++i) {
                 for (uint32_t channel = 0; channel < std::min(instance.channels, 8u); ++channel) {
-                    const bool high = std::max(signal({instance.pitch.trigger, channel, i}),
-                                               signal({instance.pitch.gate, channel, i})) > 0.5f;
+                    const bool high = std::max(signal({slot.pitch.trigger, channel, i}),
+                                               signal({slot.pitch.gate, channel, i})) > 0.5f;
                     if (high && !instance.pitch.high[channel]) instance.pitch.latest = channel;
                     instance.pitch.high[channel] = high;
                 }
             }
         }
         const uint32_t channel = std::min(instance.pitch.latest, instance.channels - 1);
-        if (instance.pitch.vco) {
-            const float tune = parameter(instance.pitch.tune, channel);
+        if (slot.pitch.vco) {
+            const float tune = parameter(slot.pitch.tune, channel);
             double hz = tune;
-            if (slot.in[instance.pitch.input].flags & WS2_CONNECTED) {
-                hz = 261.6255653005986 * std::pow(2., signal({instance.pitch.input, channel, frames - 1})) *
+            if (slot.in[slot.pitch.input].flags & WS2_CONNECTED) {
+                hz = 261.6255653005986 * std::pow(2., signal({slot.pitch.input, channel, frames - 1})) *
                      (tune / 220.);
             } else if (instance.pitch.note_on[channel]) {
                 hz = 440. * std::pow(2., (instance.pitch.note[channel] - 69.) / 12.);
@@ -504,8 +596,8 @@ WS_RENDER_INLINE void Engine::Impl::observe_pitch(Instance &instance, const Slot
         } else {
             // Macro tap stores nominal MIDI note. FM and Plaits internal FM excluded.
             instance.pitch.value =
-                60.f + parameter(instance.pitch.tune, channel) +
-                std::clamp(12.f * signal({instance.pitch.input, channel, frames - 1}), -96.f, 96.f);
+                60.f + parameter(slot.pitch.tune, channel) +
+                std::clamp(12.f * signal({slot.pitch.input, channel, frames - 1}), -96.f, 96.f);
         }
     }
 }
@@ -519,30 +611,43 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
     call_module(n, start, frames, channels, direct);
     publish_outputs(n.instance, n.slot, start, frames, direct);
     observe_pitch(n.instance, n.slot, start, frames);
+    if (n.instance.latency_dirty && start + frames == block_frames) {
+        n.instance.latency.store(n.instance.d->latency_frames(n.instance.instance), std::memory_order_relaxed);
+        n.instance.latency_dirty = false;
+    }
 }
 
 WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs, uint32_t output_channels, uint32_t frames) {
     for (uint32_t c = 0; c < output_channels; ++c) std::fill_n(outputs[c], frames, 0.f);
     bool bus_written[32]{};
-    for (auto &bus : buses)
+    for (auto &bus : render_layout->buses)
         if (bus.channel < output_channels) {
             const auto &buffer = bus.source->instance.global_out[bus.port];
             for (uint32_t c = 0; c < buffer.channels; ++c) {
-                for (uint32_t i = 0; i < frames; ++i) {
-                    const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
-                    if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
-                    else outputs[bus.channel][i] += sample;
+                if (!bus.ramped) {
+                    // No-edit path: no gain arithmetic or branch per sample.
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
+                        if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
+                        else outputs[bus.channel][i] += sample;
+                    }
+                } else {
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i] * bus.state->gain.at(i);
+                        if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
+                        else outputs[bus.channel][i] += sample;
+                    }
                 }
                 bus_written[bus.channel] = true;
             }
         }
-    if (!taps.empty()) {
+    if (!render_layout->taps.empty()) {
         // Render-owned, post-DSP snapshots. Feedback loops process in chunks, so
         // their parameter buffer's last chunk is shorter than the full block.
         tap_sequence.fetch_add(1, std::memory_order_acq_rel);
-        for (size_t i = 0; i < taps.size(); ++i) {
-            const auto &t = taps[i];
-            const auto *n = tap_nodes[i];
+        for (size_t i = 0; i < render_layout->taps.size(); ++i) {
+            const auto &t = render_layout->taps[i];
+            const auto *n = render_layout->tap_nodes[i];
             float sample = 0;
             if (t.kind == Tap::Param) {
                 const auto &b = n->instance.param[t.index];
@@ -559,7 +664,7 @@ WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs,
                         for (uint32_t c = 1; c < b.channels; ++c) sample = std::max(sample, b.data[c][at]);
                 }
             }
-            tap_values[i].store(sample, std::memory_order_relaxed);
+            render_layout->tap_values[i].store(sample, std::memory_order_relaxed);
         }
         tap_frame.store(block_start + frames, std::memory_order_relaxed);
         tap_sequence.fetch_add(1, std::memory_order_release);
@@ -575,27 +680,73 @@ WS_RENDER_INLINE void Engine::Impl::apply_pending_reset() {
 
 #undef WS_RENDER_INLINE
 
+void Engine::Impl::adopt_layout(Layout *next) noexcept {
+    // All adoption work uses preallocated storage. The old layout is not
+    // accessed after the acknowledgement; the control owner may retire it.
+    if (!next->housekeeping) future.erase(std::remove_if(future.begin(), future.end(), [&](const Packet &p) {
+        const std::array<uint32_t, 4> route{p.routed_from, p.routed_output, p.node, p.port};
+        if (!p.routed_from || !std::binary_search(next->removed_routes.begin(), next->removed_routes.end(), route))
+            return false;
+        ++stale;
+        return true;
+    }), future.end());
+    for (const auto &update : next->modulation_adoption) {
+        auto &edge = *update.edge;
+        if (edge.state != update.prior) edge.state->modulation = update.prior->modulation;
+        if (update.reborn) edge.state->modulation.applied_serial = 0;
+        if (update.authored) {
+            edge.state->modulation.applied_serial = edge.sent_serial;
+            edge.state->modulation.set(edge.amount, mod_ramp_frames());
+        }
+    }
+    for (const auto &update : next->gain_adoption) {
+        auto &gain = update.state->gain;
+        if (!update.prior) gain.jump(0);
+        else if (update.prior != update.state) gain = update.prior->gain;
+        gain.set(update.target, mod_ramp_frames());
+        update.state->faded_out.store(gain.silent(), std::memory_order_release);
+    }
+    for (auto &node : next->nodes) {
+        auto &instance = node->instance;
+        instance.latency.store(instance.d->latency_frames(instance.instance), std::memory_order_relaxed);
+    }
+    if (next->housekeeping) {
+        for (size_t i = 0; i < next->taps.size(); ++i) {
+            next->tap_values[i].store(render_layout->tap_values[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
+            next->tap_counts[i].store(render_layout->tap_counts[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
+        }
+    } else {
+        tap_sequence.store(0, std::memory_order_relaxed);
+        tap_frame.store(0, std::memory_order_release);
+    }
+    feedback_count.store(next->feedback_count, std::memory_order_relaxed);
+    setup_bytes.store(next->setup_bytes, std::memory_order_relaxed);
+    render_layout = next;
+    if (next->ramps.empty()) settled_revision.store(next->revision, std::memory_order_release);
+    adopted_revision.store(next->revision, std::memory_order_release);
+}
+
 uint32_t Engine::read_telemetry(float *values, uint32_t *counts, uint32_t capacity, uint64_t &frame) const noexcept {
     const auto &p = *p_;
     frame = 0;
-    if (capacity < p.taps.size() || (!p.taps.empty() && (!values || !counts))) return 0;
+    if (capacity < p.layout->taps.size() || (!p.layout->taps.empty() && (!values || !counts))) return 0;
     // A bounded non-render read must not combine two blocks (in particular
     // Groove's split uint32 loop and release-safe position observations).
     for (uint32_t attempt = 0; attempt < 3; ++attempt) {
         const auto before = p.tap_sequence.load(std::memory_order_acquire);
         if (before & 1u) continue;
         const auto observed = p.tap_frame.load(std::memory_order_relaxed);
-        for (size_t i = 0; i < p.taps.size(); ++i) {
-            values[i] = p.tap_values[i].load(std::memory_order_relaxed);
-            counts[i] = p.tap_counts[i].load(std::memory_order_relaxed);
+        for (size_t i = 0; i < p.layout->taps.size(); ++i) {
+            values[i] = p.layout->tap_values[i].load(std::memory_order_relaxed);
+            counts[i] = p.layout->tap_counts[i].load(std::memory_order_relaxed);
         }
         std::atomic_thread_fence(std::memory_order_acquire);
         if (before == p.tap_sequence.load(std::memory_order_relaxed)) {
             frame = observed;
-            return static_cast<uint32_t>(p.taps.size());
+            return static_cast<uint32_t>(p.layout->taps.size());
         }
     }
-    return static_cast<uint32_t>(p.taps.size()); // frame=0: unavailable, never a torn snapshot.
+    return static_cast<uint32_t>(p.layout->taps.size()); // frame=0: unavailable, never a torn snapshot.
 }
 
 int Engine::enqueue(uint32_t producer, uint32_t node, uint32_t port, const ws2_event &event, uint64_t time, Timing mode,
@@ -605,16 +756,15 @@ int Engine::enqueue(uint32_t producer, uint32_t node, uint32_t port, const ws2_e
     const auto gen = p.generation.load(std::memory_order_acquire);
     if (gen != p.applied.load(std::memory_order_acquire) || (wanted_generation && wanted_generation != gen))
         return WS2_STATE;
-    if (!ws::valid_event(event)) return WS2_INVALID;
+    if (event.type == WS2_TRANSPORT_EVENT || !ws::valid_event(event)) return WS2_INVALID;
     auto &source = *p.producers[producer];
     Packet packet;
     packet.node = node;
     packet.port = port;
     packet.when = time;
     packet.mode = mode;
-    packet.producer = producer;
     packet.generation = gen;
-    packet.revision = p.revision.load(std::memory_order_acquire);
+    packet.revision = p.published_revision.load(std::memory_order_acquire);
     packet.order = (static_cast<uint64_t>(producer) << 48) | (source.serial++ & UINT64_C(0x0000ffffffffffff));
     packet.event = event;
     if (event.bytes) std::memcpy(packet.payload.data(), event.data, event.bytes);
@@ -678,58 +828,52 @@ int Engine::render(float *const *outputs, uint32_t output_channels, uint32_t fra
     } guard(p.rendering);
     p.block_start = p.position.load(std::memory_order_relaxed);
     p.block_frames = frames;
-    if (callback_time_ns != UINT64_MAX) publish_clock(p.block_start, callback_time_ns);
-    const auto parked = p.park.load(std::memory_order_acquire);
-    if (parked == Park::Parked) {
-        for (uint32_t c = 0; c < output_channels; ++c) std::fill_n(outputs[c], frames, 0.f);
-        if (p.cfg.playing) p.beat += frames * p.cfg.bpm / (60. * p.cfg.sample_rate);
-        p.position.store(p.block_start + frames, std::memory_order_release);
-        return WS2_OK;
+    if (p.reset_beat) {
+        p.beat = 0;
+        p.reset_beat = false;
     }
-    if (parked == Park::Cancelled) p.park.store(Park::Running, std::memory_order_release);
+    if (callback_time_ns != UINT64_MAX) publish_clock(p.block_start, callback_time_ns);
+    if (auto *next = p.pending_layout.exchange(nullptr, std::memory_order_acq_rel))
+        p.adopt_layout(next);
     p.apply_pending_reset();
     p.arena_used.store(0);
     p.ordinary_used = p.critical_used = 0;
-    for (auto &n : p.nodes) n->slot.touched = false;
+    for (auto &n : p.render_layout->nodes) n->slot.touched = false;
     p.collect();
     p.apply_pending_reset();
-    for (auto &component : p.components) {
+    for (auto &component : p.render_layout->components) {
         uint32_t chunk = component.loop ? p.cfg.feedback_block : frames;
         for (uint32_t start = 0; start < frames; start += chunk) {
             uint32_t length = std::min(chunk, frames - start);
             for (auto *n : component.nodes) p.process_node(*n, start, length);
             if (component.loop)
-                for (auto &e : p.edges)
+                for (auto &e : p.render_layout->edges)
                     if (e.back && e.kind != 1 && e.source->slot.component == component.nodes.front()->slot.component) {
                         auto &source = e.source->instance.global_out[e.output];
                         for (uint32_t i = 0; i < length; ++i) {
-                            auto at = (e.head + i) % p.cfg.feedback_block;
-                            e.delay_channels[at] = source.channels;
+                            auto at = (e.state->head + i) % p.cfg.feedback_block;
+                            e.state->delay_channels[at] = source.channels;
                             for (uint32_t c = 0; c < p.cfg.max_channels; ++c)
-                                e.delay.data[c][at] = c < source.channels ? source.data[c][start + i] : 0;
+                                e.state->delay.data[c][at] = c < source.channels ? source.data[c][start + i] : 0;
                         }
-                        e.head = (e.head + length) % p.cfg.feedback_block;
+                        e.state->head = (e.state->head + length) % p.cfg.feedback_block;
                     }
         }
     }
     p.publish_block_outputs(outputs, output_channels, frames);
+    if (!p.render_layout->ramps.empty() &&
+        p.settled_revision.load(std::memory_order_relaxed) < p.render_layout->revision) {
+        bool settled = true;
+        for (auto *state : p.render_layout->ramps) {
+            const bool done = state->gain.advance(frames);
+            settled &= done;
+            if (done && state->gain.silent()) state->faded_out.store(true, std::memory_order_release);
+        }
+        if (settled) p.settled_revision.store(p.render_layout->revision, std::memory_order_release);
+    }
     if (p.cfg.playing) p.beat += frames * p.cfg.bpm / (60. * p.cfg.sample_rate);
     p.position.store(p.block_start + frames, std::memory_order_release);
     p.apply_pending_reset();
-    if (p.fade_in) {
-        for (uint32_t c = 0; c < output_channels; ++c)
-            for (uint32_t i = 0; i < frames; ++i) outputs[c][i] *= float(i + 1) / float(frames);
-        p.fade_in = false;
-    }
-    if (p.park.load(std::memory_order_acquire) == Park::Requested) {
-        for (uint32_t c = 0; c < output_channels; ++c)
-            for (uint32_t i = 0; i < frames; ++i) outputs[c][i] *= float(frames - i - 1) / float(frames);
-        p.fade_in = true;
-        auto expected = Park::Requested;
-        if (!p.park.compare_exchange_strong(expected, Park::Parked, std::memory_order_acq_rel,
-                                            std::memory_order_acquire))
-            p.park.store(Park::Running, std::memory_order_release);
-    }
     return WS2_OK;
 }
 

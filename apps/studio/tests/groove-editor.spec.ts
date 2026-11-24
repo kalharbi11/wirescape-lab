@@ -209,3 +209,69 @@ test('malformed track lists load read-only without crashing and stay as saved', 
   }
   expect(errors).toEqual([]);
 });
+
+
+/** G-W1: a wheel over an authored note must edit without prior selection or pane focus. */
+async function unselectedWheelNote(page: Page): Promise<void> {
+  const initial = { version: 1, bpm: 120, tracks: [{ steps: [
+    { kind: 'rest' }, { kind: 'rest' }, { kind: 'note', key: 64, velocity: 0.8 },
+  ] }] };
+  await page.evaluate(config => window.__wirescapeTest.load({
+    format: 'wirescape.native.patch', version: 2,
+    modules: [{ id: 1, module: 'sequencing.groove', version: 2, config }], connections: [],
+  }, 'Unselected wheel note'), initial);
+  await showGroove(page);
+  await expect(pad(page, 3)).toHaveAttribute('data-kind', 'note');
+  await expect(pad(page, 3)).not.toHaveClass(/sel/);
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+  expect(await page.evaluate(() => document.activeElement?.closest('.groove-pane') === null)).toBe(true);
+}
+async function wheelPitch(page: Page): Promise<number> {
+  return (await cfg(page)).tracks[0].steps[2].key;
+}
+async function wheelViewportScale(page: Page): Promise<number> {
+  return page.evaluate(() => window.__wirescapeTest.canvas.viewport.view.s);
+}
+
+test('G-W1: first pixel wheel notch edits an unfocused, unselected note; second edits again', async ({ page }) => {
+  await unselectedWheelNote(page);
+  const p = await center(page, 3);
+  const zoom = await wheelViewportScale(page);
+  await page.mouse.move(p.x, p.y);
+  await page.mouse.wheel(0, -100);
+  await expect.poll(() => wheelPitch(page)).toBe(65);
+  await page.mouse.wheel(0, -100);
+  await expect.poll(() => wheelPitch(page)).toBe(66);
+  expect(await wheelViewportScale(page)).toBe(zoom);
+});
+
+test('G-W1: three-line wheel notch edits immediately without selecting or clicking', async ({ page }) => {
+  await unselectedWheelNote(page);
+  const zoom = await wheelViewportScale(page);
+  const notch = async () => {
+    await page.evaluate(() => {
+      const node = document.querySelector('[data-testid="groove-pad-1-3"]');
+      if (!node) throw new Error('Wheel note pad missing');
+      node.dispatchEvent(new WheelEvent('wheel', {
+        bubbles: true, cancelable: true, deltaMode: WheelEvent.DOM_DELTA_LINE, deltaY: -3,
+      }));
+    });
+  };
+  await notch();
+  await expect.poll(() => wheelPitch(page)).toBe(65);
+  await notch();
+  await expect.poll(() => wheelPitch(page)).toBe(66);
+  expect(await wheelViewportScale(page)).toBe(zoom);
+});
+
+test('G-W1: small trackpad pixel deltas accumulate over an unselected note', async ({ page }) => {
+  await unselectedWheelNote(page);
+  const p = await center(page, 3);
+  const zoom = await wheelViewportScale(page);
+  await page.mouse.move(p.x, p.y);
+  for (let i = 0; i < 6; i++) await page.mouse.wheel(0, -6);
+  await expect.poll(() => wheelPitch(page)).toBe(65);
+  for (let i = 0; i < 6; i++) await page.mouse.wheel(0, -6);
+  await expect.poll(() => wheelPitch(page)).toBe(66);
+  expect(await wheelViewportScale(page)).toBe(zoom);
+});

@@ -20,6 +20,8 @@
 #include "../../modules/noise/dsp.h"
 #include "../../modules/notes_to_cv/dsp.h"
 #include "../../modules/cv_to_notes/dsp.h"
+#include "../../modules/poly_merge/dsp.h"
+#include "../../modules/poly_split/dsp.h"
 #include "../../modules/osc_in/dsp.h"
 #include "../../modules/osc_out/dsp.h"
 #include "../../modules/output/dsp.h"
