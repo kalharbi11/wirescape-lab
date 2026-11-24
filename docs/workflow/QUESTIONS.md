@@ -600,7 +600,7 @@ Signed: Fable, 2026-11-17
 
 ## Q23 — engine rules M4 needs, errata (c)/(d), Owner Build, succession (ANSWERED, 2026-11-17)
 
-Asked by claude-architect in `docs/workflow/FABLE_FINAL_RUN.md`. Answered in
+Asked by claude-architect in the Fable final-run packet (retired 2026-11-24; in git history). Answered in
 [`proposals/0017`](../../proposals/0017-final-rulings-and-succession.md):
 item 1 → section 1; item 2 → ER1, ER2; item 3 → ER3 (and ER4, new); item 4 → ER5; item 5 → ER6;
 item 6 → section 3 and M4 r2; item 7 → section 4; item 8 → section 5; items 9, 10 → sections 6, 7.

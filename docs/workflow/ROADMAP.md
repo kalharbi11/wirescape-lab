@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Milestone roadmap
 
-Updated 2026-11-23 19:15 EST. This page shows order, completion and the next gate.
+Updated 2026-11-24 (Architect, run 22). This page shows order, completion and the next gate.
 [BUILDERS](BUILDERS.md) shows current assignments. [PRIORITY](PRIORITY.md),
 [OB_PLAN](OB_PLAN.md) and the linked contracts control scope and release criteria.
 
 **OB0 accepted 2026-11-20** (tag `owner-build-0` → `a440d71`; Pi smoke is an owner-only follow-up). **Next delivery is OB1.** M1 S6 merged and Phase C is active.
-OB1 has a separate engine chain and owner Pi acceptance.
+OB1 has a separate engine chain and owner Pi acceptance. **Pi testing is postponed to the OB1 candidate** (OB r2.6, owner 2026-11-23).
 
 | Order | Milestone or path | State | Done | Next / completion condition |
 |---|---|---|---|---|
@@ -15,11 +15,11 @@ OB1 has a separate engine chain and owner Pi acceptance.
 | Foundation | [M2](milestones/M2.md) Studio edits and confirmed history | Accepted | r4 accepted under A14. E1b-r and PV1 merged. | M4 E5 owns the edited-subject continuity recheck. M5 owns PV2 follow-ups. |
 | **1** | **[OB0](milestones/OB.md)** first installable Owner Build | **Accepted 2026-11-20** | M2 E1b-r, M7 T7.0/S7.1/S7.2/S7.4 and OB-a1 merged; tag `owner-build-0` → `a440d71`. | Owner-only: Pi source-install/smoke on #198 (recorded, not waived). |
 | **2a** | [M1](milestones/M1.md) one engine | **Accepted 2026-11-22** | S3–S6 merged; S6 #295 → `25b1a82`. | Done. Phase C rebases on the mapped paths (CURRENT run 7). |
-| **2b** | [M3](milestones/M3.md) engine split and transport | In progress | T1.6a #344, T1.6b #360 and TR2 #345 merged. | T1.6c PR #376 is green and awaits Architect review → TR1e #378. CAT-1 + MB1 are parked until after OB1. |
-| **2c** | [M4](milestones/M4.md) gapless live edits | Queued | M2 continuity baseline available with exceptions. | TR1e → E6 → E4a → E4b → E5 and E7 for OB1. E3a/E3b/E3c move to OB1.1 under OB r2.5. Collect CN continuity evidence after each applicable change. After E5, verify the applyGraph voice count row has held-note silence of 0 ms and rewrite KNOWN_ISSUES A2 from the measured table per M4 acceptance. |
-| **2 in parallel** | [M7](milestones/M7.md) sound work | In progress | T7.0, S7.1, S7.2 and S7.4 merged. | S7.5 #291 follows #298 and lead release; T7.0b #300 merged `fac9473`; S7.6 #314 follows #291. S7.3 as released. S7.7 #373 released after #356 parked under R3, then S7.8 #374; S7.9 follows S7.6. Then main after-facts and OB-d patch list. |
-| **2 in parallel** | [OB support](milestones/OB.md) patches, installation, regressions, modules and UI | In progress | OB-a1 round-trip, OB-a2 runner, OB-e1 census, OB-e2 smoke and OB-b #336 landed. | Owner-run folder check, OB-a3 safe save #298 (Architect review), then G-W1 #368 click-free Groove scrolling, OB-c oracles and cause-specific fixes, OB-d sound list, OB-f1 facts → Architect targets → OB-f2. |
-| **2 in parallel** | [OB-g](milestones/OB.md) I/O endurance and triggered envelopes | In progress | Harness #312, OB-g2 #311, ADSR #325, hosted soaks #309 and egress drain #357 merged. | MIDI endpoint #324 merged. #339 OSC ingress remains active. Note Trigger #322 parks behind CAT-1+MB. Runner/soak evidence and OB1 item 7 are advisory under r2.4a. |
+| **2b** | [M3](milestones/M3.md) engine split and transport | In progress | T1.6a #344, T1.6b #360, T1.6c #376, TR2 #345 and Poly Merge + Poly Split #356 (`cdc8f14`) merged. A39 bounded exception: LFO voices1/8, linux x64/arm64, at most +2.5 %, expires at CAT-1 #358. | TR1e #385 merged `dd1e518` after A38. E6 #395 is released. CAT-1 + MB1 are parked until after OB1. |
+| **2c** | [M4](milestones/M4.md) gapless live edits | Queued | M2 continuity baseline available with exceptions. | B5 chain: TR1e #385 → E6 #391 → E4a+E4b in one PR (two commits, one Claude contract-review; A40) → E5. E7 (B2) runs parallel to E5 after E4b. E3a/E3b/E3c move to OB1.1 under OB r2.5. Collect CN continuity evidence after each applicable change. After E5, verify the applyGraph voice count row has held-note silence of 0 ms and rewrite KNOWN_ISSUES A2 from the measured table per M4 acceptance. |
+| **2 in parallel** | [M7](milestones/M7.md) sound work | In progress | T7.0, S7.1, S7.2 and S7.4 merged. | S7.5 #291 parked under R3 behind CAT-1 + MB; mode1 floor verified; T7.0b #300 merged `fac9473`; S7.6 #314 follows #291. S7.3 as released. S7.7 #380 merged `540024d` after D5. B4 has S7.8 #374 and the open S7.5 #291 evidence gates; S7.9 follows S7.6. Then main after-facts and OB-d patch list. |
+| **2 in parallel** | [OB support](milestones/OB.md) patches, installation, regressions, modules and UI | In progress | OB-a1 round-trip, OB-a2 runner, OB-e1 census, OB-e2 smoke, OB-b #336 and OB-a3 #298 landed. | Owner-run folder check, G-W1 #368 click-free Groove scrolling, OB-c oracles and cause-specific fixes, OB-d sound list, OB-f1 facts → Architect targets → OB-f2. |
+| **2 in parallel** | [OB-g](milestones/OB.md) I/O endurance and triggered envelopes | In progress | Harness #312, OB-g2 #311, ADSR #325, hosted soaks #309 and egress drain #357 merged. | MIDI endpoint #324 merged. #339 closed under SR6(c). OB-g8 fix #394 merged `8cc9355`; the #386 diagnostic is closed unmerged. Note Trigger #322 parks behind CAT-1+MB. Runner/soak evidence and OB1 item 7 are advisory under r2.4a. |
 | **3** | **[OB1](milestones/OB.md)** gapless Owner Build on Pi | Waiting on the paths above | OB-a1 and OB-e2 complete. M2 accepted. | Finish OB1 criteria and install. Owner checks saved patches and runs 100 Pi edits, zero xruns and no visible stutter, with both CN transition costs recorded. Tag `owner-build-1` and keep OB0 installable. |
 | **4** | **OB1.1** module data and live data editing | After OB1 | Remapped by OB r2.5. | E3a engine/header data slots → E3b Groove data and E3c CC/OSC data. The OB1 tag follows its own row above. |
 
@@ -42,4 +42,4 @@ Lead updates this page when a gate, order or milestone state changes. Keep compl
 here with evidence. A contract approved for implementation and an accepted milestone have
 different states.
 
-Signed: codex-lead, 2026-11-23, 19:15 EST
+Signed: claude-architect, 2026-11-24
