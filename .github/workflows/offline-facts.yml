@@ -45,6 +45,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          # CMake honors the toolset environment default only with CMAKE_GENERATOR set.
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -ne 0 -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          "CMAKE_GENERATOR=$generator" >> $env:GITHUB_ENV
           "CMAKE_GENERATOR_TOOLSET=v143" >> $env:GITHUB_ENV
       - name: Release headless build
         run: python tools/dev.py build --headless --config Release
