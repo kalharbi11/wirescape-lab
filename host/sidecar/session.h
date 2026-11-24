@@ -114,9 +114,18 @@ class Session {
     // host API on the command thread, so it runs at most every kColdEnumeration.
     std::optional<std::chrono::steady_clock::time_point> cold_enumeration_;
     std::chrono::milliseconds audio_backoff_{100};
-    void start_audio(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+    // Resources travel with the stopped engine; destroy the graph before its host buses.
+    struct StoppedGraph {
+        document::telemetry::Sampler telemetry;
+        std::unique_ptr<osc::OutHost> out;
+        audio::EngineOwner engine{nullptr, app_engine_destroy};
+    };
+    StoppedGraph prepare_stopped_graph(const engine2::Config &);
+    void swap_stopped_graph(StoppedGraph &) noexcept;
+    void start_audio(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
+                     StoppedGraph *rollback = nullptr);
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
-    void open_at_driver_block(int64_t frames);
+    void open_at_driver_block(int64_t frames, StoppedGraph *rollback);
     void stop_audio();
     void start_midi();
     void start_osc();
