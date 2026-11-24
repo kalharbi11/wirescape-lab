@@ -36,6 +36,9 @@ struct Instance {
     } pitch;
     std::vector<ws2_event> events;
     std::vector<Item> pending;
+    // Render-owned held note-on records, including direct-port ingress. No payload pointers.
+    static constexpr size_t held_note_capacity = 128;
+    std::vector<ws2_event> held_notes;
     int forced_channels = -1;
     uint32_t channels = 1;
     std::atomic<uint32_t> latency{0};

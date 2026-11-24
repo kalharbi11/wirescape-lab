@@ -95,6 +95,7 @@ bool Engine::Impl::setup(Node &n) {
     for (auto &events : n.instance.port_events) events.reserve(cfg.event_budget);
     n.instance.events.reserve(cfg.event_budget);
     n.instance.pending.reserve(cfg.event_budget);
+    n.instance.held_notes.reserve(Instance::held_note_capacity);
     for (auto &p : n.instance.state) {
         p.base.prepare(cfg.sample_rate);
         p.offset.fill(0);

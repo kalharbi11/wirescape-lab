@@ -530,6 +530,27 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                 added |= include_retired(edge.source->instance);
     } while (added);
 
+    std::map<Instance *, Instance *> replacement_pairs;
+    for (auto id : introduced) {
+        auto *prior = old.find(id);
+        auto *successor = target_instances.at(id);
+        if (prior && prior->instance.d == successor->d && prior->instance.config != successor->config) {
+            auto tail = transition_nodes.find(&prior->instance);
+            next.replacements.push_back({&prior->instance, transition_nodes.at(successor),
+                tail == transition_nodes.end() ? nullptr : tail->second});
+            replacement_pairs.emplace(&prior->instance, successor);
+        }
+    }
+    auto replacement_of = [&](Instance *prior, Instance *successor) {
+        const auto it = replacement_pairs.find(prior);
+        return it != replacement_pairs.end() && it->second == successor;
+    };
+    auto replacement_source = [&](const Instance &instance) {
+        return std::any_of(replacement_pairs.begin(), replacement_pairs.end(), [&](const auto &pair) {
+            return pair.first == &instance || pair.second == &instance;
+        });
+    };
+    const auto replacement_frames = static_cast<uint32_t>(std::max(1., old.cfg.sample_rate * .020));
     auto same_edge = [](const Edge &a, const Edge &b) {
         return a.key() == b.key() && &a.source->instance == &b.source->instance &&
                &a.destination->instance == &b.destination->instance;
@@ -555,7 +576,17 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
             edge.ramped = edge.kind != 1 && (prior.removed || (prior.ramped && !settled));
             break;
         }
-        if (!matched && edge.kind != 1) edge.ramped = true;
+        if (!matched && edge.kind != 1) {
+            // An unchanged signal input feeds both replacement instances at
+            // full strength. Only consumer contributions crossfade.
+            const bool shared_input = edge.kind == 0 && std::any_of(old.layout->edges.begin(),
+                old.layout->edges.end(), [&](const auto &prior) {
+                    return !prior.removed && prior.key() == edge.key() &&
+                           &prior.source->instance == &edge.source->instance &&
+                           replacement_of(&prior.destination->instance, &edge.destination->instance);
+                });
+            edge.ramped = !shared_input;
+        }
         next.edges.push_back(edge);
     }
     for (size_t i = 0; i < old.layout->edges.size(); ++i) {
@@ -567,6 +598,12 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         edge.source = transition_nodes.at(&prior.source->instance);
         edge.destination = transition_nodes.at(&prior.destination->instance);
         edge.removed = edge.ramped = true;
+        edge.replacement_input = prior.replacement_input || (prior.kind == 0 &&
+            std::any_of(fresh.layout->edges.begin(), fresh.layout->edges.end(), [&](const auto &authored) {
+                return !authored.removed && authored.key() == prior.key() &&
+                       target_instances.at(authored.from) == &prior.source->instance &&
+                       replacement_of(&prior.destination->instance, target_instances.at(authored.to));
+            }));
         next.edges.push_back(edge);
     }
     for (const auto &authored : fresh.layout->buses) {
@@ -646,7 +683,9 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                     !edge.removed && (reborn || edge.amount != prior->amount), reborn});
         }
         if (edge.ramped) {
-            next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr, edge.removed ? 0.f : 1.f});
+            next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr,
+                edge.removed && !edge.replacement_input ? 0.f : 1.f,
+                replacement_source(edge.source->instance) ? replacement_frames : 0});
             next.ramps.push_back(edge.state);
         } else if (prior && edge.state != prior->state)
             next.gain_adoption.push_back({edge.state, prior->state, 1.f});
@@ -663,7 +702,8 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         }
         if (prior) bus.state = prior->state;
         if (bus.ramped) {
-            next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f});
+            next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f,
+                replacement_source(bus.source->instance) ? replacement_frames : 0});
             next.ramps.push_back(bus.state);
         }
     }

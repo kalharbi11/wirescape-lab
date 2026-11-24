@@ -111,6 +111,36 @@ void Engine::Impl::collect() {
         else ++stale;
     }
     render_layout->chokes.clear();
+    // Replacement delivery follows pending.clear() and precedes ordinary ingress.
+    // The predecessor pointer was consumed before ack; only layout-owned tails
+    // are safe to touch here (in particular, no retired output-less host sink).
+    for (const auto &replacement : render_layout->replacements) {
+        if (auto *tail = replacement.tail) {
+            auto release_all = [&](uint32_t port) {
+                ws2_event e{};
+                e.struct_size = sizeof(e);
+                e.type = WS2_NOTE_CHOKE;
+                e.source_id = UINT32_MAX;
+                e.note_id = e.channel = -1;
+                e.flags = 1;
+                admit(*tail, port, e, block_start, 0, true);
+            };
+            for (uint32_t port = 0; port < tail->instance.inputs.size(); ++port)
+                if (tail->instance.inputs[port].kind == WS2_EVENT &&
+                    tail->instance.inputs[port].hint == WS2_EV_NOTES)
+                    release_all(port);
+            if (std::any_of(tail->instance.held_notes.begin(), tail->instance.held_notes.end(),
+                            [](const auto &e) { return e.port == WS2_DIRECT_PORT; }))
+                release_all(WS2_DIRECT_PORT);
+        }
+        auto &successor = *replacement.successor;
+        uint64_t order = 1;
+        for (const auto &held : successor.instance.held_notes)
+            admit(successor, held.port, held, block_start, order++, true);
+        // Rebuild from actual delivery, including any budget rejection.
+        successor.instance.held_notes.clear();
+    }
+    render_layout->replacements.clear();
     for (uint32_t producer = 0; producer < producer_count; ++producer) {
         auto &source = *producers[producer];
         for (Ring *ring : {&source.critical, &source.normal}) {
@@ -265,6 +295,35 @@ WS_RENDER_INLINE void Engine::Impl::gather_events(Instance &instance, uint32_t s
         if (item.frame >= block_start + start && item.frame < block_start + start + frames) {
             auto event = item.event;
             event.offset = static_cast<uint32_t>(item.frame - block_start - start);
+            // Track delivered notes in delivery order, not queued future events.
+            auto &held = instance.held_notes;
+            if (event.type == WS2_NOTE_ON || event.type == WS2_NOTE_OFF) {
+                auto matches = [&](const ws2_event &note) {
+                    return note.port == event.port && note.source_id == event.source_id &&
+                           note.channel == event.channel &&
+                           (event.note_id >= 0 ? note.note_id == event.note_id
+                                               : note.note_id < 0 && note.key == event.key);
+                };
+                auto found = std::find_if(held.rbegin(), held.rend(), matches);
+                if (event.type == WS2_NOTE_OFF) {
+                    if (found != held.rend()) held.erase(std::next(found).base());
+                } else {
+                    if (event.note_id >= 0 && found != held.rend()) held.erase(std::next(found).base());
+                    if (held.size() == Instance::held_note_capacity) ++dropped;
+                    else {
+                        auto note = event;
+                        note.offset = 0;
+                        note.data = nullptr;
+                        note.bytes = 0;
+                        held.push_back(note);
+                    }
+                }
+            } else if (event.type == WS2_NOTE_CHOKE) {
+                held.erase(std::remove_if(held.begin(), held.end(), [&](const auto &note) {
+                    return (event.port == WS2_DIRECT_PORT || note.port == event.port) &&
+                           (event.source_id == UINT32_MAX || note.source_id == event.source_id);
+                }), held.end());
+            }
             instance.events.push_back(event);
             if (event.port < instance.port_events.size()) instance.port_events[event.port].push_back(event);
         }
@@ -690,6 +749,12 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         ++stale;
         return true;
     }), future.end());
+    for (auto &replacement : next->replacements) {
+        auto &held = replacement.successor->instance.held_notes;
+        // Both records have a fixed capacity reserved during setup.
+        held.assign(replacement.prior->held_notes.begin(), replacement.prior->held_notes.end());
+        replacement.prior = nullptr; // Never dereference after acknowledgement.
+    }
     for (const auto &update : next->modulation_adoption) {
         auto &edge = *update.edge;
         if (edge.state != update.prior) edge.state->modulation = update.prior->modulation;
@@ -703,7 +768,7 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         auto &gain = update.state->gain;
         if (!update.prior) gain.jump(0);
         else if (update.prior != update.state) gain = update.prior->gain;
-        gain.set(update.target, mod_ramp_frames());
+        gain.set(update.target, update.frames ? update.frames : mod_ramp_frames());
         update.state->faded_out.store(gain.silent(), std::memory_order_release);
     }
     for (auto &node : next->nodes) {

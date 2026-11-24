@@ -42,7 +42,11 @@ struct Layout {
     uint64_t revision = 0;
     bool housekeeping = false;
     std::vector<EdgeState *> ramps;
-    struct GainAdoption { EdgeState *state, *prior; float target; };
+    struct GainAdoption { EdgeState *state, *prior; float target; uint32_t frames = 0; };
+    // prior is used only before the adoption acknowledgement. tail, if any,
+    // is owned by the transition layout until the consumer fade settles.
+    struct Replacement { Instance *prior; Node *successor, *tail; };
+    std::vector<Replacement> replacements;
     std::vector<GainAdoption> gain_adoption;
     uint32_t feedback_count = 0;
     size_t setup_bytes = 0;

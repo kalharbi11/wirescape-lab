@@ -99,6 +99,7 @@ struct Engine::Impl {
                 p.offset.fill(0);
             }
             n->instance.pending.clear();
+            n->instance.held_notes.clear();
         }
         for (auto &e : active->edges)
             if (e.back && e.kind != 1) {
@@ -106,6 +107,7 @@ struct Engine::Impl {
                 std::fill(e.state->delay_channels.begin(), e.state->delay_channels.end(), 0);
                 if (e.state->delay.memory) std::fill_n(e.state->delay.memory.get(), cfg.max_channels * e.state->delay.stride, 0.f);
             }
+        active->replacements.clear();
         future.clear();
     }
     bool topology();
