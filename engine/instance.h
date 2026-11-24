@@ -39,6 +39,7 @@ struct Instance {
     int forced_channels = -1;
     uint32_t channels = 1;
     std::atomic<uint32_t> latency{0};
+    bool latency_dirty = false; // Render-owned; refresh once at end of the changed block.
     size_t requested_fast = 0, requested_large = 0;
     void *emit_context = nullptr;
     ~Instance() { clear_instance(); }

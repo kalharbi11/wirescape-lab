@@ -82,6 +82,7 @@ void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
         if (packet.order > state.applied_serial) {
             state.applied_serial = packet.order;
             state.set(packet.event.value, mod_ramp_frames());
+            edge->destination->instance.latency_dirty = true;
         }
         return;
     }
@@ -427,12 +428,14 @@ WS_RENDER_INLINE void Engine::Impl::apply_parameters(Instance &instance, Slot &s
             while (cursor < instance.events.size() && instance.events[cursor].offset <= i) {
                 const auto &e = instance.events[cursor++];
                 if (e.index == j && e.type == WS2_PARAM) {
+                    instance.latency_dirty = true;
                     double target = ws::to_normal(p.info, e.value);
                     if (p.info.flags & WS2_STEPPED) p.base.jump(target);
                     else p.base.set(target);
                     p.requested = true;
                 }
                 if (e.index == j && e.type == WS2_PARAM_MOD) {
+                    instance.latency_dirty = true;
                     if (e.channel < 0) p.offset.fill(e.value);
                     else if (static_cast<uint32_t>(e.channel) < cfg.max_channels) p.offset[e.channel] = e.value;
                 }
@@ -504,11 +507,6 @@ WS_RENDER_INLINE void Engine::Impl::call_module(Node &node, uint32_t start, uint
         }
     }
     processing = nullptr;
-    for (const auto &event : instance.events)
-        if (event.type == WS2_PARAM || event.type == WS2_PARAM_MOD) {
-            instance.latency.store(instance.d->latency_frames(instance.instance), std::memory_order_relaxed);
-            break;
-        }
 }
 
 WS_RENDER_INLINE void Engine::Impl::publish_outputs(Instance &instance, Slot &slot, uint32_t start, uint32_t frames, bool direct) {
@@ -613,6 +611,10 @@ void Engine::Impl::process_node(Node &n, uint32_t start, uint32_t frames) {
     call_module(n, start, frames, channels, direct);
     publish_outputs(n.instance, n.slot, start, frames, direct);
     observe_pitch(n.instance, n.slot, start, frames);
+    if (n.instance.latency_dirty && start + frames == block_frames) {
+        n.instance.latency.store(n.instance.d->latency_frames(n.instance.instance), std::memory_order_relaxed);
+        n.instance.latency_dirty = false;
+    }
 }
 
 WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs, uint32_t output_channels, uint32_t frames) {
@@ -622,11 +624,19 @@ WS_RENDER_INLINE void Engine::Impl::publish_block_outputs(float *const *outputs,
         if (bus.channel < output_channels) {
             const auto &buffer = bus.source->instance.global_out[bus.port];
             for (uint32_t c = 0; c < buffer.channels; ++c) {
-                for (uint32_t i = 0; i < frames; ++i) {
-                    float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
-                    if (bus.ramped) sample *= bus.state->gain.at(i);
-                    if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
-                    else outputs[bus.channel][i] += sample;
+                if (!bus.ramped) {
+                    // No-edit path: no gain arithmetic or branch per sample.
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i];
+                        if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
+                        else outputs[bus.channel][i] += sample;
+                    }
+                } else {
+                    for (uint32_t i = 0; i < frames; ++i) {
+                        const float sample = buffer.data[c][(buffer.flags & WS2_CONSTANT) ? 0 : i] * bus.state->gain.at(i);
+                        if (!bus_written[bus.channel]) outputs[bus.channel][i] = sample;
+                        else outputs[bus.channel][i] += sample;
+                    }
                 }
                 bus_written[bus.channel] = true;
             }

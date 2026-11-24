@@ -365,6 +365,22 @@ static void signal_ramp_interrupted() {
     remove.reset();
     for (unsigned i = 1; i < 240; ++i) render();
     CHECK(sample[0] == 0);
+
+    // Prebuilt steady housekeeping must be silent on the wire and must
+    // not resurrect the removed cable or retire the live witness.
+    std::atomic<bool> done{false};
+    std::thread control([&] {
+        live->refresh_latency();
+        done.store(true, std::memory_order_release);
+    });
+    do {
+        render();
+        CHECK(sample[0] == 0);
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire));
+    control.join();
+    render();
+    CHECK(sample[0] == 0);
 }
 
 static void osc_out_retirement() {

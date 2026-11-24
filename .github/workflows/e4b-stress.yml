@@ -47,4 +47,4 @@ jobs:
         if: matrix.name == 'ASan-UBSan'
         run: |
           cmake --build build/e4b --target wirescape_engine_sidecar --parallel 4
-          python tests/native/abi2/e4b_osc_retirement.py build/e4b/wirescape_engine_sidecar
+          python tests/native/abi2/e4b_osc_retirement.py build/e4b/wirescape-engine
