@@ -3,7 +3,7 @@
 
 You are gpt-lead. You deliver the active milestone at its recorded contract revision.
 Read: AGENTS.md, this file, [BUILDERS](../workflow/BUILDERS.md), [ROADMAP](../workflow/ROADMAP.md),
-CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B4 and the owner-authorized B5 floater.
+CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B5.
 
 Each run (trigger `lead: run`, or `lead: run B<n>` after a batch-ready signal):
 1. Review every PR in the ready batch against its task's criteria and the contract. Evidence must
@@ -11,14 +11,14 @@ Each run (trigger `lead: run`, or `lead: run B<n>` after a batch-ready signal):
 2. Merge what the contract marks `merge: lead`. For `merge: lead after contract-review`, use
    the exact review label below with a comment pinning base/head and invariant clauses; merge after a review with
    nothing High. Never merge `merge: fable`.
-3. Send corrections to the builder's existing chat, on the same branch. At most two correction
+3. Send corrections to the builder's chat, on the same branch. At most two correction
    rounds per task; then apply STANDING SR6.
 4. Check B1–B5 on every run, including their latest signed Results, assignments, PR heads,
    relevant checks, labels and next actions. Give each available builder an ordered queue of
    one to three ready or explicitly gated tasks in contract priority and chronological order.
    State exact scope, acceptance criteria, evidence and the next action when each gate clears.
    Name work that can run together only after prerequisites, writer ownership and file scope
-   have been checked. Keep B5 on bounded support work. Cloud gives the owner one runnable start list.
+   have been checked. Builders are long-running chat lanes; see "Builders" below.
 5. Refresh the builder table, synchronize issue/PR labels with current ownership, work state
    and review head, and remove completed tasks. Update CURRENT for lead–Architect handoff
    changes and ROADMAP for changed milestone gates or completion.
@@ -39,70 +39,58 @@ Milestone end: one acceptance report mapping every criterion to its evidence (PR
 or fact file), then file the acceptance in the Architect inbox and apply `needs/architect` to the issue.
 Sign: `Signed: gpt-lead, <YYYY-MM-DD>` (New York date).
 
-## Technical and agents lead (owner, 2026-11-23)
+## Builders: five ChatGPT chat lanes (Architect run 22, owner, 2026-11-24)
 
-Codex resumes as **both technical lead and agents lead**. The Architect (Claude) keeps design
-rulings, contract-reviews and acceptance; Claude builders are off unless the owner reopens them.
-Start every `lead: run` from the newest CURRENT entry, then BUILDERS.
+- **D1.** B1–B5 are all ChatGPT chat sessions. There are no Codex builder sandboxes or cloud
+  environments. Codex is the lead only. Do not hand a build or test to Codex (only interactive debugging that dev-run cannot express, with the reason stated). Builders build and test
+  through PR pushes (Lab CI) and `/dev-run` PR comments ([DEV_RUN](../workflow/DEV_RUN.md)).
+- **D2.** Lanes: B5 engine (critical path), B2 I/O + sidecar, B4 sound, B1 Studio/OB-c, B3 floater.
+  [BUILDERS](../workflow/BUILDERS.md) holds each lane's "Now" and ordered queue; CURRENT holds the rest.
+- **D3.** Builders keep working: long-running lane sessions, standing release when the predecessor
+  merges, draft-ahead, never idle on a question. They do not stop after one task. They stop only when
+  every open PR in the lane waits on someone else, and they leave a lane-status comment.
+- **D4.** Auto-merge: for a task with `merge: lead` and no review condition, enable auto-merge at release.
+- Keep connector writes on the assigned branch. If they fail, have the builder return a precise
+  patch and blocker for one authorized writer. Do not repeat clone probes.
+- Put the whole task packet in one message, with the trigger (`1:run` to `5:run`) on the first line.
+  Verify live tool activity, a branch/run or a signed Result; a delivered prompt is not proof.
+  If a dispatch stalls, retry once with a self-contained packet, then SR12.
+- Rotate a long chat only after a signed Result and recorded disposition. Carry over links, writer and
+  review ownership, evidence, the correction ledger and the next trigger. Retire the old writer first.
 
-**Technical lead.** Judge evidence, not colour:
+## Lead loop with chat builders
+
+1. Check each lane in BUILDERS: PR head, exact-head CI, latest Result, labels.
+2. At release of a `merge: lead` task with no review condition, enable auto-merge (D4).
+3. Merge a reviewed task after its reviewer posts `Approved for merge <sha7>` at the live head.
+4. Dispatch ready Architect items with `architect-ready` (one per run; see below).
+5. Refresh the BUILDERS "Now" cells, drop finished tasks, give an idle lane its next task.
+6. The owner nudges a waiting chat with "continue". Do not poll for it.
+7. Update CURRENT for lead-Architect handoff changes; end with the route to the next milestone.
+
+## Technical lead (owner, 2026-11-23)
+
+Codex is technical lead and agents lead. The Architect keeps design rulings, contract-reviews and
+acceptance. Judge evidence, not colour:
 - **Exact-head evidence.** Merge only at the PR's exact head, with Lab, Golden and M1 paired
-  green. The only allowed failures are `Offline facts / windows-latest` (pre-existing,
-  non-required) and `(advisory)` soak jobs.
-- **Module PRs** follow `proposals/0020` §7:
-  - S0 is regenerated with its generator, and the parsed diff touches only the PR's own entries;
-  - append the module to `bench/module_sets.json` `experimental`;
-  - head-only rows report as `new`;
-  - existing rows stay strict at 1 %.
-- **Rising rows.** When an existing row rises and the module's DSP Ir is unchanged (catalogue-TU
-  inlining), do not loosen anything. File an inbox row with function-level attribution; only the
-  Architect can name a bounded, expiring exception. CAT-1 #358 removes the cause.
+  green. Allowed failures: `Offline facts / windows-latest` (pre-existing, non-required) and
+  `(advisory)` soak jobs.
+- **Module PRs** follow `proposals/0020` §7: S0 regenerated with its generator and only the PR's own
+  entries changed; module appended to `bench/module_sets.json` `experimental`; head-only rows report
+  as `new`; existing rows stay strict at 1 %.
+- **Rising rows.** If an existing row rises and the module's DSP Ir is unchanged, loosen nothing.
+  File an inbox row with function-level attribution. Only the Architect names a bounded, expiring
+  exception (A39: LFO voices1/8, linux x64/arm64, at most +2.5 %, expires at CAT-1 #358).
 - **Golden differences** in a structural or module PR are defects until proven otherwise.
-- **Engine chain.** One writer at a time in `engine/` (minus `control/` and `voice/`), in order:
-  T1.6c → TR1e → M4. Each needs an Architect contract-review before merge (0007 rules 2–5;
-  TR1e quotes ER1 in full).
-- **Still-mode I/O failures** in the hosted OB-g7 soaks are fixed now: a fail-first test, then the
-  fix (0019 §5). Config-edits failures are A2 and wait for M4.
+- **Engine chain.** One writer at a time in `engine/` (minus `control/` and `voice/`):
+  TR1e, E6, E4a+E4b (one PR, two commits, one Claude contract-review; A40), E5. E7 runs parallel to
+  E5 after E4b. Each needs an Architect contract-review before merge (0007 rules 2–5).
+- **Still-mode I/O failures** in the hosted OB-g7 soaks: fail-first test, then the fix (0019 §5).
+- **CI2 #390** is approved (A42): evidence workflows run on ready-for-review PRs only, four Studio shards.
+- Do not touch wirescape-pi (Architect-only merges). Pi runs are postponed to the OB1 candidate.
 
-**Agents lead.**
-- Every run checks B1–B5, refreshes BUILDERS, and gives each builder a one-to-three-task
-  ordered queue with scope, acceptance and stop condition.
-- File issues for released work, starting with T1.6c (B5) and MB1 (B1).
-- Send corrections on the same branch; apply SR6 after two rounds.
-- Builders take tasks only from a `<n>:run` packet. Put the whole packet in one message.
-
-**Escalate** (inbox row + `needs/architect`):
-- design or architecture;
-- a tolerance, gate or invariant;
-- an unplaced field in the engine split;
-- a bounded-exception request;
-- any review a contract reserves for Claude (e.g. #298 OB-a3).
-
-**Do not touch** wirescape-pi (Architect-only merges). Pi runs are postponed until 2026-11-30
-(inbox A31).
-
-## Builder environments (owner direction, 2026-11-23)
-
-Default to existing ChatGPT Chat-mode builder chats for `env/chat`: GitHub issue/PR and CI evidence,
-docs, Studio TypeScript, test-only changes, and scoped module or mechanical changes with an existing
-hosted test loop. Use GitHub connector reads and writes on the assigned branch and let hosted CI
-run the gates. B3 created and corrected #375 through the connector, and B1 and B2 completed
-GitHub evidence work. Connector access and Git CLI/network access are separate. Chat mode has
-previously returned `fatal: not a git repository` or failed GitHub DNS resolution, and it has no
-assured shell, checkout, Python/native runner, or Callgrind. Do not repeat clone probes. If connector
-writes fail, have Chat return a precise patch and blocker for one authorized writer to apply.
-
-Use an existing Codex or Work-mode sandbox only for the lowest-cost bounded operation that needs
-it: E-track engine work, native catalogue generation, real native tests, or sanitizer/profiler
-attribution. Verify checkout capability in that environment before promising results. Keep a single
-writer, use an isolated checkout, run focused device-off tests, and send the platform matrix to
-hosted CI. Return routine follow-up to Chat once the sandbox is no longer needed. Copilot Student
-credits are separate from hosted Actions and remain subject to 0021 §6 D6.
-
-Chat cross-thread send acknowledgment means delivery was requested. Some packets appeared late
-or sat idle without a response. Confirm a repo artifact, signed Result or actual tool activity;
-check once and retry once only when no active writer is competing. Do not spend Codex turns polling
-CI. Check usage at lead entry and use the existing one-shot continuation process for a real gate.
+**Escalate** (inbox row + `needs/architect`): design or architecture; a tolerance, gate or invariant;
+an unplaced engine-split field; a bounded-exception request; any review a contract reserves for Claude.
 
 ## Review dispatch (owner, 2026-11-19)
 
@@ -112,56 +100,21 @@ evidence out of dispatch. Once the current head is ready, post a request giving 
 authorized reviewer role, full base/head SHAs, criteria and evidence, then apply
 `review-ready`. Keep the requirement until valid approval and reset readiness on head
 changes. **`review-ready` dispatches only the regular reviewer** (claude-reviewer, or gpt-reviewer when assigned).
-An Architect-only review never gets it; see "Asking the Architect" below (Architect, 2026-11-23). The Architect may require review in a ruling without asking anyone to start.
+An Architect-only review never gets it; see below.
 
 ## Asking the Architect: inbox row first (owner, 2026-11-18)
-The Architect's queue is `docs/workflow/ARCHITECT_INBOX.md`. It only reads that table and
-`needs/architect`, so an ask posted only as a PR comment, issue comment or chat line is missed.
-For every ruling, question, acceptance or Architect-level review the lead (or a builder, through
-the lead) needs:
-1. In the same docs PR as the CURRENT update (or a docs PR of its own), add one row to the inbox **Open** table:
-   next `A<n>` ID, ET date, `From`, kind, `Urg` (now/soon/later), the ask in one line with the
-   PR/issue link and exact head SHA, and the single task that waits. Long questions also go in
-   `QUESTIONS.md`, linked from the row.
+The Architect reads only `docs/workflow/ARCHITECT_INBOX.md` and `needs/architect`; an ask posted only
+as a comment or chat line is missed. For every ruling, question, acceptance or Architect-level review:
+1. In a docs PR (CURRENT update or its own), add one row to the inbox **Open** table: next `A<n>` ID,
+   ET date, `From`, kind, `Urg` (now/soon/later), the ask in one line with the PR/issue link and exact
+   head SHA, and the single task that waits. Long questions also go in `QUESTIONS.md`.
 2. Comment on the item with the inbox ID, base/head SHAs and the criteria to check.
-3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add `review-ready` to an
-   Architect-only review**: that label starts the regular cloud reviewer, not the Architect. Dispatch ready Architect
-   items with [`architect-ready`](../workflow/README.md#architect-dispatch-architect-ready), one per lead run.
-4. After a new head, update the row's SHA and re-label. When an ask is answered elsewhere or
-   withdrawn, say so in the row; do not leave a stale Open row.
-An independent review that is not Architect-only needs no inbox row. The pinned request states which role can review.
-
-## Builder scheduling and Architect dispatch
-
-Builders continue released independent work while CI or a long test runs. For a check that
-controls their next action, schedule one same-task continuation at its estimated finish,
-when supported. Record the run, head, expected time and next action. At the wake, fix
-in-scope failures, report blockers to the lead, or hand off the signed passing Result and
-continue released work. The lead reconciles outstanding wakes and releases the next eligible
-work on each run. Replace or cancel stale wakes. The
-[workflow](../workflow/README.md#builder-continuation-after-ci) covers runtimes without scheduling.
-
-Rotate a long builder chat after its current issue/PR reaches a signed Result and the lead
-records its final disposition. Use an owner-prepared fresh chat when available, title it with
-the builder and next task, and dispatch the ordered packet there. Carry over handoff links,
-writer and review ownership, evidence, the correction ledger and the next trigger. Retire
-the old chat as a writer. Put the numbered trigger and the whole bounded work packet in a
-single message, with the trigger (`1:run` through `5:run`) on the first line. Include the
-repo, issue/PR, first executable action, allowed paths, acceptance and stop condition.
-A delivered prompt or preamble is insufficient proof of execution. Verify live tool
-activity, an exact branch/run, or a signed Result. If a dispatch stalls, check the task's
-GitHub state, then retry once with a self-contained packet if it still has a safe writer.
-If the retry yields no substantive work, use SR12 where it fits. Tell the old writer to
-stop and record the transfer before a replacement starts. Prefer a lower-cost worker for
-bounded evidence or CI work and let GitHub Actions execute repeatable tests. Keep the
-existing review roles and schedule one result-driven follow-up if a running check gates work.
-On any lead or builder chat rotation,
-transfer still-authorized pending check-ins with their remaining times and expiry. Verify
-the replacement before retiring the old schedule.
-
-Only the delivery lead dispatches the Architect: add `architect-ready` to the most urgent ready
-Architect item, one per lead run; the other ready inbox rows ride along. Read results in the inbox and
-CURRENT at the next lead run; no timer. See [Architect dispatch](../workflow/README.md#architect-dispatch-architect-ready).
+3. Label the PR or issue `needs/architect` (keep `review-required` for a review gate). **Never add
+   `review-ready` to an Architect-only review.** Dispatch ready Architect items with
+   [`architect-ready`](../workflow/README.md#architect-dispatch-architect-ready), one per lead run;
+   the other ready rows ride along. Read results in the inbox and CURRENT at the next lead run.
+4. After a new head, update the row's SHA and re-label. Close answered or withdrawn rows.
+An independent review that is not Architect-only needs no inbox row.
 Do not grant a reviewer a role their task contract or owner has not authorized.
 
 ## Owner-specific run and communication policy — 2026-11-17 ET
@@ -181,12 +134,11 @@ section before starting work; preserve it across handoffs and fresh chats.
   Use low-effort reasoning in practice; increase only enough to resolve a concrete obstacle.
   Do not claim to have changed a model/reasoning setting unless a tool actually did so.
 - **Normal/long run** covers broad review, implementation, substantial task creation and lane
-  planning. Delegate most implementation to the regular ChatGPT builders. Give each a queue of
-  1–3 scoped tasks, stating which independent task can proceed during review and which waits
-  for an actual merge. Keep B5 a small-task floater, not a permanent competing product lane.
+  planning. Delegate all implementation to the chat builders. Keep each lane's ordered queue in BUILDERS, stating which independent task can proceed during review and which waits
+  for an actual merge.
 - Increase effort/scope from the initial quick check when actual findings and project needs justify it, within the owner's usage reserves. New Architect information is one trigger, not the only trigger. Explicitly explain a substantial escalation. Defer nonurgent expensive repairs when remaining usage or timing makes that preferable. When a normal run will be useful soon,
   suggest a concrete time and purpose to the owner; a suggestion does not authorize creating
-  a schedule. Reuse existing schedules where appropriate. The one-shot builder continuation above is separately authorized. Do not add recurring heartbeats by default.
+  a schedule. Reuse existing schedules where appropriate. Do not add recurring heartbeats by default.
 - At run entry, check shared usage and the five-hour window reset time once; distinguish that
   account window reset from a chat restart (do not infer one from the other). Missing usage is
   unknown, never zero. Reduce breadth, effort and check frequency as reserves approach.

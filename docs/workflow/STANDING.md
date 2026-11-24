@@ -47,7 +47,7 @@ job; no `continue-on-error`; not a required check. `ci.yml` is edited only by it
 The file counts as part of the task's allowed paths. Precedent: Q11.
 **SR9 Evidence substitutions.** Hosted-runner results satisfy a criterion that names no machine.
 Hosted timing is an advisory fact, never a pass mark. Device-only rows stay device-only: no agent
-run fills them. Local or worker builds support diagnosis; merge needs hosted exact-head CI. "Golden
+run fills them. `/dev-run` and local builds support diagnosis; merge needs hosted exact-head CI. "Golden
 24 identical" is always three platforms. Precedent: R2, M0 acceptance table.
 **SR10 Unmeasured rows.** Record `unmeasured`, `not_built_*`, `unavailable` or `device-only`
 with the reason. Never zero, never interpolated or copied from another row. Carry it into the
@@ -66,8 +66,8 @@ PR records which reviewer it was. Where the contract says **Claude**, and for M1
 Claude session counts. Precedent: M1 contract-review rule.
 **SR12 Staffing.** The lead may move a task to another builder when the writer gave no substantive
 result after one supported retry, or stopped. The old writer is told to stop first; the branch, PR and
-round count carry over; a handoff comment records the change. At most four builders. New Claude
-builder tasks and lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
+round count carry over; a handoff comment records the change. At most five builders (B1–B5, all ChatGPT chat sessions; no Codex builder sandboxes, 2026-11-24).
+Claude builder lanes (CB1–CB3) are off. Lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
 **SR13 Doc-only PRs.** CURRENT, LOG, QUESTIONS and `facts/` PRs merge on green under the scope
 rule. A facts PR also gets a neutral-wording review. A required check that hangs on a doc-only PR is
 a CI defect to fix under SR3, never a waiver. Precedent: Q7, CODEX_LEAD step 5.

@@ -27,27 +27,17 @@ The Architect answers (in QUESTIONS, the PR, or a contract), moves the row to **
 the answer's link and date, removes the `needs/architect` label, and updates CURRENT.
 Cleared rows older than one run are deleted (git history keeps them).
 
-## Historical lead queue sync — 2026-11-18 19:33 EST
-
-Reviewer #246 instructions read and applied. A14/A16 remain cleared; no new design ruling.
-PR #242 now needs independent **reviewer-level** Claude review at
-`fd413424197cec2f4ae04c7c866636d4483e41ed`, base
-`004a1b469c6d87fb7886f53ca8ac8f4c273eb6d8`; all five recorded workflows completed green.
-The queue is its `claude-review/reviewer` label, not a new Architect-only Open row.
-The Architect may fulfill that review, or the owner may run claude-reviewer.
-B1/B2 test wiring is released under SR8 and needs no Architect ruling.
-A3/A4 below retain their original waits. No cleared ruling is reopened.
-Lead actions and exact next runs are in CURRENT's Cloud-1 delivery sync.
-
-Signed: codex-lead, 2026-11-18, 19:33 EST
-
 ## Open
 | ID | Date ET | From | Kind | Urg | Ask (link) | Waits |
 |---|---|---|---|---|---|---|
-| A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. | Pi runs only (advisory, OB r2.4a) |
+| A38 | 2026-11-23 | gpt-lead | contract-review | **now** | [TR1e #385 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7118746129) at `5d2d78b432179687a1d9bab11ad1dc1ab3938f38`: Architect review of M3 TR1e, ER1 and 0008 K1/K2/K4. Long effort; next Architect run. | TR1e merge (E6 #391 may draft ahead) |
+| A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A37 | 2026-11-23 | S7.7 #380: frozen S4 whole-graph reference; VCF cost vs the 1 % rule | [M7 r1.5](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7118689012): retire only the S4 ABI1 bound (all other assertions stay); VCF-containing rows fall under the +5 % task cap with `Cost-change:`; other rows stay at 1 %. 2026-11-23 |
+| A39 | 2026-11-24 | #356 Poly Merge/Split parked on LFO M1 rows (owner priority) | [Bounded exception, merged `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/pull/356#issuecomment-7122160745): LFO voices1/8, M1 x64+arm64, ≤ +2.5 %, expires at CAT-1 #358 |
+| A40 | 2026-11-24 | Fewer engine review cycles to OB1 | E4a+E4b one PR, one Claude review; E7 parallel to E5 after E4b ([CURRENT run 22](CURRENT.md)) |
+| A41 | 2026-11-24 | OB-g8 next step after the #386 diagnostic | [Matcher fix released to B2; OB r2.7 paths](https://github.com/kalharbi11/wirescape-lab/issues/383#issuecomment-7122851093) |
+| A42 | 2026-11-24 | CI time (owner) | [CI2 #390](https://github.com/kalharbi11/wirescape-lab/issues/390) to B3 |

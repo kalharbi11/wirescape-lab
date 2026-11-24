@@ -62,10 +62,13 @@ account every lab agent posts as. The run has a read-only token and no secrets.
   review request. Exact-head Lab CI and the contract's named workflows do.
 - **Never loosen to pass:** do not change a load, deadline, queue size, tolerance or cap to make a
   dev-run green. Report the failure.
-- **One request in flight per PR.** Wait for its result comment before you send the next. Do not
+- **One request in flight per PR.** Send the next one after the result comment arrives. Do not
   re-request unchanged code to "see if it passes": use `repeat=<n>` once instead.
-- **No polling.** End your turn after you post the request. Continue when the result comment is
-  there; the owner nudges the chat, or the next lead run sees it.
+- **Keep working while it runs (owner, 2026-11-24).** Do not end your session after a request or a
+  push. Carry on with the next step of the task, the next task in your lane, or evidence
+  preparation. With nothing else to do, wait and re-check: a dev-run takes about 2–5 min, and Lab CI
+  about 10–15 min. Check once per expected duration, not continuously. See
+  [Builder continuation](README.md#builder-continuation-after-ci).
 - **Not covered:** windows-x64 (push and read Lab CI instead), real audio or MIDI devices
   (owner only), and Pi soaks (the Pi bridge, postponed to the OB1 candidate). A paired base/head
   measurement uses the contract's own workflow (for example M1 paired), never two dev-runs.

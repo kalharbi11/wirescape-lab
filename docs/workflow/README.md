@@ -51,16 +51,22 @@ is authorized. A new head requires a new signed request before reapplying the re
 
 ## Builder continuation after CI
 
-Continue any independent in-scope work while the needed CLI build or checks run. If results
-are the only thing preventing progress, schedule one continuation in the same task session
-for the expected finish time, using the observed duration or a reasonable documented estimate.
-Record the task/PR, head, run link or local job ID and next action. The continuation checks
-that the head and writer still match, reads the result once, then carries out the next
-authorized action. Repeat for later testing in the same active task. Replace an existing
-pending wake for that task and clear it at completion, reassignment or a real blocker.
-If scheduling is unavailable, leave a signed handoff with the exact resume trigger. A local
-CLI job can be scheduled only where the job and its output survive the wake.
-No recurring polling, automatic CI reruns, extra correction rounds or new task authority.
+**Builders keep working (owner, 2026-11-24).** Lane tasks are long and CI is fast, so a builder
+session runs until its lane has nothing it can do, not until one PR is ready.
+1. After a push, a `/dev-run` or a Result, keep going: the next step of the same task, then
+   draft-ahead work on the next task in your lane ([BUILDERS](BUILDERS.md)), then evidence prep.
+2. When only a result is missing, wait and re-check once per expected duration: dev-run about
+   2–5 min, Lab CI about 10–15 min, M1/Golden about 15 min. No tight polling loops.
+3. **Standing release:** when your task's predecessor merges on `main`, your lane's next task is
+   released. Start it without asking. A task outside your lane needs the lead's or Architect's
+   assignment comment.
+4. **Never idle on a question:** add an inbox row (or a QUESTIONS entry) plus the label, then
+   continue with the next independent work in your lane (SR19).
+5. Stop only when every open PR in your lane waits on someone else (review, merge, ruling) and
+   nothing is left to draft. Leave one signed lane-status comment on your newest PR: what waits,
+   on whom, and what you will do next. The owner restarts you with "continue".
+
+No automatic CI reruns, no loosened gates, no new task authority.
 
 ## Architect dispatch: `architect-ready`
 

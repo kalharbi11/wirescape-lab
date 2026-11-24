@@ -19,6 +19,8 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 - G-W1 [#368](https://github.com/kalharbi11/wirescape-lab/issues/368) is added to the OB1 rows (lead merge).
 - Affects only the tag condition. Nothing in flight stops.
 
+**r2.7 (Architect, 2026-11-24, run 22, A41):** OB-g8 allowed paths gain `host/osc/` and `modules/osc_in/`, because the #386 diagnostic names `Pattern::match`. Affects OB-g8 only; nothing in flight stops.
+
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.
