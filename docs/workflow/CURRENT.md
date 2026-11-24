@@ -22,6 +22,14 @@ Next Architect work: resolve E5 voice-count replacement scope, then use #424's r
 
 Signed: gpt-lead, 2026-11-24
 
+## Decided 2026-11-24 ET: Architect run 29c — S7.3 merged, A60 (owner: resolve #432's blockers)
+
+- **#432 S7.3 approved and merged `fe321f9`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/432#issuecomment-7143875832)). T7.0 45478143094 passes all 12 gated rows. The Golden declaration was widened to the nine CHAOS patches (K6), and Golden 45480416512 is green. The CHAOS Ir increases are under the 15 % cap, with `Cost-change:` lines. D5: chaos-01-ember-veil-pad, artifact 14960795824.
+- **A60** (M7 r1.6a): r1.6 also covers S7.3, plus a named exception for function_envelope voices1/8, linux-arm64, ≤ +3.0 % (it reproduced at +2.106/+2.605 %), expiring at CAT-1 or the OB1 tag. An issue's `Sound-change:` line is only an example.
+- **B4 → S7.9 #440.**
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 29b — A59, T7.0 dispatch, Windows replan red (owner: Architect also acts as lead)
 
 - **S7.3 #432:** full T7.0 capture dispatched as lead: [run 45478143094](https://github.com/kalharbi11/wirescape-lab/actions/runs/45478143094) at `d86c195`, both Linux architectures, compared with baseline 44029050283.
