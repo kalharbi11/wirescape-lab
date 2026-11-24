@@ -171,6 +171,41 @@ def edge(kind, source, output, dest, port, **extra):
                             'to': dict(module=dest, port=port)}, **extra)
 
 
+# A44 / ER6: only saved-patch loading normalizes duplicate modulation.
+with tempfile.TemporaryDirectory() as a44_dir:
+    a44 = Engine(Path(a44_dir) / 'settings.json')
+    try:
+        patch = minimal()
+        patch['modules'] += [dict(id=9, module='essentials.vco'),
+                             dict(id=10, module='essentials.lfo')]
+        signal = edge('signal', 9, 'audio', 7, 'audio')
+        first = edge('modulation', 10, 'control', 9, 'frequency',
+                     amount=0.7, opaque='first')
+        second = {**first, 'amount': 0.6, 'opaque': 'second'}
+        patch['connections'] = [first, signal, second]
+        clean = {**patch, 'connections': [signal]}
+        gen = a44.call('loadGraph', patch=clean)['gen']
+        refused = a44.call('applyGraph', False, patch=patch)
+        assert refused['code'] == 'duplicate' and refused['gen'] == gen
+        connected = a44.call('connect', connection=first)['gen']
+        refused = a44.call('connect', False, connection=second)
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        refused = a44.call('loadGraph', False,
+                           patch={**clean, 'connections': [signal, signal]})
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        # The load result reports only the normalization warning.
+        loaded = a44.call('loadGraph', patch=patch)
+        assert loaded['gen'] != connected
+        result = loaded['result']
+        assert set(result) == {'warnings'}, result
+        warnings = result['warnings']
+        assert len(warnings) == 1, warnings
+        assert all(token in warnings[0] for token in
+                   ('10', 'control', '9', 'frequency')), warnings
+    finally:
+        a44.close()
+
+
 with tempfile.TemporaryDirectory() as directory:
     settings = Path(directory) / 'settings.json'
     engine = Engine(settings, '--confirm-audio', '--confirm-midi', '--confirm-lan')  # null overrides audio/MIDI; no OSC routes
@@ -206,8 +241,13 @@ with tempfile.TemporaryDirectory() as directory:
     assert engine.call('panic')['gen'] == '5'
     engine.call('addModule', moduleId=10, moduleType='essentials.lfo')
     modulation = edge('modulation', 10, 'control', 9, 'frequency', amount=0.2)
-    engine.call('connect', connection=modulation)
-    assert engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)['gen'] == '8'
+    mod_gen = engine.call('connect', connection=modulation)['gen']
+    # E6 / ER6: amount is not part of a cable's identity. A second cable is
+    # refused even if its amount differs, and an amount edit must not swap.
+    duplicate = engine.call('connect', False, connection={**modulation, 'amount': -0.5})
+    assert duplicate['code'] == 'duplicate' and duplicate['gen'] == mod_gen
+    changed = engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)
+    assert changed['gen'] == mod_gen, 'E6 setModAmount must not advance graph generation'
     engine.call('addModule', moduleId=12, moduleType='midi.cc_to_cv')
     engine.call('ccMap.set', moduleId=12, row=0, mapping=dict(channel=0, controller=21, fourteen_bit=False, bipolar=False, smoothing_ms=10))
     assert engine.call('ccMap.set', False, moduleId=12, row=8, mapping={})['code'] == 'limit'

@@ -55,6 +55,9 @@ public:
     bool add_node(uint32_t id,const ws2_descriptor*,const std::vector<uint8_t>&config={});
     bool connect(uint32_t from,uint32_t output,uint32_t to,uint32_t input);
     bool modulate(uint32_t from,uint32_t output,uint32_t to,uint32_t parameter,float amount);
+    // Control producer only. After a quiescent reset, resend the document amount.
+    [[nodiscard]] int set_mod_amount(uint32_t from, uint32_t output, uint32_t to,
+                                     uint32_t parameter, float amount) noexcept;
     bool output(uint32_t node,uint32_t port,uint32_t bus_channel);
     int register_producer();
     bool prepare();

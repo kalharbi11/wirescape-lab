@@ -38,7 +38,7 @@
 > {"v":0,"id":"pre7b","type":"connect","connection":{"kind":"modulation","from":{"module":10,"port":"control"},"to":{"module":9,"port":"frequency"},"amount":0.2}}
 < {"v":0,"session":"*","re":"pre7b","ok":true,"gen":"+1"}
 > {"v":0,"id":"r7","type":"setModAmount","connection":{"kind":"modulation","from":{"module":10,"port":"control"},"to":{"module":9,"port":"frequency"},"amount":0.2},"amount":-0.5}
-< {"v":0,"session":"*","re":"r7","ok":true,"gen":"+1"}
+< {"v":0,"session":"*","re":"r7","ok":true,"gen":"="}
 
 # T08
 > {"v":0,"id":"r8a","type":"noteOn","note":60,"velocity":0.8}

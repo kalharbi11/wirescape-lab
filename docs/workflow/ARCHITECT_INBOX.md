@@ -18,7 +18,9 @@ starts an Architect run, which clears every ready Open row. The Architect remove
 During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
 as a delegated mechanical step after verifying a complete request and when no lead decision
 is outstanding. Count that dispatch against the same one-per-lead-window allowance.
-A label is a request to run. Confirm pickup through live activity or the signed outcome.
+Use the linked issue for the wake while only Issues → Labeled is configured. Keep review
+material and its head pinned on the PR. A label requests a run. Confirm pickup from live
+activity or the signed outcome.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -37,10 +39,11 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A44 | 2026-11-24 | gpt-lead | scope ruling | **now** | [E6 #395](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7126072238) at `ab50d23a609fd6ded1a5a9f8a1220ae097e836be`: ER6 loader duplicates must coalesce, but shared sidecar validation refuses them before the loader. Grant load-only ingress normalization, preserving strict `connect` and `applyGraph`; SR7 cannot grant behavior. | E6 sidecar load ingress only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A38 | 2026-11-24 | TR1e #385 Architect review (ER1, 0008 K1/K2/K4) | [Approved `5d2d78b` with one condition](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762): the red `Offline facts / windows-latest` job goes green on a re-run, or shows the same failure on main. No High or Medium findings; 3 Low (one for E6, two for TR1h) |
-| A43 | 2026-11-24 | S7.7 #380 Claude contract-review and the 96 kHz evidence question (owner) | [Approved after one pre-approved one-line correction](https://github.com/kalharbi11/wirescape-lab/pull/380#issuecomment-7124107855): restore the `baseline_peak` check. No 96 kHz measurement is needed. A38's Windows condition is [met](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124108736) |
+| A51 | 2026-11-24 | B5 E4b publication deadline and OSC Out resource lifetime ([#414](https://github.com/kalharbi11/wirescape-lab/issues/414#issuecomment-7127943756)) | **Option (a) granted, engine-only** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/414#issuecomment-7128145573), M4 E4b note): wait for adoption, then publish the revision; a timeout CAS win returns false with nothing exposed; an output-less removed instance is not kept in the transition layout; ASan OSC Out regression |
+| A52 | 2026-11-24 | #275 P1 fails only on B1's extra phase-landmark check | **Check kept, made stronger** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7128148513), OB r2.8a): post-reset sample identity at a block-boundary origin, first mismatch reported. G1 passes |
+| A53 | 2026-11-24 | B4 S7.8 #405 Claude contract-review and paired-red disposition | **[Approved `fbb3ccd`](https://github.com/kalharbi11/wirescape-lab/pull/405#issuecomment-7128153863)**: the paired reds are all Ladder rows under r1.5(b), all < +3 %, so no Cost-change line. Lead merges after D5 (scene-02) |
+| A54 | 2026-11-24 | B3/B2: #393 holds `offline-facts.yml` | **#393 merged `0056d4f`** (Architect acting as lead); Offline dispatched on #406's branch; B3 → [#417](https://github.com/kalharbi11/wirescape-lab/issues/417) |

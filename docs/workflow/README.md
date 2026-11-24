@@ -83,11 +83,14 @@ No automatic CI reruns, no loosened gates, no new task authority.
 (Architect run 20, 2026-11-23; replaces the #265 `architect-wake`/`/architect-run` wake, which was tested once.)
 `architect-ready` works like `review-ready`, but it starts the **Claude Architect** instead of the regular reviewer.
 The owner wires the Claude integration to start an `architect:run` session when `architect-ready` is
-**added** to a PR or issue in this repository. Label removal and comments do not trigger it.
+**added** to an issue or PR whose event type is configured in the Architect automation. The
+current automation listens for **Issues → Labeled**. Apply the wake to the linked task issue
+and keep the pinned PR request and review requirement on the PR. A PR wake requires a separate
+**Pull requests → Labeled** trigger. Emit one wake per batch. Label removal and comments do not trigger it.
 
 1. **Lead, when an Architect item is ready** (review, ruling or acceptance): the inbox row is Open, the item
    has `needs/architect` (plus `review-required` for a review gate), and a pinned request names full base/head
-   SHAs, criteria and evidence. **Then add `architect-ready` to one item per lead run, the most urgent.** Other
+   SHAs, criteria and evidence. **Then add `architect-ready` to the linked issue for the most urgent item, once per lead run.** Other
    ready rows ride along: every Architect run clears all ready Open rows, so one trigger serves the whole batch
    and the duplicate runs that one label per item would cause are avoided. Never put `review-ready` on
    Architect-only work.

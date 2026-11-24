@@ -58,7 +58,9 @@ PRs for docs work. You may take the mechanical dispatch step for `architect-read
 eligible, the pinned request and exact head match, and the item requires no outstanding lead
 judgment. Preserve the lead pin or validation where the governing rule requires it. Use the
 Open inbox row and `needs/architect` for Architect work. One `architect-ready` dispatch per
-lead window across both roles. Verify pickup separately. Technical judgments, discretionary
+lead window across both roles. Add `architect-ready` to the linked **task issue** for the
+Issues → Labeled trigger. Keep the pinned request, head and review requirement on the PR.
+Never send a second wake from the PR or #265. Verify pickup separately. Technical judgments, discretionary
 releases, writer grants and lead merges stay with the lead. Design, contract review and
 acceptance stay with the Architect. No direct pushes to main.
 

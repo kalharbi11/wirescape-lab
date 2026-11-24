@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "runtime_patch.h"
+#include "runtime_patch_normalize.h"
 #include "../../engine/engine2.h"
 #include <filesystem>
 #include <cstring>
@@ -79,7 +80,31 @@ static void legacy_runtime_load_is_read_only(const std::filesystem::path &filena
           "OB-a3 execution-only loader cannot create a desktop backup");
 }
 
+static void stored_modulation_duplicates() {
+    Json first = {{"kind", "modulation"}, {"amount", .8}, {"opaque", "first"},
+                  {"from", {{"module", 10}, {"port", "control"}}},
+                  {"to", {{"module", 9}, {"port", "frequency"}}}};
+    Json later = first;
+    later["amount"] = .7;
+    later["opaque"] = "later";
+    Json signal = {{"kind", "signal"}};
+    Json cables = Json::array({first, signal, later});
+    auto warnings = wirescape::document::normalize_stored_modulation(cables, 2);
+    first["amount"] = 1.;
+    check(cables == Json::array({first, signal}), "retain first metadata and position, clamp merged amount");
+    check(warnings.size() == 1 && warnings[0].find("10:control -> 9:frequency") != std::string::npos,
+          "warn once and identify the merged cable");
+    first["amount"] = .8;
+    Json last = later;
+    last["amount"] = -.9;
+    cables = Json::array({first, later, last});
+    warnings = wirescape::document::normalize_stored_modulation(cables, 2);
+    check(warnings.size() == 1 && std::abs(cables[0]["amount"].get<double>() - .6) < 1e-12,
+          "sum all amounts before clamping");
+}
+
 int main(int argc,char**argv){try{
+ stored_modulation_duplicates();
  check(argc==2,"demo argument");std::ifstream input(argv[1]);std::string bytes((std::istreambuf_iterator<char>(input)),{});check(!bytes.empty(),"read demo");
  wirescape::engine2::Config cfg{};
     cfg.sample_rate = 48000;

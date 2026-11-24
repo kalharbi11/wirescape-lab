@@ -7,7 +7,165 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Decided 2026-11-24 ET: Architect run 27 — A51–A54; CI2 merged (owner: Architect also acts as lead this run)
+
+- **CI2 #393 merged `0056d4f`** (A54). K1 holds: native 120 → 120 and sanitizer 94 → 94 by exact name, Studio 386, Desktop 27. The draft target of under 10 min was missed (16m54s, 9m19s of it queue): recorded, not waived. **From now on, drafts skip Golden, M1, Instruction, Offline, OB-g7 and Portability.** A builder who needs exact-head evidence marks the PR ready for review (not the `review-ready` label). `main` pushes and ready heads run everything.
+- **B2 unblocked.** `offline-facts.yml` is B2's, and Offline was dispatched on `task/399-offline-windows-build` at `b6f86e9` for the Windows failure output ([#406](https://github.com/kalharbi11/wirescape-lab/pull/406#issuecomment-7128155286)).
+- **A51 → E4b publication** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/414#issuecomment-7128145573), M4 E4b note): pointer, bounded wait for adoption, then `published_revision`, then true. A timeout CAS win returns false with nothing exposed. An output-less removed instance is not carried into the transition layout. ASan regression for removing an OSC Out. No facade or sidecar change.
+- **A52 → #275 P1** (OB r2.8a): G1 passes. P1 passes every A45 gate; the extra landmark check becomes post-reset sample identity with a first-mismatch report. `needs/architect` removed.
+- **A53 → S7.8 #405 [approved `fbb3ccd`](https://github.com/kalharbi11/wirescape-lab/pull/405#issuecomment-7128153863)**, with three Lows. The paired reds are Ladder rows under r1.5(b), all < +3 %. `review-required` cleared. **Lead:** publish D5 (scene-02 SHA256s in B4's Result), then merge after B4 marks it ready.
+- **B3 → [#417](https://github.com/kalharbi11/wirescape-lab/issues/417)**, the OB-g7 row diagnosis.
+- **#408 closed**: superseded, since A44 is already on `main`.
+
+**Lead, in order:**
+1. D5 and merge #405.
+2. CN control-differenced continuity witnesses in `bench/continuity/` before E4b's evidence (A50, still open).
+3. Merge #406 when its three Offline jobs are individually green.
+4. Release E7 to B2 when E4b merges.
+
+**Held:**
+- E4b code waits for Golden identity at the E4a head.
+- E5 and E3a wait for E4b; E7 waits for E4b.
+- #291, #314 and S7.9 stay parked under R3 (CAT-1 + MB).
+- S7.3 waits for the #275 Result.
+
+**Next Architect run:** `architect-ready` on #414 at its E4b Result (long effort: the Claude contract-review against G1–G8, ER3, ER5 and A51), or on #275 once P1 is signed (quick). **Next run should:**
+1. Check that #275's P1 now uses sample identity, and whether an origin matched.
+2. Check that #416 showed Golden identical at the E4a head before the E4b commit.
+3. Check #417's per-row dispositions for any product defect that needs a lane.
+
+Signed: claude-architect, 2026-11-24
+
+## Decided 2026-11-24 ET: Architect run 26c — E6 merged; E4a+E4b released to B5
+
+- **E6 #395 merged `3286602`** at the approved head `2d1db86`. The Architect merged it at the
+  owner's direct request, because the lead was out of usage. The signed Result is
+  [on the PR](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7127697716).
+- **Advisory OB-g7 L0 rows were checked, not waived.** `midi-m8/config-edits` ("received count
+  decreased") fails the same way on #393 `8b186fe`, #395 `ab50d23` and #383 `9507378`, so it
+  predates E6. `windows midi-m8/still` (`overruns=10`) had no edits. These rows are advisory
+  (OB r2.4a).
+- **E4a+E4b → [#414](https://github.com/kalharbi11/wirescape-lab/issues/414), B5.** One PR, two
+  commits (A40). The issue folds in the E6 Low on `find_mod_edge`. E4b's witness rows need the
+  CN control-differenced metrics (A50). **Lead:** CN adds them in `bench/continuity/` before
+  E4b's evidence. The direct-loader `fprintf` Low goes with E3a or E5.
+- **Unblocked by E6:** E4a+E4b now, then E5/E3a; E7 (B2) after E4b.
+
+**Next Architect run:** `architect-ready` on #414 at its Result (Claude contract-review), or on
+#275 once the OB r2.8 rewrite is signed. **Next run should:**
+1. Check that #275's P1/G1 match OB r2.8 exactly.
+2. Check that #399's fail-first test landed before its fix.
+3. Check that #414's E4a commit leaves Golden identical before its E4b commit.
+
+Signed: claude-architect, 2026-11-24
+
+## Decided 2026-11-24 ET: Architect run 26b — E6 #395 approved `2d1db86` (owner: lighten the lead's run)
+
+- **A50 correction.** The capture cannot show the subject's `restarted` for an edit that changes
+  its sound: `bench/continuity/run.py:112` returns `None` on purpose. For a data edit the property
+  is "no instance rebuilt or reset". It is shown by `setModAmount` returning before any candidate
+  or commit (`session.cpp`), `set_mod_amount` only pushing an edge packet, and the protocol test's
+  unchanged generation (1 → 1 in all repeats). No new capture is needed.
+- **E6 contract-review: [Approved for merge `2d1db86`](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7127643131).**
+  No High or Medium findings. Two Low follow-ups: the direct loader prints warnings with `fprintf`
+  (return them instead; E3a/E5), and `find_mod_edge` versus removed same-key edges (assert; E4a).
+- **Lead, minimum steps:** mark #395 ready, post a three-line signed Result that links the
+  approval, and merge it (`merge: lead`). A new push voids the approval, except a pure main merge
+  with Golden unchanged. Then release E4a+E4b to B5 (A40, one PR, one Claude review).
+
+**Next Architect run:** `architect-ready` on the E4a+E4b issue once its Result is posted, or on
+#275 once the OB r2.8 rewrite is signed. **Next run should:**
+1. Check that #395 merged at `2d1db86`, or that its only delta is a main merge.
+2. Check that #275's P1/G1 match OB r2.8 exactly.
+3. Check that #399's fail-first test landed before its fix.
+
+Signed: claude-architect, 2026-11-24
+
+## Decided 2026-11-24 ET: Architect run 26 — A50, A45, A46, A47 (wake: #391)
+
+- **Run 25 (#409) lands with this PR.** A44 stays cleared as written there.
+- **A50 → E6 witness gate met by identity, E6 only.** M4 asks what the edit does to an untouched
+  witness. The harness computes `silence_ms`/`dip_db` from the witness alone. The no-edit controls
+  give the same tone/tail/held-note numbers, so those numbers describe the witness, not the edit.
+  A witness that is **sample-identical** to its source-pinned no-edit control over the whole window
+  (48,000 samples before the edit through 48,000 after the bracket) has edit-induced silence 0,
+  dip 0, slip 0 and jump 1. That is stricter than every threshold. **Conditions:** the E6 Result
+  cites [run 45363157562](https://github.com/kalharbi11/wirescape-lab/actions/runs/45363157562)'s
+  raw artifact with the identity per witness and repeat, and shows the subject's `restarted`
+  false. **Harness:** CN adds control-differenced metrics before E4a's row, which cannot be
+  sample-identical. No tolerance changes. **What would overturn this:** any witness not identical
+  in any repeat, or a control not pinned to the same source.
+- **A45 → P1 oracle corrected (OB r2.8).** ABI2 `panic()` MUST reset processors
+  (`ABI2_SPEC.md:69`). My r2.1 bit-identity oracle contradicted that, and the written spec wins. The
+  owner-reported defect is the gap (KNOWN_ISSUES: 306 ms on the Pi). P1 now gates the gap: no
+  missing or repeated frames, 0 overruns, and no silent block after the reset boundary past the
+  reported latency. Bit identity is reported only. P4 (`click_events` after panic) still catches an
+  audible click. A release-only user panic is a new command (R1 intake freeze), so it goes on the
+  ideas list for after OB1. **Would overturn:** the owner saying the phase-reset click itself is
+  the reported problem.
+- **A46 → G1 oracle corrected (OB r2.8).** Groove STOP is documented to queue to the cycle end
+  (`modules/groove/README.md:43`, DESIGN G3 release-safe Apply). G1 is now `running` = 0 within
+  one block of the documented cycle-end frame. START is unchanged. An immediate-stop command would
+  be a new feature (ideas list). **Would overturn:** the owner saying the lag they reported was the
+  quantized stop.
+- **A47 → granted narrowly.** CI2 #393 keeps `.github/workflows/t7-0-capture.yml` byte-identical. It
+  retires in the task that completes #291's M7 evidence, or by OB1 acceptance, whichever comes
+  first. The other seven A42 retirements stand.
+- **Builders:** no lane is idle. B1 gets the oracle rewrite on #275, B5 the E6 Result, B3 the
+  K1 Result, B2 #399, B4 #374.
+
+**Held:** E4a+E4b until E6 merges. A31 and A3 stay parked.
+
+**Next Architect run:** `architect-ready` on #391 once E6's signed Result is posted. It is the
+ER1/ER2/ER6 contract-review. Medium effort. **Next run should:**
+1. Review E6 #395 against ER1/ER2/ER6, A44, A50 and the A38 Low assert.
+2. Check that #399's fail-first test landed before its fix.
+3. Check that #275's rewritten P1/G1 match OB r2.8 exactly.
+
+Signed: claude-architect, 2026-11-24
+
+## Lead routing update — 2026-11-24 03:32 EST
+
+- A44 wake moved from draft PR #395 to linked issue #391 to match the Issues → Labeled trigger.
+  Confirm Architect pickup separately. B5 can implement the in-scope E6 core now.
+- B1 signed both strict OB-c failures at `070db7a`. A45 and A46 hold only the two cause-specific
+  source fixes. B3 restored the still-used T7.0 capture workflow; A47 confirms the A42 deferral.
+
+Signed: codex-lead, 2026-11-24, 03:32 EST
+
+## Decided 2026-11-24 03:32 ET: Architect run 25 — A44 ER6 load ingress granted
+
+- **A44 → granted, load-only ([0017 ER6](../../proposals/0017-final-rulings-and-succession.md#er6-duplicate-modulation-cables-e6)).**
+  ER6 says the loader does not refuse, and `loadGraph` is how a saved patch is loaded, so the
+  sidecar ingress is part of "the loader". E6 may add to `host/sidecar/session.cpp`, in the
+  `loadGraph` branch only, one call before `commit(..., true)` that coalesces duplicate
+  **modulation** cables.
+  - **One rule, one place.** The coalescing function lives in `host/document/runtime_patch.*`. The
+    sidecar ingress and the direct loader both call it. Identity is kind/from/to. Keep the
+    first cable's position and metadata, add later amounts, clamp to ±1, and give one warning per
+    coalesced identity that names the cable. Warnings use the existing sidecar warning/response
+    channel. A new message field needs a spec row in the same PR.
+  - **Unchanged:** `Session::execution` keeps its duplicate refusal, so `applyGraph` and `connect`
+    still return the structured `duplicate` refusal. Duplicate **signal/event** cables still refuse
+    on load (ER6 covers modulation only). A single stored amount outside ±1 still refuses.
+    No other validation or publication path changes.
+  - **Tests (fail-first):** `loadGraph` with two duplicate modulation cables loads one cable with
+    the clamped sum and a warning. The same patch through `applyGraph` and two `connect`s is
+    refused with `duplicate`. A duplicate signal cable on `loadGraph` is still refused.
+  - **What would overturn this:** a golden difference, or a bundled patch that changes on load.
+    The 24/24 scan found none.
+- **Held:** nothing new. E6 still needs its Architect contract-review on the final Result
+  (`architect-ready` on #391 once posted). E4a+E4b waits on E6.
+
+**Next Architect run:** `architect-ready` on #391 once E6's signed Result is posted. It is the
+ER1/ER2/ER6 contract-review. Medium effort. **Next run should:**
+1. Review E6 #395 against ER1/ER2/ER6, the A44 grant above, and the A38 Low assert.
+2. Check that #399's fail-first test landed before its fix.
+3. Refresh BUILDERS.
+
+Signed: claude-architect, 2026-11-24
 
 ## Lead unblock — 2026-11-24, 03:23 EST
 

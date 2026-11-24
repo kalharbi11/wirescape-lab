@@ -3,6 +3,7 @@ name: Offline facts (non-required)
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'bench/offline/**'
       - '.github/workflows/offline-facts.yml'
@@ -19,6 +20,7 @@ on:
 
 jobs:
   offline-facts:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Offline facts / ${{ matrix.runner }}
     runs-on: ${{ matrix.runner }}
     continue-on-error: true

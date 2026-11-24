@@ -12,7 +12,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 PLATFORMS = ("linux-x64", "linux-arm64", "windows-x64")
 PREFIX = "native build "
-STUDIO = tuple(f"studio shard {i}/3" for i in (1, 2, 3))
+STUDIO = tuple(f"studio shard {i}/4" for i in (1, 2, 3, 4))
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 
 

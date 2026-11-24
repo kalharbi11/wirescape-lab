@@ -351,6 +351,78 @@ static void modulation(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<ParamProbe>::descriptor()));CHECK(e.register_producer()==0);CHECK(e.prepare());render(e,17);CHECK(e.enqueue(0,1,WS2_DIRECT_PORT,event(WS2_PARAM,100),17)==WS2_OK);render(e,17);CHECK(!e.output_constant(1,0));CHECK(std::abs(e.output_sample(1,0,0,0)-std::pow(100.,.5+.5/240))<1e-5);
  Engine latency(cfg());CHECK(latency.add_node(1,ws::Module<LatencyProbe>::descriptor()));CHECK(latency.add_node(2,ws::Module<LatencyProbe>::descriptor()));CHECK(latency.connect(1,0,2,0));CHECK(latency.output(2,0,0));CHECK(latency.prepare());CHECK(latency.meter().latency_frames==14);
 }
+static void live_modulation_amount() {
+    Config config;
+    config.ring_capacity = 2;
+    Engine engine(config);
+    CHECK(engine.add_node(1, ws::Module<Source>::descriptor()));
+    CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
+    CHECK(engine.set_channels(1, 2));
+    CHECK(engine.set_parameter(1, 0, .5f));
+    CHECK(engine.modulate(1, 0, 2, 0, 0));
+    CHECK(!engine.modulate(1, 0, 2, 0, .1f));
+    CHECK(engine.register_producer() == 0);
+    CHECK(engine.prepare());
+    render(engine, 16);
+    CHECK(engine.output_constant(2, 0));
+    CHECK(engine.set_mod_amount(9, 0, 2, 0, .5f) == WS2_INVALID);
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .25f) == WS2_OK);
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .5f) == WS2_OK);
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, -.5f) == WS2_CAPACITY);
+    engine.panic();
+    {
+        allocation_watch::Scope watch;
+        render(engine, 128);
+        CHECK(watch.allocations() == 0);
+    }
+    CHECK(!engine.output_constant(2, 0));
+    for (uint32_t channel = 0; channel < 2; ++channel) {
+        const auto cv = .5f + .1f * channel;
+        for (uint32_t frame : {0u, 127u}) {
+            const auto expected = std::pow(100., .5 + cv * .5 * (frame + 1) / 240);
+            CHECK(std::abs(engine.output_sample(2, 0, channel, frame) - expected) < 2e-5);
+        }
+    }
+    render(engine, 112);
+    const auto steady = engine.output_sample(2, 0, 0, 111);
+    render(engine, 8);
+    CHECK(engine.output_constant(2, 0));
+    CHECK(engine.output_sample(2, 0, 0, 0) == steady);
+
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, 0.f) == WS2_OK);
+    engine.reset(); // Pending host packets are discarded by a quiescent reset.
+    render(engine, 16);
+    CHECK(engine.output_sample(2, 0, 0, 0) == steady);
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, 0.f) == WS2_OK); // Resend document state.
+    render(engine, 240);
+    CHECK(engine.output_sample(2, 0, 0, 239) == 10.f);
+}
+
+static void modulation_edge_birth() {
+    Engine engine;
+    CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {1}));
+    CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
+    CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {1}));
+    CHECK(engine.modulate(1, 0, 2, 0, 0));
+    CHECK(engine.register_producer() == 0);
+    CHECK(engine.prepare());
+    render(engine, 16);
+
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .25f) == WS2_OK);
+    const auto stale = engine.meter().stale;
+    CHECK(engine.reconfigure(3, {2})); // A surviving edge keeps its pending update.
+    render(engine, 240);
+    CHECK(engine.meter().stale == stale);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .525)) < 2e-5);
+
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .75f) == WS2_OK);
+    CHECK(engine.reconfigure(1, {2})); // Same endpoint names, a new edge birth.
+    CHECK(engine.set_mod_amount(1, 0, 2, 0, .5f) == WS2_OK);
+    render(engine, 240);
+    CHECK(engine.meter().stale == stale + 1);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .55)) < 2e-5);
+}
+
 struct TransportProbe {
     static constexpr ws::Info info{"test.transport", "Transport", 1};
     static constexpr std::array<ws2_port, 0> inputs{};
@@ -510,6 +582,8 @@ int main(){
  _CrtMemState before{},after{},difference{};_CrtMemCheckpoint(&before);
 #endif
  invalid_events();
+ live_modulation_amount();
+ modulation_edge_birth();
  transport_ring();
  transport_serial();
  transport_replan();

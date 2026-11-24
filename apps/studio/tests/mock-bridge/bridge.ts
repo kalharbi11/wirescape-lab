@@ -123,7 +123,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
             c.from.port === cmd.connection.from.port && c.to.module === cmd.connection.to.module &&
             c.to.port === cmd.connection.to.port);
           if (!conn) { reply(cmd, false, { code: 'not-found', message: 'No cable' }, s); break; }
-          conn.amount = cmd.amount; gen++; reply(cmd, true, {}, s); break;
+          conn.amount = cmd.amount; reply(cmd, true, {}, s); break;
         }
         case 'listAudioDevices': reply(cmd, true, { result: { devices: copy(audio) } }, s); break;
         case 'listMidiDevices': reply(cmd, true, { result: { devices: copy(midi) } }, s); break;

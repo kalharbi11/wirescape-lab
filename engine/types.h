@@ -9,6 +9,7 @@
 #include <cmath>
 #include <memory>
 #include <new>
+#include <tuple>
 #include <vector>
 
 namespace wirescape::engine2 {
@@ -124,15 +125,41 @@ struct Parameter {
         return std::clamp(value, static_cast<double>(p.minimum), static_cast<double>(p.maximum));
     }
 };
-struct Edge {
-    uint32_t from, output, to, input;
-    int kind;
-    float amount;
-    Node *source = nullptr, *destination = nullptr;
-    bool back = false, removed = false;
+struct ModAmount {
+    float current = 0, target = 0;
+    double start = 0;
+    uint32_t remaining = 0;
+    uint64_t applied_serial = 0;
+
+    void set(float value, uint32_t duration) noexcept {
+        if (value == target) return;
+        target = value;
+        start = current;
+        remaining = current == target ? 0 : duration;
+    }
+
+    float next(uint32_t duration) noexcept {
+        const double fraction = double(duration - --remaining) / duration;
+        current = remaining ? float(start + (target - start) * fraction) : target;
+        return current;
+    }
+};
+struct EdgeState {
+    ModAmount modulation;
     Buffer delay;
     std::vector<uint32_t> delay_channels;
     uint32_t head = 0;
+};
+struct Edge {
+    uint32_t from, output, to, input;
+    int kind;
+    float amount; // Authored target, control-owned after prepare.
+    EdgeState state{{amount, amount}};
+    uint64_t born_revision = 0;
+    uint64_t sent_serial = 0; // Control-owned.
+    auto key() const noexcept { return std::tie(from, output, to, input, kind); }
+    Node *source = nullptr, *destination = nullptr;
+    bool back = false, removed = false;
 };
 struct Component {
     std::vector<Node *> nodes;
