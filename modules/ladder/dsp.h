@@ -19,17 +19,19 @@ struct Ladder {
     double x=std::max(-1.e6,std::min(1.e6,std::isfinite(input)?double(input):0.));
     double cutoff=std::min(v.cutoff.next(),.45*rate),g=std::tan(3.14159265358979323846*cutoff/rate);
     const double r=v.resonance.next(),d=v.drive.next();
+    if(r!=0.)g*=1.+1.45*r*(1.-r);
+    const double a=g/(1.+g);
     double stage;
     if(r==0.){
-     // Preserve the original non-resonant operation order, including drive.
-     stage=x;
+     // Preserve the original non-resonant operation order, including signed zero.
+     const double k=.85*r;
+     stage=(1.+k)*x-k*v.previous;
     }else{
      // Four TPT poles have H=(1+j*t)^-1. In the zero-delay loop the
      // squared denominator is |(1+j*t)^4+k|^2; its stationary point
      // satisfies (1+t^2)^3=k*(3-t^2). A quadratic prewarp approximates
      // the inverse peak ratio at the specified resonance settings.
-     g*=1.+1.45*r*(1.-r);
-     const double a=g/(1.+g),k=3.*r,a2=a*a,a4=a2*a2;
+     const double k=3.*r,a2=a*a,a4=a2*a2;
      double zero=0.;
      for(double z:v.z)zero=a*zero+(1.-a)*z;
      // Solve the current-sample linear feedback loop, not the delayed
@@ -40,7 +42,6 @@ struct Ladder {
     // drive this is a bounded nonlinearity, not an implicit tanh solve.
     const double drive=3.*d;
     if(d!=0.)stage=std::tanh(drive*stage)/drive;
-    const double a=g/(1.+g);
     for(auto&z:v.z){
      double value=(stage-z)*a;double y=z+value;z=y+value;
      if(std::abs(z)<1.e-20)z=0;
