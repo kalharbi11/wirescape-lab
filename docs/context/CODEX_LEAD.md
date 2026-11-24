@@ -150,7 +150,8 @@ section before starting work; preserve it across handoffs and fresh chats.
   purchase credits without the separately required explicit owner authorization.
 - **Every active lead run updates the builder table**, even a quick/blocked run. Check B1–B5, keep
   each next task and its dependency current, and remove completed work. CURRENT records changed
-  lead–Architect handoff, mode, timestamp and usage where available. ROADMAP records milestone
+  lead–Architect handoff, mode and timestamp. Keep temporary usage readings, reset times
+  and usage holds in chat only. ROADMAP records milestone
   progress, and OB_PLAN retains detailed Owner Build sequencing. Use a small notes branch/PR, merge on exact-head green, and
   link an unmerged handoff explicitly until it lands. Do not replace newer Architect text.
   No product changes or acceptance are implied by a status update.

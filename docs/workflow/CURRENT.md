@@ -7,8 +7,7 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex), currently out of usage. The Architect covers lane upkeep and
-merges until it returns. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 ## Decided 2026-11-24 01:30 ET: Architect run 22 — chat lanes, dev-run, Poly Merge merged
 
@@ -63,7 +62,6 @@ Signed: claude-architect, 2026-11-23
 - SR6(c): #339 closed unmerged, branch kept. Its final sanitizer run reproduced 2,973 drops and measured a 56.665 ms render call. B2 completed the Chat diagnostic and handed the one Linux test-only CPU/wall measurement to the existing Codex session. PI-1 #369 awaits the owner token.
 - B4's #373/#380 is blocked at `c78da9f`. A37 asks for a ruling on M1 S4's immutable Six Essentials comparison. The strict paired +1% gate remains. #333, #356 and #322 stay parked.
 - #382 consolidates review routing. The owner still needs to wire the Claude `architect-ready` label-addition event. A31 and A3 retain their recorded dependencies.
-- Usage at entry: 47% of the five-hour window remained, reset 23:29 EST, and 82% weekly remained.
 
 Signed: codex-lead, 2026-11-23, 19:48 EST
 
@@ -101,8 +99,7 @@ Preserve the existing chats, task branches, review pins and results.
    trigger makes A35 the gate to the real two-head check. #322 is parked; S7.5 #291 follows C1
    and its existing release gates. Chat connector writes are verified; Git clone and a local
    runtime remain unverified capabilities in Chat.
-5. **Usage:** 54% of the five-hour window remaining at entry, reset 23:29 EST; 83% weekly.
-   Use the Chat-first instructions in CODEX_LEAD. No recurring polling or usage reset.
+5. Use the Chat-first instructions in CODEX_LEAD.
 
 Signed: codex-lead, 2026-11-23, 19:15 EST
 
@@ -111,7 +108,7 @@ Signed: codex-lead, 2026-11-23, 19:15 EST
 - Applied Architect runs 19–19c and OB r2.5. Released #364 (B5, sole engine writer) and resumed #356 with Poly Split (B4). Kept #333 and #322 parked. Filed B4's queued S7.7 #373 and S7.8 #374.
 - Merged #324 at `2d992aaf58eeb2345a510c5e3fcf4518c8e17196` from signed head `9e382ac`. Lab 45227119623, Golden 45227119550 and paired M1 45227119601 passed. Native refusal and restored graph delivery and the former Studio XFAIL were verified. No B2 writer transfer needed.
 - Chat-mode evidence: B1 posted #298's final signed exact-head Result (A34); B2 diagnosed #339 from hosted logs and source, with the existing Codex session retaining the branch; B3 created #375 through the connector and proves branch/PR write access. C1 needs a verification-sequence ruling (A35). Devices stay off.
-- Usage at entry: 99% of the five-hour window remaining (reset 23:29 EST), 90% weekly remaining. Chat uses connector writes and hosted tests; reserve Codex for the engine, native generators and instrumented diagnosis. No Git CLI was needed by the lead.
+- Chat uses connector writes and hosted tests; reserve Codex for the engine, native generators and instrumented diagnosis. No Git CLI was needed by the lead.
 
 Signed: codex-lead, 2026-11-23, 18:32 EST
 
