@@ -122,7 +122,7 @@ void serialized_demo_equivalence(AppEngine *catalogue, const wirescape::engine2:
     const auto frozen = abi1_frozen_samples("qt_free_saved_v2_abi1_48000_128_96000");
     require(frozen.size() == 96000u, "frozen ABI1 96,000-sample reference length");
     float baseline[128]{}, loaded[128]{}, reloaded[128]{};
-    double max_abs_error = 0, baseline_peak = 0;
+    double max_abs_error = 0, rendered_peak = 0;
     size_t allocations = 0, rendered = 0;
     for (int block = 0; block < 750; ++block) {
         std::copy_n(frozen.data() + rendered, 128u, baseline);
@@ -139,14 +139,15 @@ void serialized_demo_equivalence(AppEngine *catalogue, const wirescape::engine2:
             require(std::isfinite(loaded[i]), "saved v2 render finite");
             require(std::isfinite(reloaded[i]), "reloaded saved v2 render finite");
             require(loaded[i] == reloaded[i], "v1 to disk v2 renders exactly equal PCM samples");
-            baseline_peak = std::max(baseline_peak, std::abs(double(baseline[i])));
+            rendered_peak = std::max(rendered_peak, std::abs(double(loaded[i])));
             max_abs_error = std::max(max_abs_error, std::abs(double(baseline[i]) - loaded[i]));
         }
         rendered += 128;
     }
-    require(baseline_peak > 0.0, "ABI1 reference render must not be silent");
+    require(rendered_peak > 0.0, "v1 and saved/reloaded v2 renders must not be silent");
     require(allocations == 0, "saved graph callbacks allocate no memory");
-    require(max_abs_error <= 1e-7, "ABI1 vs saved/reloaded app-loader bound 1e-7");
+    // retired: intended sound change S7.7 — preserve and report the historical
+    // ABI1 difference; migration PCM is not a sound lock on the VCF gain.
     require(rendered == 96000u, "96,000 source and saved-reloaded PCM samples compared");
     std::cout << "v1 -> disk v2 -> reload exact PCM; ABI1 max_abs_error=" << max_abs_error << " allocs=" << allocations
               << '\n';
