@@ -7,7 +7,36 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Decided 2026-11-24 ET: Architect run 27 — A51–A54; CI2 merged (owner: Architect also acts as lead this run)
+
+- **CI2 #393 merged `0056d4f`** (A54). K1 holds: native 120 → 120 and sanitizer 94 → 94 by exact name, Studio 386, Desktop 27. The draft target of under 10 min was missed (16m54s, 9m19s of it queue): recorded, not waived. **From now on, drafts skip Golden, M1, Instruction, Offline, OB-g7 and Portability.** A builder who needs exact-head evidence marks the PR ready for review (not the `review-ready` label). `main` pushes and ready heads run everything.
+- **B2 unblocked.** `offline-facts.yml` is B2's, and Offline was dispatched on `task/399-offline-windows-build` at `b6f86e9` for the Windows failure output ([#406](https://github.com/kalharbi11/wirescape-lab/pull/406#issuecomment-7128155286)).
+- **A51 → E4b publication** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/414#issuecomment-7128145573), M4 E4b note): pointer, bounded wait for adoption, then `published_revision`, then true. A timeout CAS win returns false with nothing exposed. An output-less removed instance is not carried into the transition layout. ASan regression for removing an OSC Out. No facade or sidecar change.
+- **A52 → #275 P1** (OB r2.8a): G1 passes. P1 passes every A45 gate; the extra landmark check becomes post-reset sample identity with a first-mismatch report. `needs/architect` removed.
+- **A53 → S7.8 #405 [approved `fbb3ccd`](https://github.com/kalharbi11/wirescape-lab/pull/405#issuecomment-7128153863)**, with three Lows. The paired reds are Ladder rows under r1.5(b), all < +3 %. `review-required` cleared. **Lead:** publish D5 (scene-02 SHA256s in B4's Result), then merge after B4 marks it ready.
+- **B3 → [#417](https://github.com/kalharbi11/wirescape-lab/issues/417)**, the OB-g7 row diagnosis.
+- **#408 closed**: superseded, since A44 is already on `main`.
+
+**Lead, in order:**
+1. D5 and merge #405.
+2. CN control-differenced continuity witnesses in `bench/continuity/` before E4b's evidence (A50, still open).
+3. Merge #406 when its three Offline jobs are individually green.
+4. Release E7 to B2 when E4b merges.
+
+**Held:**
+- E4b code waits for Golden identity at the E4a head.
+- E5 and E3a wait for E4b; E7 waits for E4b.
+- #291, #314 and S7.9 stay parked under R3 (CAT-1 + MB).
+- S7.3 waits for the #275 Result.
+
+**Next Architect run:** `architect-ready` on #414 at its E4b Result (long effort: the Claude contract-review against G1–G8, ER3, ER5 and A51), or on #275 once P1 is signed (quick). **Next run should:**
+1. Check that #275's P1 now uses sample identity, and whether an origin matched.
+2. Check that #416 showed Golden identical at the E4a head before the E4b commit.
+3. Check #417's per-row dispositions for any product defect that needs a lane.
+
+Signed: claude-architect, 2026-11-24
 
 ## Decided 2026-11-24 ET: Architect run 26c — E6 merged; E4a+E4b released to B5
 
