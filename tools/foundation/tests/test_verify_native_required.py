@@ -186,10 +186,10 @@ class NativeRequiredTests(unittest.TestCase):
     def test_studio_shards_malformed_stale_duplicate_missing_failing(self):
         valid = fixture()
         valid["jobs"].extend(
-            {"id": 10 + i, "name": f"studio shard {i + 1}/3",
+            {"id": 10 + i, "name": f"studio shard {i + 1}/4",
              "run_id": RUN, "run_attempt": ATTEMPT, "run_url": URL,
              "status": "completed", "conclusion": "success"}
-            for i in range(3))
+            for i in range(4))
         valid["total_count"] = len(valid["jobs"])
         native.verify_studio(valid, repo=REPO, run=RUN, attempt=ATTEMPT,
                              matrix_result="success")
@@ -216,7 +216,7 @@ class NativeRequiredTests(unittest.TestCase):
             elif mode == "incomplete_inventory":
                 p["total_count"] -= 1
             elif mode == "unexpected":
-                p["jobs"].append({**p["jobs"][-1], "id": 40, "name": "studio shard 4/3"})
+                p["jobs"].append({**p["jobs"][-1], "id": 40, "name": "studio shard 5/4"})
             if mode not in ("incomplete_inventory",):
                 p["total_count"] = len(p["jobs"])
             with self.subTest(mode=mode), self.assertRaises(ValueError):
@@ -299,7 +299,10 @@ class NativeRequiredTests(unittest.TestCase):
                 self.assertEqual(section.count("      - name: Verify "), 1)
                 if jobname == "studio":
                     self.assertIn("    needs: [scope, studio_shards]\n", section)
-                    self.assertIn(f"    {gate}\n", section)
+                    studio_gate = ("if: " + chr(36) + "{{ always() && (github.event_name != 'pull_request' || "
+                                   "needs.scope.result != 'success' || (needs.scope.outputs.code != 'false' && "
+                                   "(github.event.pull_request.draft != true || needs.scope.outputs.studio != 'false'))) }}")
+                    self.assertIn(f"    {studio_gate}\n", section)
                     self.assertIn("run: python tools/ci/verify_native_required.py --studio", section)
                     self.assertIn("persist-credentials: false", section)
                 else:

@@ -4,6 +4,7 @@ name: Cortex-M7 portability facts (advisory)
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "sdk/**"
       - "modules/**"
@@ -28,6 +29,7 @@ permissions:
 
 jobs:
   cortex-m7:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Cortex-M7 source/object inventory (advisory)
     runs-on: ubuntu-latest
     timeout-minutes: 45
