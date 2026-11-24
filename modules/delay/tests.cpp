@@ -508,6 +508,78 @@ static void mode_switch_crossfade() {
     }
 }
 
+// With an isolated impulse at the first echo, the tone change reaches the
+// output exactly one more delay later. Compare against a no-switch control
+// to distinguish a feedback-filter jump from the original impulse.
+static bool tone_switch_crossfade() {
+    constexpr size_t delay = 3000, at = 8192, length = 16384;
+    bool smooth = true;
+    for (uint32_t initial : {0u, 1u}) {
+        Rig r, control;
+        for (Rig *q : {&r, &control}) {
+            wet_only(*q, .0625f, .8f);
+            q->values[kTone] = static_cast<float>(initial);
+            q->left(impulse(length, at - delay, .5f));
+        }
+        const Result before = control.run(length, 64);
+        const Result after = r.run(length, 64, [&](size_t first) {
+            if (first == at) r.values[kTone] = static_cast<float>(1u - initial);
+        }, true);
+        REQUIRE(finite_within(after.l, 2.f) && finite_within(after.r, 2.f));
+        for (size_t i = 0; i < at + delay; ++i)
+            REQUIRE(after.l[i] == before.l[i] && after.r[i] == before.r[i]);
+        const float step = std::fabs(after.l[at + delay] - before.l[at + delay]);
+        std::printf("delay tone switch from=%u first_feedback_delta=%.9g\n",
+                    initial, static_cast<double>(step));
+        smooth = smooth && step <= .01f;
+    }
+    std::fflush(stdout);
+    return smooth;
+}
+
+// A 6000-frame clock period selects an exact 6000-frame old tap and
+// 9000-frame new tap. A repeating impulse-like source distinguishes them.
+// The first switched sample must not jump to a fractional read position;
+// once settled, the new tap must agree with its independent control.
+static bool division_switch_crossfade() {
+    constexpr size_t length = 65536, at = 32768;
+    Wave source(length);
+    for (size_t i = 0; i < length; ++i) source[i] = i % 7 == 0 ? -.4f : .4f;
+    bool smooth = true;
+    for (bool clocked : {false, true}) {
+        Rig r, control, settled;
+        for (Rig *q : {&r, &control, &settled}) {
+            wet_only(*q, .125f, 0.f);
+            q->values[kDivision] = 5.f;
+            q->left(source);
+            if (clocked) q->clock(pulses(length, 6000));
+        }
+        settled.values[kDivision] = 6.f;
+        const Result before = control.run(length, 64);
+        const Result endpoint = settled.run(length, 64);
+        const Result after = r.run(length, 64, [&](size_t first) {
+            if (first == at) r.values[kDivision] = 6.f;
+        }, true);
+        REQUIRE(finite_within(after.l, 1.f) && finite_within(after.r, 1.f));
+        for (size_t i = 0; i < at; ++i)
+            REQUIRE(after.l[i] == before.l[i] && after.r[i] == before.r[i]);
+        if (!clocked) {
+            REQUIRE(after.l == before.l && after.r == before.r);
+        } else {
+            const float step = std::fabs(after.l[at] - before.l[at]);
+            std::printf("delay clocked division first_delta=%.9g\n",
+                        static_cast<double>(step));
+            smooth = smooth && step <= .02f;
+            for (size_t i = length - 64; i < length; ++i) {
+                REQUIRE(std::fabs(after.l[i] - endpoint.l[i]) < 1e-4f);
+                REQUIRE(std::fabs(after.r[i] - endpoint.r[i]) < 1e-4f);
+            }
+        }
+    }
+    std::fflush(stdout);
+    return smooth;
+}
+
 int main() {
     echo_position();
     feedback_decay();
@@ -519,6 +591,10 @@ int main() {
     loop_safety();
     tone_shapes_loop();
     mode_switch_crossfade();
+    const bool tone_smooth = tone_switch_crossfade();
+    const bool division_smooth = division_switch_crossfade();
+    REQUIRE(tone_smooth);
+    REQUIRE(division_smooth);
     matrices();
     state_and_extremes();
     std::puts("fx.delay tests passed");
