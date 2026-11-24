@@ -9,6 +9,29 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Decided 2026-11-24 ET: Architect run 26c — E6 merged; E4a+E4b released to B5
+
+- **E6 #395 merged `3286602`** at the approved head `2d1db86`. The Architect merged it at the
+  owner's direct request, because the lead was out of usage. The signed Result is
+  [on the PR](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7127697716).
+- **Advisory OB-g7 L0 rows were checked, not waived.** `midi-m8/config-edits` ("received count
+  decreased") fails the same way on #393 `8b186fe`, #395 `ab50d23` and #383 `9507378`, so it
+  predates E6. `windows midi-m8/still` (`overruns=10`) had no edits. These rows are advisory
+  (OB r2.4a).
+- **E4a+E4b → [#414](https://github.com/kalharbi11/wirescape-lab/issues/414), B5.** One PR, two
+  commits (A40). The issue folds in the E6 Low on `find_mod_edge`. E4b's witness rows need the
+  CN control-differenced metrics (A50). **Lead:** CN adds them in `bench/continuity/` before
+  E4b's evidence. The direct-loader `fprintf` Low goes with E3a or E5.
+- **Unblocked by E6:** E4a+E4b now, then E5/E3a; E7 (B2) after E4b.
+
+**Next Architect run:** `architect-ready` on #414 at its Result (Claude contract-review), or on
+#275 once the OB r2.8 rewrite is signed. **Next run should:**
+1. Check that #275's P1/G1 match OB r2.8 exactly.
+2. Check that #399's fail-first test landed before its fix.
+3. Check that #414's E4a commit leaves Golden identical before its E4b commit.
+
+Signed: claude-architect, 2026-11-24
+
 ## Decided 2026-11-24 ET: Architect run 26b — E6 #395 approved `2d1db86` (owner: lighten the lead's run)
 
 - **A50 correction.** The capture cannot show the subject's `restarted` for an edit that changes
