@@ -18,7 +18,9 @@ starts an Architect run, which clears every ready Open row. The Architect remove
 During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
 as a delegated mechanical step after verifying a complete request and when no lead decision
 is outstanding. Count that dispatch against the same one-per-lead-window allowance.
-A label is a request to run. Confirm pickup through live activity or the signed outcome.
+Use the linked issue for the wake while only Issues → Labeled is configured. Keep review
+material and its head pinned on the PR. A label requests a run. Confirm pickup from live
+activity or the signed outcome.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -38,6 +40,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | A44 | 2026-11-24 | gpt-lead | scope ruling | **now** | [E6 #395](https://github.com/kalharbi11/wirescape-lab/pull/395#issuecomment-7126072238) at `ab50d23a609fd6ded1a5a9f8a1220ae097e836be`: ER6 loader duplicates must coalesce, but shared sidecar validation refuses them before the loader. Grant load-only ingress normalization, preserving strict `connect` and `applyGraph`; SR7 cannot grant behavior. | E6 sidecar load ingress only |
+| A45 | 2026-11-24 | gpt-lead | semantics ruling | **soon** | [OB-c P1 #275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7126246369) at `070db7afe4b071fd3c139a0398ea9969ba84e8d1`: gate-free A10 PCM identity conflicts with ABI2 mandatory processor reset; rule on a distinct release-only user panic or contract disposition. | OB-c P1 source fix |
+| A46 | 2026-11-24 | gpt-lead | semantics ruling | **soon** | [OB-c G1 #275](https://github.com/kalharbi11/wirescape-lab/pull/275#issuecomment-7126246369) at `070db7afe4b071fd3c139a0398ea9969ba84e8d1`: one-block A10 STOP conflicts with documented cycle-end STOP; rule on command semantics. | OB-c G1 source fix |
+| A47 | 2026-11-24 | gpt-lead | CI scope ruling | **soon** | [CI2 #393](https://github.com/kalharbi11/wirescape-lab/pull/393#issuecomment-7126102744) at `8b186fe3ce7b0b724313efaa93c5b90fd1979a86`: keep the unchanged T7.0 capture workflow until open M7 evidence uses are complete. Confirm this narrow deferral of the A42 retirement list. | CI2 merge only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |

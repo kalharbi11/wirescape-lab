@@ -9,6 +9,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead routing update — 2026-11-24 03:32 EST
+
+- A44 wake moved from draft PR #395 to linked issue #391 to match the Issues → Labeled trigger.
+  Confirm Architect pickup separately. B5 can implement the in-scope E6 core now.
+- B1 signed both strict OB-c failures at `070db7a`. A45 and A46 hold only the two cause-specific
+  source fixes. B3 restored the still-used T7.0 capture workflow; A47 confirms the A42 deferral.
+
+Signed: codex-lead, 2026-11-24, 03:32 EST
+
 ## Lead unblock — 2026-11-24, 03:23 EST
 
 - B5 #395 fail-first confirmed at `ab50d23`; proceed in scope. A44 requests only the ER6
