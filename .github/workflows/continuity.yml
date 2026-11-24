@@ -12,6 +12,11 @@ on:
         required: false
         default: false
         type: boolean
+      latency_only:
+        description: "Capture only the report-only latency probe"
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -64,17 +69,22 @@ jobs:
       - name: Capture and compare edit continuity
         env:
           ENGINE_HEAD: ${{ matrix.engine }}
+          LATENCY_ONLY: ${{ inputs.latency_only }}
         run: |
-          python harness/bench/continuity/run.py \
-            --engine "$RUNNER_TEMP/build/wirescape-engine" \
-            --engine-source engine-source --built-head "$ENGINE_HEAD" \
-            --repeats 3 --out "$RUNNER_TEMP/a50/report" --keep "$RUNNER_TEMP/a50/raw" \
-            --only 'addModule unconnected' 'removeModule unconnected' 'removeModule connected' \
+          cases=('latency compensation limit')
+          if [[ "$LATENCY_ONLY" != true ]]; then
+            cases+=('addModule unconnected' 'removeModule unconnected' 'removeModule connected' \
             'connect signal' 'disconnect signal' 'connect event' 'disconnect event' \
             'connect modulation' 'disconnect modulation' setModAmount ccMap.set \
             'applyGraph identical' 'applyGraph Groove steps' 'applyGraph Groove length' \
             'applyGraph voice count' 'applyGraph OSC In row' 'applyGraph one parameter' \
-            'applyGraph deleted module' 'applyGraph restored module' 'latency compensation limit'
+            'applyGraph deleted module' 'applyGraph restored module')
+          fi
+          python harness/bench/continuity/run.py \
+            --engine "$RUNNER_TEMP/build/wirescape-engine" \
+            --engine-source engine-source --built-head "$ENGINE_HEAD" \
+            --repeats 3 --out "$RUNNER_TEMP/a50/report" --keep "$RUNNER_TEMP/a50/raw" \
+            --only "${cases[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

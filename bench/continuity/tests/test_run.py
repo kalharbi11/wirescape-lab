@@ -43,6 +43,15 @@ class Refine(unittest.TestCase):
 
 
 class ControlComparison(unittest.TestCase):
+    def test_latency_probe_uses_an_unoccupied_mixer_input(self):
+        case = probe.latency_probe(probe.base())
+        edit_connection = case['cmd'][1]['connection']
+        self.assertTrue(case['report_only'])
+        self.assertEqual(edit_connection, probe.sig(92, 'audio', 93, 'b'))
+        self.assertIn(probe.sig(3, 'audio', 93, 'a'), case['setup']['connections'])
+        self.assertIn(probe.sig(93, 'audio', 4, 'audio'), case['setup']['connections'])
+        self.assertNotIn(edit_connection['to'], [c['to'] for c in case['setup']['connections']])
+
     def test_identical_tail_with_natural_silence_is_neutral(self):
         edit, late = RATE, RATE + BLOCK
         control = [0.15] * RATE + [0.0] * BLOCK + [0.1] * RATE

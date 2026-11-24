@@ -159,8 +159,12 @@ def latency_probe(base_patch):
     """Connect a silent, latency-reporting source to the still-playing slip-tone bus."""
     setup = copy.deepcopy(base_patch)
     setup['modules'].append({'id': 92, 'module': 'sound.spectral'})
+    setup['modules'].append({'id': 93, 'module': 'essentials.mixer',
+                             'parameters': {'level_a': 1, 'level_b': 1}})
+    setup['connections'].remove(sig(3, 'audio', 4, 'audio'))
+    setup['connections'].extend([sig(3, 'audio', 93, 'a'), sig(93, 'audio', 4, 'audio')])
     return dict(name='latency compensation limit', report_only=True, setup=setup, subject=None,
-                cmd=('connect', dict(connection=sig(92, 'audio', 4, 'audio'))))
+                cmd=('connect', dict(connection=sig(92, 'audio', 93, 'b'))))
 
 
 # All eight formerly unsupported M2 variants use the existing probe and
