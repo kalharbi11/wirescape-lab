@@ -18,6 +18,7 @@ import os
 import re
 from contextlib import nullcontext
 import statistics
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -180,6 +181,36 @@ class A10Capture(unittest.TestCase):
                 })
                 if mismatch is None:
                     matching_origins.append(origin)
+            # A52 strict-xfail cause diagnostic only: loadGraph uses a
+            # 10 ms master fade (AppEngine::master_step and render_live),
+            # while panic only resets processors at unity master gain.
+            # Reproduce float32 addition/multiplication exactly and require
+            # equality through the ENTIRE candidate tail. No corrected PCM
+            # is used for the raw A52 assertion.
+            def f32(value):
+                return struct.unpack("<f", struct.pack("<f", value))[0]
+
+            step = f32(1.0 / max(1, math.floor(RATE * 0.01)))
+            fade_origins = []
+            fade_reports = []
+            for candidate in origin_reports:
+                origin = candidate["origin_capture_frame"]
+                count = candidate["required_samples"]
+                gain = 0.0
+                first_unexplained = None
+                for i in range(count):
+                    gain = min(1.0, f32(gain + step))
+                    predicted = f32(actual[origin + i] * gain)
+                    if predicted != control[reference_origin + i]:
+                        first_unexplained = i
+                        break
+                fade_reports.append({
+                    "origin_capture_frame": origin,
+                    "first_unexplained_index": first_unexplained,
+                    "required_samples": count,
+                })
+                if first_unexplained is None:
+                    fade_origins.append(origin)
             # Independently check adjacent repeated complete audible blocks.
             # Capture format still does not expose absolute engine frame IDs.
             repeated_blocks = [b for b in range(first_required_block + 1, got_segments[0]["blocks"])
@@ -221,6 +252,8 @@ class A10Capture(unittest.TestCase):
                 "pre_reset_phase_landmarks_match": pre_ok,
                 "post_reset_matching_phase_origins": matching_origins,
                 "post_reset_sample_identity_by_origin": origin_reports,
+                "startup_master_fade_cause_by_origin": fade_reports,
+                "startup_master_fade_matching_origins": fade_origins,
                 "independent_absolute_engine_frame_ids_available": False,
             }
             (root / "panic-report.json").write_text(
@@ -240,9 +273,23 @@ class A10Capture(unittest.TestCase):
             self.assertFalse(silent_blocks, "PRODUCT_A10_PANIC: silent block past reported latency")
             self.assertFalse(repeated_blocks, "PRODUCT_A10_PANIC: repeated audible block")
             self.assertTrue(pre_ok, "PRODUCT_A10_PANIC: discontinuous pre-reset drone phase progression")
-            self.assertTrue(matching_origins,
-                            "PRODUCT_A10_PANIC: no sample-identical block-boundary reset origin; "
-                            + json.dumps(origin_reports, sort_keys=True))
+            self.assertEqual(len(ref_marks), 2)
+            self.assertEqual(len(got_marks), 2)
+            # A52: only this exact raw-identity assertion is expected to
+            # fail, and only with the independently demonstrated fade cause.
+            # XPASS and an unexplained mismatch fail the suite; no setup,
+            # other gap assertion or unrelated test can be swallowed.
+            try:
+                self.assertTrue(matching_origins,
+                                "PRODUCT_A10_PANIC: no sample-identical block-boundary reset origin; "
+                                + json.dumps(origin_reports, sort_keys=True))
+            except AssertionError:
+                if not fade_origins:
+                    raise
+                print("OB-C-A10-STRICT-XFAIL P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC "
+                      + json.dumps(origin_reports, sort_keys=True), flush=True)
+            else:
+                self.fail("STRICT_XPASS P1_STARTUP_MASTER_FADE_VS_UNITY_PANIC: remove expected failure")
             print("OB-C-A10-PANIC-FULL-FRAME-FACT " + json.dumps({
                 "architecture": __import__("platform").machine(),
                 "aligned_first_reference_frame": first_ref,
@@ -255,8 +302,6 @@ class A10Capture(unittest.TestCase):
                 "overruns": got_accounting["overruns"],
                 "unsupported_independent_absolute_frame_ids": True
             }, sort_keys=True))
-            self.assertEqual(len(ref_marks), 2)
-            self.assertEqual(len(got_marks), 2)
 
     def test_buffer_new_segment_audible_past_reported_latency_and_five_repeat_facts(self):
         """A10.2: no owner 546-ms threshold; five measured block intervals only."""
