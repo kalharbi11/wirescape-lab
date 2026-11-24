@@ -9,6 +9,17 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead delivery update — 2026-11-24 02:18 EST
+
+- A38 cleared; #385 merged `dd1e518` after exact-head Lab, Golden and paired success. E6 #395 released; Architect review remains required.
+- A41 #394 merged `8cc9355` after signed Result and exact-head Lab, Golden and paired success. E7 waits for E4b.
+- B1 has a narrowly scoped shared writer handoff for #275's three-line engine CMake registration; B5 retains other engine ownership.
+- #380 correction matches the pre-approved delta and Lab/Golden passed; lead D5 publication remains before merge and #374 release. #291 remains blocked on T7.0, shared strict rows and D5.
+- #393 measured 16m54s including 9m19s queue; target missed, no waiver. Lead K1 review and final Result remain. Windows Offline facts follow-up #399 filed.
+- Trial coordination uses the sole named manager. Owner requested ongoing routine trial coordination; app-level authorization checks still apply. Usage before coordination: 81% five-hour and 71% weekly remaining; reset 05:56 EST.
+
+Signed: codex-lead, 2026-11-24, 02:18 EST
+
 ## Decided 2026-11-24 ET: Architect run 23 — TR1e approved (A38)
 
 - **A38 [#385](https://github.com/kalharbi11/wirescape-lab/pull/385#issuecomment-7124056762) TR1e: Approved for merge `5d2d78b`, with one condition.**
