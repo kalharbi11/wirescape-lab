@@ -178,8 +178,11 @@ void soak_backlog_split() {
     }
     // Report a nonzero drop on old code before failing for the absent split.
     verify_split(states.back(), 0, 4, 0);
-    for (const auto &state : states)
+    for (const auto &state : states) {
         verify_split(state, 0, state.node == 17 ? 4 : 0, 0);
+        REQUIRE(state.listener_budget_dropped == 0);
+        REQUIRE(state.listener_enqueue_dropped == 4);
+    }
     verify_split(total, 0, 4, 0);
     verify_listener(service, 0, 4, 0);
 }
@@ -276,7 +279,7 @@ int main() {
     // One UDP datagram can contain dozens of OSC bundle elements. A 80-message
     // bundle must deliver no more than 64, even though it is one small packet.
     Service bundled({&c, Capture::deliver});
-    REQUIRE(bundled.add({1, 0, false}) && bundled.start());
+    REQUIRE(bundled.add({1, 0, false}) && bundled.add({2, 0, false}) && bundled.start());
     auto bundle_sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in bundle_address{};
     bundle_address.sin_family = AF_INET;
@@ -303,21 +306,27 @@ int main() {
     }
     REQUIRE(sendto(bundle_sender, reinterpret_cast<const char *>(bundle.data()), int(used), 0,
                    reinterpret_cast<sockaddr *>(&bundle_address), sizeof(bundle_address)) == int(used));
-    for (uint32_t wait = 0; wait < 2000 && bundled.states()[0].received < 64; ++wait)
+    for (uint32_t wait = 0; wait < 2000 && bundled.counters().dropped < 16; ++wait)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    REQUIRE(bundled.counters().received == 1);
-    REQUIRE(bundled.states()[0].received == 64);
-    REQUIRE(bundled.states()[0].dropped == 16);
-    REQUIRE(bundled.counters().dropped == 16);
-    verify_split(bundled.states()[0], 16, 0, 0);
-    verify_split(bundled.counters(), 16, 0, 0);
-    verify_listener(bundled, 16, 0, 0);
 #ifdef _WIN32
     closesocket(bundle_sender);
 #else
     close(bundle_sender);
 #endif
-    bundled.stop();
+    bundled.stop(); // quiesce before exact split identities
+    REQUIRE(bundled.counters().received == 1);
+    REQUIRE(bundled.states().size() == 2);
+    for (const auto &route : bundled.states()) {
+        REQUIRE(route.received == 64);
+        REQUIRE(route.dropped == 16);
+        verify_split(route, 16, 0, 0);
+        REQUIRE(route.listener_budget_dropped == 16);
+        REQUIRE(route.listener_enqueue_dropped == 0);
+    }
+    // The physical listener and global counts are NOT multiplied by route count.
+    REQUIRE(bundled.counters().dropped == 16);
+    verify_split(bundled.counters(), 16, 0, 0);
+    verify_listener(bundled, 16, 0, 0);
     REQUIRE(bundled.counters().sockets == 0);
     // LAN/localhost conflicts stay isolated even with explicit permission:
     // no test ever opens a LAN socket.
