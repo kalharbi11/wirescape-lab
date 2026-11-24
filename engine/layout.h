@@ -36,5 +36,16 @@ struct Layout {
     std::vector<Node *> tap_nodes;
     std::unique_ptr<std::atomic<float>[]> tap_values;
     std::unique_ptr<std::atomic<uint32_t>[]> tap_counts;
+
+    Edge *find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
+        const auto key = std::tuple{from, output, to, input, 2};
+        auto edge = std::lower_bound(edges.begin(), edges.end(), key,
+                                     [](const Edge &e, const auto &k) { return e.key() < k; });
+        // A transition may contain a retired and a live edge with the same key.
+        // Never deliver a live amount packet to the retired edge.
+        for (; edge != edges.end() && edge->key() == key; ++edge)
+            if (!edge->removed) return &*edge;
+        return nullptr;
+    }
 };
 } // namespace wirescape::engine2

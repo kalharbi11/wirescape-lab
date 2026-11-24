@@ -55,10 +55,7 @@ void Engine::reset() {
     p.park.store(Park::Running);
 }
 Edge *Engine::Impl::find_mod_edge(uint32_t from, uint32_t output, uint32_t to, uint32_t input) noexcept {
-    const auto key = std::tuple{from, output, to, input, 2};
-    auto edge = std::lower_bound(layout->edges.begin(), layout->edges.end(), key,
-                                 [](const Edge &e, const auto &k) { return e.key() < k; });
-    return edge != layout->edges.end() && edge->key() == key && !edge->removed ? &*edge : nullptr;
+    return layout->find_mod_edge(from, output, to, input);
 }
 
 int Engine::set_mod_amount(uint32_t from, uint32_t output, uint32_t to, uint32_t input, float amount) noexcept {
