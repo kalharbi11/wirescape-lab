@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Manual lead run — 2026-11-24 19:03 EST
+
+- The owner ended the manager/Luna trial. The coordinator timer was already paused and [#402](https://github.com/kalharbi11/wirescape-lab/issues/402) is closed. Persistent sessions start manually. Every lead interaction starts with a minimal Architect/reviewer/B1–B5 check. Use small helpers and short event-based lead continuations as described in [CODEX](../../CODEX.md).
+- B1 [#291](https://github.com/kalharbi11/wirescape-lab/pull/291) D5 published and release digests verified. The owner can start independent review at `c1601bc` with the [pinned K1–K8 request](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7147921470). [#449](https://github.com/kalharbi11/wirescape-lab/pull/449) endpoint correction passed Lab at `e772628`. Both A27 diagnostic captures ran; provisional mode and tone remain above floor. B1 continues the module correction before B4 repins.
+- A62 and A61 applied to the queues. B2 continues E7's reply/schema/docs and version-only reset inventory. [#433](https://github.com/kalharbi11/wirescape-lab/pull/433) merged as `3277721` at `8cb9d2e` after exact-head Lab [45513094378](https://github.com/kalharbi11/wirescape-lab/actions/runs/45513094378), Golden 45513094318, paired 45513094313 and Offline 45513094094 passed. Advisory soak findings stay with #457/A58. B3 can draft hosted exposure [#457](https://github.com/kalharbi11/wirescape-lab/issues/457) behind E7 and has [#459](https://github.com/kalharbi11/wirescape-lab/issues/459) for E5v attribution. B4 is running full S7.9 evidence after A63 passed Lab. B5's E5 test fails line 615; correction stays with its current writer.
+- **Next Architect run:** owner starts `architect:run` once E5, E7 or S7.9 has a signed merge-ready request, or a fresh ruling is needed. Start S7.5's independent review separately. [BUILDERS](BUILDERS.md) holds every lane's next task.
+- **OB1 route:** E5v/E5/E7 and CN, then remaining M7/D5 and OB-d, OB-f1 and owner-folder checks, candidate Pi install and owner edit checks, then Architect acceptance and tag.
+
+Signed: codex-lead, 2026-11-24, 19:03 EST
+
 ## Decided 2026-11-24 ET: Architect run 31 — A62 and A61 ruled (wake: #431 `architect-ready`)
 
 - **A62 / Q26 → [M4 A62](milestones/M4.md):** E7 `freshModules` lists what the host did not carry (no hook, save/load not OK, no ID/type/config match). A hook that returns OK counts as carried, and no per-type lists go in host code. Version-only resets (delay, reverb, resonator tails; note converters) are named in the E7 Result and report under M4 Escalate. SR17 schema, regeneration and the `ENGINE_PROTOCOL.md` reply paragraph join #442's paths. CN `setBufferFrames` smaller/larger rows go to B1 after #442 merges; the larger row adds a nontrivial-state witness. No threshold change. `architect-ready` and `needs/architect` are removed from #431; `review-required` stays (Claude contract-review at E7's merge-ready head).
