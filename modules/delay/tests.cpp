@@ -12,6 +12,18 @@
 using fxdelay::Delay;
 enum : uint8_t { kTime, kDivision, kFeedback, kTone, kMode, kMix };
 using Wave = std::vector<float>;
+using DelayBytes = std::vector<uint8_t>;
+struct DelaySource { const DelayBytes* bytes; size_t pos; };
+static int WS2_CALL delay_sink(void* ctx,const void* p,uint32_t n) {
+    auto& b=*static_cast<DelayBytes*>(ctx);const auto* v=static_cast<const uint8_t*>(p);
+    b.insert(b.end(),v,v+n);return WS2_OK;
+}
+static int WS2_CALL delay_source(void* ctx,void* p,uint32_t n) {
+    auto& s=*static_cast<DelaySource*>(ctx);
+    if(n>s.bytes->size()-s.pos)return WS2_INVALID;
+    std::memcpy(p,s.bytes->data()+s.pos,n);s.pos+=n;return WS2_OK;
+}
+
 
 struct Arena {
     std::vector<unsigned char> bytes = std::vector<unsigned char>(size_t(4) * 1024 * 1024);
@@ -55,15 +67,15 @@ struct Rig {
         for (int p = 0; p < 6; ++p) values[p] = Delay::params[p].initial;
     }
     ~Rig() { d->destroy(instance); }
-    Bytes save() {
-        Bytes bytes;
-        ws2_writer writer{sizeof(writer), &bytes, sink};
+    DelayBytes save() {
+        DelayBytes bytes;
+        ws2_writer writer{sizeof(writer), &bytes, delay_sink};
         REQUIRE(d->save_state(instance, &writer) == WS2_OK);
         return bytes;
     }
-    int load(const Bytes &bytes) {
-        Source ctx{&bytes, 0};
-        ws2_reader reader{sizeof(reader), &ctx, source, static_cast<uint32_t>(bytes.size())};
+    int load(const DelayBytes &bytes) {
+        DelaySource ctx{&bytes, 0};
+        ws2_reader reader{sizeof(reader), &ctx, delay_source, static_cast<uint32_t>(bytes.size())};
         return d->load_state(instance, &reader);
     }
     // Runs `total` frames in blocks of `block`; `each` may change values before every block.
@@ -421,10 +433,10 @@ static void state_and_extremes() {
     wet_only(a, 0.01f, 0.8f);
     a.left(noise(4000, 9));
     a.run(4000);
-    const Bytes bytes = a.save();
+    const DelayBytes bytes = a.save();
     Rig b;
     REQUIRE(b.load(bytes) == WS2_OK && b.save() == bytes);
-    Bytes bad = bytes;
+    DelayBytes bad = bytes;
     bad[0] = 99;
     REQUIRE(b.load(bad) == WS2_UNSUPPORTED);
     bad = bytes;
@@ -447,7 +459,7 @@ static void state_and_extremes() {
     Rig other_rate(44100.);
     REQUIRE(other_rate.load(bytes) == WS2_INVALID);
     // v1 legacy state explicitly clears the lines: retain the original oracle.
-    const Bytes legacy{1,0,0,0};
+    const DelayBytes legacy{1,0,0,0};
     REQUIRE(a.load(legacy) == WS2_OK);
     a.left(Wave(4000, 0.f));
     const Result quiet = a.run(4000);
@@ -456,8 +468,8 @@ static void state_and_extremes() {
     // At 96 kHz the stereo two-second history alone is larger than the limit.
     {
         Rig too_large(96000.);
-        Bytes rejected;
-        ws2_writer writer{sizeof(writer), &rejected, sink};
+        DelayBytes rejected;
+        ws2_writer writer{sizeof(writer), &rejected, delay_sink};
         REQUIRE(too_large.d->save_state(too_large.instance, &writer) == WS2_CAPACITY);
         REQUIRE(rejected.empty()); // preflight before emitting a partial blob
     }
