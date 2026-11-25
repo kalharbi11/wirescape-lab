@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+#include "../../modules/groove/dsp.h"
 #include "../../modules/lfo/dsp.h"
 #include "../../modules/vco/dsp.h"
 #include "../../tests/native/abi2/allocation_watch.h"
@@ -1120,7 +1121,12 @@ static void edge_envelope_and_publication(){
  CHECK(ring.pop_adopted(out, 2, blocked) && out.order == 3);
  CHECK(!ring.pop_adopted(out, 2, blocked));
 }
+static void groove_data_descriptor_draft() {
+ const auto *d = ws::Module<groove::Sequencer>::descriptor();
+ CHECK(d->data_slot_count > 0 && d->data_slots != nullptr);
+}
 int main(){
+ groove_data_descriptor_draft();
  edge_envelope_and_publication();
  layout_instance_separation();
  removed_mod_edge_lookup();
