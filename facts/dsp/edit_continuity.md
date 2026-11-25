@@ -394,7 +394,7 @@ Smaller: `freshModules` absent on each of the three replies. Larger: identical 1
 
 ## M4 CN — SR21c refresh (#523)
 
-Draft evidence inventory; **no new measurement**. The merged E5 harness is
+Evidence inventory; intermediate measured rows and pending final captures. The merged E5 harness is
 `9000e8ffc948f2b4c3d99220e1ebdb5e5d4830bb` (#485). The historical A62
 buffer capture above is not a measurement of the integrated OB1 candidate.
 The E5 native, stock and transition-cost captures at engine `9809dfb9d1ead244815b8f93a68a02f7a307fe5b`
@@ -405,9 +405,9 @@ not a final integrated-source cost refresh.
 |---|---|---|
 | Intermediate 256→512, E7c-a voice chain and #504 | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
 | Intermediate E5 synthetic untouched Voice (A76; replacement path changed) | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
-| Final 256→512, including E7c-b Delay v2 | not yet pinned | not measured |
-| Final A69a Black Ice Choir single-instance Ir | not yet pinned | not measured |
-| Final A69a Clocked Groove adoption and max dual-instance Ir | not yet pinned | not measured |
+| Final 256→512, including E7c-b Delay v2 | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
+| Final A69a Black Ice Choir single-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
+| Final A69a Clocked Groove adoption and max dual-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
 
 No continuity disposition, hardware timing, or Pi result follows from these
 unmeasured rows. Earlier measured sections and their pins are unchanged.
@@ -420,4 +420,9 @@ Three matched repeats per buffer case. Smaller 256→128: all five witnesses con
 
 A76 E5 synthetic [run 45561322888](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322888), [artifact 14997951447](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322888/artifacts/14997951447), ZIP SHA-256 `f9190099a8459bcc3376eef86f7e5492c5e2458ec18d5c2966071ccf32798478`, same subject/harness pins, synthetic ABI2 descriptors, 256-frame calls. All 48 raw/marks member sizes and hashes matched synthetic.json. Adopt, ring, decline and cap each completed 3 repeats with no verifier failures; subject oracle residuals respectively 5.960464477539063e-8, 9.536743172944284e-8, 1.362391881531977e-7 and 1.3542175292258207e-7. The verifier asserts held/untouched Voice equality and fallback behavior. Adopt phase equality remains report-only (26 differing samples). This is intermediate-source evidence, not final-pin A76 evidence or stock-patch cost.
 
-Final Delay-inclusive trace, final-pin Lab assertions, replacement-path applicability and A69a cost remain unmeasured here. No Pi or physical-device inference.
+Independent intermediate audit: [A62 precision qualification and native audit](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7156234024). Direct convolution reproduces 579/585 A62 scalar checks; the remaining six absolute tail dips reproduce the report using its running-sum RMS. Direct RMS gives zero (−inf dB) in the larger silent tail window; the running-sum residual reports approximately −152.65 dB. This is numerical cancellation, not retained tail signal. The larger non-pass stands. All 12 native analytic and held/untouched/release checks independently reproduced. No oracle change.
+
+### Final Delay-inclusive capture (pending)
+
+Subject `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` is the immutable #539 merge on main, released by [the Architect](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7157031233). A76 comparison against `9809dfb9d1ead244815b8f93a68a02f7a307fe5b` changes all four replacement-path files: `engine/edit.cpp` +102, `engine/render.cpp` +41/−1, `engine/build.cpp` +1/−3, `engine/types.h` +5. Therefore rerun the existing native witness, not reuse the prior pin. Exact-source Lab [45576173843](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843) was in progress when capture was dispatched; A70 assertion evidence is pending. A62/native and A69a cost results are pending; no final continuity or cost claim, Pi or physical-device inference.
+

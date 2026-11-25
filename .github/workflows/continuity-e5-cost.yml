@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      ENGINE_HEAD: 9809dfb9d1ead244815b8f93a68a02f7a307fe5b
+      ENGINE_HEAD: 8c9bb10d9eb8acf616395404c26ed0c3964e19d2
       # B5 final review pin 2519e306 approved/merged as 9809dfb; identical non-doc blobs.
       # Capture actual cost at this exact source, independently of CN phase ruling.
       MEASURE: "true"
