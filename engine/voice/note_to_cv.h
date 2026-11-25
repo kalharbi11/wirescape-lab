@@ -212,8 +212,10 @@ class NoteToCv {
         const int voices=a.voice_count();
         if(!bounded(next.serial_,0x7fffffffu)||!q(next.activation_)||
            !q(a.order_)||!bounded(a.cursor_,uint32_t(voices-1)))return WS2_INVALID;
-        for(auto& s:next.sources_)
+        for(auto& s:next.sources_){
             if(!flag(s.used)||!u(s.id)||!bounded(s.channel,15))return WS2_INVALID;
+            if(!s.used&&(s.id||s.channel))return WS2_INVALID;
+        }
         for(int i=0;i<kMaxHeldNotes;++i)if(next.sources_[i].used)
             for(int j=0;j<i;++j)if(next.sources_[j].used&&
                 next.sources_[j].id==next.sources_[i].id&&
@@ -225,6 +227,7 @@ class NoteToCv {
                !bounded(n.key,127)||!id(n.id)||!q(n.order)||!flag(n.retired))return WS2_INVALID;
             if(n.used&&(!source(n.source,n.channel)||n.id<0||!n.order||n.order>next.activation_))
                 return WS2_INVALID;
+            if(!n.used&&(n.source||n.channel||n.key||n.id||n.order||n.retired))return WS2_INVALID;
         }
         for(int i=0;i<kMaxHeldNotes;++i)if(next.anonymous_[i].used)
             for(int j=0;j<i;++j)if(next.anonymous_[j].used&&
@@ -238,7 +241,9 @@ class NoteToCv {
             h.voice=static_cast<int8_t>(int(index)-1);
             if(h.used&&(!source(h.note.source_id,h.note.channel)||h.note.note_id<0||
                !h.order||h.order>a.order_||(cfg.mode!=Mode::Mono&&h.voice<0)))return WS2_INVALID;
-            if(!h.used&&(h.down||h.voice!=-1||h.order))return WS2_INVALID;
+            if(!h.used&&(h.down||h.voice!=-1||h.order||h.note.source_id||
+                h.note.note_id!=-1||h.note.channel||h.note.key!=60||h.note.velocity!=1.f))
+                return WS2_INVALID;
         }
         for(int i=0;i<kMaxHeldNotes;++i)if(a.held_[i].used)
             for(int j=0;j<i;++j)if(a.held_[j].used&&
@@ -255,7 +260,9 @@ class NoteToCv {
                (i>=voices&&v.assigned)||
                (v.assigned&&(!v.start_order||v.start_order>a.order_||v.note_id<0||
                 v.pitch!=(static_cast<float>(v.key)-60.f)/12.f)))return WS2_INVALID;
-            if(!v.assigned&&(v.start_order||v.gate))return WS2_INVALID;
+            if(!v.assigned&&(v.start_order||v.gate||v.source_id||v.note_id!=-1||
+                v.channel||v.key!=60||v.pitch!=0.f||v.velocity!=0.f||
+                v.pressure!=0.f||v.timbre!=0.f))return WS2_INVALID;
             int matches=0;
             for(const auto& h:a.held_)if(h.used&&h.voice==i){
                 if(!v.gate||h.order!=v.start_order||h.note.source_id!=v.source_id||
