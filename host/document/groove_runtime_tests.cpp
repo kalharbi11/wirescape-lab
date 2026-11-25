@@ -130,6 +130,28 @@ static std::vector<float> trace(AppEngine *e, uint32_t count, uint32_t block, bo
     if (verify_cv) check(audible, "pitch and gate drive audible native CV patch");
     return out;
 }
+// E3b shared-loader witness: a declared slot must validate cross-field
+// lengths before prepare. Explicit authored data wins over migrated legacy.
+static void test_shared_pattern_loader(AppEngine *cat) {
+    std::string error;
+    auto p = patch(pattern());
+    p["modules"][0]["data"]["pattern"] = {{"length_1", 12}, {"length_2", 32}};
+    check(!load(p, cat, 48000, error), "shared loader refuses invalid live pattern length");
+    check(error.find("pattern.length_1") != std::string::npos,
+          "shared loader names invalid pattern length");
+    p["modules"][0]["data"]["pattern"] = {
+        {"length_1", 32}, {"length_2", 32},
+        {"steps_1", Json::array({{{"kind", "note"}, {"key", 79}, {"velocity", 1.},
+                                  {"keys", Json::array({79, 0, 0, 0, 0})}}})}};
+    auto e = load(p, cat, 48000, error, true);
+    check(bool(e), "shared loader accepts explicit live pattern");
+    trace(e.get(), 1, 1);
+    run_command(e.get(), run_id(e.get()), 1.f);
+    check(trace(e.get(), 1, 1)[0] == 1.f, "explicit data starts note");
+    check(app_engine_native(e.get()).output_sample(1, 0, 0, 0) == 19.f / 12.f,
+          "explicit live data overrides legacy pitch");
+}
+
 static void test_refusals(AppEngine *cat) {
     std::string error;
     Json good = pattern();
@@ -1255,6 +1277,7 @@ int main(int argc, char **argv) {
                   groove->data_slot_count > 0 && groove->data_slots != nullptr,
               "E3b Groove exposes live pattern data slots");
 
+        test_shared_pattern_loader(cat.get());
         test_refusals(cat.get());
         test_s1_refusals(cat.get());
         test_chord_to_notes_cv();
