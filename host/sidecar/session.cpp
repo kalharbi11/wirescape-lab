@@ -112,8 +112,9 @@ class SinkScheduling {
 };
 #endif
 struct Refusal : std::runtime_error {
-    std::string code;
-    Refusal(std::string c, const char *m) : std::runtime_error(m), code(std::move(c)) {}
+    std::string code, defer_id;
+    Refusal(std::string c, const char *m, std::string deferred = {})
+        : std::runtime_error(m), code(std::move(c)), defer_id(std::move(deferred)) {}
 };
 void need(bool condition, const char *code = "invalid", const char *message = "Invalid command") {
     if (!condition) throw Refusal(code, message);
@@ -785,7 +786,18 @@ Json Session::execution(Json patch) {
     need(patch.dump().size() <= LineLimit, "limit", "Patch exceeds byte limit");
     return patch;
 }
-bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
+Json Session::config_event(uint32_t id, const PendingConfig &pending,
+                           const char *outcome, uint64_t generation) const {
+    return {{"v", 0}, {"session", token_}, {"type", "configDeferred"},
+            {"deferId", pending.defer_id}, {"moduleId", id}, {"outcome", outcome},
+            {"generation", std::to_string(generation)}};
+}
+Json Session::take_config_events() {
+    Json events = Json::array();
+    events.swap(config_events_);
+    return events;
+}
+bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> retry_id, bool explicit_graph) {
     patch = execution(std::move(patch));
     // loadGraph is a stored document; a changed live slot is an edit.
     // Unchanged forward-compatible stored fields remain opaque.
@@ -826,34 +838,45 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
-    // Stage queue changes alongside the candidate. A refused graph leaves
-    // its authored state unchanged; only config requests are eligible for A75.
+    // Stage queue and terminal events before accepting the graph. Nothing is
+    // published on ordinary refusal. A no-op full applyGraph explicitly
+    // reasserts the committed configuration (not an incremental unrelated edit).
     auto next_pending = pending_configs_;
-    auto refused_pending = pending_configs_;
-    if (new_namespace) {
-        next_pending.clear();
-    } else {
-        for (auto it = next_pending.begin(); it != next_pending.end();) {
-            auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
-                [&](const Json &m) { return m.at("id") == it->first; });
-            auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
-                [&](const Json &m) { return m.at("id") == it->first; });
-            if (next == patch["modules"].end() || old == patch_["modules"].end() ||
-                next->at("module") != it->second.module ||
-                next->value("config", Json::object()) != old->value("config", Json::object()))
-                it = next_pending.erase(it);
-            else ++it;
-        }
-        for (const auto &m : patch["modules"]) {
+    auto next_events = config_events_;
+    const bool explicit_revert = explicit_graph && patch == patch_;
+    for (auto it = next_pending.begin(); it != next_pending.end();) {
+        const auto id = it->first;
+        auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        const bool applied = retry_id && *retry_id == id;
+        if (applied || new_namespace || explicit_revert ||
+            next == patch["modules"].end() || old == patch_["modules"].end() ||
+            next->at("module") != it->second.module ||
+            next->value("config", Json::object()) != old->value("config", Json::object())) {
+            next_events.push_back(config_event(id, it->second, applied ? "applied" : "superseded", generation_ + 1));
+            it = next_pending.erase(it);
+        } else ++it;
+    }
+    // Determine eligibility by reverting ONLY changed config fields in an
+    // execution copy and comparing the entire transaction to committed state.
+    // Mixed data/topology/parameter/metadata changes can never be deferred.
+    Json config_only = patch;
+    std::vector<uint32_t> changed_configs;
+    if (!new_namespace && !retry_id) {
+        for (auto &m : config_only["modules"]) {
             const auto id = integer(m.at("id"));
             auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
                 [&](const Json &n) { return n.at("id") == id; });
             if (old == patch_["modules"].end() || old->at("module") != m.at("module")) continue;
-            if (old->value("config", Json::object()) != m.value("config", Json::object()))
-                refused_pending.insert_or_assign(id, PendingConfig{
-                    m.at("module").get<std::string>(), m.value("config", Json::object())});
+            if (old->value("config", Json::object()) == m.value("config", Json::object())) continue;
+            changed_configs.push_back(id);
+            if (old->contains("config")) m["config"] = old->at("config");
+            else m.erase("config");
         }
     }
+    const bool eligible_shape = !changed_configs.empty() && config_only == patch_;
     // Pause the OSC ingress before any live replan, fade/swap or graph retirement.
     // The destructor restarts the worker against whichever graph actually commits
     // (including the original graph on refusal). Socket errors never refuse patches.
@@ -878,6 +901,7 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
                 patch_.swap(patch);
                 used_ids_.swap(ids);
                 pending_configs_.swap(next_pending);
+                config_events_.swap(next_events);
                 // Rebuild direct-only routing and clear old ring on commit.
                 monitor_->configure(patch_);
                 telemetry_.swap(next_telemetry); // Engine2 counts restart at every replan.
@@ -888,7 +912,34 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
             // A75 is not an ordinary replan refusal: D5 would cut the
             // predecessor tail. Preserve the live graph and report busy.
             if (error == "Replacement busy: predecessor still fading") {
-                if (!retry_only) pending_configs_.swap(refused_pending);
+                const auto &blocked = app_engine_native(active_).replacement_blocked_ids();
+                if (!retry_id && eligible_shape &&
+                    std::all_of(changed_configs.begin(), changed_configs.end(), [&](uint32_t id) {
+                        return std::find(blocked.begin(), blocked.end(), id) != blocked.end();
+                    })) {
+                    auto deferred = pending_configs_;
+                    auto events = config_events_;
+                    const auto defer_id = std::to_string(++next_defer_id_);
+                    const auto now = std::chrono::steady_clock::now();
+                    for (auto id : changed_configs) {
+                        const auto &m = node(patch, id);
+                        const auto *d = app_engine_native(active_).descriptor(id);
+                        uint32_t ms = WS2_REPLACE_FADE_DEFAULT_MS;
+                        if (d && d->struct_size >= offsetof(ws2_descriptor, replace_fade_ms) + sizeof(d->replace_fade_ms) &&
+                            d->replace_fade_ms)
+                            ms = std::min(d->replace_fade_ms, WS2_REPLACE_FADE_MAX_MS);
+                        const auto previous = deferred.find(id);
+                        if (previous != deferred.end())
+                            events.push_back(config_event(id, previous->second, "superseded", generation_));
+                        deferred.insert_or_assign(id, PendingConfig{m.at("module").get<std::string>(),
+                            defer_id, m.value("config", Json::object()),
+                            now + std::chrono::milliseconds(2 * ms + 1000)});
+                    }
+                    Refusal refusal("busy", error.c_str(), defer_id);
+                    pending_configs_.swap(deferred);
+                    config_events_.swap(events);
+                    throw refusal;
+                }
                 throw Refusal("busy", error.c_str());
             }
             if (error != "MIDI worker busy") break;
@@ -897,7 +948,7 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
         }
     }
     // Deferred A75 retries must never fall through to D5, even on another error.
-    if (retry_only) throw Refusal("unavailable", "Deferred live config retry unavailable");
+    if (retry_id) throw Refusal("unavailable", "Deferred live config retry unavailable");
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
     const auto begun = std::chrono::steady_clock::now();
@@ -1019,6 +1070,7 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
     keyboard_.fill(false);
     used_ids_.swap(ids);
     pending_configs_.swap(next_pending);
+    config_events_.swap(next_events);
     // No old-generation messages survive a successful graph commit.
     monitor_->configure(patch_);
     telemetry_.swap(next_telemetry); // D5 also resets all last-seen event counts.
@@ -1448,7 +1500,7 @@ Json Session::apply(const Json &command) {
         // Same validation and execution copy as loadGraph, but in the current ID namespace and
         // through the live replan: unchanged modules keep their instances (0005 section 3).
         const Json before = patch_;
-        const bool live = commit(command.at("patch"), false);
+        const bool live = commit(command.at("patch"), false, std::nullopt, true);
         return reconcile_graph(before, live);
     }
     if (type == "addModule") {
@@ -1535,6 +1587,10 @@ Json Session::reply(const Request &request) {
     } catch (const Refusal &e) {
         result["code"] = e.code;
         result["message"] = e.what();
+        if (!e.defer_id.empty()) {
+            result["deferred"] = true;
+            result["deferId"] = e.defer_id;
+        }
     } catch (const Json::exception &) {
         result["code"] = "invalid";
         result["message"] = "Invalid command field";
@@ -1753,30 +1809,44 @@ void Session::drain_egress() noexcept {
     for (uint32_t i = 0; i < kEgressDrainPerPoll && live.pop_egress(discarded); ++i) {
     }
 }
-bool Session::retry_config() {
+bool Session::retry_config(std::chrono::steady_clock::time_point now) {
+    // Deadlines expire even when rendering has stopped. Inspect retirement
+    // before building a candidate or pausing host workers; one attempt only.
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end();) {
+        if (now >= it->second.deadline) {
+            config_events_.push_back(config_event(it->first, it->second, "failed", generation_));
+            it = pending_configs_.erase(it);
+        } else ++it;
+    }
     if (pending_configs_.empty() ||
         !((stream_ && stream_->running()) || sink_rendering_.load(std::memory_order_acquire))) return false;
-    const auto id = pending_configs_.begin()->first;
-    try {
-        Json candidate = patch_; // rebase only the config onto the newest committed document
-        auto &m = node(candidate, id);
-        const auto &pending = pending_configs_.begin()->second;
-        if (m.at("module") != pending.module ||
-            m.value("config", Json::object()) == pending.config) {
-            pending_configs_.erase(id);
+    auto &graph = app_engine_native(active_);
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end(); ++it) {
+        const auto id = it->first;
+        if (graph.replacement_tail_pending(id)) continue;
+        try {
+            Json candidate = patch_; // rebase only config on the newest committed document
+            auto &m = node(candidate, id);
+            if (m.at("module") != it->second.module ||
+                m.value("config", Json::object()) == it->second.config) {
+                config_events_.push_back(config_event(id, it->second, "superseded", generation_));
+                pending_configs_.erase(id);
+                return false;
+            }
+            m["config"] = it->second.config;
+            commit(std::move(candidate), false, id);
+            return true;
+        } catch (const std::exception &e) {
+            std::cerr << "deferred config refused: " << e.what() << '\n';
+            // A retirement permits exactly one attempt. Never retry a refusal
+            // every poll or fall back to D5.
+            const auto pending = pending_configs_.find(id);
+            if (pending != pending_configs_.end()) {
+                config_events_.push_back(config_event(id, pending->second, "failed", generation_));
+                pending_configs_.erase(pending);
+            }
             return false;
         }
-        m["config"] = pending.config;
-        commit(std::move(candidate), false, true);
-        return true;
-    } catch (const Refusal &e) {
-        if (e.code != "busy") {
-            pending_configs_.erase(id);
-            std::cerr << "deferred config refused: " << e.what() << '\n';
-        }
-    } catch (const std::exception &e) {
-        pending_configs_.erase(id);
-        std::cerr << "deferred config refused: " << e.what() << '\n';
     }
     return false;
 }
@@ -1798,7 +1868,7 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (!warm && cold_due) cold_enumeration_ = now;
     const auto enumerated = refresh_devices(warm || cold_due, !warm);
     auto changed = poll_audio(now, enumerated);
-    changed = retry_config() || changed;
+    changed = retry_config(now) || changed;
     return changed || old_audio != audio_devices_ || old_midi != midi_devices_ ||
            old_unavailable != unavailable_audio_drivers_;
 }

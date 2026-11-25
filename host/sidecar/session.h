@@ -90,10 +90,17 @@ class Session {
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
     std::set<uint32_t> used_ids_;
-    // A75: only the latest refused config per live module, never a stale graph.
-    struct PendingConfig { std::string module; Json config; };
+    // A78: latest refused config per blocked live module, never a stale graph.
+    struct PendingConfig {
+        std::string module, defer_id;
+        Json config;
+        std::chrono::steady_clock::time_point deadline;
+    };
+    uint64_t next_defer_id_ = 0;
     std::map<uint32_t, PendingConfig> pending_configs_;
-    bool retry_config();
+    Json config_events_ = Json::array();
+    Json config_event(uint32_t, const PendingConfig &, const char *, uint64_t) const;
+    bool retry_config(std::chrono::steady_clock::time_point);
     document::telemetry::Sampler telemetry_;
     std::array<bool, 128> keyboard_{};
     std::mutex sink_mutex_;
@@ -137,7 +144,8 @@ class Session {
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
     Json execution(Json);
-    bool commit(Json, bool, bool retry_only = false); // true: live replan; false: D5 replacement
+    bool commit(Json, bool, std::optional<uint32_t> retry_id = std::nullopt,
+                bool explicit_graph = false); // true: live replan; false: D5 replacement
     Json reconcile_graph(const Json &before, bool live);
     Json apply(const Json &);
     Json audio_status() const;
@@ -155,6 +163,7 @@ class Session {
     Json status() const;
     Json telemetry();
     Json devices();
+    Json take_config_events();
     bool poll(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 };
 Options parse_options(int, char **);
