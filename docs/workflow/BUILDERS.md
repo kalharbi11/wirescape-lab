@@ -1,13 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by the Architect, 2026-11-24 run 29 (rewritten in run 22, owner: "chat mode for every builder"). Every builder is a
+Refreshed by claude-architect (acting as lead), 2026-11-24 22:30 EST. Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
 
-**Trial routing.** Follow the [Terra manager rules](../context/COORDINATION_MANAGER.md) and
-[Luna coordinator instructions](../../CODEX.md). Cycle 2 limits Terra and Luna to the existing monitored batch. Builders may continue released lane queues outside that batch, including after it closes. Owner or Architect runs may resume those queues at any time, subject to contract and writer gates. Terra may route a fresh released assignment to a newly named ChatGPT Chat after the previous writer stops.
+**Owner-started lanes.** The owner starts or resumes the existing builder chats with
+`1:run` through `5:run`. Read the live lane row and linked packets on entry. Standing releases
+and draft-ahead permissions apply in an active session. The manager/coordinator trial ended.
 
 **How a lane works**
 - **Long-running sessions.** A lane is a queue, not a single task. Keep working through it: implement,
@@ -23,19 +24,25 @@ Codex is the **lead** only.
   condition, the lead turns on auto-merge at release. It merges itself when the Result is posted and
   exact-head required checks are green. A reviewed task waits for its reviewer, then the lead or the Architect merges it.
 - **Fewer stops ([SR20](STANDING.md)).** Start the next queue task yourself when its predecessor merges (open the issue if missing). Low findings never block. `merge: lead` tasks merge on exact-head green plus your Result. Ask for a Claude review once, at the merge-ready head.
-- **Questions never stop a lane.** Add an [inbox](ARCHITECT_INBOX.md) row plus `needs/architect`, then
-  work on the next independent item in your lane.
+- **Keep the Architect inbox current.** When a task is ready for required review, needs a ruling,
+  or raises an Architect question, add or update one row in the
+  [Architect inbox](ARCHITECT_INBOX.md) through a docs PR. Link the signed Result or question,
+  include exact head and base when applicable, and name the task waiting. Use `needs/architect`
+  for Architect work. The owner and delivery lead own the `architect-ready` and `review-ready`
+  trigger labels. Keep working on independent lane items while the request waits.
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B5** `gpt-builder5` · **Engine** (critical path) | `engine/` (engine2), engine tests; sole engine writer except `engine/voice/` while E5v #439 is open | **E5** [#429](https://github.com/kalharbi11/wirescape-lab/issues/429)/[#436](https://github.com/kalharbi11/wirescape-lab/pull/436), scope ruled by **A55** (run 29): replacement for a same-descriptor canonical config change (sidecar `commit` chooses replace), ER4 birth inheritance, `adopt` or ring-out with held-note replay, fade 20 ms default / 500 ms cap, the stopped-stream settle Low, `reconfigure` removed if unused. Voice count is **not** E5 (→ E5v). **A59:** runner size guard granted; bounded held-note replay. **First:** [#443](https://github.com/kalharbi11/wirescape-lab/issues/443), the Windows pacing fix in `live_replan_tests.cpp`, as its own small PR. Claude contract-review once, at the merge-ready head. | E3a draft after E5 merges (OB1.1). E5 merges first if E7 also touches `commit`. |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/` (net, osc, sidecar, midi), `modules/osc_in/`, `engine/control/` handlers | **E7** [#431](https://github.com/kalharbi11/wirescape-lab/issues/431), released in run 29b after #434 merged `4b078f9` (closes #425). Post a disjoint-path plan against #436 before writing `host/sidecar/session.cpp`; E5 merges first if shared. | The #424 OSC fix if A58 routes it to `host/osc`. |
-| **B4** `gpt-builder4` · **Sound** | `modules/` DSP, `facts/sound/`, module tests | S7.3 #432 **merged `fe321f9`** (run 29c, A60). **Now: S7.9** [#440](https://github.com/kalharbi11/wirescape-lab/issues/440) CHOKE (ADSR/VCO). Lows from #432 go into it: note the source of the compensation constants. | **OB-d** bundled-patch list. Catalogue/S0 edits stay serialized with B1's sound PRs. Gate Delay #333 stays parked. |
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, plus sound overflow** | `apps/studio/`, Studio tests, OB-c oracles, `facts/dsp/edit_continuity.md`; for M7 overflow, only the task's module folder | CN facts #437 merged `ba17d7e`. Next: S7.5 takeover. | **S7.5 Quad VCA** [#291](https://github.com/kalharbi11/wirescape-lab/pull/291) (takeover from B4: merge main, exact-head rerun, Result under M7 r1.6 and D5) → **S7.6 Delay** [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) → CN refresh after E5v/E5/E7 merge → KNOWN_ISSUES A2 rewrite → OB-f1 recheck at the candidate. |
-| **B3** `gpt-builder3` · **Floater** | Only the paths of its assigned task | [#424](https://github.com/kalharbi11/wirescape-lab/issues/424)/[#433](https://github.com/kalharbi11/wirescape-lab/pull/433) OSC budget/enqueue split, fail-first. Load, limits and queue unchanged. | **E5v** [#439](https://github.com/kalharbi11/wirescape-lab/issues/439) (A55; draft now, `engine/voice/` + three voice module folders) → **Note Trigger** [#322](https://github.com/kalharbi11/wirescape-lab/pull/322) (OB r2.9, optional, same folders; rebase on mapped paths). |
+| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | #436 E5 at `31ab651`; Lab green. B5-CN is ruled (M4 A69): E5's merge waits on its contract-review, not on CN rows. **Next:** sync to main, then post the signed E5 Result at the merge-ready head and ask for the Claude review once. Support B1's bench seam with fixture pointers only. | E3a after E5 (OB1.1). |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **E7b [#486](https://github.com/kalharbi11/wirescape-lab/issues/486) first** (OB1 M4 row, A68): post the memory delta, then test-first. Continue #475/#482 egress diagnosis while #486's checks run. | A67 enqueue fix (one issue, A61/A58, not tag-holding). |
+| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; separate #451 evidence files | S7.9 #444 merged `1be9da2`. **Now: OB-d** bundled-patch list from the merged S7.x Results, including the VCO post-CHOKE behaviour note. #456 adds the r1.9 classification column and gives final division pins with #449. | CHAOS provenance Low. Keep catalogue and S0 writers serialized. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | #291 merged `6daa23e`. **Now:** (1) sync #449 S7.6 to main, fix `tone` in the DSP (A64), and pin final evidence under r1.8/r1.9; (2) post #474's facts Result at green (auto-merge); (3) build the A69 bench seam and the E5 CN rows at E5's pinned head; #485 stock Groove runs in parallel. | E7b larger-row rerun after #486; CN refresh for M4 acceptance. |
+| **B3** `gpt-builder3` · **Floater** | Assigned paths only | #462 is green at `a68eb95`: post the final Result (lead merge). **Next:** [#487](https://github.com/kalharbi11/wirescape-lab/issues/487) Windows facts libremidi fix (A66). Diagnose the #322 `M1 paired / linux-arm64` red (no r1.6 exception on a changed-module graph). | #322 optional OB-g6 row. |
 
 **Parked until after OB1** (branches kept): Gate Delay #333, CAT-1 #358 (+MB1), MT2 #176. Note Trigger #322 and M7 batch 2 were unparked in run 29.
 **Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
+
+**Manual starts:** `1:run` to `5:run` in the existing builder chats. All reviews go to the Architect inbox.
 
 ## How the lead maintains this table
 - Each lead run checks every lane: PR heads, exact-head CI, latest Result, labels. Refresh the

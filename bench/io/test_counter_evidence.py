@@ -44,5 +44,48 @@ class CounterEvidenceTests(unittest.TestCase):
         self.assertEqual(result['midi_received_after'], 3)
 
 
+    def test_osc_drop_report_deduplicates_listener_observations(self):
+        rows = [
+            {"module": "1", "port": 9000, "dropped": 2,
+             "budget_dropped": 2, "enqueue_dropped": 0,
+             "listener_budget_dropped": 2, "listener_enqueue_dropped": 4},
+            {"module": "17", "port": 9000, "dropped": 6,
+             "budget_dropped": 2, "enqueue_dropped": 4,
+             "listener_budget_dropped": 2, "listener_enqueue_dropped": 4},
+            {"module": "18", "port": 9001, "dropped": 0,
+             "budget_dropped": 0, "enqueue_dropped": 0,
+             "listener_budget_dropped": 0, "listener_enqueue_dropped": 0},
+        ]
+        status = {"osc": {"routes": rows}}
+        report = soak.osc_drop_diagnostics(status)
+        self.assertEqual(report["routes"]["17"],
+                         {"port": 9000, "budget_dropped": 2, "enqueue_dropped": 4})
+        self.assertEqual(report["listeners"]["9000"],
+                         [{"budget_dropped": 2, "enqueue_dropped": 4}])
+        self.assertEqual(report["listeners"]["9001"],
+                         [{"budget_dropped": 0, "enqueue_dropped": 0}])
+        # The existing strict stop oracle must see only the legacy counters.
+        self.assertEqual(soak.counters(status), {
+            "osc.routes.1.dropped": 2, "osc.routes.17.dropped": 6,
+            "osc.routes.18.dropped": 0})
+
+    def test_osc_drop_report_never_fills_missing_or_merges_disagreeing_counts(self):
+        status = {"osc": {"routes": [
+            {"module": "1", "port": 9000, "listener_budget_dropped": 2,
+             "listener_enqueue_dropped": 4},
+            {"module": "17", "port": 9000, "listener_budget_dropped": 2,
+             "listener_enqueue_dropped": 5, "enqueue_dropped": 5},
+            {"module": "18", "port": 9001, "dropped": 8},
+        ]}}
+        report = soak.osc_drop_diagnostics(status)
+        self.assertEqual(report["routes"], {"17": {"port": 9000, "enqueue_dropped": 5}})
+        self.assertEqual(report["listeners"], {"9000": [
+            {"budget_dropped": 2, "enqueue_dropped": 4},
+            {"budget_dropped": 2, "enqueue_dropped": 5}]})
+        self.assertEqual(soak.osc_drop_diagnostics({"osc": {"routes": [
+            {"module": "1", "port": 9000, "dropped": 8}]} }),
+            {"routes": {}, "listeners": {}})
+
+
 if __name__ == '__main__':
     unittest.main()

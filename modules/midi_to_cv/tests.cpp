@@ -32,6 +32,71 @@ static void basic_and_steal() {
         for (uint32_t c = 0; c < voices; ++c) REQUIRE(same.sample(1, c) == 0);
     }
 }
+static void live_voice_resize() {
+    MidiRig<MidiToCv> r;
+    r.values[0] = 4;
+    r.run({midi1(0x90, 60, 100), midi1(0x90, 64, 90), midi1(0x90, 67, 80),
+           midi1(0x90, 71, 70), midi1(0xb0, 64, 127, 1), midi1(0x80, 60, 0, 2),
+           midi1(0xa0, 64, 100, 3)});
+    REQUIRE(r.emitted.size() == 5);
+    const auto a = r.emitted[0], b = r.emitted[1], c = r.emitted[2], d = r.emitted[3];
+    const auto kept = [&] {
+        for (uint32_t frame = 0; frame < 32; ++frame) {
+            REQUIRE(r.sample(1, 0, frame) == 1 && r.sample(1, 1, frame) == 1);
+            REQUIRE(r.sample(0, 0, frame) == 0 && r.sample(0, 1, frame) == 4.f / 12);
+            REQUIRE(r.sample(2, 0, frame) == 100.f / 127 && r.sample(2, 1, frame) == 90.f / 127);
+            REQUIRE(r.sample(4, 1, frame) == 100.f / 127);
+        }
+    };
+    r.emitted.clear();
+    r.values[0] = 2;
+    r.run();
+    REQUIRE(r.outputs[0].channels == 2);
+    kept();
+    REQUIRE(r.emitted.size() == 2);
+    for (uint32_t i = 0; i < 2; ++i) {
+        const auto &off = r.emitted[i];
+        const auto &on = i == 0 ? c : d;
+        REQUIRE((off.type == WS2_NOTE_OFF || off.type == WS2_NOTE_CHOKE) &&
+                off.channel == on.channel && off.key == on.key && off.note_id == on.note_id &&
+                off.source_id == on.source_id && off.offset == 0);
+    }
+    r.emitted.clear();
+    r.run();
+    kept();
+    REQUIRE(r.emitted.empty());
+    r.values[0] = 4;
+    r.run();
+    REQUIRE(r.outputs[0].channels == 4);
+    kept();
+    REQUIRE(r.emitted.empty());
+    for (uint32_t ch = 2; ch < 4; ++ch)
+        for (uint32_t frame = 0; frame < 32; ++frame) REQUIRE(r.sample(1, ch, frame) == 0);
+    r.run({midi1(0x80, 67, 0), midi1(0x80, 71, 0)});
+    kept();
+    REQUIRE(r.emitted.empty());
+    r.run({midi1(0xb0, 64, 0)});
+    REQUIRE(r.emitted.size() == 1 && r.emitted[0].type == WS2_NOTE_OFF &&
+            r.emitted[0].note_id == a.note_id && r.sample(1, 0) == 0 && r.sample(1, 1) == 1);
+    r.emitted.clear();
+    r.run({midi1(0x80, 64, 0)});
+    REQUIRE(r.emitted.size() == 1 && r.emitted[0].type == WS2_NOTE_OFF &&
+            r.emitted[0].note_id == b.note_id && r.sample(1, 1) == 0);
+
+    MidiRig<MidiToCv> mono;
+    mono.values[1] = 3;
+    mono.run({midi1(0x90, 60, 127), midi1(0x90, 64, 127)});
+    mono.emitted.clear();
+    mono.values[0] = 2;
+    mono.run();
+    REQUIRE(mono.outputs[0].channels == 1 && mono.sample(1) == 1 &&
+            mono.sample(0) == 4.f / 12 && mono.emitted.empty());
+    mono.values[0] = 4;
+    mono.run();
+    REQUIRE(mono.outputs[0].channels == 1 && mono.sample(1) == 1 && mono.emitted.empty());
+    mono.run({midi1(0x80, 64, 0)});
+    REQUIRE(mono.sample(1) == 1 && mono.sample(0) == 0);
+}
 static void sustain_bend_expression() {
     MidiRig<MidiToCv> s;
     s.run({midi1(0x90, 60, 127, 0, 1), midi1(0x90, 64, 127, 0, 2), midi1(0x91, 67, 127, 0, 1), midi1(0xb0, 64, 127, 3, 1), midi1(0x80, 60, 0, 5, 1), midi1(0x80, 64, 0, 5, 2), midi1(0x81, 67, 0, 5, 1), midi1(0xb0, 64, 0, 12, 1)});
@@ -388,6 +453,7 @@ int main(int argc, char **argv) {
     full_endpoint_channel_matrix();
     metadata_contract();
     basic_and_steal();
+    live_voice_resize();
     last_note_mono_hold_and_restore();
     last_note_acceptance_modes_and_limits();
     sustain_bend_expression();

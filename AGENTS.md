@@ -11,19 +11,33 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 | Name | Runs on | Does |
 |---|---|---|
 | **Claude Architect** | Claude | design, contracts, rulings, Architect reviews, acceptance; trigger `architect:run` |
-| `gpt-lead` | Codex | delivery lead ([lead brief](docs/context/CODEX_LEAD.md)): keeps lanes moving, checks evidence, merges what it is delegated, dispatches Architect items; trigger `lead:run` |
+| `gpt-lead` | Codex | delivery lead ([lead brief](docs/context/CODEX_LEAD.md)): keeps lanes moving, checks evidence, merges what it is delegated, prepares Architect and review requests; trigger `lead:run` |
 | `claude-lead` | Claude | the same lead role when the owner assigns it to Claude; trigger `claude lead: run`. One lead is active at a time (named in CURRENT) |
 | `gpt-builder1` … `gpt-builder5` | ChatGPT chat | lanes B1–B5 in [BUILDERS](docs/workflow/BUILDERS.md): implement, test, correct, post Results, move to the next lane task |
-| `gpt-reviewer`, `claude-reviewer` | GPT / Claude | independent review when a contract or the owner names them |
+| Review authority | Claude Architect | All independent and Claude contract reviews; owner or lead batches ready requests |
 
 **Short triggers (no other instruction needed):**
 | Trigger | Read first, in order |
 |---|---|
 | `architect:run` | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` |
 | `lead:run` | [Lead brief](docs/context/CODEX_LEAD.md) → [BUILDERS](docs/workflow/BUILDERS.md) → [ROADMAP](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) |
-| `B<n>: run` (builder chat) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
+| `1:run` through `5:run` (builder chats) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
 
 A trigger never grants authority beyond the accepted contract.
+
+## Owner-started runs (2026-11-24)
+
+The owner starts persistent builder and lead sessions. Keep releases and pinned requests in
+GitHub. The Architect can be started by the owner or by one verified ready-batch trigger.
+
+Every lead interaction, including a question without `lead:run`, starts with a minimal check of
+the latest Architect rulings, signed reviews and lane updates for B1–B5. Resolve lead-owned items,
+refresh assignments and next actions, and expand the run only when a concrete finding needs it.
+Use scripts for repeatable checks. Prefer Luna or Sonnet for bounded scouting and collection,
+and Terra or a similarly sized helper for preliminary review and diagnosis when useful.
+The lead verifies findings and owns decisions, releases and merges. One short completion
+trigger or timed check may await a known event that needs a lead action.
+See the [Codex instructions](CODEX.md) and [lead brief](docs/context/CODEX_LEAD.md).
 
 ## Builders: one lane, long sessions
 1. Read your lane row in `docs/workflow/BUILDERS.md`, your task issue, the contract row and the
@@ -43,15 +57,17 @@ A trigger never grants authority beyond the accepted contract.
      comment when you do.
 
 ## Rules
-- **Review labels:** `review-required` marks a merge condition. `review-ready` dispatches the
-  regular reviewer after the lead pins a request (full base/head SHAs, criteria, reviewer role).
-  Architect reviews get an inbox row plus `needs/architect` and are dispatched with `architect-ready` on the linked task **issue**,
-  never `review-ready`. See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+- **Review requests:** The Claude Architect performs all independent and Claude contract reviews under the owner's
+  2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+  `review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+  on the PR. Architect independence and all contract gates still apply. The owner or lead may
+  apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+  wake serves the whole inbox. The owner may also run `architect:run` manually.
 - **Auto-merge (owner, 2026-11-24):** for `merge: lead` tasks with no review condition, the lead
   enables auto-merge at release. Required exact-head checks still gate it.
 - **Reaching the Architect:** one row in `docs/workflow/ARCHITECT_INBOX.md` plus `needs/architect`.
   Keep `review-required`, `needs/architect` and the pinned evidence on the PR as applicable.
-  The lead (or explicitly delegated Terra) sends one issue wake per batch. #265 is retired.
+  The lead identifies which requests are ready for the owner's `architect:run`.
   Its decisions land in the inbox, CURRENT and the contract, never only in chat.
 - **Never loosen to pass:** no skipped test, raised tolerance, widened path list or changed load
   to turn red into green. A golden difference in a structural PR is a defect until proven otherwise.

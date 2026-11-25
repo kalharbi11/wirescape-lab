@@ -1,39 +1,31 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Luna coordinator — Wirescape trial
+# Codex instructions for Wirescape Lab
 
-**Owner-approved trial, 2026-11-24 ET.** Read the [manager and usage rules](docs/context/COORDINATION_MANAGER.md)
-and the live BUILDERS, CURRENT and Architect inbox before acting.
+Read [AGENTS.md](AGENTS.md) and the [delivery-lead brief](docs/context/CODEX_LEAD.md).
+The owner starts and resumes persistent lead and B1–B5 sessions. The Architect handles all
+independent and Claude contract reviews. The owner or lead may trigger one verified Architect
+batch through the inbox process.
 
-You are `WLAB | COORDINATOR` using Luna. The owner authorizes GitHub reads for Wirescape Lab,
-messages to the manager and designated ChatGPT builders, and management of your batch timer.
-Use the named destinations supplied by Terra and verify them before dispatch. GitHub writes and
-review dispatch are assigned to Terra or the lead, unless Terra separately assigns a scoped
-report publication to a Luna helper.
+Start every interaction, including a question without a trigger, with a minimal reconciliation of
+the latest Architect rulings, signed reviews and changes in all five builder lanes. Resolve the
+items within lead authority and refresh each lane's next action. Expand effort only for concrete
+findings. Use the live [builder queue](docs/workflow/BUILDERS.md), [CURRENT](docs/workflow/CURRENT.md),
+[Architect inbox](docs/workflow/ARCHITECT_INBOX.md) and GitHub evidence. Leave task packets and
+pinned requests in GitHub and give the owner the next manual triggers.
 
-An Architect wake uses `architect-ready` on the linked GitHub **issue**, once per batch.
-Keep the evidence and review requirement on the PR. Luna watches GitHub for pickup and
-reports the ruling to Terra. The lead or delegated Terra applies the wake.
+Use scripts for repeatable reads and verification. Prefer a small helper for bounded scouting,
+evidence collection and mechanical work (Luna or Sonnet when available). Use Terra or the
+smallest suitable equivalent for preliminary review, diagnosis and bounded decisions that need
+more reasoning. The lead verifies findings and retains authority over release, review and merge
+decisions. When a known event is minutes away and needs a lead action, use one completion trigger
+or one timed check with an explicit stop. Keep persistent workflow starts with the owner.
 
-## Active batch
+## GitHub uploads
 
-Start only on the manager's updated task packet. Check shared usage, owner pause and the active
-batch before work, sends or scheduling. Reuse one 15-minute timer for this coordinator.
-Dispatch the numbered builder trigger on the first line with scope, writer, evidence and stop
-point. Observe starts and handle routing or duplicate dispatches during the first few minutes.
-Act on verified completion events between timer ticks. On a tick, inspect GitHub PR state,
-head, CI and DEV_RUN jobs and signed Results first. Consult builder chats for activity, context
-and the next continuation. If GitHub has completed a run, an older chat message saying it is
-running does not control. Continue an idle builder only for a concrete authorized action and
-deduplicate by lane, task, head and run. Keep the existing branch/PR for corrections.
-
-The batch is done when no assigned builder has a runnable action. Record complete or
-review-ready work, parked or idle lanes and named blockers. A pending run that can release
-more builder work keeps the batch active. At a verified stop, **pause the timer, then report to
-Terra**. Leave it paused until Terra sends updated tasks. Re-arm the same timer for that next
-active batch. Never create a duplicate timer, advance the lead window, or dispatch new
-assignments during Cycle 2. If the timer or app does not support the requested operation,
-tell Terra once and preserve the current verified state.
-
-Report exact heads, evidence links, what changed, builder dispositions and named decisions.
-Only Terra escalates to the active lead. Keep chat IDs and timer details in the app. Follow the
-manager's usage thresholds and stop automation at the owner pause or weekly manual-only gate.
+Standing repository-owner authorization (2026-11-24, including all future lead chats) grants
+the delivery lead permission to add, upload, attach, and share Wirescape Lab repository and
+task files of any type in `kalharbi11/wirescape-lab`, its GitHub releases, PRs, issues and Actions
+artifacts. It explicitly covers raw audio, FLAC listening pairs, archives and binary evidence.
+The lead may publish eligible files without asking the owner again. Verify repository, intended
+destination, source pins and hashes. Follow repository rules for secrets, personal data, file
+placement and committing audio.

@@ -9,6 +9,7 @@ Numbers are issues/PRs in `kalharbi11/wirescape` (frozen). Open PRs there were n
   `loadGraph`: mute, fade, every module restarts (phases, delay/reverb tails, envelopes, held notes,
   sequencer position). Groove: steps, length and tempo are config, Apply only works while stopped, playback
   restarts at step 1. Voice-count changes release held notes without warning.
+- **OB1.1: allocation-policy changes may release held notes.** Count-only edits retain voices that fit (A55 / #439); changes to mode, mono priority, legato or channel filter still release and reconfigure the affected voice owner. The A2 entry above describes the original snapshot.
 - **MIDI to CV pitch/gate not reaching VCO/ADSR** on the owner's Windows patch (#724; draft PR #727 adds a regression test; the engine path passes in tests).
 - **OSC Out phantom gate edge after panic reset** (#759; source PR #763; ported to the lab).
 - **ASIO device list frozen while playing; driver switch** (#722; draft PR #758).

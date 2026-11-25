@@ -28,6 +28,7 @@ uint32_t rejected_rate = 0;
 // Fake ASIO buffer negotiation: when accept_block is set, any other block fails to
 // open; a first attempt then reports `preferred` (0 = driver offers no size).
 uint32_t accept_block = 0;
+std::string accept_block_device; // empty: all fake devices; otherwise only this endpoint
 int64_t preferred = 0;
 std::vector<uint32_t> blocks;
 std::string rate_refused_id;
@@ -35,6 +36,9 @@ int stopped = 0, exchanges = 0;
 std::vector<wirescape::audio::DeviceQuery> queries;
 std::atomic<uint64_t> completed_blocks{0};
 AppEngine *engine = nullptr;
+// Test-only: join the paced callback without closing the fake stream, so state
+// snapshots and manually stepped renders have a single, quiescent owner.
+std::function<void()> freeze_render;
 }
 // Legacy-shaped fake output: the id is the bare name, as before host-API identity.
 wirescape::audio::Device output(const std::string &name, int index, bool is_default = false) {
@@ -61,7 +65,8 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     : impl_(std::make_unique<Impl>()) {
     fake::attempts.push_back(selection.name);
     fake::blocks.push_back(block);
-    if (fake::accept_block && block != fake::accept_block) {
+    if (fake::accept_block && block != fake::accept_block &&
+        (fake::accept_block_device.empty() || selection.name == fake::accept_block_device)) {
         if (allow_preferred_retry && fake::preferred) throw PreferredBufferSize(fake::preferred);
         throw std::runtime_error("fake ASIO buffer refused");
     }
@@ -73,7 +78,7 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     impl_->producers = std::move(producers);
     fake::engine = impl_->engine.get();
     fake::active = true;
-    if (fake::render)
+    if (fake::render) {
         impl_->callback = std::thread([impl = impl_.get(), live = impl_->engine.get(), block, rate]() mutable {
             std::vector<float> left(block), right(block);
             float *rows[] = {left.data(), right.data()};
@@ -85,12 +90,18 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
                 std::this_thread::sleep_for(period);
             }
         });
+        fake::freeze_render = [impl = impl_.get()] {
+            impl->quit.store(true);
+            if (impl->callback.joinable()) impl->callback.join();
+        };
+    }
 }
 Stream::~Stream() { stop(); }
 EngineOwner Stream::stop() {
     impl_->quit.store(true);
     if (impl_->callback.joinable()) impl_->callback.join();
     if (impl_->engine) {
+        fake::freeze_render = {};
         if (impl_->producers) impl_->producers();
         ++fake::stopped;
     }
@@ -280,6 +291,253 @@ void test_osc_out_held_gate_reset_sender() {
     consume(3);
     check(injected_values[0] == 0.f && injected_values[1] == 1.f && injected_values[2] == 0.f,
           "sender emits only the initial low, actual rise and actual fall");
+}
+
+void test_e7_state_restart(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // link-time fake only
+    options.settings = (root / "e7-state.json").string();
+    fake::outputs = {output("E7 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "essentials.vco"}},
+                                 {{"id", 4}, {"module", "essentials.clock"},
+                                  {"parameters", {{"bpm", 300}, {"ticks_per_beat", 24}, {"duty", 0.5}}}},
+                                 {{"id", 5}, {"module", "essentials.function_envelope"},
+                                  {"parameters", {{"rise", 0.0001}, {"fall", 0.5}}}},
+                                 {{"id", 6}, {"module", "host.keyboard"},
+                                  {"parameters", {{"voices", 1}}}},
+                                 {{"id", 7}, {"module", "essentials.adsr"},
+                                  {"parameters", {{"attack", 0.0001}, {"decay", 0.01}, {"sustain", 0.7}}}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 4}, {"port", "clock"}}},
+                                      {"to", {{"module", 5}, {"port", "gate"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 6}, {"port", "gate"}}},
+                                      {"to", {{"module", 7}, {"port", "gate"}}}}})}
+    };
+    check(call("e7-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "E7 state witness patch must load with a paced fake callback");
+    check(bool(fake::freeze_render), "E7 fake must expose its quiescence seam");
+    fake::freeze_render();
+    fake::render = false; // subsequent fake streams are manually stepped
+    const auto state_before_step = app_engine_native(fake::engine).save_state(2);
+    std::array<float, 256> samples{};
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "E7 witness render must advance actual noise state");
+    check(call("e7-held", "noteOn", {{"note", 60}, {"velocity", 0.8}})["ok"] == true,
+          "E7 hold a keyboard note before the stream edit");
+    auto render = [&](uint32_t frames) {
+        check(app_engine_render(fake::engine, samples.data(), frames) == WS2_OK,
+              "E7 manual witness render must succeed");
+    };
+    auto witness = [&](uint32_t id, uint32_t port, uint32_t frame) {
+        return app_engine_native(fake::engine).output_sample(id, port, 0, frame);
+    };
+    // 300 BPM × 24 ticks: 400 samples/cycle. Find a real falling gate
+    // with an envelope tail, without depending on the paced startup phase.
+    for (int n = 0; n < 160; ++n) {
+        render(16);
+        if (witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+            witness(7, 0, 15) > 0.5f) break;
+    }
+    check(witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+              witness(7, 0, 15) > 0.5f,
+          "E7 witnesses must be a live falling envelope tail and held note");
+    const auto clock_state = app_engine_native(fake::engine).save_state(4);
+    const auto envelope_state = app_engine_native(fake::engine).save_state(5);
+    check(!clock_state.empty() && !envelope_state.empty(), "E7 clock and envelope must serialize state");
+    const auto state = app_engine_native(fake::engine).save_state(2);
+    check(!state.empty() && state != state_before_step,
+          "E7 noise witness must have nontrivial, advancing state");
+    const auto *prepared = fake::engine;
+    check(call("e7-small", "setBufferFrames", {{"frames", 128}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 smaller buffer must retain both engine and exact quiescent state");
+    check(call("e7-fit", "setBufferFrames", {{"frames", 256}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 original prepared capacity must remain usable after a smaller stream");
+    check(app_engine_native(fake::engine).save_state(4) == clock_state &&
+              app_engine_native(fake::engine).save_state(5) == envelope_state,
+          "E7 smaller buffer must preserve clock and tail state exactly");
+    render(16);
+    check(witness(7, 0, 15) > 0.5f && witness(5, 0, 15) > 0.5f,
+          "E7 smaller buffer must render the held note envelope and tail after resume");
+    const auto next_noise = app_engine_native(fake::engine).save_state(2);
+    const auto next_clock = app_engine_native(fake::engine).save_state(4);
+    const auto next_envelope = app_engine_native(fake::engine).save_state(5);
+    // Deliberately exercise the engine's unsupported-blob retention: this is
+    // not a live VCO snapshot and must not be carried by E7 as one.
+    const std::vector<uint8_t> unsupported{99, 0, 0, 0};
+    check(app_engine_native(fake::engine).load_state(3, unsupported) == WS2_UNSUPPORTED &&
+              app_engine_native(fake::engine).preserved_state(3) == unsupported,
+          "E7 unsupported state witness must be retained by the old engine");
+    auto larger = call("e7-large", "setBufferFrames", {{"frames", 512}});
+    check(larger["ok"] == true && fake::engine != prepared,
+          "E7 larger buffer must rebuild a runnable engine");
+    check(app_engine_native(fake::engine).save_state(2) == next_noise,
+          "E7 larger buffer must restore nontrivial stopped-instance state");
+    check(app_engine_native(fake::engine).save_state(4) == next_clock &&
+              app_engine_native(fake::engine).save_state(5) == next_envelope &&
+              app_engine_native(fake::engine).preserved_state(3).empty(),
+          "E7 larger buffer must restore clock/tail but not stale unsupported bytes");
+    render(16);
+    check(witness(5, 0, 15) > 0.5f,
+          "E7 larger buffer must render the saved envelope tail after resume");
+    const auto restored_noise = app_engine_native(fake::engine).save_state(2);
+    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}},
+                                       {{"moduleId", 6}, {"module", "host.keyboard"}},
+                                       {{"moduleId", 7}, {"module", "essentials.adsr"}}});
+    check(larger["result"]["freshModules"] == fresh_vco,
+          "E7 must name the module without a save hook, not the restored Noise");
+    auto rate = call("e7-rate", "setSampleRate", {{"hz", 44100}});
+    check(rate["ok"] == true && rate["result"]["freshModules"] == fresh_vco &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 rate change must attempt saved state and name unavailable hooks");
+    const auto *at_rate = fake::engine;
+    fake::rejected_rate = 96000;
+    check(call("e7-rate-refused", "setSampleRate", {{"hz", 96000}})["ok"] == false &&
+              fake::engine == at_rate && app_engine_native(fake::engine).save_state(2) == restored_noise &&
+              audio(s)["sampleRate"] == 44100,
+          "E7 refused rate must roll back the original graph and state");
+    fake::rejected_rate = 0;
+    fake::outputs.push_back(output("E7 second stereo", 1));
+    auto device = call("e7-device", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
+    check(device["ok"] == true && !device.contains("result") && fake::engine == at_rate &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 ordinary device switch must retain the prepared engine");
+    fake::accept_block = 128;
+    fake::preferred = 128;
+    auto smaller_driver = call("e7-driver-small", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
+    check(smaller_driver["ok"] == true && !smaller_driver.contains("result") &&
+              fake::engine == at_rate && audio(s)["bufferFrames"] == 128 &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 preferred driver size inside prepared capacity must retain the graph");
+    fake::accept_block = 1024;
+    fake::preferred = 1024;
+    auto larger_driver = call("e7-driver-large", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
+    check(larger_driver["ok"] == true && larger_driver["result"]["freshModules"] == fresh_vco &&
+              fake::engine != at_rate && audio(s)["bufferFrames"] == 1024 &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 preferred driver size beyond capacity must restore matching stopped state");
+    // The replacement stream can open successfully, then persistence can fail.
+    // Force that exact path; the old device must still accept its old block.
+    const auto *before_failed_persist = fake::engine;
+    const auto before_failed_gen = s.status()["gen"];
+    const auto before_failed_clock = app_engine_native(fake::engine).save_state(4);
+    const auto before_failed_envelope = app_engine_native(fake::engine).save_state(5);
+    auto read_preferences = [&] {
+        std::ifstream file(options.settings);
+        Json saved;
+        file >> saved;
+        return saved;
+    };
+    const auto before_failed_prefs = read_preferences();
+    auto temp = std::filesystem::path(options.settings);
+    temp += ".tmp";
+    check(std::filesystem::create_directory(temp), "E7 obstruct the temporary settings file");
+    fake::accept_block = 2048;
+    fake::preferred = 2048;
+    fake::accept_block_device = "E7 stereo";
+    const auto before_failed_attempts = fake::attempts.size();
+    auto failed_persist = call("e7-persist-refused", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
+    check(fake::attempts.size() == before_failed_attempts + 3 &&
+              fake::blocks[fake::blocks.size() - 3] == 1024 &&
+              fake::blocks[fake::blocks.size() - 2] == 2048 &&
+              fake::blocks.back() == 1024,
+          "E7 must actually open the larger candidate then reopen the original block");
+    check(failed_persist["ok"] == false && !failed_persist.contains("result") &&
+              fake::engine == before_failed_persist && s.status()["gen"] == before_failed_gen &&
+              audio(s)["state"] == "running" && audio(s)["deviceId"] == "E7 second stereo" &&
+              audio(s)["bufferFrames"] == 1024 && read_preferences() == before_failed_prefs,
+          "E7 failed persistence must restore the original graph, stream and settings");
+    check(app_engine_native(fake::engine).save_state(2) == restored_noise &&
+              app_engine_native(fake::engine).save_state(4) == before_failed_clock &&
+              app_engine_native(fake::engine).save_state(5) == before_failed_envelope,
+          "E7 post-open rollback must preserve the original stopped DSP state");
+    std::filesystem::remove(temp);
+    fake::accept_block_device.clear();
+    fake::accept_block = 0;
+    fake::preferred = 0;
+    s.shutdown();
+}
+
+
+void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // fake backend only
+    options.rate = 96000;
+    options.settings = (root / "e7-c2.json").string();
+    fake::outputs = {output("E7 C2 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "sound.spectral"}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 3}, {"port", "a"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 3}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}
+    };
+    check(call("c2-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "C2 spectral witness must prepare at 96 kHz");
+    check(bool(fake::freeze_render), "C2 callback quiescence seam available");
+    fake::freeze_render();
+    fake::render = false;
+    // Spectral v2 state: second LE u32 is hop_pos. At default size 2048
+    // the hop is 1024 at 96 kHz and 512 at 48 kHz. Obtain a valid live
+    // high-rate position that the lower-rate module explicitly refuses.
+    auto hop = [](const std::vector<uint8_t> &bytes) {
+        check(bytes.size() == 13 * sizeof(uint32_t), "C2 spectral v2 state shape");
+        return uint32_t(bytes[4]) | (uint32_t(bytes[5]) << 8) |
+               (uint32_t(bytes[6]) << 16) | (uint32_t(bytes[7]) << 24);
+    };
+    std::array<float, 64> samples{};
+    auto state = app_engine_native(fake::engine).save_state(3);
+    for (unsigned n = 0; n < 32 && hop(state) < 512; ++n) {
+        check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+              "C2 step the live high-rate spectral engine");
+        state = app_engine_native(fake::engine).save_state(3);
+    }
+    check(hop(state) >= 512 && hop(state) < 1024,
+          "C2 real saved hop must be valid at 96 kHz but invalid at 48 kHz");
+    const auto noise = app_engine_native(fake::engine).save_state(2);
+    const auto *before = fake::engine;
+    const auto reply = call("c2-rate", "setSampleRate", {{"hz", 48000}});
+    check(reply["ok"] == true && fake::engine != before &&
+              audio(s)["sampleRate"] == 48000 && audio(s)["state"] == "running",
+          "C2 actual module refusal must not refuse the stream change");
+    const Json refused = Json::array({{{"moduleId", 3}, {"module", "sound.spectral"}}});
+    check(reply["result"]["freshModules"] == refused &&
+              hop(app_engine_native(fake::engine).save_state(3)) == 0 &&
+              app_engine_native(fake::engine).save_state(2) == noise,
+          "C2 refused Spectral starts fresh and compatible Noise restores");
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "C2 new stream remains runnable after the module refusal");
+    s.shutdown();
 }
 
 int main() {
@@ -487,10 +745,18 @@ int main() {
             check(rate["ok"] == true && rate["gen"] == "1" && audio(s)["state"] == "running" &&
                       audio(s)["sampleRate"] == 44100 && audio(s)["bufferFrames"] == 256,
                   "rate ack requires a running new stream");
+            check(rate["result"]["freshModules"] == Json::array(),
+                  "E7 rebuild without uncarried instances must report an empty list");
+            // E7: the prepared 256-frame engine must survive a smaller stream.
+            const auto prepared_engine = fake::engine;
+            const auto before_buffer_restart = fake::stopped;
             auto frames = call("frames", "setBufferFrames", {{"frames", 128}});
             check(frames["ok"] == true && frames["gen"] == "2" && audio(s)["sampleRate"] == 44100 &&
                       audio(s)["bufferFrames"] == 128,
                   "buffer restart must keep selected rate");
+            check(!frames.contains("result"), "E7 retained engine must omit the rebuild result");
+            check(fake::engine == prepared_engine && fake::stopped == before_buffer_restart + 1,
+                  "E7 smaller buffer must restart the stream without rebuilding the prepared engine");
             std::ifstream saved(options.settings);
             Json prefs;
             saved >> prefs;
@@ -934,6 +1200,8 @@ int main() {
         fake::accept_block = 0;
         fake::preferred = 0;
         options.block = saved_block;
+        test_e7_state_restart(root);
+        test_e7_rate_dependent_state_refusal(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';

@@ -26,7 +26,10 @@ Do not judge designs or grade findings; quote and link only.
 
 Read:
 1. docs/workflow/ARCHITECT_INBOX.md (Open rows) and docs/workflow/CURRENT.md.
-2. Open PRs/issues labelled needs/architect or needs/fable:
+2. Open PRs/issues labelled needs/architect or needs/fable, **and every open item whose label contains
+   `review` or `architect`** (`review-required`, `review-ready`, `status/review`, `architect-ready`, …).
+   The Architect owns all independent and Claude contract reviews. Read the pinned request,
+   distinguish ready heads from CI waits, and report items without inbox rows:
    gh api -X GET search/issues -f q='repo:kalharbi11/wirescape-lab is:open is:pull-request label:needs/architect'
    (repeat with is:issue, and with label:needs/fable). gh is allowed for search only; use
    `gh api repos/kalharbi11/wirescape-lab/issues/<n>/comments` to read the last 2 comments of each.
