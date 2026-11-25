@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Delivery handoff — 2026-11-24 21:13 EST
+
+- #479 merged `3f708c8` for the A64 clocked-division follow-up. #463 merged `a8b3423`; A67 asks who owns the separately scoped enqueue fix, with the diagnostic complete.
+- #291 exact `a875881` D5 is published and independent H1 re-review pinned. The Architect now owns all independent and Claude reviews. Open queue includes H1, A65 S7.9, A66 #467 facts, A67 OSC, A64 follow-up, A68 for the measured A62 larger-buffer acceptance disposition, and B5-CN for the E5 adopt fixture and transition-cost method.
+- #436 E5 non-draft at `31ab651` needs full gates, [#480](https://github.com/kalharbi11/wirescape-lab/issues/480) continuity and a signed Result before review. B5 owns the product and fixture pointers; B1 owns the harness/facts; #485 is the disjoint stock no-adopt capture under #480. Synthetic adopt evidence waits on B5-CN. #462 has a second Windows correction awaiting exact-head evidence; B2 #482 egress diagnostic is test-first.
+- Removed retired coordination timer and retired manager instructions. Retired the T7.0 capture workflow under A47 after the final-head S7.5 capture and D5 publication. The existing captured artifacts, collector and other CI gates remain available.
+- Route to OB1: E5 and CN, remaining S7.5/S7.6/S7.9 and OB-d, owner-folder and OB-f1, candidate Pi checks, Architect acceptance and tag. See BUILDERS for safe parallel starts.
+
+Signed: codex-lead, 2026-11-24, 21:13 EST
+
 ## Architect run 33 — 2026-11-24 20:15 EST: E7 approved and merged, A64 ruled (scheduled `architect:run`)
 
 - **E7 #442** (Claude contract-review, lead pin 7148957226): [approved](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7149034643) at `2959f7e` and **merged `94d1b0b`** as a lead action, because it blocked B1 CN, B3 #457 and the E5 sync. C1/C2, A62 reply semantics, rollback and resource lifetime, G6 27/27×3 and G8 paired 100/0 were all checked at the exact head. Lows: L1, a note-off during the rule-1 gap can leave a note held (added to the owner's Pi checks); L2, the telemetry `groove_enabled` alignment; L3, the advisory instruction comparison is not G8. #431 closed; review labels cleared.
@@ -367,7 +377,7 @@ Signed: codex-lead, 2026-11-24, 03:23 EST
   disposition remains separate. #291 T7.0 capture completed at `733cff4` (run 45352415110),
   with metric verification, R3 and D5 remaining. #393 still needs its signed K1 Result and the
   T7.0 capture-workflow retirement check.
-- Owner approved the revised [coordination trial](../context/COORDINATION_MANAGER.md).
+- Owner approved the revised [coordination trial record](https://github.com/kalharbi11/wirescape-lab/issues/402).
   Fresh lead windows are eight hours apart, twelve at 50% weekly remaining, manual only at
   25%. Terra posts closeout reports and usage snapshots to [#402](https://github.com/kalharbi11/wirescape-lab/issues/402).
   Current manager routing remains manual until the first scheduled lead window.

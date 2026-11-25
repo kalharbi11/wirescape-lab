@@ -14,7 +14,7 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 | `gpt-lead` | Codex | delivery lead ([lead brief](docs/context/CODEX_LEAD.md)): keeps lanes moving, checks evidence, merges what it is delegated, prepares Architect and review requests; trigger `lead:run` |
 | `claude-lead` | Claude | the same lead role when the owner assigns it to Claude; trigger `claude lead: run`. One lead is active at a time (named in CURRENT) |
 | `gpt-builder1` … `gpt-builder5` | ChatGPT chat | lanes B1–B5 in [BUILDERS](docs/workflow/BUILDERS.md): implement, test, correct, post Results, move to the next lane task |
-| `gpt-reviewer`, `claude-reviewer` | GPT / Claude | independent review when a contract or the owner names them |
+| Review authority | Claude Architect | All independent and Claude contract reviews; owner or lead batches ready requests |
 
 **Short triggers (no other instruction needed):**
 | Trigger | Read first, in order |
@@ -27,10 +27,8 @@ A trigger never grants authority beyond the accepted contract.
 
 ## Owner-started runs (2026-11-24)
 
-The manager and Luna coordinator trial is cancelled. The owner starts and resumes the persistent
-lead, Architect, reviewer and builder sessions manually. Keep releases and pinned requests in
-GitHub and list the runnable triggers for the owner. Keep standing releases and draft-ahead work
-available within a running builder session.
+The owner starts persistent builder and lead sessions. Keep releases and pinned requests in
+GitHub. The Architect can be started by the owner or by one verified ready-batch trigger.
 
 Every lead interaction, including a question without `lead:run`, starts with a minimal check of
 the latest Architect rulings, signed reviews and lane updates for B1–B5. Resolve lead-owned items,
@@ -59,11 +57,12 @@ See the [Codex instructions](CODEX.md) and [lead brief](docs/context/CODEX_LEAD.
      comment when you do.
 
 ## Rules
-- **Review requests:** `review-required` marks a merge condition. For a merge-ready head, the lead
-  pins a request with full base/head SHAs, criteria and reviewer role. Architect reviews also get
-  an inbox row plus `needs/architect`. Give the owner the request link and manual trigger.
-  `review-ready` and `architect-ready` are automation triggers. Keep them off manual requests.
-  See the [label lifecycle](docs/workflow/README.md#github-labels-for-work-and-review).
+- **Review requests:** The Claude Architect performs all independent and Claude contract reviews under the owner's
+  2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+  `review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+  on the PR. Architect independence and all contract gates still apply. The owner or lead may
+  apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+  wake serves the whole inbox. The owner may also run `architect:run` manually.
 - **Auto-merge (owner, 2026-11-24):** for `merge: lead` tasks with no review condition, the lead
   enables auto-merge at release. Required exact-head checks still gate it.
 - **Reaching the Architect:** one row in `docs/workflow/ARCHITECT_INBOX.md` plus `needs/architect`.

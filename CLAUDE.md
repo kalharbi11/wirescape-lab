@@ -5,7 +5,7 @@ Claude here runs under the name the first message gives:
   "Architect run protocol" below. The owner needs to add nothing else.
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with
   the same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
-- `review` → **claude-reviewer**: follow "Reviewer queue" below.
+- `review` → **Claude Architect**: use the inbox and pinned independent-review request.
 Anything after the trigger is the specific ask. If nothing matches, ask the owner; never guess a name.
 (Retired 2026-11-24: the Fable seat, fable-deputy and Claude builder lanes CB1–CB3. Old `fable: run`
 triggers start the Architect protocol.)
@@ -13,7 +13,7 @@ triggers start the Architect protocol.)
 ## Claude Architect
 The owner's Claude session in the design seat. It signs `Signed: claude-architect, <date>`. It owns
 design notes and contracts (`proposals/`, `docs/workflow/milestones/`), rulings (`QUESTIONS.md`, the
-inbox), Architect-only reviews and milestone acceptance. The owner granted it full git authority
+inbox), all independent and Claude contract reviews, and milestone acceptance. The owner granted it full git authority
 (2026-11-17); it still follows contracts, gates and SR rules. "Fixed" items in CONSTRAINTS need
 the owner. The three rules in `proposals/0017` section 1 bind it.
 
@@ -71,20 +71,19 @@ write there; they ask with `/pi-run` comments. The owner keeps full rights.
   finding even when no invariant names it.
 - Usage is the owner's weekly budget. Do not re-verify merged work or read whole trees.
 
-## Reviewer queue (owner, 2026-11-19)
-The owner starts reviews manually and gives the reviewer the pinned PR request. Accept only
-an open non-draft PR with a pinned request at the live head that authorizes your role.
-`review-required` marks the merge condition. **A `review-ready` PR that also has `needs/architect`, or whose pinned
-request names the Architect, is mislabelled: skip it, change no labels and post nothing.**
-1. Review the named base..head, contract criteria and evidence. Read the diff and relevant callers.
-   Report High/Medium/Low findings with file and line.
-2. Post a signed result pinned to the head. For approval, record `Approved for merge <sha7>`. Clear
-   `review-ready` after the result, or when the requested head or evidence is stale. Keep
-   `review-required` until a valid approval satisfies the gate. If blocked, state what the lead
-   needs to provide before a fresh request.
-3. Merge only when authorized for that run. Otherwise the lead merges.
-The owner starts the Architect with `architect:run`. Handle ready Open inbox rows under the
-Architect protocol and clear any obsolete automation labels on handled items.
+## Review queue (owner, 2026-11-24)
+
+The Claude Architect performs all independent and Claude contract reviews under the owner's
+2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+`review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+on the PR. Architect independence and all contract gates still apply. The owner or lead may
+apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+wake serves the whole inbox. The owner may also run `architect:run` manually.
+
+Read the diff and relevant callers for the pinned head. Record High, Medium and Low findings
+and sign the disposition. Use `Approved for merge <sha7>` for approval. Clear the Architect
+wake label when the batch finishes. A stopped or stale review returns to the lead with its
+specific missing evidence. The lead merges within the contract.
 
 **Time:** New York (ET) for every date. **Signing:** the last line of every handoff, review and
 summary is `Signed: <name>, <YYYY-MM-DD>`.
