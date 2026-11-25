@@ -265,7 +265,7 @@ export class RealEngine implements EngineClient {
     };
     const timer = window.setTimeout(fail, 5000);
     this.pending.set(id, { session, type: 'hello', kind: 'query', timeout: timer,
-      resolve: () => finish(true), reject: () => finish(false) });
+      resolve: reply => finish(reply.ok === true) });
     try { this.send(id, 'hello', { capabilities: ['configDeferred'] }); }
     catch { fail(); }
   }
@@ -478,6 +478,7 @@ export class RealEngine implements EngineClient {
       this.pending.delete(message.re);
       return;
     }
+    if (p.type === 'hello' && !validateProtocolV0(message)) return;
     const g = generation(message.gen);
     if (p.kind !== 'restart' && (g === null || g < BigInt(this.gen))) return;
     this.pending.delete(message.re);
@@ -486,6 +487,7 @@ export class RealEngine implements EngineClient {
       this.gen = message.gen as string;
       this.playhead = {}; this.statusGen = '';
     }
+    if (p.type === 'hello') { p.resolve?.(message); return; }
     if (message.ok !== true) {
       const err = refusal(message.code, message.message);
       if (p.kind === 'load') {
