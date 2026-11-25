@@ -87,8 +87,13 @@ struct HostKeyboard {
             }
         b.split(
             [&](uint32_t first, uint32_t end) {
+                // Constant controls cannot change within this split range.
+                // Keep event-offset configuration below and sample evaluation
+                // for either nonconstant control.
+                const bool fixed_config = b.param(0).constant() && b.param(1).constant();
+                if (fixed_config) configure_at(b, first, emit);
                 for (uint32_t i = first; i < end; ++i) {
-                    configure_at(b, i, emit);
+                    if (!fixed_config) configure_at(b, i, emit);
                     for (int p = 0; p < 3; ++p) {
                         b.out(p).set_channels(core.allocator().voice_count());
                         b.out(p).mark_constant(false);
