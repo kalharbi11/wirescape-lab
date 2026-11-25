@@ -6,6 +6,9 @@
 #include "../vca/dsp.h"
 #include "../vco/dsp.h"
 #include "dsp.h"
+#include "../../tests/native/abi2/dsp_fixture.h"
+#include <memory>
+#include <cstring>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -304,8 +307,265 @@ static void reclamation_burst() {
     std::cout << "source_reclamation rate=48000 block=128 events=64 bursts=16 worst_ns=" << worst
               << " period_ns=2666666 allocations=0 (timing report only)\n";
 }
+
+static std::vector<uint8_t> e7c_save(DspFixture& f) {
+    check(f.d->save_state && f.d->load_state, "A70 voice-chain hooks present");
+    std::vector<uint8_t> bytes;
+    ws2_writer w{sizeof(w), &bytes, [](void* ctx, const void* p, uint32_t n) {
+        auto& b = *static_cast<std::vector<uint8_t>*>(ctx);
+        auto* first = static_cast<const uint8_t*>(p);
+        b.insert(b.end(), first, first+n);
+        return int(WS2_OK);
+    }};
+    check(f.d->save_state(f.state, &w) == WS2_OK && !bytes.empty(), "A70 voice-chain save");
+    return bytes;
+}
+static int e7c_load(DspFixture& f, const std::vector<uint8_t>& bytes) {
+    struct Cursor { const std::vector<uint8_t>& b; size_t pos = 0; } c{bytes};
+    ws2_reader r{sizeof(r), &c, [](void* ctx, void* p, uint32_t n) {
+        auto& c = *static_cast<Cursor*>(ctx);
+        if (n > c.b.size()-c.pos) return int(WS2_INVALID);
+        std::memcpy(p, c.b.data()+c.pos, n); c.pos += n;
+        return int(WS2_OK);
+    }, uint32_t(bytes.size())};
+    return f.d->load_state(f.state, &r);
+}
+static void e7c_keyboard_roundtrip() {
+    const auto* d = ws::Module<ws2ports::HostKeyboard>::descriptor();
+    auto a=std::make_unique<DspFixture>(d,48000.,1);
+    auto b=std::make_unique<DspFixture>(d,48000.,1);
+    auto rate=std::make_unique<DspFixture>(d,44100.,1);
+    std::vector<ws2_event> log_a,log_b;
+    ws2_event_out out_a[4]{},out_b[4]{};
+    auto push=[](void* ctx,uint32_t,const ws2_event* e){
+        static_cast<std::vector<ws2_event>*>(ctx)->push_back(*e);return int(WS2_OK);
+    };
+    out_a[3]={sizeof(ws2_event_out),&log_a,3,push};
+    out_b[3]={sizeof(ws2_event_out),&log_b,3,push};
+    a->process.event_outputs=out_a; b->process.event_outputs=out_b;
+    for(auto*f:{a.get(),b.get(),rate.get()})f->parameter[0][0][0]=2.f;
+    auto on=note({WS2_NOTE_ON,67,391,0,7});
+    on.offset=17;
+    a->process.events={sizeof(ws2_event_list),1,&on};
+    a->run(128);
+    a->process.events={sizeof(ws2_event_list),0,nullptr};
+    a->run(128);
+    check(log_a.size()==1 && log_a[0].note_id==391,"held explicit note emitted");
+    const auto saved=e7c_save(*a);
+    check(e7c_load(*b,saved)==WS2_OK,"fresh instance load");
+    log_a.clear();
+    auto compare=[&](){
+        a->run(128);b->run(128);
+        for(uint32_t p=0;p<3;++p){
+            check(a->outs[p].channels==b->outs[p].channels,"keyboard restored width");
+            for(uint32_t c=0;c<a->outs[p].channels;++c)
+                check(std::memcmp(a->output[p][c],b->output[p][c],128*sizeof(float))==0,"keyboard CV continuation");
+        }
+    };
+    compare();
+    check(log_a.empty()&&log_b.empty(),"restore does not re-emit");
+    auto off=note({WS2_NOTE_OFF,67,391,0,7});
+    off.offset=31;
+    a->process.events=b->process.events={sizeof(ws2_event_list),1,&off};
+    compare();
+    check(log_a.size()==1&&log_b.size()==1&&log_b[0].type==WS2_NOTE_OFF&&
+        log_b[0].note_id==391&&log_b[0].source_id==7&&log_b[0].offset==31,
+        "restored held identity must emit later NOTE_OFF");
+    auto current=e7c_save(*b),bad=saved;bad[0]=99;
+    check(e7c_load(*b,bad)==WS2_UNSUPPORTED&&e7c_save(*b)==current,"unknown version refused atomically");
+    bad=saved;bad.pop_back();
+    check(e7c_load(*b,bad)==WS2_INVALID&&e7c_save(*b)==current,"truncation refused atomically");
+    check(e7c_load(*rate,saved)==WS2_INVALID,"C2 rate mismatch refused");
+    // Version-1 wire header: Keyboard 20 bytes, core cursor at byte 60.
+    for(size_t offset:{size_t(28),size_t(32),size_t(60),size_t(64),size_t(72)}){
+        bad=saved;bad[offset]=255;
+        check(e7c_load(*b,bad)==WS2_INVALID&&e7c_save(*b)==current,
+              "malformed policy, priority, cursor or source rejected atomically");
+    }
+}
+
+static void e7c_keyboard_anonymous_and_pending() {
+    const auto* d=ws::Module<ws2ports::HostKeyboard>::descriptor();
+    auto a=std::make_unique<DspFixture>(d,48000.,1);
+    auto b=std::make_unique<DspFixture>(d,48000.,1);
+    struct Sink { bool accept=true; std::vector<ws2_event> notes; } sa,sb;
+    auto push=[](void* ctx,uint32_t,const ws2_event* e){
+        auto& s=*static_cast<Sink*>(ctx);
+        if(!s.accept)return int(WS2_CAPACITY);
+        s.notes.push_back(*e);return int(WS2_OK);
+    };
+    ws2_event_out oa[4]{},ob[4]{};
+    oa[3]={sizeof(ws2_event_out),&sa,3,push};
+    ob[3]={sizeof(ws2_event_out),&sb,3,push};
+    a->process.event_outputs=oa;b->process.event_outputs=ob;
+    for(auto*f:{a.get(),b.get()}){
+        f->parameter[0][0][0]=2.f;
+        f->parameter[1][0][0]=3.f; // Mono: earlier held note must be restored for fallback.
+    }
+    auto on1=note({WS2_NOTE_ON,60,-1,0,13});
+    auto on2=note({WS2_NOTE_ON,67,-1,0,13});
+    auto run=[](DspFixture& f,ws2_event* e){
+        f.process.events={sizeof(ws2_event_list),e?1u:0u,e};f.run(128);
+    };
+    run(*a,&on1);run(*a,&on2);
+    const auto saved=e7c_save(*a);
+    check(e7c_load(*b,saved)==WS2_OK,"mono anonymous stack restores");
+    sa.notes.clear();
+    run(*a,nullptr);run(*b,nullptr);
+    check(sa.notes.empty()&&sb.notes.empty(),"mono restore no duplicate attack");
+    auto off2=note({WS2_NOTE_OFF,67,-1,0,13});
+    run(*a,&off2);run(*b,&off2);
+    check(sa.notes.size()==sb.notes.size()&&sb.notes.size()==2&&
+          sb.notes[1].type==WS2_NOTE_ON&&sb.notes[1].key==60&&
+          sb.notes[1].note_id==sa.notes[1].note_id,"anonymous mono fallback identity");
+    for(uint32_t p=0;p<3;++p)
+        check(std::memcmp(a->output[p][0],b->output[p][0],128*sizeof(float))==0,
+              "mono fallback CV bit-identical");
+    auto off1=note({WS2_NOTE_OFF,60,-1,0,13});
+    sb.accept=false;
+    run(*b,&off1); // delivered note, refused release => pending release
+    auto sink=[](void*,const void*,uint32_t){return int(WS2_OK);};
+    ws2_writer w{sizeof(w),nullptr,sink};
+    check(d->save_state(b->state,&w)==WS2_INVALID,"pending release cannot claim exact carry");
+    sb.accept=true;run(*b,nullptr);
+    check(d->save_state(b->state,&w)==WS2_OK,"delivered release permits carry");
+    sb.accept=false;run(*b,&on1);
+    check(d->save_state(b->state,&w)==WS2_INVALID,"unemitted attack cannot claim exact carry");
+}
+
+static void e7c_vco_vca_roundtrip() {
+    const auto* d=ws::Module<ws2ports::Vco>::descriptor();
+    auto a=std::make_unique<DspFixture>(d,48000.,1);
+    auto b=std::make_unique<DspFixture>(d,48000.,1);
+    auto rate=std::make_unique<DspFixture>(d,44100.,1);
+    for(auto*f:{a.get(),b.get(),rate.get()}){
+        f->ins[0].flags=WS2_CONSTANT;f->ins[0].channels=0; // note-driven frequency
+    }
+    auto on=note({WS2_NOTE_ON,74,21,0,9});on.offset=19;
+    a->process.events={sizeof(ws2_event_list),1,&on};
+    a->run(128);
+    a->process.events={sizeof(ws2_event_list),0,nullptr};
+    a->run(128);
+    const auto saved=e7c_save(*a);
+    check(e7c_load(*b,saved)==WS2_OK,"VCO fresh-state phase and frequency");
+    auto compare=[&](){
+        a->run(128);b->run(128);
+        check(std::memcmp(a->output[0][0],b->output[0][0],128*sizeof(float))==0,
+              "VCO continuation phase/event pitch bit-identical");
+    };
+    compare();
+    auto choke=note({WS2_NOTE_CHOKE,74,21,0,9});choke.offset=33;
+    a->process.events=b->process.events={sizeof(ws2_event_list),1,&choke};
+    compare();
+    const auto current=e7c_save(*b);
+    auto bad=saved;bad[0]=99;
+    check(e7c_load(*b,bad)==WS2_UNSUPPORTED&&e7c_save(*b)==current,"VCO unknown version atomic");
+    bad=saved;bad.pop_back();
+    check(e7c_load(*b,bad)==WS2_INVALID&&e7c_save(*b)==current,"VCO truncated atomic");
+    bad=saved;bad[24]=2; // first voice's encoded note_active
+    check(e7c_load(*b,bad)==WS2_INVALID&&e7c_save(*b)==current,"VCO malformed active flag atomic");
+    check(e7c_load(*rate,saved)==WS2_INVALID,"VCO C2 mismatch refused");
+
+    d=ws::Module<ws2ports::Vca>::descriptor();
+    auto gain=std::make_unique<DspFixture>(d,48000.,1);
+    auto gain_fresh=std::make_unique<DspFixture>(d,44100.,1);
+    gain->run(128);
+    const auto vca=e7c_save(*gain);
+    check(vca.size()==4&&e7c_load(*gain_fresh,vca)==WS2_OK,"VCA version-only C2 adaptation");
+    gain->run(128);gain_fresh->run(128);
+    check(std::memcmp(gain->output[0][0],gain_fresh->output[0][0],128*sizeof(float))==0,
+          "VCA stateless cross-rate sample equality");
+    bad=vca;bad[0]=99;
+    check(e7c_load(*gain_fresh,bad)==WS2_UNSUPPORTED&&e7c_save(*gain_fresh)==vca,"VCA version refused");
+    bad=vca;bad.pop_back();
+    check(e7c_load(*gain_fresh,bad)==WS2_INVALID&&e7c_save(*gain_fresh)==vca,"VCA truncated refused");
+}
+
+
+static void e7c_keyboard_differing_controls() {
+    const auto* d=ws::Module<ws2ports::HostKeyboard>::descriptor();
+    for(bool change_mode:{false,true}){
+        auto a=std::make_unique<DspFixture>(d,48000.,1);
+        auto b=std::make_unique<DspFixture>(d,48000.,1);
+        std::vector<ws2_event> la,lb;
+        ws2_event_out oa[4]{},ob[4]{};
+        auto push=[](void* ctx,uint32_t,const ws2_event* e){
+            static_cast<std::vector<ws2_event>*>(ctx)->push_back(*e);
+            return int(WS2_OK);
+        };
+        oa[3]={sizeof(ws2_event_out),&la,3,push};
+        ob[3]={sizeof(ws2_event_out),&lb,3,push};
+        a->process.event_outputs=oa;b->process.event_outputs=ob;
+        a->parameter[0][0][0]=4.f;a->parameter[1][0][0]=0.f;
+        std::array<ws2_event,4> chord{};
+        for(int c=0;c<4;++c){
+            chord[c]=note({WS2_NOTE_ON,60+4*c,100+c,0,7});
+            chord[c].offset=uint32_t(c*8);
+        }
+        a->process.events={sizeof(ws2_event_list),4,chord.data()};
+        a->run(128);
+        check(la.size()==4,"A73 live oracle four delivered notes");
+        a->process.events={sizeof(ws2_event_list),0,nullptr};
+        a->run(128);
+        const auto saved=e7c_save(*a);
+        // The fresh instance has never processed, but its actual first-block
+        // controls already differ. Load can see only the staged saved config.
+        for(auto*f:{a.get(),b.get()}){
+            f->parameter[0][0][0]=change_mode?4.f:2.f;
+            f->parameter[1][0][0]=change_mode?3.f:0.f;
+        }
+        check(e7c_load(*b,saved)==WS2_OK,"A73 fresh differing-controls load");
+        la.clear();
+        check(lb.empty(),"A73 load emits nothing");
+        auto compare=[&](){
+            a->run(128);b->run(128);
+            for(uint32_t p=0;p<3;++p){
+                const uint32_t width=change_mode?1u:2u;
+                check(a->outs[p].channels==width&&b->outs[p].channels==width,
+                      "A73 live and fresh configured widths");
+                for(uint32_t c=0;c<width;++c)
+                    check(std::memcmp(a->output[p][c],b->output[p][c],128*sizeof(float))==0,
+                          "A73 differing controls match live CV samples");
+            }
+            check(la.size()==lb.size(),"A73 same live release count");
+            for(size_t i=0;i<la.size();++i){
+                const auto& x=la[i];const auto& y=lb[i];
+                check(x.type==y.type&&x.channel==y.channel&&x.key==y.key&&
+                      x.note_id==y.note_id&&x.source_id==y.source_id&&
+                      x.offset==y.offset&&x.value==y.value,
+                      "A73 same live event identity and timing");
+            }
+        };
+        compare();
+        check(lb.size()==(change_mode?4u:2u),"A73 exact released voice count");
+        for(size_t i=0;i<lb.size();++i){
+            const int lane=int(i)+(change_mode?0:2);
+            const auto& e=lb[i];
+            check(e.type==(change_mode?WS2_NOTE_CHOKE:WS2_NOTE_OFF)&&
+                  e.channel==lane&&e.key==60+4*lane&&e.note_id==100+lane&&
+                  e.source_id==7&&e.offset==0,"A73 only expected live releases, no attack");
+        }
+        for(uint32_t c=0;c<b->outs[1].channels;++c)
+            for(uint32_t i=0;i<128;++i)
+                check(b->output[1][c][i]==(change_mode?0.f:1.f),"A73 retained/cleared gate");
+        la.clear();lb.clear();
+        compare();
+        check(lb.empty(),"A73 settled block no duplicate release or attack");
+        auto off=note({WS2_NOTE_OFF,60,100,0,7});off.offset=41;
+        a->process.events=b->process.events={sizeof(ws2_event_list),1,&off};
+        compare();
+        if(change_mode)check(lb.empty(),"A73 old note no longer active after mode change");
+        else check(lb.size()==1&&lb[0].type==WS2_NOTE_OFF&&lb[0].note_id==100&&
+                   lb[0].offset==41,"A73 retained voice releases its original identity");
+    }
+}
+
 int main() {
     try {
+        e7c_keyboard_roundtrip();
+        e7c_keyboard_differing_controls();
+        e7c_keyboard_anonymous_and_pending();
+        e7c_vco_vca_roundtrip();
         reclamation_burst();
         shared_tests();
         live_voice_resize();

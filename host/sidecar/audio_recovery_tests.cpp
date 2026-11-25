@@ -398,15 +398,16 @@ void test_e7_state_restart(const std::filesystem::path &root) {
     check(witness(5, 0, 15) > 0.5f,
           "E7 larger buffer must render the saved envelope tail after resume");
     const auto restored_noise = app_engine_native(fake::engine).save_state(2);
-    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}},
+    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}}});
+    const Json fresh_rate = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}},
                                        {{"moduleId", 6}, {"module", "host.keyboard"}},
                                        {{"moduleId", 7}, {"module", "essentials.adsr"}}});
     check(larger["result"]["freshModules"] == fresh_vco,
-          "E7 must name the module without a save hook, not the restored Noise");
+          "E7 must name only the deliberately unsupported VCO, not restored modules");
     auto rate = call("e7-rate", "setSampleRate", {{"hz", 44100}});
-    check(rate["ok"] == true && rate["result"]["freshModules"] == fresh_vco &&
+    check(rate["ok"] == true && rate["result"]["freshModules"] == fresh_rate &&
               app_engine_native(fake::engine).save_state(2) == restored_noise,
-          "E7 rate change must attempt saved state and name unavailable hooks");
+          "E7 rate change must attempt saved state and name the C2-refused voice chain");
     const auto *at_rate = fake::engine;
     fake::rejected_rate = 96000;
     check(call("e7-rate-refused", "setSampleRate", {{"hz", 96000}})["ok"] == false &&
@@ -429,7 +430,7 @@ void test_e7_state_restart(const std::filesystem::path &root) {
     fake::accept_block = 1024;
     fake::preferred = 1024;
     auto larger_driver = call("e7-driver-large", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
-    check(larger_driver["ok"] == true && larger_driver["result"]["freshModules"] == fresh_vco &&
+    check(larger_driver["ok"] == true && larger_driver["result"]["freshModules"] == Json::array() &&
               fake::engine != at_rate && audio(s)["bufferFrames"] == 1024 &&
               app_engine_native(fake::engine).save_state(2) == restored_noise,
           "E7 preferred driver size beyond capacity must restore matching stopped state");
