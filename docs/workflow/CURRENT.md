@@ -14,7 +14,7 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 - E7 #442 exact-head evidence passed; [manual Claude review](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7148957226) is in progress by owner request.
 - A64 files the Delay measurement question. A65 pins the S7.9 contract review after the verified [D5 publication](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7148992053).
-- B1 H1 corrective Lab and both sanitizers passed; collect fresh T7.0 on the final synchronized pin before independent re-review. B3 E5v awaits its exact CN Result; B5 E5 retirement changes are in verification. See [BUILDERS](BUILDERS.md).
+- B1 H1 corrective Lab and both sanitizers passed; collect fresh T7.0 on the final synchronized pin before independent re-review. E5v #441 merged as `1d4491a` after the signed exact-head Result and 0 ms edit-induced held-note silence in all three CN repeats; B5 E5 retirement changes are in verification. See [BUILDERS](BUILDERS.md).
 - OB1 still runs through E5v/E5/E7 and CN, remaining M7 and OB-d, owner-folder/OB-f1, candidate Pi checks, then Architect acceptance and tag.
 
 Signed: codex-lead, 2026-11-24, 19:54 EST
