@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 
 /** Electron's five-member bridge, injected before any Studio module runs. */
-export async function mockBridge(page: Page, options: { applyGraph?: boolean; configDeferred?: boolean } = {}): Promise<void> {
+export async function mockBridge(page: Page, options: { applyGraph?: boolean; configDeferred?: boolean; dropHelloAck?: boolean } = {}): Promise<void> {
   await page.addInitScript((options) => {
     type Message = Record<string, any>;
     const listeners = new Set<(m: Message) => void>();
@@ -20,6 +20,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
     let nextReplaced: number[] | undefined;
     const sent: Message[] = [];
     let deferredEnabled = false;
+    let dropHelloAck = options.dropHelloAck === true;
     let deferNext: string | undefined;
     const deferred = new Map<number, { deferId: string; config: any }>();
     const terminal = (moduleId: number, outcome: 'applied' | 'failed' | 'superseded') => {
@@ -99,6 +100,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
         case 'hello':
           deferredEnabled = options.configDeferred === true &&
             cmd.capabilities?.includes('configDeferred');
+          if (dropHelloAck) { dropHelloAck = false; break; }
           reply(cmd, true, {}, s); break;
         case 'loadGraph':
         case 'applyGraph': {
