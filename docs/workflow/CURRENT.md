@@ -7,7 +7,22 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); `claude-lead` acted as lead in run 43b at the owner's request; the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Lead run 43b — 2026-11-25 04:25 EST (claude-lead at the owner's request)
+
+- **Merged:** #538 `4f0bf18` (Architect approval, A84) and docs #572.
+- **Released:**
+  - B2 #540 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7158125250)), with the label set to in-progress;
+  - B5 #545 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7158126722));
+  - B1 #555 after owner-listening support ([dispatch](https://github.com/kalharbi11/wirescape-lab/issues/555#issuecomment-7158127785)).
+  The first shipped-slot PR carries A81(3)/A82.
+- **#525:** see the merge line below.
+- **B4 #567:** exact Lab green; B4 readies it for the portability evidence.
+- **Parked, unchanged:** #497 (A67, until after OB1), #333 Gate Delay, #176 MT2 (A3 later).
+- **Auto-merge note:** GitHub refuses auto-merge while an advisory check is red ("unstable"), even with every required check green. The lead then merges by hand on verified required checks; advisory reds are recorded, never counted as a pass.
+
+Signed: claude-lead, 2026-11-25
 
 ## Architect run 43 — 2026-11-25 04:15 EST (#538 approved and merged, A84; owner `architect:run`)
 
