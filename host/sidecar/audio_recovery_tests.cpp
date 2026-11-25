@@ -727,6 +727,10 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
                   {"connections", Json::array({{{"kind", "signal"},
                      {"from", {{"module", 2}, {"port", "t1_mod1"}}},
                      {"to", {{"module", 1}, {"port", "audio"}}}}})}};
+    const uint16_t port = select_loopback_osc_port();
+    patch["modules"].push_back({{"id", 4}, {"module", "osc.in"},
+        {"config", {{"port", port}, {"lan", false},
+            {"rows", Json::array({{{"pattern", "/reconnect"}, {"kind", "cv"}}})}}}});
     check(call("loadGraph", {{"patch", patch}})["ok"] == true, "A78 graph loads");
     check(bool(fake::freeze_render), "A78 fake callback available");
     fake::freeze_render();
@@ -796,6 +800,15 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto current = edit(140);
     auto gen = accept(current);
     check(graph.replacement_tail_pending(2), "A78 unfinished predecessor witness");
+    send_local_osc(port);
+    auto route = [&] { return s.status()["status"]["osc"]["routes"].at(0); };
+    const auto received_deadline = std::chrono::steady_clock::now() + 1s;
+    while (route()["received"].get<uint64_t>() == 0 &&
+           std::chrono::steady_clock::now() < received_deadline)
+        std::this_thread::sleep_for(5ms);
+    const auto before_route = route();
+    check(before_route["state"] == "listening" && before_route["received"].get<uint64_t>() == 1,
+          "A78 active ingress route receives loopback witness");
     // Legacy client cannot silently acquire pending work.
     const auto legacy = apply(edit(160));
     check(legacy["ok"] == false && legacy["code"] == "busy" && legacy["gen"] == gen &&
@@ -814,6 +827,7 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto b = deferred(edit(200), gen);
     check(a != b, "A78 latest edit has new correlation ID");
     terminal(a, "superseded", gen);
+    check(route() == before_route, "A78 refused initial/mixed/latest edits preserve active OSC counters and binding");
     // A80: same pending config in a full snapshot does not reapply it.
     auto other = edit(200);
     other["modules"][2]["parameters"] = {{"rate", 3}};
@@ -824,10 +838,11 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     patch["modules"][2]["parameters"] = {{"rate", 3}};
     // No frames advance while polling. The graph may not commit or emit.
     auto now = std::chrono::steady_clock::now();
+    const auto after_other = route();
     for (unsigned i = 0; i < 4; ++i) {
         s.poll(now);
         check(s.status()["gen"] == gen && s.take_config_events().empty() &&
-              graph.replacement_tail_pending(2), "A78 poll before retirement is inert");
+              graph.replacement_tail_pending(2) && route() == after_other, "A78 poll before retirement is inert");
     }
     retire();
     with_render([&] { s.poll(now); });

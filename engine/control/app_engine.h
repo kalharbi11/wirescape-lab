@@ -21,7 +21,9 @@ int app_engine_add_node_config(AppEngine*,uint32_t,const char*,const std::vector
 int app_engine_connect(AppEngine*,uint32_t,uint32_t,uint32_t,uint32_t);
 int app_engine_prepare(AppEngine*,uint32_t,uint32_t);
 // Control thread only; candidate is prepared, live rendering stays on its owner.
-int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns);
+int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns,
+                      wirescape::engine2::Engine::BeforePublish before_publish = nullptr,
+                      void *context = nullptr);
 // Resolve string parameter IDs on the control side, never in the render callback.
 int app_engine_initialize_parameter(AppEngine*,uint32_t,const char*,float);
 int app_engine_enqueue(AppEngine*,uint32_t,const ws2_event&,uint64_t frame,uint64_t generation,

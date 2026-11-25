@@ -106,7 +106,11 @@ public:
     // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
     // A75: false with "Replacement busy: predecessor still fading" is an
     // atomic prepublication refusal; keep the latest edit and retry after retirement.
-    bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
+    // Optional non-RT host quiescence hook runs only after every staging
+    // refusal, immediately before publication; never called by render.
+    using BeforePublish = void (*)(void *) noexcept;
+    bool replan(Engine &prepared_candidate, uint64_t timeout_ns,
+                BeforePublish before_publish = nullptr, void *context = nullptr);
     // Control-owner-only: IDs named by the most recent replan's A75 refusal.
     const std::vector<uint32_t>& replacement_blocked_ids() const noexcept;
     // Control-owner-only, may overlap render; observes unfinished predecessor

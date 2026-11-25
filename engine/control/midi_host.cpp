@@ -109,7 +109,8 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         error.clear();
         return true;
  }catch(const std::exception&e){error=e.what();stop();return false;}}
-bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error) {
+bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
+                  engine2::Engine::BeforePublish before_publish, void *context) {
     try {
         auto routes = subscriptions(document); // Parse/allocate before attempting any live change.
         if (std::any_of(routes.begin(), routes.end(), [](const Route &r) { return !r.node; }))
@@ -120,7 +121,7 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         int result = WS2_STATE;
         auto commit = [&] {
             commit_entered = true;
-            if (engine_) result = app_engine_replan(engine_, candidate, timeout_ns);
+            if (engine_) result = app_engine_replan(engine_, candidate, timeout_ns, before_publish, context);
             return result == WS2_OK;
         };
         if (!(service_ ? service_->replace_routes(std::move(routes), commit) : commit())) {

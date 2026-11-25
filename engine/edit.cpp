@@ -372,7 +372,7 @@ bool Engine::replacement_tail_pending(uint32_t id) const {
     });
 }
 
-bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
+bool Engine::replan(Engine &candidate, uint64_t timeout_ns, BeforePublish before_publish, void *context) {
     auto &old = *p_;
     old.replacement_blocked.clear();
     auto &fresh = *candidate.p_;
@@ -748,6 +748,9 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         rollback_data();
         throw;
     }
+    // Busy and staging failures have already returned. Pause host ingress
+    // only now; a refused A75 preflight never touches host worker state.
+    if (before_publish) before_publish(context);
     // All allocating work above precedes swapping bindings and publication.
     for (auto &backup : data_backups) std::swap(backup.first->data, backup.second);
     if (!old.publish_layout(&next, timeout_ns)) {

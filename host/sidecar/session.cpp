@@ -842,6 +842,18 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
                     app_engine_data_validator(catalogue_.get(), d)))
                 throw Refusal("invalid", diagnostic.c_str());
         }
+        // Removing a declared slot is a live reset to its packed defaults.
+        // Validate that edit with the same descriptor callback and field path.
+        for (uint32_t slot = 0; slot < count; ++slot) {
+            const auto &declared = d->data_slots[slot];
+            if (!prior.contains(declared.id) || data.contains(declared.id)) continue;
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(declared, Json::object(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
     }
     std::string error;
     const auto patch_bytes = patch.dump();
@@ -894,12 +906,18 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         }
     }
     const bool eligible_shape = !changed_configs.empty() && config_only == patch_;
-    // Pause the OSC ingress before any live replan, fade/swap or graph retirement.
-    // The destructor restarts the worker against whichever graph actually commits
-    // (including the original graph on refusal). Socket errors never refuse patches.
-    osc_out_->stop();
-    osc_->stop();
-    auto resume_osc = [this](void *) noexcept {
+    // A75/MIDI-busy refusals must leave live routes, counters and caches
+    // untouched. Quiesce OSC only after the engine's staging preflight and
+    // before publication, or immediately before the D5 swap.
+    bool osc_paused = false;
+    auto pause_osc = [&]() noexcept {
+        if (osc_paused) return;
+        osc_out_->stop();
+        osc_->stop();
+        osc_paused = true;
+    };
+    auto resume_osc = [this, &osc_paused](void *) noexcept {
+        if (!osc_paused) return;
         try {
             start_osc();
         } catch (...) {
@@ -913,7 +931,8 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         const uint64_t timeout_ns = 3ULL * options_.block * 1000000000ULL / options_.rate;
         // A busy MIDI dispatch is transient; a graph refusal is not. Never stop for busy.
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
-            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error)) {
+            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
+                    [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
@@ -968,6 +987,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     if (retry_id) throw Refusal("unavailable", "Deferred live config retry unavailable");
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
+    pause_osc();
     const auto begun = std::chrono::steady_clock::now();
     // D5 budgets (see kMuteBudget/kGapBudget); they stretch only when a block period is longer.
     const auto period = std::chrono::microseconds(int64_t(1e6 * double(options_.block) / double(options_.rate)));
