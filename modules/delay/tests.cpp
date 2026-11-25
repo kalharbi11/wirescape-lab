@@ -439,8 +439,12 @@ static void state_and_extremes() {
     DelayBytes bad = bytes;
     bad[0] = 99;
     REQUIRE(b.load(bad) == WS2_UNSUPPORTED);
+    REQUIRE(b.save() == bytes);
     bad = bytes;
     bad.pop_back();
+    // Refusal must be atomic even when the destination already has an audible tail.
+    REQUIRE(b.load(bad) == WS2_INVALID);
+    REQUIRE(b.save() == bytes);
     Rig malformed;
     REQUIRE(malformed.load(bad) == WS2_INVALID);
     malformed.values[kMix] = 1.f;
