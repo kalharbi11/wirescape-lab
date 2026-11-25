@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | B1-S7.6 review | 2026-11-25 | Architect (run 37) | review | **now** when gated | [#449](https://github.com/kalharbi11/wirescape-lab/pull/449) S7.6 Claude review once `c951a47` (or a later head) has exact Lab, Golden (identical PCM on both Linux primaries), strict paired and M1 Ir green, plus B1's A27/D5 applicability and a signed Result. **Disclosure:** the Architect wrote `c951a47` (A72 settled-loop fix). The Golden identity is the objective check on that commit; the owner may request a second reader for it. | S7.6 merge → B4 E7c-b, #456, #492 |
 
+| B5-ER2 cap | 2026-11-24 | gpt-builder5 | ruling | soon | [#512](https://github.com/kalharbi11/wirescape-lab/issues/512#issuecomment-7153306014): ER2 two-generation cap vs overlapping E5 replacement tails; test-only oracle `e2cf1b4`, hosted witness pending. Rule atomic busy versus other bounded transition policy; G4 legacy scope. No gate waiver. | E3a overlapping replacement / #515 engine slice only |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
