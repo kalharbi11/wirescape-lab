@@ -140,15 +140,17 @@ static ws2_event note(ws2_event_type type = WS2_NOTE_ON, float value = .75f) {
     return e;
 }
 static void replacement_ring_out(uint32_t declared_ms = 0, uint32_t expected_frames = 960,
-                                 bool decline = false, bool fault = false) {
+                                 bool decline = false, bool fault = false, bool interrupt = false, bool legacy = false) {
     auto descriptor = *ws::Module<ReplacementTail>::descriptor();
     descriptor.replace_fade_ms = declared_ms;
+    if (legacy) descriptor.struct_size = offsetof(ws2_descriptor, data_slot_count);
     if (decline) descriptor.adopt = [](void *, const void *) -> int { return WS2_UNSUPPORTED; };
     if (fault) descriptor.adopt = [](void *, const void *) -> int { return WS2_INVALID; };
-    auto make = [&](uint8_t gain) {
+    auto make = [&](uint8_t gain, bool extra = false) {
         auto e = std::make_unique<Engine>(config());
         CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
         CHECK(e->add_node(2, &descriptor, {gain}));
+        if (extra) CHECK(e->add_node(3, ws::Module<Pass>::descriptor()));
         CHECK(e->connect(1, 0, 2, 0));
         CHECK(e->output(2, 0, 0));
         CHECK(e->output(1, 0, 1));
@@ -192,11 +194,35 @@ static void replacement_ring_out(uint32_t declared_ms = 0, uint32_t expected_fra
     // held-note replay and a full-strength signal input. Only consumer
     // contributions crossfade: .375 -> 1.5 in exactly 960 samples (20 ms).
     const uint32_t fade = expected_frames;
-    for (uint32_t n = 1; n <= fade; ++n) {
-        if (n != 1) render();
-        const float expected = .375f + (1.5f - .375f) * float(n) / fade;
-        CHECK(std::abs(sample[0] - expected) < 2.e-6f);
+    uint32_t n = 1;
+    auto check_sample = [&] {
+        const float expected = .375f + (1.5f - .375f) * float(std::min(n, fade)) / fade;
+        return std::abs(sample[0] - expected) < 2.e-6f;
+    };
+    CHECK(check_sample());
+    if (interrupt) {
+        for (; n < 120;) { ++n; render(); CHECK(check_sample()); }
+        auto unrelated = make(2, true);
+        std::atomic<bool> committed{false};
+        bool accepted = false;
+        std::thread edit([&] {
+            accepted = live->replan(*unrelated, uint64_t(frames) * 3 * 1000000000 / 48000);
+            committed.store(true, std::memory_order_release);
+        });
+        bool continuous = true;
+        const auto end = Clock::now() + std::chrono::seconds(2);
+        do {
+            ++n;
+            render();
+            continuous &= check_sample();
+            std::this_thread::yield();
+        } while (!committed.load(std::memory_order_acquire) && Clock::now() < end);
+        edit.join();
+        CHECK(accepted);
+        CHECK(continuous);
+        unrelated.reset();
     }
+    while (n < fade) { ++n; render(); CHECK(check_sample()); }
     render();
     CHECK(sample[0] == 1.5f);
     CHECK(live->enqueue(0, 2, 1, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
@@ -1152,6 +1178,8 @@ int main(int argc, char **argv) {
     replacement_adopt();
     replacement_ring_out(7, 336, true);
     replacement_ring_out(1000, 24000, false, true);
+    replacement_ring_out(0, 960, false, false, true);
+    replacement_ring_out(1000, 960, false, false, false, true);
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
