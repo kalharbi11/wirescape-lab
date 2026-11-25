@@ -21,7 +21,7 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 |---|---|
 | `architect:run` | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` |
 | `lead:run` | [Lead brief](docs/context/CODEX_LEAD.md) → [BUILDERS](docs/workflow/BUILDERS.md) → [ROADMAP](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) |
-| `B<n>: run` (builder chat) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
+| `1:run` through `5:run` (builder chats) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
 
 A trigger never grants authority beyond the accepted contract.
 
