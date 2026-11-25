@@ -119,8 +119,9 @@ class EditLedger:
                 raise ValueError("edit refused or deferred completion not applied")
         elif completion is not None:
             raise ValueError("unexpected deferred completion")
-        if reply.get("result", {}).get("unapplied"):
-            raise ValueError("applyGraph reports unapplied parameters")
+        result = reply.get("result", {})
+        if not isinstance(result, dict) or result.get("unapplied"):
+            raise ValueError("malformed result or applyGraph reports unapplied parameters")
         if completion_ms is not None and (not math.isfinite(completion_ms) or completion_ms < ack_ms):
             raise ValueError("invalid completion latency")
         self.ids.add(request_id)
@@ -228,8 +229,17 @@ class PipeStream:
             try:
                 # Drain the owned pipe until EOF, without accepting it as a
                 # final xrun snapshot. The last running status is our endpoint.
-                self.child.communicate(timeout=5)
-            except (ValueError, subprocess.TimeoutExpired):
+                deadline = time.monotonic() + 5
+                while True:
+                    if not select.select([self.out_fd], [], [], self.remaining(deadline))[0]:
+                        raise ValueError("sidecar shutdown timeout")
+                    try:
+                        if not os.read(self.out_fd, 65536):
+                            break
+                    except BlockingIOError:
+                        continue
+                self.child.wait(timeout=self.remaining(deadline))
+            except (OSError, ValueError, subprocess.TimeoutExpired):
                 self.child.terminate()
                 try:
                     self.child.wait(timeout=2)
@@ -314,8 +324,11 @@ class Session:
         if not isinstance(generation, str) or not re.fullmatch(r"[0-9]+", generation):
             raise ValueError("invalid reply generation")
         gen = int(generation)
-        if self.gen is not None and gen < self.gen:
-            raise ValueError("reply generation regressed")
+        if self.gen is not None:
+            swaps = {"loadGraph", "applyGraph", "connect", "disconnect", "addModule", "removeModule"}
+            expected = self.gen + int(command["type"] in swaps and msg.get("ok") is True)
+            if gen != expected:
+                raise ValueError("reply generation does not match accepted edit")
         self.gen = gen
         completion = None
         if (edit and command["type"] == "applyGraph" and msg.get("ok") is False
@@ -333,7 +346,7 @@ class Session:
                     break
             completed_gen = completion.get("generation")
             if (not isinstance(completed_gen, str) or
-                    not re.fullmatch(r"[0-9]+", completed_gen) or int(completed_gen) <= gen):
+                    not re.fullmatch(r"[0-9]+", completed_gen) or int(completed_gen) != gen + 1):
                 raise ValueError("deferred completion did not publish a new generation")
             self.gen = int(completed_gen)
         if edit:
