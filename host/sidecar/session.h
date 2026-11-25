@@ -12,6 +12,7 @@
 #include <array>
 #include <chrono>
 #include <optional>
+#include <map>
 #include <set>
 namespace wirescape::sidecar {
 struct Options {
@@ -89,6 +90,10 @@ class Session {
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
     std::set<uint32_t> used_ids_;
+    // A75: only the latest refused config per live module, never a stale graph.
+    struct PendingConfig { std::string module; Json config; };
+    std::map<uint32_t, PendingConfig> pending_configs_;
+    bool retry_config();
     document::telemetry::Sampler telemetry_;
     std::array<bool, 128> keyboard_{};
     std::mutex sink_mutex_;
@@ -132,7 +137,7 @@ class Session {
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
     Json execution(Json);
-    bool commit(Json, bool); // true: live replan; false: D5 replacement
+    bool commit(Json, bool, bool retry_only = false); // true: live replan; false: D5 replacement
     Json reconcile_graph(const Json &before, bool live);
     Json apply(const Json &);
     Json audio_status() const;
