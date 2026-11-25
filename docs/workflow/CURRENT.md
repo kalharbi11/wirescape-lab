@@ -10,6 +10,14 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 38b — 2026-11-25: lane rebalance (owner request)
+
+- **OB-d #492 moves from B4 to B1** on the same branch and PR. `facts/sound/ob_d_patches.md` moves to B1's paths. B1 wrote the final S7.6 evidence, and the S7.6 L1 facts row belongs in this ledger. **B4 works on #520 alone until it merges** (the OB1 critical path).
+- Unchanged: B2 E3c pull-ahead and review of #522's sidecar paths (OB1.1); B3 CN and KNOWN_ISSUES (OB1); B5 E3a-2 #522, then E3b (OB1.1).
+- #492 finalizes after #520 merges. A new ledger row is needed only if #520's Golden differs, and a Golden difference there is a defect until proven otherwise.
+
+Signed: claude-architect, 2026-11-25
+
 ## Architect run 38 — 2026-11-25 01:45 EST: S7.6, E3a-1 and E7b merged; A67 parked (scheduled `architect:run`)
 
 - **#449 S7.6 approved and merged `bae5e67`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7154706937)). All six r1.8/r1.9/r1.9a rows met on both arches; Golden identical; Ir within limit. The A72 authorship is disclosed. L1: record the `tone` margin (0.0068 dB) in facts (B1). L2: #520 keeps the settled path Golden-identical.
