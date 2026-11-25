@@ -18,7 +18,10 @@ def exclusive(path, root):
     parts = 0
 
     def normalize(value):
-        const = str(root.resolve()) + "/"
+        # Callgrind keys are lexical paths, not paths on the parsing host.
+        # Accept native and POSIX separators without resolving profile paths.
+        value = value.replace("\\", "/")
+        const = root.resolve().as_posix().rstrip("/") + "/"
         relative = root.name + "/"
         if value.startswith(const):
             return "<source>/" + posixpath.normpath(value[len(const):])
