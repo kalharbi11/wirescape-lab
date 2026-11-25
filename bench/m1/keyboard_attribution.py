@@ -21,12 +21,14 @@ def exclusive(path, root):
         # Callgrind keys are lexical paths, not paths on the parsing host.
         # Accept native and POSIX separators without resolving profile paths.
         value = value.replace("\\", "/")
-        const = root.resolve().as_posix().rstrip("/") + "/"
-        relative = root.name + "/"
-        if value.startswith(const):
-            return "<source>/" + posixpath.normpath(value[len(const):])
-        if value.startswith(relative):
-            return "<source>/" + posixpath.normpath(value[len(relative):])
+        # The caller may spell the root through a filesystem alias (e.g.
+        # Windows temp-directory short names). Recognize both spellings.
+        prefixes = (root.absolute().as_posix().rstrip("/") + "/",
+                    root.resolve().as_posix().rstrip("/") + "/",
+                    root.name + "/")
+        for prefix in prefixes:
+            if value.startswith(prefix):
+                return "<source>/" + posixpath.normpath(value[len(prefix):])
         return value
 
     for raw in path.read_text(encoding="utf-8").splitlines():
