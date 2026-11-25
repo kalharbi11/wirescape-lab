@@ -12,6 +12,7 @@ bool valid_tap(const Node *, const Tap &);
 struct Engine::Impl {
     Config cfg;
     std::string error;
+    std::vector<uint32_t> replacement_blocked; // control-owned, most recent replan only
     // Control-owned storage, independent of the layout's topology entries.
     std::map<uint32_t, std::unique_ptr<Instance>> instances;
     std::map<EdgeState *, std::unique_ptr<EdgeState>> edge_states;

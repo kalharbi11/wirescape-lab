@@ -76,6 +76,7 @@ Wire `type` is the `EngineClient` method name, except `ccMap.set`. Numbers are f
 | `connect` | `connection:Connection` | swap | edit |
 | `disconnect` | `connection:Connection` (identity: kind/from/to; amount ignored) | swap | edit |
 | `setParam` | `moduleId:uint32`, `paramId:string`, `value:number` (parameter's native units) | live | block |
+| `setData` | `moduleId:uint32`, `slot:string`, `value:object` (complete slot value) | live | block |
 | `setModAmount` | `connection:Connection` (identity: kind/from/to; nested amount ignored), `amount:number` in [-1,1] (top-level wins) | live | edit |
 | `noteOn` | `note:integer` 0..127, `velocity:number` 0..1 | live | block |
 | `noteOff` | `note:integer` 0..127 (never silently drop) | live, priority | block |
@@ -105,6 +106,8 @@ A successful `setSampleRate` or `setBufferFrames` runs wholly on the control thr
 ```
 
 `midiLearn` is advertised by the exact capability name `midiLearn` only when implemented. Each command returns one terminal reply with `result:{armed}` and leaves graph generation unchanged. Arming/re-arming clears the prior observation and resets a **30-second engine-side no-capture timeout**. Disarm, engine restart or a new session clears Learn; a captured CC remains visible until disarm/re-arm. No setting, patch or module config stores this state. The UI alone commits the observed controller through `ccMap.set` / `addModule` and its own lossless D8 `config.rows`.
+
+`setData` packs the complete slot value against the module field table on the control thread. Missing keys take defaults; unknown or invalid fields refuse with the slot and field name. Capacity returns `busy`; the committed document changes only after successful enqueue. `applyGraph` supplies candidate data at adoption to retained and replaced instances without treating a data-only change as a config replacement. Stored-document load preserves unknown fields and warns rather than delivering them.
 
 A `swap` command acknowledges only **after** the candidate graph successfully validates, the old graph is safely retired and the new graph becomes active; refusal leaves the existing graph and generation untouched. Builds and MIDI subscription refreshes run on the control thread; source removal releases its held notes, and module IDs are not recycled within a session (D7). Live `setParam` and keyboard events acknowledge after successful queue insertion; on a full queue respond `busy`, not success. No callback performs JSON work. Graph switch gap ≤150 ms applies to normal patch edits, not hardware unplug/recovery. Refusals do not mutate audio, graph, device settings or the UI's editable document.
 
@@ -194,6 +197,14 @@ this observation seam is unavailable; no timing interpolation is permitted.
 ```json
 {"v":0,"session":"s1","type":"telemetry","gen":"5","telemetry":{"tick":12,"time":0.4,"effective":{},"phase":{},"envelope":{},"meters":{},"scope":{},"eventActivity":{},"heldNotes":[],"playhead":{"1":[3,-1]},"groove":{"1":[{"step":3,"loop":16777217,"playing":true,"fired":false},{"step":-1,"loop":1,"playing":false,"fired":false}]}}}
 ```
+
+### Deferred configuration completion (A78 / A80)
+
+The engine advertises `configDeferred` in its initial hello. A client that supports the correlated completion protocol opts in once per session with the ordinary request `{"v":0,"id":"client-hello","type":"hello","capabilities":["configDeferred"]}`; the engine acknowledges without changing generation. A legacy client that does not opt in receives plain busy, never deferred work. Unknown capability strings are ignored. A second client hello is refused as duplicate.
+
+A busy reply may include `deferred: true` and a `deferId` only when every requested change is a configuration change to an engine-reported blocked module ID. A refused transaction commits nothing. Mixed changes are refused without deferral.
+
+Each deferred entry receives exactly one correlated `configDeferred` push containing `deferId`, `moduleId`, `outcome` (`applied`, `superseded`, or `failed`), and `generation`. The client reconciles from the reply or correlated event, not an unrelated generation change. Latest wins per module ID; one request-level deferId may have independently completing module IDs. In a full applyGraph snapshot compare config to the pending config: an equal value carries the pending entry and executes at the committed value; a different value supersedes on acceptance (including a revert to the committed config). Unrelated incremental edits do not supersede. Removal, type change, instance-replacing data writes, graph load and namespace/session changes supersede pending work. Retry occurs only after predecessor retirement, with failure bounded by twice the clamped fade duration plus one second. No candidate rebuild or OSC/MIDI worker restart occurs while the predecessor is fading.
 
 ## 8. `EngineClient` refusal, ordering and reconciliation
 

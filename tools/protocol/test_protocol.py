@@ -23,12 +23,27 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 21)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 23)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
         })
         validate_schema_patterns(self.schema)
+
+    def test_a78_config_deferred_completion_contract(self):
+        variants = self.schema["$defs"]["push"]["oneOf"]
+        events = [v for v in variants
+                  if v.get("properties", {}).get("type", {}).get("const") == "configDeferred"]
+        self.assertEqual(len(events), 1, "A78 requires one correlated completion event")
+        event = events[0]
+        self.assertTrue({"deferId", "moduleId", "outcome", "generation"} <= set(event["required"]))
+        self.assertEqual(set(event["properties"]["outcome"]["enum"]),
+                         {"applied", "superseded", "failed"})
+        refusal = self.schema["$defs"]["reply"]["oneOf"][1]["properties"]
+        self.assertEqual(refusal["deferred"], {"const": True})
+        self.assertEqual(refusal["deferId"], event["properties"]["deferId"])
+        self.assertTrue(validate({"v": 0, "id": "client-hello", "type": "hello",
+                                  "capabilities": ["configDeferred"]}, self.schema))
 
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(
