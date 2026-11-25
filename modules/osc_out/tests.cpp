@@ -261,7 +261,56 @@ static void note_ring_and_no_bus() {
     Rig defaults;
     defaults.run({}, 1); // no binary config also initializes defaults
 }
+// E3c fail-first: disable and re-enable a row without replacing the
+// producer or resetting the consumer-owned counters.
+static void live_output_routes() {
+    osc::OutBus bus;
+    osc::OutConfiguration cfg;
+    cfg.bus = &bus;
+    Rig rig(&cfg);
+    REQUIRE(rig.desc->data_slot_count == 1);
+    const auto &slot = rig.desc->data_slots[0];
+    const ws2_field *rows = nullptr, *enabled = nullptr;
+    for (uint32_t i = 0; i < slot.field_count; ++i)
+        if (std::strcmp(slot.fields[i].id, "rows") == 0) rows = &slot.fields[i];
+    REQUIRE(rows && rows->type == WS2_F_RECORD && rows->count == 8);
+    alignas(16) std::array<uint8_t, WS2_MAX_DATA_BYTES> packed{};
+    for (uint32_t row = 0; row < rows->count; ++row) {
+        auto *dst = packed.data() + rows->offset + row * rows->stride;
+        for (uint32_t i = 0; i < rows->field_count; ++i) {
+            const auto &field = rows->fields[i];
+            if (field.type == WS2_F_F32) {
+                const float v = float(field.initial);
+                std::memcpy(dst + field.offset, &v, sizeof(v));
+            } else if (field.type == WS2_F_U32 || field.type == WS2_F_ENUM) {
+                const uint32_t v = uint32_t(field.initial);
+                std::memcpy(dst + field.offset, &v, sizeof(v));
+            } else if (field.type == WS2_F_BOOL || field.type == WS2_F_U8) {
+                dst[field.offset] = uint8_t(field.initial);
+                if (std::strcmp(field.id, "enabled") == 0) enabled = &field;
+            } else if (field.type == WS2_F_TEXT && std::strcmp(field.id, "address") == 0) {
+                std::snprintf(reinterpret_cast<char *>(dst + field.offset), field.count, "/ws/row/%u", row + 1);
+            }
+        }
+    }
+    REQUIRE(enabled && enabled->type == WS2_F_BOOL);
+    ws2_data data{sizeof(ws2_data), packed.data(), slot.bytes, 1};
+    rig.ctx.data_count = 1; rig.ctx.data = &data;
+    rig.samples[0][0][0] = .25f;
+    rig.run({}, 1);
+    REQUIRE(bus.rows[0].blocks == 1 && bus.rows[1].blocks == 1 && bus.rows[0].value == .25f);
+    packed[rows->offset + enabled->offset] = 0;
+    ++data.serial;
+    rig.samples[0][0][0] = .75f;
+    rig.run({}, 1);
+    REQUIRE(bus.rows[0].blocks == 1 && bus.rows[1].blocks == 2 && bus.rows[0].value == .25f);
+    packed[rows->offset + enabled->offset] = 1;
+    ++data.serial;
+    rig.run({}, 1);
+    REQUIRE(bus.rows[0].blocks == 2 && bus.rows[1].blocks == 3 && bus.rows[0].value == .75f);
+}
 int main() {
+    live_output_routes();
     configuration_checks();
     rows_and_gate_edges();
     gate_reset_primes_without_phantom_edges();
