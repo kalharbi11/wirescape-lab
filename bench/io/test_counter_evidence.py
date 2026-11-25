@@ -119,7 +119,7 @@ class CounterEvidenceTests(unittest.TestCase):
 
 
     def test_a74_trace_is_epoch_local_and_bounded(self):
-        summary = ("osc_capacity_epoch queued=257 invalid=0 capacity=2 state=0 other=0 "
+        summary = ("osc_capacity_epoch queued=257 invalid=0 capacity=1 state=0 other=0 "
                    "events_start=12 events_end=269 trace_count=2 omitted=0")
         sample = ("osc_capacity_sample kind=refusal ordinal=258 module=17 "
                   "arrival_ns=1000 frame=256 ring_full=1 generation=3")
@@ -131,7 +131,7 @@ class CounterEvidenceTests(unittest.TestCase):
         self.assertEqual(report["epochs"][0]["samples"][1]["frame"], 256)
         self.assertTrue(report["epochs"][0]["trace_complete"])
         self.assertFalse(report["epochs"][1]["trace_complete"])
-        self.assertEqual(report["epochs"][0]["capacity"], 2)
+        self.assertEqual(report["epochs"][0]["capacity"], 1)
 
     def test_a74_bad_trace_unknown_and_shutdown_retains_failure(self):
         result = {"status": "failed", "first_failure": {"check": "counter_rise"}}
