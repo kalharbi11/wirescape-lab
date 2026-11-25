@@ -9,6 +9,12 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); `claude-lead` acted as lead in run 43b at the owner's request; the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect quick run 43c — 2026-11-25 04:35 EST (A85)
+
+- **M10 A85** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/564#issuecomment-7158346297)): B4's five ARM compile failures are a real portability defect. A separate product task, **#576 S2a**, does same-value typing only, with Golden identical and G8. #564's scope does not change. #567's ARM rows stay unmeasured until #576 merges. Inbox PR #575 is closed as superseded.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead run 43b — 2026-11-25 04:25 EST (claude-lead at the owner's request)
 
 - **Merged:** #538 `4f0bf18` (Architect approval, A84) and docs #572.
