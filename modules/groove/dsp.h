@@ -294,13 +294,13 @@ struct Sequencer {
     }
     bool effective_mute(uint32_t t) const { return muted || players[t].muted; }
 
-    void release_step(ws::Block &b, uint32_t t, uint32_t i, const LivePattern *data) {
+    void release_step(ws::Block &b, uint32_t t, uint32_t i, const LivePattern *data = nullptr) {
         const auto &p = players[t];
         if (!p.playing || effective_mute(t)) return;
         const auto &row = row_at(t, step_t[t], data);
         if (row.kind != Tie || !p.sounding.on) release(b, t, i);
     }
-    void trigger(ws::Block &b, uint32_t t, uint32_t i, const LivePattern *data) {
+    void trigger(ws::Block &b, uint32_t t, uint32_t i, const LivePattern *data = nullptr) {
         auto &p = players[t];
         const auto &row = row_at(t, step_t[t], data);
         const bool continued = p.fired && p.sounding.on;
@@ -348,7 +348,7 @@ struct Sequencer {
         }
     }
 
-    void trigger_all(ws::Block &b, uint32_t i, const LivePattern *data) {
+    void trigger_all(ws::Block &b, uint32_t i, const LivePattern *data = nullptr) {
         // Release every stepping track before any track attacks. Non-stepping
         // tracks retain gate, modulation and fired telemetry unchanged.
         for (uint32_t t = 0; t < kTracks; ++t)
@@ -397,7 +397,7 @@ struct Sequencer {
             }
         }
     }
-    void start_transport(ws::Block &b, uint32_t i, const LivePattern *data) {
+    void start_transport(ws::Block &b, uint32_t i, const LivePattern *data = nullptr) {
         running = true;
         stop_queued = reset_wait = run_start_pending = false;
         phase = 0.;
