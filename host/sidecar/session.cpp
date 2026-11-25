@@ -1533,6 +1533,10 @@ Json Session::status() const {
         entry["state"] = route.state;
         entry["received"] = route.received;
         entry["dropped"] = route.dropped;
+        entry["budget_dropped"] = route.budget_dropped;
+        entry["enqueue_dropped"] = route.enqueue_dropped;
+        entry["listener_budget_dropped"] = route.listener_budget_dropped;
+        entry["listener_enqueue_dropped"] = route.listener_enqueue_dropped;
         osc_routes.push_back(std::move(entry));
     }
     osc_status["enabled"] = any_bound;
