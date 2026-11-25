@@ -101,6 +101,14 @@ Architect again. (f) A Claude contract-review is asked **once**, at the head the
 merge-ready; intermediate heads are not reviewed. None of this changes a gate, a tolerance or a
 "Fixed" item.
 
+**SR21 Split, don't wait (Architect, 2026-11-25, run 37; owner: "B4 is stuck because of B1").**
+(a) When a task needs a file that another lane is still writing in an open PR, the part inside
+the builder's own paths ships on its own. The part that touches the other lane's file becomes a
+follow-up task, released when that PR merges. The whole PR never waits for another lane.
+(b) The lead names the split in the assignment comment. A split needs no Architect ruling unless
+it changes a contract gate. (c) Work that has not started yet moves to the least loaded lane
+whose paths fit it, even when an earlier contract row named another lane.
+
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.
 2. **The design authority in session** (Fable, or Fable's deputy on an Opus session; see
