@@ -27,6 +27,8 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 **r2.10 (Architect, 2026-11-25, A87, [#578](https://github.com/kalharbi11/wirescape-lab/issues/578#issuecomment-7159042191)):** the OB-f1 candidate recheck runs on the restored advisory workflow `ob-f1-ui-facts.yml` (from `cde8602`, collectors unchanged), dispatched with a full-SHA `ref`. r2.3 targets are unchanged. Owner device-off records (`tools/owner_record.py`, uploaded to #590) are advisory Pi/Windows facts under r2.4a. They never replace acceptance item 4. Affects only OB-f1 and how owner evidence is collected.
 **r2.11 (Architect, 2026-11-25, run 45, A88, [#584](https://github.com/kalharbi11/wirescape-lab/pull/584#issuecomment-7176975049)):** the Pi half of acceptance item 6 is two owner evidence items, recorded in one sitting. **6a:** the #579 runner, 100 scripted edits with real audio, 0 xruns and both CN costs; its `visible_stutter` stays null and reads "observed in 6b". **6b:** a witnessed Studio session on the same Pi, candidate SHA, patch and day, with at least 100 hand edits (knob, module move, cable). The owner reports stutter as yes or no, plus any xrun Studio shows. One stutter or one xrun fails item 6. If a failure shows in 6b but not in 6a, one OB-f2 `apps/studio/` fix opens. No same-session bridge and no test-discovery bridge. Affects acceptance item 6 and #579/#584 only.
 
+**r2.12 (Architect, 2026-11-25, owner request "OB1.1 Tier 1", design [`proposals/0022`](../../proposals/0022-ob1.1-installation-readiness.md)):** adds the OB-h rows below, for the owner's Pi installation: long sessions, heavy OSC in and out, and patch switching. They are **OB1.1**. They are queued in each lane **after the task it is working on now**, they never hold the `owner-build-1` tag, and they may merge before it. The owner lifts the module freeze for OB-h4 Gate Delay only. Tier 2 (0022 §9) is suggested, not filed, and is re-evaluated after Tier 1. Nothing in flight stops.
+
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.
@@ -74,6 +76,23 @@ Design and thresholds: `proposals/0019`. Every profile, ladder tier and stop rul
 
 **Added to acceptance:** 7 (**recorded, not required**, r2.4a). At the OB1 candidate, record Pi `osc-heavy` and `mixed`
 in `still` mode through L2 (1 h), and `config-edits` at L0 until M4 E5 (r2.4b; 0019 §6). A failing row files a fix and never holds the tag.
+
+### r2.12 additions (Architect, 2026-11-25, owner): OB-h OB1.1 Tier 1, installation readiness
+Design, rules and oracles: `proposals/0022`. Its §2 rules bind every row: one patch file for every host,
+devices off and no LAN in CI, no loosening, and gaps recorded as facts.
+
+| Task | Issue | Lane, after | Allowed paths | Done when | Merge |
+|---|---|---|---|---|---|
+| **OB-h1** OSC reliability status (0022 §3) | [#600](https://github.com/kalharbi11/wirescape-lab/issues/600) | B3, after its #579 Result | `.github/workflows/ob-g7-hosted-soak.yml` (dispatch input and unpark Linux x64/arm64 `still` nightly only), `facts/perf/` | L0 → L2 lanes run at `main`; one facts file; #326 closed as superseded or #494 unparked, per §3 | lead |
+| **#494 A67** enqueue refusal fix (unparked by r2.12) | [#494](https://github.com/kalharbi11/wirescape-lab/issues/494) | B2, before OB-h2 if `still` fails; otherwise after it | as #494 | as #494, with no load, queue or deadline change | lead |
+| **OB-h2** OSC Out network destinations, A91 (0022 §4) | [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) | B2, after #540 | `modules/osc_out/**`, `engine/control/osc_out_host.*`, `host/osc/**`, the permission plumbing in `host/sidecar/session.*`, `docs/specs/OSC_OUT.md`, tests; Studio Host field as an SR21 follow-up after OB-h5 | v2 `host` sends only with network permission; `lan-refused` status; two modules reach two loopback destinations; v1 configs byte-identical | **Claude contract review** |
+| **OB-h3** patch switching witness, A93 (0022 §5) | [#602](https://github.com/kalharbi11/wirescape-lab/issues/602) | B5, after #545 | test under `host/sidecar/` or `tests/`; a fix in the stage the test names | 200-switch test green on both Linux arches plus ASan/LSan; gap and RSS facts recorded | lead if test-only; a `host/sidecar/` product fix needs a Claude contract review |
+| **OB-h4** Gate Delay (0022 §6) | [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) | B4, after CMP-1 #592 (draft-ahead now) | `modules/gate_delay/**`, catalogue registration, its tests and panel | §6 exception rows listed, each ≤ +3 % with DSP-identical attribution; goldens identical | lead |
+| **OB-h5** OSC presets, A92 (0022 §7) | [#603](https://github.com/kalharbi11/wirescape-lab/issues/603) | B1, after #585 | `apps/studio/src/app/OscEditor.ts` and preset helpers, `apps/desktop/main.ts` and `preload.ts` (presets folder only), Studio tests, `docs/specs/OSC_PRESETS.md` | Script preset with the pitch test; save/load round trip; presets carry no network settings; patch format unchanged | lead |
+| **OB-h6** patch check tool, A94 (0022 §8) | [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) | B3, after OB-h1 | `tools/patch_library.py`, its tests, `docs/INSTALL.md` (one owner step) | renders a folder offline; table and JSON; exit codes as §8 | lead |
+
+**OB-h acceptance (OB1.1 Tier 1, Architect):** every row above merged or closed with its routing; one owner
+overnight run on the Pi with the installation patches is recorded (not required, r2.4a style).
 
 **Out of OB (P4, do not file):** third-party module drop-in, SDK, dev loop, panels, Daisy/hardware,
 protocol publication, web build features (M6 MT2+, M8–M12 beyond facts).

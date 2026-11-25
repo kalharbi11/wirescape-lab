@@ -8,6 +8,27 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect session — 2026-11-25 ET (OB r2.12: OB1.1 Tier 1 plan; owner request)
+
+- **Owner direction:** the Pi installation is 7 days away: multi-hour runs, heavy OSC in (Python generative sequencer) and OSC out (Pico W 2 boards: LEDs, servos), and patch switching. Stability and recovery come before perfect live editing. Patches are designed in Studio and must also run unchanged on a later headless build (separate repo, not planned yet).
+- **Plan:** [`proposals/0022`](../../proposals/0022-ob1.1-installation-readiness.md), contract [OB r2.12](milestones/OB.md) (OB-h table), [OB_PLAN](OB_PLAN.md) "OB1.1 Tier 1 plan". Rulings A91 (OSC Out v2 `host`, owner permission, `lan-refused`), A92 (OSC presets, `/ws/…` Script preset, no network keys in presets), A93 (patch switching witness), A94 (patch check tool).
+- **Tasks created, each queued after the lane's current task:**
+  - B3: OB-h1 [#600](https://github.com/kalharbi11/wirescape-lab/issues/600), then OB-h6 [#604](https://github.com/kalharbi11/wirescape-lab/issues/604);
+  - B2: OB-h2 [#601](https://github.com/kalharbi11/wirescape-lab/issues/601);
+  - B5: OB-h3 [#602](https://github.com/kalharbi11/wirescape-lab/issues/602);
+  - B1: OB-h5 [#603](https://github.com/kalharbi11/wirescape-lab/issues/603);
+  - B4: Gate Delay re-released as OB-h4 on [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) with a bounded +3 % catalogue-noise exception;
+  - A67 [#494](https://github.com/kalharbi11/wirescape-lab/issues/494) unparked (order set by OB-h1's facts).
+- **Found in the existing work:**
+  - the `ob-g7-hosted-soak.yml` nightly is parked (`if: ${ false }`) and PR runs skip drafts, so no `osc-heavy` result exists after #394/#433; OB-h1 restores it;
+  - #326 stays open until OB-h1 routes it;
+  - the sidecar already fades on patch replacement, so OB-h3 is a witness, not a feature.
+- **Tier 2** (0022 §9) is suggested only and will be re-evaluated after Tier 1.
+- **Held:** nothing new. Current lane tasks keep their order.
+- **Next Architect run should** (in addition to the run-45 list): (1) review OB-h2 when pinned; (2) read OB-h1's facts and confirm the #326/#494 routing; (3) take the OB-h4 exception rows from its Result.
+
+Signed: claude-architect, 2026-11-25
+
 ## Architect run 45 — 2026-11-25 18:05 EST (A88, A89, A90, OB-f1 dispatch; scheduled `architect:run`)
 
 - **OB-f1 dispatch** (the lead's operational hold on #578): the Architect dispatched run [45717349754](https://github.com/kalharbi11/wirescape-lab/actions/runs/45717349754) at main `6b3789b`, newer than the `4de561c` pin because it includes #580. It is pre-candidate, not acceptance. B3 verifies the raw rows and publishes the facts. The GitHub MCP `actions_run_trigger` `run_workflow` can dispatch, so the lead needs no shell for this.
