@@ -4,6 +4,8 @@
 #include "wirescape_sdk.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <vector>
 
 // A72: keep the settled and transition loops as separate functions so the
 // compiler cannot merge them; their FMA contraction then matches the original.
@@ -99,12 +101,101 @@ struct Delay {
         since = 0;
         applied = pending = 0;
     }
-    int save_state(ws::Writer out) const { return out.u32(1) ? WS2_OK : WS2_CAPACITY; }
+    // Version 2 is an explicit little-endian, same-rate runtime snapshot.
+    static constexpr uint64_t state_cap = 1024u * 1024u;
+    static bool put_u(ws::Writer o,uint32_t v){return o.u32(v);}
+    static bool get_u(ws::Reader i,uint32_t&v){return i.u32(v);}
+    static bool put_q(ws::Writer o,uint64_t v){return o.u32(uint32_t(v))&&o.u32(uint32_t(v>>32));}
+    static bool get_q(ws::Reader i,uint64_t&v){uint32_t a,b;if(!i.u32(a)||!i.u32(b))return false;v=uint64_t(a)|(uint64_t(b)<<32);return true;}
+    static bool put_d(ws::Writer o,double v){uint64_t b;std::memcpy(&b,&v,8);return put_q(o,b);}
+    static bool get_d(ws::Reader i,double&v){uint64_t b;if(!get_q(i,b))return false;std::memcpy(&v,&b,8);return std::isfinite(v);}
+    static bool put_f(ws::Writer o,float v){return o.f32(v);}
+    static bool get_f(ws::Reader i,float&v){return i.f32(v)&&std::isfinite(v);}
+    static bool put_b(ws::Writer o,bool v){return o.u32(v?1u:0u);}
+    static bool get_b(ws::Reader i,bool&v){uint32_t b;if(!i.u32(b)||b>1)return false;v=b!=0;return true;}
+    static bool put_l(ws::Writer o,long v){return o.u32(v<0?UINT32_MAX:uint32_t(v));}
+    static bool get_l(ws::Reader i,long&v){uint32_t b;if(!i.u32(b)||(b!=UINT32_MAX&&b>7))return false;v=b==UINT32_MAX?-1:long(b);return true;}
+    static bool put_i(ws::Writer o,int v){return o.u32(uint32_t(v+1));}
+    static bool get_i(ws::Reader i,int&v){uint32_t b;if(!i.u32(b)||b>2)return false;v=int(b)-1;return true;}
+    int save_state(ws::Writer out) const {
+        if(uint64_t(144)+uint64_t(size)*8>state_cap)return WS2_CAPACITY;
+        auto edge=schmitt;
+        if(!out.u32(2) || !put_u(out, size) ||
+            !put_d(out, rate) ||
+            !put_u(out, w) ||
+            !put_d(out, cur) ||
+            !put_f(out, lp[0]) ||
+            !put_f(out, lp[1]) ||
+            !put_f(out, dc_x[0]) ||
+            !put_f(out, dc_x[1]) ||
+            !put_f(out, dc_y[0]) ||
+            !put_f(out, dc_y[1]) ||
+            !put_b(out, primed) ||
+            !put_f(out, mode_blend) ||
+            !put_l(out, division_seen) ||
+            !put_u(out, division_left) ||
+            !put_d(out, division_to) ||
+            !put_f(out, tone_seen) ||
+            !put_f(out, tone_a) ||
+            !put_f(out, tone_k) ||
+            !put_i(out, tone_kind) ||
+            !put_f(out, tone_current_a) ||
+            !put_f(out, tone_low) ||
+            !put_f(out, tone_high) ||
+            !put_u(out, tone_left) ||
+            !put_b(out, high) ||
+            !put_b(out, seen) ||
+            !put_q(out, since) ||
+            !put_d(out, applied) ||
+            !put_d(out, pending) || !put_b(out,edge.process(.375f)))return WS2_CAPACITY;
+        for(auto*l:line)for(uint32_t j=0;j<size;++j)if(!out.f32(l[j]))return WS2_CAPACITY;
+        return WS2_OK;
+    }
     int load_state(ws::Reader in) {
-        uint32_t version = 0;
-        if (!in.u32(version)) return WS2_INVALID;
-        if (version != 1) return WS2_UNSUPPORTED;
-        reset(); // delay lines clear on load
+        uint32_t version;
+        if(!in.u32(version))return WS2_INVALID;
+        if(version==1){reset();return WS2_OK;}
+        if(version!=2)return WS2_UNSUPPORTED;
+        Delay staged=*this;bool latch=false;
+        if(!get_u(in, staged.size) ||
+            !get_d(in, staged.rate) ||
+            !get_u(in, staged.w) ||
+            !get_d(in, staged.cur) ||
+            !get_f(in, staged.lp[0]) ||
+            !get_f(in, staged.lp[1]) ||
+            !get_f(in, staged.dc_x[0]) ||
+            !get_f(in, staged.dc_x[1]) ||
+            !get_f(in, staged.dc_y[0]) ||
+            !get_f(in, staged.dc_y[1]) ||
+            !get_b(in, staged.primed) ||
+            !get_f(in, staged.mode_blend) ||
+            !get_l(in, staged.division_seen) ||
+            !get_u(in, staged.division_left) ||
+            !get_d(in, staged.division_to) ||
+            !get_f(in, staged.tone_seen) ||
+            !get_f(in, staged.tone_a) ||
+            !get_f(in, staged.tone_k) ||
+            !get_i(in, staged.tone_kind) ||
+            !get_f(in, staged.tone_current_a) ||
+            !get_f(in, staged.tone_low) ||
+            !get_f(in, staged.tone_high) ||
+            !get_u(in, staged.tone_left) ||
+            !get_b(in, staged.high) ||
+            !get_b(in, staged.seen) ||
+            !get_q(in, staged.since) ||
+            !get_d(in, staged.applied) ||
+            !get_d(in, staged.pending) || !get_b(in,latch))return WS2_INVALID;
+        if(staged.size!=size || staged.rate!=rate || uint64_t(144)+uint64_t(size)*8>state_cap ||
+           staged.w>=size || staged.cur<0 || staged.cur>kMax*rate ||
+           staged.mode_blend<0 || staged.mode_blend>1 || staged.division_left>fade_frames ||
+           staged.tone_left>fade_frames || staged.division_to<0 || staged.division_to>kMax*rate ||
+           staged.applied<0 || staged.pending<0)return WS2_INVALID;
+        std::vector<float> history(size_t(size)*2);
+        for(float&v:history)if(!get_f(in,v))return WS2_INVALID;
+        staged.schmitt.reset();if(latch)staged.schmitt.process(1.f);
+        std::copy_n(history.data(),size,line[0]);
+        std::copy_n(history.data()+size,size,line[1]);
+        *this=staged;
         return WS2_OK;
     }
 
