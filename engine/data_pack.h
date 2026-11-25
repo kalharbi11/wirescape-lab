@@ -7,6 +7,10 @@
 
 namespace ws::data_layout {
 enum class DataLoad { Edit, StoredDocument };
+// Host-only optional cross-field validation, after packing defaults and scalars.
+// A callback inspects bytes (copy to an aligned typed value if needed), and
+// returns a slot-relative field diagnostic on refusal. Never call from DSP.
+using DataValidator = bool (*)(const ws2_data_slot &, const std::vector<uint8_t> &, std::string &);
 
 inline bool valid_text(const std::string &text) {
     // NUL-terminated storage cannot represent an interior U+0000.
@@ -140,7 +144,7 @@ inline bool pack_fields(const ws2_field *fields, uint32_t count, const nlohmann:
 // Transactional output: an invalid edit leaves both output and warnings alone.
 inline bool pack_data_slot(const ws2_data_slot &slot, const nlohmann::json &value, DataLoad policy,
                            std::vector<uint8_t> &out, std::string &error,
-                           std::vector<std::string> *warnings = nullptr) {
+                           std::vector<std::string> *warnings = nullptr, DataValidator validator = nullptr) {
     error.clear();
     if (slot.struct_size < sizeof(ws2_data_slot) || !data_id_valid(slot.id) ||
         !slot.name || !slot.bytes || slot.bytes > WS2_MAX_DATA_BYTES || slot.flags) {
@@ -151,6 +155,10 @@ inline bool pack_data_slot(const ws2_data_slot &slot, const nlohmann::json &valu
     std::vector<uint8_t> candidate(slot.bytes, 0);
     std::vector<std::string> pending;
     if (!pack_fields(slot.fields, slot.field_count, value, candidate.data(), slot.id, policy, pending, error)) return false;
+    if (validator && !validator(slot, candidate, error)) {
+        if (error.empty()) error = std::string(slot.id) + ": data validation refused";
+        return false;
+    }
     if (warnings) warnings->insert(warnings->end(), pending.begin(), pending.end());
     out.swap(candidate);
     return true;

@@ -101,7 +101,7 @@ jobs:
     timeout-minutes: 45
     env:
       HARNESS_HEAD: ${{ github.event.pull_request.head.sha }}
-      ENGINE_HEAD: e7d6bcd1a7300e0445eb0dd78ce1d11dd0231405
+      ENGINE_HEAD: 8c9bb10d9eb8acf616395404c26ed0c3964e19d2
     steps:
       - uses: actions/checkout@v4
         with:

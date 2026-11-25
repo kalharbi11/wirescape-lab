@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
                     auto reply = session.reply(request);
                     transport.send(reply);
                     transport.complete(request);
+                    for (auto &event : session.take_config_events()) transport.send(std::move(event));
                     if (reply.value("ok", false) && request.value.contains("type") &&
                         (request.value["type"] == "selectAudioDevice" || request.value["type"] == "setMidiEnabled"))
                         transport.send(session.devices());
@@ -40,6 +41,7 @@ int main(int argc, char **argv) {
                 }
                 if (now - devices >= std::chrono::milliseconds(100)) {
                     if (session.poll()) transport.send(session.devices());
+                    for (auto &event : session.take_config_events()) transport.send(std::move(event));
                     devices = now;
                 }
             }

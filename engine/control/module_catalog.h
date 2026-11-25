@@ -38,6 +38,7 @@
 #include "../../sdk/examples/random_source/dsp.h"
 #include "../../sdk/examples/step_sequencer/dsp.h"
 #include <vector>
+#include "app_engine.h"
 namespace wirescape::app {
 inline const std::vector<const ws2_descriptor *> &builtin_modules() {
     static const std::vector<const ws2_descriptor *> modules{
@@ -46,5 +47,13 @@ inline const std::vector<const ws2_descriptor *> &builtin_modules() {
 #undef WS_APP_MODULE
     };
     return modules;
+}
+// Host-only catalogue registration seam. E3c registers its module-local
+// callbacks here; the packer, loader and sidecar remain module-agnostic.
+inline AppDataValidator builtin_data_validator(const ws2_descriptor *d) {
+    static const std::vector<std::pair<const ws2_descriptor *, AppDataValidator>> validators{};
+    for (const auto &entry : validators)
+        if (entry.first == d) return entry.second;
+    return nullptr;
 }
 } // namespace wirescape::app
