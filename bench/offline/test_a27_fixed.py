@@ -36,6 +36,30 @@ class FixedWindowTests(unittest.TestCase):
             self.assertEqual(measure_pair(name, changed, control)["switch_click_peak_fs"],
                              row["switch_click_peak_fs"])
 
+    def test_r19_classification_uses_old_floor_before_target_validity(self):
+        from a27_fixed import classify_r19
+        row = classify_r19(.01, .02, .009, .01)
+        self.assertEqual(row["classification"], "old_floor_met")
+        self.assertEqual(row["governing_floor"], .01)
+        self.assertFalse(row["target_steady_state"])
+        row = classify_r19(.01, .02, .0201, .01999)
+        self.assertEqual(row["classification"], "steady_target_met")
+        self.assertEqual(row["governing_floor"], .02)
+        self.assertTrue(row["target_steady_state"])
+        row = classify_r19(.01, .02, .0201, .01)
+        self.assertEqual(row["classification"], "target_not_steady_old_floor_exceeded")
+        self.assertEqual(row["governing_floor"], .01)
+        row = classify_r19(.01, .02, .021, .02001)
+        self.assertEqual(row["classification"], "steady_target_exceeded")
+        self.assertEqual(classify_r19(.01, .02, .019, .03)["classification"],
+                         "target_not_steady_old_floor_exceeded")
+        self.assertEqual(classify_r19(.01, .02, .01 * 10**(.1/20), 0)["classification"],
+                         "old_floor_met")
+        self.assertEqual(classify_r19(0, 0, 0, 0)["classification"], "old_floor_met")
+        for invalid in (-1, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                classify_r19(.01, .02, .021, invalid)
+
     def test_endpoint_floor_uses_larger_control_and_signed_excess(self):
         from a27_fixed import endpoint_columns
         for old, target, switched, expected in ((.01, .02, .02, 0),
