@@ -46,7 +46,7 @@ struct Rig {
         ctx.event_inputs = event_inputs;
         const osc::OutConfiguration defaults;
         const auto &cfg = config ? *config : defaults;
-        std::string error;
+        char error[128]{};
         REQUIRE(osc::materialize_osc_out_routes(cfg, slot_data, error));
         ctx.data_count = 1; ctx.data = &view;
     }
@@ -325,7 +325,7 @@ int main() {
         cfg.bus = &bus;
         cfg.rows[0].kind = 1;
         Rig rig(&cfg);
-        std::string error;
+        char error[128]{};
         REQUIRE(osc::validate_osc_out_routes(rig.slot_data, error));
         rig.samples[0][0][0] = 1.f;
         rig.run({}, 1);
@@ -343,11 +343,11 @@ int main() {
         auto invalid = rig.slot_data;
         std::strcpy(invalid.rows[3].address, "/bad/*");
         REQUIRE(!osc::validate_osc_out_routes(invalid, error));
-        REQUIRE(error.find("routes.rows[3].address") != std::string::npos);
+        REQUIRE(std::strstr(error, "routes.rows[3].address") != nullptr);
         invalid = rig.slot_data;
         std::strcpy(invalid.notes_address, "bad");
         REQUIRE(!osc::validate_osc_out_routes(invalid, error));
-        REQUIRE(error.find("routes.notes_address") != std::string::npos);
+        REQUIRE(std::strstr(error, "routes.notes_address") != nullptr);
     }
     configuration_checks();
     rows_and_gate_edges();
