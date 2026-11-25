@@ -154,6 +154,64 @@ static void test_shared_pattern_loader(AppEngine *cat) {
           "explicit live data overrides legacy pitch");
 }
 
+// Real loader -> render -> accepted live ring edit. The held note and phase
+// survive the update, and the next scheduled step reads the new borrowed row.
+static void test_shared_live_pattern(AppEngine *cat) {
+    std::string error;
+    const auto legacy = patch(pattern());
+    auto canonical = legacy;
+    wirescape::document::materialize_groove_legacy_data(canonical["modules"][0], 1);
+    auto live = load(legacy, cat, 48000, error, true);
+    auto control = load(canonical, cat, 48000, error, true);
+    check(bool(live) && bool(control), "legacy and canonical Groove both load");
+    auto start = [&](AppEngine *engine) {
+        trace(engine, 1, 1);
+        run_command(engine, run_id(engine), 1.f);
+        check(trace(engine, 1, 1)[0] == 1.f, "held note starts on both paths");
+    };
+    start(live.get());
+    start(control.get());
+    auto &g = app_engine_native(live.get());
+    auto &c = app_engine_native(control.get());
+    wirescape::engine2::Outgoing first{}, reference{};
+    check(g.pop_egress(first) && c.pop_egress(reference) &&
+          first.event.type == WS2_NOTE_ON && first.event.key == 72 &&
+          first.event.note_id == reference.event.note_id && first.frame == reference.frame,
+          "canonical migration preserves exact legacy note identity and onset");
+    auto value = canonical["modules"][0]["data"]["pattern"];
+    value["steps_1"][1] = {{"kind", "note"}, {"key", 67}, {"velocity", 1.},
+                            {"keys", Json::array({67, 0, 0, 0, 0})}};
+    const auto *descriptor = app_engine_native_descriptor(live.get(), "sequencing.groove");
+    std::vector<uint8_t> packed;
+    check(ws::data_layout::pack_data_slot(descriptor->data_slots[0], value,
+          ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+          app_engine_data_validator(live.get(), descriptor)), "edited pattern packs through registered validator");
+    check(g.set_data_packed(1, 0, packed) == WS2_OK, "real engine accepts live data ring update");
+    check(trace(live.get(), 128, 128) == trace(control.get(), 128, 128),
+          "edit leaves the held gate sample-identical before next boundary");
+    check(g.output_sample(1, 0, 0, 127) == c.output_sample(1, 0, 0, 127) &&
+          g.output_sample(1, 10, 0, 127) == c.output_sample(1, 10, 0, 127),
+          "held pitch and playhead unchanged at live adoption");
+    wirescape::engine2::Outgoing event{};
+    check(!g.pop_egress(event), "live adoption emits no spurious note event");
+    trace(live.get(), 6000 - 128, 128);
+    trace(control.get(), 6000 - 128, 128);
+    wirescape::engine2::Outgoing off{}, on{}, control_off{};
+    check(g.pop_egress(off) && g.pop_egress(on) && c.pop_egress(control_off) &&
+          off.event.type == WS2_NOTE_OFF && off.event.note_id == first.event.note_id &&
+          off.frame == control_off.frame && on.event.type == WS2_NOTE_ON &&
+          on.event.key == 67 && on.frame == off.frame,
+          "next boundary preserves phase and releases prior note once before new authored note");
+    check(!g.pop_egress(event), "one new note only after the live edit");
+    auto reset = canonical;
+    reset["modules"][0].erase("data");
+    auto silent = load(reset, cat, 48000, error, true);
+    check(bool(silent), "canonical removed data loads valid defaults");
+    trace(silent.get(), 1, 1);
+    run_command(silent.get(), run_id(silent.get()), 1.f);
+    check(trace(silent.get(), 1, 1)[0] == 0.f, "canonical reset never resurrects legacy note");
+}
+
 static void test_refusals(AppEngine *cat) {
     std::string error;
     Json good = pattern();
@@ -1346,6 +1404,7 @@ int main(int argc, char **argv) {
               "E3b Groove exposes live pattern data slots");
 
         test_shared_pattern_loader(cat.get());
+        test_shared_live_pattern(cat.get());
         test_refusals(cat.get());
         test_s1_refusals(cat.get());
         test_chord_to_notes_cv();
