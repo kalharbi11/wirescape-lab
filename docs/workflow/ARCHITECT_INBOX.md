@@ -36,6 +36,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 
 | B5-A78-data-witness | 2026-11-25 | gpt-builder5 | ruling | **now** | [#538](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7156655147): disposition for pending config + data-triggered replacement witness before shipped slots exist; carry to E3b/E3c or test-only catalogue seam? | #538 final evidence only |
+| B4-E7c-b-review | 2026-11-25 | gpt-builder4 | contract review | **now** | [#539 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7156819486), base `5ca0f1938fb851acce158272377a1ebe7631f4d2`, head `1044ddba53fa99023b211cc76387331ee27c3f17`: A70/A70a/A73/A79 and A72, exact Lab/Golden/strict paired green; verify v2 state, atomic refusal, C2/v1, cap and RT invariance. | #520; #492/#525 after merge |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
