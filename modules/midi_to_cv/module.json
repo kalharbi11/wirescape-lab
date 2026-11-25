@@ -28,6 +28,7 @@
     "bend": "signal",
     "mod": "signal",
     "notes": "event",
-    "last_note": "signal"
+    "last_note": "signal",
+    "trig": "signal"
   }
 }

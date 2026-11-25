@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead continuation — D5 published, A71 released, S7.6 strict reds (2026-11-24 ET)
+
+- #505 merged `d53b876`. #508 merged `00c39f5` on exact Lab 45541137511 green; A70 allocator/NOTE_OFF/C2 scope question in main inbox and #503 needs/architect. SR7 does not cover new state semantics. No Architect wake.
+- Owner uploaded all six FLACs and manifest, GitHub SHA-256/size 7/7 match. [D5 publication verification](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152094695) clears publication at `4fcaa04`; validate applicability if correction changes pin.
+- #449 exact ARM64 Golden differs 13/27 (all Delay, no switches); x64 strict paired 45539722756 fails changed Delay voices1 +3.767442270% and voices8 +3.753572127%; no r1.6 exception. [Correction packet](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152132576). B1 owns product; B3 read-only diagnostic while facts pending under SR16, no competing commits or duplicate CI. B4 Delay integration serialized.
+- #436 actual CTest 45539419807 at `5e60c0f` fails `held_continuous` after successful build; [B5 released](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152132092) for A71 correction. #485 cost compile/stock green, native/continuity red; diagnose separately and repin only after corrected E5.
+- #504 actual fail-first verified; #507 test-only hooks in flight; #497 native Lab/ASan pending. No merge-ready Result on these or #490. Preserve exact evidence and single writers. #506 synced non-force with #505 and #508, preserving Architect inbox; only lead lane/CURRENT/roadmap delta.
+
+Signed: codex-lead, 2026-11-24
+
 ## Manual lead continuation — 2026-11-24 ET (after Architect run 35)
 
 - **Merged #322** as `7590eeb0b6122c24943c05863056341fc88557b4` at signed head `c89c111fbe256affbdc2390769e3d4852ece535d`, [pre-merge review](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7151998780). OB-g6 merge: lead; Lab 45531547818 and Golden 45531547860 pass; two named arm64 unchanged Function Envelope rows +2.058170095/+2.604825324 accepted by exact [r1.6b ruling](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7151870666); raw paired 45531547871 remains red. Main since tested base has no changed-file overlap. #496 merged; #495 closed superseded. #491 already closed unmerged. #505 Architect docs pending exact-head Lab 45539951302 at inspection; this lead update is stacked on its exact head, not a competing rewrite.
