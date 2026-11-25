@@ -102,6 +102,99 @@ static void shared_tests() {
     core.release_all(UINT32_MAX, e, emit);
     check(core.allocator().active_count() == 0, "release all");
 }
+static void live_voice_resize() {
+    engine2::Config cfg;
+    cfg.max_block = 128;
+    engine2::Engine engine(cfg);
+    const auto producer = uint32_t(engine.register_producer());
+    check(engine.add_node(1, ws::Module<ws2ports::HostKeyboard>::descriptor()) &&
+          engine.add_node(2, ws::Module<ws2ports::Vco>::descriptor()) &&
+          engine.connect(1, 0, 2, 0) && engine.output(2, 0, 0) &&
+          engine.set_parameter(1, 0, 4.f) && engine.prepare(), "resize graph");
+    float samples[128]{};
+    float *rows[]{samples};
+    auto render = [&] {
+        allocation_watch::Scope scope;
+        check(engine.render(rows, 1, 128) == WS2_OK && scope.allocations() == 0,
+              "resize render allocation-free");
+    };
+    for (int key : {60, 64, 67, 71})
+        check(engine.enqueue(producer, 1, WS2_DIRECT_PORT, note({WS2_NOTE_ON, key, key}), 0) == WS2_OK,
+              "resize note on");
+    render();
+    engine2::Outgoing event;
+    while (engine.pop_egress(event)) {}
+    const auto kept = [&] {
+        for (uint32_t i = 0; i < 128; ++i) {
+            check(engine.output_sample(1, 1, 0, i) == 1 && engine.output_sample(1, 1, 1, i) == 1,
+                  "resize kept gates");
+            check(engine.output_sample(1, 0, 0, i) == 0 && engine.output_sample(1, 0, 1, i) == 4.f / 12,
+                  "resize kept pitches");
+        }
+    };
+    const auto parameter = [&](uint32_t index, float value, uint32_t offset = 0) {
+        ws2_event e{};
+        e.struct_size = sizeof(e);
+        e.type = WS2_PARAM;
+        e.index = index;
+        e.value = value;
+        check(engine.enqueue(producer, 1, WS2_DIRECT_PORT, e, engine.meter().frame + offset) == WS2_OK,
+              "live parameter enqueue");
+    };
+    parameter(0, 2.f);
+    render();
+    check(engine.output_channels(1, 1) == 2, "shrink width");
+    kept();
+    unsigned offs = 0;
+    while (engine.pop_egress(event)) if (event.node == 1 && event.port == 3) {
+        check((event.event.type == WS2_NOTE_OFF || event.event.type == WS2_NOTE_CHOKE) &&
+              event.event.channel >= 2 && event.event.channel < 4 &&
+              event.event.note_id == (event.event.channel == 2 ? 67 : 71), "shrink releases removed IDs only");
+        ++offs;
+    }
+    check(offs == 2, "shrink two releases");
+    parameter(0, 2.f);
+    render();
+    kept();
+    while (engine.pop_egress(event)) check(event.node != 1 || event.port != 3, "same count emits no notes");
+    parameter(0, 4.f);
+    render();
+    check(engine.output_channels(1, 1) == 4, "grow width");
+    kept();
+    for (uint32_t c = 2; c < 4; ++c)
+        for (uint32_t i = 0; i < 128; ++i)
+            check(engine.output_sample(1, 1, c, i) == 0, "new lanes idle");
+    while (engine.pop_egress(event)) check(event.node != 1 || event.port != 3, "grow emits no notes");
+    // Nonconstant parameter signals and an event at a later offset must
+    // not be folded into the constant-span fast path.
+    parameter(0, 1.f, 32);
+    parameter(0, 2.f, 64);
+    check(engine.enqueue(producer, 1, WS2_DIRECT_PORT, note({WS2_NOTE_ON, 79, 79}),
+                         engine.meter().frame + 72) == WS2_OK, "midblock note on");
+    render();
+    check(engine.output_channels(1, 1) == 2, "midblock grow width");
+    for (uint32_t i = 0; i < 128; ++i)
+        check(engine.output_sample(1, 1, 0, i) == 1 &&
+              engine.output_sample(1, 0, 0, i) == 0, "midblock keeps first voice");
+    for (uint32_t i = 64; i < 128; ++i)
+        check(engine.output_sample(1, 1, 1, i) == (i >= 72 ? 1.f : 0.f),
+              "midblock new lane idle until note");
+    unsigned mid_off = 0, mid_on = 0;
+    while (engine.pop_egress(event)) if (event.node == 1 && event.port == 3) {
+        if (event.event.type == WS2_NOTE_OFF) {
+            check(event.event.note_id == 64 && event.event.offset == 32, "midblock release offset");
+            ++mid_off;
+        } else if (event.event.type == WS2_NOTE_ON) {
+            check(event.event.note_id == 79 && event.event.offset == 72, "midblock note offset");
+            ++mid_on;
+        }
+    }
+    check(mid_off == 1 && mid_on == 1, "midblock release and note");
+    parameter(1, 3.f);
+    render();
+    check(engine.output_channels(1, 1) == 1 && engine.output_sample(1, 1, 0, 127) == 0,
+          "mode change retains existing release semantics");
+}
 static void graph_tests() {
     for (auto rate : {44100., 48000., 96000.})
         for (uint32_t voices : {1u, 4u, 16u})
@@ -215,6 +308,7 @@ int main() {
     try {
         reclamation_burst();
         shared_tests();
+        live_voice_resize();
         graph_tests();
         std::cout << "keyboard/core matrices pass\n";
     } catch (const std::exception &e) {

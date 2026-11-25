@@ -4,6 +4,7 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "dsp.h"
 #include <chrono>
+#include <complex>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -288,6 +289,128 @@ static void fall_recovers_and_retriggers() {
     for (int i = 0; i < 5 * 48000; ++i) drop = -d.process(1, 0, 0, 1, rate);
     REQUIRE(drop == 4.f);
 }
+
+// S7.3: T7.0's restricted alias bins, not the total non-harmonic residual.
+// The exact 2 s render, first-fifth discard, Hann taper and +/-4 bin masks
+// mirror bench/offline/metrics.py. This folder oracle uses real callback PCM;
+// the separate hosted Offline facts run remains the authoritative graph render.
+using Complex = std::complex<double>;
+static void alias_fft(const double* x, size_t stride, size_t n, Complex* out,
+                      const std::vector<Complex>& roots) {
+    if (n == 1) { out[0] = *x; return; }
+    size_t radix = 2;
+    while (n % radix != 0) ++radix;
+    REQUIRE(radix <= 7);
+    const size_t m = n / radix, root_step = roots.size() / n;
+    for (size_t j = 0; j < radix; ++j)
+        alias_fft(x + j * stride, stride * radix, m, out + j * m, roots);
+    for (size_t k = 0; k < m; ++k) {
+        Complex v[7]{};
+        for (size_t j = 0; j < radix; ++j) v[j] = out[j * m + k];
+        for (size_t l = 0; l < radix; ++l) {
+            Complex sum{};
+            const size_t bin = k + l * m;
+            for (size_t j = 0; j < radix; ++j)
+                sum += v[j] * roots[(j * bin * root_step) % roots.size()];
+            out[bin] = sum;
+        }
+    }
+}
+static void s73_alias_rows() {
+    struct Row { int rate, hz, shape; double before_db, before_rms; size_t bins; };
+    // Committed x64 T7.0 baseline, capture 44029050283, source 1b36751e44d99536166962094d52a713dfb989a2.
+    const Row rows[] = {
+        {44100, 110, 0, -39.39643340467205, 0.20381768415729856, 5409},
+        {44100, 1760, 0, -27.315589379901336, 0.21030228610159382, 342},
+        {44100, 3520, 0, -24.500051695630376, 0.20858527275462563, 171},
+        {44100, 7040, 0, -21.956223763668348, 0.2052060723603866, 81},
+        {44100, 110, 1, -36.60500138899152, 0.3166975775392479, 5409},
+        {44100, 1760, 1, -24.13029008862906, 0.3316093429064836, 342},
+        {44100, 3520, 1, -21.07888147297292, 0.3294285114725236, 171},
+        {44100, 7040, 1, -19.888377942469493, 0.3248892471845933, 81},
+        {48000, 110, 0, -39.90765924414583, 0.2024452874794181, 5886},
+        {48000, 1760, 0, -27.630974505341573, 0.2100480129702842, 369},
+        {48000, 3520, 0, -24.413627774288305, 0.2080670900025708, 189},
+        {48000, 7040, 0, -21.847113082463853, 0.2041565668366347, 90},
+        {48000, 110, 1, -37.141149494444676, 0.3138802881042255, 5886},
+        {48000, 1760, 1, -24.83447441647449, 0.3313071401181518, 369},
+        {48000, 3520, 1, -21.008560872683848, 0.3287749212994898, 189},
+        {48000, 7040, 1, -19.545816585486374, 0.3234972451608996, 90},
+        {96000, 110, 0, -44.61498432383293, 0.18201376394554902, 11781},
+        {96000, 1760, 0, -32.34513837537304, 0.20746400168463947, 738},
+        {96000, 3520, 0, -29.27639670024594, 0.20297237518255015, 369},
+        {96000, 7040, 0, -26.0564945504346, 0.1938544362112383, 189},
+        {96000, 110, 1, -42.29083453051146, 0.27358143360187076, 11781},
+        {96000, 1760, 1, -29.398718330975168, 0.3279765354648648, 738},
+        {96000, 3520, 1, -26.481878135549643, 0.3222348082830644, 369},
+        {96000, 7040, 1, -22.826503650907615, 0.30996179653345124, 189},
+    };
+    constexpr double tau = 6.28318530717958647692;
+    bool all_pass = true;
+    for (const auto& row : rows) {
+        Rig r(row.rate, 1, 7);
+        const double octaves = std::log2(row.hz / 261.6255653);
+        const int octave = std::clamp(static_cast<int>(std::floor(octaves)), -3, 3);
+        r.input_values[0][0] = static_cast<float>(octaves - octave);
+        r.values[0] = static_cast<float>(row.shape);
+        r.values[3] = static_cast<float>(octave);
+        r.values[5] = 1.f; r.values[6] = 0.f; r.values[7] = 0.f;
+        for (int p : {14, 15, 17, 18, 19, 21}) r.values[p] = 0.f;
+        r.values[24] = 20000.f; r.values[25] = 1.f;
+        const size_t frames = 2u * row.rate, discard = frames / 5, n = frames - discard;
+        std::vector<double> x(n);
+        double squares = 0., taper_sum = 0.;
+        for (size_t first = 0; first < frames; first += 128) {
+            const auto count = static_cast<uint32_t>(std::min<size_t>(128, frames - first));
+            r.run(count);
+            for (size_t i = 0; i < count; ++i) {
+                const double sample = r.buffers->out[0][0][i];
+                squares += sample * sample;
+                if (first + i >= discard) {
+                    const size_t k = first + i - discard;
+                    const double taper = .5 - .5 * std::cos(tau * k / (n - 1));
+                    x[k] = sample * taper; taper_sum += taper;
+                }
+            }
+        }
+        std::vector<Complex> roots(n), spectrum(n);
+        for (size_t k = 0; k < n; ++k) roots[k] = std::polar(1., -tau * k / n);
+        alias_fft(x.data(), 1, n, spectrum.data(), roots);
+        std::vector<bool> harmonic(n / 2 + 1), aliases(n / 2 + 1);
+        const auto mark = [&](std::vector<bool>& mask, int hz) {
+            const auto center = static_cast<size_t>(std::llround(double(hz) * n / row.rate));
+            for (size_t k = center > 4 ? center - 4 : 1;
+                 k < std::min(mask.size(), center + 5); ++k) mask[k] = true;
+        };
+        const int base = row.rate / (2 * row.hz) + 1;
+        for (int k = 1; k < base; ++k) mark(harmonic, k * row.hz);
+        for (int k = base; k <= std::min(4096, 2 * row.rate / row.hz); ++k) {
+            const int remainder = (k * row.hz) % row.rate;
+            const int folded = std::min(remainder, row.rate - remainder);
+            if (folded == 0 || 2 * folded >= row.rate || folded % row.hz == 0) continue;
+            mark(aliases, folded);
+        }
+        size_t bins = 0; double power = 0.;
+        for (size_t k = 1; k < aliases.size(); ++k) if (aliases[k] && !harmonic[k]) {
+            ++bins; power += 2. * std::norm(spectrum[k]) / (taper_sum * taper_sum);
+        }
+        REQUIRE(bins == row.bins);
+        const double db = 10. * std::log10(std::max(power, 1e-30));
+        const double rms = std::sqrt(squares / frames);
+        const double rms_delta = 20. * std::log10(rms / row.before_rms);
+        const double reduction = row.before_db - db;
+        const bool alias_ok = row.hz == 110 ? reduction >= -1. :
+            row.rate == 96000 || db < -80. || reduction >= (row.rate == 48000 ? 20. : 15.);
+        const bool rms_ok = std::abs(rms_delta) <= .5;
+        std::printf("S7.3 rate=%d hz=%d shape=%s bins=%zu alias_dbfs=%.6f reduction_db=%.6f rms=%.9f rms_delta_db=%.6f %s\n",
+                    row.rate, row.hz, row.shape ? "square" : "saw", bins, db, reduction, rms, rms_delta,
+                    alias_ok && rms_ok ? "PASS" : "FAIL");
+        all_pass = all_pass && alias_ok && rms_ok;
+    }
+    std::fflush(stdout); // Preserve all row diagnostics even on assertion failure.
+    REQUIRE(all_pass);
+}
+
 int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--benchmark") return benchmark();
     matrix();
@@ -297,4 +420,5 @@ int main(int argc, char** argv) {
     lfo_switch_steps_and_triangle_phase();
     fall_recovers_and_retriggers();
     std::puts("CHAOS-lite callback matrix/state/extremes/allocation checks passed");
+    s73_alias_rows();
 }

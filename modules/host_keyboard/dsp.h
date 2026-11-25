@@ -26,23 +26,36 @@ struct HostKeyboard {
         pending = {};
         emitted = {};
     }
-    template <class Emit> void configure_at(ws::Block &b, uint32_t i, Emit emit) {
-        int count =
-            std::clamp<int>(static_cast<int>(std::lround(b.param(0).value(0, i))), 1, static_cast<int>(max_channels));
-        int policy = std::clamp<int>(static_cast<int>(std::lround(b.param(1).value(0, i))), 0, 3);
-        if (count != voices || policy != mode) {
-            ws2_event e{};
-            e.struct_size = sizeof(e);
-            e.offset = i;
-            e.source_id = UINT32_MAX;
+    // Count and policy changes are rare, but configure_at is called every
+    // sample. Keep the release/snapshot path out of the steady-state loop
+    // so the compiler does not reserve its large temporary stack/register set.
+    template <class Emit>
+#if defined(_MSC_VER)
+    __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+    __attribute__((noinline))
+#endif
+    void change_configuration(int count, int policy, uint32_t i, Emit emit) {
+        ws2_event e{};
+        e.struct_size = sizeof(e);
+        e.offset = i;
+        e.source_id = UINT32_MAX;
+        if (voices && policy == mode) core.resize(count, e, emit);
+        else {
             core.release_all(UINT32_MAX, e, emit);
             wirescape::voice::Config cfg;
             cfg.max_voices = count;
             cfg.mode = static_cast<wirescape::voice::Mode>(policy);
             core.configure(cfg);
-            voices = count;
-            mode = policy;
         }
+        voices = count;
+        mode = policy;
+    }
+    template <class Emit> void configure_at(ws::Block &b, uint32_t i, Emit emit) {
+        const int count =
+            std::clamp<int>(static_cast<int>(std::lround(b.param(0).value(0, i))), 1, static_cast<int>(max_channels));
+        const int policy = std::clamp<int>(static_cast<int>(std::lround(b.param(1).value(0, i))), 0, 3);
+        if (count != voices || policy != mode) change_configuration(count, policy, i, emit);
     }
     void process(ws::Block &b) {
         b.out(3).set_channels(0);
@@ -74,8 +87,13 @@ struct HostKeyboard {
             }
         b.split(
             [&](uint32_t first, uint32_t end) {
+                // Constant controls cannot change within this split range.
+                // Keep event-offset configuration below and sample evaluation
+                // for either nonconstant control.
+                const bool fixed_config = b.param(0).constant() && b.param(1).constant();
+                if (fixed_config) configure_at(b, first, emit);
                 for (uint32_t i = first; i < end; ++i) {
-                    configure_at(b, i, emit);
+                    if (!fixed_config) configure_at(b, i, emit);
                     for (int p = 0; p < 3; ++p) {
                         b.out(p).set_channels(core.allocator().voice_count());
                         b.out(p).mark_constant(false);

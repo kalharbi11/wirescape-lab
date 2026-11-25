@@ -6,21 +6,11 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
-A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
-cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
-`review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
-
-A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
-[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
-starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
-
-During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
-as a delegated mechanical step after verifying a complete request and when no lead decision
-is outstanding. Count that dispatch against the same one-per-lead-window allowance.
-Use the linked issue for the wake while only Issues → Labeled is configured. Keep review
-material and its head pinned on the PR. A label requests a run. Confirm pickup from live
-activity or the signed outcome.
+A planned review condition uses `review-required`. Open an Architect-only review row when its
+pinned request is ready. Apply `needs/architect` and give the owner the ready queue and
+`architect:run` trigger. The Architect clears ready Open rows at the owner's manual start.
+Keep review material and its head pinned on the PR. Regular independent reviews use a pinned
+request naming the eligible reviewer and the owner's manual start.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -43,7 +33,5 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| #429 scope | 2026-11-24 | E5 voice-count replacement scope | **A55** ([M4 note](milestones/M4.md), [#429](https://github.com/kalharbi11/wirescape-lab/issues/429)): voice count stays a live parameter, no ID/document change; in-place `Allocator::resize` as **E5v #439** (B3, `merge: lead`). E5 = same-descriptor config replacement with ER4, adopt/ring-out, settle Low |
-| #438 | 2026-11-24 | Roadmap status review; M7 batch 2 vs R3 inconsistency | **A56**: M7 r1.6 unparks S7.5/S7.6/S7.9 for OB1 with a bounded paired-row exception (≤ +2.5 %, rows without a changed module, linux, expires at CAT-1 or the OB1 tag). OB r2.9 adds optional #322. Roadmap revised and merged |
-| run 29 process | 2026-11-24 | Owner: fewer stops before merge-ready | **A57** → STANDING SR20 (self-release, Lows never block, lead merges `merge: lead` on green + Result, facts auto-merge, one Claude review at the merge-ready head) |
-| #424 routing | 2026-11-24 | OSC fix after the split counts | **A58** (pre-ruled): see [#424](https://github.com/kalharbi11/wirescape-lab/issues/424). The lead routes the fix without a new row unless it changes a limit, queue size, load or the soak profile |
+| A64 | 2026-11-24 | S7.6 #314/#449 `e772628`: A27 floor for mode/tone/division whose target state alone exceeds the old-value floor ([ask](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7148652913)) | **Ruled** ([M7 r1.8](milestones/M7.md), [Q28](QUESTIONS.md#q28--s76-endpoint-floor-a64), [comment](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7149046840)): floor = max(old-value, target-from-start) over the r1.4 windows; met at ≤ +0.1 dB over that floor (below meets). mode met (+0.030); tone +0.307 not met, real defect, fix in the DSP; division needs its target control. B4 #456 supplies the controls. |
+| E7 | 2026-11-24 | #442 `2959f7e` Claude contract-review (lead pin 7148957226) | **Approved and merged** `94d1b0b` ([review](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7149034643)); L1 MIDI note-off during the gap goes to the owner Pi checks. |
