@@ -4,6 +4,9 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <thread>
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -35,6 +38,26 @@ struct Service::Impl {
         bool lan = false;
         Socket socket = invalid_socket;
     };
+    // A67: only failed deliveries take these bounded atomic counters.
+    // Exact partitions are read after join; live snapshots remain observational.
+    struct Reasons {
+        std::atomic<uint64_t> invalid{0}, capacity{0}, state{0}, other{0};
+        void record(int code) noexcept {
+            auto *counter = &other;
+            if (code == WS2_INVALID) counter = &invalid;
+            else if (code == WS2_CAPACITY) counter = &capacity;
+            else if (code == WS2_STATE) counter = &state;
+            counter->fetch_add(1, std::memory_order_relaxed);
+        }
+        template<class T> void read(T &out) const noexcept {
+            out.enqueue_invalid = invalid.load(std::memory_order_relaxed);
+            out.enqueue_capacity = capacity.load(std::memory_order_relaxed);
+            out.enqueue_state = state.load(std::memory_order_relaxed);
+            out.enqueue_other = other.load(std::memory_order_relaxed);
+        }
+    };
+    std::array<Reasons, 32> route_reasons{}, listener_reasons{};
+    Reasons global_reasons;
     Sink sink;
     bool confirmed;
     std::string failure;
@@ -232,7 +255,12 @@ struct Service::Impl {
                             if (!route_enabled[r] || routes[r].port != listeners[i].requested) continue;
                             if (sink.accept && !sink.accept(sink.context, routes[r].node, message.address)) continue;
                             const auto deliver = sink.deliver;
-                            if (!deliver || deliver(sink.context, routes[r].node, event, timestamp) != WS2_OK) {
+                            const int result = deliver ? deliver(sink.context, routes[r].node, event, timestamp)
+                                                       : WS2_EXCEPTION; // absent sink is not a native enqueue code
+                            if (result != WS2_OK) {
+                                route_reasons[r].record(result);
+                                listener_reasons[i].record(result);
+                                global_reasons.record(result);
                                 dropped.fetch_add(1, std::memory_order_relaxed);
                                 route_dropped[r].fetch_add(1, std::memory_order_relaxed);
                                 route_enqueue[r].fetch_add(1, std::memory_order_relaxed);
@@ -250,7 +278,35 @@ struct Service::Impl {
     }
     void stop() {
         running = false;
-        if (worker.joinable()) worker.join();
+        if (worker.joinable()) {
+            worker.join();
+            // Explicitly opted-in null-sink diagnostic. One bounded row per
+            // affected route, only after the worker is quiescent; never log
+            // individual events or change delivery/stop decisions.
+            const char *opt_in = std::getenv("WIRESCAPE_OSC_ENQUEUE_DIAGNOSTIC");
+            if (opt_in && std::strcmp(opt_in, "1") == 0) {
+                for (uint32_t r = 0; r < route_count; ++r) {
+                    const auto total = route_enqueue[r].load(std::memory_order_relaxed);
+                    if (!total) continue;
+                    RouteState row;
+                    route_reasons[r].read(row);
+                    uint16_t port = routes[r].port;
+                    for (uint32_t i = 0; i < listener_count; ++i)
+                        if (listeners[i].requested == port) {
+                            port = listeners[i].bound;
+                            break;
+                        }
+                    std::fprintf(stderr,
+                        "osc_enqueue_reason module=%u port=%u total=%llu invalid=%llu capacity=%llu state=%llu other=%llu\n",
+                        unsigned(routes[r].node), unsigned(port),
+                        static_cast<unsigned long long>(total),
+                        static_cast<unsigned long long>(row.enqueue_invalid),
+                        static_cast<unsigned long long>(row.enqueue_capacity),
+                        static_cast<unsigned long long>(row.enqueue_state),
+                        static_cast<unsigned long long>(row.enqueue_other));
+                }
+            }
+        }
         close_all();
     }
 };
@@ -285,6 +341,7 @@ std::vector<RouteState> Service::states() const {
         report.dropped = impl_->route_dropped[i].load(std::memory_order_relaxed);
         report.budget_dropped = impl_->route_budget[i].load(std::memory_order_relaxed);
         report.enqueue_dropped = impl_->route_enqueue[i].load(std::memory_order_relaxed);
+        impl_->route_reasons[i].read(report);
         if (impl_->route_enabled[i] && listener_index < impl_->listener_count) {
             report.listener_budget_dropped = impl_->listener_budget[listener_index].load(std::memory_order_relaxed);
             report.listener_enqueue_dropped = impl_->listener_enqueue[listener_index].load(std::memory_order_relaxed);
@@ -299,13 +356,17 @@ std::vector<ListenerState> Service::listener_states() const {
     for (uint32_t i = 0; i < impl_->listener_count; ++i) {
         const auto budget = impl_->listener_budget[i].load(std::memory_order_relaxed);
         const auto enqueue = impl_->listener_enqueue[i].load(std::memory_order_relaxed);
-        out.push_back({impl_->listeners[i].bound, budget + enqueue, budget, enqueue});
+        ListenerState report{impl_->listeners[i].bound, budget + enqueue, budget, enqueue};
+        impl_->listener_reasons[i].read(report);
+        out.push_back(report);
     }
     return out;
 }
 Counters Service::counters() const noexcept {
-    return {impl_->received, impl_->malformed, impl_->dropped, impl_->truncated, impl_->sockets,
-            impl_->budget_dropped, impl_->enqueue_dropped};
+    Counters report{impl_->received, impl_->malformed, impl_->dropped, impl_->truncated, impl_->sockets,
+                    impl_->budget_dropped, impl_->enqueue_dropped};
+    impl_->global_reasons.read(report);
+    return report;
 }
 uint16_t Service::bound_port(uint32_t i) const { return i < impl_->listener_count ? impl_->listeners[i].bound : 0; }
 } // namespace wirescape::osc
