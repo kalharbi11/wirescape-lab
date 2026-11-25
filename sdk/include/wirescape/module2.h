@@ -84,12 +84,34 @@ typedef struct ws2_reader {
     int (WS2_CALL *read)(void*,void*,uint32_t);
     uint32_t bytes;
 } ws2_reader;
+#define WS2_MAX_DATA_SLOTS 8u
+#define WS2_MAX_DATA_BYTES 65536u
+#define WS2_MAX_FIELDS 64u            /* per table, nested tables counted separately */
+#define WS2_REPLACE_FADE_DEFAULT_MS 20u
+#define WS2_REPLACE_FADE_MAX_MS 500u
+#define WS2_NO_FIELD UINT32_MAX
+enum ws2_field_type { WS2_F_F32=1, WS2_F_I32=2, WS2_F_U32=3, WS2_F_U8=4, WS2_F_BOOL=5,
+                      WS2_F_ENUM=6, WS2_F_TEXT=7, WS2_F_RECORD=8 };
+typedef struct ws2_field {
+    uint32_t struct_size; const char *id,*name;
+    uint32_t type,offset,count,stride;     /* count: array length, 1 = scalar */
+    uint32_t length_field;                 /* index of the U32 field holding the live length, or WS2_NO_FIELD */
+    uint32_t option_count; const char *const *options;      /* ENUM */
+    double minimum,maximum,initial;
+    uint32_t field_count; const struct ws2_field *fields;   /* RECORD: one level only */
+} ws2_field;
+typedef struct ws2_data_slot {
+    uint32_t struct_size; const char *id,*name;
+    uint32_t bytes,field_count; const ws2_field *fields; uint32_t flags;   /* flags: 0 */
+} ws2_data_slot;
+typedef struct ws2_data { uint32_t struct_size; const void *data; uint32_t bytes,serial; } ws2_data;
 typedef struct ws2_process {
     uint32_t struct_size,frames; uint64_t frame_position,generation; double sample_rate;
     uint32_t channels,input_count,output_count,param_count;
     const ws2_signal *inputs; ws2_signal_out *outputs; const ws2_signal *params;
     const ws2_event_list *event_inputs; const ws2_event_out *event_outputs;
     ws2_event_list events; const ws2_transport *transport;
+    uint32_t data_count; const ws2_data *data;
 } ws2_process;
 typedef struct ws2_descriptor {
     uint32_t struct_size,abi_version; const char *id,*name; uint32_t version;
@@ -105,6 +127,9 @@ typedef struct ws2_descriptor {
     int (WS2_CALL *save_state)(void*,const ws2_writer*);
     int (WS2_CALL *load_state)(void*,const ws2_reader*);
     uint32_t (WS2_CALL *latency_frames)(void*);
+    uint32_t data_slot_count; const ws2_data_slot *data_slots;
+    int (WS2_CALL *adopt)(void *self,const void *old);
+    uint32_t replace_fade_ms;
 } ws2_descriptor;
 typedef const ws2_descriptor *(WS2_CALL *ws2_entry_fn)(void);
 #ifndef WS_MODULE2_VERSION_NAME

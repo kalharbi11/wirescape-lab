@@ -59,9 +59,20 @@ def oracle(case, path, ref_path):
                              "identical": True})
     x, y = s.data[0], ref.data[0]
     _, hi = metrics.window(x, RATE, win.edit, win.late)
+    phase_diagnostic = None
     if case == "adopt":
         residual = max(abs(v - (i+1)/65536.0) for i, v in enumerate(x[:hi]))
-        assert residual < 2e-7 and x[:hi] == y[:hi], (case, residual)
+        # A69b: the native analytic oracle is the hard gate; exact subject
+        # phase equality was extra. Preserve the count and residual as facts.
+        differences = sum(a != b for a, b in zip(x[:hi], y[:hi]))
+        control_residual = max(abs(a - b) for a, b in zip(x[:hi], y[:hi]))
+        phase_diagnostic = {"differing_samples": differences,
+                            "max_abs_vs_control": control_residual,
+                            "analytic_max_abs_error": residual,
+                            "frames": hi, "exact_equality": differences == 0}
+        print(f"adopt phase diagnostic: differing_samples={differences} "
+              f"analytic_residual={residual:.17g} paired_residual={control_residual:.17g}")
+        assert residual < 2e-7, (case, residual)
         first = None
     else:
         assert all(v == .75 for v in y[:hi])
@@ -76,13 +87,18 @@ def oracle(case, path, ref_path):
     release = marks.locate(ms, "release")
     release_index = release.b0 * BLOCK
     assert release.ok and release_index >= hi
+    # A71 and A69b: exact held/untouched witnesses remain hard gates.
+    assert s.data[2] == ref.data[2], (case, "untouched Voice")
     if case == "adopt":
+        assert all(v == 1 for v in s.data[1][:release_index]), (case, "held before release")
+        assert s.data[1] == ref.data[1], (case, "held control equality")
         assert all(v == 0 for v in s.data[1][release_index:])
     else:
         assert all(v == .375 for v in x[release_index:])
     return {"synthetic": True, "case": case, "mark": mark._asdict(),
             "witnesses": witness_rows, "subject_oracle_max_abs_error": residual,
             "first_divergent_sample": first, "fade_frames": CASES[case],
+            "phase_diagnostic": phase_diagnostic,
             "raw": raw, "control": raw_ref}
 
 

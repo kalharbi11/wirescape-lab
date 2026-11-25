@@ -204,6 +204,7 @@ struct Edge {
     auto key() const noexcept { return std::tie(from, output, to, input, kind); }
     Node *source = nullptr, *destination = nullptr;
     bool back = false, removed = false, ramped = false;
+    bool replacement_input = false; // Keep a retired replacement's unchanged signal input live.
 };
 struct Component {
     std::vector<Node *> nodes;

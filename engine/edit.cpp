@@ -45,6 +45,7 @@ void Engine::reset() {
     }
     if (p.render_layout) p.reset_processors();
     p.position.store(0);
+    p.last_settle_attempt_position.reset();
     if (p.prepared) p.reset_beat = true;
     else p.beat = 0;
     p.anchor_frame = 0;
@@ -158,228 +159,38 @@ const std::vector<uint8_t> &Engine::preserved_state(uint32_t node) const {
     return empty;
 }
 
-bool Engine::Impl::stage_reconfiguration(Engine &next, uint32_t node,
-                                         const std::vector<uint8_t> &config) {
-    auto &old = *this;
-    auto &fresh = *next.p_;
-    // Stage metadata for retained nodes; only the changed node creates/prepares DSP.
-    for (auto &n : old.layout->nodes) {
-        if (n->retired) continue;
-        if (n->instance.id == node) {
-            if (!next.add_node(n->instance.id, n->instance.d, config)) return old.fail("Cannot stage reconfiguration");
-            auto *target = fresh.find(node);
-            target->instance.config = config;
-            target->instance.forced_channels = n->instance.forced_channels;
-            target->instance.state = n->instance.state;
-            for (uint32_t i = 0; i < target->instance.state.size(); ++i)
-                target->instance.state[i].info = target->instance.parameters[i];
-        } else {
-            auto instance = std::make_unique<Instance>();
-            auto target = std::make_unique<Node>(*instance);
-            target->instance.id = n->instance.id;
-            target->instance.d = n->instance.d;
-            target->instance.inputs = n->instance.inputs;
-            target->instance.outputs = n->instance.outputs;
-            target->instance.parameters = n->instance.parameters;
-            target->instance.forced_channels = n->instance.forced_channels;
-            target->instance.latency.store(n->instance.latency.load(std::memory_order_relaxed));
-            fresh.instances.emplace(n->instance.id, std::move(instance));
-            fresh.layout->nodes.push_back(std::move(target));
-        }
-    }
-    auto index_of = [](const auto &ports, const char *id) {
-        for (uint32_t i = 0; i < ports.size(); ++i)
-            if (!std::strcmp(ports[i].id, id)) return i;
-        return UINT32_MAX;
-    };
-    for (auto &e : old.layout->edges)
-        if (!e.removed) {
-            auto *a = fresh.find(e.from), *b = fresh.find(e.to);
-            auto sp = index_of(a->instance.outputs, e.source->instance.outputs[e.output].id);
-            uint32_t dp = UINT32_MAX;
-            if (e.kind == 2) dp = index_of(b->instance.parameters, e.destination->instance.parameters[e.input].id);
-            else dp = index_of(b->instance.inputs, e.destination->instance.inputs[e.input].id);
-            if (sp == UINT32_MAX || dp == UINT32_MAX) {
-                ++fresh.dropped_connections;
-                continue;
-            }
-            if (e.kind == 2) {
-                if (!next.modulate(e.from, sp, e.to, dp, e.amount)) return old.fail("Staged modulation failed");
-            } else if (!next.connect(e.from, sp, e.to, dp)) return old.fail("Staged connection failed");
-        }
-    for (auto &bus : old.layout->buses) {
-        if (bus.removed) continue;
-        auto *source = old.find(bus.node), *target = fresh.find(bus.node);
-        uint32_t port = index_of(target->instance.outputs, source->instance.outputs[bus.port].id);
-        if (port == UINT32_MAX) {
-            ++fresh.dropped_connections;
-            continue;
-        }
-        if (!next.output(bus.node, port, bus.channel)) return old.fail("Staged bus failed");
-    }
-    for (uint32_t i = 0; i < old.producer_count; ++i)
-        if (next.register_producer() < 0) return old.fail("Staged producer failed");
-    // Keep the tap order stable across quiescent reconfiguration. Dynamic port
-    // indices can shift, so resolve the old endpoint ID against the new layout.
-    // Refuse a removed tap endpoint rather than silently shifting reader slots.
-    std::vector<Tap> remapped;
-    remapped.reserve(old.layout->taps.size());
-    for (const auto &t : old.layout->taps) {
-        if (t.kind == Tap::OscPitch) {
-            if (!valid_tap(fresh.find(t.node), t)) return old.fail("Reconfiguration removes oscillator pitch layout");
-            remapped.push_back(t);
-            continue;
-        }
-        const auto *prior = old.find(t.node);
-        const auto *target = fresh.find(t.node);
-        const char *id =
-            t.kind == Tap::Param ? prior->instance.parameters[t.index].id : prior->instance.outputs[t.index].id;
-        const uint32_t index =
-            t.kind == Tap::Param ? index_of(target->instance.parameters, id) : index_of(target->instance.outputs, id);
-        if (index == UINT32_MAX) return old.fail("Reconfiguration removes telemetry tap endpoint");
-        auto mapped = t;
-        mapped.index = index;
-        remapped.push_back(mapped);
-    }
-    if (!remapped.empty() && !next.set_telemetry_taps(remapped)) return old.fail("Cannot stage telemetry tap layout");
-    return true;
-}
-
-bool Engine::reconfigure(uint32_t node, const std::vector<uint8_t> &config) {
-    auto &old = *p_;
-    auto *changed = old.find(node);
-    if (!old.prepared || !changed) return false;
-    if (config == changed->instance.config) {
-        old.dropped_connections = 0;
-        return true;
-    }
-    Engine next(old.cfg);
-    auto &fresh = *next.p_;
-    if (!old.stage_reconfiguration(next, node, config)) return false;
-    fresh.beat = old.beat;
-    fresh.reset_beat = old.reset_beat;
-    fresh.transport_sent = old.transport_sent;
-    fresh.transport_applied = old.transport_applied;
-    if (!fresh.finish_prepare()) return old.fail("Staged graph prepare failed");
-    auto bytes = save_state(node);
-    if (!bytes.empty()) {
-        int r = next.load_state(node, bytes);
-        if (r != WS2_OK && r != WS2_UNSUPPORTED) return old.fail("Staged state restore failed");
-    }
-    std::vector<Node *> actual;
-    actual.reserve(fresh.layout->nodes.size());
-    for (auto &n : fresh.layout->nodes) actual.push_back(n->instance.id == node ? n.get() : old.find(n->instance.id));
-    // Preserve unchanged loop delay lines as well as processor state.
-    const auto next_revision = old.published_revision.load() + 1;
-    if (!next_revision) return old.fail("Live graph revision exhausted");
-    for (auto &e : fresh.layout->edges) {
-        if (e.kind != 2) continue;
-        e.born_revision = next_revision;
-        if (e.from == node || e.to == node) continue;
-        auto *prior = old.find_mod_edge(e.from, e.output, e.to, e.input);
-        if (!prior) continue;
-        e.state->modulation = prior->state->modulation;
-        e.born_revision = prior->born_revision;
-        e.sent_serial = prior->sent_serial;
-    }
-    std::vector<bool> used(old.layout->edges.size(), false);
-    std::vector<std::pair<size_t, size_t>> delays;
-    for (size_t i = 0; i < fresh.layout->edges.size(); ++i) {
-        auto &e = fresh.layout->edges[i];
-        if (!e.back || e.kind == 1 || e.from == node || e.to == node) continue;
-        for (size_t j = 0; j < old.layout->edges.size(); ++j) {
-            auto &v = old.layout->edges[j];
-            if (!used[j] && !v.removed && v.back &&
-                e.key() == v.key()) {
-                used[j] = true;
-                delays.emplace_back(i, j);
-                break;
-            }
-        }
-    }
-    std::vector<std::unique_ptr<Node>> entries(fresh.layout->nodes.size());
-    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i)
-        if (fresh.layout->nodes[i]->instance.id != node)
-            entries[i] = std::make_unique<Node>(actual[i]->instance);
-    // Commit: all potentially failing work/allocations precede these swaps.
-    for (size_t i = 0; i < fresh.layout->nodes.size(); ++i)
-        if (entries[i]) {
-            auto &retained = *actual[i];
-            auto &entry = *entries[i];
-            entry.slot = std::move(fresh.layout->nodes[i]->slot);
-            entry.slot.in.swap(retained.slot.in);
-            entry.slot.in_view.swap(retained.slot.in_view);
-            entry.slot.param_view.swap(retained.slot.param_view);
-            for (uint32_t j = 0; j < retained.instance.event_outputs.size(); ++j)
-                retained.instance.event_outputs[j] = {sizeof(ws2_event_out), &fresh, j, Impl::emit};
-            old.instances.find(retained.instance.id)->second.swap(fresh.instances.find(retained.instance.id)->second);
-            actual[i] = &entry;
-        }
-    for (auto &e : fresh.layout->edges) {
-        e.source = actual[e.source->slot.index];
-        e.destination = actual[e.destination->slot.index];
-    }
-    for (auto &component : fresh.layout->components)
-        for (auto *&n : component.nodes) n = actual[n->slot.index];
-    for (auto *&n : fresh.layout->tap_nodes) n = actual[n->slot.index];
-    for (auto &entry : fresh.layout->node_table) entry.second = actual[entry.second->slot.index];
-    for (auto &bus : fresh.layout->buses) bus.source = actual[bus.source->slot.index];
-    for (size_t i = 0; i < entries.size(); ++i)
-        if (entries[i]) fresh.layout->nodes[i].swap(entries[i]);
-    for (auto pair : delays) {
-        auto &e = fresh.layout->edges[pair.first];
-        auto &v = old.layout->edges[pair.second];
-        std::swap(e.state->delay, v.state->delay);
-        e.state->delay_channels.swap(v.state->delay_channels);
-        std::swap(e.state->head, v.state->head);
-    }
-    fresh.setup_bytes = 0;
-    for (auto &n : fresh.layout->nodes) fresh.setup_bytes += n->instance.requested_fast + n->instance.requested_large;
-    fresh.position.store(old.position.load());
-    fresh.anchor_frame = old.anchor_frame;
-    fresh.anchor_ns = old.anchor_ns;
-    fresh.frames_per_ns = old.frames_per_ns;
-    fresh.published_revision.store(next_revision);
-    fresh.adopted_revision.store(next_revision);
-    fresh.settled_revision.store(next_revision);
-    fresh.layout->revision = next_revision;
-    fresh.generation.store(old.generation.load() + 1);
-    fresh.applied.store(fresh.generation.load());
-    // Quiescent replacement retires module ingress but keeps acknowledged
-    // host updates in send order. The new ring is empty and the same capacity.
-    if (old.producer_count) {
-        Packet packet;
-        while (old.producers[0]->critical.pop(packet))
-            if (packet.host) {
-                const bool pushed = fresh.producers[0]->critical.push(packet);
-                assert(pushed && "host packet must fit in replacement ring");
-                (void)pushed;
-            }
-    }
-    p_.swap(next.p_);
-    return true;
-}
-
 bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> &actual,
                                          std::vector<bool> &used, std::vector<bool> &delay_used,
                                          std::vector<std::pair<uint32_t, uint32_t>> &chokes,
                                          std::vector<std::array<uint32_t, 4>> &removed_routes,
                                          std::vector<std::pair<size_t, size_t>> &delays) {
     auto &old = *this;
+    // ER4: a queued event belongs to the same live logical destination on
+    // eligible config replacement, but never to a new source incarnation.
+    auto same_destination = [](const Node *prior, const Node *next, uint32_t port) {
+        if (prior == next) return true;
+        const auto &a = prior->instance;
+        const auto &b = next->instance;
+        return !prior->retired && !next->retired && a.id == b.id && a.d == b.d &&
+               a.config != b.config && port < a.inputs.size() && port < b.inputs.size() &&
+               a.inputs[port].kind == WS2_EVENT && b.inputs[port].kind == WS2_EVENT &&
+               a.inputs[port].id && b.inputs[port].id &&
+               std::strcmp(a.inputs[port].id, b.inputs[port].id) == 0;
+    };
     for (auto &e : old.layout->edges)
         if (!e.removed && e.kind == 1) {
             bool kept = false;
             for (size_t i = 0; i < fresh.layout->edges.size(); ++i)
                 if (!used[i] && !fresh.layout->edges[i].removed && e.key() == fresh.layout->edges[i].key() &&
                     actual[fresh.layout->edges[i].source->slot.index] == e.source &&
-                    actual[fresh.layout->edges[i].destination->slot.index] == e.destination) {
+                    same_destination(e.destination, actual[fresh.layout->edges[i].destination->slot.index], e.input)) {
                     used[i] = true;
                     kept = true;
                     break;
                 }
             auto *destination = fresh.find(e.to);
             if (!kept) removed_routes.push_back({e.from, e.output, e.to, e.input});
-            if (!kept && destination && actual[destination->slot.index] == e.destination) {
+            if (!kept && destination && same_destination(e.destination, actual[destination->slot.index], e.input)) {
                 if (chokes.size() == old.cfg.release_reserve) return old.fail("Too many edge releases for one edit");
                 chokes.emplace_back(e.to, e.input);
             }
@@ -423,6 +234,11 @@ void Engine::Impl::prune_edge_states() noexcept {
 
 void Engine::Impl::settle_layout() noexcept {
     if (!steady_layout || settled_revision.load(std::memory_order_acquire) < layout->revision) return;
+    // Retry only after a callback advances the render position. If audio
+    // stopped, repeated status refreshes must not each wait three blocks.
+    const auto frame = position.load(std::memory_order_acquire);
+    if (last_settle_attempt_position == frame) return;
+    last_settle_attempt_position = frame;
     // The next edit may also fold this housekeeping into its transition.
     // A stopped stream can cancel this attempt without changing the graph.
     auto &steady = *steady_layout;
@@ -441,6 +257,7 @@ void Engine::Impl::settle_layout() noexcept {
     if (!publish_layout(&steady, bound)) return;
     layout.swap(steady_layout);
     steady_layout.reset();
+    last_settle_attempt_position.reset();
     retired_instances.clear();
     prune_edge_states();
     published_revision.store(revision, std::memory_order_release);
@@ -523,6 +340,33 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                 added |= include_retired(edge.source->instance);
     } while (added);
 
+    std::map<Instance *, Instance *> replacement_pairs;
+    for (auto id : introduced) {
+        auto *prior = old.find(id);
+        auto *successor = target_instances.at(id);
+        if (prior && prior->instance.d == successor->d && prior->instance.config != successor->config) {
+            auto tail = transition_nodes.find(&prior->instance);
+            next.replacements.push_back({&prior->instance, transition_nodes.at(successor),
+                tail == transition_nodes.end() ? nullptr : tail->second});
+            replacement_pairs.emplace(&prior->instance, successor);
+        }
+    }
+    auto replacement_of = [&](Instance *prior, Instance *successor) {
+        const auto it = replacement_pairs.find(prior);
+        return it != replacement_pairs.end() && it->second == successor;
+    };
+    auto replacement_frames = [&](const Instance &instance) -> uint32_t {
+        const bool replacing = std::any_of(replacement_pairs.begin(), replacement_pairs.end(), [&](const auto &pair) {
+            return pair.first == &instance || pair.second == &instance;
+        });
+        if (!replacing) return 0;
+        const auto *d = instance.d;
+        uint32_t ms = WS2_REPLACE_FADE_DEFAULT_MS;
+        if (d->struct_size >= offsetof(ws2_descriptor, replace_fade_ms) + sizeof(d->replace_fade_ms) &&
+            d->replace_fade_ms)
+            ms = std::min(d->replace_fade_ms, WS2_REPLACE_FADE_MAX_MS);
+        return static_cast<uint32_t>(std::max(1., old.cfg.sample_rate * ms / 1000.));
+    };
     auto same_edge = [](const Edge &a, const Edge &b) {
         return a.key() == b.key() && &a.source->instance == &b.source->instance &&
                &a.destination->instance == &b.destination->instance;
@@ -548,7 +392,17 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
             edge.ramped = edge.kind != 1 && (prior.removed || (prior.ramped && !settled));
             break;
         }
-        if (!matched && edge.kind != 1) edge.ramped = true;
+        if (!matched && edge.kind != 1) {
+            // An unchanged signal input feeds both replacement instances at
+            // full strength. Only consumer contributions crossfade.
+            const bool shared_input = edge.kind == 0 && std::any_of(old.layout->edges.begin(),
+                old.layout->edges.end(), [&](const auto &prior) {
+                    return !prior.removed && prior.key() == edge.key() &&
+                           &prior.source->instance == &edge.source->instance &&
+                           replacement_of(&prior.destination->instance, &edge.destination->instance);
+                });
+            edge.ramped = !shared_input;
+        }
         next.edges.push_back(edge);
     }
     for (size_t i = 0; i < old.layout->edges.size(); ++i) {
@@ -560,6 +414,12 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         edge.source = transition_nodes.at(&prior.source->instance);
         edge.destination = transition_nodes.at(&prior.destination->instance);
         edge.removed = edge.ramped = true;
+        edge.replacement_input = prior.replacement_input || (prior.kind == 0 &&
+            std::any_of(fresh.layout->edges.begin(), fresh.layout->edges.end(), [&](const auto &authored) {
+                return !authored.removed && authored.key() == prior.key() &&
+                       target_instances.at(authored.from) == &prior.source->instance &&
+                       replacement_of(&prior.destination->instance, target_instances.at(authored.to));
+            }));
         next.edges.push_back(edge);
     }
     for (const auto &authored : fresh.layout->buses) {
@@ -639,7 +499,9 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                     !edge.removed && (reborn || edge.amount != prior->amount), reborn});
         }
         if (edge.ramped) {
-            next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr, edge.removed ? 0.f : 1.f});
+            next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr,
+                edge.removed && !edge.replacement_input ? 0.f : 1.f,
+                replacement_frames(edge.source->instance)});
             next.ramps.push_back(edge.state);
         } else if (prior && edge.state != prior->state)
             next.gain_adoption.push_back({edge.state, prior->state, 1.f});
@@ -656,7 +518,8 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         }
         if (prior) bus.state = prior->state;
         if (bus.ramped) {
-            next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f});
+            next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f,
+                replacement_frames(bus.source->instance)});
             next.ramps.push_back(bus.state);
         }
     }
@@ -688,7 +551,12 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     retired.reserve(next.nodes.size());
     for (auto id : introduced) {
         auto &instance = *fresh.instances.at(id);
-        instance.born_revision = next_revision;
+        // ER4 / A55: only a same-descriptor config replacement inherits birth.
+        // find() excludes retired nodes: remove/readd gets a fresh revision.
+        const auto *predecessor = old.find(id);
+        instance.born_revision = predecessor && predecessor->instance.d == instance.d &&
+                                 predecessor->instance.config != instance.config
+                                     ? predecessor->instance.born_revision : next_revision;
         for (uint32_t i = 0; i < instance.event_outputs.size(); ++i)
             instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
     }
@@ -726,6 +594,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     transfer(target);
     old.layout.swap(staged.layout);
     old.steady_layout = std::move(steady.layout);
+    old.last_settle_attempt_position.reset();
     old.edge_states.swap(staged.edge_states);
     old.prune_edge_states();
     old.recompute_latency();

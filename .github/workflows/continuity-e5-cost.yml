@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      ENGINE_HEAD: 2519e306eec6bb9991fe4dfd1c1dfe860e84c83a
-      # B5 final review source qualified: #436 Result 7152566759.
+      ENGINE_HEAD: 9809dfb9d1ead244815b8f93a68a02f7a307fe5b
+      # B5 final review pin 2519e306 approved/merged as 9809dfb; identical non-doc blobs.
       # Capture actual cost at this exact source, independently of CN phase ruling.
       MEASURE: "true"
     steps:

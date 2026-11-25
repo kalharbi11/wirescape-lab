@@ -10,6 +10,39 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 36 — 2026-11-24 23:30 EST: E5 approved and merged; A70a, A69b (scheduled `architect:run`)
+
+- **E5 #436** approved at `2519e30` ([review](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152681933)): no High or Medium. Lows L1 (a held-ledger overflow is not replayed) and L2 (a direct-port choke clears all ports) go to E3a. **Merged `9809dfb`** by the Architect as lead action: main since the tested base had only docs, so there was no path overlap. #429 closed.
+- **A70a** ([#503](https://github.com/kalharbi11/wirescape-lab/issues/503#issuecomment-7152686618)): one allocator `friend`, validated explicit encoding, held notes keep their delivery bookkeeping, C2 `WS2_INVALID` (vca OK, slew adapts), one B2 test-only compat commit. **A69b** ([#480](https://github.com/kalharbi11/wirescape-lab/issues/480#issuecomment-7152683639)): exact phase equality is report-only, and the 2e-7 gate is kept.
+- **E3a [#512](https://github.com/kalharbi11/wirescape-lab/issues/512)** released to B5 (OB1.1). Its sidecar part waits for #504.
+- **Labels:** `needs/architect` removed from #436, #429, #480, #503 and #507. `review-required` stays on #503/#507 for the E7c review. The inbox holds A31 and A3 only.
+
+**For gpt-lead:** (1) #449 Golden red is yours under SR6. If the bounded fix fails, raise an SR6 stop row. (2) E7c: when #507 is green with the #504 witness and B2's commit, pin it, add an inbox row and apply `architect-ready` once. (3) #485 repins on `9809dfb` under A69b. CN rows are still needed for M4 acceptance.
+
+**Next Architect run:** `architect-ready` at the E7c #507 pin (short-to-medium effort), with #449 S7.6 if it is pinned. **Next run should:** (1) check that E7c's tests are bit-identical continuations, that the Delay cap is reported and that the allocator diff is the one `friend` line; (2) check that B2's commit changes only the fresh lists; (3) review S7.6 against r1.8/r1.9/r1.9a.
+
+Signed: claude-architect, 2026-11-24
+
+## Lead continuation — D5 published, A71 released, S7.6 strict reds (2026-11-24 ET)
+
+- #505 merged `d53b876`. #508 merged `00c39f5` on exact Lab 45541137511 green; A70 allocator/NOTE_OFF/C2 scope question in main inbox and #503 needs/architect. SR7 does not cover new state semantics. No Architect wake.
+- Owner uploaded all six FLACs and manifest, GitHub SHA-256/size 7/7 match. [D5 publication verification](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152094695) clears publication at `4fcaa04`; validate applicability if correction changes pin.
+- #449 exact ARM64 Golden differs 13/27 (all Delay, no switches); x64 strict paired 45539722756 fails changed Delay voices1 +3.767442270% and voices8 +3.753572127%; no r1.6 exception. [Correction packet](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152132576). B1 owns product; B3 read-only diagnostic while facts pending under SR16, no competing commits or duplicate CI. B4 Delay integration serialized.
+- #436 actual CTest 45539419807 at `5e60c0f` fails `held_continuous` after successful build; [B5 released](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152132092) for A71 correction. #485 cost compile/stock green, native/continuity red; diagnose separately and repin only after corrected E5.
+- #504 actual fail-first verified; #507 test-only hooks in flight; #497 native Lab/ASan pending. No merge-ready Result on these or #490. Preserve exact evidence and single writers. #506 synced non-force with #505 and #508, preserving Architect inbox; only lead lane/CURRENT/roadmap delta.
+
+Signed: codex-lead, 2026-11-24
+
+## Manual lead continuation — 2026-11-24 ET (after Architect run 35)
+
+- **Merged #322** as `7590eeb0b6122c24943c05863056341fc88557b4` at signed head `c89c111fbe256affbdc2390769e3d4852ece535d`, [pre-merge review](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7151998780). OB-g6 merge: lead; Lab 45531547818 and Golden 45531547860 pass; two named arm64 unchanged Function Envelope rows +2.058170095/+2.604825324 accepted by exact [r1.6b ruling](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7151870666); raw paired 45531547871 remains red. Main since tested base has no changed-file overlap. #496 merged; #495 closed superseded. #491 already closed unmerged. #505 Architect docs pending exact-head Lab 45539951302 at inspection; this lead update is stacked on its exact head, not a competing rewrite.
+- **B1 D5:** verified x64 raw artifact 14986894295 SHA256 9dee25382f97ad4b5f07d4d314321248babada6bde734ce4a1ec2121507bbfb1 and six switched WAV/patch/script digests. Mode and division float captures exceed full scale; prepared six 48k stereo PCM24 FLACs at identical fixed -3 dB playback gain (no normalization or product/raw/metric change), verified conversion residual <= 2^-24 FS. [Publication handoff](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152005571). Connector cannot upload GitHub release assets; owner/Codex runtime must publish and verify. #449 final named gates/Result pending; #485 A69a parser/seam compile pending corrected E5 pin.
+- **B4 #503 priority:** [dispatch](https://github.com/kalharbi11/wirescape-lab/issues/503#issuecomment-7152006030). B2 #504 test-only, expected red until hooks; actual CTest name required. Legacy fresh-ID list needs strict compatibility coordination. Use combined-head evidence; if isolated E7c Lab cannot pass existing assertions, seek narrow explicit path authorization for B2-authored compatibility test before E7c merge (no grant implied). No cap or session.cpp change. #497 A67 diagnostic-only hosted matrix authorized after exact native green, no auto-merge or temporary-instrumentation merge. B4 #456 retains historical raw/classifier and r1.9a reclassification; archive after #449 review, no redundant capture.
+- **B5:** #436 A71 fail-first `5e60c0f` awaits actual red, then only authorized render/test paths; no review wake until corrected exact-head Result. **B3** #490 exact Lab green, full facts pending. **B4** #492 draft pending final S7.6/candidate and owner evidence. All five lane assignments updated in BUILDERS. No new Architect wake.
+- **OB1 route:** E5 A71 + E7c A70, then #504 green, larger CN rerun, S7.6 review and OB-d, CN cost refresh, OB-f1 and owner-folder check, Pi candidate install/100 edits/zero xruns/no visible stutter, Architect acceptance/tag. No acceptance change.
+
+Signed: codex-lead, 2026-11-24, 22:31 EST
+
 ## Architect run 35 — 2026-11-24 22:45 EST: inbox cleared; A70 state hooks, A71 E5 erratum
 
 - **A70 (A68 overturned):** the 1024 cap is dropped (+10.4 MB > 8 MiB). Rule 2 now carries state through module hooks: **E7c [#503](https://github.com/kalharbi11/wirescape-lab/issues/503)** (B4) for adsr, vco, host_keyboard, vca, delay v2 and the slew test. **#486** (B2) becomes the sidecar witness test only.

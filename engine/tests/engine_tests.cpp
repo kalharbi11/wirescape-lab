@@ -138,6 +138,19 @@ template<uint32_t Taper>static void cached_taper(){
 struct LatencyProbe:Pass<WS2_POLY>{uint32_t latency_frames()const{return 7;}};
 static ws2_event event(uint32_t type,float value=1,uint32_t index=0){ws2_event e{};e.struct_size=sizeof(e);e.type=type;e.value=value;e.index=index;e.note_id=1;e.channel=0;e.key=60;e.source_id=1;return e;}
 static void render(Engine&e,uint32_t frames=256){std::array<float,4096>a{},b{};float*out[]={a.data(),b.data()};CHECK(e.render(out,2,frames)==WS2_OK);}
+static void replan_test(Engine &live, Engine &candidate, uint64_t timeout_ns = 16000000) {
+    std::atomic<bool> done{false};
+    bool accepted = false;
+    std::thread control([&] {
+        accepted = live.replan(candidate, timeout_ns);
+        done.store(true, std::memory_order_release);
+    });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    do { render(live, 16); std::this_thread::yield(); }
+    while (!done.load(std::memory_order_acquire) && std::chrono::steady_clock::now() < deadline);
+    control.join();
+    CHECK(accepted);
+}
 static Config cfg(){Config c;c.ring_capacity=256;c.future_capacity=1024;return c;}
 static void signals(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<Source>::descriptor()));CHECK(e.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.add_node(3,ws::Module<Pass<WS2_SUM>>::descriptor()));CHECK(e.add_node(4,ws::Module<Pass<WS2_FIRST>>::descriptor()));
@@ -183,7 +196,8 @@ static void rows(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<ws2test::Rows>::descriptor(),{3}));CHECK(e.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.add_node(3,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.connect(1,0,2,0));CHECK(e.connect(1,2,3,0));CHECK(e.prepare());
  auto saved=e.save_state(1);CHECK(saved.size()==20);CHECK(e.load_state(1,saved)==WS2_OK);CHECK(e.save_state(1)==saved);
  auto future=saved;future[0]=9;CHECK(e.load_state(1,future)==WS2_UNSUPPORTED);CHECK(e.preserved_state(1)==future);CHECK(e.save_state(1)==future);CHECK(e.load_state(1,saved)==WS2_OK);
- CHECK(e.reconfigure(1,{2}));CHECK(e.dropped_connections()==1);render(e,17);CHECK(std::abs(e.output_sample(2,0,0,0)-.1f)<1e-6);CHECK(e.output_sample(3,0,0,0)==.25f);
+ Engine candidate(cfg());CHECK(candidate.add_node(1,ws::Module<ws2test::Rows>::descriptor(),{2}));CHECK(candidate.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(candidate.add_node(3,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(candidate.connect(1,0,2,0));CHECK(!candidate.connect(1,2,3,0));CHECK(candidate.prepare());
+ replan_test(e,candidate);for(int i=0;i<5;++i)render(e,256);render(e,17);CHECK(std::abs(e.output_sample(2,0,0,0)-.1f)<1e-6);CHECK(e.output_sample(3,0,0,0)==.25f);
 }
 static void producer_stress(){
  Config c=cfg();c.max_block=48;c.feedback_block=32;c.ring_capacity=1024;Engine e(c);CHECK(e.add_node(1,ws::Module<Receiver>::descriptor()));for(int i=0;i<3;++i)e.register_producer();CHECK(e.prepare());
@@ -402,28 +416,34 @@ static void live_modulation_amount() {
 }
 
 static void modulation_edge_birth() {
-    Engine engine;
-    CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {1}));
-    CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
-    CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {1}));
-    CHECK(engine.modulate(1, 0, 2, 0, 0));
-    CHECK(engine.register_producer() == 0);
-    CHECK(engine.prepare());
+    auto build = [](Engine &engine, uint8_t source_rows, uint8_t other_rows, float amount) {
+        CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {source_rows}));
+        CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
+        CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {other_rows}));
+        CHECK(engine.modulate(1, 0, 2, 0, amount));
+        CHECK(engine.register_producer() == 0);
+        CHECK(engine.prepare());
+    };
+    Engine engine, other, replaced;
+    build(engine, 1, 1, 0);
+    build(other, 1, 2, .25f);
+    build(replaced, 2, 2, .75f);
     render(engine, 16);
-
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .25f) == WS2_OK);
     const auto stale = engine.meter().stale;
-    CHECK(engine.reconfigure(3, {2})); // A surviving edge keeps its pending update.
+    replan_test(engine, other);
     render(engine, 240);
     CHECK(engine.meter().stale == stale);
     CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .525)) < 2e-5);
 
+    // Live replacement can consume a pre-adoption update on the old edge;
+    // unlike quiescent reconfigure, an exact stale increment isn't invariant.
+    // Verify the new edge takes its own later authored update after the fade.
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .75f) == WS2_OK);
-    CHECK(engine.reconfigure(1, {2})); // Same endpoint names, a new edge birth.
+    replan_test(engine, replaced);
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .5f) == WS2_OK);
-    render(engine, 240);
-    CHECK(engine.meter().stale == stale + 1);
-    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .55)) < 2e-5);
+    for (int i=0;i<5;++i) render(engine, 256);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 255) - std::pow(100., .55)) < 2e-5);
 }
 
 struct TransportProbe {
@@ -566,14 +586,101 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 135, 13, false);
 
-    // Quiescent replacement carries the current serial and queued host updates.
+    // Live config replacement carries the current serial and queued host updates.
+    Engine config_replacement(config);
+    CHECK(config_replacement.add_node(1, ws::Module<TransportProbe>::descriptor()));
+    CHECK(config_replacement.add_node(2, &replaced));
+    CHECK(config_replacement.add_node(4, ws::Module<ws2test::Rows>::descriptor(), {2}));
+    CHECK(config_replacement.register_producer() == 0);
+    CHECK(config_replacement.prepare());
     CHECK(live.transport(170, false, 21.) == WS2_OK);
-    CHECK(live.reconfigure(4, {2}));
+    replan_test(live, config_replacement, 200000000);
     render(live, 16);
     check_transport(live, 170, 21, false);
     CHECK(live.transport(165, false) == WS2_OK);
     render(live, 16);
     check_transport(live, 165, 21, false);
+}
+// ER4: a config-shaped synthetic voice owner has the same descriptor and ID
+// on either side of an edit. The replacement must replay the existing held
+// note without a new attack from the test. A pre-adoption note-off must reach it.
+// Conversely, removing the ID and introducing it in a separate edit
+// invalidates the old packet; it must not release the newly held note.
+static void append_only_descriptor_registration() {
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    // Deliberately poison bytes beyond the advertised size: they are absent.
+    d.struct_size = offsetof(ws2_descriptor, data_slot_count);
+    d.data_slot_count = 1;
+    Engine legacy;
+    CHECK(legacy.add_node(1, &d));
+    CHECK(legacy.output(1, 0, 0));
+    CHECK(legacy.prepare());
+    render(legacy, 16);
+    CHECK(legacy.output_sample(1, 0, 0, 15) == 1.f);
+    ws2_descriptor unsupported = d;
+    unsupported.struct_size = sizeof(unsupported);
+    Engine not_yet;
+    CHECK(!not_yet.add_node(1, &unsupported));
+}
+static void replacement_packet_birth() {
+    Config config;
+    config.max_block = 4096;
+    auto make = [&](uint8_t voices) {
+        auto e = std::make_unique<Engine>(config);
+        CHECK(e->add_node(9, ws::Module<Source>::descriptor()));
+        if (voices) {
+            CHECK(e->add_node(1, ws::Module<ws2test::NotesToCv>::descriptor(), {voices}));
+            CHECK(e->output(1, 1, 0));
+        }
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto replan = [&](Engine &live, Engine &candidate) {
+        std::atomic<bool> done{false};
+        bool ok = false;
+        std::thread control([&] {
+            ok = live.replan(candidate, 200000000);
+            done.store(true, std::memory_order_release);
+        });
+        while (!done.load(std::memory_order_acquire)) {
+            render(live, 16);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+        control.join();
+        CHECK(ok);
+    };
+    auto held = [&](Engine &live) {
+        CHECK(live.enqueue(0, 1, 0, event(WS2_NOTE_ON, .75f), 0, Timing::Immediate) == WS2_OK);
+        render(live, 16);
+        CHECK(live.output_sample(1, 1, 0, 15) == 1.f);
+    };
+    for (bool replace : {false, true}) {
+        auto live = make(1);
+        held(*live);
+        const auto stale = live->meter().stale;
+        const uint64_t due = live->meter().frame + 65536;
+        CHECK(live->enqueue(0, 1, 0, event(WS2_NOTE_OFF, 0), due) == WS2_OK);
+        render(*live, 16); // Packet now lives in the future queue.
+        auto successor = make(2);
+        if (!replace) {
+            auto absent = make(0);
+            replan(*live, *absent);
+            CHECK(live->meter().stale == stale + 1);
+        }
+        replan(*live, *successor);
+        CHECK(live->meter().frame < due);
+        if (!replace) held(*live); // A newly born ID needs its own attack.
+        else {
+            render(*live, 16);
+            CHECK(live->output_sample(1, 1, 0, 15) == 1.f);
+        }
+        CHECK(live->meter().stale == stale + (replace ? 0 : 1));
+        while (live->meter().frame <= due) render(*live, 4096);
+        render(*live, 16);
+        CHECK(live->output_sample(1, 1, 0, 15) == (replace ? 0.f : 1.f));
+        CHECK(live->meter().stale == stale + (replace ? 0 : 1));
+    }
 }
 // E4a: topology entries must not embed DSP instances. Two layouts must
 // be able to refer to the same instance without moving its address.
@@ -670,6 +777,8 @@ int main(){
  transport_ring();
  transport_serial();
  transport_replan();
+ append_only_descriptor_registration();
+ replacement_packet_birth();
  parameter_channels();
  modulation_spans();
  telemetry();

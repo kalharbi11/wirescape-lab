@@ -17,11 +17,12 @@ struct Engine::Impl {
     std::map<EdgeState *, std::unique_ptr<EdgeState>> edge_states;
     std::vector<std::unique_ptr<Instance>> retired_instances;
     std::unique_ptr<Layout> steady_layout;
+    std::optional<uint64_t> last_settle_attempt_position; // Control owner only.
     std::unique_ptr<Layout> layout = std::make_unique<Layout>(); // control-only
     Layout *render_layout = nullptr; // render-only after prepare
     std::atomic<Layout *> pending_layout{nullptr};
     std::array<std::unique_ptr<Producer>, 32> producers;
-    uint32_t producer_count = 0, dropped_connections = 0;
+    uint32_t producer_count = 0;
     std::unique_ptr<Producer> egress;
     std::vector<Packet> future;
     std::vector<uint8_t> arena;
@@ -98,6 +99,7 @@ struct Engine::Impl {
                 p.offset.fill(0);
             }
             n->instance.pending.clear();
+            n->instance.held_notes.clear();
         }
         for (auto &e : active->edges)
             if (e.back && e.kind != 1) {
@@ -105,6 +107,7 @@ struct Engine::Impl {
                 std::fill(e.state->delay_channels.begin(), e.state->delay_channels.end(), 0);
                 if (e.state->delay.memory) std::fill_n(e.state->delay.memory.get(), cfg.max_channels * e.state->delay.stride, 0.f);
             }
+        active->replacements.clear();
         future.clear();
     }
     bool topology();
@@ -112,7 +115,6 @@ struct Engine::Impl {
     void find_components();
     bool order_feedback_components();
     bool order_components();
-    bool stage_reconfiguration(Engine &next, uint32_t node, const std::vector<uint8_t> &config);
     bool plan_edge_transitions(Impl &fresh, const std::vector<Node *> &actual,
                                std::vector<bool> &used, std::vector<bool> &delay_used,
                                std::vector<std::pair<uint32_t, uint32_t>> &chokes,

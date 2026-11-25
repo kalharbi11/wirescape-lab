@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by claude-architect (run 35), 2026-11-24 22:45 EST. Every builder is a
+Refreshed by codex-lead, 2026-11-24 (after Architect run 35). Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
@@ -33,11 +33,11 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | **E5 #436** `b4b11ac`: **fix A71 first** (High H1: no release-all to `O` after a successful adopt; `engine/render.cpp` and `live_replan_tests.cpp`; fail-first, held bus within 2e-7 on every fade sample). Then exact-head gates and the signed Result at the merge-ready head, and ask for the Claude review once. Tell B1 the new pin. | E3a after E5 (OB1.1). |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **E7b #486, now A70 witness only:** a `host/sidecar` test that a 256→512 rule-2 rebuild keeps the held note, Delay tail and VCO phase. Write it now (expected red); it turns green on B4's E7c head. No `session.cpp` change. Close #491 unmerged as a diagnostic record. | A67 #494/#497 with the granted opt-in reason summary (not tag-holding). |
-| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; A70 hook paths incl. additive `engine/voice/note_to_cv.h` save/load | **E7c [#503](https://github.com/kalharbi11/wirescape-lab/issues/503) (A70, OB1 critical path):** state hooks for adsr, vco, host_keyboard, vca and delay v2, plus a slew round-trip; each a bit-identical continuation test. Finish #492 OB-d's Result in parallel (docs only). #456 adds the r1.9a one-sided column. | CHAOS provenance Low. |
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | **#449 S7.6:** mode/tone/division met under r1.9a; post the per-row table and signed Result, then pin for Architect review. **#485/#480:** keep the strict adopt verifier and rerun at B5's A71 head; add the A69a cost rows (Black Ice Choir single, clocked-groove dual and adoption). | Larger CN row rerun after E7c and #486 merge. |
-| **B3** `gpt-builder3` · **Floater** | Assigned paths only | **#487/#490** Windows libremidi pin: finish the exact-head Result (lead merge). **#322:** the arm64 Function Envelope rows are covered by r1.6b; list them and post the Result (optional row). | Floater: take B4's OB-d follow-ups if E7c runs long. |
+| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | **E3a [#512](https://github.com/kalharbi11/wirescape-lab/issues/512)** (OB1.1): E5 #436 approved and merged `9809dfb` (run 36). Start engine/header/ring delivery with a failing test first. Sidecar/`setData` parts wait for #504. Carry E5 Lows L1/L2. | E3a after E5 (OB1.1); CN is not E5 merge gate. |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **#486/#504** `cc3f8a3`: actual fail-first [ARM64 CTest](https://github.com/kalharbi11/wirescape-lab/pull/504#issuecomment-7152051554) verified; await actual E7c hook head for combined witness and legacy C2/fresh checks; no session.cpp/cap change. **#497** `a701a57`: Lab 45540069794/ASan pending; diagnostic hosted stage only after native green, no auto-merge. | #504 merges after E7c, exact green and Result; B1 larger CN rerun. A67 does not hold tag. |
+| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; A70 hook paths incl. additive `engine/voice/note_to_cv.h` save/load | **E7c #503/#507**: A70a ruled (run 36): one allocator `friend`, validated explicit encoding, delivered held notes keep `emitted`, C2 `WS2_INVALID` (vca OK, slew adapts). Fix the red Lab (Keyboard and sidecar recovery tests), report the Delay cap, combine with the #504 witness and B2's authorized compat commit, then post a Result and pin for the short Claude review. Delay save/load only; DSP stays with B1 #449. **#492** waits for the final S7.6. | #499/#502 Low after critical work; #456 archival after #449 review. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | **#449** `f8a318b`: Linux x64/arm64 Golden still red (Delay); lead SR6 round 2. Bounded diagnosis or SR6 stop. **#485**: A69b ruled. Make exact phase equality report-only in `bench/continuity/native/`, keep the gates, and repin on main `9809dfb`. | Revalidate D5/A27 at final S7.6 pin, full gates/Result/review; larger CN after E7c/#504, then final cost facts. |
+| **B3** `gpt-builder3` · **Floater** | Assigned paths only | **#487/#490** `47b0dee`: Lab green, full facts 45538413826 pending. **Temporary read-only support for B1 #449:** [packet](https://github.com/kalharbi11/wirescape-lab/pull/490#issuecomment-7152133108), inspect existing paired/Golden artifacts and Delay codegen hypotheses, report on #449, no code or duplicate CI. #322 merged `7590eeb`. | Return to #490 when facts complete; signed Result then lead merge. |
 
 **Parked until after OB1** (branches kept): Gate Delay #333, CAT-1 #358 (+MB1), MT2 #176. Note Trigger #322 and M7 batch 2 were unparked in run 29.
 **Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
@@ -52,4 +52,4 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 - The Architect refreshes this table on every Architect run as well. On a conflict, the lead's
   dispatch wins.
 
-Signed: claude-architect, 2026-11-24
+Signed: codex-lead, 2026-11-24, 22:31 EST

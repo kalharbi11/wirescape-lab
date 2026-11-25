@@ -19,7 +19,7 @@ jobs:
           - stage: before
             engine: 00c39f5cc1d747a75fd7dff264e8c87ef78ddb75
           - stage: candidate
-            engine: 2519e306eec6bb9991fe4dfd1c1dfe860e84c83a
+            engine: 9809dfb9d1ead244815b8f93a68a02f7a307fe5b
     env:
       HARNESS_HEAD: 00c39f5cc1d747a75fd7dff264e8c87ef78ddb75
       ENGINE_HEAD: ${{ matrix.engine }}
