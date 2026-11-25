@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "../../host/midi/module_test_support.h"
 #include "dsp.h"
+#include "data_validation.h"
 using namespace wirescape;
 struct Rig {
     MidiArena arena;
@@ -154,6 +155,20 @@ static void live_route_data() {
 }
 int main() {
     live_route_data();
+    {
+        osc::Configuration cfg;
+        Rig rig(cfg);
+        std::string error;
+        REQUIRE(osc::validate_osc_in_rows(rig.slot_data, error));
+        auto invalid = rig.slot_data;
+        invalid.rows[3].input_max = invalid.rows[3].input_min;
+        REQUIRE(!osc::validate_osc_in_rows(invalid, error));
+        REQUIRE(error.find("routes.rows[3].input_max") != std::string::npos);
+        invalid = rig.slot_data;
+        std::strcpy(invalid.rows[5].pattern, "/bad/[");
+        REQUIRE(!osc::validate_osc_in_rows(invalid, error));
+        REQUIRE(error.find("routes.rows[5].pattern") != std::string::npos);
+    }
     osc::Statistics stats;
     osc::Configuration cfg;
     cfg.statistics = &stats;
