@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
+#include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
@@ -796,7 +797,7 @@ bool Session::commit(Json patch, bool new_namespace) {
     audio::EngineOwner candidate(
         document::load_runtime_patch(patch_bytes, catalogue_.get(), config_, error, &next_telemetry.taps()),
         app_engine_destroy);
-    need(bool(candidate), "refused", "Graph configuration or state refused");
+    need(bool(candidate), "refused", error.empty() ? "Graph configuration or state refused" : error.c_str());
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
@@ -830,6 +831,10 @@ bool Session::commit(Json patch, bool new_namespace) {
                 std::cerr << "commit path=live gen=" << generation_ << '\n';
                 return true;
             }
+            // A75 is not an ordinary replan refusal: D5 would cut the
+            // predecessor tail. Preserve the live graph and report busy.
+            if (error == "Replacement busy: predecessor still fading")
+                throw Refusal("busy", error.c_str());
             if (error != "MIDI worker busy") break;
             if (attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -1308,6 +1313,35 @@ Json Session::apply(const Json &command) {
         auto result = app_engine_native(active_).enqueue(0, id, WS2_DIRECT_PORT, native, 0, engine2::Timing::Immediate);
         need(result == WS2_OK, "busy", "Event queue full");
         m["parameters"][param] = value;
+        return nullptr;
+    }
+    if (type == "setData") {
+        const auto id = integer(command.at("moduleId"));
+        auto &m = node(patch_, id);
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        need(command.at("slot").is_string(), "invalid", "data.slot: expected string");
+        const auto slot_id = command.at("slot").get<std::string>();
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        uint32_t slot = 0;
+        while (slot < count && slot_id != d->data_slots[slot].id) ++slot;
+        need(slot < count, "invalid", ("data." + slot_id + ": unknown slot").c_str());
+        const auto &value = command.at("value");
+        std::vector<uint8_t> packed;
+        std::string error;
+        need(ws::data_layout::pack_data_slot(d->data_slots[slot], value,
+                ws::data_layout::DataLoad::Edit, packed, error), "invalid", error.c_str());
+        // All JSON work and validation must precede the ring insertion. On
+        // capacity/invalid/state refusal the execution document is unchanged.
+        auto updated = m;
+        if (!updated.contains("data")) updated["data"] = Json::object();
+        updated["data"][slot_id] = value;
+        const auto result = app_engine_native(active_).set_data_packed(id, slot, packed);
+        need(result != WS2_CAPACITY, "busy", "Data queue full");
+        need(result != WS2_INVALID, "invalid", "Invalid data slot");
+        need(result == WS2_OK, "unavailable", "Data slot unavailable");
+        m.swap(updated);
         return nullptr;
     }
     if (type == "loadGraph") {

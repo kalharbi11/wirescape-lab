@@ -117,12 +117,15 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         // replace_routes calls commit only after acquiring its try-lock. A valid
         // route table with no commit invocation therefore means MIDI contention.
         bool commit_entered = false;
+        int result = WS2_STATE;
         auto commit = [&] {
             commit_entered = true;
-            return engine_ && app_engine_replan(engine_, candidate, timeout_ns) == WS2_OK;
+            if (engine_) result = app_engine_replan(engine_, candidate, timeout_ns);
+            return result == WS2_OK;
         };
         if (!(service_ ? service_->replace_routes(std::move(routes), commit) : commit())) {
-            error = service_ && !commit_entered ? "MIDI worker busy" : "Live graph refused";
+            error = service_ && !commit_entered ? "MIDI worker busy" :
+                result == WS2_CAPACITY ? app_engine_error(engine_) : "Live graph refused";
             return false;
         }
         error.clear();

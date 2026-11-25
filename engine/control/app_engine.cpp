@@ -79,7 +79,10 @@ int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns
             }
             nodes.emplace(item.first, entry);
         }
-        if (!live->engine.replan(candidate->engine, timeout_ns)) return WS2_STATE;
+        if (!live->engine.replan(candidate->engine, timeout_ns)) {
+            live->error = live->engine.error();
+            return live->error == "Replacement busy: predecessor still fading" ? WS2_CAPACITY : WS2_STATE;
+        }
         live->nodes.swap(nodes);
         live->error.clear();
         return WS2_OK;
