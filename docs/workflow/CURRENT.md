@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead quick check — 2026-11-25 (after A77/A78)
+
+- **A78 ruled** on [#538](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7155106841): correlated deferred completion, blocked-ID-only config deferral, no partial commits, supersession and retirement-aware bounded retry; SR17 schema/spec/generated outputs, PV1 correction and A77 generic validation seam. B5 implements, B2 re-reviews; no contract approval yet. #544 merged `b9ca0fc`; A77/A78 cleared in inbox. B5 to consolidate #545/#546 draft-ahead work.
+- **B2 #540** `516da52`: OSC In module-local slot and validator implemented, CC/Out fail-first fixtures pending; A77 F32 migration/Golden guard and transactional route adoption binding. Shared integration waits #538.
+- **B4 #539** `e8c8065`: both Linux fail-first verified; non-RT hooks implemented, target green attempt and Lab 45562191238 pending. Exclusive OB1 product priority; strengthen witnesses, ASan, exact Lab/Golden/strict paired and Result before Architect review.
+- **B1 #492** `79abef6`: exact Lab green, candidate packet prepared; final 15-case OB-a1 rebuild waits integrated #539 merge. **B3 #525** `5253b3c`: intermediate A62/native captures successful and artifact digests checked; larger held and silent Delay tail remain non-pass, independent metric recomputation outstanding. Final A76/cost evidence after #539; Lab 45562261069 pending.
+- Five signed dispatch comments posted. No eligible product merge or new Architect request. Next Architect run when #539 or #538 is pinned; do not wait for OB1.1 review if #539 is ready first. No waivers.
+
+Signed: codex-lead, 2026-11-25
+
 ## Lead run — 2026-11-25 (after Architect run 38b)
 
 - **Merged #499** `b54cdfce` and **#502** `df0b022f` (SR16/SR20), signed Results and exact-head Lab/Golden/M1 paired green. No DSP or threshold changes. #456 verified closed unmerged after accepted A27 capture.
