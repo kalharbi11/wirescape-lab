@@ -58,6 +58,11 @@ public:
     // Control producer only. After a quiescent reset, resend the document amount.
     [[nodiscard]] int set_mod_amount(uint32_t from, uint32_t output, uint32_t to,
                                      uint32_t parameter, float amount) noexcept;
+    // Control-only, already validated/packed by the field-table host. Before
+    // prepare installs the initial block; after prepare uses producer 0's
+    // critical ring. WS2_CAPACITY is busy. Resend document data after reset.
+    [[nodiscard]] int set_data_packed(uint32_t node, uint32_t slot,
+                                      const std::vector<uint8_t>& bytes);
     bool output(uint32_t node,uint32_t port,uint32_t bus_channel);
     int register_producer();
     bool prepare();
@@ -99,6 +104,8 @@ public:
     const std::vector<uint8_t>&preserved_state(uint32_t node)const;
     // One control owner stages a prepared candidate while render remains active.
     // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
+    // A75: false with "Replacement busy: predecessor still fading" is an
+    // atomic prepublication refusal; keep the latest edit and retry after retirement.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
 };
 }

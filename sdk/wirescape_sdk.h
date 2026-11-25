@@ -7,12 +7,64 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <new>
 #include <type_traits>
 #include <utility>
 
 namespace ws {
+// 0012: the old process prefix stays usable by modules which declare no slots.
+constexpr size_t legacy_process_size = offsetof(ws2_process, data_count);
+struct DataFieldRules {
+    uint32_t length_field = WS2_NO_FIELD;
+    uint32_t option_count = 0;
+    const char *const *options = nullptr;
+    double minimum = 0, maximum = 0, initial = 0;
+    uint32_t field_count = 0;
+    const ws2_field *fields = nullptr;
+};
+constexpr DataFieldRules data_range(double minimum, double maximum, double initial,
+                                    uint32_t length_field = WS2_NO_FIELD) {
+    DataFieldRules r;
+    r.minimum = minimum; r.maximum = maximum; r.initial = initial; r.length_field = length_field;
+    return r;
+}
+template<size_t N> constexpr DataFieldRules data_options(const char *const (&options)[N], uint32_t initial,
+                                                        uint32_t length_field = WS2_NO_FIELD) {
+    auto r = data_range(0, N - 1, initial, length_field);
+    r.option_count = static_cast<uint32_t>(N); r.options = options; return r;
+}
+template<size_t N> constexpr DataFieldRules data_record(const std::array<ws2_field, N> &fields,
+                                                       uint32_t length_field = WS2_NO_FIELD) {
+    DataFieldRules r;
+    r.field_count = static_cast<uint32_t>(N); r.fields = fields.data(); r.length_field = length_field;
+    return r;
+}
+template<uint32_t Kind, class Member>
+constexpr ws2_field data_field(const char *id, const char *name, size_t offset, DataFieldRules rules) {
+    using E = std::remove_extent_t<Member>;
+    static_assert(std::rank_v<Member> <= 1, "data field is scalar or one-dimensional array");
+    static_assert((Kind == WS2_F_F32 && std::is_same_v<E,float>) ||
+                  (Kind == WS2_F_I32 && std::is_same_v<E,int32_t>) ||
+                  ((Kind == WS2_F_U32 || Kind == WS2_F_ENUM) && std::is_same_v<E,uint32_t>) ||
+                  ((Kind == WS2_F_U8 || Kind == WS2_F_BOOL) && std::is_same_v<E,uint8_t>) ||
+                  (Kind == WS2_F_TEXT && std::is_same_v<E,char> && std::is_array_v<Member>) ||
+                  (Kind == WS2_F_RECORD && std::is_class_v<E> && std::is_standard_layout_v<E> &&
+                    std::is_trivially_copyable_v<E>), "field kind must match C storage");
+    constexpr size_t count = std::is_array_v<Member> ? std::extent_v<Member> : 1;
+    static_assert(count > 0 && sizeof(Member) <= WS2_MAX_DATA_BYTES);
+    return {sizeof(ws2_field), id, name, Kind, static_cast<uint32_t>(offset), static_cast<uint32_t>(count),
+            Kind == WS2_F_RECORD ? static_cast<uint32_t>(sizeof(E)) : 0, rules.length_field,
+            rules.option_count, rules.options, rules.minimum, rules.maximum, rules.initial,
+            rules.field_count, rules.fields};
+}
+template<class Storage, size_t N>
+constexpr ws2_data_slot data_slot(const char *id, const char *name, const std::array<ws2_field,N> &fields) {
+    static_assert(std::is_standard_layout_v<Storage> && std::is_trivially_copyable_v<Storage>);
+    static_assert(sizeof(Storage) <= WS2_MAX_DATA_BYTES && alignof(Storage) <= 16 && N <= WS2_MAX_FIELDS);
+    return {sizeof(ws2_data_slot), id, name, sizeof(Storage), static_cast<uint32_t>(N), fields.data(), 0};
+}
 struct Info {const char *id,*name; uint32_t version;};
 constexpr ws2_port port(const char*id,const char*name,uint32_t hint=WS2_ANY,uint32_t poly=WS2_POLY,
                        float unpatched=0,const char*pair=nullptr,uint32_t kind=WS2_SIGNAL) {
@@ -52,7 +104,7 @@ inline bool valid_event(const ws2_event&e) noexcept {
         std::isfinite(e.value)&&std::isfinite(e.value2)&&e.bytes<=WS2_MAX_PAYLOAD&&(!e.bytes||e.data)&&e.ump_words<=4;
 }
 inline void silence_outputs(ws2_process*c,uint32_t max_channels=WS2_MAX_CHANNELS) noexcept {
-            if(!c||c->struct_size<sizeof(ws2_process)||!c->outputs||c->output_count>WS2_MAX_PORTS)return;
+            if(!c||c->struct_size<legacy_process_size||!c->outputs||c->output_count>WS2_MAX_PORTS)return;
             for(uint32_t j=0;j<c->output_count;++j){auto&o=c->outputs[j];
                 if(o.struct_size<sizeof(ws2_signal_out)||!o.data||!o.max_channels||o.max_channels>max_channels)continue;
                 bool valid=true;for(uint32_t k=0;k<o.max_channels;++k)valid&=o.data[k]!=nullptr;if(!valid)continue;
@@ -125,6 +177,22 @@ public:
             c_.event_outputs[port].push(c_.event_outputs[port].ctx,port,&e)==WS2_OK;
     }
     const ws2_transport*transport()const{return c_.transport;}
+    // Borrowed for this process call only; old-size contexts have no slots.
+    const ws2_data *data_slot(uint32_t i) const noexcept {
+        if (c_.struct_size < offsetof(ws2_process, data) + sizeof(c_.data) ||
+            !c_.data || c_.data_count > WS2_MAX_DATA_SLOTS || i >= c_.data_count) return nullptr;
+        const auto &v = c_.data[i];
+        return v.struct_size >= sizeof(ws2_data) && v.data && v.serial ? &v : nullptr;
+    }
+    template<class Storage> const Storage *data(uint32_t i, uint32_t &serial) const noexcept {
+        static_assert(std::is_standard_layout_v<Storage> && std::is_trivially_copyable_v<Storage>);
+        const auto *v = data_slot(i);
+        if (!v || v->bytes != sizeof(Storage) || reinterpret_cast<uintptr_t>(v->data) % alignof(Storage)) {
+            serial = 0; return nullptr;
+        }
+        serial = v->serial;
+        return static_cast<const Storage *>(v->data);
+    }
     template<class Range,class Event>void split(Range range,Event event)const {
         uint32_t cursor=0;
         for(const auto&e:events()) {uint32_t at=std::min(e.offset,c_.frames);if(at>cursor)range(cursor,at);event(e);cursor=at;}
@@ -158,7 +226,20 @@ template<class T>struct HasMemory<T,std::void_t<decltype(T::memory_requirements(
 template<class T,class=void>struct HasLatency:std::false_type{};
 template<class T>struct HasLatency<T,std::void_t<decltype(std::declval<T>().latency_frames())>>:std::true_type{};
 
+template<class T,class=void>struct HasDataSlots:std::false_type{};
+template<class T>struct HasDataSlots<T,std::void_t<decltype(T::data_slots)>>:std::true_type{};
+
 template<class T>class Module {
+    static constexpr uint32_t slot_count() noexcept {
+        if constexpr (HasDataSlots<T>::value) {
+            static_assert(T::data_slots.size() <= WS2_MAX_DATA_SLOTS);
+            return static_cast<uint32_t>(T::data_slots.size());
+        } else return 0;
+    }
+    static constexpr const ws2_data_slot *slots() noexcept {
+        if constexpr (HasDataSlots<T>::value) return T::data_slots.data();
+        else return nullptr;
+    }
     struct Instance {T dsp;ws2_config config{};uint32_t inputs=0,outputs=0;};
     template<class F>static int guarded(F f)noexcept {
 #if defined(__cpp_exceptions)||defined(_CPPUNWIND)
@@ -206,7 +287,7 @@ template<class T>class Module {
     }
     static void WS2_CALL reset(void*p){if(p)guarded([&](){static_cast<Instance*>(p)->dsp.reset();return WS2_OK;});}
     static int WS2_CALL process(void*p,ws2_process*c) {
-        if(!p||!c||c->struct_size<sizeof(ws2_process)){silence_outputs(c);return WS2_INVALID;}
+        if(!p||!c||c->struct_size<legacy_process_size){silence_outputs(c);return WS2_INVALID;}
         auto&x=*static_cast<Instance*>(p);
         if(!c->frames)return WS2_OK;
         auto silence=[&](){silence_outputs(c,x.config.max_channels);};
@@ -215,6 +296,15 @@ template<class T>class Module {
            c->input_count!=x.inputs||c->output_count!=x.outputs||c->param_count!=T::params.size()||
            c->sample_rate!=x.config.sample_rate||
            (c->input_count&&!c->inputs)||(c->output_count&&!c->outputs)||(c->param_count&&!c->params))return invalid();
+        if constexpr (slot_count() != 0) {
+            if (c->struct_size < offsetof(ws2_process, data) + sizeof(c->data) ||
+                c->data_count != slot_count() || !c->data) return invalid();
+            for (uint32_t i = 0; i < slot_count(); ++i) {
+                const auto &v = c->data[i];
+                if (v.struct_size < sizeof(ws2_data) || !v.data || !v.serial ||
+                    v.bytes != slots()[i].bytes || reinterpret_cast<uintptr_t>(v.data) % 16) return invalid();
+            }
+        }
         for(uint32_t j=0;j<c->output_count;++j) {
             const auto&o=c->outputs[j];
             if(o.struct_size<sizeof(ws2_signal_out)||o.max_channels!=x.config.max_channels||!o.data)return invalid();
@@ -253,11 +343,20 @@ public:
     static const ws2_descriptor*descriptor() {
         static const ws2_descriptor d={sizeof(ws2_descriptor),WS_ABI2_VERSION,T::info.id,T::info.name,T::info.version,
             static_cast<uint32_t>(T::inputs.size()),static_cast<uint32_t>(T::outputs.size()),static_cast<uint32_t>(T::params.size()),
-            T::inputs.data(),T::outputs.data(),T::params.data(),create,destroy,query,memory,prepare,reset,process,save,load,latency};
+            T::inputs.data(),T::outputs.data(),T::params.data(),create,destroy,query,memory,prepare,reset,process,save,load,latency,
+            slot_count(),slots(),nullptr,0};
         return &d;
     }
 };
 }
+// One X-macro list emits both the C-layout members and their field rows.
+// FIELDS(X, S) supplies X(S, member, C storage type, kind, display name, rules).
+#define WS_DATA_MEMBER(S, member, storage, kind, label, rules) using member##_storage = storage; member##_storage member;
+#define WS_DATA_ROW(S, member, storage, kind, label, rules) ws::data_field<kind, decltype(S::member)>(#member, label, offsetof(S, member), rules),
+#define WS_DEFINE_DATA_STRUCT(S, FIELDS) \
+    struct S { FIELDS(WS_DATA_MEMBER, S) }; \
+    static_assert(std::is_standard_layout_v<S> && std::is_trivially_copyable_v<S>); \
+    inline constexpr auto S##_fields = std::array{ FIELDS(WS_DATA_ROW, S) };
 #define WS_REGISTER_MODULE(T) \
 extern "C" WS2_EXPORT uint32_t WS2_CALL WS_MODULE2_VERSION_NAME(void){return WS_ABI2_VERSION;} \
 extern "C" WS2_EXPORT const ws2_descriptor*WS2_CALL WS_MODULE2_ENTRY_NAME(void){return ws::Module<T>::descriptor();}

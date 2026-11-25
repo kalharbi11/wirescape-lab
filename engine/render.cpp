@@ -72,6 +72,32 @@ bool Engine::Impl::admit(Node &n, uint32_t port, const ws2_event &source, uint64
 }
 
 void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
+    if (packet.event.type == data_packet_type) {
+        auto *target = render_layout->find(packet.node);
+        if (!target || packet.revision < target->instance.born_revision ||
+            packet.port >= target->instance.data.view.size() || packet.order > UINT32_MAX) {
+            ++stale;
+            return;
+        }
+        auto &instance = target->instance;
+        const auto serial = static_cast<uint32_t>(packet.order);
+        if (serial <= instance.data.view[packet.port].serial) return;
+        DataUpdate update{};
+        std::memcpy(&update, packet.payload.data(), sizeof(update));
+        if (!update.data || update.bytes != instance.data.view[packet.port].bytes) {
+            ++stale;
+            return;
+        }
+        instance.data.apply(packet.port, update.data, serial);
+        // A replacement tail shares the logical slot but receives no module
+        // events. The born+descriptor checks exclude a removed/re-added ID.
+        for (const auto &node : render_layout->nodes) {
+            auto &tail = node->instance;
+            if (node->retired && tail.data.shares_slot(instance.data, packet.port))
+                tail.data.apply(packet.port, update.data, serial);
+        }
+        return;
+    }
     if (packet.event.type == WS2_PARAM_MOD) {
         auto *edge = render_layout->find_mod_edge(packet.routed_from, packet.routed_output, packet.node, packet.port);
         if (!edge || packet.revision < edge->born_revision) {
@@ -565,7 +591,9 @@ WS_RENDER_INLINE void Engine::Impl::call_module(Node &node, uint32_t start, uint
             instance.event_view.data(),
             instance.event_outputs.data(),
             {sizeof(ws2_event_list), static_cast<uint32_t>(instance.events.size()), instance.events.data()},
-            &transport};
+            &transport,
+            static_cast<uint32_t>(instance.data.view.size()),
+            instance.data.view.empty() ? nullptr : instance.data.view.data()};
         if (instance.d->process(instance.instance, &context) != WS2_OK) {
             ++faults;
             for (auto &o : instance.out_view) {
@@ -762,6 +790,18 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
     for (auto &replacement : next->replacements) {
         auto &successor = replacement.successor->instance;
         auto &prior = *replacement.prior;
+        // The new instance was bound to the latest control-owned versions
+        // before publication. Bring the predecessor to those same blocks
+        // before either can process; older queued packets become no-ops.
+        for (uint32_t i = 0; i < successor.data.view.size(); ++i) {
+            const auto &v = successor.data.view[i];
+            prior.data.apply(i, v.data, v.serial);
+            // Any still-fading older instance of this same logical slot
+            // must acknowledge the same version before old storage is freed.
+            for (const auto &node : next->nodes)
+                if (node->retired && node->instance.data.shares_slot(successor.data, i))
+                    node->instance.data.apply(i, v.data, v.serial);
+        }
         auto &held = successor.held_notes;
         // Both records have a fixed capacity reserved during setup.
         held.assign(prior.held_notes.begin(), prior.held_notes.end());

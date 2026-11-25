@@ -60,6 +60,11 @@ struct TransportUpdate {
     }
 };
 static_assert(sizeof(TransportUpdate) <= WS2_MAX_PAYLOAD);
+// Internal host packet only: 0 is not an ABI module event type. Keep the
+// existing Packet size and control-producer ring order (ER1).
+constexpr uint32_t data_packet_type = 0;
+struct DataUpdate { const void *data; uint32_t bytes; };
+static_assert(sizeof(DataUpdate) <= WS2_MAX_PAYLOAD);
 
 // One producer/one consumer per ring. The registry never changes while running.
 struct Ring {

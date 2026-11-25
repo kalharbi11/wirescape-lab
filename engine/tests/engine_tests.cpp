@@ -622,6 +622,367 @@ static void append_only_descriptor_registration() {
     Engine not_yet;
     CHECK(!not_yet.add_node(1, &unsupported));
 }
+// E3a: a valid declared slot has its packed defaults before the first process.
+static int WS2_CALL data_slot_probe_process(void *self, ws2_process *p) {
+    CHECK(p->struct_size >= offsetof(ws2_process, data) + sizeof(p->data));
+    CHECK(p->data_count == 1 && p->data);
+    const auto &slot = p->data[0];
+    CHECK(slot.struct_size >= sizeof(ws2_data));
+    CHECK(slot.data && slot.bytes == sizeof(float) && slot.serial == 1);
+    CHECK(reinterpret_cast<uintptr_t>(slot.data) % 16 == 0);
+    float value = 0;
+    std::memcpy(&value, slot.data, sizeof(value));
+    CHECK(value == .375f);
+    return ws::Module<Source>::descriptor()->process(self, p);
+}
+static void data_slot_defaults() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_slot_probe_process;
+    Engine e;
+    CHECK(e.add_node(1, &d));
+    CHECK(e.output(1, 0, 0));
+    CHECK(e.prepare());
+    { allocation_watch::Scope watch; render(e, 16); render(e, 17);
+      CHECK(watch.allocations() == 0); }
+    CHECK(e.output_sample(1, 0, 0, 15) == 1.f);
+}
+static uint32_t data_probe_serial = 0;
+static bool data_probe_compare = false;
+static uint32_t data_probe_calls = 0;
+static const void *data_probe_pointer = nullptr;
+static uint32_t data_probe_shared_serial = 0;
+static int WS2_CALL data_delivery_probe(void *self, ws2_process *p) {
+    CHECK(p->data_count == 1 && p->data && p->data[0].data);
+    CHECK(p->data[0].bytes == sizeof(float));
+    CHECK(reinterpret_cast<uintptr_t>(p->data[0].data) % 16 == 0);
+    float v = 0;
+    std::memcpy(&v, p->data[0].data, sizeof(v));
+    data_probe_serial = p->data[0].serial;
+    if (data_probe_compare) {
+        if (!data_probe_calls) {
+            data_probe_pointer = p->data[0].data;
+            data_probe_shared_serial = data_probe_serial;
+        } else {
+            CHECK(p->data[0].data == data_probe_pointer);
+            CHECK(data_probe_serial == data_probe_shared_serial);
+        }
+        ++data_probe_calls;
+    }
+    const int result = ws::Module<Source>::descriptor()->process(self, p);
+    for (uint32_t c = 0; c < p->outputs[0].channels; ++c)
+        p->outputs[0].data[c][0] = v;
+    return result;
+}
+static void live_data_delivery() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_delivery_probe;
+    auto packed = [](float v) {
+        std::vector<uint8_t> bytes(sizeof(v));
+        std::memcpy(bytes.data(), &v, sizeof(v));
+        return bytes;
+    };
+    Config c = cfg();
+    c.ring_capacity = 2;
+    Engine e(c);
+    CHECK(e.add_node(1, &d));
+    CHECK(e.set_data_packed(1, 0, packed(.25f)) == WS2_OK);
+    CHECK(e.output(1, 0, 0));
+    CHECK(e.register_producer() == 0);
+    CHECK(e.prepare());
+    auto verify = [&](float value, uint32_t serial) {
+        allocation_watch::Scope watch;
+        render(e, 16);
+        CHECK(watch.allocations() == 0);
+        CHECK(e.output_sample(1, 0, 0, 15) == value);
+        CHECK(data_probe_serial == serial);
+    };
+    verify(.25f, 1);
+    CHECK(e.set_data_packed(1, 1, packed(.5f)) == WS2_INVALID);
+    CHECK(e.set_data_packed(1, 0, {}) == WS2_INVALID);
+    CHECK(e.set_data_packed(1, 0, packed(.5f)) == WS2_OK);
+    CHECK(e.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
+    CHECK(e.set_data_packed(1, 0, packed(1.f)) == WS2_CAPACITY);
+    e.panic(); // Host writes bypass generation and event budgets.
+    verify(.75f, 3);
+    CHECK(e.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    e.reset(); // Discards pending packet; caller re-sends document data.
+    verify(.75f, 3);
+    CHECK(e.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    verify(.125f, 5);
+    // A queued write survives a same-descriptor replacement and both
+    // instances see the current immutable block from the adoption boundary.
+    CHECK(e.set_data_packed(1, 0, packed(.625f)) == WS2_OK);
+    Engine candidate(c);
+    CHECK(candidate.add_node(1, &d, {1}));
+    CHECK(candidate.output(1, 0, 0));
+    CHECK(candidate.prepare());
+    replan_test(e, candidate);
+    verify(.625f, 6);
+    CHECK(e.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
+    verify(.875f, 7);
+}
+static void data_history_reclaim() {
+    DataSlotStorage owner(4);
+    for (uint32_t serial = 1; serial <= 6; ++serial)
+        owner.versions.push_back({serial, allocate_data_block(4)});
+    // Active and fading instances still reference different versions.
+    // After reset the other versions have no ring reader.
+    owner.canceled_through = 6;
+    owner.reclaim(1, [](uint32_t serial) { return serial == 1 || serial == 2; });
+    CHECK(owner.versions.size() == 3);
+    CHECK(owner.versions[0].serial == 1 && owner.versions[1].serial == 2 &&
+          owner.versions[2].serial == 6 && owner.canceled_through == 0);
+    owner.reclaim(6, [](uint32_t) { return false; });
+    CHECK(owner.versions.size() == 1 && owner.versions.front().serial == 6);
+}
+static int WS2_CALL data_serial_probe(void *self, ws2_process *p) {
+    const int result = data_delivery_probe(self, p);
+    CHECK(p->outputs[0].data[0][0] == float(p->data[0].serial % 256) / 256.f);
+    return result;
+}
+static void data_lifetime_stress() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., 1./256., 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_serial_probe;
+    Config c = cfg();
+    c.ring_capacity = 16;
+    Engine e(c);
+    CHECK(e.add_node(1, &d) && e.output(1, 0, 0));
+    CHECK(e.register_producer() == 0 && e.prepare());
+    std::atomic<bool> done{false};
+    constexpr uint32_t writes = 10000;
+    std::thread consumer([&] {
+        allocation_watch::ThreadScope watch;
+        while (!done.load(std::memory_order_acquire)) {
+            render(e, 16);
+            std::this_thread::yield();
+        }
+        render(e, 16);
+        CHECK(data_probe_serial == writes + 1);
+        CHECK(watch.allocations() == 0);
+    });
+    std::vector<uint8_t> bytes(sizeof(float));
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    for (uint32_t serial = 2; serial <= writes + 1; ++serial) {
+        const float value = float(serial % 256) / 256.f;
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        int result;
+        while ((result = e.set_data_packed(1, 0, bytes)) == WS2_CAPACITY) {
+            CHECK(std::chrono::steady_clock::now() < deadline);
+            std::this_thread::yield();
+        }
+        CHECK(result == WS2_OK);
+    }
+    done.store(true, std::memory_order_release);
+    consumer.join();
+    CHECK(e.meter().faults == 0);
+}
+static void data_replacement_lifetime() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_delivery_probe;
+    d.replace_fade_ms = 500;
+    Config c = cfg(); c.max_block = 4096;
+    Engine live(c);
+    CHECK(live.add_node(1, &d, {1}) && live.output(1, 0, 0));
+    CHECK(live.register_producer() == 0 && live.prepare());
+    auto packed = [](float value) {
+        std::vector<uint8_t> bytes(sizeof(value));
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        return bytes;
+    };
+    auto candidate = [&](uint8_t shape) {
+        auto next = std::make_unique<Engine>(c);
+        if (shape) {
+            CHECK(next->add_node(1, &d, {shape}) && next->output(1, 0, 0));
+        } else {
+            CHECK(next->add_node(9, ws::Module<Source>::descriptor()));
+        }
+        CHECK(next->prepare());
+        return next;
+    };
+    auto publish = [&](Engine &next) {
+        std::atomic<bool> finished{false};
+        bool accepted = false;
+        std::thread control([&] {
+            accepted = live.replan(next, 200000000);
+            finished.store(true, std::memory_order_release);
+        });
+        do {
+            render(live, 1);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        } while (!finished.load(std::memory_order_acquire));
+        control.join();
+        CHECK(accepted);
+    };
+    auto shared = [&](uint32_t serial, float value) {
+        data_probe_calls = 0;
+        data_probe_compare = true;
+        { allocation_watch::Scope watch; render(live, 1); CHECK(watch.allocations() == 0); }
+        data_probe_compare = false;
+        CHECK(data_probe_calls == 2 && data_probe_shared_serial == serial);
+        CHECK(live.output_sample(1, 0, 0, 0) == value);
+        data_probe_pointer = nullptr;
+    };
+    auto first = candidate(2);
+    CHECK(live.set_data_packed(1, 0, packed(.5f)) == WS2_OK);
+    publish(*first);
+    shared(2, .5f);
+    auto second = candidate(3);
+    CHECK(live.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
+    // A75: refusal is synchronous, leaves the candidate reusable, and
+    // does not consume an ingress packet or change the current transition.
+    const auto before = live.meter();
+    CHECK(!live.replan(*second, 200000000));
+    CHECK(live.error() == "Replacement busy: predecessor still fading");
+    CHECK(live.meter().frame == before.frame && live.meter().generation == before.generation);
+    shared(3, .75f);
+    CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
+    shared(4, .875f);
+    for (int i = 0; i < 7; ++i) render(live, 4096); // more than 500 ms
+    publish(*second);
+    shared(4, .875f);
+    for (int i = 0; i < 7; ++i) render(live, 4096);
+    // Remove then re-add the ID: a fresh binding has default serial/value,
+    // even if old fading instances and queued packets still exist.
+    CHECK(live.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    auto removed = candidate(0); publish(*removed);
+    auto reborn = candidate(1); publish(*reborn);
+    render(live, 1);
+    CHECK(live.output_sample(1, 0, 0, 0) == .375f);
+    CHECK(live.set_data_packed(1, 0, packed(.25f)) == WS2_OK);
+    render(live, 1);
+    CHECK(live.output_sample(1, 0, 0, 0) == .25f);
+}
+// A75 applies to legacy slot-free descriptors as well. Compare the
+// complete fade against an identical engine that never receives the refused
+// edit, then compare the accepted retry against its first normal edit.
+static void legacy_replacement_busy() {
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.replace_fade_ms = 500;
+    Config c = cfg(); c.max_block = 4096;
+    auto make = [&](uint8_t shape, float value) {
+        auto e = std::make_unique<Engine>(c);
+        CHECK(e->add_node(1, &d, {shape}) && e->output(1, 0, 0));
+        CHECK(e->set_parameter(1, 0, value));
+        CHECK(e->register_producer() == 0 && e->prepare());
+        return e;
+    };
+    auto live = make(1, 1.f), witness = make(1, 1.f);
+    auto first = make(2, .5f), first_witness = make(2, .5f);
+    auto second = make(3, .25f), second_witness = make(3, .25f);
+    auto sample = [](Engine &e) {
+        float value = 0; float *out[]{&value};
+        allocation_watch::ThreadScope watch;
+        CHECK(e.render(out, 1, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        return value;
+    };
+    auto begin = [&](Engine &e, Engine &candidate, float initial) {
+        std::atomic<bool> done{false}; bool accepted = false;
+        std::thread control([&] {
+            accepted = e.replan(candidate, 200000000);
+            done.store(true, std::memory_order_release);
+        });
+        std::vector<float> trace;
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        do {
+            float v = sample(e);
+            if (v != initial || !trace.empty()) trace.push_back(v);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            CHECK(std::chrono::steady_clock::now() < deadline);
+        } while (!done.load(std::memory_order_acquire));
+        control.join();
+        CHECK(accepted && !trace.empty());
+        return trace;
+    };
+    auto compare = [&](std::vector<float> a, std::vector<float> b) {
+        // Remove scheduler-dependent pre-adoption constant samples only.
+        // Compare every actual transition sample, including the settled end.
+        const auto count = std::max(a.size(), b.size());
+        while (a.size() < count) a.push_back(sample(*live));
+        while (b.size() < count) b.push_back(sample(*witness));
+        CHECK(std::memcmp(a.data(), b.data(), a.size()*sizeof(float)) == 0);
+        for (uint32_t i = 0; i < 24001; ++i) {
+            float x = sample(*live), y = sample(*witness);
+            CHECK(std::memcmp(&x, &y, sizeof(float)) == 0);
+        }
+    };
+    CHECK(sample(*live) == 1.f && sample(*witness) == 1.f);
+    auto a = begin(*live, *first, 1.f);
+    auto b = begin(*witness, *first_witness, 1.f);
+    const auto meter = live->meter();
+    CHECK(!live->replan(*second, 200000000));
+    CHECK(live->error() == "Replacement busy: predecessor still fading");
+    CHECK(live->meter().frame == meter.frame && live->meter().generation == meter.generation);
+    compare(std::move(a), std::move(b));
+    CHECK(sample(*live) == .5f && sample(*witness) == .5f);
+    a = begin(*live, *second, .5f);
+    b = begin(*witness, *second_witness, .5f);
+    compare(std::move(a), std::move(b));
+    CHECK(sample(*live) == .25f && sample(*witness) == .25f);
+}
+// E5 L2: direct-port CHOKE is source-wide in the combined-events voice
+// consumer. The host fallback ledger must agree, including routed input
+// notes of the same source; unrelated sources survive a targeted choke.
+static void direct_choke_replacement_ledger() {
+    Config config = cfg(); config.max_block = 4096;
+    auto make = [&](uint8_t voices) {
+        auto e = std::make_unique<Engine>(config);
+        CHECK(e->add_node(1, ws::Module<ws2test::NotesToCv>::descriptor(), {voices}));
+        CHECK(e->output(1, 1, 0) && e->register_producer() == 0 && e->prepare());
+        return e;
+    };
+    auto gates = [](Engine &e) {
+        uint32_t active = 0;
+        for (uint32_t ch = 0; ch < e.output_channels(1, 1); ++ch)
+            if (e.output_sample(1, 1, ch, 15) == 1.f) ++active;
+        return active;
+    };
+    for (const bool all_sources : {false, true}) {
+        auto live = make(4), candidate = make(5);
+        auto n = event(WS2_NOTE_ON, .75f);
+        CHECK(live->enqueue(0, 1, WS2_DIRECT_PORT, n, 0, Timing::Immediate) == WS2_OK);
+        n.note_id = 2; n.key = 62;
+        CHECK(live->enqueue(0, 1, 0, n, 0, Timing::Immediate) == WS2_OK);
+        n.note_id = 3; n.key = 64; n.source_id = 2;
+        CHECK(live->enqueue(0, 1, 0, n, 0, Timing::Immediate) == WS2_OK);
+        render(*live, 16);
+        CHECK(gates(*live) == 3);
+        auto choke = event(WS2_NOTE_CHOKE);
+        choke.source_id = all_sources ? UINT32_MAX : 1;
+        choke.note_id = choke.channel = -1;
+        CHECK(live->enqueue(0, 1, WS2_DIRECT_PORT, choke, 0, Timing::Immediate) == WS2_OK);
+        render(*live, 16);
+        CHECK(gates(*live) == (all_sources ? 0u : 1u));
+        replan_test(*live, *candidate, 200000000);
+        render(*live, 16);
+        CHECK(gates(*live) == (all_sources ? 0u : 1u));
+        CHECK(live->meter().faults == 0);
+    }
+}
 static void replacement_packet_birth() {
     Config config;
     config.max_block = 4096;
@@ -778,6 +1139,13 @@ int main(){
  transport_serial();
  transport_replan();
  append_only_descriptor_registration();
+ data_slot_defaults();
+ live_data_delivery();
+ data_history_reclaim();
+ data_lifetime_stress();
+ data_replacement_lifetime();
+ legacy_replacement_busy();
+ direct_choke_replacement_ledger();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();

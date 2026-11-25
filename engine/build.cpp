@@ -353,14 +353,12 @@ bool Engine::add_node(uint32_t id, const ws2_descriptor *d, const std::vector<ui
         d->output_count > WS2_MAX_PORTS || d->param_count > WS2_MAX_PARAMS || (d->input_count && !d->inputs) ||
         (d->output_count && !d->outputs) || (d->param_count && !d->params))
         return p.fail("Invalid ABI2 node");
-    if (d->struct_size >= offsetof(ws2_descriptor, data_slot_count) + sizeof(d->data_slot_count) &&
-        d->data_slot_count != 0)
-        return p.fail("Data slots unsupported until E3a");
     auto instance = std::make_unique<Instance>();
     auto n = std::make_unique<Node>(*instance);
     n->instance.id = id;
     n->instance.d = d;
     n->instance.config = config;
+    if (!initialize_data_slots(*d, instance->data, p.error)) return false;
     if (d->input_count) n->instance.inputs.assign(d->inputs, d->inputs + d->input_count);
     if (d->output_count) n->instance.outputs.assign(d->outputs, d->outputs + d->output_count);
     if (d->param_count) n->instance.parameters.assign(d->params, d->params + d->param_count);

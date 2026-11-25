@@ -1192,11 +1192,70 @@ static void random_edit_stress(unsigned count) {
     CHECK(live->meter().faults == 0);
     std::printf("PASS E4b random valid edits: %u committed, %u cancelled attempts, generation unchanged, no render allocations\n", count, timeouts);
 }
+// Independent E3a data-ingress stress in the existing ASan/TSan workflow.
+// Keep the original random topology workload and its acceptance unchanged.
+#define DATA_STRESS_FIELDS(X, S) \
+ X(S, value, float, WS2_F_F32, "Value", ws::data_range(0,1,1./256.))
+WS_DEFINE_DATA_STRUCT(DataStressValue, DATA_STRESS_FIELDS)
+struct DataStressProbe {
+    static constexpr ws::Info info{"test.data_ring_stress", "Data ring stress", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("out", "Out")};
+    static constexpr std::array<ws2_param, 0> params{};
+    static constexpr std::array data_slots{ws::data_slot<DataStressValue>("settings","Settings",DataStressValue_fields)};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &b) {
+        uint32_t serial = 0;
+        const auto *v = b.data<DataStressValue>(0, serial);
+        CHECK(v && serial && v->value == float(serial % 256) / 256.f);
+        b.out(0).set_channels(1); b.out(0).mark_constant();
+        b.out(0).ch(0)[0] = v->value;
+    }
+};
+static void data_ring_stress(unsigned count) {
+    auto cfg = config();
+    cfg.ring_capacity = 16;
+    Engine live(cfg);
+    CHECK(live.add_node(1, ws::Module<DataStressProbe>::descriptor()));
+    CHECK(live.output(1, 0, 0) && live.register_producer() == 0 && live.prepare());
+    std::atomic<bool> done{false};
+    std::thread consumer([&] {
+        float samples[32]{};
+        float *out[]{samples};
+        allocation_watch::ThreadScope watch;
+        while (!done.load(std::memory_order_acquire)) {
+            CHECK(live.render(out, 1, 32) == WS2_OK);
+            std::this_thread::yield();
+        }
+        CHECK(live.render(out, 1, 32) == WS2_OK);
+        CHECK(samples[31] == float((count + 1) % 256) / 256.f);
+        CHECK(watch.allocations() == 0);
+    });
+    std::vector<uint8_t> packed(sizeof(DataStressValue));
+    const auto deadline = Clock::now() + std::chrono::seconds(60);
+    for (uint32_t serial = 2; serial <= count + 1; ++serial) {
+        const DataStressValue v{float(serial % 256) / 256.f};
+        std::memcpy(packed.data(), &v, sizeof(v));
+        int result;
+        while ((result = live.set_data_packed(1, 0, packed)) == WS2_CAPACITY) {
+            CHECK(Clock::now() < deadline);
+            std::this_thread::yield();
+        }
+        CHECK(result == WS2_OK);
+        if (serial % 64 == 0) live.refresh_latency();
+    }
+    done.store(true, std::memory_order_release);
+    consumer.join();
+    CHECK(live.meter().faults == 0);
+    std::printf("PASS E3a data ring: %u accepted writes, serial/bytes coherent, zero render allocations\n", count);
+}
 int main(int argc, char **argv) {
     if (argc == 3 && std::strcmp(argv[1], "--stress") == 0) {
         const unsigned count = static_cast<unsigned>(std::strtoul(argv[2], nullptr, 10));
         CHECK(count >= 10000);
         random_edit_stress(count);
+        data_ring_stress(count);
         return 0;
     }
     double max_gap_ms = 0;

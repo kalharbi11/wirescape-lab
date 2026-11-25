@@ -13,6 +13,22 @@ struct Mini {
  void prepare(const ws::Setup&){} void reset(){}
  void process(ws::Block&b){b.out(0).set_channels(b.channels());b.out(0).mark_constant(b.in(0).constant()&&b.param(0).constant());for(uint32_t c=0;c<b.channels();++c)for(uint32_t i=0;i<(b.in(0).constant()&&b.param(0).constant()?1u:b.frames());++i)b.out(0).ch(c)[i]=b.in(0).ch(c)[i]*b.param(0).ch(c)[i];}
 };
+#define SDK_DATA_FIELDS(X, S) \
+ X(S, value, float, WS2_F_F32, "Value", ws::data_range(0,1,.25)) \
+ X(S, length, uint32_t, WS2_F_U32, "Length", ws::data_range(0,4,0)) \
+ X(S, values, uint8_t[4], WS2_F_U8, "Values", ws::data_range(0,255,0,1)) \
+ X(S, name, char[8], WS2_F_TEXT, "Name", ws::DataFieldRules{})
+WS_DEFINE_DATA_STRUCT(SdkData, SDK_DATA_FIELDS)
+static_assert(SdkData_fields.size() == 4);
+static_assert(SdkData_fields[2].offset == offsetof(SdkData, values) && SdkData_fields[2].count == 4);
+static_assert(SdkData_fields[2].length_field == 1 && SdkData_fields[3].count == 8);
+struct MiniData : Mini {
+ static constexpr std::array data_slots{ws::data_slot<SdkData>("settings","Settings",SdkData_fields)};
+ void process(ws::Block&b) {
+  uint32_t serial=0;const auto *v=b.data<SdkData>(0,serial);CHECK(v&&serial==7);
+  b.out(0).set_channels(1);b.out(0).mark_constant();b.out(0).ch(0)[0]=v->value;
+ }
+};
 int main(){
  for(double sr:{44100.,48000.,96000.}){ws::LinearRamp r(0);r.prepare(sr);CHECK(r.next()==0);r.set(1);uint32_t n=static_cast<uint32_t>(sr*.005);for(uint32_t i=1;i<=n;++i)CHECK(std::abs(r.next()-double(i)/n)<1e-12);CHECK(r.constant());r.set(.2);r.reset();CHECK(r.next()==.2);}
  ws::Schmitt gate;CHECK(!gate.process(.5f));CHECK(gate.process(.51f));CHECK(gate.process(.25f));CHECK(!gate.process(.24f));
@@ -29,6 +45,10 @@ int main(){
  alignas(32) float input[32]={.25f},gain[32]={2};const float*ip[]={input};const float*gp[]={gain};
  ws2_signal in{sizeof(in),ip,1,WS2_CONSTANT|WS2_CONNECTED},parameter{sizeof(parameter),gp,1,WS2_CONSTANT};
  ws2_signal_out out{sizeof(out),outputs,1,0,16};ws2_process ctx{};ctx.struct_size=sizeof(ctx);ctx.frames=17;ctx.sample_rate=48000;ctx.channels=4;ctx.input_count=1;ctx.output_count=1;ctx.param_count=1;ctx.inputs=&in;ctx.params=&parameter;ctx.outputs=&out;
+ // G5: even poisoned appended fields are absent at the pre-E5 process size.
+ auto legacy=ctx;legacy.struct_size=offsetof(ws2_process,data_count);
+ legacy.data_count=UINT32_MAX;legacy.data=nullptr;
+ CHECK(d->process(instance,&legacy)==WS2_OK);
  auto allocated=pool.used;CHECK(d->process(instance,&ctx)==WS2_OK);CHECK(pool.used==allocated);CHECK(out.channels==4&&(out.flags&WS2_CONSTANT));for(int j=0;j<4;++j)CHECK(storage[j][0]==.5f);
  float scratch[17]{};ws::Signal signal(&in);CHECK(signal.row(3,scratch,17)==scratch);for(float v:scratch)CHECK(v==.25f);
  in.flags=WS2_CONNECTED;CHECK(signal.row(0,scratch,17)==input);in.flags|=WS2_CONSTANT;
@@ -50,5 +70,15 @@ int main(){
   CHECK(d->process(instance,&invalid)==WS2_INVALID);CHECK(storage[0][0]==0);
  }
  d->reset(instance);d->destroy(instance);CHECK(pool.used==allocated);
+ auto *dd=ws::Module<MiniData>::descriptor();
+ CHECK(dd->data_slot_count==1&&dd->data_slots[0].field_count==4&&dd->data_slots[0].bytes==sizeof(SdkData));
+ void *di=dd->create(&host);CHECK(di&&dd->prepare(di,&cfg,&host)==WS2_OK);
+ alignas(16) SdkData data{};data.value=.625f;
+ ws2_data view{sizeof(view),&data,sizeof(data),7};
+ ctx.data_count=1;ctx.data=&view;
+ CHECK(dd->process(di,&ctx)==WS2_OK&&storage[0][0]==.625f);
+ ctx.struct_size=offsetof(ws2_process,data_count);CHECK(dd->process(di,&ctx)==WS2_INVALID);
+ ctx.struct_size=sizeof(ctx);ctx.data=nullptr;CHECK(dd->process(di,&ctx)==WS2_INVALID);
+ dd->destroy(di);
  std::puts("PASS SDK ramp/gate/trigger/PRNG/SIMD/taper/fastmath");
 }

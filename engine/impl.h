@@ -124,6 +124,7 @@ struct Engine::Impl {
     void adopt_layout(Layout *) noexcept;
     bool publish_layout(Layout *, uint64_t) noexcept;
     void prune_edge_states() noexcept;
+    void prune_data() noexcept;
     void settle_layout() noexcept;
     bool finish_prepare();
     bool resolve_taps();
