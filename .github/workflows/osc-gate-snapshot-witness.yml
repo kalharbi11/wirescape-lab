@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: OSC gate snapshot synthetic witness (advisory)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'bench/io/gate_snapshot_witness.py'
+      - 'bench/io/test_gate_snapshot_witness.py'
+      - '.github/workflows/osc-gate-snapshot-witness.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Known-answer synthetic tests (no devices or sockets)
+        run: python -m unittest discover -s bench/io -p test_gate_snapshot_witness.py -v
+      - name: Record bounded witness and exact source
+        run: |
+          git rev-parse HEAD
+          git rev-parse HEAD:modules/osc_out/dsp.h HEAD:engine/control/osc_out_host.cpp HEAD:engine/control/osc_out_host.h
+          python bench/io/gate_snapshot_witness.py --output gate-snapshot-witness.json
+          cat gate-snapshot-witness.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: osc-gate-snapshot-witness
+          path: gate-snapshot-witness.json

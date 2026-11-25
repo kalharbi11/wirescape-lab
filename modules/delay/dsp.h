@@ -220,10 +220,21 @@ struct Delay {
         float *out[2]{b.out(0).ch(0), b.out(1).ch(0)};
         const auto in_l = b.in(0), in_r = b.in(1), clock = b.in(2);
         const bool right_patched = in_r.connected(), clocked = clock.connected();
-        if (!clocked) clock_reset();
+        if (!clocked) {
+            clock_reset();
+            division_seen = -1;
+        }
         const auto p_time = b.param(kTime), p_div = b.param(kDivision), p_fb = b.param(kFeedback);
         const auto p_tone = b.param(kTone), p_mode = b.param(kMode), p_mix = b.param(kMix);
         const bool mix_constant = p_mix.constant();
+        // Stepped controls normally arrive as constant rows. Round once per
+        // block in that case; retain the sample-addressed path for automation.
+        const bool mode_constant = p_mode.constant(), division_constant = p_div.constant();
+        const bool ping_pong_constant = mode_constant && std::lround(p_mode.ch(0)[0]) >= 1;
+        const long division_value = clocked && division_constant
+                                        ? std::clamp(std::lround(p_div.ch(0)[0]), 0l, 7l) : 0;
+        const bool tone_constant = p_tone.constant();
+        if (tone_constant && b.frames()) update_tone(p_tone.ch(0)[0]);
         float dry = 0, wet = 0;
         const double lo = kMin * rate, hi = kMax * rate;
         for (uint32_t i = 0; i < b.frames(); ++i) {
@@ -231,7 +242,8 @@ struct Delay {
             if (clocked) clock_tick(clock.ch(0)[i]);
             double target = static_cast<double>(p_time.ch(0)[i]) * rate;
             if (clocked && applied > 0) {
-                const long d = std::clamp(std::lround(p_div.ch(0)[i]), 0l, 7l);
+                const long d = division_constant ? division_value
+                                                 : std::clamp(std::lround(p_div.ch(0)[i]), 0l, 7l);
                 target = applied * kDivisions[d];
                 if (!division_left && division_seen >= 0 && d != division_seen) {
                     // Only a division edit crossfades taps; clock acquisition,
@@ -241,13 +253,14 @@ struct Delay {
                 }
                 // Coalesce a retarget until the current bounded fade ends.
                 if (!division_left || division_left == fade_frames) division_seen = d;
-            } else {
+            } else if (clocked) {
                 division_seen = -1;
             }
             target = std::clamp(target, lo, hi);
-            const bool ping_pong = std::lround(p_mode.ch(0)[i]) >= 1;
+            const bool ping_pong = mode_constant ? ping_pong_constant : std::lround(p_mode.ch(0)[i]) >= 1;
+            const float mode_target = ping_pong ? 1.f : 0.f;
             if (!primed) {
-                mode_blend = ping_pong ? 1.f : 0.f; // No startup fade for a settled patch.
+                mode_blend = mode_target; // No startup fade for a settled patch.
                 cur = target;
                 primed = true;
             } else if (!division_left) {
@@ -270,25 +283,25 @@ struct Delay {
                     dr += blend * (nr - dr);
                 }
             }
-            update_tone(p_tone.ch(0)[i]);
+            if (!tone_constant) update_tone(p_tone.ch(0)[i]);
             advance_tone();
             const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
             const float fl = loop(0, dl), fr = loop(1, dr);
             // Crossfade the input and feedback routing, not two complete delay
             // instances. Retarget from the current blend on a rapid reversal.
-            if (ping_pong && mode_blend >= 1.f) {
-                line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
-                line[1][w] = limit(fb * fl);
-            } else if (!ping_pong && mode_blend <= 0.f) {
-                line[0][w] = limit(xl + fb * fl);
-                line[1][w] = limit(xr + fb * fr);
-            } else {
+            if (mode_blend != mode_target) {
                 mode_blend = ping_pong ? std::min(1.f, mode_blend + mode_step)
                                        : std::max(0.f, mode_blend - mode_step);
                 const float sl = xl + fb * fl, sr = xr + fb * fr;
                 const float pl = 0.5f * (xl + xr) + fb * fr, pr = fb * fl;
                 line[0][w] = limit(sl + mode_blend * (pl - sl));
                 line[1][w] = limit(sr + mode_blend * (pr - sr));
+            } else if (ping_pong) { // Original settled routing equations and operation order.
+                line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
+                line[1][w] = limit(fb * fl);
+            } else {
+                line[0][w] = limit(xl + fb * fl);
+                line[1][w] = limit(xr + fb * fr);
             }
             if (++w == size) w = 0;
             if (i == 0 || !mix_constant) {
