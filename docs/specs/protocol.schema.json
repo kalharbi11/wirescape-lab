@@ -1246,6 +1246,12 @@
             "result": {
               "type": "object",
               "properties": {
+                "warnings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "path": {
                   "enum": [
                     "live",
@@ -1271,6 +1277,27 @@
                         "$ref": "#/$defs/moduleId"
                       },
                       "paramId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      }
+                    }
+                  }
+                },
+                "freshModules": {
+                  "type": "array",
+                  "maxItems": 64,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "moduleId",
+                      "module"
+                    ],
+                    "properties": {
+                      "moduleId": {
+                        "$ref": "#/$defs/moduleId"
+                      },
+                      "module": {
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 256

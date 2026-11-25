@@ -6,6 +6,19 @@ Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 a
 Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
 The dated dispatch entries below are history.
 
+## Active OB1 sequence — 2026-11-24 18:34 EST
+
+This section and BUILDERS supersede historical assignments and estimates below. OB0 and M1 accepted; M3 OB1 prerequisites, E6, E4a/E4b, CN harness and initial CN facts merged. OB-c merged. A55–A60, A63 and OB r2.9/M7 r1.7 control the current order.
+
+- **Engine critical path:** E4b pacing #448 merged 95e18ff; B5 E5 #436 resumes (A55/A59). B3 E5v #441 strict G8 correction round 2 → #452 CN voice-count capture → merge. B2 E7 #442 proceeds on disjoint stopped-stream handlers; A62 governs reply and CN. E5 precedes E7 if shared commit. Exact-head Lab/Golden/paired/stress/CN and designated reviews remain required. After all three merge, B1 refreshes CN facts and KNOWN_ISSUES A2.
+- **Sound parallel:** B1 S7.5 #291 D5 release publication and independent review → S7.6 #449 draft-ahead endpoint correction and #451 A27 fixed-window evidence. B4 S7.9 #444 A63 granted in Architect run 30 (M7 r1.7, only vco() shared test function); correction first, #451 independent while checks run, then S7.9 exact-head M7 evidence/review and OB-d sound list. No shared catalogue/S0 writers. S7.3/7/8 already merged.
+- **I/O parallel:** #425 MIDI merged; #433 OSC diagnostic A61 before A58 cause-specific routing. B2 read-only triages the unrelated MIDI sanitizer failure on #444. Note Trigger #322 optional after E5v; advisory soaks remain advisory.
+- **Candidate:** OB-f1, owner's real-patch folder round trip, install, owner Pi 100 edits with zero xruns/no visible stutter and both CN costs. PI-1 and Pi soaks postponed to candidate (A31). Architect acceptance then immutable owner-build-1 tag; retain OB0. E3a/b/c are OB1.1. Gate Delay #333, CAT-1/MB1, MT2 remain parked.
+
+No new delivery date inferred from historical estimates; current blockers are strict G8/CN, E5 implementation, E7 ruling, D5 and M7 evidence/reviews. All old queue and task-ledger entries below are historical planning snapshots, not live assignments or gates.
+
+Signed: codex-lead, 2026-11-24, 18:34 EST
+
 ## Next-day delivery queue — 2026-11-21 18:34 EST
 
 Start the current row for each builder. A numbered successor starts only when its release condition is met. Use one issue, branch and PR per task. Use hosted device-off CI and publish a signed Result with exact head and evidence.

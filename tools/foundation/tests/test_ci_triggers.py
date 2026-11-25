@@ -13,8 +13,8 @@ class CITriggers(unittest.TestCase):
     def setUpClass(cls):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_pull_requests_do_not_rerun_on_ready_event(self):
-        self.assertIn("types: [opened, synchronize, reopened]", self.workflow)
+    def test_pull_requests_rerun_on_ready_event(self):
+        self.assertIn("types: [opened, synchronize, reopened, ready_for_review]", self.workflow)
         self.assertIn("branches: [main]", self.workflow)
         self.assertIn("workflow_dispatch:", self.workflow)
 

@@ -4,6 +4,7 @@
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
+#include "runtime_patch_normalize.h"
 #include "wirescape_sidecar_categories.h"
 #include <algorithm>
 #include <chrono>
@@ -300,7 +301,8 @@ Session::Session(Options options)
         scripted_source = std::move(scripted);
     }
     auto observed = std::make_unique<ObservedMidi>(options_.null_audio && !options_.scripted_midi,
-                                                    options_.midi, std::move(scripted_source));
+                                                    options_.midi, std::move(scripted_source),
+                                                    options_.scripted_midi);
     observer_ = observed.get();
     observer_->endpoints();
     monitor_ = std::make_unique<monitor::Capture>();
@@ -384,7 +386,7 @@ void Session::shutdown() {
                   << " overrun_wake_max_us=" << bench_.overrun_wake_max_us << '\n';
     }
 }
-void Session::start_audio(std::chrono::steady_clock::time_point now) {
+void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGraph *rollback, Json *fresh) {
     stop_sink_.store(false);
     audio_reason_.clear();
     if (options_.audio) {
@@ -411,7 +413,7 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
                 stream_ = std::make_unique<audio::Stream>(engine_, audio::StreamSelection{options_.directory, device_},
                                                           options_.rate, options_.block, [this] { midi_->stop(); });
             } catch (const audio::PreferredBufferSize &driver) {
-                open_at_driver_block(driver.frames()); // exactly one retry; throws on refusal
+                open_at_driver_block(driver.frames(), rollback, fresh); // exactly one retry; throws on refusal
             }
             audio_state_ = "running";
             audio_error_.clear(); // an actual successful reopen clears the last error
@@ -493,27 +495,83 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
 }
 // Control thread, no stream running (the failed open returned engine_). Keel's
 // #627 ruling: same quiescent path as setBufferFrames, one open, no persistence.
-void Session::open_at_driver_block(int64_t frames) {
+Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next_config, Json *fresh) {
+    // E7: both instances are quiescent. The same committed document supplies
+    // IDs, types and configs to both graphs; never replay a stored document
+    // snapshot as if it were current runtime state. In particular, an earlier
+    // unsupported blob retained by Engine::load_state is not a live snapshot.
+    struct Snapshot {
+        uint32_t id;
+        std::string type;
+        const ws2_descriptor *descriptor;
+        std::vector<uint8_t> bytes;
+    };
+    std::vector<Snapshot> snapshots;
+    auto runtime = patch_;
+    auto &old = app_engine_native(engine_.get());
+    for (auto &m : runtime["modules"]) {
+        const auto id = m["id"].get<uint32_t>();
+        const auto type = m["module"].get<std::string>();
+        const auto *d = old.descriptor(id);
+        Snapshot snapshot{id, type, d, {}};
+        if (d && type == d->id && old.preserved_state(id).empty())
+            snapshot.bytes = old.save_state(id);
+        snapshots.push_back(std::move(snapshot));
+        // The normal patch loader remains strict; only this rebuild copy omits
+        // authored state so a rate-dependent live state refusal is nonfatal.
+        m.erase("state");
+    }
+    StoppedGraph next;
+    next.telemetry = document::telemetry::Sampler(
+        document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
+    next.out = std::make_unique<osc::OutHost>(patch_.dump());
+    document::ScopedOutBuses staged_out(next.out->buses());
+    std::string error;
+    next.engine.reset(document::load_runtime_patch(runtime.dump(), catalogue_.get(), next_config, error,
+                                                  &next.telemetry.taps()));
+    if (!next.engine) return next;
+    auto &candidate = app_engine_native(next.engine.get());
+    for (const auto &snapshot : snapshots) {
+        // Current built-in state writers with a successful hook write at least
+        // a version word. Engine::save_state returns empty for unsupported/error.
+        // Match the actual descriptor as well as the unchanged document config.
+        const bool restored = snapshot.descriptor && candidate.descriptor(snapshot.id) == snapshot.descriptor &&
+                              !snapshot.bytes.empty() &&
+                              candidate.load_state(snapshot.id, snapshot.bytes) == WS2_OK;
+        if (!restored && fresh) {
+            Json entry = {{"moduleId", snapshot.id}, {"module", snapshot.type}};
+            if (std::find(fresh->begin(), fresh->end(), entry) == fresh->end())
+                fresh->push_back(std::move(entry));
+        }
+    }
+    app_engine_prepare_master_fade_in(next.engine.get());
+    return next;
+}
+
+void Session::swap_stopped_graph(StoppedGraph &other) noexcept {
+    engine_.swap(other.engine);
+    telemetry_.swap(other.telemetry);
+    osc_out_.swap(other.out);
+    active_ = engine_.get();
+}
+
+void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh) {
     if (frames < 1 || frames > 4096)
         throw std::runtime_error("ASIO driver requires " + std::to_string(frames) + " frames (supported 1-4096)");
     const auto block = uint32_t(frames);
-    document::telemetry::Sampler next_telemetry(
-        document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
+    // A driver-selected block within the prepared capacity needs no graph change.
+    if (block <= config_.max_block) {
+        stream_ = std::make_unique<audio::Stream>(
+            engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
+            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
+        if (!requested_block_) requested_block_ = options_.block;
+        options_.block = block;
+        return;
+    }
     engine2::Config next_config = config_;
     next_config.max_block = block;
-    std::string error;
-    auto next_out = std::make_unique<osc::OutHost>(patch_.dump());
-    document::ScopedOutBuses staged_out(next_out->buses());
-    audio::EngineOwner prepared(
-        document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config, error, &next_telemetry.taps()),
-        app_engine_destroy);
-    if (!prepared)
-        throw std::runtime_error("Graph cannot prepare at the ASIO driver's " + std::to_string(block) + " frames");
-    app_engine_prepare_master_fade_in(prepared.get());
     // Preferred-buffer retries may run after a failed startup or hot-unplug:
     // OSC/MIDI workers can still hold the old graph while stream_ is null.
-    // Join both producers before replacing it; resume OSC against whichever
-    // graph is committed (new on success, restored on failed retry).
     const bool had_osc = !osc_->states().empty() || !osc_out_->states().empty();
     osc_out_->stop();
     osc_->stop();
@@ -538,26 +596,27 @@ void Session::open_at_driver_block(int64_t frames) {
         }
     };
     std::unique_ptr<void, decltype(resume_midi)> midi_restart(this, resume_midi);
-    auto previous = std::move(engine_);
-    engine_ = std::move(prepared);
-    active_ = engine_.get();
+    auto previous = prepare_stopped_graph(next_config, fresh);
+    if (!previous.engine)
+        throw std::runtime_error("Graph cannot prepare at the ASIO driver's " + std::to_string(block) + " frames");
+    swap_stopped_graph(previous);
     try {
         stream_ = std::make_unique<audio::Stream>(
             engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
-            [this] { midi_->stop(); },
-            /*allow_preferred_retry=*/false);
+            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
     } catch (...) {
-        engine_ = std::move(previous); // keep the graph prepared for the configured block
-        active_ = engine_.get();
+        swap_stopped_graph(previous);
         throw;
     }
     restore_midi_on_failure = false; // caller start()/poll_audio()/apply() resumes MIDI
-    osc_out_.swap(next_out);         // previous engine has stopped; keep its bus alive until retirement
+    // A command may still fail after opening the stream (e.g. persistence).
+    // Keep its original engine AND buses until the whole command commits.
+    if (rollback && !rollback->engine) *rollback = std::move(previous);
     if (!requested_block_) requested_block_ = options_.block;
     config_ = next_config;
     options_.block = block;
-    telemetry_.swap(next_telemetry);
 }
+
 void Session::stop_audio() {
     stop_sink_.store(true);
 #ifdef _WIN32
@@ -1042,12 +1101,12 @@ Json Session::apply(const Json &command) {
         }
         if (next_rate == options_.rate && next_block == options_.block) return nullptr;
 
-        // Control thread only. Quiesce the old stream before preparing a new
-        // runnable graph, retaining the document and selected MIDI endpoints.
+        // Control thread only. Keep the prepared graph when only the stream's
+        // block size changes within its capacity; never panic or reset it.
         const auto old_config = config_;
         const auto old_rate = options_.rate, old_block = options_.block, old_requested = requested_block_;
         const auto old_preferences = preferences_;
-        // The stream change destroys/replaces the engine; suspend ingress first.
+        const bool rebuild = next_rate != old_rate || next_block > config_.max_block;
         osc_out_->stop();
         osc_->stop();
         auto resume_osc = [this](void *) noexcept {
@@ -1059,61 +1118,51 @@ Json Session::apply(const Json &command) {
             }
         };
         std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-        // Keep candidate taps alive through rollback, until its render thread is joined.
-        document::telemetry::Sampler next_telemetry(
-            document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true));
-        auto next_out = std::make_unique<osc::OutHost>(patch_.dump());
         midi_->stop();
-        app_engine_panic(active_); // release held notes before replacing DSP state
         stop_audio();
-        auto previous = std::move(engine_);
+        StoppedGraph previous;
+        Json fresh = Json::array();
         try {
-            engine2::Config next_config = config_;
-            next_config.sample_rate = next_rate;
-            next_config.max_block = next_block;
-            std::string error;
-            document::ScopedOutBuses staged_out(next_out->buses());
-            audio::EngineOwner prepared(document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config,
-                                                                     error, &next_telemetry.taps()),
-                                        app_engine_destroy);
-            need(bool(prepared), "unavailable", "Graph cannot prepare at requested stream configuration");
-            app_engine_prepare_master_fade_in(prepared.get());
-            engine_ = std::move(prepared);
-            active_ = engine_.get();
-            config_ = next_config;
+            if (rebuild) {
+                engine2::Config next_config = config_;
+                next_config.sample_rate = next_rate;
+                next_config.max_block = next_block;
+                previous = prepare_stopped_graph(next_config, &fresh);
+                need(bool(previous.engine), "unavailable", "Graph cannot prepare at requested stream configuration");
+                swap_stopped_graph(previous);
+                config_ = next_config;
+            }
             options_.rate = next_rate;
             options_.block = next_block;
             requested_block_ = 0;
-            start_audio();
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || (stream_ && stream_->running()), "unavailable",
                  "Audio device refused the new stream");
             start_midi();
             preferences_["audio"]["sampleRate"] = next_rate;
             preferences_["audio"]["bufferFrames"] = next_block;
+            Json result = previous.engine ? Json{{"freshModules", std::move(fresh)}} : Json(nullptr);
             persist(); // only after the replacement stream is running
             ++generation_;
-            keyboard_.fill(false);
-            telemetry_.swap(next_telemetry);
-            osc_out_.swap(next_out); // replace only after the new stream succeeds
-            return nullptr;
+            if (previous.engine) keyboard_.fill(false);
+            return result;
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             midi_->stop();
             stop_audio();
-            engine_ = std::move(previous);
-            active_ = engine_.get();
+            if (previous.engine) swap_stopped_graph(previous);
             config_ = old_config;
             options_.rate = old_rate;
             options_.block = old_block;
             requested_block_ = old_requested;
             preferences_ = old_preferences;
-            app_engine_prepare_master_fade_in(active_);
             start_audio();
             start_midi();
             if (rate_refused) refuse_rate();
             throw Refusal("unavailable", "Stream change refused; previous configuration restored");
         }
     }
+
     if (type == "selectAudioDevice") {
         need(command.at("deviceId").is_string());
         auto id = command.at("deviceId").get<std::string>();
@@ -1133,6 +1182,10 @@ Json Session::apply(const Json &command) {
             refuse_rate();
         need(options_.audio || options_.null_audio, "unavailable", "Audio device access is not authorized");
         auto old_device = device_;
+        const auto old_config = config_;
+        const auto old_block = options_.block, old_requested = requested_block_;
+        StoppedGraph previous;
+        Json fresh = Json::array(), result;
         // A device switch also tears down an audio worker. Join the packet
         // producer first, and resume against the same committed graph on
         // both success and restored-device failure paths.
@@ -1151,10 +1204,12 @@ Json Session::apply(const Json &command) {
         stop_audio();
         device_ = id;
         try {
-            start_audio();
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || bool(stream_), "unavailable", "Cannot open audio output");
             start_midi();
+            if (previous.engine) result = Json{{"freshModules", std::move(fresh)}};
             persist();
+            if (previous.engine) keyboard_.fill(false);
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             // Preserve the attempted PortAudio/ASIO failure before a successful
@@ -1162,6 +1217,10 @@ Json Session::apply(const Json &command) {
             const std::string failed_open = audio_error_;
             midi_->stop();
             stop_audio();
+            if (previous.engine) swap_stopped_graph(previous);
+            config_ = old_config;
+            options_.block = old_block;
+            requested_block_ = old_requested;
             device_ = old_device;
             start_audio();
             start_midi();
@@ -1170,7 +1229,7 @@ Json Session::apply(const Json &command) {
             throw;
         }
         refresh_devices(true, false);
-        return nullptr;
+        return result;
     }
     if (type == "setMidiEnabled") {
         need(command.at("deviceId").is_string() && command.at("on").is_boolean());
@@ -1179,17 +1238,21 @@ Json Session::apply(const Json &command) {
             std::find_if(midi_devices_.begin(), midi_devices_.end(), [&](const Json &d) { return d.at("id") == id; });
         need(found != midi_devices_.end(), "not-found", "No such MIDI input");
         need(options_.midi || options_.null_audio, "unavailable", "MIDI device access is not authorized");
+        const midi::Endpoint selection{found->at("name").get<std::string>(),
+                                       found->at("system_name").get<std::string>()};
+        const bool enable = command.at("on").get<bool>();
         auto old = midi_->enabled();
         midi_->stop();
-        midi_->select({found->at("name").get<std::string>(), found->at("system_name").get<std::string>()},
-                      command.at("on").get<bool>());
+        midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
             start_midi();
+            // An ACK for a newly enabled input must mean its backend opened.
+            // Startup restore still tolerates saved disconnected endpoints.
+            if (enable) need(midi_->online(selection), "unavailable", "MIDI input could not be opened");
             persist();
         } catch (...) {
             midi_->stop();
-            for (auto &e : midi_->enabled()) (void)e;
             auto selected = midi_->enabled();
             for (auto &e : selected) midi_->select(e, false);
             for (auto &e : old) midi_->select(e, true);
@@ -1247,11 +1310,45 @@ Json Session::apply(const Json &command) {
         m["parameters"][param] = value;
         return nullptr;
     }
-    Json candidate = patch_;
     if (type == "loadGraph") {
-        commit(command.at("patch"), true);
+        auto loaded = command.at("patch");
+        auto &connections = loaded.at("connections");
+        need(connections.is_array());
+        need(connections.size() <= 128, "limit", "Graph capacity exceeded");
+        std::vector<std::string> warnings;
+        try {
+            warnings = document::normalize_stored_modulation(connections, 2);
+        } catch (const std::invalid_argument &e) {
+            throw Refusal("invalid", e.what());
+        }
+        commit(std::move(loaded), true);
+        if (!warnings.empty()) return Json{{"warnings", std::move(warnings)}};
         return nullptr;
     }
+    if (type == "setModAmount") {
+        const auto key = identity(command.at("connection"));
+        auto &cables = patch_.at("connections");
+        auto found = std::find_if(cables.begin(), cables.end(),
+                                  [&](const Json &cable) { return identity(cable) == key; });
+        need(found != cables.end(), "not-found", "No such connection");
+        need(found->at("kind") == "modulation");
+        const auto from = integer(key.at("from").at("module"));
+        const auto to = integer(key.at("to").at("module"));
+        const auto amount = number(command.at("amount"), -1, 1);
+        auto &engine = app_engine_native(active_);
+        auto *source = engine.descriptor(from);
+        auto *destination = engine.descriptor(to);
+        need(source && destination, "not-found", "No such module");
+        auto *out = port(source, key.at("from").at("port").get<std::string>(), true);
+        auto *param = parameter(destination, key.at("to").at("port").get<std::string>());
+        const auto result = engine.set_mod_amount(from, uint32_t(out - source->outputs), to,
+                                                  uint32_t(param - destination->params), float(amount));
+        need(result != WS2_CAPACITY, "busy", "Event queue full");
+        need(result == WS2_OK, "unavailable", "Modulation edge unavailable");
+        (*found)["amount"] = amount;
+        return nullptr;
+    }
+    Json candidate = patch_;
     if (type == "applyGraph") {
         // Same validation and execution copy as loadGraph, but in the current ID namespace and
         // through the live replan: unchanged modules keep their instances (0005 section 3).
@@ -1279,7 +1376,7 @@ Json Session::apply(const Json &command) {
         auto &outputs = candidate["outputs"];
         outputs.erase(std::remove_if(outputs.begin(), outputs.end(), [&](const Json &o) { return o["module"] == id; }),
                       outputs.end());
-    } else if (type == "connect" || type == "disconnect" || type == "setModAmount") {
+    } else if (type == "connect" || type == "disconnect") {
         auto connection = command.at("connection");
         need(connection.is_object());
         auto &cables = candidate["connections"];
@@ -1290,11 +1387,7 @@ Json Session::apply(const Json &command) {
             cables.push_back(connection);
         } else {
             need(found != cables.end(), "not-found", "No such connection");
-            if (type == "disconnect") cables.erase(found);
-            else {
-                need(found->at("kind") == "modulation");
-                (*found)["amount"] = number(command.at("amount"), -1, 1);
-            }
+            cables.erase(found);
         }
     } else if (type == "ccMap.set") {
         auto &m = node(candidate, integer(command.at("moduleId")));

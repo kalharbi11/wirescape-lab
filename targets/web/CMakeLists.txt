@@ -37,7 +37,8 @@ target_include_directories(web_macro PUBLIC ${macro_eurorack_SOURCE_DIR} ${CMAKE
 target_compile_definitions(web_macro PUBLIC TEST)
 target_compile_options(web_macro PUBLIC -include ${macro_dir}/rng_scope.hpp)
 
-add_library(web_core STATIC ${native}/engine/engine2.cpp ${native}/engine/control/app_engine.cpp
+add_library(web_core STATIC ${native}/engine/engine2.cpp ${native}/engine/build.cpp
+  ${native}/engine/render.cpp ${native}/engine/edit.cpp ${native}/engine/control/app_engine.cpp
   ${native}/host/document/runtime_patch.cpp ${native}/engine/voice/allocator.cpp)
 target_include_directories(web_core PUBLIC ${native}/sdk/include ${native}/engine/include ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/control
   ${native}/host/document ${native}/engine/voice)

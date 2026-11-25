@@ -171,6 +171,41 @@ def edge(kind, source, output, dest, port, **extra):
                             'to': dict(module=dest, port=port)}, **extra)
 
 
+# A44 / ER6: only saved-patch loading normalizes duplicate modulation.
+with tempfile.TemporaryDirectory() as a44_dir:
+    a44 = Engine(Path(a44_dir) / 'settings.json')
+    try:
+        patch = minimal()
+        patch['modules'] += [dict(id=9, module='essentials.vco'),
+                             dict(id=10, module='essentials.lfo')]
+        signal = edge('signal', 9, 'audio', 7, 'audio')
+        first = edge('modulation', 10, 'control', 9, 'frequency',
+                     amount=0.7, opaque='first')
+        second = {**first, 'amount': 0.6, 'opaque': 'second'}
+        patch['connections'] = [first, signal, second]
+        clean = {**patch, 'connections': [signal]}
+        gen = a44.call('loadGraph', patch=clean)['gen']
+        refused = a44.call('applyGraph', False, patch=patch)
+        assert refused['code'] == 'duplicate' and refused['gen'] == gen
+        connected = a44.call('connect', connection=first)['gen']
+        refused = a44.call('connect', False, connection=second)
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        refused = a44.call('loadGraph', False,
+                           patch={**clean, 'connections': [signal, signal]})
+        assert refused['code'] == 'duplicate' and refused['gen'] == connected
+        # The load result reports only the normalization warning.
+        loaded = a44.call('loadGraph', patch=patch)
+        assert loaded['gen'] != connected
+        result = loaded['result']
+        assert set(result) == {'warnings'}, result
+        warnings = result['warnings']
+        assert len(warnings) == 1, warnings
+        assert all(token in warnings[0] for token in
+                   ('10', 'control', '9', 'frequency')), warnings
+    finally:
+        a44.close()
+
+
 with tempfile.TemporaryDirectory() as directory:
     settings = Path(directory) / 'settings.json'
     engine = Engine(settings, '--confirm-audio', '--confirm-midi', '--confirm-lan')  # null overrides audio/MIDI; no OSC routes
@@ -206,8 +241,13 @@ with tempfile.TemporaryDirectory() as directory:
     assert engine.call('panic')['gen'] == '5'
     engine.call('addModule', moduleId=10, moduleType='essentials.lfo')
     modulation = edge('modulation', 10, 'control', 9, 'frequency', amount=0.2)
-    engine.call('connect', connection=modulation)
-    assert engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)['gen'] == '8'
+    mod_gen = engine.call('connect', connection=modulation)['gen']
+    # E6 / ER6: amount is not part of a cable's identity. A second cable is
+    # refused even if its amount differs, and an amount edit must not swap.
+    duplicate = engine.call('connect', False, connection={**modulation, 'amount': -0.5})
+    assert duplicate['code'] == 'duplicate' and duplicate['gen'] == mod_gen
+    changed = engine.call('setModAmount', connection={**modulation, 'amount': 'ignored'}, amount=-0.5)
+    assert changed['gen'] == mod_gen, 'E6 setModAmount must not advance graph generation'
     engine.call('addModule', moduleId=12, moduleType='midi.cc_to_cv')
     engine.call('ccMap.set', moduleId=12, row=0, mapping=dict(channel=0, controller=21, fourteen_bit=False, bipolar=False, smoothing_ms=10))
     assert engine.call('ccMap.set', False, moduleId=12, row=8, mapping={})['code'] == 'limit'
@@ -941,6 +981,73 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 break
         assert saw_no_listener
         out_engine.close()
+
+# OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
+# endpoint toggle. The opt-in scripted backend has one virtual identity; this
+# covers re-enabling it without restarting the running null-audio engine, NOT
+# discovery/open of a second physical MIDI device. Never infer delivery from ACK
+# or received counters alone: Monitor sees MIDI delivered to midi.in.
+with tempfile.TemporaryDirectory() as midi_dir:
+    running = Engine(Path(midi_dir) / 'settings.json', '--scripted-midi')
+    try:
+        scripted = [d for d in running.hello['midi']['devices']
+                    if d['system_name'] == 'scripted:midi-m8:0']
+        assert len(scripted) == 1, scripted
+        device = scripted[0]
+        assert device['enabled'] is True, device
+        patch = minimal()
+        patch['modules'] += [
+            dict(id=20, module='midi.in',
+                 config=dict(endpoint=device['name'], system_name=device['system_name'])),
+            dict(id=21, module='monitor'),
+        ]
+        patch['connections'] = [edge('event', 20, 'midi', 21, 'events')]
+        gen = running.call('loadGraph', patch=patch)['gen']
+
+        def notes(snapshot):
+            return [e for e in snapshot.get('monitor', {}).get('21', [])
+                    if e.get('kind') == 'midi' and e.get('args', [0])[0] == 9]
+
+        initial = telemetry_when(running, gen, lambda t: bool(notes(t)))
+        last_on = max(e['t'] for e in notes(initial))
+
+        # A second advertised scripted input cannot open while the first
+        # source is delivering. The production sidecar must refuse this
+        # control-thread request (not ACK success and leave a dead endpoint).
+        busy = [d for d in running.hello['midi']['devices']
+                if d['system_name'] == 'scripted:midi-m8:busy']
+        assert len(busy) == 1 and busy[0]['enabled'] is False, busy
+        refused = running.call(
+            'setMidiEnabled', False, deviceId=busy[0]['id'], on=True)
+        assert refused['code'] == 'unavailable', refused
+        assert refused['gen'] == gen, refused
+        assert running.process.poll() is None, running.stderr()
+
+        # The audio session is already running. A disable is followed by a
+        # same-session re-enable, without reloading the graph or restarting.
+        off = running.call('setMidiEnabled', deviceId=device['id'], on=False)
+        assert off['gen'] == gen, off
+        off_status = learn_status_when(
+            running, lambda m: any(d['id'] == device['id'] and not d['enabled']
+                                   for d in m['devices']))
+        assert not next(d for d in off_status['devices']
+                        if d['id'] == device['id'])['enabled']
+        on = running.call('setMidiEnabled', deviceId=device['id'], on=True)
+        assert on['gen'] == gen, on
+        # A successful reply means nothing unless this same graph receives
+        # a fresh Note On from the re-opened production Host/Service callback.
+        delivered = telemetry_when(
+            running, gen,
+            lambda t: any(e['t'] > last_on and e['args'][0] == 9
+                          for e in notes(t)), timeout=8.0)
+        assert any(e['t'] > last_on for e in notes(delivered))
+        seen = learn_status_when(
+            running, lambda m: any(d['id'] == device['id'] and d['enabled']
+                                   for d in m['devices']))
+        assert next(d for d in seen['devices'] if d['id'] == device['id'])['enabled']
+        assert running.process.poll() is None, running.stderr()
+    finally:
+        running.close()
 
 # Real, short, device-free end-to-end benchmark ingestion on the production sidecar.
 harness = Path(__file__).resolve().parents[2] / 'tools' / 'sidecar_edit_soak.py'

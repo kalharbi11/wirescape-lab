@@ -84,7 +84,9 @@ static void cv_new_ports(){
     if(variant==1)VERIFY(e.modulate(1,0,2,p,.75f));
     if(variant==2){
      VERIFY(e.modulate(1,0,2,p,.6f));
-     VERIFY(e.modulate(1,0,2,p,-.6f));
+     VERIFY(e.add_node(4,ws::Module<Cv>::descriptor()));
+     VERIFY(e.set_channels(4,4));
+     VERIFY(e.modulate(4,0,2,p,-.6f));
     }
     for(uint32_t channel=0;channel<4;++channel)VERIFY(e.output(2,0,channel));
     VERIFY(e.prepare());

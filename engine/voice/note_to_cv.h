@@ -112,6 +112,37 @@ class NoteToCv {
         sources_ = {};
         return allocator_.configure(config);
     }
+    template <class Emit>
+    Status resize(int max_voices, const ws2_event &cause, Emit emit_event) {
+        const int previous = allocator_.voice_count();
+        // Grow, mono and no-op do not need a voice snapshot or event emission.
+        if (max_voices < 1 || max_voices > kMaxVoices ||
+            max_voices >= previous || allocator_.config().mode == Mode::Mono)
+            return allocator_.resize(max_voices);
+        const auto before = snapshot();
+        const auto status = allocator_.resize(max_voices);
+        if (status != Status::Ok) return status;
+        for (int c = max_voices; c < previous; ++c) {
+            const auto &a = before[c];
+            if (!a.gate) continue;
+            // Keep FIFO tombstones for anonymous activations until their offs,
+            // including when the same pitch is played after regrowth.
+            for (auto &anon : anonymous_)
+                if (anon.used && anon.source == a.source_id && anon.id == a.note_id)
+                    anon.retired = true;
+            auto out = cause;
+            // A source-scoped choke could release retained downstream voices.
+            // Emit an individual ordinary release with its old identity.
+            out.type = WS2_NOTE_OFF;
+            out.channel = c;
+            out.key = a.key;
+            out.note_id = a.note_id;
+            out.source_id = sources_[a.source_id].id;
+            out.value = 0;
+            emit_event(out);
+        }
+        return status;
+    }
     void reset() noexcept {
         allocator_.reset();
         sources_ = {};

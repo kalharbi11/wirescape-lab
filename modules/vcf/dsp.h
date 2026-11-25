@@ -21,14 +21,17 @@ struct Vcf {
                 float hz=cutoff[i];
                 if(hz!=previous[c]){double g=std::tan(3.14159265358979323846*std::min<double>(hz,.45*b.sample_rate())/b.sample_rate());coefficient[c]=g/(1+g);previous[c]=hz;++coefficient_recomputes;}
                 const double a=coefficient[c],x=std::clamp<double>(input[i],-1.e6,1.e6),k=(3.2/.95)*resonance[i];
+// Apply passband makeup only at the outputs. Feedback and IIR state
+// remain unchanged, preserving peak position and oscillation dynamics.
+const double passband_makeup=1.0+0.9*k;
                 double zero=0;for(auto state:z[c])zero=a*zero+(1-a)*state;
                 double a2=a*a,a4=a2*a2,feedback=(a4*x+zero)/(1+k*a4),stage=x-k*feedback;
                 for(int j=0;j<4;++j){double v=(stage-z[c][j])*a;stage=z[c][j]+v;z[c][j]=stage+v;
                     // Preserve the existing tail rule; FTZ changes alone are not
                     // assumed bit-equivalent for intermediate double state.
                     if(std::abs(z[c][j])<1.e-20)z[c][j]=0;
-                    if(j==1)lo[i]=static_cast<float>(stage);
-                }hi[i]=static_cast<float>(stage);
+                    if(j==1)lo[i]=static_cast<float>(stage*passband_makeup);
+                }hi[i]=static_cast<float>(stage*passband_makeup);
             }
         }
     }

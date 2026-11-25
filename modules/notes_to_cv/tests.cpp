@@ -153,20 +153,41 @@ static void anonymous_fifo_and_repeated_roots() {
 
 static void voice_count_change_and_reset() {
     Rig a;
-    a.run({note({WS2_NOTE_ON, 60, 0})});
-    REQUIRE(a.outs[0].channels == 4 && a.value(1, 0, 1) == 1.f);
-
+    a.run({note({WS2_NOTE_ON, 60, 0}), note({WS2_NOTE_ON, 64, 1}),
+           note({WS2_NOTE_ON, 67, 2}), note({WS2_NOTE_ON, 71, 3})});
+    REQUIRE(a.outs[0].channels == 4);
+    const auto check_kept = [&] {
+        for (uint32_t frame = 0; frame < 128; ++frame) {
+            REQUIRE(a.value(1, 0, frame) == 1.f && a.value(1, 1, frame) == 1.f);
+            REQUIRE(a.value(0, 0, frame) == 0.f && a.value(0, 1, frame) == 4.f / 12.f);
+            REQUIRE(a.value(2, 0, frame) == .75f && a.value(2, 1, frame) == .75f);
+        }
+    };
     a.voice_param = 2.f;
-    a.run();
+    {
+        allocation_watch::Scope scope;
+        a.run();
+        REQUIRE(scope.allocations() == 0);
+    }
     REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    check_kept();
+    a.run(); // same count is a no-op
+    check_kept();
 
-    a.run({note({WS2_NOTE_ON, 64, 1})});
-    REQUIRE(a.outs[0].channels == 2 && a.value(1, 0, 1) == 1.f);
+    a.voice_param = 4.f;
+    a.run();
+    REQUIRE(a.outs[0].channels == 4);
+    check_kept();
+    for (uint32_t c = 2; c < 4; ++c)
+        for (uint32_t frame = 0; frame < 128; ++frame)
+            REQUIRE(a.value(1, c, frame) == 0.f);
+    a.run({note({WS2_NOTE_OFF, 67, 2}), note({WS2_NOTE_OFF, 71, 3})});
+    check_kept(); // retired notes must not close the retained voices
+    a.run({note({WS2_NOTE_OFF, 60, 0})});
+    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 1.f);
     a.desc->reset(a.state);
     a.run();
-    REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    for (uint32_t c = 0; c < 4; ++c) REQUIRE(a.value(1, c, 0) == 0.f);
 }
 static void voice_count_bounds_and_host_cap() {
     struct Case {
@@ -332,6 +353,27 @@ static void trigger_pulse_voice_routing_and_reset() {
         tail.desc->reset(tail.state);
         tail.run();
         for (uint32_t c = 0; c < 4; ++c) REQUIRE(tail.value(3, c, 0) == 0);
+
+        Rig resized(rate);
+        resized.run({note({WS2_NOTE_ON, 60, 1, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 64, 2, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 67, 3, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 71, 4, 1, 0, 31})}, 32);
+        resized.voice_param = 2;
+        resized.run({}, 8);
+        REQUIRE(resized.outs[3].channels == 2);
+        for (uint32_t c = 0; c < 2; ++c)
+            for (uint32_t i = 0; i < 8; ++i)
+                REQUIRE(resized.value(3, c, i) == 1 && resized.value(1, c, i) == 1);
+        resized.voice_param = 4;
+        resized.run({}, width);
+        REQUIRE(resized.outs[3].channels == 4);
+        for (uint32_t i = 0; i < width; ++i) {
+            for (uint32_t c = 0; c < 2; ++c)
+                REQUIRE(resized.value(3, c, i) == float(i < width - 9) && resized.value(1, c, i) == 1);
+            for (uint32_t c = 2; c < 4; ++c)
+                REQUIRE(resized.value(3, c, i) == 0 && resized.value(1, c, i) == 0);
+        }
 
         // A steal/retrigger restarts only that voice's pulse.
         Rig steal(rate);

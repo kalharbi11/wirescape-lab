@@ -40,7 +40,19 @@ struct NotesToCv {
             wirescape::voice::Config cfg{};
             cfg.max_voices = static_cast<uint8_t>(desired);
             cfg.mode = wirescape::voice::Mode::Rotate;
-            core.configure(cfg);
+            if (configured_voices) {
+                ws2_event cause{};
+                cause.struct_size = sizeof(cause);
+                core.resize(desired, cause, [](const ws2_event &) {});
+                for (uint32_t c = uint32_t(core.allocator().voice_count()); c < wirescape::voice::kMaxVoices; ++c) {
+                    trig_left[c] = 0;
+                    trig_active_mask &= ~(uint32_t{1} << c);
+                }
+            } else {
+                core.configure(cfg);
+                trig_left = {};
+                trig_active_mask = 0;
+            }
             configured_voices = desired;
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
@@ -92,10 +104,20 @@ struct NotesToCv {
             wirescape::voice::Config cfg{};
             cfg.max_voices = static_cast<uint8_t>(desired);
             cfg.mode = wirescape::voice::Mode::Rotate;
-            core.configure(cfg);
+            if (configured_voices) {
+                ws2_event cause{};
+                cause.struct_size = sizeof(cause);
+                core.resize(desired, cause, [](const ws2_event &) {});
+                for (uint32_t c = uint32_t(core.allocator().voice_count()); c < wirescape::voice::kMaxVoices; ++c) {
+                    trig_left[c] = 0;
+                    trig_active_mask &= ~(uint32_t{1} << c);
+                }
+            } else {
+                core.configure(cfg);
+                trig_left = {};
+                trig_active_mask = 0;
+            }
             configured_voices = desired;
-            trig_left = {};
-        trig_active_mask = 0;
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
         const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));

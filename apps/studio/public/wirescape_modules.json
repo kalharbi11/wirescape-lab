@@ -5803,6 +5803,188 @@
    "legacy_parameters": {
     "legato": 0
    }
+  },
+  {
+   "id": "essentials.poly_merge",
+   "name": "Poly Merge",
+   "category": "Utility",
+   "ports": [
+    {
+     "id": "in1",
+     "name": "In 1",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in2",
+     "name": "In 2",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in3",
+     "name": "In 3",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in4",
+     "name": "In 4",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in5",
+     "name": "In 5",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in6",
+     "name": "In 6",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in7",
+     "name": "In 7",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "in8",
+     "name": "In 8",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out",
+     "name": "Out",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "poly",
+     "stereo_pair": null
+    }
+   ],
+   "parameters": [],
+   "version": 1,
+   "legacy_parameters": {}
+  },
+  {
+   "id": "essentials.poly_split",
+   "name": "Poly Split",
+   "category": "Utility",
+   "ports": [
+    {
+     "id": "in",
+     "name": "In",
+     "direction": "input",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "out1",
+     "name": "Out 1",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out2",
+     "name": "Out 2",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out3",
+     "name": "Out 3",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out4",
+     "name": "Out 4",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out5",
+     "name": "Out 5",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out6",
+     "name": "Out 6",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out7",
+     "name": "Out 7",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    },
+    {
+     "id": "out8",
+     "name": "Out 8",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "cv_bi",
+     "poly": "first",
+     "stereo_pair": null
+    }
+   ],
+   "parameters": [],
+   "version": 1,
+   "legacy_parameters": {}
   }
  ]
 }

@@ -3,8 +3,10 @@
 #include "../audio/portaudio_service.h"
 #include <algorithm>
 namespace wirescape::sidecar {
-ObservedMidi::ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected)
-    : backend_(injected ? std::move(injected) : midi::real_backend(!fake && authorized)), fake_(fake) {
+ObservedMidi::ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected,
+                           bool scripted_busy_test_endpoint)
+    : backend_(injected ? std::move(injected) : midi::real_backend(!fake && authorized)),
+      fake_(fake), scripted_busy_test_endpoint_(scripted_busy_test_endpoint) {
     for (size_t i = 0; i < slots_.size(); ++i) {
         slots_[i].owner = this;
         slots_[i].index = static_cast<uint8_t>(i);
@@ -61,6 +63,11 @@ std::vector<midi::Endpoint> ObservedMidi::endpoints() {
     auto found = backend_ ? backend_->endpoints() : std::vector<midi::Endpoint>{};
     std::lock_guard<std::mutex> lock(mutex_);
     if (fake_) found = fake_endpoints_;
+    // Explicit device-off scripted mode only. This identity appears in device
+    // discovery but the underlying ScriptedBackend cannot open it. Its control
+    // ACK must therefore refuse rather than describe a dead enabled input.
+    if (scripted_busy_test_endpoint_)
+        found.push_back({"Wirescape Scripted MIDI Busy", "scripted:midi-m8:busy"});
     observed_ = found;
     return found;
 }

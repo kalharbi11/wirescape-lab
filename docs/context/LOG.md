@@ -1,6 +1,26 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-24 — Claude Architect run 22 (chat lanes, dev-run, Poly Merge)
+Dev-run (#389) lets chat builders build and test from PR comments. All five builders are ChatGPT chat lanes that keep working, with standing release and auto-merge. A39 merged Poly Merge + Poly Split #356 (`cdc8f14`). A40 combines E4a+E4b and runs E7 parallel to E5. A41 releases the OB-g8 matcher fix. CI2 #390 goes to B3. Stale workflow docs removed; AGENTS.md, CLAUDE.md and CURRENT trimmed. Details in CURRENT run 22.
+Signed: claude-architect, 2026-11-24
+
+## 2026-11-23 — Claude Architect run 21 (A37, Pi postponed)
+M7 r1.5 for S7.7: retire only the S4 whole-graph ABI1 bound, and VCF-containing rows fall under the task's Ir cap. OB r2.6: Pi testing and infrastructure postponed to the OB1 candidate. Details in CURRENT run 21.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 20 (reviews A34/A36, ruling A35, review routing)
+Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus a new `architect-ready` label, which replaces the unused #265 wake. Details in CURRENT run 20.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)
+E3 moves to OB1.1, and G-W1 #368 (Groove scrolling) joins OB1. #333, #356, #322, CAT-1 and MB1 are parked. C1 #367 is the CI digest. PI-1 #369 moves the Pi bridge's hosted jobs to the public lab repo, and wirescape-pi stays private.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 19 (replan to OB1)
+`proposals/0021`. OB1 is one serial engine chain, and most open PRs are off it. In effect now: an intake freeze, one PR per lane, engine draft-ahead, and OB-c fixes moved to B1. Owner decisions D1–D6 are pending (E3 scope, module freeze with CAT-1+MB1 combined, the B5 hand-off, CI digest, chat-mode GitHub write access).
+Signed: claude-architect, 2026-11-23
+
 ## 2026-11-23 — Claude Architect run 18 (hand-over to gpt-lead)
 Merged #357 OB-g9, #345 TR2 and #360 T1.6b (contract-review approved). Claude builder lanes closed. GPT lanes queued: T1.6c for B5, MB1 for B1, B4 on #333's Golden failure. CODEX_LEAD gains a technical- and agents-lead section.
 Signed: claude-architect, 2026-11-23

@@ -8,6 +8,17 @@
 #include <stdexcept>
 namespace wirescape::midi {
 namespace {
+// Service-owned counters only; release_panics_ already spans the Host lifetime.
+void add_service_counters(Counters &total, const Counters &live) noexcept {
+    total.received += live.received;
+    total.dropped += live.dropped;
+    total.malformed += live.malformed;
+    total.oversize += live.oversize;
+    total.ring_full += live.ring_full;
+    total.disconnects += live.disconnects;
+    total.send_fail += live.send_fail;
+    total.ignored_rpn += live.ignored_rpn;
+}
 std::vector<Route> subscriptions(const std::string &document) {
     const auto j = nlohmann::json::parse(document);
     std::vector<Route> routes;
@@ -90,6 +101,10 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         for (auto &s : enabled_)
             if (!service_->enable({s.name, s.system_name})) throw std::runtime_error("Too many enabled MIDI endpoints");
         if (!service_->replace_routes(std::move(routes))) throw std::runtime_error("Invalid MIDI routes");
+        // Resolve/open once on the control thread before reporting an explicit
+        // enable result. Saved disconnected endpoints remain offline but are
+        // tolerated at startup; Session checks the requested identity on toggle.
+        service_->poll();
         if (!service_->start()) throw std::runtime_error("MIDI service did not start");
         error.clear();
         return true;
@@ -117,10 +132,18 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         return false;
     }
 }
+bool Host::online(const Endpoint &endpoint) const {
+    if (!service_) return false;
+    const auto states = service_->endpoint_states();
+    return std::any_of(states.begin(), states.end(), [&](const auto &s) {
+        return s.saved.name == endpoint.name && s.saved.system_name == endpoint.system_name && s.online;
+    });
+}
 void Host::stop() {
     if (service_) {
         service_->stop();
-        last_statistics_ = diagnostics();
+        last_statistics_ = diagnostics(); // Snapshot cumulative totals and stopped ports.
+        add_service_counters(completed_, service_->counters());
         service_.reset();
     }
     engine_ = nullptr;
@@ -143,7 +166,8 @@ std::string Host::diagnostics() const {
         .dump();
 }
 Counters Host::counters()const noexcept{
-    auto c = service_ ? service_->counters() : Counters{};
+    auto c = completed_;
+    if (service_) add_service_counters(c, service_->counters());
     c.release_panics = release_panics_.load(std::memory_order_relaxed);
     return c;
 }

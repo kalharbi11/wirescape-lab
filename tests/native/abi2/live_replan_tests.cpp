@@ -2,12 +2,14 @@
 #include "allocation_watch.h"
 #include "engine2.h"
 #include "wirescape_sdk.h"
+#include "../../../modules/osc_out/dsp.h"
 #include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <new>
+#include <random>
 #include <thread>
 using namespace wirescape::engine2;
 using Clock = std::chrono::steady_clock;
@@ -126,19 +128,22 @@ struct EventSink : Voice {
 };
 struct EventEmitter : Voice {
     static constexpr ws::Info info{"test.live_emitter", "Live emitter", 1};
+    bool emit_note = true;
+    void prepare(const ws::Setup &setup) { emit_note = setup.config.bytes == 0; }
     void process(ws::Block &b) {
         b.out(0).set_channels(1);
         b.out(0).mark_constant(true);
         b.out(0).ch(0)[0] = 1;
         b.out(1).set_channels(0);
-        auto e = note();
-        e.offset = b.frames() - 1;
-        CHECK(b.emit(1, e));
+        if (emit_note) {
+            auto e = note();
+            e.offset = b.frames() - 1;
+            CHECK(b.emit(1, e));
+        }
     }
 };
-// The marker bus stays at one until the acknowledgement callback fades it out.
-// Stop callbacks there so a queued feedback note cannot arrive before the edit.
-static void replan_at_fade_out(Engine &live, Engine &candidate) {
+// A51: true is an adoption acknowledgement, not a master-fade marker.
+static void replan_with_callbacks(Engine &live, Engine &candidate) {
     std::atomic<bool> done{false}, success{false};
     std::thread edit([&] {
         success = live.replan(candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
@@ -147,7 +152,6 @@ static void replan_at_fade_out(Engine &live, Engine &candidate) {
     float samples[frames]{}, marker[frames]{};
     float *out[]{samples, marker};
     const auto deadline = Clock::now() + std::chrono::seconds(2);
-    bool acknowledged = false;
     while (!done.load() && Clock::now() < deadline) {
         {
             allocation_watch::ThreadScope watch;
@@ -157,14 +161,10 @@ static void replan_at_fade_out(Engine &live, Engine &candidate) {
         Outgoing outgoing;
         while (live.pop_egress(outgoing)) {
         }
-        if (marker[frames - 1] == 0) {
-            acknowledged = true;
-            break;
-        }
         std::this_thread::yield();
     }
     edit.join();
-    CHECK(acknowledged && success.load());
+    CHECK(success.load());
 }
 static void removed_event_routes_release() {
     for (bool replace_source : {false, true}) {
@@ -187,21 +187,19 @@ static void removed_event_routes_release() {
         CHECK(live->render(out, 2, frames) == WS2_OK);
         CHECK(samples[frames - 1] == .75f);
         const auto stale = live->meter().stale;
-        replan_at_fade_out(*live, *candidate);
+        replan_with_callbacks(*live, *candidate);
         candidate.reset();
         // The old source's final back-edge note must not restart the destination
-        // after its resume choke, even if the numeric cable survives source reuse.
-        // Check replacement before newly emitted back-edge notes can arrive.
+        // after adoption, even if the numeric cable survives source reuse.
+        // The replacement emitter is configured silent: any NoteOn is stale.
         {
             allocation_watch::ThreadScope watch;
             CHECK(live->render(out, 2, 1) == WS2_OK);
             CHECK(watch.allocations() == 0);
         }
         CHECK(samples[0] == 0);
-        if (!replace_source) {
-            CHECK(live->render(out, 2, frames) == WS2_OK);
-            for (float sample : samples) CHECK(sample == 0);
-        }
+        CHECK(live->render(out, 2, frames) == WS2_OK);
+        for (float sample : samples) CHECK(sample == 0);
         CHECK(live->meter().stale > stale);
     }
 }
@@ -265,6 +263,181 @@ struct Audio {
     }
     void resume() { enabled = true; }
 };
+// E4b: an unrelated topology edit cannot attenuate a held witness bus.
+static void untouched_witness_no_dip() {
+    auto live = graph({false, true, false});
+    auto candidate = graph({true, true, false});
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float subject[frames]{}, witness[frames]{};
+    float *out[]{subject, witness};
+    for (unsigned i = 0; i < 4; ++i) CHECK(live->render(out, 2, frames) == WS2_OK);
+    const float held = witness[frames - 1];
+    CHECK(held == .75f);
+    std::atomic<bool> done{false}, success{false};
+    std::thread control([&] {
+        success = live->replan(*candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    bool identical = true;
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        {
+            allocation_watch::ThreadScope watch;
+            CHECK(live->render(out, 2, frames) == WS2_OK);
+            CHECK(watch.allocations() == 0);
+        }
+        for (float sample : witness) identical &= sample == held;
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    CHECK(success.load());
+    candidate.reset();
+    CHECK(live->render(out, 2, frames) == WS2_OK);
+    for (float sample : witness) identical &= sample == held;
+    CHECK(identical);
+}
+
+// A51 regression: the actual output-less OSC Out holds a host-owned bus.
+// On successful adoption the host is allowed to free that bus immediately.
+// A new signal cable ramps for exactly 5 ms. Reverse the edit while the
+// first ramp is still moving, and require the new ramp to start at its actual
+// previous sample, rather than jumping to the first ramp's target.
+static void signal_ramp_interrupted() {
+    auto make = [](bool connected) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, ws::Module<Pass>::descriptor()));
+        if (connected) CHECK(e->connect(1, 0, 2, 0));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(false), add = make(true), remove = make(false);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float sample[1]{}, witness[1]{};
+    float *out[]{sample, witness};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(witness[0] == .75f);
+    };
+    render();
+    CHECK(sample[0] == 0);
+    auto edit_until = [&](Engine &candidate, auto changed) {
+        std::atomic<bool> done{false}, success{false};
+        std::thread control([&] {
+            success = live->replan(candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
+            done.store(true, std::memory_order_release);
+        });
+        bool observed = false;
+        uint64_t max_sleep_us = 0;
+        unsigned paced_waits = 0;
+        const auto deadline = Clock::now() + std::chrono::seconds(2);
+        do {
+            const float previous = sample[0];
+            render();
+            if (changed(previous, sample[0])) {
+                observed = true;
+                break;
+            }
+            // Pace single-sample callbacks so staging cannot consume the
+            // entire 240-frame ramp before a reversal is requested.
+            const auto wait_start = Clock::now();
+            // Test-only short wait: do not round 100us to the host timer tick.
+            const auto next_callback = wait_start + std::chrono::microseconds(100);
+            while (Clock::now() < next_callback) {}
+            const auto wait_us = uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(
+                Clock::now() - wait_start).count());
+            max_sleep_us = std::max(max_sleep_us, wait_us);
+            ++paced_waits;
+        } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+        control.join();
+        std::fprintf(stderr, "#443 pacing: waits=%u max_wait_us=%llu adoption=%s error=%s\n",
+                     paced_waits, static_cast<unsigned long long>(max_sleep_us),
+                     success.load() ? "ok" : "failed", live->error().c_str());
+        CHECK(success.load());
+        CHECK(observed);
+    };
+    edit_until(*add, [](float, float next) { return next > 0; });
+    CHECK(std::abs(sample[0] - .75f / 240) < 1.e-6f);
+    add.reset();
+    for (unsigned i = 0; i < 59; ++i) render();
+    CHECK(std::abs(sample[0] - .75f / 4) < 1.e-6f);
+    float turn = 0;
+    edit_until(*remove, [&](float prior, float next) {
+        if (next >= prior) return false;
+        turn = prior;
+        return true;
+    });
+    CHECK(turn > 0 && turn < .75f);
+    CHECK(std::abs(sample[0] - turn * (239.f / 240)) < 1.e-6f);
+    remove.reset();
+    for (unsigned i = 1; i < 240; ++i) render();
+    CHECK(sample[0] == 0);
+
+    // Prebuilt steady housekeeping must be silent on the wire and must
+    // not resurrect the removed cable or retire the live witness.
+    std::atomic<bool> done{false};
+    std::thread control([&] {
+        live->refresh_latency();
+        done.store(true, std::memory_order_release);
+    });
+    do {
+        render();
+        CHECK(sample[0] == 0);
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire));
+    control.join();
+    render();
+    CHECK(sample[0] == 0);
+}
+
+static void osc_out_retirement() {
+    using namespace wirescape::osc;
+    for (bool replacement : {false, true}) {
+        auto old_bus = std::make_unique<OutBus>();
+        auto new_bus = std::make_unique<OutBus>();
+        auto make = [&](OutBus *bus) {
+            auto e = std::make_unique<Engine>(config());
+            CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+            if (bus) {
+                OutConfiguration cfg;
+                cfg.bus = bus;
+                cfg.rows[0].enabled = 1;
+                const auto *bytes = reinterpret_cast<const uint8_t *>(&cfg);
+                CHECK(e->add_node(2, ws::Module<OscOut>::descriptor(),
+                                  std::vector<uint8_t>(bytes, bytes + sizeof(cfg))));
+                CHECK(e->connect(1, 0, 2, 0));
+            }
+            CHECK(e->output(1, 0, 0));
+            CHECK(e->register_producer() == 0);
+            CHECK(e->prepare());
+            return e;
+        };
+        auto live = make(old_bus.get());
+        auto candidate = make(replacement ? new_bus.get() : nullptr);
+        CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+        float data[frames]{};
+        float *out[]{data};
+        CHECK(live->render(out, 1, frames) == WS2_OK);
+        CHECK(old_bus->rows[0].blocks.load() > 0);
+        replan_with_callbacks(*live, *candidate);
+        candidate.reset();
+        old_bus.reset(); // ASan detects any later access by the retired instance.
+        for (unsigned i = 0; i < 8; ++i) {
+            allocation_watch::ThreadScope watch;
+            CHECK(live->render(out, 1, frames) == WS2_OK);
+            CHECK(watch.allocations() == 0);
+            for (float sample : data) CHECK(sample == .75f);
+        }
+        CHECK((live->descriptor(2) != nullptr) == replacement);
+        if (replacement) CHECK(new_bus->rows[0].blocks.load() > 0);
+    }
+}
+
 static void allocation_scope_is_thread_local() {
     std::atomic<bool> go{false}, done{false};
     std::thread control([&] {
@@ -330,6 +503,13 @@ static void feedback_delay_survives() {
         CHECK(watch.allocations() == 0);
     };
     for (unsigned i = 0; i < 4; ++i) render();
+    float previous = data[frames - 1];
+    auto contiguous = [&] {
+        render();
+        CHECK(data[0] == previous + 1);
+        CHECK(data[frames - 1] == previous + frames);
+        previous = data[frames - 1];
+    };
     std::atomic<bool> done{false}, success{false};
     std::thread edit([&] {
         success = live->replan(*candidate, uint64_t(frames) * 3 * 1000000000 / 48000);
@@ -337,16 +517,13 @@ static void feedback_delay_survives() {
     });
     const auto deadline = Clock::now() + std::chrono::seconds(2);
     while (!done.load() && Clock::now() < deadline) {
-        render();
-        if (data[frames - 1] == 0) break; // Stop after fade-out so the next callback is the first resumed render.
+        contiguous();
         std::this_thread::yield();
     }
     edit.join();
     CHECK(success.load());
     candidate.reset();
-    const float previous = live->output_sample(1, 0, 0, frames - 1); // Quiescent: renderer is this thread; edit joined.
-    render();
-    CHECK(live->output_sample(1, 0, 0, 0) == previous + 1);
+    contiguous();
     CHECK(live->meter().generation == generation);
     CHECK(live->feedback_edges() == 1);
 }
@@ -379,7 +556,7 @@ static void ramp_survives() {
         for (auto *e : {live.get(), reference.get()})
             CHECK(e->enqueue(0, 1, WS2_DIRECT_PORT, gain, 0, Timing::Immediate) == WS2_OK);
         render();
-        if (b[0] == 0) break; // Stop at acknowledged fade-out; no parked or resumed callback can mask a reset.
+        CHECK(b[0] == y[0]); // Every callback must match the untouched reference.
         std::this_thread::yield();
     }
     edit.join();
@@ -420,7 +597,7 @@ static double live_edits() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     });
-    // Keel ruling #297: every attempt keeps the full three-block park deadline. A timeout is a legal outcome
+    // Keel ruling #297: every attempt keeps the full three-block adoption deadline. A timeout is a legal outcome
     // (old graph retained, then a bounded retry, as the sidecar does under D5/D7). Strict mode (Pi evidence via
     // --max-gap-ms, or WIRESCAPE_REPLAN_STRICT=1) still requires every edit to commit on its first attempt.
     auto edit = [&](Topology topology) {
@@ -434,14 +611,14 @@ static double live_edits() {
             next.reset(); // No render callback may retain a staging owner/context.
             if (!committed) {
                 const auto error = e.error();
-                CHECK(error == "Audio did not park before the edit deadline");
+                CHECK(error == "Audio did not adopt before the edit deadline");
                 ++replan_timeouts;
                 std::fprintf(stderr, "replan attempt %u timed out after %.3f ms, %llu callbacks: %s\n", attempt + 1,
                              double(now_ns() - started) / 1000000.,
                              static_cast<unsigned long long>(audio.blocks.load() - before), error.c_str());
                 CHECK(e.meter().generation == old_generation); // A timeout retains the old graph.
                 CHECK(e.meter().faults == 0);
-                // The next render retires the cancelled park; only then may another edit be requested.
+                // Allow callbacks to resume before retry; an unclaimed cancellation needs no retirement.
                 const auto retired = audio.blocks.load();
                 const auto retire_deadline = Clock::now() + std::chrono::seconds(2);
                 while (audio.blocks.load() <= retired + 1 && Clock::now() < retire_deadline) std::this_thread::yield();
@@ -507,7 +684,7 @@ static double live_edits() {
     CHECK(accepted.load() > 0);
     CHECK(e.meter().generation == generation);
     CHECK(e.meter().faults == 0);
-    CHECK(audio.gap_ns.load() > 0);
+    CHECK(audio.gap_ns.load() == 0);
     audio.measure = false;
     CHECK(e.enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
     audio.wait(0, 0);
@@ -529,23 +706,129 @@ static void telemetry_replan_layout() {
     CHECK(b[frames-1]>.1f);
     float values[2]{};uint32_t counts[2]{};uint64_t frame=0;
     CHECK(live->read_telemetry(values,counts,2,frame)==2&&counts[1]==1&&frame==frames);
-    replan_at_fade_out(*live,*kept);
+    replan_with_callbacks(*live,*kept);
     kept.reset();
     CHECK(live->render(out,2,frames)==WS2_OK);
     CHECK(live->read_telemetry(values,counts,2,frame)==1&&frame==live->meter().frame);
     CHECK(values[0]==.75f || values[0]==1.f); // Retained node's rendered gain.
-    replan_at_fade_out(*live,*removed);
+    replan_with_callbacks(*live,*removed);
     removed.reset();
     CHECK(live->render(out,2,frames)==WS2_OK);
     CHECK(live->read_telemetry(values,counts,2,frame)==0&&frame==0);
     CHECK(live->descriptor(1)==nullptr); // Removed nodes cannot retain a stale tap.
 }
+// Device-free random valid topology stress. Render, control and independent
+// ingress producer run concurrently; count successful edits, not attempts.
+static void random_edit_stress(unsigned count) {
+    auto cfg = config();
+    cfg.max_channels = 1;
+    cfg.max_nodes = 8;
+    cfg.max_block = 1024;
+    auto make = [&](uint32_t mask) {
+        auto e = std::make_unique<Engine>(cfg);
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, ws::Module<Pass>::descriptor()));
+        CHECK(e->add_node(4, ws::Module<Voice>::descriptor()));
+        if (mask & 1) {
+            CHECK(e->add_node(3, ws::Module<Pass>::descriptor()));
+            CHECK(e->connect((mask & 2) ? 2 : 1, 0, 3, 0));
+        }
+        if ((mask & 1) && (mask & 4)) CHECK(e->connect(3, 0, 2, 0));
+        else if (mask & 8) CHECK(e->connect(1, 0, 2, 0));
+        if (mask & 16) CHECK(e->connect(1, 1, 4, 0));
+        if (mask & 32) CHECK(e->modulate(2, 0, 4, 0, (mask & 64) ? .25f : -.25f));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->output(4, 0, 2));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->register_producer() == 1);
+        if (mask & 128) CHECK(e->set_telemetry_taps({{Tap::Param, 4, 0}, {Tap::Output, 1, 0}}));
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(0);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    const auto generation = live->meter().generation;
+    std::atomic<bool> run{true}, started{false};
+    std::thread render([&] {
+        float a[32]{}, b[32]{}, c[32]{};
+        float *out[]{a, b, c};
+        while (run.load(std::memory_order_acquire)) {
+            {
+                allocation_watch::ThreadScope watch;
+                CHECK(live->render(out, 3, 32) == WS2_OK);
+                CHECK(watch.allocations() == 0);
+            }
+            for (float sample : b) CHECK(sample == .75f);
+            for (float sample : a) CHECK(std::isfinite(sample));
+            for (float sample : c) CHECK(std::isfinite(sample));
+            Outgoing event;
+            while (live->pop_egress(event)) {}
+            started.store(true, std::memory_order_release);
+            std::this_thread::yield();
+        }
+    });
+    std::thread ingress([&] {
+        auto event = note();
+        event.type = WS2_PARAM_MOD;
+        event.index = 0;
+        event.value = .125f;
+        while (run.load(std::memory_order_acquire)) {
+            const int status = live->enqueue(1, 4, WS2_DIRECT_PORT, event, 0, Timing::Immediate);
+            CHECK(status == WS2_OK || status == WS2_CAPACITY);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+    });
+    while (!started.load(std::memory_order_acquire)) std::this_thread::yield();
+    std::mt19937 random(0xE4B2026u);
+    unsigned timeouts = 0;
+    for (unsigned i = 0; i < count; ++i) {
+        const uint32_t mask = random() & 255u;
+        auto candidate = make(mask);
+        bool committed = false;
+        for (unsigned attempt = 0; attempt < 20 && !committed; ++attempt) {
+            committed = live->replan(*candidate, uint64_t(cfg.max_block) * 3 * 1000000000 / 48000);
+            if (!committed) {
+                CHECK(live->error() == "Audio did not adopt before the edit deadline");
+                ++timeouts;
+            }
+        }
+        CHECK(committed);
+        candidate.reset();
+        CHECK(live->meter().generation == generation);
+        CHECK(live->meter().faults == 0);
+        CHECK((live->descriptor(3) != nullptr) == bool(mask & 1));
+        if (mask & 32) {
+            const int status = live->set_mod_amount(2, 0, 4, 0, .5f);
+            CHECK(status == WS2_OK || status == WS2_CAPACITY);
+        }
+        float values[2]{};
+        uint32_t counts[2]{};
+        uint64_t frame = 0;
+        CHECK(live->read_telemetry(values, counts, 2, frame) == ((mask & 128) ? 2u : 0u));
+        if (i % 3 == 0) live->refresh_latency();
+    }
+    run.store(false, std::memory_order_release);
+    ingress.join();
+    render.join();
+    CHECK(live->meter().faults == 0);
+    std::printf("PASS E4b random valid edits: %u committed, %u cancelled attempts, generation unchanged, no render allocations\n", count, timeouts);
+}
 int main(int argc, char **argv) {
+    if (argc == 3 && std::strcmp(argv[1], "--stress") == 0) {
+        const unsigned count = static_cast<unsigned>(std::strtoul(argv[2], nullptr, 10));
+        CHECK(count >= 10000);
+        random_edit_stress(count);
+        return 0;
+    }
     double max_gap_ms = 0;
     if (argc == 3 && std::strcmp(argv[1], "--max-gap-ms") == 0) max_gap_ms = std::strtod(argv[2], nullptr);
     else CHECK(argc == 1);
     const char *strict = std::getenv("WIRESCAPE_REPLAN_STRICT");
     if (max_gap_ms > 0 || (strict && std::strcmp(strict, "1") == 0)) replan_attempts = 1;
+    untouched_witness_no_dip();
+    osc_out_retirement();
+    signal_ramp_interrupted();
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();

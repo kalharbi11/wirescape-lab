@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "app_engine.h"
-#include "midi_backend.h"
+#include "midi_service.h"
 #include <atomic>
 #include <memory>
 #include <string>
@@ -10,7 +10,6 @@ namespace wirescape::monitor {
 class Capture;
 }
 namespace wirescape::midi {
-class Service;struct Counters;
 // Control owner only. Stop joins ingress before its borrowed engine is replaced.
 class Host {
     bool injected_backend_ = false;
@@ -19,6 +18,7 @@ class Host {
     AppEngine *engine_ = nullptr;
     bool authorized_ = false;
     std::string last_statistics_;
+    Counters completed_{}; // Final totals from stopped services, control owner only.
     std::atomic<uint64_t> release_panics_{0}; // failed release enqueue -> global engine panic
     std::vector<Endpoint> enabled_;
     monitor::Capture *monitor_ = nullptr;
@@ -35,6 +35,8 @@ class Host {
     void select(Endpoint, bool);
     void restore(const std::string &document);
     bool start(AppEngine *, const std::string &document, std::string &error);
+    // Control-thread admission check: online means the backend opened this identity.
+    bool online(const Endpoint &) const;
     // Atomically accept a prepared graph and its subscriptions on the control thread.
     // Refusal (including a busy MIDI worker) preserves graph and routes for retry.
     bool replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error);

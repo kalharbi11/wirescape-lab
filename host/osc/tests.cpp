@@ -2,6 +2,8 @@
 #include "../../sdk/examples/test_support.h"
 #include "codec.h"
 #include "pattern.h"
+#include "pattern_reference_for_test.h"
+#include <string>
 #include <vector>
 using namespace wirescape::osc;
 static std::vector<uint8_t> packet(const char *address, float value) {
@@ -16,7 +18,55 @@ static std::vector<uint8_t> packet(const char *address, float value) {
     REQUIRE(!truncated && !out.empty());
     return out;
 }
+// Compare the production matcher against the unmodified pre-A41 NFA.
+static void pattern_equivalence() {
+    const std::string max_literal = "/" + std::string(254, 'a');
+    const std::string too_long = max_literal + "a";
+    const std::vector<std::string> patterns = {
+        "", "/", "/literal", "/pico1/knob/3", "/pico?/knob/[1-9]",
+        "/pico1/knob/*", "/{pico1,esp32}/knob/3", "/a/[!0-3]/{x,{y,z}}",
+        "/a/*/b?", "/a/**", "/a/[a-z0-9]", "/a/{,x}", "/a/{x,y*}/[!a]?",
+        "/a/\\*", "/a/\\?", "/a/\\[", "/a/\\{", "/a/\\,",
+        "/a/\\\\", "/a/]", "/a/}", "/a/,", "/a/[", "/a/[]",
+        "/a/[z-a]", "/a/{x", "/a/\\", max_literal, too_long
+    };
+    const std::vector<std::string> addresses = {
+        "", "/", "/literal", "/Literal", "/literal/", "/pico1/knob/3",
+        "/pico2/knob/3", "/esp32/knob/3", "/pico1/knob/0",
+        "/pico1/knob/", "/pico1/knob/33", "/pico1/knob/3/extra",
+        "/a/", "/a/1/z", "/a/5/z", "/a/5/y", "/a/5/x", "/a/5/q",
+        "/a/x", "/a/y", "/a/xyz", "/a/z", "/a/9", "/a//bq",
+        "/a/x/bq", "/a/x/b/", "/a/x/bqq", "/a/x/bq/extra",
+        "/a/yfoo/zb", "/a/x/ab", "/a/y/zb", "/a/*", "/a/?",
+        "/a/[", "/a/{", "/a/,", "/a/\\", max_literal, too_long
+    };
+    Pattern actual;
+    test_reference::Pattern reference;
+    // Reuse both objects: switching literal/wildcard patterns must not retain state.
+    for (const auto &pattern : patterns) {
+        const bool valid = reference.compile(pattern);
+        REQUIRE(actual.compile(pattern) == valid);
+        if (!valid) continue;
+        for (const auto &address : addresses)
+            REQUIRE(actual.match(address) == reference.match(address));
+    }
+    // A small exhaustive mixed corpus catches segment boundaries and empty matches.
+    for (const auto &pattern : {"/a", "/?", "/*", "/[!a]", "/{a,b}", "/{a*,?}/b"}) {
+        REQUIRE(reference.compile(pattern));
+        REQUIRE(actual.compile(pattern));
+        for (char a : std::string("ab/")) {
+            const std::string prefix = std::string("/") + a;
+            REQUIRE(actual.match(prefix) == reference.match(prefix));
+            for (char b : std::string("ab/")) {
+                const std::string address = prefix + b;
+                REQUIRE(actual.match(address) == reference.match(address));
+            }
+        }
+    }
+}
+
 int main() {
+    pattern_equivalence();
     const auto valid = packet("/pico1/knob/3", .75f);
     int calls = 0;
     REQUIRE(parse(valid.data(), valid.size(), [&](const Message &m) {

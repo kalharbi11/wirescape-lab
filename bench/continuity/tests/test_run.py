@@ -42,6 +42,43 @@ class Refine(unittest.TestCase):
         self.assertGreater(got['residual'], 0.0)
 
 
+class ControlComparison(unittest.TestCase):
+    def test_latency_probe_uses_an_unoccupied_mixer_input(self):
+        case = probe.latency_probe(probe.base())
+        edit_connection = case['cmd'][1]['connection']
+        self.assertTrue(case['report_only'])
+        self.assertEqual(edit_connection, probe.sig(92, 'audio', 93, 'b'))
+        self.assertIn(probe.sig(3, 'audio', 93, 'a'), case['setup']['connections'])
+        self.assertIn(probe.sig(93, 'audio', 4, 'audio'), case['setup']['connections'])
+        self.assertNotIn(edit_connection['to'], [c['to'] for c in case['setup']['connections']])
+
+    def test_identical_tail_with_natural_silence_is_neutral(self):
+        edit, late = RATE, RATE + BLOCK
+        control = [0.15] * RATE + [0.0] * BLOCK + [0.1] * RATE
+        result = run.compare_control(control, control, 'tail', edit, late)
+        self.assertTrue(result['identical'])
+        self.assertEqual(result['samples'], 2 * RATE + BLOCK)
+        self.assertEqual(result['silence_ms'], 0)
+        self.assertEqual(result['dip_db'], 0)
+        self.assertEqual(result['jump_ratio'], 1)
+
+    def test_edit_silence_is_measured_against_sounding_control(self):
+        edit, late = RATE, RATE + BLOCK
+        control = [0.1] * (2 * RATE + BLOCK)
+        edited = control[:edit] + [0.0] * BLOCK + control[late:]
+        result = run.compare_control(edited, control, 'held_note', edit, late)
+        self.assertFalse(result['identical'])
+        self.assertEqual(result['first_mismatch_from_edit'], 0)
+        self.assertAlmostEqual(result['silence_ms'], 1000 * BLOCK / RATE)
+        self.assertEqual(result['dip_db'], '-inf')
+        self.assertIsNone(result['jump_ratio'])
+
+    def test_alignment_padding_is_rejected(self):
+        control = [0.1] * (2 * RATE)
+        with self.assertRaisesRegex(ValueError, 'non-finite'):
+            run.compare_control(control, [math.nan, *control[1:]], 'tone', RATE, RATE)
+
+
 def _marks():
     return [mk.Mark('load', 'loadGraph', True, '1', 10, 12), mk.Mark('note', 'noteOn', True, '1', 400, 400),
             mk.Mark('edit', 'loadGraph', True, '2', 800, 802)]

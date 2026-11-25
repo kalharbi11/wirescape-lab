@@ -12,7 +12,7 @@ name: OB-g7 hosted I/O soak (advisory draft)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '.github/workflows/ob-g7-hosted-soak.yml'
       - 'bench/io/**'
@@ -44,7 +44,7 @@ concurrency:
 jobs:
   draft-interface:
     name: OB-g7 draft interface inventory (NOT a soak)
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -79,7 +79,7 @@ jobs:
     name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
     # #305 merged; same CLI passed hosted Linux pilot 44963546005 at historical 445123b.
     # New runs check out this PR's exact head; no source-pinned pilot is reinstated.
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -150,7 +150,7 @@ jobs:
     name: Windows PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
     # #305 merged; same CLI passed hosted Linux pilot 44963546005 at historical 445123b.
     # New runs check out this PR's exact head; no source-pinned pilot is reinstated.
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     continue-on-error: true
     runs-on: windows-2022
     timeout-minutes: 30

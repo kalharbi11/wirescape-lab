@@ -38,6 +38,9 @@ class ObservedMidi final : public midi::Backend {
     std::chrono::steady_clock::time_point learn_deadline_{};
     void capture_cc(CcCapture cc) noexcept;
     bool fake_;
+    // Only the opt-in --scripted-midi harness advertises a second endpoint
+    // which deliberately refuses open(). This is a device-off refusal witness.
+    bool scripted_busy_test_endpoint_ = false;
     std::mutex mutex_;
     std::vector<midi::Endpoint> observed_;
     std::vector<midi::Endpoint> fake_endpoints_{{"M8 MIDI 1", "M8:M8 MIDI 1"}};
@@ -46,7 +49,8 @@ class ObservedMidi final : public midi::Backend {
     static void note(Slot &, unsigned, unsigned, bool);
 
   public:
-    explicit ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected = {});
+    explicit ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected = {},
+                          bool scripted_busy_test_endpoint = false);
     std::vector<midi::Endpoint> endpoints() override;
     std::vector<midi::Endpoint> observed();
     bool open(const midi::Endpoint &, midi::Callback) override;

@@ -263,7 +263,75 @@ static void live_subscriptions() {
     running = false;
     render.join();
 }
+// Recreate the Service on the same Host, as loadGraph does. Devices stay fake.
+static void session_cumulative_counters() {
+    auto graph = [] {
+        wirescape::engine2::Config config{};
+        config.sample_rate = 48000;
+        config.max_block = 128;
+        config.max_nodes = 16;
+        config.event_budget = 2048;
+        std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> e(app_engine_create(&config), app_engine_destroy);
+        CHECK(e);
+        CHECK(app_engine_add_node(e.get(), 1, "host.keyboard") == WS2_OK);
+        CHECK(app_engine_prepare(e.get(), 1, 1) == WS2_OK);
+        return e;
+    };
+    auto engine = graph();
+    auto backend = std::make_unique<KeyboardBackend>();
+    auto *fake = backend.get();
+    wirescape::midi::Host host(true, std::move(backend));
+    host.select({"Keyboard", "notes"}, true);
+    const std::string document = R"({"modules":[{"id":1,"module":"host.keyboard"}]})";
+    std::string error;
+    auto pair = [&] {
+        const uint8_t on[]{0x90, 60, 100}, off[]{0x80, 60, 0};
+        const auto cb = fake->callbacks[0];
+        cb.message(cb.context, on, sizeof(on), app_engine_clock_ns());
+        CHECK(wait_gate(engine.get(), true));
+        cb.message(cb.context, off, sizeof(off), app_engine_clock_ns());
+        CHECK(wait_gate(engine.get(), false));
+    };
+    auto invalid = [&] {
+        const uint8_t malformed[]{0x90, 60}, oversize[]{0x90, 60, 100, 0};
+        const auto cb = fake->callbacks[0];
+        cb.message(cb.context, malformed, sizeof(malformed), app_engine_clock_ns());
+        cb.message(cb.context, oversize, sizeof(oversize), app_engine_clock_ns());
+    };
+    constexpr uint64_t N = 2, M = 4;
+    CHECK(host.start(engine.get(), document, error));
+    CHECK(fake->opens == 1);
+    pair();
+    invalid();
+    const auto first = host.counters();
+    CHECK(first.received == N && first.malformed == 1 && first.oversize == 1 && first.dropped == 1);
+    host.stop();
+    const auto stopped = host.counters();
+    host.stop(); // A second stop must not fold the same Service again.
+    engine = graph();
+    CHECK(host.start(engine.get(), document, error));
+    CHECK(fake->opens == 2 && fake->closes == 1);
+    pair();
+    pair();
+    invalid();
+    const auto second = host.counters();
+    CHECK(second.received == N + M); // Regression: old Host reports M only.
+    CHECK(stopped.received == N);
+    CHECK(second.malformed == 2 && second.oversize == 2 && second.dropped == 2);
+    CHECK(host.diagnostics().find("\"received\":6") != std::string::npos);
+    host.stop();
+    CHECK(host.counters().received == N + M);
+    host.stop();
+    CHECK(host.counters().received == N + M);
+    CHECK(host.diagnostics().find("\"received\":6") != std::string::npos);
+    host.select({"Keyboard", "notes"}, false);
+    CHECK(host.start(engine.get(), document, error)); // No selected endpoints; same session.
+    CHECK(host.counters().received == N + M);
+    CHECK(host.diagnostics().find("\"received\":6") != std::string::npos);
+    host.stop();
+}
 int main(){
+    session_cumulative_counters();
     global_keyboard_notes();
     live_subscriptions();
     wirescape::midi::Host disabled;

@@ -76,7 +76,21 @@ struct MidiToCv {
         wanted.mono_priority = static_cast<voice::Priority>(std::clamp(std::lround(b.param(3).value(0, 0)), 0l, 2l)); wanted.legato = b.param(4).value(0, 0) > .5f;
         const uint32_t requested_filter = uint32_t(std::clamp(std::lround(b.param(8).value(0, 0)), 0l, 16l));
         if (!valid_config || wanted.max_voices != configured.max_voices || wanted.mode != configured.mode || wanted.mono_priority != configured.mono_priority || wanted.legato != configured.legato || filter != requested_filter) {
-            core.release_all(UINT32_MAX, cause, emit); core.configure(wanted); configured = wanted; filter = requested_filter; valid_config = true;
+            if (valid_config && wanted.mode == configured.mode &&
+                wanted.mono_priority == configured.mono_priority && wanted.legato == configured.legato &&
+                filter == requested_filter) {
+                core.resize(wanted.max_voices, cause, emit);
+                for (uint32_t c = uint32_t(core.allocator().voice_count()); c < voice::kMaxVoices; ++c) {
+                    trig_left[c] = 0;
+                    trig_active_mask &= ~(uint32_t{1} << c);
+                }
+            } else {
+                core.release_all(UINT32_MAX, cause, emit);
+                core.configure(wanted);
+                trig_left = {};
+                trig_active_mask = 0;
+            }
+            configured = wanted; filter = requested_filter; valid_config = true;
         }
         const bool hold = b.param(5).value(0, 0) > .5f;
         if (sustain_hold && !hold) for (auto& e : expressions) if (e.used && e.pedal) { core.sustain(e.source, int(e.channel), false, cause, emit); e.pedal = false; }
@@ -216,9 +230,21 @@ struct MidiToCv {
         wanted.mono_priority = static_cast<voice::Priority>(std::clamp(std::lround(b.param(3).value(0, 0)), 0l, 2l)); wanted.legato = b.param(4).value(0, 0) > .5f;
         const uint32_t requested_filter = uint32_t(std::clamp(std::lround(b.param(8).value(0, 0)), 0l, 16l));
         if (!valid_config || wanted.max_voices != configured.max_voices || wanted.mode != configured.mode || wanted.mono_priority != configured.mono_priority || wanted.legato != configured.legato || filter != requested_filter) {
-            core.release_all(UINT32_MAX, cause, emit); core.configure(wanted); configured = wanted; filter = requested_filter; valid_config = true;
-            trig_left = {};
-        trig_active_mask = 0;
+            if (valid_config && wanted.mode == configured.mode &&
+                wanted.mono_priority == configured.mono_priority && wanted.legato == configured.legato &&
+                filter == requested_filter) {
+                core.resize(wanted.max_voices, cause, emit);
+                for (uint32_t c = uint32_t(core.allocator().voice_count()); c < voice::kMaxVoices; ++c) {
+                    trig_left[c] = 0;
+                    trig_active_mask &= ~(uint32_t{1} << c);
+                }
+            } else {
+                core.release_all(UINT32_MAX, cause, emit);
+                core.configure(wanted);
+                trig_left = {};
+                trig_active_mask = 0;
+            }
+            configured = wanted; filter = requested_filter; valid_config = true;
         }
         const bool hold = b.param(5).value(0, 0) > .5f;
         if (sustain_hold && !hold) for (auto& e : expressions) if (e.used && e.pedal) { core.sustain(e.source, int(e.channel), false, cause, emit); e.pedal = false; }
