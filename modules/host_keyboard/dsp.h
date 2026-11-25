@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "../../engine/voice/note_to_cv.h"
-#include "wirescape_sdk.h"
+#include "../port_state.h"
 namespace ws2ports {
 struct HostKeyboard {
     static constexpr ws::Info info{"host.keyboard", "Keyboard", 1};
@@ -18,7 +18,49 @@ struct HostKeyboard {
     int voices = 0, mode = -1;
     std::array<ws2_event, 16> pending{};
     std::array<bool, 16> emitted{};
-    void prepare(const ws::Setup &s) { max_channels = s.max_channels(); }
+    double state_rate = 48000.;
+    void prepare(const ws::Setup &s) { max_channels = s.max_channels(); state_rate = s.sample_rate(); }
+
+    int save_state(ws::Writer w) const {
+        // Pending releases and attacks that failed delivery cannot be
+        // represented as an exact downstream continuation.
+        for(int c=0;c<16;++c){
+            const bool gate=voices&&c<core.allocator().voice_count()&&core.allocator().voice(c).gate;
+            if(pending[c].type||emitted[c]!=gate)return WS2_INVALID;
+        }
+        if(!w.u32(1)||!write_double(w,state_rate)||!w.u32(uint32_t(voices))||
+           !w.u32(voices?uint32_t(mode):0u))return WS2_CAPACITY;
+        return voices?core.save(w):WS2_OK;
+    }
+    int load_state(ws::Reader r) {
+        uint32_t version,count,policy;
+        double rate;
+        if(!r.u32(version))return WS2_INVALID;
+        if(version!=1)return WS2_UNSUPPORTED;
+        if(!read_double(r,rate)||rate!=state_rate||!r.u32(count)||
+           count>max_channels||count>16||!r.u32(policy)||policy>3||
+           (!count&&policy)||(voices&&(count!=uint32_t(voices)||policy!=uint32_t(mode))))
+            return WS2_INVALID;
+        wirescape::voice::NoteToCv staged;
+        std::array<bool,16> delivered{};
+        if(count){
+            // A fresh instance has not seen the block controls yet.
+            // Restore the saved count/policy; configure_at compares these
+            // with the actual controls on the first render as usual.
+            wirescape::voice::Config cfg;
+            cfg.max_voices=static_cast<uint8_t>(count);
+            cfg.mode=static_cast<wirescape::voice::Mode>(policy);
+            if(staged.configure(cfg)!=wirescape::voice::Status::Ok)return WS2_INVALID;
+            const int status=staged.load(r);
+            if(status!=WS2_OK)return WS2_INVALID;
+            for(int c=0;c<staged.allocator().voice_count();++c)
+                delivered[c]=staged.allocator().voice(c).gate;
+        }
+        core=staged;
+        voices=int(count);mode=count?int(policy):-1;
+        pending={};emitted=delivered;
+        return WS2_OK;
+    }
     void reset() {
         core.reset();
         voices = 0;
