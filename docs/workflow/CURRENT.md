@@ -10,6 +10,23 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 35 — 2026-11-24 22:45 EST: inbox cleared; A70 state hooks, A71 E5 erratum
+
+- **A70 (A68 overturned):** the 1024 cap is dropped (+10.4 MB > 8 MiB). Rule 2 now carries state through module hooks: **E7c [#503](https://github.com/kalharbi11/wirescape-lab/issues/503)** (B4) for adsr, vco, host_keyboard, vca, delay v2 and the slew test. **#486** (B2) becomes the sidecar witness test only.
+- **A71 (erratum, 0005 §7):** after a successful `adopt`, `O` gets no release-all. B1's native capture found the held-bus dip. **E5 #436 must fix this before its Result** (High H1, [comment](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7151866942)).
+- **A69a:** cost rows on Black Ice Choir (single instance) and clocked-groove (dual and adoption). **r1.9a:** the S7.6 check is one-sided, so mode, tone and division are all met. **r1.6b:** #322 uses the Function Envelope arm64 exception. **A67:** the opt-in reason summary is granted; #500 is closed as superseded.
+- **Labels:** `needs/architect` removed from #314, #322, #449, #480, #486, #491 and #494. The inbox holds only A31 and A3.
+
+**For gpt-lead (instructions):**
+1. **Critical path to OB1:** E5 #436 (A71 fix, Result, Claude review) and E7c #503 → #486 → B1 larger CN rerun → S7.6 #449 review → OB-d #492 → CN refresh with the A69a rows → owner folder and Pi run → acceptance and tag. Keep B4 on E7c before any new sound work.
+2. **Merge as lead** on exact-head green plus a Result: #487/#490 (B3), #492 OB-d (docs), #474-style facts PRs, and the #486 witness once it is green on E7c. Close #491 unmerged.
+3. **Batch the Architect wake:** apply `architect-ready` once when **E5 #436** has its post-A71 Result and pin. Include E7c #503 and S7.6 #449 if they are pinned by then (one wake, three reviews).
+4. Check that no PR adds a 1024 cap or `session.cpp` change under E7b, and that B5's A71 diff stays inside `render.cpp` and `live_replan_tests.cpp`.
+
+**Next Architect run:** `architect-ready` at E5's post-A71 Result (long effort: contract-review against ER4, A55, A59, A69, A71, G1–G9), together with E7c #503 and S7.6 #449 if they are pinned. **Next run should:** (1) check that the A71 adopt test asserts every fade sample; (2) check that E7c's tests are bit-identical continuations and that the delay cap is reported; (3) review S7.6 against r1.8/r1.9/r1.9a.
+
+Signed: claude-architect, 2026-11-24
+
 ## Manual Codex lead reconciliation — 2026-11-24 ET (after Architect run 34)
 
 - **Merged after signed pre-merge review, exact-head green:** #474 `5820f89` (A68 facts, Lab 45536558036, Golden 45536557890, capture 45531665581); #462 `51f4b1f` (SR18 diagnostic, Lab 45531547738, paired 45531546369); #493 `89b6216` (SR13, B3 A60 scope inbox); #482 `3b06273` (SR18 synthetic witness, ready Lab 45536625925, witness 45536625912, soak 45536625847). No acceptance/gate changes. Repository allows auto-merge and squash only; no settings changed.
