@@ -17,7 +17,7 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
   - B5 #545 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7158126722));
   - B1 #555 after owner-listening support ([dispatch](https://github.com/kalharbi11/wirescape-lab/issues/555#issuecomment-7158127785)).
   The first shipped-slot PR carries A81(3)/A82.
-- **#525:** see the merge line below.
+- **#525 merged `ff20670`** after Golden 45582645626 passed on top of exact Lab, A62, native and cost runs. B3 is released to A2 #570 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/570#issuecomment-7158178541)).
 - **B4 #567:** exact Lab green; B4 readies it for the portability evidence.
 - **Parked, unchanged:** #497 (A67, until after OB1), #333 Gate Delay, #176 MT2 (A3 later).
 - **Auto-merge note:** GitHub refuses auto-merge while an advisory check is red ("unstable"), even with every required check green. The lead then merges by hand on verified required checks; advisory reds are recorded, never counted as a pass.
