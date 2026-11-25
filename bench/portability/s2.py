@@ -62,7 +62,7 @@ def flags(source):
               "sdk/include", "-I", "sdk/examples", "-I", "."]
     if "macro_oscillator" in source.parts:
         result += ["-I", ".tools/portability-context/eurorack",
-                   "-I", ".tools/portability-context", "-DTEST", "-include",
+                   "-I", ".tools/portability-context", "-I", "modules/macro_oscillator", "-DTEST", "-include",
                    "modules/macro_oscillator/rng_scope.hpp"]
     return result
 
@@ -145,7 +145,8 @@ def main():
     memory = header("Module memory measurements", meta)
     memory += ["DSP sizeof excludes SDK wrapper. Host extra memory hook at block 256, seed 1,",
                "empty config; alignment defaults to SDK 32 if no hook. State measured after prepare/reset",
-               "with capped counting writer; non-success statuses are not saved-state sizes.", "",
+               "with capped counting writer; status: 0 OK, 1 INVALID, 2 CAPACITY, 3 UNSUPPORTED,",
+               "4 EXCEPTION, 5 STATE. Non-success statuses are not saved-state sizes.", "",
                "| Source | DSP x64 B | DSP M7 B | Hz | Ch | LARGE B | Alignment B | Prepare status | Save status | Written B | Cap |",
                "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
     for rel, row in result.items():
@@ -158,8 +159,9 @@ def main():
         for m in row["memory"]:
             status = m["save_status"]
             cap = "under/equal" if status == 0 else "not saved"
-            if rel == "modules/delay/module.cpp" and m["rate"] == 96000:
-                cap = "over (declared 1,536,208 B; preflight)"
+            if rel == "modules/delay/module.cpp" and m["rate"] == 96000 and status == 2 and m["prepare_status"] == 0 and m["written_bytes"] == 0:
+                declared = 144 + 8 * (2 * m["rate"] + 8)
+                cap = f"over (formula {declared:,} B; preflight refusal)"
             memory.append(f"| {rel} | {row['host_dsp_bytes']} | {row['arm_dsp_bytes']} | "
                           f"{m['rate']} | {m['channels']} | {m['large_bytes']} | {m['alignment']} | "
                           f"{m['prepare_status']} | {status} | {m['written_bytes']} | {cap} |")
