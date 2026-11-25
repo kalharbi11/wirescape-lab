@@ -102,6 +102,7 @@ struct OscIn {
         }
     }
     void derive(const OscInRows &data, uint32_t serial) {
+        Pattern next_pattern;
         for (uint32_t i = 0; i < 8; ++i) {
             const auto &cfg = data.rows[i];
             auto &r = rows[i];
@@ -109,12 +110,14 @@ struct OscIn {
             // bounded automaton only when the serial changes; keep no slot copy.
             const auto *end = static_cast<const char *>(std::memchr(cfg.pattern, 0, sizeof(cfg.pattern)));
             const bool valid = end && cfg.pattern[0] == '/' &&
-                r.pattern.compile(std::string_view(cfg.pattern, size_t(end - cfg.pattern)));
-            if (!valid) r.pattern.compile({});
+                next_pattern.compile(std::string_view(cfg.pattern, size_t(end - cfg.pattern)));
+            if (!valid) next_pattern.compile({});
+            const bool changed = !r.pattern.same_compiled_pattern(next_pattern);
+            r.pattern = next_pattern;
             const char *component = valid ? std::strrchr(cfg.pattern, '/') : nullptr;
             const bool poly = component && std::strpbrk(component, "*?[{");
             const bool active = valid && cfg.enabled != 0;
-            if (!last_serial || r.poly != poly || r.active != active || r.mode != cfg.kind) {
+            if (!last_serial || r.poly != poly || r.active != active || r.mode != cfg.kind || (poly && changed)) {
                 r.voices = {};
                 r.count = poly && active ? 0 : 1;
             }
