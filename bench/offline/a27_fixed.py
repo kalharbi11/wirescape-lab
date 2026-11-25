@@ -6,6 +6,7 @@ The original T7.0 collector and its defaults are not changed.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -214,6 +215,28 @@ def pair_reports(root, base_pin, subject_pin):
         raise ValueError("unavailable or unexpected-effect rows preserved in artifact")
 
 
+def endpoint_columns(old, target, switched):
+    """M7 r1.8 diagnostic columns in FS; signed excess in dB."""
+    if any(not isinstance(x, (int, float)) or not math.isfinite(x) or x < 0
+           for x in (old, target, switched)):
+        raise ValueError("invalid endpoint peak")
+    floor = max(old, target)
+    excess = (0.0 if switched == floor == 0 else "inf" if floor == 0 else
+              "-inf" if switched == 0 else 20 * math.log10(switched / floor))
+    return dict(old_floor=old, target_floor=target, endpoint_floor=floor,
+                switched=switched, excess_over_endpoint_db=excess)
+
+
+def target_patch(patch, parameter, old, target):
+    """Copy the exact old-control graph; only the named Delay value changes."""
+    result = copy.deepcopy(patch)
+    nodes = [m for m in result["modules"] if m["id"] == 1 and m["module"] == "fx.delay"]
+    if len(nodes) != 1 or nodes[0]["parameters"].get(parameter) != old:
+        raise ValueError("old-control patch does not match target case")
+    nodes[0]["parameters"][parameter] = target
+    return result
+
+
 def supplemental_target_controls(source, build, out, pin):
     """Diagnostic-only target-from-start cases; never enter paired acceptance rows."""
     require_pin(pin)
@@ -228,15 +251,36 @@ def supplemental_target_controls(source, build, out, pin):
     renderer = run_all.executable(build, "wirescape_render")
     if renderer is None:
         raise ValueError("renderer unavailable")
-    desc = run_all.descriptors()
+    # Exact old-control patch from the same subject capture: preserve every
+    # clock connection, initial value, output and stimulus setting.
+    subject_root = out.parent / "subject"
+    subject_path = subject_root / "report.json"
+    subject = json.loads(subject_path.read_text(encoding="utf-8"))
+    if (subject["source_commit"] != pin or subject["provenance"]["commit"] != pin or
+            subject["renderer_sha256"] != sha256(renderer) or
+            subject["provenance"]["machine"]["architecture"] != meta["machine"]["architecture"]):
+        raise ValueError("target control subject provenance mismatch")
+    if [r["case"] for r in subject["rows"]] != list(CASES):
+        raise ValueError("subject row inventory mismatch")
     out.mkdir(parents=True, exist_ok=False)
     rows = []
-    for name in ("mode", "tone"):
-        module, param, old, new, extra = next(s for s in SWITCHES
-                                             if s[0] == "fx.delay" and s[1] == name)
-        patch, reason = run_all.build_module_patch(module, desc[module], {**extra, param: new})
-        if patch is None:
-            raise ValueError(reason or "target probe unavailable")
+    for name in WINDOWS:
+        subject_row = next(r for r in subject["rows"] if r["case"] == name)
+        if (subject_row["status"] != "measured" or
+                (subject_row["window_start_frame"], subject_row["window_end_frame_exclusive"]) != WINDOWS[name]):
+            raise ValueError("invalid subject fixed-window row")
+        param = subject_row["parameter"]
+        old, new = subject_row["before"], subject_row["after"]
+        for capture in subject_row["captures"].values():
+            for relative, digest in capture["files"].items():
+                p = (subject_root / relative).resolve()
+                if not p.is_relative_to(subject_root.resolve()) or sha256(p) != digest:
+                    raise ValueError("subject capture digest mismatch")
+        control = subject_root / name / "control"
+        if json.loads((control / "script.json").read_text(encoding="utf-8")) != []:
+            raise ValueError("old control has events")
+        patch = target_patch(json.loads((control / "patch.json").read_text(encoding="utf-8")),
+                             param, old, new)
         folder = out / name
         folder.mkdir()
         pcm, result = run_all.wav_run(renderer, patch, [], 2, 128, folder, seed=7, rate=RATE)
@@ -253,16 +297,21 @@ def supplemental_target_controls(source, build, out, pin):
             return dict(start_frame=begin, end_frame_exclusive=end, peak_frame=frame,
                         peak_fs=abs(float(mono[frame])), peak_dbfs=dbfs(abs(float(mono[frame]))),
                         signed_channel_fs=filtered[frame].tolist())
+        fixed = summarize(*WINDOWS[name])
+        endpoint = endpoint_columns(subject_row["no_switch_floor_fs"],
+                                    fixed["peak_fs"], subject_row["switch_click_peak_fs"])
         rows.append(dict(case=name, parameter=param, old=old, target_from_start=new,
+                         **endpoint, peak_units="FS",
                          events=[], status="measured", captures=result,
                          files={str(p.relative_to(out)): sha256(p)
                                 for p in sorted(folder.iterdir()) if p.is_file()},
-                         fixed_window=summarize(*WINDOWS[name]),
+                         fixed_window=fixed,
                          full_capture=summarize(0, FRAMES),
                          post_switch_time=summarize(SWITCH, FRAMES)))
     write_json(out / "target-controls.json", dict(source_commit=pin, provenance=meta,
                renderer_sha256=sha256(renderer), sample_rate_hz=RATE, frames=FRAMES,
-               diagnostic_only=True, rows=rows))
+               diagnostic_only=True, method="M7 r1.8 endpoint floor over fixed r1.4 windows",
+               subject_report_sha256=sha256(subject_path), rows=rows))
 
 
 def main():
