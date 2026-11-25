@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
-import { oscEditorSource, splitOscEditorSave } from '../src/app/ioData';
+import { oscEditorSource, splitOscEditorSave, oscConstructionChanged } from '../src/app/ioData';
 import type { OscOutConfig } from '../src/app/OscOutEditor';
 
 test('E3c editor data projection wins over stale config without changing authored patch', () => {
@@ -61,4 +61,16 @@ test('E3c FakeEngine accepts live route and CC slots without replacement and ref
   expect(result.refusedState).toEqual({ generation: result.generation, state: 'disabled', data: null });
   expect(result.after).toBe(result.generation);
   expect(result).toMatchObject({ state: 'sending', address: '/new/0', cc: 31, retained: .5 });
+});
+
+test('A86 row-only save is not a construction edit even when defaults were omitted', () => {
+  const m = { id: 2, module: 'osc.out' };
+  const draft: OscOutConfig = { port: 9001, rate_hz: 100,
+    rows: Array.from({ length: 8 }, (_, i) => ({ address: '/live/' + i, kind: 'cv', deadband: .001 })),
+    notes: { address: '/new/note' } };
+  expect(oscConstructionChanged(m, draft)).toBe(false);
+  expect(oscConstructionChanged(m, { ...draft, port: 9011 })).toBe(true);
+  expect(oscConstructionChanged(m, { ...draft, rate_hz: 200 })).toBe(true);
+  const explicit = { ...m, config: { version: 1, port: 9001, rate_hz: 100 } };
+  expect(oscConstructionChanged(explicit, draft)).toBe(false);
 });

@@ -2,6 +2,7 @@
 #include "osc_out_host.h"
 #include "../../host/document/io_data_migration.h"
 #include "../../host/osc/codec.h"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstring>
@@ -382,6 +383,18 @@ void OutHost::loop() noexcept {
                 if (route.notes_cleanup && matching &&
                     tail == route.bus->note_head.load(std::memory_order_acquire))
                     route.notes_cleanup = false;
+            }
+        }
+        if (need_socket) {
+            bool still_needed = false;
+            for (const auto &route : routes_) still_needed |= route->enabled || route->has_releases();
+            if (!still_needed) {
+                close_socket(sock);
+                sock = invalid_socket;
+#ifdef _WIN32
+                WSACleanup();
+#endif
+                need_socket = false;
             }
         }
         if (!need_socket) {

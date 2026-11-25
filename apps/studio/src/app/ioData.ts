@@ -17,6 +17,17 @@ export function oscEditorSource(m: PatchModule): RecordValue {
   return oscProjection(m);
 }
 
+/** Only effective construction fields select the whole-graph path. Adding
+ * display defaults to an omitted legacy config is not a port/rate/LAN edit. */
+export function oscConstructionChanged(m: PatchModule, draft: OscConfig | OscOutConfig): boolean {
+  const prior = object(m.config);
+  const out = m.module === 'osc.out';
+  const version = prior.version ?? 1;
+  if (version !== (draft.version ?? 1) || (prior.port ?? (out ? 9001 : 9000)) !== draft.port) return true;
+  return out ? (prior.rate_hz ?? 100) !== (draft as OscOutConfig).rate_hz
+    : (prior.lan ?? false) !== (draft as OscConfig).lan;
+}
+
 export interface OscSlotEdit {
   /** Construction fields only; a change to these needs the graph path. */
   config: RecordValue;

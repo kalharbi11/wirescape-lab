@@ -141,7 +141,7 @@ export class FakeEngine implements EngineClient {
   }
 
   /** Rebuild OSC/status projections without resetting any retained DSP state. */
-  private refreshGraphStatus(patch: PatchV2): void {
+  private refreshGraphStatus(patch: PatchV2, notify = true): void {
     const oscModules = patch.modules.filter(m => m.module === 'osc.in');
     this.osc.routes = oscModules.map(m => {
       const cfg = oscProjection(m);
@@ -171,7 +171,7 @@ export class FakeEngine implements EngineClient {
     this.osc.lan = false;
     this.osc.port = this.osc.routes[0]?.port ?? this.legacyOsc.port;
     this.osc.allowNetwork = this.legacyOsc.allowNetwork;
-    this.pushStatus();
+    if (notify) this.pushStatus();
   }
 
 
@@ -381,7 +381,7 @@ export class FakeEngine implements EngineClient {
     if (slot === 'routes') {
       const priorIn = this.osc.routes?.map(route => ({ ...route })) ?? [];
       const priorOut = this.osc.out?.map(route => ({ ...route })) ?? [];
-      this.refreshGraphStatus(this.document!);
+      this.refreshGraphStatus(this.document!, false);
       for (const route of this.osc.routes ?? []) {
         const prior = priorIn.find(item => item.module === route.module);
         if (prior && route.module !== String(moduleId)) Object.assign(route, prior);
