@@ -147,14 +147,53 @@ def applygraph_reply(reply: dict, mark: mk.Mark, gen_before: str) -> dict:
                 replaced=replaced, unapplied=unapplied)
 
 
+def buffer_reply(reply, mark, rebuild, patch):
+    """A62 wire evidence: distinguish absence from an empty rebuild list."""
+    if (mark.type != 'setBufferFrames' or mark.re != 'edit' or
+            mark.ok is not reply.get('ok') or mark.gen != reply.get('gen')):
+        raise ValueError('buffer reply disagrees with marked command')
+    result = reply.get('result')
+    present = isinstance(result, dict) and 'freshModules' in result
+    fresh = result['freshModules'] if present else None
+    if reply['ok']:
+        if present != rebuild:
+            raise ValueError('freshModules presence disagrees with A62 buffer path')
+        if present:
+            ids = {m['id']: m['module'] for m in patch['modules']}
+            if not isinstance(fresh, list) or len(fresh) > 64:
+                raise ValueError('invalid freshModules list')
+            seen = set()
+            for item in fresh:
+                if (not isinstance(item, dict) or type(item.get('moduleId')) is not int or
+                        item['moduleId'] not in ids or item.get('module') != ids[item['moduleId']] or
+                        item['moduleId'] in seen):
+                    raise ValueError('invalid or duplicate fresh module identity')
+                seen.add(item['moduleId'])
+    return dict(ok=reply['ok'], code=reply.get('code'),
+                fresh_modules_present=present, fresh_modules=fresh)
+
+
+def buffer_activity(x, edit, late):
+    """Witness activity, not a new gate: existing -80 dBFS floor and CN time intervals."""
+    pre, post = x[edit - RATE // 2:edit], x[late:late + RATE]
+    if len(pre) != RATE // 2 or len(post) != RATE or not all(math.isfinite(v) for v in (*pre, *post)):
+        raise ValueError('unavailable activity window')
+    floor = 10 ** (m.SILENCE_DBFS / 20)
+    return dict(pre_peak_fs=max(map(abs, pre)), post_peak_fs=max(map(abs, post)),
+                pre_sounding_samples=sum(abs(v) >= floor for v in pre),
+                post_sounding_samples=sum(abs(v) >= floor for v in post),
+                pre_min_fs=min(pre), pre_max_fs=max(pre),
+                post_min_fs=min(post), post_max_fs=max(post))
+
+
 def compare_control(x, cont, name, edit, late) -> dict:
     actual, expected = m.paired_window(x, cont, RATE, edit, late)
     first = next((i - RATE for i, (a, b) in enumerate(zip(actual, expected)) if a != b), None)
     compared = dict(samples=len(actual), identical=first is None, first_mismatch_from_edit=first,
                     max_abs_difference=max(abs(a - b) for a, b in zip(actual, expected)))
-    if name in ('tone', 'tail', 'held_note'):
+    if name in ('tone', 'tail', 'held_note', 'slew'):
         compared.update({key: finite(value) for key, value in m.paired_levels(actual, expected, RATE).items()})
-    if name in ('tone', 'tail', 'held_note', 'clock'):
+    if name in ('tone', 'tail', 'held_note', 'clock', 'slew'):
         compared['jump_ratio'] = m.paired_steps(actual, expected)
     if name == 'slip_tone':
         a = m.time_slip_tone_ms(x, RATE, edit, probe.SLIP_HZ, late)
@@ -170,7 +209,8 @@ def compare_control(x, cont, name, edit, late) -> dict:
     return compared
 
 
-def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False) -> dict:
+def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bool = False,
+            buffer_case: dict | None = None) -> dict:
     mark = mk.locate(run.marks, 'edit')
     geo = mk.Geometry.of(run.segments)
     win = mk.edit_window(geo, mark)
@@ -186,7 +226,19 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
                segments=[[s.block, s.blocks] for s in run.segments], witnesses={})
     if mark.type == 'applyGraph':
         out['applygraph'] = applygraph_reply(reply, mark, out['gen_before'])
-    for ch, name in [*probe.WITNESS.items(), *([(subject, 'subject')] if subject is not None else [])]:
+    witnesses = dict(probe.WITNESS)
+    if buffer_case is not None:
+        out['buffer'] = buffer_reply(reply, mark, buffer_case['buffer_rebuild'],
+                                     buffer_case.get('setup') or probe.base())
+        out['reference_segments'] = [[s.block, s.blocks] for s in ref.segments]
+        witnesses.update(buffer_case.get('extra_witnesses', {}))
+        if reply['ok']:
+            expected = buffer_case['cmd'][1]['frames']
+            if run.segments[0].block != BLOCK or run.segments[-1].block != expected:
+                raise ValueError('buffer capture lacks the requested segment geometry')
+            if any(s.block != BLOCK for s in ref.segments):
+                raise ValueError('no-edit buffer control changed block geometry')
+    for ch, name in [*witnesses.items(), *([(subject, 'subject')] if subject is not None else [])]:
         x = x_all[ch]
         row, errors = {}, {}
         al = mk.align_offset(run.marks, ref.marks, probe.ALIGN_ON[ch])
@@ -206,6 +258,18 @@ def analyse(run: eng.Run, ref: eng.Run, subject: int | None, changes_subject: bo
             row[key] = finite(v) if not isinstance(v, dict) else v
         if cont is not None and name != 'subject':
             put('control_comparison', compare_control, x, cont, name, edit, late)
+        if buffer_case is not None and name in ('held_note', 'tail', 'slew'):
+            activity, err = safe(buffer_activity, x, edit, late)
+            if err:
+                errors['activity'] = err
+            else:
+                row['activity'] = activity
+            if cont is not None:
+                activity, err = safe(buffer_activity, cont, edit, late)
+                if err:
+                    errors['control_activity'] = err
+                else:
+                    row['control_activity'] = activity
         if name == 'slip_tone':
             put('time_slip_ms', m.time_slip_tone_ms, x, RATE, edit, probe.SLIP_HZ, late)
         elif name == 'subject':
@@ -317,6 +381,9 @@ def main(argv=None):
                     help='separate engine source checkout for an exact-head capture')
     a = ap.parse_args(argv)
     cases = [*probe.edits(), probe.latency_probe(probe.base())]
+    # Keep the legacy default case inventory unchanged; A62 is explicit.
+    if a.only:
+        cases += probe.buffer_edits()
     known = {e['name'] for e in cases}
     if a.only and (unknown := set(a.only) - known):
         ap.error('unknown edit(s): ' + ', '.join(sorted(unknown)))
@@ -341,7 +408,9 @@ def main(argv=None):
             ref = references[setup_key]
             run = eng.run(a.engine, script(e, setup), keep=keep(e['name'].replace(' ', '_')),
                           expected_head=a.built_head)
-            per_edit[e['name']].append(analyse(run, ref, e['subject'], e.get('changes_subject', False)))
+            per_edit[e['name']].append(analyse(
+                run, ref, e['subject'], e.get('changes_subject', False),
+                e if 'buffer_rebuild' in e else None))
             if a.keep:
                 artifact_rows.setdefault(e['name'], []).append(dict(
                     repeat=rep + 1, edited=run.artifacts, reference=ref.artifacts))
@@ -353,9 +422,10 @@ def main(argv=None):
         for w in names:
             keys = sorted({k for r in reps for k in r['witnesses'][w]
                            if k not in ('alignment', 'not_measured', 'restarted_note', 'divergence',
-                                        'control_comparison')})
+                                        'control_comparison', 'activity', 'control_activity')})
             row = dict(edit=e['name'], command=e['cmd'][0], witness=w,
-                       channel=e['subject'] if w == 'subject' else next(c for c, n in probe.WITNESS.items() if n == w),
+                       channel=e['subject'] if w == 'subject' else next(
+                           c for c, n in {**probe.WITNESS, **e.get('extra_witnesses', {})}.items() if n == w),
                        replies=[dict(ok=r['ok'], code=r['code']) for r in reps],
                        bracket_blocks=worst([r['bracket_blocks'] for r in reps], 'bracket_blocks'),
                        worst={k: worst([r['witnesses'][w].get(k) for r in reps], k) for k in keys},
@@ -367,6 +437,10 @@ def main(argv=None):
                 row['report_only'] = True
             if e['cmd'][0] == 'applyGraph':
                 row['applygraph_results'] = [r['applygraph'] for r in reps]
+            if 'buffer_rebuild' in e:
+                row['buffer_results'] = [r['buffer'] for r in reps]
+                for entry, rep in zip(row['marks'], reps):
+                    entry['reference_segments'] = rep['reference_segments']
             rows.append(row)
     doc = dict(provenance=source, repeats=a.repeats,
                method='proposals/0005 sections 4–5, R7 and A50; bench/continuity/DESIGN.md',
@@ -411,6 +485,28 @@ def markdown(doc: dict) -> str:
                       comparison['identical'], comparison['first_mismatch_from_edit']]
             fields.extend(comparison.get(key) for key in paired_cols)
             lines.append('| ' + ' | '.join(map(fmt, fields)) + ' |')
+    buffer_rows = [row for row in doc['rows'] if 'buffer_results' in row]
+    if buffer_rows:
+        lines += ['', '## A62 buffer reply and witness activity', '',
+                  'Fresh modules are the actual host-reported uncarried instances. An absent field '
+                  'is not an empty rebuild list. See JSON for all geometry and exact witness ranges.', '',
+                  '| edit | repeat | freshModules |', '|---|---|---|']
+        for row in buffer_rows:
+            if row['witness'] != 'tone':
+                continue
+            for i, result in enumerate(row['buffer_results'], 1):
+                value = result['fresh_modules'] if result['fresh_modules_present'] else 'absent'
+                lines.append(f'| {row["edit"]} | {i} | {value} |')
+        lines += ['', '| edit | witness | repeat | pre sounding samples | post sounding samples | control pre | control post |',
+                  '|---|---|---|---|---|---|---|']
+        for row in buffer_rows:
+            for i, rep in enumerate(row['repeats'], 1):
+                if 'activity' not in rep and 'control_activity' not in rep:
+                    continue
+                fields = [row['edit'], row['witness'], i]
+                for key in ('activity', 'control_activity'):
+                    fields.extend(rep.get(key, {}).get(k) for k in ('pre_sounding_samples', 'post_sounding_samples'))
+                lines.append('| ' + ' | '.join(map(fmt, fields)) + ' |')
     lines += ['', '## Not measured (not supported today)', '']
     lines += [f'- {u["name"]}: {u["reason"]}' for u in doc['unsupported']]
     return '\n'.join(lines) + '\n'
