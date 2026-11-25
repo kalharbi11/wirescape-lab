@@ -60,6 +60,8 @@ def compiler_info(exe):
 def flags(source):
     result = ["-std=c++17", "-Os", "-DWS_SIMD_SCALAR", "-I", "sdk", "-I",
               "sdk/include", "-I", "sdk/examples", "-I", "."]
+    if source.parent.name == "chord":
+        result.append("-DWS_S2_CHORD")
     if "macro_oscillator" in source.parts:
         result += ["-I", ".tools/portability-context/eurorack",
                    "-I", ".tools/portability-context", "-I", "modules/macro_oscillator", "-DTEST", "-include",
@@ -175,7 +177,8 @@ def main():
                 "", "| Source | Symbol (demangled) | Relocations |", "|---|---|---|"]
     memory = header("Module memory measurements", meta)
     memory += ["DSP sizeof excludes SDK wrapper. Host extra memory hook at block 256, seed 1,",
-               "empty config; alignment defaults to SDK 32 if no hook. State measured after prepare/reset",
+               "empty config except Chord LE instance tag 1; alignment defaults to SDK 32 if no hook.",
+               "State measured after prepare/reset",
                "with capped counting writer; status: 0 OK, 1 INVALID, 2 CAPACITY, 3 UNSUPPORTED,",
                "4 EXCEPTION, 5 STATE. Non-success statuses are not saved-state sizes.", "",
                "| Source | DSP x64 B | DSP M7 B | Hz | Ch | LARGE B | Alignment B | Prepare status | Save status | Written B | Cap |",

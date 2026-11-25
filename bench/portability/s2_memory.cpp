@@ -38,6 +38,12 @@ template<class T> int measure() {
             config.max_block_frames = 256;
             config.max_channels = channels;
             config.seed = 1;
+#ifdef WS_S2_CHORD
+            // Chord requires a four-byte control-side instance ID.
+            const uint8_t instance[] = {1, 0, 0, 0};
+            config.data = instance;
+            config.bytes = sizeof(instance);
+#endif
             ws2_memory mem{};
             mem.alignment = 32; // SDK default when no extra memory hook exists.
             if constexpr (ws::HasMemory<T>::value) mem = T::memory_requirements(config);
