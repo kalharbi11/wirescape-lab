@@ -565,7 +565,9 @@ WS_RENDER_INLINE void Engine::Impl::call_module(Node &node, uint32_t start, uint
             instance.event_view.data(),
             instance.event_outputs.data(),
             {sizeof(ws2_event_list), static_cast<uint32_t>(instance.events.size()), instance.events.data()},
-            &transport};
+            &transport,
+            static_cast<uint32_t>(instance.data_view.size()),
+            instance.data_view.empty() ? nullptr : instance.data_view.data()};
         if (instance.d->process(instance.instance, &context) != WS2_OK) {
             ++faults;
             for (auto &o : instance.out_view) {
