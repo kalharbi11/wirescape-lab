@@ -698,6 +698,162 @@ void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
     s.shutdown();
 }
 
+// A78: use the existing fake stream, then freeze the paced callback and
+// advance the graph one frame at a time. No wall-clock sleep stands in for
+// retirement, and no real device is opened.
+void test_a78_deferred_config(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.block = 1024;
+    options.settings = (root / "a78-deferred.json").string();
+    fake::outputs = {output("A78 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *type, const Json &payload) {
+        Json command = {{"v", 0}, {"id", "a78"}, {"type", type}};
+        command.update(payload);
+        return s.reply({command, {}, {}});
+    };
+    auto groove = [](int bpm) {
+        return Json{{"id", 2}, {"module", "sequencing.groove"},
+                    {"config", {{"version", 1}, {"bpm", bpm},
+                        {"tracks", Json::array({{{"steps", Json::array({{{"kind", "note"},
+                            {"key", 60}, {"velocity", 1}}})}}})}}}};
+    };
+    Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+                  {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                           groove(120), {{"id", 3}, {"module", "essentials.lfo"}}})},
+                  {"connections", Json::array({{{"kind", "signal"},
+                     {"from", {{"module", 2}, {"port", "t1_mod1"}}},
+                     {"to", {{"module", 1}, {"port", "audio"}}}}})}};
+    check(call("loadGraph", {{"patch", patch}})["ok"] == true, "A78 graph loads");
+    check(bool(fake::freeze_render), "A78 fake callback available");
+    fake::freeze_render();
+    fake::render = false;
+    auto *const live = fake::engine;
+    auto &graph = app_engine_native(live);
+    const auto stops = fake::stopped, exchanges = fake::exchanges;
+    // For an accepted live publication, a render owner advances only tiny
+    // blocks while the control owner executes the real sidecar transaction.
+    auto with_render = [&](auto action) {
+        std::atomic<bool> done{false}, render_ok{true};
+        std::thread renderer([&] {
+            float sample = 0;
+            for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
+                if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+                std::this_thread::sleep_for(200us);
+            }
+        });
+        try {
+            action();
+        } catch (...) {
+            done.store(true, std::memory_order_release);
+            renderer.join();
+            throw;
+        }
+        done.store(true, std::memory_order_release);
+        renderer.join();
+        check(render_ok.load(), "A78 publication render succeeds");
+        check(fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
+              "A78 never falls back to D5 or reopens the stream");
+    };
+    auto apply = [&](const Json &p) { return call("applyGraph", {{"patch", p}}); };
+    auto edit = [&](int bpm) {
+        auto p = patch;
+        p["modules"][1] = groove(bpm);
+        return p;
+    };
+    auto accept = [&](const Json &p) {
+        Json reply;
+        with_render([&] { reply = apply(p); });
+        check(reply["ok"] == true && reply["result"]["path"] == "live",
+              ("A78 live commit: " + reply.dump()).c_str());
+        return reply["gen"];
+    };
+    auto retire = [&] {
+        std::array<float, 1024> samples{};
+        for (unsigned i = 0; i < 25 && graph.replacement_tail_pending(2); ++i)
+            check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+                  "A78 render predecessor retirement");
+        check(!graph.replacement_tail_pending(2), "A78 predecessor retired by samples");
+    };
+    auto deferred = [&](const Json &p, const Json &gen) {
+        const auto reply = apply(p);
+        check(reply["ok"] == false && reply["code"] == "busy" &&
+              reply["gen"] == gen && reply["deferred"] == true &&
+              reply["deferId"].is_string(), ("A78 deferred refusal: " + reply.dump()).c_str());
+        return reply["deferId"];
+    };
+    auto terminal = [&](const Json &id, const char *outcome, const Json &gen) {
+        const auto events = s.take_config_events();
+        check(events.size() == 1 && events[0]["type"] == "configDeferred" &&
+              events[0]["deferId"] == id && events[0]["moduleId"] == 2 &&
+              events[0]["outcome"] == outcome && events[0]["generation"] == gen,
+              ("A78 correlated terminal event: " + events.dump()).c_str());
+        check(s.take_config_events().empty(), "A78 terminal event is drained exactly once");
+    };
+    auto current = edit(140);
+    auto gen = accept(current);
+    check(graph.replacement_tail_pending(2), "A78 unfinished predecessor witness");
+    auto a = deferred(edit(160), gen);
+    auto mixed = edit(180);
+    mixed["modules"][2]["parameters"] = {{"rate", 2}};
+    const auto refused = apply(mixed);
+    check(refused["ok"] == false && refused["code"] == "busy" && refused["gen"] == gen &&
+          !refused.contains("deferred") && !refused.contains("deferId"),
+          ("A78 mixed transaction must not defer: " + refused.dump()).c_str());
+    check(s.take_config_events().empty(), "A78 mixed refusal leaves pending request intact");
+    auto b = deferred(edit(200), gen);
+    check(a != b, "A78 latest edit has new correlation ID");
+    terminal(a, "superseded", gen);
+    // No frames advance while polling. The graph may not commit or emit.
+    auto now = std::chrono::steady_clock::now();
+    for (unsigned i = 0; i < 4; ++i) {
+        s.poll(now);
+        check(s.status()["gen"] == gen && s.take_config_events().empty() &&
+              graph.replacement_tail_pending(2), "A78 poll before retirement is inert");
+    }
+    retire();
+    with_render([&] { s.poll(now); });
+    gen = s.status()["gen"];
+    terminal(b, "applied", gen);
+    // The exact applied document is now a no-op; no replacement or stale retry.
+    current = edit(200);
+    retire();
+    const auto reply = [&] { Json r; with_render([&] { r = apply(current); }); return r; }();
+    check(reply["ok"] == true && reply["result"]["replaced"].empty(),
+          "A78 latest config actually committed");
+    // A second predecessor, explicit revert, then removal, each under a
+    // manually held tail. Expiry uses the injected control clock.
+    current = edit(220);
+    gen = accept(current);
+    a = deferred(edit(240), gen);
+    gen = accept(current);
+    terminal(a, "superseded", gen);
+    retire();
+    current = edit(250);
+    gen = accept(current);
+    a = deferred(edit(260), gen);
+    s.poll(std::chrono::steady_clock::now() + 3s);
+    terminal(a, "failed", gen);
+    check(s.status()["gen"] == gen, "A78 deadline leaves document unchanged");
+    retire();
+    current = edit(270);
+    gen = accept(current);
+    a = deferred(edit(280), gen);
+    auto removed = current;
+    removed["modules"].erase(1);
+    removed["connections"] = Json::array();
+    gen = accept(removed);
+    terminal(a, "superseded", gen);
+    retire();
+    s.poll(std::chrono::steady_clock::now() + 3s);
+    check(s.status()["gen"] == gen && s.take_config_events().empty(),
+          "A78 removed ID cannot be resurrected");
+    s.shutdown();
+}
+
 int main() {
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
@@ -1361,6 +1517,7 @@ int main() {
         test_a70_buffer_state(root);
         test_e7_state_restart(root);
         test_e7_rate_dependent_state_refusal(root);
+        test_a78_deferred_config(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
