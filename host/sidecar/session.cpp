@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
-#include "../document/io_data_migration.h"
+#include "io_data_migration.h"
 #include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
