@@ -669,23 +669,25 @@ static void test_live_pattern_migration() {
           "legacy materialization preserves hidden rows, chord, conditions and tempo");
     const auto &slot = groove::Sequencer::data_slots[0];
     std::vector<uint8_t> packed(sizeof(data));
-    std::string error;
-    auto valid = [&] {
+    auto validate = [&] {
         std::memcpy(packed.data(), &data, sizeof(data));
-        error.clear();
-        return groove::validate_pattern_slot(slot, packed, error);
+        return groove::validate_pattern_slot(slot, packed.data(), packed.size());
     };
-    check(valid(), "canonical legacy materialization validates");
+    auto refused = [&](const char *field, int row = -1) {
+        const auto result = validate();
+        return !result && std::strcmp(result.field, field) == 0 && result.row == row;
+    };
+    check(bool(validate()), "canonical legacy materialization validates");
     data.steps_1[31].cond_a = 3;
-    check(!valid() && error.find("steps_1[31]") != std::string::npos, "invalid A:B row refused off render");
+    check(refused("pattern.steps_1", 31), "invalid A:B row refused off render");
     data.steps_1[31].cond_a = 1;
     data.steps_1[31].keys[1] = 64;
-    check(!valid() && error.find("steps_1[31]") != std::string::npos, "duplicate chord key refused off render");
+    check(refused("pattern.steps_1", 31), "duplicate chord key refused off render");
     data.steps_1[31].keys[1] = 67;
     data.length_2 = 12;
-    check(!valid() && error.find("length_2") != std::string::npos, "unsupported length refused off render");
+    check(refused("pattern.length_2"), "unsupported length refused off render");
     data.length_2 = 8;
-    check(valid(), "valid candidate accepted after refusal");
+    check(bool(validate()), "valid candidate accepted after refusal");
 }
 
 static void test_live_pattern_data() {

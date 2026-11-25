@@ -3,8 +3,7 @@
 #include "config.h"
 #include "wirescape_sdk.h"
 #include <cstddef>
-#include <string>
-#include <vector>
+#include <cstring>
 
 namespace groove {
 // Flat records, one variable-length step array per track. Construction-time
@@ -65,28 +64,30 @@ inline bool live_pattern_bounds(const LivePattern &data) noexcept {
     return valid_live_length(data.length_1) && valid_live_length(data.length_2) &&
         data.count_1 <= 64 && data.count_2 <= 64 && data.tempo_source <= TempoHost;
 }
-inline bool validate_pattern_slot(const ws2_data_slot &slot,
-                                  const std::vector<uint8_t> &bytes, std::string &error) {
-    if (std::strcmp(slot.id, "pattern") != 0 || bytes.size() != sizeof(LivePattern)) {
-        error = "pattern: invalid slot or packed size";
-        return false;
-    }
+// POD error location; the host adapter formats the diagnostic off render.
+struct PatternValidation {
+    const char *field = nullptr;
+    int row = -1;
+    explicit operator bool() const noexcept { return field == nullptr; }
+};
+inline PatternValidation validate_pattern_slot(const ws2_data_slot &slot,
+                                                const void *bytes, size_t size) noexcept {
+    if (std::strcmp(slot.id, "pattern") != 0 || !bytes || size != sizeof(LivePattern))
+        return {"pattern"};
     LivePattern data{};
-    std::memcpy(&data, bytes.data(), sizeof(data));
-    if (!valid_live_length(data.length_1)) { error = "pattern.length_1: invalid length"; return false; }
-    if (!valid_live_length(data.length_2)) { error = "pattern.length_2: invalid length"; return false; }
-    if (data.count_1 > 64) { error = "pattern.count_1: invalid count"; return false; }
-    if (data.count_2 > 64) { error = "pattern.count_2: invalid count"; return false; }
-    if (data.tempo_source > TempoHost) { error = "pattern.tempo_source: invalid source"; return false; }
+    std::memcpy(&data, bytes, sizeof(data));
+    if (!valid_live_length(data.length_1)) return {"pattern.length_1"};
+    if (!valid_live_length(data.length_2)) return {"pattern.length_2"};
+    if (data.count_1 > 64) return {"pattern.count_1"};
+    if (data.count_2 > 64) return {"pattern.count_2"};
+    if (data.tempo_source > TempoHost) return {"pattern.tempo_source"};
     for (uint32_t t = 0; t < 2; ++t) {
         const auto *rows = t == 0 ? data.steps_1 : data.steps_2;
         const auto count = t == 0 ? data.count_1 : data.count_2;
-        for (uint32_t i = 0; i < count; ++i) if (!valid_step(rows[i])) {
-            error = "pattern.steps_" + std::to_string(t + 1) + "[" + std::to_string(i) +
-                "]: invalid condition, chord or step";
-            return false;
-        }
+        for (uint32_t i = 0; i < count; ++i)
+            if (!valid_step(rows[i]))
+                return {t == 0 ? "pattern.steps_1" : "pattern.steps_2", static_cast<int>(i)};
     }
-    return true;
+    return {};
 }
 } // namespace groove
