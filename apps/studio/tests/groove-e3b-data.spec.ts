@@ -96,3 +96,15 @@ test('Groove E3b one-track edit does not clear authored inactive-track rows', ()
   const saved = mergeGroovePattern(module.data, wire);
   expect((saved.pattern as { steps_2: unknown[] }).steps_2).toEqual(pattern.steps_2);
 });
+
+test('Groove E3b canonical slot removal reads silent descriptor defaults in the editor', () => {
+  const config = { version: 2, bpm: 120, tracks: [{ div: 2, armed: false }] };
+  for (const data of [undefined, {}, { future_slot: { keep: true } }]) {
+    const editor = grooveEditorConfig({ config, data })!;
+    expect(editor.tempo_source).toBe('internal');
+    expect(editor.tracks).toEqual([{ div: 2, armed: false, length: 32, steps: [] }]);
+  }
+  const legacy = { version: 1, bpm: 120, tracks: [{ steps: [{ kind: 'note', key: 72, velocity: .8 }] }] };
+  expect(grooveEditorConfig({ config: legacy, data: {} })).toEqual(legacy);
+  expect(grooveEditorConfig({ config, data: { pattern: null } })).toBeNull();
+});

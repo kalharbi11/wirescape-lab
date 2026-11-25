@@ -159,13 +159,21 @@ function editorRow(value: unknown): Step | null {
 
 /** Read a canonical or legacy source without mutating it or silently repairing a bad slot. */
 export function grooveEditorConfig(module: { config?: unknown; data?: unknown }): GrooveConfig | null {
-  if (module.data === undefined) return readConfig(module.config);
-  if (!isObject(module.data)) return null;
-  if (!Object.prototype.hasOwnProperty.call(module.data, 'pattern')) return readConfig(module.config);
-  const data = module.data.pattern;
-  if (!isObject(data)) return null;
   const config = module.config === undefined ? {} : module.config;
   if (!isObject(config)) return null;
+  if (module.data !== undefined && !isObject(module.data)) return null;
+  const envelope = module.data as Record<string, unknown> | undefined;
+  const explicit = envelope !== undefined && Object.prototype.hasOwnProperty.call(envelope, 'pattern');
+  // A construction-only document with a removed slot means descriptor
+  // defaults. Only an actual legacy config pattern falls back to readConfig.
+  // Match the native adapter's canonical shape, not an inferred edit version.
+  const constructionOnly = Array.isArray(config.tracks) && config.tracks.length > 0 &&
+    !Object.prototype.hasOwnProperty.call(config, 'tempo_source') &&
+    config.tracks.every(t => isObject(t) && !Object.prototype.hasOwnProperty.call(t, 'steps') &&
+      !Object.prototype.hasOwnProperty.call(t, 'length'));
+  if (!explicit && !constructionOnly) return readConfig(module.config);
+  const data = explicit ? envelope!.pattern : {};
+  if (!isObject(data)) return null;
   const empty = Object.keys(config).length === 0;
   if (!empty && ((config.version !== 1 && config.version !== 2) || !number(config.bpm, 20, 300) ||
       !Array.isArray(config.tracks) || config.tracks.length < 1 || config.tracks.length > 2)) return null;
