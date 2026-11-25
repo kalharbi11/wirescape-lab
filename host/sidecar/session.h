@@ -97,6 +97,7 @@ class Session {
         std::chrono::steady_clock::time_point deadline;
     };
     uint64_t next_defer_id_ = 0;
+    bool client_deferred_ = false, client_hello_seen_ = false;
     std::map<uint32_t, PendingConfig> pending_configs_;
     Json config_events_ = Json::array();
     Json config_event(uint32_t, const PendingConfig &, const char *, uint64_t) const;

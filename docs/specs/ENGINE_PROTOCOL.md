@@ -198,11 +198,13 @@ this observation seam is unavailable; no timing interpolation is permitted.
 {"v":0,"session":"s1","type":"telemetry","gen":"5","telemetry":{"tick":12,"time":0.4,"effective":{},"phase":{},"envelope":{},"meters":{},"scope":{},"eventActivity":{},"heldNotes":[],"playhead":{"1":[3,-1]},"groove":{"1":[{"step":3,"loop":16777217,"playing":true,"fired":false},{"step":-1,"loop":1,"playing":false,"fired":false}]}}}
 ```
 
-### Deferred configuration completion (A78)
+### Deferred configuration completion (A78 / A80)
+
+The engine advertises `configDeferred` in its initial hello. A client that supports the correlated completion protocol opts in once per session with the ordinary request `{"v":0,"id":"client-hello","type":"hello","capabilities":["configDeferred"]}`; the engine acknowledges without changing generation. A legacy client that does not opt in receives plain busy, never deferred work. Unknown capability strings are ignored. A second client hello is refused as duplicate.
 
 A busy reply may include `deferred: true` and a `deferId` only when every requested change is a configuration change to an engine-reported blocked module ID. A refused transaction commits nothing. Mixed changes are refused without deferral.
 
-Each deferred entry receives exactly one correlated `configDeferred` push containing `deferId`, `moduleId`, `outcome` (`applied`, `superseded`, or `failed`), and `generation`. The client reconciles from the reply or correlated event, not an unrelated generation change. Latest wins per module ID; accepted edits touching that ID, including explicit revert, removal, type change, instance-replacing data writes, graph load, and namespace/session changes, supersede pending work. Retry occurs only after predecessor retirement, with failure bounded by twice the clamped fade duration plus one second. No candidate rebuild or OSC/MIDI worker restart occurs while the predecessor is fading.
+Each deferred entry receives exactly one correlated `configDeferred` push containing `deferId`, `moduleId`, `outcome` (`applied`, `superseded`, or `failed`), and `generation`. The client reconciles from the reply or correlated event, not an unrelated generation change. Latest wins per module ID; one request-level deferId may have independently completing module IDs. In a full applyGraph snapshot compare config to the pending config: an equal value carries the pending entry and executes at the committed value; a different value supersedes on acceptance (including a revert to the committed config). Unrelated incremental edits do not supersede. Removal, type change, instance-replacing data writes, graph load and namespace/session changes supersede pending work. Retry occurs only after predecessor retirement, with failure bounded by twice the clamped fade duration plus one second. No candidate rebuild or OSC/MIDI worker restart occurs while the predecessor is fading.
 
 ## 8. `EngineClient` refusal, ordering and reconciliation
 

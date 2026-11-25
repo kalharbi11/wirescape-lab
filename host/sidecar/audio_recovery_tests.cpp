@@ -796,6 +796,13 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto current = edit(140);
     auto gen = accept(current);
     check(graph.replacement_tail_pending(2), "A78 unfinished predecessor witness");
+    // Legacy client cannot silently acquire pending work.
+    const auto legacy = apply(edit(160));
+    check(legacy["ok"] == false && legacy["code"] == "busy" && legacy["gen"] == gen &&
+          !legacy.contains("deferred") && !legacy.contains("deferId") && s.take_config_events().empty(),
+          "A80 legacy client gets plain busy");
+    check(call("hello", {{"capabilities", Json::array({"configDeferred"})}})["ok"] == true,
+          "A80 fake client opts in");
     auto a = deferred(edit(160), gen);
     auto mixed = edit(180);
     mixed["modules"][2]["parameters"] = {{"rate", 2}};
@@ -807,6 +814,14 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto b = deferred(edit(200), gen);
     check(a != b, "A78 latest edit has new correlation ID");
     terminal(a, "superseded", gen);
+    // A80: same pending config in a full snapshot does not reapply it.
+    auto other = edit(200);
+    other["modules"][2]["parameters"] = {{"rate", 3}};
+    gen = accept(other);
+    check(s.take_config_events().empty() && graph.replacement_tail_pending(2),
+          "A80 unrelated snapshot retains pending config");
+    // Keep the unrelated authored change in all subsequent snapshots.
+    patch["modules"][2]["parameters"] = {{"rate", 3}};
     // No frames advance while polling. The graph may not commit or emit.
     auto now = std::chrono::steady_clock::now();
     for (unsigned i = 0; i < 4; ++i) {

@@ -27,6 +27,7 @@ Source: `docs/specs/protocol.schema.json`; regenerate with `python tools/protoco
 | `setOsc` | `cfg` |
 | `ccMap.set` | `moduleId`, `row`, `mapping` |
 | `app.restartEngine` | — |
+| `hello` | `capabilities` |
 
 | Refusal error code |
 | --- |

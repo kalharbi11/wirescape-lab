@@ -23,7 +23,7 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 22)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 23)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
@@ -42,6 +42,8 @@ class ProtocolV0Tests(unittest.TestCase):
         refusal = self.schema["$defs"]["reply"]["oneOf"][1]["properties"]
         self.assertEqual(refusal["deferred"], {"const": True})
         self.assertEqual(refusal["deferId"], event["properties"]["deferId"])
+        self.assertTrue(validate({"v": 0, "id": "client-hello", "type": "hello",
+                                  "capabilities": ["configDeferred"]}, self.schema))
 
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(

@@ -799,6 +799,25 @@ Json Session::take_config_events() {
 }
 bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> retry_id, bool explicit_graph) {
     patch = execution(std::move(patch));
+    // A80: an opted-in full snapshot can carry still-pending authored
+    // configs alongside unrelated edits. Execute those nodes at their
+    // committed config until their correlated deferral completes.
+    std::set<uint32_t> snapshot_supersedes;
+    if (explicit_graph) {
+        for (auto &m : patch["modules"]) {
+            const auto id = integer(m.at("id"));
+            const auto pending = pending_configs_.find(id);
+            if (pending == pending_configs_.end()) continue;
+            if (m.at("module") != pending->second.module ||
+                m.value("config", Json::object()) != pending->second.config) {
+                snapshot_supersedes.insert(id);
+                continue;
+            }
+            const auto &old = node(patch_, id);
+            if (old.contains("config")) m["config"] = old.at("config");
+            else m.erase("config");
+        }
+    }
     // loadGraph is a stored document; a changed live slot is an edit.
     // Unchanged forward-compatible stored fields remain opaque.
     if (!new_namespace) for (const auto &m : patch["modules"]) {
@@ -838,12 +857,10 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
-    // Stage queue and terminal events before accepting the graph. Nothing is
-    // published on ordinary refusal. A no-op full applyGraph explicitly
-    // reasserts the committed configuration (not an incremental unrelated edit).
+    // Stage queue and terminal events before accepting the graph. A
+    // refused ordinary transaction never publishes these changes.
     auto next_pending = pending_configs_;
     auto next_events = config_events_;
-    const bool explicit_revert = explicit_graph && patch == patch_;
     for (auto it = next_pending.begin(); it != next_pending.end();) {
         const auto id = it->first;
         auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
@@ -851,7 +868,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
             [&](const Json &m) { return m.at("id") == id; });
         const bool applied = retry_id && *retry_id == id;
-        if (applied || new_namespace || explicit_revert ||
+        if (applied || new_namespace || snapshot_supersedes.count(id) ||
             next == patch["modules"].end() || old == patch_["modules"].end() ||
             next->at("module") != it->second.module ||
             next->value("config", Json::object()) != old->value("config", Json::object())) {
@@ -913,7 +930,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             // predecessor tail. Preserve the live graph and report busy.
             if (error == "Replacement busy: predecessor still fading") {
                 const auto &blocked = app_engine_native(active_).replacement_blocked_ids();
-                if (!retry_id && eligible_shape &&
+                if (client_deferred_ && !retry_id && eligible_shape &&
                     std::all_of(changed_configs.begin(), changed_configs.end(), [&](uint32_t id) {
                         return std::find(blocked.begin(), blocked.end(), id) != blocked.end();
                     })) {
@@ -1173,6 +1190,20 @@ Json Session::apply(const Json &command) {
         throw Refusal("refused", "rate-unsupported");
     };
     auto type = command.at("type").get<std::string>();
+    if (type == "hello") {
+        need(!client_hello_seen_, "duplicate", "Client hello already received");
+        const auto &capabilities = command.at("capabilities");
+        need(capabilities.is_array() && capabilities.size() <= 256, "invalid", "Invalid capabilities");
+        bool supports_deferred = false;
+        for (const auto &capability : capabilities) {
+            need(capability.is_string() && capability.get_ref<const std::string &>().size() <= 128,
+                 "invalid", "Invalid capability");
+            supports_deferred |= capability == "configDeferred";
+        }
+        client_deferred_ = supports_deferred;
+        client_hello_seen_ = true;
+        return nullptr;
+    }
     if (type == "listAudioDevices") {
         refresh_devices();
         Json result = {{"devices", audio_devices_}};
@@ -1647,7 +1678,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph"});
+         "applyGraph", "configDeferred"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},

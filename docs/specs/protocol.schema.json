@@ -1270,6 +1270,34 @@
               "const": "app.restartEngine"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "capabilities"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "hello"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "maxItems": 256
+            }
+          }
         }
       ]
     },
