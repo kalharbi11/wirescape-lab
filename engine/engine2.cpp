@@ -42,6 +42,4 @@ std::vector<FeedbackLoop> Engine::feedback_loops() const {
     return result;
 }
 
-uint32_t Engine::dropped_connections() const { return p_->dropped_connections; }
-
 } // namespace wirescape::engine2

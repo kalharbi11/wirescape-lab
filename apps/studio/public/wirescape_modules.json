@@ -1754,6 +1754,15 @@
      "hint": "pitch",
      "poly": "poly",
      "stereo_pair": null
+    },
+    {
+     "id": "trig",
+     "name": "Trigger",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "gate",
+     "poly": "poly",
+     "stereo_pair": null
     }
    ],
    "parameters": [
@@ -5702,6 +5711,15 @@
      "direction": "output",
      "kind": "signal",
      "hint": "cv_uni",
+     "poly": "poly",
+     "stereo_pair": null
+    },
+    {
+     "id": "trig",
+     "name": "Trigger",
+     "direction": "output",
+     "kind": "signal",
+     "hint": "gate",
      "poly": "poly",
      "stereo_pair": null
     }

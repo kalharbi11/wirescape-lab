@@ -62,6 +62,35 @@ struct Pass {
         for (uint32_t i = 0; i < b.frames(); ++i) b.out(0).ch(0)[i] = b.in(0).value(0, i);
     }
 };
+// E5 synthetic no-adopt module. A release leaves an audible tail whose
+// level follows the signal input, so a muted predecessor input, missing
+// release-all, or missing successor replay has a distinct sample result.
+struct ReplacementTail {
+    static constexpr ws::Info info{"test.replacement_tail", "Replacement tail", 1};
+    static constexpr std::array inputs{
+        ws::port("signal", "Signal"),
+        ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("signal", "Signal")};
+    static constexpr std::array<ws2_param, 0> params{};
+    float gain = 1, level = 0;
+    bool held = false;
+    void prepare(const ws::Setup &s) { gain = s.config.bytes ? float(s.config.data[0]) : 1.f; }
+    void reset() { level = 0; held = false; }
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(false);
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i)
+                b.out(0).ch(0)[i] = level * b.in(0).value(0, i);
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) { held = true; level = gain; }
+            else if (held && (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE)) {
+                held = false;
+                level = .5f; // deterministic ring-out witness (not a silence/reset).
+            }
+        });
+    }
+};
 struct Feedback : Pass {
     static constexpr ws::Info info{"test.live_feedback", "Live feedback", 1};
     void process(ws::Block &b) {
@@ -109,6 +138,235 @@ static ws2_event note(ws2_event_type type = WS2_NOTE_ON, float value = .75f) {
     e.key = 60;
     e.value = value;
     return e;
+}
+static void replacement_ring_out(uint32_t declared_ms = 0, uint32_t expected_frames = 960,
+                                 bool decline = false, bool fault = false, bool interrupt = false, bool legacy = false) {
+    auto descriptor = *ws::Module<ReplacementTail>::descriptor();
+    descriptor.replace_fade_ms = declared_ms;
+    if (legacy) descriptor.struct_size = offsetof(ws2_descriptor, data_slot_count);
+    if (decline) descriptor.adopt = [](void *, const void *) -> int { return WS2_UNSUPPORTED; };
+    if (fault) descriptor.adopt = [](void *, const void *) -> int { return WS2_INVALID; };
+    auto make = [&](uint8_t gain, bool extra = false) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
+        CHECK(e->add_node(2, &descriptor, {gain}));
+        if (extra) CHECK(e->add_node(3, ws::Module<Pass>::descriptor()));
+        CHECK(e->connect(1, 0, 2, 0));
+        CHECK(e->output(2, 0, 0));
+        CHECK(e->output(1, 0, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), successor = make(2);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    CHECK(live->enqueue(0, 2, 1, note(), 0, Timing::Immediate) == WS2_OK);
+    float sample[1]{}, witness[1]{};
+    float *out[]{sample, witness};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(witness[0] == .75f);
+    };
+    render();
+    CHECK(sample[0] == .75f);
+    const auto generation = live->meter().generation;
+    std::atomic<bool> done{false};
+    bool ok = false;
+    std::thread control([&] {
+        ok = live->replan(*successor, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    bool changed = false;
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        render();
+        if (sample[0] != .75f) { changed = true; break; }
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    if (!ok) std::fprintf(stderr, "replacement_ring_out replan: %s\n", live->error().c_str());
+    CHECK(ok);
+    CHECK(changed);
+    successor.reset();
+    // Old receives release-all and keeps its signal input, N receives
+    // held-note replay and a full-strength signal input. Only consumer
+    // contributions crossfade: .375 -> 1.5 in exactly 960 samples (20 ms).
+    const uint32_t fade = expected_frames;
+    uint32_t n = 1;
+    auto check_sample = [&] {
+        const float expected = .375f + (1.5f - .375f) * float(std::min(n, fade)) / fade;
+        return std::abs(sample[0] - expected) < 2.e-6f;
+    };
+    CHECK(check_sample());
+    if (interrupt) {
+        for (; n < 120;) { ++n; render(); CHECK(check_sample()); }
+        auto unrelated = make(2, true);
+        std::atomic<bool> committed{false};
+        bool accepted = false;
+        std::thread edit([&] {
+            accepted = live->replan(*unrelated, uint64_t(frames) * 3 * 1000000000 / 48000);
+            committed.store(true, std::memory_order_release);
+        });
+        bool continuous = true;
+        const auto end = Clock::now() + std::chrono::seconds(2);
+        do {
+            ++n;
+            render();
+            continuous &= check_sample();
+            std::this_thread::yield();
+        } while (!committed.load(std::memory_order_acquire) && Clock::now() < end);
+        edit.join();
+        CHECK(accepted);
+        CHECK(continuous);
+        unrelated.reset();
+    }
+    while (n < fade) { ++n; render(); CHECK(check_sample()); }
+    render();
+    CHECK(sample[0] == 1.5f);
+    CHECK(live->enqueue(0, 2, 1, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    render();
+    CHECK(sample[0] == .375f);
+    CHECK(live->meter().generation == generation);
+    CHECK(live->meter().faults == (fault ? 1u : 0u));
+}
+// Raw ABI test fixture: no dependence on the SDK's private instance layout.
+// The release changes held state but leaves an uninterrupted phase tail.
+struct AdoptPhase {
+    uint32_t phase = 0, attacks = 0;
+    bool held = false;
+    static constexpr std::array inputs{ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("phase", "Phase"), ws::port("held", "Held")};
+    static void *WS2_CALL create(const ws2_host *host) {
+        auto *p = host->alloc(host->ctx, sizeof(AdoptPhase), alignof(AdoptPhase), WS2_FAST);
+        return p ? new (p) AdoptPhase{} : nullptr;
+    }
+    static void WS2_CALL destroy(void *p) { static_cast<AdoptPhase *>(p)->~AdoptPhase(); }
+    static int WS2_CALL query(void *, const ws2_config *, ws2_ports *ports) {
+        *ports = {sizeof(ws2_ports), 1, 2, inputs.data(), outputs.data()};
+        return WS2_OK;
+    }
+    static int WS2_CALL memory(const ws2_config *, ws2_memory *m) {
+        *m = {sizeof(ws2_memory), sizeof(AdoptPhase), 0, 32};
+        return WS2_OK;
+    }
+    static int WS2_CALL prepare(void *, const ws2_config *, const ws2_host *) { return WS2_OK; }
+    static void WS2_CALL reset(void *p) { *static_cast<AdoptPhase *>(p) = {}; }
+    static int WS2_CALL process(void *p, ws2_process *process) {
+        auto &self = *static_cast<AdoptPhase *>(p);
+        ws::Block b(*process);
+        for (uint32_t port = 0; port < 2; ++port) {
+            b.out(port).set_channels(1);
+            b.out(port).mark_constant(false);
+        }
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i) {
+                b.out(0).ch(0)[i] = float(++self.phase) / 65536.f;
+                b.out(1).ch(0)[i] = self.held ? float(self.attacks) : 0.f;
+            }
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) { self.held = true; ++self.attacks; self.phase = 0; }
+            else if (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE) self.held = false;
+        });
+        return WS2_OK;
+    }
+    static int WS2_CALL save(void *, const ws2_writer *) { return WS2_OK; }
+    static int WS2_CALL load(void *, const ws2_reader *) { return WS2_OK; }
+    static uint32_t WS2_CALL latency(void *) { return 0; }
+    static int WS2_CALL adopt(void *self, const void *old) {
+        *static_cast<AdoptPhase *>(self) = *static_cast<const AdoptPhase *>(old);
+        return WS2_OK;
+    }
+};
+static void replacement_adopt(bool prequeued_release = false) {
+    const ws2_descriptor descriptor{
+        sizeof(ws2_descriptor), WS_ABI2_VERSION, "test.adopt_phase", "Adopt phase", 1, 1, 2, 0,
+        AdoptPhase::inputs.data(), AdoptPhase::outputs.data(), nullptr,
+        AdoptPhase::create, AdoptPhase::destroy, AdoptPhase::query, AdoptPhase::memory,
+        AdoptPhase::prepare, AdoptPhase::reset, AdoptPhase::process, AdoptPhase::save, AdoptPhase::load,
+        AdoptPhase::latency, 0, nullptr, AdoptPhase::adopt, 7};
+    auto make = [&](uint8_t config_byte) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, &descriptor, {config_byte}));
+        CHECK(e->output(1, 0, 0));
+        CHECK(e->output(1, 1, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), successor = make(2);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float phase[1]{}, held[1]{};
+    float *out[]{phase, held};
+    uint32_t count = 0;
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(std::abs(phase[0] - float(++count) / 65536.f) < 2.e-7f);
+    };
+    for (unsigned i = 0; i < 64; ++i) render();
+    // ER4: a release stamped before successful adoption must still reach
+    // the successor after the fade, without replaying a second attack.
+    const uint64_t stale = live->meter().stale;
+    const uint64_t due = live->meter().frame + 65536;
+    if (prequeued_release) {
+        CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), due) == WS2_OK);
+        render(); // Move the old-stamped packet to the future queue.
+    }
+    std::atomic<bool> done{false};
+    bool ok = false;
+    std::thread control([&] {
+        ok = live->replan(*successor, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    // Never abort with an unjoined control thread; accumulate the oracle result.
+    bool continuous = true;
+    bool held_continuous = true; // A71: successful adopt never dips the held output.
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        allocation_watch::ThreadScope watch;
+        const int result = live->render(out, 2, 1);
+        ++count;
+        continuous &= result == WS2_OK && watch.allocations() == 0 &&
+                      std::abs(phase[0] - float(count) / 65536.f) < 2.e-7f;
+        held_continuous &= std::abs(held[0] - 1.f) < 2.e-7f;
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    CHECK(ok);
+    CHECK(continuous);
+    CHECK(held_continuous);
+    successor.reset();
+    for (unsigned i = 0; i < 336; ++i) {
+        render();
+        CHECK(std::abs(held[0] - 1.f) < 2.e-7f);
+    }
+    CHECK(held[0] == 1.f); // No duplicate attack from replay after successful adopt.
+    if (prequeued_release) {
+        CHECK(live->meter().frame < due);
+        // Use ordinary 256-frame blocks up to (but not including) the
+        // scheduled release; preserve the original phase/attack oracle.
+        float phase_block[frames]{}, held_block[frames]{};
+        float *block_out[]{phase_block, held_block};
+        while (live->meter().frame < due) {
+            const auto n = uint32_t(std::min<uint64_t>(frames, due - live->meter().frame));
+            allocation_watch::ThreadScope watch;
+            CHECK(live->render(block_out, 2, n) == WS2_OK);
+            CHECK(watch.allocations() == 0);
+            for (uint32_t j = 0; j < n; ++j) {
+                CHECK(std::abs(phase_block[j] - float(++count) / 65536.f) < 2.e-7f);
+                CHECK(held_block[j] == 1.f);
+            }
+        }
+    } else {
+        CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    }
+    render();
+    CHECK(held[0] == 0.f);
+    CHECK(live->meter().stale == stale);
+    CHECK(live->meter().faults == 0);
 }
 struct EventSink : Voice {
     static constexpr ws::Info info{"test.live_sink", "Live sink", 1};
@@ -165,6 +423,108 @@ static void replan_with_callbacks(Engine &live, Engine &candidate) {
     }
     edit.join();
     CHECK(success.load());
+}
+// ER4: unchanged event cable from a retained source to a replaced destination.
+// A back edge has a queued packet at the callback boundary. Replacing only the
+// destination must preserve it; deleting the cable must still invalidate it.
+struct RoutedReleaseEmitter : EventEmitter {
+    static constexpr ws::Info info{"test.routed_release", "Routed release", 1};
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(true);
+        b.out(0).ch(0)[0] = 1;
+        b.out(1).set_channels(0);
+        auto release = note(WS2_NOTE_OFF, 0);
+        release.offset = b.frames() - 1;
+        CHECK(b.emit(1, release));
+    }
+};
+static void replacement_routed_release() {
+    for (bool keep_cable : {false, true}) {
+        auto make = [&](bool replacement) {
+            auto e = std::make_unique<Engine>(config());
+            CHECK(e->add_node(1, ws::Module<EventSink>::descriptor(),
+                replacement ? std::vector<uint8_t>{1} : std::vector<uint8_t>{}));
+            CHECK(e->add_node(2, ws::Module<RoutedReleaseEmitter>::descriptor()));
+            CHECK(e->connect(1, 1, 2, 0));
+            if (!replacement || keep_cable) CHECK(e->connect(2, 1, 1, 0));
+            CHECK(e->output(1, 0, 0));
+            CHECK(e->output(2, 0, 1));
+            CHECK(e->register_producer() == 0);
+            CHECK(e->prepare());
+            return e;
+        };
+        auto live = make(false), candidate = make(true);
+        float samples[frames]{}, marker[frames]{};
+        float *out[]{samples, marker};
+        CHECK(live->render(out, 2, frames) == WS2_OK);
+        Outgoing outgoing;
+        while (live->pop_egress(outgoing)) {}
+        const auto before = live->meter();
+        CHECK(live->feedback_edges() > 0);
+        replan_with_callbacks(*live, *candidate);
+        candidate.reset();
+        CHECK(live->render(out, 2, frames) == WS2_OK);
+        CHECK(live->meter().generation == before.generation);
+        CHECK(live->meter().faults == before.faults);
+        CHECK(keep_cable ? live->meter().stale == before.stale : live->meter().stale > before.stale);
+    }
+}
+// The bounded ledger is deliberately smaller than this test's ordinary event
+// budget. Verify its counted overflow and the actual number of notes replayed.
+struct LedgerCounter {
+    static constexpr ws::Info info{"test.held_ledger", "Held ledger", 1};
+    static constexpr std::array inputs{
+        ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("attacks", "Attacks")};
+    static constexpr std::array<ws2_param, 0> params{};
+    uint32_t attacks = 0;
+    void prepare(const ws::Setup &) {}
+    void reset() { attacks = 0; }
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(false);
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i) b.out(0).ch(0)[i] = float(attacks) / 256.f;
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) ++attacks;
+            else if (e.type == WS2_NOTE_CHOKE) attacks = 0;
+        });
+    }
+};
+static void replacement_ledger_overflow() {
+    auto make = [](uint8_t config_byte) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<LedgerCounter>::descriptor(), {config_byte}));
+        CHECK(e->output(1, 0, 0));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), candidate = make(2);
+    const auto before = live->meter();
+    for (int32_t i = 0; i < 129; ++i) {
+        auto e = note();
+        e.note_id = i;
+        CHECK(live->enqueue(0, 1, 0, e, 0, Timing::Immediate) == WS2_OK);
+    }
+    float samples[frames]{};
+    float *out[]{samples};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 1, frames) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+    };
+    render();
+    CHECK(samples[frames - 1] == 129.f / 256.f);
+    CHECK(live->meter().dropped == before.dropped + 1);
+    replan_with_callbacks(*live, *candidate);
+    candidate.reset();
+    for (unsigned i = 0; i < 4; ++i) render();
+    CHECK(samples[frames - 1] == 128.f / 256.f);
+    CHECK(live->meter().dropped == before.dropped + 1);
+    CHECK(live->meter().generation == before.generation);
+    CHECK(live->meter().faults == before.faults);
 }
 static void removed_event_routes_release() {
     for (bool replace_source : {false, true}) {
@@ -378,8 +738,26 @@ static void signal_ramp_interrupted() {
     for (unsigned i = 1; i < 240; ++i) render();
     CHECK(sample[0] == 0);
 
-    // Prebuilt steady housekeeping must be silent on the wire and must
-    // not resurrect the removed cable or retire the live witness.
+    // E5 Low: a settled layout can be waiting for housekeeping when the
+    // audio stream stops. At most the first refresh may wait a full
+    // publication deadline; unchanged-position status ticks must not stall.
+    const auto stopped_frame = live->meter().frame;
+    live->refresh_latency();
+    constexpr unsigned stopped_ticks = 8;
+    const auto bound = std::chrono::nanoseconds(uint64_t(frames) * 3 * 1000000000 / 48000);
+    const auto start = Clock::now();
+    for (unsigned i = 0; i < stopped_ticks; ++i) live->refresh_latency();
+    const auto elapsed = Clock::now() - start;
+    CHECK(live->meter().frame == stopped_frame);
+    // Aggregate wall-clock margin: the defect waits >= 8 deadlines; allow
+    // four deadlines for hosted scheduling noise on the nonwaiting path.
+    CHECK(elapsed < 4 * bound);
+
+    // Resume callbacks before attempting housekeeping again. It must be
+    // silent on the wire and must not resurrect the removed cable or
+    // retire the live witness.
+    render();
+    CHECK(sample[0] == 0);
     std::atomic<bool> done{false};
     std::thread control([&] {
         live->refresh_latency();
@@ -829,9 +1207,18 @@ int main(int argc, char **argv) {
     untouched_witness_no_dip();
     osc_out_retirement();
     signal_ramp_interrupted();
+    replacement_ring_out();
+    replacement_adopt();
+    replacement_adopt(true);
+    replacement_ring_out(7, 336, true);
+    replacement_ring_out(1000, 24000, false, true);
+    replacement_ring_out(0, 960, false, false, true);
+    replacement_ring_out(1000, 960, false, false, false, true);
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
+    replacement_ledger_overflow();
+    replacement_routed_release();
     telemetry_replan_layout();
     feedback_delay_survives();
     ramp_survives();

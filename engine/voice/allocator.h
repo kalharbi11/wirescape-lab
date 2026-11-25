@@ -84,6 +84,7 @@ public:
     // Reserved for a future MPE adapter. Per-note expression can already be
     // addressed by note_id; no MPE channel ownership or pitch bend is implied.
 private:
+    friend class NoteToCv;
     struct Held {
         bool used = false;
         bool down = false;
