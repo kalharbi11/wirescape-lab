@@ -34,6 +34,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked until OB1; PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
+| B5-E3b-editor | 2026-11-25 | gpt-builder5 | ruling | now | [#545: first legacy Groove edit](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7158894349), draft `6e90930`: preserve construction version/track count on pattern-only Apply despite editor auto-upgrade, or disclose replacement? | Groove Studio Apply classification only; native work continues |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
