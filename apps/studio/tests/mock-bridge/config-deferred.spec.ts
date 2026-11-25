@@ -87,3 +87,24 @@ test('A80 session replacement clears stale correlations and negotiates again', a
   }), oldSession);
   expect(await ports(page)).toEqual({ authored: [9011, 9002], confirmed: [9011, 9002], native: [9011, 9002] });
 });
+
+test('A80 latest deferred value wins and plain busy preserves an older pending intent', async ({ page }) => {
+  await setup(page, true);
+  await defer(page, 'first', 9011, 9012);
+  await defer(page, 'latest', 9021, 9012);
+  await expect.poll(() => ports(page)).toEqual({ authored: [9021, 9012], confirmed: [9001, 9002], native: [9001, 9002] });
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.pushConfig({ deferId: 'first', moduleId: 1, outcome: 'applied' });
+    b.refuseNext('applyGraph', 'busy');
+  });
+  await page.evaluate(async p => {
+    window.__wirescapeTest.restoreSnapshot(p);
+    await (window.__wirescapeTest.engine as any).whenEditsSettled();
+  }, snapshot(9021, 9032));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9021, 9012], confirmed: [9001, 9002], native: [9001, 9002] });
+  await page.evaluate(() => (window as any).__mockBridge.completeConfig(2, 'applied'));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9021, 9012], confirmed: [9001, 9012], native: [9001, 9012] });
+  await page.evaluate(() => (window as any).__mockBridge.completeConfig(1, 'applied'));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9021, 9012], confirmed: [9021, 9012], native: [9021, 9012] });
+});
