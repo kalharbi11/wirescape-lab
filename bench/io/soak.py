@@ -123,9 +123,11 @@ class Sidecar:
         self.errors = deque(maxlen=300)
         self.proc = subprocess.Popen(
             sidecar_args(engine, settings, profile),
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env={**os.environ, "WIRESCAPE_OSC_ENQUEUE_DIAGNOSTIC": "1"})
         threading.Thread(target=self._read, daemon=True).start()
-        threading.Thread(target=self._err, daemon=True).start()
+        self.error_reader = threading.Thread(target=self._err, daemon=True)
+        self.error_reader.start()
         try:
             self.hello = self.messages.get(timeout=10)
             if self.hello.get("type") != "hello":
@@ -184,6 +186,8 @@ class Sidecar:
         except subprocess.TimeoutExpired:
             self.proc.kill()
             code = self.proc.wait(timeout=5)
+        # The child has exited: drain its final post-join diagnostic before snapshot.
+        self.error_reader.join(timeout=1)
         return code, "\n".join(self.errors)
 
 
@@ -463,9 +467,37 @@ def check_bench(bench):
             raise Stop("bench_fault", f"{key}={bench[key]}")
 
 
+def enqueue_reason_summaries(stderr):
+    """A67 opt-in rows are observations, not an exhaustive cross-epoch total."""
+    rows, malformed = [], 0
+    keys = ("module", "port", "total", "invalid", "capacity", "state", "other")
+    pattern = "osc_enqueue_reason " + " ".join(
+        key + r"=([0-9]{1,20})" for key in keys)
+    for line in stderr.splitlines():
+        if not line.startswith("osc_enqueue_reason "):
+            continue
+        match = re.fullmatch(pattern, line)
+        if not match:
+            malformed += 1
+            continue
+        row = dict(zip(keys, map(int, match.groups())))
+        if (not 1 <= row["module"] <= 0xffffffff
+                or not 1 <= row["port"] <= 65535
+                or any(value > 0xffffffffffffffff for value in row.values())
+                or row["total"] == 0
+                or row["total"] != sum(row[key] for key in keys[3:])):
+            malformed += 1
+            continue
+        rows.append(row)
+    return {"observations": rows, "malformed": malformed} if rows or malformed else None
+
+
 def apply_shutdown_checks(result, exit_code, stderr):
     """XFAIL retains its A2 witness, but cannot hide bench faults or engine exit."""
     result["bench"] = bench_line(stderr)
+    reasons = enqueue_reason_summaries(stderr)
+    if reasons is not None:
+        result["osc_enqueue_reasons"] = reasons
     if result["status"] not in ("passed", "xpass", "xfail"):
         return
     try:
