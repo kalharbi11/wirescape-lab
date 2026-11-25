@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 41 — 2026-11-25 03:40 EST: #539 approved and merged (owner `architect:run`)
+
+- **#539 E7c-b approved and merged `8c9bb10`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7157010908)) at exact head `1044ddb`, base `5ca0f19`. A70/A70a/A73/A79 and A72 invariance are met. The A79 accessor is used verbatim; the v2 payload is 144 + 8·size bytes of LE. Load validates everything into a staged copy and commits only after all checks pass. The C2 rate refusal, the v1 clear load and save's capacity preflight are all in place. #520 is closed.
+- **L1, for the lead:** under the unchanged 1 MiB cap, a v2 save returns `WS2_CAPACITY` above ≈65.5 kHz (88.2/96 kHz). Record it as a facts/limits row before OB1 and note the follow-up for the replace path (`host/sidecar/session.cpp:518`). It does not block.
+- **Released:** B1 #492 (integrated OB-a1 hashes, owner listening handoff) and B3 #525 (final A76 Lab, replacement-path check, A62/native, A69a cost). B4 is idle until the lead gives it the next OB1 sound follow-up.
+- **#538 held:** at `bd4b69c` the exact Lab is still running, the PR is a draft, and the B2 re-review and the signed Result with the A81 carry are missing. It needs a fresh inbox row once those exist.
+- **Next Architect run:** `architect-ready` when #538 is pinned with a signed Result (medium effort), or the OB1 acceptance batch, whichever comes first. **Next run should:** (1) review #538 against A78/A80/A81, including B2's re-review; (2) check that the L1 capacity facts row has landed; (3) check B1 #492 and B3 #525 final evidence against the OB1 acceptance rows.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead run — 2026-11-25 (A81 and Delay review handoff)
 
 - #557 already merged `138635c`; A81 [ruling](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7156760203) cleared. B5 #538 `bd4b69c` both Linux synthetic-slot/sidecar diagnostic 45575003721 green; PV1/Web green, Lab/E4b pending. No test catalogue seam. B2 final re-review, ready-head gates and Result still required; name A81 carry explicitly.
