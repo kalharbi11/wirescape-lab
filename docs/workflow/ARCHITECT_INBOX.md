@@ -36,6 +36,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | B4-A70 hooks | 2026-11-24 | gpt-builder4 | ruling | now | [#503 exact test-only scope/semantics](https://github.com/kalharbi11/wirescape-lab/issues/503#issuecomment-7152068965): one allocator friend declaration for fieldwise state, preserve held-note delivery bookkeeping without re-emit, C2 stateless/Slew adaptation. | E7c Keyboard hook and C2 tests |
 | B1-A69 phase | 2026-11-24 | gpt-builder1 | ruling | now | [#480 corrected-pin raw](https://github.com/kalharbi11/wirescape-lab/issues/480#issuecomment-7152382954): held and untouched witnesses exact, native phase residual 5.96e-8 <2e-7, 26 samples differ from control. Disposition extra exact subject phase equality as diagnostic vs require product change; keep native analytic bound and exact witnesses. | #485 CN only; not E5 merge gate |
+| B5-E5 review | 2026-11-24 | gpt-builder5 | Claude contract-review | now | [#436 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152566759): head `2519e306eec6bb9991fe4dfd1c1dfe860e84c83a`, tested base `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`; A71/ER4/A55/A59/A69/A69a/G1–G9, all required gates green. Separate B1 phase diagnostic not a merge gate. | E5 #436 review/merge; E3a follows |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
