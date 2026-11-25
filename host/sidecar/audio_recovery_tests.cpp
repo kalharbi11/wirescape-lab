@@ -1425,6 +1425,41 @@ void test_e3c_accepted_routes(const std::filesystem::path &root) {
           "E3c inject synthetic CC");
     check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK &&
           graph.output_sample(4, 0, 0, 1023) == .75f, "E3c live CC row adopted");
+
+    // A86(1): the live row edit above retained the stream and graph. A
+    // whole-document data-only OSC Out edit is the one allowed exception:
+    // it stages a fresh bus and reports exactly that replacement.
+    patch["modules"][1]["data"]["routes"] = e3c_osc_rows(0, true);
+    patch["modules"][2]["data"]["routes"] = out_rows(true);
+    patch["modules"][2]["data"]["routes"]["rows"][0]["address"] = "/e3c/replaced";
+    patch["modules"][3]["config"] = {{"rows", Json::array({{{"channel", 0}, {"controller", 11},
+        {"smoothing_ms", 0}, {"min", .25}, {"max", .75}}})}};
+    Json replaced;
+    std::atomic<bool> done{false}, render_ok{true};
+    std::thread renderer([&] {
+        float sample = 0;
+        for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
+            if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+            std::this_thread::sleep_for(5ms);
+        }
+    });
+    try {
+        replaced = call("applyGraph", {{"patch", patch}});
+    } catch (...) {
+        done.store(true, std::memory_order_release);
+        renderer.join();
+        throw;
+    }
+    done.store(true, std::memory_order_release);
+    renderer.join();
+    check(render_ok.load() && replaced["ok"] == true && replaced["re"] == "e3c" &&
+          replaced["gen"] != loaded["gen"] && replaced["result"]["path"] == "live" &&
+          replaced["result"]["replaced"] == Json::array({3}) &&
+          fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
+          ("A86 only OSC Out fresh-bus replacement: " + replaced.dump()).c_str());
+    check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "A86 render after old bus retirement");
+    std::cout << "A86 data-only applyGraph replaced=" << replaced["result"]["replaced"].dump() << '\n';
     s.shutdown();
 }
 
