@@ -72,6 +72,7 @@ jobs:
           record = dict(before=os.environ["BEFORE"], after=os.environ["AFTER"],
                         before_upstream="44da1e4a235e606ebecd5bd6232f908d4df9b97f",
                         machine=os.environ["MACHINE"], architecture=platform.machine(),
+                        workflow_sha=os.environ.get("GITHUB_WORKFLOW_SHA"),
                         cpu=sorted(set(cpu())), os=platform.platform(), compiler=cmd("c++", "--version").splitlines()[0],
                         cmake=cmd("cmake", "--version").splitlines()[0], python=platform.python_version(),
                         date_et=datetime.datetime.now(ZoneInfo("America/New_York")).isoformat(),
@@ -93,7 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, importlib.util, json, os, re, subprocess
+          import hashlib, importlib.util, json, math, os, re, subprocess
           from pathlib import Path
 
           evidence = Path("evidence").resolve()
@@ -121,6 +122,23 @@ jobs:
                   return dict(status="measured", data=json.loads(raw))
               except (ValueError, KeyError) as exc:
                   return dict(status="unmeasured", reason=str(exc), **result)
+          def checked_row(result, expected, metrics):
+              if result["status"] != "measured":
+                  return result
+              try:
+                  data = result["data"]
+                  for key, value in expected.items():
+                      if data[key] != value:
+                          raise ValueError(f"{key}: expected {value!r}, observed {data[key]!r}")
+                  if not isinstance(data["blocks"], int) or data["blocks"] <= 0:
+                      raise ValueError("invalid block count")
+                  for key in metrics:
+                      value = data["render_ns"][key]
+                      if not isinstance(value, (int,float)) or not math.isfinite(value) or value <= 0:
+                          raise ValueError(f"invalid render_ns.{key}")
+              except (KeyError, TypeError, ValueError) as exc:
+                  return dict(status="unmeasured",reason=str(exc),data=result["data"])
+              return result
           def binary(root, name):
               return root/"build/native"/name
           def manifest_ids(root, side):
@@ -153,7 +171,9 @@ jobs:
                   for side,root in roots.items():
                       result=call([binary(root,"abi2_module_cpu_probe"),"--module",ident,"--rate",48000,
                                    "--block",128,"--channels",channels,"--instances",2,"--seconds",2],root,45)
-                      row[side]=parsed(result,"module_cpu_probe ")
+                      row[side]=checked_row(parsed(result,"module_cpu_probe "),
+                          dict(module=ident,instances=2,sample_rate=48000,block=128,channels=channels,seconds=2),
+                          ("p99","max"))
                   module_rows.append(row)
           write("module-cpu.json",dict(provenance=provenance,rows=module_rows))
           # Same imported fixture bytes on both builds; report unaccepted fixtures explicitly.
@@ -164,11 +184,13 @@ jobs:
           for name in common_patches:
               fixture=patches["before"][name]
               row=dict(patch=name,fixture_sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),
-                       fixture_subject=provenance["before"],rate=48000,block=128,seconds=30)
+                       fixture_subject=provenance["before"],input_mode="original; no scripted keyboard substitution",rate=48000,block=128,seconds=30)
               for side,root in roots.items():
                   result=call([binary(root,"wirescape_soak"),"--patch",fixture,"--rate",48000,
                                "--block",128,"--seconds",30],root,120)
-                  row[side]=parsed(result)
+                  row[side]=checked_row(parsed(result),
+                      dict(graph="document",sample_rate=48000,block=128,seconds=30),
+                      ("median","p99","max"))
               soak_rows.append(row)
           write("patch-cost.json",dict(provenance=provenance,rows=soak_rows,
                                       own_patch_names={k:sorted(v) for k,v in patches.items()}))
@@ -371,6 +393,70 @@ jobs:
                   except (OSError,ValueError,RuntimeError,subprocess.TimeoutExpired) as exc:
                       results[side]=dict(status="unmeasured",reason=str(exc).replace(temp,"<collector>").replace(str(root),"<subject>"))
           (out/"ui-frames.json").write_text(json.dumps(dict(provenance=meta,collector_subject=meta["after"],results=results),indent=2)+"\n")
+          PY
+      - name: Derive paired timing rows without changing raw evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          root=Path("evidence")
+          def read(name):
+              return json.loads((root/name).read_text())
+          meta=read("provenance.json")
+          def compare(before, after):
+              valid=lambda v: isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) and v>0
+              if not valid(before) or not valid(after):
+                  return dict(status="unmeasured",before=before,after=after,reason="positive finite paired measurements required")
+              return dict(status="measured",before=before,after=after,delta=after-before,ratio=after/before)
+          assert compare(10,15)==dict(status="measured",before=10,after=15,delta=5,ratio=1.5)
+          assert compare(None,15)["status"]=="unmeasured"
+          assert compare(0,15)["status"]=="unmeasured"
+          def timing(row, field, scale=1):
+              def value(side):
+                  record=row[side]
+                  if record["status"]!="measured":
+                      return None
+                  return record["data"]["render_ns"][field]*scale
+              result=compare(value("before"),value("after"))
+              if result["status"]!="measured":
+                  result["subject_status"]={side:row[side]["status"] for side in ("before","after")}
+              return result
+          def engine(side, field):
+              path=root/(side+"-engine.json")
+              if not path.is_file():
+                  return None
+              d=read(path.name)
+              return next(row[field] for row in d["rows"] if row["name"]=="abi2_poly8")
+          engine_rows={key:compare(engine("before",key),engine("after",key))
+                       for key in ("mean_ns","p99_ns")}
+          modules=[]
+          for row in read("module-cpu.json")["rows"]:
+              modules.append(dict(module=row["module"],channels=row["channels"],instances=2,
+                                  block=128,rate=48000,unit="ns/block",
+                                  p99=timing(row,"p99"),worst=timing(row,"max")))
+          patch_source=read("patch-cost.json")
+          patches=[]
+          for row in patch_source["rows"]:
+              p=dict(patch=row["patch"],fixture_sha256=row["fixture_sha256"],input_mode=row["input_mode"],
+                     rate=48000,block=128,seconds=30)
+              for key in ("median","p99","max"):
+                  p[key+"_ns"]=timing(row,key)
+                  p[key+"_percent_period"]=timing(row,key,100/(1e9*128/48000))
+              patches.append(p)
+          ranks={}
+          for side in ("before","after"):
+              observed=[r for r in patches if r["p99_ns"][side] is not None]
+              expected=patch_source["own_patch_names"][side]
+              complete=len(observed)==len(expected) and {r["patch"] for r in observed}==set(expected)
+              ranks[side]=dict(coverage="complete" if complete else "partial",
+                  measured=len(observed),expected=len(expected),
+                  maximum_p99_among_measured=max(observed,key=lambda r:r["p99_ns"][side])["patch"] if observed else None)
+          (root/"paired-timing-summary.json").write_text(json.dumps(dict(provenance=meta,
+              engine=dict(rate=48000,block=256,unit="ns/block",metrics=engine_rows),
+              modules=modules,patches=patches,patch_ranks=ranks,
+              ratio_definition="after/before; timing is hosted-runner diagnostic"),indent=2,allow_nan=False)+"\n")
           PY
       - name: Upload raw paired evidence, even on build or collection failure
         if: always()
