@@ -101,14 +101,11 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
             const auto &src = data.rows[i];
             if (!same(dst, src)) {
                 auto &cursor = route.cursors[i];
-                const auto &row = route.bus->rows[i];
-                const auto rises = row.rises.load(std::memory_order_acquire);
-                const auto falls = row.falls.load(std::memory_order_acquire);
-                // Crossings queued under an old route must not be sent to a
-                // new address. Account only previously enabled gate rows.
-                if (dst.enabled && dst.kind == 1)
-                    route.dropped.fetch_add(uint64_t(uint32_t(rises - cursor.rises)) +
-                        uint32_t(falls - cursor.falls), std::memory_order_relaxed);
+                // Preserve the last consumed counters. The worker will use
+                // the actual block's wire mark/baseline, even when rendering
+                // adopted the new table before this control edit joined it.
+                const auto rises = cursor.rises;
+                const auto falls = cursor.falls;
                 if (dst.enabled && dst.kind == 1 && cursor.sent_high) {
                     route.gate_release[i] = dst;
                     route.release_gates.set(i);
@@ -116,8 +113,7 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
                 cursor = {};
                 cursor.rises = rises;
                 cursor.falls = falls;
-                cursor.prior_blocks = row.blocks.load(std::memory_order_acquire);
-                cursor.wait_for_block = true;
+                cursor.wait_for_table = true;
                 std::memcpy(dst.address, src.address, sizeof(dst.address));
                 dst.kind = src.kind;
                 dst.deadband = src.deadband;
@@ -130,10 +126,7 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
                         sizeof(route.release_notes_address));
             route.notes_release = route.notes_high;
             for (auto &keys : route.notes_high) keys.reset();
-            const auto head = route.bus->note_head.load(std::memory_order_acquire);
-            const auto tail = route.bus->note_tail.load(std::memory_order_relaxed);
-            route.dropped.fetch_add(uint32_t(head - tail), std::memory_order_relaxed);
-            route.bus->note_tail.store(head, std::memory_order_release);
+            route.notes_cleanup = true; // worker drops old-address events, keeps fresh ones
             std::memcpy(route.config.notes.address, data.notes_address, sizeof(data.notes_address));
             route.config.notes.enabled = data.notes_enabled;
         }
@@ -145,7 +138,8 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
 void OutHost::start() noexcept {
     if (worker_.joinable() || routes_.empty()) return;
     bool enabled = false;
-    for (const auto &route : routes_) enabled |= route->enabled || route->has_releases();
+    for (const auto &route : routes_)
+        enabled |= route->enabled || route->has_releases() || route->has_cleanup();
     if (!enabled) return; // disabled modules must not open a socket
     socket_error_.store(0);
     running_.store(true, std::memory_order_release);
@@ -154,6 +148,7 @@ void OutHost::start() noexcept {
     } catch (...) {
         running_.store(false, std::memory_order_release);
         socket_error_.store(1, std::memory_order_release);
+        for (auto &route : routes_) route->drop_releases();
     }
 }
 void OutHost::stop() noexcept {
@@ -161,23 +156,26 @@ void OutHost::stop() noexcept {
     if (worker_.joinable()) worker_.join();
 }
 void OutHost::loop() noexcept {
+    bool need_socket = false;
+    for (const auto &route : routes_) need_socket |= route->enabled || route->has_releases();
 #ifdef _WIN32
     WSADATA data{};
-    if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
+    if (need_socket && WSAStartup(MAKEWORD(2, 2), &data) != 0) {
         socket_error_.store(1, std::memory_order_release);
+        for (auto &route : routes_) route->drop_releases();
         return;
     }
 #endif
-    Socket sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    bool ready = sock != invalid_socket;
-    if (ready) {
+    Socket sock = need_socket ? socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) : invalid_socket;
+    bool ready = !need_socket || sock != invalid_socket;
+    if (need_socket && ready) {
         sockaddr_in address{};
         address.sin_family = AF_INET;
         address.sin_port = 0;
         address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         ready = bind(sock, reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == 0;
     }
-    if (ready) {
+    if (need_socket && ready) {
 #ifdef _WIN32
         u_long nonblocking = 1;
         ready = ioctlsocket(sock, FIONBIO, &nonblocking) == 0;
@@ -189,8 +187,9 @@ void OutHost::loop() noexcept {
     if (!ready) {
         socket_error_.store(1, std::memory_order_release);
         if (sock != invalid_socket) close_socket(sock);
+        for (auto &route : routes_) route->drop_releases();
 #ifdef _WIN32
-        WSACleanup();
+        if (need_socket) WSACleanup();
 #endif
         return;
     }
@@ -236,21 +235,44 @@ void OutHost::loop() noexcept {
                     send(route, budget, route.release_notes_address, 3, args);
                     route.notes_release[channel].reset(key);
                 }
-            if (route.has_releases() || !route.enabled || !running_.load(std::memory_order_acquire)) continue;
+            if (route.has_releases() || !running_.load(std::memory_order_acquire)) continue;
             for (size_t i = 0; i < route.config.rows.size(); ++i) {
                 const auto &cfg = route.config.rows[i];
-                if (!cfg.enabled) continue;
-                const auto &row = route.bus->rows[i];
                 auto &cursor = route.cursors[i];
-                const auto blocks = row.blocks.load(std::memory_order_acquire);
-                if (!blocks || (cursor.wait_for_block && blocks == cursor.prior_blocks)) continue;
-                cursor.wait_for_block = false;
+                if (!cfg.enabled && !cursor.wait_for_table) continue;
+                OutRowSnapshot row;
+                if (!route.bus->rows[i].snapshot(row)) continue;
+                auto discard = [&](uint32_t rises, uint32_t falls) {
+                    route.dropped.fetch_add(uint64_t(uint32_t(rises - cursor.rises)) +
+                        uint32_t(falls - cursor.falls), std::memory_order_relaxed);
+                    cursor.rises = rises;
+                    cursor.falls = falls;
+                };
+                if (row.mark != out_wire_mark(cfg.address, cfg.kind, cfg.deadband, cfg.enabled != 0)) {
+                    // An in-flight old block may publish after ring acceptance.
+                    // It can only be suppressed, never encoded using the new table.
+                    if (cursor.wait_for_table) discard(row.rises, row.falls);
+                    continue;
+                }
+                if (cursor.wait_for_table) {
+                    // If fresh data already arrived before the host joined the
+                    // worker, discard just the crossings before that table's
+                    // baseline. Unsigned distance guards an A->B->A edit whose
+                    // intermediate table never rendered.
+                    const auto rises = uint32_t(row.baseline_rises - cursor.rises) <=
+                        uint32_t(row.rises - cursor.rises) ? row.baseline_rises : cursor.rises;
+                    const auto falls = uint32_t(row.baseline_falls - cursor.falls) <=
+                        uint32_t(row.falls - cursor.falls) ? row.baseline_falls : cursor.falls;
+                    discard(rises, falls);
+                    cursor.wait_for_table = false;
+                }
+                if (!cfg.enabled || !row.blocks) continue;
                 if (cfg.kind == 1) {
-                    const auto rises = row.rises.load(std::memory_order_relaxed);
-                    const auto falls = row.falls.load(std::memory_order_relaxed);
+                    const auto rises = row.rises;
+                    const auto falls = row.falls;
                     // Unsigned deltas remain correct across a 32-bit counter wrap.
                     const uint64_t edges = uint64_t(uint32_t(rises - cursor.rises)) + uint32_t(falls - cursor.falls);
-                    const bool high = row.value.load(std::memory_order_relaxed) >= 0.5f;
+                    const bool high = row.value >= 0.5f;
                     Argument arg{};
                     arg.type = 'f';
                     if (!cursor.initialized && !edges && budget) {
@@ -260,6 +282,10 @@ void OutHost::loop() noexcept {
                         cursor.initialized = true;
                     }
                     if (edges) {
+                        // The first fresh block may begin with a falling
+                        // edge from a held-high source. Infer its initial
+                        // level from the final level and crossing parity.
+                        if (!cursor.initialized) cursor.gate_high = high != bool(edges & 1u);
                         // At most four edges; on overflow preserve the first
                         // pulse and then reconcile with the true current level.
                         const uint32_t first = edges > 4 ? 2u : uint32_t(edges);
@@ -287,7 +313,7 @@ void OutHost::loop() noexcept {
                         cursor.gate_high = high;
                     }
                 } else {
-                    const float value = row.value.load(std::memory_order_relaxed);
+                    const float value = row.value;
                     const auto interval = std::chrono::duration<double>(1.0 / route.config.rate_hz);
                     if (budget &&
                         (!cursor.initialized || cursor.retry || std::abs(value - cursor.previous) > cfg.deadband) &&
@@ -303,12 +329,21 @@ void OutHost::loop() noexcept {
                     }
                 }
             }
-            if (route.config.notes.enabled) {
-                // Leave over-budget notes in the SPSC ring for the next poll.
+            if (route.config.notes.enabled || route.notes_cleanup) {
+                // A bounded ring entry carries the exact address of its block.
+                // Drop only stale entries, not fresh notes that arrived during
+                // control's accepted-only host handoff.
                 const auto head = route.bus->note_head.load(std::memory_order_acquire);
                 auto tail = route.bus->note_tail.load(std::memory_order_relaxed);
-                while (tail != head && budget) {
+                while (tail != head) {
                     const auto event = route.bus->notes[tail % route.bus->notes.size()];
+                    if (!route.config.notes.enabled ||
+                        std::memcmp(event.address, route.config.notes.address, sizeof(event.address)) != 0) {
+                        route.dropped.fetch_add(1, std::memory_order_relaxed);
+                        route.bus->note_tail.store(++tail, std::memory_order_release);
+                        continue;
+                    }
+                    if (!budget) break;
                     Argument args[3]{};
                     args[0].type = 'i';
                     args[0].integer = event.key;
@@ -322,13 +357,26 @@ void OutHost::loop() noexcept {
                     ++tail;
                     route.bus->note_tail.store(tail, std::memory_order_release);
                 }
+                if (route.notes_cleanup) {
+                    OutRowSnapshot note_mark;
+                    if (route.bus->note_route.snapshot(note_mark) &&
+                        note_mark.mark == out_wire_mark(route.config.notes.address, 0, 0,
+                                                       route.config.notes.enabled != 0) &&
+                        tail == route.bus->note_head.load(std::memory_order_acquire))
+                        route.notes_cleanup = false;
+                }
             }
+        }
+        if (!need_socket) {
+            bool cleanup = false;
+            for (const auto &route : routes_) cleanup |= route->has_cleanup();
+            if (!cleanup) break; // disabled cleanup never opens a socket
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    close_socket(sock);
+    if (sock != invalid_socket) close_socket(sock);
 #ifdef _WIN32
-    WSACleanup();
+    if (need_socket) WSACleanup();
 #endif
 }
 std::vector<OutState> OutHost::states() const {

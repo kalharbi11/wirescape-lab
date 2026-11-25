@@ -93,7 +93,13 @@ struct OscOut {
             // leading edge. Initial processing still counts real edges.
             const bool prime = prime_after_reset || (has_processed && changed && gate && !gate_active[i]);
             gate_active[i] = gate;
-            if (!cfg.enabled) continue;
+            OutWireMark mark{};
+            if (changed) mark = out_wire_mark(cfg.address, cfg.kind, cfg.deadband, cfg.enabled != 0);
+            auto &row = bus->rows[i];
+            if (!cfg.enabled) {
+                if (changed) row.publish(&mark, false, 0, 0, 0);
+                continue;
+            }
             const auto signal = block.in(i).ch(0); // FIRST poly policy: only voice 0
             const bool constant = block.in(i).constant();
             const float last = signal[constant ? 0 : frames - 1];
@@ -110,17 +116,12 @@ struct OscOut {
                 }
                 high[i] = was;
             }
-            auto &row = bus->rows[i];
-            row.value.store(last, std::memory_order_relaxed);
-            if (rises) row.rises.fetch_add(rises, std::memory_order_relaxed);
-            if (falls) row.falls.fetch_add(falls, std::memory_order_relaxed);
-            row.blocks.fetch_add(1, std::memory_order_release);
+            row.publish(changed ? &mark : nullptr, true, last, rises, falls);
         }
         last_serial = serial;
         has_processed = true;
         prime_after_reset = false;
-        if (!routes->notes_enabled) return;
-        for (const auto &event : block.events()) {
+        if (routes->notes_enabled) for (const auto &event : block.events()) {
             if (event.type != WS2_NOTE_ON && event.type != WS2_NOTE_OFF && event.type != WS2_NOTE_CHOKE) continue;
             const uint32_t head = bus->note_head.load(std::memory_order_relaxed);
             const uint32_t tail = bus->note_tail.load(std::memory_order_acquire);
@@ -128,10 +129,15 @@ struct OscOut {
                 bus->dropped.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
-            bus->notes[head % bus->notes.size()] =
-                OutNote{static_cast<int16_t>(event.key), static_cast<int16_t>(event.channel),
-                        event.type == WS2_NOTE_ON ? event.value : 0.f};
+            auto &note = bus->notes[head % bus->notes.size()];
+            note = OutNote{static_cast<int16_t>(event.key), static_cast<int16_t>(event.channel),
+                           event.type == WS2_NOTE_ON ? event.value : 0.f};
+            std::memcpy(note.address, routes->notes_address, sizeof(note.address));
             bus->note_head.store(head + 1, std::memory_order_release);
+        }
+        if (changed) {
+            const auto mark = out_wire_mark(routes->notes_address, 0, 0, routes->notes_enabled != 0);
+            bus->note_route.publish(&mark, false, 0, 0, 0);
         }
     }
     int save_state(ws::Writer w) { return w.u32(1) ? WS2_OK : WS2_CAPACITY; }

@@ -215,10 +215,9 @@ void test_osc_out_budget() {
         injected_values.fill(-1);
         wirescape::osc::OutHost sender(patch.dump(), hook);
         auto *bus = sender.buses().at(19);
-        bus->rows[0].rises.store(500, std::memory_order_relaxed);
-        bus->rows[0].falls.store(500, std::memory_order_relaxed);
-        bus->rows[0].value.store(0, std::memory_order_relaxed);
-        bus->rows[0].blocks.store(1, std::memory_order_release);
+        wirescape::osc::OutConfiguration cfg;
+        const auto mark = wirescape::osc::out_wire_mark(cfg.rows[0].address, 1, cfg.rows[0].deadband, true);
+        bus->rows[0].publish(&mark, true, 0, 500, 500);
         sender.start();
         const auto deadline = std::chrono::steady_clock::now() + 2s;
         while (injected_calls.load(std::memory_order_relaxed) < 2 && std::chrono::steady_clock::now() < deadline)
@@ -286,10 +285,11 @@ void test_a86_route_release() {
     ctx.data_count = 1; ctx.data = &view;
     ctx.events = {sizeof(ws2_event_list), 1, &note};
     ws::Block block(ctx);
-    auto drain = [&](unsigned expected) {
+    auto drain = [&](unsigned expected, uint64_t dropped = 0) {
         sender.start();
         const auto end = std::chrono::steady_clock::now() + 2s;
-        while (a86_count.load(std::memory_order_acquire) < expected &&
+        while ((a86_count.load(std::memory_order_acquire) < expected ||
+                sender.states().at(0).dropped < dropped) &&
                std::chrono::steady_clock::now() < end) std::this_thread::sleep_for(5ms);
         sender.stop();
         check(a86_count.load() == expected, "A86 exact datagram count");
@@ -311,7 +311,7 @@ void test_a86_route_release() {
     std::strcpy(next.rows[0].address, "/new/gate");
     std::strcpy(next.notes_address, "/new/note");
     sender.commit_data(19, next);
-    drain(4);
+    drain(4, 3);
     check(a86_wire[2].address == "/ws/row/1" && a86_wire[2].value == 0 &&
           a86_wire[3].address == "/ws/note" && a86_wire[3].key == 60 &&
           a86_wire[3].channel == 2 && a86_wire[3].value == 0,
@@ -335,7 +335,7 @@ void test_a86_route_release() {
     level = 1;
     note.key = 62;
     module.process(block);
-    drain(6);
+    drain(6, 5);
     check(bus == sender.buses().at(19) && bus->rows[0].blocks.load() == prior_blocks + 2,
           "A86 same bus, one late old block and first fresh block delivered");
     check(a86_wire[4].address == "/new/gate" && a86_wire[4].value == 1 &&

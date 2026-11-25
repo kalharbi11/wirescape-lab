@@ -29,8 +29,7 @@ struct OutState {
 class OutHost {
     struct RowCursor {
         uint32_t rises = 0, falls = 0;
-        uint32_t prior_blocks = 0;
-        bool wait_for_block = false;
+        bool wait_for_table = false;
         float previous = 0;
         bool initialized = false, gate_high = false, sent_high = false, retry = false;
         std::chrono::steady_clock::time_point last_send{};
@@ -46,6 +45,18 @@ class OutHost {
         std::array<OutRowConfig, 8> gate_release{};
         std::bitset<8> release_gates{};
         char release_notes_address[64]{};
+        bool notes_cleanup = false;
+        bool has_cleanup() const noexcept {
+            if (notes_cleanup) return true;
+            for (const auto &cursor : cursors) if (cursor.wait_for_table) return true;
+            return false;
+        }
+        void drop_releases() noexcept {
+            uint64_t count = release_gates.count();
+            release_gates.reset();
+            for (auto &keys : notes_release) { count += keys.count(); keys.reset(); }
+            dropped.fetch_add(count, std::memory_order_relaxed);
+        }
         bool has_releases() const noexcept {
             if (release_gates.any()) return true;
             for (const auto &keys : notes_release) if (keys.any()) return true;
