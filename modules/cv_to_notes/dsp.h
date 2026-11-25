@@ -36,7 +36,7 @@ struct CvToNotes {
     bool processed = false;
 
     void prepare(const ws::Setup &s) {
-        capacity = std::min(s.max_channels(), 16u);
+        capacity = std::min<uint32_t>(s.max_channels(), 16u);
         // Engine setup seeds each graph node independently (seed + node ID).
         // In combination with channel and note_id this is the note owner.
         source = static_cast<uint32_t>(s.config.seed);
