@@ -9,6 +9,7 @@ source. The old Qt app is retired, so don't use its shortcuts, packages or
 
 - [Windows 10/11 x64](#windows-1011-x64)
 - [Raspberry Pi 5](#raspberry-pi-5)
+- [Testing and reporting](#testing-and-reporting)
 - [Update to a later version](#update-to-a-later-version)
 - [Troubleshooting](#troubleshooting)
 
@@ -138,69 +139,109 @@ Device-off launch (silent, for checking the window only):
 
 ## Raspberry Pi 5
 
-**Post-S6 source-layout dry run (OB-b).** On an exact-commit checkout
-of the current mapped source tree, before installing or building anything, run:
+Use **64-bit Raspberry Pi OS (desktop)** on a Pi 5 (4 GB or more), with a USB audio interface
+for real sound. Build in a **new folder**; an older checkout stays untouched.
+
+### 1. Install once (owner, needs sudo)
 
 ```sh
-python3 tools/pi/ob_b_paths.py --dry-run
+sudo apt update
+sudo apt install -y git build-essential pkg-config python3 python3-venv \
+  libasound2-dev libportaudio2 libasound2-plugins \
+  libnss3 libgbm1 libgtk-3-0t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libxcomposite1 libxdamage1 libxrandr2
 ```
 
-This read-only check verifies 17 tracked source files across the retained
-`native/CMakeLists.txt` build root and relocated `engine/`, `host/` and
-`modules/` directories, plus the Electron/Studio and Pi support entry points.
-It also rejects four obsolete pre-S6 source paths (21 path assertions total).
-It does not call Git, install packages, build, launch the app, inspect actual
-devices or change files. `PASS 21/21` means only that source *paths* are
-consistent; it does **not** establish Pi ARM64 compilation, source provenance,
-device-off smoke, or sound/MIDI/LAN readiness. A missing path is a stop to
-inspect the selected checkout, not permission to move or overwrite any files.
+On Bookworm, drop the `t64` suffixes if apt cannot find those names. **Node 22 LTS** (arm64) comes
+from [nodejs.org](https://nodejs.org/en/download) or nvm (`nvm install 22`). If CMake 4.2.3 and
+Ninja 1.13.0 are not installed, put them in a venv inside the new checkout (step 2).
 
-Run the existing `tools/pi/preflight.py --check-only`, pinned
-`tools/pi/update-and-build.sh <full SHA>`, device-off tests and app smoke
-below as separate steps. Those owner-managed install/update commands are
-unchanged. The immutable pre-S6 `owner-build-0` checkout retains its
-original source layout; this new post-S6 checker does not apply to that tag
-and does not replace its installation/rollback procedure.
+**Realtime audio (recommended, once):** run `sudo usermod -aG audio "$USER"`, then create
+`/etc/security/limits.d/99-wirescape-audio.conf` with these two lines, and log out and back in:
 
-Use 64-bit Raspberry Pi OS (desktop). The full owner runbook, with package list,
-preflight, isolated profile and rollback, is [PI_FRESH_INSTALL.md](PI_FRESH_INSTALL.md).
-In short:
-
-```sh
-python3 tools/pi/preflight.py --check-only
-sh tools/pi/update-and-build.sh <full commit SHA>
-python3 tools/dev.py test
-python3 tools/pi/app_smoke.py --report build_reports/pi-app-smoke
-apps/desktop/node_modules/.bin/electron apps/desktop/build/main.js \
-  --engine "$PWD/build/native/wirescape-engine" --null-audio
+```
+@audio - rtprio 90
+@audio - memlock unlimited
 ```
 
-The Pi needs Node 22, Python 3.12, `build-essential`, `pkg-config`,
-`libasound2-dev` and `libportaudio2`. Build in a **new folder** with the full SHA
-of current `main` (it includes the OSC In range scaling, #742, and the ESP32
-launcher, #748):
+### 2. Get the version and build (devices stay off)
 
 ```sh
 git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape-test
 cd ~/wirescape-test
-Ref=$(git rev-parse origin/main) && git switch --detach "$Ref"
-python3 tools/pi/preflight.py --check-only
-sh tools/pi/update-and-build.sh "$Ref"
-# The updater already records the Release Electron build provenance for launch.
+Ref=$(git rev-parse origin/main)          # or the commit named in docs/releases/
+git switch --detach "$Ref"
+# Only if cmake/ninja are missing or the wrong version:
+python3 -m venv .tools/build-tools && . .tools/build-tools/bin/activate
+python -m pip install cmake==4.2.3 ninja==1.13.0
+python3 tools/pi/preflight.py --check-only   # read-only; lists anything missing
+sh tools/pi/update-and-build.sh "$Ref"       # ~30-60 min the first time; add --jobs 1 if low on memory
+python3 tools/dev.py test                    # headless tests
+python3 tools/pi/app_smoke.py --report build_reports/pi-app-smoke   # needs the desktop session
 ```
 
-**Launch with sound, MIDI and LAN OSC** (for an ESP32 or another network
-controller; all three flags are needed, because LAN consent alone keeps null audio
-and loopback-only OSC):
+The build logs and summary are in `build_reports/pi-source-build/<sha>/`. A failed stage names
+its log file. Fix that, then rerun the same command.
+
+### 3. Launch
 
 ```sh
-python3 tools/dev.py launch --confirm-audio --confirm-midi --confirm-lan
+python3 tools/dev.py launch --confirm-audio --confirm-midi            # sound + MIDI
+python3 tools/dev.py launch --confirm-audio --confirm-midi --confirm-lan   # + LAN OSC (ESP32)
 ```
 
-ESP32 wiring, sketch settings and OSC In scaling: [CONTROLLERS.md](CONTROLLERS.md).
-Pi status: since the Qt removal (2026-11-13), the private Pi runner hasn't
-reported on `main`. CI's `linux-arm64` job (same CPU architecture) and a full
-headless build/test are green, but report anything odd on #581.
+LAN consent alone keeps null audio and loopback-only OSC; all three flags are needed for a network
+controller ([CONTROLLERS.md](CONTROLLERS.md)). The launcher refuses a stale or incomplete build.
+Optional, per user, no sudo: `sh tools/pi/install-desktop-entry.sh` adds a menu entry, and
+`sh tools/pi/install-autostart.sh` (`--remove` to undo) starts Wirescape at login.
+
+To check realtime priority while it runs: `chrt -p "$(pgrep -fo '(^|/)wirescape-engine( |$)')"`
+should print `SCHED_FIFO` with a nonzero priority.
+
+**What CI already covers for the Pi:** every PR builds and runs the full headless suite on hosted
+Linux arm64 (same CPU architecture), with Golden renders and portability checks. What it cannot do:
+real Pi timing, the screen, audio and MIDI. Those come from the records below.
+
+## Testing and reporting
+
+Every record is device-off unless the step says 🔊. Upload each zip to
+[OWNER-REC #590](https://github.com/kalharbi11/wirescape-lab/issues/590) and paste its summary table.
+The lead turns it into a `facts/device/results/` file.
+
+**Device-off record (Windows or Pi, same command).** Run it after a successful build, in the same folder:
+
+```sh
+python3 tools/owner_record.py --tier quick      # ~10 min: tests, engine benchmark, every module's CPU, 60 s edit soak
+python3 tools/owner_record.py --tier standard   # ~45 min: longer probes, CHAOS 120 s, 10 min edit soak
+python3 tools/owner_record.py --tier long       # ~2.5 h: 60 s per module, 1 h edit soak (leave it running)
+```
+
+On Windows use `py -3.12 tools\owner_record.py …` in the x64 developer shell. On the Pi, add
+`--app-smoke` from the desktop session, and the record also samples CPU temperature and throttling.
+It writes `build_reports/owner-record/owner-record-<sha>-<kind>-<tier>-<time>.zip`. User names
+and home paths are removed. Exit code 0 means every step passed.
+
+**🔊 Owner acceptance (OB1).** These need you at the machine:
+1. **Listening (OB-d):** play the patches listed in `facts/sound/ob_d_patches.md` and note anything wrong.
+2. **Your patch folder (OB-a2):** copy your patches to a temporary folder, then
+   `python3 tools/patch_roundtrip.py --renderer build/native/wirescape_render --dir <copy-folder>`
+   ([tools/pi/README.md](../tools/pi/README.md)). Upload only the pass/fail summary, never private patches.
+3. **Pi 100-edit session:** on the clean, built candidate, close Wirescape and other audio apps.
+   Replace the exact output name and 256 with your device and actual buffer size. Start at safe volume.
+
+   ```sh
+   python3 tools/pi/acceptance_session.py --dry-run --buffer 256
+   python3 tools/pi/acceptance_session.py --confirm-audio --device "EXACT OUTPUT NAME" --buffer 256 --report build_reports/pi-owner-session.json
+   ```
+
+   The dry run opens no device. The owner run requires 100 accepted edits, zero observed cumulative
+   xruns and a correlated configuration deferral. It records the exact build, edit latencies and
+   the two hosted CN cost rows. Fill in the report's `visible_stutter` field only after actual
+   observation of the UI; the runner itself drives the sidecar, not the Studio compositor.
+   Upload the report and observation to [OWNER-REC #590](https://github.com/kalharbi11/wirescape-lab/issues/590).
+   See [owner-only acceptance details](PI_APP_SMOKE.md#owner-only-ob1-100-edit-session-579).
+   The separate long record is a device-off soak, not a substitute for this acceptance session.
+4. **Windows play test:** `04-combined` for 20 min at WASAPI 48 kHz / 256, then 10 min at 128. Note
+   any crackle, stuck note or UI freeze, with the minute it happened.
 
 ## Update to a later version
 
@@ -252,7 +293,7 @@ To go back, `git switch --detach <old sha>` and rerun the same build commands.
 Repeat Windows steps 2–4 in a **new folder**, using that version's commit from
 its release notes. Keep the previous folder until the new one passes your test.
 Switching back just means running the old folder's `tools\windows\Wirescape.cmd`.
-On the Pi, follow [PI_FRESH_INSTALL.md](PI_FRESH_INSTALL.md) in a new folder.
+On the Pi, repeat [Pi step 2](#2-get-the-version-and-build-devices-stay-off) in a new folder.
 
 ## Troubleshooting
 
