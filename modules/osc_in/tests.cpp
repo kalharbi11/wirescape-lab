@@ -15,6 +15,8 @@ struct Rig {
     ws2_signal_out outputs[9]{};
     ws2_event_out events[9]{};
     ws2_process ctx{};
+    alignas(16) osc::OscInRows slot_data{};
+    ws2_data slot_view{sizeof(ws2_data), &slot_data, sizeof(slot_data), 1};
     uint32_t emitted = 0;
     static int WS2_CALL push(void *p, uint32_t, const ws2_event *) {
         ++static_cast<Rig *>(p)->emitted;
@@ -36,6 +38,19 @@ struct Rig {
         ctx.output_count = 9;
         ctx.outputs = outputs;
         ctx.event_outputs = events;
+        // Direct descriptor harness: supply the same fully materialized rows as
+        // the document loader will. Preserve all existing fixture assertions.
+        for (uint32_t i = 0; i < 8; ++i) {
+            const auto &src = cfg.rows[i];
+            auto &dst = slot_data.rows[i];
+            std::memcpy(dst.pattern, src.pattern, sizeof(dst.pattern));
+            dst.argument = src.argument; dst.kind = src.kind;
+            dst.input_min = src.input_min; dst.input_max = src.input_max;
+            dst.output_min = src.output_min; dst.output_max = src.output_max;
+            dst.smoothing_ms = src.smoothing_ms; dst.timeout_ms = src.timeout_ms;
+            dst.stale = src.stale; dst.enabled = uint8_t(src.enabled);
+        }
+        ctx.data_count = 1; ctx.data = &slot_view;
     }
     ~Rig() { d->destroy(state); }
     void run(const std::vector<ws2_event> &input = {}, uint32_t frames = 32) {
@@ -106,7 +121,8 @@ static void live_route_data() {
     REQUIRE(smooth && smooth->type == WS2_F_F32);
     // Seed every scalar from its descriptor defaults; text defaults are empty.
     // Build complete records with explicit routes to avoid relying on migration.
-    std::vector<uint8_t> packed(slot->bytes, 0);
+    REQUIRE(slot->bytes == sizeof(osc::OscInRows));
+    alignas(16) std::array<uint8_t, sizeof(osc::OscInRows)> packed{};
     for (uint32_t row = 0; row < rows->count; ++row) {
         auto *dst = packed.data() + rows->offset + row * rows->stride;
         for (uint32_t j = 0; j < rows->field_count; ++j) {
@@ -123,7 +139,8 @@ static void live_route_data() {
     data[0] = {sizeof(ws2_data), packed.data(), slot->bytes, 1};
     rig.ctx.data_count = uint32_t(data.size()); rig.ctx.data = data.data();
     auto first = packet("/pico1/knob/1", .25f), next = packet("/live/route", .75f);
-    rig.run({message(first)});
+    auto other = packet("/pico1/knob/2", .5f);
+    rig.run({message(first), message(other)});
     REQUIRE(rig.data->values[0][0][31] == .25f);
     auto *text = packed.data() + rows->offset + pattern->offset;
     std::memset(text, 0, pattern->count);
@@ -133,6 +150,7 @@ static void live_route_data() {
     REQUIRE(rig.data->values[0][0][31] == .75f);
     rig.run({message(first)});
     REQUIRE(rig.data->values[0][0][31] == .75f);
+    REQUIRE(rig.data->values[1][0][31] == .5f); // untouched row retains held value
 }
 int main() {
     live_route_data();
