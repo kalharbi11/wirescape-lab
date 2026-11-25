@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
-import { grooveExecution } from '../src/groove/livePattern';
+import { grooveExecution, grooveEditorConfig, mergeGroovePattern } from '../src/groove/livePattern';
 
 test('Groove E3b projection separates live fields and preserves typed rows', () => {
   const cfg = { version: 2, bpm: 120, tempo_source: 'host', extra: 'preserved',
@@ -40,4 +40,28 @@ test('Groove E3b legacy v1 keeps 32-step meaning and invalid chords are not repa
     velocity: Math.fround(.8), key_count: 1 });
   expect(grooveExecution({ version: 2, bpm: 120, tracks: [{ steps: [
     { kind: 'note', key: 60, keys: [60, 60], velocity: 1 }] }] })).toBeNull();
+});
+
+test('Groove E3b canonical data hydrates the editor, explicit slot wins and unknown fields survive save', () => {
+  const module = { config: { version: 2, bpm: 120, tracks: [{ div: 2,
+    steps: [{ kind: 'note', key: 60, velocity: 1 }] }] }, data: { future_slot: { keep: true },
+    pattern: { length_1: 8, length_2: 32, tempo_source: 'host', future: { opaque: true },
+      steps_1: [{ kind: 'note', key: 72, velocity: .5, key_count: 2, keys: [72, 67, 0, 0, 0],
+        gate_q: 2, cond_type: 1, cond_a: 50, future_row: 9 }], steps_2: [] } } };
+  const before = structuredClone(module);
+  const editor = grooveEditorConfig(module)!;
+  expect(editor.tracks[0]!.steps[0]).toEqual({ kind: 'note', key: 72, velocity: .5,
+    keys: [72, 67], gate: .5, cond: { type: 'chance', p: 50 } });
+  expect(editor.tracks[0]!.length).toBe(8);
+  expect(editor.tempo_source).toBe('host');
+  editor.tracks[0]!.steps[0]!.velocity = .75;
+  const wire = grooveExecution(editor)!.pattern;
+  expect(wire.steps_1[0]).not.toHaveProperty('future_row');
+  const saved = mergeGroovePattern(module.data, wire);
+  expect(saved.future_slot).toEqual({ keep: true });
+  expect(saved.pattern).toMatchObject({ future: { opaque: true } });
+  expect((saved.pattern as { steps_1: unknown[] }).steps_1[0]).toMatchObject({ future_row: 9, velocity: .75 });
+  expect(module).toEqual(before);
+  expect(grooveEditorConfig({ config: module.config, data: { pattern: { length_1: 12 } } })).toBeNull();
+  expect(grooveEditorConfig({ config: module.config, data: { pattern: {} } })!.tracks[0]!.steps).toEqual([]);
 });
