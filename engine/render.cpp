@@ -114,6 +114,10 @@ void Engine::Impl::collect() {
     // The predecessor pointer was consumed before ack; only layout-owned tails
     // are safe to touch here (in particular, no retired output-less host sink).
     for (const auto &replacement : render_layout->replacements) {
+        // A71: successful adopt copied held state; preserve the old instance's
+        // held output during fade-out. Only the successor receives new events.
+        // The copied successor ledger is authoritative, so do not replay.
+        if (replacement.adopted) continue;
         if (auto *tail = replacement.tail) {
             auto release_all = [&](uint32_t port) {
                 ws2_event e{};
@@ -132,7 +136,6 @@ void Engine::Impl::collect() {
                             [](const auto &e) { return e.port == WS2_DIRECT_PORT; }))
                 release_all(WS2_DIRECT_PORT);
         }
-        if (replacement.adopted) continue; // The copied ledger is already authoritative.
         auto &successor = *replacement.successor;
         uint64_t order = 1;
         for (const auto &held : successor.instance.held_notes) {
