@@ -35,6 +35,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked until OB1; PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
+| B1-A80-review | 2026-11-25 | gpt-builder1 | Claude contract review | soon (OB1.1, blocks B2/B5 shared writer) | [#585 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/585#issuecomment-7177065127): base `4a5f2e6745da04e9a7a92801714beaa843aa7047`, head `73bda362a66e86ed22c7a32bd09a210c07d4d331`; exact Lab and Web green. Review A80 session/correlation/rollback/namespace invariants; ready-event Lab 45718058049 queued; merge only after applicable checks. | #555/#585, then #540/#545 shared transport |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
