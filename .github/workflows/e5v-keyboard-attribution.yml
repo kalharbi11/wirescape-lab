@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: E5v keyboard attribution (advisory)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/e5v-keyboard-attribution.yml"
+      - "bench/m1/keyboard_attribution.py"
+      - "bench/m1/test_keyboard_attribution.py"
+permissions:
+  contents: read
+jobs:
+  attribution:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      BASE_SHA: ba17d7ebbf80eaf6ff34d5788b303ec7f740550d
+      HEAD_SHA: 27f988129b636b0a1f7f5c9035f3607316f44b06
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+      CXXFLAGS: "-g"
+      CFLAGS: "-g"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: helper
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ba17d7ebbf80eaf6ff34d5788b303ec7f740550d
+          path: base
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 27f988129b636b0a1f7f5c9035f3607316f44b06
+          path: head
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned build tools and profiler
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0 numpy scipy
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends valgrind
+      - name: Verify helper and exact source pins
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          test "$(git -C base rev-parse HEAD)" = "$BASE_SHA"
+          test "$(git -C head rev-parse HEAD)" = "$HEAD_SHA"
+          {
+            git -C helper rev-parse HEAD
+            printf 'base=%s\nhead=%s\nCFLAGS=%s\nCXXFLAGS=%s\n' "$BASE_SHA" "$HEAD_SHA" "$CFLAGS" "$CXXFLAGS"
+            uname -m
+            c++ --version
+            cmake --version
+            valgrind --version
+          } > evidence/provenance.txt
+          python -m unittest discover -s helper/bench/m1 -p test_keyboard_attribution.py -v
+      - name: Build both pinned probes in Release
+        run: |
+          set -euo pipefail
+          for side in base head; do
+            cmake -S "$side/native" -B "$side/build/native" -G Ninja -DCMAKE_BUILD_TYPE=Release
+            cmake --build "$side/build/native" --target abi2_module_cpu_probe
+            grep '^CMAKE_\(C\|CXX\)_FLAGS' "$side/build/native/CMakeCache.txt" > "evidence/$side-flags.txt"
+          done
+          diff -u evidence/base-flags.txt evidence/head-flags.txt
+      - name: Profile both lengths and retain raw and annotated evidence
+        run: |
+          set -euo pipefail
+          for side in base head; do
+            for voices in 1 8; do
+              for blocks in 12 24; do
+                seconds=0.032
+                if [[ "$blocks" == 24 ]]; then seconds=0.064; fi
+                prefix="evidence/$side-$voices-$blocks"
+                valgrind --tool=callgrind --error-exitcode=77 --dump-instr=no --compress-strings=no \
+                  --callgrind-out-file="$prefix.callgrind" "$side/build/native/abi2_module_cpu_probe" \
+                  --module host.keyboard --rate 48000 --block 128 --channels "$voices" --instances 1 --seconds "$seconds" \
+                  > "$prefix.stdout" 2> "$prefix.stderr"
+                PYTHONPATH="$side" python -c 'import sys; from bench.gate.instructions import verify_module_probe; verify_module_probe(open(sys.argv[1]).read(), dict(module="host.keyboard", channels=int(sys.argv[2]), instances=1, sample_rate=48000, block=128, blocks=int(sys.argv[3]), seconds=float(sys.argv[4])))' "$prefix.stdout" "$voices" "$blocks" "$seconds"
+                callgrind_annotate --threshold=100 --show-percs=no --auto=no "$prefix.callgrind" > "$prefix.annotated.txt"
+              done
+            done
+          done
+          for voices in 1 8; do
+            python helper/bench/m1/keyboard_attribution.py --base-root base --head-root head \
+              --profiles evidence --voices "$voices" --out "evidence/voices$voices.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e5v-keyboard-attribution-x64
+          path: evidence/
+          if-no-files-found: warn
