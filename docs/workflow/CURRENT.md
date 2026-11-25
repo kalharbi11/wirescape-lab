@@ -19,6 +19,7 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
   - **Lead:** merge #525 on verified evidence; KNOWN_ISSUES A2 keeps the numbers.
 - **A82** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7157534847)), B2 A81 witness: OSC In is accepted, under device-off conditions with no LAN socket and no core seam. Order is unchanged: shared edits wait for #538. Inbox PR #562 is closed as superseded; the row is cleared here.
 - **B4 assigned M10 S2 [#564](https://github.com/kalharbi11/wirescape-lab/issues/564):** Cortex-M7 double/soft-float symbol names and `facts/repo/module_memory.md`, including the 96 kHz saved-state size against the cap (#539 L1). Facts only; lead merge. An OB1 sound follow-up from the #492 audit preempts it.
+- **OB-d #492 approved and merged `3aa0c33`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/492#issuecomment-7157666223)), at the owner's request: facts only, exact-head Lab green, owner listening still pending (acceptance 4). L1: drop "(draft)" from the ledger heading in the next ledger edit. **B1** goes next to owner-listening support, then A80 #555 after #538.
 - **Held:** #538 waits for its ready-head gates, signed Result and inbox pin; #540 waits for #538.
 - **Next Architect run:** `architect-ready` once #538 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:**
   1. review #538 against A78/A80/A81, with B2's OSC timeout caveat;
