@@ -341,8 +341,39 @@ void test_a86_route_release() {
     check(a86_wire[4].address == "/new/gate" && a86_wire[4].value == 1 &&
           a86_wire[5].address == "/new/note" && a86_wire[5].key == 62 &&
           a86_wire[5].value == .75f, "A86 first fresh block only new table");
+    // Reverse ordering: render can adopt the new slot before control has
+    // handed it to the sender. An unchanged gate proves the old worker polled
+    // that very block; the fresh note must stay queued, not be sent/dropped.
+    auto third = next;
+    std::strcpy(third.notes_address, "/third/note");
+    view.data = &third; view.serial = 3;
+    level = 0; note.key = 64;
+    module.process(block);
+    drain(7, 5);
+    check(a86_wire[6].address == "/new/gate" && a86_wire[6].value == 0 &&
+          sender.states().at(0).dropped == 5, "A86 early fresh note remains queued");
+    sender.commit_data(19, third);
+    drain(9, 5);
+    check(a86_wire[7].address == "/new/note" && a86_wire[7].key == 62 &&
+          a86_wire[7].value == 0 && a86_wire[8].address == "/third/note" &&
+          a86_wire[8].key == 64 && a86_wire[8].value == .75f,
+          "A86 release old note before delivering early fresh note");
+    // Likewise, an unchanged note proves the sender inspected the early
+    // fresh gate block before the control-side table was adopted.
+    auto fourth = third;
+    std::strcpy(fourth.rows[0].address, "/fourth/gate");
+    view.data = &fourth; view.serial = 4;
+    level = 1; note.key = 65;
+    module.process(block);
+    drain(10, 5);
+    check(a86_wire[9].address == "/third/note" && a86_wire[9].key == 65 &&
+          sender.states().at(0).dropped == 5, "A86 early fresh crossing preserved");
+    sender.commit_data(19, fourth);
+    drain(11, 5);
+    check(a86_wire[10].address == "/fourth/gate" && a86_wire[10].value == 1,
+          "A86 early fresh gate encoded only with its own table");
     const auto state = sender.states().at(0);
-    check(state.sent == 6 && state.dropped == 5, "A86 exact sent/drop accounting");
+    check(state.sent == 11 && state.dropped == 5, "A86 exact sent/drop accounting");
     std::cout << "A86 wire sent=" << state.sent << " dropped=" << state.dropped
               << " stale blocks suppressed <=1; old gate/note released\n";
 }
