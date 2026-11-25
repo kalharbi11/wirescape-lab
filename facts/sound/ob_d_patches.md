@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB-d bundled-patch sound-change ledger (draft)
 
-2026-11-24 ET. OB r2.9, M7 r1.9. This is a per-stage record, not a cumulative
+2026-11-24 ET. OB r2.9, M7 r1.9a. This is a per-stage record, not a cumulative
 OB0→OB1 measurement or owner listening result. Final S7.6 and candidate rebuild
 remain pending. No preset edits in this draft. OB0 was accepted at
 `a440d7175659402474290e34a1d63b4404dcaa72` ([release record](../../docs/RELEASES.md));
@@ -104,12 +104,14 @@ r=.5/.9 or the analytic formula.
   subject `4fcaa04abaa8ecd5018f55b98e3c76f5d6e0045d`, [B4 raw Result](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151834512).
   x64/ARM64 tone +0.093163/+0.093149 dB over a valid steady target; clocked
   division −2.271051/−2.271145 dB below old floor; unclocked `no_effect`.
-  Mode +3.614379/+3.614350 dB over r1.9 governing old floor, because the
-  fixed-window target peak is about 0.303 dB below its last-12k peak. Matched
-  target residual +0.030469/+0.030424 dB is diagnostic, not a pass under r1.9.
-  [Exact-row A64 question](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7151708363)
-  is in the Architect inbox. Record final Golden scope and D5 only after ruling
-  and review; do not assume unchanged. No rerender requested at unchanged pins.
+  [A64 r1.9a ruling](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7151869667)
+  corrects target validity to a one-sided check. Mode fixed-window target is
+  −0.302848/−0.302834 dB relative to the last-12k peak, therefore valid;
+  governing endpoint excess +0.030469/+0.030424 dB meets the bound.
+  [B4 reclassification of preserved raw](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151886320):
+  all three numeric rows meet; no rerender or changed stimulus. This is not
+  final PR acceptance. Record final Golden scope and D5 after B1's final gates
+  and Architect review; do not assume unchanged.
 
 ## Rebuild and owner listening (pending)
 
