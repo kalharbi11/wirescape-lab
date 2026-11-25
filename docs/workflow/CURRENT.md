@@ -7,8 +7,141 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/CURRENT.md) and
 [the 2026-11-17 archive](https://github.com/kalharbi11/wirescape-lab/blob/cdc8f144a66653fba66c78563c2e612ee0f4ba4b/docs/workflow/archive/CURRENT-2026-11-17.md).
 
-**Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex); `claude-lead` acted as lead in run 43b at the owner's request; the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run 43b — 2026-11-25 04:25 EST (claude-lead at the owner's request)
+
+- **Merged:** #538 `4f0bf18` (Architect approval, A84) and docs #572.
+- **Released:**
+  - B2 #540 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7158125250)), with the label set to in-progress;
+  - B5 #545 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7158126722));
+  - B1 #555 after owner-listening support ([dispatch](https://github.com/kalharbi11/wirescape-lab/issues/555#issuecomment-7158127785)).
+  The first shipped-slot PR carries A81(3)/A82.
+- **#525 merged `ff20670`** after Golden 45582645626 passed on top of exact Lab, A62, native and cost runs. B3 is released to A2 #570 ([dispatch](https://github.com/kalharbi11/wirescape-lab/pull/570#issuecomment-7158178541)).
+- **B4 #567:** exact Lab green; B4 readies it for the portability evidence.
+- **Parked, unchanged:** #497 (A67, until after OB1), #333 Gate Delay, #176 MT2 (A3 later).
+- **Auto-merge note:** GitHub refuses auto-merge while an advisory check is red ("unstable"), even with every required check green. The lead then merges by hand on verified required checks; advisory reds are recorded, never counted as a pass.
+
+Signed: claude-lead, 2026-11-25
+
+## Architect run 43 — 2026-11-25 04:15 EST (#538 approved and merged, A84; owner `architect:run`)
+
+- **#538 E3a-2 approved and merged `4f0bf18`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7158068546)) at exact head `bd4b69c`, tested base `5ca0f19`. All E3a §6 criteria, A75/A77/A78/A80/A81 and G8 are met; no High or Medium findings. The Architect merged it directly at the owner's request: auto-merge was refused because advisory checks leave the PR "unstable", while every required check was green. Main's delta since the base touches other files, and the merge is clean.
+- **A84** ([M4](milestones/M4.md)): the OSC counter restart after a post-staging publication timeout needs no correction under A51/A78(2). Routes, data and the document stay unchanged; only telemetry restarts. L1 (spec sentence) goes into E3c's next protocol edit.
+- **Advisory, kept apart from the gates:** the OB-g7 L0 config-edit drops (osc-heavy route 14: 0→6, mixed route 10: 0→24) are the A67 class, parked until after OB1 (#497). The instruction advisory (8 failures on x64, 12 on arm64 against the historical baseline) is outside G8. Neither is a tier PASS.
+- **#525 checked against A83:** every cap is met at `63d90c1`. Smaller 15/15 exact; larger 18/18 post-bracket exact, `freshModules` [], Delay and the held note sounding, clock slip 0; span 479 ≤ 480 frames; first mismatch no earlier than the edit; at most one newly silent sample; dip and jump reported. The arm64 raw A62 row is unmeasured and labelled so. It is a lead merge with no Architect condition; auto-merge was refused ("unstable"). **Lead:** merge after the ready-event Golden run 45582645626 passes.
+- **Released by the #538 merge:** B2 #540 E3c shared integration (it carries the A81(3)/A82 witness and L1); B5 #545 E3b integration, which moves the witness to Groove if it merges first; B1 #555 after owner-listening support.
+- **Next Architect run:** `architect-ready` when #540 or #545 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:** (1) review the first shipped-slot PR's A81(3)/A82 witness on both Linux arches; (2) confirm #525 merged and A2 #570 was reconciled; (3) take the OB1 acceptance items once their evidence exists: owner listening (OB-d), the candidate Studio recheck, the owner patch-folder round trip, and the 100-edit Pi session (0 xruns, no visible stutter, both transition costs recorded).
+
+Signed: claude-architect, 2026-11-25
+
+## Lead run — 2026-11-25 04:05 EST (E3a-2 review released)
+
+- **#568 merged `5b097c2`** on exact docs Lab. **#538 is ready for required Claude contract review** at `bd4b69cf1a5b103f05b613eeb27081e390c14def`, tested base `5ca0f1938fb851acce158272377a1ebe7631f4d2`. [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7157636089), B2 source re-review, and exact ready-state Lab/Golden/strict paired are verified. Review the post-staging OSC counter reset risk against A51/A78(2) and record the advisory instruction and hosted I/O nonpasses. A81/A82 first-shipped-slot carry remains binding. Owner manually starts `architect:run`.
+- **OB1:** #492 and its follow-up #566 already merged. Owner listening remains due under OB-d. B3 #525 `63d90c1` has A83 facts and successful A62/native/cost runs. Exact Lab and the signed Result still gate lead merge; A2 #570 follows. The prior-head Windows retry was cancelled after the new push. Respect the Architect's flake routing if the same test fails again on the current head.
+- **Other lanes:** B2 shared E3c and B1 #555 wait for actual #538 merge. B4 #567 collects M10 S2 facts with current Lab in progress. B5 #545 remains draft-ahead. No further design ruling is open for A82 or A83. OB1 candidate acceptance follows the CN/A2 and listening evidence plus the candidate checks.
+
+Signed: codex-lead, 2026-11-25, 04:05 EST
+
+## Architect run 42 — 2026-11-25 (A82, A83, B4 assigned; owner `architect:run`)
+
+- **A83** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/523#issuecomment-7157532240)), B3 larger-buffer CN: no further correction. A bounded disposition is recorded in [M4](milestones/M4.md).
+  - The post-bracket second stays gated: sample-exact, `freshModules` [], tail and held note sounding.
+  - The rule-2 stream-stop bracket is reported, not gated: span ≤ 10.0 ms, silence ≤ 1 sample.
+  - It expires at OB1.1 close or with any restart/mute-path or `max_block` change.
+  - **B3:** finish #525 with the larger row recorded under A83, then the signed Result.
+  - **Lead:** merge #525 on verified evidence; KNOWN_ISSUES A2 keeps the numbers.
+- **A82** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7157534847)), B2 A81 witness: OSC In is accepted, under device-off conditions with no LAN socket and no core seam. Order is unchanged: shared edits wait for #538. Inbox PR #562 is closed as superseded; the row is cleared here.
+- **B4 assigned M10 S2 [#564](https://github.com/kalharbi11/wirescape-lab/issues/564):** Cortex-M7 double/soft-float symbol names and `facts/repo/module_memory.md`, including the 96 kHz saved-state size against the cap (#539 L1). Facts only; lead merge. An OB1 sound follow-up from the #492 audit preempts it.
+- **#525 Lab red at `bfc9281` is an unrelated Windows timing flake** ([note](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7157596456)): `abi2_midi_egress_gate_tests` raised `unexpected_gate_edge`, and the Linux reds are only the aggregate failing closed. Only facts changed since the green `09e5820`. I re-ran the failed jobs at the same head. If it repeats, the lead files a flake issue for B2 (`host/midi/`); B3 does not touch it.
+- **OB-d #492 approved and merged `3aa0c33`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/492#issuecomment-7157666223)), at the owner's request: facts only, exact-head Lab green, owner listening still pending (acceptance 4). L1: drop "(draft)" from the ledger heading in the next ledger edit. **B1** goes next to owner-listening support, then A80 #555 after #538.
+- **Held:** #538 waits for its ready-head gates, signed Result and inbox pin; #540 waits for #538.
+- **Next Architect run:** `architect-ready` once #538 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:**
+  1. review #538 against A78/A80/A81, with B2's OSC timeout caveat;
+  2. check that #525 recorded the larger row under A83 within its caps;
+  3. check #492's final ledger against the OB1 acceptance rows.
+
+Signed: claude-architect, 2026-11-25
+
+## Lead run — 2026-11-25 03:32 EST (after Delay merge)
+
+- **OB1:** B1 #492 can consume the [integrated OB-a1 artifact](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/artifacts/15005210459). The owner listening handoff follows the audited 15-case ledger. B3 #525 `09e5820` has successful final A62/native/A69a capture runs at subject `8c9bb10`; the numerical audit, exact-source A70 assertions and signed PR evidence still gate disposition. B4 completed #539 and is available for scoped sound follow-up. L1 is recorded in the [limits inventory](../../facts/compare/measured/wirescape_limits.md), with replacement-path behavior retained as a follow-up.
+- **OB1.1:** B2 completed its [#538 source re-review](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7157016188). Exact Lab [45575005623](https://github.com/kalharbi11/wirescape-lab/actions/runs/45575005623) passed at `bd4b69c`; the lead moved #538 out of draft to start A54 CI. Carry the post-staging OSC publication-timeout counter caveat into the A78/A51 review. #540 shared integration and #555 client work wait for #538. #545 direct migration passed on both Linux arches, with full Lab/Web red and shared integration gated. A81 remains binding on the first shipped-slot PR.
+- **Next Architect run:** #538 only after current-head ready CI, signed Result and fresh inbox pin. Its contract review is separate from OB1. For OB1, finish integrated CN/cost and OB-d, then run candidate OB-f1. The owner listens to affected patches, runs OB-a2 on the actual patch folder, and installs and runs the 100-edit Pi session with zero xruns and no visible stutter. Record both CN costs before acceptance and tagging.
+
+Signed: codex-lead, 2026-11-25, 03:32 EST
+
+
+## Architect run 41 — 2026-11-25 03:40 EST: #539 approved and merged (owner `architect:run`)
+
+- **#539 E7c-b approved and merged `8c9bb10`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7157010908)) at exact head `1044ddb`, base `5ca0f19`. A70/A70a/A73/A79 and A72 invariance are met. The A79 accessor is used verbatim; the v2 payload is 144 + 8·size bytes of LE. Load validates everything into a staged copy and commits only after all checks pass. The C2 rate refusal, the v1 clear load and save's capacity preflight are all in place. #520 is closed.
+- **L1, for the lead:** under the unchanged 1 MiB cap, a v2 save returns `WS2_CAPACITY` above ≈65.5 kHz (88.2/96 kHz). Record it as a facts/limits row before OB1 and note the follow-up for the replace path (`host/sidecar/session.cpp:518`). It does not block.
+- **Released:** B1 #492 (integrated OB-a1 hashes, owner listening handoff) and B3 #525 (final A76 Lab, replacement-path check, A62/native, A69a cost). B4 is idle until the lead gives it the next OB1 sound follow-up.
+- **#538 held:** at `bd4b69c` the exact Lab is still running, the PR is a draft, and the B2 re-review and the signed Result with the A81 carry are missing. It needs a fresh inbox row once those exist.
+- **Next Architect run:** `architect-ready` when #538 is pinned with a signed Result (medium effort), or the OB1 acceptance batch, whichever comes first. **Next run should:** (1) review #538 against A78/A80/A81, including B2's re-review; (2) check that the L1 capacity facts row has landed; (3) check B1 #492 and B3 #525 final evidence against the OB1 acceptance rows.
+
+Signed: claude-architect, 2026-11-25
+
+## Lead run — 2026-11-25 (A81 and Delay review handoff)
+
+- #557 already merged `138635c`; A81 [ruling](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7156760203) cleared. B5 #538 `bd4b69c` both Linux synthetic-slot/sidecar diagnostic 45575003721 green; PV1/Web green, Lab/E4b pending. No test catalogue seam. B2 final re-review, ready-head gates and Result still required; name A81 carry explicitly.
+- B2 #540 `89655af`: both Linux targeted/ASan green, full Lab red from pre-#538 slot guard and unseeded fixtures. A81 real shipped-slot end-to-end replacement/retained setData witness both Linux is binding on #540 (or earlier first shipped-slot PR); no shared writer release until #538 merge. B5 #545 `1917db8` direct diagnostics green, full loader integration waits #538. Coordinate first slot-bearing merge; no waiver.
+- **#558 merged `152b2c9` (SR13)** after exact Lab 45574849926. B4 #539 `1044ddba53fa99023b211cc76387331ee27c3f17`, base `5ca0f1938fb851acce158272377a1ebe7631f4d2`: [signed Result](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7156819486), exact Lab 45572737050, Golden 45572736238, strict paired 45572736221 success. B1 #492 and B3 #525 remain blocked on actual #539 merge, then integrated OB-a1/listening and final CN/cost respectively.
+- **Next Architect run: now, #539 only unless #538 becomes independently pinned.** Verify A79 scoped SDK accessor and pre-mutation refusal, C2/v1 compatibility, v2 continuity, Golden and strict paired applicability. A81 is a ruling, not #538 approval. No product merge or acceptance waiver. Owner can manually start `architect:run`.
+
+Signed: codex-lead, 2026-11-25, 03:19 EST
+
+## Lead run — 2026-11-25 (A79/A80 reconciliation)
+
+- **#553 merged `8ebaa1b`** after exact Lab 45570211258 and Architect delegation. A80 cleared: compare against pending config, per-module independent correlated completion, hello capability gate and legacy plain busy. B5 keeps server/schema/spec/generated/fake-client paths, no Studio runtime grant. **B1 [#555](https://github.com/kalharbi11/wirescape-lab/issues/555)** follows #538, OB1.1 only; OB1 work takes priority.
+- B5 #538 `32c2880` A80 correction pushed; predecessor combined/fake-client tests green, exact gates pending. Resolve B2 interim findings (initial busy must not stop/reset host workers, data replacement supersession, removed/default reset validation). B2 #540 `89655af` targeted/ASan green, full Lab red; shared integration after #538, re-review backend.
+- B4 #539 `f5a8c94` A79 regression-only x64 red confirmed; authorized SDK accessor and length check next. No product acceptance waiver. B1 #492 and B3 #525 await #539; B3 audit precision qualification recorded.
+- Owner explicitly allows expedited docs/task-only merges without full CI (2026-11-25). Product checks, contract reviews and measured evidence remain mandatory; no workflow/branch-protection weakening. No new Architect question; next review when #539 or #538 is fully pinned.
+
+Signed: codex-lead, 2026-11-25
+
+## Architect run 40 — 2026-11-25 02:55 EST: A79 Delay v2 length ruling (lead request)
+
+- **A79** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/520#issuecomment-7156162522)): v2 rejects trailing, short or unknown-length payloads atomically. B4 may add one read-only `ws::Reader::size()` over the existing ABI field `ws2_reader::bytes` (`sdk/wirescape_sdk.h`, #539 only). The regressions are listed in the ruling. No ABI, cap, RT or threshold change.
+- **#539** `4b3bf18` is still a draft without exact ASan, Golden, strict paired or a Result. **Held:** contract review until those exist at the ready head. B1 #492 and B3 #525 keep waiting for the #539 merge.
+- B5 #538, B2 #540: no new design blocker raised. A31 and A3 stay parked.
+
+**Next Architect run:** `architect-ready` at the #539 pin (medium effort). **Next run should:** (1) check that the A79 accessor is exactly the granted line and the refusals precede any mutation; (2) check the settled Delay path is Golden-identical; (3) check #538 PV1 is green with `configDeferred`.
+
+Signed: claude-architect, 2026-11-25
+
+## Architect run 39 (also lead) — 2026-11-25 02:35 EST: builder CI friction fixed (owner `architect:run`)
+
+- **Owner ask:** make every lane's CI work, especially B4 and B5. Early stages were checked on the live heads; all five lanes can run their current tasks.
+- **Dev-run fixes (this PR):** (1) a `target check` step fails at once and names the closest real target. This was B5's lost run: `target=wirescape_sidecar` should have been `wirescape_engine_sidecar`. (2) `build=none` for `cmd="python3 tools/..."` drops a 215 s native build to seconds (B4's banned-includes check). (3) Every failed result opens with **First error lines**. DEV_RUN now states that drafts skip Golden/M1/Instruction/Offline/OB-g7/Portability (A54): mark ready for exact-head gates.
+- **B4 #539** `322be81`: banned `vector` replaced; targeted test and ASan green on both arches; Lab 45567316588 foundation/studio/desktop green, native/sanitizers running. **Held:** Architect review until Lab, Golden and strict paired are green at a ready head with a Result.
+- **B5 #538** `2f10b69`: PV1 red is the intended A78 fail-first schema witness (`configDeferred` not yet implemented), not a CI fault. Lab 45567721418 foundation green. Continue A78/A77 implementation; one dev-run in flight at a time.
+- **B2 #540, B3 #525, B1 #492:** no CI fault; queue waits only (B1 and B3 wait for #539, B2 waits for #538). Hosted queue delay of about 7 min was seen while three Lab runs overlapped. This is runner concurrency, not a fault: push only finished corrections.
+
+**For gpt-lead:** B4 #539 stays the critical path; pin it at its ready head with Golden and strict paired, then apply `architect-ready` once (with #538 if it is pinned too).
+
+**Next Architect run:** `architect-ready` at the #539 pin (medium effort). **Next run should:** (1) check that #539 keeps the settled Delay path Golden-identical and has no `vector`/heap in portable DSP; (2) check that #538 PV1 turns green with the `configDeferred` event; (3) confirm the first dev-run that uses `build=none` or hits a `target check` reports as documented.
+
+Signed: claude-architect, 2026-11-25
+
+## Lead quick check — 2026-11-25 (Delay test sink correction)
+
+- B4 #539 `53c6844`: both Linux at `e8c8065` built but aborted at shared SDK example sink `count < N`; no tail-restoration claim. Lead reviewed test-only local vector sink correction (SR5), preserves shared harness and DSP. Corrected both-arch targeted run and Lab 45563649104 pending; malformed/in-flight witnesses, ASan and exact-head gates remain. No Architect question.
+- B2 #540 `8ac61e5`: OSC In green and CC/Out expected-red confirmed at predecessor; all three module-local slots and validators implemented. Both-arch targeted and Lab pending. Shared integration still waits #538.
+- B3 #525 `5253b3c`: Lab/A62/native green; marks independently verified, PCM metric recomputation outstanding; preserve larger/Delay non-pass. B1 #492 remains prepared, waits #539 merge. B5 #538 `1f5236b`: engine targeted green, PV1 red, A78 correction outstanding. #545 canonical E3b draft; #546 closed unmerged, evidence retained.
+- No eligible product merge or new design ruling. B4 is critical path; no premature review trigger.
+
+Signed: codex-lead, 2026-11-25
+
+## Lead quick check — 2026-11-25 (after A77/A78)
+
+- **A78 ruled** on [#538](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7155106841): correlated deferred completion, blocked-ID-only config deferral, no partial commits, supersession and retirement-aware bounded retry; SR17 schema/spec/generated outputs, PV1 correction and A77 generic validation seam. B5 implements, B2 re-reviews; no contract approval yet. #544 merged `b9ca0fc`; A77/A78 cleared in inbox. B5 to consolidate #545/#546 draft-ahead work.
+- **B2 #540** `516da52`: OSC In module-local slot and validator implemented, CC/Out fail-first fixtures pending; A77 F32 migration/Golden guard and transactional route adoption binding. Shared integration waits #538.
+- **B4 #539** `e8c8065`: both Linux fail-first verified; non-RT hooks implemented, target green attempt and Lab 45562191238 pending. Exclusive OB1 product priority; strengthen witnesses, ASan, exact Lab/Golden/strict paired and Result before Architect review.
+- **B1 #492** `79abef6`: exact Lab green, candidate packet prepared; final 15-case OB-a1 rebuild waits integrated #539 merge. **B3 #525** `5253b3c`: intermediate A62/native captures successful and artifact digests checked; larger held and silent Delay tail remain non-pass, independent metric recomputation outstanding. Final A76/cost evidence after #539; Lab 45562261069 pending.
+- Five signed dispatch comments posted. No eligible product merge or new Architect request. Next Architect run when #539 or #538 is pinned; do not wait for OB1.1 review if #539 is ready first. No waivers.
+
+Signed: codex-lead, 2026-11-25
 
 ## Lead run — 2026-11-25 (after Architect run 38b)
 

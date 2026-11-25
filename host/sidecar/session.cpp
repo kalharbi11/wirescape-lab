@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
+#include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
@@ -111,8 +112,9 @@ class SinkScheduling {
 };
 #endif
 struct Refusal : std::runtime_error {
-    std::string code;
-    Refusal(std::string c, const char *m) : std::runtime_error(m), code(std::move(c)) {}
+    std::string code, defer_id;
+    Refusal(std::string c, const char *m, std::string deferred = {})
+        : std::runtime_error(m), code(std::move(c)), defer_id(std::move(deferred)) {}
 };
 void need(bool condition, const char *code = "invalid", const char *message = "Invalid command") {
     if (!condition) throw Refusal(code, message);
@@ -784,8 +786,73 @@ Json Session::execution(Json patch) {
     need(patch.dump().size() <= LineLimit, "limit", "Patch exceeds byte limit");
     return patch;
 }
-bool Session::commit(Json patch, bool new_namespace) {
+Json Session::config_event(uint32_t id, const PendingConfig &pending,
+                           const char *outcome, uint64_t generation) const {
+    return deferred_config_event(token_, id, pending, outcome, generation);
+}
+Json Session::take_config_events() {
+    Json events = Json::array();
+    events.swap(config_events_);
+    return events;
+}
+bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> retry_id, bool explicit_graph) {
     patch = execution(std::move(patch));
+    // A80: an opted-in full snapshot can carry still-pending authored
+    // configs alongside unrelated edits. Execute those nodes at their
+    // committed config until their correlated deferral completes.
+    std::set<uint32_t> snapshot_supersedes;
+    if (explicit_graph) {
+        for (auto &m : patch["modules"]) {
+            const auto id = integer(m.at("id"));
+            const auto pending = pending_configs_.find(id);
+            if (pending == pending_configs_.end()) continue;
+            if (m.at("module") != pending->second.module ||
+                m.value("config", Json::object()) != pending->second.config) {
+                snapshot_supersedes.insert(id);
+                continue;
+            }
+            const auto &old = node(patch_, id);
+            if (old.contains("config")) m["config"] = old.at("config");
+            else m.erase("config");
+        }
+    }
+    // loadGraph is a stored document; a changed live slot is an edit.
+    // Unchanged forward-compatible stored fields remain opaque.
+    if (!new_namespace) for (const auto &m : patch["modules"]) {
+        const auto data = m.value("data", Json::object());
+        need(data.is_object(), "invalid", "data: expected object");
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &n) { return n.at("id") == m.at("id") && n.at("module") == m.at("module"); });
+        const auto prior = old == patch_["modules"].end() ? Json::object() : old->value("data", Json::object());
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            if (prior.contains(it.key()) && prior.at(it.key()) == it.value()) continue;
+            uint32_t slot = 0;
+            while (slot < count && it.key() != d->data_slots[slot].id) ++slot;
+            need(slot < count, "invalid", ("data." + it.key() + ": unknown slot").c_str());
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(d->data_slots[slot], it.value(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
+        // Removing a declared slot is a live reset to its packed defaults.
+        // Validate that edit with the same descriptor callback and field path.
+        for (uint32_t slot = 0; slot < count; ++slot) {
+            const auto &declared = d->data_slots[slot];
+            if (!prior.contains(declared.id) || data.contains(declared.id)) continue;
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(declared, Json::object(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
+    }
     std::string error;
     const auto patch_bytes = patch.dump();
     // Stage metadata and cursor storage before any live graph swap.
@@ -800,12 +867,69 @@ bool Session::commit(Json patch, bool new_namespace) {
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
-    // Pause the OSC ingress before any live replan, fade/swap or graph retirement.
-    // The destructor restarts the worker against whichever graph actually commits
-    // (including the original graph on refusal). Socket errors never refuse patches.
-    osc_out_->stop();
-    osc_->stop();
-    auto resume_osc = [this](void *) noexcept {
+    // Stage queue and terminal events before accepting the graph. A
+    // refused ordinary transaction never publishes these changes.
+    auto next_pending = pending_configs_;
+    auto next_events = config_events_;
+    std::set<uint32_t> changed_data;
+    for (auto it = next_pending.begin(); it != next_pending.end();) {
+        const auto id = it->first;
+        auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        const bool applied = retry_id && *retry_id == id;
+        const bool data_changed = next != patch["modules"].end() && old != patch_["modules"].end() &&
+            next->value("data", Json::object()) != old->value("data", Json::object());
+        if (data_changed) changed_data.insert(id);
+        if (applied || new_namespace || snapshot_supersedes.count(id) ||
+            next == patch["modules"].end() || old == patch_["modules"].end() ||
+            next->at("module") != it->second.module ||
+            next->value("config", Json::object()) != old->value("config", Json::object())) {
+            next_events.push_back(config_event(id, it->second, applied ? "applied" : "superseded", generation_ + 1));
+            it = next_pending.erase(it);
+        } else ++it;
+    }
+    // Live data delivery normally retains the instance. OSC Out is the
+    // existing exception: its freshly staged bus is construction config.
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true,
+                               node(patch, id).at("module") == "osc.out", generation_ + 1);
+    // Determine eligibility by reverting ONLY changed config fields in an
+    // execution copy and comparing the entire transaction to committed state.
+    // Mixed data/topology/parameter/metadata changes can never be deferred.
+    Json config_only = patch;
+    std::vector<uint32_t> changed_configs;
+    if (!new_namespace && !retry_id) {
+        for (auto &m : config_only["modules"]) {
+            const auto id = integer(m.at("id"));
+            auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+                [&](const Json &n) { return n.at("id") == id; });
+            if (old == patch_["modules"].end() || old->at("module") != m.at("module")) continue;
+            if (old->value("config", Json::object()) == m.value("config", Json::object())) continue;
+            changed_configs.push_back(id);
+            if (old->contains("config")) m["config"] = old->at("config");
+            else m.erase("config");
+        }
+    }
+    // A pending-config revert in a mixed refused snapshot must not be
+    // silently dropped. Only newly changed config IDs are admitted here.
+    const bool eligible_shape = !changed_configs.empty() && config_only == patch_ &&
+        std::all_of(snapshot_supersedes.begin(), snapshot_supersedes.end(), [&](uint32_t id) {
+            return std::find(changed_configs.begin(), changed_configs.end(), id) != changed_configs.end();
+        });
+    // A75/MIDI-busy refusals must leave live routes, counters and caches
+    // untouched. Quiesce OSC only after the engine's staging preflight and
+    // before publication, or immediately before the D5 swap.
+    bool osc_paused = false;
+    auto pause_osc = [&]() noexcept {
+        if (osc_paused) return;
+        osc_out_->stop();
+        osc_->stop();
+        osc_paused = true;
+    };
+    auto resume_osc = [this, &osc_paused](void *) noexcept {
+        if (!osc_paused) return;
         try {
             start_osc();
         } catch (...) {
@@ -819,10 +943,13 @@ bool Session::commit(Json patch, bool new_namespace) {
         const uint64_t timeout_ns = 3ULL * options_.block * 1000000000ULL / options_.rate;
         // A busy MIDI dispatch is transient; a graph refusal is not. Never stop for busy.
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
-            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error)) {
+            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
+                    [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
+                pending_configs_.swap(next_pending);
+                config_events_.swap(next_events);
                 // Rebuild direct-only routing and clear old ring on commit.
                 monitor_->configure(patch_);
                 telemetry_.swap(next_telemetry); // Engine2 counts restart at every replan.
@@ -830,13 +957,54 @@ bool Session::commit(Json patch, bool new_namespace) {
                 std::cerr << "commit path=live gen=" << generation_ << '\n';
                 return true;
             }
+            // A75 is not an ordinary replan refusal: D5 would cut the
+            // predecessor tail. Preserve the live graph and report busy.
+            if (error == "Replacement busy: predecessor still fading") {
+                const auto &blocked = app_engine_native(active_).replacement_blocked_ids();
+                if (client_deferred_ && !retry_id && eligible_shape &&
+                    std::all_of(changed_configs.begin(), changed_configs.end(), [&](uint32_t id) {
+                        return std::find(blocked.begin(), blocked.end(), id) != blocked.end();
+                    })) {
+                    auto deferred = pending_configs_;
+                    auto events = config_events_;
+                    const auto defer_id = std::to_string(++next_defer_id_);
+                    const auto now = std::chrono::steady_clock::now();
+                    for (auto id : changed_configs) {
+                        const auto &m = node(patch, id);
+                        const auto *d = app_engine_native(active_).descriptor(id);
+                        uint32_t ms = WS2_REPLACE_FADE_DEFAULT_MS;
+                        if (d && d->struct_size >= offsetof(ws2_descriptor, replace_fade_ms) + sizeof(d->replace_fade_ms) &&
+                            d->replace_fade_ms)
+                            ms = std::min(d->replace_fade_ms, WS2_REPLACE_FADE_MAX_MS);
+                        const auto previous = deferred.find(id);
+                        if (previous != deferred.end())
+                            events.push_back(config_event(id, previous->second, "superseded", generation_));
+                        deferred.insert_or_assign(id, PendingConfig{m.at("module").get<std::string>(),
+                            defer_id, m.value("config", Json::object()),
+                            now + std::chrono::milliseconds(2 * ms + 1000)});
+                    }
+                    Refusal refusal("busy", error.c_str(), defer_id);
+                    pending_configs_.swap(deferred);
+                    config_events_.swap(events);
+                    throw refusal;
+                }
+                throw Refusal("busy", error.c_str());
+            }
             if (error != "MIDI worker busy") break;
-            if (attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
+            if (retry_id || attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
     }
+    // Deferred A75 retries must never fall through to D5, even on another error.
+    if (retry_id) throw Refusal("unavailable", "Deferred live config retry unavailable");
+    // D5 replaces every instance, so a changed data slot now supersedes
+    // that ID's pending config. Keep unrelated pending IDs (A80).
+    // Stage before the swap; an unsuccessful D5 publishes no events.
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true, true, generation_ + 1);
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
+    pause_osc();
     const auto begun = std::chrono::steady_clock::now();
     // D5 budgets (see kMuteBudget/kGapBudget); they stretch only when a block period is longer.
     const auto period = std::chrono::microseconds(int64_t(1e6 * double(options_.block) / double(options_.rate)));
@@ -955,6 +1123,8 @@ bool Session::commit(Json patch, bool new_namespace) {
     ++generation_;
     keyboard_.fill(false);
     used_ids_.swap(ids);
+    pending_configs_.swap(next_pending);
+    config_events_.swap(next_events);
     // No old-generation messages survive a successful graph commit.
     monitor_->configure(patch_);
     telemetry_.swap(next_telemetry); // D5 also resets all last-seen event counts.
@@ -1057,6 +1227,20 @@ Json Session::apply(const Json &command) {
         throw Refusal("refused", "rate-unsupported");
     };
     auto type = command.at("type").get<std::string>();
+    if (type == "hello") {
+        need(!client_hello_seen_, "duplicate", "Client hello already received");
+        const auto &capabilities = command.at("capabilities");
+        need(capabilities.is_array() && capabilities.size() <= 256, "invalid", "Invalid capabilities");
+        bool supports_deferred = false;
+        for (const auto &capability : capabilities) {
+            need(capability.is_string() && capability.get_ref<const std::string &>().size() <= 128,
+                 "invalid", "Invalid capability");
+            supports_deferred |= capability == "configDeferred";
+        }
+        client_deferred_ = supports_deferred;
+        client_hello_seen_ = true;
+        return nullptr;
+    }
     if (type == "listAudioDevices") {
         refresh_devices();
         Json result = {{"devices", audio_devices_}};
@@ -1310,6 +1494,37 @@ Json Session::apply(const Json &command) {
         m["parameters"][param] = value;
         return nullptr;
     }
+    if (type == "setData") {
+        const auto id = integer(command.at("moduleId"));
+        auto &m = node(patch_, id);
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        need(command.at("slot").is_string(), "invalid", "data.slot: expected string");
+        const auto slot_id = command.at("slot").get<std::string>();
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        uint32_t slot = 0;
+        while (slot < count && slot_id != d->data_slots[slot].id) ++slot;
+        need(slot < count, "invalid", ("data." + slot_id + ": unknown slot").c_str());
+        const auto &value = command.at("value");
+        std::vector<uint8_t> packed;
+        std::string error;
+        if (!ws::data_layout::pack_data_slot(d->data_slots[slot], value,
+                ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+                app_engine_data_validator(catalogue_.get(), d)))
+            throw Refusal("invalid", error.c_str());
+        // All JSON work and validation must precede the ring insertion. On
+        // capacity/invalid/state refusal the execution document is unchanged.
+        auto updated = m;
+        if (!updated.contains("data")) updated["data"] = Json::object();
+        updated["data"][slot_id] = value;
+        const auto result = app_engine_native(active_).set_data_packed(id, slot, packed);
+        need(result != WS2_CAPACITY, "busy", "Data queue full");
+        need(result != WS2_INVALID, "invalid", "Invalid data slot");
+        need(result == WS2_OK, "unavailable", "Data slot unavailable");
+        m.swap(updated);
+        return nullptr;
+    }
     if (type == "loadGraph") {
         auto loaded = command.at("patch");
         auto &connections = loaded.at("connections");
@@ -1353,7 +1568,7 @@ Json Session::apply(const Json &command) {
         // Same validation and execution copy as loadGraph, but in the current ID namespace and
         // through the live replan: unchanged modules keep their instances (0005 section 3).
         const Json before = patch_;
-        const bool live = commit(command.at("patch"), false);
+        const bool live = commit(command.at("patch"), false, std::nullopt, true);
         return reconcile_graph(before, live);
     }
     if (type == "addModule") {
@@ -1440,6 +1655,10 @@ Json Session::reply(const Request &request) {
     } catch (const Refusal &e) {
         result["code"] = e.code;
         result["message"] = e.what();
+        if (!e.defer_id.empty()) {
+            result["deferred"] = true;
+            result["deferId"] = e.defer_id;
+        }
     } catch (const Json::exception &) {
         result["code"] = "invalid";
         result["message"] = "Invalid command field";
@@ -1496,7 +1715,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph"});
+         "applyGraph", "configDeferred"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},
@@ -1658,6 +1877,47 @@ void Session::drain_egress() noexcept {
     for (uint32_t i = 0; i < kEgressDrainPerPoll && live.pop_egress(discarded); ++i) {
     }
 }
+bool Session::retry_config(std::chrono::steady_clock::time_point now) {
+    // Deadlines expire even when rendering has stopped. Inspect retirement
+    // before building a candidate or pausing host workers; one attempt only.
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end();) {
+        if (now >= it->second.deadline) {
+            config_events_.push_back(config_event(it->first, it->second, "failed", generation_));
+            it = pending_configs_.erase(it);
+        } else ++it;
+    }
+    if (pending_configs_.empty() ||
+        !((stream_ && stream_->running()) || sink_rendering_.load(std::memory_order_acquire))) return false;
+    auto &graph = app_engine_native(active_);
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end(); ++it) {
+        const auto id = it->first;
+        if (graph.replacement_tail_pending(id)) continue;
+        try {
+            Json candidate = patch_; // rebase only config on the newest committed document
+            auto &m = node(candidate, id);
+            if (m.at("module") != it->second.module ||
+                m.value("config", Json::object()) == it->second.config) {
+                config_events_.push_back(config_event(id, it->second, "superseded", generation_));
+                pending_configs_.erase(id);
+                return false;
+            }
+            m["config"] = it->second.config;
+            commit(std::move(candidate), false, id);
+            return true;
+        } catch (const std::exception &e) {
+            std::cerr << "deferred config refused: " << e.what() << '\n';
+            // A retirement permits exactly one attempt. Never retry a refusal
+            // every poll or fall back to D5.
+            const auto pending = pending_configs_.find(id);
+            if (pending != pending_configs_.end()) {
+                config_events_.push_back(config_event(id, pending->second, "failed", generation_));
+                pending_configs_.erase(pending);
+            }
+            return false;
+        }
+    }
+    return false;
+}
 bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (scripted_midi_ && scripted_started_enabled_ && now >= scripted_started_) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - scripted_started_).count();
@@ -1676,6 +1936,7 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (!warm && cold_due) cold_enumeration_ = now;
     const auto enumerated = refresh_devices(warm || cold_due, !warm);
     auto changed = poll_audio(now, enumerated);
+    changed = retry_config(now) || changed;
     return changed || old_audio != audio_devices_ || old_midi != midi_devices_ ||
            old_unavailable != unavailable_audio_drivers_;
 }

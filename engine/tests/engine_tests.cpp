@@ -794,6 +794,38 @@ static void data_lifetime_stress() {
     consumer.join();
     CHECK(e.meter().faults == 0);
 }
+// E3a-2: a prepared document candidate explicitly supplies data for
+// both retained and replaced instances, rather than inheriting stale bytes.
+static void candidate_document_data() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_delivery_probe;
+    Config c = cfg(); c.max_block = 4096;
+    auto make = [&](uint8_t shape, float value) {
+        auto e = std::make_unique<Engine>(c);
+        std::vector<uint8_t> packed(sizeof(value));
+        std::memcpy(packed.data(), &value, sizeof(value));
+        CHECK(e->add_node(1, &d, {shape}) && e->output(1, 0, 0));
+        CHECK(e->set_data_packed(1, 0, packed) == WS2_OK);
+        CHECK(e->register_producer() == 0 && e->prepare());
+        return e;
+    };
+    auto live = make(1, .25f);
+    render(*live, 16);
+    auto retained = make(1, .5f);
+    replan_test(*live, *retained, 200000000);
+    render(*live, 16);
+    CHECK(live->output_sample(1, 0, 0, 15) == .5f && data_probe_serial == 2);
+    auto replaced = make(2, .75f);
+    replan_test(*live, *replaced, 200000000);
+    render(*live, 16);
+    CHECK(live->output_sample(1, 0, 0, 15) == .75f && data_probe_serial == 3);
+}
 static void data_replacement_lifetime() {
     const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
         0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
@@ -857,12 +889,17 @@ static void data_replacement_lifetime() {
     const auto before = live.meter();
     CHECK(!live.replan(*second, 200000000));
     CHECK(live.error() == "Replacement busy: predecessor still fading");
+    CHECK(live.replacement_blocked_ids() == std::vector<uint32_t>{1});
+    CHECK(live.replacement_tail_pending(1));
+    CHECK(!live.replacement_tail_pending(9));
     CHECK(live.meter().frame == before.frame && live.meter().generation == before.generation);
     shared(3, .75f);
     CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
     shared(4, .875f);
     for (int i = 0; i < 7; ++i) render(live, 4096); // more than 500 ms
+    CHECK(!live.replacement_tail_pending(1));
     publish(*second);
+    CHECK(live.replacement_blocked_ids().empty());
     shared(4, .875f);
     for (int i = 0; i < 7; ++i) render(live, 4096);
     // Remove then re-add the ID: a fresh binding has default serial/value,
@@ -1144,6 +1181,7 @@ int main(){
  data_history_reclaim();
  data_lifetime_stress();
  data_replacement_lifetime();
+ candidate_document_data();
  legacy_replacement_busy();
  direct_choke_replacement_ledger();
  replacement_packet_birth();

@@ -12,6 +12,18 @@
 using fxdelay::Delay;
 enum : uint8_t { kTime, kDivision, kFeedback, kTone, kMode, kMix };
 using Wave = std::vector<float>;
+using DelayBytes = std::vector<uint8_t>;
+struct DelaySource { const DelayBytes* bytes; size_t pos; };
+static int WS2_CALL delay_sink(void* ctx,const void* p,uint32_t n) {
+    auto& b=*static_cast<DelayBytes*>(ctx);const auto* v=static_cast<const uint8_t*>(p);
+    b.insert(b.end(),v,v+n);return WS2_OK;
+}
+static int WS2_CALL delay_source(void* ctx,void* p,uint32_t n) {
+    auto& s=*static_cast<DelaySource*>(ctx);
+    if(n>s.bytes->size()-s.pos)return WS2_INVALID;
+    std::memcpy(p,s.bytes->data()+s.pos,n);s.pos+=n;return WS2_OK;
+}
+
 
 struct Arena {
     std::vector<unsigned char> bytes = std::vector<unsigned char>(size_t(4) * 1024 * 1024);
@@ -55,15 +67,15 @@ struct Rig {
         for (int p = 0; p < 6; ++p) values[p] = Delay::params[p].initial;
     }
     ~Rig() { d->destroy(instance); }
-    Bytes save() {
-        Bytes bytes;
-        ws2_writer writer{sizeof(writer), &bytes, sink};
+    DelayBytes save() {
+        DelayBytes bytes;
+        ws2_writer writer{sizeof(writer), &bytes, delay_sink};
         REQUIRE(d->save_state(instance, &writer) == WS2_OK);
         return bytes;
     }
-    int load(const Bytes &bytes) {
-        Source ctx{&bytes, 0};
-        ws2_reader reader{sizeof(reader), &ctx, source, static_cast<uint32_t>(bytes.size())};
+    int load(const DelayBytes &bytes, uint32_t reader_size = sizeof(ws2_reader)) {
+        DelaySource ctx{&bytes, 0};
+        ws2_reader reader{reader_size, &ctx, delay_source, static_cast<uint32_t>(bytes.size())};
         return d->load_state(instance, &reader);
     }
     // Runs `total` frames in blocks of `block`; `each` may change values before every block.
@@ -421,20 +433,155 @@ static void state_and_extremes() {
     wet_only(a, 0.01f, 0.8f);
     a.left(noise(4000, 9));
     a.run(4000);
-    const Bytes bytes = a.save();
+    const DelayBytes bytes = a.save();
     Rig b;
     REQUIRE(b.load(bytes) == WS2_OK && b.save() == bytes);
-    Bytes bad = bytes;
+    DelayBytes bad = bytes;
     bad[0] = 99;
     REQUIRE(b.load(bad) == WS2_UNSUPPORTED);
+    REQUIRE(b.save() == bytes);
     bad = bytes;
     bad.pop_back();
+    // Refusal must be atomic even when the destination already has an audible tail.
     REQUIRE(b.load(bad) == WS2_INVALID);
-    // Loading clears the lines: silence in, silence out afterwards.
-    REQUIRE(a.load(bytes) == WS2_OK);
+    REQUIRE(b.save() == bytes);
+    // Reject a non-finite final ring sample after staging almost the entire payload.
+    DelayBytes nonfinite = bytes;
+    REQUIRE(nonfinite.size() >= 4);
+    nonfinite[nonfinite.size()-4]=0;
+    nonfinite[nonfinite.size()-3]=0;
+    nonfinite[nonfinite.size()-2]=0x80;
+    nonfinite[nonfinite.size()-1]=0x7f; // +infinity, little endian
+    REQUIRE(b.load(nonfinite) == WS2_INVALID);
+    REQUIRE(b.save() == bytes);
+    Rig malformed;
+    REQUIRE(malformed.load(bad) == WS2_INVALID);
+    malformed.values[kMix] = 1.f;
+    malformed.left(Wave(2000, 0.f));
+    const auto cleared = malformed.run(2000);
+    REQUIRE(finite_within(cleared.l, 0.f) && finite_within(cleared.r, 0.f));
+    // The failed-load instance is separate from the successful continuation twin.
+    REQUIRE(b.save() == bytes);
+    // A70 v2 must continue the audible tail, not merely round-trip bytes.
+    wet_only(b, 0.01f, 0.8f);
+    a.left(Wave(4000, 0.f)); b.left(Wave(4000, 0.f));
+    const Result reference = a.run(4000), restored = b.run(4000);
+    REQUIRE(!finite_within(reference.l, 0.f));
+    REQUIRE(std::memcmp(reference.l.data(), restored.l.data(), reference.l.size()*sizeof(float)) == 0);
+    REQUIRE(std::memcmp(reference.r.data(), restored.r.data(), reference.r.size()*sizeof(float)) == 0);
+    Rig other_rate(44100.);
+    REQUIRE(other_rate.load(bytes) == WS2_INVALID);
+    // v1 legacy state explicitly clears the lines: retain the original oracle.
+    const DelayBytes legacy{1,0,0,0};
+    REQUIRE(a.load(legacy) == WS2_OK);
     a.left(Wave(4000, 0.f));
     const Result quiet = a.run(4000);
     REQUIRE(finite_within(quiet.l, 0.f) && finite_within(quiet.r, 0.f));
+    // The existing 1 MiB per-node serialization cap is not a new preparation cap.
+    // At 96 kHz the stereo two-second history alone is larger than the limit.
+    {
+        Rig too_large(96000.);
+        DelayBytes rejected;
+        ws2_writer writer{sizeof(writer), &rejected, delay_sink};
+        REQUIRE(too_large.d->save_state(too_large.instance, &writer) == WS2_CAPACITY);
+        REQUIRE(rejected.empty()); // preflight before emitting a partial blob
+    }
+    // A nonzero tone, feedback, clock follower and changing delay time are also
+    // runtime state. Restore partway through a glide; continue the clock phase
+    // from the exact prefix, with no replay of the preceding input.
+    {
+        Rig prefix, twin;
+        for (Rig* r : {&prefix, &twin}) {
+            wet_only(*r, .02f, .8f);
+            r->values[kTone] = -.6f;
+            r->values[kMode] = 1.f;
+        }
+        prefix.left(noise(3900, 71));
+        prefix.clock(pulses(3900, 900));
+        prefix.run(3900, 127);
+        prefix.values[kDivision] = 7.f;
+        prefix.left(noise(129, 73));
+        // Keep clocked input present; next pulse is 600 frames away.
+        prefix.clock(Wave(129, 0.f));
+        prefix.run(129, 127);
+        twin.values[kDivision] = prefix.values[kDivision];
+        REQUIRE(twin.load(prefix.save()) == WS2_OK);
+        Wave tail_clock(4800, 0.f);
+        for (size_t at = 471; at < tail_clock.size(); at += 900)
+            tail_clock[at] = 1.f;
+        for (Rig* r : {&prefix, &twin}) {
+            r->left(Wave(4800, 0.f));
+            r->clock(tail_clock);
+        }
+        const auto expected = prefix.run(4800, 127), actual = twin.run(4800, 127);
+        REQUIRE(!finite_within(expected.l, 0.f));
+        REQUIRE(std::memcmp(expected.l.data(), actual.l.data(), expected.l.size()*sizeof(float)) == 0);
+        REQUIRE(std::memcmp(expected.r.data(), actual.r.data(), expected.r.size()*sizeof(float)) == 0);
+    }
+    // Snapshot while mode and tone are changing and the clock latch is high.
+    {
+        Rig original, restored;
+        wet_only(original, .01f, .7f);
+        original.left(noise(3000, 181));
+        original.clock(pulses(3000, 700));
+        original.run(3000);
+        original.values[kMode] = 1.f;
+        original.values[kTone] = -.7f;
+        original.left(noise(8, 182));
+        original.clock(Wave(8, 1.f));
+        original.run(8, 8);
+        for(int p=0;p<6;++p) restored.values[p]=original.values[p];
+        REQUIRE(restored.load(original.save()) == WS2_OK);
+        Wave clock(2400, .375f);
+        clock[32]=0.f; clock[33]=1.f;
+        for(Rig* r : {&original,&restored}) {
+            r->left(Wave(2400,0.f)); r->clock(clock);
+        }
+        const auto x=original.run(2400,31), y=restored.run(2400,31);
+        REQUIRE(!finite_within(x.l,0.f));
+        REQUIRE(x.l==y.l && x.r==y.r);
+    }
+    // A79: each malformed length must leave the next render unchanged, both
+    // with a populated tail and during simultaneous mode/tone/clock transitions.
+    for (bool midflight : {false, true}) {
+        Rig source;
+        wet_only(source, .01f, .7f);
+        source.left(noise(3000, 281));
+        source.clock(pulses(3000, 700));
+        source.run(3000);
+        if (midflight) {
+            source.values[kMode] = 1.f;
+            source.values[kTone] = -.7f;
+            source.left(noise(8, 282));
+            source.clock(Wave(8, 1.f));
+            source.run(8, 8);
+        }
+        const auto snapshot = source.save();
+        for (int kind = 0; kind < 4; ++kind) {
+            Rig subject, twin;
+            for (int p = 0; p < 6; ++p)
+                subject.values[p] = twin.values[p] = source.values[p];
+            REQUIRE(subject.load(snapshot) == WS2_OK);
+            REQUIRE(twin.load(snapshot) == WS2_OK);
+            auto malformed = snapshot;
+            uint32_t reader_size = sizeof(ws2_reader);
+            if (kind == 0) malformed.push_back(0);
+            if (kind == 1) malformed.insert(malformed.end(), 64, 0);
+            if (kind == 2) malformed.pop_back();
+            if (kind == 3) reader_size = offsetof(ws2_reader, bytes);
+            REQUIRE(subject.load(malformed, reader_size) == WS2_INVALID);
+            for (Rig* r : {&subject, &twin}) {
+                r->left(Wave(2400, 0.f));
+                Wave clock(2400, .375f);
+                clock[32] = 0.f; clock[33] = 1.f;
+                r->clock(clock);
+            }
+            const auto x = subject.run(2400, 31), y = twin.run(2400, 31);
+            REQUIRE(!finite_within(y.l, 0.f));
+            REQUIRE(std::memcmp(x.l.data(), y.l.data(), x.l.size()*sizeof(float)) == 0);
+            REQUIRE(std::memcmp(x.r.data(), y.r.data(), x.r.size()*sizeof(float)) == 0);
+        }
+    }
     // Extremes: every parameter at its minimum and maximum, hot inputs, tiny and large blocks.
     for (int extreme = 0; extreme < 2; ++extreme) {
         for (uint32_t mode = 0; mode < 2; ++mode) {

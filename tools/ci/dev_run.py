@@ -13,6 +13,7 @@ never contract evidence (docs/workflow/DEV_RUN.md).
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -32,6 +33,11 @@ KEYS = {"platform", "filter", "cmd", "build", "timeout", "repeat", "target"}
 TARGET_RE = re.compile(r"^[A-Za-z0-9_]{1,80}$")
 TAIL_LINES = 150
 MAX_COMMENT = 60000
+# Lines that usually name the real cause; shown first in the report so a reader need not
+# scroll past configure output (lead/Architect, 2026-11-25).
+CAUSE_RE = re.compile(r"(ninja: error|error:|FAILED:|Assertion|AddressSanitizer|LeakSanitizer|"
+                      r"runtime error:|\*\*\*Failed|\*\*\*Exception|Traceback|AssertionError|"
+                      r"unknown target|timed out|could not start|dev-run hint)")
 ASAN_FLAGS = "-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer"
 
 
@@ -79,8 +85,10 @@ def parse_request(text: str) -> dict:
     spec["filter"] = filt
 
     build = opts.get("build", "asan" if profile == "asan" else "release")
-    if build not in ("release", "asan"):
-        raise RequestError("build must be release or asan")
+    if build not in ("release", "asan", "none"):
+        raise RequestError("build must be release, asan or none")
+    if build == "none" and (profile != "cmd" or not opts.get("cmd", "").startswith("python3 tools/")):
+        raise RequestError('build=none is only for the cmd profile with cmd="python3 tools/..." (no native build)')
     if profile in ("test", "studio") and build != "release":
         raise RequestError("use the asan profile for a sanitizer test run")
     spec["build"] = build
@@ -100,8 +108,8 @@ def parse_request(text: str) -> dict:
     targets = [t for t in opts.get("target", "").split(",") if t]
     if any(not TARGET_RE.match(t) for t in targets) or len(targets) > 10:
         raise RequestError("target is up to 10 comma-separated CMake target names")
-    if targets and profile == "studio":
-        raise RequestError("target= is for native profiles")
+    if targets and (profile == "studio" or build == "none"):
+        raise RequestError("target= is for native builds")
     spec["targets"] = targets
 
     cmd = opts.get("cmd", "")
@@ -131,6 +139,7 @@ class Runner:
         self.out = out
         self.log = (out / "log.txt").open("w", encoding="utf-8", errors="replace")
         self.steps: list[dict] = []
+        self.hint = ""
 
     def run(self, name: str, argv: list[str], timeout: int = 3600, env: dict | None = None,
             cwd: str | None = None) -> int:
@@ -164,6 +173,55 @@ def _ctest(build_dir: str, spec: dict) -> list[str]:
     return argv
 
 
+def known_targets(ninja_listing: str) -> set[str]:
+    """Target names from `ninja -t targets all` output (`name: rule` per line)."""
+    names = set()
+    for line in ninja_listing.splitlines():
+        name, sep, _ = line.rpartition(": ")
+        if sep and name and "/" not in name and "." not in name and not name.startswith("cmake_"):
+            names.add(name)
+    return names
+
+
+def target_hint(requested: list[str], known: set[str]) -> str:
+    """A user-facing message for unknown targets, with close matches; empty when all are known."""
+    parts = []
+    for t in requested:
+        if t in known:
+            continue
+        close = difflib.get_close_matches(t, sorted(known), n=5, cutoff=0.5)
+        close += [k for k in sorted(known) if t in k and k not in close][:5 - len(close)]
+        parts.append(f"`{t}` is not a CMake target" + (f"; did you mean {', '.join(close)}?" if close else "."))
+    return ("dev-run hint: " + " ".join(parts) +
+            " A `target=` names the test executable (see `add_executable` in native/), not the ctest name.") if parts else ""
+
+
+def _check_targets(r: Runner, bdir: str, targets: list[str]) -> bool:
+    ninja = shutil.which("ninja")
+    if not ninja:
+        return True
+    try:
+        listing = subprocess.run([ninja, "-C", bdir, "-t", "targets", "all"], capture_output=True,
+                                 text=True, timeout=120).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return True
+    known = known_targets(listing)
+    if not known:
+        return True  # no listing to check against; let the build report the problem
+    hint = target_hint(targets, known)
+    if hint:
+        r.hint = hint
+        r.log.write(f"\n{hint}\n")
+        r.steps.append({"name": "target check", "exit": 2, "seconds": 0})
+        return False
+    return True
+
+
+def first_causes(lines: list[str], limit: int = 12) -> list[str]:
+    """The first lines that look like a cause (compiler error, assertion, sanitizer, ninja)."""
+    return [ln for ln in lines if CAUSE_RE.search(ln)][:limit]
+
+
 def execute(spec: dict, platform: str, out: Path) -> int:
     out.mkdir(parents=True, exist_ok=True)
     r = Runner(out)
@@ -177,6 +235,9 @@ def execute(spec: dict, platform: str, out: Path) -> int:
         if spec["repeat"] > 1:
             argv += ["--repeat-each", str(spec["repeat"])]
         ok = r.run("studio playwright", argv, timeout=3600, cwd="apps/studio") == 0
+    elif spec["build"] == "none":
+        for i in range(spec["repeat"]):
+            ok = r.run(f"cmd #{i + 1}", spec["cmd"], timeout=spec["timeout"] + 60) == 0 and ok
     else:
         asan = spec["build"] == "asan"
         bdir = "build/asan" if asan else "build/native"
@@ -191,6 +252,8 @@ def execute(spec: dict, platform: str, out: Path) -> int:
         if shutil.which("ccache"):
             configure += ["-DCMAKE_C_COMPILER_LAUNCHER=ccache", "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache"]
         ok = r.run("configure " + spec["build"], configure) == 0
+        if ok and spec["targets"]:
+            ok = _check_targets(r, bdir, spec["targets"])
         build = ["cmake", "--build", bdir]
         if spec["targets"]:
             build += ["--target", *spec["targets"]]
@@ -214,6 +277,8 @@ def execute(spec: dict, platform: str, out: Path) -> int:
         "ok": ok,
         "steps": r.steps,
         "failed_tests": failed,
+        "hint": r.hint,
+        "causes": [] if ok else first_causes(lines),
         "tail": lines[-TAIL_LINES:],
     }
     (out / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
@@ -244,6 +309,12 @@ def build_report(spec: dict, sha: str, run_url: str, summaries: list[dict]) -> s
         tail = s.get("tail") if isinstance(s.get("tail"), list) else []
         failed = s.get("failed_tests") if isinstance(s.get("failed_tests"), list) else []
         body = ""
+        hint = s.get("hint") if isinstance(s.get("hint"), str) else ""
+        if hint:
+            body += "**" + _clean(hint, 600) + "**\n\n"
+        causes = s.get("causes") if isinstance(s.get("causes"), list) else []
+        if causes:
+            body += "First error lines:\n```text\n" + "\n".join(_clean(c, 300) for c in causes[:12]) + "\n```\n"
         if failed:
             body += "Failed tests:\n```text\n" + "\n".join(_clean(f, 200) for f in failed[:40]) + "\n```\n"
         body += f"Last {len(tail[-TAIL_LINES:])} log lines:\n```text\n" + \

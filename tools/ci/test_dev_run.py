@@ -48,6 +48,46 @@ class ParseTests(unittest.TestCase):
                 dev_run.parse_request(text)
 
 
+class DevRunUsabilityTests(unittest.TestCase):
+    """Lead/Architect 2026-11-25: B5 lost a run to a misspelled target; B4 waited for a full
+    native build to run a Python check. These keep both fixed."""
+
+    LISTING = ("abi2_delay_tests: phony\nwirescape_engine_sidecar: phony\n"
+               "engine2/abi2_delay_tests: CXX_EXECUTABLE_LINKER__abi2_delay_tests_Release\n"
+               "cmake_object_order_depends_target_abi2_delay_tests: phony\nbuild.ninja: RERUN_CMAKE\nall: phony\n")
+
+    def test_known_targets_from_ninja_listing(self):
+        known = dev_run.known_targets(self.LISTING)
+        self.assertIn("abi2_delay_tests", known)
+        self.assertIn("wirescape_engine_sidecar", known)
+        self.assertNotIn("build.ninja", known)
+        self.assertFalse(any(k.startswith("cmake_") for k in known))
+
+    def test_unknown_target_gets_close_match(self):
+        hint = dev_run.target_hint(["wirescape_sidecar"], dev_run.known_targets(self.LISTING))
+        self.assertIn("`wirescape_sidecar` is not a CMake target", hint)
+        self.assertIn("wirescape_engine_sidecar", hint)
+        self.assertEqual(dev_run.target_hint(["abi2_delay_tests"], dev_run.known_targets(self.LISTING)), "")
+
+    def test_build_none_only_for_python_cmd(self):
+        s = dev_run.parse_request('/dev-run cmd build=none cmd="python3 tools/foundation/tests/test_banned_includes.py"')
+        self.assertEqual(s["build"], "none")
+        for text in ["/dev-run test build=none", '/dev-run cmd build=none cmd="build/native/x"',
+                     '/dev-run cmd build=none target=x cmd="python3 tools/x.py"']:
+            with self.subTest(text=text), self.assertRaises(dev_run.RequestError):
+                dev_run.parse_request(text)
+
+    def test_first_causes_and_report_show_cause_first(self):
+        lines = ["-- Configuring done", "ninja: error: unknown target 'wirescape_sidecar'", "x"]
+        self.assertEqual(dev_run.first_causes(lines), ["ninja: error: unknown target 'wirescape_sidecar'"])
+        spec = dev_run.parse_request("/dev-run test target=wirescape_sidecar")
+        text = dev_run.build_report(spec, "c" * 40, "u", [{
+            "platform": "linux-x64", "ok": False, "steps": [], "hint": "dev-run hint: did you mean y?",
+            "causes": lines[1:2], "tail": lines}])
+        self.assertLess(text.index("First error lines"), text.index("Last 3 log lines"))
+        self.assertIn("did you mean y?", text)
+
+
 class ReportTests(unittest.TestCase):
     def test_report_defuses_and_flags_missing(self):
         spec = dev_run.parse_request("/dev-run test platform=both")
