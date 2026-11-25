@@ -842,7 +842,7 @@ static void data_replacement_lifetime() {
         data_probe_compare = true;
         { allocation_watch::Scope watch; render(live, 1); CHECK(watch.allocations() == 0); }
         data_probe_compare = false;
-        CHECK(data_probe_calls >= 2 && data_probe_shared_serial == serial);
+        CHECK(data_probe_calls == 2 && data_probe_shared_serial == serial);
         CHECK(live.output_sample(1, 0, 0, 0) == value);
         data_probe_pointer = nullptr;
     };
@@ -852,15 +852,19 @@ static void data_replacement_lifetime() {
     shared(2, .5f);
     auto second = candidate(3);
     CHECK(live.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
-    publish(*second);
+    // A75: refusal is synchronous, leaves the candidate reusable, and
+    // does not consume an ingress packet or change the current transition.
+    const auto before = live.meter();
+    CHECK(!live.replan(*second, 200000000));
+    CHECK(live.error() == "Replacement busy: predecessor still fading");
+    CHECK(live.meter().frame == before.frame && live.meter().generation == before.generation);
     shared(3, .75f);
-    // ER2 and M4 test notes cap simultaneously live generations per ID.
-    // Keep this an explicit oracle, not merely a memory-safety assertion.
-    if (data_probe_calls != 2)
-        std::fprintf(stderr, "ER2 overlapping replacement: %u process instances, expected two\n", data_probe_calls);
-    CHECK(data_probe_calls == 2);
     CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
     shared(4, .875f);
+    for (int i = 0; i < 7; ++i) render(live, 4096); // more than 500 ms
+    publish(*second);
+    shared(4, .875f);
+    for (int i = 0; i < 7; ++i) render(live, 4096);
     // Remove then re-add the ID: a fresh binding has default serial/value,
     // even if old fading instances and queued packets still exist.
     CHECK(live.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
@@ -871,6 +875,74 @@ static void data_replacement_lifetime() {
     CHECK(live.set_data_packed(1, 0, packed(.25f)) == WS2_OK);
     render(live, 1);
     CHECK(live.output_sample(1, 0, 0, 0) == .25f);
+}
+// A75 applies to legacy slot-free descriptors as well. Compare the
+// complete fade against an identical engine that never receives the refused
+// edit, then compare the accepted retry against its first normal edit.
+static void legacy_replacement_busy() {
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.replace_fade_ms = 500;
+    Config c = cfg(); c.max_block = 4096;
+    auto make = [&](uint8_t shape, float value) {
+        auto e = std::make_unique<Engine>(c);
+        CHECK(e->add_node(1, &d, {shape}) && e->output(1, 0, 0));
+        CHECK(e->set_parameter(1, 0, value));
+        CHECK(e->register_producer() == 0 && e->prepare());
+        return e;
+    };
+    auto live = make(1, 1.f), witness = make(1, 1.f);
+    auto first = make(2, .5f), first_witness = make(2, .5f);
+    auto second = make(3, .25f), second_witness = make(3, .25f);
+    auto sample = [](Engine &e) {
+        float value = 0; float *out[]{&value};
+        allocation_watch::ThreadScope watch;
+        CHECK(e.render(out, 1, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        return value;
+    };
+    auto begin = [&](Engine &e, Engine &candidate, float initial) {
+        std::atomic<bool> done{false}; bool accepted = false;
+        std::thread control([&] {
+            accepted = e.replan(candidate, 200000000);
+            done.store(true, std::memory_order_release);
+        });
+        std::vector<float> trace;
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        do {
+            float v = sample(e);
+            if (v != initial || !trace.empty()) trace.push_back(v);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            CHECK(std::chrono::steady_clock::now() < deadline);
+        } while (!done.load(std::memory_order_acquire));
+        control.join();
+        CHECK(accepted && !trace.empty());
+        return trace;
+    };
+    auto compare = [&](std::vector<float> a, std::vector<float> b) {
+        // Remove scheduler-dependent pre-adoption constant samples only.
+        // Compare every actual transition sample, including the settled end.
+        const auto count = std::max(a.size(), b.size());
+        while (a.size() < count) a.push_back(sample(*live));
+        while (b.size() < count) b.push_back(sample(*witness));
+        CHECK(std::memcmp(a.data(), b.data(), a.size()*sizeof(float)) == 0);
+        for (uint32_t i = 0; i < 24001; ++i) {
+            float x = sample(*live), y = sample(*witness);
+            CHECK(std::memcmp(&x, &y, sizeof(float)) == 0);
+        }
+    };
+    CHECK(sample(*live) == 1.f && sample(*witness) == 1.f);
+    auto a = begin(*live, *first, 1.f);
+    auto b = begin(*witness, *first_witness, 1.f);
+    const auto meter = live->meter();
+    CHECK(!live->replan(*second, 200000000));
+    CHECK(live->error() == "Replacement busy: predecessor still fading");
+    CHECK(live->meter().frame == meter.frame && live->meter().generation == meter.generation);
+    compare(std::move(a), std::move(b));
+    CHECK(sample(*live) == .5f && sample(*witness) == .5f);
+    a = begin(*live, *second, .5f);
+    b = begin(*witness, *second_witness, .5f);
+    compare(std::move(a), std::move(b));
+    CHECK(sample(*live) == .25f && sample(*witness) == .25f);
 }
 static void replacement_packet_birth() {
     Config config;
@@ -1033,6 +1105,7 @@ int main(){
  data_history_reclaim();
  data_lifetime_stress();
  data_replacement_lifetime();
+ legacy_replacement_busy();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();

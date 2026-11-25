@@ -412,6 +412,21 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
                 added |= include_retired(edge.source->instance);
     } while (added);
 
+    // A75 / ER2: a second same-ID replacement cannot interrupt an
+    // unfinished predecessor fade. This is a control-only preflight on
+    // the staged topology; no live gain, data, revision or instance is changed.
+    // Finished tails may be retired by this publication, as in ordinary replan.
+    std::map<uint32_t, uint32_t> generations;
+    for (const auto &entry : next.nodes) {
+        const auto id = entry->instance.id;
+        if (++generations[id] > 2)
+            return old.fail("Replacement busy: predecessor still fading");
+        if (entry->retired && old.find(id) && old.find(id)->instance.id == id &&
+            &old.find(id)->instance != &entry->instance &&
+            std::find(introduced.begin(), introduced.end(), id) != introduced.end())
+            return old.fail("Replacement busy: predecessor still fading");
+    }
+
     std::map<Instance *, Instance *> replacement_pairs;
     for (auto id : introduced) {
         auto *prior = old.find(id);

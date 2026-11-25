@@ -104,6 +104,8 @@ public:
     const std::vector<uint8_t>&preserved_state(uint32_t node)const;
     // One control owner stages a prepared candidate while render remains active.
     // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
+    // A75: false with "Replacement busy: predecessor still fading" is an
+    // atomic prepublication refusal; keep the latest edit and retry after retirement.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
 };
 }
