@@ -93,8 +93,7 @@ void Engine::Impl::apply_host_packet(const Packet &packet) noexcept {
         // events. The born+descriptor checks exclude a removed/re-added ID.
         for (const auto &node : render_layout->nodes) {
             auto &tail = node->instance;
-            if (node->retired && tail.id == instance.id && tail.d == instance.d &&
-                tail.born_revision == instance.born_revision && packet.port < tail.data.view.size())
+            if (node->retired && tail.data.shares_slot(instance.data, packet.port))
                 tail.data.apply(packet.port, update.data, serial);
         }
         return;
@@ -797,6 +796,11 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         for (uint32_t i = 0; i < successor.data.view.size(); ++i) {
             const auto &v = successor.data.view[i];
             prior.data.apply(i, v.data, v.serial);
+            // Any still-fading older instance of this same logical slot
+            // must acknowledge the same version before old storage is freed.
+            for (const auto &node : next->nodes)
+                if (node->retired && node->instance.data.shares_slot(successor.data, i))
+                    node->instance.data.apply(i, v.data, v.serial);
         }
         auto &held = successor.held_notes;
         // Both records have a fixed capacity reserved during setup.

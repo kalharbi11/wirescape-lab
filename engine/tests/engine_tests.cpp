@@ -653,6 +653,10 @@ static void data_slot_defaults() {
     CHECK(e.output_sample(1, 0, 0, 15) == 1.f);
 }
 static uint32_t data_probe_serial = 0;
+static bool data_probe_compare = false;
+static uint32_t data_probe_calls = 0;
+static const void *data_probe_pointer = nullptr;
+static uint32_t data_probe_shared_serial = 0;
 static int WS2_CALL data_delivery_probe(void *self, ws2_process *p) {
     CHECK(p->data_count == 1 && p->data && p->data[0].data);
     CHECK(p->data[0].bytes == sizeof(float));
@@ -660,6 +664,16 @@ static int WS2_CALL data_delivery_probe(void *self, ws2_process *p) {
     float v = 0;
     std::memcpy(&v, p->data[0].data, sizeof(v));
     data_probe_serial = p->data[0].serial;
+    if (data_probe_compare) {
+        if (!data_probe_calls) {
+            data_probe_pointer = p->data[0].data;
+            data_probe_shared_serial = data_probe_serial;
+        } else {
+            CHECK(p->data[0].data == data_probe_pointer);
+            CHECK(data_probe_serial == data_probe_shared_serial);
+        }
+        ++data_probe_calls;
+    }
     const int result = ws::Module<Source>::descriptor()->process(self, p);
     for (uint32_t c = 0; c < p->outputs[0].channels; ++c)
         p->outputs[0].data[c][0] = v;
@@ -718,6 +732,140 @@ static void live_data_delivery() {
     verify(.625f, 6);
     CHECK(e.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
     verify(.875f, 7);
+}
+static void data_history_reclaim() {
+    DataSlotStorage owner(4);
+    for (uint32_t serial = 1; serial <= 6; ++serial)
+        owner.versions.push_back({serial, allocate_data_block(4)});
+    // Active and fading instances still reference different versions.
+    // After reset the other versions have no ring reader.
+    owner.canceled_through = 6;
+    owner.reclaim(1, [](uint32_t serial) { return serial == 1 || serial == 2; });
+    CHECK(owner.versions.size() == 3);
+    CHECK(owner.versions[0].serial == 1 && owner.versions[1].serial == 2 &&
+          owner.versions[2].serial == 6 && owner.canceled_through == 0);
+    owner.reclaim(6, [](uint32_t) { return false; });
+    CHECK(owner.versions.size() == 1 && owner.versions.front().serial == 6);
+}
+static int WS2_CALL data_serial_probe(void *self, ws2_process *p) {
+    const int result = data_delivery_probe(self, p);
+    CHECK(p->outputs[0].data[0][0] == float(p->data[0].serial % 256) / 256.f);
+    return result;
+}
+static void data_lifetime_stress() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., 1./256., 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_serial_probe;
+    Config c = cfg();
+    c.ring_capacity = 16;
+    Engine e(c);
+    CHECK(e.add_node(1, &d) && e.output(1, 0, 0));
+    CHECK(e.register_producer() == 0 && e.prepare());
+    std::atomic<bool> done{false};
+    constexpr uint32_t writes = 10000;
+    std::thread consumer([&] {
+        allocation_watch::ThreadScope watch;
+        while (!done.load(std::memory_order_acquire)) {
+            render(e, 16);
+            std::this_thread::yield();
+        }
+        render(e, 16);
+        CHECK(data_probe_serial == writes + 1);
+        CHECK(watch.allocations() == 0);
+    });
+    std::vector<uint8_t> bytes(sizeof(float));
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    for (uint32_t serial = 2; serial <= writes + 1; ++serial) {
+        const float value = float(serial % 256) / 256.f;
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        int result;
+        while ((result = e.set_data_packed(1, 0, bytes)) == WS2_CAPACITY) {
+            CHECK(std::chrono::steady_clock::now() < deadline);
+            std::this_thread::yield();
+        }
+        CHECK(result == WS2_OK);
+    }
+    done.store(true, std::memory_order_release);
+    consumer.join();
+    CHECK(e.meter().faults == 0);
+}
+static void data_replacement_lifetime() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_delivery_probe;
+    d.replace_fade_ms = 500;
+    Config c = cfg(); c.max_block = 4096;
+    Engine live(c);
+    CHECK(live.add_node(1, &d, {1}) && live.output(1, 0, 0));
+    CHECK(live.register_producer() == 0 && live.prepare());
+    auto packed = [](float value) {
+        std::vector<uint8_t> bytes(sizeof(value));
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        return bytes;
+    };
+    auto candidate = [&](uint8_t shape) {
+        auto next = std::make_unique<Engine>(c);
+        if (shape) {
+            CHECK(next->add_node(1, &d, {shape}) && next->output(1, 0, 0));
+        } else {
+            CHECK(next->add_node(9, ws::Module<Source>::descriptor()));
+        }
+        CHECK(next->prepare());
+        return next;
+    };
+    auto publish = [&](Engine &next) {
+        std::atomic<bool> finished{false};
+        bool accepted = false;
+        std::thread control([&] {
+            accepted = live.replan(next, 200000000);
+            finished.store(true, std::memory_order_release);
+        });
+        do {
+            render(live, 1);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        } while (!finished.load(std::memory_order_acquire));
+        control.join();
+        CHECK(accepted);
+    };
+    auto shared = [&](uint32_t serial, float value) {
+        data_probe_calls = 0;
+        data_probe_compare = true;
+        { allocation_watch::Scope watch; render(live, 1); CHECK(watch.allocations() == 0); }
+        data_probe_compare = false;
+        CHECK(data_probe_calls >= 2 && data_probe_shared_serial == serial);
+        CHECK(live.output_sample(1, 0, 0, 0) == value);
+        data_probe_pointer = nullptr;
+    };
+    auto first = candidate(2);
+    CHECK(live.set_data_packed(1, 0, packed(.5f)) == WS2_OK);
+    publish(*first);
+    shared(2, .5f);
+    auto second = candidate(3);
+    CHECK(live.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
+    publish(*second);
+    shared(3, .75f);
+    CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
+    shared(4, .875f);
+    // Remove then re-add the ID: a fresh binding has default serial/value,
+    // even if old fading instances and queued packets still exist.
+    CHECK(live.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    auto removed = candidate(0); publish(*removed);
+    auto reborn = candidate(1); publish(*reborn);
+    render(live, 1);
+    CHECK(live.output_sample(1, 0, 0, 0) == .375f);
+    CHECK(live.set_data_packed(1, 0, packed(.25f)) == WS2_OK);
+    render(live, 1);
+    CHECK(live.output_sample(1, 0, 0, 0) == .25f);
 }
 static void replacement_packet_birth() {
     Config config;
@@ -877,6 +1025,9 @@ int main(){
  append_only_descriptor_registration();
  data_slot_defaults();
  live_data_delivery();
+ data_history_reclaim();
+ data_lifetime_stress();
+ data_replacement_lifetime();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();

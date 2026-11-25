@@ -32,7 +32,24 @@ struct DataVersion {
 struct DataSlotStorage {
     uint32_t size;
     std::deque<DataVersion> versions;
+    // Only set after a quiescent reset has discarded every queued packet.
+    uint32_t canceled_through = 0;
     explicit DataSlotStorage(uint32_t bytes) : size(bytes) {}
+    template<class IsLive>
+    void reclaim(uint32_t oldest, IsLive is_live) noexcept {
+        while (versions.size() > 1 && versions.front().serial < oldest)
+            versions.pop_front();
+        if (!canceled_through) return;
+        // A canceled, never-referenced version has no ring reader left.
+        // Keep every acknowledged version and the last authored block.
+        // Reclamation is deferred to the control owner, never reset/render.
+        for (auto it = versions.begin(); it != versions.end();) {
+            if (it->serial == versions.back().serial || it->serial > canceled_through) break;
+            if (!is_live(it->serial)) it = versions.erase(it);
+            else ++it;
+        }
+        canceled_through = 0;
+    }
 };
 struct InstanceData {
     std::vector<std::shared_ptr<DataSlotStorage>> owners; // control-only
@@ -48,6 +65,12 @@ struct InstanceData {
             view.push_back({sizeof(ws2_data), v.bytes.get(), slot.size, v.serial});
             adopted[i].store(v.serial, std::memory_order_relaxed);
         }
+    }
+    // The bindings are immutable while an instance is visible to render.
+    // Pointer comparison does not modify a reference count.
+    bool shares_slot(const InstanceData &other, uint32_t slot) const noexcept {
+        return slot < owners.size() && slot < other.owners.size() &&
+               owners[slot].get() == other.owners[slot].get();
     }
     void apply(uint32_t slot, const void *bytes, uint32_t serial) noexcept {
         auto &v = view[slot];

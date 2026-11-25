@@ -43,6 +43,12 @@ void Engine::reset() {
         p.egress->normal.clear();
         p.egress->critical.clear();
     }
+    // Ring clear is quiescent. Mark canceled versions here without freeing
+    // anything; the next control-side reclaim preserves every live view.
+    if (p.prepared)
+        for (auto &entry : p.instances)
+            for (auto &owner : entry.second->data.owners)
+                owner->canceled_through = owner->versions.back().serial;
     if (p.render_layout) p.reset_processors();
     p.position.store(0);
     p.last_settle_attempt_position.reset();
@@ -99,8 +105,15 @@ void Engine::Impl::prune_data() noexcept {
                 if (i < tail.owners.size() && tail.owners[i].get() == &owner)
                     oldest = std::min(oldest, tail.adopted[i].load(std::memory_order_acquire));
             }
-            while (owner.versions.size() > 1 && owner.versions.front().serial < oldest)
-                owner.versions.pop_front();
+            owner.reclaim(oldest, [&](uint32_t serial) noexcept {
+                if (data.adopted[i].load(std::memory_order_acquire) == serial) return true;
+                for (const auto &retired : retired_instances) {
+                    const auto &tail = retired->data;
+                    if (tail.shares_slot(data, i) &&
+                        tail.adopted[i].load(std::memory_order_acquire) == serial) return true;
+                }
+                return false;
+            });
         }
     }
 }
