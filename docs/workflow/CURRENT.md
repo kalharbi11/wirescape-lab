@@ -9,6 +9,24 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 42 — 2026-11-25 (A82, A83, B4 assigned; owner `architect:run`)
+
+- **A83** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/523#issuecomment-7157532240)), B3 larger-buffer CN: no further correction. A bounded disposition is recorded in [M4](milestones/M4.md).
+  - The post-bracket second stays gated: sample-exact, `freshModules` [], tail and held note sounding.
+  - The rule-2 stream-stop bracket is reported, not gated: span ≤ 10.0 ms, silence ≤ 1 sample.
+  - It expires at OB1.1 close or with any restart/mute-path or `max_block` change.
+  - **B3:** finish #525 with the larger row recorded under A83, then the signed Result.
+  - **Lead:** merge #525 on verified evidence; KNOWN_ISSUES A2 keeps the numbers.
+- **A82** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7157534847)), B2 A81 witness: OSC In is accepted, under device-off conditions with no LAN socket and no core seam. Order is unchanged: shared edits wait for #538. Inbox PR #562 is closed as superseded; the row is cleared here.
+- **B4 assigned M10 S2 [#564](https://github.com/kalharbi11/wirescape-lab/issues/564):** Cortex-M7 double/soft-float symbol names and `facts/repo/module_memory.md`, including the 96 kHz saved-state size against the cap (#539 L1). Facts only; lead merge. An OB1 sound follow-up from the #492 audit preempts it.
+- **Held:** #538 waits for its ready-head gates, signed Result and inbox pin; #540 waits for #538.
+- **Next Architect run:** `architect-ready` once #538 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:**
+  1. review #538 against A78/A80/A81, with B2's OSC timeout caveat;
+  2. check that #525 recorded the larger row under A83 within its caps;
+  3. check #492's final ledger against the OB1 acceptance rows.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead run — 2026-11-25 03:32 EST (after Delay merge)
 
 - **OB1:** B1 #492 can consume the [integrated OB-a1 artifact](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/artifacts/15005210459). The owner listening handoff follows the audited 15-case ledger. B3 #525 `09e5820` has successful final A62/native/A69a capture runs at subject `8c9bb10`; the numerical audit, exact-source A70 assertions and signed PR evidence still gate disposition. B4 completed #539 and is available for scoped sound follow-up. L1 is recorded in the [limits inventory](../../facts/compare/measured/wirescape_limits.md), with replacement-path behavior retained as a follow-up.
