@@ -11,11 +11,8 @@ struct CcRig : MidiRig<CcToCv> {
     CcRig(const uint8_t *bytes, uint32_t size) : MidiRig<CcToCv>(bytes, size) {
         CcConfiguration config;
         REQUIRE(cc_configuration(bytes, size, config));
-        for (uint32_t i = 0; i < 8; ++i) {
-            const auto &r = config.rows[i];
-            slot_data.rows[i] = {r.channel, r.controller, r.fourteen_bit, r.smoothing_ms,
-                                 float(r.minimum()), float(r.maximum())};
-        }
+        std::string error;
+        REQUIRE(materialize_cc_rows(config, slot_data, error));
         ctx.data_count = 1; ctx.data = &view;
     }
 };
@@ -134,7 +131,32 @@ static void live_mapping_data() {
     rig.run({midi1(0xb0, 1, 0)});
     REQUIRE(rig.sample(0) == float(64. / 127.) && rig.sample(1) == 1);
 }
+static void legacy_materialization_limits() {
+    CcConfiguration legacy;
+    legacy.rows[0].bipolar = 1;
+    legacy.rows[1].has_min = legacy.rows[1].has_max = 1;
+    legacy.rows[1].min = .1;
+    legacy.rows[1].max = -.2;
+    CcRows packed{};
+    std::string error;
+    REQUIRE(materialize_cc_rows(legacy, packed, error));
+    REQUIRE(packed.rows[0].min == -1.f && packed.rows[0].max == 1.f);
+    REQUIRE(packed.rows[1].min == .1f && packed.rows[1].max == -.2f);
+    REQUIRE(packed.rows[7].controller == 8);
+    legacy.rows[0].has_min = 1;
+    legacy.rows[0].min = double(cc_data_limit) * 2;
+    REQUIRE(!materialize_cc_rows(legacy, packed, error));
+    REQUIRE(error.find("mapping.rows[0].min") != std::string::npos);
+    REQUIRE(packed.rows[0].min == -1.f && packed.rows[1].max == -.2f);
+    legacy.rows[0].min = -1;
+    legacy.rows[7].has_max = 1;
+    legacy.rows[7].max = -double(cc_data_limit) * 2;
+    REQUIRE(!materialize_cc_rows(legacy, packed, error));
+    REQUIRE(error.find("mapping.rows[7].max") != std::string::npos);
+    REQUIRE(packed.rows[7].max == 1.f);
+}
 int main() {
+    legacy_materialization_limits();
     live_mapping_data();
     {
         CcConfiguration cfg;
