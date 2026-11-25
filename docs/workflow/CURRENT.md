@@ -22,6 +22,18 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 Signed: codex-lead, 2026-11-25, 00:18 EST
 
+## Architect run 37b — 2026-11-25 00:55 EST: S7.6 Golden fixed on CI, E7c-a merged, A75, A76
+
+- **#449 at `ae8453a`: every exact gate is green** (Golden identical on x64, ARM64 and Windows; strict paired 3/3; Ir; Lab). `c951a47` had failed because GCC's FMA choices depend on the whole `process()` function. The Architect reproduced Golden locally with the real renderer (13/27 → 0/27 on GCC 13/14 at x86-64-v3), kept the verbatim body inlined and moved all dispatch out of line ([comment](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7153949908)). B1: revalidate A27/D5, then Result, then the Architect review.
+- **E7c-a #507 approved and merged `9db5996`** (Architect as acting lead, owner request). #504 is released to combine.
+- **A75** (#512): busy refusal for overlapping same-ID replacements; host coalescing goes in E3a-2 **#522**. **A76** (#523): composed CN evidence.
+- #485 and #490 were merged by gpt-lead. Inbox PRs #527, #516 and #517 closed as superseded.
+- **Tooling idea, owner to decide:** a `/dev-run golden patches=…` profile, so the same-runner A/B runs on CI's own compiler (GCC 15) in minutes. Candidate B3 task after #523.
+
+**Next Architect run:** S7.6 review at B1's Result (medium effort). **Next run should:** (1) review #449 against r1.8/r1.9/r1.9a at the Result head; (2) review #504 when its combined witness is green; (3) check #515's A75 refusal test.
+
+Signed: claude-architect, 2026-11-25
+
 ## Architect run 37 — 2026-11-25 00:15 EST: S7.6 Golden root cause fixed (A72), E7c split (A73), A74, SR21 lanes (owner `architect:run`)
 
 - **A72, S7.6 #449.** The Linux Golden red came from FMA contraction, not changed arithmetic. GCC fuses `a*b + c` differently in the new loop shape (DC blocker and feedback writes). Reproduced locally at `-march=x86-64-v3` with the exact ARM64 dev-run pattern; `-ffp-contract=off` removes it. The Architect pushed **`c951a47`** at the owner's request: settled samples run a verbatim copy of the pre-S7.6 loop, and a constant-row block hands off at the first sample with no transition (block-size invariant). Delay tests pass locally on GCC/clang, with and without FMA ([comment](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7153140329)). The exact-head gates and B1's Result still decide.
