@@ -323,6 +323,7 @@ static void replacement_adopt(bool prequeued_release = false) {
     });
     // Never abort with an unjoined control thread; accumulate the oracle result.
     bool continuous = true;
+    bool held_continuous = true; // A71: successful adopt never dips the held output.
     const auto deadline = Clock::now() + std::chrono::seconds(2);
     do {
         allocation_watch::ThreadScope watch;
@@ -330,13 +331,18 @@ static void replacement_adopt(bool prequeued_release = false) {
         ++count;
         continuous &= result == WS2_OK && watch.allocations() == 0 &&
                       std::abs(phase[0] - float(count) / 65536.f) < 2.e-7f;
+        held_continuous &= std::abs(held[0] - 1.f) < 2.e-7f;
         std::this_thread::yield();
     } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
     control.join();
     CHECK(ok);
     CHECK(continuous);
+    CHECK(held_continuous);
     successor.reset();
-    for (unsigned i = 0; i < 336; ++i) render();
+    for (unsigned i = 0; i < 336; ++i) {
+        render();
+        CHECK(std::abs(held[0] - 1.f) < 2.e-7f);
+    }
     CHECK(held[0] == 1.f); // No duplicate attack from replay after successful adopt.
     if (prequeued_release) {
         CHECK(live->meter().frame < due);
