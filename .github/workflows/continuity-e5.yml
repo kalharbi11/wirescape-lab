@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: E5 stock-config continuity (devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/continuity-e5.yml"
+permissions:
+  contents: read
+jobs:
+  stock-config:
+    name: E5 stock config / ${{ matrix.stage }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - stage: before
+            engine: a8b34237b252d9fcfedfa3810732ba8feacae560
+          - stage: candidate
+            engine: 31ab651db2f53447a0138fcb5648fb64b08770ee
+    env:
+      HARNESS_HEAD: a8b34237b252d9fcfedfa3810732ba8feacae560
+      ENGINE_HEAD: ${{ matrix.engine }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a8b34237b252d9fcfedfa3810732ba8feacae560
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.engine }}
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify pins and install build tools
+        run: |
+          set -euo pipefail
+          test "$(git -C harness rev-parse HEAD)" = "$HARNESS_HEAD"
+          test "$(git -C engine-source rev-parse HEAD)" = "$ENGINE_HEAD"
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          mkdir -p "$RUNNER_TEMP/e5"
+          printf 'harness=%s\nsubject=%s\n' "$HARNESS_HEAD" "$ENGINE_HEAD" > "$RUNNER_TEMP/e5/pins.txt"
+      - name: Build pinned null-sink sidecar
+        run: |
+          cmake -S engine-source/native -B "$RUNNER_TEMP/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/build" --target wirescape_engine_sidecar --parallel 2
+      - name: Capture stock same-descriptor Groove config edit
+        run: |
+          python harness/bench/continuity/run.py \
+            --engine "$RUNNER_TEMP/build/wirescape-engine" \
+            --engine-source engine-source --built-head "$ENGINE_HEAD" \
+            --repeats 3 --only 'applyGraph Groove steps' \
+            --out "$RUNNER_TEMP/e5/report" --keep "$RUNNER_TEMP/e5/raw"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e5-stock-config-${{ matrix.stage }}
+          path: ${{ runner.temp }}/e5
+          if-no-files-found: warn
+          retention-days: 14
