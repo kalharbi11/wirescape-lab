@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <vector>
+#include <memory>
+#include <new>
 
 // A72: keep the settled and transition loops as separate functions so the
 // compiler cannot merge them; their FMA contraction then matches the original.
@@ -190,11 +191,13 @@ struct Delay {
            staged.mode_blend<0 || staged.mode_blend>1 || staged.division_left>fade_frames ||
            staged.tone_left>fade_frames || staged.division_to<0 || staged.division_to>kMax*rate ||
            staged.applied<0 || staged.pending<0)return WS2_INVALID;
-        std::vector<float> history(size_t(size)*2);
-        for(float&v:history)if(!get_f(in,v))return WS2_INVALID;
+        // load_state is non-RT; retain ownership until the complete payload validates.
+        std::unique_ptr<float[]> history(new (std::nothrow) float[size_t(size)*2]);
+        if(!history)return WS2_CAPACITY;
+        for(size_t j=0;j<size_t(size)*2;++j)if(!get_f(in,history[j]))return WS2_INVALID;
         staged.schmitt.reset();if(latch)staged.schmitt.process(1.f);
-        std::copy_n(history.data(),size,line[0]);
-        std::copy_n(history.data()+size,size,line[1]);
+        std::copy_n(history.get(),size,line[0]);
+        std::copy_n(history.get()+size,size,line[1]);
         *this=staged;
         return WS2_OK;
     }
