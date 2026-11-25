@@ -94,6 +94,26 @@ jobs:
           python tools/dev.py build --headless --config Release
           npm --prefix apps/desktop run build
 
+      - name: Record Windows compiler and toolset
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          if (Test-Path build/native/CMakeCache.txt) {
+            Select-String -Path build/native/CMakeCache.txt -Pattern '^CMAKE_GENERATOR(:|_TOOLSET:)'
+            Get-ChildItem -Path build/native/CMakeFiles -Recurse -Filter CMakeCXXCompiler.cmake -File |
+              Select-String -Pattern '^set\(CMAKE_CXX_COMPILER(_VERSION)? '
+          }
+      - name: Print full failed Windows build log
+        if: ${{ failure() && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          if (Test-Path build_reports/foundation) {
+            Get-ChildItem -Path build_reports/foundation -Filter 'build-*.log' -File | ForEach-Object {
+              Write-Host "Build log: $($_.Name)"
+              Get-Content -LiteralPath $_.FullName
+            }
+          }
+
       - name: Repository LOC, complexity, graph, residue and binaries
         run: python bench/offline/repo_facts.py
 
