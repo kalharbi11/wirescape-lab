@@ -77,7 +77,65 @@ static ws2_event message(const std::vector<uint8_t> &bytes, uint32_t offset = 0)
     e.offset = offset;
     return e;
 }
+// E3c: a live route edit takes effect in the same prepared instance.
+// Descriptor offsets, not a duplicated storage struct, construct the test block.
+static void live_route_data() {
+    osc::Configuration cfg;
+    cfg.rows[0].smoothing_ms = 0;
+    Rig rig(cfg);
+    const ws2_data_slot *slot = nullptr;
+    const ws2_field *rows = nullptr;
+    for (uint32_t i = 0; i < rig.d->data_slot_count; ++i) {
+        const auto &s = rig.d->data_slots[i];
+        for (uint32_t j = 0; j < s.field_count; ++j) {
+            const auto &f = s.fields[j];
+            if (std::strcmp(f.id, "rows") == 0 && f.type == WS2_F_RECORD) {
+                slot = &s; rows = &f; break;
+            }
+        }
+        if (slot) break;
+    }
+    REQUIRE(slot && rows && rows->count == 8);
+    const ws2_field *pattern = nullptr, *smooth = nullptr;
+    for (uint32_t i = 0; i < rows->field_count; ++i) {
+        const auto &f = rows->fields[i];
+        if (std::strcmp(f.id, "pattern") == 0) pattern = &f;
+        if (std::strcmp(f.id, "smoothing_ms") == 0) smooth = &f;
+    }
+    REQUIRE(pattern && pattern->type == WS2_F_TEXT && pattern->count > 16);
+    REQUIRE(smooth && smooth->type == WS2_F_F32);
+    // Seed every scalar from its descriptor defaults; text defaults are empty.
+    // Build complete records with explicit routes to avoid relying on migration.
+    std::vector<uint8_t> packed(slot->bytes, 0);
+    for (uint32_t row = 0; row < rows->count; ++row) {
+        auto *dst = packed.data() + rows->offset + row * rows->stride;
+        for (uint32_t j = 0; j < rows->field_count; ++j) {
+            const auto &f = rows->fields[j];
+            if (f.type == WS2_F_F32) { float v = float(f.initial); std::memcpy(dst + f.offset, &v, sizeof(v)); }
+            else if (f.type == WS2_F_U32 || f.type == WS2_F_ENUM) { uint32_t v = uint32_t(f.initial); std::memcpy(dst + f.offset, &v, sizeof(v)); }
+            else if (f.type == WS2_F_U8 || f.type == WS2_F_BOOL) dst[f.offset] = uint8_t(f.initial);
+        }
+        std::snprintf(reinterpret_cast<char *>(dst + pattern->offset), pattern->count, "/pico1/knob/%u", row + 1);
+        float zero = 0; std::memcpy(dst + smooth->offset, &zero, sizeof(zero));
+    }
+    std::vector<ws2_data> data(rig.d->data_slot_count);
+    REQUIRE(data.size() == 1); // one rows slot for this module
+    data[0] = {sizeof(ws2_data), packed.data(), slot->bytes, 1};
+    rig.ctx.data_count = uint32_t(data.size()); rig.ctx.data = data.data();
+    auto first = packet("/pico1/knob/1", .25f), next = packet("/live/route", .75f);
+    rig.run({message(first)});
+    REQUIRE(rig.data->values[0][0][31] == .25f);
+    auto *text = packed.data() + rows->offset + pattern->offset;
+    std::memset(text, 0, pattern->count);
+    std::memcpy(text, "/live/route", sizeof("/live/route"));
+    ++data[0].serial;
+    rig.run({message(next)});
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+    rig.run({message(first)});
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+}
 int main() {
+    live_route_data();
     osc::Statistics stats;
     osc::Configuration cfg;
     cfg.statistics = &stats;
