@@ -186,6 +186,20 @@ struct Delay {
         dc_y[ch] = out;
         return out;
     }
+    // Settled feedback path: verbatim pre-S7.6 loop(), kept separate so the
+    // compiler sees the original expression shape (FMA contraction, A72).
+    float loop_settled(int ch, float x) {
+        float y = x;
+        if (tone_kind) {
+            lp[ch] = flush(lp[ch] + tone_a * (x - lp[ch]));
+            const float f = tone_kind < 0 ? lp[ch] : x - lp[ch];
+            y = x + tone_k * (f - x);
+        }
+        const float out = flush(y - dc_x[ch] + dc_r * dc_y[ch]);
+        dc_x[ch] = y;
+        dc_y[ch] = out;
+        return out;
+    }
     // Measures the clock period from rising edges. The first interval applies at the second edge; a later change
     // needs two consistent intervals. No edge for 4 s: keep the last period and restart measuring.
     void clock_tick(float v) {
@@ -212,7 +226,91 @@ struct Delay {
         }
     }
 
+    // A settled block cannot start or continue a switch transition: mode,
+    // tone and clocked division rows are constant at their settled targets.
+    // Such blocks run the verbatim pre-S7.6 loop; every other block runs the
+    // transition loop. Both read and write the same state.
+    bool settled_block(ws::Block &b) {
+        if (!b.frames() || division_left || tone_left) return false;
+        const auto p_tone = b.param(kTone), p_mode = b.param(kMode), p_div = b.param(kDivision);
+        if (!p_mode.constant() || !p_tone.constant()) return false;
+        const float mode_target = std::lround(p_mode.ch(0)[0]) >= 1 ? 1.f : 0.f;
+        if (primed && mode_blend != mode_target) return false;
+        update_tone(p_tone.ch(0)[0]);
+        if (tone_left) return false;
+        if (b.in(2).connected()) {
+            if (!p_div.constant()) return false;
+            const long d = std::clamp(std::lround(p_div.ch(0)[0]), 0l, 7l);
+            if (division_seen >= 0 && d != division_seen) return false;
+        }
+        mode_blend = mode_target;
+        return true;
+    }
     void process(ws::Block &b) {
+        uint32_t begin = 0;
+        if (!settled_block(b)) begin = process_transition(b);
+        if (begin == b.frames()) return;
+        process_settled(b, begin);
+        if (!b.in(2).connected()) division_seen = -1;
+        else if (applied > 0) division_seen = std::clamp(std::lround(b.param(kDivision).ch(0)[0]), 0l, 7l);
+        else division_seen = -1;
+    }
+    // Frames [begin, frames) of a settled block.
+    void process_settled(ws::Block &b, uint32_t begin) {
+        for (uint32_t o = 0; o < 2; ++o) {
+            b.out(o).set_channels(1);
+            b.out(o).mark_constant(false);
+        }
+        float *out[2]{b.out(0).ch(0), b.out(1).ch(0)};
+        const auto in_l = b.in(0), in_r = b.in(1), clock = b.in(2);
+        const bool right_patched = in_r.connected(), clocked = clock.connected();
+        if (!clocked) clock_reset();
+        const auto p_time = b.param(kTime), p_div = b.param(kDivision), p_fb = b.param(kFeedback);
+        const auto p_tone = b.param(kTone), p_mode = b.param(kMode), p_mix = b.param(kMix);
+        const bool mix_constant = p_mix.constant();
+        float dry = 0, wet = 0;
+        const double lo = kMin * rate, hi = kMax * rate;
+        for (uint32_t i = begin; i < b.frames(); ++i) {
+            const float xl = sum(in_l, i), xr = right_patched ? sum(in_r, i) : xl;
+            if (clocked) clock_tick(clock.ch(0)[i]);
+            double target = static_cast<double>(p_time.ch(0)[i]) * rate;
+            if (clocked && applied > 0) {
+                const long d = std::clamp(std::lround(p_div.ch(0)[i]), 0l, 7l);
+                target = applied * kDivisions[d];
+            }
+            target = std::clamp(target, lo, hi);
+            if (!primed) {
+                cur = target;
+                primed = true;
+            } else {
+                const double diff = target - cur;
+                cur += std::fabs(diff) < 1e-4 ? diff : std::clamp(diff * alpha, -kSlew, kSlew);
+            }
+            const float dl = std::clamp(read(line[0], cur), -kWetMax, kWetMax);
+            const float dr = std::clamp(read(line[1], cur), -kWetMax, kWetMax);
+            update_tone(p_tone.ch(0)[i]);
+            const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
+            const float fl = loop_settled(0, dl), fr = loop_settled(1, dr);
+            if (std::lround(p_mode.ch(0)[i]) >= 1) { // ping-pong: mono in, bounce L -> R -> L
+                line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
+                line[1][w] = limit(fb * fl);
+            } else {
+                line[0][w] = limit(xl + fb * fl);
+                line[1][w] = limit(xr + fb * fr);
+            }
+            if (++w == size) w = 0;
+            if (i == begin || !mix_constant) {
+                const double m = std::clamp(static_cast<double>(p_mix.ch(0)[i]), 0.0, 1.0);
+                dry = m >= 1.0 ? 0.f : static_cast<float>(std::cos(m * 1.5707963267948966));
+                wet = m <= 0.0 ? 0.f : static_cast<float>(std::sin(m * 1.5707963267948966));
+            }
+            out[0][i] = dry * xl + wet * dl;
+            out[1][i] = dry * xr + wet * dr;
+        }
+    }
+    // Returns the first frame from which the rest of a constant-row block is
+    // settled, so a transition ends at the same sample for any block size.
+    uint32_t process_transition(ws::Block &b) {
         for (uint32_t o = 0; o < 2; ++o) {
             b.out(o).set_channels(1);
             b.out(o).mark_constant(false);
@@ -235,6 +333,7 @@ struct Delay {
                                         ? std::clamp(std::lround(p_div.ch(0)[0]), 0l, 7l) : 0;
         const bool tone_constant = p_tone.constant();
         if (tone_constant && b.frames()) update_tone(p_tone.ch(0)[0]);
+        const bool settle = mode_constant && tone_constant && (!clocked || division_constant);
         float dry = 0, wet = 0;
         const double lo = kMin * rate, hi = kMax * rate;
         for (uint32_t i = 0; i < b.frames(); ++i) {
@@ -311,7 +410,11 @@ struct Delay {
             }
             out[0][i] = dry * xl + wet * dl;
             out[1][i] = dry * xr + wet * dr;
+            if (settle && !division_left && !tone_left && mode_blend == mode_target &&
+                (!clocked || applied <= 0 || division_seen == division_value))
+                return i + 1;
         }
+        return b.frames();
     }
 };
 } // namespace fxdelay
