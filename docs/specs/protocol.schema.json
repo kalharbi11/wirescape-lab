@@ -137,6 +137,9 @@
         },
         "state": {
           "type": "object"
+        },
+        "data": {
+          "type": "object"
         }
       }
     },
@@ -866,6 +869,39 @@
             },
             "value": {
               "type": "number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "moduleId",
+            "slot",
+            "value"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "setData"
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "slot": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "value": {
+              "type": "object"
             }
           }
         },

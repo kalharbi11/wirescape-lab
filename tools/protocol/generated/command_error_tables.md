@@ -12,6 +12,7 @@ Source: `docs/specs/protocol.schema.json`; regenerate with `python tools/protoco
 | `connect` | `connection` |
 | `disconnect` | `connection` |
 | `setParam` | `moduleId`, `paramId`, `value` |
+| `setData` | `moduleId`, `slot`, `value` |
 | `setModAmount` | `connection`, `amount` |
 | `noteOn` | `note`, `velocity` |
 | `noteOff` | `note` |

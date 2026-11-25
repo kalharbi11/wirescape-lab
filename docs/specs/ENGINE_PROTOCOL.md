@@ -76,6 +76,7 @@ Wire `type` is the `EngineClient` method name, except `ccMap.set`. Numbers are f
 | `connect` | `connection:Connection` | swap | edit |
 | `disconnect` | `connection:Connection` (identity: kind/from/to; amount ignored) | swap | edit |
 | `setParam` | `moduleId:uint32`, `paramId:string`, `value:number` (parameter's native units) | live | block |
+| `setData` | `moduleId:uint32`, `slot:string`, `value:object` (complete slot value) | live | block |
 | `setModAmount` | `connection:Connection` (identity: kind/from/to; nested amount ignored), `amount:number` in [-1,1] (top-level wins) | live | edit |
 | `noteOn` | `note:integer` 0..127, `velocity:number` 0..1 | live | block |
 | `noteOff` | `note:integer` 0..127 (never silently drop) | live, priority | block |
@@ -105,6 +106,8 @@ A successful `setSampleRate` or `setBufferFrames` runs wholly on the control thr
 ```
 
 `midiLearn` is advertised by the exact capability name `midiLearn` only when implemented. Each command returns one terminal reply with `result:{armed}` and leaves graph generation unchanged. Arming/re-arming clears the prior observation and resets a **30-second engine-side no-capture timeout**. Disarm, engine restart or a new session clears Learn; a captured CC remains visible until disarm/re-arm. No setting, patch or module config stores this state. The UI alone commits the observed controller through `ccMap.set` / `addModule` and its own lossless D8 `config.rows`.
+
+`setData` packs the complete slot value against the module field table on the control thread. Missing keys take defaults; unknown or invalid fields refuse with the slot and field name. Capacity returns `busy`; the committed document changes only after successful enqueue. `applyGraph` supplies candidate data at adoption to retained and replaced instances without treating a data-only change as a config replacement. Stored-document load preserves unknown fields and warns rather than delivering them.
 
 A `swap` command acknowledges only **after** the candidate graph successfully validates, the old graph is safely retired and the new graph becomes active; refusal leaves the existing graph and generation untouched. Builds and MIDI subscription refreshes run on the control thread; source removal releases its held notes, and module IDs are not recycled within a session (D7). Live `setParam` and keyboard events acknowledge after successful queue insertion; on a full queue respond `busy`, not success. No callback performs JSON work. Graph switch gap ≤150 ms applies to normal patch edits, not hardware unplug/recovery. Refusals do not mutate audio, graph, device settings or the UI's editable document.
 

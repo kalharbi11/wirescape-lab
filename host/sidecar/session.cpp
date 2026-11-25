@@ -1330,8 +1330,9 @@ Json Session::apply(const Json &command) {
         const auto &value = command.at("value");
         std::vector<uint8_t> packed;
         std::string error;
-        need(ws::data_layout::pack_data_slot(d->data_slots[slot], value,
-                ws::data_layout::DataLoad::Edit, packed, error), "invalid", error.c_str());
+        if (!ws::data_layout::pack_data_slot(d->data_slots[slot], value,
+                ws::data_layout::DataLoad::Edit, packed, error))
+            throw Refusal("invalid", error.c_str());
         // All JSON work and validation must precede the ring insertion. On
         // capacity/invalid/state refusal the execution document is unchanged.
         auto updated = m;
