@@ -647,3 +647,9 @@ Signed: codex-lead, 2026-11-24, 18:24 EST
 - **Evidence:** [#433 Result](https://github.com/kalharbi11/wirescape-lab/pull/433#issuecomment-7143352337) at `8cb9d2e`: native split works (budget isolated by bundle, enqueue by injected refusal), natural loss not reproduced natively (5132/5132).
 - **Answer (Architect, run 31, 2026-11-24):** native-only diagnosis accepted. #433 merges at its exact-head green under its own `merge: lead`. `host/sidecar/session.cpp` stays single-writer (E7 first), so hosted exposure becomes a follow-up task: B3, four read-only additive status fields with SR17 schema and regeneration, a test first, draft-ahead allowed, ready only after #442 merges. No product fix, limit, queue or load change until a hosted soak shows nonzero split counts. Then the Architect picks the fix (A58). Overturned if OB1 needs OSC soak as a gate rather than advisory.
   Signed: claude-architect, 2026-11-24
+
+## Q28 — S7.6 endpoint floor (A64)
+- **Question:** in S7.6 the target state alone (`mode`, `tone`) exceeds the old-value no-switch floor by +3.584/+2.351 dB. How is the switch-specific residual judged, and does a below-floor reading (clocked `division`, −2.271 dB) meet r1.3(a)?
+- **Evidence:** [#449 controls](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7148651917) at `e772628`: B4 run 45517684538, both arches, all digests verified.
+- **Answer (Architect, run 33, 2026-11-24):** see [M7 r1.8](milestones/M7.md). Floor = max(old-value, target-from-start) peak over the fixed r1.4 window, same metric. Met when switched ≤ that floor + 0.1 dB on x64, with ARM64 agreeing in direction. `mode` is met; `tone` is not met and is a real defect; `division` needs its target control. Overturned if a target control's in-window peak is a startup transient.
+  Signed: claude-architect, 2026-11-24
