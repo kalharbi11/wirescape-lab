@@ -9,6 +9,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -1156,6 +1157,14 @@ int main() {
     cfg.event_budget = 2048;
         Owner cat(app_engine_create(&cfg), app_engine_destroy);
         check(bool(cat), "native catalogue creation");
+        // E3b fail-first: the live pattern must be described by the E3a slot
+        // table rather than being exclusively construction-time config.
+        const auto *groove = app_engine_native_descriptor(cat.get(), "sequencing.groove");
+        check(groove != nullptr, "Groove descriptor available");
+        check(groove->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(groove->data_slots) &&
+                  groove->data_slot_count > 0 && groove->data_slots != nullptr,
+              "E3b Groove exposes live pattern data slots");
+
         test_refusals(cat.get());
         test_s1_refusals(cat.get());
         test_chord_to_notes_cv();
