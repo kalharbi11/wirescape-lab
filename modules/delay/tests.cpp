@@ -425,7 +425,14 @@ static void state_and_extremes() {
     REQUIRE(b.load(bad) == WS2_UNSUPPORTED);
     bad = bytes;
     bad.pop_back();
-    REQUIRE(b.load(bad) == WS2_INVALID);
+    Rig malformed;
+    REQUIRE(malformed.load(bad) == WS2_INVALID);
+    malformed.values[kMix] = 1.f;
+    malformed.left(Wave(2000, 0.f));
+    const auto cleared = malformed.run(2000);
+    REQUIRE(finite_within(cleared.l, 0.f) && finite_within(cleared.r, 0.f));
+    // The failed-load instance is separate from the successful continuation twin.
+    REQUIRE(b.save() == bytes);
     // A70 v2 must continue the audible tail, not merely round-trip bytes.
     wet_only(b, 0.01f, 0.8f);
     a.left(Wave(4000, 0.f)); b.left(Wave(4000, 0.f));
@@ -441,6 +448,47 @@ static void state_and_extremes() {
     a.left(Wave(4000, 0.f));
     const Result quiet = a.run(4000);
     REQUIRE(finite_within(quiet.l, 0.f) && finite_within(quiet.r, 0.f));
+    // The existing 1 MiB per-node serialization cap is not a new preparation cap.
+    // At 96 kHz the stereo two-second history alone is larger than the limit.
+    {
+        Rig too_large(96000.);
+        Bytes rejected;
+        ws2_writer writer{sizeof(writer), &rejected, sink};
+        REQUIRE(too_large.d->save_state(too_large.instance, &writer) == WS2_CAPACITY);
+        REQUIRE(rejected.empty()); // preflight before emitting a partial blob
+    }
+    // A nonzero tone, feedback, clock follower and changing delay time are also
+    // runtime state. Restore partway through a glide; continue the clock phase
+    // from the exact prefix, with no replay of the preceding input.
+    {
+        Rig prefix, twin;
+        for (Rig* r : {&prefix, &twin}) {
+            wet_only(*r, .02f, .8f);
+            r->values[kTone] = -.6f;
+            r->values[kMode] = 1.f;
+        }
+        prefix.left(noise(3900, 71));
+        prefix.clock(pulses(3900, 900));
+        prefix.run(3900, 127);
+        prefix.values[kDivision] = 7.f;
+        prefix.left(noise(129, 73));
+        // Keep clocked input present; next pulse is 600 frames away.
+        prefix.clock(Wave(129, 0.f));
+        prefix.run(129, 127);
+        twin.values[kDivision] = prefix.values[kDivision];
+        REQUIRE(twin.load(prefix.save()) == WS2_OK);
+        Wave tail_clock(4800, 0.f);
+        for (size_t at = 471; at < tail_clock.size(); at += 900)
+            tail_clock[at] = 1.f;
+        for (Rig* r : {&prefix, &twin}) {
+            r->left(Wave(4800, 0.f));
+            r->clock(tail_clock);
+        }
+        const auto expected = prefix.run(4800, 127), actual = twin.run(4800, 127);
+        REQUIRE(!finite_within(expected.l, 0.f));
+        REQUIRE(std::memcmp(expected.l.data(), actual.l.data(), expected.l.size()*sizeof(float)) == 0);
+        REQUIRE(std::memcmp(expected.r.data(), actual.r.data(), expected.r.size()*sizeof(float)) == 0);
+    }
     // Extremes: every parameter at its minimum and maximum, hot inputs, tiny and large blocks.
     for (int extreme = 0; extreme < 2; ++extreme) {
         for (uint32_t mode = 0; mode < 2; ++mode) {
