@@ -49,6 +49,7 @@ struct QuadVca {
         reset();
     }
     void reset() {
+        primed_ = 0;
         for (auto &channel : state_)
             for (auto &voice : channel) voice = {};
     }
@@ -86,8 +87,12 @@ struct QuadVca {
             // Per block: a channel whose mode is constant and not fading is settled, so the
             // sample loop needs no mode read. kDynamic handles mode CV and running fades.
             std::array<uint8_t, 4> path{};
+            const uint32_t voice_bit = uint32_t(1) << voice;
+            const bool prime = !(primed_ & voice_bit);
             for (uint32_t k = 0; k < 4; ++k) {
                 local[k] = state_[k][voice];
+                // On load/reset, begin in the selected mode, not a VCA fade.
+                if (prime) local[k].mode_blend = b.param(k + 4).value(voice, 0) >= .5f ? 1.f : 0.f;
                 path[k] = kDynamic;
                 if (b.param(k + 4).constant()) {
                     const bool want_lpg = b.param(k + 4).value(voice) >= .5f;
@@ -130,6 +135,7 @@ struct QuadVca {
                 output[4][i] = std::clamp(sum, -4.f, 4.f);
             }
             for (uint32_t k = 0; k < 4; ++k) state_[k][voice] = local[k];
+            primed_ |= voice_bit;
         }
     }
 
@@ -159,6 +165,7 @@ struct QuadVca {
         return table[index] + (table[index + 1] - table[index]) * (scaled - float(index));
     }
     std::array<std::array<VoiceState, 16>, 4> state_{};
+    uint32_t primed_ = 0; // One bit per voice; all four channels start together.
     std::array<float, 257> cutoff_g_{}, release_alpha_{};
     float attack_alpha_ = 0, mode_fade_step_ = 0;
 };

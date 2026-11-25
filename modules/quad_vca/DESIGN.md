@@ -15,6 +15,9 @@ in samples at the configured rate. The LPG follower/filter run throughout the fa
 are discarded only when the VCA blend reaches zero. This avoids the old abrupt
 VCA-to-LPG discontinuity and preserves the exact VCA fast path, no stale LPG history,
 normalled inputs, the same shared `response` parameter, and the original steady-LPG DSP.
+On the first sample of each voice after prepare/reset, the blend starts at the selected
+mode endpoint, so loading an LPG patch does not leak unfiltered VCA audio. The primed
+bit is independent of the LPG state and survives a completed fade back to VCA.
 Constant-output optimization is disabled while a previous LPG-to-VCA fade completes,
 even if all incoming signals and params have become constant. No allocations, locks,
 port/parameter/state-format changes, host edits, or new modes are introduced.
