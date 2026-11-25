@@ -445,6 +445,15 @@ static void state_and_extremes() {
     // Refusal must be atomic even when the destination already has an audible tail.
     REQUIRE(b.load(bad) == WS2_INVALID);
     REQUIRE(b.save() == bytes);
+    // Reject a non-finite final ring sample after staging almost the entire payload.
+    DelayBytes nonfinite = bytes;
+    REQUIRE(nonfinite.size() >= 4);
+    nonfinite[nonfinite.size()-4]=0;
+    nonfinite[nonfinite.size()-3]=0;
+    nonfinite[nonfinite.size()-2]=0x80;
+    nonfinite[nonfinite.size()-1]=0x7f; // +infinity, little endian
+    REQUIRE(b.load(nonfinite) == WS2_INVALID);
+    REQUIRE(b.save() == bytes);
     Rig malformed;
     REQUIRE(malformed.load(bad) == WS2_INVALID);
     malformed.values[kMix] = 1.f;
