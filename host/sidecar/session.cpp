@@ -821,7 +821,7 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
     audio::EngineOwner candidate(
         document::load_runtime_patch(patch_bytes, catalogue_.get(), config_, error, &next_telemetry.taps()),
         app_engine_destroy);
-    need(bool(candidate), "refused", error.empty() ? "Graph configuration or state refused" : error.c_str());
+    need(bool(candidate), "refused", "Graph configuration or state refused");
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
