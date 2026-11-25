@@ -20,6 +20,8 @@ export interface GrooveExecution {
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
+const ROW_FIELDS = new Set(['kind', 'key', 'velocity', 'mod1', 'mod2', 'gate_q', 'cond_type',
+  'cond_a', 'cond_b', 'key_count', 'keys']);
 
 /** Map exactly the descriptor's numeric condition encoding, not a new musical schema. */
 function row(s: Step): Partial<LivePatternRow> | null {
@@ -53,7 +55,8 @@ function row(s: Step): Partial<LivePatternRow> | null {
  * fields are not changed here; the execution copy never sends them as edits.
  * Undefined/malformed legacy config takes its existing refusal/default path.
  */
-export function grooveExecution(raw: unknown, preserveHiddenRows = false): GrooveExecution | null {
+export function grooveExecution(raw: unknown, preserveHiddenRows = false,
+  untouchedCanonicalPattern?: unknown): GrooveExecution | null {
   const config = engineConfig(raw, preserveHiddenRows);
   if (!isObject(config) || (config.version !== 1 && config.version !== 2) ||
       !Array.isArray(config.tracks) || !config.tracks.length) return null;
@@ -68,6 +71,28 @@ export function grooveExecution(raw: unknown, preserveHiddenRows = false): Groov
     }
     while (patterns[t]!.length < 64) patterns[t]!.push({});
   }
+  // A one-track editor cannot express the inactive second track's slot rows.
+  // Preserve them in a pattern-only save, rather than treating invisibility
+  // as an authored reset. An actual second-track edit has two editor tracks
+  // and is classified separately as a construction change when necessary.
+  let length2 = cfg.tracks[1] ? trackLength(cfg, 1) : 32;
+  if (cfg.tracks.length === 1 && untouchedCanonicalPattern !== undefined) {
+    if (!isObject(untouchedCanonicalPattern)) return null;
+    const len = field(untouchedCanonicalPattern, 'length_2', 32);
+    const rows = field(untouchedCanonicalPattern, 'steps_2', []);
+    if (typeof len !== 'number' || !(LENGTHS as readonly number[]).includes(len) ||
+        !Array.isArray(rows) || rows.length > 64) return null;
+    const preserved: Partial<LivePatternRow>[] = [];
+    for (const row of rows) {
+      if (!isObject(row) || !editorRow(row)) return null;
+      // Known fields only on the wire, retaining even the unused chord
+      // entries and the original row count for unchanged inactive data.
+      preserved.push(structuredClone(Object.fromEntries(Object.entries(row)
+        .filter(([key]) => ROW_FIELDS.has(key)))) as Partial<LivePatternRow>);
+    }
+    length2 = len;
+    patterns[1] = preserved;
+  }
   const source = isObject(raw) ? raw.tempo_source : undefined;
   if (source !== undefined && (cfg.version !== 2 || (source !== 'internal' && source !== 'host'))) return null;
   return {
@@ -81,7 +106,7 @@ export function grooveExecution(raw: unknown, preserveHiddenRows = false): Groov
         return out;
       }),
     },
-    pattern: { length_1: trackLength(cfg, 0), length_2: cfg.tracks[1] ? trackLength(cfg, 1) : 32,
+    pattern: { length_1: trackLength(cfg, 0), length_2: length2,
       tempo_source: source === 'host' ? 'host' : 'internal',
       steps_1: patterns[0]!, steps_2: patterns[1]! },
   };
@@ -180,11 +205,9 @@ export function grooveEditorConfig(module: { config?: unknown; data?: unknown })
 export function mergeGroovePattern(rawData: unknown, pattern: GrooveLivePattern): Record<string, unknown> {
   const data = isObject(rawData) ? structuredClone(rawData) : {};
   const old = isObject(data.pattern) ? data.pattern : {};
-  const known = new Set(['kind', 'key', 'velocity', 'mod1', 'mod2', 'gate_q', 'cond_type',
-    'cond_a', 'cond_b', 'key_count', 'keys']);
   const mergeRows = (before: unknown, after: Partial<LivePatternRow>[]) => after.map((r, i) => {
     const prev = Array.isArray(before) && isObject(before[i]) ? before[i] : {};
-    const extras = Object.fromEntries(Object.entries(prev).filter(([k]) => !known.has(k)));
+    const extras = Object.fromEntries(Object.entries(prev).filter(([k]) => !ROW_FIELDS.has(k)));
     return { ...extras, ...structuredClone(r) };
   });
   data.pattern = { ...old, ...pattern, steps_1: mergeRows(old.steps_1, pattern.steps_1),

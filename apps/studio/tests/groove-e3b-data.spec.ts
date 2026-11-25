@@ -82,3 +82,17 @@ test('Groove E3b canonical hidden rows stay intact until an explicit truncation'
     expect(grooveEditorConfig({ config: module.config, data: { pattern: invalid } })).toBeNull();
   }
 });
+
+test('Groove E3b one-track edit does not clear authored inactive-track rows', () => {
+  const pattern = { length_1: 8, length_2: 64, steps_1: [],
+    steps_2: [{ kind: 'note', key: 67, keys: [67, 0, 0, 0, 0], velocity: .5, future_row: 9 }] };
+  const module = { config: { version: 2, bpm: 120, tracks: [{}] }, data: { pattern } };
+  const editor = grooveEditorConfig(module)!;
+  expect(editor.tracks).toHaveLength(1);
+  editor.tracks[0]!.steps.push({ kind: 'note', key: 60, velocity: .5 });
+  const wire = grooveExecution(editor, true, pattern)!.pattern;
+  expect(wire.length_2).toBe(64);
+  expect(wire.steps_2).toEqual([{ kind: 'note', key: 67, keys: [67, 0, 0, 0, 0], velocity: .5 }]);
+  const saved = mergeGroovePattern(module.data, wire);
+  expect((saved.pattern as { steps_2: unknown[] }).steps_2).toEqual(pattern.steps_2);
+});
