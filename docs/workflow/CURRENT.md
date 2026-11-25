@@ -10,6 +10,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead run — 2026-11-25 (A81 and Delay review handoff)
+
+- #557 already merged `138635c`; A81 [ruling](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7156760203) cleared. B5 #538 `bd4b69c` both Linux synthetic-slot/sidecar diagnostic 45575003721 green; PV1/Web green, Lab/E4b pending. No test catalogue seam. B2 final re-review, ready-head gates and Result still required; name A81 carry explicitly.
+- B2 #540 `89655af`: both Linux targeted/ASan green, full Lab red from pre-#538 slot guard and unseeded fixtures. A81 real shipped-slot end-to-end replacement/retained setData witness both Linux is binding on #540 (or earlier first shipped-slot PR); no shared writer release until #538 merge. B5 #545 `1917db8` direct diagnostics green, full loader integration waits #538. Coordinate first slot-bearing merge; no waiver.
+- **#558 merged `152b2c9` (SR13)** after exact Lab 45574849926. B4 #539 `1044ddba53fa99023b211cc76387331ee27c3f17`, base `5ca0f1938fb851acce158272377a1ebe7631f4d2`: [signed Result](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7156819486), exact Lab 45572737050, Golden 45572736238, strict paired 45572736221 success. B1 #492 and B3 #525 remain blocked on actual #539 merge, then integrated OB-a1/listening and final CN/cost respectively.
+- **Next Architect run: now, #539 only unless #538 becomes independently pinned.** Verify A79 scoped SDK accessor and pre-mutation refusal, C2/v1 compatibility, v2 continuity, Golden and strict paired applicability. A81 is a ruling, not #538 approval. No product merge or acceptance waiver. Owner can manually start `architect:run`.
+
+Signed: codex-lead, 2026-11-25, 03:19 EST
+
 ## Lead run — 2026-11-25 (A79/A80 reconciliation)
 
 - **#553 merged `8ebaa1b`** after exact Lab 45570211258 and Architect delegation. A80 cleared: compare against pending config, per-module independent correlated completion, hello capability gate and legacy plain busy. B5 keeps server/schema/spec/generated/fake-client paths, no Studio runtime grant. **B1 [#555](https://github.com/kalharbi11/wirescape-lab/issues/555)** follows #538, OB1.1 only; OB1 work takes priority.
