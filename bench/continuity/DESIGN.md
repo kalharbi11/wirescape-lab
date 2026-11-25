@@ -185,3 +185,20 @@ relabel those old entries merely because E1a now exists.
 See bench/continuity/CAPTURE.md for the pinned Worker2 package and the missing
 evidence. Future merger must independently verify raw/marks bytes and retain
 all 119 historical measurements and their source pins.
+
+## A62 E7 buffer rows (#472)
+
+Explicit `--only 'setBufferFrames smaller' 'setBufferFrames larger'` keeps historical/default
+cases unchanged. Both start at 48 kHz and 256 frames; smaller requests 128 on the original
+probe. Larger requests 512 and adds only bus 9: constant +1 from Scale/Offset → Slew
+(rise/fall 10 s/unit) → Output. At the existing edit time (~4 s after load), Slew's
+unsaturated level is nonzero and still advancing, so resetting it changes the output.
+Its state hook serializes level and rate/cache. All original witnesses and timings are
+retained; both cases use setup-matched controls. Alignment still uses pre-edit 256-frame
+load marks; actual segment geometry for both captures is retained. The new row uses
+the existing absolute and paired metrics. Activity reports use the existing -80 dBFS
+floor, pre-edit 0.5 s and post-bracket 1 s, peak/range and sounding-sample count, not
+new acceptance thresholds. Record marked reply and freshModules absence/presence and
+instance identity per repeat. Successful version-only hooks may still clear state
+(e.g. Delay tails); distinguish that inventory from the host list in the facts.
+Device-off evidence only; physical MIDI gap remains owner-only.

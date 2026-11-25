@@ -155,6 +155,25 @@ def edits() -> list[dict]:
     ] + applygraph_edits(B, groove_steps, groove_length, voices, osc_row, param)
 
 
+def buffer_edits():
+    """A62: keep the old fixture for smaller; add a separate active state witness for larger."""
+    setup = base()
+    setup['modules'].extend([
+        {'id': 94, 'module': 'essentials.scale_offset', 'parameters': {'offset': 1}},
+        {'id': 95, 'module': 'essentials.slew', 'parameters': {'rise': 10, 'fall': 10}},
+        {'id': 96, 'module': 'essentials.output'},
+    ])
+    setup['connections'].extend([sig(94, 'control', 95, 'control'),
+                                 sig(95, 'control', 96, 'audio')])
+    setup['outputs'].append({'module': 96, 'port': 'audio', 'bus_channel': 9})
+    return [
+        dict(name='setBufferFrames smaller', cmd=('setBufferFrames', dict(frames=128)),
+             subject=None, buffer_rebuild=False),
+        dict(name='setBufferFrames larger', cmd=('setBufferFrames', dict(frames=512)),
+             subject=None, buffer_rebuild=True, setup=setup, extra_witnesses={9: 'slew'}),
+    ]
+
+
 def latency_probe(base_patch):
     """Connect a silent, latency-reporting source to the still-playing slip-tone bus."""
     setup = copy.deepcopy(base_patch)
