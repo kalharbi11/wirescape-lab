@@ -147,3 +147,20 @@ test('A80 lost opt-in acknowledgement cannot silently enable legacy graph writes
   await expect.poll(() => ports(page)).toEqual({ authored: [9001, 9002], confirmed: [9001, 9002], native: [9001, 9002] });
   expect(await page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'hello').length)).toBe(2);
 });
+
+test('A80 old-namespace terminal cannot change an opening patch with the same ID and config', async ({ page }) => {
+  await setup(page, true);
+  await defer(page, 'old-patch', 9011, 9002);
+  const count = await page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'loadGraph').length);
+  await page.evaluate(p => {
+    (window as any).__mockBridge.holdNext('loadGraph');
+    window.__wirescapeTest.load(p, 'Different patch');
+  }, snapshot(9011, 9032));
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'loadGraph').length)).toBe(count + 1);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.completeConfig(1, 'failed');
+    b.acceptHeld();
+  });
+  await expect.poll(() => ports(page)).toEqual({ authored: [9011, 9032], confirmed: [9011, 9032], native: [9011, 9032] });
+});
