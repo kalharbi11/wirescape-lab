@@ -41,7 +41,7 @@ struct Rig {
         ctx.event_outputs = events;
         // Direct descriptor harness: supply the same fully materialized rows as
         // the document loader will. Preserve all existing fixture assertions.
-        std::string error;
+        char error[128]{};
         REQUIRE(osc::materialize_osc_in_rows(cfg, slot_data, error));
         ctx.data_count = 1; ctx.data = &slot_view;
     }
@@ -150,16 +150,16 @@ int main() {
     {
         osc::Configuration cfg;
         Rig rig(cfg);
-        std::string error;
+        char error[128]{};
         REQUIRE(osc::validate_osc_in_rows(rig.slot_data, error));
         auto invalid = rig.slot_data;
         invalid.rows[3].input_max = invalid.rows[3].input_min;
         REQUIRE(!osc::validate_osc_in_rows(invalid, error));
-        REQUIRE(error.find("routes.rows[3].input_max") != std::string::npos);
+        REQUIRE(std::strstr(error, "routes.rows[3].input_max") != nullptr);
         invalid = rig.slot_data;
         std::strcpy(invalid.rows[5].pattern, "/bad/[");
         REQUIRE(!osc::validate_osc_in_rows(invalid, error));
-        REQUIRE(error.find("routes.rows[5].pattern") != std::string::npos);
+        REQUIRE(std::strstr(error, "routes.rows[5].pattern") != nullptr);
     }
     osc::Statistics stats;
     osc::Configuration cfg;
