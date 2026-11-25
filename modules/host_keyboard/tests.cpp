@@ -376,11 +376,67 @@ static void e7c_keyboard_roundtrip() {
     bad=saved;bad.pop_back();
     check(e7c_keyboard_load(*b,bad)==WS2_INVALID&&e7c_keyboard_save(*b)==current,"truncation refused atomically");
     check(e7c_keyboard_load(*rate,saved)==WS2_INVALID,"C2 rate mismatch refused");
+    // Version-1 wire header: Keyboard 20 bytes, core cursor at byte 60.
+    for(size_t offset:{size_t(28),size_t(32),size_t(60),size_t(64),size_t(72)}){
+        bad=saved;bad[offset]=255;
+        check(e7c_keyboard_load(*b,bad)==WS2_INVALID&&e7c_keyboard_save(*b)==current,
+              "malformed policy, priority, cursor or source rejected atomically");
+    }
+}
+
+static void e7c_keyboard_anonymous_and_pending() {
+    const auto* d=ws::Module<ws2ports::HostKeyboard>::descriptor();
+    auto a=std::make_unique<DspFixture>(d,48000.,1);
+    auto b=std::make_unique<DspFixture>(d,48000.,1);
+    struct Sink { bool accept=true; std::vector<ws2_event> notes; } sa,sb;
+    auto push=[](void* ctx,uint32_t,const ws2_event* e){
+        auto& s=*static_cast<Sink*>(ctx);
+        if(!s.accept)return int(WS2_CAPACITY);
+        s.notes.push_back(*e);return int(WS2_OK);
+    };
+    ws2_event_out oa[4]{},ob[4]{};
+    oa[3]={sizeof(ws2_event_out),&sa,3,push};
+    ob[3]={sizeof(ws2_event_out),&sb,3,push};
+    a->process.event_outputs=oa;b->process.event_outputs=ob;
+    for(auto*f:{a.get(),b.get()}){
+        f->parameter[0][0][0]=2.f;
+        f->parameter[1][0][0]=3.f; // Mono: earlier held note must be restored for fallback.
+    }
+    auto on1=note({WS2_NOTE_ON,60,-1,0,13});
+    auto on2=note({WS2_NOTE_ON,67,-1,0,13});
+    auto run=[](DspFixture& f,ws2_event* e){
+        f.process.events={sizeof(ws2_event_list),e?1u:0u,e};f.run(128);
+    };
+    run(*a,&on1);run(*a,&on2);
+    const auto saved=e7c_keyboard_save(*a);
+    check(e7c_keyboard_load(*b,saved)==WS2_OK,"mono anonymous stack restores");
+    sa.notes.clear();
+    run(*a,nullptr);run(*b,nullptr);
+    check(sa.notes.empty()&&sb.notes.empty(),"mono restore no duplicate attack");
+    auto off2=note({WS2_NOTE_OFF,67,-1,0,13});
+    run(*a,&off2);run(*b,&off2);
+    check(sa.notes.size()==sb.notes.size()&&sb.notes.size()==2&&
+          sb.notes[1].type==WS2_NOTE_ON&&sb.notes[1].key==60&&
+          sb.notes[1].note_id==sa.notes[1].note_id,"anonymous mono fallback identity");
+    for(uint32_t p=0;p<3;++p)
+        check(std::memcmp(a->output[p][0],b->output[p][0],128*sizeof(float))==0,
+              "mono fallback CV bit-identical");
+    auto off1=note({WS2_NOTE_OFF,60,-1,0,13});
+    sb.accept=false;
+    run(*b,&off1); // delivered note, refused release => pending release
+    auto sink=[](void*,const void*,uint32_t){return int(WS2_OK);};
+    ws2_writer w{sizeof(w),nullptr,sink};
+    check(d->save_state(b->state,&w)==WS2_INVALID,"pending release cannot claim exact carry");
+    sb.accept=true;run(*b,nullptr);
+    check(d->save_state(b->state,&w)==WS2_OK,"delivered release permits carry");
+    sb.accept=false;run(*b,&on1);
+    check(d->save_state(b->state,&w)==WS2_INVALID,"unemitted attack cannot claim exact carry");
 }
 
 int main() {
     try {
         e7c_keyboard_roundtrip();
+        e7c_keyboard_anonymous_and_pending();
         reclamation_burst();
         shared_tests();
         live_voice_resize();
