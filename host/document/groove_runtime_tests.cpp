@@ -1185,8 +1185,17 @@ static void test_tempo_source() {
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
     try {
+        // Draft-ahead diagnostic only: exercise the direct borrowed-slot DSP
+        // fixture without bypassing the ordinary full runtime test or its
+        // E3a shared-loader dependency.
+        if (argc == 2 && std::string(argv[1]) == "--live-pattern-only") {
+            test_live_pattern_data();
+            std::puts("PASS Groove live pattern direct continuity");
+            return 0;
+        }
+        check(argc == 1, "unknown Groove test arguments");
         wirescape::engine2::Config cfg{};
     cfg.sample_rate = 48000;
     cfg.max_block = 256;
