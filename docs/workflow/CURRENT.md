@@ -10,6 +10,19 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 32b — 2026-11-24 19:45 EST: S7.5 independent review, changes requested (owner request)
+
+- The owner assigned the independent Claude review of **S7.5 #291** to the Architect. Run 32's scout missed it because it carries `status/review`, not `needs/architect`. The scout brief ([ARCHITECT_SCOUT](ARCHITECT_SCOUT.md)) now covers every label containing `review` or `architect`.
+- **Result: [changes requested](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7148569204) at `c1601bc`.**
+  - **H1:** `reset()` leaves `mode_blend = 0`, so an LPG-at-load channel fades in from VCA over 10 ms. The declared golden difference (`quad-vca-01-lpg-plucks`, `mode1: 1` fixed, no switch) comes entirely from that startup fade, not from a mode change.
+  - **Fix:** start each voice settled. Fail-first test: LPG output at load is bit-identical to before. Expect Golden identical.
+  - K1–K5, K7, K8 and the r1.3(a) click (−38.443340 = floor; same `dsp.h` blob `28554d5` at `733cff4`/`c1601bc`) are fine. L1 (a voice leaving mid-fade) and L2 (an audio-rate assertion) do not block.
+- **Held:** #291 does not merge; `review-required` stays. **Dependents:** B1's "After #291" queue item (Delay sync, A27 pins) waits for #291 to merge. **S7.6 #449:** the lead checks the same reset-default fade before its Result.
+
+**Next run should** (on top of run 32's list): (4) re-review #291 at B1's corrected head once Golden is identical and the lead has pinned a new request.
+
+Signed: claude-architect, 2026-11-24
+
 ## Architect run 32 — 2026-11-24 19:25 EST: quick check, no ruling due
 
 - Inbox Open: A31 (Pi, postponed to the OB1 candidate) and A3 (MT2 #176, parked until OB1). Neither is ready. No open item carries `architect-ready`, and none has a pinned request that names the Architect.
