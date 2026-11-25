@@ -696,6 +696,63 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert received_at_least(4) == 4, 'disabled bundle child reached the engine'
         cleared.close()
 
+        # A61 / #457: prove the wire exposes real nonzero listener budget
+        # drops, once per physical listener and on each enabled shared route.
+        # A bounded localhost bundle is a diagnostic, not a soak load change.
+        split_patch = minimal()
+        for node in (9, 10):
+            split_patch['modules'].append(dict(id=node, module='osc.in', config=dict(
+                port=port, rows=[dict(pattern='/a', enabled=True)] +
+                [dict(pattern='/unused/%d' % i, enabled=False) for i in range(7)])))
+        split = Engine(Path(osc_dir) / 'split-status.json')
+        split.call('loadGraph', patch=split_patch)
+
+        def split_routes():
+            while True:
+                message = split.pushes.pop(0) if split.pushes else split.receive()
+                if message.get('type') == 'status' and message.get('gen') == split.last_gen:
+                    return message['status']['osc']['routes']
+
+        until = time.monotonic() + 8
+        while True:
+            routes = split_routes()
+            if len(routes) == 2 and all(r['state'] == 'listening' for r in routes):
+                break
+            assert time.monotonic() < until, 'shared OSC listener did not start'
+        child = osc_float('/a')
+        budget_bundle = b'#bundle\0' + struct.pack('>Q', 1) + (
+            struct.pack('>I', len(child)) + child) * 80
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            sender.sendto(budget_bundle, ('127.0.0.1', port))
+        until = time.monotonic() + 8
+        while True:
+            routes = split_routes()
+            if (len(routes) == 2 and all(r['received'] + r['dropped'] == 80
+                                        for r in routes)):
+                break
+            assert time.monotonic() < until, ('incomplete OSC bundle', routes)
+        assert {r['module'] for r in routes} == {'9', '10'}
+        fields = ('budget_dropped', 'enqueue_dropped',
+                  'listener_budget_dropped', 'listener_enqueue_dropped')
+        for route in routes:
+            assert all(k in route for k in fields), ('missing OSC drop split', route)
+            assert all(type(route[k]) is int and route[k] >= 0 for k in fields), route
+        # Atomics are observational; if the first completed legacy sample was
+        # read between increments, allow the next status, not a new packet.
+        until = time.monotonic() + 8
+        while True:
+            enqueue = sum(r['enqueue_dropped'] for r in routes)
+            if all(r['budget_dropped'] == 16 and
+                   r['listener_budget_dropped'] == 16 and
+                   r['dropped'] == r['budget_dropped'] + r['enqueue_dropped'] and
+                   r['listener_enqueue_dropped'] == enqueue and
+                   r['received'] + r['enqueue_dropped'] == 64
+                   for r in routes):
+                break
+            assert time.monotonic() < until, ('incorrect OSC drop split', routes)
+            routes = split_routes()
+        split.close()
+
         # #657: the same real OSC worker accepts future additive keys,
         # diagnoses only those keys once per successful graph load, and keeps
         # #612's known enabled:false behavior and strict authored version gate.
