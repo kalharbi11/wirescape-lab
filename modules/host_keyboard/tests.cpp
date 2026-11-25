@@ -481,9 +481,89 @@ static void e7c_vco_vca_roundtrip() {
     check(e7c_load(*gain_fresh,bad)==WS2_INVALID&&e7c_save(*gain_fresh)==vca,"VCA truncated refused");
 }
 
+
+static void e7c_keyboard_differing_controls() {
+    const auto* d=ws::Module<ws2ports::HostKeyboard>::descriptor();
+    for(bool change_mode:{false,true}){
+        auto a=std::make_unique<DspFixture>(d,48000.,1);
+        auto b=std::make_unique<DspFixture>(d,48000.,1);
+        std::vector<ws2_event> la,lb;
+        ws2_event_out oa[4]{},ob[4]{};
+        auto push=[](void* ctx,uint32_t,const ws2_event* e){
+            static_cast<std::vector<ws2_event>*>(ctx)->push_back(*e);
+            return int(WS2_OK);
+        };
+        oa[3]={sizeof(ws2_event_out),&la,3,push};
+        ob[3]={sizeof(ws2_event_out),&lb,3,push};
+        a->process.event_outputs=oa;b->process.event_outputs=ob;
+        a->parameter[0][0][0]=4.f;a->parameter[1][0][0]=0.f;
+        std::array<ws2_event,4> chord{};
+        for(int c=0;c<4;++c){
+            chord[c]=note({WS2_NOTE_ON,60+4*c,100+c,0,7});
+            chord[c].offset=uint32_t(c*8);
+        }
+        a->process.events={sizeof(ws2_event_list),4,chord.data()};
+        a->run(128);
+        check(la.size()==4,"A73 live oracle four delivered notes");
+        a->process.events={sizeof(ws2_event_list),0,nullptr};
+        a->run(128);
+        const auto saved=e7c_save(*a);
+        // The fresh instance has never processed, but its actual first-block
+        // controls already differ. Load can see only the staged saved config.
+        for(auto*f:{a.get(),b.get()}){
+            f->parameter[0][0][0]=change_mode?4.f:2.f;
+            f->parameter[1][0][0]=change_mode?3.f:0.f;
+        }
+        check(e7c_load(*b,saved)==WS2_OK,"A73 fresh differing-controls load");
+        la.clear();
+        check(lb.empty(),"A73 load emits nothing");
+        auto compare=[&](){
+            a->run(128);b->run(128);
+            for(uint32_t p=0;p<3;++p){
+                const uint32_t width=change_mode?1u:2u;
+                check(a->outs[p].channels==width&&b->outs[p].channels==width,
+                      "A73 live and fresh configured widths");
+                for(uint32_t c=0;c<width;++c)
+                    check(std::memcmp(a->output[p][c],b->output[p][c],128*sizeof(float))==0,
+                          "A73 differing controls match live CV samples");
+            }
+            check(la.size()==lb.size(),"A73 same live release count");
+            for(size_t i=0;i<la.size();++i){
+                const auto& x=la[i];const auto& y=lb[i];
+                check(x.type==y.type&&x.channel==y.channel&&x.key==y.key&&
+                      x.note_id==y.note_id&&x.source_id==y.source_id&&
+                      x.offset==y.offset&&x.value==y.value,
+                      "A73 same live event identity and timing");
+            }
+        };
+        compare();
+        check(lb.size()==(change_mode?4u:2u),"A73 exact released voice count");
+        for(size_t i=0;i<lb.size();++i){
+            const int lane=int(i)+(change_mode?0:2);
+            const auto& e=lb[i];
+            check(e.type==(change_mode?WS2_NOTE_CHOKE:WS2_NOTE_OFF)&&
+                  e.channel==lane&&e.key==60+4*lane&&e.note_id==100+lane&&
+                  e.source_id==7&&e.offset==0,"A73 only expected live releases, no attack");
+        }
+        for(uint32_t c=0;c<b->outs[1].channels;++c)
+            for(uint32_t i=0;i<128;++i)
+                check(b->output[1][c][i]==(change_mode?0.f:1.f),"A73 retained/cleared gate");
+        la.clear();lb.clear();
+        compare();
+        check(lb.empty(),"A73 settled block no duplicate release or attack");
+        auto off=note({WS2_NOTE_OFF,60,100,0,7});off.offset=41;
+        a->process.events=b->process.events={sizeof(ws2_event_list),1,&off};
+        compare();
+        if(change_mode)check(lb.empty(),"A73 old note no longer active after mode change");
+        else check(lb.size()==1&&lb[0].type==WS2_NOTE_OFF&&lb[0].note_id==100&&
+                   lb[0].offset==41,"A73 retained voice releases its original identity");
+    }
+}
+
 int main() {
     try {
         e7c_keyboard_roundtrip();
+        e7c_keyboard_differing_controls();
         e7c_keyboard_anonymous_and_pending();
         e7c_vco_vca_roundtrip();
         reclamation_burst();
