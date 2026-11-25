@@ -52,12 +52,39 @@ inline nlohmann::json groove_pattern_value(const groove::LivePattern &data) {
             {"steps_2", rows(data.steps_2, data.count_2)}};
 }
 
-inline nlohmann::json groove_legacy_pattern_value(const nlohmann::json &config, uint32_t instance_id) {
-    const auto bytes = runtime_module_config("sequencing.groove", config, instance_id);
+inline groove::Config decode_groove_legacy_config(const nlohmann::json &config, uint32_t instance_id) {
+    // Use the legacy implementation directly: the future public runtime
+    // wrapper must not recurse through this adapter.
+    const auto bytes = runtime_module_config_impl("sequencing.groove", config, instance_id, nullptr);
     groove::Config decoded{};
     if (!groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded))
         throw std::runtime_error("Invalid Groove legacy config");
-    return groove_pattern_value(groove::materialize_legacy_pattern(decoded));
+    return decoded;
+}
+
+inline nlohmann::json groove_legacy_pattern_value(const nlohmann::json &config, uint32_t instance_id) {
+    return groove_pattern_value(groove::materialize_legacy_pattern(
+        decode_groove_legacy_config(config, instance_id)));
+}
+
+// The new live slot owns the steps, lengths and tempo source. Construction
+// bytes retain only version/seed, BPM, track count, armed/mute and divisors;
+// equal construction settings compare identically for live replan regardless
+// of pattern edits. ZeroFilledConfig ensures padding stays canonical (E0).
+inline std::vector<uint8_t> groove_construction_bytes(const nlohmann::json &legacy, uint32_t instance_id) {
+    const auto source = decode_groove_legacy_config(legacy, instance_id);
+    ZeroFilledConfig<groove::Config> storage;
+    auto &config = storage.get();
+    config.bpm = source.bpm;
+    config.track_count = source.track_count;
+    config.instance_seed = source.instance_seed;
+    config.authored_version = source.authored_version;
+    for (uint32_t t = 0; t < config.track_count; ++t) {
+        config.tracks[t].armed = source.tracks[t].armed;
+        config.tracks[t].mute = source.tracks[t].mute;
+        config.tracks[t].div = source.tracks[t].div;
+    }
+    return storage.bytes();
 }
 
 // Only materialize an absent legacy slot. An explicit pattern, even an empty

@@ -736,6 +736,21 @@ static void test_groove_host_adapter() {
     materialize_groove_legacy_data(module, 1);
     check(module["data"]["pattern"]["length_1"] == 12,
           "explicit data remains authoritative rather than falling back to legacy");
+    auto legacy = pattern();
+    legacy["version"] = 2;
+    legacy["tracks"][0]["length"] = 16;
+    const auto construction = groove_construction_bytes(legacy, 17);
+    legacy["tracks"][0]["steps"][0]["key"] = 75;
+    legacy["tracks"][0]["length"] = 32;
+    legacy["tempo_source"] = "host";
+    check(groove_construction_bytes(legacy, 17) == construction,
+          "steps, length and tempo source do not replace construction instance");
+    auto converted = groove_legacy_pattern_value(legacy, 17);
+    check(converted["length_1"] == 32 && converted["tempo_source"] == "host" &&
+              converted["steps_1"][0]["key"] == 75, "v2 legacy migration includes tempo and edited rows");
+    legacy["bpm"] = 125;
+    check(groove_construction_bytes(legacy, 17) != construction,
+          "genuine construction change is not hidden");
     const auto prior = bytes;
     check(!ws::data_layout::pack_data_slot(slot, value, ws::data_layout::DataLoad::Edit,
               bytes, error, nullptr, validate_groove_data_slot) &&
