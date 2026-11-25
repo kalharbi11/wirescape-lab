@@ -299,7 +299,7 @@ void test_osc_out_held_gate_reset_sender() {
 // reply or a serialized version word. Fake streams never open real devices.
 using A70Samples = std::array<std::vector<float>, 3>;
 struct A70Witness {
-    A70Samples before, after;
+    A70Samples before, after, wide;
     Json fresh = Json::array();
     bool held_before = false, held_after = false, released = false;
 };
@@ -397,6 +397,21 @@ A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
         record(result.after, 256);
     }
     result.held_after = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
+    // Keep the note held and Delay input muted through a real 512-frame
+    // block. The uninterrupted 256-frame twin supplies the same 512 samples
+    // as two blocks, so this also detects a block-size-dependent discontinuity.
+    if (rebuild) {
+        step(512);
+        record(result.wide, 512);
+    } else {
+        for (int i = 0; i < 2; ++i) {
+            step(256);
+            record(result.wide, 256);
+        }
+    }
+    result.held_after = result.held_after &&
+        raw(4, 1, rebuild ? 511 : 255) == 1.f &&
+        raw(5, 0, rebuild ? 511 : 255) > .5f;
     check(call("a70-release", "noteOff", {{"note", 60}})["ok"] == true,
           "A70 later NOTE_OFF must be accepted");
     if (rebuild) step(512);
@@ -419,12 +434,16 @@ void test_a70_buffer_state(const std::filesystem::path &root) {
     check(reference.held_after && reference.released,
           "A70 uninterrupted note remains held and releases on NOTE_OFF");
     for (size_t i = 0; i < reference.before.size(); ++i) {
-        check(peak(reference.before[i]) > .001f && peak(reference.after[i]) > .001f,
+        check(peak(reference.before[i]) > .001f && peak(reference.after[i]) > .001f &&
+                  peak(reference.wide[i]) > .001f,
               "A70 control must have nontrivial held-note, Delay and VCO witnesses");
         std::cout << "A70 raw witness " << i << " before_peak=" << peak(reference.before[i])
                   << " control_peak=" << peak(reference.after[i])
                   << " rebuilt_peak=" << peak(switched.after[i])
-                  << " identical=" << (reference.after[i] == switched.after[i]) << '\n';
+                  << " identical=" << (reference.after[i] == switched.after[i])
+                  << " wide_control_peak=" << peak(reference.wide[i])
+                  << " wide_rebuilt_peak=" << peak(switched.wide[i])
+                  << " wide_identical=" << (reference.wide[i] == switched.wide[i]) << '\n';
     }
     std::cout << "A70 freshModules=" << switched.fresh.dump()
               << " held=" << switched.held_after << " released=" << switched.released << std::endl;
@@ -432,6 +451,9 @@ void test_a70_buffer_state(const std::filesystem::path &root) {
     check(reference.after[0] == switched.after[0], "A70 held-note waveform continues exactly");
     check(reference.after[1] == switched.after[1], "A70 wet Delay tail continues exactly");
     check(reference.after[2] == switched.after[2], "A70 VCO phase continues exactly");
+    check(reference.wide[0] == switched.wide[0], "A70 held waveform at 512 matches two 256 blocks");
+    check(reference.wide[1] == switched.wide[1], "A70 wet tail at 512 matches two 256 blocks");
+    check(reference.wide[2] == switched.wide[2], "A70 VCO phase at 512 matches two 256 blocks");
     for (const auto &entry : switched.fresh) {
         const uint32_t id = entry.at("moduleId").get<uint32_t>();
         check(id != 3 && id != 4 && id != 5 && id != 6 && id != 7,
