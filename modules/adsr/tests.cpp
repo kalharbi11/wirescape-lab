@@ -342,7 +342,33 @@ static void e7c_roundtrip(const ws2_descriptor* d, bool oscillator, bool trigger
     if (!stateless) VERIFY(e7c_load(*rate, saved) == WS2_INVALID);
     else VERIFY(e7c_load(*rate, saved) == WS2_OK);
 }
+static void e7c_cable_and_hold(bool trigger) {
+    auto a=rig(),b=rig();
+    for(auto*f:{a.get(),b.get()}){
+        f->parameter[0][0][0]=.001f;
+        f->parameter[1][0][0]=.001f;
+        f->parameter[2][0][0]=.63f;
+        f->parameter[3][0][0]=.002f;
+        f->parameter[4][0][0]=trigger?1.f:0.f;
+        f->parameter[5][0][0]=.01f;
+        std::fill_n(f->input[0][0],256,1.f);
+    }
+    a->run(128); // attack + decay finished, trigger hold is counting down
+    const auto saved=e7c_save(*a);
+    VERIFY(e7c_load(*b,saved)==WS2_OK);
+    for(int block=0;block<6;++block){
+        // .375 is inside the Schmitt hysteresis band; a reset latch would
+        // release a Gate envelope or spuriously retrigger at the next high.
+        for(auto*f:{a.get(),b.get()})
+            std::fill_n(f->input[0][0],256,block<2?.375f:block==2?1.f:0.f);
+        a->run(127);b->run(127);
+        VERIFY(std::memcmp(a->output[0][0],b->output[0][0],127*sizeof(float))==0);
+    }
+    VERIFY(a->output[0][0][126]==0.f);
+}
 static void e7c_state_tests() {
+    e7c_cable_and_hold(false);
+    e7c_cable_and_hold(true);
     e7c_roundtrip(ws::Module<ws2ports::Adsr>::descriptor(), false, false, false);
     e7c_roundtrip(ws::Module<ws2ports::Adsr>::descriptor(), false, true, false);
     e7c_roundtrip(ws::Module<ws2ports::Vco>::descriptor(), true, false, false);
