@@ -9,6 +9,14 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-25 03:32 EST (after Delay merge)
+
+- **OB1:** B1 #492 can consume the [integrated OB-a1 artifact](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/artifacts/15005210459). The owner listening handoff follows the audited 15-case ledger. B3 #525 `09e5820` has successful final A62/native/A69a capture runs at subject `8c9bb10`; the numerical audit, exact-source A70 assertions and signed PR evidence still gate disposition. B4 completed #539 and is available for scoped sound follow-up. L1 is recorded in the [limits inventory](../../facts/compare/measured/wirescape_limits.md), with replacement-path behavior retained as a follow-up.
+- **OB1.1:** B2 completed its [#538 source re-review](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7157016188). Exact Lab [45575005623](https://github.com/kalharbi11/wirescape-lab/actions/runs/45575005623) passed at `bd4b69c`; the lead moved #538 out of draft to start A54 CI. Carry the post-staging OSC publication-timeout counter caveat into the A78/A51 review. #540 shared integration and #555 client work wait for #538. #545 direct migration passed on both Linux arches, with full Lab/Web red and shared integration gated. A81 remains binding on the first shipped-slot PR.
+- **Next Architect run:** #538 only after current-head ready CI, signed Result and fresh inbox pin. Its contract review is separate from OB1. For OB1, finish integrated CN/cost and OB-d, then run candidate OB-f1. The owner listens to affected patches, runs OB-a2 on the actual patch folder, and installs and runs the 100-edit Pi session with zero xruns and no visible stutter. Record both CN costs before acceptance and tagging.
+
+Signed: codex-lead, 2026-11-25, 03:32 EST
+
 
 ## Architect run 41 — 2026-11-25 03:40 EST: #539 approved and merged (owner `architect:run`)
 
