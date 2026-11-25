@@ -307,27 +307,42 @@ void test_a86_route_release() {
     ctx.events.count = 0;
     module.process(block);
     const auto prior_blocks = bus->rows[0].blocks.load();
-    std::strcpy(data.rows[0].address, "/new/gate");
-    std::strcpy(data.notes_address, "/new/note");
-    sender.commit_data(19, data);
+    auto next = data;
+    std::strcpy(next.rows[0].address, "/new/gate");
+    std::strcpy(next.notes_address, "/new/note");
+    sender.commit_data(19, next);
     drain(4);
     check(a86_wire[2].address == "/ws/row/1" && a86_wire[2].value == 0 &&
           a86_wire[3].address == "/ws/note" && a86_wire[3].key == 60 &&
           a86_wire[3].channel == 2 && a86_wire[3].value == 0,
           "A86 old route receives one gate and note release");
     check(sender.states().at(0).dropped == 3, "A86 two discarded crossings and one note counted");
-    view.serial = 2;
-    note.key = 62;
+    // The old callback can finish after the accepted host table changes.
+    // It must never send an old falling edge/note to a new address.
+    level = 0;
+    note.key = 63;
     ctx.events.count = 1;
+    module.process(block); // old data view and serial, exactly one in-flight block
+    sender.start();
+    const auto until = std::chrono::steady_clock::now() + 2s;
+    while (sender.states().at(0).dropped < 5 && a86_count.load(std::memory_order_acquire) == 4 &&
+           std::chrono::steady_clock::now() < until) std::this_thread::sleep_for(5ms);
+    sender.stop();
+    check(a86_count.load() == 4 && sender.states().at(0).dropped == 5,
+          "A86 one late old block suppressed, its edge and note counted");
+    view.data = &next;
+    view.serial = 2;
+    level = 1;
+    note.key = 62;
     module.process(block);
     drain(6);
-    check(bus == sender.buses().at(19) && bus->rows[0].blocks.load() == prior_blocks + 1,
-          "A86 same bus and first fresh block is not suppressed");
+    check(bus == sender.buses().at(19) && bus->rows[0].blocks.load() == prior_blocks + 2,
+          "A86 same bus, one late old block and first fresh block delivered");
     check(a86_wire[4].address == "/new/gate" && a86_wire[4].value == 1 &&
           a86_wire[5].address == "/new/note" && a86_wire[5].key == 62 &&
           a86_wire[5].value == .75f, "A86 first fresh block only new table");
     const auto state = sender.states().at(0);
-    check(state.sent == 6 && state.dropped == 3, "A86 exact sent/drop accounting");
+    check(state.sent == 6 && state.dropped == 5, "A86 exact sent/drop accounting");
     std::cout << "A86 wire sent=" << state.sent << " dropped=" << state.dropped
               << " stale blocks suppressed <=1; old gate/note released\n";
 }
