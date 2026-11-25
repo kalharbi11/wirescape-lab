@@ -881,6 +881,44 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     s.poll(std::chrono::steady_clock::now() + 3s);
     check(s.status()["gen"] == gen && s.take_config_events().empty(),
           "A78 removed ID cannot be resurrected");
+    // Two independently blocked IDs share one request-level defer ID.
+    // Use fresh IDs in the same namespace and the same real Groove module.
+    auto multi = removed;
+    auto first = groove(120), second = groove(120);
+    first["id"] = 5;
+    second["id"] = 6;
+    multi["modules"].push_back(first);
+    multi["modules"].push_back(second);
+    for (auto id : {5, 6}) multi["connections"].push_back({{"kind", "signal"},
+        {"from", {{"module", id}, {"port", "t1_mod1"}}},
+        {"to", {{"module", 1}, {"port", "audio"}}}});
+    gen = accept(multi);
+    for (auto &m : multi["modules"]) if (m["id"] == 5 || m["id"] == 6) m["config"]["bpm"] = 140;
+    gen = accept(multi);
+    check(graph.replacement_tail_pending(5) && graph.replacement_tail_pending(6),
+          "A80 both predecessor tails held");
+    auto both = multi;
+    for (auto &m : both["modules"]) if (m["id"] == 5 || m["id"] == 6) m["config"]["bpm"] = 160;
+    const auto shared = deferred(both, gen);
+    // Retire both via samples, then poll once per independent completion.
+    std::array<float, 1024> samples{};
+    for (unsigned i = 0; i < 25 && (graph.replacement_tail_pending(5) || graph.replacement_tail_pending(6)); ++i)
+        check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+              "A80 multi-ID retirement");
+    check(!graph.replacement_tail_pending(5) && !graph.replacement_tail_pending(6),
+          "A80 multi-ID predecessors retired");
+    const auto multi_now = std::chrono::steady_clock::now();
+    for (auto id : {5, 6}) {
+        with_render([&] { s.poll(multi_now); });
+        gen = s.status()["gen"];
+        const auto events = s.take_config_events();
+        check(events.size() == 1 && events[0]["deferId"] == shared &&
+              events[0]["moduleId"] == id && events[0]["outcome"] == "applied" &&
+              events[0]["generation"] == gen, ("A80 independent terminal event: " + events.dump()).c_str());
+    }
+    s.poll(multi_now);
+    check(s.take_config_events().empty() && s.status()["gen"] == gen,
+          "A80 no duplicate multi-ID completions");
     s.shutdown();
 }
 
@@ -1036,7 +1074,7 @@ int main() {
             };
             auto hello = s.hello();
             const auto caps = Json::array({"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate",
-                                           "setBufferFrames", "osc", "osc.out", "applyGraph"});
+                                           "setBufferFrames", "osc", "osc.out", "applyGraph", "configDeferred"});
             check(hello["audioDevices"].size() == 2 && hello["capabilities"] == caps,
                   "hello must expose the supported device catalogue and methods");
             auto listed = call("list", "listAudioDevices")["result"]["devices"];

@@ -873,6 +873,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     // refused ordinary transaction never publishes these changes.
     auto next_pending = pending_configs_;
     auto next_events = config_events_;
+    std::set<uint32_t> changed_data;
     for (auto it = next_pending.begin(); it != next_pending.end();) {
         const auto id = it->first;
         auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
@@ -880,7 +881,13 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
             [&](const Json &m) { return m.at("id") == id; });
         const bool applied = retry_id && *retry_id == id;
-        if (applied || new_namespace || snapshot_supersedes.count(id) ||
+        const bool data_changed = next != patch["modules"].end() && old != patch_["modules"].end() &&
+            next->value("data", Json::object()) != old->value("data", Json::object());
+        if (data_changed) changed_data.insert(id);
+        // Live data delivery normally retains the instance. OSC Out is the
+        // existing exception: its freshly staged bus is construction config.
+        const bool replaces_for_data = data_changed && next->at("module") == "osc.out";
+        if (applied || new_namespace || snapshot_supersedes.count(id) || replaces_for_data ||
             next == patch["modules"].end() || old == patch_["modules"].end() ||
             next->at("module") != it->second.module ||
             next->value("config", Json::object()) != old->value("config", Json::object())) {
@@ -905,7 +912,12 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             else m.erase("config");
         }
     }
-    const bool eligible_shape = !changed_configs.empty() && config_only == patch_;
+    // A pending-config revert in a mixed refused snapshot must not be
+    // silently dropped. Only newly changed config IDs are admitted here.
+    const bool eligible_shape = !changed_configs.empty() && config_only == patch_ &&
+        std::all_of(snapshot_supersedes.begin(), snapshot_supersedes.end(), [&](uint32_t id) {
+            return std::find(changed_configs.begin(), changed_configs.end(), id) != changed_configs.end();
+        });
     // A75/MIDI-busy refusals must leave live routes, counters and caches
     // untouched. Quiesce OSC only after the engine's staging preflight and
     // before publication, or immediately before the D5 swap.
@@ -979,12 +991,21 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
                 throw Refusal("busy", error.c_str());
             }
             if (error != "MIDI worker busy") break;
-            if (attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
+            if (retry_id || attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
     }
     // Deferred A75 retries must never fall through to D5, even on another error.
     if (retry_id) throw Refusal("unavailable", "Deferred live config retry unavailable");
+    // D5 replaces every instance, so a changed data slot now supersedes
+    // that ID's pending config. Keep unrelated pending IDs (A80).
+    // Stage before the swap; an unsuccessful D5 publishes no events.
+    for (auto id : changed_data) {
+        const auto pending = next_pending.find(id);
+        if (pending == next_pending.end()) continue;
+        next_events.push_back(config_event(id, pending->second, "superseded", generation_ + 1));
+        next_pending.erase(pending);
+    }
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
     pause_osc();
