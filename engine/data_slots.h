@@ -31,6 +31,7 @@ struct DataVersion {
 };
 struct DataSlotStorage {
     uint32_t size;
+    bool initial_authored = false; // candidate installed a packed document block before prepare
     std::deque<DataVersion> versions;
     // Only set after a quiescent reset has discarded every queued packet.
     uint32_t canceled_through = 0;

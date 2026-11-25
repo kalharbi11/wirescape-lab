@@ -32,6 +32,7 @@
           "inactive": { "type": "boolean", "default": false },
           "preserved": { "type": "object", "description": "Complete original v1 module, including unmapped values; opaque on v2 save.", "additionalProperties": true },
           "config": { "type": "object", "additionalProperties": true },
+          "data": { "type": "object", "description": "Data slot IDs mapped to field-table JSON objects.", "additionalProperties": true },
           "parameters": {
             "type": "object",
             "description": "Stable string parameter IDs mapped to plain-unit base values.",

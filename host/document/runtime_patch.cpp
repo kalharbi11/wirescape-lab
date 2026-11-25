@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <tuple>
 #include "runtime_module_config.h"
+#include "../../engine/data_pack.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -103,6 +104,32 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
    const auto authored_config = version == 2 ? m.value("config", Json::object()) : Json::object();
    auto module_config = runtime_module_config(type, authored_config, node, &ignored_osc_keys);
    need(app_engine_add_node_config(engine.get(),node,type.c_str(),module_config)==WS2_OK,"Module unavailable or prepare failed");
+   // Pack every declared slot, including an omitted slot's defaults, before
+   // prepare. Unknown stored keys remain in the authored document.
+   if (version == 2) {
+       const auto data = m.value("data", Json::object());
+       need(data.is_object(), "data: expected object");
+       const uint32_t slots = descriptor->struct_size >= offsetof(ws2_descriptor, data_slot_count) +
+           sizeof(descriptor->data_slot_count) ? descriptor->data_slot_count : 0;
+       std::set<std::string> known;
+       for (uint32_t i = 0; i < slots; ++i) {
+           const auto &slot = descriptor->data_slots[i];
+           known.insert(slot.id);
+           std::vector<uint8_t> packed;
+           std::vector<std::string> data_warnings;
+           std::string diagnostic;
+           if (!ws::data_layout::pack_data_slot(slot, data.value(slot.id, Json::object()),
+                   ws::data_layout::DataLoad::StoredDocument, packed, diagnostic, &data_warnings,
+                   app_engine_data_validator(engine.get(), descriptor)))
+               throw std::runtime_error("data." + diagnostic);
+           need(app_engine_native(engine.get()).set_data_packed(node, i, packed) == WS2_OK,
+                "Cannot install packed data");
+           for (const auto &warning : data_warnings) std::fprintf(stderr, "data.%s\n", warning.c_str());
+       }
+       for (auto it = data.begin(); it != data.end(); ++it)
+           if (!known.count(it.key()))
+               std::fprintf(stderr, "data.%s: unknown slot\n", it.key().c_str());
+   }
    nodes[node] = descriptor;
   }
   auto port=[&](uint32_t node,const std::string&name,bool output){need(nodes.count(node),"Missing cable/output module");auto*d=nodes.at(node);auto*p=output?d->outputs:d->inputs;uint32_t n=output?d->output_count:d->input_count;for(uint32_t i=0;i<n;++i)if(name==p[i].id)return i;throw std::runtime_error("Unknown port");};
