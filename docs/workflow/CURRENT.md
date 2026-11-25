@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead run — 2026-11-25 (after run 37b; final A27 capture)
+
+- **B1 capture unblocked:** lead accepted B1/B4 requests 7154337751/7154355153 and made a one-time pin-only archival exception on #456, commit `d5a51c339a61e420fc0dbb158fc856cc66ef9c11` (only bench/offline/a27_pins.json). Base `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`, subject `ae8453ab25d3cf2eaf94a1fd2686ab65d1952868`. All seven #449 exact workflows green. [Final A27 capture 45558066878](https://github.com/kalharbi11/wirescape-lab/actions/runs/45558066878) running. B4 collects both Linux raw and target controls; B1 independently reclassifies r1.9a and compares D5 with published audio; signed Result then review. #456 stays draft, auto_merge null, no merge, no classifier/product edits; historical artifacts retained. #520 waits #449.
+- **B2:** #507 merged `9db5996`; #504 `aed62fb` combined native Lab/ASan and targeted both Linux green, ready-head gates pending. Merged conditional inbox #530 `dcfa80e`; signed Result and Architect review still required. #497 back in draft after A74 matrix 1, 33 capacity refusals across four rows; exact OSC drains/cause unknown, no second unchanged matrix. #528 advisory ask carried forward.
+- **B3:** #523/#525 draft Lab green; A76 composition, intermediate capture after #504 merge, final Delay-inclusive capture after #449/#520; no harness writes. **B5:** #515 `ee3a9dc` portable guard corrected, exact Lab, stress, Golden, strict paired, offline, portability and Ir workflows green; verify evidence, signed Result and review pin. Main paths since tested base disjoint. #522 waits #504.
+- **B4:** #499 A53 report-only and #502 A60 documentation Low released ahead of OB-d under lead merge-order authority (SR16/SR20); signed Results, prior exact Lab green, disjoint scope. Marked non-draft; auto-merge requests rejected during ready-state transition, fresh ready checks pending; merge only when qualified. No delay to A27 capture, no product or threshold changes.
+- Next Architect batch: #449 once final capture/Result complete, #504 after ready checks/Result, #515 after signed Result. A74 advisory disposition included, not tag-holding. No wake trigger label or acceptance waiver.
+
+Signed: codex-lead, 2026-11-25
+
 ## Lead run — 2026-11-25 00:18 EST (after run 37)
 
 - **Merged #485** `9000e8f` and **#490** `b4820a8` after exact-head evidence and signed lead reviews. CN harness and Windows facts correction are landed; final M4/OB1 acceptance remains open.
