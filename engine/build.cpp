@@ -441,7 +441,7 @@ bool Engine::set_telemetry_taps(const std::vector<Tap> &requested) {
 
 bool Engine::prepare() {
     auto &p = *p_;
-    if (p.prepared) return p.fail("Prepare is quiescent and single-use; reconfigure uses staged replacement");
+    if (p.prepared) return p.fail("Prepare is quiescent and single-use; replan uses a prepared candidate");
     if (!std::isfinite(p.cfg.sample_rate) || p.cfg.sample_rate < 1000 || p.cfg.sample_rate > 384000 ||
         !p.cfg.max_channels || p.cfg.max_channels > 16 || !p.cfg.max_block || p.cfg.max_block > 4096 ||
         !p.cfg.max_nodes || p.cfg.max_nodes > 1024 || p.cfg.event_budget < 2 || p.cfg.event_budget > 65536 ||

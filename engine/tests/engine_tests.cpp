@@ -138,6 +138,19 @@ template<uint32_t Taper>static void cached_taper(){
 struct LatencyProbe:Pass<WS2_POLY>{uint32_t latency_frames()const{return 7;}};
 static ws2_event event(uint32_t type,float value=1,uint32_t index=0){ws2_event e{};e.struct_size=sizeof(e);e.type=type;e.value=value;e.index=index;e.note_id=1;e.channel=0;e.key=60;e.source_id=1;return e;}
 static void render(Engine&e,uint32_t frames=256){std::array<float,4096>a{},b{};float*out[]={a.data(),b.data()};CHECK(e.render(out,2,frames)==WS2_OK);}
+static void replan_test(Engine &live, Engine &candidate, uint64_t timeout_ns = 16000000) {
+    std::atomic<bool> done{false};
+    bool accepted = false;
+    std::thread control([&] {
+        accepted = live.replan(candidate, timeout_ns);
+        done.store(true, std::memory_order_release);
+    });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    do { render(live, 16); std::this_thread::yield(); }
+    while (!done.load(std::memory_order_acquire) && std::chrono::steady_clock::now() < deadline);
+    control.join();
+    CHECK(accepted);
+}
 static Config cfg(){Config c;c.ring_capacity=256;c.future_capacity=1024;return c;}
 static void signals(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<Source>::descriptor()));CHECK(e.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.add_node(3,ws::Module<Pass<WS2_SUM>>::descriptor()));CHECK(e.add_node(4,ws::Module<Pass<WS2_FIRST>>::descriptor()));
@@ -183,7 +196,8 @@ static void rows(){
  Engine e(cfg());CHECK(e.add_node(1,ws::Module<ws2test::Rows>::descriptor(),{3}));CHECK(e.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.add_node(3,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(e.connect(1,0,2,0));CHECK(e.connect(1,2,3,0));CHECK(e.prepare());
  auto saved=e.save_state(1);CHECK(saved.size()==20);CHECK(e.load_state(1,saved)==WS2_OK);CHECK(e.save_state(1)==saved);
  auto future=saved;future[0]=9;CHECK(e.load_state(1,future)==WS2_UNSUPPORTED);CHECK(e.preserved_state(1)==future);CHECK(e.save_state(1)==future);CHECK(e.load_state(1,saved)==WS2_OK);
- CHECK(e.reconfigure(1,{2}));CHECK(e.dropped_connections()==1);render(e,17);CHECK(std::abs(e.output_sample(2,0,0,0)-.1f)<1e-6);CHECK(e.output_sample(3,0,0,0)==.25f);
+ Engine candidate(cfg());CHECK(candidate.add_node(1,ws::Module<ws2test::Rows>::descriptor(),{2}));CHECK(candidate.add_node(2,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(candidate.add_node(3,ws::Module<Pass<WS2_POLY>>::descriptor()));CHECK(candidate.connect(1,0,2,0));CHECK(!candidate.connect(1,2,3,0));CHECK(candidate.prepare());
+ replan_test(e,candidate);for(int i=0;i<5;++i)render(e,256);render(e,17);CHECK(std::abs(e.output_sample(2,0,0,0)-.1f)<1e-6);CHECK(e.output_sample(3,0,0,0)==.25f);
 }
 static void producer_stress(){
  Config c=cfg();c.max_block=48;c.feedback_block=32;c.ring_capacity=1024;Engine e(c);CHECK(e.add_node(1,ws::Module<Receiver>::descriptor()));for(int i=0;i<3;++i)e.register_producer();CHECK(e.prepare());
@@ -402,28 +416,34 @@ static void live_modulation_amount() {
 }
 
 static void modulation_edge_birth() {
-    Engine engine;
-    CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {1}));
-    CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
-    CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {1}));
-    CHECK(engine.modulate(1, 0, 2, 0, 0));
-    CHECK(engine.register_producer() == 0);
-    CHECK(engine.prepare());
+    auto build = [](Engine &engine, uint8_t source_rows, uint8_t other_rows, float amount) {
+        CHECK(engine.add_node(1, ws::Module<ws2test::Rows>::descriptor(), {source_rows}));
+        CHECK(engine.add_node(2, ws::Module<ParamProbe>::descriptor()));
+        CHECK(engine.add_node(3, ws::Module<ws2test::Rows>::descriptor(), {other_rows}));
+        CHECK(engine.modulate(1, 0, 2, 0, amount));
+        CHECK(engine.register_producer() == 0);
+        CHECK(engine.prepare());
+    };
+    Engine engine, other, replaced;
+    build(engine, 1, 1, 0);
+    build(other, 1, 2, .25f);
+    build(replaced, 2, 2, .75f);
     render(engine, 16);
-
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .25f) == WS2_OK);
     const auto stale = engine.meter().stale;
-    CHECK(engine.reconfigure(3, {2})); // A surviving edge keeps its pending update.
+    replan_test(engine, other);
     render(engine, 240);
     CHECK(engine.meter().stale == stale);
     CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .525)) < 2e-5);
 
+    // Live replacement can consume a pre-adoption update on the old edge;
+    // unlike quiescent reconfigure, an exact stale increment isn't invariant.
+    // Verify the new edge takes its own later authored update after the fade.
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .75f) == WS2_OK);
-    CHECK(engine.reconfigure(1, {2})); // Same endpoint names, a new edge birth.
+    replan_test(engine, replaced);
     CHECK(engine.set_mod_amount(1, 0, 2, 0, .5f) == WS2_OK);
-    render(engine, 240);
-    CHECK(engine.meter().stale == stale + 1);
-    CHECK(std::abs(engine.output_sample(2, 0, 0, 239) - std::pow(100., .55)) < 2e-5);
+    for (int i=0;i<5;++i) render(engine, 256);
+    CHECK(std::abs(engine.output_sample(2, 0, 0, 255) - std::pow(100., .55)) < 2e-5);
 }
 
 struct TransportProbe {
@@ -566,9 +586,15 @@ static void transport_replan() {
     render(live, 16);
     check_transport(live, 135, 13, false);
 
-    // Quiescent replacement carries the current serial and queued host updates.
+    // Live config replacement carries the current serial and queued host updates.
+    Engine config_replacement(config);
+    CHECK(config_replacement.add_node(1, ws::Module<TransportProbe>::descriptor()));
+    CHECK(config_replacement.add_node(2, &replaced));
+    CHECK(config_replacement.add_node(4, ws::Module<ws2test::Rows>::descriptor(), {2}));
+    CHECK(config_replacement.register_producer() == 0);
+    CHECK(config_replacement.prepare());
     CHECK(live.transport(170, false, 21.) == WS2_OK);
-    CHECK(live.reconfigure(4, {2}));
+    replan_test(live, config_replacement, 200000000);
     render(live, 16);
     check_transport(live, 170, 21, false);
     CHECK(live.transport(165, false) == WS2_OK);

@@ -97,10 +97,8 @@ public:
     std::vector<uint8_t>save_state(uint32_t node);
     int load_state(uint32_t node,const std::vector<uint8_t>&bytes);
     const std::vector<uint8_t>&preserved_state(uint32_t node)const;
-    bool reconfigure(uint32_t node,const std::vector<uint8_t>&config);
     // One control owner stages a prepared candidate while render remains active.
     // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
-    uint32_t dropped_connections()const;
 };
 }

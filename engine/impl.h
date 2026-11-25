@@ -22,7 +22,7 @@ struct Engine::Impl {
     Layout *render_layout = nullptr; // render-only after prepare
     std::atomic<Layout *> pending_layout{nullptr};
     std::array<std::unique_ptr<Producer>, 32> producers;
-    uint32_t producer_count = 0, dropped_connections = 0;
+    uint32_t producer_count = 0;
     std::unique_ptr<Producer> egress;
     std::vector<Packet> future;
     std::vector<uint8_t> arena;
@@ -115,7 +115,6 @@ struct Engine::Impl {
     void find_components();
     bool order_feedback_components();
     bool order_components();
-    bool stage_reconfiguration(Engine &next, uint32_t node, const std::vector<uint8_t> &config);
     bool plan_edge_transitions(Impl &fresh, const std::vector<Node *> &actual,
                                std::vector<bool> &used, std::vector<bool> &delay_used,
                                std::vector<std::pair<uint32_t, uint32_t>> &chokes,
