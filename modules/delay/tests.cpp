@@ -73,9 +73,9 @@ struct Rig {
         REQUIRE(d->save_state(instance, &writer) == WS2_OK);
         return bytes;
     }
-    int load(const DelayBytes &bytes) {
+    int load(const DelayBytes &bytes, uint32_t reader_size = sizeof(ws2_reader)) {
         DelaySource ctx{&bytes, 0};
-        ws2_reader reader{sizeof(reader), &ctx, delay_source, static_cast<uint32_t>(bytes.size())};
+        ws2_reader reader{reader_size, &ctx, delay_source, static_cast<uint32_t>(bytes.size())};
         return d->load_state(instance, &reader);
     }
     // Runs `total` frames in blocks of `block`; `each` may change values before every block.
@@ -540,6 +540,47 @@ static void state_and_extremes() {
         const auto x=original.run(2400,31), y=restored.run(2400,31);
         REQUIRE(!finite_within(x.l,0.f));
         REQUIRE(x.l==y.l && x.r==y.r);
+    }
+    // A79: each malformed length must leave the next render unchanged, both
+    // with a populated tail and during simultaneous mode/tone/clock transitions.
+    for (bool midflight : {false, true}) {
+        Rig source;
+        wet_only(source, .01f, .7f);
+        source.left(noise(3000, 281));
+        source.clock(pulses(3000, 700));
+        source.run(3000);
+        if (midflight) {
+            source.values[kMode] = 1.f;
+            source.values[kTone] = -.7f;
+            source.left(noise(8, 282));
+            source.clock(Wave(8, 1.f));
+            source.run(8, 8);
+        }
+        const auto snapshot = source.save();
+        for (int kind = 0; kind < 4; ++kind) {
+            Rig subject, twin;
+            for (int p = 0; p < 6; ++p)
+                subject.values[p] = twin.values[p] = source.values[p];
+            REQUIRE(subject.load(snapshot) == WS2_OK);
+            REQUIRE(twin.load(snapshot) == WS2_OK);
+            auto malformed = snapshot;
+            uint32_t reader_size = sizeof(ws2_reader);
+            if (kind == 0) malformed.push_back(0);
+            if (kind == 1) malformed.insert(malformed.end(), 64, 0);
+            if (kind == 2) malformed.pop_back();
+            if (kind == 3) reader_size = offsetof(ws2_reader, bytes);
+            REQUIRE(subject.load(malformed, reader_size) == WS2_INVALID);
+            for (Rig* r : {&subject, &twin}) {
+                r->left(Wave(2400, 0.f));
+                Wave clock(2400, .375f);
+                clock[32] = 0.f; clock[33] = 1.f;
+                r->clock(clock);
+            }
+            const auto x = subject.run(2400, 31), y = twin.run(2400, 31);
+            REQUIRE(!finite_within(y.l, 0.f));
+            REQUIRE(std::memcmp(x.l.data(), y.l.data(), x.l.size()*sizeof(float)) == 0);
+            REQUIRE(std::memcmp(x.r.data(), y.r.data(), x.r.size()*sizeof(float)) == 0);
+        }
     }
     // Extremes: every parameter at its minimum and maximum, hot inputs, tiny and large blocks.
     for (int extreme = 0; extreme < 2; ++extreme) {
