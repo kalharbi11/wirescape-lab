@@ -72,9 +72,9 @@ write there; they ask with `/pi-run` comments. The owner keeps full rights.
 - Usage is the owner's weekly budget. Do not re-verify merged work or read whole trees.
 
 ## Reviewer queue (owner, 2026-11-19)
-Every reviewer run checks open non-draft PRs with `review-ready`. Accept only a pinned request at
-the live head that authorizes your role. `review-required` alone means the review is a merge
-condition and is not queued. **A `review-ready` PR that also has `needs/architect`, or whose pinned
+The owner starts reviews manually and gives the reviewer the pinned PR request. Accept only
+an open non-draft PR with a pinned request at the live head that authorizes your role.
+`review-required` marks the merge condition. **A `review-ready` PR that also has `needs/architect`, or whose pinned
 request names the Architect, is mislabelled: skip it, change no labels and post nothing.**
 1. Review the named base..head, contract criteria and evidence. Read the diff and relevant callers.
    Report High/Medium/Low findings with file and line.
@@ -83,9 +83,8 @@ request names the Architect, is mislabelled: skip it, change no labels and post 
    `review-required` until a valid approval satisfies the gate. If blocked, state what the lead
    needs to provide before a fresh request.
 3. Merge only when authorized for that run. Otherwise the lead merges.
-For an `architect-ready` event, run the Architect protocol: handle every ready Open inbox row,
-then remove `architect-ready` from each item handled
-([Architect dispatch](docs/workflow/README.md#architect-dispatch-architect-ready)).
+The owner starts the Architect with `architect:run`. Handle ready Open inbox rows under the
+Architect protocol and clear any obsolete automation labels on handled items.
 
 **Time:** New York (ET) for every date. **Signing:** the last line of every handoff, review and
 summary is `Signed: <name>, <YYYY-MM-DD>`.

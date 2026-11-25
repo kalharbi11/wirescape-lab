@@ -359,6 +359,17 @@ void reproduce(bool panic_only) {
     for (const auto &state : states) {
         route_dropped += state.dropped;
         route_received += state.received;
+        // Observational status snapshot: listener counts repeat for routes on
+        // the same port; never sum them. Existing pass/fail gates are unchanged.
+        std::fprintf(stderr,
+            "OB-g7 OSC diagnostic node=%u port=%u dropped=%llu budget=%llu enqueue=%llu "
+            "listener_budget=%llu listener_enqueue=%llu\n",
+            state.node, unsigned(state.port),
+            static_cast<unsigned long long>(state.dropped),
+            static_cast<unsigned long long>(state.budget_dropped),
+            static_cast<unsigned long long>(state.enqueue_dropped),
+            static_cast<unsigned long long>(state.listener_budget_dropped),
+            static_cast<unsigned long long>(state.listener_enqueue_dropped));
     }
     rendering.store(false, std::memory_order_release);
     render.join();

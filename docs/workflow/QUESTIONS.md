@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # QUESTIONS — batched decisions for Fable
 
-**State:** Q1–Q14 and Q16–Q24 answered; Q25 answered (S7.9 shared VCO test scope, A63). Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
+**State:** Q1–Q14 and Q16–Q24 answered; Q25 answered (S7.9 shared VCO test scope, A63); Q26 (E7 `freshModules`, A62) and Q27 (OSC hosted attribution, A61) answered. Q15 records a resolved owner-directed S2 scope addition. The lead appends only genuinely
 unresolved questions; Fable answers them in place in one `fable: run questions` session.
 If an answer changes a frozen contract, Fable increments the revision, lists affected tasks,
 and records the stop/replan instruction in `CURRENT.md`.
@@ -635,3 +635,21 @@ Signed: claude-architect, 2026-11-21 (run 8 note 2026-11-23)
   Signed: claude-architect, 2026-11-24
 
 Signed: codex-lead, 2026-11-24, 18:24 EST
+
+## Q26 — E7 freshModules, protocol docs, CN rows (A62)
+- **Question:** does `freshModules` list modules whose version-only `save_state`/`load_state` returns OK but resets (delay, reverb, resonator tails; note converters' held notes)? Grant protocol documentation? Who captures the `setBufferFrames` smaller/larger rows, and which witness carries state on the larger rebuild?
+- **Evidence:** [inventory](https://github.com/kalharbi11/wirescape-lab/issues/431#issuecomment-7142773650), [ask](https://github.com/kalharbi11/wirescape-lab/issues/431#issuecomment-7144483551), [pin](https://github.com/kalharbi11/wirescape-lab/issues/431#issuecomment-7147366655), #442 `0f6d33b`.
+- **Answer (Architect, run 31, 2026-11-24):** see [M4 A62](milestones/M4.md). (1) `freshModules` lists what the host mechanism did not carry: no state hook, `save_state` or `load_state` not OK (including a C2 refusal), or no instance with the same ID, type and config. An OK return counts as carried. The host never lists modules by type. (2) Version-only modules whose hooks return OK but reset are module behaviour. The E7 Result and report name them from the inventory under M4 Escalate ("list it, do not redesign"). (3) SR17 applies: `docs/specs/protocol.schema.json`, its regenerated outputs and the `ENGINE_PROTOCOL.md` reply paragraph join #442's paths. (4) B1 owns the two CN rows after #442 merges. Thresholds and metrics stay. Overturned if an OK-but-reset module is in the M4 acceptance witness set, or if the owner wants that list in the reply.
+  Signed: claude-architect, 2026-11-24
+
+## Q27 — OSC hosted attribution (A61)
+- **Question:** grant four additive OSC split fields in `Session::status()` to #433, or accept native-only diagnosis and assign hosted exposure separately?
+- **Evidence:** [#433 Result](https://github.com/kalharbi11/wirescape-lab/pull/433#issuecomment-7143352337) at `8cb9d2e`: native split works (budget isolated by bundle, enqueue by injected refusal), natural loss not reproduced natively (5132/5132).
+- **Answer (Architect, run 31, 2026-11-24):** native-only diagnosis accepted. #433 merges at its exact-head green under its own `merge: lead`. `host/sidecar/session.cpp` stays single-writer (E7 first), so hosted exposure becomes a follow-up task: B3, four read-only additive status fields with SR17 schema and regeneration, a test first, draft-ahead allowed, ready only after #442 merges. No product fix, limit, queue or load change until a hosted soak shows nonzero split counts. Then the Architect picks the fix (A58). Overturned if OB1 needs OSC soak as a gate rather than advisory.
+  Signed: claude-architect, 2026-11-24
+
+## Q28 — S7.6 endpoint floor (A64)
+- **Question:** in S7.6 the target state alone (`mode`, `tone`) exceeds the old-value no-switch floor by +3.584/+2.351 dB. How is the switch-specific residual judged, and does a below-floor reading (clocked `division`, −2.271 dB) meet r1.3(a)?
+- **Evidence:** [#449 controls](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7148651917) at `e772628`: B4 run 45517684538, both arches, all digests verified.
+- **Answer (Architect, run 33, 2026-11-24):** see [M7 r1.8](milestones/M7.md). Floor = max(old-value, target-from-start) peak over the fixed r1.4 window, same metric. Met when switched ≤ that floor + 0.1 dB on x64, with ARM64 agreeing in direction. `mode` is met; `tone` is not met and is a real defect; `division` needs its target control. Overturned if a target control's in-window peak is a startup transient.
+  Signed: claude-architect, 2026-11-24

@@ -31,7 +31,165 @@ struct Capture {
         return WS2_OK;
     }
 };
+
+namespace {
+using Clock = std::chrono::steady_clock;
+using namespace std::chrono_literals;
+
+// The split is absent at the fail-first head. Compile and run the real UDP
+// witness even there, rather than stopping at a missing-member compiler error.
+template<class T>
+auto verify_split(const T &state, uint64_t budget, uint64_t enqueue, int)
+    -> decltype(state.budget_dropped, state.enqueue_dropped, void()) {
+    std::fprintf(stderr, "OSC drop split budget=%llu enqueue=%llu expected=%llu/%llu\n",
+        static_cast<unsigned long long>(state.budget_dropped),
+        static_cast<unsigned long long>(state.enqueue_dropped),
+        static_cast<unsigned long long>(budget), static_cast<unsigned long long>(enqueue));
+    REQUIRE(state.budget_dropped == budget);
+    REQUIRE(state.enqueue_dropped == enqueue);
+}
+template<class T>
+void verify_split(const T &state, uint64_t budget, uint64_t enqueue, long) {
+    std::fprintf(stderr, "OSC drop witness total=%llu expected budget=%llu enqueue=%llu; split unavailable\n",
+        static_cast<unsigned long long>(state.dropped),
+        static_cast<unsigned long long>(budget), static_cast<unsigned long long>(enqueue));
+    REQUIRE(false);
+}
+
+// Listener counts represent one physical UDP listener; budget counts once
+// per discarded decoded message, enqueue once per failed route delivery.
+template<class S>
+auto verify_listener(const S &service, uint64_t budget, uint64_t enqueue, int)
+    -> decltype(service.listener_states(), void()) {
+    const auto listeners = service.listener_states();
+    REQUIRE(listeners.size() == 1);
+    REQUIRE(listeners[0].port == service.bound_port());
+    REQUIRE(listeners[0].dropped == budget + enqueue);
+    verify_split(listeners[0], budget, enqueue, 0);
+}
+template<class S>
+void verify_listener(const S &, uint64_t, uint64_t, long) {
+    REQUIRE(false);
+}
+
+// The service-level sink has exactly the nine route matches of the soak.
+// A bounded deliberate scheduling stall queues one 64-address cycle behind
+// the gate rise. One selected sink refusal witnesses enqueue accounting;
+// this is a controlled rejection, not a claim about the engine's root cause.
+struct SoakSink {
+    std::atomic<bool> gate_high{false}, release{false}, stall_timeout{false};
+    std::atomic<uint32_t> falls{0}, seq{0};
+    static bool accept(void *, uint32_t node, std::string_view address) noexcept {
+        if (address == "/io/gate" || address == "/io/seq") return node == 1;
+        if (address.size() != 11 || address.substr(0, 9) != "/io/load/") return false;
+        const unsigned index = unsigned(address[9] - '0') * 10 + unsigned(address[10] - '0');
+        return index < 64 && node == 10 + index / 8;
+    }
+    static int deliver(void *p, uint32_t node, const ws2_event &e, uint64_t) noexcept {
+        auto &self = *static_cast<SoakSink *>(p);
+        int result = WS2_OK;
+        parse(static_cast<const uint8_t *>(e.data), e.bytes, [&](const Message &m) {
+            if (node == 1 && m.address == "/io/seq") ++self.seq;
+            if (node == 1 && m.address == "/io/gate") {
+                if (m.arguments[0].real >= .5f) {
+                    self.gate_high.store(true, std::memory_order_release);
+                    const auto deadline = Clock::now() + 500ms;
+                    while (!self.release.load(std::memory_order_acquire) && Clock::now() < deadline)
+                        std::this_thread::yield();
+                    if (!self.release.load(std::memory_order_acquire)) self.stall_timeout = true;
+                } else ++self.falls;
+            }
+            if (node == 17 && m.address == "/io/load/63") result = WS2_INVALID;
+        });
+        return result;
+    }
+};
+
+void soak_backlog_split() {
+    SoakSink sink;
+    Service service({&sink, SoakSink::deliver, SoakSink::accept});
+    REQUIRE(service.add({1, 0, false}));
+    for (unsigned node = 10; node <= 17; ++node) REQUIRE(service.add({node, 0, false}));
+    REQUIRE(service.start() && service.counters().sockets == 1);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in dest{};
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(service.bound_port());
+    dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    auto send = [&](std::string_view path, float value) {
+        Message m;
+        m.address = path;
+        m.count = 1;
+        m.arguments[0].type = 'f';
+        m.arguments[0].real = value;
+        uint8_t bytes[1472]{};
+        bool truncated = false;
+        const auto n = encode(m, bytes, sizeof(bytes), truncated);
+        REQUIRE(n && !truncated);
+        REQUIRE(sendto(sender, reinterpret_cast<const char *>(bytes), int(n), 0,
+                       reinterpret_cast<sockaddr *>(&dest), sizeof(dest)) == int(n));
+    };
+    send("/io/seq", 1.f / 4096);
+    send("/io/gate", 1.f);
+    const auto entered_deadline = Clock::now() + 500ms;
+    while (!sink.gate_high.load(std::memory_order_acquire) && Clock::now() < entered_deadline)
+        std::this_thread::yield();
+    REQUIRE(sink.gate_high);
+    // One complete cycle accumulates while the worker is stalled. Subsequent
+    // cycles retain the actual 5ms cadence and one datagram per address.
+    const auto start = Clock::now();
+    for (unsigned cycle = 0; cycle < 4; ++cycle) {
+        const auto next = start + cycle * 5ms;
+        while (Clock::now() < next) std::this_thread::yield();
+        for (unsigned i = 0; i < 64; ++i) {
+            char address[32]{};
+            std::snprintf(address, sizeof(address), "/io/load/%02u", i);
+            send(address, (i & 1) ? float((cycle + i) % 2) : float((cycle + i * 17) % 97) / 96.f);
+        }
+        if (cycle == 0) sink.release.store(true, std::memory_order_release);
+    }
+    while (Clock::now() < start + 20ms) std::this_thread::yield();
+    send("/io/gate", 0.f);
+    const auto deadline = Clock::now() + 2s;
+    while (service.counters().received < 259 && Clock::now() < deadline)
+        std::this_thread::sleep_for(1ms);
+    // Join before asserting cross-counter identities: concurrent snapshots
+    // are intentionally not a transactional read.
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop();
+    const auto states = service.states();
+    const auto total = service.counters();
+    std::fprintf(stderr, "OSC 64x200Hz backlog: datagrams=%llu dropped=%llu seq=%u falls=%u\n",
+        static_cast<unsigned long long>(total.received),
+        static_cast<unsigned long long>(total.dropped), sink.seq.load(), sink.falls.load());
+    REQUIRE(!sink.stall_timeout && sink.seq == 1 && sink.falls == 1);
+    REQUIRE(total.received == 259 && total.dropped == 4);
+    REQUIRE(states.size() == 9 && states[0].received == 3);
+    for (unsigned i = 0; i < states.size(); ++i) {
+        const uint64_t refused = i == 8 ? 4 : 0;
+        REQUIRE(states[i].dropped == refused);
+        if (i != 0) REQUIRE(states[i].received == 32 - refused);
+        std::fprintf(stderr, "OSC route %u total=%llu\n", states[i].node,
+            static_cast<unsigned long long>(states[i].dropped));
+    }
+    // Report a nonzero drop on old code before failing for the absent split.
+    verify_split(states.back(), 0, 4, 0);
+    for (const auto &state : states) {
+        verify_split(state, 0, state.node == 17 ? 4 : 0, 0);
+        REQUIRE(state.listener_budget_dropped == 0);
+        REQUIRE(state.listener_enqueue_dropped == 4);
+    }
+    verify_split(total, 0, 4, 0);
+    verify_listener(service, 0, 4, 0);
+}
+} // namespace
+
 int main() {
+    soak_backlog_split();
     Capture c;
     // Unconfirmed LAN never binds any interface other than loopback.
     Service local({&c, Capture::deliver});
@@ -121,7 +279,7 @@ int main() {
     // One UDP datagram can contain dozens of OSC bundle elements. A 80-message
     // bundle must deliver no more than 64, even though it is one small packet.
     Service bundled({&c, Capture::deliver});
-    REQUIRE(bundled.add({1, 0, false}) && bundled.start());
+    REQUIRE(bundled.add({1, 0, false}) && bundled.add({2, 0, false}) && bundled.start());
     auto bundle_sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in bundle_address{};
     bundle_address.sin_family = AF_INET;
@@ -148,18 +306,27 @@ int main() {
     }
     REQUIRE(sendto(bundle_sender, reinterpret_cast<const char *>(bundle.data()), int(used), 0,
                    reinterpret_cast<sockaddr *>(&bundle_address), sizeof(bundle_address)) == int(used));
-    for (uint32_t wait = 0; wait < 2000 && bundled.states()[0].received < 64; ++wait)
+    for (uint32_t wait = 0; wait < 2000 && bundled.counters().dropped < 16; ++wait)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    REQUIRE(bundled.counters().received == 1);
-    REQUIRE(bundled.states()[0].received == 64);
-    REQUIRE(bundled.states()[0].dropped == 16);
-    REQUIRE(bundled.counters().dropped == 16);
 #ifdef _WIN32
     closesocket(bundle_sender);
 #else
     close(bundle_sender);
 #endif
-    bundled.stop();
+    bundled.stop(); // quiesce before exact split identities
+    REQUIRE(bundled.counters().received == 1);
+    REQUIRE(bundled.states().size() == 2);
+    for (const auto &route : bundled.states()) {
+        REQUIRE(route.received == 64);
+        REQUIRE(route.dropped == 16);
+        verify_split(route, 16, 0, 0);
+        REQUIRE(route.listener_budget_dropped == 16);
+        REQUIRE(route.listener_enqueue_dropped == 0);
+    }
+    // The physical listener and global counts are NOT multiplied by route count.
+    REQUIRE(bundled.counters().dropped == 16);
+    verify_split(bundled.counters(), 16, 0, 0);
+    verify_listener(bundled, 16, 0, 0);
     REQUIRE(bundled.counters().sockets == 0);
     // LAN/localhost conflicts stay isolated even with explicit permission:
     // no test ever opens a LAN socket.
