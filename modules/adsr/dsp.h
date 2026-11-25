@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
-#include "wirescape_sdk.h"
+#include "../port_state.h"
 namespace ws2ports {
 struct Adsr {
     static constexpr ws::Info info{"essentials.adsr","ADSR",2};
@@ -13,7 +13,52 @@ struct Adsr {
     struct Voice {float level=0,start=0;uint64_t elapsed=0,duration=1,hold_left=0;int stage=0;bool gated=false,triggered=false;uint32_t source=0;int32_t note=0;ws::Schmitt edge;};
     std::array<Voice,16>voices{};
     bool trigger_mode_seen=false; // only the default Gate path uses original fast-loop
-    void prepare(const ws::Setup&){}void reset(){for(auto&v:voices)v=Voice{};trigger_mode_seen=false;}
+    double state_rate=48000.;
+    void prepare(const ws::Setup&s){state_rate=s.sample_rate();}void reset(){for(auto&v:voices)v=Voice{};trigger_mode_seen=false;}
+
+    // A70: portable, versioned stopped-engine state. Do not touch the render path.
+    static bool write_u64(ws::Writer out,uint64_t v){
+        return out.u32(uint32_t(v))&&out.u32(uint32_t(v>>32));
+    }
+    static bool read_u64(ws::Reader in,uint64_t&v){
+        uint32_t lo,hi;
+        if(!in.u32(lo)||!in.u32(hi))return false;
+        v=uint64_t(lo)|(uint64_t(hi)<<32);return true;
+    }
+    int save_state(ws::Writer out)const{
+        if(!out.u32(1)||!write_double(out,state_rate)||!out.u32(trigger_mode_seen?1u:0u))return WS2_CAPACITY;
+        for(const auto&v:voices){
+            auto edge=v.edge; // Probe the Schmitt latch at a value in its hysteresis band.
+            uint32_t note;std::memcpy(&note,&v.note,sizeof(note));
+            if(!out.u32(uint32_t(v.stage))||!out.f32(v.level)||!out.f32(v.start)||
+               !write_u64(out,v.elapsed)||!write_u64(out,v.duration)||!write_u64(out,v.hold_left)||
+               !out.u32(v.gated?1u:0u)||!out.u32(v.triggered?1u:0u)||!out.u32(v.source)||
+               !out.u32(note)||!out.u32(edge.process(.375f)?1u:0u))return WS2_CAPACITY;
+        }
+        return WS2_OK;
+    }
+    int load_state(ws::Reader in){
+        uint32_t version,seen;
+        double saved_rate;
+        if(!in.u32(version))return WS2_INVALID;
+        if(version!=1)return WS2_UNSUPPORTED;
+        if(!read_double(in,saved_rate)||saved_rate!=state_rate||!in.u32(seen)||seen>1)return WS2_INVALID;
+        std::array<Voice,16> staged{};
+        for(auto&v:staged){
+            uint32_t stage,gated,triggered,note,edge;
+            if(!in.u32(stage)||stage>4||!in.f32(v.level)||!in.f32(v.start)||
+               !std::isfinite(v.level)||!std::isfinite(v.start)||
+               !read_u64(in,v.elapsed)||!read_u64(in,v.duration)||!read_u64(in,v.hold_left)||
+               !v.duration||v.elapsed>v.duration||
+               !in.u32(gated)||gated>1||!in.u32(triggered)||triggered>1||
+               !in.u32(v.source)||!in.u32(note)||!in.u32(edge)||edge>1)return WS2_INVALID;
+            v.stage=int(stage);v.gated=gated!=0;v.triggered=triggered!=0;
+            std::memcpy(&v.note,&note,sizeof(note));
+            if(edge)v.edge.process(1.f);
+        }
+        voices=staged;trigger_mode_seen=seen!=0;
+        return WS2_OK;
+    }
     void start(Voice&v,int stage,float seconds,double rate){v.stage=stage;v.start=v.level;v.elapsed=0;v.duration=std::max<uint64_t>(1,static_cast<uint64_t>(std::llround(seconds*rate)));}
     // CHOKE still invalidates the old note immediately; decay its residual
     // level over a fixed 5 ms instead of making a discontinuous CV step.
