@@ -2,6 +2,8 @@
 #pragma once
 #include "wirescape_sdk.h"
 #include <algorithm>
+#include <atomic>
+#include <deque>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -20,6 +22,42 @@ inline DataBlock allocate_data_block(uint32_t bytes) {
     std::memset(block.get(), 0, bytes);
     return block;
 }
+// Control-owned version history. Render borrows pointers only, and publishes
+// acknowledgements after it has stopped using the preceding block (ER2).
+struct DataVersion {
+    uint32_t serial;
+    DataBlock bytes;
+};
+struct DataSlotStorage {
+    uint32_t size;
+    std::deque<DataVersion> versions;
+    explicit DataSlotStorage(uint32_t bytes) : size(bytes) {}
+};
+struct InstanceData {
+    std::vector<std::shared_ptr<DataSlotStorage>> owners; // control-only
+    std::vector<ws2_data> view; // immutable shape, render-owned values after publication
+    std::unique_ptr<std::atomic<uint32_t>[]> adopted;
+    void init_views() {
+        view.clear();
+        view.reserve(owners.size());
+        if (!owners.empty()) adopted = std::make_unique<std::atomic<uint32_t>[]>(owners.size());
+        for (uint32_t i = 0; i < owners.size(); ++i) {
+            const auto &slot = *owners[i];
+            const auto &v = slot.versions.back();
+            view.push_back({sizeof(ws2_data), v.bytes.get(), slot.size, v.serial});
+            adopted[i].store(v.serial, std::memory_order_relaxed);
+        }
+    }
+    void apply(uint32_t slot, const void *bytes, uint32_t serial) noexcept {
+        auto &v = view[slot];
+        if (serial <= v.serial) return;
+        v.data = bytes;
+        v.serial = serial;
+        adopted[slot].store(serial, std::memory_order_release);
+    }
+};
+static_assert(std::atomic<uint32_t>::is_always_lock_free, "Data acknowledgement must be lock-free");
+
 inline bool data_id_valid(const char *id) {
     if (!id || *id < 'a' || *id > 'z') return false;
     for (++id; *id; ++id)
@@ -124,8 +162,7 @@ inline void pack_data_defaults(const ws2_field *fields, uint32_t count, uint8_t 
         }
     }
 }
-inline bool initialize_data_slots(const ws2_descriptor &d, std::vector<DataBlock> &blocks,
-                                  std::vector<ws2_data> &views, std::string &error) {
+inline bool initialize_data_slots(const ws2_descriptor &d, InstanceData &data, std::string &error) {
     if (d.struct_size < offsetof(ws2_descriptor, data_slot_count) + sizeof(d.data_slot_count) ||
         !d.data_slot_count) return true;
     if (d.data_slot_count > WS2_MAX_DATA_SLOTS ||
@@ -146,9 +183,11 @@ inline bool initialize_data_slots(const ws2_descriptor &d, std::vector<DataBlock
         if (!validate_data_fields(s.fields, s.field_count, s.bytes, false, name, error, alignment)) return false;
         auto block = allocate_data_block(s.bytes);
         pack_data_defaults(s.fields, s.field_count, block.get());
-        views.push_back({sizeof(ws2_data), block.get(), s.bytes, 1});
-        blocks.push_back(std::move(block));
+        auto owner = std::make_shared<DataSlotStorage>(s.bytes);
+        owner->versions.push_back({1, std::move(block)});
+        data.owners.push_back(std::move(owner));
     }
+    data.init_views();
     return true;
 }
 } // namespace wirescape::engine2

@@ -652,6 +652,73 @@ static void data_slot_defaults() {
       CHECK(watch.allocations() == 0); }
     CHECK(e.output_sample(1, 0, 0, 15) == 1.f);
 }
+static uint32_t data_probe_serial = 0;
+static int WS2_CALL data_delivery_probe(void *self, ws2_process *p) {
+    CHECK(p->data_count == 1 && p->data && p->data[0].data);
+    CHECK(p->data[0].bytes == sizeof(float));
+    CHECK(reinterpret_cast<uintptr_t>(p->data[0].data) % 16 == 0);
+    float v = 0;
+    std::memcpy(&v, p->data[0].data, sizeof(v));
+    data_probe_serial = p->data[0].serial;
+    const int result = ws::Module<Source>::descriptor()->process(self, p);
+    for (uint32_t c = 0; c < p->outputs[0].channels; ++c)
+        p->outputs[0].data[c][0] = v;
+    return result;
+}
+static void live_data_delivery() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_delivery_probe;
+    auto packed = [](float v) {
+        std::vector<uint8_t> bytes(sizeof(v));
+        std::memcpy(bytes.data(), &v, sizeof(v));
+        return bytes;
+    };
+    Config c = cfg();
+    c.ring_capacity = 2;
+    Engine e(c);
+    CHECK(e.add_node(1, &d));
+    CHECK(e.set_data_packed(1, 0, packed(.25f)) == WS2_OK);
+    CHECK(e.output(1, 0, 0));
+    CHECK(e.register_producer() == 0);
+    CHECK(e.prepare());
+    auto verify = [&](float value, uint32_t serial) {
+        allocation_watch::Scope watch;
+        render(e, 16);
+        CHECK(watch.allocations() == 0);
+        CHECK(e.output_sample(1, 0, 0, 15) == value);
+        CHECK(data_probe_serial == serial);
+    };
+    verify(.25f, 1);
+    CHECK(e.set_data_packed(1, 1, packed(.5f)) == WS2_INVALID);
+    CHECK(e.set_data_packed(1, 0, {}) == WS2_INVALID);
+    CHECK(e.set_data_packed(1, 0, packed(.5f)) == WS2_OK);
+    CHECK(e.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
+    CHECK(e.set_data_packed(1, 0, packed(1.f)) == WS2_CAPACITY);
+    e.panic(); // Host writes bypass generation and event budgets.
+    verify(.75f, 3);
+    CHECK(e.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    e.reset(); // Discards pending packet; caller re-sends document data.
+    verify(.75f, 3);
+    CHECK(e.set_data_packed(1, 0, packed(.125f)) == WS2_OK);
+    verify(.125f, 5);
+    // A queued write survives a same-descriptor replacement and both
+    // instances see the current immutable block from the adoption boundary.
+    CHECK(e.set_data_packed(1, 0, packed(.625f)) == WS2_OK);
+    Engine candidate(c);
+    CHECK(candidate.add_node(1, &d, {1}));
+    CHECK(candidate.output(1, 0, 0));
+    CHECK(candidate.prepare());
+    replan_test(e, candidate);
+    verify(.625f, 6);
+    CHECK(e.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
+    verify(.875f, 7);
+}
 static void replacement_packet_birth() {
     Config config;
     config.max_block = 4096;
@@ -809,6 +876,7 @@ int main(){
  transport_replan();
  append_only_descriptor_registration();
  data_slot_defaults();
+ live_data_delivery();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();

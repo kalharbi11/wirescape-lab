@@ -21,9 +21,7 @@ struct Instance {
     std::vector<Parameter> state;
     std::vector<uint8_t> config, preserved;
     std::vector<Allocation> allocations;
-    // Initial immutable data blocks: owned on control, borrowed for each process call.
-    std::vector<DataBlock> data_blocks;
-    std::vector<ws2_data> data_view;
+    InstanceData data;
     std::vector<Buffer> local_out, global_out, param;
     std::vector<double> modulation_sum;
     std::vector<ws2_signal_out> out_view;

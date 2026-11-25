@@ -85,6 +85,63 @@ int Engine::set_mod_amount(uint32_t from, uint32_t output, uint32_t to, uint32_t
     return WS2_OK;
 }
 
+void Engine::Impl::prune_data() noexcept {
+    // Each active logical slot owns a history. Retiring instances with that
+    // same owner must acknowledge a newer version before we release a block.
+    // Retired-only owners are reclaimed when their instances are destroyed.
+    for (auto &entry : instances) {
+        auto &data = entry.second->data;
+        for (uint32_t i = 0; i < data.owners.size(); ++i) {
+            auto &owner = *data.owners[i];
+            uint32_t oldest = data.adopted[i].load(std::memory_order_acquire);
+            for (const auto &retired : retired_instances) {
+                const auto &tail = retired->data;
+                if (i < tail.owners.size() && tail.owners[i].get() == &owner)
+                    oldest = std::min(oldest, tail.adopted[i].load(std::memory_order_acquire));
+            }
+            while (owner.versions.size() > 1 && owner.versions.front().serial < oldest)
+                owner.versions.pop_front();
+        }
+    }
+}
+
+int Engine::set_data_packed(uint32_t node, uint32_t slot, const std::vector<uint8_t> &bytes) {
+    auto &p = *p_;
+    auto *n = p.find(node);
+    if (!n || slot >= n->instance.data.owners.size()) return WS2_INVALID;
+    auto &data = n->instance.data;
+    auto &owner = *data.owners[slot];
+    if (bytes.size() != owner.size) return WS2_INVALID;
+    if (p.prepared && (!p.producer_count || owner.versions.back().serial == UINT32_MAX)) return WS2_STATE;
+    auto block = allocate_data_block(owner.size);
+    std::memcpy(block.get(), bytes.data(), owner.size);
+    if (!p.prepared) {
+        data.view[slot].data = block.get();
+        owner.versions.back().bytes = std::move(block);
+        return WS2_OK;
+    }
+    const auto serial = owner.versions.back().serial + 1;
+    const DataUpdate update{block.get(), owner.size};
+    Packet packet;
+    packet.host = true;
+    packet.event.type = data_packet_type;
+    packet.node = node;
+    packet.port = slot;
+    packet.revision = p.published_revision.load(std::memory_order_acquire);
+    packet.order = serial;
+    std::memcpy(packet.payload.data(), &update, sizeof(update));
+    // Commit ownership before the consumer can see the pointer; rollback on
+    // busy. No allocation, refcount or destruction takes place in render.
+    owner.versions.push_back({serial, std::move(block)});
+    if (!p.producers[0]->critical.push(packet)) {
+        owner.versions.pop_back();
+        ++p.ring_full;
+        return WS2_CAPACITY;
+    }
+    p.prune_data();
+    return WS2_OK;
+}
+
 int Engine::transport(double bpm, bool playing, std::optional<double> beat) noexcept {
     if (!std::isfinite(bpm) || bpm < 20. || bpm > 300. ||
         (beat && (!std::isfinite(*beat) || *beat < 0.)))
@@ -114,6 +171,7 @@ void Engine::refresh_latency() noexcept {
     auto &p = *p_;
     if (!p.prepared) return;
     p.settle_layout();
+    p.prune_data();
     p.recompute_latency();
 }
 
@@ -259,6 +317,7 @@ void Engine::Impl::settle_layout() noexcept {
     steady_layout.reset();
     last_settle_attempt_position.reset();
     retired_instances.clear();
+    prune_data();
     prune_edge_states();
     published_revision.store(revision, std::memory_order_release);
 }
@@ -560,7 +619,21 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         for (uint32_t i = 0; i < instance.event_outputs.size(); ++i)
             instance.event_outputs[i] = {sizeof(ws2_event_out), &old, i, Impl::emit};
     }
+    // Same-descriptor replacement inherits the latest control-owned slot
+    // versions. Save the candidate bindings until publication succeeds.
+    std::vector<std::pair<Instance *, InstanceData>> data_backups;
+    data_backups.reserve(replacement_pairs.size());
+    for (const auto &pair : replacement_pairs) {
+        if (pair.first->data.owners.empty()) continue;
+        InstanceData shared;
+        shared.owners = pair.first->data.owners;
+        shared.init_views();
+        data_backups.emplace_back(pair.second, std::move(shared));
+    }
+    // All allocating work above precedes swapping bindings and publication.
+    for (auto &backup : data_backups) std::swap(backup.first->data, backup.second);
     if (!old.publish_layout(&next, timeout_ns)) {
+        for (auto &backup : data_backups) std::swap(backup.first->data, backup.second);
         for (auto id : introduced) {
             auto &instance = *fresh.instances.at(id);
             instance.born_revision = 0;
@@ -597,6 +670,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     old.last_settle_attempt_position.reset();
     old.edge_states.swap(staged.edge_states);
     old.prune_edge_states();
+    old.prune_data();
     old.recompute_latency();
     old.published_revision.store(next_revision, std::memory_order_release);
     old.error.clear();
