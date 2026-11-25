@@ -83,10 +83,29 @@ AMD EPYC 9V45, [A53 review](https://github.com/kalharbi11/wirescape-lab/pull/405
 | scene-08-neon-elegy | `0c1395d8c949d14b28ad7d96697c79ff5722693b39b640641aff2033da6dbb4b` | `6274771eed12e1536df13afe12e2b6b9b6ca2be7da2100d4b60f2d4b5b811f84` | +0.917991 | 9.606778 |
 
 A53 Low: full-scale max-resonance step reached 2.4 FS (+7.6 dB); note for listening.
-Non-gating r=.25/.75 peak ratios: [#498 / #499](https://github.com/kalharbi11/wirescape-lab/pull/499)
-requests the original descriptor impulse and whole-spectrum scan with additional
-reported rows, no new threshold. Actual output pending; do not infer it from
-r=.5/.9 or the analytic formula.
+Non-gating r=.25/.75 peak ratios: [#498 / #499](https://github.com/kalharbi11/wirescape-lab/pull/499),
+head `97216ec2871ac0c5c056809ac0a64d2f143861d0`, [both Linux runner diagnostics](https://github.com/kalharbi11/wirescape-lab/pull/499#issuecomment-7152174807)
+([run 45539446060](https://github.com/kalharbi11/wirescape-lab/actions/runs/45539446060)),
+2026-11-24. Both architectures passed the existing Ladder tests and reported
+identical values to the printed precision for all twelve extra rows. The
+original impulse/whole-spectrum scan uses drive=0; these are reported
+measurements only, not new acceptance bounds. Exact-head Lab remains pending.
+
+| Rate Hz | Cutoff Hz | Resonance | Peak Hz | Peak/cutoff | Peak | Passband Δ dB |
+|---:|---:|---:|---:|---:|---:|---:|
+| 44100 | 1000 | 0.25 | 660.000 | 0.66000 | 1.143203 | 0.214398 |
+| 44100 | 1000 | 0.75 | 1080.000 | 1.08000 | 2.957925 | -0.019205 |
+| 44100 | 5000 | 0.25 | 3375.000 | 0.67500 | 1.143200 | 0.121669 |
+| 44100 | 5000 | 0.75 | 5375.000 | 1.07500 | 2.958051 | -0.140401 |
+| 48000 | 1000 | 0.25 | 660.000 | 0.66000 | 1.143203 | 0.215867 |
+| 48000 | 1000 | 0.75 | 1080.000 | 1.08000 | 2.957917 | -0.016712 |
+| 48000 | 5000 | 0.25 | 3375.000 | 0.67500 | 1.143205 | 0.131231 |
+| 48000 | 5000 | 0.75 | 5375.000 | 1.07500 | 2.958044 | -0.127794 |
+| 96000 | 1000 | 0.25 | 660.000 | 0.66000 | 1.143205 | 0.223918 |
+| 96000 | 1000 | 0.75 | 1080.000 | 1.08000 | 2.957882 | -0.002758 |
+| 96000 | 5000 | 0.25 | 3325.000 | 0.66500 | 1.143204 | 0.180705 |
+| 96000 | 5000 | 0.75 | 5400.000 | 1.08000 | 2.958060 | -0.056934 |
+
 [Lead-published scene-02 D5 FLACs and verified release digests](https://github.com/kalharbi11/wirescape-lab/pull/405#issuecomment-7140203754).
 
 ## Event-specific changes without bundled Golden differences
@@ -109,9 +128,12 @@ r=.5/.9 or the analytic formula.
   −0.302848/−0.302834 dB relative to the last-12k peak, therefore valid;
   governing endpoint excess +0.030469/+0.030424 dB meets the bound.
   [B4 reclassification of preserved raw](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151886320):
-  all three numeric rows meet; no rerender or changed stimulus. This is not
-  final PR acceptance. Record final Golden scope and D5 after B1's final gates
-  and Architect review; do not assume unchanged.
+  all three numeric rows meet at the historical pin; no changed stimulus.
+  [D5 publication](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152094695)
+  verified six FLACs and provenance at that pin. Later ready-head Golden and strict
+  paired checks failed ([lead correction packet](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152132576));
+  correction candidate `f8a318b` is not yet qualified. Record final Golden scope
+  and revalidated D5 after B1's final gates and Architect review; do not assume unchanged.
 
 ## Rebuild and owner listening (pending)
 
