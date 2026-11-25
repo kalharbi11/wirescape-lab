@@ -6,17 +6,16 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
-A planned review condition uses `review-required`. Open an Architect-only review row when its
-pinned request is ready. Apply `needs/architect` and give the owner the ready queue and
-`architect:run` trigger. The Architect clears ready Open rows at the owner's manual start.
-Keep review material and its head pinned on the PR. Regular independent reviews use a pinned
-request naming the eligible reviewer and the owner's manual start.
+The Claude Architect performs all independent and Claude contract reviews under the owner's
+2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+`review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+on the PR. Architect independence and all contract gates still apply. The owner or lead may
+apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+wake serves the whole inbox. The owner may also run `architect:run` manually.
 
-Builders update this inbox when required review is ready, a ruling is needed, or a question
-requires the Architect. Use a docs PR and keep one current row per item. For a ready independent
-review, name the eligible reviewer and mark the row as a handoff for the lead; Architect review
-authority comes from the contract or the owner. The owner and delivery lead own the two trigger
-labels, `architect-ready` and `review-ready`.
+Builders add or update one inbox row for a merge-ready review, ruling or Architect question.
+Use a docs PR, identify the exact head and the task that waits, and preserve the pinned Result.
+Only the owner or delivery lead applies an Architect trigger label.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -35,13 +34,15 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6, owner 2026-11-23) | wirescape-pi hosted jobs cannot run: (1) Actions minutes are used up until 2026-11-30; (2) the `WIRESCAPE_LAB_TOKEN` secret returns 401 and the owner replaces it; (3) the Pi runner may need re-registering. Keep this row Open until a `/pi-run` round-trip works. **Run 19b: [PI-1 #369](https://github.com/kalharbi11/wirescape-lab/issues/369) removes (1) and (2): dispatch and publish move to the lab, and the private repo needs no hosted minutes. It waits for the owner's token setup.** **Interim, allowed (owner question, 2026-11-23):** an agent running on the Pi as `wsci` may run `ci/sandbox.py` (CURRENT run 10c command), which keeps lab code inside podman. It posts `result.json` as a lab comment through its own app connection, with the SHA, Pi and date. The agent never runs lab code outside the sandbox and never gets the Pi user's own credentials. **2026-11-24:** owner is re-registering the runner and creating the PI-1 token (`PI_BRIDGE_TOKEN` in lab Environment `pi-bridge`, main only). | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
-| A65 | 2026-11-24 | gpt-lead | contract-review | soon | [S7.9 manual review](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7148992053), base `cb0004b0ba56cfffd280567a29daf4151f830013`, head `c86810e2ac2d6d982df40ac1fdba29137bed0986`. D5 published, review M7 K1–K8, A63 and bounded r1.6 disposition. | S7.9 #444 |
-| A66 | 2026-11-24 | gpt-lead | ruling | soon | [#467 Windows facts failure](https://github.com/kalharbi11/wirescape-lab/pull/467#issuecomment-7149127541), exact `6cbaf956f00c00351f6a0924d316a5dbe7e8aee2`. Required Windows Lab and the dedicated CHOKE capture passed. Separate Generate device-off facts failed compiling fetched libremidi before collectors. Confirm whether that exact advisory workflow can be handled separately for this evidence-only two-file PR. | #467 tooling merge |
-| A67 | 2026-11-24 | gpt-lead | ruling | soon | [#463 hosted Windows mixed/still](https://github.com/kalharbi11/wirescape-lab/actions/runs/45522699609/artifacts/14981696094), head `5f91f9dd3c868357e181188a57af5b21bd5e4229`: route 17 and listener 9000 each report budget 0, enqueue 2; legacy route drops 0→2. Route the separate cause-specific fix under A61/A58, with B2 proposed, same load/limits and fail-first witness. | OSC product fix only |
-| A64 follow-up | 2026-11-24 | gpt-builder1 / gpt-builder4 | ruling | soon | [#314 clocked-division target control](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7149509418), diagnostic base `6321dfeebdaab2bd39dd5e31446cc3ec17e628b5`, subject `e7726284a0116ba50f44946f48a4bf9720f36f6e`. Target peak frame48343 may contain startup history; switched is −2.271 dB vs old floor even if target is excluded. What validity check or original-floor disposition is required under A64(6)? Keep all fixed windows, fade, gain and bound. | S7.6 #449 division acceptance only |
+
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| A64 | 2026-11-24 | S7.6 #314/#449 `e772628`: A27 floor for mode/tone/division whose target state alone exceeds the old-value floor ([ask](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7148652913)) | **Ruled** ([M7 r1.8](milestones/M7.md), [Q28](QUESTIONS.md#q28--s76-endpoint-floor-a64), [comment](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7149046840)): floor = max(old-value, target-from-start) over the r1.4 windows; met at ≤ +0.1 dB over that floor (below meets). mode met (+0.030); tone +0.307 not met, real defect, fix in the DSP; division needs its target control. B4 #456 supplies the controls. |
-| E7 | 2026-11-24 | #442 `2959f7e` Claude contract-review (lead pin 7148957226) | **Approved and merged** `94d1b0b` ([review](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7149034643)); L1 MIDI note-off during the gap goes to the owner Pi checks. |
+| S7.5 H1 | 2026-11-24 | #291 `a875881` independent re-review | **Approved and merged** `6daa23e` ([review](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7151194472)). H1 closed; Low L1 (regrown voice keeps its prime bit) is deferred. |
+| A65 | 2026-11-24 | #444 `c86810e` S7.9 contract-review | **Approved and merged** `1be9da2` ([review](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7151198161)). x64 LFO reds are within r1.6. L1 (VCO sounds after CHOKE) is an OB-d note. |
+| A66 | 2026-11-24 | #467 advisory Windows facts failure | **Handled separately**: the failure was in the libremidi fetch, before any collector, on an evidence-only PR. #467 merged `c6a585a`; the fix is B3 [#487](https://github.com/kalharbi11/wirescape-lab/issues/487). |
+| A67 | 2026-11-24 | #463 hosted enqueue fix routing | **B2**, after E7b #486 and #482. One issue: same load and limits, fail-first, A61/A58. It does not hold the OB1 tag ([comment](https://github.com/kalharbi11/wirescape-lab/issues/475#issuecomment-7151232808)). |
+| A64 follow-up | 2026-11-24 | #314 division target-control validity | **Ruled, M7 r1.9** ([comment](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7151227766)): a peak ≤ old floor + 0.1 dB meets; division meets; the steady-state check applies only above the old floor. |
+| A68 | 2026-11-24 | #474 larger-buffer M4 acceptance | **Ruled, M4 A68** ([comment](https://github.com/kalharbi11/wirescape-lab/pull/474#issuecomment-7151226018)): smaller met, larger not met. The fix is E7b [#486](https://github.com/kalharbi11/wirescape-lab/issues/486) (B2, engine prepared for 1024); B1 reruns after. |
+| B5-CN | 2026-11-24 | #480 E5 adopt seam and transition-cost method | **Ruled, M4 A69** ([comment](https://github.com/kalharbi11/wirescape-lab/issues/480#issuecomment-7151224251)): bench-only seam, per-block callgrind `Ir`; E5 merge waits on review, not on CN rows. |

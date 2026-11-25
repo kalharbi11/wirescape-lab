@@ -27,7 +27,8 @@ struct Vco {
             }
         },[&](const ws2_event&e){uint32_t c=e.channel<0?0:static_cast<uint32_t>(e.channel);if(c>=b.channels())return;
             if(e.type==WS2_NOTE_ON){note_frequency[c]=static_cast<float>(440*std::pow(2.,(e.key-69.)/12.));note_active[c]=true;}
-            else if(e.type==WS2_NOTE_CHOKE){phase[c]=0;note_active[c]=false;}
+            // Clear the event pitch immediately, but keep the free-running phase continuous.
+            else if(e.type==WS2_NOTE_CHOKE){note_active[c]=false;}
         });
     }
 };
