@@ -31,16 +31,20 @@ struct RouteState {
     // enqueue refusals count only on the route whose delivery failed.
     uint64_t budget_dropped = 0, enqueue_dropped = 0;
     uint64_t listener_budget_dropped = 0, listener_enqueue_dropped = 0;
+    // Temporary A67 reason diagnostics; not part of the sidecar protocol.
+    uint64_t enqueue_invalid = 0, enqueue_capacity = 0, enqueue_state = 0, enqueue_other = 0;
 };
 struct ListenerState {
     uint16_t port = 0; // actual bound port (including OS-assigned test ports)
     uint64_t dropped = 0, budget_dropped = 0, enqueue_dropped = 0;
+    uint64_t enqueue_invalid = 0, enqueue_capacity = 0, enqueue_state = 0, enqueue_other = 0;
 };
 struct Counters {
     uint64_t received = 0, malformed = 0, dropped = 0, truncated = 0;
     uint32_t sockets = 0;
     // Global legacy dropped additionally includes oversized/encode failures.
     uint64_t budget_dropped = 0, enqueue_dropped = 0;
+    uint64_t enqueue_invalid = 0, enqueue_capacity = 0, enqueue_state = 0, enqueue_other = 0;
 };
 // One network worker polls all ports; one socket per distinct port is shared by its routes.
 // add() is quiescent; LAN needs both Route.lan and Service(confirm_lan=true).
