@@ -64,7 +64,7 @@ const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const cha
     return entry ? entry->native : nullptr;
 }
 int app_engine_add_node(AppEngine*e,uint32_t id,const char*type){return app_engine_add_node_config(e,id,type,{});}
-int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS2_UNSUPPORTED;if(d->native && d->native->struct_size >= offsetof(ws2_descriptor, data_slot_count) + sizeof(d->native->data_slot_count) && d->native->data_slot_count) return WS2_UNSUPPORTED;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS2_OK:WS2_STATE;}
+int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS2_UNSUPPORTED;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS2_OK:WS2_STATE;}
 int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS2_OK:WS2_STATE;}
 int app_engine_prepare(AppEngine*e,uint32_t n,uint32_t p){return e->engine.output(n,p,0)&&e->engine.prepare()?WS2_OK:WS2_STATE;}
 int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns) {
