@@ -889,33 +889,49 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     second["id"] = 6;
     multi["modules"].push_back(first);
     multi["modules"].push_back(second);
+    // Each signal input accepts one connection. Give the two predecessors
+    // independent output paths so one can retire while the other fades.
+    multi["modules"].push_back({{"id", 7}, {"module", "essentials.output"}});
+    multi["outputs"] = Json::array({{{"module", 1}, {"port", "audio"}, {"bus_channel", 0}},
+                                    {{"module", 7}, {"port", "audio"}, {"bus_channel", 1}}});
     for (auto id : {5, 6}) multi["connections"].push_back({{"kind", "signal"},
         {"from", {{"module", id}, {"port", "t1_mod1"}}},
-        {"to", {{"module", 1}, {"port", "audio"}}}});
+        {"to", {{"module", id == 5 ? 1 : 7}, {"port", "audio"}}}});
     gen = accept(multi);
-    for (auto &m : multi["modules"]) if (m["id"] == 5 || m["id"] == 6) m["config"]["bpm"] = 140;
+    for (auto &m : multi["modules"]) if (m["id"] == 5) m["config"]["bpm"] = 140;
+    gen = accept(multi);
+    std::array<float, 1024> samples{};
+    // Separate the two replacement starts by 480 samples, not wall time.
+    check(app_engine_render(live, samples.data(), 480) == WS2_OK, "A80 stagger replacements");
+    check(graph.replacement_tail_pending(5), "A80 first predecessor still fading");
+    for (auto &m : multi["modules"]) if (m["id"] == 6) m["config"]["bpm"] = 140;
     gen = accept(multi);
     check(graph.replacement_tail_pending(5) && graph.replacement_tail_pending(6),
           "A80 both predecessor tails held");
     auto both = multi;
     for (auto &m : both["modules"]) if (m["id"] == 5 || m["id"] == 6) m["config"]["bpm"] = 160;
     const auto shared = deferred(both, gen);
-    // Retire both via samples, then poll once per independent completion.
-    std::array<float, 1024> samples{};
-    for (unsigned i = 0; i < 25 && (graph.replacement_tail_pending(5) || graph.replacement_tail_pending(6)); ++i)
-        check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
-              "A80 multi-ID retirement");
-    check(!graph.replacement_tail_pending(5) && !graph.replacement_tail_pending(6),
-          "A80 multi-ID predecessors retired");
+    // Retire only the first predecessor, then prove its completion does not
+    // wait for the other ID. Render in single frames to stop at the boundary.
+    for (unsigned i = 0; i < 25000 && graph.replacement_tail_pending(5); ++i)
+        check(app_engine_render(live, samples.data(), 1) == WS2_OK, "A80 first retirement");
+    check(!graph.replacement_tail_pending(5) && graph.replacement_tail_pending(6),
+          "A80 first retired, second still fading");
     const auto multi_now = std::chrono::steady_clock::now();
-    for (auto id : {5, 6}) {
+    auto expect_applied = [&](uint32_t id) {
         with_render([&] { s.poll(multi_now); });
         gen = s.status()["gen"];
         const auto events = s.take_config_events();
         check(events.size() == 1 && events[0]["deferId"] == shared &&
               events[0]["moduleId"] == id && events[0]["outcome"] == "applied" &&
               events[0]["generation"] == gen, ("A80 independent terminal event: " + events.dump()).c_str());
-    }
+    };
+    expect_applied(5);
+    check(graph.replacement_tail_pending(6), "A80 other predecessor remains live after first completion");
+    for (unsigned i = 0; i < 25 && graph.replacement_tail_pending(6); ++i)
+        check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK, "A80 second retirement");
+    check(!graph.replacement_tail_pending(6), "A80 second predecessor retired");
+    expect_applied(6);
     s.poll(multi_now);
     check(s.take_config_events().empty() && s.status()["gen"] == gen,
           "A80 no duplicate multi-ID completions");
