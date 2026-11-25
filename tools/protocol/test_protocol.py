@@ -30,6 +30,16 @@ class ProtocolV0Tests(unittest.TestCase):
         })
         validate_schema_patterns(self.schema)
 
+    def test_a78_config_deferred_completion_contract(self):
+        variants = self.schema["$defs"]["push"]["oneOf"]
+        events = [v for v in variants
+                  if v.get("properties", {}).get("type", {}).get("const") == "configDeferred"]
+        self.assertEqual(len(events), 1, "A78 requires one correlated completion event")
+        event = events[0]
+        self.assertTrue({"deferId", "moduleId", "outcome", "generation"} <= set(event["required"]))
+        self.assertEqual(set(event["properties"]["outcome"]["enum"]),
+                         {"applied", "superseded", "failed"})
+
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(
             "## 10. Normative example exchanges", 1
