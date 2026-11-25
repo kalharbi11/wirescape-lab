@@ -787,6 +787,30 @@ Json Session::execution(Json patch) {
 }
 bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
     patch = execution(std::move(patch));
+    // loadGraph is a stored document; a changed live slot is an edit.
+    // Unchanged forward-compatible stored fields remain opaque.
+    if (!new_namespace) for (const auto &m : patch["modules"]) {
+        const auto data = m.value("data", Json::object());
+        need(data.is_object(), "invalid", "data: expected object");
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &n) { return n.at("id") == m.at("id") && n.at("module") == m.at("module"); });
+        const auto prior = old == patch_["modules"].end() ? Json::object() : old->value("data", Json::object());
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            if (prior.contains(it.key()) && prior.at(it.key()) == it.value()) continue;
+            uint32_t slot = 0;
+            while (slot < count && it.key() != d->data_slots[slot].id) ++slot;
+            need(slot < count, "invalid", ("data." + it.key() + ": unknown slot").c_str());
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(d->data_slots[slot], it.value(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
+    }
     std::string error;
     const auto patch_bytes = patch.dump();
     // Stage metadata and cursor storage before any live graph swap.
