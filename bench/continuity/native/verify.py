@@ -92,20 +92,32 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    rows = []
+    rows, failures = [], []
+    # Each case is independent. Preserve a failing oracle and its raw files
+    # but continue the other captures so a first red cannot hide later facts.
     for case in CASES:
         for repeat in range(1, REPEATS + 1):
             pair = args.out / f"{case}-{repeat}"
             pair.mkdir(exist_ok=True)
             edited, control = pair / "edited.f32", pair / "control.f32"
-            for kind, path in (("edited", edited), ("control", control)):
-                subprocess.run([str(args.exe), case, kind, str(path)], check=True, timeout=30)
-            rows.append(oracle(case, edited, control) | {"repeat": repeat})
+            try:
+                for kind, path in (("edited", edited), ("control", control)):
+                    subprocess.run([str(args.exe), case, kind, str(path)], check=True, timeout=30)
+                rows.append(oracle(case, edited, control) | {"repeat": repeat})
+            except (AssertionError, OSError, ValueError, KeyError, StopIteration,
+                    subprocess.SubprocessError) as exc:
+                files = {p.name: digest(p) for p in sorted(pair.iterdir()) if p.is_file()}
+                failures.append({"case": case, "repeat": repeat,
+                                 "error": type(exc).__name__, "detail": str(exc),
+                                 "files": files})
+                print(f"FAILED {case}/{repeat}: {type(exc).__name__}: {exc}", file=sys.stderr)
     report = {"descriptor": "synthetic test descriptor (tests/native/abi2), not a stock module",
               "rate": RATE, "block": BLOCK, "repeats": REPEATS,
-              "binary": digest(args.exe), "rows": rows}
+              "binary": digest(args.exe), "rows": rows, "failures": failures}
     (args.out / "synthetic.json").write_text(json.dumps(report, indent=2, allow_nan=False)+"\n")
-    print(f"verified {len(rows)} A69 synthetic capture pairs")
+    print(f"verified {len(rows)} A69 synthetic capture pairs; {len(failures)} failed")
+    if failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
