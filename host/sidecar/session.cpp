@@ -746,7 +746,12 @@ Json Session::execution(Json patch) {
             for (const auto &key : ignored)
                 std::cerr << "OSC load ignored unknown config key: " << key << '\n';
         } catch (const std::exception &e) {
-            throw Refusal("invalid", e.what());
+            // Keep legacy configuration refusals wire-compatible. A77's
+            // slot-specific diagnostics are new and must retain their path.
+            const std::string diagnostic = e.what();
+            if (diagnostic.rfind("data.", 0) == 0 || diagnostic.rfind("data:", 0) == 0)
+                throw Refusal("invalid", diagnostic.c_str());
+            throw Refusal("refused", "Graph configuration or state refused");
         }
         if (std::string(d->id) == "essentials.output") output = std::min(output, id);
         auto values = m.value("parameters", Json::object());
@@ -867,11 +872,21 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     // Stage metadata and cursor storage before any live graph swap.
     document::telemetry::Sampler next_telemetry(
         document::telemetry::plan(patch, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
-    auto next_out = std::make_unique<osc::OutHost>(patch_bytes);
+    std::unique_ptr<osc::OutHost> next_out;
+    try {
+        next_out = std::make_unique<osc::OutHost>(patch_bytes);
+    } catch (const std::exception &e) {
+        const std::string diagnostic = e.what();
+        if (diagnostic.rfind("data.", 0) == 0)
+            throw Refusal("invalid", diagnostic.c_str());
+        throw Refusal("refused", "Graph configuration or state refused");
+    }
     document::ScopedOutBuses staged_out(next_out->buses());
     audio::EngineOwner candidate(
         document::load_runtime_patch(patch_bytes, catalogue_.get(), config_, error, &next_telemetry.taps()),
         app_engine_destroy);
+    if (!candidate && error.rfind("data.", 0) == 0)
+        throw Refusal("invalid", error.c_str());
     need(bool(candidate), "refused", "Graph configuration or state refused");
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
