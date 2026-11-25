@@ -391,3 +391,22 @@ Larger: all 18 windows differ. Tail and held note post peaks and sounding counts
 ### Fresh instances and limitations
 
 Smaller: `freshModules` absent on each of the three replies. Larger: identical 14-entry host-reported list on each reply: `essentials.vco` IDs 1, 3, 12, 19, 50, 52, 54, 61, 90; `essentials.vca` IDs 6, 14, 18; `host.keyboard` ID 11; `essentials.adsr` ID 13. Each listed instance starts fresh under A62. Delay 9 is not listed because its version-only hook returns OK; its tail is cleared, as measured. E7's [state inventory/Result](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7148694696) also identifies Reverb/Resonator tails and held-note converters (Chord, CV-to-Notes, MIDI-to-CV, Notes-to-CV) with OK-but-empty runtime state, not all present in this probe. These are distinct from host-reported fresh instances. The larger rebuild has measured discontinuities, including the audible tail/note loss and Slew transition; the final M4 gate disposition is not established by these facts. No physical audio/MIDI gap or key-release claim. Final CN refresh awaits E5; prior A50 and historical rows remain unchanged.
+
+## M4 CN — SR21c refresh (#523)
+
+Draft evidence inventory; **no new measurement**. The merged E5 harness is
+`9000e8ffc948f2b4c3d99220e1ebdb5e5d4830bb` (#485). The historical A62
+buffer capture above is not a measurement of the integrated OB1 candidate.
+The E5 native, stock and transition-cost captures at engine `9809dfb9d1ead244815b8f93a68a02f7a307fe5b`
+are separately pinned evidence ([#485 Result](https://github.com/kalharbi11/wirescape-lab/pull/485#issuecomment-7153369689)),
+not a final integrated-source cost refresh.
+
+| Evidence row | Source pin | Observation |
+|---|---|---|
+| Intermediate 256→512, E7c-a voice chain and #504 | not yet pinned | not measured |
+| Final 256→512, including E7c-b Delay v2 | not yet pinned | not measured |
+| Final A69a Black Ice Choir single-instance Ir | not yet pinned | not measured |
+| Final A69a Clocked Groove adoption and max dual-instance Ir | not yet pinned | not measured |
+
+No continuity disposition, hardware timing, or Pi result follows from these
+unmeasured rows. Earlier measured sections and their pins are unchanged.
