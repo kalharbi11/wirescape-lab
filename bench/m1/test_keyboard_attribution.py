@@ -24,6 +24,26 @@ class AttributionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 exclusive(path, root)
 
+    def test_literal_parentheses_and_inline_source(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "base"
+            root.mkdir()
+            path = root / "profile"
+            path.write_text("part: 1\npositions: line\nevents: Ir\nsummary: 7\n"
+                            "ob=base/probe\nfl=base/engine/../sdk/a.h\n"
+                            "fn=(anonymous namespace)::render()\n0 3\n"
+                            "fi=base/modules/dsp.h\n0 4\n",
+                            encoding="utf-8")
+            result = exclusive(path, root)
+            self.assertEqual(result[("<source>/probe", "<source>/sdk/a.h",
+                                     "(anonymous namespace)::render()")], 3)
+            self.assertEqual(result[("<source>/probe", "<source>/modules/dsp.h",
+                                     "(anonymous namespace)::render()")], 4)
+            path.write_text(path.read_text().replace(
+                "(anonymous namespace)::render()", "(12)"), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                exclusive(path, root)
+
     def test_two_length_difference_and_missing_symbol(self):
         key = ("obj", "file", "render")
         new = ("obj", "file", "new")
