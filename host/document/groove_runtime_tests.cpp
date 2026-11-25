@@ -212,6 +212,79 @@ static void test_shared_live_pattern(AppEngine *cat) {
     check(trace(silent.get(), 1, 1)[0] == 0.f, "canonical reset never resurrects legacy note");
 }
 
+// Full-document preparation uses canonical construction bytes, so a change
+// confined to data must retain the running Groove when the graph adopts it.
+// A separate, untouched render supplies the exact musical boundary oracle.
+static void test_shared_pattern_replan(AppEngine *cat) {
+    std::string error;
+    auto authored = patch(pattern());
+    auto edited = authored;
+    wirescape::document::materialize_groove_legacy_data(edited["modules"][0], 1);
+    auto &slot = edited["modules"][0]["data"]["pattern"];
+    slot["steps_1"][1] = {{"kind", "note"}, {"key", 69}, {"velocity", 1.},
+                         {"keys", Json::array({69, 0, 0, 0, 0})}};
+    slot["length_1"] = 16;
+    auto live = load(authored, cat, 48000, error, true);
+    auto unchanged = load(authored, cat, 48000, error, true);
+    auto candidate = load(edited, cat, 48000, error, true);
+    check(bool(live) && bool(unchanged) && bool(candidate), "replan candidates load through shared document path");
+    for (auto *e : {live.get(), unchanged.get()}) {
+        trace(e, 1, 1);
+        run_command(e, run_id(e), 1.f);
+        check(trace(e, 1, 1)[0] == 1.f, "held note begins before data-only replan");
+    }
+    auto &graph = app_engine_native(live.get());
+    auto &reference = app_engine_native(unchanged.get());
+    auto &prepared = app_engine_native(candidate.get());
+    wirescape::engine2::Outgoing first{}, oracle_first{};
+    check(graph.pop_egress(first) && reference.pop_egress(oracle_first) &&
+          first.event.note_id == oracle_first.event.note_id && first.event.key == 72,
+          "matching held note before full-document adoption");
+    std::atomic<bool> staged{false}, done{false}, accepted{false};
+    std::thread planner([&] {
+        accepted = graph.replan(prepared, 200000000, [](void *ctx) noexcept {
+            static_cast<std::atomic<bool> *>(ctx)->store(true, std::memory_order_release);
+        }, &staged);
+        done.store(true, std::memory_order_release);
+    });
+    // Do not advance the music during control-side staging. Once the hook
+    // fires, render one frame at a time while permitting the control thread
+    // to publish. The pacing only coordinates this device-free fixture;
+    // musical comparison uses sample positions, never wall-clock latency.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (!staged.load(std::memory_order_acquire) && !done.load(std::memory_order_acquire) &&
+           std::chrono::steady_clock::now() < deadline)
+        std::this_thread::yield();
+    uint32_t elapsed = 0;
+    bool held = true;
+    while (!done.load(std::memory_order_acquire) && elapsed < 6000 &&
+           std::chrono::steady_clock::now() < deadline) {
+        held &= trace(live.get(), 1, 1)[0] == 1.f;
+        ++elapsed;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    planner.join();
+    check(accepted.load() && elapsed < 6000, "real replan adopts data before next musical boundary");
+    check(held, "held gate remains high throughout data-only adoption");
+    // Catch a replacement that reset the transport even if its first sample
+    // happened to look unchanged.
+    check(trace(live.get(), 1, 1)[0] == 1.f, "retained transport keeps sounding after publication");
+    ++elapsed;
+    check(trace(unchanged.get(), elapsed, 128) == std::vector<float>(elapsed, 1.f),
+          "reference stays held across the same frame interval");
+    wirescape::engine2::Outgoing event{};
+    check(!graph.pop_egress(event), "data-only replan emits no replacement release or retrigger");
+    trace(live.get(), 6000 - elapsed, 128);
+    trace(unchanged.get(), 6000 - elapsed, 128);
+    wirescape::engine2::Outgoing off{}, on{}, oracle_off{};
+    check(graph.pop_egress(off) && graph.pop_egress(on) && reference.pop_egress(oracle_off) &&
+          off.event.type == WS2_NOTE_OFF && off.event.note_id == first.event.note_id &&
+          off.frame == oracle_off.frame && on.event.type == WS2_NOTE_ON &&
+          on.event.key == 69 && on.frame == off.frame,
+          "retained replan delivers changed row at original next boundary");
+    check(!graph.pop_egress(event), "retained replan produces exactly the expected release and onset");
+}
+
 static void test_refusals(AppEngine *cat) {
     std::string error;
     Json good = pattern();
@@ -1408,6 +1481,7 @@ int main(int argc, char **argv) {
 
         test_shared_pattern_loader(cat.get());
         test_shared_live_pattern(cat.get());
+        test_shared_pattern_replan(cat.get());
         // Focused ASan diagnostic for the E3b shared loader/ring and migration
         // witnesses. The no-argument CTest retains every original assertion,
         // rate/block combination and the existing 60-second test deadline.
