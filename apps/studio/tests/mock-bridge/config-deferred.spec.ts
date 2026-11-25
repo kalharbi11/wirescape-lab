@@ -108,3 +108,42 @@ test('A80 latest deferred value wins and plain busy preserves an older pending i
   await page.evaluate(() => (window as any).__mockBridge.completeConfig(1, 'applied'));
   await expect.poll(() => ports(page)).toEqual({ authored: [9021, 9012], confirmed: [9021, 9012], native: [9021, 9012] });
 });
+
+for (const accept of [true, false]) {
+  test('A80 failed terminal during later graph ' + (accept ? 'acceptance' : 'refusal'), async ({ page }) => {
+    await setup(page, true);
+    await defer(page, 'race', 9011, 9002);
+    await page.evaluate(p => {
+      const b = (window as any).__mockBridge;
+      b.holdNext('applyGraph');
+      window.__wirescapeTest.restoreSnapshot(p);
+    }, snapshot(9011, 9022));
+    await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'applyGraph').length)).toBe(2);
+    await page.evaluate(accept => {
+      const b = (window as any).__mockBridge;
+      b.completeConfig(1, 'failed');
+      if (accept) b.acceptHeld(); else b.refuseHeld('busy');
+    }, accept);
+    const final = accept ? [9011, 9022] : [9001, 9002];
+    await expect.poll(() => ports(page)).toEqual({ authored: final, confirmed: final, native: final });
+  });
+}
+
+test('A80 lost opt-in acknowledgement cannot silently enable legacy graph writes', async ({ page }) => {
+  await mockBridge(page, { applyGraph: true, configDeferred: true, dropHelloAck: true });
+  await boot(page, { blank: false });
+  const result = await page.evaluate(async p => {
+    const t = window.__wirescapeTest, b = (window as any).__mockBridge;
+    let message = '';
+    try { await t.engine.loadGraph(p); } catch (e) { message = String(e); }
+    return { message, hello: b.sent.filter((m: any) => m.type === 'hello').length,
+      graph: b.sent.filter((m: any) => m.type === 'loadGraph' || m.type === 'applyGraph').length };
+  }, snapshot(9001, 9002));
+  expect(result.message).toContain('Restart the engine');
+  expect(result.hello).toBe(1);
+  expect(result.graph).toBe(0);
+  await page.evaluate(() => window.__wirescapeTest.engine.restartEngine());
+  await page.evaluate(p => window.__wirescapeTest.load(p, 'A80 recovered'), snapshot(9001, 9002));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9001, 9002], confirmed: [9001, 9002], native: [9001, 9002] });
+  expect(await page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'hello').length)).toBe(2);
+});
