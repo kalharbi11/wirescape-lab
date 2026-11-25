@@ -509,6 +509,29 @@ static void state_and_extremes() {
         REQUIRE(std::memcmp(expected.l.data(), actual.l.data(), expected.l.size()*sizeof(float)) == 0);
         REQUIRE(std::memcmp(expected.r.data(), actual.r.data(), expected.r.size()*sizeof(float)) == 0);
     }
+    // Snapshot while mode and tone are changing and the clock latch is high.
+    {
+        Rig original, restored;
+        wet_only(original, .01f, .7f);
+        original.left(noise(3000, 181));
+        original.clock(pulses(3000, 700));
+        original.run(3000);
+        original.values[kMode] = 1.f;
+        original.values[kTone] = -.7f;
+        original.left(noise(8, 182));
+        original.clock(Wave(8, 1.f));
+        original.run(8, 8);
+        for(int p=0;p<6;++p) restored.values[p]=original.values[p];
+        REQUIRE(restored.load(original.save()) == WS2_OK);
+        Wave clock(2400, .375f);
+        clock[32]=0.f; clock[33]=1.f;
+        for(Rig* r : {&original,&restored}) {
+            r->left(Wave(2400,0.f)); r->clock(clock);
+        }
+        const auto x=original.run(2400,31), y=restored.run(2400,31);
+        REQUIRE(!finite_within(x.l,0.f));
+        REQUIRE(x.l==y.l && x.r==y.r);
+    }
     // Extremes: every parameter at its minimum and maximum, hot inputs, tiny and large blocks.
     for (int extreme = 0; extreme < 2; ++extreme) {
         for (uint32_t mode = 0; mode < 2; ++mode) {
