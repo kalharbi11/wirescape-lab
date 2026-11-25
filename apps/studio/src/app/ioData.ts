@@ -87,3 +87,46 @@ export function splitOscEditorSave(m: PatchModule, draft: OscConfig | OscOutConf
   authored.data = { ...priorData, routes: nextSlot };
   return { config, value, authored };
 }
+
+/** CC editor projection: keep the authored row length for existing Learn
+ * allocation logic, but never read stale legacy rows when mapping is present. */
+export function ccMappingSource(m: PatchModule): RecordValue[] {
+  const data = object(m.data);
+  const source = own(data, 'mapping') ? object(data.mapping) : object(m.config);
+  return Array.isArray(source.rows) ? copy(source.rows.map(object)) : [];
+}
+
+export interface CcSlotEdit {
+  value: RecordValue;
+  authored: PatchModule;
+}
+
+/** Build the complete eight-row wire slot. Legacy bipolar is a migration
+ * shorthand only: the live slot has explicit F32 min/max, including inverted
+ * ranges. Keep opaque authored keys out of the Edit-mode request. */
+export function splitCcMappingSave(m: PatchModule, rows: RecordValue[]): CcSlotEdit {
+  if (rows.length > 8) throw new Error('CC row capacity exceeded');
+  const authored = copy(m);
+  const data = copy(object(m.data));
+  const old = object(data.mapping);
+  const config = copy(object(m.config));
+  const keys = ['channel', 'controller', 'fourteen_bit', 'smoothing_ms', 'min', 'max'];
+  const prior = Array.isArray(old.rows) ? old.rows : [];
+  const wireRows = Array.from({ length: 8 }, (_, index) => {
+    const row = object(rows[index]);
+    const defaults: RecordValue = { channel: 0, controller: index + 1,
+      fourteen_bit: false, smoothing_ms: 5, min: row.bipolar === true ? -1 : 0, max: 1 };
+    for (const key of keys) if (own(row, key)) defaults[key] = row[key];
+    return defaults;
+  });
+  const authoredRows = wireRows.map((row, index) => {
+    const opaque = { ...object(prior[index]), ...object(rows[index]) };
+    for (const key of [...keys, 'bipolar']) delete opaque[key];
+    return { ...opaque, ...row };
+  });
+  delete config.rows;
+  if (Object.keys(config).length) authored.config = config;
+  else delete authored.config;
+  authored.data = { ...data, mapping: { ...old, rows: authoredRows } };
+  return { value: { rows: wireRows }, authored };
+}

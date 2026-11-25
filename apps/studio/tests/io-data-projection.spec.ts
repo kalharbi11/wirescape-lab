@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
-import { oscEditorSource, splitOscEditorSave, oscConstructionChanged } from '../src/app/ioData';
+import { oscEditorSource, splitOscEditorSave, oscConstructionChanged, ccMappingSource, splitCcMappingSave } from '../src/app/ioData';
 import type { OscOutConfig } from '../src/app/OscOutEditor';
 
 test('E3c editor data projection wins over stale config without changing authored patch', () => {
@@ -73,4 +73,35 @@ test('A86 row-only save is not a construction edit even when defaults were omitt
   expect(oscConstructionChanged(m, { ...draft, rate_hz: 200 })).toBe(true);
   const explicit = { ...m, config: { version: 1, port: 9001, rate_hz: 100 } };
   expect(oscConstructionChanged(explicit, draft)).toBe(false);
+});
+
+test('E3c CC migration completes indexed defaults and legacy bipolar without changing opaque data', () => {
+  const m = { id: 9, module: 'midi.cc_to_cv', config: { rows: [
+    { channel: 2, controller: 11, bipolar: true, max: -.25 },
+    { controller: 12, min: 1, max: -1 },
+  ] }, data: { futureSlot: { keep: true } } };
+  const before = structuredClone(m);
+  const edit = splitCcMappingSave(m, ccMappingSource(m));
+  expect(edit.value.rows).toHaveLength(8);
+  expect((edit.value.rows as unknown[])[0]).toEqual({ channel: 2, controller: 11,
+    fourteen_bit: false, smoothing_ms: 5, min: -1, max: -.25 });
+  expect((edit.value.rows as unknown[])[1]).toMatchObject({ min: 1, max: -1 });
+  expect((edit.value.rows as unknown[])[7]).toMatchObject({ controller: 8, min: 0, max: 1 });
+  expect(edit.authored.config).toBeUndefined();
+  expect(edit.authored.data).toMatchObject({ futureSlot: { keep: true } });
+  expect(m).toEqual(before);
+});
+
+test('E3c explicit mapping wins, edits preserve opaque row/slot fields only in authored data', () => {
+  const m = { id: 9, module: 'midi.cc_to_cv', config: { rows: [{ controller: 99 }] },
+    data: { mapping: { opaqueSlot: 7, rows: [{ controller: 21, opaqueRow: 8 }] } } };
+  const rows = ccMappingSource(m);
+  expect(rows[0]).toMatchObject({ controller: 21 });
+  const edit = splitCcMappingSave(m, [{ ...rows[0], controller: 31 }]);
+  expect(edit.value).not.toHaveProperty('opaqueSlot');
+  expect((edit.value.rows as unknown[])[0]).not.toHaveProperty('opaqueRow');
+  expect(edit.authored.data).toMatchObject({ mapping: { opaqueSlot: 7, rows: [
+    expect.objectContaining({ controller: 31, opaqueRow: 8 }), ...Array.from({ length: 7 }, () => expect.anything()),
+  ] } });
+  expect(ccMappingSource({ ...m, data: { mapping: {} } })).toEqual([]);
 });
