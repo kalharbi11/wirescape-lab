@@ -41,16 +41,8 @@ struct Rig {
         ctx.event_outputs = events;
         // Direct descriptor harness: supply the same fully materialized rows as
         // the document loader will. Preserve all existing fixture assertions.
-        for (uint32_t i = 0; i < 8; ++i) {
-            const auto &src = cfg.rows[i];
-            auto &dst = slot_data.rows[i];
-            std::memcpy(dst.pattern, src.pattern, sizeof(dst.pattern));
-            dst.argument = src.argument; dst.kind = src.kind;
-            dst.input_min = src.input_min; dst.input_max = src.input_max;
-            dst.output_min = src.output_min; dst.output_max = src.output_max;
-            dst.smoothing_ms = src.smoothing_ms; dst.timeout_ms = src.timeout_ms;
-            dst.stale = src.stale; dst.enabled = uint8_t(src.enabled);
-        }
+        std::string error;
+        REQUIRE(osc::materialize_osc_in_rows(cfg, slot_data, error));
         ctx.data_count = 1; ctx.data = &slot_view;
     }
     ~Rig() { d->destroy(state); }
