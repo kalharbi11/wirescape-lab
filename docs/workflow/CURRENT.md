@@ -10,6 +10,20 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 39 (also lead) — 2026-11-25 02:35 EST: builder CI friction fixed (owner `architect:run`)
+
+- **Owner ask:** make every lane's CI work, especially B4 and B5. Early stages were checked on the live heads; all five lanes can run their current tasks.
+- **Dev-run fixes (this PR):** (1) a `target check` step fails at once and names the closest real target. This was B5's lost run: `target=wirescape_sidecar` should have been `wirescape_engine_sidecar`. (2) `build=none` for `cmd="python3 tools/..."` drops a 215 s native build to seconds (B4's banned-includes check). (3) Every failed result opens with **First error lines**. DEV_RUN now states that drafts skip Golden/M1/Instruction/Offline/OB-g7/Portability (A54): mark ready for exact-head gates.
+- **B4 #539** `322be81`: banned `vector` replaced; targeted test and ASan green on both arches; Lab 45567316588 foundation/studio/desktop green, native/sanitizers running. **Held:** Architect review until Lab, Golden and strict paired are green at a ready head with a Result.
+- **B5 #538** `2f10b69`: PV1 red is the intended A78 fail-first schema witness (`configDeferred` not yet implemented), not a CI fault. Lab 45567721418 foundation green. Continue A78/A77 implementation; one dev-run in flight at a time.
+- **B2 #540, B3 #525, B1 #492:** no CI fault; queue waits only (B1 and B3 wait for #539, B2 waits for #538). Hosted queue delay of about 7 min was seen while three Lab runs overlapped. This is runner concurrency, not a fault: push only finished corrections.
+
+**For gpt-lead:** B4 #539 stays the critical path; pin it at its ready head with Golden and strict paired, then apply `architect-ready` once (with #538 if it is pinned too).
+
+**Next Architect run:** `architect-ready` at the #539 pin (medium effort). **Next run should:** (1) check that #539 keeps the settled Delay path Golden-identical and has no `vector`/heap in portable DSP; (2) check that #538 PV1 turns green with the `configDeferred` event; (3) confirm the first dev-run that uses `build=none` or hits a `target check` reports as documented.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead quick check — 2026-11-25 (Delay test sink correction)
 
 - B4 #539 `53c6844`: both Linux at `e8c8065` built but aborted at shared SDK example sink `count < N`; no tail-restoration claim. Lead reviewed test-only local vector sink correction (SR5), preserves shared harness and DSP. Corrected both-arch targeted run and Lab 45563649104 pending; malformed/in-flight witnesses, ASan and exact-head gates remain. No Architect question.
