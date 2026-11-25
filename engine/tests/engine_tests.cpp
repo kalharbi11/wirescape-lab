@@ -854,6 +854,11 @@ static void data_replacement_lifetime() {
     CHECK(live.set_data_packed(1, 0, packed(.75f)) == WS2_OK);
     publish(*second);
     shared(3, .75f);
+    // ER2 and M4 test notes cap simultaneously live generations per ID.
+    // Keep this an explicit oracle, not merely a memory-safety assertion.
+    if (data_probe_calls != 2)
+        std::fprintf(stderr, "ER2 overlapping replacement: %u process instances, expected two\n", data_probe_calls);
+    CHECK(data_probe_calls == 2);
     CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
     shared(4, .875f);
     // Remove then re-add the ID: a fresh binding has default serial/value,
