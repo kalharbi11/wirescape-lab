@@ -278,7 +278,79 @@ static void s79_choke_metric() {
     VERIFY(all_pass);
 }
 
+
+static std::vector<uint8_t> e7c_save(DspFixture& f) {
+    VERIFY(f.d->save_state && f.d->load_state);
+    std::vector<uint8_t> bytes;
+    ws2_writer w{sizeof(w), &bytes, [](void* ctx, const void* p, uint32_t n) {
+        auto& b = *static_cast<std::vector<uint8_t>*>(ctx);
+        auto* first = static_cast<const uint8_t*>(p);
+        b.insert(b.end(), first, first+n);
+        return int(WS2_OK);
+    }};
+    VERIFY(f.d->save_state(f.state, &w) == WS2_OK && !bytes.empty());
+    return bytes;
+}
+static int e7c_load(DspFixture& f, const std::vector<uint8_t>& bytes) {
+    struct Cursor { const std::vector<uint8_t>& b; size_t pos = 0; } c{bytes};
+    ws2_reader r{sizeof(r), &c, [](void* ctx, void* p, uint32_t n) {
+        auto& c = *static_cast<Cursor*>(ctx);
+        if (n > c.b.size()-c.pos) return int(WS2_INVALID);
+        std::memcpy(p, c.b.data()+c.pos, n);
+        c.pos += n;
+        return int(WS2_OK);
+    }, uint32_t(bytes.size())};
+    return f.d->load_state(f.state, &r);
+}
+static void e7c_roundtrip(const ws2_descriptor* d, bool oscillator, bool trigger, bool stateless) {
+    auto a = std::make_unique<DspFixture>(d, 48000., 1);
+    auto b = std::make_unique<DspFixture>(d, 48000., 1);
+    auto rate = std::make_unique<DspFixture>(d, 44100., 1);
+    for (auto* f : {a.get(), b.get(), rate.get()}) {
+        if (!stateless) {
+            f->ins[0].channels = 0; f->ins[0].flags = WS2_CONSTANT;
+            if (oscillator) { f->ins[1].channels = 0; f->ins[1].flags = WS2_CONSTANT; }
+            else { f->parameter[0][0][0] = .02f; f->parameter[4][0][0] = trigger ? 1.f : 0.f; }
+        }
+    }
+    auto on = note(WS2_NOTE_ON, 17); on.key = 69;
+    if (!stateless) a->process.events = {sizeof(ws2_event_list), 1, &on};
+    a->run(173);
+    a->process.events = {sizeof(ws2_event_list), 0, nullptr};
+    a->run(91);
+    const auto saved = e7c_save(*a);
+    VERIFY(e7c_load(*b, saved) == WS2_OK);
+    VERIFY(e7c_save(*b) == saved);
+    for (int block = 0; block < 8; ++block) {
+        auto off = note(WS2_NOTE_OFF, 19);
+        if (block == 3 && !stateless) {
+            a->process.events = b->process.events = {sizeof(ws2_event_list), 1, &off};
+        }
+        a->run(127); b->run(127);
+        VERIFY(a->outs[0].flags == b->outs[0].flags);
+        VERIFY(std::memcmp(a->output[0][0], b->output[0][0], 127*sizeof(float)) == 0);
+        a->process.events = b->process.events = {sizeof(ws2_event_list), 0, nullptr};
+    }
+    auto current = e7c_save(*b), bad = saved;
+    bad[0] = 99;
+    VERIFY(e7c_load(*b, bad) == WS2_UNSUPPORTED);
+    VERIFY(e7c_save(*b) == current);
+    bad = saved; bad.pop_back();
+    VERIFY(e7c_load(*b, bad) == WS2_INVALID);
+    VERIFY(e7c_save(*b) == current);
+    // VCA has no rate-dependent state: its version-only hook adapts trivially under C2.
+    if (!stateless) VERIFY(e7c_load(*rate, saved) == WS2_INVALID);
+    else VERIFY(e7c_load(*rate, saved) == WS2_OK);
+}
+static void e7c_state_tests() {
+    e7c_roundtrip(ws::Module<ws2ports::Adsr>::descriptor(), false, false, false);
+    e7c_roundtrip(ws::Module<ws2ports::Adsr>::descriptor(), false, true, false);
+    e7c_roundtrip(ws::Module<ws2ports::Vco>::descriptor(), true, false, false);
+    e7c_roundtrip(ws::Module<ws2ports::Vca>::descriptor(), false, false, true);
+}
+
 int main() {
+    e7c_state_tests();
     default_gate_bit_identical();
     triggered_gate_timed_hold();
     note_retrigger_from_current_level_and_choke();
