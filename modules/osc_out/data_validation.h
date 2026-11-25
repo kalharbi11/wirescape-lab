@@ -2,7 +2,7 @@
 #pragma once
 // Host-only A77 validator. Scalar limits are checked by the generic packer.
 #include "dsp.h"
-#include <string>
+#include <cstdio>
 namespace wirescape::osc {
 inline bool valid_out_data_address(const char *text, size_t size) {
     const auto *end = static_cast<const char *>(std::memchr(text, 0, size));
@@ -13,24 +13,24 @@ inline bool valid_out_data_address(const char *text, size_t size) {
     }
     return true;
 }
-inline bool validate_osc_out_routes(const OscOutRoutes &data, std::string &error) {
-    error.clear();
+inline bool validate_osc_out_routes(const OscOutRoutes &data, char (&error)[128]) {
+    error[0] = '\0';
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &r = data.rows[i];
         if (!valid_out_data_address(r.address, sizeof(r.address))) {
-            error = "routes.rows[" + std::to_string(i) + "].address: invalid literal OSC address";
+            std::snprintf(error, sizeof(error), "routes.rows[%u].address: invalid literal OSC address", i);
             return false;
         }
     }
     if (!valid_out_data_address(data.notes_address, sizeof(data.notes_address))) {
-        error = "routes.notes_address: invalid literal OSC address";
+        std::snprintf(error, sizeof(error), "%s", "routes.notes_address: invalid literal OSC address");
         return false;
     }
     return true;
 }
 // Off-RT conversion of already validated legacy config, including all eight
 // row-specific defaults. Host-owned pointers are deliberately excluded.
-inline bool materialize_osc_out_routes(const OutConfiguration &legacy, OscOutRoutes &out, std::string &error) {
+inline bool materialize_osc_out_routes(const OutConfiguration &legacy, OscOutRoutes &out, char (&error)[128]) {
     OscOutRoutes candidate{};
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &src = legacy.rows[i];
