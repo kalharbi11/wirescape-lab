@@ -637,8 +637,8 @@ export class App {
     const history = this.history.checkpoint();
     const next = after.modules.find(m => m.id === event.moduleId)!;
     this.doc.setModuleConfig(event.moduleId, next.config);
-    this.history.flush();
     history.reconcile(before, after);
+    this.history.flush();
     if (chain && chain.epoch === this.viewEpoch)
       for (const checkpoint of chain.checkpoints) checkpoint.reconcile(before, after);
     this.refreshDirty();
