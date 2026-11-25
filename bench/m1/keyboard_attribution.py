@@ -3,6 +3,8 @@
 import argparse
 from collections import Counter
 import json
+import posixpath
+import re
 from pathlib import Path
 
 
@@ -16,7 +18,13 @@ def exclusive(path, root):
     parts = 0
 
     def normalize(value):
-        return value.replace(str(root.resolve()) + "/", "<source>/")
+        const = str(root.resolve()) + "/"
+        relative = root.name + "/"
+        if value.startswith(const):
+            return "<source>/" + posixpath.normpath(value[len(const):])
+        if value.startswith(relative):
+            return "<source>/" + posixpath.normpath(value[len(relative):])
+        return value
 
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
@@ -32,11 +40,11 @@ def exclusive(path, root):
             summary = int(line.split()[1])
         elif line.startswith("ob="):
             obj = normalize(line[3:])
-        elif line.startswith("fl="):
+        elif line.startswith(("fl=", "fi=", "fe=")):
             file = normalize(line[3:])
         elif line.startswith("fn="):
             name = line[3:]
-            if name.startswith("("):
+            if re.match(r"^\(\d+\)(?:\s|$)", name):
                 raise ValueError("compressed function identity")
         elif line.startswith("calls="):
             if call:
