@@ -403,11 +403,21 @@ not a final integrated-source cost refresh.
 
 | Evidence row | Source pin | Observation |
 |---|---|---|
-| Intermediate 256→512, E7c-a voice chain and #504 | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | capture requested; not measured |
-| Intermediate E5 synthetic untouched Voice (A76; replacement path changed) | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | capture requested; not measured |
+| Intermediate 256→512, E7c-a voice chain and #504 | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
+| Intermediate E5 synthetic untouched Voice (A76; replacement path changed) | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
 | Final 256→512, including E7c-b Delay v2 | not yet pinned | not measured |
 | Final A69a Black Ice Choir single-instance Ir | not yet pinned | not measured |
 | Final A69a Clocked Groove adoption and max dual-instance Ir | not yet pinned | not measured |
 
 No continuity disposition, hardware timing, or Pi result follows from these
 unmeasured rows. Earlier measured sections and their pins are unchanged.
+
+### Intermediate CN capture (2026-11-25; not the final Delay candidate)
+
+Subject `5ca0f1938fb851acce158272377a1ebe7631f4d2`, harness `4e0fc8e4fda4f2a141633debbc334782c365cc36`, Linux x86_64 hosted null sink, devices off, 48 kHz. A62 [run 45561322999](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322999), [artifact 14997289975](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322999/artifacts/14997289975), ZIP SHA-256 `e3b731049444311a986a0e189490e73b9d486d102ce341a85c158bfb2c11cc11`; GCC 13.3.0, CMake 4.2.3, 2026-11-25T06:34Z. Subject binary SHA-256 `9228f993bf7ddd3c6937e04a99e7621eb2d9aa8cce1cb16c9ab2e79d77235135`. Both checkout pins matched, and all 24 edited/control raw and marks member sizes and SHA-256 values matched report.json.
+
+Three matched repeats per buffer case. Smaller 256→128: all five witnesses control-identical (15/15 windows); freshModules absent. Larger 256→512: clock control-identical 3/3; tone, slip_tone, tail, held_note and slew differ in all repeats. Held-note post sounding count 47,920/48,000, equal to control; Delay tail post sounding count 0 versus 39,341 in control, all repeats. Slew post sounding count 48,000, equal to control. Larger replies report freshModules `[]` in all repeats; this does not establish retained Delay runtime state. Larger held-note paired dip is approximately -23.5 dB and jump ratio 4.57; tone approximately -23.8 dB and 7.06. The intermediate larger row is not a continuity pass. A62 does not measure later NOTE_OFF or synthetic untouched Voice.
+
+A76 E5 synthetic [run 45561322888](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322888), [artifact 14997951447](https://github.com/kalharbi11/wirescape-lab/actions/runs/45561322888/artifacts/14997951447), ZIP SHA-256 `f9190099a8459bcc3376eef86f7e5492c5e2458ec18d5c2966071ccf32798478`, same subject/harness pins, synthetic ABI2 descriptors, 256-frame calls. All 48 raw/marks member sizes and hashes matched synthetic.json. Adopt, ring, decline and cap each completed 3 repeats with no verifier failures; subject oracle residuals respectively 5.960464477539063e-8, 9.536743172944284e-8, 1.362391881531977e-7 and 1.3542175292258207e-7. The verifier asserts held/untouched Voice equality and fallback behavior. Adopt phase equality remains report-only (26 differing samples). This is intermediate-source evidence, not final-pin A76 evidence or stock-patch cost.
+
+Final Delay-inclusive trace, final-pin Lab assertions, replacement-path applicability and A69a cost remain unmeasured here. No Pi or physical-device inference.
