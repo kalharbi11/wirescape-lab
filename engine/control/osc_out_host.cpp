@@ -109,6 +109,10 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
                 if (dst.enabled && dst.kind == 1)
                     route.dropped.fetch_add(uint64_t(uint32_t(rises - cursor.rises)) +
                         uint32_t(falls - cursor.falls), std::memory_order_relaxed);
+                if (dst.enabled && dst.kind == 1 && cursor.sent_high) {
+                    route.gate_release[i] = dst;
+                    route.release_gates.set(i);
+                }
                 cursor = {};
                 cursor.rises = rises;
                 cursor.falls = falls;
@@ -122,6 +126,10 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
             route.enabled |= dst.enabled != 0;
         }
         if (notes_changed) {
+            std::memcpy(route.release_notes_address, route.config.notes.address,
+                        sizeof(route.release_notes_address));
+            route.notes_release = route.notes_high;
+            for (auto &keys : route.notes_high) keys.reset();
             const auto head = route.bus->note_head.load(std::memory_order_acquire);
             const auto tail = route.bus->note_tail.load(std::memory_order_relaxed);
             route.dropped.fetch_add(uint32_t(head - tail), std::memory_order_relaxed);
@@ -137,7 +145,7 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
 void OutHost::start() noexcept {
     if (worker_.joinable() || routes_.empty()) return;
     bool enabled = false;
-    for (const auto &route : routes_) enabled |= route->enabled;
+    for (const auto &route : routes_) enabled |= route->enabled || route->has_releases();
     if (!enabled) return; // disabled modules must not open a socket
     socket_error_.store(0);
     running_.store(true, std::memory_order_release);
@@ -202,12 +210,33 @@ void OutHost::loop() noexcept {
         }
         return accepted;
     };
-    while (running_.load(std::memory_order_acquire)) {
+    // Finish a finite, already accepted old-address release set even if
+    // another control edit joins us. Never send new-table data after stop.
+    auto pending_releases = [&] {
+        for (const auto &item : routes_) if (item->has_releases()) return true;
+        return false;
+    };
+    while (running_.load(std::memory_order_acquire) || pending_releases()) {
         const auto now = std::chrono::steady_clock::now();
         for (const auto &item : routes_) {
             auto &route = *item;
-            if (!route.enabled) continue;
-            uint32_t budget = 64; // Per module per poll, including CV, gates and notes.
+            uint32_t budget = 64; // Release messages share the existing per-poll budget.
+            for (uint32_t i = 0; i < 8 && budget; ++i) if (route.release_gates.test(i)) {
+                Argument zero{};
+                zero.type = 'f';
+                send(route, budget, route.gate_release[i].address, 1, &zero);
+                route.release_gates.reset(i);
+            }
+            for (uint32_t channel = 0; channel < route.notes_release.size() && budget; ++channel)
+                for (uint32_t key = 0; key < 128 && budget; ++key) if (route.notes_release[channel].test(key)) {
+                    Argument args[3]{};
+                    args[0].type = 'i'; args[0].integer = int32_t(key);
+                    args[1].type = 'f'; args[1].real = 0;
+                    args[2].type = 'i'; args[2].integer = int32_t(channel) - 1;
+                    send(route, budget, route.release_notes_address, 3, args);
+                    route.notes_release[channel].reset(key);
+                }
+            if (route.has_releases() || !route.enabled || !running_.load(std::memory_order_acquire)) continue;
             for (size_t i = 0; i < route.config.rows.size(); ++i) {
                 const auto &cfg = route.config.rows[i];
                 if (!cfg.enabled) continue;
@@ -226,7 +255,7 @@ void OutHost::loop() noexcept {
                     arg.type = 'f';
                     if (!cursor.initialized && !edges && budget) {
                         arg.real = high ? 1.0f : 0.0f;
-                        send(route, budget, cfg.address, 1, &arg);
+                        if (send(route, budget, cfg.address, 1, &arg)) cursor.sent_high = high;
                         cursor.gate_high = high;
                         cursor.initialized = true;
                     }
@@ -238,12 +267,12 @@ void OutHost::loop() noexcept {
                         while (emitted < first && budget) {
                             cursor.gate_high = !cursor.gate_high;
                             arg.real = cursor.gate_high ? 1.0f : 0.0f;
-                            send(route, budget, cfg.address, 1, &arg);
+                            if (send(route, budget, cfg.address, 1, &arg)) cursor.sent_high = cursor.gate_high;
                             ++emitted;
                         }
                         if (edges > 4 && budget && cursor.gate_high != high) {
                             arg.real = high ? 1.0f : 0.0f;
-                            send(route, budget, cfg.address, 1, &arg);
+                            if (send(route, budget, cfg.address, 1, &arg)) cursor.sent_high = high;
                             cursor.gate_high = high;
                             ++emitted;
                         }
@@ -254,7 +283,7 @@ void OutHost::loop() noexcept {
                     } else if (cursor.initialized && cursor.gate_high != high && budget) {
                         // A previous poll may have exhausted the datagram budget.
                         arg.real = high ? 1.0f : 0.0f;
-                        send(route, budget, cfg.address, 1, &arg);
+                        if (send(route, budget, cfg.address, 1, &arg)) cursor.sent_high = high;
                         cursor.gate_high = high;
                     }
                 } else {
@@ -287,7 +316,9 @@ void OutHost::loop() noexcept {
                     args[1].real = event.velocity;
                     args[2].type = 'i';
                     args[2].integer = event.channel;
-                    send(route, budget, route.config.notes.address, 3, args);
+                    if (send(route, budget, route.config.notes.address, 3, args) &&
+                        event.key >= 0 && event.key < 128 && event.channel >= -1 && event.channel <= 16)
+                        route.notes_high[uint32_t(event.channel + 1)].set(uint32_t(event.key), event.velocity != 0);
                     ++tail;
                     route.bus->note_tail.store(tail, std::memory_order_release);
                 }

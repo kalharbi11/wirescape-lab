@@ -3,6 +3,7 @@
 #include "../../modules/osc_out/config.h"
 #include <array>
 #include <atomic>
+#include <bitset>
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -31,7 +32,7 @@ class OutHost {
         uint32_t prior_blocks = 0;
         bool wait_for_block = false;
         float previous = 0;
-        bool initialized = false, gate_high = false, retry = false;
+        bool initialized = false, gate_high = false, sent_high = false, retry = false;
         std::chrono::steady_clock::time_point last_send{};
     };
     struct Route {
@@ -39,6 +40,17 @@ class OutHost {
         OutConfiguration config{};
         std::unique_ptr<OutBus> bus = std::make_unique<OutBus>();
         std::array<RowCursor, 8> cursors{};
+        // Only the sender updates delivered levels. Control moves them to a
+        // bounded old-address release set after joining the worker.
+        std::array<std::bitset<128>, 18> notes_high{}, notes_release{}; // channel -1..16
+        std::array<OutRowConfig, 8> gate_release{};
+        std::bitset<8> release_gates{};
+        char release_notes_address[64]{};
+        bool has_releases() const noexcept {
+            if (release_gates.any()) return true;
+            for (const auto &keys : notes_release) if (keys.any()) return true;
+            return false;
+        }
         std::atomic<uint64_t> sent{0}, dropped{0};
         std::atomic<uint32_t> error{0};
         bool enabled = false;
