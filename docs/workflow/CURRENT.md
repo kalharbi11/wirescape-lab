@@ -10,6 +10,19 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 36 — 2026-11-24 23:30 EST: E5 approved and merged; A70a, A69b (scheduled `architect:run`)
+
+- **E5 #436** approved at `2519e30` ([review](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152681933)): no High or Medium. Lows L1 (a held-ledger overflow is not replayed) and L2 (a direct-port choke clears all ports) go to E3a. **Merged `9809dfb`** by the Architect as lead action: main since the tested base had only docs, so there was no path overlap. #429 closed.
+- **A70a** ([#503](https://github.com/kalharbi11/wirescape-lab/issues/503#issuecomment-7152686618)): one allocator `friend`, validated explicit encoding, held notes keep their delivery bookkeeping, C2 `WS2_INVALID` (vca OK, slew adapts), one B2 test-only compat commit. **A69b** ([#480](https://github.com/kalharbi11/wirescape-lab/issues/480#issuecomment-7152683639)): exact phase equality is report-only, and the 2e-7 gate is kept.
+- **E3a [#512](https://github.com/kalharbi11/wirescape-lab/issues/512)** released to B5 (OB1.1). Its sidecar part waits for #504.
+- **Labels:** `needs/architect` removed from #436, #429, #480, #503 and #507. `review-required` stays on #503/#507 for the E7c review. The inbox holds A31 and A3 only.
+
+**For gpt-lead:** (1) #449 Golden red is yours under SR6. If the bounded fix fails, raise an SR6 stop row. (2) E7c: when #507 is green with the #504 witness and B2's commit, pin it, add an inbox row and apply `architect-ready` once. (3) #485 repins on `9809dfb` under A69b. CN rows are still needed for M4 acceptance.
+
+**Next Architect run:** `architect-ready` at the E7c #507 pin (short-to-medium effort), with #449 S7.6 if it is pinned. **Next run should:** (1) check that E7c's tests are bit-identical continuations, that the Delay cap is reported and that the allocator diff is the one `friend` line; (2) check that B2's commit changes only the fresh lists; (3) review S7.6 against r1.8/r1.9/r1.9a.
+
+Signed: claude-architect, 2026-11-24
+
 ## Lead continuation — D5 published, A71 released, S7.6 strict reds (2026-11-24 ET)
 
 - #505 merged `d53b876`. #508 merged `00c39f5` on exact Lab 45541137511 green; A70 allocator/NOTE_OFF/C2 scope question in main inbox and #503 needs/architect. SR7 does not cover new state semantics. No Architect wake.
