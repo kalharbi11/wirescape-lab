@@ -107,5 +107,10 @@ public:
     // A75: false with "Replacement busy: predecessor still fading" is an
     // atomic prepublication refusal; keep the latest edit and retry after retirement.
     bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
+    // Control-owner-only: IDs named by the most recent replan's A75 refusal.
+    const std::vector<uint32_t>& replacement_blocked_ids() const noexcept;
+    // Control-owner-only, may overlap render; observes unfinished predecessor
+    // signal/modulation paths using the same fade acknowledgements as replan.
+    bool replacement_tail_pending(uint32_t id) const;
 };
 }

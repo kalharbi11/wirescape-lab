@@ -889,12 +889,17 @@ static void data_replacement_lifetime() {
     const auto before = live.meter();
     CHECK(!live.replan(*second, 200000000));
     CHECK(live.error() == "Replacement busy: predecessor still fading");
+    CHECK(live.replacement_blocked_ids() == std::vector<uint32_t>{1});
+    CHECK(live.replacement_tail_pending(1));
+    CHECK(!live.replacement_tail_pending(9));
     CHECK(live.meter().frame == before.frame && live.meter().generation == before.generation);
     shared(3, .75f);
     CHECK(live.set_data_packed(1, 0, packed(.875f)) == WS2_OK);
     shared(4, .875f);
     for (int i = 0; i < 7; ++i) render(live, 4096); // more than 500 ms
+    CHECK(!live.replacement_tail_pending(1));
     publish(*second);
+    CHECK(live.replacement_blocked_ids().empty());
     shared(4, .875f);
     for (int i = 0; i < 7; ++i) render(live, 4096);
     // Remove then re-add the ID: a fresh binding has default serial/value,

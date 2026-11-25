@@ -336,8 +336,45 @@ void Engine::Impl::settle_layout() noexcept {
     published_revision.store(revision, std::memory_order_release);
 }
 
+const std::vector<uint32_t>& Engine::replacement_blocked_ids() const noexcept {
+    return p_->replacement_blocked;
+}
+
+bool Engine::replacement_tail_pending(uint32_t id) const {
+    const auto &old = *p_;
+    if (!old.prepared || old.settled_revision.load(std::memory_order_acquire) >= old.layout->revision)
+        return false;
+    // Seed the same retained nodes and output sources as a config-only replan,
+    // then walk unfinished upstream paths. No candidate construction or publication.
+    std::vector<const Node *> reachable;
+    auto include = [&](const Node *node) {
+        if (std::find(reachable.begin(), reachable.end(), node) != reachable.end()) return false;
+        reachable.push_back(node);
+        return true;
+    };
+    for (const auto &entry : old.layout->nodes)
+        if (!entry->retired) include(entry.get());
+    auto unfinished = [](const auto &edge) {
+        return !edge.removed || !edge.state->faded_out.load(std::memory_order_acquire);
+    };
+    for (const auto &bus : old.layout->buses)
+        if (unfinished(bus)) include(bus.source);
+    bool added;
+    do {
+        added = false;
+        for (const auto &edge : old.layout->edges)
+            if (edge.kind != 1 && unfinished(edge) &&
+                std::find(reachable.begin(), reachable.end(), edge.destination) != reachable.end())
+                added |= include(edge.source);
+    } while (added);
+    return std::any_of(reachable.begin(), reachable.end(), [&](const Node *node) {
+        return node->retired && node->instance.id == id;
+    });
+}
+
 bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     auto &old = *p_;
+    old.replacement_blocked.clear();
     auto &fresh = *candidate.p_;
     if (this == &candidate || !old.prepared || !fresh.prepared || old.pending_layout.load())
         return old.fail("Live graph is unavailable or already publishing");
@@ -420,12 +457,17 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
     std::map<uint32_t, uint32_t> generations;
     for (const auto &entry : next.nodes) {
         const auto id = entry->instance.id;
-        if (++generations[id] > 2)
-            return old.fail("Replacement busy: predecessor still fading");
-        if (entry->retired && old.find(id) && old.find(id)->instance.id == id &&
-            &old.find(id)->instance != &entry->instance &&
-            std::find(introduced.begin(), introduced.end(), id) != introduced.end())
-            return old.fail("Replacement busy: predecessor still fading");
+        if (++generations[id] > 2 ||
+            (entry->retired && old.find(id) && old.find(id)->instance.id == id &&
+             &old.find(id)->instance != &entry->instance &&
+             std::find(introduced.begin(), introduced.end(), id) != introduced.end())) {
+            if (std::find(old.replacement_blocked.begin(), old.replacement_blocked.end(), id) ==
+                old.replacement_blocked.end()) old.replacement_blocked.push_back(id);
+        }
+    }
+    if (!old.replacement_blocked.empty()) {
+        std::sort(old.replacement_blocked.begin(), old.replacement_blocked.end());
+        return old.fail("Replacement busy: predecessor still fading");
     }
 
     std::map<Instance *, Instance *> replacement_pairs;
