@@ -2,22 +2,21 @@
 #pragma once
 // Host-only A77 validator; not part of the audio module's include graph.
 #include "dsp.h"
-#include <string>
+#include <cstdio>
 namespace wirescape::osc {
-inline bool validate_osc_in_rows(const OscInRows &data, std::string &error) {
-    error.clear();
+inline bool validate_osc_in_rows(const OscInRows &data, char (&error)[128]) {
+    error[0] = '\0';
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &row = data.rows[i];
-        const auto prefix = "routes.rows[" + std::to_string(i) + "].";
         if (!(row.input_max > row.input_min)) {
-            error = prefix + "input_max: must exceed input_min";
+            std::snprintf(error, sizeof(error), "routes.rows[%u].input_max: must exceed input_min", i);
             return false;
         }
         const auto *end = static_cast<const char *>(std::memchr(row.pattern, 0, sizeof(row.pattern)));
         Pattern pattern;
         if (!end || row.pattern[0] != '/' ||
             !pattern.compile(std::string_view(row.pattern, size_t(end - row.pattern)))) {
-            error = prefix + "pattern: invalid OSC pattern";
+            std::snprintf(error, sizeof(error), "routes.rows[%u].pattern: invalid OSC pattern", i);
             return false;
         }
     }
@@ -25,7 +24,7 @@ inline bool validate_osc_in_rows(const OscInRows &data, std::string &error) {
 }
 // Off-RT conversion of already validated legacy config, including all eight
 // row-specific defaults. Host-owned pointers are deliberately excluded.
-inline bool materialize_osc_in_rows(const Configuration &legacy, OscInRows &out, std::string &error) {
+inline bool materialize_osc_in_rows(const Configuration &legacy, OscInRows &out, char (&error)[128]) {
     OscInRows candidate{};
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &src = legacy.rows[i];
