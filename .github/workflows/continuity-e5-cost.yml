@@ -26,9 +26,9 @@ jobs:
     timeout-minutes: 30
     env:
       ENGINE_HEAD: 2519e306eec6bb9991fe4dfd1c1dfe860e84c83a
-      # Compile at B5's corrected prospective pin. Actual cost capture
-      # remains disabled until the source passes its exact gates.
-      MEASURE: "false"
+      # B5 final review source qualified: #436 Result 7152566759.
+      # Capture actual cost at this exact source, independently of CN phase ruling.
+      MEASURE: "true"
     steps:
       - uses: actions/checkout@v4
         with:

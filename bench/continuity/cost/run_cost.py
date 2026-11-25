@@ -51,12 +51,13 @@ def one(exe, source, out, kind, name):
         raise ValueError("profiled block count differs from actual render calls")
     if metadata["fade_frames"] != (960 if kind == "dual" else 0):
         raise ValueError("unexpected fade")
-    table = summarize(rows, kind, metadata["fade_frames"])
+    table = summarize(rows, kind, metadata["fade_frames"],
+                      request_block=metadata["request_block"] if kind == "dual" else None)
     if kind == "dual":
-        if not (table["adoption_block"] <= metadata["ack_completed_blocks"] <= table["adoption_block"] + 2):
-            raise ValueError("observed adoption outside control acknowledgement bracket")
-        if table["housekeeping_block"] < metadata["housekeeping_request"]:
-            raise ValueError("housekeeping before request")
+        if not (table["adoption_block"] <= metadata["ack_completed_blocks"] < metadata["housekeeping_request"] <= table["housekeeping_block"]):
+            raise ValueError("observed adoption / acknowledged request / housekeeping ordering mismatch")
+        if metadata["housekeeping_request"] < table["last_fade_block"] + 1:
+            raise ValueError("housekeeping requested before fade completion")
     else:
         # Inclusive annotation at the actual max block. Module attribution is
         # a separate reviewable fact, never an estimated share from rank data.

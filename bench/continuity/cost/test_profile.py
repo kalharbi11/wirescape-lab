@@ -40,19 +40,27 @@ class ProfileTest(unittest.TestCase):
         steady = summarize([parse_dump(dump(i, v)) for i, v in enumerate([10, 12, 11])],
                            "single", 0)
         self.assertEqual(steady["max_block_ir"], 12)
-        dual = summarize(rows, "dual", 960)
+        dual = summarize(rows, "dual", 960, request_block=2)
         self.assertEqual(dual["adoption_block"], 3)
         self.assertEqual(dual["adoption_block_ir"], 200)
         self.assertEqual(dual["max_dual_instance_block_ir"], 300)
         self.assertEqual(dual["housekeeping_block"], 7)
-        self.assertEqual([r["block"] for r in dual["window"]], list(range(1, 9)))
+        self.assertEqual(dual["request_block"], 2)
+        self.assertEqual(dual["housekeeping_block_ir"], 110)
+        self.assertEqual(dual["max_audible_fade_block_ir"], 300)
+        for request in (None, 1, 4, 99):
+            with self.assertRaises(ValueError):
+                summarize(rows, "dual", 960, request_block=request)
+        with self.assertRaises(ValueError):
+            summarize(rows[:-1], "dual", 960, request_block=2)
+        self.assertEqual([r["block"] for r in dual["window"]], list(range(0, 10)))
 
     def test_missing_duplicate_and_unsettled_rejected(self):
         rows = [parse_dump(dump(i, 10, i == 3, i == 7)) for i in range(10)]
         for bad in (rows[:3] + rows[4:], rows + [rows[2]], rows[:7], 
                     [dict(row, adopt_calls=0) for row in rows]):
             with self.assertRaises(ValueError):
-                summarize(bad, "dual", 960)
+                summarize(bad, "dual", 960, request_block=2)
 
 
 if __name__ == "__main__":

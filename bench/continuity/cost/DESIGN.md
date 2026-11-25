@@ -20,11 +20,10 @@ protocol, source-patch or top-level CMake edit. No devices or network services.
   capture, loading, allocation of profile buffers, or control staging inside
   the counted window. Use the real AppEngine facade so the counted scope includes the normal per-render peak meters. Identify actual publication via the adopt_layout call
   in that block's Callgrind trace (including separate housekeeping).
-  Require unique contiguous blocks, exactly one initial publication and one
-  steady-layout publication, two before and two after the fade, positive Ir,
+  Record the actual request boundary and control acknowledgement separately from observed publication. Require unique contiguous blocks, exactly one initial publication and one
+  steady-layout publication, two before the request and two after housekeeping, positive Ir,
   correct event schema, no dropped/late/faulted events. Check native fade
-  default 960 samples; report any observed later retirement separately rather
-  than silently equating it with fade length. A profile that misses the
+  default 960 samples; report the max audible fade and max transition-layout blocks separately, plus housekeeping Ir and full request-to-retirement window, rather than silently equating retirement with fade length. A profile that misses the
   unchanged native three-block wall deadline under Valgrind is a failed
   measurement, not a reason to change the deadline.
 - Preserve raw labelled dumps, exact engine and harness pins, toolchain,

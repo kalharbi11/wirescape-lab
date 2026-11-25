@@ -4,6 +4,8 @@
 #include "runtime_module_config.h"
 #include <valgrind/callgrind.h>
 #include <valgrind/valgrind.h>
+#include <algorithm>
+#include <cstddef>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -155,7 +157,7 @@ int main(int argc, char **argv) {
         while (renderer.completed < warmup)
             need(renderer.render(live.get(), false) == WS2_OK, "warm-up render");
         int replan_status = WS2_OK;
-        unsigned ack_block = 0, settle_request = 0;
+        unsigned request_block = 0, ack_block = 0, settle_request = 0;
         if (!dual) {
             for (unsigned i = 0; i < steady_blocks; ++i)
                 need(renderer.render(live.get(), true) == WS2_OK, "steady render");
@@ -164,6 +166,8 @@ int main(int argc, char **argv) {
             // owner publishes the prepared candidate while this owner renders.
             for (unsigned i = 0; i < 2; ++i)
                 need(renderer.render(live.get(), true) == WS2_OK, "before replan");
+            // The controller is requested at the boundary after the two pre-request blocks.
+            request_block = renderer.completed;
             std::atomic<unsigned> completed{renderer.completed};
             std::atomic<bool> stop{false}, finished{false};
             std::thread control([&] {
@@ -199,7 +203,7 @@ int main(int argc, char **argv) {
             need(replan_status == WS2_OK, "real E5 replan refused (including its unchanged deadline)");
             need(settle_request != 0, "missing housekeeping request");
             candidate.reset();
-            for (unsigned i = 0; i < 2; ++i)
+            for (unsigned i = 0; i < 3; ++i)
                 need(renderer.render(live.get(), true) == WS2_OK, "after housekeeping");
         }
         const auto meter = app_engine_get_meter(live.get());
@@ -211,7 +215,7 @@ int main(int argc, char **argv) {
                        {"warmup_blocks", warmup}, {"completed_blocks", renderer.completed},
                        {"seed", patch.at("settings").at("seed")}, {"edit", edit},
                        {"fade_frames", dual ? fade_frames : 0}, {"deadline_ns", deadline_ns},
-                       {"ack_completed_blocks", ack_block}, {"housekeeping_request", settle_request},
+                       {"request_block", request_block}, {"ack_completed_blocks", ack_block}, {"housekeeping_request", settle_request},
                        {"frame", meter.frame}, {"faults", meter.faults}, {"late", meter.late},
                        {"dropped", meter.dropped}, {"ring_full", meter.ring_full},
                        {"stale", meter.stale}, {"arena_full", meter.arena_full},

@@ -58,7 +58,7 @@ def parse_dump(text):
     return {"block": int(label[1]), "ir": ir, "adopt_calls": adopt_calls}
 
 
-def summarize(rows, kind, fade_frames):
+def summarize(rows, kind, fade_frames, request_block=None):
     """Require an observed publication; do not infer from wall-clock scheduling."""
     rows = sorted(rows, key=lambda r: r["block"])
     if (not rows or any(type(r[k]) is not int or r[k] < 0
@@ -68,7 +68,7 @@ def summarize(rows, kind, fade_frames):
         raise ValueError("invalid, duplicate or missing render blocks")
     publications = [i for i, r in enumerate(rows) if r["adopt_calls"]]
     if kind == "single":
-        if fade_frames != 0 or publications:
+        if fade_frames != 0 or publications or request_block is not None:
             raise ValueError("single-instance measurement contains publication")
         return {"kind": kind, "max_block_ir": max(r["ir"] for r in rows), "window": rows}
     if kind != "dual" or type(fade_frames) is not int or fade_frames <= 0:
@@ -76,14 +76,20 @@ def summarize(rows, kind, fade_frames):
     if len(publications) != 2:
         raise ValueError("require actual edit and housekeeping publications")
     first, settled = publications
+    if type(request_block) is not int or request_block not in [r["block"] for r in rows]:
+        raise ValueError("missing actual request boundary")
+    request = request_block - rows[0]["block"]
     end_fade = first + (fade_frames + FRAME_BLOCK - 1) // FRAME_BLOCK
-    if first < 2 or end_fade + 2 > len(rows) or settled < end_fade:
+    if request < 2 or request > first or end_fade + 2 > len(rows) or settled < end_fade or settled + 3 > len(rows):
         raise ValueError("incomplete transition window or premature housekeeping")
     # The old instance can remain in the transition layout until housekeeping.
     # Include every actual dual-instance block, not just the audible fade.
     return {"kind": kind,
+            "request_block": request_block,
             "adoption_block": rows[first]["block"], "adoption_block_ir": rows[first]["ir"],
             "max_dual_instance_block_ir": max(r["ir"] for r in rows[first:settled]),
             "last_fade_block": rows[end_fade-1]["block"],
             "housekeeping_block": rows[settled]["block"],
-            "window": rows[first-2:max(end_fade+2, settled+1)]}
+            "max_audible_fade_block_ir": max(r["ir"] for r in rows[first:end_fade]),
+            "housekeeping_block_ir": rows[settled]["ir"],
+            "window": rows[request-2:settled+3]}
