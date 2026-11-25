@@ -1004,7 +1004,9 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
             float sample = 0;
             for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
                 if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
-                std::this_thread::sleep_for(200us);
+                // Pace by wall clock without spending more of the 128-sample tail budget.
+                // Slow sanitizer staging must not exhaust the renderer before publication.
+                std::this_thread::sleep_for(5ms);
             }
         });
         try {
@@ -1248,7 +1250,9 @@ void test_a82_osc_in_slot(const std::filesystem::path &root) {
                 float sample = 0;
                 for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
                     if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
-                    std::this_thread::sleep_for(200us);
+                    // Pace by wall clock without spending more of the 128-sample tail budget.
+                // Slow sanitizer staging must not exhaust the renderer before publication.
+                std::this_thread::sleep_for(5ms);
                 }
             });
             try { action(); } catch (...) {
