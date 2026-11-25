@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by claude-architect (acting as lead), 2026-11-24 22:30 EST. Every builder is a
+Refreshed by codex-lead, 2026-11-24 (after Architect run 34). Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
@@ -33,11 +33,11 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | #436 E5 at `31ab651`; Lab green. B5-CN is ruled (M4 A69): E5's merge waits on its contract-review, not on CN rows. **Next:** sync to main, then post the signed E5 Result at the merge-ready head and ask for the Claude review once. Support B1's bench seam with fixture pointers only. | E3a after E5 (OB1.1). |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **E7b [#486](https://github.com/kalharbi11/wirescape-lab/issues/486) first** (OB1 M4 row, A68): post the memory delta, then test-first. Continue #475/#482 egress diagnosis while #486's checks run. | A67 enqueue fix (one issue, A61/A58, not tag-holding). |
-| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; separate #451 evidence files | S7.9 #444 merged `1be9da2`. **Now: OB-d** bundled-patch list from the merged S7.x Results, including the VCO post-CHOKE behaviour note. #456 adds the r1.9 classification column and gives final division pins with #449. | CHAOS provenance Low. Keep catalogue and S0 writers serialized. |
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | #291 merged `6daa23e`. **Now:** (1) sync #449 S7.6 to main, fix `tone` in the DSP (A64), and pin final evidence under r1.8/r1.9; (2) post #474's facts Result at green (auto-merge); (3) build the A69 bench seam and the E5 CN rows at E5's pinned head; #485 stock Groove runs in parallel. | E7b larger-row rerun after #486; CN refresh for M4 acceptance. |
-| **B3** `gpt-builder3` · **Floater** | Assigned paths only | #462 is green at `a68eb95`: post the final Result (lead merge). **Next:** [#487](https://github.com/kalharbi11/wirescape-lab/issues/487) Windows facts libremidi fix (A66). Diagnose the #322 `M1 paired / linux-arm64` red (no r1.6 exception on a changed-module graph). | #322 optional OB-g6 row. |
+| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | **E5 #436** `b4b11ac`: Golden green; Lab 45536579166 and paired 45536579387 running at check. Evaluate [A69 raw adopt finding](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7151724857) against ER4/A59 (subject held bus transient, not untouched witness); correct if required. Sync latest main if needed, preserve exact pins, post signed merge-ready Result after full gates. Architect contract-review only then; CN not a merge gate. | E3a after E5 (OB1.1); no competing product writer. |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **#486/#491 E7b HOLD:** A68 overturn condition met: 10,389,504 B vs 8,388,608 B ([probe 45536610982](https://github.com/kalharbi11/wirescape-lab/actions/runs/45536610982)); post signed memory table, no cap product change until Architect state-hook ruling. #482 merged `3b06273`. **Proceed independently:** A67 hosted enqueue fix, one issue, same load/limits, fail-first, A61/A58, disjoint from #486; no egress remedy inferred. | E7b successor only as ruled, short contract-review if applicable; A67 is not tag-holding. |
+| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; separate #451 evidence files | **OB-d #492** `5fd2485`, draft Lab green; complete ledger for merged S7.x, Ladder reported row and VCO post-CHOKE note. **#456** final paired A27 evidence at #449 `4fcaa04` verifies tone/division; mode awaits A64 follow-up. Preserve raw, no unchanged rerender; finish neutral classification/evidence. | Final S7.6 ledger after #449 approval, candidate rebuild and owner listen; CHAOS provenance Low. Serialize catalogue/S0. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | **#485** `07611d9` native red (preserve raw; assess cases, no weakened oracle); stock untouched witnesses identical, no adopt proof. #474 merged `5820f89`; shared CN writer slot released. **#449** `4fcaa04`: tone/division met; mode awaits A64 exact-row ruling, keep draft, no retune. **#495** three inbox rows consolidated in lead handoff; do not edit competing inbox branch until integrated. | Final E5 CN after settled review pin and A69 cost subject ruling; larger-buffer rerun after ruled E7b solution merges; no premature acceptance. |
+| **B3** `gpt-builder3` · **Floater** | Assigned paths only | #462 merged `51f4b1f`. **#487/#490** `47b0dee`: fail-first Windows libremidi compile red reproduced; MSVC v143/14.44 pin; exact Lab 45538413841 running, facts 45538413826 pending. Verify full Windows measured sections and Linux results, then signed Result. **#322** `c89c111`: unchanged arm64 Function Envelope rows red, A60 scope question merged via #493; no exception yet. | #322 optional, no OB1 tag hold; after A66 disposition resume only as ruled. |
 
 **Parked until after OB1** (branches kept): Gate Delay #333, CAT-1 #358 (+MB1), MT2 #176. Note Trigger #322 and M7 batch 2 were unparked in run 29.
 **Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
@@ -52,4 +52,4 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 - The Architect refreshes this table on every Architect run as well. On a conflict, the lead's
   dispatch wins.
 
-Signed: claude-architect, 2026-11-24
+Signed: codex-lead, 2026-11-24, 22:14 EST

@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Manual Codex lead reconciliation — 2026-11-24 ET (after Architect run 34)
+
+- **Merged after signed pre-merge review, exact-head green:** #474 `5820f89` (A68 facts, Lab 45536558036, Golden 45536557890, capture 45531665581); #462 `51f4b1f` (SR18 diagnostic, Lab 45531547738, paired 45531546369); #493 `89b6216` (SR13, B3 A60 scope inbox); #482 `3b06273` (SR18 synthetic witness, ready Lab 45536625925, witness 45536625912, soak 45536625847). No acceptance/gate changes. Repository allows auto-merge and squash only; no settings changed.
+- **New critical A68 overturn:** #491 `6a4a9d3929cfea2386d6008ac632a3cb9d43144d`, [45536610982](https://github.com/kalharbi11/wirescape-lab/actions/runs/45536610982), 24 bundles; Witching Hour graph at 1024 = 38,563,431 B, delta 10,389,504 B, exceeding 8,388,608 B by 2,000,896 B. Neon Elegy 9,249,792 B also over. Reverse repeats agree, catalogue unchanged. [Lead stop](https://github.com/kalharbi11/wirescape-lab/issues/486#issuecomment-7151751261); no cap implementation, ask Architect to rule state-hook path as A68 requires. A67 enqueue work may proceed separately under explicit #475 routing; no new egress fix authorized.
+- B1 #449 mode exact r1.9 unresolved; tone/division met. #485 native extra held-subject oracle failed; untouched Voice and stock Groove witnesses preserved. B5 #436 `b4b11ac` Golden green, Lab/paired pending at inspection; evaluate B1 raw finding and post final Result before requesting review. A69 CN is not E5's merge gate. B3 #490 compiler fix awaits full facts/Lab; #322 optional scope ruling. B4 #492 draft ledger, #456 paired evidence waiting A64.
+- **Inbox:** preserve #493 row; incorporate three #495 rows at `5c9429255bcc4ee7076c63bc8b2dae9eff30c7c7` (A69 cost feasibility, A64 mode, A69 adopt finding) because same-file conflict prevents direct merge. Keep #495 open until this consolidation lands, then close as superseded with link; no force-push. Add A68 overturn row. Do not trigger Architect, per owner. E5 review is not yet ready; pin and add its own review row after exact green and signed Result.
+- **Next Architect batch (manual owner start only):** A68 memory/state-hook route, A64 mode, A69 transition-cost subject and adopt finding, optional B3 A60 scope. Include E5 review only when ready; no E7b review before ruling and implemented evidence. Route to OB1: E5 plus corrected larger-buffer state preservation and CN; S7.6 and OB-d; OB-f1 and owner folder checks; candidate Pi installation, 100 edits, zero xruns/no visible stutter and both CN costs; Architect acceptance/tag. See BUILDERS.
+
+Signed: codex-lead, 2026-11-24, 22:14 EST
+
 ## Architect run 34 — 2026-11-24 22:30 EST: S7.5 and S7.9 approved and merged, five rulings (`architect:run`, also acting as lead)
 
 - **Merged:** #291 S7.5 `6daa23e` ([review](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7151194472)); #444 S7.9 `1be9da2` ([review](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7151198161)); evidence #478 `8577851` and #467 `c6a585a` (lead actions).
