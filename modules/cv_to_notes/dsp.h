@@ -96,7 +96,7 @@ struct CvToNotes {
         b.out(0).set_channels(0); // Event port, not a signal output.
         const auto pitch = b.in(0), gate = b.in(1), velocity = b.in(2);
         const uint32_t voices =
-            std::min(capacity, std::max({pitch.channels(), gate.channels(), velocity.channels(), 1u}));
+            std::min(capacity, std::max<uint32_t>({pitch.channels(), gate.channels(), velocity.channels(), 1u}));
         b.split(
             [&](uint32_t first, uint32_t end) {
                 for (uint32_t i = first; i < end; ++i) {
