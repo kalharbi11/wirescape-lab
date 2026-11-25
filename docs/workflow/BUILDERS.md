@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by gpt-lead, 2026-11-24 21:13 EST. Every builder is a
+Refreshed by claude-architect (acting as lead), 2026-11-24 22:30 EST. Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
@@ -33,11 +33,11 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | #436 non-draft at `31ab651` (base `a8b3423`), readiness CI kicked off. B5 handed B1 the stock Groove and synthetic fixture options in [#480](https://github.com/kalharbi11/wirescape-lab/issues/480). B1 stock no-adopt [#485](https://github.com/kalharbi11/wirescape-lab/pull/485) runs fixed-pin capture; synthetic adopt and transition-cost method wait on B5-CN. B5 owns product, B1 owns CN. Wait for exact CN, full gates and signed Result before queuing review. | E3a after E5 (OB1.1). E5 first if E7 shares sidecar `commit`. |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | Continue the independent [#475](https://github.com/kalharbi11/wirescape-lab/issues/475)/[#482](https://github.com/kalharbi11/wirescape-lab/pull/482) OSC egress gate-edge diagnosis; test-first draft is open. #463 merged as `a8b3423`; wait for A67 before a separate enqueue product fix. E7 physical MIDI note-off gap stays on the owner candidate checks. | #475 now; A67 product routing follows the Architect. |
-| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; separate #451 evidence files | #444 exact `c86810e` D5 and numerical evidence ready for A65. #467 tooling waits A66 Windows facts disposition. #456 can document and verify the diagnostic at `b1b27ea`; division disposition waits on the A64 follow-up and final #449 pins. | S7.9 then OB-d bundled-patch list. CHAOS provenance Low is separate. Keep catalogue/S0 writers serialized. |
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths | #291 `a875881` ready for Architect H1 re-review, exact gates and refreshed D5 published. [E7 CN #474](https://github.com/kalharbi11/wirescape-lab/pull/474) has measured facts with exact-head verification pending; larger-buffer acceptance is A68. Coordinate [#480](https://github.com/kalharbi11/wirescape-lab/issues/480) E5 CN with B5. #449 tone correction checks can run; division acceptance waits on the A64 follow-up and final pins. | After #291, sync Delay, give B4 final A27 pins and collect final M7 evidence. Then CN refresh after E5v/E5/E7, including A62 buffer rows and larger nontrivial-state witness, followed by A2 rewrite and OB-f1. |
-| **B3** `gpt-builder3` · **Floater** | Assigned paths only | #463 merged `a8b3423`; keep the observed enqueue evidence for A67. Continue #462 Windows paired/parser and desktop failures on the same PR; second path-alias correction `a68eb95` awaits exact-head Windows paired, Lab and attribution checks. Optional #322 is released under A55 after E5v. | Resolve #462; continue scoped #322 independently. A67 remains a separate routing decision. |
+| **B5** `gpt-builder5` · **Engine** | `engine/` and tests, except E5v `engine/voice/` and B4 A63 `vco()` | #436 E5 at `31ab651`; Lab green. B5-CN is ruled (M4 A69): E5's merge waits on its contract-review, not on CN rows. **Next:** sync to main, then post the signed E5 Result at the merge-ready head and ask for the Claude review once. Support B1's bench seam with fixture pointers only. | E3a after E5 (OB1.1). |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, `modules/osc_in/`, `engine/control/` handlers | **E7b [#486](https://github.com/kalharbi11/wirescape-lab/issues/486) first** (OB1 M4 row, A68): post the memory delta, then test-first. Continue #475/#482 egress diagnosis while #486's checks run. | A67 enqueue fix (one issue, A61/A58, not tag-holding). |
+| **B4** `gpt-builder4` · **Sound** | Modules, sound facts, module tests; A63 `vco()`; separate #451 evidence files | S7.9 #444 merged `1be9da2`. **Now: OB-d** bundled-patch list from the merged S7.x Results, including the VCO post-CHOKE behaviour note. #456 adds the r1.9 classification column and gives final division pins with #449. | CHAOS provenance Low. Keep catalogue and S0 writers serialized. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, `facts/dsp/edit_continuity.md`; module-local M7 paths; `bench/continuity/` (incl. A69 `native/`) | #291 merged `6daa23e`. **Now:** (1) sync #449 S7.6 to main, fix `tone` in the DSP (A64), and pin final evidence under r1.8/r1.9; (2) post #474's facts Result at green (auto-merge); (3) build the A69 bench seam and the E5 CN rows at E5's pinned head; #485 stock Groove runs in parallel. | E7b larger-row rerun after #486; CN refresh for M4 acceptance. |
+| **B3** `gpt-builder3` · **Floater** | Assigned paths only | #462 is green at `a68eb95`: post the final Result (lead merge). **Next:** [#487](https://github.com/kalharbi11/wirescape-lab/issues/487) Windows facts libremidi fix (A66). Diagnose the #322 `M1 paired / linux-arm64` red (no r1.6 exception on a changed-module graph). | #322 optional OB-g6 row. |
 
 **Parked until after OB1** (branches kept): Gate Delay #333, CAT-1 #358 (+MB1), MT2 #176. Note Trigger #322 and M7 batch 2 were unparked in run 29.
 **Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
@@ -52,4 +52,4 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 - The Architect refreshes this table on every Architect run as well. On a conflict, the lead's
   dispatch wins.
 
-Signed: codex-lead, 2026-11-24, 21:13 EST
+Signed: claude-architect, 2026-11-24

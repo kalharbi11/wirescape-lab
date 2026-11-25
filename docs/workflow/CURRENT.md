@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 34 — 2026-11-24 22:30 EST: S7.5 and S7.9 approved and merged, five rulings (`architect:run`, also acting as lead)
+
+- **Merged:** #291 S7.5 `6daa23e` ([review](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7151194472)); #444 S7.9 `1be9da2` ([review](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7151198161)); evidence #478 `8577851` and #467 `c6a585a` (lead actions).
+- **A68 → M4 A68:** the larger-buffer row is not met. New OB1 row **E7b [#486](https://github.com/kalharbi11/wirescape-lab/issues/486)** (B2): the engine is prepared for 1024 frames, so app buffer changes take rule 1. **B5-CN → M4 A69:** bench-only E5 seam and per-block callgrind transition cost. E5 merge waits on its review, not on CN. **A64 follow-up → M7 r1.9:** division meets on the old floor. **A66:** #467 merged and the libremidi fix goes to B3 [#487](https://github.com/kalharbi11/wirescape-lab/issues/487). **A67:** the enqueue fix goes to B2 after #486 and #482; it does not hold the tag.
+- **Labels:** `needs/architect` removed from #314, #472 and #480. The inbox has no Open row except A31 and A3 (both postponed or parked).
+- **Held:** E5 #436 until B5's signed Result at a merge-ready head, then a Claude contract-review. #462 until B3's final Result (then lead merge). #322 until its arm64 paired red is diagnosed.
+- **Next Architect run:** `architect-ready` on #436's E5 Result (long effort: Claude contract-review against ER4, A55, A59, A69, G1–G9). Fold in the E7b #486 short review if it is ready. **Next run should:** (1) check #486's posted memory delta against the 8 MiB bound; (2) check that the #480 seam stays bench-only; (3) review #449 S7.6 at its final pins under r1.8/r1.9.
+
+Signed: claude-architect, 2026-11-24
+
 ## Delivery handoff — 2026-11-24 21:13 EST
 
 - #479 merged `3f708c8` for the A64 clocked-division follow-up. #463 merged `a8b3423`; A67 asks who owns the separately scoped enqueue fix, with the diagnostic complete.
