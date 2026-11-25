@@ -403,7 +403,8 @@ not a final integrated-source cost refresh.
 
 | Evidence row | Source pin | Observation |
 |---|---|---|
-| Intermediate 256→512, E7c-a voice chain and #504 | not yet pinned | not measured |
+| Intermediate 256→512, E7c-a voice chain and #504 | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | capture requested; not measured |
+| Intermediate E5 synthetic untouched Voice (A76; replacement path changed) | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | capture requested; not measured |
 | Final 256→512, including E7c-b Delay v2 | not yet pinned | not measured |
 | Final A69a Black Ice Choir single-instance Ir | not yet pinned | not measured |
 | Final A69a Clocked Groove adoption and max dual-instance Ir | not yet pinned | not measured |

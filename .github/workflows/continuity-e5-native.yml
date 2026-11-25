@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      ENGINE_HEAD: 9809dfb9d1ead244815b8f93a68a02f7a307fe5b
+      ENGINE_HEAD: 5ca0f1938fb851acce158272377a1ebe7631f4d2
       BASE_HEAD: 00c39f5cc1d747a75fd7dff264e8c87ef78ddb75
     steps:
       - uses: actions/checkout@v4
