@@ -11,6 +11,13 @@ struct Vca {
     static ws2_memory memory_requirements(const ws2_config&c){return {sizeof(ws2_memory),3*sizeof(float)*c.max_block_frames,0,32};}
     bool prepare(const ws::Setup&s){stride=s.max_block();scratch=static_cast<float*>(s.alloc(3*sizeof(float)*stride));return scratch!=nullptr;}
     void reset(){}
+    // A70: no runtime DSP state; scratch storage is prepared afresh.
+    int save_state(ws::Writer out)const{return out.u32(1)?WS2_OK:WS2_CAPACITY;}
+    int load_state(ws::Reader in){
+        uint32_t version;
+        if(!in.u32(version))return WS2_INVALID;
+        return version==1?WS2_OK:WS2_UNSUPPORTED;
+    }
     void process(ws::Block&b){
         bool constant=b.in(0).constant()&&b.in(1).constant()&&b.param(0).constant();
         b.out(0).set_channels(b.channels());b.out(0).mark_constant(constant);
