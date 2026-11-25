@@ -75,7 +75,50 @@ static void ranges_and_legacy_config() {
     for (int i = 0; i < 64; ++i) slow.run({}, 256);
     REQUIRE(slow.sample(0) == -2);
 }
+// E3c fail-first: the same prepared instance consumes a newly delivered map.
+static void live_mapping_data() {
+    CcConfiguration cfg;
+    cfg.rows[0].smoothing_ms = cfg.rows[1].smoothing_ms = 0;
+    MidiRig<CcToCv> rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
+    REQUIRE(rig.d->data_slot_count == 1);
+    const auto &slot = rig.d->data_slots[0];
+    const ws2_field *rows = nullptr;
+    for (uint32_t i = 0; i < slot.field_count; ++i)
+        if (std::strcmp(slot.fields[i].id, "rows") == 0) rows = &slot.fields[i];
+    REQUIRE(rows && rows->type == WS2_F_RECORD && rows->count == 8);
+    alignas(16) std::array<uint8_t, WS2_MAX_DATA_BYTES> packed{};
+    const ws2_field *controller = nullptr;
+    for (uint32_t row = 0; row < rows->count; ++row) {
+        auto *dst = packed.data() + rows->offset + row * rows->stride;
+        for (uint32_t i = 0; i < rows->field_count; ++i) {
+            const auto &field = rows->fields[i];
+            if (field.type == WS2_F_F32) {
+                float value = float(field.initial);
+                if (std::strcmp(field.id, "smoothing_ms") == 0) value = 0;
+                std::memcpy(dst + field.offset, &value, sizeof(value));
+            } else if (field.type == WS2_F_U8 || field.type == WS2_F_BOOL) {
+                dst[field.offset] = uint8_t(field.initial);
+                if (std::strcmp(field.id, "controller") == 0) {
+                    controller = &field;
+                    dst[field.offset] = uint8_t(row + 1);
+                }
+            }
+        }
+    }
+    REQUIRE(controller && controller->type == WS2_F_U8);
+    ws2_data data{sizeof(ws2_data), packed.data(), slot.bytes, 1};
+    rig.ctx.data_count = 1; rig.ctx.data = &data;
+    rig.run({midi1(0xb0, 1, 127), midi1(0xb0, 2, 127)});
+    REQUIRE(rig.sample(0) == 1 && rig.sample(1) == 1);
+    packed[rows->offset + controller->offset] = 21;
+    ++data.serial;
+    rig.run({midi1(0xb0, 21, 64)});
+    REQUIRE(rig.sample(0) == float(64. / 127.) && rig.sample(1) == 1);
+    rig.run({midi1(0xb0, 1, 0)});
+    REQUIRE(rig.sample(0) == float(64. / 127.) && rig.sample(1) == 1);
+}
 int main() {
+    live_mapping_data();
     ranges_and_legacy_config();
     full_endpoint_channel_matrix();
     CcConfiguration config; for (auto& row : config.rows) row.smoothing_ms = 0;
