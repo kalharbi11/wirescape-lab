@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: E5 transition cost (devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "bench/continuity/cost/**"
+      - ".github/workflows/continuity-e5-cost.yml"
+permissions:
+  contents: read
+jobs:
+  parser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s bench/continuity/cost -p 'test_*.py'

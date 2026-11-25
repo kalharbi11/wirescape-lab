@@ -1,0 +1,35 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+# A69a per-render Callgrind evidence
+
+Architect run 35, #480 comment 7151868497. Work in the standalone bench only,
+using the final E5 review head once B5 completes A71. No product, registry,
+protocol, source-patch or top-level CMake edit. No devices or network services.
+
+- Black Ice Choir: verify it ranks first from exact-head paired instructions;
+  load the unchanged bundled patch via the pinned runtime document/catalogue,
+  reproduce the golden C4 held note and seed 37, prepare 48 kHz / 256 frames.
+  Measure max individual render Ir after a declared warm-up, not a whole-run
+  subtraction. Report a module's attributed own share only if attributable.
+- Clocked Groove: load the unchanged bundle and a prepared candidate differing
+  by one canonical Groove step key (module ID 2); verify the canonical bytes
+  differ and the native descriptor has no adopt hook. Keep the existing graph
+  and all other module configs. Call the real AppEngine replan, no host-bus
+  injection or generated descriptor. Render both the original and transition.
+- Profile only the render owner: Callgrind collection toggled around each
+  complete render, labelled dump after each block, reset counters; no output
+  capture, loading, allocation of profile buffers, or control staging inside
+  the counted window. Identify actual publication via the adopt_layout call
+  in that block's Callgrind trace (including separate housekeeping).
+  Require unique contiguous blocks, exactly one initial publication and one
+  steady-layout publication, two before and two after the fade, positive Ir,
+  correct event schema, no dropped/late/faulted events. Check native fade
+  default 960 samples; report any observed later retirement separately rather
+  than silently equating it with fade length. A profile that misses the
+  unchanged native three-block wall deadline under Valgrind is a failed
+  measurement, not a reason to change the deadline.
+- Preserve raw labelled dumps, exact engine and harness pins, toolchain,
+  patch hashes, actual edited JSON pointer/values, meters, and computed tables.
+  The test fixtures use artificial Ir solely to test parser behavior.
+  There is no Ir acceptance threshold and no measurement at a provisional pin.
+
+Signed: gpt-builder1, 2026-11-24.
