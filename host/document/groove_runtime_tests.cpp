@@ -1389,12 +1389,13 @@ int main(int argc, char **argv) {
             std::puts("PASS Groove live pattern direct continuity");
             return 0;
         }
-        check(argc == 1, "unknown Groove test arguments");
+        const bool shared_only = argc == 2 && std::string(argv[1]) == "--shared-live-pattern-only";
+        check(argc == 1 || shared_only, "unknown Groove test arguments");
         wirescape::engine2::Config cfg{};
-    cfg.sample_rate = 48000;
-    cfg.max_block = 256;
-    cfg.max_nodes = 64;
-    cfg.event_budget = 2048;
+        cfg.sample_rate = 48000;
+        cfg.max_block = 256;
+        cfg.max_nodes = 64;
+        cfg.event_budget = 2048;
         Owner cat(app_engine_create(&cfg), app_engine_destroy);
         check(bool(cat), "native catalogue creation");
         // E3b fail-first: the live pattern must be described by the E3a slot
@@ -1407,6 +1408,16 @@ int main(int argc, char **argv) {
 
         test_shared_pattern_loader(cat.get());
         test_shared_live_pattern(cat.get());
+        // Focused ASan diagnostic for the E3b shared loader/ring and migration
+        // witnesses. The no-argument CTest retains every original assertion,
+        // rate/block combination and the existing 60-second test deadline.
+        if (shared_only) {
+            test_live_pattern_migration();
+            test_groove_host_adapter();
+            test_live_pattern_data();
+            std::puts("PASS Groove shared loader and live pattern continuity");
+            return 0;
+        }
         test_refusals(cat.get());
         test_s1_refusals(cat.get());
         test_chord_to_notes_cv();
