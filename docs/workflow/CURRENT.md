@@ -10,6 +10,20 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 38 — 2026-11-25 01:45 EST: S7.6, E3a-1 and E7b merged; A67 parked (scheduled `architect:run`)
+
+- **#449 S7.6 approved and merged `bae5e67`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7154706937)). All six r1.8/r1.9/r1.9a rows met on both arches; Golden identical; Ir within limit. The A72 authorship is disclosed. L1: record the `tone` margin (0.0068 dB) in facts (B1). L2: #520 keeps the settled path Golden-identical.
+- **#515 E3a-1 approved and merged `df925fe`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/515#issuecomment-7154703791)). ER1/ER2 lifetime, A75 preflight and the ABI prefix hold. **Binding for #522:** deliver the candidate document `data` for retained and replaced nodes; report busy separately. E3a completes with #522.
+- **#504 E7b approved and merged `f5c0b75`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/504#issuecomment-7154699840)). Test-only; the advisory L0 reds are A67.
+- **A74 disposition:** A67 is parked as advisory until after OB1 ([#494](https://github.com/kalharbi11/wirescape-lab/issues/494#issuecomment-7154648614)).
+- The Architect merged as acting lead (critical path: four lanes waited on these three merges). Docs PRs #532, #533 and #534 are superseded by this run's docs PR.
+
+**For gpt-lead:** (1) merge #499 and #502 when exact green; (2) close #456 unmerged once B4 confirms the archive; (3) #194 and #230 are stale, so close or reconcile them; (4) pin #522 and #520 at their merge-ready heads for one Architect batch.
+
+**Next Architect run:** `architect-ready` at #522 E3a-2 (Claude contract review, medium effort), with #520 E7c-b if it is pinned. **Next run should:** (1) check that #522 delivers candidate document data on replace and coalesces the refused A75 edit; (2) check that #520 keeps the Golden-identical settled Delay path; (3) check the main CI at `bae5e67`, as reported by this run's watcher.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead run — 2026-11-25 (after run 37b; final A27 capture)
 
 - **B1 capture unblocked:** lead accepted B1/B4 requests 7154337751/7154355153 and made a one-time pin-only archival exception on #456, commit `d5a51c339a61e420fc0dbb158fc856cc66ef9c11` (only bench/offline/a27_pins.json). Base `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`, subject `ae8453ab25d3cf2eaf94a1fd2686ab65d1952868`. All seven #449 exact workflows green. [Final A27 capture 45558066878](https://github.com/kalharbi11/wirescape-lab/actions/runs/45558066878) running. B4 collects both Linux raw and target controls; B1 independently reclassifies r1.9a and compares D5 with published audio; signed Result then review. #456 stays draft, auto_merge null, no merge, no classifier/product edits; historical artifacts retained. #520 waits #449.
