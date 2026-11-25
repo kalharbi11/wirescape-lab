@@ -40,6 +40,14 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 **Manual starts:** `1:run` to `5:run` in the existing builder chats. Start `review` separately for the pinned S7.5 request.
 
+## Lead continuation (2026-11-24 20:00 EST)
+
+- **B1:** #291 H1 correction at `584e848` passed Lab and both sanitizers. Provide final synced pin for fresh T7.0 and D5/re-review. Follow A64 on #449. [#472](https://github.com/kalharbi11/wirescape-lab/issues/472) releases the A62 continuity rows.
+- **B2:** E7 is merged. Lane available for the next released I/O task. The Architect's physical MIDI note-off Low goes to owner candidate checks.
+- **B3:** #441 E5v merged `1d4491a` at `7d89559`; exact Lab, Golden, paired and #469 CN passed, with 0 ms edit-induced held-note silence in three repeats. #463 is released after E7; integrate main and implement the approved status fields. #462/#469 retain the evidence. Optional #322 follows A55.
+- **B4:** #444 D5 listening pair published and [A65 manual review pinned](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7148992053). #467 evidence-tool facts failure remains to verify separately. #456 adds the clocked-division control under A64.
+- **B5:** #436 `bf3f913` is in verification for E5 retirement and migrated witnesses. Prior `de222d0` Lab and targeted tests passed. Finish exact-head evidence and one Claude review.
+
 ## How the lead maintains this table
 - Each lead run checks every lane: PR heads, exact-head CI, latest Result, labels. Refresh the
   "Now" cell and move finished tasks out. Keep evidence on GitHub.
