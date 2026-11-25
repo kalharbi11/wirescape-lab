@@ -2,14 +2,14 @@
 #pragma once
 // Host-only: generic packing validates scalar types/ranges before this check.
 #include "dsp.h"
-#include <string>
+#include <cstdio>
 namespace wirescape::midi {
-inline bool validate_cc_rows(const CcRows &data, std::string &error) {
-    error.clear();
+inline bool validate_cc_rows(const CcRows &data, char (&error)[128]) {
+    error[0] = '\0';
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &row = data.rows[i];
         if (row.fourteen_bit && row.controller > 31) {
-            error = "mapping.rows[" + std::to_string(i) + "].controller: 14-bit controller must be 0..31";
+            std::snprintf(error, sizeof(error), "mapping.rows[%u].controller: 14-bit controller must be 0..31", i);
             return false;
         }
     }
@@ -17,18 +17,17 @@ inline bool validate_cc_rows(const CcRows &data, std::string &error) {
 }
 // Called off RT after the existing legacy parser has materialized partial
 // rows. Conversion is one-way, and refusal leaves the destination untouched.
-inline bool materialize_cc_rows(const CcConfiguration &legacy, CcRows &out, std::string &error) {
+inline bool materialize_cc_rows(const CcConfiguration &legacy, CcRows &out, char (&error)[128]) {
     CcRows candidate{};
     for (uint32_t i = 0; i < 8; ++i) {
         const auto &r = legacy.rows[i];
         const double min = r.minimum(), max = r.maximum();
-        const auto prefix = "mapping.rows[" + std::to_string(i) + "].";
         if (!std::isfinite(min) || std::abs(min) > double(cc_data_limit)) {
-            error = prefix + "min: outside finite F32 range";
+            std::snprintf(error, sizeof(error), "mapping.rows[%u].min: outside finite F32 range", i);
             return false;
         }
         if (!std::isfinite(max) || std::abs(max) > double(cc_data_limit)) {
-            error = prefix + "max: outside finite F32 range";
+            std::snprintf(error, sizeof(error), "mapping.rows[%u].max: outside finite F32 range", i);
             return false;
         }
         candidate.rows[i] = {r.channel, r.controller, r.fourteen_bit, r.smoothing_ms,
