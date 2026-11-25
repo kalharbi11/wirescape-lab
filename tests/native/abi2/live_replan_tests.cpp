@@ -279,7 +279,7 @@ struct AdoptPhase {
         return WS2_OK;
     }
 };
-static void replacement_adopt() {
+static void replacement_adopt(bool prequeued_release = false) {
     const ws2_descriptor descriptor{
         sizeof(ws2_descriptor), WS_ABI2_VERSION, "test.adopt_phase", "Adopt phase", 1, 1, 2, 0,
         AdoptPhase::inputs.data(), AdoptPhase::outputs.data(), nullptr,
@@ -307,6 +307,14 @@ static void replacement_adopt() {
         CHECK(std::abs(phase[0] - float(++count) / 65536.f) < 2.e-7f);
     };
     for (unsigned i = 0; i < 64; ++i) render();
+    // ER4: a release stamped before successful adoption must still reach
+    // the successor after the fade, without replaying a second attack.
+    const uint64_t stale = live->meter().stale;
+    const uint64_t due = live->meter().frame + 65536;
+    if (prequeued_release) {
+        CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), due) == WS2_OK);
+        render(); // Move the old-stamped packet to the future queue.
+    }
     std::atomic<bool> done{false};
     bool ok = false;
     std::thread control([&] {
@@ -330,9 +338,28 @@ static void replacement_adopt() {
     successor.reset();
     for (unsigned i = 0; i < 336; ++i) render();
     CHECK(held[0] == 1.f); // No duplicate attack from replay after successful adopt.
-    CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    if (prequeued_release) {
+        CHECK(live->meter().frame < due);
+        // Use ordinary 256-frame blocks up to (but not including) the
+        // scheduled release; preserve the original phase/attack oracle.
+        float phase_block[frames]{}, held_block[frames]{};
+        float *block_out[]{phase_block, held_block};
+        while (live->meter().frame < due) {
+            const auto n = uint32_t(std::min<uint64_t>(frames, due - live->meter().frame));
+            allocation_watch::ThreadScope watch;
+            CHECK(live->render(block_out, 2, n) == WS2_OK);
+            CHECK(watch.allocations() == 0);
+            for (uint32_t j = 0; j < n; ++j) {
+                CHECK(std::abs(phase_block[j] - float(++count) / 65536.f) < 2.e-7f);
+                CHECK(held_block[j] == 1.f);
+            }
+        }
+    } else {
+        CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    }
     render();
     CHECK(held[0] == 0.f);
+    CHECK(live->meter().stale == stale);
     CHECK(live->meter().faults == 0);
 }
 struct EventSink : Voice {
@@ -1176,6 +1203,7 @@ int main(int argc, char **argv) {
     signal_ramp_interrupted();
     replacement_ring_out();
     replacement_adopt();
+    replacement_adopt(true);
     replacement_ring_out(7, 336, true);
     replacement_ring_out(1000, 24000, false, true);
     replacement_ring_out(0, 960, false, false, true);
