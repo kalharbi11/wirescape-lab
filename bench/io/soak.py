@@ -204,6 +204,32 @@ def counters(message):
     return result
 
 
+def osc_drop_diagnostics(status):
+    """Preserve optional OSC attribution fields without affecting stop gates.
+
+    Listener snapshots repeat across routes on a shared port. Deduplicate
+    identical observations, but retain disagreements: relaxed atomic reads
+    are observational, not one transactional service snapshot.
+    """
+    routes, listeners = {}, {}
+    for i, route in enumerate(status.get("osc", {}).get("routes", [])):
+        port = route.get("port")
+        split = {name: route[name] for name in ("budget_dropped", "enqueue_dropped")
+                 if type(route.get(name)) is int}
+        if split:
+            if type(port) is int:
+                split["port"] = port
+            routes[str(route.get("module", i))] = split
+        observed = {name: route["listener_" + name]
+                    for name in ("budget_dropped", "enqueue_dropped")
+                    if type(route.get("listener_" + name)) is int}
+        if observed and type(port) is int:
+            snapshots = listeners.setdefault(str(port), [])
+            if observed not in snapshots:
+                snapshots.append(observed)
+    return {"routes": routes, "listeners": listeners}
+
+
 def midi_received(status):
     details = status.get("midi", {}).get("counters")
     if not isinstance(details, dict) or any(
@@ -504,6 +530,7 @@ def reports(dest, result):
              f"- First failure: {failure.get('check', 'none')}: {failure.get('detail', '')}",
              f"- Counters before: {json.dumps(result['counters_before'], sort_keys=True)}",
              f"- Counters after: {json.dumps(result['counters_after'], sort_keys=True)}",
+             f"- OSC drop diagnostics (latest status; absent means unobserved): {json.dumps(result.get('osc_drop_diagnostics', {}), sort_keys=True)}",
              f"- RTT p99 ms: {result['p99_ms']}; L0 baseline ms: {result['l0_p99_ms']}",
              f"- RSS peak bytes: {result['rss_peak_bytes']}; bench: {result['bench']}",
              f"- Counter coverage: {result['counter_visibility']}",
@@ -524,6 +551,7 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
               "engine_sha": "unknown", "advisory": True, "status": "blocked",
               "first_failure": None, "counters_before": {}, "counters_after": {},
               "counter_visibility": {}, "bench": None, "p99_ms": None, "l0_p99_ms": None,
+              "osc_drop_diagnostics": {"routes": {}, "listeners": {}},
               "rss_peak_bytes": None, "events_last_5s": [], "elapsed_s": 0.0,
               "load_edits": 0, "messages_sent": 0, "messages_received": 0,
               "scripted_midi": profile in MIDI_PROFILES,
@@ -623,6 +651,7 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                         raise Stop("malformed_sidecar", "invalid NDJSON")
                     if msg.get("type") == "status":
                         status = msg.get("status", {})
+                        result["osc_drop_diagnostics"] = osc_drop_diagnostics(status)
                         osc = status.get("osc", {})
                         if osc.get("lan") is True or osc.get("bind") not in (None, HOST):
                             raise Stop("lan_forbidden", str(osc.get("bind")))
