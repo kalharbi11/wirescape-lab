@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "../../host/midi/module_test_support.h"
 #include "dsp.h"
+#include "data_validation.h"
 #include <array>
 #include <cstring>
 #include <vector>
@@ -17,6 +18,8 @@ struct Rig {
     ws2_signal inputs[9]{};
     ws2_event_list event_inputs[9]{};
     ws2_process ctx{};
+    alignas(16) osc::OscOutRoutes slot_data{};
+    ws2_data view{sizeof(ws2_data), &slot_data, sizeof(slot_data), 1};
 
     explicit Rig(const osc::OutConfiguration *config = nullptr) {
         state = desc->create(&host);
@@ -41,6 +44,17 @@ struct Rig {
         ctx.input_count = 9;
         ctx.inputs = inputs;
         ctx.event_inputs = event_inputs;
+        const osc::OutConfiguration defaults;
+        const auto &cfg = config ? *config : defaults;
+        for (uint32_t i = 0; i < 8; ++i) {
+            const auto &src = cfg.rows[i];
+            auto &dst = slot_data.rows[i];
+            std::memcpy(dst.address, src.address, sizeof(dst.address));
+            dst.kind = src.kind; dst.deadband = src.deadband; dst.enabled = uint8_t(src.enabled);
+        }
+        std::memcpy(slot_data.notes_address, cfg.notes.address, sizeof(slot_data.notes_address));
+        slot_data.notes_enabled = uint8_t(cfg.notes.enabled);
+        ctx.data_count = 1; ctx.data = &view;
     }
     ~Rig() { desc->destroy(state); }
     void run(const std::vector<ws2_event> &events = {}, uint32_t frames = 8) {
@@ -311,6 +325,36 @@ static void live_output_routes() {
 }
 int main() {
     live_output_routes();
+    {
+        osc::OutBus bus;
+        osc::OutConfiguration cfg;
+        cfg.bus = &bus;
+        cfg.rows[0].kind = 1;
+        Rig rig(&cfg);
+        std::string error;
+        REQUIRE(osc::validate_osc_out_routes(rig.slot_data, error));
+        rig.samples[0][0][0] = 1.f;
+        rig.run({}, 1);
+        REQUIRE(bus.rows[0].rises == 1);
+        rig.slot_data.rows[0].enabled = 0;
+        ++rig.view.serial;
+        rig.run({}, 1);
+        rig.slot_data.rows[0].enabled = 1;
+        ++rig.view.serial;
+        rig.run({}, 1);
+        REQUIRE(bus.rows[0].rises == 1 && bus.rows[0].falls == 0);
+        rig.samples[0][0][0] = 0.f;
+        rig.run({}, 1);
+        REQUIRE(bus.rows[0].falls == 1);
+        auto invalid = rig.slot_data;
+        std::strcpy(invalid.rows[3].address, "/bad/*");
+        REQUIRE(!osc::validate_osc_out_routes(invalid, error));
+        REQUIRE(error.find("routes.rows[3].address") != std::string::npos);
+        invalid = rig.slot_data;
+        std::strcpy(invalid.notes_address, "bad");
+        REQUIRE(!osc::validate_osc_out_routes(invalid, error));
+        REQUIRE(error.find("routes.notes_address") != std::string::npos);
+    }
     configuration_checks();
     rows_and_gate_edges();
     gate_reset_primes_without_phantom_edges();
