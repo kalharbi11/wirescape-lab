@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif
 #include "../osc/codec.h"
-#include "../../modules/osc_out/dsp.h"
+#include "../../modules/osc_out/data_validation.h"
 #include "session.h"
 #include "wirescape_sdk.h"
 #include <cstring>
@@ -258,10 +258,18 @@ void test_osc_out_held_gate_reset_sender() {
     const float *channel[] = {&level};
     std::array<ws2_signal, 9> inputs{};
     inputs[0] = {sizeof(ws2_signal), channel, 1, WS2_CONNECTED | WS2_CONSTANT};
+    alignas(16) wirescape::osc::OscOutRoutes slot_data{};
+    char slot_error[128]{};
+    check(wirescape::osc::materialize_osc_out_routes(cfg, slot_data, slot_error),
+          "OSC Out gate fixture materializes its declared slot");
+    ws2_data view{sizeof(view), &slot_data, sizeof(slot_data), 1};
     ws2_process context{};
+    context.struct_size = sizeof(context);
     context.frames = 1;
     context.input_count = uint32_t(inputs.size());
     context.inputs = inputs.data();
+    context.data_count = 1;
+    context.data = &view;
     ws::Block block(context);
 
     auto consume = [&](uint32_t expected) {
@@ -1086,7 +1094,8 @@ void test_a82_osc_in_slot(const std::filesystem::path &root) {
         auto &graph = app_engine_native(live);
         const auto stops = fake::stopped, exchanges = fake::exchanges;
         auto route = [&] { return s.status()["status"]["osc"]["routes"].at(0); };
-        check(route()["state"] == "disabled" && route()["lan_requested"] == false,
+        check(route()["state"] == "disabled" && route()["bind"] == "127.0.0.1" &&
+              s.status()["status"]["osc"]["lan"] == false,
               "A82 disabled route binds no socket");
         auto with_render = [&](auto action) {
             std::atomic<bool> done{false}, render_ok{true};
