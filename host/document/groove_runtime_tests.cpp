@@ -825,7 +825,9 @@ static void test_groove_host_adapter() {
     check(groove_construction_bytes(legacy, 17) != construction,
           "genuine construction change is not hidden");
     const auto prior = bytes;
-    check(!ws::data_layout::pack_data_slot(slot, value, ws::data_layout::DataLoad::Edit,
+    // Migration replaces the JSON data object transactionally. Reacquire
+    // the value rather than keeping a reference into the old object.
+    check(!ws::data_layout::pack_data_slot(slot, module.at("data").at("pattern"), ws::data_layout::DataLoad::Edit,
               bytes, error, nullptr, validate_groove_data_slot) &&
               error.find("pattern.length_1") != std::string::npos && bytes == prior,
           "host validation refuses transactionally and names field");
