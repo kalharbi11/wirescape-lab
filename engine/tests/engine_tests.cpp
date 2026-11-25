@@ -944,6 +944,45 @@ static void legacy_replacement_busy() {
     compare(std::move(a), std::move(b));
     CHECK(sample(*live) == .25f && sample(*witness) == .25f);
 }
+// E5 L2: direct-port CHOKE is source-wide in the combined-events voice
+// consumer. The host fallback ledger must agree, including routed input
+// notes of the same source; unrelated sources survive a targeted choke.
+static void direct_choke_replacement_ledger() {
+    Config config = cfg(); config.max_block = 4096;
+    auto make = [&](uint8_t voices) {
+        auto e = std::make_unique<Engine>(config);
+        CHECK(e->add_node(1, ws::Module<ws2test::NotesToCv>::descriptor(), {voices}));
+        CHECK(e->output(1, 1, 0) && e->register_producer() == 0 && e->prepare());
+        return e;
+    };
+    auto gates = [](Engine &e) {
+        uint32_t active = 0;
+        for (uint32_t ch = 0; ch < e.output_channels(1, 1); ++ch)
+            if (e.output_sample(1, 1, ch, 15) == 1.f) ++active;
+        return active;
+    };
+    for (const bool all_sources : {false, true}) {
+        auto live = make(4), candidate = make(5);
+        auto n = event(WS2_NOTE_ON, .75f);
+        CHECK(live->enqueue(0, 1, WS2_DIRECT_PORT, n, 0, Timing::Immediate) == WS2_OK);
+        n.note_id = 2; n.key = 62;
+        CHECK(live->enqueue(0, 1, 0, n, 0, Timing::Immediate) == WS2_OK);
+        n.note_id = 3; n.key = 64; n.source_id = 2;
+        CHECK(live->enqueue(0, 1, 0, n, 0, Timing::Immediate) == WS2_OK);
+        render(*live, 16);
+        CHECK(gates(*live) == 3);
+        auto choke = event(WS2_NOTE_CHOKE);
+        choke.source_id = all_sources ? UINT32_MAX : 1;
+        choke.note_id = choke.channel = -1;
+        CHECK(live->enqueue(0, 1, WS2_DIRECT_PORT, choke, 0, Timing::Immediate) == WS2_OK);
+        render(*live, 16);
+        CHECK(gates(*live) == (all_sources ? 0u : 1u));
+        replan_test(*live, *candidate, 200000000);
+        render(*live, 16);
+        CHECK(gates(*live) == (all_sources ? 0u : 1u));
+        CHECK(live->meter().faults == 0);
+    }
+}
 static void replacement_packet_birth() {
     Config config;
     config.max_block = 4096;
@@ -1106,6 +1145,7 @@ int main(){
  data_lifetime_stress();
  data_replacement_lifetime();
  legacy_replacement_busy();
+ direct_choke_replacement_ledger();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();
