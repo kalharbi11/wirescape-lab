@@ -15,6 +15,14 @@ struct Adsr {
     bool trigger_mode_seen=false; // only the default Gate path uses original fast-loop
     void prepare(const ws::Setup&){}void reset(){for(auto&v:voices)v=Voice{};trigger_mode_seen=false;}
     void start(Voice&v,int stage,float seconds,double rate){v.stage=stage;v.start=v.level;v.elapsed=0;v.duration=std::max<uint64_t>(1,static_cast<uint64_t>(std::llround(seconds*rate)));}
+    // CHOKE still invalidates the old note immediately; decay its residual
+    // level over a fixed 5 ms instead of making a discontinuous CV step.
+    // Reuse the normal Release stage, leaving the per-sample loop untouched.
+    void choke(Voice&v,double rate){
+        const float level=v.level;
+        v=Voice{};
+        if(level>0.f){v.level=level;start(v,4,.005f,rate);}
+    }
     void process_default_gate(ws::Block&b){
         b.out(0).set_channels(b.channels());b.out(0).mark_constant(false);
         b.split([&](uint32_t first,uint32_t end){
@@ -37,7 +45,7 @@ struct Adsr {
             uint32_t c=e.channel<0?0:static_cast<uint32_t>(e.channel);if(c>=b.channels()||b.in(0).connected())return;
             auto&v=voices[c];uint32_t at=std::min(e.offset,b.frames()-1);
             if(e.type==WS2_NOTE_ON){v.source=e.source_id;v.note=e.note_id;v.gated=true;start(v,1,b.param(0).value(c,at),b.sample_rate());}
-            else if((e.type==WS2_NOTE_OFF||e.type==WS2_NOTE_CHOKE)&&v.source==e.source_id&&v.note==e.note_id){if(e.type==WS2_NOTE_CHOKE)v=Voice{};else if(v.gated){v.gated=false;start(v,4,b.param(3).value(c,at),b.sample_rate());}}
+            else if((e.type==WS2_NOTE_OFF||e.type==WS2_NOTE_CHOKE)&&v.source==e.source_id&&v.note==e.note_id){if(e.type==WS2_NOTE_CHOKE)choke(v,b.sample_rate());else if(v.gated){v.gated=false;start(v,4,b.param(3).value(c,at),b.sample_rate());}}
         });
     }
     void process(ws::Block&b){
@@ -92,7 +100,7 @@ struct Adsr {
             uint32_t c=e.channel<0?0:static_cast<uint32_t>(e.channel);if(c>=b.channels()||b.in(0).connected())return;
             auto&v=voices[c];uint32_t at=std::min(e.offset,b.frames()-1);
             if(e.type==WS2_NOTE_ON){v.source=e.source_id;v.note=e.note_id;v.gated=true;v.triggered=b.param(4).value(c,at)>.5f;trigger_mode_seen |= v.triggered;start(v,1,b.param(0).value(c,at),b.sample_rate());}
-            else if((e.type==WS2_NOTE_OFF||e.type==WS2_NOTE_CHOKE)&&v.source==e.source_id&&v.note==e.note_id){if(e.type==WS2_NOTE_CHOKE)v=Voice{};else if(v.gated){v.gated=false;if(!v.triggered)start(v,4,b.param(3).value(c,at),b.sample_rate());}}
+            else if((e.type==WS2_NOTE_OFF||e.type==WS2_NOTE_CHOKE)&&v.source==e.source_id&&v.note==e.note_id){if(e.type==WS2_NOTE_CHOKE)choke(v,b.sample_rate());else if(v.gated){v.gated=false;if(!v.triggered)start(v,4,b.param(3).value(c,at),b.sample_rate());}}
         });
     }
 };
