@@ -11,6 +11,7 @@
 #include "../../modules/osc_out/dsp.h"
 #include "session.h"
 #include <algorithm>
+#include <cmath>
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
@@ -291,6 +292,152 @@ void test_osc_out_held_gate_reset_sender() {
     consume(3);
     check(injected_values[0] == 0.f && injected_values[1] == 1.f && injected_values[2] == 0.f,
           "sender emits only the initial low, actual rise and actual fall");
+}
+
+// A70 keeps rule 2: larger blocks rebuild. Observe the actual DSP path
+// against an uninterrupted, equally stepped twin, not merely a successful
+// reply or a serialized version word. Fake streams never open real devices.
+using A70Samples = std::array<std::vector<float>, 3>;
+struct A70Witness {
+    A70Samples before, after;
+    Json fresh = Json::array();
+    bool held_before = false, held_after = false, released = false;
+};
+A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
+    Options options;
+    options.audio = true;
+    options.rate = 48000;
+    options.block = 256;
+    options.settings = (root / (rebuild ? "a70-rebuild.json" : "a70-control.json")).string();
+    fake::outputs = {output("A70 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json command = {{"v", 0}, {"id", id}, {"type", type}};
+        command.update(payload);
+        return s.reply({command, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({
+            {{"id", 1}, {"module", "essentials.output"}},
+            {{"id", 2}, {"module", "essentials.noise"}, {"parameters", {{"level", .5}}}},
+            {{"id", 3}, {"module", "fx.delay"},
+             {"parameters", {{"time", .25}, {"feedback", .9}, {"mix", 1.}}}},
+            {{"id", 4}, {"module", "host.keyboard"}, {"parameters", {{"voices", 1}}}},
+            {{"id", 5}, {"module", "essentials.adsr"},
+             {"parameters", {{"attack", .0001}, {"decay", .01}, {"sustain", .7}, {"release", .01}}}},
+            {{"id", 6}, {"module", "essentials.vco"}, {"parameters", {{"frequency", 431.}}}},
+            {{"id", 7}, {"module", "essentials.vca"}}
+        })},
+        {"connections", Json::array({
+            {{"kind", "signal"}, {"from", {{"module", 2}, {"port", "audio"}}},
+                                 {"to", {{"module", 3}, {"port", "left"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 4}, {"port", "gate"}}},
+                                 {"to", {{"module", 5}, {"port", "gate"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 5}, {"port", "envelope"}}},
+                                 {"to", {{"module", 7}, {"port", "gain_cv"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 6}, {"port", "audio"}}},
+                                 {"to", {{"module", 7}, {"port", "audio"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 7}, {"port", "audio"}}},
+                                 {"to", {{"module", 1}, {"port", "audio"}}}}
+        })}
+    };
+    check(call("a70-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "A70 patch loads");
+    check(bool(fake::freeze_render), "A70 fake callback can quiesce");
+    fake::freeze_render();
+    fake::render = false;
+    // The paced load handoff can have rendered a different number of blocks
+    // in each twin. Reset both once, BEFORE either witness starts. From here
+    // all samples are deterministic and manually advanced by the same owner.
+    check(app_engine_reset(fake::engine) == WS2_OK, "A70 align cold twin state");
+    check(call("a70-held", "noteOn", {{"note", 60}, {"velocity", .8}})["ok"] == true,
+          "A70 initial held note");
+    std::array<float, 512> bus{};
+    auto step = [&](uint32_t frames) {
+        check(app_engine_render(fake::engine, bus.data(), frames) == WS2_OK,
+              "A70 manual render");
+    };
+    auto raw = [&](uint32_t node, uint32_t port, uint32_t frame) {
+        return app_engine_native(fake::engine).output_sample(node, port, 0, frame);
+    };
+    auto record = [&](A70Samples &dst, uint32_t frames) {
+        // Inspect the raw node outputs, before the stopped-stream master fade.
+        // A70 is a module-state witness; the output-device fade is unchanged.
+        constexpr uint32_t nodes[] = {7, 3, 6}; // held-note VCA, wet Delay, free-running VCO
+        for (size_t i = 0; i < dst.size(); ++i)
+            for (uint32_t f = 0; f < frames; ++f)
+                dst[i].push_back(raw(nodes[i], 0, f));
+    };
+    for (int i = 0; i < 64; ++i) step(256); // fill the 250ms delay line
+    check(call("a70-mute-source", "setParam",
+               {{"moduleId", 2}, {"paramId", "level"}, {"value", 0.}})["ok"] == true,
+          "A70 stop exciting the delay");
+    for (int i = 0; i < 4; ++i) step(256); // settle the 5ms Noise level ramp
+    check(raw(2, 0, 255) == 0.f, "A70 tail has no current input");
+    A70Witness result;
+    record(result.before, 256);
+    result.held_before = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
+    if (rebuild) {
+        const auto *old = fake::engine;
+        const auto reply = call("a70-larger", "setBufferFrames", {{"frames", 512}});
+        check(reply["ok"] == true && fake::engine != old && audio(s)["bufferFrames"] == 512,
+              "A70 must still take rule 2 and reopen at 512");
+        check(reply.contains("result") && reply["result"].contains("freshModules") &&
+                  reply["result"]["freshModules"].is_array(),
+              "A70 rebuild must report freshModules");
+        result.fresh = reply["result"]["freshModules"];
+    }
+    // Same sample partition on both sides of the edit, even though the
+    // rebuilt engine now supports 512. Also exercise the actual larger size.
+    for (int i = 0; i < 2; ++i) {
+        step(256);
+        record(result.after, 256);
+    }
+    result.held_after = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
+    check(call("a70-release", "noteOff", {{"note", 60}})["ok"] == true,
+          "A70 later NOTE_OFF must be accepted");
+    if (rebuild) step(512);
+    else { step(256); step(256); }
+    result.released = raw(4, 1, rebuild ? 511 : 255) == 0.f &&
+                      raw(5, 0, rebuild ? 511 : 255) == 0.f;
+    s.shutdown();
+    return result;
+}
+void test_a70_buffer_state(const std::filesystem::path &root) {
+    const auto reference = a70_buffer_witness(root, false);
+    const auto switched = a70_buffer_witness(root, true);
+    auto peak = [](const std::vector<float> &samples) {
+        float value = 0.f;
+        for (float sample : samples) value = (std::max)(value, std::abs(sample));
+        return value;
+    };
+    check(reference.before == switched.before && reference.held_before && switched.held_before,
+          "A70 uninterrupted and restart twins must agree before the edit");
+    check(reference.held_after && reference.released,
+          "A70 uninterrupted note remains held and releases on NOTE_OFF");
+    for (size_t i = 0; i < reference.before.size(); ++i) {
+        check(peak(reference.before[i]) > .001f && peak(reference.after[i]) > .001f,
+              "A70 control must have nontrivial held-note, Delay and VCO witnesses");
+        std::cout << "A70 raw witness " << i << " before_peak=" << peak(reference.before[i])
+                  << " control_peak=" << peak(reference.after[i])
+                  << " rebuilt_peak=" << peak(switched.after[i])
+                  << " identical=" << (reference.after[i] == switched.after[i]) << '\n';
+    }
+    std::cout << "A70 freshModules=" << switched.fresh.dump()
+              << " held=" << switched.held_after << " released=" << switched.released << std::endl;
+    check(switched.held_after, "A70 held note must continue through a larger-buffer rebuild");
+    check(reference.after[0] == switched.after[0], "A70 held-note waveform continues exactly");
+    check(reference.after[1] == switched.after[1], "A70 wet Delay tail continues exactly");
+    check(reference.after[2] == switched.after[2], "A70 VCO phase continues exactly");
+    for (const auto &entry : switched.fresh) {
+        const uint32_t id = entry.at("moduleId").get<uint32_t>();
+        check(id != 3 && id != 4 && id != 5 && id != 6 && id != 7,
+              "A70 carried modules must not be named fresh");
+    }
+    check(switched.released, "A70 restored held-note ID must match later NOTE_OFF");
 }
 
 void test_e7_state_restart(const std::filesystem::path &root) {
@@ -1200,6 +1347,7 @@ int main() {
         fake::accept_block = 0;
         fake::preferred = 0;
         options.block = saved_block;
+        test_a70_buffer_state(root);
         test_e7_state_restart(root);
         test_e7_rate_dependent_state_refusal(root);
         std::cout << "audio recovery fake-backend tests passed\n";
