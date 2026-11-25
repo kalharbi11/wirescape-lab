@@ -28,4 +28,20 @@ inline bool validate_osc_out_routes(const OscOutRoutes &data, std::string &error
     }
     return true;
 }
+// Off-RT conversion of already validated legacy config, including all eight
+// row-specific defaults. Host-owned pointers are deliberately excluded.
+inline bool materialize_osc_out_routes(const OutConfiguration &legacy, OscOutRoutes &out, std::string &error) {
+    OscOutRoutes candidate{};
+    for (uint32_t i = 0; i < 8; ++i) {
+        const auto &src = legacy.rows[i];
+        auto &dst = candidate.rows[i];
+        std::memcpy(dst.address, src.address, sizeof(dst.address));
+        dst.kind = src.kind; dst.deadband = src.deadband; dst.enabled = uint8_t(src.enabled);
+    }
+    std::memcpy(candidate.notes_address, legacy.notes.address, sizeof(candidate.notes_address));
+    candidate.notes_enabled = uint8_t(legacy.notes.enabled);
+    if (!validate_osc_out_routes(candidate, error)) return false;
+    out = candidate;
+    return true;
+}
 } // namespace wirescape::osc
