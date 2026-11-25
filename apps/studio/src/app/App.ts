@@ -45,6 +45,11 @@ const CLIPBOARD_KEY = 'wirescape.clipboard.v1';
 
 interface ClipModule { id: number; module: string; parameters: Record<string, number>; pos: [number, number]; label?: string; extra: Record<string, unknown> }
 interface Clip { modules: ClipModule[]; connections: Connection[]; colors: Record<string, string> }
+type PlayingDocument = {
+  patch: PatchV2; name: string; bundled: boolean; dirty: boolean;
+  restoreHistory?: HistoryCheckpoint;
+  configReconciliations?: { before: PatchV2; after: PatchV2 }[];
+};
 
 export class App {
   readonly root: HTMLElement;
@@ -89,10 +94,10 @@ export class App {
   private documentBusy = false;
   private viewEpoch = 0;
   private readEpoch = 0;
-  private playingSnapshot: {
-    patch: PatchV2; name: string; bundled: boolean; dirty: boolean;
-    restoreHistory?: HistoryCheckpoint;
-  } | null = null;
+  private playingSnapshot: PlayingDocument | null = null;
+  /** During an explicit namespace load, a terminal still belongs to the
+   * old playing document until the load ACK, never to the opening patch. */
+  private openingPatch: { previous?: PlayingDocument } | null = null;
   private octaveEl!: HTMLElement;
   private lastStatus: SystemStatus | null = null;
   private learn!: MidiLearn;
@@ -613,6 +618,20 @@ export class App {
       else node.config = structuredClone(event.actual);
       return next;
     };
+    const updateSaved = (saved?: PlayingDocument | null) => {
+      if (!saved) return;
+      const normalized = normalize(saved.patch);
+      if (!normalized) return;
+      // A checkpoint's reconcile also changes live History. Delay that
+      // until this saved document is visible again.
+      (saved.configReconciliations ??= []).push({ before: saved.patch, after: normalized });
+      saved.patch = normalized;
+      saved.dirty = true;
+    };
+    if (this.openingPatch) {
+      updateSaved(this.openingPatch.previous);
+      return;
+    }
     const chain = this.graphChain;
     if (chain && chain.epoch === this.viewEpoch && !this.draftVisible) {
       const previous = chain.anchor.patch, normalized = normalize(previous);
@@ -626,16 +645,7 @@ export class App {
       return;
     }
     if (this.draftVisible) {
-      const playing = this.playingSnapshot;
-      if (playing) {
-        const normalized = normalize(playing.patch);
-        if (normalized) {
-          // The saved playing document, not the unrelated draft, owns it.
-          playing.restoreHistory?.reconcile(playing.patch, normalized);
-          playing.patch = normalized;
-          playing.dirty = true;
-        }
-      }
+      updateSaved(this.playingSnapshot);
       return;
     }
     const before = this.doc.toJSON(), after = normalize(before);
@@ -752,12 +762,19 @@ export class App {
     this.doc.markClean();
     if (playing.dirty) this.doc.markDirty();
     this.history.reset();
-    playing.restoreHistory?.();
+    this.restorePlayingHistory(playing);
     this.ticker.resetTelemetry();
     this.canvas.select({ kind: 'none' });
     this.restoreDraftView();
     this.canvas.invalidateAnchors();
     this.refreshDraftControls();
+  }
+
+  private restorePlayingHistory(saved: PlayingDocument): void {
+    saved.restoreHistory?.();
+    const checkpoint = this.history.checkpoint();
+    for (const pair of saved.configReconciliations ?? [])
+      checkpoint.reconcile(pair.before, pair.after);
   }
 
   private async applyRefusedDraft(): Promise<void> {
@@ -800,12 +817,17 @@ export class App {
     if (this.draftVisible) this.backToPlaying();
     const coordinated = this.engine instanceof RealEngine;
     if (!restoring && coordinated) this.beginDocumentOperation();
+    let opening: { previous?: PlayingDocument } | undefined;
     try {
       if (coordinated) await this.settlePlayingEdits();
       ++this.viewEpoch;
       // What is showing (and, if it ran, still sounding) before this load.
-      const previous = restoring ? undefined : { patch: this.doc.toJSON(), name: this.patchName,
+      const previous: PlayingDocument | undefined = restoring ? undefined : { patch: this.doc.toJSON(), name: this.patchName,
         dirty: this.doc.dirty, bundled: this.bundledPatch, restoreHistory: this.history?.checkpoint() };
+      if (coordinated) {
+        opening = { previous };
+        this.openingPatch = opening;
+      }
       this.ticker.resetTelemetry();
       this.doc.replace(patch);
       this.patchName = name;
@@ -847,15 +869,19 @@ export class App {
             (e.detail.code === 'unavailable' || e.detail.code === 'busy')) {
           this.refusedDraft = { patch: this.doc.toJSON(), name, bundled: forceSaveAs };
           this.toasts.show(`${name} could not start: ${e.message}. Still playing ${previous.name}. Open the refused draft to edit it.`, 'error');
+          if (this.openingPatch === opening) this.openingPatch = null;
           await this.loadPatch(previous.patch, previous.name, previous.bundled, true);
-          previous.restoreHistory?.();
+          this.restorePlayingHistory(previous);
           if (previous.dirty) { this.doc.markDirty(); this.refreshDirty(); }
           this.refreshDraftControls();
           return;
         }
         this.toasts.show(e instanceof Error ? e.message : 'Patch could not run; the editable document was kept.', 'error');
       }
-    } finally { if (!restoring && coordinated) this.endDocumentOperation(); }
+    } finally {
+      if (this.openingPatch === opening) this.openingPatch = null;
+      if (!restoring && coordinated) this.endDocumentOperation();
+    }
   }
 
   // ---- system (phase 5) ---------------------------------------------------
