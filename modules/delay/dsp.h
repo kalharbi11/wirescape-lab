@@ -152,7 +152,9 @@ struct Delay {
             // Preserve the live filter state and ramp the low/high-pass mix
             // across bypass. Retarget from the current coefficients.
             if (tone_low == 0.f && tone_high == 0.f) tone_current_a = tone_a;
-            tone_left = fade_frames;
+            // Same-kind host ramp samples retarget the current fade without
+            // restarting its duration; only a real filter-kind change rearms it.
+            if (old_kind != tone_kind) tone_left = fade_frames;
         } else {
             tone_current_a = tone_a;
             tone_low = tone_kind < 0 ? tone_k : 0.f;
