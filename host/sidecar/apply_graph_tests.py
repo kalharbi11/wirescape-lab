@@ -163,6 +163,15 @@ with tempfile.TemporaryDirectory() as directory:
     refused = engine.call('applyGraph', False, patch=bad)
     assert refused['code'] == 'unknown-module' and refused['gen'] == gen, refused
     engine.telemetry_when(gen, lambda t: '1' in t.get('groove', {}) and pitch(t) is not None)
+    # E3a-2: invalid live data is a field-named refusal, not a graph edit.
+    malformed = copy.deepcopy(faster)
+    malformed['modules'][2]['data'] = []
+    refused = engine.call('applyGraph', False, patch=malformed)
+    assert refused['gen'] == gen and 'data' in refused['message'], refused
+    refused = engine.call('setData', False, moduleId=9, slot='missing', value={})
+    assert refused['code'] == 'invalid' and 'missing' in refused['message'] and refused['gen'] == gen, refused
+    refused = engine.call('setData', False, moduleId=999, slot='missing', value={})
+    assert refused['code'] == 'not-found' and refused['gen'] == gen, refused
     # J5: the committed document (unknown fields included) is the base of the next edit.
     reply = engine.call('addModule', moduleId=40, moduleType='essentials.vco')
     assert int(reply['gen']) == int(gen) + 1
