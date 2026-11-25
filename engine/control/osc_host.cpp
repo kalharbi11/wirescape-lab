@@ -2,6 +2,8 @@
 #include "osc_host.h"
 #include <nlohmann/json.hpp>
 #include <cstring>
+#include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 namespace wirescape::osc {
 int Host::deliver(void *context, uint32_t node, const ws2_event &event, uint64_t timestamp) noexcept {
@@ -10,8 +12,49 @@ int Host::deliver(void *context, uint32_t node, const ws2_event &event, uint64_t
     auto &graph = app_engine_native(self.engine_);
     const int result = graph.enqueue(2, node, WS2_DIRECT_PORT, event, timestamp, engine2::Timing::Timestamped,
                                      app_engine_generation(self.engine_));
+    if (self.trace_enabled_)
+        self.trace_delivery(node, timestamp, result, graph.meter());
     if (result == WS2_OK && self.monitor_) self.monitor_->osc(node, event, timestamp);
     return result;
+}
+// A74: diagnostic-only observation, on the existing sole producer worker.
+void Host::trace_delivery(uint32_t node, uint64_t timestamp, int result,
+                          const engine2::Meter &meter) noexcept {
+    const TraceSample sample{++attempts_, timestamp, meter.frame, meter.ring_full,
+                             meter.generation, node};
+    if (result == WS2_CAPACITY) {
+        ++capacity_;
+        if (refusal_count_ < trace_limit) refusals_[refusal_count_++] = sample;
+    } else {
+        if (result == WS2_OK) ++queued_;
+        else if (result == WS2_INVALID) ++invalid_;
+        else if (result == WS2_STATE) ++state_;
+        else ++other_;
+        // Only the last 256 attempts before the first refusal are retained.
+        if (!capacity_) prior_[prior_count_++ % trace_limit] = sample;
+    }
+}
+void Host::report_trace() const noexcept {
+    if (!trace_enabled_ || !engine_) return;
+    const auto end = app_engine_get_meter(engine_);
+    const uint64_t prior_size = capacity_ ? (prior_count_ < trace_limit ? prior_count_ : trace_limit) : 0;
+    const auto u = [](uint64_t value) { return static_cast<unsigned long long>(value); };
+    // Meter.events is engine-wide processed-event count, not OSC ring drains.
+    std::fprintf(stderr,
+        "osc_capacity_epoch queued=%llu invalid=%llu capacity=%llu state=%llu other=%llu "
+        "events_start=%llu events_end=%llu trace_count=%llu omitted=%llu\n",
+        u(queued_), u(invalid_), u(capacity_), u(state_), u(other_), u(events_start_),
+        u(end.events), u(prior_size + refusal_count_), u(capacity_ - refusal_count_));
+    auto print = [&](const char *kind, const TraceSample &v) {
+        std::fprintf(stderr,
+            "osc_capacity_sample kind=%s ordinal=%llu module=%u arrival_ns=%llu frame=%llu "
+            "ring_full=%llu generation=%llu\n",
+            kind, u(v.ordinal), unsigned(v.module), u(v.arrival_ns), u(v.frame),
+            u(v.ring_full), u(v.generation));
+    };
+    for (uint64_t i = prior_count_ - prior_size; i < prior_count_; ++i)
+        print("prior", prior_[i % trace_limit]);
+    for (uint64_t i = 0; i < refusal_count_; ++i) print("refusal", refusals_[i]);
 }
 // At 64 x 200 Hz, sending each recognized message to all nine OSC In
 // modules exhausts the bounded engine ingress ring. Match known addresses
@@ -126,14 +169,21 @@ void Host::start(AppEngine *engine, const std::string &document) {
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;
+    const char *diagnostic = std::getenv("WIRESCAPE_OSC_CAPACITY_DIAGNOSTIC");
+    trace_enabled_ = diagnostic && std::strcmp(diagnostic, "1") == 0 && engine_;
+    attempts_ = queued_ = invalid_ = capacity_ = state_ = other_ = 0;
+    prior_count_ = refusal_count_ = 0;
+    events_start_ = trace_enabled_ ? app_engine_get_meter(engine_).events : 0;
     // Busy ports report unavailable status; they never refuse the patch.
     (void)service_->start();
 }
 void Host::stop() noexcept {
     if (service_) {
         service_->stop();
+        report_trace(); // after join, before engine retirement
         service_.reset();
     }
+    trace_enabled_ = false;
     disabled_.clear();
     filters_.clear();
     for (auto &entry : cached_matches_) entry.valid = false;
