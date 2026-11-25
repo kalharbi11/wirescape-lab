@@ -145,8 +145,34 @@ static void live_route_data() {
     REQUIRE(rig.data->values[0][0][31] == .75f);
     REQUIRE(rig.data->values[1][0][31] == .5f); // untouched row retains held value
 }
+// A new wildcard route must not inherit the old route's full numeric voice
+// table: otherwise disjoint indices can never be discovered on the new route.
+static void live_wildcard_route_reclaims_indices() {
+    osc::Configuration cfg;
+    std::strcpy(cfg.rows[0].pattern, "/old/*");
+    cfg.rows[0].smoothing_ms = 0;
+    cfg.rows[1].smoothing_ms = 0;
+    Rig rig(cfg);
+    for (uint32_t i = 1; i <= 16; ++i) {
+        char address[32];
+        std::snprintf(address, sizeof(address), "/old/%u", i);
+        auto bytes = packet(address, .25f);
+        rig.run({message(bytes)});
+    }
+    auto untouched = packet("/pico1/knob/2", .5f);
+    rig.run({message(untouched)});
+    REQUIRE(rig.outputs[0].channels == 16);
+    std::strcpy(rig.slot_data.rows[0].pattern, "/new/*");
+    ++rig.slot_view.serial;
+    auto next = packet("/new/99", .75f);
+    rig.run({message(next)});
+    REQUIRE(rig.outputs[0].channels == 1);
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+    REQUIRE(rig.data->values[1][0][31] == .5f);
+}
 int main() {
     live_route_data();
+    live_wildcard_route_reclaims_indices();
     {
         osc::Configuration cfg;
         Rig rig(cfg);
