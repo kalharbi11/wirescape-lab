@@ -10,6 +10,17 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead continuation — E5 pinned for manual Architect run (2026-11-24 23:13 EST)
+
+- **E5 #436** exact head `2519e306eec6bb9991fe4dfd1c1dfe860e84c83a`, tested base `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`: [signed Result](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152566759), nine workflows green (Lab 45541629572, Golden 45541629414, strict paired 45541629517, stress 45541629427), supplemental ASan 45544558549. Hold for Claude contract-review; A71 every-fade-sample held continuity fixed; CN phase diagnostic separate.
+- **Inbox:** #510 merged `7b517cf2` on exact Lab 45544746169, consolidates #509 and E5 review without altering contract or B4-A70 row. #509 closed superseded; main inbox verified. Existing needs/architect on #429/#436/#480/#503/#507 verified. Owner manually starts Architect; no trigger labels.
+- **Next Architect run:** (1) E5 contract-review ER4/A55/A59/A69/A71/G1–G9, including stale releases/held ledger and ack lifetime; (2) B4-A70 allocator friend, Keyboard NOTE_OFF bookkeeping/C2 test scope, critical to #507/#504; (3) B1-A69 extra exact phase oracle disposition, CN only. Do not review unqualified #449/#507 as merge-ready.
+- #449 `f8a318b` Lab/strict paired green, both Linux primary Golden red (45541924603), Windows green. SR6 bounded correction/first-difference diagnosis [packet](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152641383); B1 sole Delay writer until qualified pin. A64 ordered correction does not count as SR6 round. #485 `9ffa1131`: held/Voice exact, fallback 9/9, analytic phase bound met but extra exact phase differs; actual cost still pending.
+- #507 `716fcba` partial hooks, targeted ADSR/Slew green, full Lab red; #504 actual fail-first all native platforms and sanitizer. #497 native and sanitizer green, [diagnostic-only hosted stage released](https://github.com/kalharbi11/wirescape-lab/pull/497#issuecomment-7152641775); no auto-merge or A67 tag hold. #490 Lab green, facts 45538413826 running. #499/#502 remain Low draft queue; #492 awaits candidate evidence. No additional product merge qualifies.
+- Route: E5 approval/merge; E7c ruling/hooks plus E7b witness; larger CN and final cost; S7.6 exact Golden/review and OB-d; OB-f1/owner folder, candidate Pi and acceptance/tag. See BUILDERS. No acceptance criteria changed.
+
+Signed: codex-lead, 2026-11-24, 23:13 EST
+
 ## Lead continuation — D5 published, A71 released, S7.6 strict reds (2026-11-24 ET)
 
 - #505 merged `d53b876`. #508 merged `00c39f5` on exact Lab 45541137511 green; A70 allocator/NOTE_OFF/C2 scope question in main inbox and #503 needs/architect. SR7 does not cover new state semantics. No Architect wake.
