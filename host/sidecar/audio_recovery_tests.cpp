@@ -10,6 +10,19 @@
 #include "../osc/codec.h"
 #include "../../modules/osc_out/dsp.h"
 #include "session.h"
+#include "../document/runtime_patch.h"
+#include <iterator>
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define WIRESCAPE_E7B_ASAN 1
+#endif
+#endif
+#if defined(__SANITIZE_ADDRESS__) && !defined(WIRESCAPE_E7B_ASAN)
+#define WIRESCAPE_E7B_ASAN 1
+#endif
+#ifdef WIRESCAPE_E7B_ASAN
+extern "C" size_t __sanitizer_get_current_allocated_bytes();
+#endif
 #include <algorithm>
 #include <cerrno>
 #include <filesystem>
@@ -540,7 +553,84 @@ void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
     s.shutdown();
 }
 
-int main() {
+// A68 pre-code diagnostic only. No Session or product behavior is changed.
+#ifdef WIRESCAPE_E7B_ASAN
+struct PreparedBytes {
+    int64_t catalogue, graph;
+    int64_t total() const { return catalogue + graph; }
+};
+PreparedBytes prepared_bytes(const std::string &bytes, uint32_t frames) {
+    wirescape::engine2::Config cfg{};
+    cfg.sample_rate = 48000.;
+    cfg.max_block = frames;
+    cfg.max_nodes = 64;
+    cfg.event_budget = 2048;
+    std::string error;
+    const auto live = [] { return int64_t(__sanitizer_get_current_allocated_bytes()); };
+    const auto before = live();
+    wirescape::audio::EngineOwner catalog(app_engine_create(&cfg), app_engine_destroy);
+    check(bool(catalog), "A68 catalogue allocation");
+    const auto after_catalog = live();
+    wirescape::audio::EngineOwner graph(
+        wirescape::document::load_runtime_patch(bytes, catalog.get(), cfg, error), app_engine_destroy);
+    if (!graph) throw std::runtime_error("A68 load failed: " + error);
+    const auto after_graph = live();
+    return {after_catalog - before, after_graph - after_catalog};
+}
+
+void report_e7b_memory(const std::filesystem::path &directory) {
+    std::vector<std::filesystem::path> paths;
+    for (const auto &entry : std::filesystem::directory_iterator(directory))
+        if (entry.is_regular_file() && entry.path().extension() == ".json") paths.push_back(entry.path());
+    std::sort(paths.begin(), paths.end());
+    check(!paths.empty(), "A68 requires the bundled golden inventory");
+    int64_t largest_graph = -1, largest_delta = -1, heavy_delta = -1;
+    std::string heaviest, worst;
+    for (const auto &path : paths) {
+        std::ifstream input(path, std::ios::binary);
+        check(bool(input), "A68 open bundled patch");
+        const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+        (void)prepared_bytes(bytes, 256);
+        const auto a = prepared_bytes(bytes, 256);
+        const auto b = prepared_bytes(bytes, 1024);
+        const auto b2 = prepared_bytes(bytes, 1024);
+        const auto a2 = prepared_bytes(bytes, 256);
+        const auto name = path.filename().string();
+        std::cout << "A68 " << name << " graph256=" << a.graph << " graph1024=" << b.graph
+                  << " catalogue256=" << a.catalogue << " catalogue1024=" << b.catalogue
+                  << " total_delta=" << b.total() - a.total()
+                  << " reverse_delta=" << b2.total() - a2.total() << '\n';
+        check(a.graph == a2.graph && b.graph == b2.graph &&
+              a.catalogue == a2.catalogue && b.catalogue == b2.catalogue,
+              "A68 live allocated byte measurement is not repeatable");
+        const auto delta = b.total() - a.total();
+        if (b.graph > largest_graph) {
+            largest_graph = b.graph;
+            heaviest = name;
+            heavy_delta = delta;
+        }
+        if (delta > largest_delta) {
+            largest_delta = delta;
+            worst = name;
+        }
+    }
+    std::cout << "A68 summary patches=" << paths.size() << " heaviest_graph=" << heaviest
+              << " graph1024_bytes=" << largest_graph << " heaviest_total_delta=" << heavy_delta
+              << " max_total_delta=" << largest_delta << " max_delta_patch=" << worst
+              << " limit_bytes=" << 8 * 1024 * 1024 << '\n';
+}
+#endif
+
+int main(int argc, char **argv) {
+    if (argc == 3 && std::string(argv[1]) == "--e7b-memory") {
+#ifdef WIRESCAPE_E7B_ASAN
+        try { report_e7b_memory(argv[2]); return 0; }
+        catch (const std::exception &e) { std::cerr << e.what() << '\n'; return 1; }
+#else
+        std::cerr << "A68 memory diagnostic requires ASan\n";
+        return 1;
+#endif
+    }
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
     struct Cleanup {
