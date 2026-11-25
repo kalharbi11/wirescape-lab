@@ -14,7 +14,8 @@
   "outputs": {
     "pitch": "signal",
     "gate": "signal",
-    "velocity": "signal"
+    "velocity": "signal",
+    "trig": "signal"
   },
   "license": "GPL-3.0-only"
 }

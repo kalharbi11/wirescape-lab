@@ -230,7 +230,7 @@ Used when config really changes shape, and for the developer hot reload of `0002
 1. The control owner creates and prepares the new instance `N` beside the old `O`.
 2. The transition layout contains both. Every consumer edge from `O` ramps out and a twin from
    `N` ramps in, over the module's declared `replace_fade_ms` (default 20, maximum 500). Signal
-   inputs feed both. Events go to `N` only; `O` receives a release-all at the swap.
+   inputs feed both. Events go to `N` only; `O` receives a release-all at the swap, **except after a successful `adopt`** (A71, 2026-11-24): then `O` keeps rendering its held state under the fade-out.
 3. **Adopt.** If the descriptor has `adopt`, render calls `adopt(N, O)` once, at the block
    boundary where the layout is adopted, before either processes. The hook is realtime code:
    bounded, no allocation. It copies what continues (phases, envelope levels, held-note table,

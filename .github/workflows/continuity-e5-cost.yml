@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      ENGINE_HEAD: b4b11ac81be852d6bfcba56636a685cf42947dff
-      # Compile against a historical pin only. B1 changes this once B5's
-      # corrected exact review head is known; no provisional cost claim.
+      ENGINE_HEAD: 2519e306eec6bb9991fe4dfd1c1dfe860e84c83a
+      # Compile at B5's corrected prospective pin. Actual cost capture
+      # remains disabled until the source passes its exact gates.
       MEASURE: "false"
     steps:
       - uses: actions/checkout@v4
