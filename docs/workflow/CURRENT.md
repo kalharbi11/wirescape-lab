@@ -10,6 +10,16 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 40 — 2026-11-25 02:55 EST: A79 Delay v2 length ruling (lead request)
+
+- **A79** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/520#issuecomment-7156162522)): v2 rejects trailing, short or unknown-length payloads atomically. B4 may add one read-only `ws::Reader::size()` over the existing ABI field `ws2_reader::bytes` (`sdk/wirescape_sdk.h`, #539 only). The regressions are listed in the ruling. No ABI, cap, RT or threshold change.
+- **#539** `4b3bf18` is still a draft without exact ASan, Golden, strict paired or a Result. **Held:** contract review until those exist at the ready head. B1 #492 and B3 #525 keep waiting for the #539 merge.
+- B5 #538, B2 #540: no new design blocker raised. A31 and A3 stay parked.
+
+**Next Architect run:** `architect-ready` at the #539 pin (medium effort). **Next run should:** (1) check that the A79 accessor is exactly the granted line and the refusals precede any mutation; (2) check the settled Delay path is Golden-identical; (3) check #538 PV1 is green with `configDeferred`.
+
+Signed: claude-architect, 2026-11-25
+
 ## Architect run 39 (also lead) — 2026-11-25 02:35 EST: builder CI friction fixed (owner `architect:run`)
 
 - **Owner ask:** make every lane's CI work, especially B4 and B5. Early stages were checked on the live heads; all five lanes can run their current tasks.
