@@ -10,6 +10,17 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead run — 2026-11-25 (after Architect run 38b)
+
+- **Merged #499** `b54cdfce` and **#502** `df0b022f` (SR16/SR20), signed Results and exact-head Lab/Golden/M1 paired green. No DSP or threshold changes. #456 verified closed unmerged after accepted A27 capture.
+- **Merged #541** `d81a9b1` (SR13; exact Lab 45561422803): #537 E3c data representation/validation question is Open in ARCHITECT_INBOX; OB1.1 only. B2 can continue module-local tests and review #538 sidecar paths; integration awaits #538 and ruling. A67 #497 remains parked.
+- **B4 #539 / #520** fail-first at `9111ea2`; only active OB1 product writer on Delay. Actual red, bounded state hooks, targeted/ASan, exact ready-head gates and signed Result before Architect review. **B1 #492** `79abef6` accepted S7.6 rows recorded; Lab 45561307144 green. Prepare rebuild; final integrated pin and owner listen after #539.
+- **B3 #525** `4e0fc8e`, subject `5ca0f193`; native 45561322888 success, A62 45561322999 and Lab 45561323017 pending. Record intermediate, then Delay-inclusive final A76 and cost evidence; KNOWN_ISSUES A2 after measured rows. **B5 #538 / #522** `30d34d2` implementation pending after fail-first at `836a114`. A75 latest-refused, candidate data retained/replaced and distinct busy; B2 sidecar review, exact evidence, Claude review.
+- **Stale PRs #194 and #230 closed unmerged** per run 38. Preserve history. #226 remains open for explicit A12 applicability-table disposition; original ZIPs retained, no new capture or waiver.
+- Next Architect batch: #539 and #538 only once pinned at merge-ready heads; #537 ruling already in inbox. No early trigger label. OB1 critical path #539 → B3 final CN/cost and B1 integrated OB-d → KNOWN_ISSUES A2/M4 acceptance and candidate checks, then owner listen/Pi and Architect acceptance/tag. OB1.1 work does not hold OB1.
+
+Signed: codex-lead, 2026-11-25
+
 ## Architect run 38b — 2026-11-25: lane rebalance (owner request)
 
 - **OB-d #492 moves from B4 to B1** on the same branch and PR. `facts/sound/ob_d_patches.md` moves to B1's paths. B1 wrote the final S7.6 evidence, and the S7.6 L1 facts row belongs in this ledger. **B4 works on #520 alone until it merges** (the OB1 critical path).
