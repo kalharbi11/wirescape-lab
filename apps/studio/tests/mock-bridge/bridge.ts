@@ -113,15 +113,20 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
           if (cmd.type === 'applyGraph' && deferNext !== undefined) {
             const deferId = deferNext; deferNext = undefined;
             if (!deferredEnabled) { reply(cmd, false, { code: 'busy', message: 'Scripted busy' }, s); break; }
+            const superseded: Message[] = [];
             for (const node of cmd.patch.modules as Message[]) {
               const old = graph.modules.find((m: Message) => m.id === node.id);
               const pending = deferred.get(node.id);
-              if (old && canonical(node.config) !== canonical(pending ? pending.config : old.config)) {
-                if (pending) terminal(node.id, 'superseded');
+              if (old && canonical(node.config) !== canonical(old.config) &&
+                  canonical(node.config) !== canonical(pending ? pending.config : old.config)) {
+                if (pending) superseded.push({ v: 0, type: 'configDeferred', session: session(),
+                  deferId: pending.deferId, moduleId: node.id, outcome: 'superseded', generation: String(gen) });
                 deferred.set(node.id, { deferId, config: node.config === undefined ? undefined : copy(node.config) });
               }
             }
             reply(cmd, false, { code: 'busy', message: 'Scripted deferred', deferred: true, deferId }, s);
+            // Sidecar sends the reply before draining terminal events.
+            for (const event of superseded) emit(event);
             break;
           }
           const original = cmd.patch;
