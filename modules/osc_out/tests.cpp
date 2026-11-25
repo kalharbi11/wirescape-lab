@@ -46,14 +46,8 @@ struct Rig {
         ctx.event_inputs = event_inputs;
         const osc::OutConfiguration defaults;
         const auto &cfg = config ? *config : defaults;
-        for (uint32_t i = 0; i < 8; ++i) {
-            const auto &src = cfg.rows[i];
-            auto &dst = slot_data.rows[i];
-            std::memcpy(dst.address, src.address, sizeof(dst.address));
-            dst.kind = src.kind; dst.deadband = src.deadband; dst.enabled = uint8_t(src.enabled);
-        }
-        std::memcpy(slot_data.notes_address, cfg.notes.address, sizeof(slot_data.notes_address));
-        slot_data.notes_enabled = uint8_t(cfg.notes.enabled);
+        std::string error;
+        REQUIRE(osc::materialize_osc_out_routes(cfg, slot_data, error));
         ctx.data_count = 1; ctx.data = &view;
     }
     ~Rig() { desc->destroy(state); }
