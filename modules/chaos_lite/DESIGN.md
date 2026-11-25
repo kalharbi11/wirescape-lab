@@ -20,6 +20,20 @@ increment d capped at 0.18, the saw and square level factors are respectively
 1+d(1.9+11d) and 1+d(1.6+11d), chosen to compensate for lost harmonic energy
 without discontinuous tuning or unbounded high-pitch gain. Shape morphing
 interpolates the corrected endpoints; pure sine retains the original expression.
+The coefficients 1.9 (saw), 1.6 (square), and the common quadratic coefficient
+11 are empirical level-compensation constants introduced by the original
+Wirescape S7.3 work, not constants derived from the PolyBLEP kernel or taken
+from an external implementation. See [S7.3 source and review](https://github.com/kalharbi11/wirescape-lab/pull/432#issuecomment-7143875832)
+at `d86c195fa314d6d17ef205ee5a7181edabff361a`. The retained
+[full T7.0 validation](https://github.com/kalharbi11/wirescape-lab/pull/432#issuecomment-7143248891)
+compares the complete rendered output with the pre-S7.3 baseline: across the
+24 reported rate/pitch/shape cases, Linux x64 RMS changes ranged from
+−0.234425 to +0.189420 dB, and all 12 gated alias-reduction rows met their
+targets on both Linux architectures. This validates the chosen constants on
+those stimuli; it does not establish a universal gain match, an optimal fit
+or an analytic derivation. No separate coefficient-fitting sweep or fitting
+procedure is claimed by the retained evidence.
+
 The correction is stateless and allocation-free; state v1/v2 loading is unchanged.
 The T7.0 restricted alias bins measure the complete output including the nonlinear
 post stage, so a lower result is not a claim of zero aliasing.
