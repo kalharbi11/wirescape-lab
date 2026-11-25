@@ -121,10 +121,16 @@ class Sidecar:
     def __init__(self, engine, settings, profile="osc-gates"):
         self.messages = queue.Queue()
         self.errors = deque(maxlen=300)
+        # A74: retain bounded raw diagnostic stderr independently of the
+        # existing legacy stop-oracle tail. No silent completeness claims.
+        self.diagnostic_errors = bytearray()
+        self.stderr_truncated = False
+        self.error_eof = False
         self.proc = subprocess.Popen(
             sidecar_args(engine, settings, profile),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            env={**os.environ, "WIRESCAPE_OSC_ENQUEUE_DIAGNOSTIC": "1"})
+            env={**os.environ, "WIRESCAPE_OSC_ENQUEUE_DIAGNOSTIC": "1",
+                 "WIRESCAPE_OSC_CAPACITY_DIAGNOSTIC": "1"})
         threading.Thread(target=self._read, daemon=True).start()
         self.error_reader = threading.Thread(target=self._err, daemon=True)
         self.error_reader.start()
@@ -147,8 +153,18 @@ class Sidecar:
             pass
 
     def _err(self):
-        for line in self.proc.stderr:
-            self.errors.append(line.decode(errors="replace").strip())
+        try:
+            for line in self.proc.stderr:
+                remaining = 2 * 1024 * 1024 - len(self.diagnostic_errors)
+                self.diagnostic_errors.extend(line[:remaining])
+                if len(line) > remaining:
+                    self.stderr_truncated = True
+                # Extra A74 rows must not evict the legacy bench line.
+                if not line.startswith((b"osc_capacity_epoch ", b"osc_capacity_sample ")):
+                    self.errors.append(line.decode(errors="replace").strip())
+            self.error_eof = True
+        except OSError:
+            pass
 
     def load(self, graph, serial):
         token = f"io-load-{serial}"
@@ -492,10 +508,85 @@ def enqueue_reason_summaries(stderr):
     return {"observations": rows, "malformed": malformed} if rows or malformed else None
 
 
-def apply_shutdown_checks(result, exit_code, stderr):
+def capacity_observations(stderr):
+    """A74: ordered service epochs, bounded trace, never infer missing samples."""
+    epochs, malformed = [], 0
+    current = None
+    summary_keys = ("queued", "invalid", "capacity", "state", "other",
+                    "events_start", "events_end", "trace_count", "omitted")
+    sample_keys = ("ordinal", "module", "arrival_ns", "frame", "ring_full", "generation")
+    number = r"([0-9]{1,20})"
+    summary_pattern = "osc_capacity_epoch " + " ".join(k + "=" + number for k in summary_keys)
+    sample_pattern = "osc_capacity_sample kind=(prior|refusal) " + " ".join(
+        k + "=" + number for k in sample_keys)
+
+    def finish(epoch):
+        if epoch is None:
+            return
+        samples = epoch["samples"]
+        refusals = sum(v["kind"] == "refusal" for v in samples)
+        epoch["trace_complete"] = (
+            len(samples) == epoch["trace_count"] and epoch["omitted"] == 0
+            and refusals == epoch["capacity"] and not epoch["invalid_trace"])
+
+    for line in stderr.splitlines():
+        if line.startswith("osc_capacity_epoch "):
+            finish(current)
+            current = None
+            match = re.fullmatch(summary_pattern, line)
+            if match is None:
+                malformed += 1
+                continue
+            row = dict(zip(summary_keys, map(int, match.groups())))
+            if (any(v > 0xffffffffffffffff for v in row.values())
+                    or row["trace_count"] > 512 or row["omitted"] > row["capacity"]
+                    or (row["capacity"] == 0 and row["trace_count"] != 0)):
+                malformed += 1
+                continue
+            row["samples"] = []
+            row["invalid_trace"] = False
+            epochs.append(row)
+            current = row
+        elif line.startswith("osc_capacity_sample "):
+            match = re.fullmatch(sample_pattern, line)
+            if match is None or current is None:
+                malformed += 1
+                if current is not None:
+                    current["invalid_trace"] = True
+                continue
+            sample = dict(zip(sample_keys, map(int, match.groups()[1:])))
+            sample["kind"] = match.group(1)
+            limit = sum(current[k] for k in summary_keys[:5])
+            old = current["samples"]
+            if (any(sample[k] > 0xffffffffffffffff for k in sample_keys)
+                    or not 1 <= sample["module"] <= 0xffffffff
+                    or not 1 <= sample["ordinal"] <= limit
+                    or len(old) >= current["trace_count"]
+                    or (old and (sample["ordinal"] <= old[-1]["ordinal"]
+                                 or (old[-1]["kind"] == "refusal" and sample["kind"] == "prior")))):
+                malformed += 1
+                current["invalid_trace"] = True
+                continue
+            old.append(sample)
+    finish(current)
+    for epoch in epochs:
+        del epoch["invalid_trace"]
+    return {"epochs": epochs, "malformed": malformed} if epochs or malformed else None
+
+
+def apply_shutdown_checks(result, exit_code, stderr, *, diagnostic_stderr=None,
+                          drain_complete=None, stderr_truncated=False):
     """XFAIL retains its A2 witness, but cannot hide bench faults or engine exit."""
     result["bench"] = bench_line(stderr)
-    reasons = enqueue_reason_summaries(stderr)
+    raw = stderr if diagnostic_stderr is None else diagnostic_stderr
+    if drain_complete is not None:
+        result["osc_diagnostic_shutdown"] = {
+            "exit_code": exit_code, "stderr": raw, "drain_complete": drain_complete,
+            "stderr_truncated": stderr_truncated}
+    trace = capacity_observations(raw)
+    if trace is not None:
+        result["osc_capacity_trace"] = trace
+    reasons = enqueue_reason_summaries(raw)
     if reasons is not None:
         result["osc_enqueue_reasons"] = reasons
     if result["status"] not in ("passed", "xpass", "xfail"):
@@ -760,7 +851,11 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
     finally:
         if child:
             exit_code, stderr = child.close()
-            apply_shutdown_checks(result, exit_code, stderr)
+            apply_shutdown_checks(
+                result, exit_code, stderr,
+                diagnostic_stderr=bytes(child.diagnostic_errors).decode(errors="replace"),
+                drain_complete=child.error_eof and not child.error_reader.is_alive(),
+                stderr_truncated=child.stderr_truncated)
         result["elapsed_s"] = time.monotonic() - started
         result["p99_ms"] = percentile(watch.latencies_ms, 99)
         cutoff = time.monotonic() - 5
