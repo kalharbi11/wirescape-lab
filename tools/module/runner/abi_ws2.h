@@ -167,7 +167,7 @@ public:
         HostDescription o;
         const auto* d = descriptor_;
         if (!d) { o.errors.push_back("entry returned no descriptor"); return o; }
-        if (d->struct_size < sizeof(ws2_descriptor)) {
+        if (d->struct_size < offsetof(ws2_descriptor, data_slot_count)) {
             o.errors.push_back("descriptor struct_size is too small"); return o;
         }
         // A malformed identifier can be __FILE__ (an absolute compiler path).
