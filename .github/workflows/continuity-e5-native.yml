@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: E5 synthetic native continuity (devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "bench/continuity/native/**"
+      - ".github/workflows/continuity-e5-native.yml"
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ENGINE_HEAD: b4b11ac81be852d6bfcba56636a685cf42947dff
+      BASE_HEAD: 7661f832f44c2f8388b84b48e766490e1e44418f
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ENGINE_HEAD }}
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify source pins and configure standalone bench
+        run: |
+          set -euo pipefail
+          test "$(git -C engine-source rev-parse HEAD)" = "$ENGINE_HEAD"
+          test "$(git -C harness rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          mkdir -p "$RUNNER_TEMP/e5-native"
+          printf 'engine=%s\nbase=%s\nharness=%s\n' "$ENGINE_HEAD" "$BASE_HEAD" "$(git -C harness rev-parse HEAD)" > "$RUNNER_TEMP/e5-native/pins.txt"
+          git -C engine-source rev-parse HEAD:tests/native/abi2/live_replan_tests.cpp >> "$RUNNER_TEMP/e5-native/pins.txt"
+          sha256sum engine-source/tests/native/abi2/live_replan_tests.cpp >> "$RUNNER_TEMP/e5-native/pins.txt"
+          cmake -S harness/bench/continuity/native -B "$RUNNER_TEMP/e5-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DWS_ENGINE_SOURCE="$PWD/engine-source"
+          cmake --build "$RUNNER_TEMP/e5-build" --parallel 2
+      - name: Capture and verify synthetic native oracles (three matched repeats)
+        run: |
+          python harness/bench/continuity/native/verify.py --exe "$RUNNER_TEMP/e5-build/e5_native_capture" --out "$RUNNER_TEMP/e5-native"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e5-native-continuity
+          path: ${{ runner.temp }}/e5-native
+          if-no-files-found: error
+          retention-days: 14

@@ -30,8 +30,8 @@ manually. Builders already running can continue under standing releases and draf
 | `status/review` | The builder has a review-ready Result for the current head. | Replace on returned work, blocker or closure. |
 | `status/blocked` | The task cannot proceed. Record the dependency and how it clears. | Replace as soon as the lead releases work again. |
 | `review-required` | A contract, Architect ruling or owner instruction makes independent review a merge condition. May be recorded before the PR is ready. This label never dispatches review. | Clear after valid approval at the current head, or closure. Restore if the head changes and the gate still applies. |
-| `review-ready` | Automatic regular-reviewer trigger. Leave off manual review requests. | Clear obsolete readiness after the result, head change or cancellation. |
-| `architect-ready` | Automatic Architect trigger. Leave off manual Architect requests. | Clear obsolete readiness when handled or cancelled. |
+| `review-ready` | Legacy regular-reviewer trigger, retired under Architect-only routing. | Clear stale labels. |
+| `architect-ready` | Owner or lead applies once to a verified ready issue to wake the Architect for the Open inbox batch. | Clear after the batch or when readiness is lost. |
 | `needs/architect` | Architect ruling, acceptance or Architect-only review with an Open inbox row. | Clear when the ruling/acceptance is recorded and the row resolved. |
 
 Update labels when ownership, state, PR head or review routing changes. At each lead
@@ -40,13 +40,12 @@ label on each active item and close out stale operational labels when work finis
 The issue and PR may differ only when their states actually differ; note the reason
 in the queue. Preserve unrelated labels.
 
-For a review request, name the authorized reviewer or role, full base/head SHAs, contract
-criteria and the evidence to check. If the contract needs Claude or reserves a review for
-the Architect, only that role qualifies unless the owner explicitly changes the requirement.
-An Architect-only review gets `needs/architect`, an [Open inbox row](ARCHITECT_INBOX.md)
-and the pinned request. Give the owner its link and the manual `architect:run` trigger.
-For regular review, give the owner the pinned PR request and the eligible review role.
-A new head requires a new signed request. Reviewers verify the live head and authorization.
+The Claude Architect performs all independent and Claude contract reviews under the owner's
+2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+`review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+on the PR. Architect independence and all contract gates still apply. The owner or lead may
+apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+wake serves the whole inbox. The owner may also run `architect:run` manually.
 
 ## Builder continuation after CI
 
@@ -69,9 +68,9 @@ No automatic CI reruns, no loosened gates, no new task authority.
 
 ## Architect dispatch: `architect-ready`
 
-This label is retained for historical automation references. The owner starts the Architect with
-`architect:run`. The lead keeps ready requests in the Open inbox table with `needs/architect`
-and pinned evidence, and checks Cleared rows and CURRENT at the next run.
+Confirm Open inbox rows, exact pins and the absence of a pending wake. The owner or lead can
+apply the label to one linked ready issue after the handoff is published. The Architect reviews
+the ready batch and records signed outcomes. Manual `architect:run` remains available.
 
 ## Templates
 

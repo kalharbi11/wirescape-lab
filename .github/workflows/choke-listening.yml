@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: S7.9 CHOKE listening pair (advisory)
+on:
+  pull_request:
+    paths:
+      - 'bench/offline/choke_listening.py'
+      - '.github/workflows/choke-listening.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    env:
+      BASE_SHA: cb0004b0ba56cfffd280567a29daf4151f830013
+      SUBJECT_SHA: c86810e2ac2d6d982df40ac1fdba29137bed0986
+      TOOL_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TOOL_SHA }}
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_SHA }}
+          path: base-source
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUBJECT_SHA }}
+          path: subject-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tooling/bench/offline/requirements.txt
+      - name: Compile identical callback fixture and capture raw WAV pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C tooling rev-parse HEAD)" = "$TOOL_SHA"
+          python tooling/bench/offline/choke_listening.py \
+            --base base-source --subject subject-source \
+            --base-pin "$BASE_SHA" --subject-pin "$SUBJECT_SHA" \
+            --out "$RUNNER_TEMP/choke-listening"
+          printf '%s\n' "$TOOL_SHA" > "$RUNNER_TEMP/choke-listening/tooling-sha.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: s79-choke-listening-x64
+          path: ${{ runner.temp }}/choke-listening/
+          if-no-files-found: error

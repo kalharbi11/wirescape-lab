@@ -2,9 +2,9 @@
 # Codex instructions for Wirescape Lab
 
 Read [AGENTS.md](AGENTS.md) and the [delivery-lead brief](docs/context/CODEX_LEAD.md).
-The owner starts and resumes the persistent lead, Architect, reviewers and B1–B5 manually.
-The manager and Luna coordination trial ended on 2026-11-24. Its batches, rotations and timers
-are retired.
+The owner starts and resumes persistent lead and B1–B5 sessions. The Architect handles all
+independent and Claude contract reviews. The owner or lead may trigger one verified Architect
+batch through the inbox process.
 
 Start every interaction, including a question without a trigger, with a minimal reconciliation of
 the latest Architect rulings, signed reviews and changes in all five builder lanes. Resolve the
@@ -22,7 +22,10 @@ or one timed check with an explicit stop. Keep persistent workflow starts with t
 
 ## GitHub uploads
 
-Standing owner authorization (2026-11-24, including future chats) covers uploading files required
-for authorized Wirescape Lab GitHub tasks to their intended repository destinations, including
-FLAC before/after evidence on the designated GitHub release. Check destination and source
-provenance. Follow repository rules for secrets, file placement and committing audio.
+Standing repository-owner authorization (2026-11-24, including all future lead chats) grants
+the delivery lead permission to add, upload, attach, and share Wirescape Lab repository and
+task files of any type in `kalharbi11/wirescape-lab`, its GitHub releases, PRs, issues and Actions
+artifacts. It explicitly covers raw audio, FLAC listening pairs, archives and binary evidence.
+The lead may publish eligible files without asking the owner again. Verify repository, intended
+destination, source pins and hashes. Follow repository rules for secrets, personal data, file
+placement and committing audio.

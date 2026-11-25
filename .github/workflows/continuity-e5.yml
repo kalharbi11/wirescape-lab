@@ -17,16 +17,16 @@ jobs:
       matrix:
         include:
           - stage: before
-            engine: a8b34237b252d9fcfedfa3810732ba8feacae560
+            engine: 7661f832f44c2f8388b84b48e766490e1e44418f
           - stage: candidate
-            engine: 31ab651db2f53447a0138fcb5648fb64b08770ee
+            engine: b4b11ac81be852d6bfcba56636a685cf42947dff
     env:
-      HARNESS_HEAD: a8b34237b252d9fcfedfa3810732ba8feacae560
+      HARNESS_HEAD: 7661f832f44c2f8388b84b48e766490e1e44418f
       ENGINE_HEAD: ${{ matrix.engine }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: a8b34237b252d9fcfedfa3810732ba8feacae560
+          ref: 7661f832f44c2f8388b84b48e766490e1e44418f
           path: harness
           persist-credentials: false
       - uses: actions/checkout@v4

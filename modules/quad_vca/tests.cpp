@@ -219,6 +219,117 @@ void test_lpg_closing_darkens() {
     REQUIRE(held_lo > 0 && held_hi > 0 && tail_lo > 0 && tail_hi > 0);
     REQUIRE(tail_hi / held_hi < tail_lo / held_lo);
 }
+void test_mode_switch_crossfade() {
+    // Exercise all four stepped modes at native and off-native rates, across blocks.
+    // A constant input must produce nonconstant audio while the fade is active.
+    for (double rate : {44100., 48000., 96000.})
+        for (uint32_t k = 0; k < 4; ++k) {
+            Rig r({rate});
+            r.connect(0);
+            r.data->input[0][0][0] = .5f;
+            r.values[k] = .6f;
+            r.run(256);
+            const float vca = r.sample(k);
+            REQUIRE(vca == .3f || std::abs(vca - .3f) < 1e-6f);
+            const uint32_t fade_frames = uint32_t(rate * .015) + 1; // >10 ms
+
+            r.values[4 + k] = 1.f;
+            float previous = vca;
+            for (uint32_t frame = 0; frame < fade_frames; ++frame) {
+                r.run(1);
+                const float current = r.sample(k);
+                REQUIRE(std::isfinite(current));
+                REQUIRE(std::abs(current - previous) < .02f);
+                previous = current;
+            }
+            for (int n = 0; n < 8; ++n) r.run(256); // Settled LPG.
+            previous = r.sample(k, 0, 255);
+
+            r.values[4 + k] = 0.f;
+            r.run(1);
+            REQUIRE(!(r.outputs[k].flags & WS2_CONSTANT));
+            REQUIRE(std::abs(r.sample(k) - previous) < .02f);
+            previous = r.sample(k);
+            for (uint32_t frame = 1; frame < fade_frames; ++frame) {
+                r.run(1);
+                const float current = r.sample(k);
+                REQUIRE(std::isfinite(current));
+                REQUIRE(std::abs(current - previous) < .02f);
+                previous = current;
+            }
+            r.run(256);
+            REQUIRE(r.outputs[k].flags & WS2_CONSTANT);
+            REQUIRE(std::abs(r.sample(k) - vca) < 1e-6f);
+        }
+}
+// H1 oracle: the pre-S7.5 LPG equations at base 24c41de, with independent
+// follower/filter state and coefficient tables. No switch occurs in this test.
+void test_lpg_at_load_and_reset() {
+    for (double rate : {44100., 48000., 96000.}) {
+        Rig r({rate, 2});
+        std::array<float, 257> g{}, decay{};
+        const double ratio = std::min(18000.0, .45 * rate) / 40.0;
+        const float attack = float(std::exp(-1.0 / (.002 * rate)));
+        for (uint32_t i = 0; i <= 256; ++i) {
+            const double pos = double(i) / 256.0;
+            const double cutoff = 40.0 * std::pow(ratio, pos);
+            g[i] = float(std::tan(3.14159265358979323846 * cutoff / rate));
+            const double release = .060 * std::pow(25.0, pos);
+            decay[i] = float(std::exp(-1.0 / (release * rate)));
+        }
+        auto lookup = [](const auto &table, float x) {
+            const float scaled = std::clamp(x, 0.f, 1.f) * 256.f;
+            const uint32_t index = std::min<uint32_t>(uint32_t(scaled), uint32_t(255));
+            return table[index] + (table[index + 1] - table[index]) * (scaled - float(index));
+        };
+        r.connect(0, false);
+        r.connect(4, false);
+        for (uint32_t k = 0; k < 4; ++k) r.values[4 + k] = 1.f;
+        for (uint32_t pass = 0; pass < 2; ++pass) {
+            if (pass) r.descriptor->reset(r.state);
+            float follower[4][2]{}, ic1[4][2]{}, ic2[4][2]{};
+            for (uint32_t block = 0; block < 5; ++block) {
+                for (uint32_t c = 0; c < 2; ++c)
+                    for (uint32_t i = 0; i < kFrames; ++i) {
+                        r.data->input[0][c][i] = float(.5 * std::cos(.13 * (block * kFrames + i + c)));
+                        r.data->input[4][c][i] = (i < 128 ? .75f : .2f);
+                    }
+                r.run(kFrames);
+                for (uint32_t c = 0; c < 2; ++c)
+                    for (uint32_t i = 0; i < kFrames; ++i) {
+                        float sum = 0.f;
+                        for (uint32_t k = 0; k < 4; ++k) {
+                            const float control = k == 0 ? r.data->input[4][c][i] : 1.f;
+                            const float x = r.data->input[0][c][i];
+                            auto &f = follower[k][c];
+                            auto &a = ic1[k][c];
+                            auto &b = ic2[k][c];
+                            const float alpha = control > f ? attack : lookup(decay, r.values[8]);
+                            f = alpha * f + (1.f - alpha) * control;
+                            const float coeff = lookup(g, f);
+                            constexpr float q = 1.f / .6f;
+                            const float a1 = 1.f / (1.f + coeff * (coeff + q));
+                            const float v1 = (a + coeff * (x - b)) * a1;
+                            const float v2 = b + coeff * v1;
+                            a = 2.f * v1 - a;
+                            b = 2.f * v2 - b;
+                            const float expected = v2 * f;
+                            if (r.sample(k, c, i) != expected) {
+                                std::printf("LPG startup rate=%.0f pass=%u frame=%u channel=%u voice=%u got=%.9g expected=%.9g\n",
+                                    rate, pass, block * kFrames + i, k, c,
+                                    double(r.sample(k,c,i)), double(expected));
+                                std::fflush(stdout);
+                            }
+                            REQUIRE(r.sample(k, c, i) == expected);
+                            sum += expected;
+                        }
+                        REQUIRE(r.sample(4, c, i) == std::clamp(sum, -4.f, 4.f));
+                    }
+            }
+        }
+    }
+}
+
 } // namespace
 
 int main() {
@@ -228,5 +339,7 @@ int main() {
     test_frame_rate_voice_matrix();
     test_lpg_decay();
     test_lpg_closing_darkens();
-    std::puts("quad VCA: matrix, VCA, normalling, mix, LPG decay/spectrum, reset and no allocations PASS");
+    test_mode_switch_crossfade();
+    test_lpg_at_load_and_reset();
+    std::puts("quad VCA: matrix, VCA, normalling, mix, LPG decay/spectrum, rate-aware mode crossfade, reset and no allocations PASS");
 }
