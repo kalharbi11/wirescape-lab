@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { validateProtocolV0, type ProtocolPush } from './generated/protocol_v0';
 import type { PatchV2, Connection } from '../patch/types';
 import { connKey } from '../patch/types';
 import type { ModuleDescriptor } from '../modules/types';
@@ -43,6 +44,18 @@ const refusal = (c: unknown, msg: unknown): EngineRefusal =>
 const generation = (s: unknown): bigint | null =>
   typeof s === 'string' && /^\d+$/.test(s) ? BigInt(s) : null;
 
+// JSON object key order is not a configuration edit; absent config is {} on wire.
+export const sameConfig = (a: unknown, b: unknown): boolean => {
+  const ordered = (v: unknown): unknown => Array.isArray(v) ? v.map(ordered) :
+    isRecord(v) ? Object.fromEntries(Object.keys(v).sort().map(k => [k, ordered(v[k])])) : v;
+  return JSON.stringify(ordered(a ?? {})) === JSON.stringify(ordered(b ?? {}));
+};
+const cloneConfig = (v: unknown): unknown => v === undefined ? undefined : copy(v);
+type DeferredEntry = { deferId: string; module: string; config: unknown; overlay: boolean };
+type ConfigPush = Extract<ProtocolPush, { type: 'configDeferred' }>;
+export type DeferredCompletion = { moduleId: number; module: string; desired: unknown;
+  actual: unknown; outcome: ConfigPush['outcome']; overlay: boolean };
+
 /**
  * Serializes optimistic edits over v0. Only one edit is in flight so a failed
  * mutation can be removed and dependent unsent edits revalidated in order.
@@ -54,6 +67,10 @@ export class RealEngine implements EngineClient {
   private playheadEnabled = false;
   private monitorEnabled = false;
   private applyGraphEnabled = false;
+  private configDeferredEnabled = false;
+  private negotiatingConfig = false;
+  private deferredConfigs = new Map<number, DeferredEntry>();
+  private deferredCbs = new Set<(event: DeferredCompletion) => void>();
   private unappliedCbs = new Set<(items: UnappliedParameter[]) => void>();
   private playhead: Telemetry['playhead'] = {};
   private statusGen = '';
@@ -198,6 +215,83 @@ export class RealEngine implements EngineClient {
   }
   /** A snapshot rollback uses the execution graph only after its native ACK. */
   confirmedDocument(): PatchV2 | null { return this.confirmed ? copy(this.confirmed) : null; }
+  /** Acknowledged authoring intent, distinct from the running execution graph. */
+  confirmedAuthoredDocument(): PatchV2 | null {
+    const patch = this.confirmedDocument();
+    if (!patch) return null;
+    for (const node of patch.modules) {
+      const pending = this.deferredConfigs.get(node.id);
+      if (pending?.overlay && pending.module === node.module) {
+        if (pending.config === undefined) delete node.config;
+        else node.config = cloneConfig(pending.config);
+      }
+    }
+    return patch;
+  }
+  hasPendingConfig(moduleId: number): boolean { return this.deferredConfigs.get(moduleId)?.overlay === true; }
+  onDeferredConfig(cb: (event: DeferredCompletion) => void): () => void {
+    this.deferredCbs.add(cb); return () => this.deferredCbs.delete(cb);
+  }
+  private clearDeferred(): void {
+    this.deferredConfigs.clear();
+    this.configDeferredEnabled = false;
+    this.negotiatingConfig = false;
+  }
+  private recordDeferred(load: Load, message: Wire): boolean {
+    if (!this.configDeferredEnabled || load.type !== 'applyGraph' ||
+        message.code !== 'busy' || message.deferred !== true ||
+        typeof message.deferId !== 'string' || !message.deferId || message.deferId.length > 128 ||
+        !this.confirmed) return false;
+    const changed = load.patch.modules.filter(node => {
+      const old = this.confirmed?.modules.find(m => m.id === node.id && m.module === node.module);
+      const pending = this.deferredConfigs.get(node.id);
+      return old && !sameConfig(node.config, old.config) &&
+        !(pending?.overlay && pending.module === node.module && sameConfig(node.config, pending.config));
+    });
+    if (!changed.length) return false;
+    for (const node of changed) this.deferredConfigs.set(node.id, {
+      deferId: message.deferId, module: node.module, config: cloneConfig(node.config), overlay: true,
+    });
+    return true;
+  }
+  private receiveDeferred(message: Wire): void {
+    if (!this.configDeferredEnabled || message.session !== this.session ||
+        !validateProtocolV0(message) || message.type !== 'configDeferred') return;
+    const g = generation(message.generation);
+    if (g === null) return;
+    const pending = this.deferredConfigs.get(message.moduleId);
+    if (!pending || pending.deferId !== message.deferId) return;
+    this.deferredConfigs.delete(message.moduleId);
+    const node = this.confirmed?.modules.find(m => m.id === message.moduleId && m.module === pending.module);
+    if (message.outcome === 'applied' && node && pending.overlay) {
+      if (pending.config === undefined) delete node.config;
+      else node.config = cloneConfig(pending.config);
+    }
+    // Status may have advanced generation first. Correlation still settles
+    // this exact pending entry; never infer completion from status alone.
+    if (g > BigInt(this.gen)) {
+      this.gen = message.generation;
+      this.playhead = {}; this.statusGen = '';
+    }
+    for (const cb of this.deferredCbs) cb({ moduleId: message.moduleId, module: pending.module,
+      desired: cloneConfig(pending.config), actual: cloneConfig(node?.config),
+      outcome: message.outcome, overlay: pending.overlay });
+  }
+  private finishGraph(load: Load): void {
+    this.ready = true;
+    this.loadedOnce = true;
+    this.load = undefined;
+    load.resolve();
+    if (this.graphQueue.length) {
+      this.load = this.graphQueue.shift()!;
+      this.ready = false;
+      this.dispatchLoad();
+    } else {
+      this.setState('real');
+      this.pumpEdits();
+      this.notifySettled();
+    }
+  }
 
   /** A document switch must keep its owner visible until all inverses have settled. */
   async whenEditsSettled(): Promise<void> {
@@ -253,6 +347,7 @@ export class RealEngine implements EngineClient {
       this.playheadEnabled = false;
       this.monitorEnabled = false;
       this.applyGraphEnabled = false;
+      this.clearDeferred();
       this.ready = false;
       this.confirmed = null;
       this.setState('restarting');
@@ -268,6 +363,7 @@ export class RealEngine implements EngineClient {
       if (!resumeLoad) this.rejectPending(refusal('unavailable', 'Engine session replaced.'));
       else { this.pending.clear(); this.active = undefined; this.queue = []; }
       this.session = message.session;
+      this.clearDeferred();
       this.gen = '0';
       this.playhead = {}; this.statusGen = '';
       this.ready = false;
@@ -296,6 +392,20 @@ export class RealEngine implements EngineClient {
           ...(isRecord(message.midi.learn) ? { learn: message.midi.learn as unknown as
             NonNullable<SystemStatus['midi']['learn']> } : {}) } });
       }
+      if (capabilities.includes('configDeferred')) {
+        const session = this.session;
+        this.negotiatingConfig = true;
+        // Graph commands cannot overtake the opt-in ACK. A refusal falls
+        // back to legacy busy semantics for this session, without a retry.
+        const finish = (accepted: boolean) => {
+          if (this.session !== session) return;
+          this.configDeferredEnabled = accepted;
+          this.negotiatingConfig = false;
+          this.dispatchLoad();
+        };
+        void this.request('hello', { capabilities: ['configDeferred'] })
+          .then(() => finish(true), () => finish(false));
+      }
       if (resumeLoad) this.dispatchLoad();
       else if (wasRunning) {
         void this.loadGraph(this.currentDocument()).catch(e => {
@@ -304,6 +414,7 @@ export class RealEngine implements EngineClient {
       }
       return;
     }
+    if (message.type === 'configDeferred') { this.receiveDeferred(message); return; }
     if (message.type?.toString().startsWith('app.menu')) return; // App consumes menu intents.
     if (message.type === 'status' || message.type === 'telemetry' || message.type === 'devices') {
       const pushedGen = generation(message.gen);
@@ -359,6 +470,10 @@ export class RealEngine implements EngineClient {
         // A refused loadGraph leaves the engine on its previous graph (sidecar rollback).
         (err.detail as { engine?: true }).engine = true;
         if (this.load && p.revision === this.load.revision) {
+          if (this.recordDeferred(this.load, message)) {
+            this.finishGraph(this.load);
+            return;
+          }
           this.ready = this.confirmed !== null; // the atomic refusal leaves the confirmed graph untouched
           this.queue = []; this.active = undefined;
           this.load?.reject(err); this.load = undefined;
@@ -409,30 +524,30 @@ export class RealEngine implements EngineClient {
             unapplied.push({ moduleId: item.moduleId as number, paramId: item.paramId as string, previous });
           }
         }
+        // A successful snapshot carrying the same pending config executes
+        // at the committed value; a different config is accepted normally.
+        // Only the subsequent terminal event removes its correlation.
+        if (load.type === 'loadGraph') this.deferredConfigs.clear();
+        else for (const [id, pending] of this.deferredConfigs) {
+          const node = committed.modules.find(m => m.id === id && m.module === pending.module);
+          const old = this.confirmed?.modules.find(m => m.id === id && m.module === pending.module);
+          if (pending.overlay && node && old && sameConfig(node.config, pending.config)) {
+            if (old.config === undefined) delete node.config;
+            else node.config = cloneConfig(old.config);
+          } else pending.overlay = false;
+        }
         this.confirmed = committed;
         // applyGraph retains the namespace; an ID removed by a graph replan
         // remains barred from incremental addModule but can return in applyGraph.
         this.usedIds = load.type === 'loadGraph'
           ? new Set(committed.modules.map(m => m.id))
           : new Set([...this.usedIds, ...committed.modules.map(m => m.id)]);
-        this.ready = true;
-        this.loadedOnce = true;
-        this.load = undefined;
         // A newer authored applyGraph already supersedes intermediate UI values.
         // Reconcile only the final acknowledged document, not an earlier
         // request whose unapplied values the next request can change again.
         if (!this.graphQueue.length && unapplied.length)
           for (const cb of this.unappliedCbs) cb(unapplied);
-        load.resolve();
-        if (this.graphQueue.length) {
-          this.load = this.graphQueue.shift()!;
-          this.ready = false;
-          this.dispatchLoad();
-        } else {
-          this.setState('real');
-          this.pumpEdits();
-          this.notifySettled();
-        }
+        this.finishGraph(load);
       }
     } else if (p.kind === 'edit' && p.edit) {
       if (this.confirmed) applyMutation(this.confirmed, p.edit.mutation, this.usedIds);
@@ -496,7 +611,7 @@ export class RealEngine implements EngineClient {
   }
   private dispatchLoad(): void {
     const l = this.load;
-    if (!l || !this.session || l.sent) return;
+    if (!l || !this.session || l.sent || this.negotiatingConfig) return;
     l.sent = true;
     this.pending.set(l.id, { session: this.session, type: l.type, kind: 'load',
       revision: l.revision });
