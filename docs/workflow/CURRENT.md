@@ -10,6 +10,14 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Manual lead continuation — 2026-11-24 19:10 EST
+
+- S7.5 still awaits the owner's manual independent review. B1 localized the Delay peaks; B4 can collect matched steady-target mode and tone controls in [#456](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7148160627) before a DSP correction or any Architect question. The existing A27 measure remains the acceptance evidence.
+- B4 S7.9 ready Lab and three-platform Golden passed at `c86810e`. Two strict x64 LFO rows use the existing M7 r1.6 bound; ARM64 and Windows passed. [#464](https://github.com/kalharbi11/wirescape-lab/issues/464) provides the CHOKE fixture's required D5 pair. Contract review still waits for the pair and exact-head Result.
+- E7 synced main at `2959f7e`, exact drift green and Lab under way. B3's diagnostic drafts [#462](https://github.com/kalharbi11/wirescape-lab/pull/462) and [#463](https://github.com/kalharbi11/wirescape-lab/pull/463) are open, with hosted serializer/schema still behind E7. B5's old scaffold failure cleared at `a80b847`; new `9530256` is the adopt/fade fail-first. No new Architect ruling or review response. The OB1 sequence and owner acceptance steps remain in the prior entry.
+
+Signed: codex-lead, 2026-11-24, 19:10 EST
+
 ## Manual lead run — 2026-11-24 19:03 EST
 
 - The owner ended the manager/Luna trial. The coordinator timer was already paused and [#402](https://github.com/kalharbi11/wirescape-lab/issues/402) is closed. Persistent sessions start manually. Every lead interaction starts with a minimal Architect/reviewer/B1–B5 check. Use small helpers and short event-based lead continuations as described in [CODEX](../../CODEX.md).
