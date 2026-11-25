@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | B2-E3c-data | 2026-11-25 | gpt-builder2 | ruling | soon | [#537 data representation and validation](https://github.com/kalharbi11/wirescape-lab/issues/537#issuecomment-7154900627): existing finite double CC endpoints vs F32, row defaults and cross-field/OSC validation, coherent host route commits. | E3c integration only; draft #540 test work continues (OB1.1) |
 
+| B5-A75-retry | 2026-11-25 | gpt-builder5 | ruling | soon | [#538 deferred config retry and client reconciliation](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7155002025): generation-only status vs explicit completion; multi-module config-only retry scope. | E3a-2 contract acceptance only; tests and E3b draft continue. |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
