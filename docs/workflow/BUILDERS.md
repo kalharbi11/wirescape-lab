@@ -24,8 +24,12 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
   condition, the lead turns on auto-merge at release. It merges itself when the Result is posted and
   exact-head required checks are green. A reviewed task waits for its reviewer, then the lead or the Architect merges it.
 - **Fewer stops ([SR20](STANDING.md)).** Start the next queue task yourself when its predecessor merges (open the issue if missing). Low findings never block. `merge: lead` tasks merge on exact-head green plus your Result. Ask for a Claude review once, at the merge-ready head.
-- **Questions never stop a lane.** Add an [inbox](ARCHITECT_INBOX.md) row plus `needs/architect`, then
-  work on the next independent item in your lane.
+- **Keep the Architect inbox current.** When a task is ready for required review, needs a ruling,
+  or raises an Architect question, add or update one row in the
+  [Architect inbox](ARCHITECT_INBOX.md) through a docs PR. Link the signed Result or question,
+  include exact head and base when applicable, and name the task waiting. Use `needs/architect`
+  for Architect work. The owner and delivery lead own the `architect-ready` and `review-ready`
+  trigger labels. Keep working on independent lane items while the request waits.
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
@@ -47,6 +51,14 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 - **B3:** #441 E5v merged `1d4491a` at `7d89559`; exact Lab, Golden, paired and #469 CN passed, with 0 ms edit-induced held-note silence in three repeats. #463 is released after E7; integrate main and implement the approved status fields. #462/#469 retain the evidence. Optional #322 follows A55.
 - **B4:** #444 D5 listening pair published and [A65 manual review pinned](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7148992053). #467 evidence-tool facts failure remains to verify separately. #456 adds the clocked-division control under A64.
 - **B5:** #436 `bf3f913` is in verification for E5 retirement and migrated witnesses. Prior `de222d0` Lab and targeted tests passed. Finish exact-head evidence and one Claude review.
+
+## Lead continuation (2026-11-24 20:16 EST)
+
+- **B1:** #291 at `a875881` has a fresh T7.0b capture showing the click equals the no-switch floor. Full checks and the refreshed D5 switch pair [#476](https://github.com/kalharbi11/wirescape-lab/issues/476) precede re-review. #449 tone is test-first under A64. #472 is active in [#474](https://github.com/kalharbi11/wirescape-lab/pull/474), pinned to E7/E5v main. Reuse merged #469 for the existing E5v witness.
+- **B2:** E7 is complete. [#475](https://github.com/kalharbi11/wirescape-lab/issues/475) releases device-off diagnostic work on the extra OSC gate edge in the MIDI egress sentinel.
+- **B3:** #469 merged `3df3bb8`. #462 has a Windows parser unit failure, with a correction packet on the PR. #463 stays within A61 status/schema scope. Hosted artifact 14981696094 shows two enqueue drops and zero budget drops on route 17; A67 asks for product-fix routing.
+- **B4:** #444 awaits A65 manual contract review. #467 has a distinct Windows facts dependency failure, queued as A66. #456 continues the A64 division control at `b1b27ea`.
+- **B5:** #436 at `d4043aa` has exact stress, web and Module Tools passes. It remains draft and needs full Lab and ready-head gates, continuity, and a signed Result before Architect review.
 
 ## How the lead maintains this table
 - Each lead run checks every lane: PR heads, exact-head CI, latest Result, labels. Refresh the
