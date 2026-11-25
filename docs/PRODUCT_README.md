@@ -30,7 +30,7 @@ npm --prefix apps/desktop run build
 ```
 
 On the Pi, use `python3` in place of `python`. The full Pi runbook is
-[PI_FRESH_INSTALL](docs/PI_FRESH_INSTALL.md). On Windows the scripted path
+[INSTALL → Raspberry Pi 5](docs/INSTALL.md#raspberry-pi-5). On Windows the scripted path
 `tools/windows/setup.ps1` does all of this, including PortAudio
 ([INSTALL](docs/INSTALL.md#windows-1011-x64)).
 
