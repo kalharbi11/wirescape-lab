@@ -13,6 +13,7 @@
 
 namespace wirescape::osc {
 struct Message;
+struct OscOutRoutes;
 // Test-only deterministic send seam; production always uses the loopback socket.
 using SendOverride = bool (*)(const Message &, uint16_t);
 struct OutState {
@@ -27,6 +28,8 @@ struct OutState {
 class OutHost {
     struct RowCursor {
         uint32_t rises = 0, falls = 0;
+        uint32_t prior_blocks = 0;
+        bool wait_for_block = false;
         float previous = 0;
         bool initialized = false, gate_high = false, retry = false;
         std::chrono::steady_clock::time_point last_send{};
@@ -55,6 +58,9 @@ class OutHost {
     OutHost(const OutHost &) = delete;
     OutHost &operator=(const OutHost &) = delete;
     const std::map<uint32_t, OutBus *> &buses() const noexcept { return buses_; }
+    // Adopt validated data only after the engine has accepted the slot write.
+    // The construction bus stays owned by this graph; no instance replacement.
+    void commit_data(uint32_t node, const OscOutRoutes &) noexcept;
     void start() noexcept;
     void stop() noexcept;
     std::vector<OutState> states() const;

@@ -79,6 +79,61 @@ OutHost::OutHost(const std::string &document, SendOverride send_override) : send
         routes_.push_back(std::move(route));
     }
 }
+void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
+    auto same = [](const OutRowConfig &a, const OscOutRowData &b) {
+        return std::strcmp(a.address, b.address) == 0 && a.kind == b.kind &&
+               a.deadband == b.deadband && a.enabled == b.enabled;
+    };
+    for (auto &item : routes_) {
+        auto &route = *item;
+        if (route.node != node) continue;
+        const bool notes_changed = route.config.notes.enabled != data.notes_enabled ||
+            std::strcmp(route.config.notes.address, data.notes_address) != 0;
+        bool changed = notes_changed;
+        for (uint32_t i = 0; i < 8; ++i) changed |= !same(route.config.rows[i], data.rows[i]);
+        if (!changed) return;
+        // Worker owns cursors; join only after ring acceptance. Do not clear
+        // the render bus or its monotonic counters.
+        stop();
+        route.enabled = false;
+        for (uint32_t i = 0; i < 8; ++i) {
+            auto &dst = route.config.rows[i];
+            const auto &src = data.rows[i];
+            if (!same(dst, src)) {
+                auto &cursor = route.cursors[i];
+                const auto &row = route.bus->rows[i];
+                const auto rises = row.rises.load(std::memory_order_acquire);
+                const auto falls = row.falls.load(std::memory_order_acquire);
+                // Crossings queued under an old route must not be sent to a
+                // new address. Account only previously enabled gate rows.
+                if (dst.enabled && dst.kind == 1)
+                    route.dropped.fetch_add(uint64_t(uint32_t(rises - cursor.rises)) +
+                        uint32_t(falls - cursor.falls), std::memory_order_relaxed);
+                cursor = {};
+                cursor.rises = rises;
+                cursor.falls = falls;
+                cursor.prior_blocks = row.blocks.load(std::memory_order_acquire);
+                cursor.wait_for_block = true;
+                std::memcpy(dst.address, src.address, sizeof(dst.address));
+                dst.kind = src.kind;
+                dst.deadband = src.deadband;
+                dst.enabled = src.enabled;
+            }
+            route.enabled |= dst.enabled != 0;
+        }
+        if (notes_changed) {
+            const auto head = route.bus->note_head.load(std::memory_order_acquire);
+            const auto tail = route.bus->note_tail.load(std::memory_order_relaxed);
+            route.dropped.fetch_add(uint32_t(head - tail), std::memory_order_relaxed);
+            route.bus->note_tail.store(head, std::memory_order_release);
+            std::memcpy(route.config.notes.address, data.notes_address, sizeof(data.notes_address));
+            route.config.notes.enabled = data.notes_enabled;
+        }
+        route.enabled |= route.config.notes.enabled != 0;
+        start();
+        return;
+    }
+}
 void OutHost::start() noexcept {
     if (worker_.joinable() || routes_.empty()) return;
     bool enabled = false;
@@ -159,7 +214,8 @@ void OutHost::loop() noexcept {
                 const auto &row = route.bus->rows[i];
                 auto &cursor = route.cursors[i];
                 const auto blocks = row.blocks.load(std::memory_order_acquire);
-                if (!blocks) continue;
+                if (!blocks || (cursor.wait_for_block && blocks == cursor.prior_blocks)) continue;
+                cursor.wait_for_block = false;
                 if (cfg.kind == 1) {
                     const auto rises = row.rises.load(std::memory_order_relaxed);
                     const auto falls = row.falls.load(std::memory_order_relaxed);

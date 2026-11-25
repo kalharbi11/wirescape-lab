@@ -76,7 +76,7 @@ bool Host::accept(void *context, uint32_t node, std::string_view address) noexce
     }
     return !found->known || (found->enabled_mask & (uint32_t{1} << current)) != 0;
 }
-void Host::start(AppEngine *engine, const std::string &document) {
+void Host::prepare(AppEngine *engine, const std::string &document) {
     stop();
     auto patch = nlohmann::json::parse(document);
     std::vector<Route> routes;
@@ -120,8 +120,20 @@ void Host::start(AppEngine *engine, const std::string &document) {
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;
-    // Busy ports report unavailable status; they never refuse the patch.
-    (void)service_->start();
+    // No socket opens during staging; activation is an accepted-only step.
+}
+void Host::activate() noexcept {
+    if (!service_) return;
+    try {
+        // Busy ports report unavailable status; they never refuse the patch.
+        (void)service_->start();
+    } catch (...) {
+        service_->stop();
+    }
+}
+void Host::start(AppEngine *engine, const std::string &document) {
+    prepare(engine, document);
+    activate();
 }
 void Host::stop() noexcept {
     if (service_) {

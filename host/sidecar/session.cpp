@@ -1503,6 +1503,31 @@ Json Session::apply(const Json &command) {
         m["parameters"][param] = value;
         return nullptr;
     }
+    if (type == "ccMap.set") {
+        const auto id = integer(command.at("moduleId"));
+        const auto &m = node(patch_, id);
+        need(m.at("module") == "midi.cc_to_cv", "not-found", "No such CC mapping module");
+        const auto row = integer(command.at("row"), 0, UINT32_MAX);
+        need(row < 8, "limit", "CC row capacity exceeded");
+        const auto &mapping = command.at("mapping");
+        need(mapping.is_object());
+        integer(mapping.at("channel"), 0, 16);
+        integer(mapping.at("controller"), 0, 127);
+        // Use the same one-way legacy parser for bipolar defaults, inverted
+        // endpoints and the historic row wire shape. Keep every other row.
+        Json rows = Json::array();
+        for (uint32_t i = 0; i < row; ++i) rows.push_back(Json::object());
+        rows.push_back(mapping);
+        Json converted;
+        try {
+            converted = document::legacy_io_data("midi.cc_to_cv", {{"rows", rows}}, id);
+        } catch (const std::exception &e) {
+            throw Refusal("invalid", e.what());
+        }
+        auto value = m.at("data").at("mapping");
+        value["rows"][row] = converted.at("rows").at(row);
+        return apply({{"type", "setData"}, {"moduleId", id}, {"slot", "mapping"}, {"value", value}});
+    }
     if (type == "setData") {
         const auto id = integer(command.at("moduleId"));
         auto &m = node(patch_, id);
@@ -1527,11 +1552,41 @@ Json Session::apply(const Json &command) {
         auto updated = m;
         if (!updated.contains("data")) updated["data"] = Json::object();
         updated["data"][slot_id] = value;
+        std::unique_ptr<osc::Host> next_in;
+        osc::OscOutRoutes next_out{};
+        const auto type = m.at("module").get<std::string>();
+        if (type == "osc.in") {
+            osc::OscInRows next{};
+            std::memcpy(&next, packed.data(), sizeof(next));
+            const auto prior = document::read_io_slot<osc::OscInRows, osc::OscIn, osc::validate_osc_in_rows>(m);
+            bool routes_changed = false;
+            for (uint32_t i = 0; i < 8; ++i)
+                routes_changed |= next.rows[i].enabled != prior.rows[i].enabled ||
+                    std::strcmp(next.rows[i].pattern, prior.rows[i].pattern) != 0;
+            if (routes_changed) {
+                auto staged_patch = patch_;
+                node(staged_patch, id) = updated;
+                next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio);
+                next_in->observe(monitor_.get());
+                next_in->prepare(active_, staged_patch.dump()); // no socket opens yet
+            }
+        } else if (type == "osc.out") {
+            need(osc_out_->buses().count(id) != 0, "unavailable", "OSC Out route unavailable");
+            std::memcpy(&next_out, packed.data(), sizeof(next_out));
+        }
         const auto result = app_engine_native(active_).set_data_packed(id, slot, packed);
         need(result != WS2_CAPACITY, "busy", "Data queue full");
         need(result != WS2_INVALID, "invalid", "Invalid data slot");
         need(result == WS2_OK, "unavailable", "Data slot unavailable");
         m.swap(updated);
+        // Neither worker nor its route/cursor/counter state was touched on
+        // invalid, busy or unavailable. Only accepted writes reach here.
+        if (next_in) {
+            osc_->stop();
+            osc_.swap(next_in);
+            osc_->activate();
+        }
+        if (type == "osc.out") osc_out_->commit_data(id, next_out);
         return nullptr;
     }
     if (type == "loadGraph") {
@@ -1613,25 +1668,6 @@ Json Session::apply(const Json &command) {
             need(found != cables.end(), "not-found", "No such connection");
             cables.erase(found);
         }
-    } else if (type == "ccMap.set") {
-        auto &m = node(candidate, integer(command.at("moduleId")));
-        need(m.at("module") == "midi.cc_to_cv", "not-found", "No such CC mapping module");
-        auto row = integer(command.at("row"), 0, UINT32_MAX);
-        need(row < 8, "limit", "CC row capacity exceeded");
-        auto &cfg = m["config"];
-        if (cfg.is_null()) cfg = Json::object();
-        auto &rows = cfg["rows"];
-        if (rows.is_null()) rows = Json::array();
-        need(rows.is_array() && row <= rows.size(), "limit", "CC rows cannot have holes");
-        auto mapping = command.at("mapping");
-        need(mapping.is_object());
-        integer(mapping.at("channel"), 0, 16);
-        integer(mapping.at("controller"), 0, 127);
-        for (const char *key : {"fourteen_bit", "bipolar"})
-            if (mapping.contains(key)) need(mapping[key].is_boolean());
-        if (mapping.contains("smoothing_ms")) number(mapping["smoothing_ms"], 0, 2000);
-        if (row == rows.size()) rows.push_back(mapping);
-        else rows[row] = mapping;
     } else throw Refusal("invalid", "Unknown command type");
     commit(std::move(candidate), false);
     return nullptr;
