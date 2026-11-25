@@ -89,6 +89,18 @@ jobs:
           node --check bench/offline/test_ui_frames.cjs
           node bench/offline/test_ui_frames.cjs
 
+      # VS 2026's default MSVC 14.52 rejects libremidi/system_error2.hpp.
+      # Pin the installed 14.44 minor version used by the passing native Lab build.
+      - name: Select compatible Windows MSVC toolset
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # dev.py forwards this selection explicitly to CMake's -T option.
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -ne 0 -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          "CMAKE_GENERATOR=$generator" >> $env:GITHUB_ENV
+          "CMAKE_GENERATOR_TOOLSET=v143,version=14.44" >> $env:GITHUB_ENV
+
       - name: Build Release native and desktop
         run: |
           python tools/dev.py build --headless --config Release
