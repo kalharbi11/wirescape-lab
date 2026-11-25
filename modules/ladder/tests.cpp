@@ -81,8 +81,8 @@ void resonance_matrix(const ws2_descriptor* d, bool report_only = false) {
                     VERIFY(before > 0 && after > 0);
                     mean_db += 20*std::log10(after/before)/5.;
                 }
-                std::printf("Ladder S7.8 %s rate=%g fc=%g r=%g peak_hz=%.3f ratio=%.5f peak=%.6f passband_delta_db=%.6f\n",
-                            report_only ? "reported" : "gated", rate, double(fc), double(r), peak_hz, peak_hz/fc, peak, mean_db);
+                std::printf("%s rate=%g fc=%g r=%g peak_hz=%.3f ratio=%.5f peak=%.6f passband_delta_db=%.6f\n",
+                            report_only ? "Ladder S7.8 reported" : "Ladder S7.8", rate, double(fc), double(r), peak_hz, peak_hz/fc, peak, mean_db);
                 pass = pass && peak_hz >= .95*fc && peak_hz <= 1.05*fc
                             && std::abs(mean_db) <= 1.;
             }
