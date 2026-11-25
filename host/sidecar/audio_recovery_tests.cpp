@@ -232,6 +232,105 @@ void test_osc_out_budget() {
               "coalesced edges and deterministic EWOULDBLOCK count as observed drops");
     }
 }
+// A86: record actual sender datagrams, including the address and note arguments.
+struct A86Wire { std::string address; float value; int key, channel; };
+std::vector<A86Wire> a86_wire;
+std::atomic<unsigned> a86_count{0};
+bool a86_send(const wirescape::osc::Message &message, uint16_t) {
+    a86_wire.push_back({std::string(message.address),
+        message.arguments[message.count == 3 ? 1 : 0].real,
+        message.count == 3 ? message.arguments[0].integer : -1,
+        message.count == 3 ? message.arguments[2].integer : -1});
+    a86_count.store(unsigned(a86_wire.size()), std::memory_order_release);
+    return true;
+}
+void test_a86_route_release() {
+    using namespace wirescape::osc;
+    OutConfiguration cfg;
+    for (auto &row : cfg.rows) row.enabled = false;
+    cfg.rows[0].enabled = true;
+    cfg.rows[0].kind = 1;
+    cfg.notes.enabled = true;
+    Json rows = Json::array({{{"kind", "gate"}}});
+    for (unsigned i = 1; i < 8; ++i) rows.push_back({{"enabled", false}});
+    Json patch = {{"modules", Json::array({{{"id", 19}, {"module", "osc.out"},
+        {"config", {{"rows", rows}, {"notes", {{"enabled", true}}}}}}})}};
+    a86_wire.clear();
+    a86_count.store(0);
+    OutHost sender(patch.dump(), a86_send);
+    auto *bus = sender.buses().at(19);
+    cfg.bus = bus;
+    OscOutRoutes data{};
+    char diagnostic[128]{};
+    check(materialize_osc_out_routes(cfg, data, diagnostic), "A86 original routes");
+    OscOut module;
+    ws2_config setup{sizeof(setup), 48000., 16, 16, 1,
+        reinterpret_cast<const uint8_t *>(&cfg), uint32_t(sizeof(cfg))};
+    ws2_host host{};
+    host.struct_size = sizeof(host);
+    check(module.prepare(ws::Setup{setup, host}), "A86 same module prepared");
+    module.reset();
+    float level = 1;
+    const float *channels[]{&level};
+    std::array<ws2_signal, 9> inputs{};
+    inputs[0] = {sizeof(ws2_signal), channels, 1, WS2_CONNECTED | WS2_CONSTANT};
+    ws2_data view{sizeof(view), &data, sizeof(data), 1};
+    ws2_event note{};
+    note.struct_size = sizeof(note);
+    note.type = WS2_NOTE_ON;
+    note.key = 60; note.channel = 2; note.value = .75f;
+    ws2_process ctx{};
+    ctx.struct_size = sizeof(ctx);
+    ctx.frames = 1;
+    ctx.input_count = uint32_t(inputs.size()); ctx.inputs = inputs.data();
+    ctx.data_count = 1; ctx.data = &view;
+    ctx.events = {sizeof(ws2_event_list), 1, &note};
+    ws::Block block(ctx);
+    auto drain = [&](unsigned expected) {
+        sender.start();
+        const auto end = std::chrono::steady_clock::now() + 2s;
+        while (a86_count.load(std::memory_order_acquire) < expected &&
+               std::chrono::steady_clock::now() < end) std::this_thread::sleep_for(5ms);
+        sender.stop();
+        check(a86_count.load() == expected, "A86 exact datagram count");
+    };
+    module.process(block);
+    drain(2);
+    check(a86_wire[0].address == "/ws/row/1" && a86_wire[0].value == 1 &&
+          a86_wire[1].address == "/ws/note" && a86_wire[1].key == 60 &&
+          a86_wire[1].value == .75f, "A86 old table high gate and note");
+    // Leave one old-table crossing and note queued, without a consumer.
+    level = 0;
+    note.key = 61;
+    module.process(block);
+    level = 1;
+    ctx.events.count = 0;
+    module.process(block);
+    const auto prior_blocks = bus->rows[0].blocks.load();
+    std::strcpy(data.rows[0].address, "/new/gate");
+    std::strcpy(data.notes_address, "/new/note");
+    sender.commit_data(19, data);
+    drain(4);
+    check(a86_wire[2].address == "/ws/row/1" && a86_wire[2].value == 0 &&
+          a86_wire[3].address == "/ws/note" && a86_wire[3].key == 60 &&
+          a86_wire[3].channel == 2 && a86_wire[3].value == 0,
+          "A86 old route receives one gate and note release");
+    check(sender.states().at(0).dropped == 3, "A86 two discarded crossings and one note counted");
+    view.serial = 2;
+    note.key = 62;
+    ctx.events.count = 1;
+    module.process(block);
+    drain(6);
+    check(bus == sender.buses().at(19) && bus->rows[0].blocks.load() == prior_blocks + 1,
+          "A86 same bus and first fresh block is not suppressed");
+    check(a86_wire[4].address == "/new/gate" && a86_wire[4].value == 1 &&
+          a86_wire[5].address == "/new/note" && a86_wire[5].key == 62 &&
+          a86_wire[5].value == .75f, "A86 first fresh block only new table");
+    const auto state = sender.states().at(0);
+    check(state.sent == 6 && state.dropped == 3, "A86 exact sent/drop accounting");
+    std::cout << "A86 wire sent=" << state.sent << " dropped=" << state.dropped
+              << " stale blocks suppressed <=1; old gate/note released\n";
+}
 // A deterministic sender seam observes the actual OSC Out DSP bus. Panic
 // while a gate stays high must not inject an extra 0/1 pair on the wire.
 void test_osc_out_held_gate_reset_sender() {
@@ -1290,6 +1389,7 @@ int main() {
         std::filesystem::create_directories(root);
         test_osc_out_budget();
         test_osc_out_held_gate_reset_sender();
+        test_a86_route_release();
         using wirescape::audio::classify_rates;
         const auto supported = classify_rates({0, -1, 0}, -1);
         const auto invalid = classify_rates({-1, -1, -1}, -1);
