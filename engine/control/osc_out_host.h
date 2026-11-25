@@ -30,6 +30,7 @@ class OutHost {
     struct RowCursor {
         uint32_t rises = 0, falls = 0;
         bool wait_for_table = false;
+        uint32_t seen_serial = 0;
         float previous = 0;
         bool initialized = false, gate_high = false, sent_high = false, retry = false;
         std::chrono::steady_clock::time_point last_send{};
@@ -46,6 +47,7 @@ class OutHost {
         std::bitset<8> release_gates{};
         char release_notes_address[64]{};
         bool notes_cleanup = false;
+        uint32_t note_serial = 0;
         bool has_cleanup() const noexcept {
             if (notes_cleanup) return true;
             for (const auto &cursor : cursors) if (cursor.wait_for_table) return true;

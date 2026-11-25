@@ -106,6 +106,7 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
                 // adopted the new table before this control edit joined it.
                 const auto rises = cursor.rises;
                 const auto falls = cursor.falls;
+                const auto seen_serial = cursor.seen_serial;
                 if (dst.enabled && dst.kind == 1 && cursor.sent_high) {
                     route.gate_release[i] = dst;
                     route.release_gates.set(i);
@@ -113,6 +114,7 @@ void OutHost::commit_data(uint32_t node, const OscOutRoutes &data) noexcept {
                 cursor = {};
                 cursor.rises = rises;
                 cursor.falls = falls;
+                cursor.seen_serial = seen_serial;
                 cursor.wait_for_table = true;
                 std::memcpy(dst.address, src.address, sizeof(dst.address));
                 dst.kind = src.kind;
@@ -251,7 +253,8 @@ void OutHost::loop() noexcept {
                 if (row.mark != out_wire_mark(cfg.address, cfg.kind, cfg.deadband, cfg.enabled != 0)) {
                     // An in-flight old block may publish after ring acceptance.
                     // It can only be suppressed, never encoded using the new table.
-                    if (cursor.wait_for_table) discard(row.rises, row.falls);
+                    if (cursor.wait_for_table && row.mark_serial <= cursor.seen_serial)
+                        discard(row.rises, row.falls);
                     continue;
                 }
                 if (cursor.wait_for_table) {
@@ -266,6 +269,7 @@ void OutHost::loop() noexcept {
                     discard(rises, falls);
                     cursor.wait_for_table = false;
                 }
+                cursor.seen_serial = row.serial;
                 if (!cfg.enabled || !row.blocks) continue;
                 if (cfg.kind == 1) {
                     const auto rises = row.rises;
@@ -333,12 +337,29 @@ void OutHost::loop() noexcept {
                 // A bounded ring entry carries the exact address of its block.
                 // Drop only stale entries, not fresh notes that arrived during
                 // control's accepted-only host handoff.
+                OutRowSnapshot note_mark;
+                const bool matching = route.bus->note_route.snapshot(note_mark) &&
+                    note_mark.mark == out_wire_mark(route.config.notes.address, 0, 0,
+                                                   route.config.notes.enabled != 0);
+                if (matching) route.note_serial = std::max(route.note_serial, note_mark.serial);
                 const auto head = route.bus->note_head.load(std::memory_order_acquire);
                 auto tail = route.bus->note_tail.load(std::memory_order_relaxed);
                 while (tail != head) {
                     const auto event = route.bus->notes[tail % route.bus->notes.size()];
-                    if (!route.config.notes.enabled ||
-                        std::memcmp(event.address, route.config.notes.address, sizeof(event.address)) != 0) {
+                    const bool same_address = std::strncmp(event.address, route.config.notes.address,
+                                                           sizeof(event.address)) == 0;
+                    const bool stale_same = route.notes_cleanup && same_address &&
+                        matching && event.serial < note_mark.mark_serial;
+                    if (!route.config.notes.enabled || !same_address || stale_same) {
+                        // An event newer than any observation of the current
+                        // host table may belong to the next accepted write.
+                        // Keep it in the ring until control catches up.
+                        if (event.serial > route.note_serial) break;
+                        route.dropped.fetch_add(1, std::memory_order_relaxed);
+                        route.bus->note_tail.store(++tail, std::memory_order_release);
+                        continue;
+                    }
+                    if (route.notes_cleanup && !matching && event.serial <= route.note_serial) {
                         route.dropped.fetch_add(1, std::memory_order_relaxed);
                         route.bus->note_tail.store(++tail, std::memory_order_release);
                         continue;
@@ -354,17 +375,13 @@ void OutHost::loop() noexcept {
                     if (send(route, budget, route.config.notes.address, 3, args) &&
                         event.key >= 0 && event.key < 128 && event.channel >= -1 && event.channel <= 16)
                         route.notes_high[uint32_t(event.channel + 1)].set(uint32_t(event.key), event.velocity != 0);
+                    route.note_serial = std::max(route.note_serial, event.serial);
                     ++tail;
                     route.bus->note_tail.store(tail, std::memory_order_release);
                 }
-                if (route.notes_cleanup) {
-                    OutRowSnapshot note_mark;
-                    if (route.bus->note_route.snapshot(note_mark) &&
-                        note_mark.mark == out_wire_mark(route.config.notes.address, 0, 0,
-                                                       route.config.notes.enabled != 0) &&
-                        tail == route.bus->note_head.load(std::memory_order_acquire))
-                        route.notes_cleanup = false;
-                }
+                if (route.notes_cleanup && matching &&
+                    tail == route.bus->note_head.load(std::memory_order_acquire))
+                    route.notes_cleanup = false;
             }
         }
         if (!need_socket) {

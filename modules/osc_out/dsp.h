@@ -97,7 +97,7 @@ struct OscOut {
             if (changed) mark = out_wire_mark(cfg.address, cfg.kind, cfg.deadband, cfg.enabled != 0);
             auto &row = bus->rows[i];
             if (!cfg.enabled) {
-                if (changed) row.publish(&mark, false, 0, 0, 0);
+                if (changed) row.publish(&mark, false, 0, 0, 0, serial);
                 continue;
             }
             const auto signal = block.in(i).ch(0); // FIRST poly policy: only voice 0
@@ -116,7 +116,7 @@ struct OscOut {
                 }
                 high[i] = was;
             }
-            row.publish(changed ? &mark : nullptr, true, last, rises, falls);
+            row.publish(changed ? &mark : nullptr, true, last, rises, falls, serial);
         }
         last_serial = serial;
         has_processed = true;
@@ -133,11 +133,12 @@ struct OscOut {
             note = OutNote{static_cast<int16_t>(event.key), static_cast<int16_t>(event.channel),
                            event.type == WS2_NOTE_ON ? event.value : 0.f};
             std::memcpy(note.address, routes->notes_address, sizeof(note.address));
+            note.serial = serial;
             bus->note_head.store(head + 1, std::memory_order_release);
         }
         if (changed) {
             const auto mark = out_wire_mark(routes->notes_address, 0, 0, routes->notes_enabled != 0);
-            bus->note_route.publish(&mark, false, 0, 0, 0);
+            bus->note_route.publish(&mark, false, 0, 0, 0, serial);
         }
     }
     int save_state(ws::Writer w) { return w.u32(1) ? WS2_OK : WS2_CAPACITY; }

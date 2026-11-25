@@ -13,9 +13,12 @@ using OutWireMark = std::array<uint32_t, 19>;
 inline OutWireMark out_wire_mark(const char (&address)[64], uint32_t kind, float deadband,
                                  bool enabled) noexcept {
     OutWireMark result{};
-    std::memcpy(result.data(), address, 64);
+    size_t length = 0;
+    while (length < 64 && address[length]) ++length;
+    std::memcpy(result.data(), address, length);
     result[16] = kind;
-    std::memcpy(&result[17], &deadband, sizeof(deadband));
+    const float normalized = deadband == 0.f ? 0.f : deadband;
+    std::memcpy(&result[17], &normalized, sizeof(normalized));
     result[18] = enabled ? 1u : 0u;
     return result;
 }
@@ -24,6 +27,7 @@ struct OutRowSnapshot {
     float value = 0;
     uint32_t rises = 0, falls = 0, blocks = 0;
     uint32_t baseline_rises = 0, baseline_falls = 0;
+    uint32_t serial = 0, mark_serial = 0;
 };
 struct OutRow {
     std::atomic<float> value{0};
@@ -33,16 +37,19 @@ struct OutRow {
     // seeing any newer payload release must also see its odd/newer sequence.
     // This avoids treating a partially published block as a new route.
     std::atomic<uint32_t> sequence{0}, baseline_rises{0}, baseline_falls{0};
+    std::atomic<uint32_t> serial{0}, mark_serial{0};
     std::array<std::atomic<uint32_t>, 19> wire{};
     OutRow() noexcept { for (auto &word : wire) word.store(0, std::memory_order_relaxed); }
     void publish(const OutWireMark *mark, bool enabled, float last,
-                 uint32_t up, uint32_t down) noexcept {
+                 uint32_t up, uint32_t down, uint32_t observed_serial = 1) noexcept {
         sequence.fetch_add(1, std::memory_order_acq_rel);
         if (mark) {
             bool changed = false;
             for (size_t i = 0; i < wire.size(); ++i)
                 changed |= wire[i].load(std::memory_order_relaxed) != (*mark)[i];
+            serial.store(observed_serial, std::memory_order_release);
             if (changed) {
+                mark_serial.store(observed_serial, std::memory_order_release);
                 baseline_rises.store(rises.load(std::memory_order_relaxed), std::memory_order_release);
                 baseline_falls.store(falls.load(std::memory_order_relaxed), std::memory_order_release);
                 for (size_t i = 0; i < wire.size(); ++i)
@@ -69,6 +76,8 @@ struct OutRow {
         out.blocks = blocks.load(std::memory_order_acquire);
         out.baseline_rises = baseline_rises.load(std::memory_order_acquire);
         out.baseline_falls = baseline_falls.load(std::memory_order_acquire);
+        out.serial = serial.load(std::memory_order_acquire);
+        out.mark_serial = mark_serial.load(std::memory_order_acquire);
         return sequence.load(std::memory_order_acquire) == before;
     }
 };
@@ -77,6 +86,7 @@ struct OutNote {
     int16_t channel = 0;
     float velocity = 0;
     char address[64]{}; // exact route of this event, never a slot pointer
+    uint32_t serial = 0; // observation ordering only; no expected-serial wait
 }; // velocity 0 = off
 struct OutBus {
     std::array<OutRow, 8> rows{};
