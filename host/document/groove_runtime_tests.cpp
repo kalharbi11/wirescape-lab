@@ -647,6 +647,47 @@ struct GrooveV2Rig {
 };
 // E3b: an active note survives a data serial change. The next step reads
 // the new borrowed row, without rewinding phase, loop or note identity.
+static void test_live_pattern_migration() {
+    groove::Config legacy{};
+    legacy.tracks[0].length = 16;
+    legacy.tracks[1].length = 8;
+    legacy.tempo_source = groove::TempoHost;
+    legacy.authored_version = 2;
+    auto &hidden = legacy.tracks[0].steps[31];
+    hidden.kind = groove::Note;
+    hidden.key = hidden.keys[0] = 64;
+    hidden.velocity = .75f;
+    hidden.key_count = 2;
+    hidden.keys[1] = 67;
+    hidden.cond_type = groove::AB;
+    hidden.cond_a = 1;
+    hidden.cond_b = 2;
+    auto data = groove::materialize_legacy_pattern(legacy);
+    check(data.length_1 == 16 && data.length_2 == 8 && data.count_1 == 64 &&
+          data.count_2 == 64 && data.tempo_source == groove::TempoHost &&
+          data.steps_1[31].keys[1] == 67 && data.steps_1[31].cond_b == 2,
+          "legacy materialization preserves hidden rows, chord, conditions and tempo");
+    const auto &slot = groove::Sequencer::data_slots[0];
+    std::vector<uint8_t> packed(sizeof(data));
+    std::string error;
+    auto valid = [&] {
+        std::memcpy(packed.data(), &data, sizeof(data));
+        error.clear();
+        return groove::validate_pattern_slot(slot, packed, error);
+    };
+    check(valid(), "canonical legacy materialization validates");
+    data.steps_1[31].cond_a = 3;
+    check(!valid() && error.find("steps_1[31]") != std::string::npos, "invalid A:B row refused off render");
+    data.steps_1[31].cond_a = 1;
+    data.steps_1[31].keys[1] = 64;
+    check(!valid() && error.find("steps_1[31]") != std::string::npos, "duplicate chord key refused off render");
+    data.steps_1[31].keys[1] = 67;
+    data.length_2 = 12;
+    check(!valid() && error.find("length_2") != std::string::npos, "unsupported length refused off render");
+    data.length_2 = 8;
+    check(valid(), "valid candidate accepted after refusal");
+}
+
 static void test_live_pattern_data() {
     GrooveV2Rig rig;
     alignas(16) groove::LivePattern data{};
@@ -1191,7 +1232,8 @@ int main(int argc, char **argv) {
         // fixture without bypassing the ordinary full runtime test or its
         // E3a shared-loader dependency.
         if (argc == 2 && std::string(argv[1]) == "--live-pattern-only") {
-            test_live_pattern_data();
+            test_live_pattern_migration();
+        test_live_pattern_data();
             std::puts("PASS Groove live pattern direct continuity");
             return 0;
         }
@@ -1216,6 +1258,7 @@ int main(int argc, char **argv) {
         test_chord_to_notes_cv();
         test_v2_config_and_conditions(cat.get());
         test_v2_gates_and_skipped_ties();
+        test_live_pattern_migration();
         test_live_pattern_data();
         test_tempo_source();
         test_s1_transport(cat.get());

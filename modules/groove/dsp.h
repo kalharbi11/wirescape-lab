@@ -418,7 +418,7 @@ struct Sequencer {
         if (serial != live_serial) {
             live_serial = serial;
             const bool previously_live = live_valid;
-            live_valid = data && valid_live_pattern(*data);
+            live_valid = data && live_pattern_bounds(*data);
             // Recompute only bounded derived flags, never retain the block or
             // restart the player. Current gate, RNG, loop and phase survive.
             if (live_valid || previously_live) {
