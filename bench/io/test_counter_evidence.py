@@ -117,5 +117,31 @@ class CounterEvidenceTests(unittest.TestCase):
         self.assertEqual(invalid["osc_enqueue_reasons"],
                          {"observations": [], "malformed": 2})
 
+
+    def test_a74_trace_is_epoch_local_and_bounded(self):
+        summary = ("osc_capacity_epoch queued=257 invalid=0 capacity=2 state=0 other=0 "
+                   "events_start=12 events_end=269 trace_count=2 omitted=0")
+        sample = ("osc_capacity_sample kind=refusal ordinal=258 module=17 "
+                  "arrival_ns=1000 frame=256 ring_full=1 generation=3")
+        prior = ("osc_capacity_sample kind=prior ordinal=257 module=17 "
+                 "arrival_ns=999 frame=256 ring_full=0 generation=3")
+        report = soak.capacity_observations("\n".join([summary, prior, sample, summary]))
+        self.assertEqual(len(report["epochs"]), 2)
+        self.assertEqual(report["epochs"][0]["queued"], 257)
+        self.assertEqual(report["epochs"][0]["samples"][1]["frame"], 256)
+        self.assertTrue(report["epochs"][0]["trace_complete"])
+        self.assertFalse(report["epochs"][1]["trace_complete"])
+        self.assertEqual(report["epochs"][0]["capacity"], 2)
+
+    def test_a74_bad_trace_unknown_and_shutdown_retains_failure(self):
+        result = {"status": "failed", "first_failure": {"check": "counter_rise"}}
+        raw = "osc_capacity_sample kind=refusal ordinal=2 module=17 arrival_ns=1 frame=0 ring_full=1 generation=1\n"
+        soak.apply_shutdown_checks(result, 7, raw, drain_complete=False, stderr_truncated=True)
+        self.assertEqual(result["first_failure"], {"check": "counter_rise"})
+        self.assertEqual(result["osc_diagnostic_shutdown"], {
+            "exit_code": 7, "stderr": raw, "drain_complete": False, "stderr_truncated": True})
+        self.assertEqual(result["osc_capacity_trace"]["malformed"], 1)
+        self.assertIsNone(soak.capacity_observations("unrelated"))
+
 if __name__ == '__main__':
     unittest.main()
