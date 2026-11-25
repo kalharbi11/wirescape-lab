@@ -622,6 +622,36 @@ static void append_only_descriptor_registration() {
     Engine not_yet;
     CHECK(!not_yet.add_node(1, &unsupported));
 }
+// E3a: a valid declared slot has its packed defaults before the first process.
+static int WS2_CALL data_slot_probe_process(void *self, ws2_process *p) {
+    CHECK(p->struct_size >= offsetof(ws2_process, data) + sizeof(p->data));
+    CHECK(p->data_count == 1 && p->data);
+    const auto &slot = p->data[0];
+    CHECK(slot.struct_size >= sizeof(ws2_data));
+    CHECK(slot.data && slot.bytes == sizeof(float) && slot.serial == 1);
+    CHECK(reinterpret_cast<uintptr_t>(slot.data) % 16 == 0);
+    float value = 0;
+    std::memcpy(&value, slot.data, sizeof(value));
+    CHECK(value == .375f);
+    return ws::Module<Source>::descriptor()->process(self, p);
+}
+static void data_slot_defaults() {
+    const ws2_field field{sizeof(ws2_field), "value", "Value", WS2_F_F32,
+        0, 1, 0, WS2_NO_FIELD, 0, nullptr, 0., 1., .375, 0, nullptr};
+    const ws2_data_slot slot{sizeof(ws2_data_slot), "settings", "Settings",
+        sizeof(float), 1, &field, 0};
+    ws2_descriptor d = *ws::Module<Source>::descriptor();
+    d.data_slot_count = 1;
+    d.data_slots = &slot;
+    d.process = data_slot_probe_process;
+    Engine e;
+    CHECK(e.add_node(1, &d));
+    CHECK(e.output(1, 0, 0));
+    CHECK(e.prepare());
+    { allocation_watch::Scope watch; render(e, 16); render(e, 17);
+      CHECK(watch.allocations() == 0); }
+    CHECK(e.output_sample(1, 0, 0, 15) == 1.f);
+}
 static void replacement_packet_birth() {
     Config config;
     config.max_block = 4096;
@@ -778,6 +808,7 @@ int main(){
  transport_serial();
  transport_replan();
  append_only_descriptor_registration();
+ data_slot_defaults();
  replacement_packet_birth();
  parameter_channels();
  modulation_spans();
