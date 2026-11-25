@@ -36,6 +36,40 @@ class FixedWindowTests(unittest.TestCase):
             self.assertEqual(measure_pair(name, changed, control)["switch_click_peak_fs"],
                              row["switch_click_peak_fs"])
 
+    def test_endpoint_floor_uses_larger_control_and_signed_excess(self):
+        from a27_fixed import endpoint_columns
+        for old, target, switched, expected in ((.01, .02, .02, 0),
+                                               (.02, .01, .01, -6.020599913279624),
+                                               (.01, .02, .021, .42378598139876184)):
+            row = endpoint_columns(old, target, switched)
+            self.assertEqual(row["old_floor"], old)
+            self.assertEqual(row["target_floor"], target)
+            self.assertEqual(row["endpoint_floor"], max(old, target))
+            self.assertEqual(row["switched"], switched)
+            self.assertAlmostEqual(row["excess_over_endpoint_db"], expected)
+        self.assertEqual(endpoint_columns(0, 0, 0)["excess_over_endpoint_db"], 0)
+        self.assertEqual(endpoint_columns(0, 0, .01)["excess_over_endpoint_db"], "inf")
+        self.assertEqual(endpoint_columns(.01, 0, 0)["excess_over_endpoint_db"], "-inf")
+        for invalid in (-1, None, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                endpoint_columns(.01, invalid, .01)
+
+    def test_target_patch_preserves_clock_and_every_other_parameter(self):
+        import copy
+        from a27_fixed import target_patch
+        patch = {"modules": [{"id": 1, "module": "fx.delay", "parameters": {"division": 5, "mix": 1}},
+                             {"id": 4, "module": "essentials.clock", "parameters": {"bpm": 120}}],
+                 "connections": [{"from": {"module": 4, "port": "clock"},
+                                  "to": {"module": 1, "port": "clock"}}],
+                 "settings": {"seed": 7}}
+        original = copy.deepcopy(patch)
+        expected = copy.deepcopy(patch)
+        expected["modules"][0]["parameters"]["division"] = 1
+        self.assertEqual(target_patch(patch, "division", 5, 1), expected)
+        self.assertEqual(patch, original)
+        with self.assertRaises(ValueError):
+            target_patch(patch, "division", 4, 1)
+
     def test_unclocked_requires_full_pair_equality(self):
         a = np.zeros((96000, 2))
         self.assertEqual(measure_pair("division_unclocked", a, a)["status"], "no_effect")
