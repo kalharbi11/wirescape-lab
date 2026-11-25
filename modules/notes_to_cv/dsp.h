@@ -35,7 +35,11 @@ struct NotesToCv {
             wirescape::voice::Config cfg{};
             cfg.max_voices = static_cast<uint8_t>(desired);
             cfg.mode = wirescape::voice::Mode::Rotate;
-            core.configure(cfg);
+            if (configured_voices) {
+                ws2_event cause{};
+                cause.struct_size = sizeof(cause);
+                core.resize(desired, cause, [](const ws2_event &) {});
+            } else core.configure(cfg);
             configured_voices = desired;
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());

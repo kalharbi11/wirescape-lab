@@ -18,6 +18,27 @@ Status Allocator::configure(Config config) noexcept {
     return Status::Ok;
 }
 
+Status Allocator::resize(int max_voices) noexcept {
+    if (max_voices < 1 || max_voices > kMaxVoices) return Status::InvalidConfig;
+    if (max_voices == config_.max_voices) return Status::Ok;
+    // Mono always owns one voice and its priority/fallback held-note stack.
+    // Changing the configured capacity must not touch that stack.
+    if (config_.mode != Mode::Mono) {
+        const int previous = config_.max_voices;
+        if (max_voices < previous) {
+            for (int i = 0; i < kMaxHeldNotes; ++i)
+                if (held_[i].used && held_[i].voice >= max_voices)
+                    release_held(i);
+            for (int i = max_voices; i < previous; ++i) voices_[i] = {};
+            if (cursor_ >= max_voices) cursor_ = static_cast<uint8_t>(cursor_ % max_voices);
+        } else {
+            for (int i = previous; i < max_voices; ++i) voices_[i] = {};
+        }
+    }
+    config_.max_voices = static_cast<uint8_t>(max_voices);
+    return Status::Ok;
+}
+
 void Allocator::reset() noexcept {
     for (auto& v : voices_) v = {};
     for (auto& h : held_) h = {};
