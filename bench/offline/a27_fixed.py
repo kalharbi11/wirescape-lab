@@ -227,6 +227,28 @@ def endpoint_columns(old, target, switched):
                 switched=switched, excess_over_endpoint_db=excess)
 
 
+def classify_r19(old, target, switched, target_last_12k):
+    """M7 r1.9 diagnostic classification; preserve r1.8 raw endpoint columns."""
+    endpoint_columns(old, target, switched)
+    endpoint_columns(target_last_12k, target_last_12k, target_last_12k)
+    bound = 10 ** (.1 / 20)
+    # Symmetric 0.1 dB agreement between fixed-window and last-slice peaks.
+    steady = target <= target_last_12k * bound and target_last_12k <= target * bound
+    if switched <= old * bound:
+        floor, classification = old, "old_floor_met"
+    elif not steady:
+        floor, classification = old, "target_not_steady_old_floor_exceeded"
+    else:
+        floor = max(old, target)
+        classification = ("steady_target_met" if switched <= floor * bound
+                          else "steady_target_exceeded")
+    return dict(classification=classification, target_steady_state=steady,
+                target_last_12k_peak_fs=target_last_12k,
+                governing_floor=floor,
+                excess_over_governing_floor_db=endpoint_columns(
+                    floor, floor, switched)["excess_over_endpoint_db"])
+
+
 def target_patch(patch, parameter, old, target):
     """Copy the exact old-control graph; only the named Delay value changes."""
     result = copy.deepcopy(patch)
@@ -300,17 +322,21 @@ def supplemental_target_controls(source, build, out, pin):
         fixed = summarize(*WINDOWS[name])
         endpoint = endpoint_columns(subject_row["no_switch_floor_fs"],
                                     fixed["peak_fs"], subject_row["switch_click_peak_fs"])
+        last_slice = summarize(FRAMES - 12000, FRAMES)
+        classification = classify_r19(endpoint["old_floor"], endpoint["target_floor"],
+                                      endpoint["switched"], last_slice["peak_fs"])
         rows.append(dict(case=name, parameter=param, old=old, target_from_start=new,
-                         **endpoint, peak_units="FS",
+                         **endpoint, **classification, peak_units="FS",
                          events=[], status="measured", captures=result,
                          files={str(p.relative_to(out)): sha256(p)
                                 for p in sorted(folder.iterdir()) if p.is_file()},
                          fixed_window=fixed,
                          full_capture=summarize(0, FRAMES),
-                         post_switch_time=summarize(SWITCH, FRAMES)))
+                         post_switch_time=summarize(SWITCH, FRAMES),
+                         last_12k_frames=last_slice))
     write_json(out / "target-controls.json", dict(source_commit=pin, provenance=meta,
                renderer_sha256=sha256(renderer), sample_rate_hz=RATE, frames=FRAMES,
-               diagnostic_only=True, method="M7 r1.8 endpoint floor over fixed r1.4 windows",
+               diagnostic_only=True, method="M7 r1.8 endpoint columns and r1.9 classification over fixed r1.4 windows",
                subject_report_sha256=sha256(subject_path), rows=rows))
 
 
