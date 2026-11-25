@@ -145,7 +145,7 @@ jobs:
                   assert len([x for x in row["rows"] if x["name"]=="abi2_poly8"])==1
               else:
                   write(side+"-engine-error.json",result)
-          # Run pairs in alternating subject order by fixture, never compare different block sizes.
+          # Run both subjects consecutively per fixture; never compare different block sizes.
           module_rows=[]
           for ident in common_ids:
               for channels in (1,8):
@@ -204,7 +204,7 @@ jobs:
               # Explicit names; engine artifact is sidecar executable, module libraries enumerated separately.
               files=[]
               for p in sorted((root/"build/native").glob("*")):
-                  if p.is_file() and (p.name=="wirescape_engine_sidecar" or
+                  if p.is_file() and (p.name=="wirescape-engine" or
                      (p.name.startswith("libws2_") and p.suffix==".so" and
                       not p.name.startswith(("libws2_test_","libws2_guide_","libws2_sdk_")))):
                       sizes=call(["size","-A",p],root)
@@ -214,6 +214,163 @@ jobs:
                                    if len(x.split())>=2 and (x.split()[0]==".text" or x.split()[0].startswith(".text.")))
                       files.append(dict(file=p.name,bytes=p.stat().st_size,text_bytes=text))
               write(side+"-binary-size.json",dict(provenance=provenance,rows=files))
+          PY
+      - name: Compare external SDK build in isolated directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util, json, subprocess, tempfile, shutil
+          from pathlib import Path
+          out=Path("evidence").resolve()
+          meta=json.loads((out/"provenance.json").read_text())
+          collector=Path("after/bench/sdk/out_of_tree_trial.py").resolve()
+          spec=importlib.util.spec_from_file_location("sdk_trial",collector)
+          trial=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(trial)
+          rows={}
+          for side,sdk in (("before","native/sdk"),("after","sdk")):
+              source=(Path(side)/sdk).resolve()
+              with tempfile.TemporaryDirectory(prefix="cmp-sdk-") as tmp:
+                  root=Path(tmp)
+                  try:
+                      shutil.copytree(source,root/"sdk")
+                      trial.prepare_template(root/"trial_gain",root/"sdk/template")
+                      (root/"CMakeLists.txt").write_text("cmake_minimum_required(VERSION 3.20)\nproject(TrialGain LANGUAGES CXX)\nenable_testing()\nadd_subdirectory(trial_gain)\n")
+                      stages=[]
+                      for name,args in (("configure",["cmake","-S",str(root),"-B",str(root/"build"),"-DCMAKE_BUILD_TYPE=Release"]),
+                                        ("build",["cmake","--build",str(root/"build"),"--config","Release"])):
+                          run=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=180)
+                          stages.append(dict(stage=name,exit_code=run.returncode,
+                                             stdout=run.stdout.replace(tmp,"<trial>"),
+                                             stderr=run.stderr.replace(tmp,"<trial>")))
+                          if run.returncode: break
+                      rows[side]=dict(status="pass" if len(stages)==2 and not stages[-1]["exit_code"] else "fail",stages=stages)
+                  except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+                      rows[side]=dict(status="unmeasured",reason=str(exc).replace(tmp,"<trial>"))
+          (out/"external-sdk.json").write_text(json.dumps(dict(provenance=meta,collector_subject=meta["after"],rows=rows),indent=2)+"\n")
+          PY
+      - name: Record continuity source compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          out=Path("evidence")
+          meta=json.loads((out/"provenance.json").read_text())
+          r=subprocess.run(["git","-C","before","grep","-n","-e","--capture-null-sink","--","native"],text=True,capture_output=True)
+          if r.returncode not in (0,1): raise RuntimeError(r.stderr)
+          reason="import does not contain --capture-null-sink; unchanged continuity harness cannot run" if r.returncode==1 else "unchanged harness compatibility requires verification"
+          (out/"continuity-source.json").write_text(json.dumps(dict(provenance=meta,before=dict(status="unmeasured",reason=reason,matches=r.stdout.splitlines()),
+              after=dict(status="separate historical source",facts_commit="ff206709b60cb26a34626c2ab38b1d864e59e4fb",source="facts/dsp/edit_continuity.md")),indent=2)+"\n")
+          PY
+      - name: Install the pinned Cortex-M7 compiler on x64
+        if: matrix.machine == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/arm-gnu-toolchain-14.2.rel1.tar.xz"
+          url="https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz"
+          curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 "$url" -o "$archive"
+          echo "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823  $archive" | sha256sum -c -
+          tar -xJf "$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin" >> "$GITHUB_PATH"
+      - name: Compile module inventory with the same cross-toolchain
+        if: matrix.machine == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, re, subprocess, tempfile
+          from pathlib import Path
+          out=Path("evidence").resolve()
+          meta=json.loads((out/"provenance.json").read_text())
+          results={}
+          version=subprocess.check_output(["arm-none-eabi-g++","--version"],text=True).splitlines()[0]
+          for side in ("before","after"):
+              root=Path(side).resolve()
+              module_dir,sdk,inc=("native/modules2","native/sdk","native/include") if side=="before" else ("modules","sdk","sdk/include")
+              sources=sorted((root/module_dir).glob("*/module.cpp"))+sorted((root/sdk/"examples").glob("*/module.cpp"))
+              sources.append(root/sdk/"template/module.cpp")
+              catalog=root/("native/control/module_catalog.inc" if side=="before" else "engine/control/module_catalog.inc")
+              count=len(re.findall(r"(?m)^\s*WS_APP_MODULE\(",catalog.read_text()))
+              if len(sources)!=count+1: raise RuntimeError("catalogue inventory mismatch")
+              rows=[]
+              with tempfile.TemporaryDirectory(prefix="cmp-m7-") as temp:
+                  for source in sources:
+                      rel=source.relative_to(root)
+                      for fpu in ("fpv5-d16","fpv5-sp-d16"):
+                          row=dict(source=rel.as_posix(),fpu=fpu)
+                          flags=["-std=c++17","-mcpu=cortex-m7","-mthumb","-mfpu="+fpu,
+                                 "-mfloat-abi=hard","-fno-exceptions","-fno-rtti","-Os","-ffunction-sections",
+                                 "-fdata-sections","-DWS_SIMD_SCALAR","-I",sdk,"-I",inc,"-I",sdk+"/examples"]
+                          if source.parent.name=="macro_oscillator":
+                              voices=[p for p in (root/"build/native").rglob("voice.h") if p.as_posix().endswith("/plaits/dsp/voice.h")]
+                              stmlib=[p for p in (root/"build/native").rglob("stmlib.h") if p.parent.name=="stmlib"]
+                              if len(voices)!=1 or len(stmlib)!=1:
+                                  row.update(status="unmeasured",reason="pinned CMake macro source context not unique")
+                                  rows.append(row); continue
+                              flags+=["-I",str(voices[0].parents[2]),"-I",str(stmlib[0].parents[1]),
+                                      "-DTEST","-include",str(source.parent/"rng_scope.hpp")]
+                          p=subprocess.run(["arm-none-eabi-g++",*flags,"-c",str(rel),"-o",temp+"/module.o"],
+                                           cwd=root,text=True,capture_output=True,timeout=180)
+                          errors=[l.replace(str(root),"<subject>") for l in p.stderr.splitlines() if "error:" in l.lower()]
+                          row.update(status="measured",compiles=p.returncode==0,exit_code=p.returncode,
+                                     first_error=errors[0] if errors else None)
+                          rows.append(row)
+              results[side]=dict(catalogue_count=count,rows=rows)
+          (out/"portability.json").write_text(json.dumps(dict(provenance=meta,compiler=version,
+               archive_sha256="62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823",
+               method="portability.yml compile flags, native CMake pinned macro sources, old/new include paths",results=results),indent=2)+"\n")
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Collect UI frame p95 with unchanged current harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A temporary copy of the current collector points at each subject's Studio.
+          # Do not modify tracked source or make incompatible app hooks pass.
+          python - <<'PY'
+          import json, os, shutil, subprocess, tempfile
+          from pathlib import Path
+          out=Path("evidence").resolve()
+          meta=json.loads((out/"provenance.json").read_text())
+          collector=Path("after/bench/offline/ui_frames.cjs").resolve()
+          results={}
+          for side in ("before","after"):
+              root=Path(side).resolve()
+              app=root/"apps/studio"
+              with tempfile.TemporaryDirectory(prefix="cmp-ui-") as temp:
+                  overlay=Path(temp)
+                  (overlay/"bench/offline").mkdir(parents=True)
+                  (overlay/"apps").mkdir()
+                  (overlay/"apps/studio").symlink_to(app,target_is_directory=True)
+                  (overlay/".git").symlink_to(root/".git",target_is_directory=True)
+                  target=overlay/"bench/offline/ui_frames.cjs"
+                  shutil.copy2(collector,target)
+                  def invoke(args,cwd=app,env=None,timeout=300):
+                      return subprocess.run(args,cwd=cwd,env=env,text=True,capture_output=True,timeout=timeout)
+                  try:
+                      for args in (["npm","ci","--no-audit","--no-fund"],
+                                   ["npx","playwright","install","--with-deps","chromium"],
+                                   ["npm","run","build"]):
+                          p=invoke(args)
+                          if p.returncode: raise RuntimeError(" ".join(args)+": "+p.stderr[-1800:])
+                      browser=invoke(["node","-e","console.log(require('playwright').chromium.executablePath())"])
+                      if browser.returncode: raise RuntimeError(browser.stderr)
+                      env=dict(os.environ,WIRESCAPE_CHROMIUM=browser.stdout.strip())
+                      run=invoke(["node",str(target)],cwd=overlay,env=env,timeout=180)
+                      report=overlay/"build_reports/l4/ui/summary.json"
+                      if run.returncode or not report.is_file(): raise RuntimeError(run.stderr[-1800:] or "no frame report")
+                      doc=json.loads(report.read_text())
+                      if doc["commit"]!=meta[side]: raise RuntimeError("UI subject pin mismatch")
+                      results[side]=dict(status="measured",data=doc)
+                  except (OSError,ValueError,RuntimeError,subprocess.TimeoutExpired) as exc:
+                      results[side]=dict(status="unmeasured",reason=str(exc).replace(temp,"<collector>").replace(str(root),"<subject>"))
+          (out/"ui-frames.json").write_text(json.dumps(dict(provenance=meta,collector_subject=meta["after"],results=results),indent=2)+"\n")
           PY
       - name: Upload raw paired evidence, even on build or collection failure
         if: always()
