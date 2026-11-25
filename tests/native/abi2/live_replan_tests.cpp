@@ -139,11 +139,16 @@ static ws2_event note(ws2_event_type type = WS2_NOTE_ON, float value = .75f) {
     e.value = value;
     return e;
 }
-static void replacement_ring_out() {
-    auto make = [](uint8_t gain) {
+static void replacement_ring_out(uint32_t declared_ms = 0, uint32_t expected_frames = 960,
+                                 bool decline = false, bool fault = false) {
+    auto descriptor = *ws::Module<ReplacementTail>::descriptor();
+    descriptor.replace_fade_ms = declared_ms;
+    if (decline) descriptor.adopt = [](void *, const void *) -> int { return WS2_UNSUPPORTED; };
+    if (fault) descriptor.adopt = [](void *, const void *) -> int { return WS2_INVALID; };
+    auto make = [&](uint8_t gain) {
         auto e = std::make_unique<Engine>(config());
         CHECK(e->add_node(1, ws::Module<Voice>::descriptor()));
-        CHECK(e->add_node(2, ws::Module<ReplacementTail>::descriptor(), {gain}));
+        CHECK(e->add_node(2, &descriptor, {gain}));
         CHECK(e->connect(1, 0, 2, 0));
         CHECK(e->output(2, 0, 0));
         CHECK(e->output(1, 0, 1));
@@ -186,7 +191,7 @@ static void replacement_ring_out() {
     // Old receives release-all and keeps its signal input, N receives
     // held-note replay and a full-strength signal input. Only consumer
     // contributions crossfade: .375 -> 1.5 in exactly 960 samples (20 ms).
-    constexpr uint32_t fade = 960;
+    const uint32_t fade = expected_frames;
     for (uint32_t n = 1; n <= fade; ++n) {
         if (n != 1) render();
         const float expected = .375f + (1.5f - .375f) * float(n) / fade;
@@ -198,6 +203,110 @@ static void replacement_ring_out() {
     render();
     CHECK(sample[0] == .375f);
     CHECK(live->meter().generation == generation);
+    CHECK(live->meter().faults == (fault ? 1u : 0u));
+}
+// Raw ABI test fixture: no dependence on the SDK's private instance layout.
+// The release changes held state but leaves an uninterrupted phase tail.
+struct AdoptPhase {
+    uint32_t phase = 0, attacks = 0;
+    bool held = false;
+    static constexpr std::array inputs{ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("phase", "Phase"), ws::port("held", "Held")};
+    static void *WS2_CALL create(const ws2_host *host) {
+        auto *p = host->alloc(host->ctx, sizeof(AdoptPhase), alignof(AdoptPhase), WS2_FAST);
+        return p ? new (p) AdoptPhase{} : nullptr;
+    }
+    static void WS2_CALL destroy(void *p) { static_cast<AdoptPhase *>(p)->~AdoptPhase(); }
+    static int WS2_CALL query(void *, const ws2_config *, ws2_ports *ports) {
+        *ports = {sizeof(ws2_ports), 1, 2, inputs.data(), outputs.data()};
+        return WS2_OK;
+    }
+    static int WS2_CALL memory(const ws2_config *, ws2_memory *m) {
+        *m = {sizeof(ws2_memory), sizeof(AdoptPhase), 0, 32};
+        return WS2_OK;
+    }
+    static int WS2_CALL prepare(void *, const ws2_config *, const ws2_host *) { return WS2_OK; }
+    static void WS2_CALL reset(void *p) { *static_cast<AdoptPhase *>(p) = {}; }
+    static int WS2_CALL process(void *p, ws2_process *process) {
+        auto &self = *static_cast<AdoptPhase *>(p);
+        ws::Block b(*process);
+        for (uint32_t port = 0; port < 2; ++port) {
+            b.out(port).set_channels(1);
+            b.out(port).mark_constant(false);
+        }
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i) {
+                b.out(0).ch(0)[i] = float(++self.phase) / 65536.f;
+                b.out(1).ch(0)[i] = self.held ? float(self.attacks) : 0.f;
+            }
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) { self.held = true; ++self.attacks; self.phase = 0; }
+            else if (e.type == WS2_NOTE_OFF || e.type == WS2_NOTE_CHOKE) self.held = false;
+        });
+        return WS2_OK;
+    }
+    static int WS2_CALL save(void *, const ws2_writer *) { return WS2_OK; }
+    static int WS2_CALL load(void *, const ws2_reader *) { return WS2_OK; }
+    static uint32_t WS2_CALL latency(void *) { return 0; }
+    static int WS2_CALL adopt(void *self, const void *old) {
+        *static_cast<AdoptPhase *>(self) = *static_cast<const AdoptPhase *>(old);
+        return WS2_OK;
+    }
+};
+static void replacement_adopt() {
+    const ws2_descriptor descriptor{
+        sizeof(ws2_descriptor), WS_ABI2_VERSION, "test.adopt_phase", "Adopt phase", 1, 1, 2, 0,
+        AdoptPhase::inputs.data(), AdoptPhase::outputs.data(), nullptr,
+        AdoptPhase::create, AdoptPhase::destroy, AdoptPhase::query, AdoptPhase::memory,
+        AdoptPhase::prepare, AdoptPhase::reset, AdoptPhase::process, AdoptPhase::save, AdoptPhase::load,
+        AdoptPhase::latency, 0, nullptr, AdoptPhase::adopt, 7};
+    auto make = [&](uint8_t config_byte) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, &descriptor, {config_byte}));
+        CHECK(e->output(1, 0, 0));
+        CHECK(e->output(1, 1, 1));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), successor = make(2);
+    CHECK(live->enqueue(0, 1, 0, note(), 0, Timing::Immediate) == WS2_OK);
+    float phase[1]{}, held[1]{};
+    float *out[]{phase, held};
+    uint32_t count = 0;
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 2, 1) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+        CHECK(std::abs(phase[0] - float(++count) / 65536.f) < 2.e-7f);
+    };
+    for (unsigned i = 0; i < 64; ++i) render();
+    std::atomic<bool> done{false};
+    bool ok = false;
+    std::thread control([&] {
+        ok = live->replan(*successor, uint64_t(frames) * 3 * 1000000000 / 48000);
+        done.store(true, std::memory_order_release);
+    });
+    // Never abort with an unjoined control thread; accumulate the oracle result.
+    bool continuous = true;
+    const auto deadline = Clock::now() + std::chrono::seconds(2);
+    do {
+        allocation_watch::ThreadScope watch;
+        const int result = live->render(out, 2, 1);
+        ++count;
+        continuous &= result == WS2_OK && watch.allocations() == 0 &&
+                      std::abs(phase[0] - float(count) / 65536.f) < 2.e-7f;
+        std::this_thread::yield();
+    } while (!done.load(std::memory_order_acquire) && Clock::now() < deadline);
+    control.join();
+    CHECK(ok);
+    CHECK(continuous);
+    successor.reset();
+    for (unsigned i = 0; i < 336; ++i) render();
+    CHECK(held[0] == 1.f); // No duplicate attack from replay after successful adopt.
+    CHECK(live->enqueue(0, 1, 0, note(WS2_NOTE_OFF, 0), 0, Timing::Immediate) == WS2_OK);
+    render();
+    CHECK(held[0] == 0.f);
     CHECK(live->meter().faults == 0);
 }
 struct EventSink : Voice {
@@ -938,6 +1047,9 @@ int main(int argc, char **argv) {
     osc_out_retirement();
     signal_ramp_interrupted();
     replacement_ring_out();
+    replacement_adopt();
+    replacement_ring_out(7, 336, true);
+    replacement_ring_out(1000, 24000, false, true);
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
