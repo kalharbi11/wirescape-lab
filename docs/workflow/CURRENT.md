@@ -8,6 +8,30 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 45 — 2026-11-25 18:05 EST (A88, A89, A90, OB-f1 dispatch; scheduled `architect:run`)
+
+- **OB-f1 dispatch** (the lead's operational hold on #578): the Architect dispatched run [45717349754](https://github.com/kalharbi11/wirescape-lab/actions/runs/45717349754) at main `6b3789b`, newer than the `4de561c` pin because it includes #580. It is pre-candidate, not acceptance. B3 verifies the raw rows and publishes the facts. The GitHub MCP `actions_run_trigger` `run_workflow` can dispatch, so the lead needs no shell for this.
+- **OB A88 / r2.11** ([#584](https://github.com/kalharbi11/wirescape-lab/pull/584#issuecomment-7176975049)): acceptance 6 on the Pi is 6a (runner: 0 xruns, both CN costs) plus 6b (a witnessed Studio session of ≥100 hand edits, same Pi, SHA, patch and day). No bridges. Inbox PR #594 is closed as superseded. #579 is unblocked on the ruling side and waits for the owner session.
+- **A89** ([#589](https://github.com/kalharbi11/wirescape-lab/issues/589#issuecomment-7176977235)): CMP-1 uses a workflow-only bootstrap PR (lead merge), then a pinned dispatch, then the facts on #592. A bounded two-PR exception that expires when #592 merges. Inbox PR #593 is closed as superseded.
+- **M4 A90** ([#545](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7176979463)): pattern-only Apply keeps the native and saved construction version and track count; construction edits are disclosed through `applyGraph`. Witnesses (a)–(c) on both arches.
+- **#540:** SR21 as written. Own-path parts now; shared RealEngine/App writes after #585 merges. No stacking. `needs/architect` removed and `review-required` kept. Stale `needs/architect` labels were cleared on #578, #579, #584, #545 and #589.
+- **Held:** #540 shared writes until #585 merges; #592 facts until the bootstrap merges and #567 merges; OB1 acceptance until owner OB-d, OB-a2 and the 6a/6b Pi session.
+- **Next Architect run:** `architect-ready` when #540 or #585 is pinned for review, or the OB1 acceptance batch (medium effort). **Next run should:** (1) review the first shipped-slot PR against A81(3)/A82/A86; (2) check B3's OB-f1 facts from run 45717349754 against r2.3; (3) check that #545 has A90 witnesses (a)–(c) at its exact head; (4) check that the CMP-1 bootstrap file is blob-identical to the reviewed one; (5) take OB1 acceptance once the owner evidence exists.
+
+Signed: claude-architect, 2026-11-25
+
+## Lead run — 2026-11-25 17:52 EST
+
+- Checked B1–B5 live heads, latest signed checkpoints and exact-head workflow reports. Shared account usage/reset is unavailable (unknown).
+- Merged #580 `a85137f` (A85/A85a, six same-value typing edits; signed Result, Lab/Golden/paired/portability success) and inbox #588 `3775061`. B4 #567 is released; B5 legacy editor ruling remains open.
+- B1 #585 and B5 #545 latest Lab pending; B2 #540 latest exact workflows absent from connector. No product review-ready claim. Preserve B1 → B2 → B5 shared transport boundaries and #540-first slot witness.
+- Architect needed for #588 legacy editor policy, #594 owner observation boundary, and #593 CMP-1 execution route. #593/#594 are inbox-only requests, not product approval; automatic approval review rejected their merges as premature. They remain open and linked here for manual disposition; no workaround or gate waiver.
+- #578 remains an operational dispatch hold: A87 full-pin pre-candidate command is on issue comment 7170294924. GitHub connector lacks workflow_dispatch; shell proxy failed. Architect/owner authenticated dispatch is needed, then B3 verifies raw artifacts and publishes facts. No unchanged rerun.
+- Next milestone OB1: owner OB-d listening disposition, candidate OB-f1 recheck, real-patch-folder OB-a2, and owner 100-edit Pi session (zero xruns, no visible stutter, both CN costs), then Architect acceptance/tag. #590 has no uploads. OB1.1 data work does not hold the OB1 tag. Pi runner hold and parked work unchanged.
+- Manual starts: B1 `1:run`, B2 `2:run`, B4 `4:run`, B5 `5:run`; B3 `3:run` after dispatch artifacts or observation ruling. Owner `architect:run` should read the two unmerged inbox PRs as well as merged #588. No automatic wake issued while the full request batch is unmerged.
+
+Signed: gpt-lead, 2026-11-25
+
 ## Architect run 44 (also lead) — 2026-11-25 05:20 EST (A86, A87, cleanup, owner testing; owner `architect:run`)
 
 - **M4 A86** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7159038650)), B2 #540:

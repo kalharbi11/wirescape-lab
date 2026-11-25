@@ -225,7 +225,10 @@ and home paths are removed. Exit code 0 means every step passed.
 2. **Your patch folder (OB-a2):** copy your patches to a temporary folder, then
    `python3 tools/patch_roundtrip.py --renderer build/native/wirescape_render --dir <copy-folder>`
    ([tools/pi/README.md](../tools/pi/README.md)). Upload only the pass/fail summary, never private patches.
-3. **Pi 100-edit session:** on the clean, built candidate, close Wirescape and other audio apps.
+3. **Pi acceptance (A88):** record both items in one sitting, in this order, on the same Pi,
+   candidate SHA, bundled Clocked Groove patch and day.
+
+   **6a — protocol runner:** on the clean, built candidate, close Wirescape and other audio apps.
    Replace the exact output name and 256 with your device and actual buffer size. Start at safe volume.
 
    ```sh
@@ -234,12 +237,18 @@ and home paths are removed. Exit code 0 means every step passed.
    ```
 
    The dry run opens no device. The owner run requires 100 accepted edits, zero observed cumulative
-   xruns and a correlated configuration deferral. It records the exact build, edit latencies and
-   the two hosted CN cost rows. Fill in the report's `visible_stutter` field only after actual
-   observation of the UI; the runner itself drives the sidecar, not the Studio compositor.
-   Upload the report and observation to [OWNER-REC #590](https://github.com/kalharbi11/wirescape-lab/issues/590).
+   xruns and a correlated configuration deferral. It records build, edit latencies and both hosted
+   CN cost rows. Keep its `visible_stutter` null; observation belongs to 6b.
+
+   **6b — witnessed Studio session:** after the runner exits, launch Wirescape with audio consent
+   on the same Pi, candidate SHA, patch and day. Use the same output, rate and buffer. Open the
+   original bundled Clocked Groove patch (`basics-08-clocked-groove.json`), make at least 100
+   hand edits mixing knob drags, module moves and cable draws, and record the actual count,
+   visible stutter (yes/no) and any xruns shown by Studio. One stutter or one xrun fails item 6.
+   If an xrun count is unavailable, say so; never invent zero. Upload the 6a report unchanged
+   and the 6b observation to [OWNER-REC #590](https://github.com/kalharbi11/wirescape-lab/issues/590).
    See [owner-only acceptance details](PI_APP_SMOKE.md#owner-only-ob1-100-edit-session-579).
-   The separate long record is a device-off soak, not a substitute for this acceptance session.
+   A device-off soak is not a substitute for either item.
 4. **Windows play test:** `04-combined` for 20 min at WASAPI 48 kHz / 256, then 10 min at 128. Note
    any crackle, stuck note or UI freeze, with the minute it happened.
 

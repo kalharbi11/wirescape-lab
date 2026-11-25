@@ -89,12 +89,23 @@ requires `--midi --confirm-midi --midi-device EXACT_ID`. No LAN consent
 is passed. The shipped OB1 fixture uses config rather than speculative
 live-data slots; the OB1.1 setData row requires its shipped descriptor.
 
-A successful script report is **owner-observation-required**, not milestone
-acceptance. The owner fills `visible_stutter` with true or false after
-observing the actual UI session (the runner itself drives the sidecar
-protocol, not the Studio compositor), and records any audible issue
-separately. Never turn a missing observation into false. The owner records
-the report and the separate visual observation for Architect disposition.
+Under OB A88 / r2.11, a successful script report is **owner-observation-required**:
+it is item 6a, not milestone acceptance. Keep `visible_stutter` null and
+`visible_stutter_note` set to "observed in 6b"; the sidecar runner has no UI.
+Do not edit the 6a report to claim a UI observation.
+
+Next, in the same sitting, run **6b** in Studio on the same Pi, exact
+candidate SHA, same original bundled Clocked Groove patch
+(`basics-08-clocked-groove.json`) and day, using the same audio output,
+sample rate and buffer. After the runner exits, launch the app with
+explicit audio consent. Make at least 100 hand edits mixing knob drags,
+module moves and cable draws. Record date, SHA, patch, device, buffer,
+actual edit count, visible stutter (yes/no), and any xruns Studio shows.
+If a counter is unavailable, record unavailable rather than zero. One
+stutter or one xrun fails item 6; a failure in 6b but not 6a opens one
+OB-f2 Studio fix with a before/after row. Record audible issues separately.
+Upload the unchanged 6a report and separate 6b observations to #590 for
+Architect disposition. Never turn a missing observation into false.
 A nonzero exit, refused edit, missing deferral or unavailable xrun sample
 does not satisfy the 100-edit criterion. Use a new report filename; existing
 reports are never overwritten.

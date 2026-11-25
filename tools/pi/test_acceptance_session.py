@@ -162,6 +162,7 @@ class FakeStreamTests(unittest.TestCase):
             self.assertEqual(report["completed_edits"], 0)
             self.assertIsNone(report["xruns"])
             self.assertIsNone(report["visible_stutter"])
+            self.assertEqual(report["visible_stutter_note"], "observed in 6b")
             self.assertEqual(len(report["planned_edits"]), 100)
             self.assertEqual(len(report["cn_transition_costs"]), 2)
             spawn.assert_not_called()

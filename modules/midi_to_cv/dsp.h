@@ -218,7 +218,7 @@ struct MidiToCv {
         b.out(7).set_channels(0);
         b.out(8).set_channels(1);
         b.out(8).mark_constant(false);
-        const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
+        const auto trig_frames = std::max<uint32_t>(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
         uint32_t retained = 0;
         for (uint32_t i = 0; i < pending_count; ++i) { auto e = pending[i]; e.offset = 0; if (!b.emit(7, e)) pending[retained++] = e; }
         pending_count = retained;

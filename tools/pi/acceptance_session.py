@@ -412,6 +412,7 @@ def run(args):
               "requested_edits": 100, "completed_edits": 0, "xruns": None,
               "buffer_frames": args.buffer, "sample_rate": args.rate,
               "device": args.device, "build_sha": None, "visible_stutter": None,
+              "visible_stutter_note": "observed in 6b",
               "edits": [], "cn_transition_costs": cn_cost_rows(),
               "xrun_scope": "session-cumulative through final running status; not a shutdown counter"}
     if args.dry_run:
