@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # OB-d bundled-patch sound-change ledger (draft)
 
-2026-11-24 ET. OB r2.9, M7 r1.9a. This is a per-stage record, not a cumulative
-OB0→OB1 measurement or owner listening result. Final S7.6 and candidate rebuild
-remain pending. No preset edits in this draft. OB0 was accepted at
+2026-11-25 ET. OB r2.9, M7 r1.9a. This is a per-stage record, not a cumulative
+OB0→OB1 measurement or owner listening result. Final S7.6 is accepted; candidate rebuild and owner listening
+remain pending after E7c-b #520. No preset edits in this draft. OB0 was accepted at
 `a440d7175659402474290e34a1d63b4404dcaa72` ([release record](../../docs/RELEASES.md));
 S7.1/S7.2/S7.4 are already in that baseline, not new OB1 sound-change rows.
 
@@ -119,43 +119,93 @@ measurements only, not new acceptance bounds. Exact-head Lab remains pending.
   clears note identity but **continues sounding at Frequency** with continuous phase.
   A patch that needs silence uses its amplitude envelope / VCA, rather than assuming
   CHOKE itself mutes a free-running oscillator. Owner listening note, not a further DSP fix.
-- S7.6 #449: open, evidence base `7661f832f44c2f8388b84b48e766490e1e44418f`,
-  subject `4fcaa04abaa8ecd5018f55b98e3c76f5d6e0045d`, [B4 raw Result](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151834512).
-  x64/ARM64 tone +0.093163/+0.093149 dB over a valid steady target; clocked
-  division −2.271051/−2.271145 dB below old floor; unclocked `no_effect`.
-  [A64 r1.9a ruling](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7151869667)
-  corrects target validity to a one-sided check. Mode fixed-window target is
-  −0.302848/−0.302834 dB relative to the last-12k peak, therefore valid;
-  governing endpoint excess +0.030469/+0.030424 dB meets the bound.
-  [B4 reclassification of preserved raw](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151886320):
-  all three numeric rows meet at the historical pin; no changed stimulus.
+- S7.6 #449 merged `bae5e6786d7f859417c9d46295c0db3d8c412253`: final tested base
+  `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`, head
+  `ae8453ab25d3cf2eaf94a1fd2686ab65d1952868`.
+  [Final signed Result](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7154605025)
+  and [Architect approval](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7154706937).
+  [Golden 45554717634](https://github.com/kalharbi11/wirescape-lab/actions/runs/45554717634)
+  27/27 identical on each of Linux x64, Linux ARM64 and Windows; no bundled
+  sound-change row. Actual switching is event-specific, with 10 ms transitions.
+
+  Final [A27 capture 45558066878](https://github.com/kalharbi11/wirescape-lab/actions/runs/45558066878),
+  archival tooling `d5a51c339a61e420fc0dbb158fc856cc66ef9c11` (#456, never merge).
+  x64 artifact 14996109380, ZIP SHA-256
+  `4684e71a3c22e12d19e588fa62cddc7f15bb1509ff5c945aa22553865ff62113`;
+  ARM64 artifact 14996179062, ZIP SHA-256
+  `6a7cf231bd6391acfbd8b113d84ebd4eb01c841c2a8303c6b1ad6ac1b87c63d8`.
+  Independent B1 raw recomputation verified 57 member digests per arch,
+  unchanged fixed windows, stimulus and one-sided r1.9a target validity.
+
+  | Case | Governing floor | x64 excess dB | ARM64 excess dB | +0.1 dB bound |
+  |---|---|---:|---:|---|
+  | mode | valid target | +0.030468672 | +0.030465060 | met |
+  | tone | valid target | +0.093162985 | +0.093143235 | met |
+  | clocked division | old floor | -2.271050840 | -2.271074004 | met |
+
+  Unclocked division remains `no_effect` on both arches; non-target time
+  +0.0000389732/0 dB, below 1 dB. The tone worst-case margin is **0.0068 dB**
+  (review L1), not headroom; any later Delay change touching tone must
+  re-measure the row. L2: #520 must preserve the settled path's Golden identity.
   [D5 publication](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152094695)
-  verified six FLACs and provenance at that pin. Later ready-head Golden and strict
-  paired checks failed ([lead correction packet](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7152132576));
-  correction candidate `f8a318b` is not yet qualified. Record final Golden scope
-  and revalidated D5 after B1's final gates and Architect review; do not assume unchanged.
+  and [release](https://github.com/kalharbi11/wirescape-lab/releases/tag/bench-2026-11-24):
+  all six final x64 switched WAVs, paired patch JSON and scripts are
+  byte-identical to historical capture 14986894295 (max sample delta 0 FS).
+  The six published FLACs and fixed -3 dB conversion remain applicable;
+  manifest pin remains historical, with final-pin equivalence in the Result.
+  No duplicate capture or publication needed.
 
 ## Rebuild and owner listening (pending)
 
 15 distinct bundled patches across the 18 stage rows above. Overlaps: scene-01
 and scene-02 (Ladder then CHAOS), scene-06 (VCF then Ladder). Retain both stage rows;
-do not sum dB or concatenate hashes across renderers. Collect final S7.6 rows,
-check all relevant S7.x scope and rebuild each affected bundled patch at the final
-main source pin. The existing Lab native Linux x64 OB-a1 job invokes `tools/patch_roundtrip.py`
+do not sum dB or concatenate hashes across renderers. S7.6 adds no bundled
+row. After #520 merges, verify its exact Golden identity (any difference is a
+defect until proven otherwise; add a row only if it differs and is accepted),
+then rebuild each affected bundled patch at the final integrated main source pin. The existing Lab native Linux x64 OB-a1 job invokes `tools/patch_roundtrip.py`
 with the actual checkout SHA and archives `ob-a1-roundtrip-linux-x64-*` containing
 source bytes, normalized document and render hashes plus pass/fail per case.
 Use the final integrated candidate's report (source and renderer SHA verified),
 not the current docs-only Lab green or a historical source pin. Match all 15
-unique changed names and any additional final S7.6 rows to passing cases;
+unique changed names and any accepted additional #520 rows to passing cases;
 report a missing or failing case explicitly and retain original patch values
 unless a scoped rebuild correction is justified. Round-trip hashes use that
 harness's stimulus, not the 10-second Golden fixture stimulus.
 
-Owner listening handoff: the union is basics-02, basics-06, chaos-01 through
-chaos-05, and scene-01 through scene-08 (each exact name above). Listen at
-unchanged gain and compare the relevant per-stage D5/Golden source pairs;
-record patch name, candidate SHA, observed differences, and owner disposition.
+Candidate evidence checklist (not results): record full integrated source SHA,
+Lab run and OB-a1 artifact ID/digest, report renderer SHA-256, overall pass,
+and each matching `bundled/<stem>` case's source/normalized/render hashes.
+Check the report's source SHA matches the candidate and the negative control
+passes; compare the inventory to the exact stems in the listening checklist below.
+
+Owner listening handoff (pending; owner only): listen at unchanged gain and
+compare relevant per-stage D5/Golden source pairs. For each patch record
+candidate SHA, observed differences, and disposition (accept / investigate).
+
+| Candidate OB-a1 case / owner listening patch | Rebuild | Owner disposition |
+|---|---|---|
+| `bundled/basics-02-fm-filter-lfo` | pending | pending |
+| `bundled/basics-06-chaos-keys` | pending | pending |
+| `bundled/chaos-01-ember-veil-pad` | pending | pending |
+| `bundled/chaos-02-wireglass-lead` | pending | pending |
+| `bundled/chaos-03-orbiting-iron-fx` | pending | pending |
+| `bundled/chaos-04-radio-static-fx` | pending | pending |
+| `bundled/chaos-05-moonlit-drift-pad` | pending | pending |
+| `bundled/scene-01-hollow-chapel` | pending | pending |
+| `bundled/scene-02-breathing-walls` | pending | pending |
+| `bundled/scene-03-black-ice-choir` | pending | pending |
+| `bundled/scene-04-vowel-apparitions` | pending | pending |
+| `bundled/scene-05-glass-cathedrals` | pending | pending |
+| `bundled/scene-06-dust-reactor` | pending | pending |
+| `bundled/scene-07-witching-hour` | pending | pending |
+| `bundled/scene-08-neon-elegy` | pending | pending |
+
+Compare VCF level changes, Ladder resonance (including A53 peak caveat),
+CHAOS spectral changes, and separately the event-specific D5 examples for
+VCA mode, Delay mode/tone/division and ADSR/VCO CHOKE; these events do not
+expand the bundled inventory.
 The candidate rebuild and owner listen are separate records. No listening result
 or rebuild claim yet. No change to patch JSON is justified by these records alone.
 
-Signed: gpt-builder4, 2026-11-24
+Original stage ledger: gpt-builder4, 2026-11-24.
+Final S7.6 and candidate handoff preparation: gpt-builder1, 2026-11-25.
