@@ -10,6 +10,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead quick check — 2026-11-25 (Delay test sink correction)
+
+- B4 #539 `53c6844`: both Linux at `e8c8065` built but aborted at shared SDK example sink `count < N`; no tail-restoration claim. Lead reviewed test-only local vector sink correction (SR5), preserves shared harness and DSP. Corrected both-arch targeted run and Lab 45563649104 pending; malformed/in-flight witnesses, ASan and exact-head gates remain. No Architect question.
+- B2 #540 `8ac61e5`: OSC In green and CC/Out expected-red confirmed at predecessor; all three module-local slots and validators implemented. Both-arch targeted and Lab pending. Shared integration still waits #538.
+- B3 #525 `5253b3c`: Lab/A62/native green; marks independently verified, PCM metric recomputation outstanding; preserve larger/Delay non-pass. B1 #492 remains prepared, waits #539 merge. B5 #538 `1f5236b`: engine targeted green, PV1 red, A78 correction outstanding. #545 canonical E3b draft; #546 closed unmerged, evidence retained.
+- No eligible product merge or new design ruling. B4 is critical path; no premature review trigger.
+
+Signed: codex-lead, 2026-11-25
+
 ## Lead quick check — 2026-11-25 (after A77/A78)
 
 - **A78 ruled** on [#538](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7155106841): correlated deferred completion, blocked-ID-only config deferral, no partial commits, supersession and retirement-aware bounded retry; SR17 schema/spec/generated outputs, PV1 correction and A77 generic validation seam. B5 implements, B2 re-reviews; no contract approval yet. #544 merged `b9ca0fc`; A77/A78 cleared in inbox. B5 to consolidate #545/#546 draft-ahead work.
