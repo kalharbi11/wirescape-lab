@@ -294,10 +294,11 @@ void test_osc_out_held_gate_reset_sender() {
           "sender emits only the initial low, actual rise and actual fall");
 }
 
-// A70 keeps rule 2: larger blocks rebuild. Observe the actual DSP path
+// A70/A73 E7c-a: larger blocks rebuild. Delay v2 is the separate E7c-b
+// follow-up; its full tail witness is preserved at c0219b5. Observe the actual DSP path
 // against an uninterrupted, equally stepped twin, not merely a successful
 // reply or a serialized version word. Fake streams never open real devices.
-using A70Samples = std::array<std::vector<float>, 3>;
+using A70Samples = std::array<std::vector<float>, 2>;
 struct A70Witness {
     A70Samples before, after, wide;
     Json fresh = Json::array();
@@ -322,9 +323,6 @@ A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
         {"format", "wirescape.native.patch"}, {"version", 2},
         {"modules", Json::array({
             {{"id", 1}, {"module", "essentials.output"}},
-            {{"id", 2}, {"module", "essentials.noise"}, {"parameters", {{"level", .5}}}},
-            {{"id", 3}, {"module", "fx.delay"},
-             {"parameters", {{"time", .25}, {"feedback", .9}, {"mix", 1.}}}},
             {{"id", 4}, {"module", "host.keyboard"}, {"parameters", {{"voices", 1}}}},
             {{"id", 5}, {"module", "essentials.adsr"},
              {"parameters", {{"attack", .0001}, {"decay", .01}, {"sustain", .7}, {"release", .01}}}},
@@ -332,8 +330,6 @@ A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
             {{"id", 7}, {"module", "essentials.vca"}}
         })},
         {"connections", Json::array({
-            {{"kind", "signal"}, {"from", {{"module", 2}, {"port", "audio"}}},
-                                 {"to", {{"module", 3}, {"port", "left"}}}},
             {{"kind", "signal"}, {"from", {{"module", 4}, {"port", "gate"}}},
                                  {"to", {{"module", 5}, {"port", "gate"}}}},
             {{"kind", "signal"}, {"from", {{"module", 5}, {"port", "envelope"}}},
@@ -366,17 +362,12 @@ A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
     auto record = [&](A70Samples &dst, uint32_t frames) {
         // Inspect the raw node outputs, before the stopped-stream master fade.
         // A70 is a module-state witness; the output-device fade is unchanged.
-        constexpr uint32_t nodes[] = {7, 3, 6}; // held-note VCA, wet Delay, free-running VCO
+        constexpr uint32_t nodes[] = {7, 6}; // held-note VCA, free-running VCO
         for (size_t i = 0; i < dst.size(); ++i)
             for (uint32_t f = 0; f < frames; ++f)
                 dst[i].push_back(raw(nodes[i], 0, f));
     };
-    for (int i = 0; i < 64; ++i) step(256); // fill the 250ms delay line
-    check(call("a70-mute-source", "setParam",
-               {{"moduleId", 2}, {"paramId", "level"}, {"value", 0.}})["ok"] == true,
-          "A70 stop exciting the delay");
-    for (int i = 0; i < 4; ++i) step(256); // settle the 5ms Noise level ramp
-    check(raw(2, 0, 255) == 0.f, "A70 tail has no current input");
+    for (int i = 0; i < 68; ++i) step(256); // retain original held-note warmup
     A70Witness result;
     record(result.before, 256);
     result.held_before = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
@@ -397,7 +388,7 @@ A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
         record(result.after, 256);
     }
     result.held_after = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
-    // Keep the note held and Delay input muted through a real 512-frame
+    // Keep the note held through a real 512-frame
     // block. The uninterrupted 256-frame twin supplies the same 512 samples
     // as two blocks, so this also detects a block-size-dependent discontinuity.
     if (rebuild) {
@@ -436,7 +427,7 @@ void test_a70_buffer_state(const std::filesystem::path &root) {
     for (size_t i = 0; i < reference.before.size(); ++i) {
         check(peak(reference.before[i]) > .001f && peak(reference.after[i]) > .001f &&
                   peak(reference.wide[i]) > .001f,
-              "A70 control must have nontrivial held-note, Delay and VCO witnesses");
+              "A70 control must have nontrivial held-note and VCO witnesses");
         std::cout << "A70 raw witness " << i << " before_peak=" << peak(reference.before[i])
                   << " control_peak=" << peak(reference.after[i])
                   << " rebuilt_peak=" << peak(switched.after[i])
@@ -449,14 +440,12 @@ void test_a70_buffer_state(const std::filesystem::path &root) {
               << " held=" << switched.held_after << " released=" << switched.released << std::endl;
     check(switched.held_after, "A70 held note must continue through a larger-buffer rebuild");
     check(reference.after[0] == switched.after[0], "A70 held-note waveform continues exactly");
-    check(reference.after[1] == switched.after[1], "A70 wet Delay tail continues exactly");
-    check(reference.after[2] == switched.after[2], "A70 VCO phase continues exactly");
+    check(reference.after[1] == switched.after[1], "A70 VCO phase continues exactly");
     check(reference.wide[0] == switched.wide[0], "A70 held waveform at 512 matches two 256 blocks");
-    check(reference.wide[1] == switched.wide[1], "A70 wet tail at 512 matches two 256 blocks");
-    check(reference.wide[2] == switched.wide[2], "A70 VCO phase at 512 matches two 256 blocks");
+    check(reference.wide[1] == switched.wide[1], "A70 VCO phase at 512 matches two 256 blocks");
     for (const auto &entry : switched.fresh) {
         const uint32_t id = entry.at("moduleId").get<uint32_t>();
-        check(id != 3 && id != 4 && id != 5 && id != 6 && id != 7,
+        check(id != 4 && id != 5 && id != 6 && id != 7,
               "A70 carried modules must not be named fresh");
     }
     check(switched.released, "A70 restored held-note ID must match later NOTE_OFF");
