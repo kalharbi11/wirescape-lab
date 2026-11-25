@@ -28,7 +28,8 @@ async function ports(page: Page) {
 async function defer(page: Page, id: string, a: number, b: number) {
   await page.evaluate(({ id, patch }) => {
     (window as any).__mockBridge.deferNextGraph(id);
-    return window.__wirescapeTest.restoreSnapshot(patch);
+    window.__wirescapeTest.restoreSnapshot(patch);
+    return (window.__wirescapeTest.engine as any).whenEditsSettled();
   }, { id, patch: snapshot(a, b) });
 }
 
@@ -71,4 +72,18 @@ test('A80 legacy client does not opt in and plain busy rolls back', async ({ pag
   await defer(page, 'legacy', 9011, 9012);
   await expect.poll(() => ports(page)).toEqual({ authored: [9001, 9002], confirmed: [9001, 9002], native: [9001, 9002] });
   expect(await page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'hello'))).toHaveLength(0);
+});
+
+test('A80 session replacement clears stale correlations and negotiates again', async ({ page }) => {
+  await setup(page, true);
+  await defer(page, 'old-defer', 9011, 9002);
+  await expect.poll(() => ports(page)).toEqual({ authored: [9011, 9002], confirmed: [9001, 9002], native: [9001, 9002] });
+  const oldSession = await page.evaluate(() => (window as any).__mockBridge.getSession());
+  await page.evaluate(() => (window as any).__mockBridge.exit(true));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9011, 9002], confirmed: [9011, 9002], native: [9011, 9002] });
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'hello').length)).toBe(2);
+  await page.evaluate(session => (window as any).__mockBridge.pushConfig({
+    session, deferId: 'old-defer', moduleId: 1, outcome: 'failed',
+  }), oldSession);
+  expect(await ports(page)).toEqual({ authored: [9011, 9002], confirmed: [9011, 9002], native: [9011, 9002] });
 });
