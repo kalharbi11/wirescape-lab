@@ -426,8 +426,18 @@ static void state_and_extremes() {
     bad = bytes;
     bad.pop_back();
     REQUIRE(b.load(bad) == WS2_INVALID);
-    // Loading clears the lines: silence in, silence out afterwards.
-    REQUIRE(a.load(bytes) == WS2_OK);
+    // A70 v2 must continue the audible tail, not merely round-trip bytes.
+    wet_only(b, 0.01f, 0.8f);
+    a.left(Wave(4000, 0.f)); b.left(Wave(4000, 0.f));
+    const Result reference = a.run(4000), restored = b.run(4000);
+    REQUIRE(!finite_within(reference.l, 0.f));
+    REQUIRE(std::memcmp(reference.l.data(), restored.l.data(), reference.l.size()*sizeof(float)) == 0);
+    REQUIRE(std::memcmp(reference.r.data(), restored.r.data(), reference.r.size()*sizeof(float)) == 0);
+    Rig other_rate(44100.);
+    REQUIRE(other_rate.load(bytes) == WS2_INVALID);
+    // v1 legacy state explicitly clears the lines: retain the original oracle.
+    const Bytes legacy{1,0,0,0};
+    REQUIRE(a.load(legacy) == WS2_OK);
     a.left(Wave(4000, 0.f));
     const Result quiet = a.run(4000);
     REQUIRE(finite_within(quiet.l, 0.f) && finite_within(quiet.r, 0.f));
