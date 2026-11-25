@@ -11,7 +11,7 @@ struct CcRig : MidiRig<CcToCv> {
     CcRig(const uint8_t *bytes, uint32_t size) : MidiRig<CcToCv>(bytes, size) {
         CcConfiguration config;
         REQUIRE(cc_configuration(bytes, size, config));
-        std::string error;
+        char error[128]{};
         REQUIRE(materialize_cc_rows(config, slot_data, error));
         ctx.data_count = 1; ctx.data = &view;
     }
@@ -138,7 +138,7 @@ static void legacy_materialization_limits() {
     legacy.rows[1].min = .1;
     legacy.rows[1].max = -.2;
     CcRows packed{};
-    std::string error;
+    char error[128]{};
     REQUIRE(materialize_cc_rows(legacy, packed, error));
     REQUIRE(packed.rows[0].min == -1.f && packed.rows[0].max == 1.f);
     REQUIRE(packed.rows[1].min == .1f && packed.rows[1].max == -.2f);
@@ -146,13 +146,13 @@ static void legacy_materialization_limits() {
     legacy.rows[0].has_min = 1;
     legacy.rows[0].min = double(cc_data_limit) * 2;
     REQUIRE(!materialize_cc_rows(legacy, packed, error));
-    REQUIRE(error.find("mapping.rows[0].min") != std::string::npos);
+    REQUIRE(std::strstr(error, "mapping.rows[0].min") != nullptr);
     REQUIRE(packed.rows[0].min == -1.f && packed.rows[1].max == -.2f);
     legacy.rows[0].min = -1;
     legacy.rows[7].has_max = 1;
     legacy.rows[7].max = -double(cc_data_limit) * 2;
     REQUIRE(!materialize_cc_rows(legacy, packed, error));
-    REQUIRE(error.find("mapping.rows[7].max") != std::string::npos);
+    REQUIRE(std::strstr(error, "mapping.rows[7].max") != nullptr);
     REQUIRE(packed.rows[7].max == 1.f);
 }
 int main() {
@@ -163,7 +163,7 @@ int main() {
         cfg.rows[0].fourteen_bit = 1;
         cfg.rows[0].smoothing_ms = 0;
         CcRig rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
-        std::string error;
+        char error[128]{};
         REQUIRE(validate_cc_rows(rig.slot_data, error));
         rig.run({midi1(0xb0, 1, 100)});
         REQUIRE(rig.sample(0) == float(12800. / 16383.));
@@ -174,7 +174,7 @@ int main() {
         auto invalid = rig.slot_data;
         invalid.rows[0].controller = 32;
         REQUIRE(!validate_cc_rows(invalid, error));
-        REQUIRE(error.find("mapping.rows[0].controller") != std::string::npos);
+        REQUIRE(std::strstr(error, "mapping.rows[0].controller") != nullptr);
     }
     ranges_and_legacy_config();
     full_endpoint_channel_matrix();
