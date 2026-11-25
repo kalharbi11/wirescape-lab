@@ -5,6 +5,7 @@
 #include "../audio/engine_slot.h"
 #include "../audio/portaudio_service.h"
 #include "devices.h"
+#include "deferred_config.h"
 #include "midi_host.h"
 #include "scripted_backend.h"
 #include "null_sink_capture.h"
@@ -91,11 +92,6 @@ class Session {
     uint64_t generation_ = 0, tick_ = 0;
     std::set<uint32_t> used_ids_;
     // A78: latest refused config per blocked live module, never a stale graph.
-    struct PendingConfig {
-        std::string module, defer_id;
-        Json config;
-        std::chrono::steady_clock::time_point deadline;
-    };
     uint64_t next_defer_id_ = 0;
     bool client_deferred_ = false, client_hello_seen_ = false;
     std::map<uint32_t, PendingConfig> pending_configs_;

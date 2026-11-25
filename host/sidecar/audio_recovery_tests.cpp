@@ -10,6 +10,8 @@
 #include "../osc/codec.h"
 #include "../../modules/osc_out/dsp.h"
 #include "session.h"
+#include "wirescape_sdk.h"
+#include <cstring>
 #include <algorithm>
 #include <cerrno>
 #include <filesystem>
@@ -696,6 +698,109 @@ void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
     check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
           "C2 new stream remains runnable after the module refusal");
     s.shutdown();
+}
+
+// A81 synthetic slot fixture: no registration in the shipped catalogue.
+// A prepared candidate really replaces the DSP by changing its config bytes;
+// the same control-side event staging helper as Session is exercised.
+struct A81Source {
+    static constexpr ws::Info info{"test.a81", "A81 synthetic", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("out", "Out", WS2_CV_BI)};
+    static constexpr std::array<ws2_param, 0> params{};
+    static constexpr std::array fields{
+        ws::data_field<WS2_F_F32, float>("value", "Value", 0, ws::data_range(0, 1, .25))
+    };
+    static constexpr std::array data_slots{ws::data_slot<float>("settings", "Settings", fields)};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &b) {
+        uint32_t serial = 0;
+        const auto *value = b.data<float>(0, serial);
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant();
+        b.out(0).ch(0)[0] = value ? *value : 0.f;
+    }
+};
+void test_a81_synthetic_slot() {
+    using wirescape::engine2::Engine;
+    auto d = *ws::Module<A81Source>::descriptor();
+    d.replace_fade_ms = 500;
+    wirescape::engine2::Config cfg;
+    cfg.max_block = 4096;
+    auto packed = [](float value) {
+        std::vector<uint8_t> bytes(sizeof(value));
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        return bytes;
+    };
+    auto make = [&](uint8_t shape, float value) {
+        auto e = std::make_unique<Engine>(cfg);
+        check(e->add_node(1, &d, {shape}) && e->output(1, 0, 0), "A81 synthetic slot node");
+        check(e->set_data_packed(1, 0, packed(value)) == WS2_OK &&
+              e->register_producer() == 0 && e->prepare(), "A81 synthetic candidate prepares");
+        return e;
+    };
+    auto live = make(1, .25f);
+    std::array<float, 4096> samples{};
+    float *output[] = {samples.data()};
+    auto render = [&](uint32_t frames) {
+        check(live->render(output, 1, frames) == WS2_OK, "A81 synthetic render");
+    };
+    auto publish = [&](Engine &next) {
+        std::atomic<bool> finished{false};
+        bool accepted = false;
+        std::thread control([&] {
+            accepted = live->replan(next, 200000000);
+            finished.store(true, std::memory_order_release);
+        });
+        do {
+            render(1);
+            std::this_thread::sleep_for(100us);
+        } while (!finished.load(std::memory_order_acquire));
+        control.join();
+        check(accepted && live->replacement_tail_pending(1), "A81 actual replacement with predecessor");
+    };
+    auto retire = [&] {
+        for (unsigned i = 0; i < 25 && live->replacement_tail_pending(1); ++i) render(4096);
+        check(!live->replacement_tail_pending(1), "A81 predecessor retired");
+    };
+    render(1);
+    auto first = make(2, .25f);
+    publish(*first);
+    auto blocked = make(3, .25f);
+    check(!live->replan(*blocked, 200000000) &&
+          live->replacement_blocked_ids() == std::vector<uint32_t>{1}, "A81 genuine A75 busy");
+    std::map<uint32_t, PendingConfig> pending{{1, {"test.a81", "a81", Json{{"shape", 3}},
+        std::chrono::steady_clock::now() + 2s}}};
+    Json events = Json::array();
+    check(live->set_data_packed(1, 0, packed(.5f)) == WS2_OK, "A81 retained setData");
+    render(1);
+    stage_data_supersession(pending, events, "synthetic", 1, true, false, 1);
+    check(pending.size() == 1 && events.empty() && live->replacement_tail_pending(1),
+          "A81 retained data does not supersede");
+    retire();
+    auto unchanged = make(4, .5f);
+    publish(*unchanged);
+    stage_data_supersession(pending, events, "synthetic", 1, false, true, 2);
+    check(pending.size() == 1 && events.empty(), "A81 unchanged data replacement does not supersede");
+    retire();
+    auto changed = make(5, .75f);
+    // Stage before publication like Session, but only adopt on success.
+    auto staged = pending;
+    auto staged_events = events;
+    stage_data_supersession(staged, staged_events, "synthetic", 1, true, true, 3);
+    check(pending.size() == 1 && events.empty(), "A81 pending unchanged before publish");
+    publish(*changed);
+    pending.swap(staged);
+    events.swap(staged_events);
+    render(1);
+    check(live->output_sample(1, 0, 0, 0) == .75f, "A81 replacement sees candidate data");
+    const Json expected = {{"v", 0}, {"session", "synthetic"}, {"type", "configDeferred"},
+        {"deferId", "a81"}, {"moduleId", 1}, {"outcome", "superseded"}, {"generation", "3"}};
+    check(pending.empty() && events.size() == 1 && events[0] == expected,
+          "A81 changed data replacement emits correlated superseded");
+    stage_data_supersession(pending, events, "synthetic", 1, true, true, 4);
+    check(events.size() == 1, "A81 no duplicate terminal event");
 }
 
 // A78: use the existing fake stream, then freeze the paced callback and
@@ -1602,6 +1707,7 @@ int main() {
         test_e7_state_restart(root);
         test_e7_rate_dependent_state_refusal(root);
         test_a78_deferred_config(root);
+        test_a81_synthetic_slot();
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';

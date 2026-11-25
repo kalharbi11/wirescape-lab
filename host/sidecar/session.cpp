@@ -788,9 +788,7 @@ Json Session::execution(Json patch) {
 }
 Json Session::config_event(uint32_t id, const PendingConfig &pending,
                            const char *outcome, uint64_t generation) const {
-    return {{"v", 0}, {"session", token_}, {"type", "configDeferred"},
-            {"deferId", pending.defer_id}, {"moduleId", id}, {"outcome", outcome},
-            {"generation", std::to_string(generation)}};
+    return deferred_config_event(token_, id, pending, outcome, generation);
 }
 Json Session::take_config_events() {
     Json events = Json::array();
@@ -884,10 +882,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         const bool data_changed = next != patch["modules"].end() && old != patch_["modules"].end() &&
             next->value("data", Json::object()) != old->value("data", Json::object());
         if (data_changed) changed_data.insert(id);
-        // Live data delivery normally retains the instance. OSC Out is the
-        // existing exception: its freshly staged bus is construction config.
-        const bool replaces_for_data = data_changed && next->at("module") == "osc.out";
-        if (applied || new_namespace || snapshot_supersedes.count(id) || replaces_for_data ||
+        if (applied || new_namespace || snapshot_supersedes.count(id) ||
             next == patch["modules"].end() || old == patch_["modules"].end() ||
             next->at("module") != it->second.module ||
             next->value("config", Json::object()) != old->value("config", Json::object())) {
@@ -895,6 +890,11 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             it = next_pending.erase(it);
         } else ++it;
     }
+    // Live data delivery normally retains the instance. OSC Out is the
+    // existing exception: its freshly staged bus is construction config.
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true,
+                               node(patch, id).at("module") == "osc.out", generation_ + 1);
     // Determine eligibility by reverting ONLY changed config fields in an
     // execution copy and comparing the entire transaction to committed state.
     // Mixed data/topology/parameter/metadata changes can never be deferred.
@@ -1000,12 +1000,8 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     // D5 replaces every instance, so a changed data slot now supersedes
     // that ID's pending config. Keep unrelated pending IDs (A80).
     // Stage before the swap; an unsuccessful D5 publishes no events.
-    for (auto id : changed_data) {
-        const auto pending = next_pending.find(id);
-        if (pending == next_pending.end()) continue;
-        next_events.push_back(config_event(id, pending->second, "superseded", generation_ + 1));
-        next_pending.erase(pending);
-    }
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true, true, generation_ + 1);
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
     pause_osc();
