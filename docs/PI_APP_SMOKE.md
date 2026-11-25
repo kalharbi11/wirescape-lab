@@ -59,3 +59,42 @@ rerun the *same head*. Xvfb verifies function but not physical Pi display
 responsiveness; existing #274 and #296 remain separate.
 
 When no existing DISPLAY or WAYLAND_DISPLAY is configured, the smoke uses an already installed `xvfb-run -a` for its owned Playwright/Electron child only. It never installs Xvfb or changes the runner session. Without either a display or `xvfb-run`, the summary remains blocked. Xvfb establishes functional readiness, not physical-display performance.
+
+
+## Owner-only OB1 100-edit session (#579)
+
+First build the exact clean candidate on the owner's Linux ARM64 Pi. The
+separate acceptance runner does not install anything or reuse app settings.
+Close competing audio applications, select the exact output device name, and
+use the owner's actual buffer size. Start at a safe hardware volume.
+
+```sh
+python3 tools/pi/acceptance_session.py --dry-run --buffer 256
+python3 tools/pi/acceptance_session.py --confirm-audio --device "EXACT OUTPUT NAME" --buffer 256 --report build_reports/pi-owner-session.json
+```
+
+The first command never launches an engine. The second is for the owner only
+and refuses CI, non-Linux/ARM64, missing consent, a dirty checkout, a stale
+engine build, or a different running device/rate/buffer. The fixture is the
+bundled Clocked Groove patch; ten cycles issue two config edits, parameter
+edits, and an add/connect/disconnect/remove sequence. Only correlated
+successful replies or correlated applied deferrals count; setup and status
+do not. Missing/malformed/regressing cumulative `status.audio.dropouts`
+is a failure, not zero. The runner requires all 100 edits, at least one
+actual deferred config completion and zero cumulative xruns through the
+last observed running status. The final status is not a shutdown counter.
+The report cites both final hosted A69a cost rows; they are not measurements
+of Pi performance. No real MIDI is used by default; explicit MIDI operation
+requires `--midi --confirm-midi --midi-device EXACT_ID`. No LAN consent
+is passed. The shipped OB1 fixture uses config rather than speculative
+live-data slots; the OB1.1 setData row requires its shipped descriptor.
+
+A successful script report is **owner-observation-required**, not milestone
+acceptance. The owner fills `visible_stutter` with true or false after
+observing the actual UI session (the runner itself drives the sidecar
+protocol, not the Studio compositor), and records any audible issue
+separately. Never turn a missing observation into false. The owner records
+the report and the separate visual observation for Architect disposition.
+A nonzero exit, refused edit, missing deferral or unavailable xrun sample
+does not satisfy the 100-edit criterion. Use a new report filename; existing
+reports are never overwritten.
