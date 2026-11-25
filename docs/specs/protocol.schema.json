@@ -1420,6 +1420,14 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 1024
+            },
+            "deferred": {
+              "const": true
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
             }
           }
         }

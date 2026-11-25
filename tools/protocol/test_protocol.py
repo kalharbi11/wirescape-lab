@@ -39,6 +39,9 @@ class ProtocolV0Tests(unittest.TestCase):
         self.assertTrue({"deferId", "moduleId", "outcome", "generation"} <= set(event["required"]))
         self.assertEqual(set(event["properties"]["outcome"]["enum"]),
                          {"applied", "superseded", "failed"})
+        refusal = self.schema["$defs"]["reply"]["oneOf"][1]["properties"]
+        self.assertEqual(refusal["deferred"], {"const": True})
+        self.assertEqual(refusal["deferId"], event["properties"]["deferId"])
 
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(
