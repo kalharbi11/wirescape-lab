@@ -24,6 +24,18 @@ class AttributionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 exclusive(path, root)
 
+    def test_native_and_posix_absolute_keys(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            path = root / "profile"
+            for prefix in (root.as_posix(), str(root), root.as_posix().replace("/", "\\")):
+                with self.subTest(prefix=prefix):
+                    path.write_text("part: 1\npositions: line\nevents: Ir\nsummary: 7\n"
+                                    f"ob={prefix}/probe\nfl={prefix}/engine/../sdk/a.h\n"
+                                    "fn=render\n0 7\n", encoding="utf-8")
+                    self.assertEqual(exclusive(path, root), Counter({
+                        ("<source>/probe", "<source>/sdk/a.h", "render"): 7}))
+
     def test_literal_parentheses_and_inline_source(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "base"
