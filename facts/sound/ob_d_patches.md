@@ -2,8 +2,8 @@
 # OB-d bundled-patch sound-change ledger (draft)
 
 2026-11-25 ET. OB r2.9, M7 r1.9a. This is a per-stage record, not a cumulative
-OB0→OB1 measurement or owner listening result. Final S7.6 is accepted; candidate rebuild and owner listening
-remain pending after E7c-b #520. No preset edits in this draft. OB0 was accepted at
+OB0→OB1 measurement or owner listening result. Final S7.6 and E7c-b #520 are accepted;
+the integrated OB-a1 rebuild passed. Owner listening remains pending. No preset edits. OB0 was accepted at
 `a440d7175659402474290e34a1d63b4404dcaa72` ([release record](../../docs/RELEASES.md));
 S7.1/S7.2/S7.4 are already in that baseline, not new OB1 sound-change rows.
 
