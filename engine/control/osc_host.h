@@ -31,6 +31,20 @@ class Host {
     };
     std::array<AddressMatch, 128> cached_matches_{};
     static bool accept(void *, uint32_t, std::string_view) noexcept;
+    // A74 temporary diagnostic: sole worker writes, control reads only after
+    // Service::stop joins. Fixed-size history before first refusal, plus a
+    // bounded prefix of capacity refusals; no render-thread instrumentation.
+    struct TraceSample {
+        uint64_t ordinal = 0, arrival_ns = 0, frame = 0, ring_full = 0, generation = 0;
+        uint32_t module = 0;
+    };
+    static constexpr size_t trace_limit = 256;
+    bool trace_enabled_ = false;
+    uint64_t attempts_ = 0, queued_ = 0, invalid_ = 0, capacity_ = 0, state_ = 0, other_ = 0;
+    uint64_t events_start_ = 0, prior_count_ = 0, refusal_count_ = 0;
+    std::array<TraceSample, trace_limit> prior_{}, refusals_{};
+    void trace_delivery(uint32_t, uint64_t, int, const engine2::Meter &) noexcept;
+    void report_trace() const noexcept;
     AppEngine *engine_ = nullptr;
     bool authorized_ = false;
     monitor::Capture *monitor_ = nullptr;
