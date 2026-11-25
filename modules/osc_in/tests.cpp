@@ -162,6 +162,13 @@ static void live_wildcard_route_reclaims_indices() {
     auto untouched = packet("/pico1/knob/2", .5f);
     rig.run({message(untouched)});
     REQUIRE(rig.outputs[0].channels == 16);
+    // Unrelated edit publishes a new serial but must keep the same compiled
+    // route's voice indices and held CVs.
+    rig.slot_data.rows[2].smoothing_ms = 0;
+    ++rig.slot_view.serial;
+    rig.run();
+    REQUIRE(rig.outputs[0].channels == 16);
+    REQUIRE(rig.data->values[0][15][31] == .25f);
     std::strcpy(rig.slot_data.rows[0].pattern, "/new/*");
     ++rig.slot_view.serial;
     auto next = packet("/new/99", .75f);
