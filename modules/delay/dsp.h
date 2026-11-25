@@ -5,6 +5,13 @@
 #include <algorithm>
 #include <cmath>
 
+// A72: keep the settled and transition loops as separate functions so the
+// compiler cannot merge them; their FMA contraction then matches the original.
+#if defined(_MSC_VER) && !defined(__clang__)
+#define WS_DELAY_NOINLINE __declspec(noinline)
+#else
+#define WS_DELAY_NOINLINE __attribute__((noinline))
+#endif
 namespace fxdelay {
 struct Delay {
     static constexpr ws::Info info{"fx.delay", "Delay", 1};
@@ -33,9 +40,16 @@ struct Delay {
     double rate = 48000, cur = 0, alpha = 0;
     float dc_r = 0.999f, lp[2]{}, dc_x[2]{}, dc_y[2]{};
     bool primed = false;
+    float mode_blend = 0.f, mode_step = 0.f;
+    uint32_t fade_frames = 1;
+    long division_seen = -1;
+    uint32_t division_left = 0;
+    double division_to = 0;
     // tone cache (a pure function of the tone parameter)
     float tone_seen = 9.f, tone_a = 0, tone_k = 0;
     int tone_kind = 0;
+    float tone_current_a = 0, tone_low = 0, tone_high = 0;
+    uint32_t tone_left = 0;
     // clock follower
     ws::Schmitt schmitt;
     bool high = false, seen = false;
@@ -58,6 +72,8 @@ struct Delay {
             if (!l) return false;
         }
         alpha = 1.0 - std::exp(-1.0 / (kGlide * rate));
+        mode_step = static_cast<float>(1.0 / (0.010 * rate));
+        fade_frames = std::max(1u, static_cast<uint32_t>(std::ceil(.010 * rate)));
         dc_r = static_cast<float>(1.0 - 6.283185307179586 * 10.0 / rate);
         reset();
         return true;
@@ -68,6 +84,12 @@ struct Delay {
         w = 0;
         cur = 0;
         primed = false;
+        mode_blend = 0.f;
+        division_seen = -1;
+        division_left = tone_left = 0;
+        division_to = 0;
+        tone_seen = 9.f;
+        tone_current_a = tone_low = tone_high = 0.f;
         for (int i = 0; i < 2; ++i) lp[i] = dc_x[i] = dc_y[i] = 0.f;
         clock_reset();
     }
@@ -116,6 +138,47 @@ struct Delay {
     }
     void update_tone(float tone) {
         if (tone == tone_seen) return;
+        const int old_kind = tone_kind;
+        const bool initial = tone_seen == 9.f;
+        tone_seen = tone;
+        const double t = std::clamp(static_cast<double>(tone), -1.0, 1.0);
+        double fc = 0;
+        if (std::fabs(t) < 1e-6) {
+            tone_kind = 0;
+        } else if (t < 0) {
+            tone_kind = -1;
+            fc = 800.0 * std::pow(25.0, 1.0 + t); // low-pass 20 kHz .. 800 Hz
+        } else {
+            tone_kind = 1;
+            fc = 20.0 * std::pow(75.0, t); // high-pass 20 Hz .. 1.5 kHz
+        }
+        fc = std::min(fc, 0.45 * rate);
+        tone_a = static_cast<float>(1.0 - std::exp(-6.283185307179586 * fc / rate));
+        tone_k = static_cast<float>(std::min(1.0, 4.0 * std::fabs(t))); // fades in, so tone 0 is exactly flat
+        if (!initial && (old_kind != tone_kind || tone_left)) {
+            // Preserve the live filter state and ramp the low/high-pass mix
+            // across bypass. Retarget from the current coefficients.
+            if (tone_low == 0.f && tone_high == 0.f) tone_current_a = tone_a;
+            // Same-kind host ramp samples retarget the current fade without
+            // restarting its duration; only a real filter-kind change rearms it.
+            if (old_kind != tone_kind) tone_left = fade_frames;
+        } else {
+            tone_current_a = tone_a;
+            tone_low = tone_kind < 0 ? tone_k : 0.f;
+            tone_high = tone_kind > 0 ? tone_k : 0.f;
+        }
+    }
+    void advance_tone() {
+        if (!tone_left) return;
+        const float fraction = 1.f / static_cast<float>(tone_left);
+        // Keep the old cutoff while fading out to a flat bypass.
+        if (tone_kind) tone_current_a += fraction * (tone_a - tone_current_a);
+        tone_low += fraction * ((tone_kind < 0 ? tone_k : 0.f) - tone_low);
+        tone_high += fraction * ((tone_kind > 0 ? tone_k : 0.f) - tone_high);
+        --tone_left;
+    }
+    void update_tone_settled(float tone) { // verbatim pre-S7.6 (A72)
+        if (tone == tone_seen) return;
         tone_seen = tone;
         const double t = std::clamp(static_cast<double>(tone), -1.0, 1.0);
         double fc = 0;
@@ -134,6 +197,23 @@ struct Delay {
     }
     // Feedback path of one line: tone filter, then DC blocker.
     float loop(int ch, float x) {
+        float y = x;
+        if (tone_left) {
+            lp[ch] = flush(lp[ch] + tone_current_a * (x - lp[ch]));
+            y = x + tone_low * (lp[ch] - x) + tone_high * ((x - lp[ch]) - x);
+        } else if (tone_kind) {
+            lp[ch] = flush(lp[ch] + tone_a * (x - lp[ch]));
+            const float f = tone_kind < 0 ? lp[ch] : x - lp[ch];
+            y = x + tone_k * (f - x);
+        }
+        const float out = flush(y - dc_x[ch] + dc_r * dc_y[ch]);
+        dc_x[ch] = y;
+        dc_y[ch] = out;
+        return out;
+    }
+    // Settled feedback path: verbatim pre-S7.6 loop(), kept separate so the
+    // compiler sees the original expression shape (FMA contraction, A72).
+    float loop_settled(int ch, float x) {
         float y = x;
         if (tone_kind) {
             lp[ch] = flush(lp[ch] + tone_a * (x - lp[ch]));
@@ -171,7 +251,81 @@ struct Delay {
         }
     }
 
+    // A settled block cannot start or continue a switch transition: mode,
+    // tone and clocked division rows are constant at their settled targets.
+    // Such blocks run the verbatim pre-S7.6 loop; every other block runs the
+    // transition loop. Both read and write the same state.
+    WS_DELAY_NOINLINE bool settled_block(ws::Block &b) {
+        if (!b.frames() || division_left || tone_left) return false;
+        const auto p_tone = b.param(kTone), p_mode = b.param(kMode), p_div = b.param(kDivision);
+        if (!p_mode.constant() || !p_tone.constant()) return false;
+        const float mode_target = std::lround(p_mode.ch(0)[0]) >= 1 ? 1.f : 0.f;
+        if (primed && mode_blend != mode_target) return false;
+        update_tone(p_tone.ch(0)[0]);
+        if (tone_left) return false;
+        if (b.in(2).connected()) {
+            if (!p_div.constant()) return false;
+            const long d = std::clamp(std::lround(p_div.ch(0)[0]), 0l, 7l);
+            if (division_seen >= 0 && d != division_seen) return false;
+        }
+        mode_blend = mode_target;
+        return true;
+    }
+    WS_DELAY_NOINLINE void settled_after(ws::Block &b) {
+        if (!b.in(2).connected()) division_seen = -1;
+        else if (applied > 0) division_seen = std::clamp(std::lround(b.param(kDivision).ch(0)[0]), 0l, 7l);
+        else division_seen = -1;
+    }
+    // Frames [begin, frames) of a block, with the ws::Block accessors the
+    // settled loop uses. Built out of line; constant rows are not offset.
+    struct Tail {
+        static constexpr uint32_t kChannels = 16;
+        uint32_t n = 0;
+        ws2_signal sig[9]{};
+        const float *rows[9][kChannels]{};
+        ws2_signal_out outs[2]{};
+        float *out_rows[2][1]{};
+        uint32_t frames() const { return n; }
+        ws::Signal in(uint32_t i) const { return ws::Signal(&sig[i]); }
+        ws::Signal param(uint32_t i) const { return ws::Signal(&sig[3 + i]); }
+        ws::Output out(uint32_t i) { return ws::Output(&outs[i]); }
+    };
+    WS_DELAY_NOINLINE static void tail(ws::Block &b, uint32_t begin, Tail &t) {
+        t.n = b.frames() - begin;
+        for (uint32_t k = 0; k < 9; ++k) {
+            const ws::Signal s = k < 3 ? b.in(k) : b.param(k - 3);
+            const uint32_t count = std::min(s.channels(), Tail::kChannels);
+            for (uint32_t c = 0; c < count; ++c) {
+                const ws::Channel row = s.ch(c);
+                t.rows[k][c] = row.p && !row.is_constant ? row.p + begin : row.p;
+            }
+            t.sig[k] = {sizeof(ws2_signal), t.rows[k], count,
+                        (s.constant() ? uint32_t(WS2_CONSTANT) : 0u) | (s.connected() ? uint32_t(WS2_CONNECTED) : 0u)};
+        }
+        for (uint32_t o = 0; o < 2; ++o) {
+            b.out(o).set_channels(1);
+            b.out(o).mark_constant(false);
+            t.out_rows[o][0] = b.out(o).ch(0) + begin;
+            t.outs[o] = {sizeof(ws2_signal_out), t.out_rows[o], 1, 0, 1};
+        }
+    }
+    WS_DELAY_NOINLINE void settled_tail(ws::Block &b, uint32_t begin) {
+        Tail t;
+        tail(b, begin, t);
+        process_settled(t);
+    }
     void process(ws::Block &b) {
+        if (settled_block(b)) {
+            process_settled(b);
+        } else {
+            const uint32_t begin = process_transition(b);
+            if (begin == b.frames()) return;
+            settled_tail(b, begin);
+        }
+        settled_after(b);
+    }
+    // Verbatim pre-S7.6 process body (A72), over a whole block or a Tail.
+    template <class B> void process_settled(B &b) {
         for (uint32_t o = 0; o < 2; ++o) {
             b.out(o).set_channels(1);
             b.out(o).mark_constant(false);
@@ -203,9 +357,9 @@ struct Delay {
             }
             const float dl = std::clamp(read(line[0], cur), -kWetMax, kWetMax);
             const float dr = std::clamp(read(line[1], cur), -kWetMax, kWetMax);
-            update_tone(p_tone.ch(0)[i]);
+            update_tone_settled(p_tone.ch(0)[i]);
             const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
-            const float fl = loop(0, dl), fr = loop(1, dr);
+            const float fl = loop_settled(0, dl), fr = loop_settled(1, dr);
             if (std::lround(p_mode.ch(0)[i]) >= 1) { // ping-pong: mono in, bounce L -> R -> L
                 line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
                 line[1][w] = limit(fb * fl);
@@ -222,6 +376,114 @@ struct Delay {
             out[0][i] = dry * xl + wet * dl;
             out[1][i] = dry * xr + wet * dr;
         }
+    }
+    // Returns the first frame from which the rest of a constant-row block is
+    // settled, so a transition ends at the same sample for any block size.
+    WS_DELAY_NOINLINE uint32_t process_transition(ws::Block &b) {
+        for (uint32_t o = 0; o < 2; ++o) {
+            b.out(o).set_channels(1);
+            b.out(o).mark_constant(false);
+        }
+        float *out[2]{b.out(0).ch(0), b.out(1).ch(0)};
+        const auto in_l = b.in(0), in_r = b.in(1), clock = b.in(2);
+        const bool right_patched = in_r.connected(), clocked = clock.connected();
+        if (!clocked) {
+            clock_reset();
+            division_seen = -1;
+        }
+        const auto p_time = b.param(kTime), p_div = b.param(kDivision), p_fb = b.param(kFeedback);
+        const auto p_tone = b.param(kTone), p_mode = b.param(kMode), p_mix = b.param(kMix);
+        const bool mix_constant = p_mix.constant();
+        // Stepped controls normally arrive as constant rows. Round once per
+        // block in that case; retain the sample-addressed path for automation.
+        const bool mode_constant = p_mode.constant(), division_constant = p_div.constant();
+        const bool ping_pong_constant = mode_constant && std::lround(p_mode.ch(0)[0]) >= 1;
+        const long division_value = clocked && division_constant
+                                        ? std::clamp(std::lround(p_div.ch(0)[0]), 0l, 7l) : 0;
+        const bool tone_constant = p_tone.constant();
+        if (tone_constant && b.frames()) update_tone(p_tone.ch(0)[0]);
+        const bool settle = mode_constant && tone_constant && (!clocked || division_constant);
+        float dry = 0, wet = 0;
+        const double lo = kMin * rate, hi = kMax * rate;
+        for (uint32_t i = 0; i < b.frames(); ++i) {
+            const float xl = sum(in_l, i), xr = right_patched ? sum(in_r, i) : xl;
+            if (clocked) clock_tick(clock.ch(0)[i]);
+            double target = static_cast<double>(p_time.ch(0)[i]) * rate;
+            if (clocked && applied > 0) {
+                const long d = division_constant ? division_value
+                                                 : std::clamp(std::lround(p_div.ch(0)[i]), 0l, 7l);
+                target = applied * kDivisions[d];
+                if (!division_left && division_seen >= 0 && d != division_seen) {
+                    // Only a division edit crossfades taps; clock acquisition,
+                    // tempo changes and free time retain their original glide.
+                    division_to = std::clamp(target, lo, hi);
+                    division_left = fade_frames;
+                }
+                // Coalesce a retarget until the current bounded fade ends.
+                if (!division_left || division_left == fade_frames) division_seen = d;
+            } else if (clocked) {
+                division_seen = -1;
+            }
+            target = std::clamp(target, lo, hi);
+            const bool ping_pong = mode_constant ? ping_pong_constant : std::lround(p_mode.ch(0)[i]) >= 1;
+            const float mode_target = ping_pong ? 1.f : 0.f;
+            if (!primed) {
+                mode_blend = mode_target; // No startup fade for a settled patch.
+                cur = target;
+                primed = true;
+            } else if (!division_left) {
+                const double diff = target - cur;
+                cur += std::fabs(diff) < 1e-4 ? diff : std::clamp(diff * alpha, -kSlew, kSlew);
+            }
+            float dl = std::clamp(read(line[0], cur), -kWetMax, kWetMax);
+            float dr = std::clamp(read(line[1], cur), -kWetMax, kWetMax);
+            if (division_left) {
+                const float blend = static_cast<float>(fade_frames - division_left + 1) /
+                                    static_cast<float>(fade_frames);
+                const float nl = std::clamp(read(line[0], division_to), -kWetMax, kWetMax);
+                const float nr = std::clamp(read(line[1], division_to), -kWetMax, kWetMax);
+                if (--division_left == 0) {
+                    cur = division_to;
+                    dl = nl;
+                    dr = nr;
+                } else {
+                    dl += blend * (nl - dl);
+                    dr += blend * (nr - dr);
+                }
+            }
+            if (!tone_constant) update_tone(p_tone.ch(0)[i]);
+            advance_tone();
+            const float fb = std::clamp(p_fb.ch(0)[i], 0.f, 1.f);
+            const float fl = loop(0, dl), fr = loop(1, dr);
+            // Crossfade the input and feedback routing, not two complete delay
+            // instances. Retarget from the current blend on a rapid reversal.
+            if (mode_blend != mode_target) {
+                mode_blend = ping_pong ? std::min(1.f, mode_blend + mode_step)
+                                       : std::max(0.f, mode_blend - mode_step);
+                const float sl = xl + fb * fl, sr = xr + fb * fr;
+                const float pl = 0.5f * (xl + xr) + fb * fr, pr = fb * fl;
+                line[0][w] = limit(sl + mode_blend * (pl - sl));
+                line[1][w] = limit(sr + mode_blend * (pr - sr));
+            } else if (ping_pong) { // Original settled routing equations and operation order.
+                line[0][w] = limit(0.5f * (xl + xr) + fb * fr);
+                line[1][w] = limit(fb * fl);
+            } else {
+                line[0][w] = limit(xl + fb * fl);
+                line[1][w] = limit(xr + fb * fr);
+            }
+            if (++w == size) w = 0;
+            if (i == 0 || !mix_constant) {
+                const double m = std::clamp(static_cast<double>(p_mix.ch(0)[i]), 0.0, 1.0);
+                dry = m >= 1.0 ? 0.f : static_cast<float>(std::cos(m * 1.5707963267948966));
+                wet = m <= 0.0 ? 0.f : static_cast<float>(std::sin(m * 1.5707963267948966));
+            }
+            out[0][i] = dry * xl + wet * dl;
+            out[1][i] = dry * xr + wet * dr;
+            if (settle && !division_left && !tone_left && mode_blend == mode_target &&
+                (!clocked || applied <= 0 || division_seen == division_value))
+                return i + 1;
+        }
+        return b.frames();
     }
 };
 } // namespace fxdelay
