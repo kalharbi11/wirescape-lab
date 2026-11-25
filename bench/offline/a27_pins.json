@@ -1,5 +1,5 @@
 {
-  "base": "7661f832f44c2f8388b84b48e766490e1e44418f",
-  "subject": "4fcaa04abaa8ecd5018f55b98e3c76f5d6e0045d",
-  "purpose": "B1 final S7.6 A64 capture pins per 7151404067; fixed r1.4 windows and r1.9 diagnostic classification"
+  "base": "00c39f5cc1d747a75fd7dff264e8c87ef78ddb75",
+  "subject": "ae8453ab25d3cf2eaf94a1fd2686ab65d1952868",
+  "purpose": "Lead-authorized one-time final A72 S7.6 A27/D5 capture; frozen tooling, independently reclassify r1.9a; archival draft only"
 }
