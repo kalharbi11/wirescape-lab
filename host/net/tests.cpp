@@ -186,10 +186,87 @@ void soak_backlog_split() {
     verify_split(total, 0, 4, 0);
     verify_listener(service, 0, 4, 0);
 }
+// A67: separate refusal codes without changing the existing soak-profile test.
+// The controlled witness does not attribute the historical hosted failure.
+template<class T>
+auto verify_enqueue_reasons(const T &state, uint64_t invalid, uint64_t capacity,
+                            uint64_t not_ready, uint64_t other, int)
+    -> decltype(state.enqueue_invalid, state.enqueue_capacity, state.enqueue_state,
+                state.enqueue_other, void()) {
+    REQUIRE(state.enqueue_invalid == invalid);
+    REQUIRE(state.enqueue_capacity == capacity);
+    REQUIRE(state.enqueue_state == not_ready);
+    REQUIRE(state.enqueue_other == other);
+    REQUIRE(state.enqueue_dropped == invalid + capacity + not_ready + other);
+}
+template<class T>
+void verify_enqueue_reasons(const T &state, uint64_t, uint64_t, uint64_t, uint64_t, long) {
+    std::fprintf(stderr, "A67 enqueue reason split unavailable; observed drops=%llu\n",
+        static_cast<unsigned long long>(state.enqueue_dropped));
+    REQUIRE(false);
+}
+struct ReasonSink {
+    static int deliver(void *, uint32_t node, const ws2_event &, uint64_t) noexcept {
+        switch (node) {
+        case 1: return WS2_INVALID;
+        case 2: return WS2_CAPACITY;
+        case 3: return WS2_STATE;
+        case 4: return WS2_EXCEPTION; // other, not one of Engine::enqueue's three codes
+        default: return WS2_OK;
+        }
+    }
+};
+void enqueue_reason_split() {
+    Service service({nullptr, ReasonSink::deliver});
+    for (uint32_t node = 1; node <= 5; ++node) REQUIRE(service.add({node, 0, false}));
+    REQUIRE(service.start() && service.counters().sockets == 1);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in destination{};
+    destination.sin_family = AF_INET;
+    destination.sin_port = htons(service.bound_port());
+    destination.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    Message msg;
+    msg.address = "/a67";
+    msg.count = 1;
+    msg.arguments[0].type = 'f';
+    msg.arguments[0].real = .5f;
+    uint8_t packet[1472]{};
+    bool truncated = false;
+    const auto bytes = encode(msg, packet, sizeof(packet), truncated);
+    REQUIRE(bytes && !truncated);
+    REQUIRE(sendto(sender, reinterpret_cast<const char *>(packet), int(bytes), 0,
+                   reinterpret_cast<sockaddr *>(&destination), sizeof(destination)) == int(bytes));
+    const auto deadline = Clock::now() + 2s;
+    while (service.states().back().received != 1 && Clock::now() < deadline)
+        std::this_thread::sleep_for(1ms);
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop(); // assert identities only after the producer has joined
+    const auto states = service.states();
+    REQUIRE(states.size() == 5 && states.back().received == 1);
+    REQUIRE(service.counters().received == 1 && service.counters().dropped == 4);
+    for (const auto &state : states) {
+        REQUIRE(state.budget_dropped == 0 && state.listener_enqueue_dropped == 4);
+        REQUIRE(state.enqueue_dropped == (state.node == 5 ? 0 : 1));
+        REQUIRE(state.dropped == state.enqueue_dropped);
+        REQUIRE(state.received == (state.node == 5 ? 1 : 0));
+        verify_enqueue_reasons(state, state.node == 1, state.node == 2,
+                               state.node == 3, state.node == 4, 0);
+    }
+    const auto listeners = service.listener_states();
+    REQUIRE(listeners.size() == 1);
+    verify_enqueue_reasons(listeners[0], 1, 1, 1, 1, 0);
+    verify_enqueue_reasons(service.counters(), 1, 1, 1, 1, 0);
+}
+
 } // namespace
 
 int main() {
     soak_backlog_split();
+    enqueue_reason_split();
     Capture c;
     // Unconfirmed LAN never binds any interface other than loopback.
     Service local({&c, Capture::deliver});
