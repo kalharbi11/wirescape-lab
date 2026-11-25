@@ -7,7 +7,7 @@ protocol, source-patch or top-level CMake edit. No devices or network services.
 
 - Black Ice Choir: verify it ranks first from exact-head paired instructions;
   load the unchanged bundled patch via the pinned runtime document/catalogue,
-  reproduce the golden C4 held note and seed 37, prepare 48 kHz / 256 frames.
+  reproduce the golden C4 held note, preserve the bundle's authored seed (the ranking uses 37), prepare 48 kHz / 256 frames. Warm up 240 blocks, measure 64 steady blocks.
   Measure max individual render Ir after a declared warm-up, not a whole-run
   subtraction. Report a module's attributed own share only if attributable.
 - Clocked Groove: load the unchanged bundle and a prepared candidate differing
@@ -18,7 +18,7 @@ protocol, source-patch or top-level CMake edit. No devices or network services.
 - Profile only the render owner: Callgrind collection toggled around each
   complete render, labelled dump after each block, reset counters; no output
   capture, loading, allocation of profile buffers, or control staging inside
-  the counted window. Identify actual publication via the adopt_layout call
+  the counted window. Use the real AppEngine facade so the counted scope includes the normal per-render peak meters. Identify actual publication via the adopt_layout call
   in that block's Callgrind trace (including separate housekeeping).
   Require unique contiguous blocks, exactly one initial publication and one
   steady-layout publication, two before and two after the fade, positive Ir,

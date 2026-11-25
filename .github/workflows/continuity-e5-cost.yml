@@ -21,3 +21,50 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m unittest discover -s bench/continuity/cost -p 'test_*.py'
+  seam:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      ENGINE_HEAD: b4b11ac81be852d6bfcba56636a685cf42947dff
+      # Compile against a historical pin only. B1 changes this once B5's
+      # corrected exact review head is known; no provisional cost claim.
+      MEASURE: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ENGINE_HEAD }}
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure standalone cost seam
+        run: |
+          set -euo pipefail
+          test "$(git -C engine-source rev-parse HEAD)" = "$ENGINE_HEAD"
+          test "$(git -C harness rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          sudo apt-get update -qq
+          sudo apt-get install -y valgrind
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          mkdir -p "$RUNNER_TEMP/e5-cost"
+          printf 'engine=%s\nharness=%s\n' "$ENGINE_HEAD" "$(git -C harness rev-parse HEAD)" > "$RUNNER_TEMP/e5-cost/pins.txt"
+          c++ --version >> "$RUNNER_TEMP/e5-cost/pins.txt"
+          valgrind --version >> "$RUNNER_TEMP/e5-cost/pins.txt"
+          cmake -S harness/bench/continuity/cost -B "$RUNNER_TEMP/e5-cost-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DWS_ENGINE_SOURCE="$PWD/engine-source" -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g
+          cmake --build "$RUNNER_TEMP/e5-cost-build" --target e5_block_cost --parallel 2
+      - name: Capture two ruled patch cost rows (final pin only)
+        if: env.MEASURE == 'true'
+        run: |
+          python harness/bench/continuity/cost/run_cost.py --exe "$RUNNER_TEMP/e5-cost-build/e5_block_cost" --source engine-source --out "$RUNNER_TEMP/e5-cost" --engine-head "$ENGINE_HEAD" --harness-head "$(git -C harness rev-parse HEAD)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e5-block-cost
+          path: ${{ runner.temp }}/e5-cost
+          if-no-files-found: error
+          retention-days: 14
