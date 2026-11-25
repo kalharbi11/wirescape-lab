@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "osc_host.h"
+#include "../../host/document/io_data_migration.h"
 #include <nlohmann/json.hpp>
 #include <cstring>
 #include <stdexcept>
@@ -79,8 +80,10 @@ void Host::start(AppEngine *engine, const std::string &document) {
     stop();
     auto patch = nlohmann::json::parse(document);
     std::vector<Route> routes;
-    for (const auto &module : patch.at("modules")) {
+    for (auto &module : patch.at("modules")) {
         if (module.value("module", std::string{}) != "osc.in") continue;
+        document::migrate_io_module(module);
+        const auto data = document::read_io_slot<OscInRows, OscIn, validate_osc_in_rows>(module);
         const auto config = module.value("config", nlohmann::json::object());
         const uint32_t port = config.value("port", 9000u);
         if (port < 1 || port > 65535) throw std::runtime_error("OSC port outside 1..65535");
@@ -92,24 +95,15 @@ void Host::start(AppEngine *engine, const std::string &document) {
         auto filter = std::make_unique<Filter>();
         filter->node = node;
         filter->port = uint16_t(port);
-        filter->enabled.fill(true);
-        std::array<std::string, 8> patterns;
-        for (uint32_t i = 0; i < 8; ++i) patterns[i] = "/pico1/knob/" + std::to_string(i + 1);
-        if (config.contains("rows") && config.at("rows").is_array())
-            for (size_t i = 0; i < config.at("rows").size() && i < 8; ++i) {
-                const auto &row = config.at("rows").at(i);
-                if (!row.is_object()) continue;
-                if (row.contains("pattern") && row.at("pattern").is_string())
-                    patterns[i] = row.at("pattern").get<std::string>();
-                if (row.contains("enabled") && row.at("enabled") == false) {
-                    filter->enabled[i] = false;
-                    ++disabled;
-                }
-            }
-        // Pattern routing applies to every module, not only partial Clears.
-        // A fully disabled route is still recognized but never bound.
-        for (uint32_t i = 0; i < 8; ++i)
-            if (!filter->patterns[i].compile(patterns[i])) throw std::runtime_error("Invalid OSC row pattern");
+        // Pattern routing applies to every module, including disabled rows.
+        // Use the same validated, migrated rows as the DSP slot.
+        for (uint32_t i = 0; i < 8; ++i) {
+            const auto &row = data.rows[i];
+            filter->enabled[i] = row.enabled != 0;
+            if (!row.enabled) ++disabled;
+            if (!filter->patterns[i].compile(row.pattern))
+                throw std::runtime_error("Invalid OSC row pattern");
+        }
         filters_.push_back(std::move(filter));
         if (disabled >= 8) {
             RouteState state;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "osc_out_host.h"
-#include "../../host/document/runtime_module_config.h"
+#include "../../host/document/io_data_migration.h"
 #include "../../host/osc/codec.h"
 #include <chrono>
 #include <cmath>
@@ -49,17 +49,29 @@ bool send_message(Socket sock, const Message &message, uint16_t port) noexcept {
 } // namespace
 
 OutHost::OutHost(const std::string &document, SendOverride send_override) : send_override_(send_override) {
-    const auto patch = nlohmann::json::parse(document);
-    for (const auto &module : patch.at("modules")) {
+    auto patch = nlohmann::json::parse(document);
+    for (auto &module : patch.at("modules")) {
         if (module.value("module", std::string{}) != "osc.out") continue;
         if (routes_.size() >= 32) throw std::runtime_error("At most 32 OSC output routes");
         auto route = std::make_unique<Route>();
         route->node = module.at("id").get<uint32_t>();
+        document::migrate_io_module(module);
+        const auto data = document::read_io_slot<OscOutRoutes, OscOut, validate_osc_out_routes>(module);
         const auto config = module.value("config", nlohmann::json::object());
         const auto bytes = document::runtime_module_config("osc.out", config, route->node);
         if (bytes.size() != sizeof(route->config)) throw std::runtime_error("OSC Out configuration was not prepared");
         std::memcpy(&route->config, bytes.data(), sizeof(route->config));
         route->config.bus = route->bus.get();
+        for (uint32_t i = 0; i < 8; ++i) {
+            const auto &src = data.rows[i];
+            auto &dst = route->config.rows[i];
+            std::memcpy(dst.address, src.address, sizeof(dst.address));
+            dst.kind = src.kind;
+            dst.deadband = src.deadband;
+            dst.enabled = src.enabled;
+        }
+        std::memcpy(route->config.notes.address, data.notes_address, sizeof(data.notes_address));
+        route->config.notes.enabled = data.notes_enabled;
         for (const auto &row : route->config.rows) route->enabled |= row.enabled != 0;
         route->enabled |= route->config.notes.enabled != 0;
         if (!buses_.emplace(route->node, route->bus.get()).second)

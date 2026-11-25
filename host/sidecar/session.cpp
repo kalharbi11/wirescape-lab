@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
+#include "../document/io_data_migration.h"
 #include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
@@ -739,6 +740,14 @@ Json Session::execution(Json patch) {
         need(!m.value("inactive", false), "unavailable", "Module is inactive");
         if (std::string(d->id) == "osc.in") need(++osc_routes <= 32, "limit", "At most 32 OSC input routes");
         if (!m.contains("version")) m["version"] = d->version;
+        try {
+            std::vector<std::string> ignored;
+            document::migrate_io_module(m, &ignored);
+            for (const auto &key : ignored)
+                std::cerr << "OSC load ignored unknown config key: " << key << '\n';
+        } catch (const std::exception &e) {
+            throw Refusal("invalid", e.what());
+        }
         if (std::string(d->id) == "essentials.output") output = std::min(output, id);
         auto values = m.value("parameters", Json::object());
         need(values.is_object());
@@ -1506,7 +1515,7 @@ Json Session::apply(const Json &command) {
         uint32_t slot = 0;
         while (slot < count && slot_id != d->data_slots[slot].id) ++slot;
         need(slot < count, "invalid", ("data." + slot_id + ": unknown slot").c_str());
-        const auto &value = command.at("value");
+        const auto value = document::complete_io_slot(m.at("module").get<std::string>(), slot_id, command.at("value"));
         std::vector<uint8_t> packed;
         std::string error;
         if (!ws::data_layout::pack_data_slot(d->data_slots[slot], value,
