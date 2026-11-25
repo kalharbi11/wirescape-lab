@@ -6,21 +6,11 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
-A planned review condition goes on the task with `review-required`. Open an Architect-only
-review row when its request is ready to dispatch. **Do not add `review-ready` to it** (that starts the regular
-cloud reviewer); the lead dispatches it with `architect-ready`. Routine independent review uses
-`review-ready` and a pinned PR request naming the eligible reviewer, without an inbox row.
-
-A row and its labels record the decision or review request. When the item is ready, the delivery lead adds
-[`architect-ready`](README.md#architect-dispatch-architect-ready) to the most urgent one (one per lead run); that
-starts an Architect run, which clears every ready Open row. The Architect removes the label when done.
-
-During the [Codex trial](../context/COORDINATION_MANAGER.md), Terra may apply the ready label
-as a delegated mechanical step after verifying a complete request and when no lead decision
-is outstanding. Count that dispatch against the same one-per-lead-window allowance.
-Use the linked issue for the wake while only Issues → Labeled is configured. Keep review
-material and its head pinned on the PR. A label requests a run. Confirm pickup from live
-activity or the signed outcome.
+A planned review condition uses `review-required`. Open an Architect-only review row when its
+pinned request is ready. Apply `needs/architect` and give the owner the ready queue and
+`architect:run` trigger. The Architect clears ready Open rows at the owner's manual start.
+Keep review material and its head pinned on the PR. Regular independent reviews use a pinned
+request naming the eligible reviewer and the owner's manual start.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
