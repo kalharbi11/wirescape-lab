@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | #176 MT2 T11: neutral adapter/describe option-metadata grant + option-mutant regression, or a contract disposition. MT2 is parked until OB1. | MT2 only |
 | B4-E7c-b-length | 2026-11-25 | gpt-builder4 | ruling | now | [#520 question](https://github.com/kalharbi11/wirescape-lab/issues/520#issuecomment-7155937055): should v2 reject trailing bytes via a read-only SDK Reader declared-length accessor (outside current paths), or accept them? No SDK edit made; exact candidate `4b3bf186ceb3b5a1a2d6d2276c729a510d526c7e`. | #520/#539 final format decision; other gates continue |
 
+| B5-A78-client-intent | 2026-11-25 | gpt-builder5 | ruling | now | [#538 question](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7156152300): explicit revert intent in full snapshots, multi-ID correlation, Studio client ownership; draft head `556012e0251d67ee847b00da9a61af7e98ca3269`. | #522/#538 final A78 integration and review pin; backend tests continue |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
