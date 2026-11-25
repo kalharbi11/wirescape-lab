@@ -3,6 +3,8 @@
 #include "../../sdk/examples/test_support.h"
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "dsp.h"
+#include "settled_reference.h"
+#include <cstring>
 #include <cmath>
 #include <functional>
 #include <vector>
@@ -45,7 +47,8 @@ struct Rig {
     In in[3];
     Wave zeros = Wave(256, 0.f);
 
-    explicit Rig(double sample_rate = 48000) : rate(sample_rate) {
+    explicit Rig(double sample_rate = 48000, const ws2_descriptor *descriptor = nullptr)
+        : d(descriptor ? descriptor : ws::Module<Delay>::descriptor()), rate(sample_rate) {
         const ws2_config config{sizeof(config), rate, 256, 16, 7, nullptr, 0};
         instance = d->create(&host);
         REQUIRE(instance && d->prepare(instance, &config, &host) == WS2_OK);
@@ -64,7 +67,8 @@ struct Rig {
         return d->load_state(instance, &reader);
     }
     // Runs `total` frames in blocks of `block`; `each` may change values before every block.
-    Result run(size_t total, uint32_t block = 256, const std::function<void(size_t)> &each = {}, bool watch = false) {
+    Result run(size_t total, uint32_t block = 256, const std::function<void(size_t)> &each = {}, bool watch = false,
+               const std::function<int(ws2_process &)> &direct = {}) {
         Result result{Wave(total), Wave(total)};
         float out_data[2][16][256]{};
         for (size_t first = 0; first < total; first += block) {
@@ -107,10 +111,10 @@ struct Rig {
             int status;
             if (watch) {
                 allocation_watch::Scope scope;
-                status = d->process(instance, &ctx);
+                status = direct ? direct(ctx) : d->process(instance, &ctx);
                 REQUIRE(scope.allocations() == 0);
             } else {
-                status = d->process(instance, &ctx);
+                status = direct ? direct(ctx) : d->process(instance, &ctx);
             }
             REQUIRE(status == WS2_OK);
             REQUIRE(outputs[0].channels == 1 && outputs[1].channels == 1);
@@ -696,7 +700,111 @@ static void tone_ramp_does_not_rearm() {
     }
 }
 
+// SR6 first-divergence diagnostic against the pinned pre-S7.6 implementation.
+// Compare raw float bits, not a broadened tolerance. First test the registered
+// descriptor path, then trace direct DSP state after each block separately.
+static size_t first_bits(const Wave &a, const Wave &b) {
+    REQUIRE(a.size() == b.size());
+    for (size_t i = 0; i < a.size(); ++i)
+        if (std::memcmp(&a[i], &b[i], sizeof(float)) != 0) return i;
+    return a.size();
+}
+struct SettledTrace {
+    Wave writes[2];
+    std::vector<std::array<float, 10>> state;
+};
+template<class DSP>
+static Result trace_settled(Rig &rig, SettledTrace &trace, size_t length, uint32_t block) {
+    DSP dsp;
+    const ws2_config config{sizeof(config), rig.rate, 256, 16, 7, nullptr, 0};
+    REQUIRE(dsp.prepare(ws::Setup{config, rig.host}));
+    dsp.reset();
+    for (auto &w : trace.writes) w.reserve(length);
+    trace.state.reserve((length + block - 1) / block);
+    return rig.run(length, block, {}, false, [&](ws2_process &ctx) {
+        const uint32_t first = dsp.w;
+        ws::Block b(ctx);
+        dsp.process(b);
+        for (unsigned ch = 0; ch < 2; ++ch)
+            for (uint32_t i = 0; i < ctx.frames; ++i)
+                trace.writes[ch].push_back(dsp.line[ch][(first + i) % dsp.size]);
+        trace.state.push_back({dsp.tone_a, dsp.tone_k, dsp.lp[0], dsp.lp[1],
+                               dsp.dc_x[0], dsp.dc_x[1], dsp.dc_y[0], dsp.dc_y[1],
+                               static_cast<float>(dsp.cur), static_cast<float>(dsp.applied)});
+        return WS2_OK;
+    });
+}
+
+static void settled_reference_diagnosis() {
+    constexpr size_t length = 65536;
+    bool identical = true;
+    struct Case { float time, feedback, tone, mode; bool clocked; };
+    const Case cases[]{
+        {.375f, 0.f, 0.f, 0.f, false},
+        {.375f, .4f, 0.f, 0.f, false},
+        {.375f, .4f, -.2f, 1.f, false},
+        {.24f, .4f, -.18f, 1.f, false},
+        {.125f, .4f, 0.f, 0.f, true},
+    };
+    const auto *ref_descriptor = ws::Module<fxdelay_reference::Delay>::descriptor();
+    for (const auto &c : cases) {
+        for (uint32_t block : {128u, 1u}) {
+            auto setup = [&](Rig &rig) {
+                rig.values[kTime] = c.time;
+                rig.values[kFeedback] = c.feedback;
+                rig.values[kTone] = c.tone;
+                rig.values[kMode] = c.mode;
+                rig.values[kMix] = 1.f;
+                rig.left(noise(length, 301, .48f));
+                rig.right(noise(length, 302, .48f));
+                if (c.clocked) rig.clock(pulses(length, 6000));
+            };
+            Rig old(48000, ref_descriptor), now;
+            setup(old); setup(now);
+            const auto a = old.run(length, block);
+            const auto b = now.run(length, block);
+            const size_t first = std::min(first_bits(a.l, b.l), first_bits(a.r, b.r));
+            std::printf("delay settled descriptor: time=%g feedback=%g tone=%g mode=%g clocked=%d block=%u first=%zu/%zu\n",
+                        double(c.time), double(c.feedback), double(c.tone), double(c.mode), c.clocked,
+                        block, first, length);
+            identical = identical && first == length;
+            // Traces use fresh objects, same fixture, and no product instrumentation.
+            // Trace at 128-frame partition; the single-sample descriptor run
+            // above remains a distinct block-partition check.
+            if (block != 128u) continue;
+            Rig direct_old(48000, ref_descriptor), direct_now;
+            setup(direct_old); setup(direct_now);
+            SettledTrace tr0, tr1;
+            const auto x = trace_settled<fxdelay_reference::Delay>(direct_old, tr0, length, block);
+            const auto y = trace_settled<Delay>(direct_now, tr1, length, block);
+            const size_t out = std::min(first_bits(x.l, y.l), first_bits(x.r, y.r));
+            const size_t write = std::min(first_bits(tr0.writes[0], tr1.writes[0]),
+                                          first_bits(tr0.writes[1], tr1.writes[1]));
+            size_t state = 0;
+            while (state < tr0.state.size() &&
+                   std::memcmp(tr0.state[state].data(), tr1.state[state].data(),
+                               sizeof(tr0.state[state])) == 0) ++state;
+            std::printf("delay settled direct: output=%zu ring_write=%zu state_block=%zu/%zu\n",
+                        out, write, state, tr0.state.size());
+            if (write < length)
+                for (unsigned ch = 0; ch < 2; ++ch)
+                    std::printf("  ring[%u] at %zu: %a -> %a\n", ch, write,
+                                double(tr0.writes[ch][write]), double(tr1.writes[ch][write]));
+            if (state < tr0.state.size()) {
+                const char *labels[]{"tone_a", "tone_k", "lpL", "lpR", "dc_xL", "dc_xR", "dc_yL", "dc_yR", "cur", "applied"};
+                for (unsigned k = 0; k < 10; ++k)
+                    std::printf("  %s: %a -> %a\n", labels[k], double(tr0.state[state][k]), double(tr1.state[state][k]));
+            }
+            // The direct trace is diagnostic: compilation/inlining is not
+            // the descriptor path. Only exact descriptor PCM gates here.
+        }
+    }
+    std::fflush(stdout);
+    REQUIRE(identical);
+}
+
 int main() {
+    settled_reference_diagnosis();
     echo_position();
     feedback_decay();
     ping_pong();
