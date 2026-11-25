@@ -47,6 +47,8 @@ struct Layout {
     // is owned by the transition layout until the consumer fade settles.
     struct Replacement { Instance *prior; Node *successor, *tail; bool adopted = false; };
     std::vector<Replacement> replacements;
+    struct DataAdoption { Instance *instance; uint32_t slot; const void *bytes; uint32_t serial; };
+    std::vector<DataAdoption> data_adoption;
     std::vector<GainAdoption> gain_adoption;
     uint32_t feedback_count = 0;
     size_t setup_bytes = 0;

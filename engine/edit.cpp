@@ -131,6 +131,7 @@ int Engine::set_data_packed(uint32_t node, uint32_t slot, const std::vector<uint
     if (!p.prepared) {
         data.view[slot].data = block.get();
         owner.versions.back().bytes = std::move(block);
+        owner.initial_authored = true;
         return WS2_OK;
     }
     const auto serial = owner.versions.back().serial + 1;
@@ -658,10 +659,58 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         shared.init_views();
         data_backups.emplace_back(pair.second, std::move(shared));
     }
+    // Explicit packed candidate slots supersede the live owner's latest
+    // bytes. A caller that did not supply a slot retains the E3a-1 inheritance
+    // contract. Store all versions off-RT, with rollback on failed publication.
+    struct PendingData { DataSlotStorage *owner; DataVersion version; };
+    std::vector<PendingData> pending_data;
+    auto stage_data = [&](Instance &prior, Instance &candidate_instance, Instance &destination) {
+        for (uint32_t i = 0; i < candidate_instance.data.owners.size(); ++i) {
+            const auto &authored = *candidate_instance.data.owners[i];
+            if (!authored.initial_authored) continue;
+            auto &owner = *prior.data.owners[i];
+            const auto &latest = owner.versions.back();
+            const auto &value = authored.versions.back();
+            if (std::memcmp(latest.bytes.get(), value.bytes.get(), owner.size) == 0) {
+                next.data_adoption.push_back({&destination, i, latest.bytes.get(), latest.serial});
+                continue;
+            }
+            if (latest.serial == UINT32_MAX) return false;
+            auto block = allocate_data_block(owner.size);
+            std::memcpy(block.get(), value.bytes.get(), owner.size);
+            const auto serial = latest.serial + 1;
+            next.data_adoption.push_back({&destination, i, block.get(), serial});
+            pending_data.push_back({&owner, {serial, std::move(block)}});
+        }
+        return true;
+    };
+    for (auto id : retained) {
+        auto &prior = *old.instances.at(id);
+        if (!stage_data(prior, *fresh.instances.at(id), prior))
+            return old.fail("Data slot serial exhausted");
+    }
+    for (const auto &pair : replacement_pairs)
+        if (!stage_data(*pair.first, *pair.second, *pair.second))
+            return old.fail("Data slot serial exhausted");
+
+    size_t appended = 0;
+    auto rollback_data = [&] {
+        while (appended) pending_data[--appended].owner->versions.pop_back();
+    };
+    try {
+        for (auto &pending : pending_data) {
+            pending.owner->versions.push_back(std::move(pending.version));
+            ++appended;
+        }
+    } catch (...) {
+        rollback_data();
+        throw;
+    }
     // All allocating work above precedes swapping bindings and publication.
     for (auto &backup : data_backups) std::swap(backup.first->data, backup.second);
     if (!old.publish_layout(&next, timeout_ns)) {
         for (auto &backup : data_backups) std::swap(backup.first->data, backup.second);
+        rollback_data();
         for (auto id : introduced) {
             auto &instance = *fresh.instances.at(id);
             instance.born_revision = 0;
