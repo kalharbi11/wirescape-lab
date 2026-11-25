@@ -21,6 +21,7 @@ add_test(NAME abi2_sdk_scalar_tests COMMAND abi2_sdk_scalar_tests)
 # Host-only data packing tests; the engine/portable SDK retain no JSON link.
 if(TARGET nlohmann_json::nlohmann_json)
   add_executable(abi2_data_pack_tests tests/data_pack_tests.cpp)
+  target_include_directories(abi2_data_pack_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(abi2_data_pack_tests PRIVATE wirescape_sdk2 nlohmann_json::nlohmann_json)
   add_test(NAME abi2_data_pack_tests COMMAND abi2_data_pack_tests)
 endif()
