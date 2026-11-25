@@ -8,9 +8,8 @@
 namespace groove {
 // Flat records, one variable-length step array per track. Construction-time
 // configuration still owns the stable seed, armed/mute defaults and divisors.
-// Zero lengths in the engine's unmaterialized default block select legacy
-// config for old direct callers; the shared document migration must supply
-// both approved lengths and materialize canonical rows.
+// Empty authored data defaults to a silent 32-step pattern; direct engine
+// callers with legacy config must install migrated data before prepare.
 struct LivePattern {
     uint32_t length_1, length_2, count_1, count_2, tempo_source;
     Step steps_1[64], steps_2[64];
@@ -33,8 +32,8 @@ inline constexpr std::array live_step_fields{
 };
 static_assert(sizeof(Step::keys) == sizeof(int32_t[5]));
 inline constexpr std::array live_pattern_fields{
-    ws::data_field<WS2_F_U32, uint32_t>("length_1", "Track 1 length", offsetof(LivePattern, length_1), ws::data_range(0, 64, 0)),
-    ws::data_field<WS2_F_U32, uint32_t>("length_2", "Track 2 length", offsetof(LivePattern, length_2), ws::data_range(0, 64, 0)),
+    ws::data_field<WS2_F_U32, uint32_t>("length_1", "Track 1 length", offsetof(LivePattern, length_1), ws::data_range(0, 64, 32)),
+    ws::data_field<WS2_F_U32, uint32_t>("length_2", "Track 2 length", offsetof(LivePattern, length_2), ws::data_range(0, 64, 32)),
     ws::data_field<WS2_F_U32, uint32_t>("count_1", "Track 1 row count", offsetof(LivePattern, count_1), ws::data_range(0, 64, 0)),
     ws::data_field<WS2_F_U32, uint32_t>("count_2", "Track 2 row count", offsetof(LivePattern, count_2), ws::data_range(0, 64, 0)),
     ws::data_field<WS2_F_ENUM, uint32_t>("tempo_source", "Tempo source", offsetof(LivePattern, tempo_source), ws::data_options(tempo_sources, 0)),

@@ -2,7 +2,7 @@
 #pragma once
 // Host-only Groove migration adapter. The portable module neither parses JSON
 // nor allocates. Shared loader and Session call sites are integrated separately.
-#include "../../modules/groove/data.h"
+#include "groove_data_validator.h"
 #include "runtime_module_config.h"
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -10,16 +10,6 @@
 #include <vector>
 
 namespace wirescape::document {
-inline bool validate_groove_data_slot(const ws2_data_slot &slot,
-                                      const std::vector<uint8_t> &packed, std::string &error) {
-    const auto result = groove::validate_pattern_slot(slot, packed.data(), packed.size());
-    if (result) return true;
-    error = result.field;
-    if (result.row >= 0) error += "[" + std::to_string(result.row) + "]";
-    error += ": invalid Groove pattern field";
-    return false;
-}
-
 // Generated row counts are intentionally absent from the authored object.
 // Preserve every decoded row, including rows outside the current track length.
 // Float values have already been validated and rounded by the legacy decoder.
@@ -55,7 +45,20 @@ inline nlohmann::json groove_pattern_value(const groove::LivePattern &data) {
 inline groove::Config decode_groove_legacy_config(const nlohmann::json &config, uint32_t instance_id) {
     // Use the legacy implementation directly: the future public runtime
     // wrapper must not recurse through this adapter.
-    const auto bytes = runtime_module_config_impl("sequencing.groove", config, instance_id, nullptr);
+    auto source = config;
+    // Canonical construction-only tracks omit steps. Reuse the strict
+    // legacy parser for all remaining fields; provide one silent row only
+    // for that shape, never silently repair a partially legacy document.
+    if (source.is_object() && source.contains("tracks") && source["tracks"].is_array() &&
+        !source["tracks"].empty()) {
+        bool construction_only = true;
+        for (const auto &track : source["tracks"])
+            construction_only &= track.is_object() && !track.contains("steps") && !track.contains("length");
+        if (construction_only && !source.contains("tempo_source"))
+            for (auto &track : source["tracks"])
+                track["steps"] = nlohmann::json::array({{{"kind", "rest"}}});
+    }
+    const auto bytes = runtime_module_config_impl("sequencing.groove", source, instance_id, nullptr);
     groove::Config decoded{};
     if (!groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded))
         throw std::runtime_error("Invalid Groove legacy config");
@@ -87,16 +90,34 @@ inline std::vector<uint8_t> groove_construction_bytes(const nlohmann::json &lega
     return storage.bytes();
 }
 
-// Only materialize an absent legacy slot. An explicit pattern, even an empty
-// object, is not overwritten. The caller retains the existing stored/edit
-// validation policy and independently normalizes construction-only config.
+// Execution copy only. Legacy rows are removed after materialization, so a
+// later removal of the slot resets to defaults and never resurrects a pattern.
+// The caller owns the saved source document and its unknown fields.
 inline void materialize_groove_legacy_data(nlohmann::json &module, uint32_t instance_id) {
     using Json = nlohmann::json;
+    if (module.value("module", std::string{}) != "sequencing.groove") return;
+    auto config = module.value("config", Json::object());
     auto data = module.value("data", Json::object());
+    if (!config.is_object()) throw std::runtime_error("Module config must be an object");
     if (!data.is_object()) throw std::runtime_error("data: expected object");
-    if (data.contains("pattern")) return;
-    const auto config = module.value("config", Json::object());
-    data["pattern"] = groove_legacy_pattern_value(config, instance_id);
+    // A legacy shape has actual pattern fields. A canonical shape does not.
+    bool legacy = config.contains("tempo_source");
+    if (config.contains("tracks") && config["tracks"].is_array())
+        for (const auto &track : config["tracks"])
+            legacy |= track.is_object() && (track.contains("steps") || track.contains("length"));
+    if (!data.contains("pattern"))
+        data["pattern"] = legacy ? groove_legacy_pattern_value(config, instance_id) : Json::object();
+    // Validate legacy configuration even when explicit slot data wins.
+    // This preserves the prior malformed-config refusal.
+    (void)decode_groove_legacy_config(config, instance_id);
+    config.erase("tempo_source");
+    if (config.contains("tracks") && config["tracks"].is_array())
+        for (auto &track : config["tracks"]) {
+            track.erase("steps");
+            track.erase("length");
+        }
+    if (config.empty()) module.erase("config");
+    else module["config"] = std::move(config);
     module["data"] = std::move(data);
 }
 } // namespace wirescape::document

@@ -500,6 +500,12 @@ static void test_s1_engine_saturation_replan() {
         std::memcpy(bytes.data(), &config, sizeof(config));
         check(engine.add_node(1, ws::Module<GrooveReleaseFlood>::descriptor()), "real flood node");
         check(engine.add_node(2, ws::Module<groove::Sequencer>::descriptor(), bytes), "real Groove node");
+        groove::Config decoded{};
+        check(groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded), "legacy direct fixture decodes");
+        const auto live = groove::materialize_legacy_pattern(decoded);
+        std::vector<uint8_t> packed(sizeof(live));
+        std::memcpy(packed.data(), &live, sizeof(live));
+        check(engine.set_data_packed(2, 0, packed) == WS2_OK, "direct fixture seeds Groove data");
         check(engine.add_node(3, ws::Module<GrooveHostReceiver>::descriptor()), "real retained note receiver");
         check(engine.connect(2, 4, 3, 0) && engine.output(3, 0, 0), "real Groove notes route");
         check(engine.register_producer() == 0 && engine.prepare(), "real prepared graph");
@@ -718,6 +724,15 @@ static void test_groove_host_adapter() {
     using namespace wirescape::document;
     auto module = patch(pattern())["modules"][0];
     materialize_groove_legacy_data(module, 1);
+    check(!module["config"]["tracks"][0].contains("steps") &&
+              !module["config"]["tracks"][0].contains("length"), "migration strips only live construction keys");
+    const auto canonical = module;
+    materialize_groove_legacy_data(module, 1);
+    check(module == canonical, "canonical migration is idempotent");
+    auto reset = module;
+    reset.erase("data");
+    materialize_groove_legacy_data(reset, 1);
+    check(reset["data"]["pattern"] == Json::object(), "removed slot does not resurrect old rows");
     auto &value = module["data"]["pattern"];
     check(value["length_1"] == 32 && value["steps_1"].size() == 64 &&
               value["steps_1"][0]["key"] == 72 && value["steps_1"][2]["key"] == 64 &&
@@ -1158,6 +1173,12 @@ static void test_chord_to_notes_cv() {
     Engine engine;
     check(engine.add_node(1, ws::Module<groove::Sequencer>::descriptor(), bytes),
           "three-key Groove node loads from Studio-shaped JSON");
+    groove::Config decoded{};
+    check(groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded), "legacy chord fixture decodes");
+    const auto live = groove::materialize_legacy_pattern(decoded);
+    std::vector<uint8_t> packed(sizeof(live));
+    std::memcpy(packed.data(), &live, sizeof(live));
+    check(engine.set_data_packed(1, 0, packed) == WS2_OK, "direct chord fixture seeds Groove data");
     check(engine.add_node(2, ws::Module<ws2test::NotesToCv>::descriptor()), "device-free test NotesToCv node");
     check(engine.connect(1, 4, 2, 0) && engine.register_producer() == 0 && engine.prepare(),
           "Groove notes route reaches NotesToCv");

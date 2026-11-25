@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
+#include "../document/groove_data_migration.h"
 #include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
@@ -739,6 +740,11 @@ Json Session::execution(Json patch) {
         need(!m.value("inactive", false), "unavailable", "Module is inactive");
         if (std::string(d->id) == "osc.in") need(++osc_routes <= 32, "limit", "At most 32 OSC input routes");
         if (!m.contains("version")) m["version"] = d->version;
+        try {
+            document::materialize_groove_legacy_data(m, id);
+        } catch (const std::exception &e) {
+            throw Refusal("invalid", e.what());
+        }
         if (std::string(d->id) == "essentials.output") output = std::min(output, id);
         auto values = m.value("parameters", Json::object());
         need(values.is_object());
@@ -1145,6 +1151,9 @@ Json Session::reconcile_graph(const Json &before, bool live) {
         if (type != b["module"].get<std::string>() || type == "osc.out") return false;
         try {
             const auto id = a["id"].get<uint32_t>();
+            if (type == "sequencing.groove")
+                return document::groove_construction_bytes(a.value("config", Json::object()), id) ==
+                       document::groove_construction_bytes(b.value("config", Json::object()), id);
             return document::runtime_module_config(type, a.value("config", Json::object()), id) ==
                    document::runtime_module_config(type, b.value("config", Json::object()), id);
         } catch (...) {
