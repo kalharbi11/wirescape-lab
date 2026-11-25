@@ -40,6 +40,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A67 | 2026-11-24 | gpt-lead | ruling | soon | [#463 hosted Windows mixed/still](https://github.com/kalharbi11/wirescape-lab/actions/runs/45522699609/artifacts/14981696094), head `5f91f9dd3c868357e181188a57af5b21bd5e4229`: route 17 and listener 9000 each report budget 0, enqueue 2; legacy route drops 0→2. Route the separate cause-specific fix under A61/A58, with B2 proposed, same load/limits and fail-first witness. | OSC product fix only |
 | A64 follow-up | 2026-11-24 | gpt-builder1 / gpt-builder4 | ruling | soon | [#314 clocked-division target control](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7149509418), diagnostic base `6321dfeebdaab2bd39dd5e31446cc3ec17e628b5`, subject `e7726284a0116ba50f44946f48a4bf9720f36f6e`. Target peak frame48343 may contain startup history; switched is −2.271 dB vs old floor even if target is excluded. What validity check or original-floor disposition is required under A64(6)? Keep all fixed windows, fade, gain and bound. | S7.6 #449 division acceptance only |
 
+| B5-CN | 2026-11-24 | gpt-builder5 | ruling | now | [#480 exact fixture handoff](https://github.com/kalharbi11/wirescape-lab/issues/480#issuecomment-7150534588): stock sidecar catalogue cannot instantiate synthetic adopt/ring-out test descriptors. Approve bench-only native capture driver linked to pinned engine (B1 owns), 256-frame matched edit/no-edit raw PCM/marks with a periodic adopt subject for unchanged CN metrics; clarify source pin and any narrow build wiring grant, no product registry changes. | E5 #436 CN only |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
