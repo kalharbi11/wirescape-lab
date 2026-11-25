@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 from collections import Counter
 from pathlib import Path
+from unittest.mock import Mock
 import tempfile
 import unittest
 
@@ -35,6 +36,21 @@ class AttributionTests(unittest.TestCase):
                                     "fn=render\n0 7\n", encoding="utf-8")
                     self.assertEqual(exclusive(path, root), Counter({
                         ("<source>/probe", "<source>/sdk/a.h", "render"): 7}))
+
+    def test_lexical_root_alias(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "profile"
+            lexical = Path(temp) / "alias"
+            canonical = Path(temp) / "canonical"
+            root = Mock()
+            root.absolute.return_value = lexical
+            root.resolve.return_value = canonical
+            root.name = lexical.name
+            path.write_text("part: 1\npositions: line\nevents: Ir\nsummary: 7\n"
+                            f"ob={lexical}/probe\nfl={canonical}/dsp.h\n"
+                            "fn=render\n0 7\n", encoding="utf-8")
+            self.assertEqual(exclusive(path, root), Counter({
+                ("<source>/probe", "<source>/dsp.h", "render"): 7}))
 
     def test_literal_parentheses_and_inline_source(self):
         with tempfile.TemporaryDirectory() as temp:
