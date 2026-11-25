@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import type { PatchModule } from '../patch/types';
+import { oscProjection } from '../patch/ioProjection';
 import type { OscConfig } from './OscEditor';
 import type { OscOutConfig } from './OscOutEditor';
 
@@ -13,20 +14,7 @@ const copy = <T>(v: T): T => structuredClone(v);
  * An explicit routes slot wins even when it omits a field: never fill it
  * from stale config rows. The editor's own per-row defaults fill gaps. */
 export function oscEditorSource(m: PatchModule): RecordValue {
-  const config = copy(object(m.config));
-  const data = object(m.data);
-  if (!own(data, 'routes')) return config;
-  const routes = object(data.routes);
-  delete config.rows;
-  if (m.module === 'osc.out') delete config.notes;
-  if (own(routes, 'rows')) config.rows = copy(routes.rows);
-  if (m.module === 'osc.out') {
-    const notes: RecordValue = {};
-    if (own(routes, 'notes_address')) notes.address = routes.notes_address;
-    if (own(routes, 'notes_enabled')) notes.enabled = routes.notes_enabled;
-    config.notes = notes;
-  }
-  return config;
+  return oscProjection(m);
 }
 
 export interface OscSlotEdit {

@@ -185,6 +185,8 @@ export interface EngineClient {
   disconnect(c: Connection): void;
   setParam(moduleId: number, paramId: string, value: number): void;
   setModAmount(c: Connection, amount: number): void;
+  /** Live complete-slot write; resolves only after the accepted reply. Optional until the A80 transport handoff. */
+  setData?(moduleId: number, slot: string, value: Record<string, unknown>): Promise<void>;
 
   // ---- playing ---------------------------------------------------------
   noteOn(note: number, velocity: number): void;
