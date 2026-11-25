@@ -28,3 +28,37 @@ test('E3c editor split retains opaque storage and sends only declared route fiel
     notes: { opaque: 3 }, future: 4 }, data: { futureSlot: { keep: true }, routes: { futureField: 'keep' } } });
   expect(m).toEqual(before);
 });
+
+test('E3c FakeEngine accepts live route and CC slots without replacement and refuses atomically', async ({ page }) => {
+  const { boot } = await import('./helpers');
+  await boot(page);
+  const result = await page.evaluate(async () => {
+    const e = window.__wirescapeTest.engine as any;
+    e.stop();
+    const rows = Array.from({ length: 8 }, (_, i) => ({ address: '/old/' + i, kind: 'cv', deadband: .001, enabled: false }));
+    await e.loadGraph({ format: 'wirescape.native.patch', version: 2, connections: [], modules: [
+      { id: 4, module: 'osc.out', config: { port: 9001, rows } },
+      { id: 5, module: 'midi.cc_to_cv', config: { rows: [{ controller: 21 }] } },
+    ] });
+    e.phases.set(4, .5);
+    const generation = e.graphGeneration;
+    const next = { rows: rows.map((row, i) => ({ ...row, address: '/new/' + i, enabled: i === 0 })),
+      notes_address: '/new/note', notes_enabled: false };
+    e.debug.refuseEdits = true;
+    let refused = false;
+    try { await e.setData(4, 'routes', next); } catch { refused = true; }
+    const refusedState = { generation: e.graphGeneration, state: e.osc.out[0].state,
+      data: e.document.modules[0].data ?? null };
+    e.debug.refuseEdits = false;
+    await e.setData(4, 'routes', next);
+    await e.setData(5, 'mapping', { rows: Array.from({ length: 8 }, (_, i) =>
+      ({ controller: i + 31, channel: 0, fourteen_bit: false, min: 0, max: 1, smoothing_ms: 5 })) });
+    return { refused, refusedState, generation, after: e.graphGeneration, state: e.osc.out[0].state,
+      address: e.document.modules[0].data.routes.rows[0].address, cc: e.ccRowsOf(5)[0].controller,
+      retained: e.phases.get(4) };
+  });
+  expect(result.refused).toBe(true);
+  expect(result.refusedState).toEqual({ generation: result.generation, state: 'disabled', data: null });
+  expect(result.after).toBe(result.generation);
+  expect(result).toMatchObject({ state: 'sending', address: '/new/0', cc: 31, retained: .5 });
+});
