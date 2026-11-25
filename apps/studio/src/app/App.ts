@@ -6,7 +6,7 @@ import { PatchDoc } from '../patch/PatchDoc';
 import { History, type HistoryCheckpoint } from '../patch/History';
 import type { Connection, PatchV2 } from '../patch/types';
 import { FakeEngine } from '../engine/FakeEngine';
-import { RealEngine } from '../engine/RealEngine';
+import { RealEngine, sameConfig, type DeferredCompletion } from '../engine/RealEngine';
 import { EngineRefusal, type SystemStatus, type EngineClient, type Device } from '../engine/EngineClient';
 import { Ticker } from '../runtime/Ticker';
 import { PatchCanvas, type Selection } from '../canvas/PatchCanvas';
@@ -91,7 +91,7 @@ export class App {
   private readEpoch = 0;
   private playingSnapshot: {
     patch: PatchV2; name: string; bundled: boolean; dirty: boolean;
-    restoreHistory?: () => void;
+    restoreHistory?: HistoryCheckpoint;
   } | null = null;
   private octaveEl!: HTMLElement;
   private lastStatus: SystemStatus | null = null;
@@ -433,6 +433,7 @@ export class App {
       this.toasts.show('Some parameter values were not applied; previous values were kept.', 'error');
     });
     if (this.engine instanceof RealEngine) {
+      this.engine.onDeferredConfig(event => this.reconcileDeferredConfig(event));
       this.engine.onConnection(state => {
         this.statusBar.setEngineState(state);
         if (state === 'restarting') { this.ticker.resetTelemetry(); this.lastStatus = null; }
@@ -598,6 +599,53 @@ export class App {
     }
   }
 
+  /** Terminal pushes reconcile just the correlated config, never another
+   * module or a newer authored value. Keep the chain's rollback anchor valid
+   * even when a terminal arrives while a second snapshot is in flight. */
+  private reconcileDeferredConfig(event: DeferredCompletion): void {
+    if (!event.overlay || event.outcome === 'applied') return;
+    const normalize = (patch: PatchV2): PatchV2 | undefined => {
+      const next = structuredClone(patch);
+      const node = next.modules.find(m => m.id === event.moduleId && m.module === event.module);
+      if (!node || !sameConfig(node.config, event.desired)) return;
+      if (event.actual === undefined) delete node.config;
+      else node.config = structuredClone(event.actual);
+      return next;
+    };
+    const chain = this.graphChain;
+    if (chain && chain.epoch === this.viewEpoch) {
+      const previous = chain.anchor.patch, normalized = normalize(previous);
+      if (normalized) {
+        for (const checkpoint of chain.checkpoints) checkpoint.reconcile(previous, normalized);
+        chain.anchor.patch = normalized;
+      }
+    }
+    if (this.draftVisible) {
+      const playing = this.playingSnapshot;
+      if (playing) {
+        const normalized = normalize(playing.patch);
+        if (normalized) {
+          // The saved playing document, not the unrelated draft, owns it.
+          playing.patch = normalized;
+          playing.dirty = true;
+        }
+      }
+      return;
+    }
+    const before = this.doc.toJSON(), after = normalize(before);
+    if (!after) return;
+    const history = this.history.checkpoint();
+    const next = after.modules.find(m => m.id === event.moduleId)!;
+    this.doc.setModuleConfig(event.moduleId, next.config);
+    this.history.flush();
+    history.reconcile(before, after);
+    if (chain && chain.epoch === this.viewEpoch)
+      for (const checkpoint of chain.checkpoints) checkpoint.reconcile(before, after);
+    this.refreshDirty();
+    if (event.outcome === 'failed')
+      this.toasts.show('Queued configuration could not be applied; the running value was restored.', 'error');
+  }
+
   private applyAuthoredGraph(
     before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
     submitted: PatchV2,
@@ -622,7 +670,7 @@ export class App {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
-      const confirmed = engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch;
+      const confirmed = engine instanceof RealEngine ? (engine.confirmedAuthoredDocument() ?? after.patch) : after.patch;
       // A later request's saved rollback cursor may predate this ACK.
       // Reconcile every same-chain cursor, as well as live History, using
       // History's exact non-UI graph match. A distinct B value is untouched.
@@ -1088,7 +1136,10 @@ export class App {
       await this.applyAuthoredGraph(before, this.doc.toJSON());
       if (epoch !== this.viewEpoch) return false;
       this.history.flush();
-      this.toasts.show(`${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
+      const running = this.editEngine();
+      this.toasts.show(running instanceof RealEngine && running.hasPendingConfig(id)
+        ? 'Configuration queued until the previous transition finishes.'
+        : `${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
       return true;
     } catch (e) {
       if (epoch === this.viewEpoch) {
