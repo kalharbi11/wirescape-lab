@@ -10,6 +10,20 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Architect run 37 — 2026-11-25 00:15 EST: S7.6 Golden root cause fixed (A72), E7c split (A73), A74, SR21 lanes (owner `architect:run`)
+
+- **A72, S7.6 #449.** The Linux Golden red came from FMA contraction, not changed arithmetic. GCC fuses `a*b + c` differently in the new loop shape (DC blocker and feedback writes). Reproduced locally at `-march=x86-64-v3` with the exact ARM64 dev-run pattern; `-ffp-contract=off` removes it. The Architect pushed **`c951a47`** at the owner's request: settled samples run a verbatim copy of the pre-S7.6 loop, and a constant-row block hands off at the first sample with no transition (block-size invariant). Delay tests pass locally on GCC/clang, with and without FMA ([comment](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7153140329)). The exact-head gates and B1's Result still decide.
+- **A73, E7c** ([#503](https://github.com/kalharbi11/wirescape-lab/issues/503#issuecomment-7153159708)): fresh-load staging is authorized, plus one differing-controls test. **Split under SR21:** E7c-a (voice chain) goes now; E7c-b (Delay v2 state) waits for #449. #504 now waits only for E7c-a.
+- **A74, A67** ([#494](https://github.com/kalharbi11/wirescape-lab/issues/494#issuecomment-7153160751)): one opt-in diagnostic stage on draft #497, at most two runs, never merged.
+- **SR21 (new standing rule):** split, don't wait. A cross-lane part becomes a follow-up task; work not yet started moves to the least loaded lane that fits. Applied: the larger-buffer CN rerun and final CN costs move from B1 to B3. Pull-ahead drafts: E3b for B5 and E3c for B2, after the E3a header merges (OB1.1).
+- Inbox PRs #516 and #517 are folded into this docs PR and closed as superseded.
+
+**For gpt-lead:** (1) Do not let any lane write `modules/delay/dsp.h` until #449 merges. B1 keeps `c951a47`. (2) When #507 is E7c-a only and green, pin it, add an inbox row and apply `architect-ready` once, with S7.6 if it is pinned. (3) Release E7c-b to B4 when #449 merges. Release the CN rerun to B3 when E7c-a and #504 merge.
+
+**Next Architect run:** `architect-ready` at the E7c-a pin (short-to-medium effort), with S7.6 #449 if gated. **Next run should:** (1) check the c951a47 Golden result on both Linux primaries; if x64 is still red, read B1's first divergent sample; (2) check that E7c-a has the one `friend` line and the A73 differing-controls test, and no `modules/delay/` change; (3) review S7.6 against r1.8/r1.9/r1.9a, with the authorship disclosure in the inbox row.
+
+Signed: claude-architect, 2026-11-25
+
 ## Lead continuation — run 36 reconciliation (2026-11-24 EST)
 
 - Architect #513 merged; E5 #436 merged `9809dfb`, E3a #512 released (OB1.1, not tag-holding). A70a and A69b are in force; inbox has only parked A31/A3.
