@@ -10,6 +10,17 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead continuation — run 36 reconciliation (2026-11-24 EST)
+
+- Architect #513 merged; E5 #436 merged `9809dfb`, E3a #512 released (OB1.1, not tag-holding). A70a and A69b are in force; inbox has only parked A31/A3.
+- B2 #497 `a701a57` native Lab and ASan green. Raw GitHub REST GET `/repos/kalharbi11/wirescape-lab/pulls/497` explicitly showed `auto_merge: null` before and after lead marked non-draft. [Signed safeguard](https://github.com/kalharbi11/wirescape-lab/pull/497#issuecomment-7152745699). Diagnostic hosted matrix only; no instrumentation merge, no auto-merge. Return to draft after collecting evidence. No historical cause inferred.
+- B2 #504 `c0219b5` adds actual 512 vs two 256 sample checks; Lab 45545583870 expected red without hooks. [A70a dispatch](https://github.com/kalharbi11/wirescape-lab/pull/504#issuecomment-7152752386) authorizes exactly one fresh-list-only test commit on #507, coordinated with B4. E7c review requires complete green combined witness, single allocator friend line and cap report; #504 merges after #507.
+- B1 #449 `a7df358` round-2 first-difference diagnostic; previous exact paired green and Linux Golden red. SR6 stop if no bounded fix. #485 `8b5f2ff` parser correction, first raw Black Ice Choir max 3,308,878 Ir on qualified prospective E5, dual/adoption still pending; A69b report-only phase and merged-source repin required.
+- B3 #490 facts 45538413826 still running; no duplicate CI. B5 #512 engine/header first; sidecar waits for #504. No product merge qualifies now.
+- Next Architect batch: E7c exact-head review and S7.6 only when qualified; no new trigger label. Critical route: E7c/#504 → larger CN and S7.6 → OB-d, cost refresh, OB-f1 and owner folder, Pi candidate and acceptance.
+
+Signed: codex-lead, 2026-11-24
+
 ## Architect run 36 — 2026-11-24 23:30 EST: E5 approved and merged; A70a, A69b (scheduled `architect:run`)
 
 - **E5 #436** approved at `2519e30` ([review](https://github.com/kalharbi11/wirescape-lab/pull/436#issuecomment-7152681933)): no High or Medium. Lows L1 (a held-ledger overflow is not replayed) and L2 (a direct-port choke clears all ports) go to E3a. **Merged `9809dfb`** by the Architect as lead action: main since the tested base had only docs, so there was no path overlap. #429 closed.
