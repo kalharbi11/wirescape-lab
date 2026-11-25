@@ -198,6 +198,12 @@ this observation seam is unavailable; no timing interpolation is permitted.
 {"v":0,"session":"s1","type":"telemetry","gen":"5","telemetry":{"tick":12,"time":0.4,"effective":{},"phase":{},"envelope":{},"meters":{},"scope":{},"eventActivity":{},"heldNotes":[],"playhead":{"1":[3,-1]},"groove":{"1":[{"step":3,"loop":16777217,"playing":true,"fired":false},{"step":-1,"loop":1,"playing":false,"fired":false}]}}}
 ```
 
+### Deferred configuration completion (A78)
+
+A busy reply may include `deferred: true` and a `deferId` only when every requested change is a configuration change to an engine-reported blocked module ID. A refused transaction commits nothing. Mixed changes are refused without deferral.
+
+Each deferred entry receives exactly one correlated `configDeferred` push containing `deferId`, `moduleId`, `outcome` (`applied`, `superseded`, or `failed`), and `generation`. The client reconciles from the reply or correlated event, not an unrelated generation change. Latest wins per module ID; accepted edits touching that ID, including explicit revert, removal, type change, instance-replacing data writes, graph load, and namespace/session changes, supersede pending work. Retry occurs only after predecessor retirement, with failure bounded by twice the clamped fade duration plus one second. No candidate rebuild or OSC/MIDI worker restart occurs while the predecessor is fading.
+
 ## 8. `EngineClient` refusal, ordering and reconciliation
 
 `FakeEngine` keeps its existing synchronous API and remains the browser-test backend. `RealEngine` implements the unchanged `void` edit methods by queuing a command and may additionally expose **optional** `onRefusal?(cb: (r: {requestId:string; type:string; detail:EngineError; gen:string}) => void): () => void` on `EngineClient`. This is additive: code must feature-detect `onRefusal` and not require `FakeEngine` to implement it. `loadGraph` and device-list methods already return Promises; their errors reject with `EngineRefusal`.
