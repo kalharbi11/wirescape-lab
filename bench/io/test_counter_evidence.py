@@ -87,5 +87,35 @@ class CounterEvidenceTests(unittest.TestCase):
             {"routes": {}, "listeners": {}})
 
 
+    def test_a67_shutdown_reason_summaries_are_additive_and_epoch_local(self):
+        line = ("osc_enqueue_reason module=17 port=9000 total=2 "
+                "invalid=0 capacity=2 state=0 other=0")
+        other = ("osc_enqueue_reason module=17 port=9000 total=3 "
+                 "invalid=0 capacity=0 state=3 other=0")
+        result = {"status": "failed", "first_failure": {"check": "counter_rise"}}
+        soak.apply_shutdown_checks(result, 1, line + "\n" + other)
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["first_failure"], {"check": "counter_rise"})
+        self.assertEqual(result["osc_enqueue_reasons"], {
+            "observations": [
+                {"module": 17, "port": 9000, "total": 2, "invalid": 0,
+                 "capacity": 2, "state": 0, "other": 0},
+                {"module": 17, "port": 9000, "total": 3, "invalid": 0,
+                 "capacity": 0, "state": 3, "other": 0}],
+            "malformed": 0})
+        # Different service lifetimes may share a node and port. Do not merge.
+
+    def test_a67_missing_or_invalid_summary_is_not_a_zero(self):
+        missing = {"status": "failed"}
+        soak.apply_shutdown_checks(missing, 1, "unrelated stderr")
+        self.assertNotIn("osc_enqueue_reasons", missing)
+        invalid = {"status": "failed"}
+        soak.apply_shutdown_checks(invalid, 1,
+            "osc_enqueue_reason module=17 port=9000 total=2 "
+            "invalid=0 capacity=1 state=0 other=0\n"
+            "osc_enqueue_reason module=18 port=9000 total=1 invalid=0")
+        self.assertEqual(invalid["osc_enqueue_reasons"],
+                         {"observations": [], "malformed": 2})
+
 if __name__ == '__main__':
     unittest.main()
