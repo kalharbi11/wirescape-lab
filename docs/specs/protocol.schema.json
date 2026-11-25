@@ -1658,6 +1658,49 @@
               "type": "boolean"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "session",
+            "type",
+            "deferId",
+            "moduleId",
+            "outcome",
+            "generation"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "session": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "type": {
+              "const": "configDeferred"
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "outcome": {
+              "enum": [
+                "applied",
+                "superseded",
+                "failed"
+              ]
+            },
+            "generation": {
+              "$ref": "#/$defs/gen"
+            }
+          }
         }
       ]
     },
