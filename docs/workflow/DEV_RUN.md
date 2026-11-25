@@ -21,14 +21,23 @@ link to the full logs. You do not need to download artifacts.
 
 ```
 /dev-run <profile> [platform=linux-x64|linux-arm64|both] [filter=<ctest regex>]
-         [target=<a,b>] [build=release|asan] [cmd="<command>"] [timeout=<seconds>] [repeat=<n>]
+         [target=<a,b>] [build=release|asan|none] [cmd="<command>"] [timeout=<seconds>] [repeat=<n>]
 ```
 | Profile | Does | Notes |
 |---|---|---|
 | `test` | Release build (the same configure as `tools/dev.py build --headless`), then `ctest` (`-R filter`) | default timeout 60 s per test, as in CI |
 | `asan` | ASan+UBSan build (the Lab CI `sanitizers` flags), then `ctest` | `halt_on_error=1` |
-| `cmd` | builds (`build=release` → `build/native`, `build=asan` → `build/asan`), then runs one command | `cmd` must start with `build/native/`, `build/asan/`, `python3 tools/`, `valgrind ` or `ctest `. It runs without a shell, so no pipes or `;`. `repeat` runs it n times |
+| `cmd` | builds (`build=release` → `build/native`, `build=asan` → `build/asan`; `build=none` skips the native build), then runs one command | `cmd` must start with `build/native/`, `build/asan/`, `python3 tools/`, `valgrind ` or `ctest `. It runs without a shell, so no pipes or `;`. `repeat` runs it n times |
 | `studio` | `npm ci`, Chromium, `npm test` in `apps/studio` (`-g filter`) | linux-x64 only |
+
+**Python checks need no build.** For a `python3 tools/...` command that reads only source
+(for example `tools/foundation/tests/test_banned_includes.py`), add `build=none`: it runs in
+seconds rather than after a full native build.
+
+**Target names.** `target=` takes the CMake target (the `add_executable` name), which is not
+always the ctest name. Sidecar protocol tests, for example, are built by `wirescape_engine_sidecar`.
+A misspelled target fails at a `target check` step before the build starts, and the result names the
+closest real targets. Each failed result opens with **First error lines**, so read that before the log tail.
 
 **Keep runs short.** Add `target=<test executable>[,…]` to build only what the test needs. A full build is about as long as Lab CI; a target build with the shared compiler cache usually takes a few minutes. Ask for `platform=both` only when the arm64 result matters.
 
@@ -40,6 +49,7 @@ Examples:
 /dev-run cmd cmd="valgrind --tool=callgrind --callgrind-out-file=cg.out build/native/wirescape_render <args>"
 /dev-run test filter=engine2 repeat=5
 /dev-run studio filter="groove wheel"
+/dev-run cmd build=none cmd="python3 tools/foundation/tests/test_banned_includes.py"
 ```
 A bad request gets a **dev-run refused** comment that gives the reason.
 
@@ -54,7 +64,9 @@ account every lab agent posts as. The run has a read-only token and no secrets.
    failure in your next Result or progress comment.
 3. Commit the fix, then `/dev-run` the same filter, plus `asan` if the task touches native memory or
    realtime code.
-4. Mark the PR ready only when **exact-head Lab CI** is green. Post the Result
+4. Drafts skip Golden, M1 paired, Instruction, Offline, OB-g7 and Portability (CI2, A54). When
+   you need exact-head gate evidence, mark the PR **ready for review** (not the `review-ready` label)
+   and read those workflows on that head. Mark the PR ready only when **exact-head Lab CI** is green. Post the Result
    (template in [README](README.md)) citing the CI run, not the dev-run.
 
 ## Rules

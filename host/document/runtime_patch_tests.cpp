@@ -150,6 +150,13 @@ int main(int argc,char**argv){try{
  bad=patch;bad["modules"][0]["inactive"]=true;check(!load(bad.dump()),"inactive module refused");bad=patch;bad["modules"][0]["id"]=1.5;check(!load(bad.dump()),"fractional ID refused");
  bad=patch;bad["settings"]["max_channels"]=17;check(!load(bad.dump()),"channel limit");bad=patch;bad["modules"][0]["config"]={{"unknown",1}};check(!load(bad.dump()),"unsupported nonempty config fails closed");
  bad=patch;bad["settings"]["sample_rate"]="48000";check(!load(bad.dump()),"sample rate type");
+ // E3a-2: data has its own typed envelope, independent of config.
+ bad=patch;bad["modules"][0]["data"]=Json::array();
+ check(!load(bad.dump()) && error.find("data") != std::string::npos,
+       "malformed data envelope refused with field diagnostic");
+ bad=patch;bad["modules"][0]["data"]=Json::object();
+ check(bool(load(bad.dump())), "empty data object on legacy module remains loadable");
+
  auto ccpatch = Json::parse(R"({"format":"wirescape.native.patch","version":2,"settings":{},
   "modules":[{"id":200,"module":"midi.cc_to_cv","version":1,
     "config":{"rows":[{"channel":1,"controller":21,"bipolar":true,"min":3.5,"max":-2.25}]}},

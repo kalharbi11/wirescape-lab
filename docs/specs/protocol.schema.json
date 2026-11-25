@@ -137,6 +137,9 @@
         },
         "state": {
           "type": "object"
+        },
+        "data": {
+          "type": "object"
         }
       }
     },
@@ -875,6 +878,39 @@
             "v",
             "id",
             "type",
+            "moduleId",
+            "slot",
+            "value"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "setData"
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "slot": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "value": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
             "connection",
             "amount"
           ],
@@ -1234,6 +1270,34 @@
               "const": "app.restartEngine"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "capabilities"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "hello"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "maxItems": 256
+            }
+          }
         }
       ]
     },
@@ -1384,6 +1448,14 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 1024
+            },
+            "deferred": {
+              "const": true
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
             }
           }
         }
@@ -1620,6 +1692,49 @@
             },
             "saveAs": {
               "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "session",
+            "type",
+            "deferId",
+            "moduleId",
+            "outcome",
+            "generation"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "session": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "type": {
+              "const": "configDeferred"
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "outcome": {
+              "enum": [
+                "applied",
+                "superseded",
+                "failed"
+              ]
+            },
+            "generation": {
+              "$ref": "#/$defs/gen"
             }
           }
         }

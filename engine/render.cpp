@@ -787,6 +787,16 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         ++stale;
         return true;
     }), future.end());
+    // The control owner staged immutable versions before publishing. A
+    // retained instance and any shared fading tail see the candidate value
+    // at the same block boundary; queued older serials cannot overwrite it.
+    for (const auto &update : next->data_adoption) {
+        auto &data = update.instance->data;
+        data.apply(update.slot, update.bytes, update.serial);
+        for (const auto &node : next->nodes)
+            if (node->retired && node->instance.data.shares_slot(data, update.slot))
+                node->instance.data.apply(update.slot, update.bytes, update.serial);
+    }
     for (auto &replacement : next->replacements) {
         auto &successor = replacement.successor->instance;
         auto &prior = *replacement.prior;

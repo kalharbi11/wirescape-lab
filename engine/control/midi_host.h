@@ -39,7 +39,8 @@ class Host {
     bool online(const Endpoint &) const;
     // Atomically accept a prepared graph and its subscriptions on the control thread.
     // Refusal (including a busy MIDI worker) preserves graph and routes for retry.
-    bool replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error);
+    bool replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
+                engine2::Engine::BeforePublish before_publish = nullptr, void *context = nullptr);
     void stop();
     Counters counters() const noexcept;
     std::string diagnostics() const;

@@ -76,6 +76,25 @@ int main() {
     CHECK(pack(stored,DataLoad::StoredDocument));
     CHECK(warnings.size() == 2 && read().steps[0].velocity == .25f);
     CHECK(stored.contains("unknown") && stored["steps"][0].contains("future"));
+    // A77: the optional callback sees canonical packed defaults, not authored JSON.
+    // On cross-field refusal, neither prior bytes nor stored-field warnings change.
+    const auto cross_field = +[](const ws2_data_slot &, const std::vector<uint8_t> &bytes, std::string &error) {
+        SlotData packed{};
+        std::memcpy(&packed, bytes.data(), sizeof(packed));
+        if (packed.length && packed.steps[0].velocity < packed.gain) {
+            error = "settings.steps[0].velocity: below gain";
+            return false;
+        }
+        return true;
+    };
+    const auto saved = out;
+    const auto saved_warnings = warnings;
+    const json low = {{"steps", json::array({{{"velocity", .125}}})}, {"unknown", 1}};
+    CHECK(!pack_data_slot(slot, low, DataLoad::StoredDocument, out, error, &warnings, cross_field));
+    CHECK(error == "settings.steps[0].velocity: below gain");
+    CHECK(out == saved && warnings == saved_warnings);
+    CHECK(pack_data_slot(slot, valid, DataLoad::Edit, out, error, &warnings, cross_field));
+    CHECK(read().steps[0].velocity == .75f);
     // Invalid field metadata is refused before any packing.
     auto fields = SlotData_fields;
     auto malformed = slot;

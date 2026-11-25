@@ -212,6 +212,7 @@ class Reader {
     const ws2_reader*r_;
 public:
     explicit Reader(const ws2_reader*r):r_(r){}
+    bool size(uint32_t&n)const{if(!r_||r_->struct_size<offsetof(ws2_reader,bytes)+sizeof(uint32_t))return false;n=r_->bytes;return true;}
     bool bytes(void*p,uint32_t n)const{return r_&&r_->read&&r_->read(r_->ctx,p,n)==WS2_OK;}
     template<class T>bool value(T&x)const{static_assert(std::is_trivially_copyable<T>::value,"state value");return bytes(&x,sizeof(x));}
     bool u32(uint32_t&value)const{uint8_t data[4];if(!bytes(data,4))return false;value=0;for(int i=0;i<4;++i)value|=uint32_t(data[i])<<(i*8);return true;}
