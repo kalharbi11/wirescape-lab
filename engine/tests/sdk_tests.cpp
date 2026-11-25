@@ -29,6 +29,10 @@ int main(){
  alignas(32) float input[32]={.25f},gain[32]={2};const float*ip[]={input};const float*gp[]={gain};
  ws2_signal in{sizeof(in),ip,1,WS2_CONSTANT|WS2_CONNECTED},parameter{sizeof(parameter),gp,1,WS2_CONSTANT};
  ws2_signal_out out{sizeof(out),outputs,1,0,16};ws2_process ctx{};ctx.struct_size=sizeof(ctx);ctx.frames=17;ctx.sample_rate=48000;ctx.channels=4;ctx.input_count=1;ctx.output_count=1;ctx.param_count=1;ctx.inputs=&in;ctx.params=&parameter;ctx.outputs=&out;
+ // G5: even poisoned appended fields are absent at the pre-E5 process size.
+ auto legacy=ctx;legacy.struct_size=offsetof(ws2_process,data_count);
+ legacy.data_count=UINT32_MAX;legacy.data=nullptr;
+ CHECK(d->process(instance,&legacy)==WS2_OK);
  auto allocated=pool.used;CHECK(d->process(instance,&ctx)==WS2_OK);CHECK(pool.used==allocated);CHECK(out.channels==4&&(out.flags&WS2_CONSTANT));for(int j=0;j<4;++j)CHECK(storage[j][0]==.5f);
  float scratch[17]{};ws::Signal signal(&in);CHECK(signal.row(3,scratch,17)==scratch);for(float v:scratch)CHECK(v==.25f);
  in.flags=WS2_CONNECTED;CHECK(signal.row(0,scratch,17)==input);in.flags|=WS2_CONSTANT;
