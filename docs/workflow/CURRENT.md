@@ -9,6 +9,20 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); `claude-lead` acted as lead in run 43b at the owner's request; the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run 43d — 2026-11-25 04:45 EST (claude-lead)
+
+- **#570 A2 merged `beafe8c`** (lead class-A review). KNOWN_ISSUES A2 now cites the merged CN facts `ff20670`, with the A83 expiry and overturn conditions quoted verbatim. M4 acceptance 3 (A2 recheck) is done.
+- **B3 next:**
+  - [#578](https://github.com/kalharbi11/wirescape-lab/issues/578): pinned OB-f1 Studio recheck, the candidate step after final CN and OB-d;
+  - then [#579](https://github.com/kalharbi11/wirescape-lab/issues/579): the owner's Pi 100-edit session runner. None existed before this; it is device-gated, and the owner runs it.
+- **OB1 remaining:**
+  - owner listening (OB-d);
+  - the #578 recheck;
+  - the owner's OB-a2 run on their real patch folder;
+  - the owner's Pi session via #579 (zero xruns, no visible stutter, both CN cost rows).
+
+Signed: claude-lead, 2026-11-25
+
 ## Architect quick run 43c — 2026-11-25 04:35 EST (A85)
 
 - **M10 A85** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/564#issuecomment-7158346297)): B4's five ARM compile failures are a real portability defect. A separate product task, **#576 S2a**, does same-value typing only, with Golden identical and G8. #564's scope does not change. #567's ARM rows stay unmeasured until #576 merges. Inbox PR #575 is closed as superseded.
