@@ -110,7 +110,6 @@ void Engine::Impl::collect() {
         if (auto *n = render_layout->find(target.first)) admit(*n, target.second, e, block_start, 0, true);
         else ++stale;
     }
-    render_layout->chokes.clear();
     // Replacement delivery follows pending.clear() and precedes ordinary ingress.
     // The predecessor pointer was consumed before ack; only layout-owned tails
     // are safe to touch here (in particular, no retired output-less host sink).
@@ -136,12 +135,19 @@ void Engine::Impl::collect() {
         if (replacement.adopted) continue; // The copied ledger is already authoritative.
         auto &successor = *replacement.successor;
         uint64_t order = 1;
-        for (const auto &held : successor.instance.held_notes)
-            admit(successor, held.port, held, block_start, order++, true);
+        for (const auto &held : successor.instance.held_notes) {
+            // A removed route's cleanup invalidates the old held state for
+            // that port. Do not re-attack it after the cleanup choke.
+            const auto target = std::make_pair(successor.instance.id, held.port);
+            if (std::find(render_layout->chokes.begin(), render_layout->chokes.end(), target) ==
+                render_layout->chokes.end())
+                admit(successor, held.port, held, block_start, order++, true);
+        }
         // Rebuild from actual delivery, including any budget rejection.
         successor.instance.held_notes.clear();
     }
     render_layout->replacements.clear();
+    render_layout->chokes.clear();
     for (uint32_t producer = 0; producer < producer_count; ++producer) {
         auto &source = *producers[producer];
         for (Ring *ring : {&source.critical, &source.normal}) {

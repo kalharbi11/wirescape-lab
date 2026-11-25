@@ -367,20 +367,32 @@ bool Engine::Impl::plan_edge_transitions(Impl &fresh, const std::vector<Node *> 
                                          std::vector<std::array<uint32_t, 4>> &removed_routes,
                                          std::vector<std::pair<size_t, size_t>> &delays) {
     auto &old = *this;
+    // ER4: a queued event belongs to the same live logical destination on
+    // eligible config replacement, but never to a new source incarnation.
+    auto same_destination = [](const Node *prior, const Node *next, uint32_t port) {
+        if (prior == next) return true;
+        const auto &a = prior->instance;
+        const auto &b = next->instance;
+        return !prior->retired && !next->retired && a.id == b.id && a.d == b.d &&
+               a.config != b.config && port < a.inputs.size() && port < b.inputs.size() &&
+               a.inputs[port].kind == WS2_EVENT && b.inputs[port].kind == WS2_EVENT &&
+               a.inputs[port].id && b.inputs[port].id &&
+               std::strcmp(a.inputs[port].id, b.inputs[port].id) == 0;
+    };
     for (auto &e : old.layout->edges)
         if (!e.removed && e.kind == 1) {
             bool kept = false;
             for (size_t i = 0; i < fresh.layout->edges.size(); ++i)
                 if (!used[i] && !fresh.layout->edges[i].removed && e.key() == fresh.layout->edges[i].key() &&
                     actual[fresh.layout->edges[i].source->slot.index] == e.source &&
-                    actual[fresh.layout->edges[i].destination->slot.index] == e.destination) {
+                    same_destination(e.destination, actual[fresh.layout->edges[i].destination->slot.index], e.input)) {
                     used[i] = true;
                     kept = true;
                     break;
                 }
             auto *destination = fresh.find(e.to);
             if (!kept) removed_routes.push_back({e.from, e.output, e.to, e.input});
-            if (!kept && destination && actual[destination->slot.index] == e.destination) {
+            if (!kept && destination && same_destination(e.destination, actual[destination->slot.index], e.input)) {
                 if (chokes.size() == old.cfg.release_reserve) return old.fail("Too many edge releases for one edit");
                 chokes.emplace_back(e.to, e.input);
             }
