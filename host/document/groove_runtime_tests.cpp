@@ -242,7 +242,9 @@ static void test_shared_pattern_replan(AppEngine *cat) {
           "matching held note before full-document adoption");
     std::atomic<bool> staged{false}, done{false}, accepted{false};
     std::thread planner([&] {
-        accepted = graph.replan(prepared, 200000000, [](void *ctx) noexcept {
+        // Production replan bound: three 256-frame blocks at 48 kHz.
+        // The previous 200 ms argument was rejected before staging.
+        accepted = graph.replan(prepared, 16000000, [](void *ctx) noexcept {
             static_cast<std::atomic<bool> *>(ctx)->store(true, std::memory_order_release);
         }, &staged);
         done.store(true, std::memory_order_release);
@@ -264,6 +266,7 @@ static void test_shared_pattern_replan(AppEngine *cat) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     planner.join();
+    if (!accepted.load()) std::fprintf(stderr, "Groove data-only replan refused: %s\n", graph.error().c_str());
     check(accepted.load() && elapsed < 6000, "real replan adopts data before next musical boundary");
     check(held, "held gate remains high throughout data-only adoption");
     // Catch a replacement that reset the transport even if its first sample
