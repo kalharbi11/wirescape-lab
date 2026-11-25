@@ -503,7 +503,33 @@
           "$ref": "#/$defs/midi"
         },
         "osc": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "routes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "budget_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "enqueue_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "listener_budget_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "listener_enqueue_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
         },
         "clock": {
           "type": "object"
