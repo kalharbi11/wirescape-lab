@@ -35,7 +35,7 @@ struct PolyMerge {
             highest = p + 1;
             all_constant = all_constant && input.constant();
         }
-        const uint32_t lanes = std::min(std::max(1u, highest), max_channels);
+        const uint32_t lanes = std::min(std::max<uint32_t>(1u, highest), max_channels);
         auto output = block.out(0);
         if (!output.set_channels(lanes)) return;
         output.mark_constant(all_constant);
