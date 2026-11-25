@@ -69,6 +69,7 @@ export class RealEngine implements EngineClient {
   private applyGraphEnabled = false;
   private configDeferredEnabled = false;
   private negotiatingConfig = false;
+  private configNegotiationFailed = false;
   private deferredConfigs = new Map<number, DeferredEntry>();
   private deferredCbs = new Set<(event: DeferredCompletion) => void>();
   private unappliedCbs = new Set<(items: UnappliedParameter[]) => void>();
@@ -158,7 +159,7 @@ export class RealEngine implements EngineClient {
    * a successful swap may still report unapplied parameter events in its ACK. */
   settleUnansweredLoad(applied: boolean): boolean {
     const load = this.load;
-    if (!load || load.type !== 'loadGraph') return false;
+    if (!load || !load.sent || load.type !== 'loadGraph') return false;
     this.pending.delete(load.id);
     this.load = undefined;
     if (applied) {
@@ -236,6 +237,37 @@ export class RealEngine implements EngineClient {
     this.deferredConfigs.clear();
     this.configDeferredEnabled = false;
     this.negotiatingConfig = false;
+    this.configNegotiationFailed = false;
+  }
+  private optInConfig(): void {
+    const session = this.session, id = this.id();
+    this.negotiatingConfig = true;
+    const finish = (accepted: boolean) => {
+      if (this.session !== session || this.configNegotiationFailed) return;
+      this.configDeferredEnabled = accepted;
+      this.negotiatingConfig = false;
+      this.dispatchLoad();
+    };
+    // A lost ACK is ambiguous: the server may already have enabled
+    // deferral. Do not fall back to legacy busy or resend in this session.
+    const fail = () => {
+      if (this.session !== session || !this.pending.has(id)) return;
+      const p = this.pending.get(id)!;
+      if (p.timeout !== undefined) window.clearTimeout(p.timeout);
+      this.pending.delete(id);
+      this.negotiatingConfig = false;
+      this.configNegotiationFailed = true;
+      const error = refusal('unavailable', 'Configuration capability acknowledgement lost. Restart the engine to recover.');
+      this.ready = false;
+      this.setState('restarting');
+      this.rejectPending(error);
+      for (const cb of this.graphErrorCbs) cb(error);
+    };
+    const timer = window.setTimeout(fail, 5000);
+    this.pending.set(id, { session, type: 'hello', kind: 'query', timeout: timer,
+      resolve: () => finish(true), reject: () => finish(false) });
+    try { this.send(id, 'hello', { capabilities: ['configDeferred'] }); }
+    catch { fail(); }
   }
   private recordDeferred(load: Load, message: Wire): boolean {
     if (!this.configDeferredEnabled || load.type !== 'applyGraph' ||
@@ -257,25 +289,28 @@ export class RealEngine implements EngineClient {
   private receiveDeferred(message: Wire): void {
     if (!this.configDeferredEnabled || message.session !== this.session ||
         !validateProtocolV0(message) || message.type !== 'configDeferred') return;
-    const g = generation(message.generation);
+    // The generated union has open index signatures; its validator
+    // establishes the shape but TS cannot discriminate all other members.
+    const event = message as ConfigPush;
+    const g = generation(event.generation);
     if (g === null) return;
-    const pending = this.deferredConfigs.get(message.moduleId);
-    if (!pending || pending.deferId !== message.deferId) return;
-    this.deferredConfigs.delete(message.moduleId);
-    const node = this.confirmed?.modules.find(m => m.id === message.moduleId && m.module === pending.module);
-    if (message.outcome === 'applied' && node && pending.overlay) {
+    const pending = this.deferredConfigs.get(event.moduleId);
+    if (!pending || pending.deferId !== event.deferId) return;
+    this.deferredConfigs.delete(event.moduleId);
+    const node = this.confirmed?.modules.find(m => m.id === event.moduleId && m.module === pending.module);
+    if (event.outcome === 'applied' && node && pending.overlay) {
       if (pending.config === undefined) delete node.config;
       else node.config = cloneConfig(pending.config);
     }
     // Status may have advanced generation first. Correlation still settles
     // this exact pending entry; never infer completion from status alone.
     if (g > BigInt(this.gen)) {
-      this.gen = message.generation;
+      this.gen = event.generation;
       this.playhead = {}; this.statusGen = '';
     }
-    for (const cb of this.deferredCbs) cb({ moduleId: message.moduleId, module: pending.module,
+    for (const cb of this.deferredCbs) cb({ moduleId: event.moduleId, module: pending.module,
       desired: cloneConfig(pending.config), actual: cloneConfig(node?.config),
-      outcome: message.outcome, overlay: pending.overlay });
+      outcome: event.outcome, overlay: pending.overlay });
   }
   private finishGraph(load: Load): void {
     this.ready = true;
@@ -392,20 +427,7 @@ export class RealEngine implements EngineClient {
           ...(isRecord(message.midi.learn) ? { learn: message.midi.learn as unknown as
             NonNullable<SystemStatus['midi']['learn']> } : {}) } });
       }
-      if (capabilities.includes('configDeferred')) {
-        const session = this.session;
-        this.negotiatingConfig = true;
-        // Graph commands cannot overtake the opt-in ACK. A refusal falls
-        // back to legacy busy semantics for this session, without a retry.
-        const finish = (accepted: boolean) => {
-          if (this.session !== session) return;
-          this.configDeferredEnabled = accepted;
-          this.negotiatingConfig = false;
-          this.dispatchLoad();
-        };
-        void this.request('hello', { capabilities: ['configDeferred'] })
-          .then(() => finish(true), () => finish(false));
-      }
+      if (capabilities.includes('configDeferred')) this.optInConfig();
       if (resumeLoad) this.dispatchLoad();
       else if (wasRunning) {
         void this.loadGraph(this.currentDocument()).catch(e => {
@@ -582,6 +604,8 @@ export class RealEngine implements EngineClient {
     this.notifySettled();
   }
   private submitGraph(patch: PatchV2, type: 'loadGraph' | 'applyGraph'): Promise<void> {
+    if (this.configNegotiationFailed)
+      return Promise.reject(refusal('unavailable', 'Restart the engine to recover configuration capability negotiation.'));
     const revision = ++this.revision;
     if (type === 'applyGraph' && this.load?.type === 'applyGraph') {
       return new Promise<void>((resolve, reject) => {
@@ -611,7 +635,7 @@ export class RealEngine implements EngineClient {
   }
   private dispatchLoad(): void {
     const l = this.load;
-    if (!l || !this.session || l.sent || this.negotiatingConfig) return;
+    if (!l || !this.session || l.sent || this.negotiatingConfig || this.configNegotiationFailed) return;
     l.sent = true;
     this.pending.set(l.id, { session: this.session, type: l.type, kind: 'load',
       revision: l.revision });
