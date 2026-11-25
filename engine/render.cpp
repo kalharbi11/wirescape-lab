@@ -133,6 +133,7 @@ void Engine::Impl::collect() {
                             [](const auto &e) { return e.port == WS2_DIRECT_PORT; }))
                 release_all(WS2_DIRECT_PORT);
         }
+        if (replacement.adopted) continue; // The copied ledger is already authoritative.
         auto &successor = *replacement.successor;
         uint64_t order = 1;
         for (const auto &held : successor.instance.held_notes)
@@ -750,9 +751,24 @@ void Engine::Impl::adopt_layout(Layout *next) noexcept {
         return true;
     }), future.end());
     for (auto &replacement : next->replacements) {
-        auto &held = replacement.successor->instance.held_notes;
+        auto &successor = replacement.successor->instance;
+        auto &prior = *replacement.prior;
+        auto &held = successor.held_notes;
         // Both records have a fixed capacity reserved during setup.
-        held.assign(replacement.prior->held_notes.begin(), replacement.prior->held_notes.end());
+        held.assign(prior.held_notes.begin(), prior.held_notes.end());
+        const auto *d = successor.d;
+        if (d == prior.d && d->struct_size >= offsetof(ws2_descriptor, adopt) + sizeof(d->adopt) && d->adopt) {
+            // Preserve the candidate's authored parameter targets; the new
+            // instance's smoothers start at those targets, not mid-ramp.
+            for (auto &parameter : successor.state) parameter.base.reset();
+            const int result = d->adopt(successor.instance, prior.instance);
+            replacement.adopted = result == WS2_OK;
+            if (!replacement.adopted) {
+                if (result != WS2_UNSUPPORTED) ++faults;
+                // A declined hook must not leave a partially copied DSP state.
+                d->reset(successor.instance);
+            }
+        }
         replacement.prior = nullptr; // Never dereference after acknowledgement.
     }
     for (const auto &update : next->modulation_adoption) {

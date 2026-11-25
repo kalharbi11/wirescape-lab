@@ -545,12 +545,18 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         const auto it = replacement_pairs.find(prior);
         return it != replacement_pairs.end() && it->second == successor;
     };
-    auto replacement_source = [&](const Instance &instance) {
-        return std::any_of(replacement_pairs.begin(), replacement_pairs.end(), [&](const auto &pair) {
+    auto replacement_frames = [&](const Instance &instance) -> uint32_t {
+        const bool replacing = std::any_of(replacement_pairs.begin(), replacement_pairs.end(), [&](const auto &pair) {
             return pair.first == &instance || pair.second == &instance;
         });
+        if (!replacing) return 0;
+        const auto *d = instance.d;
+        uint32_t ms = WS2_REPLACE_FADE_DEFAULT_MS;
+        if (d->struct_size >= offsetof(ws2_descriptor, replace_fade_ms) + sizeof(d->replace_fade_ms) &&
+            d->replace_fade_ms)
+            ms = std::min(d->replace_fade_ms, WS2_REPLACE_FADE_MAX_MS);
+        return static_cast<uint32_t>(std::max(1., old.cfg.sample_rate * ms / 1000.));
     };
-    const auto replacement_frames = static_cast<uint32_t>(std::max(1., old.cfg.sample_rate * .020));
     auto same_edge = [](const Edge &a, const Edge &b) {
         return a.key() == b.key() && &a.source->instance == &b.source->instance &&
                &a.destination->instance == &b.destination->instance;
@@ -685,7 +691,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         if (edge.ramped) {
             next.gain_adoption.push_back({edge.state, prior ? prior->state : nullptr,
                 edge.removed && !edge.replacement_input ? 0.f : 1.f,
-                replacement_source(edge.source->instance) ? replacement_frames : 0});
+                replacement_frames(edge.source->instance)});
             next.ramps.push_back(edge.state);
         } else if (prior && edge.state != prior->state)
             next.gain_adoption.push_back({edge.state, prior->state, 1.f});
@@ -703,7 +709,7 @@ bool Engine::replan(Engine &candidate, uint64_t timeout_ns) {
         if (prior) bus.state = prior->state;
         if (bus.ramped) {
             next.gain_adoption.push_back({bus.state, prior ? prior->state : nullptr, bus.removed ? 0.f : 1.f,
-                replacement_source(bus.source->instance) ? replacement_frames : 0});
+                replacement_frames(bus.source->instance)});
             next.ramps.push_back(bus.state);
         }
     }
