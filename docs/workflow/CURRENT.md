@@ -12,7 +12,7 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 ## Lead handoff — 2026-11-24 19:54 EST
 
-- E7 #442 exact-head evidence passed; [manual Claude review](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7148957226) is in progress by owner request.
+- E7 #442 merged as `94d1b0b` after [manual Claude approval](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7149034643) on exact `2959f7e`. B3 #457 and B1 A62 CN are released. Physical MIDI note-off during the gap is an owner candidate check.
 - A64 files the Delay measurement question. A65 pins the S7.9 contract review after the verified [D5 publication](https://github.com/kalharbi11/wirescape-lab/pull/444#issuecomment-7148992053).
 - B1 H1 corrective Lab and both sanitizers passed; collect fresh T7.0 on the final synchronized pin before independent re-review. E5v #441 merged as `1d4491a` after the signed exact-head Result and 0 ms edit-induced held-note silence in all three CN repeats; B5 E5 retirement changes are in verification. See [BUILDERS](BUILDERS.md).
 - OB1 still runs through E5v/E5/E7 and CN, remaining M7 and OB-d, owner-folder/OB-f1, candidate Pi checks, then Architect acceptance and tag.
