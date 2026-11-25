@@ -214,6 +214,57 @@ def pair_reports(root, base_pin, subject_pin):
         raise ValueError("unavailable or unexpected-effect rows preserved in artifact")
 
 
+def supplemental_target_controls(source, build, out, pin):
+    """Diagnostic-only target-from-start cases; never enter paired acceptance rows."""
+    require_pin(pin)
+    if subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"],
+                               text=True).strip() != pin:
+        raise ValueError("supplemental source mismatch")
+    subprocess.run(["git", "-C", str(source), "diff", "--quiet", "HEAD", "--"], check=True)
+    run_all.ROOT = source
+    meta = run_all.provenance(build)
+    if meta["commit"] != pin or meta["machine"]["configuration"] != "Release":
+        raise ValueError("not exact-source Release")
+    renderer = run_all.executable(build, "wirescape_render")
+    if renderer is None:
+        raise ValueError("renderer unavailable")
+    desc = run_all.descriptors()
+    out.mkdir(parents=True, exist_ok=False)
+    rows = []
+    for name in ("mode", "tone"):
+        module, param, old, new, extra = next(s for s in SWITCHES
+                                             if s[0] == "fx.delay" and s[1] == name)
+        patch, reason = run_all.build_module_patch(module, desc[module], {**extra, param: new})
+        if patch is None:
+            raise ValueError(reason or "target probe unavailable")
+        folder = out / name
+        folder.mkdir()
+        pcm, result = run_all.wav_run(renderer, patch, [], 2, 128, folder, seed=7, rate=RATE)
+        if result["status"] != "measured" or any(result.get("counters", {}).get(k) != 0 for k in COUNTERS):
+            raise ValueError("target control render/counter failure")
+        x = np.asarray(pcm, dtype=np.float64)
+        if x.shape != (FRAMES, 2) or not np.isfinite(x).all():
+            raise ValueError("target control PCM invalid")
+        sos = signal.butter(2, 2000, btype="highpass", fs=RATE, output="sos")
+        filtered = signal.sosfilt(sos, x, axis=0)
+        mono = filtered.mean(axis=1)
+        def summarize(begin, end):
+            frame = begin + int(np.argmax(np.abs(mono[begin:end])))
+            return dict(start_frame=begin, end_frame_exclusive=end, peak_frame=frame,
+                        peak_fs=abs(float(mono[frame])), peak_dbfs=dbfs(abs(float(mono[frame]))),
+                        signed_channel_fs=filtered[frame].tolist())
+        rows.append(dict(case=name, parameter=param, old=old, target_from_start=new,
+                         events=[], status="measured", captures=result,
+                         files={str(p.relative_to(out)): sha256(p)
+                                for p in sorted(folder.iterdir()) if p.is_file()},
+                         fixed_window=summarize(*WINDOWS[name]),
+                         full_capture=summarize(0, FRAMES),
+                         post_switch_time=summarize(SWITCH, FRAMES)))
+    write_json(out / "target-controls.json", dict(source_commit=pin, provenance=meta,
+               renderer_sha256=sha256(renderer), sample_rate_hz=RATE, frames=FRAMES,
+               diagnostic_only=True, rows=rows))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
@@ -221,6 +272,10 @@ def main():
     for arg in ("source", "build", "out"):
         c.add_argument("--" + arg, type=Path, required=True)
     c.add_argument("--pin", required=True)
+    t = sub.add_parser("target-controls")
+    for arg in ("source", "build", "out"):
+        t.add_argument("--" + arg, type=Path, required=True)
+    t.add_argument("--pin", required=True)
     q = sub.add_parser("pair")
     q.add_argument("--root", type=Path, required=True)
     q.add_argument("--base-pin", required=True)
@@ -228,6 +283,8 @@ def main():
     a = p.parse_args()
     if a.command == "capture":
         capture(a.source.resolve(), a.build.resolve(), a.out.resolve(), a.pin)
+    elif a.command == "target-controls":
+        supplemental_target_controls(a.source.resolve(), a.build.resolve(), a.out.resolve(), a.pin)
     else:
         pair_reports(a.root.resolve(), a.base_pin, a.subject_pin)
 
