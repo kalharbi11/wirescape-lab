@@ -807,7 +807,8 @@ bool Session::commit(Json patch, bool new_namespace, bool retry_only) {
             std::vector<uint8_t> packed;
             std::string diagnostic;
             if (!ws::data_layout::pack_data_slot(d->data_slots[slot], it.value(),
-                    ws::data_layout::DataLoad::Edit, packed, diagnostic))
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
                 throw Refusal("invalid", diagnostic.c_str());
         }
     }
@@ -1389,7 +1390,8 @@ Json Session::apply(const Json &command) {
         std::vector<uint8_t> packed;
         std::string error;
         if (!ws::data_layout::pack_data_slot(d->data_slots[slot], value,
-                ws::data_layout::DataLoad::Edit, packed, error))
+                ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+                app_engine_data_validator(catalogue_.get(), d)))
             throw Refusal("invalid", error.c_str());
         // All JSON work and validation must precede the ring insertion. On
         // capacity/invalid/state refusal the execution document is unchanged.

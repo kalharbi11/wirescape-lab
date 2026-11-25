@@ -13,6 +13,9 @@ uint32_t app_engine_module_count(const AppEngine*);
 const ws2_descriptor* app_engine_module(const AppEngine*,uint32_t);
 // Borrowed metadata; valid while the internal catalogue owner lives.
 const ws2_descriptor *app_engine_native_descriptor(const AppEngine *, const char *module);
+// Optional host-only callback, keyed by catalogue descriptor identity; no ABI change.
+using AppDataValidator = bool (*)(const ws2_data_slot &, const std::vector<uint8_t> &, std::string &);
+AppDataValidator app_engine_data_validator(const AppEngine *, const ws2_descriptor *);
 int app_engine_add_node(AppEngine*,uint32_t,const char*);
 int app_engine_add_node_config(AppEngine*,uint32_t,const char*,const std::vector<uint8_t>&);
 int app_engine_connect(AppEngine*,uint32_t,uint32_t,uint32_t,uint32_t);

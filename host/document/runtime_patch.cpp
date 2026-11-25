@@ -119,7 +119,8 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
            std::vector<std::string> data_warnings;
            std::string diagnostic;
            if (!ws::data_layout::pack_data_slot(slot, data.value(slot.id, Json::object()),
-                   ws::data_layout::DataLoad::StoredDocument, packed, diagnostic, &data_warnings))
+                   ws::data_layout::DataLoad::StoredDocument, packed, diagnostic, &data_warnings,
+                   app_engine_data_validator(engine.get(), descriptor)))
                throw std::runtime_error("data." + diagnostic);
            need(app_engine_native(engine.get()).set_data_packed(node, i, packed) == WS2_OK,
                 "Cannot install packed data");

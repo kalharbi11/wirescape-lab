@@ -63,6 +63,12 @@ const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const cha
     const auto *entry = e->find(module);
     return entry ? entry->native : nullptr;
 }
+AppDataValidator app_engine_data_validator(const AppEngine *e, const ws2_descriptor *d) {
+    if (!e || !d) return nullptr;
+    for (const auto &entry : e->entries)
+        if (entry.native == d) return wirescape::app::builtin_data_validator(d);
+    return nullptr;
+}
 int app_engine_add_node(AppEngine*e,uint32_t id,const char*type){return app_engine_add_node_config(e,id,type,{});}
 int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS2_UNSUPPORTED;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS2_OK:WS2_STATE;}
 int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS2_OK:WS2_STATE;}
