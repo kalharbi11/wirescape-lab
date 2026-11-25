@@ -6,17 +6,16 @@ ruling, a Claude contract-review, an acceptance, or wants the Architect to know 
 **one row** here *and* labels the PR or issue `needs/architect`. Nothing else is required to
 reach the Architect; do not rely on PR comments alone.
 
-A planned review condition uses `review-required`. Open an Architect-only review row when its
-pinned request is ready. Apply `needs/architect` and give the owner the ready queue and
-`architect:run` trigger. The Architect clears ready Open rows at the owner's manual start.
-Keep review material and its head pinned on the PR. Regular independent reviews use a pinned
-request naming the eligible reviewer and the owner's manual start.
+The Claude Architect performs all independent and Claude contract reviews under the owner's
+2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+`review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+on the PR. Architect independence and all contract gates still apply. The owner or lead may
+apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+wake serves the whole inbox. The owner may also run `architect:run` manually.
 
-Builders update this inbox when required review is ready, a ruling is needed, or a question
-requires the Architect. Use a docs PR and keep one current row per item. For a ready independent
-review, name the eligible reviewer and mark the row as a handoff for the lead; Architect review
-authority comes from the contract or the owner. The owner and delivery lead own the two trigger
-labels, `architect-ready` and `review-ready`.
+Builders add or update one inbox row for a merge-ready review, ruling or Architect question.
+Use a docs PR, identify the exact head and the task that waits, and preserve the pinned Result.
+Only the owner or delivery lead applies an Architect trigger label.
 
 ## How to add a row
 - Append to **Open**, newest last. One row per ask. Keep the cell short; the link holds detail.
@@ -39,6 +38,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A66 | 2026-11-24 | gpt-lead | ruling | soon | [#467 Windows facts failure](https://github.com/kalharbi11/wirescape-lab/pull/467#issuecomment-7149127541), exact `6cbaf956f00c00351f6a0924d316a5dbe7e8aee2`. Required Windows Lab and the dedicated CHOKE capture passed. Separate Generate device-off facts failed compiling fetched libremidi before collectors. Confirm whether that exact advisory workflow can be handled separately for this evidence-only two-file PR. | #467 tooling merge |
 | A67 | 2026-11-24 | gpt-lead | ruling | soon | [#463 hosted Windows mixed/still](https://github.com/kalharbi11/wirescape-lab/actions/runs/45522699609/artifacts/14981696094), head `5f91f9dd3c868357e181188a57af5b21bd5e4229`: route 17 and listener 9000 each report budget 0, enqueue 2; legacy route drops 0→2. Route the separate cause-specific fix under A61/A58, with B2 proposed, same load/limits and fail-first witness. | OSC product fix only |
 | A64 follow-up | 2026-11-24 | gpt-builder1 / gpt-builder4 | ruling | soon | [#314 clocked-division target control](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7149509418), diagnostic base `6321dfeebdaab2bd39dd5e31446cc3ec17e628b5`, subject `e7726284a0116ba50f44946f48a4bf9720f36f6e`. Target peak frame48343 may contain startup history; switched is −2.271 dB vs old floor even if target is excluded. What validity check or original-floor disposition is required under A64(6)? Keep all fixed windows, fade, gain and bound. | S7.6 #449 division acceptance only |
+| S7.5 H1 | 2026-11-24 | gpt-lead | independent re-review | soon | [Pinned H1 re-review](https://github.com/kalharbi11/wirescape-lab/pull/291#issuecomment-7150431264), base `42f07aa7e27eb1d3148be8a3600f42f198265b0a`, head `a875881138238ecaa6470b3efd0f01f0c11a3e11`. Exact gates green, D5 switch pair published; assess H1 and M7 K1–K8. | S7.5 #291 |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |

@@ -53,17 +53,12 @@ run fills them. `/dev-run` and local builds support diagnosis; merge needs hoste
 with the reason. Never zero, never interpolated or copied from another row. Carry it into the
 acceptance report as an exception; no claim may cite it until it is measured. Precedent: R4,
 M0 acceptance (`ringmod2`).
-**SR11 Contract review.** "Contract-review" means a reviewer who is neither the lead nor the
-builder checks the quoted invariants on the exact head; nothing High means the lead merges. The lead
-records the merge condition with `review-required`. When the current head is ready, the lead
-posts the pinned review request once and adds `review-ready` per the [label lifecycle](README.md#github-labels-for-work-and-review).
-Only Architect-only work needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md); it never gets `review-ready`
-(that label starts the regular reviewer) and is dispatched by the lead's `architect-ready` label.
-The lead tells the owner once and continues unaffected tasks.
-Where a contract from M3 on says contract-review without the word **Claude**, and no Claude
-session has answered within 24 hours, a fresh `gpt-reviewer` chat may run the same checklist; the
-PR records which reviewer it was. Where the contract says **Claude**, and for M1 and M2, only a
-Claude session counts. Precedent: M1 contract-review rule.
+**SR11 Contract review.** A reviewer independent of the lead and builder checks the quoted
+  invariants and evidence at the exact head. Nothing High means the lead can merge under the
+  existing contract. Routing (owner, 2026-11-24): the Claude Architect performs all independent
+  and Claude contract reviews via the inbox, with pinned base/head, `review-required` and
+  `needs/architect`. The owner or lead may apply one `architect-ready` wake per verified batch.
+  Builders and the lead keep unrelated work moving.
 **SR12 Staffing.** The lead may move a task to another builder when the writer gave no substantive
 result after one supported retry, or stopped. The old writer is told to stop first; the branch, PR and
 round count carry over; a handoff comment records the change. At most five builders (B1–B5, all ChatGPT chat sessions; no Codex builder sandboxes, 2026-11-24).

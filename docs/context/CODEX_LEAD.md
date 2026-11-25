@@ -20,9 +20,8 @@ after the all-lane check.
 3. Refresh BUILDERS with each lane's next action and up to three ordered stages. Record release
    gates, evidence and writer boundaries. Synchronize changed issue/PR labels, record changed
    Architect handoffs in CURRENT and update ROADMAP when a milestone gate changes.
-4. Give the owner one list of runnable manual starts and resumes with task or request links.
-   The manager and Luna coordination trial ended 2026-11-24. Its batches, rotations and
-   recurring timers are retired.
+4. Give the owner one list of runnable manual builder starts and dependencies. At the end of a
+   run with an authorized Architect wake, verify the merged inbox and apply one trigger.
 
 Use scripts for repeatable evidence checks. Prefer Luna, Sonnet or the smallest comparable
 helper for scouting and mechanical collection. Use Terra or the smallest comparable helper
@@ -98,21 +97,17 @@ an unplaced engine-split field; a bounded-exception request; any review a contra
 
 ## Review and Architect requests
 
-Use the [label lifecycle](../workflow/README.md#github-labels-for-work-and-review).
-Record the review condition with `review-required`. Once the non-draft PR has a signed Result
-and the evidence needed at its live head, pin a request with the authorized role, full base/head
-SHAs, criteria and evidence. Hand the owner the link for a manual reviewer start. Keep the
-review condition until valid approval and refresh stale requests when heads change.
+The Claude Architect performs all independent and Claude contract reviews under the owner's
+2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+`review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+on the PR. Architect independence and all contract gates still apply. The owner or lead may
+apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+wake serves the whole inbox. The owner may also run `architect:run` manually.
+Builders maintain the inbox through docs PRs for review readiness, rulings and questions.
+Clear answered or stale rows and refresh pins when a head changes.
 
-For an Architect ruling, review or acceptance, add an Open row in
-[ARCHITECT_INBOX](../workflow/ARCHITECT_INBOX.md) via a docs PR. Include ID, date, kind, urgency,
-item link and relevant pins, and the task that waits. Link longer questions in QUESTIONS.
-Put the row ID, criteria and full pins on the item and apply `needs/architect` (and
-`review-required` for a designated review). Hand the owner `architect:run` and the ready queue.
-Refresh pins on head changes and close answered or withdrawn rows.
-
-Leave the automation trigger labels `review-ready` and `architect-ready` off manual requests.
-Contract and owner instructions determine reviewer eligibility.
+The owner's standing authorization for GitHub repository file uploads and release assets is
+recorded in [CODEX.md](../../CODEX.md#github-uploads).
 
 ## Owner-specific run and communication policy — 2026-11-17 ET
 
