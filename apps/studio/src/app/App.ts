@@ -108,6 +108,7 @@ export class App {
     /** Saved cursors are copied at authoring time, before preceding ACKs.
      * Keep only cursors in this in-flight chain, not unrelated history. */
     checkpoints: Set<HistoryCheckpoint>;
+    deferredEvents: DeferredCompletion[];
   } | null = null;
   private undoBtn!: HTMLButtonElement;
   private redoBtn!: HTMLButtonElement;
@@ -613,12 +614,16 @@ export class App {
       return next;
     };
     const chain = this.graphChain;
-    if (chain && chain.epoch === this.viewEpoch) {
+    if (chain && chain.epoch === this.viewEpoch && !this.draftVisible) {
       const previous = chain.anchor.patch, normalized = normalize(previous);
       if (normalized) {
         for (const checkpoint of chain.checkpoints) checkpoint.reconcile(previous, normalized);
         chain.anchor.patch = normalized;
       }
+      // A later snapshot may explicitly commit the formerly pending value.
+      // Reconcile its visible config only after that exact ACK/refusal.
+      chain.deferredEvents.push(event);
+      return;
     }
     if (this.draftVisible) {
       const playing = this.playingSnapshot;
@@ -626,6 +631,7 @@ export class App {
         const normalized = normalize(playing.patch);
         if (normalized) {
           // The saved playing document, not the unrelated draft, owns it.
+          playing.restoreHistory?.reconcile(playing.patch, normalized);
           playing.patch = normalized;
           playing.dirty = true;
         }
@@ -639,8 +645,6 @@ export class App {
     this.doc.setModuleConfig(event.moduleId, next.config);
     history.reconcile(before, after);
     this.history.flush();
-    if (chain && chain.epoch === this.viewEpoch)
-      for (const checkpoint of chain.checkpoints) checkpoint.reconcile(before, after);
     this.refreshDirty();
     if (event.outcome === 'failed')
       this.toasts.show('Queued configuration could not be applied; the running value was restored.', 'error');
@@ -654,7 +658,7 @@ export class App {
     let chain = this.graphChain;
     if (!chain || chain.epoch !== epoch) {
       chain = { epoch, pending: 0, refused: false, anchor: before,
-        checkpoints: new Set<HistoryCheckpoint>() };
+        checkpoints: new Set<HistoryCheckpoint>(), deferredEvents: [] };
       this.graphChain = chain;
     }
     const activeChain = chain;
@@ -693,7 +697,16 @@ export class App {
       throw err;
     }).finally(() => {
       activeChain.pending--;
-      if (this.graphChain === activeChain && activeChain.pending === 0) this.graphChain = null;
+      if (this.graphChain === activeChain && activeChain.pending === 0) {
+        this.graphChain = null;
+        if (epoch !== this.viewEpoch || !(engine instanceof RealEngine)) return;
+        const confirmed = engine.confirmedAuthoredDocument();
+        for (const event of activeChain.deferredEvents) {
+          const actual = confirmed?.modules.find(m => m.id === event.moduleId && m.module === event.module);
+          if (actual && !sameConfig(actual.config, event.desired))
+            this.reconcileDeferredConfig({ ...event, actual: actual.config });
+        }
+      }
     });
   }
 
