@@ -2,7 +2,6 @@
 // Pure Groove editor -> E3b wire projection. Shared client transport is owned
 // separately; this module performs no I/O and does not mutate saved drafts.
 import { engineConfig, trackLength, readConfig, LENGTHS, type GrooveConfig, type Step, type Track } from './pattern';
-import type { PatchModule } from '../patch/types';
 
 export interface LivePatternRow {
   kind: 'rest' | 'note' | 'tie';
@@ -10,7 +9,7 @@ export interface LivePatternRow {
   gate_q: number; cond_type: number; cond_a: number; cond_b: number;
   key_count: number; keys: number[];
 }
-export interface GrooveLivePattern {
+export interface GrooveLivePattern extends Record<string, unknown> {
   length_1: number; length_2: number; tempo_source: 'internal' | 'host';
   steps_1: Partial<LivePatternRow>[]; steps_2: Partial<LivePatternRow>[];
 }
@@ -54,8 +53,8 @@ function row(s: Step): Partial<LivePatternRow> | null {
  * fields are not changed here; the execution copy never sends them as edits.
  * Undefined/malformed legacy config takes its existing refusal/default path.
  */
-export function grooveExecution(raw: unknown): GrooveExecution | null {
-  const config = engineConfig(raw);
+export function grooveExecution(raw: unknown, preserveHiddenRows = false): GrooveExecution | null {
+  const config = engineConfig(raw, preserveHiddenRows);
   if (!isObject(config) || (config.version !== 1 && config.version !== 2) ||
       !Array.isArray(config.tracks) || !config.tracks.length) return null;
   const cfg = config as unknown as GrooveConfig;
@@ -97,12 +96,16 @@ const integer = (v: unknown, min: number, max: number): v is number =>
 const number = (v: unknown, min: number, max: number): v is number =>
   typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
 
+// Descriptor defaults apply only to an absent field, never explicit null.
+const field = (object: Record<string, unknown>, key: string, fallback: unknown): unknown =>
+  Object.prototype.hasOwnProperty.call(object, key) ? object[key] : fallback;
+
 function editorRow(value: unknown): Step | null {
   if (!isObject(value)) return null;
-  const kind = value.kind ?? 'rest', key = value.key ?? 60, velocity = value.velocity ?? 0;
-  const mod1 = value.mod1 ?? 0, mod2 = value.mod2 ?? 0, gate = value.gate_q ?? 4;
-  const count = value.key_count ?? 1, keys = value.keys ?? [60, 60, 60, 60, 60];
-  const type = value.cond_type ?? 0, a = value.cond_a ?? 0, b = value.cond_b ?? 0;
+  const kind = field(value, 'kind', 'rest'), key = field(value, 'key', 60), velocity = field(value, 'velocity', 0);
+  const mod1 = field(value, 'mod1', 0), mod2 = field(value, 'mod2', 0), gate = field(value, 'gate_q', 4);
+  const count = field(value, 'key_count', 1), keys = field(value, 'keys', [60, 60, 60, 60, 60]);
+  const type = field(value, 'cond_type', 0), a = field(value, 'cond_a', 0), b = field(value, 'cond_b', 0);
   if ((kind !== 'rest' && kind !== 'note' && kind !== 'tie') || !integer(key, 0, 127) ||
       !number(velocity, 0, 1) || !number(mod1, 0, 1) || !number(mod2, 0, 1) ||
       !integer(gate, 1, 4) || !integer(count, 1, 5) || !integer(type, 0, 4) ||
@@ -130,22 +133,22 @@ function editorRow(value: unknown): Step | null {
 }
 
 /** Read a canonical or legacy source without mutating it or silently repairing a bad slot. */
-export function grooveEditorConfig(module: Pick<PatchModule, 'config' | 'data'>): GrooveConfig | null {
+export function grooveEditorConfig(module: { config?: unknown; data?: unknown }): GrooveConfig | null {
   if (module.data === undefined) return readConfig(module.config);
   if (!isObject(module.data)) return null;
   if (!Object.prototype.hasOwnProperty.call(module.data, 'pattern')) return readConfig(module.config);
   const data = module.data.pattern;
   if (!isObject(data)) return null;
-  const config = module.config ?? {};
+  const config = module.config === undefined ? {} : module.config;
   if (!isObject(config)) return null;
   const empty = Object.keys(config).length === 0;
   if (!empty && ((config.version !== 1 && config.version !== 2) || !number(config.bpm, 20, 300) ||
       !Array.isArray(config.tracks) || config.tracks.length < 1 || config.tracks.length > 2)) return null;
   const construction = empty ? [{}] : config.tracks as unknown[];
-  const tempo = data.tempo_source ?? 'internal';
+  const tempo = field(data, 'tempo_source', 'internal');
   if (tempo !== 'internal' && tempo !== 'host') return null;
-  const lengths = [data.length_1 ?? 32, data.length_2 ?? 32];
-  const rows = [data.steps_1 ?? [], data.steps_2 ?? []];
+  const lengths = [field(data, 'length_1', 32), field(data, 'length_2', 32)];
+  const rows = [field(data, 'steps_1', []), field(data, 'steps_2', [])];
   const tracks: Track[] = [];
   for (let t = 0; t < 2; ++t) {
     const len = lengths[t], rawRows = rows[t];

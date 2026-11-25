@@ -65,3 +65,20 @@ test('Groove E3b canonical data hydrates the editor, explicit slot wins and unkn
   expect(grooveEditorConfig({ config: module.config, data: { pattern: { length_1: 12 } } })).toBeNull();
   expect(grooveEditorConfig({ config: module.config, data: { pattern: {} } })!.tracks[0]!.steps).toEqual([]);
 });
+
+test('Groove E3b canonical hidden rows stay intact until an explicit truncation', () => {
+  const rows = Array.from({ length: 10 }, (_, i) => i === 9
+    ? { kind: 'note', key: 65, keys: [65, 0, 0, 0, 0], velocity: .5 } : {});
+  const module = { config: { version: 2, bpm: 120, tracks: [{}] },
+    data: { pattern: { length_1: 8, steps_1: rows } } };
+  const editor = grooveEditorConfig(module)!;
+  expect(editor.tracks[0]!.steps[9]).toMatchObject({ kind: 'note', key: 65 });
+  const wire = grooveExecution(editor, true)!.pattern;
+  expect(wire.steps_1[9]).toMatchObject({ kind: 'note', key: 65 });
+  editor.tracks[0]!.steps.length = 8; // explicit editor length truncation
+  expect(grooveExecution(editor, true)!.pattern.steps_1[9]).toEqual({});
+  for (const invalid of [{ length_1: null }, { tempo_source: null }, { steps_1: null },
+    { steps_1: [{ velocity: null }] }, { steps_1: [{ kind: null }] }]) {
+    expect(grooveEditorConfig({ config: module.config, data: { pattern: invalid } })).toBeNull();
+  }
+});
