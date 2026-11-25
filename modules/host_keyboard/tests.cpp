@@ -6,6 +6,9 @@
 #include "../vca/dsp.h"
 #include "../vco/dsp.h"
 #include "dsp.h"
+#include "../../tests/native/abi2/dsp_fixture.h"
+#include <memory>
+#include <cstring>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -304,8 +307,80 @@ static void reclamation_burst() {
     std::cout << "source_reclamation rate=48000 block=128 events=64 bursts=16 worst_ns=" << worst
               << " period_ns=2666666 allocations=0 (timing report only)\n";
 }
+
+static std::vector<uint8_t> e7c_keyboard_save(DspFixture& f) {
+    check(f.d->save_state && f.d->load_state, "A70 keyboard hooks present");
+    std::vector<uint8_t> bytes;
+    ws2_writer w{sizeof(w), &bytes, [](void* ctx, const void* p, uint32_t n) {
+        auto& b = *static_cast<std::vector<uint8_t>*>(ctx);
+        auto* first = static_cast<const uint8_t*>(p);
+        b.insert(b.end(), first, first+n);
+        return int(WS2_OK);
+    }};
+    check(f.d->save_state(f.state, &w) == WS2_OK && !bytes.empty(), "A70 keyboard save");
+    return bytes;
+}
+static int e7c_keyboard_load(DspFixture& f, const std::vector<uint8_t>& bytes) {
+    struct Cursor { const std::vector<uint8_t>& b; size_t pos = 0; } c{bytes};
+    ws2_reader r{sizeof(r), &c, [](void* ctx, void* p, uint32_t n) {
+        auto& c = *static_cast<Cursor*>(ctx);
+        if (n > c.b.size()-c.pos) return int(WS2_INVALID);
+        std::memcpy(p, c.b.data()+c.pos, n); c.pos += n;
+        return int(WS2_OK);
+    }, uint32_t(bytes.size())};
+    return f.d->load_state(f.state, &r);
+}
+static void e7c_keyboard_roundtrip() {
+    const auto* d = ws::Module<ws2ports::HostKeyboard>::descriptor();
+    auto a=std::make_unique<DspFixture>(d,48000.,1);
+    auto b=std::make_unique<DspFixture>(d,48000.,1);
+    auto rate=std::make_unique<DspFixture>(d,44100.,1);
+    std::vector<ws2_event> log_a,log_b;
+    ws2_event_out out_a[4]{},out_b[4]{};
+    auto push=[](void* ctx,uint32_t,const ws2_event* e){
+        static_cast<std::vector<ws2_event>*>(ctx)->push_back(*e);return int(WS2_OK);
+    };
+    out_a[3]={sizeof(ws2_event_out),&log_a,3,push};
+    out_b[3]={sizeof(ws2_event_out),&log_b,3,push};
+    a->process.event_outputs=out_a; b->process.event_outputs=out_b;
+    for(auto*f:{a.get(),b.get(),rate.get()})f->parameter[0][0][0]=2.f;
+    auto on=note({WS2_NOTE_ON,67,391,0,7});
+    on.offset=17;
+    a->process.events={sizeof(ws2_event_list),1,&on};
+    a->run(128);
+    a->process.events={sizeof(ws2_event_list),0,nullptr};
+    a->run(128);
+    check(log_a.size()==1 && log_a[0].note_id==391,"held explicit note emitted");
+    const auto saved=e7c_keyboard_save(*a);
+    check(e7c_keyboard_load(*b,saved)==WS2_OK,"fresh instance load");
+    log_a.clear();
+    auto compare=[&](){
+        a->run(128);b->run(128);
+        for(uint32_t p=0;p<3;++p){
+            check(a->outs[p].channels==b->outs[p].channels,"keyboard restored width");
+            for(uint32_t c=0;c<a->outs[p].channels;++c)
+                check(std::memcmp(a->output[p][c],b->output[p][c],128*sizeof(float))==0,"keyboard CV continuation");
+        }
+    };
+    compare();
+    check(log_a.empty()&&log_b.empty(),"restore does not re-emit");
+    auto off=note({WS2_NOTE_OFF,67,391,0,7});
+    off.offset=31;
+    a->process.events=b->process.events={sizeof(ws2_event_list),1,&off};
+    compare();
+    check(log_a.size()==1&&log_b.size()==1&&log_b[0].type==WS2_NOTE_OFF&&
+        log_b[0].note_id==391&&log_b[0].source_id==7&&log_b[0].offset==31,
+        "restored held identity must emit later NOTE_OFF");
+    auto current=e7c_keyboard_save(*b),bad=saved;bad[0]=99;
+    check(e7c_keyboard_load(*b,bad)==WS2_UNSUPPORTED&&e7c_keyboard_save(*b)==current,"unknown version refused atomically");
+    bad=saved;bad.pop_back();
+    check(e7c_keyboard_load(*b,bad)==WS2_INVALID&&e7c_keyboard_save(*b)==current,"truncation refused atomically");
+    check(e7c_keyboard_load(*rate,saved)==WS2_INVALID,"C2 rate mismatch refused");
+}
+
 int main() {
     try {
+        e7c_keyboard_roundtrip();
         reclamation_burst();
         shared_tests();
         live_voice_resize();
