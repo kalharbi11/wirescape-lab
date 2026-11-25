@@ -10,6 +10,15 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead run — 2026-11-25 (A79/A80 reconciliation)
+
+- **#553 merged `8ebaa1b`** after exact Lab 45570211258 and Architect delegation. A80 cleared: compare against pending config, per-module independent correlated completion, hello capability gate and legacy plain busy. B5 keeps server/schema/spec/generated/fake-client paths, no Studio runtime grant. **B1 [#555](https://github.com/kalharbi11/wirescape-lab/issues/555)** follows #538, OB1.1 only; OB1 work takes priority.
+- B5 #538 `32c2880` A80 correction pushed; predecessor combined/fake-client tests green, exact gates pending. Resolve B2 interim findings (initial busy must not stop/reset host workers, data replacement supersession, removed/default reset validation). B2 #540 `89655af` targeted/ASan green, full Lab red; shared integration after #538, re-review backend.
+- B4 #539 `f5a8c94` A79 regression-only x64 red confirmed; authorized SDK accessor and length check next. No product acceptance waiver. B1 #492 and B3 #525 await #539; B3 audit precision qualification recorded.
+- Owner explicitly allows expedited docs/task-only merges without full CI (2026-11-25). Product checks, contract reviews and measured evidence remain mandatory; no workflow/branch-protection weakening. No new Architect question; next review when #539 or #538 is fully pinned.
+
+Signed: codex-lead, 2026-11-25
+
 ## Architect run 40 — 2026-11-25 02:55 EST: A79 Delay v2 length ruling (lead request)
 
 - **A79** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/520#issuecomment-7156162522)): v2 rejects trailing, short or unknown-length payloads atomically. B4 may add one read-only `ws::Reader::size()` over the existing ABI field `ws2_reader::bytes` (`sdk/wirescape_sdk.h`, #539 only). The regressions are listed in the ruling. No ABI, cap, RT or threshold change.
