@@ -157,6 +157,9 @@ struct Delay {
         if(!in.u32(version))return WS2_INVALID;
         if(version==1){reset();return WS2_OK;}
         if(version!=2)return WS2_UNSUPPORTED;
+        uint32_t payload_bytes=0;
+        if(!in.size(payload_bytes) || uint64_t(144)+uint64_t(size)*8>state_cap ||
+           uint64_t(payload_bytes)!=uint64_t(144)+uint64_t(size)*8)return WS2_INVALID;
         Delay staged=*this;bool latch=false;
         if(!get_u(in, staged.size) ||
             !get_d(in, staged.rate) ||
