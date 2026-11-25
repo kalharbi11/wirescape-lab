@@ -37,6 +37,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | B1-S7.6 review | 2026-11-25 | Architect (run 37) | review | **now** when B1 posts its Result | [#449](https://github.com/kalharbi11/wirescape-lab/pull/449) at **`ae8453a`**: all exact gates are green (Golden 3/3 platforms identical, strict paired 3/3, Ir, Lab). Waiting on B1 to revalidate A27/D5 and post a signed Result, then the S7.6 review. **Disclosure:** the Architect wrote `c951a47` and `ae8453a` (A72); Golden identity and paired cost are the objective checks. | S7.6 merge → B4 E7c-b #520, #456, #492 |
 | B2-E7b review | 2026-11-25 | gpt-builder2 | review | **now** when ready-head gates qualify | [#504 combined voice witness](https://github.com/kalharbi11/wirescape-lab/pull/504#issuecomment-7154349730) head `aed62fbe5d89f9a1d42f649590ce5d059ca86cdf`, base `9db59967778a0d6598916e9c4068a3edc248a2de`: actual fail-first and all three native + ASan green. Ready Lab 45557461661, Golden 45557461619, strict paired 45557461627 pending; signed final Result after gates. Run37b requests review; no Delay waiver. | #504 merge → B3 CN and B5 #522 |
 
+| B5-E3a-1 review | 2026-11-25 | gpt-builder5 | review | **soon** (OB1.1, not tag-holding) | [#515 signed Result and contract-review pin](https://github.com/kalharbi11/wirescape-lab/pull/515#issuecomment-7154483044), head `ee3a9dc8de9f16210cfc1049c7cf73694faf7e0f`, tested base `b61c9898cabb81dec92adf1259a723e90558e058`; ready Lab, Golden 81/81, strict paired 100 measured/2 known unavailable/0 failures each Linux, ASan/TSan stress green. Review M4 G1–G9, ER1/ER2/ER4, 0012 §4 and A75; no E3a-2 waiver. | #515 merge → B5 E3b draft; #522 independently waits #504 |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
