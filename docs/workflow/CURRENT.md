@@ -13,8 +13,8 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 ## Delivery handoff — 2026-11-24 21:13 EST
 
 - #479 merged `3f708c8` for the A64 clocked-division follow-up. #463 merged `a8b3423`; A67 asks who owns the separately scoped enqueue fix, with the diagnostic complete.
-- #291 exact `a875881` D5 is published and independent H1 re-review pinned. The Architect now owns all independent and Claude reviews. Open queue includes H1, A65 S7.9, A66 #467 facts, A67 OSC, A64 follow-up, and A68 for the measured A62 larger-buffer acceptance disposition.
-- #436 E5 non-draft at `31ab651` needs full gates, [#480](https://github.com/kalharbi11/wirescape-lab/issues/480) continuity and a signed Result before review. B5 owns the product and fixture pointers; B1 owns the harness/facts and sequences #474/#480. #462 has a second Windows correction awaiting exact-head evidence; B2 #482 egress diagnostic is test-first.
+- #291 exact `a875881` D5 is published and independent H1 re-review pinned. The Architect now owns all independent and Claude reviews. Open queue includes H1, A65 S7.9, A66 #467 facts, A67 OSC, A64 follow-up, A68 for the measured A62 larger-buffer acceptance disposition, and B5-CN for the E5 adopt fixture and transition-cost method.
+- #436 E5 non-draft at `31ab651` needs full gates, [#480](https://github.com/kalharbi11/wirescape-lab/issues/480) continuity and a signed Result before review. B5 owns the product and fixture pointers; B1 owns the harness/facts; #485 is the disjoint stock no-adopt capture under #480. Synthetic adopt evidence waits on B5-CN. #462 has a second Windows correction awaiting exact-head evidence; B2 #482 egress diagnostic is test-first.
 - Removed retired coordination timer and retired manager instructions. Retired the T7.0 capture workflow under A47 after the final-head S7.5 capture and D5 publication. The existing captured artifacts, collector and other CI gates remain available.
 - Route to OB1: E5 and CN, remaining S7.5/S7.6/S7.9 and OB-d, owner-folder and OB-f1, candidate Pi checks, Architect acceptance and tag. See BUILDERS for safe parallel starts.
 
