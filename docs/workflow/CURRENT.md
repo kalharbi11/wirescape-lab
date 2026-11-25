@@ -9,6 +9,14 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-25 04:05 EST (E3a-2 review released)
+
+- **#568 merged `5b097c2`** on exact docs Lab. **#538 is ready for required Claude contract review** at `bd4b69cf1a5b103f05b613eeb27081e390c14def`, tested base `5ca0f1938fb851acce158272377a1ebe7631f4d2`. [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/538#issuecomment-7157636089), B2 source re-review, and exact ready-state Lab/Golden/strict paired are verified. Review the post-staging OSC counter reset risk against A51/A78(2) and record the advisory instruction and hosted I/O nonpasses. A81/A82 first-shipped-slot carry remains binding. Owner manually starts `architect:run`.
+- **OB1:** #492 and its follow-up #566 already merged. Owner listening remains due under OB-d. B3 #525 `63d90c1` has A83 facts and successful A62/native/cost runs. Exact Lab and the signed Result still gate lead merge; A2 #570 follows. The prior-head Windows retry was cancelled after the new push. Respect the Architect's flake routing if the same test fails again on the current head.
+- **Other lanes:** B2 shared E3c and B1 #555 wait for actual #538 merge. B4 #567 collects M10 S2 facts with current Lab in progress. B5 #545 remains draft-ahead. No further design ruling is open for A82 or A83. OB1 candidate acceptance follows the CN/A2 and listening evidence plus the candidate checks.
+
+Signed: codex-lead, 2026-11-25, 04:05 EST
+
 ## Architect run 42 — 2026-11-25 (A82, A83, B4 assigned; owner `architect:run`)
 
 - **A83** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/523#issuecomment-7157532240)), B3 larger-buffer CN: no further correction. A bounded disposition is recorded in [M4](milestones/M4.md).
