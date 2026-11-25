@@ -657,6 +657,45 @@ static void interrupted_switches() {
     REQUIRE(actual_error < 1e-4f);
 }
 
+// The host ramps the non-stepped tone parameter over 5 ms. A change
+// of filter kind starts one 10 ms transition; subsequent samples of that
+// same-kind ramp must update its target without rearming its duration.
+// White-box timing regression, complementary to the callback-level
+// impulse, reset, allocation and block-invariance tests above.
+static void tone_ramp_does_not_rearm() {
+    for (double rate : {44100., 48000., 96000.}) {
+        Delay d;
+        d.rate = rate;
+        const auto fade = static_cast<uint32_t>(std::ceil(.010 * rate));
+        const auto ramp = static_cast<uint32_t>(std::ceil(.005 * rate));
+        d.fade_frames = fade;
+        d.update_tone(0.f);
+        for (uint32_t i = 0; i < fade; ++i) {
+            const float target = std::min(1.f, static_cast<float>(i + 1) / static_cast<float>(ramp));
+            d.update_tone(target);
+            d.advance_tone();
+        }
+        std::printf("delay tone ramp: rate=%.0f fade=%u remaining=%u\n", rate, fade, d.tone_left);
+        std::fflush(stdout);
+        REQUIRE(d.tone_left == 0);
+        REQUIRE(d.tone_high == 1.f && d.tone_low == 0.f);
+        REQUIRE(d.tone_current_a == d.tone_a);
+
+        // An actual kind reversal while a fade is active does start a new
+        // transition from the current blend, not a jump to the endpoint.
+        d.update_tone(0.f);
+        d.advance_tone();
+        const float high = d.tone_high, low = d.tone_low;
+        d.update_tone(-1.f);
+        REQUIRE(d.tone_left == fade);
+        REQUIRE(d.tone_high == high && d.tone_low == low);
+        for (uint32_t i = 0; i < fade; ++i) d.advance_tone();
+        REQUIRE(d.tone_left == 0);
+        REQUIRE(d.tone_low == 1.f && d.tone_high == 0.f);
+        REQUIRE(d.tone_current_a == d.tone_a);
+    }
+}
+
 int main() {
     echo_position();
     feedback_decay();
@@ -673,6 +712,7 @@ int main() {
     REQUIRE(tone_smooth);
     REQUIRE(division_smooth);
     interrupted_switches();
+    tone_ramp_does_not_rearm();
     matrices();
     state_and_extremes();
     std::puts("fx.delay tests passed");
