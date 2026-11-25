@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Synthetic parser fixtures only; never report their numbers as measured Ir."""
 import unittest
-from profile_blocks import parse_dump, summarize
+from profile_blocks import dump_role, parse_dump, summarize
 
 
 def dump(block, ir, adopt=False, housekeeping=False):
@@ -14,6 +14,21 @@ def dump(block, ir, adopt=False, housekeeping=False):
 
 
 class ProfileTest(unittest.TestCase):
+    def test_actual_separate_thread_dump_format(self):
+        # 45545555089: empty coordinator plus labelled thread 1 files,
+        # final zero-count termination. Only the exact empty coordinator is legal.
+        self.assertEqual(dump_role("callgrind.out", ""), ("coordinator", None))
+        label = "thread: 1\n" + dump(240, 3290365)
+        self.assertEqual(dump_role("callgrind.out.1-01", label), ("block", 1))
+        final = ("thread: 1\ndesc: Trigger: Program termination\n"
+                 "events: Ir\nsummary: 0\ntotals: 0\n")
+        self.assertEqual(dump_role("callgrind.out-01", final), ("termination", 1))
+        for name, body in (("callgrind.out.1-01", ""), ("callgrind.out-01", final.replace("summary: 0", "summary: 1")),
+                           ("callgrind.out.1-01", label.replace("thread: 1", "thread: 0")),
+                           ("callgrind.out.1-01", label.replace("thread: 1\n", ""))):
+            with self.assertRaises(ValueError):
+                dump_role(name, body)
+
     def test_block_identity_and_ir(self):
         self.assertEqual(parse_dump(dump(42, 123456)), {"block": 42, "ir": 123456, "adopt_calls": 0})
         self.assertEqual(parse_dump(dump(43, 234567, True)),

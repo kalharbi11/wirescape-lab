@@ -32,3 +32,5 @@ protocol, source-patch or top-level CMake edit. No devices or network services.
   There is no Ir acceptance threshold and no measurement at a provisional pin.
 
 Signed: gpt-builder1, 2026-11-24.
+
+Callgrind 3.22 separate-thread format (45545555089): the base output file is an empty coordinator; accept only that exact zero-byte file, plus explicit zero-count termination records. Require all labelled dumps from one render thread, and sum their Ir totals against the profiler's collected Ir. Preserve every file digest.

@@ -3,10 +3,11 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 
-from profile_blocks import parse_dump, summarize
+from profile_blocks import dump_role, parse_dump, summarize
 
 
 def digest(path):
@@ -34,21 +35,28 @@ def one(exe, source, out, kind, name):
     if any(metadata[k] != 0 for k in ("faults", "late", "dropped", "ring_full", "stale", "arena_full")):
         raise ValueError("nonzero engine error counters")
     rows, profiles = [], {}
+    render_threads = set()
+    all_files = {}
     for path in sorted(dest.glob("callgrind.out*")):
         raw = path.read_text()
-        if "desc: Trigger: Client Request: block-" not in raw:
-            # Only non-request termination dumps may be outside the scope.
-            if "desc: Trigger: Program termination" not in raw:
-                raise ValueError(f"unrecognized Callgrind dump {path.name}")
+        role, thread = dump_role(path.name, raw)
+        all_files[path.name] = {"role": role, "thread": thread, "sha256": digest(path)}
+        if role != "block":
             continue
+        render_threads.add(thread)
         row = parse_dump(raw)
         if row["block"] in profiles:
             raise ValueError("duplicate block dump")
         rows.append(row)
         profiles[row["block"]] = path
+    if len(render_threads) != 1:
+        raise ValueError("labelled blocks must come from one render owner")
     expected = list(range(metadata["warmup_blocks"], metadata["completed_blocks"]))
     if sorted(profiles) != expected:
         raise ValueError("profiled block count differs from actual render calls")
+    collected = re.findall(r"Collected\s*:\s*([0-9,]+)", (dest / "stderr.txt").read_text())
+    if len(collected) != 1 or sum(r["ir"] for r in rows) != int(collected[0].replace(",", "")):
+        raise ValueError("sum of per-block Ir differs from actual Callgrind collection")
     if metadata["fade_frames"] != (960 if kind == "dual" else 0):
         raise ValueError("unexpected fade")
     table = summarize(rows, kind, metadata["fade_frames"],
@@ -67,7 +75,8 @@ def one(exe, source, out, kind, name):
         (dest / "max-block-inclusive.txt").write_text(annotated)
         table["max_block"] = max_block
         table["module_attribution"] = "see retained inclusive annotation; no unverified share"
-    return {"patch_sha256": digest(patch), "metadata": metadata, "table": table,
+    return {"patch_sha256": digest(patch), "metadata": metadata, "table": table, "render_thread": next(iter(render_threads)),
+            "all_dump_files": all_files,
             "dumps": {str(i): {"file": p.name, "sha256": digest(p)} for i, p in sorted(profiles.items())}}
 
 

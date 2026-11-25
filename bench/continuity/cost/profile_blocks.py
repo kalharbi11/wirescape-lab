@@ -6,6 +6,28 @@ FRAME_BLOCK = 256
 ADOPT_SYMBOL = "wirescape::engine2::Engine::Impl::adopt_layout("
 
 
+def dump_role(filename, text):
+    """Callgrind 3.22 separate-thread output includes an empty coordinator.
+    No other empty files or nonzero unmeasured termination costs are accepted.
+    """
+    if filename == "callgrind.out" and text == "":
+        return ("coordinator", None)
+    thread = re.findall(r"^thread: (\d+)$", text, re.M)
+    if len(thread) != 1 or int(thread[0]) <= 0:
+        raise ValueError("missing or invalid Callgrind thread")
+    trigger = re.findall(r"^desc: Trigger: (.+)$", text, re.M)
+    if len(trigger) != 1:
+        raise ValueError("missing or duplicate Callgrind trigger")
+    if re.fullmatch(r"Client Request: block-\d+", trigger[0]):
+        return ("block", int(thread[0]))
+    if (trigger[0] == "Program termination" and
+            re.findall(r"^events: (.+)$", text, re.M) == ["Ir"] and
+            re.findall(r"^summary: (\d+)$", text, re.M) == ["0"] and
+            re.findall(r"^totals: (\d+)$", text, re.M) == ["0"]):
+        return ("termination", int(thread[0]))
+    raise ValueError("unknown or nonzero unmeasured Callgrind dump")
+
+
 def parse_dump(text):
     """One labelled client-request dump, with one Ir event and exact totals."""
     fields = {}
