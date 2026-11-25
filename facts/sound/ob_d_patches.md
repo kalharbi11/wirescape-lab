@@ -3,7 +3,9 @@
 
 2026-11-24 ET. OB r2.9, M7 r1.9. This is a per-stage record, not a cumulative
 OB0→OB1 measurement or owner listening result. Final S7.6 and candidate rebuild
-remain pending. No preset edits in this draft.
+remain pending. No preset edits in this draft. OB0 was accepted at
+`a440d7175659402474290e34a1d63b4404dcaa72` ([release record](../../docs/RELEASES.md));
+S7.1/S7.2/S7.4 are already in that baseline, not new OB1 sound-change rows.
 
 ## Source and method
 
@@ -15,6 +17,11 @@ at each head. Each changed row has distinct hashes and both renders report repea
 identity. RMS delta = 20 log10(after RMS / before RMS); band delta = reported
 largest third-octave difference. Cross-architecture hashes are not equated.
 All three accepted Golden runs had the declared patch sets on all three platforms.
+The 27 Golden fixtures include 24 bundled patches and three coverage fixtures;
+only bundled patches appear in the changed-patch tables. The hashes and RMS
+ratios in all 18 rows were independently checked against the archived
+`before.json`, `after.json` and `primary.json`. The chronological stage order is
+S7.7, S7.8, then S7.3; cross-stage hashes are not a cumulative same-runner comparison.
 The paths below are under `patches/bundled/` with `.json` suffix.
 
 ### S7.3 — CHAOS band-limiting (9 / 27)
@@ -76,7 +83,11 @@ AMD EPYC 9V45, [A53 review](https://github.com/kalharbi11/wirescape-lab/pull/405
 | scene-08-neon-elegy | `0c1395d8c949d14b28ad7d96697c79ff5722693b39b640641aff2033da6dbb4b` | `6274771eed12e1536df13afe12e2b6b9b6ca2be7da2100d4b60f2d4b5b811f84` | +0.917991 | 9.606778 |
 
 A53 Low: full-scale max-resonance step reached 2.4 FS (+7.6 dB); note for listening.
-Non-gating r=.25/.75 peak ratios not yet recorded here.
+Non-gating r=.25/.75 peak ratios: [#498 / #499](https://github.com/kalharbi11/wirescape-lab/pull/499)
+requests the original descriptor impulse and whole-spectrum scan with additional
+reported rows, no new threshold. Actual output pending; do not infer it from
+r=.5/.9 or the analytic formula.
+[Lead-published scene-02 D5 FLACs and verified release digests](https://github.com/kalharbi11/wirescape-lab/pull/405#issuecomment-7140203754).
 
 ## Event-specific changes without bundled Golden differences
 
@@ -89,8 +100,16 @@ Non-gating r=.25/.75 peak ratios not yet recorded here.
   clears note identity but **continues sounding at Frequency** with continuous phase.
   A patch that needs silence uses its amplitude envelope / VCA, rather than assuming
   CHOKE itself mutes a free-running oscillator. Owner listening note, not a further DSP fix.
-- S7.6 #449: open, no final accepted pin. Record final Golden scope and D5 only
-  after A64/r1.9 evidence and review; do not assume unchanged.
+- S7.6 #449: open, evidence base `7661f832f44c2f8388b84b48e766490e1e44418f`,
+  subject `4fcaa04abaa8ecd5018f55b98e3c76f5d6e0045d`, [B4 raw Result](https://github.com/kalharbi11/wirescape-lab/pull/456#issuecomment-7151834512).
+  x64/ARM64 tone +0.093163/+0.093149 dB over a valid steady target; clocked
+  division −2.271051/−2.271145 dB below old floor; unclocked `no_effect`.
+  Mode +3.614379/+3.614350 dB over r1.9 governing old floor, because the
+  fixed-window target peak is about 0.303 dB below its last-12k peak. Matched
+  target residual +0.030469/+0.030424 dB is diagnostic, not a pass under r1.9.
+  [Exact-row A64 question](https://github.com/kalharbi11/wirescape-lab/issues/314#issuecomment-7151708363)
+  is in the Architect inbox. Record final Golden scope and D5 only after ruling
+  and review; do not assume unchanged. No rerender requested at unchanged pins.
 
 ## Rebuild and owner listening (pending)
 
@@ -98,8 +117,21 @@ Non-gating r=.25/.75 peak ratios not yet recorded here.
 and scene-02 (Ladder then CHAOS), scene-06 (VCF then Ladder). Retain both stage rows;
 do not sum dB or concatenate hashes across renderers. Collect final S7.6 rows,
 check all relevant S7.x scope and rebuild each affected bundled patch at the final
-main source pin. Report candidate per-patch hashes and round-trip outcome, then
-owner listens (devices off for agents). No listening result or rebuild claim yet.
-No change to patch JSON is justified by these records alone.
+main source pin. The existing Lab native Linux x64 OB-a1 job invokes `tools/patch_roundtrip.py`
+with the actual checkout SHA and archives `ob-a1-roundtrip-linux-x64-*` containing
+source bytes, normalized document and render hashes plus pass/fail per case.
+Use the final integrated candidate's report (source and renderer SHA verified),
+not the current docs-only Lab green or a historical source pin. Match all 15
+unique changed names and any additional final S7.6 rows to passing cases;
+report a missing or failing case explicitly and retain original patch values
+unless a scoped rebuild correction is justified. Round-trip hashes use that
+harness's stimulus, not the 10-second Golden fixture stimulus.
+
+Owner listening handoff: the union is basics-02, basics-06, chaos-01 through
+chaos-05, and scene-01 through scene-08 (each exact name above). Listen at
+unchanged gain and compare the relevant per-stage D5/Golden source pairs;
+record patch name, candidate SHA, observed differences, and owner disposition.
+The candidate rebuild and owner listen are separate records. No listening result
+or rebuild claim yet. No change to patch JSON is justified by these records alone.
 
 Signed: gpt-builder4, 2026-11-24
