@@ -394,7 +394,7 @@ Smaller: `freshModules` absent on each of the three replies. Larger: identical 1
 
 ## M4 CN — SR21c refresh (#523)
 
-Evidence inventory; intermediate measured rows and pending final captures. The merged E5 harness is
+Evidence inventory; intermediate and final measured rows. The merged E5 harness is
 `9000e8ffc948f2b4c3d99220e1ebdb5e5d4830bb` (#485). The historical A62
 buffer capture above is not a measurement of the integrated OB1 candidate.
 The E5 native, stock and transition-cost captures at engine `9809dfb9d1ead244815b8f93a68a02f7a307fe5b`
@@ -405,9 +405,9 @@ not a final integrated-source cost refresh.
 |---|---|---|
 | Intermediate 256→512, E7c-a voice chain and #504 | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
 | Intermediate E5 synthetic untouched Voice (A76; replacement path changed) | `5ca0f1938fb851acce158272377a1ebe7631f4d2` | measured; see intermediate capture below |
-| Final 256→512, including E7c-b Delay v2 | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
-| Final A69a Black Ice Choir single-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
-| Final A69a Clocked Groove adoption and max dual-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | capture pending |
+| Final 256→512, including E7c-b Delay v2 | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | measured; see final capture below |
+| Final A69a Black Ice Choir single-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | measured; see final capture below |
+| Final A69a Clocked Groove adoption and max dual-instance Ir | `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` | measured; see final capture below |
 
 No continuity disposition, hardware timing, or Pi result follows from these
 unmeasured rows. Earlier measured sections and their pins are unchanged.
@@ -422,7 +422,38 @@ A76 E5 synthetic [run 45561322888](https://github.com/kalharbi11/wirescape-lab/a
 
 Independent intermediate audit: [A62 precision qualification and native audit](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7156234024). Direct convolution reproduces 579/585 A62 scalar checks; the remaining six absolute tail dips reproduce the report using its running-sum RMS. Direct RMS gives zero (−inf dB) in the larger silent tail window; the running-sum residual reports approximately −152.65 dB. This is numerical cancellation, not retained tail signal. The larger non-pass stands. All 12 native analytic and held/untouched/release checks independently reproduced. No oracle change.
 
-### Final Delay-inclusive capture (pending)
+### Final Delay-inclusive capture (2026-11-25)
 
-Subject `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` is the immutable #539 merge on main, released by [the Architect](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7157031233). A76 comparison against `9809dfb9d1ead244815b8f93a68a02f7a307fe5b` changes all four replacement-path files: `engine/edit.cpp` +102, `engine/render.cpp` +41/−1, `engine/build.cpp` +1/−3, `engine/types.h` +5. Therefore rerun the existing native witness, not reuse the prior pin. Exact-source Lab [45576173843](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843) was in progress when capture was dispatched; A70 assertion evidence is pending. A62/native and A69a cost results are pending; no final continuity or cost claim, Pi or physical-device inference.
+Subject `8c9bb10d9eb8acf616395404c26ed0c3964e19d2` is the immutable #539 merge on main, released by [the Architect](https://github.com/kalharbi11/wirescape-lab/pull/525#issuecomment-7157031233). A76 comparison against `9809dfb9d1ead244815b8f93a68a02f7a307fe5b` changes all four replacement-path files: `engine/edit.cpp` +102, `engine/render.cpp` +41/−1, `engine/build.cpp` +1/−3, `engine/types.h` +5. Therefore rerun the existing native witness, not reuse the prior pin. Exact-source Lab [45576173843](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843) completed successfully. See the exact-source assertion evidence below. No Pi or physical-device inference.
 
+
+Subject `8c9bb10d9eb8acf616395404c26ed0c3964e19d2`, capture harness `09e5820dfa14523f90400c44dc7953fd35e6f50f`, hosted Linux x86_64 null sink, devices off, 48 kHz; GCC 13.3.0, CMake 4.2.3, 2026-11-25T08:29Z. A62 [run 45576525996](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576525996), [artifact 15005265410](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576525996/artifacts/15005265410), ZIP SHA-256 `52701c0bd520a56d75da3c688599cd362b4088f8f053e8541bdb85d4e6babbb9`; engine binary SHA-256 `07823e2f070d841db5db97482b6cbff66aed32bceb92a2c6e38221a9ac2f38bc`. Pins and all 24 raw/marks member sizes and digests independently matched. Independent segmented-PCM calculation: 441 scalar checks of all 33 paired windows (sample count, equality, first mismatch, max absolute difference, applicable paired silence/dip/jump and pre/post activity) matched the report at 1e-8 rel/abs; direct 48-sample RMS used. Other reported metrics below are harness output, not separately recomputed in this audit. Load alignment offset zero; all six edited marks record successful generation 1→2. Three matched repeats per size.
+
+| Case / witness | Control-identical windows | Worst paired silence ms | Worst paired dip dB | Worst paired slip ms | Worst paired jump |
+|---|---:|---:|---:|---:|---:|
+| 256→128 all five | 15/15 | 0 | 0 | 0 | 1 |
+| 256→512 tone | 0/3 | 0 | -25.6322 | — | 7.0643 |
+| 256→512 slip tone | 0/3 | — | — | 0 | — |
+| 256→512 Delay tail | 0/3 | 0 | -25.2041 | — | 1 |
+| 256→512 held note | 0/3 | 0.0208333 | -24.4157 | — | 14.3842 |
+| 256→512 clock | 3/3 | — | — | 0 | 1 |
+| 256→512 Slew | 0/3 | 0 | -24.6361 | — | 194911.841 |
+
+Smaller: freshModules absent; tail activity 39,341/39,340/39,341 post sounding samples, held note 47,920 each, all equal to matched controls. Larger: freshModules [] each; Delay post sounding samples 39,340/48,000 in each repeat, held 47,920 and Slew 48,000, all equal to controls. Independently compared every sample of the post-bracket second: all six larger witnesses exactly equal their controls in all three repeats. First mismatch in each of the 15 nonidentical larger windows is 256 samples after edit bracket start. Harness disturbed spans approximately 9.96 ms (tail) and 9.98 ms (tone, held and Slew). The tail is no longer cleared as on the intermediate source. The larger row still misses the ordinary Phase 2 continuity limits (dip > −0.1 dB, jump < 1.5, silence 0); state retention after the bracket is not a click-free transition or an acceptance exception. The small control ramp slope explains the large relative Slew jump. No inference about physical devices.
+
+**A76 exact-source hard assertions:** [source lines 414–451](https://github.com/kalharbi11/wirescape-lab/blob/8c9bb10d9eb8acf616395404c26ed0c3964e19d2/host/sidecar/audio_recovery_tests.cpp#L414-L451), called at line 1361. `abi2_sidecar_audio_recovery_tests` passed in exact subject Lab [45576173843](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843): [Linux x64 job](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/job/139074642621) log line 213 (08:30:08.8097759Z); [Linux arm64](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/job/139074642271) line 213 (08:29:40.6871333Z); [Windows x64](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/job/139074642243) line 370; [sanitizers](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173843/job/139074642426) lines 1019–1020. CTest successful-test stdout is suppressed, so cite the passing test plus unconditional source assertions, not nonexistent printed peak values. Hard assertions include exact held/VCO waveforms, actual 512 vs two 256 calls, fresh exclusions, and later NOTE_OFF release; A62 raw trace is not this witness.
+
+**A76 synthetic untouched Voice:** [run 45576525980](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576525980), [artifact 15003858598](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576525980/artifacts/15003858598), ZIP SHA-256 `ed7b154d393471a4867ec6a2ddd9189c89b2c2146803398be0fc458159bcfeb9`; native binary `ddc4f2b979393d2482273fee1e144cc939f2ff05ef5d57e160e6b85884896bab`; base `00c39f5cc1d747a75fd7dff264e8c87ef78ddb75`. All 48 members matched reported sizes and SHA-256. Independent raw oracle recomputation: 12/12 pairs, exact untouched Voice throughout, exact paired held witness; adopt release at sample 128000, held 1 before and 0 after; fallback first divergence 51456, fades 960/336/24000 frames and settle .375 by release. Maximum residuals adopt 5.960464477539063e-8, ring 9.536743172944284e-8, decline 1.362391881531977e-7, cap 1.3542175292258207e-7. Adopt phase 26 differing samples, report-only. No failures; synthetic descriptors, not stock module cost.
+
+**A69a transition cost:** [run 45576526381](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576526381), [artifact 15004646786](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576526381/artifacts/15004646786), ZIP SHA-256 `ea9aabaa06e1f80a4f1ae98d49491e5b16cca4915bbc8c16579460a091f0f738`; binary `a5e4bdea6292a731fd890dd31d850c8bc8cc1d9995d3f8d802fa32c490a8f465`; Valgrind 3.22.0. Same engine and harness pins. [Exact-source instruction rank](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173849): Black Ice Choir first of 24 bundled rows at 128 frames, x64 1,729,688.8333 Ir/block ([artifact 15004637197](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173849/artifacts/15004637197)), arm64 1,518,270.8333 ([artifact 15004503344](https://github.com/kalharbi11/wirescape-lab/actions/runs/45576173849/artifacts/15004503344)); separate two-length rank method, not the 256-frame per-render cost below. Arm64 advisory Black Ice row +3.39% vs +3% (job 139074553027, line 343); advisory workflow success does not erase this observation.
+
+| A69a row (256 frames, x64) | Ir | Observed block |
+|---|---:|---:|
+| Black Ice Choir single-instance max | 3,311,400 | 300 |
+| Clocked Groove adoption | 800,347 | 248 |
+| Clocked Groove max dual-instance | 800,347 | 248 |
+| Clocked Groove housekeeping (diagnostic) | 494,736 | 253 |
+
+Single stock patch SHA-256 `efc1e0352bcdd082cfa11a07f9106e40f0706e23270c974a65ed2804f00348a3`; dual patch SHA-256 `d6abf9519bea36d8dc7973f8c9b422874c59767d6dd9e0024f1f4e26db33e2cd` (reported). Clocked Groove module 2 canonical edit /modules/1/config/tracks/0/steps/0/key 60→61, canonical bytes 12376; request 242, actual adoption 248, ack completed blocks 249, 960-frame fade ends in block 251, housekeeping requested and published 253. Both rows have zero fault/late/dropped/ring_full/stale/arena_full counters. Independently reconciled all 87 dump digests (66 single, 21 dual), 82 labelled render blocks, summary=totals, contiguous block IDs, single render thread, actual adopt_layout call labels 248 and 253 and sums with Callgrind collected totals (211,593,376 and 10,490,894 Ir). No threshold, module share estimate, Pi extrapolation, or elapsed-time conclusion.
+
+These are measured evidence rows, not M4 acceptance. The integrated larger-buffer gate remains unresolved; no harness or threshold change.
