@@ -365,6 +365,108 @@ static void replan_with_callbacks(Engine &live, Engine &candidate) {
     edit.join();
     CHECK(success.load());
 }
+// ER4: unchanged event cable from a retained source to a replaced destination.
+// A back edge has a queued packet at the callback boundary. Replacing only the
+// destination must preserve it; deleting the cable must still invalidate it.
+struct RoutedReleaseEmitter : EventEmitter {
+    static constexpr ws::Info info{"test.routed_release", "Routed release", 1};
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(true);
+        b.out(0).ch(0)[0] = 1;
+        b.out(1).set_channels(0);
+        auto release = note(WS2_NOTE_OFF, 0);
+        release.offset = b.frames() - 1;
+        CHECK(b.emit(1, release));
+    }
+};
+static void replacement_routed_release() {
+    for (bool keep_cable : {false, true}) {
+        auto make = [&](bool replacement) {
+            auto e = std::make_unique<Engine>(config());
+            CHECK(e->add_node(1, ws::Module<EventSink>::descriptor(),
+                replacement ? std::vector<uint8_t>{1} : std::vector<uint8_t>{}));
+            CHECK(e->add_node(2, ws::Module<RoutedReleaseEmitter>::descriptor()));
+            CHECK(e->connect(1, 1, 2, 0));
+            if (!replacement || keep_cable) CHECK(e->connect(2, 1, 1, 0));
+            CHECK(e->output(1, 0, 0));
+            CHECK(e->output(2, 0, 1));
+            CHECK(e->register_producer() == 0);
+            CHECK(e->prepare());
+            return e;
+        };
+        auto live = make(false), candidate = make(true);
+        float samples[frames]{}, marker[frames]{};
+        float *out[]{samples, marker};
+        CHECK(live->render(out, 2, frames) == WS2_OK);
+        Outgoing outgoing;
+        while (live->pop_egress(outgoing)) {}
+        const auto before = live->meter();
+        CHECK(live->feedback_edges() > 0);
+        replan_with_callbacks(*live, *candidate);
+        candidate.reset();
+        CHECK(live->render(out, 2, frames) == WS2_OK);
+        CHECK(live->meter().generation == before.generation);
+        CHECK(live->meter().faults == before.faults);
+        CHECK(keep_cable ? live->meter().stale == before.stale : live->meter().stale > before.stale);
+    }
+}
+// The bounded ledger is deliberately smaller than this test's ordinary event
+// budget. Verify its counted overflow and the actual number of notes replayed.
+struct LedgerCounter {
+    static constexpr ws::Info info{"test.held_ledger", "Held ledger", 1};
+    static constexpr std::array inputs{
+        ws::port("notes", "Notes", WS2_EV_NOTES, WS2_POLY, 0, nullptr, WS2_EVENT)};
+    static constexpr std::array outputs{ws::port("attacks", "Attacks")};
+    static constexpr std::array<ws2_param, 0> params{};
+    uint32_t attacks = 0;
+    void prepare(const ws::Setup &) {}
+    void reset() { attacks = 0; }
+    void process(ws::Block &b) {
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant(false);
+        b.split([&](uint32_t first, uint32_t end) {
+            for (uint32_t i = first; i < end; ++i) b.out(0).ch(0)[i] = float(attacks) / 256.f;
+        }, [&](const ws2_event &e) {
+            if (e.type == WS2_NOTE_ON) ++attacks;
+            else if (e.type == WS2_NOTE_CHOKE) attacks = 0;
+        });
+    }
+};
+static void replacement_ledger_overflow() {
+    auto make = [](uint8_t config_byte) {
+        auto e = std::make_unique<Engine>(config());
+        CHECK(e->add_node(1, ws::Module<LedgerCounter>::descriptor(), {config_byte}));
+        CHECK(e->output(1, 0, 0));
+        CHECK(e->register_producer() == 0);
+        CHECK(e->prepare());
+        return e;
+    };
+    auto live = make(1), candidate = make(2);
+    const auto before = live->meter();
+    for (int32_t i = 0; i < 129; ++i) {
+        auto e = note();
+        e.note_id = i;
+        CHECK(live->enqueue(0, 1, 0, e, 0, Timing::Immediate) == WS2_OK);
+    }
+    float samples[frames]{};
+    float *out[]{samples};
+    auto render = [&] {
+        allocation_watch::ThreadScope watch;
+        CHECK(live->render(out, 1, frames) == WS2_OK);
+        CHECK(watch.allocations() == 0);
+    };
+    render();
+    CHECK(samples[frames - 1] == 129.f / 256.f);
+    CHECK(live->meter().dropped == before.dropped + 1);
+    replan_with_callbacks(*live, *candidate);
+    candidate.reset();
+    for (unsigned i = 0; i < 4; ++i) render();
+    CHECK(samples[frames - 1] == 128.f / 256.f);
+    CHECK(live->meter().dropped == before.dropped + 1);
+    CHECK(live->meter().generation == before.generation);
+    CHECK(live->meter().faults == before.faults);
+}
 static void removed_event_routes_release() {
     for (bool replace_source : {false, true}) {
         auto make = [&](bool candidate) {
@@ -1053,6 +1155,8 @@ int main(int argc, char **argv) {
     allocation_scope_is_thread_local();
     counted_target_rejection();
     removed_event_routes_release();
+    replacement_ledger_overflow();
+    replacement_routed_release();
     telemetry_replan_layout();
     feedback_delay_survives();
     ramp_survives();
