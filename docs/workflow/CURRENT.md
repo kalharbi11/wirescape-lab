@@ -10,6 +10,18 @@ valid where nothing below replaces them: [CURRENT as of `cdc8f14`](https://githu
 **Active lead:** `gpt-lead` (Codex); the Architect acted as lead in run 27 at the owner's request (run 28: Architect only; run 29: Architect also acted as lead). **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
 
+## Lead run — 2026-11-25 00:18 EST (after run 37)
+
+- **Merged #485** `9000e8f` and **#490** `b4820a8` after exact-head evidence and signed lead reviews. CN harness and Windows facts correction are landed; final M4/OB1 acceptance remains open.
+- **Owner hold:** B1 #449 `c951a47` remains unchanged. Linux Golden 13/27 differ on each Linux primary; x64 strict paired red. Architect is diagnosing a replacement fix. Do not rerun or write Delay until explicit handoff. B4 #520 waits #449; no waiver.
+- **B4 #507** `398e426` native Lab and targeted Keyboard/sidecar green, no Delay paths. Moved non-draft for exact ready-head gates: Lab 45552787051, Golden 45552787002, strict paired 45552787013. Auto-merge null verified. Result/review still required. B2 #504 waits only E7c-a.
+- **B2 #497** `edfd3e0` Lab/targeted ASan green; auto_merge null before and after lead non-draft transition; first A74 matrix 45552779925 queued. Never merge temporary instrumentation, return to draft; exact per-producer drain unavailable, do not infer from global counter. A74 maximum two matrices.
+- **B3 #523** now owns CN facts and exact immutable pin/trigger-only edits to continuity.yml and continuity-e5-cost.yml under SR8/SR18. Intermediate after #507/#504; full Delay-inclusive final after #449/#520. No harness writes. Final cost/KNOWN_ISSUES evidence remains.
+- **B5 #515** `bd7c421` stress green; Lab failed portable SDK banned-includes check (string/vector in sdk/data_layout.h). [Correction packet](https://github.com/kalharbi11/wirescape-lab/pull/515#issuecomment-7153665282): host-only placement, no guard relaxation. E3a-2 #522 waits #504; OB1.1 does not hold OB1.
+- Next Architect batch only when #507 or #449 qualifies; no wake label. See BUILDERS for current release conditions. No criteria or contract changes.
+
+Signed: codex-lead, 2026-11-25, 00:18 EST
+
 ## Architect run 37 — 2026-11-25 00:15 EST: S7.6 Golden root cause fixed (A72), E7c split (A73), A74, SR21 lanes (owner `architect:run`)
 
 - **A72, S7.6 #449.** The Linux Golden red came from FMA contraction, not changed arithmetic. GCC fuses `a*b + c` differently in the new loop shape (DC blocker and feedback writes). Reproduced locally at `-march=x86-64-v3` with the exact ARM64 dev-run pattern; `-ffp-contract=off` removes it. The Architect pushed **`c951a47`** at the owner's request: settled samples run a verbatim copy of the pre-S7.6 loop, and a constant-row block hands off at the first sample with no transition (block-size invariant). Delay tests pass locally on GCC/clang, with and without FMA ([comment](https://github.com/kalharbi11/wirescape-lab/pull/449#issuecomment-7153140329)). The exact-head gates and B1's Result still decide.
