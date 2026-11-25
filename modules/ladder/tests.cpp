@@ -55,11 +55,12 @@ double legacy_magnitude(double rate, double fc, double r, double hz) {
     return std::abs((1.+k)*h4/(1.+k*z1*h4));
 }
 
-void resonance_matrix(const ws2_descriptor* d) {
+void resonance_matrix(const ws2_descriptor* d, bool report_only = false) {
     bool pass = true;
     for (double rate : {44100.,48000.,96000.})
         for (float fc : {1000.f,5000.f})
-            for (float r : {.5f,.9f}) {
+            for (float r : (report_only ? std::array<float,2>{.25f,.75f}
+                                         : std::array<float,2>{.5f,.9f})) {
                 const auto samples = impulse(d, rate, fc, r);
                 double peak = 0, peak_hz = 0;
                 auto examine = [&](double hz) {
@@ -80,13 +81,13 @@ void resonance_matrix(const ws2_descriptor* d) {
                     VERIFY(before > 0 && after > 0);
                     mean_db += 20*std::log10(after/before)/5.;
                 }
-                std::printf("Ladder S7.8 rate=%g fc=%g r=%g peak_hz=%.3f ratio=%.5f peak=%.6f passband_delta_db=%.6f\n",
-                            rate, double(fc), double(r), peak_hz, peak_hz/fc, peak, mean_db);
+                std::printf("Ladder S7.8 %s rate=%g fc=%g r=%g peak_hz=%.3f ratio=%.5f peak=%.6f passband_delta_db=%.6f\n",
+                            report_only ? "reported" : "gated", rate, double(fc), double(r), peak_hz, peak_hz/fc, peak, mean_db);
                 pass = pass && peak_hz >= .95*fc && peak_hz <= 1.05*fc
                             && std::abs(mean_db) <= 1.;
             }
     std::fflush(stdout);
-    VERIFY(pass);
+    if (!report_only) VERIFY(pass);
 }
 
 void bounded_step(const ws2_descriptor* d) {
@@ -124,5 +125,6 @@ int main(int argc,char**argv) {
     auto* d = loader.abi2("ladder");
     bounded_step(d);
     resonance_matrix(d);
+    resonance_matrix(d, true); // A53 Low: report only, no new acceptance bound.
     return 0;
 }
