@@ -645,6 +645,43 @@ struct GrooveV2Rig {
         render();
     }
 };
+// E3b: an active note survives a data serial change. The next step reads
+// the new borrowed row, without rewinding phase, loop or note identity.
+static void test_live_pattern_data() {
+    GrooveV2Rig rig;
+    alignas(16) groove::LivePattern data{};
+    data.length_1 = data.length_2 = 8;
+    data.count_1 = 2;
+    data.steps_1[0] = {groove::Note, 60, 1.f, 0.f, 0.f, 4};
+    data.steps_1[1] = {groove::Note, 62, 1.f, 0.f, 0.f, 4};
+    data.steps_1[1].keys[0] = 62;
+    ws2_data slot{sizeof(ws2_data), &data, sizeof(data), 1};
+    rig.raw.struct_size = sizeof(rig.raw);
+    rig.raw.data_count = 1;
+    rig.raw.data = &slot;
+    rig.start();
+    check(rig.count == 1 && rig.accepted[0].type == WS2_NOTE_ON &&
+          rig.accepted[0].key == 60, "live pattern initial note");
+    const auto id = rig.accepted[0].note_id;
+    const auto loop = rig.seq.players[0].loop;
+    const auto rng = rig.seq.players[0].rng;
+    const auto phase = rig.seq.phase;
+    alignas(16) auto edited = data;
+    edited.steps_1[1].key = edited.steps_1[1].keys[0] = 65;
+    edited.length_1 = 16;
+    slot.data = &edited;
+    slot.serial = 2;
+    rig.render();
+    check(rig.count == 1 && rig.seq.running && rig.seq.players[0].sounding.notes[0].id == id &&
+          rig.seq.players[0].loop == loop && rig.seq.players[0].rng == rng &&
+          rig.seq.phase == phase + 1., "live edit preserves held identity, loop, RNG and phase");
+    for (unsigned i = 0; i < 4 && rig.count < 3; ++i) rig.render();
+    check(rig.count == 3 && rig.accepted[1].type == WS2_NOTE_OFF &&
+          rig.accepted[1].note_id == id && rig.accepted[2].type == WS2_NOTE_ON &&
+          rig.accepted[2].key == 65 && rig.seq.step_t[0] == 1,
+          "next step reads new row and releases prior note once");
+}
+
 static void test_v2_gates_and_skipped_ties() {
     {
         GrooveV2Rig rig;
@@ -1170,6 +1207,7 @@ int main() {
         test_chord_to_notes_cv();
         test_v2_config_and_conditions(cat.get());
         test_v2_gates_and_skipped_ties();
+        test_live_pattern_data();
         test_tempo_source();
         test_s1_transport(cat.get());
         test_s1_deliberate_saturation();
