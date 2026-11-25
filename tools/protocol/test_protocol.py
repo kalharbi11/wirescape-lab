@@ -23,7 +23,7 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 21)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 22)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
