@@ -4,6 +4,8 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "../../tests/native/abi2/test_modules.h"
 #include "runtime_module_config.h"
+#include "groove_data_migration.h"
+#include "../../engine/data_pack.h"
 #include "runtime_patch.h"
 #include <algorithm>
 #include <array>
@@ -712,6 +714,35 @@ static void test_live_pattern_migration() {
     check(bool(validate()), "valid candidate accepted after refusal");
 }
 
+static void test_groove_host_adapter() {
+    using namespace wirescape::document;
+    auto module = patch(pattern())["modules"][0];
+    materialize_groove_legacy_data(module, 1);
+    auto &value = module["data"]["pattern"];
+    check(value["length_1"] == 32 && value["steps_1"].size() == 64 &&
+              value["steps_1"][0]["key"] == 72 && value["steps_1"][2]["key"] == 64 &&
+              !value.contains("count_1"), "legacy rows materialized as typed data");
+    const auto &slot = groove::Sequencer::data_slots[0];
+    std::vector<uint8_t> bytes;
+    std::string error;
+    check(ws::data_layout::pack_data_slot(slot, value, ws::data_layout::DataLoad::Edit,
+              bytes, error, nullptr, validate_groove_data_slot), "migrated JSON packs through shared table");
+    groove::LivePattern packed{};
+    std::memcpy(&packed, bytes.data(), sizeof(packed));
+    check(packed.count_1 == 64 && packed.steps_1[0].key == 72 &&
+              packed.steps_1[0].velocity == .8f && packed.steps_1[3].kind == groove::Tie,
+          "typed legacy migration retains exact step values and ties");
+    value["length_1"] = 12;
+    materialize_groove_legacy_data(module, 1);
+    check(module["data"]["pattern"]["length_1"] == 12,
+          "explicit data remains authoritative rather than falling back to legacy");
+    const auto prior = bytes;
+    check(!ws::data_layout::pack_data_slot(slot, value, ws::data_layout::DataLoad::Edit,
+              bytes, error, nullptr, validate_groove_data_slot) &&
+              error.find("pattern.length_1") != std::string::npos && bytes == prior,
+          "host validation refuses transactionally and names field");
+}
+
 static void test_live_pattern_data() {
     GrooveV2Rig rig;
     alignas(16) groove::LivePattern data{};
@@ -1257,7 +1288,8 @@ int main(int argc, char **argv) {
         // E3a shared-loader dependency.
         if (argc == 2 && std::string(argv[1]) == "--live-pattern-only") {
             test_live_pattern_migration();
-        test_live_pattern_data();
+            test_groove_host_adapter();
+            test_live_pattern_data();
             std::puts("PASS Groove live pattern direct continuity");
             return 0;
         }
@@ -1284,6 +1316,7 @@ int main(int argc, char **argv) {
         test_v2_config_and_conditions(cat.get());
         test_v2_gates_and_skipped_ties();
         test_live_pattern_migration();
+        test_groove_host_adapter();
         test_live_pattern_data();
         test_tempo_source();
         test_s1_transport(cat.get());
