@@ -1,0 +1,225 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: Rebuild comparison (advisory, devices off)
+on:
+  workflow_dispatch:
+    inputs:
+      before:
+        description: "Full lab import SHA (previous engine)"
+        required: true
+        type: string
+      after:
+        description: "Full lab main SHA to measure"
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  paired:
+    name: Rebuild comparison / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {machine: linux-x64, runner: ubuntu-24.04}
+          - {machine: linux-arm64, runner: ubuntu-24.04-arm}
+    env:
+      BEFORE: ${{ inputs.before }}
+      AFTER: ${{ inputs.after }}
+      MACHINE: ${{ matrix.machine }}
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+    steps:
+      - name: Validate subject pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BEFORE" =~ ^[0-9a-f]{40}$ && "$AFTER" =~ ^[0-9a-f]{40}$ && "$BEFORE" != "$AFTER" ]]
+          test "$BEFORE" = 660556fbfb6ef30f828c68e9a05afa38ce0ee957
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.before }}
+          path: before
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.after }}
+          path: after
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install identical native and offline dependencies
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0 -r after/bench/offline/requirements.txt
+      - name: Record exact subjects and runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C before rev-parse HEAD)" = "$BEFORE"
+          test "$(git -C after rev-parse HEAD)" = "$AFTER"
+          git -C after merge-base --is-ancestor "$AFTER" refs/remotes/origin/main
+          mkdir -p evidence
+          python - <<'PY'
+          import datetime, json, os, platform, subprocess
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          def cmd(*args):
+              return subprocess.check_output(args, text=True).strip()
+          def cpu():
+              return [line for line in Path("/proc/cpuinfo").read_text().splitlines()
+                      if line.startswith(("model name", "CPU implementer", "CPU part"))]
+          record = dict(before=os.environ["BEFORE"], after=os.environ["AFTER"],
+                        before_upstream="44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+                        machine=os.environ["MACHINE"], architecture=platform.machine(),
+                        cpu=sorted(set(cpu())), os=platform.platform(), compiler=cmd("c++", "--version").splitlines()[0],
+                        cmake=cmd("cmake", "--version").splitlines()[0], python=platform.python_version(),
+                        date_et=datetime.datetime.now(ZoneInfo("America/New_York")).isoformat(),
+                        run_url=os.environ["GITHUB_SERVER_URL"]+"/"+os.environ["GITHUB_REPOSITORY"]+"/actions/runs/"+os.environ["GITHUB_RUN_ID"])
+          Path("evidence/provenance.json").write_text(json.dumps(record, indent=2)+"\n")
+          PY
+      - name: Build previous engine (stop if build fails)
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd before && python tools/dev.py build --headless --config Release) 2>&1 | tee evidence/before-build.log
+      - name: Build rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd after && python tools/dev.py build --headless --config Release) 2>&1 | tee evidence/after-build.log
+      - name: Collect paired native rows on one runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, importlib.util, json, os, re, subprocess
+          from pathlib import Path
+
+          evidence = Path("evidence").resolve()
+          roots = {name: Path(name).resolve() for name in ("before", "after")}
+          provenance = json.loads((evidence/"provenance.json").read_text())
+          def write(name, value):
+              (evidence/name).write_text(json.dumps(value, indent=2, allow_nan=False)+"\n")
+          def call(args, root, timeout=180):
+              try:
+                  p = subprocess.run([str(x) for x in args], cwd=root, capture_output=True,
+                                     text=True, stdin=subprocess.DEVNULL, timeout=timeout)
+                  return dict(exit_code=p.returncode, stdout=p.stdout, stderr=p.stderr.replace(str(root), "<subject>"))
+              except (OSError, subprocess.TimeoutExpired) as exc:
+                  return dict(exit_code=None, stderr=str(exc).replace(str(root), "<subject>"))
+          def parsed(result, prefix=""):
+              if result["exit_code"] != 0:
+                  return dict(status="unmeasured", **result)
+              try:
+                  raw = result["stdout"]
+                  if prefix:
+                      lines = [s[len(prefix):] for s in raw.splitlines() if s.startswith(prefix)]
+                      if len(lines)!=1:
+                          raise ValueError("expected one prefixed JSON row")
+                      raw = lines[0]
+                  return dict(status="measured", data=json.loads(raw))
+              except (ValueError, KeyError) as exc:
+                  return dict(status="unmeasured", reason=str(exc), **result)
+          def binary(root, name):
+              return root/"build/native"/name
+          def manifest_ids(root, side):
+              bases = ("native/modules2", "native/sdk/examples") if side=="before" else ("modules", "sdk/examples")
+              paths = [p for base in bases for p in (root/base).glob("*/module.json")]
+              ids = sorted(json.loads(p.read_text())["id"] for p in paths)
+              catalog = root/("native/control/module_catalog.inc" if side=="before" else "engine/control/module_catalog.inc")
+              expected = len(re.findall(r"(?m)^\s*WS_APP_MODULE\(", catalog.read_text()))
+              if len(ids)!=expected or len(set(ids))!=expected:
+                  raise RuntimeError("catalogue and manifest count mismatch")
+              return ids
+          ids = {side:manifest_ids(root, side) for side,root in roots.items()}
+          common_ids = sorted(set(ids["before"]) & set(ids["after"]))
+          write("inventory.json", dict(provenance=provenance, module_ids=ids, common_module_ids=common_ids))
+          # The imported benchmark accepts exactly two positional arguments; 256 frames on both.
+          for side,root in roots.items():
+              target=evidence/(side+"-engine.json")
+              result=call([binary(root,"abi2_benchmark"),root/"build/native",target],root)
+              if result["exit_code"]==0 and target.is_file():
+                  row=json.loads(target.read_text())
+                  assert row["frames"]==256 and row["sample_rate"]==48000
+                  assert len([x for x in row["rows"] if x["name"]=="abi2_poly8"])==1
+              else:
+                  write(side+"-engine-error.json",result)
+          # Run pairs in alternating subject order by fixture, never compare different block sizes.
+          module_rows=[]
+          for ident in common_ids:
+              for channels in (1,8):
+                  row=dict(module=ident,channels=channels,instances=2,rate=48000,block=128,seconds=2)
+                  for side,root in roots.items():
+                      result=call([binary(root,"abi2_module_cpu_probe"),"--module",ident,"--rate",48000,
+                                   "--block",128,"--channels",channels,"--instances",2,"--seconds",2],root,45)
+                      row[side]=parsed(result,"module_cpu_probe ")
+                  module_rows.append(row)
+          write("module-cpu.json",dict(provenance=provenance,rows=module_rows))
+          # Same imported fixture bytes on both builds; report unaccepted fixtures explicitly.
+          patches={side:{p.name:p for p in (root/"apps/studio/patches").glob("*.json")}
+                   for side,root in roots.items()}
+          common_patches=sorted(patches["before"].keys() & patches["after"].keys())
+          soak_rows=[]
+          for name in common_patches:
+              fixture=patches["before"][name]
+              row=dict(patch=name,fixture_sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),
+                       fixture_subject=provenance["before"],rate=48000,block=128,seconds=30)
+              for side,root in roots.items():
+                  result=call([binary(root,"wirescape_soak"),"--patch",fixture,"--rate",48000,
+                               "--block",128,"--seconds",30],root,120)
+                  row[side]=parsed(result)
+              soak_rows.append(row)
+          write("patch-cost.json",dict(provenance=provenance,rows=soak_rows,
+                                      own_patch_names={k:sorted(v) for k,v in patches.items()}))
+          # Current golden collector is read from the after pin and used unchanged for both.
+          collector=roots["after"]/"bench/golden/render.py"
+          spec=importlib.util.spec_from_file_location("golden",collector)
+          golden=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(golden)
+          for side,root in roots.items():
+              rows=[]
+              for name,fixture in sorted(patches[side].items()):
+                  row=dict(patch=name,fixture_sha256=hashlib.sha256(fixture.read_bytes()).hexdigest())
+                  try:
+                      row.update(status="measured",data=golden.measure(binary(root,"wirescape_render"),fixture,"bundled",root))
+                  except Exception as exc:
+                      row.update(status="unmeasured",reason=str(exc).replace(str(root),"<subject>"))
+                  rows.append(row)
+              write(side+"-golden.json",dict(provenance=provenance,collector_subject=provenance["after"],rows=rows))
+          # Static census of quoted catalogue IDs in explicit core path sets (not module definitions).
+          all_ids=sorted(set(ids["before"])|set(ids["after"]))
+          pattern=re.compile(r'"('+"|".join(re.escape(i) for i in all_ids)+r')"')
+          for side,root in roots.items():
+              bases=("native/engine2","native/control","native/document","native/sidecar","native/io") if side=="before" else ("engine","host")
+              matches=[]
+              for base in bases:
+                  for path in sorted((root/base).rglob("*")):
+                      if not path.is_file() or path.suffix not in (".h",".hpp",".cpp",".cc",".c") or "tests" in path.parts:
+                          continue
+                      for line_no,line in enumerate(path.read_text(errors="replace").splitlines(),1):
+                          for ident in pattern.findall(line):
+                              matches.append(dict(path=path.relative_to(root).as_posix(),line=line_no,id=ident))
+              write(side+"-core-id-matches.json",dict(provenance=provenance,scope=bases,rows=matches))
+              # Explicit names; engine artifact is sidecar executable, module libraries enumerated separately.
+              files=[]
+              for p in sorted((root/"build/native").glob("*")):
+                  if p.is_file() and (p.name=="wirescape_engine_sidecar" or
+                     (p.name.startswith("libws2_") and p.suffix==".so" and
+                      not p.name.startswith(("libws2_test_","libws2_guide_","libws2_sdk_")))):
+                      sizes=call(["size","-A",p],root)
+                      text=None
+                      if sizes["exit_code"]==0:
+                          text=sum(int(x.split()[1]) for x in sizes["stdout"].splitlines()
+                                   if len(x.split())>=2 and (x.split()[0]==".text" or x.split()[0].startswith(".text.")))
+                      files.append(dict(file=p.name,bytes=p.stat().st_size,text_bytes=text))
+              write(side+"-binary-size.json",dict(provenance=provenance,rows=files))
+          PY
+      - name: Upload raw paired evidence, even on build or collection failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebuild-comparison-${{ matrix.machine }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
