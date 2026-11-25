@@ -342,3 +342,52 @@ fresh measurements at the three A50 engine pins. Standalone setData
 per data user, standalone setTransport, setSampleRate, and the separate
 transition-cost rows are not measured by these selected reports. No
 new device, Pi, wall-clock gap, or transition-cost measurement is inferred.
+
+
+## M4 CN — E7 smaller/larger buffer (A62, 2026-11-24 ET)
+
+Source-pinned device-off capture [45525665579](https://github.com/kalharbi11/wirescape-lab/actions/runs/45525665579), Linux x86_64 hosted Ubuntu 24.04, Intel Xeon 6975P-C, 2026-11-25T01:29Z UTC, Python 3.12.16, CMake 4.2.3, GCC 13.3.0. Engine `e7d6bcd1a7300e0445eb0dd78ce1d11dd0231405`, harness `873dc8852cf959c05156cd2fd7710fea076d6bab`, both clean. Built-head claim matched; binary SHA-256 `1eab7ed3f1497a4d0376360acb36a4ed17b0dbee2c3a9b6127dbc9e49ab662bd` (recorded, binary not archived). 48 kHz, initial 256 frames, three repeats per case, unchanged A50 metrics and load timing. Smaller 128 retains the original fixture; larger 512 adds only the constant +1 Scale/Offset (94), 10 s/unit Slew (95) and Output (96) on bus 9. The Slew output is advancing and not saturated at the edit.
+
+[Raw archive 14981879624](https://github.com/kalharbi11/wirescape-lab/actions/runs/45525665579/artifacts/14981879624) SHA-256 `4d5168a26a2e62234bb2ea909e3993e8e035c0c70574ac753b2b7459bec7b522`. All 24 raw/marks member sizes and SHA-256s matched report.json; all marks and both segment geometries matched independently parsed capture bytes. All 33 paired windows checked directly from float32 PCM: reported equality, first mismatch and max absolute residual reproduced; each alignment residual 0, offset 0 blocks. All six command replies accepted, brackets four blocks. Actual edited segment boundaries: smaller repeats 256×825 then 128×765/765/768 blocks; larger 256×825 then 512×192/192/191. Control segments remain 256 frames. No wall-clock gap claim.
+
+### Absolute-waveform values (worst across three repeats)
+
+— means not applicable. These are absolute, not control-differenced.
+
+| edit | witness | silence_ms | dip_db | time_slip_ms | jump_ratio | disturbed_ms |
+|---|---|---:|---:|---:|---:|---:|
+| smaller | tone | 0.020833333333333332 | 0 | — | 1.0000000000379696 | 0 |
+| smaller | slip_tone | — | — | -2.2190652265678744e-08 | — | — |
+| smaller | tail | 47.083333333333336 | -108.67341619390929 | — | 0.8111067994971224 | 0 |
+| smaller | held_note | 0.020833333333333332 | -0.6209527346803779 | — | 1 | 0 |
+| smaller | clock | — | — | 0 | 1 | 0 |
+| larger | tone | 0.020833333333333332 | -24.66055982878071 | — | 7.078116194284302 | 1021.3333333333334 |
+| larger | slip_tone | — | — | -30.666666710306423 | — | — |
+| larger | tail | 1021.3333333333334 | -159.99336548939158 | — | 0.7868640870771975 | 1021.3333333333334 |
+| larger | held_note | 1021.3333333333334 | -147.0525683274469 | — | 1 | 1021.3333333333334 |
+| larger | clock | — | — | -0.020833333333333332 | 1 | 794.9791666666666 |
+| larger | slew | 0 | -23.860437878086337 | — | 194656.71643415178 | 9.979166666666666 |
+
+### Control-differenced values (worst across three repeats)
+
+| edit | witness | identical repeats | silence_ms | dip_db | time_slip_ms | jump_ratio |
+|---|---|---:|---:|---:|---:|---:|
+| smaller | tone | 3/3 | 0 | 0 | — | 1 |
+| smaller | slip_tone | 3/3 | — | — | 0 | — |
+| smaller | tail | 3/3 | 0 | 0 | — | 1 |
+| smaller | held_note | 3/3 | 0 | 0 | — | 1 |
+| smaller | clock | 3/3 | — | — | 0 | 1 |
+| larger | tone | 0/3 | 0.020833333333333332 | -24.66055982878071 | — | 7.078116194011695 |
+| larger | slip_tone | 0/3 | — | — | -30.666666690497927 | — |
+| larger | tail | 0/3 | 91.8125 | -inf | — | 1 |
+| larger | held_note | 0/3 | 12.479166666666666 | -136.79155752371582 | — | 1 |
+| larger | clock | 0/3 | — | — | -0.020833333333333332 | 1 |
+| larger | slew | 0/3 | 0 | -24.636130665616214 | — | 194656.71643415178 |
+
+Smaller: all 15/15 witness windows are identical; tail has 20,302 pre and 39,341 post sounding samples (post 48,000-frame window, existing -80 dBFS criterion), held note 23,960/47,920, same counts in controls, each repeat. Tail post peak 0.4796806573867798 FS, held note 0.699999988079071 FS. All clock onsets 4/4, no missing/extra.
+
+Larger: all 18 windows differ. Tail and held note post peaks and sounding counts are zero for every repeat, versus 39,340 and 47,920 sounding control samples; pre counts 20,302 and 23,960. The paired silence metric counts consecutive newly silent samples only while the control is sounding, not the full gap length. Clock onset count 4/4, no missing/extra, one-sample lead (−0.020833333333333332 ms); this is not strictly under one sample. Tone/slip tone differ with fresh oscillators. Slew pre/post sounding samples 24,000/48,000, same as control; all three aligned traces differ for exactly 479 consecutive samples beginning at the new segment (max residual 0.4060876414296217 FS), then match sample-exactly through the remainder of the comparison window, including the entire post-bracket second. First repeat control/edited values immediately before transition 0.40693333745002747 FS; first new segment sample 0.0008477822 FS edited; both 0.409068763256073 FS at bracket end and 0.509066641330719 FS at end of post window. The trace demonstrates retained unsaturated state after transition, not a click-free transition. Dip and jump exceed ordinary CN limits; the measured jump is relative to the small slope of the ramp control, not an absolute FS amplitude. No acceptance exception inferred.
+
+### Fresh instances and limitations
+
+Smaller: `freshModules` absent on each of the three replies. Larger: identical 14-entry host-reported list on each reply: `essentials.vco` IDs 1, 3, 12, 19, 50, 52, 54, 61, 90; `essentials.vca` IDs 6, 14, 18; `host.keyboard` ID 11; `essentials.adsr` ID 13. Each listed instance starts fresh under A62. Delay 9 is not listed because its version-only hook returns OK; its tail is cleared, as measured. E7's [state inventory/Result](https://github.com/kalharbi11/wirescape-lab/pull/442#issuecomment-7148694696) also identifies Reverb/Resonator tails and held-note converters (Chord, CV-to-Notes, MIDI-to-CV, Notes-to-CV) with OK-but-empty runtime state, not all present in this probe. These are distinct from host-reported fresh instances. The larger rebuild has measured discontinuities, including the audible tail/note loss and Slew transition; the final M4 gate disposition is not established by these facts. No physical audio/MIDI gap or key-release claim. Final CN refresh awaits E5; prior A50 and historical rows remain unchanged.
