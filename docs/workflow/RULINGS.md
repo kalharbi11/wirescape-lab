@@ -82,6 +82,7 @@ Status: **live** (binds a current contract) · **spent** (its task merged or clo
 | A98 | 2026-11-26 | #631 historical witness at 48479fc and disposition | milestones/OB.md r2.14 (1) | live |
 | A99 | 2026-11-26 | OB-h2 #601 OSC Out parser and staging paths | milestones/OB.md r2.14 (2) | live |
 | A100 | 2026-11-26 | E3b live Groove support via catalogue `data_slots`, not a named capability | milestones/M4.md (E3b note) | live |
+| A101 | 2026-11-26 | MM1 partial `applyGraph` ACK: any `unapplied` event is a refusal; one compensating `applyGraph` of the prior state (0024 §9.5) | milestones/MM.md (I1) | live |
 
 Not found: A7, A8, A9, A24, A25, A29, A30, A33, A34, A36, A38, A43, A47, A48, A49, A65, A66, A72, A73, A74.
 Ambiguous, left out: A1-A4 of 0006 are assumptions (M1.md:49) and A2 is also a KNOWN_ISSUES row; A5 and A11 are

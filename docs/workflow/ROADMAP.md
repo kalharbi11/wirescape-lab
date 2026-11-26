@@ -28,6 +28,8 @@ as written, but it gates no new work.
 | 0 | M4 E3a/b/c (OB1.1) | E3a-1 and E3c #540 merged; E3b #545 in flight | Merge under M4; no OB1 hold |
 | 0 | [M7](milestones/M7.md) sound work | Batches 1 and 2 merged | OB-d owner listening list, then close |
 | 0 | [OB1](milestones/OB.md) gapless Owner Build | Code prerequisites merged | Owner-only: OB-d, the OB-a2 folder check, Pi 6a/6b. Architect tags `owner-build-1`. Gates nothing new |
+| 1 | [MM](milestones/MM.md) macros and mapping (0024 §3) | MM r1 contract; A101 rules the MM1 partial ACK | B1: MM1 → MM2 → MM3, MM4 after Gate P1 (e); B3: MM-f facts. MM2's RealEngine path waits for the Macro PROMO |
+| 1 | `wirescape-test` modules MOD-1 to MOD-9 (0024 §2, §4, §9) | MOD-0 merged. T2 §9.1–§9.3 is in test PR #4. MOD-1, 2, 3 and 5 are filed (test #5–#8). MOD-1 is held on lab #665 and MOD-2 on #664 for T2 | MOD-4 after MOD-3 merges; Stage 2 MOD-6–8; Stage 3 MOD-9. PROMO-n per module after MB2 or the §9.6 fallback date (M3 r2.2) |
 | 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 facts #634, h4 #609 and h5 merged; h3 #610 released after #635; h6 #648 awaiting gates | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
 | 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | CI-S1–S3 applied by Architect run 47 |
 | 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | Unparked by 0023 R3.1 | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3. The lab module freeze ends when MB2 merges |
