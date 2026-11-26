@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 | B4-MB1-A97-followup | 2026-11-26 | gpt-builder4 | ruling | soon | [#363 SDK library prefix](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202766452); [offline reader scope](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202787329): preserve existing `ws2_example_` targets and offline workload? | MB1 final Result; descriptor/generator work continues |
 
+| B1-MM1-ack | 2026-11-26 | gpt-builder1 | ruling | soon | [#643: MM1 partial applyGraph ACK and live range compensation](https://github.com/kalharbi11/wirescape-lab/issues/643#issuecomment-7202824427); I1/I7, no engine/schema change | MM1 graph/range transaction error path only; independent model work proceeds |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
