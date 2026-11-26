@@ -222,6 +222,9 @@ def fade_gap(audio):
         hi += 1
     require(any(0 < x < audio[0] for x in audio[:lo]), 'no fade-out ramp to zero')
     require(any(0 < x < audio[-1] for x in audio[hi:]), 'no fade-in ramp from zero')
+    require(all(x > 0 for x in audio[hi:]), 'second unexpected silent interval')
+    require(all(a >= b for a, b in zip(audio[:lo], audio[1:lo])), 'fade-out not monotonic')
+    require(all(a <= b for a, b in zip(audio[hi:], audio[hi + 1:])), 'fade-in not monotonic')
     return (hi - lo) * 1000 / RATE
 
 
@@ -247,7 +250,8 @@ def analyze(capture, switches, mark_ids):
             end = min(total, swap['b1'] + 2)
             audio, gate = samples(stream, segments, first, end)
             _, held = samples(stream, segments, hold['b0'], swap['b0'])
-            require(any(x > 0 for x in held), f'switch {number}: no held note before swap')
+            require(any(x > 0 for x in held) and gate[0] > 0,
+                    f'switch {number}: no held note immediately before swap')
             require(not any(gate[-BLOCK:]), f'switch {number}: gate/note retained after swap')
             try:
                 gaps.append(fade_gap(audio))
@@ -257,7 +261,7 @@ def analyze(capture, switches, mark_ids):
 
 
 def run(binary, switches):
-    rss, marks = {}, []
+    rss, marks, ack_ms = {}, [], []
     with tempfile.TemporaryDirectory(prefix='ob-h3-') as directory, \
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as receiver, \
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
@@ -292,10 +296,16 @@ def run(binary, switches):
                 hold_id = f'soak-{engine.step}'
                 receive_until(receiver, time.monotonic() + 2, {
                     (address + '/gate', (1.0,)), (address + '/note', (60, .5, 0))})
+                # Allow the real held block to be captured before the command;
+                # the offline witness still requires a high pre-swap sample.
+                time.sleep(2 * BLOCK / RATE)
                 new, address, source, out = patch(number % 2)
+                started = time.monotonic()
                 engine.request('loadGraph', swap=True, patch=new)
+                acknowledged = time.monotonic()
+                ack_ms.append((acknowledged - started) * 1000)
                 swap_id = f'soak-{engine.step}'
-                deadline = time.monotonic() + .050
+                deadline = acknowledged + .050
                 value = number / 2048  # unique exactly representable sentinel
                 sender.sendto(packet(address + '/in', value), ('127.0.0.1', PORT_IN))
                 receive_until(receiver, deadline, {(address + '/echo', (value,))})
@@ -316,6 +326,7 @@ def run(binary, switches):
         gaps = analyze(capture, switches, marks)
     return dict(status='passed', switches=switches, gap_ms_p50=statistics.median(gaps),
                 gap_ms_max=max(gaps), rss_kib=rss,
+                load_ack_ms_p50=statistics.median(ack_ms), load_ack_ms_max=max(ack_ms),
                 gap_definition='exact-zero captured samples; excludes stopped wall-clock time')
 
 
