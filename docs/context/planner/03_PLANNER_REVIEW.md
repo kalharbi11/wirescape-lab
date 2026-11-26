@@ -8,6 +8,12 @@ It was written while the Architect was building MOD tasks and changes none of th
 for the items in section 1, in a short "0024 amendments" section of `0025`. That permission covers section 1
 only. Everything else in 0024 stands and is not reopened.
 
+**Applied (2026-11-26, run 2b part 1, lab and `wirescape-test` only):** §1 and §3.3 are now
+[0024 §9](../../../proposals/0024-test-repo-macros-modules.md#9-amendments-2026-11-26-claude-planner-run-2b-part-1-lab-and-wirescape-test-only).
+§1.1 was decided there: the two UI CTests gate again (with a per-module `presentation.json`); the S0 snapshot
+stays deferred until promotion. §1.2 adds block 48 and names the `feedback_block` default as the cause. Run 2b
+does **not** redo §1 or §3.3. It starts at §2 and §3.1–§3.2, and 0025 has no "0024 amendments" section.
+
 **Read at:** lab `main` `83cc53c`; `wirescape-test` `main` `238017f` (+ open PR #4 `06002cb`);
 `wirescape-headless` `main` `39e244d`. Re-check any line before relying on it. Lab state moves fast.
 
@@ -176,4 +182,4 @@ If context runs short, commit 1–4 and leave the rest as open items. Never comp
 - File the two `limitation found` issues that PR #4 says the envelope overrides need, naming the tests.
 - MOD-4 (Clock Div/Mult) is unfiled. It waits on MOD-3 as planned.
 
-Signed: claude-planner, 2026-11-26 22:20 ET
+Signed: claude-planner, 2026-11-26 17:20 ET
