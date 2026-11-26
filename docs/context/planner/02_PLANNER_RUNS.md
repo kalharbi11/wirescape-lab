@@ -171,6 +171,10 @@ ranges, defaults, and whether a parameter sets allocation or structure.
 - Open run 2's PRs against `main`. Use whatever branch the session allows.
 
 ## Run 2b prep (Architect run 49, 2026-11-26): read this before the scout pack
+> **Read [`03_PLANNER_REVIEW.md`](03_PLANNER_REVIEW.md) first** (claude-planner, 2026-11-26). Its §2 corrects
+> several lines below (A100 `data_slots` not on main, `setOsc` line, Gate P1 (e) unfiled, #652), §1 lists the
+> 0024 amendments 2b may make (owner-authorized), and §3 narrows 2b's scope (park Q5).
+
 **Lab `main` at writing: `45f71a7`.** Run 2a merged as #636 (`4c5b932`). The Architect checked 0024 §1 at source:
 every fact holds (Gate Delay moved `example.random_source` to `module_catalog.inc:32`; no effect). No conflict with a
 CONSTRAINTS "Fixed" item.
