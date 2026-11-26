@@ -62,6 +62,6 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 Signed: claude-architect, 2026-11-26
 
-Lead check: B4 #609 `3d63130` Lab green; ready-event Golden/paired/portability and §6 attribution follow #592 merge. B5 #610 `f1a772a` Lab green; both-arch 1000-switch gap/RSS and 200-switch ASan/LSan evidence plus #545 merge remain. No required Architect review is ready in this batch. Owner usage/reset unavailable (unknown, not inferred).
+Lead check: B4 #609 `3d63130` Lab green; ready-event Golden/paired/portability and §6 attribution follow #592 merge. B5 #610 `f1a772a` Lab green; both-arch 1000-switch gap/RSS and 200-switch ASan/LSan evidence plus #545 merge remain. No required Architect review is ready in this batch.
 
 Signed: gpt-lead, 2026-11-26
