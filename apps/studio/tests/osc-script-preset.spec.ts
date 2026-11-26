@@ -45,3 +45,77 @@ test('OB-h5 Script preset maps MIDI pitch and preserves LAN and patch shape', as
   await settle(page);
   expect((await state(page)).modules[0].config).toEqual(saved.modules[0].config);
 });
+
+test('OB-h5 OSC In portable file round trip, wrong module and network isolation', async ({ page }) => {
+  await boot(page);
+  await page.evaluate(() => window.__wirescapeTest.load({
+    format: 'wirescape.native.patch', version: 2, connections: [],
+    modules: [{ id: 1, module: 'osc.in', config: { port: 9123, lan: true } }],
+    ui: { positions: { '1': [48, 30] }, view: { x: 0, y: 0, zoom: 1 } },
+  }));
+  await settle(page);
+  await page.getByTestId('osc-edit-1').click();
+  await page.getByRole('button', { name: 'Script (/ws/…)', exact: true }).click();
+  await page.getByTestId('osc-preset-name').fill('Script copy');
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save preset…', exact: true }).click();
+  const download = await downloading;
+  const fs = await import('node:fs/promises');
+  const file = JSON.parse(await fs.readFile((await download.path())!, 'utf8'));
+  expect(file).toMatchObject({ format: 'wirescape.osc.preset', version: 1, module: 'osc.in', name: 'Script copy' });
+  expect(Object.keys(file.config).sort()).toEqual(['port', 'rows']);
+  expect(file.config.port).toBe(9123);
+  expect(file.config.rows[0].pattern).toBe('/ws/pitch/*');
+  expect((await state(page)).modules[0].config.rows).toBeUndefined();
+  await page.getByTestId('osc-preset-pico').click();
+  const upload = async (value: unknown) => page.getByTestId('osc-preset-file').setInputFiles({
+    name: 'preset.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)),
+  });
+  await upload({ ...file, module: 'osc.out' });
+  await expect(page.getByTestId('osc-editor-errors')).toContainText('Wrong module');
+  await expect(page.getByTestId('osc-row1-pattern')).toHaveValue('/pico1/knob/1');
+  await upload({ ...file, config: { ...file.config, lan: false, host: '192.0.2.1' } });
+  await expect(page.getByTestId('osc-row1-pattern')).toHaveValue('/ws/pitch/*');
+  await expect(page.getByTestId('osc-editor-lan')).toBeChecked();
+  await page.getByTestId('osc-editor-save').click();
+  await expect(page.getByTestId('osc-editor')).toBeHidden();
+  expect((await state(page)).modules[0].config).toMatchObject({ port: 9123, lan: true, rows: file.config.rows });
+});
+
+test('OB-h5 OSC Out portable file round trip excludes destination and preserves unknown authored fields', async ({ page }) => {
+  await boot(page);
+  await page.evaluate(() => window.__wirescapeTest.load({
+    format: 'wirescape.native.patch', version: 2, connections: [],
+    modules: [{ id: 1, module: 'osc.out', config: { port: 9011, rate_hz: 50, futureOption: true } }],
+    ui: { positions: { '1': [48, 30] }, view: { x: 0, y: 0, zoom: 1 } },
+  }));
+  await settle(page);
+  await page.getByTestId('osc-out-edit-1').click();
+  await page.getByTestId('osc-out-row1-address').fill('/custom/send');
+  await page.getByTestId('osc-out-row2-enabled').uncheck();
+  await page.getByTestId('osc-out-notes-enabled').check();
+  await page.getByTestId('osc-out-notes-address').fill('/custom/notes');
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save preset…', exact: true }).click();
+  const download = await downloading;
+  const fs = await import('node:fs/promises');
+  const file = JSON.parse(await fs.readFile((await download.path())!, 'utf8'));
+  expect(file.module).toBe('osc.out');
+  expect(Object.keys(file.config).sort()).toEqual(['notes', 'port', 'rate_hz', 'rows']);
+  await page.getByTestId('osc-out-row1-address').fill('/changed');
+  await page.getByTestId('osc-out-row2-enabled').check();
+  await page.getByTestId('osc-out-notes-enabled').uncheck();
+  await page.getByTestId('osc-preset-file').setInputFiles({
+    name: 'out.json', mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ ...file, config: { ...file.config, host: '192.0.2.1', lan: true } })),
+  });
+  await expect(page.getByTestId('osc-out-row1-address')).toHaveValue('/custom/send');
+  await expect(page.getByTestId('osc-out-row2-enabled')).not.toBeChecked();
+  await expect(page.getByTestId('osc-out-notes-enabled')).toBeChecked();
+  await page.getByTestId('osc-out-save').click();
+  await expect(page.getByTestId('osc-editor')).toBeHidden();
+  const config = (await state(page)).modules[0].config;
+  expect(config).toMatchObject({ ...file.config, futureOption: true });
+  expect(config.host).toBeUndefined();
+  expect(config.lan).toBeUndefined();
+});
