@@ -503,7 +503,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert osc_engine.hello['capabilities'] == ['midiLearn', 'telemetry.playhead',
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
-                                                    'applyGraph', 'configDeferred']
+                                                    'applyGraph', 'configDeferred', 'audio.renderLiveness']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
