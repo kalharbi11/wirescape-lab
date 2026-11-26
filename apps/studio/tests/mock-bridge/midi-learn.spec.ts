@@ -108,9 +108,11 @@ test('Learn over the real bridge sends one loadGraph with the row, cable and MID
   expect(wire.map((m: any) => m.type)).toEqual(['loadGraph']);
   const graph = await page.evaluate(() => (window as any).__mockBridge.getGraph());
   const cc = graph.modules.find((m: any) => m.module === 'midi.cc_to_cv');
-  expect(cc.config).toEqual({ rows: [{ channel: 3, controller: 74 }] });
+  expect(cc.config).toBeUndefined();
+  expect(cc.data.mapping.rows).toEqual(Array.from({ length: 8 }, (_, i) => ({ channel: i === 0 ? 3 : 0,
+    controller: i === 0 ? 74 : i + 1, fourteen_bit: false, smoothing_ms: 5, min: 0, max: 1 })));
   expect(graph.connections.filter((c: any) => c.kind === 'modulation').map((c: any) => c.to.port)).toEqual(['cutoff']);
-  expect((await state(page)).modules.find((m: any) => m.module === 'midi.cc_to_cv').config).toEqual(cc.config);
+  expect((await state(page)).modules.find((m: any) => m.module === 'midi.cc_to_cv').data).toEqual(cc.data);
   const armed = await page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'midiLearn').map((m: any) => m.armed));
   expect(armed).toEqual([true, false]);
 

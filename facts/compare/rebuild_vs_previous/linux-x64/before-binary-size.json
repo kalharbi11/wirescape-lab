@@ -1,0 +1,196 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-x64",
+    "architecture": "x86_64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "model name\t: Intel(R) Xeon(R) 6975P-C"
+    ],
+    "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:26:12.036910-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "rows": [
+    {
+      "file": "libws2_adsr.so",
+      "bytes": 25400,
+      "text_bytes": 9090
+    },
+    {
+      "file": "libws2_blend.so",
+      "bytes": 25736,
+      "text_bytes": 7207
+    },
+    {
+      "file": "libws2_chaos_lite.so",
+      "bytes": 46680,
+      "text_bytes": 20168
+    },
+    {
+      "file": "libws2_chord.so",
+      "bytes": 34152,
+      "text_bytes": 15491
+    },
+    {
+      "file": "libws2_clock.so",
+      "bytes": 29832,
+      "text_bytes": 11570
+    },
+    {
+      "file": "libws2_delay.so",
+      "bytes": 30056,
+      "text_bytes": 9298
+    },
+    {
+      "file": "libws2_example_random_source.so",
+      "bytes": 29816,
+      "text_bytes": 9672
+    },
+    {
+      "file": "libws2_example_step_sequencer.so",
+      "bytes": 37968,
+      "text_bytes": 12484
+    },
+    {
+      "file": "libws2_function_envelope.so",
+      "bytes": 30064,
+      "text_bytes": 8018
+    },
+    {
+      "file": "libws2_groove.so",
+      "bytes": 58648,
+      "text_bytes": 32474
+    },
+    {
+      "file": "libws2_host_keyboard.so",
+      "bytes": 48312,
+      "text_bytes": 27786
+    },
+    {
+      "file": "libws2_ladder.so",
+      "bytes": 34184,
+      "text_bytes": 13526
+    },
+    {
+      "file": "libws2_lfo.so",
+      "bytes": 21176,
+      "text_bytes": 4699
+    },
+    {
+      "file": "libws2_macro_oscillator.so",
+      "bytes": 334232,
+      "text_bytes": 156645
+    },
+    {
+      "file": "libws2_midi_cc_to_cv.so",
+      "bytes": 25464,
+      "text_bytes": 9353
+    },
+    {
+      "file": "libws2_midi_in.so",
+      "bytes": 21664,
+      "text_bytes": 6513
+    },
+    {
+      "file": "libws2_midi_to_cv.so",
+      "bytes": 73728,
+      "text_bytes": 41770
+    },
+    {
+      "file": "libws2_mixer.so",
+      "bytes": 29848,
+      "text_bytes": 11802
+    },
+    {
+      "file": "libws2_monitor.so",
+      "bytes": 25760,
+      "text_bytes": 8361
+    },
+    {
+      "file": "libws2_noise.so",
+      "bytes": 25624,
+      "text_bytes": 7906
+    },
+    {
+      "file": "libws2_notes_to_cv.so",
+      "bytes": 35920,
+      "text_bytes": 14842
+    },
+    {
+      "file": "libws2_osc_in.so",
+      "bytes": 48488,
+      "text_bytes": 24509
+    },
+    {
+      "file": "libws2_osc_out.so",
+      "bytes": 25656,
+      "text_bytes": 5321
+    },
+    {
+      "file": "libws2_output.so",
+      "bytes": 17072,
+      "text_bytes": 3377
+    },
+    {
+      "file": "libws2_quad_vca.so",
+      "bytes": 25384,
+      "text_bytes": 6417
+    },
+    {
+      "file": "libws2_quantizer.so",
+      "bytes": 37816,
+      "text_bytes": 18133
+    },
+    {
+      "file": "libws2_resonator.so",
+      "bytes": 30048,
+      "text_bytes": 9109
+    },
+    {
+      "file": "libws2_reverb.so",
+      "bytes": 34240,
+      "text_bytes": 12983
+    },
+    {
+      "file": "libws2_scale_offset.so",
+      "bytes": 29968,
+      "text_bytes": 11562
+    },
+    {
+      "file": "libws2_slew.so",
+      "bytes": 21544,
+      "text_bytes": 6366
+    },
+    {
+      "file": "libws2_spectral.so",
+      "bytes": 55200,
+      "text_bytes": 31337
+    },
+    {
+      "file": "libws2_vca.so",
+      "bytes": 21472,
+      "text_bytes": 5693
+    },
+    {
+      "file": "libws2_vcf.so",
+      "bytes": 21128,
+      "text_bytes": 5981
+    },
+    {
+      "file": "libws2_vco.so",
+      "bytes": 21248,
+      "text_bytes": 6636
+    },
+    {
+      "file": "wirescape-engine",
+      "bytes": 2488768,
+      "text_bytes": 1543549
+    }
+  ]
+}

@@ -1,12 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "dsp.h"
+#include "data_validation.h"
 #include "../../host/midi/module_test_support.h"
 using namespace wirescape::midi;
+// Direct descriptor tests supply the fully materialized data block. Legacy
+// parsing remains exercised independently; the shared loader gets its own test.
+struct CcRig : MidiRig<CcToCv> {
+    alignas(16) CcRows slot_data{};
+    ws2_data view{sizeof(ws2_data), &slot_data, sizeof(slot_data), 1};
+    CcRig(const uint8_t *bytes, uint32_t size) : MidiRig<CcToCv>(bytes, size) {
+        CcConfiguration config;
+        REQUIRE(cc_configuration(bytes, size, config));
+        char error[128]{};
+        REQUIRE(materialize_cc_rows(config, slot_data, error));
+        ctx.data_count = 1; ctx.data = &view;
+    }
+};
 static void full_endpoint_channel_matrix() {
     CcConfiguration config;
     config.rows[0].fourteen_bit = 1;
     config.rows[0].smoothing_ms = 0;
-    MidiRig<CcToCv> r(reinterpret_cast<const uint8_t *>(&config), sizeof(config));
+    CcRig r(reinterpret_cast<const uint8_t *>(&config), sizeof(config));
     for (uint32_t source = 1; source <= 16; ++source)
         for (uint32_t channel = 0; channel < 16; ++channel) {
             r.run({midi1(uint8_t(0xb0 | channel), 33, 17, 0, source)});
@@ -36,7 +50,7 @@ static void ranges_and_legacy_config() {
     cfg.rows[2].has_min = 1;
     cfg.rows[3].min = cfg.rows[3].max = 0.75;
     cfg.rows[3].has_min = cfg.rows[3].has_max = 1;
-    MidiRig<CcToCv> rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
+    CcRig rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
     rig.run();
     REQUIRE(rig.sample(0) == 4 && rig.sample(1) == -1 && rig.sample(2) == .25f);
     REQUIRE(rig.sample(3) == .75f);
@@ -54,7 +68,7 @@ static void ranges_and_legacy_config() {
     REQUIRE(cc_configuration(reinterpret_cast<const uint8_t *>(&old), sizeof(old), upgraded));
     REQUIRE(upgraded.version == 2 && upgraded.rows[0].minimum() == -1 && upgraded.rows[0].maximum() == 1 &&
             upgraded.rows[1].controller == 77);
-    MidiRig<CcToCv> legacy(reinterpret_cast<const uint8_t *>(&old), sizeof(old));
+    CcRig legacy(reinterpret_cast<const uint8_t *>(&old), sizeof(old));
     legacy.run();
     REQUIRE(legacy.sample(0) == -1);
     CcConfiguration invalid = cfg;
@@ -69,27 +83,113 @@ static void ranges_and_legacy_config() {
     // Smoothing still converges inside the endpoint range.
     CcConfiguration smooth = cfg;
     smooth.rows[0].smoothing_ms = 10;
-    MidiRig<CcToCv> slow(reinterpret_cast<const uint8_t *>(&smooth), sizeof(smooth));
+    CcRig slow(reinterpret_cast<const uint8_t *>(&smooth), sizeof(smooth));
     slow.run({midi1(0xb0, 1, 127)});
     REQUIRE(slow.sample(0) < 4 && slow.sample(0) > -2);
     for (int i = 0; i < 64; ++i) slow.run({}, 256);
     REQUIRE(slow.sample(0) == -2);
 }
+// E3c fail-first: the same prepared instance consumes a newly delivered map.
+static void live_mapping_data() {
+    CcConfiguration cfg;
+    cfg.rows[0].smoothing_ms = cfg.rows[1].smoothing_ms = 0;
+    CcRig rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
+    REQUIRE(rig.d->data_slot_count == 1);
+    const auto &slot = rig.d->data_slots[0];
+    const ws2_field *rows = nullptr;
+    for (uint32_t i = 0; i < slot.field_count; ++i)
+        if (std::strcmp(slot.fields[i].id, "rows") == 0) rows = &slot.fields[i];
+    REQUIRE(rows && rows->type == WS2_F_RECORD && rows->count == 8);
+    alignas(16) std::array<uint8_t, WS2_MAX_DATA_BYTES> packed{};
+    const ws2_field *controller = nullptr;
+    for (uint32_t row = 0; row < rows->count; ++row) {
+        auto *dst = packed.data() + rows->offset + row * rows->stride;
+        for (uint32_t i = 0; i < rows->field_count; ++i) {
+            const auto &field = rows->fields[i];
+            if (field.type == WS2_F_F32) {
+                float value = float(field.initial);
+                if (std::strcmp(field.id, "smoothing_ms") == 0) value = 0;
+                std::memcpy(dst + field.offset, &value, sizeof(value));
+            } else if (field.type == WS2_F_U8 || field.type == WS2_F_BOOL) {
+                dst[field.offset] = uint8_t(field.initial);
+                if (std::strcmp(field.id, "controller") == 0) {
+                    controller = &field;
+                    dst[field.offset] = uint8_t(row + 1);
+                }
+            }
+        }
+    }
+    REQUIRE(controller && controller->type == WS2_F_U8);
+    ws2_data data{sizeof(ws2_data), packed.data(), slot.bytes, 1};
+    rig.ctx.data_count = 1; rig.ctx.data = &data;
+    rig.run({midi1(0xb0, 1, 127), midi1(0xb0, 2, 127)});
+    REQUIRE(rig.sample(0) == 1 && rig.sample(1) == 1);
+    packed[rows->offset + controller->offset] = 21;
+    ++data.serial;
+    rig.run({midi1(0xb0, 21, 64)});
+    REQUIRE(rig.sample(0) == float(64. / 127.) && rig.sample(1) == 1);
+    rig.run({midi1(0xb0, 1, 0)});
+    REQUIRE(rig.sample(0) == float(64. / 127.) && rig.sample(1) == 1);
+}
+static void legacy_materialization_limits() {
+    CcConfiguration legacy;
+    legacy.rows[0].bipolar = 1;
+    legacy.rows[1].has_min = legacy.rows[1].has_max = 1;
+    legacy.rows[1].min = .1;
+    legacy.rows[1].max = -.2;
+    CcRows packed{};
+    char error[128]{};
+    REQUIRE(materialize_cc_rows(legacy, packed, error));
+    REQUIRE(packed.rows[0].min == -1.f && packed.rows[0].max == 1.f);
+    REQUIRE(packed.rows[1].min == .1f && packed.rows[1].max == -.2f);
+    REQUIRE(packed.rows[7].controller == 8);
+    legacy.rows[0].has_min = 1;
+    legacy.rows[0].min = double(cc_data_limit) * 2;
+    REQUIRE(!materialize_cc_rows(legacy, packed, error));
+    REQUIRE(std::strstr(error, "mapping.rows[0].min") != nullptr);
+    REQUIRE(packed.rows[0].min == -1.f && packed.rows[1].max == -.2f);
+    legacy.rows[0].min = -1;
+    legacy.rows[7].has_max = 1;
+    legacy.rows[7].max = -double(cc_data_limit) * 2;
+    REQUIRE(!materialize_cc_rows(legacy, packed, error));
+    REQUIRE(std::strstr(error, "mapping.rows[7].max") != nullptr);
+    REQUIRE(packed.rows[7].max == 1.f);
+}
 int main() {
+    legacy_materialization_limits();
+    live_mapping_data();
+    {
+        CcConfiguration cfg;
+        cfg.rows[0].fourteen_bit = 1;
+        cfg.rows[0].smoothing_ms = 0;
+        CcRig rig(reinterpret_cast<const uint8_t *>(&cfg), sizeof(cfg));
+        char error[128]{};
+        REQUIRE(validate_cc_rows(rig.slot_data, error));
+        rig.run({midi1(0xb0, 1, 100)});
+        REQUIRE(rig.sample(0) == float(12800. / 16383.));
+        rig.slot_data.rows[0].controller = 4;
+        ++rig.view.serial;
+        rig.run({midi1(0xb0, 36, 17)});
+        REQUIRE(rig.sample(0) == float(17. / 16383.)); // no old controller MSB
+        auto invalid = rig.slot_data;
+        invalid.rows[0].controller = 32;
+        REQUIRE(!validate_cc_rows(invalid, error));
+        REQUIRE(std::strstr(error, "mapping.rows[0].controller") != nullptr);
+    }
     ranges_and_legacy_config();
     full_endpoint_channel_matrix();
     CcConfiguration config; for (auto& row : config.rows) row.smoothing_ms = 0;
     config.rows[0].fourteen_bit = 1; config.rows[0].channel = 1; config.rows[1].bipolar = 1;
-    MidiRig<CcToCv> r(reinterpret_cast<const uint8_t*>(&config), sizeof(config));
+    CcRig r(reinterpret_cast<const uint8_t*>(&config), sizeof(config));
     r.run({midi1(0xb0, 1, 127, 2), midi1(0xb0, 33, 127, 3), midi1(0xb1, 1, 0, 4), midi1(0xb0, 2, 127, 5)});
     REQUIRE(r.sample(0, 0, 1) == 0 && r.sample(0, 0, 2) == float(16256. / 16383.) && r.sample(0) == 1);
     REQUIRE(r.sample(1) == 1); r.run({midi1(0xb0, 2, 0)}); REQUIRE(r.sample(1) == -1);
     r.run({midi2(0xb0, 2, 0xffffffffu)}); REQUIRE(r.sample(1) == 1);
-    MidiRig<CcToCv> identity(reinterpret_cast<const uint8_t*>(&config), sizeof(config));
+    CcRig identity(reinterpret_cast<const uint8_t*>(&config), sizeof(config));
     identity.run({midi1(0xb0, 1, 127, 0, 1), midi1(0xb0, 33, 127, 1, 2)});
     REQUIRE(identity.sample(0) == float(127. / 16383.)); // never pair MSB from source A with LSB from B
     CcConfiguration smooth; smooth.rows[0].smoothing_ms = 5;
-    MidiRig<CcToCv> s(reinterpret_cast<const uint8_t*>(&smooth), sizeof(smooth)); s.run({midi1(0xb0, 1, 127)}); REQUIRE(s.sample(0) > 0 && s.sample(0) < 1);
+    CcRig s(reinterpret_cast<const uint8_t*>(&smooth), sizeof(smooth)); s.run({midi1(0xb0, 1, 127)}); REQUIRE(s.sample(0) > 0 && s.sample(0) < 1);
     for (int i = 0; i < 32; ++i) s.run({}, 256); REQUIRE(s.sample(0, 0, 255) == 1);
     CcConfiguration bad; bad.rows[0].fourteen_bit = 1; bad.rows[0].controller = 64; REQUIRE(!cc_configuration(reinterpret_cast<const uint8_t*>(&bad), sizeof(bad), bad));
     bad = {}; bad.rows[0].smoothing_ms = std::numeric_limits<float>::quiet_NaN(); REQUIRE(!cc_configuration(reinterpret_cast<const uint8_t*>(&bad), sizeof(bad), bad));
