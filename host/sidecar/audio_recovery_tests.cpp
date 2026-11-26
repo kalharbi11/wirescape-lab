@@ -1523,9 +1523,10 @@ void test_p0a_status(const std::filesystem::path &root) {
     wirescape::audio::EngineOwner candidate(app_engine_create(&cfg), app_engine_destroy);
     check(bool(candidate), "P0a synthetic candidate exists");
     auto &graph = app_engine_native(candidate.get());
-    check(graph.add_node(2, ws::Module<P0aStallSource>::descriptor()) &&
-          graph.output(2, 0, 0) && app_engine_prepare(candidate.get(), 1, 0) == WS2_OK,
-          "P0a synthetic graph prepares");
+    check(graph.add_node(2, ws::Module<P0aStallSource>::descriptor()), "P0a synthetic node");
+    check(graph.output(2, 0, 0), "P0a synthetic output");
+    check(graph.register_producer() == 0, "P0a synthetic producer");
+    check(graph.prepare(), "P0a synthetic graph prepares");
     // Inject only through the test-owned fake backend's live engine and normal
     // replan; no shipped catalogue entry, protocol command, or production seam.
     check(app_engine_native(fake::engine).replan(graph, 500'000'000ULL), "P0a synthetic live graph adopted");
