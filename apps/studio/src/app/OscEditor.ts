@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { el } from './dom';
 import { Modal } from './Modal';
+import { addOscPresetControls, draftNumber } from './oscPresets';
 import type { RawReading } from './oscCapture';
 
 /** The authored osc.in schema. Row ids are positional (row1 … row8). */
@@ -254,19 +255,30 @@ export function showOscEditor(modal: Modal, raw: unknown,
     rows.append(group);
   }
 
+  const applyRows = (make: (i: number) => OscRow) => {
+    fields.forEach((controls, i) => {
+      const next = make(i);
+      for (const key of rowKeys) controls[key].value = String(next[key]);
+      controls.enabled.checked = next.enabled !== false;
+      controls.enabled.closest('fieldset')?.classList.toggle('osc-row-off', next.enabled === false);
+      controls.outputMode.value = outputMode(next);
+      controls.refreshLayout();
+      for (const key of numericKeys) controls[key].removeAttribute('aria-invalid');
+    });
+    refreshExample();
+    refreshActive();
+    capturedRangeInvalid = false;
+    submit.disabled = false;
+    errors.textContent = '';
+  };
+  let applying = false;
   const preset = (name: string, id: string, make: (i: number) => OscRow,
     resetConnection = false) => {
     const button = el('button', 'btn', name) as HTMLButtonElement;
     button.type = 'button'; button.dataset.testid = id;
     button.addEventListener('click', () => {
-      fields.forEach((controls, i) => {
-        const next = make(i);
-        for (const key of rowKeys) controls[key].value = String(next[key]);
-        controls.enabled.checked = next.enabled !== false;
-        controls.enabled.closest('fieldset')?.classList.toggle('osc-row-off', next.enabled === false);
-        controls.outputMode.value = outputMode(next);
-        controls.refreshLayout();
-      });
+      if (applying) return;
+      applyRows(make);
       if (resetConnection) {
         const defaults = picoDefaults();
         port.value = String(defaults.port);
@@ -283,6 +295,15 @@ export function showOscEditor(modal: Modal, raw: unknown,
   preset('Pico knobs 1–8', 'osc-preset-pico', i => defaultRow(i + 1));
   preset('TouchOSC faders /1/fader1–8', 'osc-preset-touchosc',
     i => ({ ...defaultRow(i + 1), pattern: `/1/fader${i + 1}` }));
+  preset('Script (/ws/…)', 'osc-preset-script', i => {
+    const base = defaultRow(i + 1);
+    if (i === 0) return { ...base, pattern: '/ws/pitch/*', input_max: 127,
+      output_min: -5, output_max: 67 / 12, smoothing_ms: 0, timeout_ms: 0 };
+    if (i === 1) return { ...base, pattern: '/ws/trig/*', kind: 'trigger', smoothing_ms: 0 };
+    if (i === 2) return { ...base, pattern: '/ws/gate/*', kind: 'gate', smoothing_ms: 0, timeout_ms: 2000, stale: 'zero' };
+    if (i === 3) return { ...base, pattern: '/ws/vel/*', smoothing_ms: 0 };
+    return { ...base, pattern: '/ws/cv/' + (i - 3) };
+  });
   preset('Reset to Pico defaults', 'osc-preset-reset', i => defaultRow(i + 1), true);
   // Clear keeps every address so a row can be switched back on (#612).
   preset('Clear (all rows off)', 'osc-preset-clear', i => {
@@ -352,14 +373,26 @@ export function showOscEditor(modal: Modal, raw: unknown,
       next.rows.push({ pattern, kind: c.kind.value as OscRow['kind'],
         stale: c.stale.value as OscRow['stale'], ...values, ...(c.enabled.checked ? {} : { enabled: false }) });
     }
+    applying = true;
     submit.disabled = true;
     try {
       if (await save(next)) modal.close();
       else errors.textContent = 'Engine refused the OSC configuration; the previous patch is unchanged.';
     } catch (e) {
       errors.textContent = e instanceof Error ? e.message : 'Could not apply the OSC configuration.';
-    } finally { submit.disabled = false; }
+    } finally { applying = false; submit.disabled = false; }
   });
+  addOscPresetControls(presets, 'osc.in', () => ({
+    port: draftNumber(port),
+    rows: fields.map(c => ({
+      pattern: c.pattern.value, kind: c.kind.value, stale: c.stale.value,
+      ...Object.fromEntries(numericKeys.map(key => [key, draftNumber(c[key])])),
+      ...(c.enabled.checked ? {} : { enabled: false }),
+    })),
+  }), next => {
+    port.value = String(next.port);
+    applyRows(i => next.rows[i]);
+  }, errors, () => applying);
   actions.append(cancel, submit);
   body.append(intro, warning, portRow, lanRow, presets, activeCount, rows, errors, help, actions);
   const stopRaw = subscribe(() => { if (modal.isOpen) fields.forEach(c => c.refreshRaw()); });

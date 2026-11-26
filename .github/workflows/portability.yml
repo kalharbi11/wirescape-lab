@@ -4,18 +4,23 @@ name: Cortex-M7 portability facts (advisory)
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "native/sdk/**"
-      - "native/modules2/**"
-      - "native/include/**"
+      - "sdk/**"
+      - "modules/**"
+      - "sdk/include/**"
+      - "engine/include/**"
+      - "host/include/**"
       - "bench/portability/**"
       - ".github/workflows/portability.yml"
   push:
     branches: [main]
     paths:
-      - "native/sdk/**"
-      - "native/modules2/**"
-      - "native/include/**"
+      - "sdk/**"
+      - "modules/**"
+      - "sdk/include/**"
+      - "engine/include/**"
+      - "host/include/**"
       - "bench/portability/**"
       - ".github/workflows/portability.yml"
 
@@ -24,6 +29,7 @@ permissions:
 
 jobs:
   cortex-m7:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Cortex-M7 source/object inventory (advisory)
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -76,7 +82,7 @@ jobs:
           import re
           import subprocess
 
-          source = Path("native/modules2/macro_oscillator/CMakeLists.txt").read_text()
+          source = Path("modules/macro_oscillator/CMakeLists.txt").read_text()
           root = Path(".tools/portability-context")
           for dependency, directory in (("macro_eurorack", "eurorack"), ("macro_stmlib", "stmlib")):
               name = "FetchContent_Declare(" + dependency + "\n"
@@ -99,7 +105,7 @@ jobs:
               subprocess.run(["tar", "-xzf", str(archive), "-C", str(target),
                               "--strip-components=1"], check=True)
           PY
-          patch_dir="$GITHUB_WORKSPACE/native/modules2/macro_oscillator/patches"
+          patch_dir="$GITHUB_WORKSPACE/modules/macro_oscillator/patches"
           upstream="$GITHUB_WORKSPACE/.tools/portability-context"
           cmake -DSOURCE_DIR="$upstream/eurorack" -DGIT_EXECUTABLE="$(command -v git)" \
             -DPATCH_DIR="$patch_dir" -P "$patch_dir/apply.cmake"
@@ -113,6 +119,12 @@ jobs:
           set -euo pipefail
           python3 bench/portability/probe.py --emit-chunks
           cat build_reports/portability/README.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Measure S2 module sizes, state and symbol references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/portability/s2.py
+          cat build_reports/portability/module_memory.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload measured JSON and fact table
         if: always()
         uses: actions/upload-artifact@v4
@@ -121,5 +133,8 @@ jobs:
           path: |
             build_reports/portability/modules.json
             build_reports/portability/README.md
+            build_reports/portability/s2.json
+            build_reports/portability/s2_symbols.md
+            build_reports/portability/module_memory.md
           retention-days: 7
           if-no-files-found: warn

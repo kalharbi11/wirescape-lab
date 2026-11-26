@@ -22,12 +22,112 @@ ROOT = Path(__file__).resolve().parents[1]
 STUDIO = ROOT / "apps/studio"
 BUNDLES = STUDIO / "patches"
 SHAPES = ROOT / "tests/fixtures/patch_shapes"
-SPEC = ROOT / "native/tests2/ob_patch_roundtrip.spec.cjs"
+SPEC = ROOT / "tests/native/abi2/ob_patch_roundtrip.spec.cjs"
 SHAPE_IDS = {"no-config", "chord-empty", "groove-v1", "groove-v2",
              "midi-in", "midi-cc-to-cv", "osc-in", "osc-out"}
 METRICS = ("faults", "late_events", "dropped_events",
            "ring_full_events", "stale_events", "arena_full_events")
 RATE, FRAMES, BLOCK = 48000, 48000, 128
+OWNER_REPORTS = ROOT / "bench/results"
+OWNER_REPORT = OWNER_REPORTS / "patch_roundtrip_owner.json"
+
+
+def prepare_owner_report(path: Path, folder: Path) -> None:
+    """Never emit owner data to a non-ignored location or input directory."""
+    root = OWNER_REPORTS.resolve()
+    dest = path.resolve()
+    marker = root / ".gitignore"
+    if dest == marker.resolve():
+        raise ValueError("owner report destination is reserved bench/results/.gitignore")
+    if dest == root or not dest.is_relative_to(root):
+        raise ValueError("--dir report must stay under bench/results/")
+    if root.is_relative_to(folder.resolve()):
+        raise ValueError("report directory is inside the supplied input folder")
+    if dest.is_relative_to(folder.resolve()):
+        raise ValueError("report output is inside the supplied input folder")
+    root.mkdir(parents=True, exist_ok=True)
+    if marker.is_symlink() or (marker.exists() and not marker.is_file()):
+        raise ValueError("unsafe bench/results/.gitignore")
+    if not marker.exists():
+        marker.write_text("*\n", encoding="utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ignored = subprocess.run(
+        ["git", "-C", str(ROOT), "check-ignore", "-q", "--", str(dest)],
+        capture_output=True, text=True, check=False)
+    if ignored.returncode != 0:
+        raise ValueError("owner report is not gitignored by bench/results rules")
+
+
+def write_owner_report_atomic(path: Path, content: str) -> None:
+    """Never truncate a pre-existing report inode (possibly hard-linked to input)."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=path.parent,
+                prefix=f".{path.name}.", suffix=".tmp", delete=False) as output:
+            temporary = Path(output.name)
+            # Check the actual temporary pathname before putting owner data in it.
+            ignored = subprocess.run(
+                ["git", "-C", str(ROOT), "check-ignore", "-q", "--", str(temporary)],
+                capture_output=True, text=True, check=False)
+            if ignored.returncode != 0:
+                raise ValueError("owner report temporary file is not gitignored")
+            output.write(content)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+def owner_inventory(folder: Path):
+    if folder.is_symlink() or not folder.is_dir():
+        raise ValueError(f"missing input folder: {folder}")
+    folder = folder.resolve(strict=True)
+    for path in folder.rglob("*"):
+        if path.is_symlink() and path.is_dir():
+            raise ValueError(f"symlinked input subdirectory: {path}")
+    paths = tuple(sorted(folder.rglob("*.json")))
+    if not paths:
+        raise ValueError("empty input folder: no JSON patches")
+    valid, invalid, snapshots, located = [], [], {}, {}
+    for path in paths:
+        name = "owner/" + path.relative_to(folder).as_posix()
+        located[name] = path
+        try:
+            if path.is_file() and not path.is_symlink():
+                snapshots[name] = sha(path.read_bytes())
+            read_patch(path)
+            valid.append((name, path))
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            invalid.append({"name": name, "status": "fail", "reason": str(exc)})
+    return valid, invalid, snapshots, located, paths
+
+
+def verify_owner_inputs(report: dict, snapshots: dict, located: dict,
+                        original_paths: tuple, folder: Path) -> None:
+    for item in report["cases"]:
+        name, path = item["name"], located[item["name"]]
+        before = snapshots.get(name)
+        try:
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("source is missing or symlinked after run")
+            after = sha(path.read_bytes())
+        except (OSError, ValueError):
+            after = None
+        item.update(input_sha256_before=before, input_sha256_after=after,
+                    input_unchanged=(before is not None and before == after))
+        if not item["input_unchanged"]:
+            item["status"] = "fail"
+            item["reason"] = (item.get("reason", "")
+                              + "; source input changed or became unreadable").strip("; ")
+    report["input_inventory_unchanged"] = (
+        tuple(sorted(folder.rglob("*.json"))) == original_paths)
+    if not report["input_inventory_unchanged"]:
+        report["setup_error"] = "JSON file inventory changed during run"
+
 
 
 def sha(raw: bytes) -> str:
@@ -178,12 +278,22 @@ def negative(renderer: Path, work: Path) -> dict:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--renderer", required=True, type=Path)
-    p.add_argument("--report", type=Path, default=ROOT / "build_reports/ob/patch_roundtrip.json")
+    p.add_argument("--dir", dest="owner_dir", type=Path,
+                   help="read-only owner patch folder, recursively scanning *.json")
+    p.add_argument("--report", type=Path, default=None)
     p.add_argument("--source-sha", default="", help="full PR source head SHA for provenance")
     args = p.parse_args()
+    owner_mode = args.owner_dir is not None
+    args.report = args.report or (
+        OWNER_REPORT if owner_mode else ROOT / "build_reports/ob/patch_roundtrip.json")
+    if owner_mode:
+        try:
+            prepare_owner_report(args.report, args.owner_dir)
+        except (OSError, ValueError) as exc:
+            p.error(str(exc))
     if args.source_sha and not re.fullmatch("[a-f0-9]{40}", args.source_sha):
         p.error("--source-sha requires a full lowercase Git commit SHA")
-    report = {"test": "OB-a1", "source_sha": args.source_sha or None,
+    report = {"test": "OB-a2" if owner_mode else "OB-a1", "source_sha": args.source_sha or None,
               "checkout_sha": os.getenv("GITHUB_SHA"), "runner_event": os.getenv("GITHUB_EVENT_NAME"),
               "renderer_sha256": None, "rate": RATE, "frames": FRAMES, "block": BLOCK,
               "bundled": 0, "config_shapes": 0, "cases": [], "negative": None, "passed": False}
@@ -192,9 +302,17 @@ def main() -> int:
         if not renderer.is_file():
             raise ValueError(f"renderer is not a file: {renderer}")
         report["renderer_sha256"] = sha(renderer.read_bytes())
-        cases = inventory()
-        report["bundled"] = sum(name.startswith("bundled/") for name, _ in cases)
-        report["config_shapes"] = len(cases) - report["bundled"]
+        if owner_mode:
+            cases, invalid, before, located, original_paths = owner_inventory(args.owner_dir)
+            report["cases"].extend(invalid)
+            report["owner_files"] = len(original_paths)
+            folder = args.owner_dir.resolve(strict=True)
+            if Path(tempfile.gettempdir()).resolve().is_relative_to(folder):
+                raise ValueError("temporary directory is inside the input folder")
+        else:
+            cases = inventory()
+            report["bundled"] = sum(name.startswith("bundled/") for name, _ in cases)
+            report["config_shapes"] = len(cases) - report["bundled"]
         with tempfile.TemporaryDirectory(prefix="wirescape-ob-a1-") as temp:
             work = Path(temp)
             manifest = [{"name": name, "source": str(path),
@@ -203,9 +321,25 @@ def main() -> int:
                         for i, (name, path) in enumerate(cases)]
             source = work / "manifest.json"
             source.write_text(json.dumps(manifest), encoding="utf-8")
-            studio_codec(source, work)
+            codec_failures = {}
+            if owner_mode:
+                try:
+                    studio_codec(source, work)
+                except (OSError, ValueError, subprocess.TimeoutExpired):
+                    # One invalid owner document must not erase all other results.
+                    for i, case in enumerate(manifest):
+                        solo = work / f"{i:03d}-solo-manifest.json"
+                        solo.write_text(json.dumps([case]), encoding="utf-8")
+                        try:
+                            studio_codec(solo, work)
+                        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+                            codec_failures[i] = str(exc)
+            else:
+                studio_codec(source, work)
             for i, case in enumerate(manifest):
                 try:
+                    if i in codec_failures:
+                        raise ValueError("Studio codec: " + codec_failures[i])
                     values = [read_patch(Path(case[key])) for key in ("source", "saved", "reopened")]
                     hashes = [render(renderer, Path(case[key]), work / f"{i:03d}-{key}")
                               for key in ("source", "saved", "reopened")]
@@ -225,17 +359,30 @@ def main() -> int:
                     subprocess.TimeoutExpired) as exc:
                 report["negative"] = {"status": "fail", "reason": str(exc)}
                 print(f"FAIL negative: {exc}", file=sys.stderr, flush=True)
-        report["passed"] = (len(report["cases"]) == len(cases)
+        if owner_mode:
+            verify_owner_inputs(report, before, located, original_paths, folder)
+        expected_count = report["owner_files"] if owner_mode else len(cases)
+        report["passed"] = (len(report["cases"]) == expected_count
                             and all(c["status"] == "pass" for c in report["cases"])
+                            and not report.get("setup_error")
                             and bool(report["negative"] and report["negative"].get("document_difference_detected")
                                      and report["negative"].get("render_difference_detected")))
     except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
         report["setup_error"] = str(exc)
         print(f"FAIL OB-a1 setup: {exc}", file=sys.stderr, flush=True)
-    args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(f"OB-a1 {sum(c['status']=='pass' for c in report['cases'])}/"
-          f"{report['bundled']+report['config_shapes']} cases; report={args.report}")
+    content = json.dumps(report, indent=2) + "\n"
+    if owner_mode:
+        try:
+            write_owner_report_atomic(args.report, content)
+        except (OSError, ValueError) as exc:
+            print(f"FAIL OB-a2 report write: {exc}", file=sys.stderr, flush=True)
+            return 1
+    else:
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(content, encoding="utf-8")
+    total = report.get("owner_files", 0) if owner_mode else report["bundled"] + report["config_shapes"]
+    print(f"{report['test']} {sum(c['status']=='pass' for c in report['cases'])}/"
+          f"{total} cases; report={args.report}")
     return 0 if report["passed"] else 1
 
 

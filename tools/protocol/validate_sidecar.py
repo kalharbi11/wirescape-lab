@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Validate all actual sidecar protocol-test stdout lines without editing existing tests.
 
-Usage: python tools/protocol/validate_sidecar.py PATH-TO-ENGINE native/examples
+Usage: python tools/protocol/validate_sidecar.py PATH-TO-ENGINE host/examples
 Only the existing tests' device-free/null-sink and loopback test harness runs.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 from validate import read_schema, validate
 
 ROOT = Path(__file__).resolve().parents[2]
-TARGET = ROOT / "native" / "sidecar" / "protocol_tests.py"
+TARGET = ROOT / "host" / "sidecar" / "protocol_tests.py"
 STDOUT_ANCHOR = "self.messages.put(json.loads(line, object_pairs_hook=strict_object))"
 REQUEST_ANCHOR = "command = dict(v=0, id=request_id, type=method, **payload)"
 

@@ -24,6 +24,23 @@ keeps them consistent. Run: `python bench/continuity/run.py --engine <build>/nat
 The JSON records every run's full marks (edit run and reference), the alignment offset, the
 allowed range and the residual. `--keep` retains each raw capture and marks file for an artifact.
 
+## A50 control comparison
+
+Each repeat reuses a no-edit capture only for edits with the same setup patch. Over the aligned
+window from 48,000 samples before the bracket to 48,000 samples after it, the report records
+sample equality, first mismatch relative to the bracket start and maximum absolute residual.
+Silence is the longest newly silent run while the control is sounding. Dip is the minimum
+edited-to-control ratio of corresponding 1 ms RMS windows with a sounding control. Jump compares
+the peak step in each corresponding capture window. Tone slip is the phase displacement relative
+to control, wrapped to one period. Clock slip compares corresponding onsets and reports their
+counts. The legacy absolute measurements remain in the report. Failed alignments and undefined
+denominators remain unavailable. The harness applies no contract acceptance thresholds.
+
+The separate report-only latency probe connects a silent Spectral output to the still-playing
+10 Hz witness bus, changing the declared upstream latency without adding audible input. It
+reports the phase displacement against a matched no-edit capture. A zero measured shift is a
+measurement of the current implementation, with no assumption about compensation.
+
 Run the tests with `python -m unittest discover -s bench/continuity/tests` (stdlib only). CI: `.github/workflows/continuity.yml`.
 
 ## Metric choices §4 leaves open
@@ -168,3 +185,20 @@ relabel those old entries merely because E1a now exists.
 See bench/continuity/CAPTURE.md for the pinned Worker2 package and the missing
 evidence. Future merger must independently verify raw/marks bytes and retain
 all 119 historical measurements and their source pins.
+
+## A62 E7 buffer rows (#472)
+
+Explicit `--only 'setBufferFrames smaller' 'setBufferFrames larger'` keeps historical/default
+cases unchanged. Both start at 48 kHz and 256 frames; smaller requests 128 on the original
+probe. Larger requests 512 and adds only bus 9: constant +1 from Scale/Offset → Slew
+(rise/fall 10 s/unit) → Output. At the existing edit time (~4 s after load), Slew's
+unsaturated level is nonzero and still advancing, so resetting it changes the output.
+Its state hook serializes level and rate/cache. All original witnesses and timings are
+retained; both cases use setup-matched controls. Alignment still uses pre-edit 256-frame
+load marks; actual segment geometry for both captures is retained. The new row uses
+the existing absolute and paired metrics. Activity reports use the existing -80 dBFS
+floor, pre-edit 0.5 s and post-bracket 1 s, peak/range and sounding-sample count, not
+new acceptance thresholds. Record marked reply and freshModules absence/presence and
+instance identity per repeat. Successful version-only hooks may still clear state
+(e.g. Delay tails); distinguish that inventory from the host list in the facts.
+Device-off evidence only; physical MIDI gap remains owner-only.

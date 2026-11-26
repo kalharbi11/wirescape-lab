@@ -13,8 +13,8 @@ class CITriggers(unittest.TestCase):
     def setUpClass(cls):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_pull_requests_do_not_rerun_on_ready_event(self):
-        self.assertIn("types: [opened, synchronize, reopened]", self.workflow)
+    def test_pull_requests_rerun_on_ready_event(self):
+        self.assertIn("types: [opened, synchronize, reopened, ready_for_review]", self.workflow)
         self.assertIn("branches: [main]", self.workflow)
         self.assertIn("workflow_dispatch:", self.workflow)
 
@@ -22,7 +22,7 @@ class CITriggers(unittest.TestCase):
         for name in ("linux-x64", "linux-arm64", "windows-x64", "sanitizers", "studio", "desktop"):
             with self.subTest(name=name):
                 self.assertIn(name, self.workflow)
-        for runner in ("ubuntu-latest", "ubuntu-24.04-arm", "windows-latest"):
+        for runner in ("ubuntu-latest", "ubuntu-24.04-arm", "windows-2022"):
             self.assertIn(runner, self.workflow)
         self.assertNotRegex(self.workflow, r"self-hosted|ci/pi|merge_gate|board\\.py|guard\\.py")
 

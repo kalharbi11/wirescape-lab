@@ -1,0 +1,473 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# OB r2.4a / proposal 0019 section 3. Advisory everywhere: never a required gate.
+# #305/#312 merged at 445123b; OB-g1 CLI/report schema verified on landed code.
+# The one-time Linux L0 pilot on merged #305 SHA 445123b ran on PR309
+# at Actions 44963546005; results/artifacts are in PR309's signed Result.
+# Pilot code removed to avoid testing a historical SHA on future PR heads.
+# S6 merged at 25b1a822; #298 integrated S6 first at 67c60fa6.
+# PR-head Linux I/O L0 and bounded Windows L0 released after #311 merged into main.
+# OB-h1: nightly OSC still-mode Linux x64/arm64 only; Windows/config-edits remain parked.
+# OB-g2/PR311 merged at 3f8f646; PR Linux injected MIDI and Windows L0 are source-head advisory only.
+name: OB-g7 hosted I/O soak (advisory draft)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '.github/workflows/ob-g7-hosted-soak.yml'
+      - 'bench/io/**'
+      - 'host/audio/**'
+      - 'host/midi/**'
+      - 'host/net/**'
+      - 'host/osc/**'
+      - 'host/sidecar/**'
+      - 'engine/control/midi_host*'
+      - 'modules/osc_in/**'
+      - 'modules/osc_out/**'
+      - 'modules/midi_in/**'
+      - 'modules/midi_to_cv/**'
+      - 'modules/midi_cc_to_cv/**'
+      - 'native/CMakeLists.txt'
+      - 'apps/studio/**/osc*'
+      - 'apps/studio/**/midi*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Full 40-hex source commit SHA on main'
+        required: true
+        type: string
+  # GitHub schedule executes on the default branch (main) only.
+  schedule:
+    - cron: '19 5 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ob-g7-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  draft-interface:
+    name: OB-g7 draft interface inventory (NOT a soak)
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Show head and unfulfilled interfaces without claiming a pass
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          {
+            echo "## OB-g7 advisory interface inventory (see PR OSC jobs for executed L0)"
+            echo ""
+            echo "- Exact PR head: $EXPECTED_HEAD"
+            echo "- #312 CLI: --profile/--edit-mode/--tier/--report-dir (null audio and loopback internal)"
+            echo "- Reports: <root>/<profile>/<edit-mode>/<tier>/report.json and report.md"
+            echo "- L1/L2 need passed L0 p99 and adjacent passing tier at same SHA/profile/mode"
+            echo "- #305 merged as 445123b; S6 merged as 25b1a822; verify this PR-head harness" 
+            echo "- Historical Linux L0 evidence: run 44963546005, source 445123b only" 
+            echo "- MIDI #308/PR311 remains unmerged/unintegrated" 
+            echo "- S6 mapped I/O paths: host/, engine/control/midi_host*, modules/osc_*/midi_*"
+            echo "- PR-head Linux OSC L0 lanes active: verify each individual JSON/report artifact; workflow top-level green is advisory" 
+            echo "- Hosted nightly OSC still-mode Linux enabled by OB-h1; MIDI remains parked; this inventory makes no L1/L2 claim" 
+            echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  pr-linux-io-l0:
+    name: Linux PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
+    # #305 merged; same CLI passed hosted Linux pilot 44963546005 at historical 445123b.
+    # New runs check out this PR's exact head; no source-pinned pilot is reinstated.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [osc-gates, osc-heavy, midi-m8, mixed]
+        mode: [still, config-edits]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build null-audio native sidecar
+        shell: bash
+        run: |
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          python tools/dev.py build --headless --config Release
+      - name: OB-g1/g2 Python self-tests after #305 and #311 merges
+        shell: bash
+        run: |
+          python -m unittest discover -s bench/io -p 'test_*.py' -v
+          python bench/io/soak.py --self-test
+      - name: Linux L0 (60s) / source-pinned JSON report check
+        shell: bash
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
+          root="build_reports/ob-g7/pr"
+          report="$root/$profile/$mode/L0"
+          mkdir -p "$root"
+          # #312 internally runs the null-audio, localhost-only sidecar.
+          set +e
+          python bench/io/soak.py --engine build/native/wirescape-engine \
+            --profile "$profile" --edit-mode "$mode" --tier L0 --report-dir "$root"
+          rc=$?
+          set -e
+          if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+            echo "- $EXACT_HEAD PR $profile/$mode L0: missing reports (exit=$rc)" >> "$root/fix-rows.md"
+            exit 1
+          fi
+          status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "L0")"
+          if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+            echo "- $profile/$mode L0: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+            echo "- $EXACT_HEAD $profile/$mode L0: observed pre-E5 A2 XFAIL; not tier PASS" >> "$root/fix-rows.md"
+            echo "- $profile/$mode L0: XFAIL, not PASS" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- $EXACT_HEAD $profile/$mode L0: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-pr-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
+
+  pr-windows-io-l0:
+    name: Windows PR L0 / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
+    # #305 merged; same CLI passed hosted Linux pilot 44963546005 at historical 445123b.
+    # New runs check out this PR's exact head; no source-pinned pilot is reinstated.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    continue-on-error: true
+    runs-on: windows-2022
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [osc-gates, osc-heavy, midi-m8, mixed]
+        mode: [still]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native build tools
+        shell: bash
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Pin Windows PortAudio source (same revision as Lab)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build Windows PortAudio
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Build null-audio native sidecar
+        shell: bash
+        run: python tools/dev.py build --headless --config Release
+      - name: OB-g1/g2 Python self-tests after #305 and #311 merges
+        shell: bash
+        run: |
+          python -m unittest discover -s bench/io -p 'test_*.py' -v
+          python bench/io/soak.py --self-test
+      - name: Windows L0 (60s) / source-pinned JSON report check
+        shell: bash
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
+          root="build_reports/ob-g7/pr"
+          report="$root/$profile/$mode/L0"
+          mkdir -p "$root"
+          # #312 internally runs the null-audio, localhost-only sidecar.
+          # Same release-config discovery used by the production build driver.
+          # C:/... is portable to Python and avoids assuming a CMake output dir.
+          engine="$(python -c 'import sys; sys.path.insert(0, "tools"); import dev; p=dev._sidecar_executable("Release"); assert p is not None, "Release engine missing"; print(p.as_posix())')"
+          set +e
+          python bench/io/soak.py --engine "$engine" \
+            --profile "$profile" --edit-mode "$mode" --tier L0 --report-dir "$root"
+          rc=$?
+          set -e
+          if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+            echo "- $EXACT_HEAD PR $profile/$mode L0: missing reports (exit=$rc)" >> "$root/fix-rows.md"
+            exit 1
+          fi
+          status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "L0")"
+          if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+            echo "- $profile/$mode L0: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+            echo "- $EXACT_HEAD $profile/$mode L0: observed pre-E5 A2 XFAIL; not tier PASS" >> "$root/fix-rows.md"
+            echo "- $profile/$mode L0: XFAIL, not PASS" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- $EXACT_HEAD $profile/$mode L0: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-pr-windows-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
+
+  nightly-osc:
+    name: Hosted OSC / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
+    # OB-h1: main only; pinned dispatch or scheduled default-branch SHA.
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+    continue-on-error: true
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        profile: [osc-gates, osc-heavy]
+        mode: [still]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Validate immutable source pin
+        env:
+          DISPATCH_REF: ${{ inputs.ref }}
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            [[ "$DISPATCH_REF" =~ ^[0-9a-fA-F]{40}$ ]]
+          fi
+          [[ "$EXACT_HEAD" =~ ^[0-9a-fA-F]{40}$ ]]
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+          persist-credentials: false
+      - name: Verify and record captured SHA
+        env:
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "${EXACT_HEAD,,}"
+          mkdir -p build_reports/ob-g7
+          printf '%s\n' "$actual" > build_reports/ob-g7/captured_sha.txt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Pin Windows PortAudio source (same revision as Lab)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build Windows PortAudio
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Build null-audio native sidecar
+        run: python tools/dev.py build --headless --config Release
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first nonpass
+        env:
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          EXACT_HEAD="${EXACT_HEAD,,}"
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
+          engine="build/native/wirescape-engine"
+          if [ "$RUNNER_OS" = Windows ]; then engine="$engine.exe"; fi
+          test -f "$engine"
+          root="build_reports/ob-g7/nightly-osc-${{ matrix.runner }}"
+          mkdir -p "$root"
+          baseline="$root/$profile/$mode/L0/report.json"
+          previous=""
+          for tier in L0 L1 L2; do
+            report="$root/$profile/$mode/$tier"
+            args=(--engine "$engine" --profile "$profile" --edit-mode "$mode" --tier "$tier" --report-dir "$root")
+            if [ "$tier" != L0 ]; then
+              # #312 requires L0 measured p99 + adjacent PASS at same source head.
+              args+=(--baseline-report "$baseline" --previous-report "$previous")
+            fi
+            set +e
+            python bench/io/soak.py "${args[@]}"
+            rc=$?
+            set -e
+            if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: missing report (exit=$rc); fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
+            status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "$tier")"
+            if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+              echo "- osc/${{ matrix.runner }} $profile/$mode $tier: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+              previous="$report/report.json"
+            elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: pre-E5 observed A2 XFAIL, not PASS" >> "$root/fix-rows.md"
+              echo "- osc/${{ matrix.runner }} $profile/$mode $tier: XFAIL; no higher tier" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            else
+              echo "- $EXACT_HEAD osc/${{ matrix.runner }} $profile/$mode $tier: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-nightly-osc-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14
+
+  nightly-midi:
+    name: Hosted injected MIDI / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
+    # Gated until #305 and #308 integrate midi-m8/mixed into bench/io/soak.py.
+    # Current #312 accepts OSC-only profiles; no invented injection flag or device use.
+    if: ${{ false }}
+    continue-on-error: true
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+        profile: [midi-m8, mixed]
+        mode: [still, config-edits]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned native build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Pin Windows PortAudio source (same revision as Lab)
+        if: runner.os == 'Windows'
+        uses: actions/checkout@v4
+        with:
+          repository: PortAudio/portaudio
+          ref: 147dd722548358763a8b649b3e4b41dfffbcfbb6
+          path: .tools/portaudio-src
+          persist-credentials: false
+      - name: Build Windows PortAudio
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $generator = python -c "import sys; sys.path.insert(0, 'tools'); from foundation.helpers import discover_toolchain; print(discover_toolchain()['generator'])"
+          if ($LASTEXITCODE -or !$generator.StartsWith('Visual Studio')) { throw 'MSVC generator unavailable' }
+          cmake -S .tools/portaudio-src -B .tools/portaudio-build -G "$generator" -A x64 "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DPA_BUILD_SHARED=ON -DPA_BUILD_STATIC=OFF -DPA_BUILD_TESTS=OFF -DPA_BUILD_EXAMPLES=OFF -DPA_USE_ASIO=OFF
+          if ($LASTEXITCODE) { throw 'PortAudio configure failed' }
+          cmake --build .tools/portaudio-build --config Release --parallel 2
+          if ($LASTEXITCODE) { throw 'PortAudio build failed' }
+          $dll = Get-ChildItem .tools/portaudio-build -Recurse -Filter '*portaudio*.dll' | Select-Object -First 1
+          if (!$dll) { throw 'PortAudio DLL unavailable' }
+          "WIRESCAPE_PORTAUDIO=$($dll.FullName)" >> $env:GITHUB_ENV
+      - name: Build device-off sidecar with injected MIDI
+        run: python tools/dev.py build --headless --config Release
+      - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first nonpass
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
+          profile="${{ matrix.profile }}"
+          mode="${{ matrix.mode }}"
+          engine="build/native/wirescape-engine"
+          if [ "$RUNNER_OS" = Windows ]; then engine="$engine.exe"; fi
+          test -f "$engine"
+          root="build_reports/ob-g7/nightly-midi-${{ matrix.runner }}"
+          mkdir -p "$root"
+          baseline="$root/$profile/$mode/L0/report.json"
+          previous=""
+          for tier in L0 L1 L2; do
+            report="$root/$profile/$mode/$tier"
+            args=(--engine "$engine" --profile "$profile" --edit-mode "$mode" --tier "$tier" --report-dir "$root")
+            if [ "$tier" != L0 ]; then
+              # #312 requires L0 measured p99 + adjacent PASS at same source head.
+              args+=(--baseline-report "$baseline" --previous-report "$previous")
+            fi
+            set +e
+            python bench/io/soak.py "${args[@]}"
+            rc=$?
+            set -e
+            if [ ! -s "$report/report.json" ] || [ ! -s "$report/report.md" ]; then
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: missing report (exit=$rc); fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
+            status="$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert (d.get("source_sha"),d.get("profile"),d.get("edit_mode"),d.get("tier"),d.get("advisory")) == tuple(sys.argv[2:6]) + (True,); print(d["status"])' "$report/report.json" "$EXACT_HEAD" "$profile" "$mode" "$tier")"
+            if [ "$status" = passed ] && [ "$rc" -eq 0 ]; then
+              echo "- midi/${{ matrix.runner }} $profile/$mode $tier: advisory PASS" >> "$GITHUB_STEP_SUMMARY"
+              previous="$report/report.json"
+            elif [ "$status" = xfail ] && [ "$mode" = config-edits ] && [ "$rc" -eq 0 ]; then
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: pre-E5 observed A2 XFAIL, not PASS" >> "$root/fix-rows.md"
+              echo "- midi/${{ matrix.runner }} $profile/$mode $tier: XFAIL; no higher tier" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            else
+              echo "- $EXACT_HEAD midi/${{ matrix.runner }} $profile/$mode $tier: $status (exit=$rc); parallel fix row" >> "$root/fix-rows.md"
+              exit 1
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ob-g7-nightly-midi-${{ matrix.runner }}-${{ matrix.profile }}-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build_reports/ob-g7/
+          if-no-files-found: warn
+          retention-days: 14

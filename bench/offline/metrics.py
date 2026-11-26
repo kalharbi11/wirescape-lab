@@ -424,30 +424,91 @@ def step_metrics(audio, step_frame, rate=RATE):
 
 
 
-def switch_click_metrics(audio, switch_frame, rate=RATE):
-    """A T7.0 switch-centered high-pass peak, same filter/window as step_metrics.
+def switch_click_metrics(audio, switch_frame, rate=RATE, *,
+                         no_switch_audio=None, delay_time_s=None,
+                         first_effect_frame=None):
+    """T7.0b actual paired switch/no-switch high-pass peaks and excess in dB.
 
-    Readout is FS amplitude plus its 20*log10 dBFS representation. No new
-    detector, threshold, reference substitution or parameter-step metric
-    change: the source is the existing 2nd-order 2-kHz Butterworth high-pass
-    and the same 25-ms-per-side window centered on the scripted switch.
-    Zero measured high-pass peak is mathematically -inf dBFS (serialized).
+    Preserve the original step_metrics and 2 kHz 2nd-order causal Butterworth.
+    Quad VCA uses the old centered +/-25 ms window. Unclocked Delay uses
+    [switch, switch + delay time + 25 ms) to include the first repeat.
     """
-    measured = step_metrics(audio, switch_frame, rate)
-    peak = measured.get("highpass_peak_fs")
-    if peak is None:
-        return {"switch_click_peak_fs": None, "switch_click_peak_dbfs": None,
-                "status": "unavailable",
-                "reason": ("nonfinite audio" if measured.get("nonfinite_samples", 0)
-                           else "switch frame lacks two pre/post samples"),
-                "switch_frame": switch_frame, "sample_rate_hz": rate}
-    return {"switch_click_peak_fs": peak,
-            "switch_click_peak_dbfs": 20 * math.log10(peak) if peak else "-inf",
-            "switch_frame": switch_frame, "sample_rate_hz": rate,
-            "highpass_hz": measured["highpass_hz"],
-            "window_ms": measured["window_ms"],
-            "metric_source": "step_metrics highpass_peak_fs; 20*log10(FS)"}
+    def unavailable(reason):
+        return {"status": "unavailable", "reason": reason,
+                "switch_click_peak_fs": None, "switch_click_peak_dbfs": None,
+                "no_switch_floor_fs": None, "no_switch_floor_dbfs": None,
+                "click_excess_db": None, "switch_frame": switch_frame,
+                "sample_rate_hz": rate}
 
+    if delay_time_s is not None:
+        if not (math.isfinite(delay_time_s) and 0 < delay_time_s <= 2):
+            return unavailable("invalid unclocked Delay time")
+        begin = switch_frame
+        if first_effect_frame is not None:
+            if (not isinstance(first_effect_frame, int) or
+                    first_effect_frame < switch_frame):
+                return unavailable("invalid first effect frame")
+            end = first_effect_frame + int(math.ceil(.025 * rate))
+            window_kind = "delay_first_observed_difference"
+        else:
+            end = switch_frame + int(math.ceil((delay_time_s + .025) * rate))
+            window_kind = "delay_first_repeat"
+    else:
+        half = int(.025 * rate)
+        begin, end = switch_frame - half, switch_frame + half
+        window_kind = "switch_centered"
+
+    def peak(samples):
+        if samples is None:
+            return None
+        x = np.asarray(samples, dtype=np.float64)
+        if x.ndim != 2 or x.shape[1] != 2 or not np.isfinite(x).all():
+            return None
+        if not (0 <= begin < end <= len(x)):
+            return None
+        if delay_time_s is None:
+            # Keep the exact historical source of the Quad VCA peak.
+            return step_metrics(x, switch_frame, rate).get("highpass_peak_fs")
+        mono = np.mean(x, axis=1)
+        sos = signal.butter(2, 2000, btype="highpass", fs=rate, output="sos")
+        filtered = signal.sosfilt(sos, mono)
+        return float(np.max(np.abs(filtered[begin:end])))
+
+    switched = peak(audio)
+    floor = peak(no_switch_audio) if no_switch_audio is not None else None
+    if switched is None or (no_switch_audio is not None and floor is None):
+        return unavailable("missing, nonfinite or too-short paired switch render")
+
+    def dbfs(value):
+        return 20 * math.log10(value) if value > 0 else "-inf"
+
+    excess = None
+    if floor is not None:
+        if switched == floor == 0:
+            excess = 0.0
+        elif floor == 0:
+            excess = "inf"
+        elif switched == 0:
+            excess = "-inf"
+        else:
+            excess = 20 * math.log10(switched / floor)
+    result = {
+        "status": "measured", "switch_click_peak_fs": switched,
+        "switch_click_peak_dbfs": dbfs(switched),
+        "no_switch_floor_fs": floor,
+        "no_switch_floor_dbfs": dbfs(floor) if floor is not None else None,
+        "click_excess_db": excess, "switch_frame": switch_frame,
+        "sample_rate_hz": rate, "highpass_hz": 2000,
+        "window_kind": window_kind, "window_start_frame": begin,
+        "window_end_frame_exclusive": end,
+        "window_before_ms": 1000 * (switch_frame - begin) / rate,
+        "window_after_ms": 1000 * (end - switch_frame) / rate,
+        "window_ms": 1000 * (end - begin) / rate,
+        "metric_source": "paired causal 2 kHz Butterworth high-pass peaks; 20log10(FS); dB subtraction"}
+    if delay_time_s is not None:
+        result["delay_time_s"] = delay_time_s
+        result["first_effect_frame"] = first_effect_frame
+    return result
 
 
 def envelope_metrics(audio, on_frame, off_frame, attack_s, release_s, rate=RATE):

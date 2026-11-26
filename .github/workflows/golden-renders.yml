@@ -3,9 +3,17 @@ name: Golden patch renders (same-runner base/head gate)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
     paths:
       - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "modules/**"
+      - "sdk/**"
+      - "targets/**"
+      - "tests/native/**"
+      - "tools/render/**"
+      - "tools/capture/**"
       - "bench/golden/**"
       - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
@@ -15,6 +23,14 @@ on:
     branches: [main]
     paths:
       - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "modules/**"
+      - "sdk/**"
+      - "targets/**"
+      - "tests/native/**"
+      - "tools/render/**"
+      - "tools/capture/**"
       - "bench/golden/**"
       - "bench/patches/coverage/**"
       - "bench/patches/owner/**"
@@ -33,6 +49,7 @@ permissions:
 
 jobs:
   golden:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Same-runner golden / ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
@@ -42,7 +59,7 @@ jobs:
         include:
           - { name: linux-x64, runner: ubuntu-latest }
           - { name: linux-arm64, runner: ubuntu-24.04-arm }
-          - { name: windows-x64, runner: windows-latest }
+          - { name: windows-x64, runner: windows-2022 }
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: "2"
     defaults:
@@ -161,7 +178,7 @@ jobs:
             --baseline-wavs "$RUNNER_TEMP/golden/wavs/after" \
             --changed-wavs "$RUNNER_TEMP/golden/experiment-wavs" \
             --report "$RUNNER_TEMP/golden/experiment.json"
-          git -C head diff --exit-code -- native/modules2/vco/dsp.h
+          git -C head diff --exit-code -- modules/vco/dsp.h
           echo "### Uncommitted DSP change detected, then explicitly declared" >> "$GITHUB_STEP_SUMMARY"
           python -c 'import json,sys; x=json.load(open(sys.argv[1])); print("first interleaved sample", x["primary_undeclared"]["first_differing_sample_index"], "time_s",x["primary_undeclared"]["first_differing_time_s"], "peak delta",x["primary_undeclared"]["peak_sample_difference_fs"], "declaration", x["primary_declared"]["status"])' "$RUNNER_TEMP/golden/experiment.json" >> "$GITHUB_STEP_SUMMARY"
       - name: Secondary committed architecture reference (0.01 dB warning only)

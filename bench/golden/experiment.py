@@ -18,7 +18,7 @@ from compare import compare, parse_sound_changes
 from render import binary, measure
 
 PATCH = "bundled/basics-01-first-tone.json"
-SOURCE = "native/modules2/vco/dsp.h"
+SOURCE = "modules/vco/dsp.h"
 ORIGINAL = "out[i]=static_cast<float>(std::sin(phase[c]));"
 ALTERED = "out[i]=static_cast<float>(0.875*std::sin(phase[c]));"
 

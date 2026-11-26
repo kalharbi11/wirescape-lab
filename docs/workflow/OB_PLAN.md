@@ -3,6 +3,115 @@
 
 Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 and signed Architect rulings. Local gpt-lead delivers; Claude Architect owns design/required reviews. This is a delivery plan, not a contract amendment. All builders work only toward OB0/OB1. SDK/drop-in/dev-loop/panels/Daisy/other hardware/protocol publication/web features and MT2+ are parked. M4's contracted internal protocol/header changes remain necessary for OB1.
 
+Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
+The dated dispatch entries below are history.
+
+## OB1.1 Tier 1 plan — 2026-11-25 ET (Architect, owner request; OB r2.12, `proposals/0022`)
+
+**Goal:** the owner can leave a complex generative patch running for hours on the Pi, drive it with
+OSC from a Python script, send OSC out to network controllers (LEDs and servos), and switch patches
+without restarting anything. The same patch files must also run on a later headless Pi build (the separate
+`wirescape-headless` repo). Tier 1 holds only engine, Studio and shared-tool work, so the full app benefits
+as well.
+
+**Queue rule:** each row starts after its lane's current task. No row holds the OB1 tag. Rows may
+merge before it.
+
+| Order | Row | Lane | Starts after | Why it is Tier 1 |
+|---|---|---|---|---|
+| 1 | OB-h1 OSC soak status [#600](https://github.com/kalharbi11/wirescape-lab/issues/600) | B3 | #579 Result | No hosted `osc-heavy` result since #394/#433; the nightly is parked |
+| 1b | A67 enqueue refusals [#494](https://github.com/kalharbi11/wirescape-lab/issues/494) | B2 | #540 (before OB-h2 only if OB-h1 finds a `still` failure) | Dropped OSC input under load |
+| 2 | OB-h2 OSC Out network destinations [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) | B2 | #540 (or #494) | Pico W over WiFi cannot receive today: localhost only |
+| 3 | OB-h3 patch switching witness [#602](https://github.com/kalharbi11/wirescape-lab/issues/602) | B5 | #545 | Switches must be clean under OSC load; fix only what fails |
+| 4 | OB-h4 Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) | B4 | CMP-1 #592 | Strum, ratchet, humanize and trig out for patch design; already built |
+| 5 | OB-h5 OSC presets [#603](https://github.com/kalharbi11/wirescape-lab/issues/603) | B1 | #585 | No retyping of mappings; one `/ws/…` scheme for every script |
+| 6 | OB-h6 patch check tool [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) | B3 | OB-h1 facts | Proves each patch loads and fits the Pi's CPU before copying |
+
+**Reviews:** OB-h2 needs a Claude contract review (network egress). OB-h3 needs one only if it changes
+`host/sidecar/` product code. The rest are lead merges.
+
+**Tier 2 (suggested, not filed; re-evaluated after Tier 1):** an engine heartbeat with hang detection; desktop
+recovery without the three-crash dialog, reloading the last patch; trig utilities; Pi OSC soak L3+;
+CPU during silence; MIDI Program Change to a patch slot; OSC Out poly and more rows.
+
+**If lanes shrink to two full-version builders** (owner, 2026-11-25): the lead keeps the order above and
+merges lanes as I/O + engine (OB-h1, A67, OB-h2, OB-h3) and Studio + sound (OB-h5, OB-h4, OB-h6).
+
+Signed: claude-architect, 2026-11-25
+
+## Active OB1 sequence — 2026-11-25 03:32 EST
+
+- **Live editing:** E5v, E5, E7, E7b and both E7c state-hook PRs are merged. B3 audits integrated A62/A76 and A69a evidence on #525 at `8c9bb10`, records actual results and supplies the signed exact-head evidence. The KNOWN_ISSUES A2 rewrite follows the measured rows.
+- **Sound:** M7 batch 2 is merged. B1 audits all 15 OB-a1 rebuilds on #492 at the integrated source, finishes the ledger and hands listening to the owner. B4 is available for scoped sound findings. #539 L1 is recorded in the source limits inventory.
+- **Candidate:** after final CN/cost and OB-d, run the pinned OB-f1 recheck. The owner runs OB-a2 on the real patch folder and installs and runs the Pi acceptance session with 100 edits at the owner's buffer size, zero xruns and no visible stutter. Report both CN cost rows. Pi advisory rows are candidate-only. Architect acceptance precedes the immutable `owner-build-1` tag. Retain OB0.
+- **OB1.1 in parallel:** B5 #538 is in ready-state evidence, then Architect review. B2 #540 shared integration, B1 #555 and B5 #545 shared loader work follow its merge. A81 binds the first shipped-slot PR. Gate Delay #333, CAT-1/MB1 and MT2 stay parked until after OB1.
+
+Signed: codex-lead, 2026-11-25, 03:32 EST
+
+## Next-day delivery queue — 2026-11-21 18:34 EST
+
+Start the current row for each builder. A numbered successor starts only when its release condition is met. Use one issue, branch and PR per task. Use hosted device-off CI and publish a signed Result with exact head and evidence.
+
+| Lane | Start or continue now | Independent work while blocked | Successors in order |
+|---|---|---|---|
+| B1 | [#309](https://github.com/kalharbi11/wirescape-lab/pull/309) align its dedicated workflow with #312 CLI, reports and tier baselines | Read-only #298 pin 7 matrix for CLI play, soak, golden, render, sidecar and web | After S6, rebase #298 first; get coverage/Claude review, then [#318](https://github.com/kalharbi11/wirescape-lab/issues/318) Pi script/docs and path-only dry run. In parallel, enable hosted OSC after #305 lands and MIDI after #308 integration. Revalidate mapped workflow paths after S6. |
+| B2 | [#311](https://github.com/kalharbi11/wirescape-lab/pull/311) fix scripted assertion and inspect sanitizer | Plan MIDI profile integration without editing bench/io; prepare OB-f1 candidate procedure | After #305 merge and bench writer handoff, add `midi-m8` and `mixed` to #308. Sync mapped paths and verify Lab after S6. Run OB-f1 at pinned candidate. [#319](https://github.com/kalharbi11/wirescape-lab/issues/319) is P3 reserve for a released idle slot. |
+| B3 | [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) finish MIDI to CV trigger draft and device-off evidence | Plan fixed-window evidence for #314 read-only | If #307 is handed off and S6 is open, draft [#316](https://github.com/kalharbi11/wirescape-lab/issues/316) ADSR. After S6, #291 is the second parked rebase and still needs D5 and K1–K8. Then [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) Delay → S7.7 VCF → S7.8 Ladder → S7.9 CHOKE, with separate scoped issues and ADSR writer held by one task at a time. |
+| B4 | [#295](https://github.com/kalharbi11/wirescape-lab/pull/295) classify and resolve 76 preview hits; guarded replay, full evidence and Claude review | Read-only next-stage inventory during check runs | S6 merge and mapped-path release → [#315](https://github.com/kalharbi11/wirescape-lab/issues/315) T1.6a → b → c (b and c require contract-review) → TR1e (full ER1 and contract-review) → E6 (ER1/ER2/ER6) → E4a → E4b. Actual predecessor merges and a released issue control each start. |
+| B5 | [#312](https://github.com/kalharbi11/wirescape-lab/pull/312) correction, runner evidence when available | Read #317's Studio test seams while Lab runs | After #312 source review, give up the bench writer slot and draft [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) in Studio tests. #308 owns native MIDI/sidecar overlap until handed off. After S6, bounded OB-c one case at a time, starting with panic raw markers and PCM evidence once released; panic semantics require Architect disposition. |
+
+Phase B lets these five current packets run together: S6 apply work in B4's lane, explicitly authorized OB-g drafts in B2/B3 isolated branches, B1's dedicated workflow, and B5's bench-only correction. Keep product drafts unmerged during S6. The #305 bench writer goes to B2 only by recorded handoff; #317 begins with Studio tests only. Runner and soak outcomes are advisory. P4 stays parked. A28 needs the owner's design choice.
+
+Signed: codex-lead, 2026-11-21, 18:34 EST
+
+## Four-builder queue — 2026-11-19 03:35 EST
+
+B1 now has independent OB-a2 #259. B2 continues #207/#214, B3 #243/#255, and B4 #253.
+At every lead run, fill available builder slots from ready contracted work while
+respecting dependencies and one writer per file. Report any held slot and its trigger.
+
+Signed: codex-lead, 2026-11-19, 03:35 EST
+
+## Latest dispatch sync — 2026-11-19 03:24 EST
+
+B4 #253 resumes under merged A17/M1 r3.2. B2 released the temporary CMake slot after
+the #214 merge at `a05f2a2`; S5b still excludes CMake. Actual A10 and Lab are running.
+B3 published Reverb correction 1/2 at `f314b85`. OB0 waits for that task's numeric,
+review and release evidence. S6 waits for S5b merge.
+
+Signed: codex-lead, 2026-11-19, 03:24 EST
+
+## Latest dispatch sync — 2026-11-19 03:14 EST
+
+B3 #255 is in its first correction after the Reverb loudness regression. S7.2 remains the
+OB0 critical path. B4 #253 waits for Architect A17 on live ABI1 header consumers. B2 #214
+owns the short, mechanical CMake conflict integration slot while B4 is stopped. Restore
+the slot before B4 resumes any shared CMake work. No OB0 release or S6 dispatch yet.
+
+Signed: codex-lead, 2026-11-19, 03:14 EST
+
+## Latest dispatch sync — 2026-11-18 21:35 EST
+
+S5a and OB-e2 have merged. B4 owns S5b #253; B2 took over the existing A10 #207/#214 after
+B1's stop instruction, with #209 still parked. The #249 matrix produced no OB-e3 source task.
+B3 retains #243 S7.2, the remaining OB0 source change. S6 is still gated.
+
+Signed: codex-lead, 2026-11-18, 21:35 EST
+
+## Latest dispatch sync — 2026-11-18 19:33 EST
+
+Supersedes older dispatch/wiring holds below. B1 #207/#214 and B2 #240/#249 now have
+explicit SR8 grants for separate dedicated workflows on their existing branches; no shared
+ci.yml/CMake slot or product edit granted. B2 finishes actual 136-case smoke before #209.
+B1 completes A10 execution/identity/every-gate proof; wall-time remains unmeasured until actual
+marks exist. B4 #234/#242 is in independent Claude review at fd413424, with all five workflow
+runs green; S5b/S6 remain gated by actual merge. B3 #243 is the remaining OB0 source task.
+M2 accepted and Macro/S7.1 merged as recorded below. Target OB0 first; a 1–2 day aim depends on
+S7.2 evidence/review/release gates and does not apply to OB1's serial migration.
+Labels, CURRENT and Architect queue sync together; #246 reviewer instructions apply.
+
+Signed: codex-lead, 2026-11-18, 19:33 EST
+
 ## Critical paths and estimates
 OB0: max(M2 history + actual review, Reverb S7.1 evidence → S7.2, Macro S7.4, OB-a1) → release/tag. Start S7.4 and OB-a1 now, in separate files. Aim for the first eligible build, not a bundled wait for OB1.
 OB1 serial path: M1 S4 → S5a → S5b → S6 → M3 T1.6a → b → c → TR1e → M4 E6 → E4a → E4b → E5 → E3a. Sidecar follows E3a → E3c → E7; Studio E3b/E3c serialize if they touch shared files. Engine/module tests serialize only on actual overlapping files. Other OB tests, sound modules, UI measurements and install work run beside this chain.
@@ -50,17 +159,17 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 |---|---|---|---|---|
 | OB0 T7.0 baseline | #152 merged | complete | retained facts | done |
 | OB0 M2 E1b-r | #182 / PR189 merged06e68f0 | complete | reviewed exactedcc97f, Lab green | done |
-| M2 final report | #191 / PR232 mergedd048049; acceptance235 | Architect | report complete; milestone decision separate | report done |
-| OB0 S7.1 Reverb | #155 / PR184 | B3 | High damping regression; correction2/2, M7r1.2 four damping rows | re-estimate after correction |
-| OB0 R2/D5 capture | #193 / PR196 | B2 |actual x64/ARM64 production artifacts; lead release upload | 2–6h |
-| OB0 S7.2 Reverb gain | #202 (stage issue after155 merge) | B3 |155 merged; same module writer | 4–10h |
-| OB0 S7.4 Macro rate support | #210 | B3 |ready; 24models×rates,48k identical, required contract-review | 12–24h |
+| M2 final report | #191 / PR232 merged d048049; A14/#235 accepted | complete | Architect accepted M2 r4 with stated exceptions; #192 stays gated | done |
+| OB0 S7.1 Reverb | #155 / PR184 merged 1909b44 | complete | A13, three-platform Golden and durable D5 verified | done |
+| OB0 R2/D5 capture | #193 / PR196 merged 34b3da3 | complete | both production architectures, P2/P3 checks and D5 attached | done |
+| OB0 S7.2 Reverb gain | #243 (tracker #202) | B3 | S7.1 merged; same writer; supported retry sent | 4–10h |
+| OB0 S7.4 Macro rate support | #210 / PR212 merged 004a1b4 | complete | A12 review, instruction evidence and D5 verified | done |
 | OB0 OB-a1 round-trip CI | #206 / PR213 merged6998f05 | complete | actual32/32, approved00664a1 | done |
 | OB0 tag/release/install check | #198 | lead |all OB0 criteria on main; preserve immutable fallback tag | 1–3h |
 | OB1 M1 S3 | #159 merged | complete |reviewed prior evidence retained | done |
 | OB1 M1 S4 | #188 / PR190 merged8c72722 | complete | reviewed26c749d, final facts/CI green | done |
-| OB1 M1 S5a | #234 (tracker199) | B4 | ArchitectA11 released;212 same-file/sidecar order holds | 8–16h |
-| OB1 M1 S5b | #199 | B4 |S5a merged; required Claude contract-review | 8–16h |
+| OB1 M1 S5a | #234 / PR242 merged af62278 | complete | reviewed and evidence verified; standalone web unverified | done |
+| OB1 M1 S5b | #253 (tracker #199) | B4 | S5a merged; dispatched; required independent Claude review | in progress |
 | OB1 M1 S6 | #199 | B4 |S5b; every product PR merged/explicitly parked; plan window ≥1 day ahead; Claude review | 8–16h |
 | OB1 M3 T1.6a | #200 | B4 |S6; mapped paths, mechanical only | 4–8h |
 | OB1 M3 T1.6b | #200 | B4 |T1.6a; independent review | 8–16h |
@@ -85,12 +194,12 @@ Ready task issues #206–#210 and blocked workstream trackers #198–#205 cover 
 | OB-a2 owner folder runner | #203 | B1 |OB-a1; read-only inputs; owner runs real patches | 3–6h |
 | OB-a3 no rewrite/first-save backup | #203 | B1 |OB-a1; native/document free after S5; Claude review | 6–12h |
 | OB-b Pi install/launch | #198 | B2 |S6; dry-run paths; no agent device test | 4–8h |
-| OB-c regression tests | #207 / PR214 | B1 | A10 six oracles released; new test files, no sidecar duringS5 | 8–16h |
+| OB-c regression tests | #207 / PR214 | B2 | SR12 handoff from B1, current branch/head and 1/2 ledger retained | in progress |
 | OB-c cause fixes | #203 | file owner |S6; named cause/test, no blanket product scope | 4–16h provisional |
 | OB-d affected patch list/rebuild | #202 | B3 |M7batch2; hash/RMS listing first, owner listens | 4–8h |
 | OB-e1 module census | #208 / PR221 merged998f56b | complete | 34 actual palette IDs (32 native, two SDK examples) | done |
-| OB-e2 every-module smoke | #240 (tracker #204) | B2 | e1 merged; queue behind #193 and Lab wiring release; 44.1/48k,64/256,2s,sweep,RT | 6–12h |
-| OB-e3 module failures | #204 | B3 |e2 actual failure; one module PR each; preserve goldens | 2–8h/module provisional |
+| OB-e2 every-module smoke | #240 / PR249 merged 137a6ab | complete | 136/136 and zero render allocations/faults, x64 and ARM64 | done |
+| OB-e3 module failures | #204 | B3 | waits for actual OB-e2 failure; none in the verified 34-ID matrix | no task released |
 | OB-f1 UI facts | #209 | B2 |bench lane after193; measured heaviest patch, four gestures+ack | 4–8h |
 | OB-f2 UI fixes | #205 | B1 |f1+Architect numerical targets; Studio free | 8–20h provisional |
 | M3 RL | #192 | B1 |182 merged+191Result+Studio slot; behind OB0 work | 4–8h |

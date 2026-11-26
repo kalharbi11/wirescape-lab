@@ -1,89 +1,104 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # AGENTS.md: rules for every agent in the lab
 
-This repo is a lab copy of Wirescape (see README). It has no tiers, board or merge gate.
-
-**Status (owner, 2026-11-15): Fable leads design and milestone acceptance.** The gpt-lead delivers
-milestones under a Fable-accepted written contract in `docs/workflow/milestones/`, dispatches builders,
-reviews their evidence and merges only tasks delegated by that contract. Builders no longer wait for
-routine owner approval. Without an accepted contract, the fallback authority in `proposals/0004-execution-plan.md`
-still applies. The engineering constraints below still apply.
+This repo is a lab copy of Wirescape (see README). The **Claude Architect** holds design authority,
+rulings, required reviews and milestone acceptance. A **delivery lead** (normally `gpt-lead` on Codex)
+runs milestones under the written contracts in `docs/workflow/milestones/`. **Builders are ChatGPT
+chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" items in
+`docs/context/CONSTRAINTS.md` stay with the owner.
 
 ## Who's who
-| Name | Family | Does |
+| Name | Runs on | Does |
 |---|---|---|
-| **Fable** | Claude | design authority: design notes, milestone contracts, queued rulings, milestone acceptance |
-| `fable-deputy` | Claude (Opus) | holds Fable's seat for routine work from 2026-11-17: reviews, queued questions, acceptance, contract upkeep; limits in `CLAUDE.md` and `docs/workflow/STANDING.md` |
-| `gpt-lead` | GPT | delivery lead: runs a contracted milestone end to end (`docs/context/CODEX_LEAD.md`); trigger `lead: run` |
-| `gpt-builder1` … `gpt-builder4` | GPT | build one contracted task each, fix CI and review corrections, leave a PR result |
-| `claude-lead` | Claude | delivery lead with the same role and authority as `gpt-lead` (owner, 2026-11-16), used when the owner assigns the lead to a Claude session; follows `docs/context/CODEX_LEAD.md`; trigger `claude lead: run`. One lead is active at a time; the active lead is named in `CURRENT.md` |
-| `claude-builder1` … `claude-builder3` | Claude | build one explicitly assigned task each, fix CI and review corrections, leave a PR result |
-| `gpt-reviewer` | GPT | independent source, tests, CI and evidence review when owner-assigned; records signed findings and readiness, but never replaces a required Claude contract-review or Fable decision |
-| `claude-reviewer` | Claude | independent review when assigned, including contracts that explicitly require a Claude reviewer |
+| **Claude Architect** | Claude | design, contracts, rulings, Architect reviews, acceptance; trigger `architect:run` |
+| `claude-planner` | Claude (Opus) | two bounded planning runs (owner, 2026-11-26): build review, roadmap, new-repo architecture; rulings final; trigger `planner: run 1` / `2` |
+| `gpt-lead` | Codex | delivery lead ([lead brief](docs/context/CODEX_LEAD.md)): keeps lanes moving, checks evidence, merges what it is delegated, prepares Architect and review requests; trigger `lead:run` |
+| `claude-lead` | Claude | the same lead role when the owner assigns it to Claude; trigger `claude lead: run`. One lead is active at a time (named in CURRENT) |
+| `gpt-builder1` … `gpt-builder5` | ChatGPT chat | lanes B1–B5 in [BUILDERS](docs/workflow/BUILDERS.md): implement, test, correct, post Results, move to the next lane task |
+| Review authority | Claude Architect | All independent and Claude contract reviews; owner or lead batches ready requests |
 
-Triggers: `fable: run design <topic>`, `fable: run questions`, `fable: run accept <milestone>`
-→ Fable. `lead: run` or `lead: run B<n>` → gpt-lead. `claude lead: run` → claude-lead. `1:run` → the builder identified by the
-active chat's family and assigned task. A trigger never grants authority beyond the accepted contract.
+**Short triggers (no other instruction needed):**
+| Trigger | Read first, in order |
+|---|---|
+| `architect:run` | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` |
+| `planner: run 1` / `2` | [Planner brief](docs/context/planner/README.md) (`claude-planner` on Opus, owner 2026-11-26: two bounded planning runs; rulings final) |
+| `lead:run` | [Lead brief](docs/context/CODEX_LEAD.md) → [BUILDERS](docs/workflow/BUILDERS.md) → [ROADMAP](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) |
+| `1:run` through `5:run` (builder chats) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
 
-**Short triggers and first reads (owner, 2026-11-17).** No other instruction is needed after these.
-| Trigger | Who | Read first, in order |
-|---|---|---|
-| `architect:run` | Claude Architect (Claude session) | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` "Architect run protocol" (scout: `docs/workflow/ARCHITECT_SCOUT.md`) |
-| `lead:run` (= `lead: run`) | gpt-lead (Codex) | `docs/workflow/CURRENT.md` → `docs/context/CODEX_LEAD.md` → `docs/workflow/OB_PLAN.md` → Cleared rows of `ARCHITECT_INBOX.md` (new rulings) |
+A trigger never grants authority beyond the accepted contract.
 
-**Architect workflow, for every agent (owner, 2026-11-17).** The Architect runs low-effort quick
-checks and escalates only on findings. Ask it by adding a row to `ARCHITECT_INBOX.md` plus the
-`needs/architect` label; its rulings land in the inbox Cleared table and CURRENT, never only in chat.
-Its scheduled check-ins are listed in CURRENT ("Architect schedule"); the lead plans around them by
-filing inbox rows before each check-in. The owner granted the Architect full git authority
-(2026-11-17); it still follows contracts, gates and SR rules.
+## Owner-started runs (2026-11-24)
 
-## A builder run = one task and one PR
-1. Read the assigned task issue, `docs/workflow/CURRENT.md`, the active milestone contract, and
-   relevant files named in the task. Do not pick up the next queued task on your own.
-2. Work on one branch `task/<issue#>-<slug>` and one PR with `Closes #<issue#>`. Reuse that same
-   branch and PR for corrections. Respect allowed paths and single-writer areas.
-3. Implement, test, resolve CI failures and review feedback. Do not merge.
-4. Finish with a **result comment on the PR**, using the template in `docs/workflow/README.md`;
-   set `status/review` or `status/blocked`. Stop when ready or blocked. The lead owns subsequent
-   dispatch and merge decisions.
+The owner starts persistent builder and lead sessions. Keep releases and pinned requests in
+GitHub. The Architect can be started by the owner or by one verified ready-batch trigger.
+
+Every lead interaction, including a question without `lead:run`, starts with a minimal check of
+the latest Architect rulings, signed reviews and lane updates for B1–B5. Resolve lead-owned items,
+refresh assignments and next actions, and expand the run only when a concrete finding needs it.
+Use scripts for repeatable checks. Prefer Luna or Sonnet for bounded scouting and collection,
+and Terra or a similarly sized helper for preliminary review and diagnosis when useful.
+The lead verifies findings and owns decisions, releases and merges. One short completion
+trigger or timed check may await a known event that needs a lead action.
+See the [Codex instructions](CODEX.md) and [lead brief](docs/context/CODEX_LEAD.md).
+
+## Builders: one lane, long sessions
+1. Read your lane row in `docs/workflow/BUILDERS.md`, your task issue, the contract row and the
+   files it names. Your lane owns its paths. Do not write another lane's paths.
+2. Each task gets one issue, one branch `task/<issue#>-<slug>` and one PR with `Closes #<issue#>`.
+   Reuse the same branch and PR for corrections.
+3. **Your PR is your environment.** Push to run Lab CI. Comment `/dev-run …` on the PR for a targeted
+   build, test, sanitizer or callgrind run. The result comes back as a comment in minutes
+   ([DEV_RUN](docs/workflow/DEV_RUN.md)). Nobody needs Codex or a sandbox to compile or test.
+4. Write the failing test first, then the fix, then gather exact-head evidence. Post a **Result comment** (template in
+   `docs/workflow/README.md`) and set `status/review` or `status/blocked`. Builders do not merge.
+5. **Keep working** ([continuation](docs/workflow/README.md#builder-continuation-after-ci)):
+   - after a Result, handle corrections, then the next lane task (released when its
+     predecessor merges) or a draft-ahead;
+   - a question goes to the inbox, and you carry on with other lane work;
+   - stop only when everything in your lane waits on someone else, and leave a lane-status
+     comment when you do.
 
 ## Rules
-- **Asking for a Claude review (owner, 2026-11-17):** label the PR with its level, then post one
-  comment naming the base/head SHAs and the invariants or criteria to check.
-  `claude-review/reviewer` = `claude-reviewer` or the Architect may do it (contract-reviews,
-  M-task "Claude review" rows, source/evidence review). `claude-review/architect` = only the
-  Architect (design meaning, reserved items, milestone acceptance; also add `needs/architect` and
-  an inbox row). Re-label after a new head. The reviewer removes the label once it posts its
-  signed review (approval or findings). Leads and Codex agents use these labels and no longer
-  have to ask the owner to assign a Claude reviewer.
-- **Reaching the Architect:** add one row to `docs/workflow/ARCHITECT_INBOX.md` and label the
-  PR/issue `needs/architect`. Leads and builders read the Architect's decisions in CURRENT, not chat.
+- **Review requests:** The Claude Architect performs all independent and Claude contract reviews under the owner's
+  2026-11-24 direction. Give each ready review an Open inbox row and `needs/architect`. Keep
+  `review-required` while it gates a merge. Pin full tested base/head SHAs, invariants and evidence
+  on the PR. Architect independence and all contract gates still apply. The owner or lead may
+  apply `architect-ready` once on one linked ready issue at the end of a verified batch. That
+  wake serves the whole inbox. The owner may also run `architect:run` manually.
+- **Auto-merge (owner, 2026-11-24):** for `merge: lead` tasks with no review condition, the lead
+  enables auto-merge at release. Required exact-head checks still gate it.
+- **Reaching the Architect:** one row in `docs/workflow/ARCHITECT_INBOX.md` plus `needs/architect`.
+  Keep `review-required`, `needs/architect` and the pinned evidence on the PR as applicable.
+  The lead identifies which requests are ready for the owner's `architect:run`.
+  Its decisions land in the inbox, CURRENT and the contract, never only in chat.
+- **Never loosen to pass:** no skipped test, raised tolerance, widened path list or changed load
+  to turn red into green. A golden difference in a structural PR is a defect until proven otherwise.
 - **Devices off** in tests, CI and agent runs: no audio/MIDI devices, no LAN sockets (localhost is fine).
-  Scripts that use real devices refuse to run without `--confirm-audio` / `--confirm-midi`; only the
-  owner runs them.
+  Device scripts refuse to run without `--confirm-audio` / `--confirm-midi`. Only the owner runs them.
 - **Realtime code:** no allocation, locks, I/O, exceptions, logging or JSON in process/event/reset.
-- **Facts are neutral.** Files under `facts/` hold numbers, quotes and sources with the lab commit,
-  machine and date. No "should", no ranking. Opinions go in `proposals/` (Fable only).
-- **Don't change the product tree** (`native/`, `apps/`, `tools/`, `docs/specs/`) unless your issue says so.
+- **Facts are neutral.** `facts/` holds numbers, quotes and sources with commit, machine and date.
+  Opinions and designs go in `proposals/` (Architect only). Hosted-runner timings are diagnostics.
+- **Product tree** (`engine/`, `host/`, `modules/`, `apps/`, `tools/`, `docs/specs/`): change it only
+  where your task's allowed paths say so.
 - Never commit secrets, machine-specific absolute paths, user names or host names, `node_modules/`,
-  `build*/`, or audio files over 1 MB (see `bench/README.md` for where recordings go).
-- SPDX header on new files: MIT under `native/sdk/` and `native/voice/`, GPL-3.0-only elsewhere.
+  `build*/`, or audio files over 1 MB (see `bench/README.md`).
+- SPDX header on new files: MIT under the SDK and voice folders, GPL-3.0-only elsewhere.
 - No force-push, no history rewrite, no commits to `main`.
-- No model run waits on or re-checks unchanged state. Scripts and GitHub Actions may watch CI and events.
+- `kalharbi11/wirescape-pi` is private, and only the Claude Architect merges there. GPT agents never
+  write to it; they ask with `/pi-run` comments. Pi work is postponed to the OB1 candidate.
 
 ## Handoff template
 ```
 **Status:** done | handoff-ready | blocked   **PR:** #…   **Head:** sha7
 **Done:** …
 **Next:** ordered steps any agent can follow
-**Tests:** command → result
+**Tests:** command or run link → result
 **Gotchas / follow-ups:** …
 Signed: <name>, <YYYY-MM-DD>
 ```
 Dates are New York time.
 
 ## Commands (devices off)
-`python tools/dev.py doctor | build --headless | test` · Studio: `cd apps/studio && npm ci && npm test` ·
-Desktop: `cd apps/desktop && npm ci && npm test`. Cloud container without cmake/ninja:
-`bash tools/ci/codex_cloud_setup.sh` and use the PATH it prints.
+In a chat builder: push, or comment `/dev-run test|asan|cmd|studio …` on the PR.
+Locally: `python tools/dev.py doctor | build --headless | test` · Studio: `cd apps/studio && npm ci && npm test` ·
+Desktop: `cd apps/desktop && npm ci && npm test`. Windows and Pi installs: `docs/INSTALL.md`.

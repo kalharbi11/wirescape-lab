@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, screen } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, screen, shell } from 'electron';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -325,6 +325,137 @@ function senderAllowed(event: Electron.IpcMainEvent | Electron.IpcMainInvokeEven
   return !!window && !window.isDestroyed() && event.sender === window.webContents &&
     event.senderFrame === window.webContents.mainFrame;
 }
+
+// A92: separate, narrowly scoped preset I/O. No patch file identity changes,
+// and renderer-supplied filenames are accepted only as leaf tokens for listing.
+const PRESET_LIMIT = 256 * 1024;
+type PresetModule = 'osc.in' | 'osc.out';
+function presetModule(value: unknown): value is PresetModule {
+  return value === 'osc.in' || value === 'osc.out';
+}
+function presetHeader(text: string): { module: PresetModule; name: string; config: Record<string, unknown> } {
+  if (Buffer.byteLength(text, 'utf8') > PRESET_LIMIT) throw new Error('OSC preset exceeds 256 KiB.');
+  const p = JSON.parse(text);
+  if (!p || p.format !== 'wirescape.osc.preset' || p.version !== 1 || !presetModule(p.module) ||
+      typeof p.name !== 'string' || !p.name.trim() || p.name.length > 120 ||
+      /[\x00-\x1f\x7f]/.test(p.name) || !p.config || typeof p.config !== 'object' ||
+      Array.isArray(p.config)) throw new Error('Invalid OSC preset header.');
+  return { module: p.module, name: p.name, config: p.config };
+}
+// At the write boundary accept only the v1 portable shape; imports may contain
+// extra fields because Studio explicitly discards them before applying a preset.
+function portablePreset(preset: ReturnType<typeof presetHeader>): boolean {
+  const isIn = preset.module === 'osc.in';
+  const only = (v: unknown, keys: string[]): v is Record<string, unknown> =>
+    !!v && typeof v === 'object' && !Array.isArray(v) &&
+    Object.keys(v).every(k => keys.includes(k));
+  const config = preset.config;
+  const rowKeys = isIn ? ['pattern', 'argument', 'kind', 'input_min', 'input_max',
+    'output_min', 'output_max', 'smoothing_ms', 'timeout_ms', 'stale', 'enabled']
+    : ['address', 'kind', 'deadband', 'enabled'];
+  return only(config, isIn ? ['port', 'rows'] : ['port', 'rows', 'notes', 'rate_hz']) &&
+    Array.isArray(config.rows) && config.rows.length === 8 &&
+    config.rows.every(row => only(row, rowKeys)) &&
+    (isIn || only(config.notes, ['address', 'enabled']));
+}
+function presetLeaf(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= 240 && /^[^\\/:*?"<>|\x00-\x1f]+\.json$/i.test(value) &&
+    path.basename(value) === value;
+}
+async function presetRoot(): Promise<string> {
+  const root = await fs.promises.realpath(app.getPath('userData'));
+  let current = root;
+  for (const part of ['presets', 'osc']) {
+    current = path.join(current, part);
+    try { await fs.promises.mkdir(current, { mode: 0o700 }); }
+    catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; }
+    const info = await fs.promises.lstat(current);
+    if (!info.isDirectory() || info.isSymbolicLink()) throw new Error('Invalid OSC preset directory.');
+  }
+  return current;
+}
+async function readPreset(filename: string): Promise<string> {
+  if (!/\.json$/i.test(filename)) throw new Error('Expected an OSC preset JSON file.');
+  const info = await fs.promises.lstat(filename);
+  if (!info.isFile() || info.isSymbolicLink() || info.size > PRESET_LIMIT)
+    throw new Error('Invalid OSC preset file (256 KiB maximum).');
+  const handle = await fs.promises.open(filename, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+  try {
+    const stat = await handle.stat();
+    if (!stat.isFile() || stat.size > PRESET_LIMIT) throw new Error('Invalid OSC preset file.');
+    const buffer = Buffer.allocUnsafe(PRESET_LIMIT + 1);
+    let size = 0;
+    while (size < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, size, buffer.length - size, size);
+      if (!bytesRead) break;
+      size += bytesRead;
+    }
+    if (size > PRESET_LIMIT) throw new Error('OSC preset exceeds 256 KiB.');
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, size));
+    presetHeader(text);
+    return text;
+  } finally { await handle.close(); }
+}
+async function presetOperation(request: unknown): Promise<unknown> {
+  if (!window || !request || typeof request !== 'object') throw new Error('Invalid OSC preset request.');
+  const { op, file, module, text, name } = request as Record<string, unknown>;
+  const root = await presetRoot();
+  if (op === 'list') {
+    if (!presetModule(module)) throw new Error('Invalid OSC preset module.');
+    const entries: { file: string; name: string }[] = [];
+    let examined = 0;
+    const dir = await fs.promises.opendir(root);
+    for await (const entry of dir) {
+      if (++examined > 1024 || entries.length >= 256) break;
+      if (!entry.isFile() || !presetLeaf(entry.name)) continue;
+      try {
+        const p = presetHeader(await readPreset(path.join(root, entry.name)));
+        if (p.module === module) entries.push({ file: entry.name, name: p.name });
+      } catch { /* Broken or oversized files never become buttons. */ }
+    }
+    return entries.sort((a, b) => a.name.localeCompare(b.name) || a.file.localeCompare(b.file));
+  }
+  if (op === 'read') {
+    if (!presetLeaf(file)) throw new Error('Invalid OSC preset filename.');
+    const filename = path.join(root, file);
+    if (path.dirname(await fs.promises.realpath(filename)) !== root)
+      throw new Error('OSC preset is outside the preset directory.');
+    return readPreset(filename);
+  }
+  if (op === 'choose') {
+    const result = await dialog.showOpenDialog(window, { title: 'Load OSC preset', defaultPath: root,
+      properties: ['openFile'], filters: [{ name: 'OSC preset', extensions: ['json'] }] });
+    return result.canceled || !result.filePaths[0] ? null : readPreset(result.filePaths[0]);
+  }
+  if (op === 'save') {
+    if (typeof text !== 'string' || typeof name !== 'string') throw new Error('Invalid OSC preset save.');
+    const preset = presetHeader(text);
+    if (name !== preset.name || !portablePreset(preset))
+      throw new Error('OSC presets may contain only portable mapping fields, not network settings.');
+    const leaf = name.replace(/[^a-zA-Z0-9_-]+/g, '_') + '.json';
+    const result = await dialog.showSaveDialog(window, { title: 'Save OSC preset',
+      defaultPath: path.join(root, leaf), filters: [{ name: 'OSC preset', extensions: ['json'] }] });
+    if (result.canceled || !result.filePath) return null;
+    const filename = result.filePath;
+    if (!/\.json$/i.test(filename)) throw new Error('Expected an OSC preset JSON filename.');
+    // Refuse overwriting unrelated documents (including a native patch).
+    try { await readPreset(filename); }
+    catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw new Error('Refusing to overwrite a non-preset file.'); }
+    const temp = path.join(path.dirname(filename), '.' + path.basename(filename) + '.' + randomUUID() + '.tmp');
+    try {
+      await fs.promises.writeFile(temp, text, { flag: 'wx', mode: 0o600 });
+      await fs.promises.rename(temp, filename);
+    } finally { await fs.promises.rm(temp, { force: true }).catch(() => {}); }
+    return null;
+  }
+  if (op === 'folder') {
+    const error = await shell.openPath(root);
+    if (error) throw new Error('Could not open OSC preset folder.');
+    return null;
+  }
+  throw new Error('Unknown OSC preset request.');
+}
+
 async function patchDialogPath(save: boolean): Promise<string> {
   if (patchPath) return patchPath;
   const directory = path.join(app.getPath('userData'), 'patches');
@@ -337,7 +468,7 @@ async function libraryPatch(request: unknown): Promise<{ text: string; name: str
   try {
     if (!request || typeof request !== 'object') throw new Error();
     const { library, name } = request as { library: unknown; name?: unknown };
-    if (library === 'reset') { patchPath = null; originalV1 = undefined; return null; }
+    if (library === 'reset') { patchPath = null; return null; }
     if (library !== 'list' && library !== 'read') throw new Error();
     const directory = path.join(app.getPath('userData'), 'patches');
     await fs.promises.mkdir(directory, { recursive: true, mode: 0o700 });
@@ -360,15 +491,12 @@ async function libraryPatch(request: unknown): Promise<{ text: string; name: str
         path.dirname(await fs.promises.realpath(filename)) !== root) throw new Error();
     const source = await readNativeFile(filename);
     patchPath = filename;
-    originalV1 = source.value.version === 1
-      ? { bytes: source.bytes, object: JSON.stringify(source.value) } : undefined;
     return { name, text: source.text };
   } catch { throw new Error('Could not access user patch (JSON files, 2 MiB maximum)'); }
 }
 
 // File identity is bound only after a supported native document has been read.
 // The renderer remains the editable-document owner; these checks only guard I/O.
-let originalV1: { bytes: Buffer; object: string } | undefined;
 function nativeFile(text: string): { version: number; preserved?: unknown } {
   const value = JSON.parse(text);
   if (!value || value.format !== 'wirescape.native.patch' || ![1, 2].includes(value.version) ||
@@ -433,17 +561,37 @@ async function readNativeFile(filename: string): Promise<{ bytes: Buffer; text: 
   const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   return { bytes, text, value: nativeFile(text) };
 }
+// OB-a3: stage and fsync the original bytes, then atomically link a backup
+// without clobbering an existing name. Backups are deliberately not *.json.
 async function backupV1(filename: string, bytes: Buffer): Promise<void> {
-  const parsed = path.parse(filename);
-  const backup = path.join(parsed.dir, parsed.name + '.v1' + parsed.ext);
+  const backup = filename + '.bak-v1';
   const staged = backup + '.' + randomUUID() + '.tmp';
   try {
-    await fs.promises.writeFile(staged, bytes, { flag: 'wx', mode: 0o600 });
-    try { await fs.promises.link(staged, backup); }
-    catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST' ||
-          !(await fs.promises.lstat(backup)).isFile()) throw error;
+    const handle = await fs.promises.open(staged, 'wx', 0o600);
+    try {
+      await handle.writeFile(bytes);
+      await handle.sync();
+    } finally { await handle.close(); }
+    for (let index = 1; index <= 10000; ++index) {
+      const candidate = index === 1 ? backup : backup + '.' + index;
+      try {
+        await fs.promises.link(staged, candidate); // atomic no-clobber
+        return;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      }
+      // A directory, symlink or unusual file at a backup name is a refusal,
+      // never a reason to follow it or silently skip to another suffix.
+      const stat = await fs.promises.lstat(candidate);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('Unsafe backup collision');
+      const existing = await fs.promises.open(candidate,
+        fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+      try {
+        if (!(await existing.stat()).isFile()) throw new Error('Unsafe backup collision');
+        if ((await existing.readFile()).equals(bytes)) return; // no new write
+      } finally { await existing.close(); }
     }
+    throw new Error('Too many backup collisions');
   } finally { await fs.promises.rm(staged, { force: true }).catch(() => {}); }
 }
 async function openPatch(): Promise<{ text: string; name: string } | null> {
@@ -457,8 +605,6 @@ async function openPatch(): Promise<{ text: string; name: string } | null> {
     const filename = result.filePaths[0];
     const source = await readNativeFile(filename);
     patchPath = filename;
-    originalV1 = source.value.version === 1
-      ? { bytes: source.bytes, object: JSON.stringify(source.value) } : undefined;
     return { text: source.text, name: path.basename(filename) };
   } catch { throw new Error('Could not read a supported UTF-8 native patch (2 MiB maximum)'); }
 }
@@ -476,13 +622,15 @@ async function savePatch(input: unknown): Promise<{ name: string } | null> {
     if (result.canceled || !result.filePath) return null;
     filename = result.filePath;
   }
-  const output = nativeFile(text);
+  // In Save As the explicitly chosen filename is the destination, even when
+  // it matches the opened path (OB r2.2a); any v1 destination gets a backup.
+  nativeFile(text);
   let previous: Awaited<ReturnType<typeof readNativeFile>> | undefined;
   try { previous = await readNativeFile(filename); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw new Error('Refusing to overwrite an unsupported patch'); }
-  const original = previous?.value.version === 1 ? previous.bytes
-    : originalV1 && JSON.stringify(output.preserved) === originalV1.object ? originalV1.bytes : undefined;
-  try { if (original) await backupV1(filename, original); }
+  // Only the existing destination's native v1 bytes qualify for a backup.
+  // Neither a v2 destination nor a new Save As file gets a v1 backup.
+  try { if (previous?.value.version === 1) await backupV1(filename, previous.bytes); }
   catch { throw new Error('Could not create original patch backup; target was kept'); }
   const temp = path.join(path.dirname(filename), '.' + path.basename(filename) + '.' + randomUUID() + '.tmp');
   try {
@@ -561,6 +709,10 @@ app.whenReady().then(() => {
   });
   ipcMain.on('wirescape:send', (event, raw: unknown) => {
     if (senderAllowed(event) && typeof raw === 'string') command(raw);
+  });
+  ipcMain.handle('wirescape:osc-presets', (event, request: unknown) => {
+    if (!senderAllowed(event)) throw new Error('Unavailable');
+    return presetOperation(request);
   });
   ipcMain.handle('wirescape:open', (event, request: unknown) => {
     if (!senderAllowed(event)) throw new Error('Unavailable');

@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       code: ${{ steps.classify.outputs.code }}
+      studio: ${{ steps.classify.outputs.studio }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,7 +63,7 @@ jobs:
         include:
           - { name: linux-x64, runner: ubuntu-latest }
           - { name: linux-arm64, runner: ubuntu-24.04-arm }
-          - { name: windows-x64, runner: windows-latest }
+          - { name: windows-x64, runner: windows-2022 }
     defaults:
       run:
         shell: bash
@@ -368,13 +369,13 @@ jobs:
 
   studio_shards:
     needs: scope
-    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
-    name: studio shard ${{ matrix.shard }}/3
-    runs-on: ubuntu-latest
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || (needs.scope.outputs.code != 'false' && (github.event.pull_request.draft != true || needs.scope.outputs.studio != 'false'))) }}
+    name: studio shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     timeout-minutes: 40
     defaults:
       run:
@@ -396,10 +397,10 @@ jobs:
           echo "WIRESCAPE_CHROMIUM=$(node -e "console.log(require('playwright').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Typecheck Studio
         run: npm run typecheck
-      - name: Studio test inventory (shard ${{ matrix.shard }}/3; K1)
-        run: npx playwright test --list --shard=${{ matrix.shard }}/3
-      - name: Studio Playwright (shard ${{ matrix.shard }}/3)
-        run: npm test -- --shard=${{ matrix.shard }}/3
+      - name: Studio test inventory (shard ${{ matrix.shard }}/4; K1)
+        run: npx playwright test --list --shard=${{ matrix.shard }}/4
+      - name: Studio Playwright (shard ${{ matrix.shard }}/4)
+        run: npm test -- --shard=${{ matrix.shard }}/4
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -409,14 +410,14 @@ jobs:
 
   # Preserve the required check name while retaining each real Playwright shard.
   # `needs.studio_shards.result` alone can miss an individual matrix-leg cancellation,
-  # so also validate the three per-job conclusions from this public run.
+  # so also validate the four per-job conclusions from this public run.
   studio:
     name: studio
     permissions:
       contents: read
       actions: read
     needs: [scope, studio_shards]
-    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.scope.result != 'success' || (needs.scope.outputs.code != 'false' && (github.event.pull_request.draft != true || needs.scope.outputs.studio != 'false'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -460,7 +461,13 @@ jobs:
         run: npm ci
         working-directory: apps/desktop
       - name: Desktop Electron tests (null audio)
+        if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.draft == true && needs.scope.result == 'success' && needs.scope.outputs.studio == 'false') }}
         run: xvfb-run -a npm test
+        working-directory: apps/desktop
+      # The real sidecar spec compiles native sources; it cannot be skipped on engine drafts.
+      - name: Desktop real-sidecar tests (engine-only draft; null audio)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true && needs.scope.result == 'success' && needs.scope.outputs.studio == 'false' }}
+        run: xvfb-run -a npm test -- app-e2e.spec.cjs
         working-directory: apps/desktop
       - if: failure()
         uses: actions/upload-artifact@v4

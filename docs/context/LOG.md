@@ -1,6 +1,118 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-26 — Claude Architect session (Fable design brief)
+Owner direction: a headless Player (new repo `wirescape-headless`), a loose module-dev repo (`wirescape-test`), macros and mapping, OSC and Python scripting. Brief and scout pack in `docs/context/planner/`. Two `claude-planner` runs on Opus (`planner: run 1|2`; first drafted for Fable, which the owner cannot run) have final say. 0022 is reframed as headless readiness. Lanes are unchanged.
+Signed: claude-architect, 2026-11-26
+
+## 2026-11-25 — Claude Architect session (OB r2.12, OB1.1 Tier 1)
+Owner Pi installation in 7 days. `proposals/0022` and OB r2.12 add OB-h1–OB-h6 (OSC soak status, OSC Out network destinations, patch switching witness, Gate Delay, OSC presets, patch check tool). A67 #494 is unparked. Each row is queued after its lane's current task. Tier 2 is suggested only.
+Signed: claude-architect, 2026-11-25
+
+## 2026-11-24 — Claude Architect run 22 (chat lanes, dev-run, Poly Merge)
+Dev-run (#389) lets chat builders build and test from PR comments. All five builders are ChatGPT chat lanes that keep working, with standing release and auto-merge. A39 merged Poly Merge + Poly Split #356 (`cdc8f14`). A40 combines E4a+E4b and runs E7 parallel to E5. A41 releases the OB-g8 matcher fix. CI2 #390 goes to B3. Stale workflow docs removed; AGENTS.md, CLAUDE.md and CURRENT trimmed. Details in CURRENT run 22.
+Signed: claude-architect, 2026-11-24
+
+## 2026-11-23 — Claude Architect run 21 (A37, Pi postponed)
+M7 r1.5 for S7.7: retire only the S4 whole-graph ABI1 bound, and VCF-containing rows fall under the task's Ir cap. OB r2.6: Pi testing and infrastructure postponed to the OB1 candidate. Details in CURRENT run 21.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 20 (reviews A34/A36, ruling A35, review routing)
+Approved #298 (OB-a3) at 5ecf300 and #376 (T1.6c) at 418d4a7. Ruled C1 #375 merge-then-verify. Fixed the review routing: `review-ready` is for the regular reviewer only, and Architect reviews go through the inbox plus a new `architect-ready` label, which replaces the unused #265 wake. Details in CURRENT run 20.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 19b (owner answers to 0021)
+E3 moves to OB1.1, and G-W1 #368 (Groove scrolling) joins OB1. #333, #356, #322, CAT-1 and MB1 are parked. C1 #367 is the CI digest. PI-1 #369 moves the Pi bridge's hosted jobs to the public lab repo, and wirescape-pi stays private.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 19 (replan to OB1)
+`proposals/0021`. OB1 is one serial engine chain, and most open PRs are off it. In effect now: an intake freeze, one PR per lane, engine draft-ahead, and OB-c fixes moved to B1. Owner decisions D1–D6 are pending (E3 scope, module freeze with CAT-1+MB1 combined, the B5 hand-off, CI digest, chat-mode GitHub write access).
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 18 (hand-over to gpt-lead)
+Merged #357 OB-g9, #345 TR2 and #360 T1.6b (contract-review approved). Claude builder lanes closed. GPT lanes queued: T1.6c for B5, MB1 for B1, B4 on #333's Golden failure. CODEX_LEAD gains a technical- and agents-lead section.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 17 (agent check)
+No merges (CI queued). OB-g9 #357 checked (egress drain). OSC generation-pinning defect added to OB-g8. #322 unblocked from the closed SDK-1.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 16 (A32 revised)
+SDK pinning only moved the regression, so SDK-1 is closed and CAT-1 #358 compiles each module in its own TU. #333 merges with a bounded, expiring LFO x64 exception.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 15 (A32 catalogue-TU inlining)
+Refused CB1's LFO +2 % as an artifact. SDK-1 #354 pins the SDK wrapper helpers; `0020` §7 addendum. #322 may share the cause.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 14 (acting lead, after the owner's GPT run)
+Merged OB-g7 #309 (`4efb204`). Ruled #322's host.keyboard Ir rise as its own defect. CB1 takes #333; B4 takes Poly Merge #328. Builder messages re-sent and delivered.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 13 (last scheduled check-in)
+No merges: nothing green. Lanes unchanged; Claude builders still wait on owner prompts. No further runs scheduled.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 12 (owner run-now; acting lead)
+Merged T1.6a #344 (`ef11118`) on verified evidence; issued T1.6b #350 to CB1 with the 0007 contract-review criteria. Web demo deployed from main.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 11 (scheduled; acting lead)
+Merged #334 CV to Notes (`5bff39c`), #343 WEB1 (`92747e4`) and #336 OB-b (`3eeedd6`). T1.6a #344 checked as mechanical and waits for its Result. Granted #298 its pin-7 test-only paths. OB-g3 needs a native failing test. New OB-g9 #348 (midi-m8/still). Claude builders are blocked on owner prompts.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 10 (acting lead: #311, #325 merged; CB2 WEB1, CB3 TR2)
+Merged OB-g2 #311 (`3f8f646`) and OB-g5 #325 (`d4884bd`). wirescape-pi #21 adds the mixed/still nightly lane. known_module_ids stays at 34. New tasks: WEB1 #340 (CB2), TR2 #341 (CB3); CB1 refreshes #333 S0, then T1.6a. Check-ins scheduled for 05:59 and 08:59 ET.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 9 (agent check, tasks, path upkeep)
+wirescape-pi #20 merged by the owner; first Pi io-soak requested on #318. `0020` §7 holds on #333. M3 r1.1 / M4 r2.1 map contract paths through S6. Tasks: CB1 T1.6a #315, CB2 reviews #298, B2 OB-g8 #326, B4 Poly Merge #328. No lead is active, so the owner was asked to start one. Web target facts recorded in CURRENT.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-23 — Claude Architect run 8 (OB-g4 drafted, OB-g8, agent check)
+OB-g4 drafted as wirescape-pi #20 (io-soak/io-nightly ladder, nightly request, post-S6 soak path fix; owner merges). OB r2.4b: OB-g4 timeout and lanes; item 7 `config-edits` at L0 until E5; `io-soak-alsa` deferred (Q24). #326 became OB-g8, a `still`-mode fix with a failing test first. Holds: #322 (existing-row Ir), #333 (Git access). No merges since run 7. Details in CURRENT.
+Signed: claude-architect, 2026-11-23
+
+## 2026-11-22 — Claude Architect run 7 (S6 merged, M1 accepted)
+S6 #295 passed contract-review: the replay reproduces the head tree, with Goldens, Ir and sanitizers green. It merged at `25b1a82`, and M1 is accepted. `0020` §7 sets how module PRs handle the S0 catalogue, the 34-module counts and Ir after M1.
+Signed: claude-architect, 2026-11-22
+
+## 2026-11-22 — Claude Architect run 6 (note tools, Gate Delay, S6 writer)
+`proposals/0020` adds three experimental modules (CV to Notes, Poly Merge, Gate Delay with strum and ratchet), moves S6 to claude-builder1 and rules that the S0 Windows mismatch is a local host-state issue.
+Signed: claude-architect, 2026-11-22
+
+## 2026-11-21 — Claude Architect run 5 (A27 S7.6 windows; owner OSC poly question)
+M7 r1.4 fixes the S7.6 Delay windows to the x64 frame ranges and releases S7.6. A28 records the owner's question about poly OSC to LEDs: CV to Notes module (recommended) versus poly OSC Out rows.
+Signed: claude-architect, 2026-11-21
+
+## 2026-11-21 — Claude Architect run 4 (I/O endurance, triggered envelopes)
+After the owner's M8/MIDI/OSC report: `proposals/0019` and OB r2.4 add OB-g. It has an OSC/MIDI endurance harness with a 60 s→24 h stop-on-failure ladder on the Pi and hosted Windows, an injected MIDI source with a release-panic counter, a MIDI endpoint-change fix (W4), an ADSR trigger mode, and a MIDI to CV trig output. OB1 acceptance gains item 7. Edit-time clicks are A2 and wait for M4. Q24 asks the owner about Pi ALSA access.
+Signed: claude-architect, 2026-11-21
+
+## 2026-11-20 — S6 window opened early; Pi requests by comment (Claude Architect)
+The owner opened the S6 window now (it had been set for 06:00 on 2026-11-21). Open product PRs park; only B4 writes product source. Agents request Pi runs with an owner-account `/pi-run` comment (wirescape-pi#19).
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — Claude Architect run 3 (Windows report, Pi runner security, A4)
+The owner reports the Windows build `c6ae30a` good so far (sound, graphics, OSC Out); no W4. New OWNER_LOCAL_TESTS.md (laptop and Pi, non-blocking). wirescape-pi#18 redesigns the Pi runner: dispatch-only, secretless rootless-podman sandbox, LAN-blocked user, hosted publish, laptop runner retired. A4: 0017 section 5 errata applied (M5 r2, M6 r3, M8 r2, M10 r2, M11 r2, 0012/0014/0016); #186 closed.
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — Claude Architect run 2, acting as lead (Codex unavailable)
+Tag verified. Windows kit W1/W2 merged after device-off evidence and a W1 loadGraph-capability fix. OB-f1 #216 merged, and OB-f2 targets were set (all met; no fix task). S7.5's Ir breach was fixed in the module (`cdf666c`, bit-identical, −4 % to −21 % Ir). A T7.0 metric-floor finding produced M7 r1.3 and T7.0b #296; S7.6 is held. Details in CURRENT "Decided 2026-11-20 12:45 ET".
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — OB0 accepted (Claude Architect, 05:40 ET)
+Owner directed "tag now". OB0 was accepted on OB acceptance item 1 at `a440d71`; the Pi smoke is an owner-only follow-up. The tag push was refused by the session proxy, so the lead creates or verifies `owner-build-0`. S6 notice was given (window 2026-11-21 06:00 ET), and the phase plan A/B/C is in CURRENT.
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-20 — Claude Architect run, acting as lead (Windows owner evaluation)
+The owner asked for a same-day Windows test of sound, MIDI to CV, OSC In and OSC Out to Python, without changing the OB0/OB1 path. Source check at `a440d71` found no blocker. One doc defect: INSTALL cloned the product repository, now fixed. Plan and runbook in `docs/workflow/WINDOWS_EVAL.md` (W1–W3 #284–#286, W4 reserve). Rulings: A18 (evaluation scope, not a gate), A19 (OB-a3 r2.2 pins, #287), A20 (OB-f1 CPU-ranking release on #209/#216). Released S7.5 #288 (merge after the OB0 tag). Merged lead docs PR #283.
+Signed: claude-architect, 2026-11-20
+
+## 2026-11-18 — Claude Architect quick check (21:01 ET)
+Reviewed #242 (M1 S5a) at reviewer level: approved for merge `fd41342`, with no High findings and 3 Lows. Golden is 24/24 identical ×3. No new rulings.
+Signed: claude-architect, 2026-11-18
+
 ## 2026-11-18 — Claude Architect quick check (10:07 ET)
 Accepted M2 r4 (A14). Its seven exceptions are recorded; the 805.5 ms subject silence goes to M4 r2 after E5.
 Granted A16: two descriptor-field lines in `golden_render.cpp` for M1 S5a, with the same identity and Golden as proof.

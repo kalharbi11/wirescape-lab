@@ -99,23 +99,31 @@ class T70Switch(unittest.TestCase):
             catalogue.setdefault(module, {"parameters": {}})["parameters"][param] = {
                 "min": -2, "max": 8}
         catalogue["essentials.quad_vca"]["parameters"]["mode1"] = {"min": 0, "max": 1}
+        catalogue["fx.delay"]["parameters"]["time"] = {"min": .001, "max": 2, "initial": .375}
         # Explicit kMode is a valid stepped parameter despite the source
         # parameter extractor not decoding that C++ constant alias.
         def fake_wav(renderer, patch_doc, events, seconds, *, rate):
             self.assertEqual(rate, 48000)
-            self.assertEqual(events[0]["frame"], 48000)
-            self.assertEqual(events[0]["type"], "setParam")
+            if events:
+                self.assertEqual(events[0]["frame"], 48000)
+                self.assertEqual(events[0]["type"], "setParam")
+            else:
+                self.assertEqual(events, [])
             self.assertEqual(seconds, 2)
-            return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
+            audio = np.zeros((48002, 2))
+            if events:
+                audio[48000] = .5
+            return audio, {"status": "measured", "counters": {"faults": 0}}
 
         with patch.object(t7_0, "build_module_patch",
-                          return_value=({"modules": [], "outputs": []}, None)), \
+                          return_value=({"modules": [{"parameters": {}}], "outputs": []}, None)), \
              patch.object(t7_0, "run_wav", side_effect=fake_wav) as calls, \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             results = t7_0.capture_switches("unexecuted", catalogue)
-        self.assertEqual(calls.call_count, 4)
+        self.assertEqual(calls.call_count, 8)
         self.assertEqual(len(results), 4)
         self.assertTrue(all(x["status"] == "measured" for x in results))
         self.assertEqual({x["parameter"] for x in results},
@@ -125,7 +133,7 @@ class T70Switch(unittest.TestCase):
         # Read the actual native C++ descriptor and on-disk module manifest.
         # A self-referential mocked catalogue once hid "ports.quad_vca".
         manifest = json.loads(
-            (run_all.ROOT / "native/modules2/quad_vca/module.json").read_text(encoding="utf-8"))
+            (run_all.ROOT / "modules/quad_vca/module.json").read_text(encoding="utf-8"))
         desc = run_all.descriptors()
         quad = next(switch for switch in t7_0.SWITCHES if switch[1] == "mode1")
         self.assertEqual(manifest["id"], "essentials.quad_vca")
@@ -142,16 +150,23 @@ class T70Switch(unittest.TestCase):
             module = patch_doc["modules"][0]["module"]
             routed.append(module)
             self.assertIn(module, desc)
-            self.assertIn(events[0]["parameter"], desc[module]["parameters"])
-            self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
-            return np.zeros((8, 2)), {"status": "measured", "counters": {"faults": 0}}
+            if events:
+                self.assertIn(events[0]["parameter"], desc[module]["parameters"])
+                self.assertEqual((seconds, rate, events[0]["frame"]), (2, 48000, 48000))
+            else:
+                self.assertEqual((seconds, rate), (2, 48000))
+            audio = np.zeros((48002, 2))
+            if events:
+                audio[48000] = .5
+            return audio, {"status": "measured", "counters": {"faults": 0}}
 
         with patch.object(t7_0, "run_wav", side_effect=fake_wav), \
              patch.object(t7_0, "switch_click_metrics",
-                          return_value={"switch_click_peak_fs": .3,
+                          return_value={"status": "measured",
+                                        "switch_click_peak_fs": .3,
                                         "switch_click_peak_dbfs": -10.4575749056}):
             rows = t7_0.capture_switches("not-executed", desc)
-        self.assertEqual(len(routed), 4)
+        self.assertEqual(len(routed), 8)
         self.assertEqual(routed[0], manifest["id"])
         self.assertEqual(rows[0]["status"], "measured")
         self.assertEqual(rows[0]["module"], manifest["id"])
@@ -164,6 +179,68 @@ class T70Switch(unittest.TestCase):
         with patch.object(t7_0, "SWITCHES", misspelled):
             with self.assertRaisesRegex(ValueError, "missing native switch descriptor"):
                 t7_0.require_switch_descriptors(desc)
+
+    def test_no_effect_is_not_zero_and_legacy_projection_is_explicit(self):
+        control = np.zeros((96000, 2))
+        identity = dict(module="fx.delay", parameter="division", before=5, after=6,
+                        sample_rate_hz=48000, switch_frame=48000,
+                        delay_default_time_s=.375)
+        with patch.object(t7_0, "run_wav",
+                          return_value=(control, {"status": "measured", "counters": {}})) as wav:
+            actual = t7_0.measure_switch_pair(
+                "not-executed", {"modules": [{"parameters": {}}]}, identity)
+        self.assertEqual(wav.call_count, 2)
+        self.assertEqual(wav.call_args_list[0].args[2][0]["type"], "setParam")
+        self.assertEqual(wav.call_args_list[1].args[2], [])
+        self.assertEqual(actual["status"], "no_effect")
+        self.assertIsNone(actual["first_effect_frame"])
+        self.assertIsNone(actual["click_excess_db"])
+        legacy = t7_0.legacy_switch_rows([actual])
+        self.assertEqual(legacy[0]["status"], "unavailable")
+        self.assertIn("no_effect", legacy[0]["reason"])
+        self.assertIsNone(legacy[0]["click_excess_db"])
+
+    def test_late_mode_effect_and_second_clocked_division_fixture(self):
+        rate, frame, first = 48000, 48000, 84001
+        control = np.zeros((rate * 2, 2))
+        changed = control.copy()
+        changed[first] = .4
+        identity = dict(module="fx.delay", parameter="mode", before=0, after=1,
+                        sample_rate_hz=rate, switch_frame=frame,
+                        delay_default_time_s=.375)
+        with patch.object(t7_0, "run_wav",
+                          side_effect=lambda renderer, doc, events, seconds, *, rate:
+                             ((changed if events else control),
+                              {"status": "measured", "counters": {}})):
+            row = t7_0.measure_switch_pair(
+                "none", {"modules": [{"parameters": {}}]}, identity)
+        self.assertEqual(row["status"], "measured")
+        self.assertEqual(row["first_effect_frame"], first)
+        self.assertEqual(row["window_end_frame_exclusive"], first + 1200)
+        self.assertGreater(row["switch_click_peak_fs"], 0)
+
+        desc = run_all.descriptors()
+        observed = []
+        def fake_wav(renderer, patch_doc, events, seconds, *, rate):
+            observed.append((copy.deepcopy(patch_doc), list(events)))
+            samples = np.zeros((rate * seconds, 2))
+            if events:
+                samples[rate + 3000] = .3
+            return samples, {"status": "measured", "counters": {}}
+        with patch.object(t7_0, "run_wav", side_effect=fake_wav):
+            clocked = t7_0.capture_clocked_division("not-executed", desc)
+        self.assertEqual(clocked["status"], "measured")
+        self.assertEqual(clocked["fixture"], "clocked")
+        self.assertEqual(len(observed), 2)
+        self.assertEqual(observed[0][0], observed[1][0])
+        self.assertEqual(observed[1][1], [])
+        node = clocked["clock_source_node"]
+        self.assertTrue(any(m["id"] == node and m["module"] == "essentials.clock"
+                            for m in observed[0][0]["modules"]))
+        self.assertIn({"kind": "signal",
+                       "from": {"module": node, "port": "clock"},
+                       "to": {"module": 1, "port": "clock"}},
+                      observed[0][0]["connections"])
 
     def test_switch_unavailable_when_descriptor_absent(self):
         with patch.object(t7_0, "run_wav") as unused:

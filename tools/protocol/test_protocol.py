@@ -12,7 +12,7 @@ from validate import ROOT, check_schema_subset, json_equal, parse_line, read_sch
 
 
 SPEC = ROOT / "docs" / "specs" / "ENGINE_PROTOCOL.md"
-SIDECAR = ROOT / "native" / "sidecar" / "protocol_tests.py"
+SIDECAR = ROOT / "host" / "sidecar" / "protocol_tests.py"
 
 
 class ProtocolV0Tests(unittest.TestCase):
@@ -23,12 +23,27 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 21)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 23)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
         })
         validate_schema_patterns(self.schema)
+
+    def test_a78_config_deferred_completion_contract(self):
+        variants = self.schema["$defs"]["push"]["oneOf"]
+        events = [v for v in variants
+                  if v.get("properties", {}).get("type", {}).get("const") == "configDeferred"]
+        self.assertEqual(len(events), 1, "A78 requires one correlated completion event")
+        event = events[0]
+        self.assertTrue({"deferId", "moduleId", "outcome", "generation"} <= set(event["required"]))
+        self.assertEqual(set(event["properties"]["outcome"]["enum"]),
+                         {"applied", "superseded", "failed"})
+        refusal = self.schema["$defs"]["reply"]["oneOf"][1]["properties"]
+        self.assertEqual(refusal["deferred"], {"const": True})
+        self.assertEqual(refusal["deferId"], event["properties"]["deferId"])
+        self.assertTrue(validate({"v": 0, "id": "client-hello", "type": "hello",
+                                  "capabilities": ["configDeferred"]}, self.schema))
 
     def test_every_normative_spec_section_10_wire_line(self):
         section = SPEC.read_text(encoding="utf-8").split(
@@ -142,6 +157,30 @@ class ProtocolV0Tests(unittest.TestCase):
                                             "cpuPercent": 0, "dropouts": 0,
                                             "deviceId": None, "deviceName": None},
                                   "midi": {"devices": [], "activity": {}}}, self.schema))
+
+    def test_optional_scripted_midi_counters_and_generated_drift(self):
+        # Default S0 MIDI remains valid with no new transport member.
+        default = {"devices": [], "activity": {}}
+        shape = {"$defs": self.schema["$defs"], "$ref": "#/$defs/midi"}
+        self.assertTrue(validate(default, shape))
+        counts = {"received": 50, "dropped": 0, "malformed": 0,
+                  "oversize": 0, "ring_full": 0, "disconnects": 0,
+                  "send_fail": 0, "ignored_rpn": 0, "release_panics": 2,
+                  "ports": [{"name": "Scripted MIDI", "system_name": "scripted:midi-m8:0",
+                             "received": 50, "online": True}]}
+        self.assertTrue(validate({**default, "counters": counts}, shape))
+        for invalid in (
+            {**counts, "release_panics": -1},
+            {**counts, "release_panics": True},
+            {**counts, "ports": [{"name": "missing-required"}]},
+            {k: v for k, v in counts.items() if k != "send_fail"},
+        ):
+            self.assertFalse(validate({**default, "counters": invalid}, shape))
+        # SR17: source-schema and both generated validator/TS outputs must match.
+        from generate import OUTPUTS, render
+        for key, rendered in render().items():
+            with self.subTest(generated=key):
+                self.assertEqual(rendered, OUTPUTS[key].read_text(encoding="utf-8"))
 
     def test_json_semantic_equality_for_const_and_enum(self):
         # Python bool is a subclass of int; JSON does not equate them.

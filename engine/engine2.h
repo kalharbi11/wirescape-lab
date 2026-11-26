@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: GPL-3.0-only
+#pragma once
+#include "wirescape/module2.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+namespace wirescape::engine2 {
+enum class Timing { Frames, Immediate, Timestamped };
+struct Config {
+    double sample_rate=48000;
+    uint32_t max_block=256,max_channels=16,max_nodes=64;
+    uint32_t event_budget=1024,release_reserve=256,ring_capacity=256,future_capacity=4096;
+    uint32_t message_arena_bytes=1472*1024,feedback_block=32;
+    double bpm=120; bool playing=true;
+    uint64_t epoch_ns=0,seed=1;
+    uint32_t max_taps=256;
+};
+// Output taps default to the maximum last-frame sample across active channels;
+// use First for a phase-like output whose channel 0 has semantic meaning.
+struct Tap {
+    enum Kind : uint8_t { Param, Output, EventOut, OscPitch } kind = Param;
+    // OscPitch is host-internal: no port/parameter/ABI change. index must be zero.
+    uint32_t node=0,index=0;
+    enum Reduction : uint8_t { First, Maximum } reduction=Maximum;
+};
+struct Meter {
+    uint64_t frame=0,generation=1,applied_generation=1,events=0;
+    uint64_t dropped=0,coalesced=0,ring_full=0,stale=0,late=0;
+    uint64_t release_emergencies=0,arena_full=0,faults=0;
+    uint32_t arena_used=0,feedback_edges=0,latency_frames=0;
+    size_t setup_bytes=0;
+};
+struct FeedbackLoop {std::vector<uint32_t>nodes;uint32_t delay_frames=0;};
+struct Outgoing {
+    uint32_t node=0,port=0;uint64_t frame=0,time_ns=0,generation=0;
+    ws2_event event{};uint8_t payload[WS2_MAX_PAYLOAD]{};
+};
+// Construction, registration, graph/configuration/state operations and destruction
+// are quiescent. Each producer handle has exactly one writer. Only render owns
+// processor state. panic(), enqueue(), pop_egress() and meter() are the explicit
+// cross-thread surface. replan alone permits one control owner beside render;
+// the prepared candidate and all other graph operations remain quiescent.
+// set_telemetry_taps() is quiescent, on a candidate before prepare(). After prepare,
+// read_telemetry() is CONTROL-OWNER-ONLY (the same owner that calls replan), and
+// may overlap render but never replan/layout swaps. Output observations belong
+// to one completed block; bounded contention returns frame=0 (unavailable).
+// Never read DSP buffers from the control owner.
+class Engine {
+    struct Impl;std::unique_ptr<Impl>p_;
+public:
+    explicit Engine(Config config={});~Engine();
+    Engine(const Engine&)=delete;Engine&operator=(const Engine&)=delete;
+    bool add_node(uint32_t id,const ws2_descriptor*,const std::vector<uint8_t>&config={});
+    bool connect(uint32_t from,uint32_t output,uint32_t to,uint32_t input);
+    bool modulate(uint32_t from,uint32_t output,uint32_t to,uint32_t parameter,float amount);
+    // Control producer only. After a quiescent reset, resend the document amount.
+    [[nodiscard]] int set_mod_amount(uint32_t from, uint32_t output, uint32_t to,
+                                     uint32_t parameter, float amount) noexcept;
+    // Control-only, already validated/packed by the field-table host. Before
+    // prepare installs the initial block; after prepare uses producer 0's
+    // critical ring. WS2_CAPACITY is busy. Resend document data after reset.
+    [[nodiscard]] int set_data_packed(uint32_t node, uint32_t slot,
+                                      const std::vector<uint8_t>& bytes);
+    bool output(uint32_t node,uint32_t port,uint32_t bus_channel);
+    int register_producer();
+    bool prepare();
+    bool set_telemetry_taps(const std::vector<Tap>&);
+    // Returns the number of configured taps in their installation order, or 0
+    // for no taps/insufficient capacity. values and counts each have capacity slots;
+    // counts are cumulative for EventOut taps and zero for other kinds.
+    // frame is the latest completed render-block end (0 until first publish).
+    uint32_t read_telemetry(float*values,uint32_t*counts,uint32_t capacity,uint64_t&frame)const noexcept;
+    bool set_parameter(uint32_t node,uint32_t index,float plain);
+    bool set_channels(uint32_t node,uint32_t channels);
+    int enqueue(uint32_t producer,uint32_t node,uint32_t port,const ws2_event&,
+                uint64_t time,Timing mode=Timing::Frames,uint64_t generation=0)noexcept;
+    int render(float*const*outputs,uint32_t output_channels,uint32_t frames,
+               uint64_t callback_time_ns=UINT64_MAX)noexcept;
+    bool pop_egress(Outgoing&)noexcept;
+    void panic()noexcept;
+    void reset();
+    // Control-owner-only. After prepare, uses producer 0's critical ring; its
+    // enqueue calls on handle 0 must have the same writer. WS2_CAPACITY means busy.
+    // Omit beat to keep phase continuous. After reset, resend document state.
+    [[nodiscard]] int transport(double bpm,bool playing,std::optional<double> beat=std::nullopt) noexcept;
+    // Render-thread-only: publishes anchors owned by render; never call concurrently.
+    bool publish_clock(uint64_t frame,uint64_t time_ns);
+    Meter meter()const noexcept;
+    const std::string&error()const;
+    const ws2_descriptor*descriptor(uint32_t node)const;
+    uint32_t output_channels(uint32_t node,uint32_t port)const;
+    bool output_constant(uint32_t node,uint32_t port)const;
+    float output_sample(uint32_t node,uint32_t port,uint32_t channel,uint32_t frame)const;
+    uint32_t feedback_edges()const;
+    // Control-owner-only, may overlap render; reads atomic per-instance latency
+    // refreshed by render on parameter changes and adoption. No allocation.
+    void refresh_latency() noexcept;
+    uint32_t latency_frames(uint32_t bus_channel)const;
+    std::vector<FeedbackLoop> feedback_loops()const;
+    std::vector<uint8_t>save_state(uint32_t node);
+    int load_state(uint32_t node,const std::vector<uint8_t>&bytes);
+    const std::vector<uint8_t>&preserved_state(uint32_t node)const;
+    // One control owner stages a prepared candidate while render remains active.
+    // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
+    // A75: false with "Replacement busy: predecessor still fading" is an
+    // atomic prepublication refusal; keep the latest edit and retry after retirement.
+    // Optional non-RT host quiescence hook runs only after every staging
+    // refusal, immediately before publication; never called by render.
+    using BeforePublish = void (*)(void *) noexcept;
+    bool replan(Engine &prepared_candidate, uint64_t timeout_ns,
+                BeforePublish before_publish = nullptr, void *context = nullptr);
+    // Control-owner-only: IDs named by the most recent replan's A75 refusal.
+    const std::vector<uint32_t>& replacement_blocked_ids() const noexcept;
+    // Control-owner-only, may overlap render; observes unfinished predecessor
+    // signal/modulation paths using the same fade acknowledgements as replan.
+    bool replacement_tail_pending(uint32_t id) const;
+};
+}

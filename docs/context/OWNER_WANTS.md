@@ -102,6 +102,19 @@ engines, strong synthesis or a serious music workflow.
   environments.
 - Worth considering: support for JUCE's HTML/WebView UI approach.
 
+## 2026-11-26 — Player, fast module development, macros (owner)
+The full list with current decisions is [planner/01_OWNER_WANTS.md](planner/01_OWNER_WANTS.md). In short:
+- Two products, one engine: Studio (full UI) for building, a headless Player (Pi, simple replaceable
+  UI) for playing. The headless build must be very stable and complete; no plan is framed around a
+  one-off event.
+- Categories, not devices: hardware adapts to Wirescape; specific boards and devices are guides,
+  presets and test-matrix rows only.
+- A loose `wirescape-test` repo for fast module development, then promotion to the lab.
+- A `wirescape-headless` repo with a documented Player API, a reference UI and a UI design guide.
+- Macros (global knobs with per-target ranges), mapping any parameter without patching, envelopes
+  with trigger mode and delay, clock-synced random and division, OSC In indicators, labels and
+  script auto-sync, integrated Python scripting, a tool page host in Studio, agent-ready guides.
+
 ## Process notes for the brief (not for Fable to act on)
 - Facts and opinions stay separate. The research packs and measurements are neutral; opinions only in proposals.
 - Big decisions come back to me before they're built.
