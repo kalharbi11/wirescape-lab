@@ -21,7 +21,9 @@ export class GrooveSession {
   private listeners = new Set<() => void>();
   private absentTrackEdits = new Set<number>();
 
-  constructor(private readonly doc: PatchDoc) {
+  private readonly doc: PatchDoc;
+  constructor(doc: PatchDoc) {
+    this.doc = doc;
     doc.on(e => {
       if (e.t === 'module-added' && doc.modules.get(e.id)?.module === GROOVE) this.record(e.id);
       else if (e.t === 'module-removed') {

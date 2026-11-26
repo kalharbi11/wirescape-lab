@@ -4,7 +4,7 @@ import { boot, settle, state } from '../helpers';
 import { mockBridge } from './bridge';
 
 test('Groove E3b A90 real bridge retains v1 construction on running pattern Apply', async ({ page }) => {
-  await mockBridge(page, { applyGraph: true, configDeferred: true });
+  await mockBridge(page, { applyGraph: true, configDeferred: true, dataSlots: { 'sequencing.groove': ['pattern'] } });
   await boot(page);
   const config = { version: 1, bpm: 120, future: 'untouched',
     tracks: [{ armed: true, steps: [{ kind: 'note', key: 60, velocity: .5 }] }] };
@@ -54,7 +54,7 @@ test('Groove E3b A90 real bridge retains v1 construction on running pattern Appl
 
 
 test('Groove E3b canonical reopen hydrates slot without authoring and Revert keeps source bytes', async ({ page }) => {
-  await mockBridge(page, { applyGraph: true, configDeferred: true });
+  await mockBridge(page, { applyGraph: true, configDeferred: true, dataSlots: { 'sequencing.groove': ['pattern'] } });
   await boot(page);
   const source = { id: 1, module: 'sequencing.groove', version: 2,
     config: { version: 1, bpm: 120, tracks: [{ armed: true }] },

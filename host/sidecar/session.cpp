@@ -197,8 +197,17 @@ Json catalogue(AppEngine *engine) {
             }
             params.push_back(value);
         }
-        result.push_back(
-            {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)}, {"ports", ports}, {"parameters", params}});
+        Json entry = {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)},
+                      {"ports", ports}, {"parameters", params}};
+        // A100: advertise declared slots generically, not module-specific capabilities.
+        if (d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots) &&
+            d->data_slots && d->data_slot_count) {
+            Json slots = Json::array();
+            for (uint32_t slot = 0; slot < d->data_slot_count; ++slot)
+                slots.push_back(d->data_slots[slot].id);
+            entry["data_slots"] = std::move(slots);
+        }
+        result.push_back(std::move(entry));
     }
     return {{"modules", result}};
 }
