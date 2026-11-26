@@ -10,7 +10,8 @@ not reopen it.
 [0023](0023-review-and-replan.md) (R2.3 (e), R3.2, R3.3, W1, §7.2) without re-deriving it.
 **Order:** facts (§1), `wirescape-test` (§2, question 1), macros and mapping (§3, question 3), the module
 batch (§4, question 6), order and tasks (§5, question 8 for `wirescape-test`), the hand-off to 2b (§6),
-findings (§7), edits for the Architect (§8).
+findings (§7), edits for the Architect (§8), **amendments of 2026-11-26 (§9), which win over §2.3, §2.4, §2.7
+and §3.7 where they differ**.
 
 ## 0. Summary
 1. **`wirescape-test` is a module workshop pinned to one lab commit.** A stdlib-only script, `wstest`,
@@ -148,6 +149,8 @@ local edit to the scratch tree never survives. Then:
 - **Build.** The script builds only the targets the tier needs (`abi2_<name>_tests`, `wirescape_render`,
   `abi2_module_cpu_probe`), with the lab's own headless options. For overrides it also keeps one
   **pristine** build of the pin.
+- **Catalogue files (amended, §9.1):** the folder's `presentation.json` entry and the lab's own
+  unmodified generators are also mechanical registration.
 - **Refusals.** The script refuses any other change to the scratch tree. A module that needs one is
   blocked (§2.6), not patched locally. Devices stay off: nothing opens audio, MIDI or the LAN.
 
@@ -180,7 +183,8 @@ or `LAB_PIN` changes.
 - T0 on Windows x64 (MSVC, the lab's pinned PortAudio steps);
 - T0 steps 2–4 on Linux x64 with ASan and UBSan.
 
-**T2** is `workflow_dispatch` with a `module` input, run by the owner:
+**T2** is `workflow_dispatch` with a `module` input, run by the owner (amended, §9.1–§9.3: requested by the
+owner; CTest gating; block list):
 - the full lab native build and **every lab CTest** with the module registered, on linux-x64, linux-arm64
   (`ubuntu-24.04-arm`) and windows-x64. This catches catalogue-wide tests.
 - every demo at 44.1, 48 and 96 kHz × blocks 16, 17, 128 and 512 (within the renderer's limits):
@@ -231,6 +235,8 @@ T2 writes `t2.json` and a run summary; the promotion PR links the run. T2 replac
    (W1: promotions are strict). It is B4's lane work.
    - The folder is copied byte for byte from the named commit. The PR names that commit and the T2 run.
    - Lab tools regenerate the catalogue files. A panel override is optional.
+   - Amended (§9.1, §9.4): `presentation.json` becomes the lab sidecar entry; Architect-built modules get
+     their review from a separate Claude session.
 3. **Overrides:** if the lab folder changed after the override's base commit, the promoting agent
    re-applies the diff on lab `main` and reruns T0. It never overwrites lab changes.
 4. **After the lab merge,** the next pin bump deletes the folder in `wirescape-test`, and the index shows
@@ -367,7 +373,7 @@ A docked panel, opened from the toolbar.
   - click a macro knob in the Mappings panel.
 
   The mapping commits as one `applyGraph`, as CC Learn does today. A refusal leaves the document
-  unchanged.
+  unchanged. (Intent for a partial ACK: §9.5.)
 - **Clicking an owned parameter** selects its row in the Mappings panel.
 
 ### 3.8 What would overturn this
@@ -642,5 +648,115 @@ No engine row is needed for macros or mapping. Gate P1 (e) stays 2b's (§6).
 6. **Errata:** the two Low factual findings in §7, in S8 and 02.
 7. **`wirescape-test` PR:** review and merge the run-2a PR, which replaces `README.md`, `AGENTS.md`,
    `CLAUDE.md` and `modules/README.md`.
+
+Signed: claude-planner, 2026-11-26
+
+## 9. Amendments (2026-11-26, `claude-planner`, run 2b part 1: lab and `wirescape-test` only)
+The owner asked the Planner to apply its own review (`docs/context/planner/03_PLANNER_REVIEW.md` §1 and
+§3.3) now, before run 2b, so the Architect's `wirescape-test` work can use it. These are final rulings like
+the rest of 0024. Run 2b does not redo them; 0025 keeps only the headless, OSC, script and tool scope.
+**Read at:** lab `main` `1c41def`; `wirescape-test` `main` `238017f` + open PR #4 `06002cb`.
+
+### 9.1 Catalogue files in T2 (supersedes the lab #652 deferral, except the S0 snapshot)
+**Facts.**
+- `tools/gen_ui_catalogue.py` rewrites `apps/studio/public/wirescape_modules.json` from `modules/*/module.json`,
+  `dsp.h` and the hand-written presentation sidecar `apps/studio/public/catalogue-presentation.json`. It refuses
+  when a native module has no sidecar entry (`gen_ui_catalogue.py:29-30`). So the generator alone cannot
+  register a new module: it needs that module's sidecar entry (names, hints, poly, taper, decimals).
+- `ui_patch_conformance` reads `host/document/ui_starters.json` against the generated `wirescape_modules.json`
+  (`host/document/CMakeLists.txt:37-39`). It passes once the generated file carries the module.
+- `host/sidecar/testdata/s0_catalogue.ndjson` has **no generator by design**: it is the I7 wire contract, and
+  "no test automatically regenerates expected data" (`host/sidecar/testdata/S0_PROVENANCE.md`). Every byte
+  change needs an I7 review. MB2 does not change this (M3 MB2 gate: S0 or catalogue byte changes limited to
+  order and listed).
+
+**Rulings.**
+1. **`presentation.json` in the module folder.** A new module, and an override that changes ports or
+   parameters, ships `modules/<name>/presentation.json`: one object in the sidecar's `modules[]` schema, with
+   the module's `id`, plus the `SPDX-License-Identifier` key the sidecar uses. `wsmod`-style checks: its `id`
+   matches `dsp.h`, and its port and parameter IDs match the descriptor (the generator already refuses a
+   mismatch).
+2. **Scratch registration adds two steps** (§2.3, before and after MB2):
+   - insert that object into the scratch `catalogue-presentation.json` (append for `new`; replace the entry
+     with the same `id` for an override);
+   - run the pin's `tools/gen_ui_catalogue.py` without `--check`, unmodified. After MB2, run whatever
+     generator the pin then uses for the UI catalogue, unmodified.
+
+   The allowed scratch diff becomes the registration lines plus those two files. Anything else is still
+   refused (§2.3).
+3. **T2 gates on `ui_catalogue_sync` and `ui_patch_conformance` again.** They leave
+   `T2_DEFERRED_TO_PROMOTION`.
+4. **`abi2_sidecar_snapshot_tests` stays deferred, by name, until the module's promotion PR**, where the byte
+   change gets its I7 review. This is not an MB2 expiry: the I7 test never regenerates.
+   - In its place T2 adds a **`s0_catalogue_others`** check, which gates. Take the scratch build's `hello`
+     catalogue (from `wirescape-engine --null-audio`, the snapshot test binary, or any pinned tool that emits
+     it), parse it, and compare it as JSON with the parsed fixture `s0_catalogue.ndjson`:
+     - `new`: removing the module's entry leaves the fixture exactly, in order;
+     - override: every other module's entry is unchanged, and the module's own entry differs only by
+       appended ports or parameters (§0 rule 4).
+   - Byte equality stays the promotion PR's job.
+5. **Promotion (§2.7 step 2).** The folder is copied byte for byte **except `presentation.json`**. Its object
+   goes, unchanged, into the lab's `catalogue-presentation.json`, and the lab generator runs as in T2. The
+   promotion PR lists the S0 byte change for its I7 review.
+6. **Applies in `wirescape-test`** as one PR after PR #4 (or folded into PR #4 if it is still unreviewed),
+   with the failing test first: a fixture module without `presentation.json` makes T2's two UI CTests fail;
+   with it they pass. `MOD-0`'s fixture gets a `presentation.json`.
+
+**Overturn:** a pin whose generator cannot run unmodified in the scratch tree. Then the two UI CTests return
+to `T2_DEFERRED_TO_PROMOTION` with the expiry "the pin bump after that generator is fixed", and a
+`limitation found` issue names the generator.
+
+### 9.2 T2 block sizes
+**Fact.** The engine's default `feedback_block` is 32 (`engine/engine2.h:15`). A patch that leaves it unset
+cannot prepare at `max_block` < 32 (`engine/build.cpp:448`, `feedback_block > max_block`), whatever its
+graph. That is why `adsr-notes` refuses blocks 16 and 17. It follows ABI2 D10 ("range 1..block",
+`docs/specs/ABI2_PLAN.md:165`), but it means no unchanged patch runs at Daisy-sized blocks.
+
+**Rulings.**
+1. The T2 block list is **16, 17, 48, 128 and 512**. 48 is added now: it is not a power of two and the
+   pinned renderer accepts it, so odd-size coverage does not wait on the lab.
+2. **A row is `skip` only when that demo itself refuses with the same reason the lab case gives**, recorded in
+   `t2.json` with the reason and the lab issue. A module's demo may set `settings.feedback_block` (≤ 16), and
+   then it runs at 16 and 17 like any other row.
+3. **Lab limitation.** The Architect files one `limitation found` issue: "a patch with no `feedback_block`
+   cannot prepare at `max_block` < 32". Smallest change: when the patch leaves it unset, use
+   `min(32, max_block)`. Today those configurations refuse, so no golden changes. Skips at 16 and 17 name
+   that issue and end at the pin bump that carries its fix.
+
+### 9.3 T2 dispatch
+§2.4 "run by the owner" becomes **"requested by the owner"**. An agent dispatches `t2.yml` when the owner asks
+in the session or the PR (PR #4's wording stands). Minutes are free; concurrency slots are the cost.
+
+### 9.4 Promotion review for Architect-built modules
+§2.7 step 2: a module whose `wirescape-test` PRs the Claude Architect authored gets its PROMO review from a
+**separate Claude session** that did not build it: a `claude-planner` run, a fresh `review` session, or a helper
+reviewer session such as MOD-0's `claude-reviewer`. That session signs with its own name and uses
+`Approved for merge <sha7>`. The Architect still accepts the milestone. The `wirescape-test` review rule
+("a different agent session") already works this way.
+
+### 9.5 MM1 partial ACK: intent only (inbox row B1-MM1-ack)
+§3.7 meant that **mapping commits are atomic from the user's view**. If an `applyGraph` ACK carries any
+`unapplied` parameter event (`RealEngine.ts:521-577`), Studio restores the prior document state and shows the
+refusal. Prefer the option with one code path. An explicit compensating `applyGraph` is likely simpler than
+correlated live compensation. The ruling itself is the Architect's, because MM is its contract.
+
+### 9.6 MB2 date (fixes 0023 §7.4 "slips more than two weeks")
+- **The fallback date is two weeks after MB1 (#642) merges, or 2026-12-10 ET if MB1 has not merged by
+  2026-11-30 ET**, whichever comes first.
+- From that date, the 0023 §7.4 fallback applies without a further ruling: promote with the three registration
+  lines plus §9.1's sidecar entry and generator run, reviewed once per module (§9.4 for Architect-built ones).
+- MB2 stays the target. A promotion under the fallback is reworked by MB2 like every other module.
+
+### 9.7 Edits for the Architect (from §9)
+1. Post the final #652 ruling on the lab issue: §9.1 (two UI CTests gate; the S0 snapshot stays deferred until
+   promotion, with the `s0_catalogue_others` check). Close #652 when the `wirescape-test` PR applying §9.1
+   merges.
+2. File the `feedback_block` `limitation found` issue (§9.2), and the two envelope-override issues PR #4 names.
+3. `wirescape-test`: one PR applying §9.1–§9.3 (README "Test tiers", `tools/README.md`, `wstest.py`, `t2.yml`,
+   tests first). Then MOD tasks continue as filed.
+4. `M3.md` PROMO-n row: "byte copy except `presentation.json`" and the §9.4 reviewer; the §9.6 date in the
+   MB stage.
+5. `ROADMAP.md` and `PRIORITY.md`: add the MM and MOD rows (03 §2).
+6. B1-MM1-ack: rule within §9.5.
 
 Signed: claude-planner, 2026-11-26

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by gpt-lead, 2026-11-26 15:18 EST (GPT builder PR delivery only). Every builder is a
+Refreshed by gpt-lead, 2026-11-26 17:10 EST (after Architect run 49). Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
@@ -32,18 +32,15 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
   for Architect work. The owner and delivery lead own the `architect-ready` and `review-ready`
   trigger labels. Keep working on independent lane items while the request waits.
 
-**Wrap-up mode ended for Planner run 1's areas (Architect run 47, 2026-11-26; 0023 §8.9).** Standing release (SR20) and
-draft-ahead are back for every queue item below. **Still frozen until Planner run 2 merges:** macros, mapping, OSC In
-features, scripts, the tool page host and the design of `wirescape-test` and `wirescape-headless`. No lane starts work in
-those areas. The two new repos get their own agents under their own rules, not lab lanes (0023 §7.3).
+**Freeze (Architect run 49, 2026-11-26; 0024 §8.4).** Planner run 2a decided macros, mapping, the module batch and the design of `wirescape-test`: those areas are open (MM contract for Studio, M3 r2.1 for SDK-1 and promotions). **Still frozen until Planner run 2b merges:** OSC In features, scripts, the tool page host, the Player and the design of `wirescape-headless`. Module work runs in `wirescape-test` under its own rules and agents, not lab lanes (0023 §7.3).
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, OB-d ledger, module-local M7 paths, `apps/desktop/` for RS | **#624 `ad718b4`**: signed RS Result, draft Lab 15/15 and recovery witnesses green. Lead enabled auto-merge; ready Lab 45889133686 had Windows/arm64 still running at check. B5 App.ts remains held until actual merge. | OB-h2 Studio Host field (SR21 follow-up, after #601 merges) → TR3 (after TR1h) → macro/mapping UI (after Planner run 2). |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, OSC/CC module-local paths and `engine/control/` handlers | **#635 `2c9d09a` / #631**: exact Lab 15/15 green but no executed historical red; ruling packet pins historical `48479fc` diagnostic/disposition. #610 stays held. **#638 `efd4cfa` / #601** test-only draft-ahead: real parser red-first pending and parser/staging scope question routed. Do not infer a production fix from green current-head tests. | **OB-h2 [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) with gate release** (OB r2.13 (3), adds the OB-h3 OSC Out gate row test-first; `--confirm-lan`) → #494 if OB-h1 routes it → **P0b [#620](https://github.com/kalharbi11/wirescape-lab/issues/620)** → #622 rename (low) → controller stream (Stage 2, after run 2). |
-| **B3** `gpt-builder3` · **Floater / facts** | CN facts and authorized immutable workflow pins | **#634 `edc6d7e` / #600**: four-lane audit complete, exact facts-only Lab 45889205607 green; signed final Result/ready handoff next. 8 reports pass, 2 heavy fail on extra rise; zero observed exposed drops, no heavy reliability claim. #631 owns extra-rise symptom; #326 stays open. Lead may merge after ready Result/gates; then #604. | CN final facts #523 (M4) → OB-h6 [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) → Player soak harness facts (Stage 3). |
-| **B4** `gpt-builder4` · **Sound + module build** | Modules, module tests, sound facts outside B1's ledger; MB build paths per M3 r2 | **#592 merged; #609 merged `0330809`** by lead after exact Lab/Golden/paired/portability verification; no §6 exception. MB1 #363 next: start authorized test-first work preserving IDs/metadata; L1 metadata/equality question in merged inbox #637, ready for Architect. | OB-h4 #609 (Gate Delay, last module under the freeze; integrate main after #540, then final gates) → **MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363)** → **MB2+CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** → MB3 → promotions. If #592 stays blocked, start MB1 now (0023 R3.1). |
-| **B5** `gpt-builder5` · **Engine** | Engine; E3b module-local until shared release; `host/audio/` and status for P0a | **#545 `987cff8`**: live Apply capability/legacy compatibility question on 7202434918 routed; `applyGraph` alone does not prove E3b support. Shared App.ts waits for actual #624 merge. **#610 `b7eda29`** stays held on #631; no rerun/waiver. **#627 `440254c`** P0a synthetic producer fixture corrected; current Lab/targeted status witness pending. | OB-h3 #610 (+ OSC In route-relisten row, OB r2.13 (4)) → **P0a [#619](https://github.com/kalharbi11/wirescape-lab/issues/619)** → TR1h (M3 r2, Stage 2) → P1 (g) SIGTERM, (h) coverage. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, OB-d ledger, module-local M7 paths, `apps/desktop/` for RS | **MM1 #643 / #649 `ca3858c`**: runtime red witnessed by dev-run 45901516303 (missing mapping model/Macro/API). Continue tests then implementation; partial-ACK policy waits on merged inbox #651. Coordinate shared App/RealEngine with B5; second merger rebases. | MM2 → MM3 (Claude contract review) → OB-h2 Studio Host field (SR21 follow-up, after #601 merges; takes priority when released) → TR3 (after TR1h) → MM4 (after Gate P1 (e)). |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, OSC/CC module-local paths and `engine/control/` handlers | **#635 merged `a329476`**, #631 historical red/current green verified under A98. Continue **#638 / #601 `49f6a93`** parser and destination work under A99; retired-gate red recorded in 45893480055. Switching-witness edits wait for #610 merge; split independent paths under SR21. | **OB-h2 [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) with gate release** (OB r2.13 (3), adds the OB-h3 OSC Out gate row test-first; `--confirm-lan`) → #494 if OB-h1 routes it → **P0b [#620](https://github.com/kalharbi11/wirescape-lab/issues/620)** → #622 rename (low) → controller stream (Stage 2, after run 2). |
+| **B3** `gpt-builder3` · **Floater / facts** | CN facts and authorized immutable workflow pins | **OB-h6 #604 / #648 `e2c2800`**: draft Lab and targeted integration green; ready Lab Windows/Golden/paired still pending at check, final signed Result required. **#655 / #644 `7929f0c`** draft-ahead only: full workload waits for real Macro promotion, Pi rows unmeasured. | **MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644)** (64 vs 128 nodes) → Player soak harness facts (Stage 3). |
+| **B4** `gpt-builder4` · **Sound + module build** | Modules, module tests, sound facts outside B1's ledger; MB build paths per M3 r2 | **MB1 #363 / #642 `cddb71e`**: exact Lab 15/15 green; ready-event Golden/paired and final Result pending. Merged inbox #650 carries SDK prefix/offline-reader questions; no final merge before disposition. MB2 waits actual MB1 merge. | **MB2+CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** → MB3 → **SDK-1** (when `wirescape-test` MOD-4 files its `limitation found` issue) → **PROMO-n** per module after MB2 (M3 r2.1). |
+| **B5** `gpt-builder5` · **Engine** | Engine; E3b module-local until shared release; `host/audio/` and status for P0a | **#545 `638d8b6`**: A100 implementation/fixture correction, fresh CI pending; **#627 `949c1ee`** Windows fake-pacing correction and fresh CI/ASan pending. **#610 `b7eda29` now released from #631**: integrate main, run own exact-head gates/heavy tier; switching-witness writer releases to B2 only on merge. | OB-h3 #610 (+ OSC In route-relisten row, OB r2.13 (4)) → **P0a [#619](https://github.com/kalharbi11/wirescape-lab/issues/619)** → TR1h (M3 r2, Stage 2) → P1 (g) SIGTERM, (h) coverage. |
 
 **OB1.1 Tier 1 and Gate P0 (OB r2.12, r2.13):** OB-h1–h4, h6 and #494 continue in their lanes; OB-h5 merged (#606). Gate P0 is P0a #619, P0b #620, OB-h2 gate release and OB-h1. OB1 acceptance stands but gates no new work (0023).
 **Parked (0023 §7.1):** M5 PV2+, M6 MT2+ (#175/#176), M8–M12, V1; T1.5 cut. **Unparked:** stage MB (#363, #358).
@@ -68,3 +65,11 @@ Signed: claude-architect, 2026-11-26
 Lead 15:18 EST: existing GPT PRs only. #637 merged; #639/#640 conflict only in appended inbox rows and are consolidated by the lead handoff PR. One verified builder-blocker batch, no planner work.
 
 Signed: gpt-lead, 2026-11-26
+
+Architect run 49: A97–A100 ruled; MM1 #643 released to B1, MM-f #644 queued in B3; freeze narrowed to 2b areas.
+
+Signed: claude-architect, 2026-11-26
+
+Architect run 49 (end check): #634 merged as lead; #604 released to B3.
+
+Signed: claude-architect, 2026-11-26

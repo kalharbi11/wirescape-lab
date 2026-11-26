@@ -17,9 +17,7 @@ read "Run 2 prep": it lists the setup that is already done, so a run 2 session d
   Architect writes them into contracts, tasks and lane assignments without reopening them. It flags
   only (a) conflicts with "Fixed" items in `docs/context/CONSTRAINTS.md` (owner only), (b) factual
   errors, with the source line, and (c) contradictions between the two runs.
-- The Planner rules on design. It does not write or merge lab product code (`engine/`, `host/`, `modules/`,
-  `apps/`, `tools/`, `sdk/`). It may write proposals, contracts and docs in the lab (one docs PR per
-  run) and docs/rules in `wirescape-test` and `wirescape-headless`.
+- The owner granted the Planner the same git authority as the Claude Architect (2026-11-26): it may write, open, review and merge PRs within the contracts, gates and SR rules. "Fixed" items in CONSTRAINTS still need the owner.
 - The Architect's recommendations in `01_OWNER_WANTS.md` are inputs, not constraints. The owner's
   wants (section B) and principles (section A) are the requirements. Section C items marked "Planner
   decides" are the Planner's.
@@ -149,8 +147,9 @@ and the new repos' design.
 ranges, defaults, and whether a parameter sets allocation or structure.
 
 **Facts for run 2 (checked at source, `337d8e8`):**
-- No module exists today for Random or sample-and-hold, Clock Div/Mult, Macro, or a rhythmic modulator other
-  than Groove. Each is new.
+- No shipped module exists today for Random or sample-and-hold, Clock Div/Mult, Macro, or a rhythmic modulator
+  other than Groove. Each is new. (Erratum, run 49, from 0024 §7: the SDK example `example.random_source`, a
+  clocked sample-and-hold, is in the app catalogue, `engine/control/module_catalog.inc:32`.)
 - `function_envelope` is gated AR: `rise`, `fall` and `curve`, all modulatable. It has no trigger mode and no
   `delay`. ADSR already has Gate/Trigger `mode` and `hold`.
 - `lfo` has one shape (sine) and no inputs. It has `sync` and `beats` parameters.
@@ -171,6 +170,42 @@ ranges, defaults, and whether a parameter sets allocation or structure.
   no modulatable parameters, which is wrong. 2a replaces that README.
 - Open run 2's PRs against `main`. Use whatever branch the session allows.
 
+## Run 2b prep (Architect run 49, 2026-11-26): read this before the scout pack
+> **Read [`03_PLANNER_REVIEW.md`](03_PLANNER_REVIEW.md) first** (claude-planner, 2026-11-26). Its §2 corrects
+> several lines below (A100 `data_slots` not on main, `setOsc` line, Gate P1 (e) unfiled, #652), §1 lists the
+> 0024 amendments 2b may make (owner-authorized), and §3 narrows 2b's scope (park Q5).
+
+**Lab `main` at writing: `45f71a7`.** Run 2a merged as #636 (`4c5b932`). The Architect checked 0024 §1 at source:
+every fact holds (Gate Delay moved `example.random_source` to `module_catalog.inc:32`; no effect). No conflict with a
+CONSTRAINTS "Fixed" item.
+
+**Transcribed from 0024 §8 (do not redo):**
+- [MM r1](../../workflow/milestones/MM.md) (Studio macros and mapping; MM1 [#643](https://github.com/kalharbi11/wirescape-lab/issues/643) released to B1, MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644) queued in B3, MM4 waits on Gate P1 (e));
+- [M3 r2.1](../../workflow/milestones/M3.md): SDK-1 and PROMO-n rows;
+- `wirescape-test` #1 (2a's rules) reviewed and merged `19e16c9`; MOD-0 filed as [wirescape-test #2](https://github.com/kalharbi11/wirescape-test/issues/2);
+- errata: S8's header and this file's "no Random module" fact.
+
+**What 2b owes (0024 §6 and this file's Run 2 table):**
+- `player.json` macro and param targets exactly as 0024 §6 (page and knob, or module and parameter ID; `setParam` only;
+  label overrides; three bundle-check warnings);
+- **Gate P1 (e) message shapes** for CC observations (device, channel, controller) and OSC observations (address,
+  including unmatched addresses while a learn is armed). MM4 and map mode consume them;
+- `wirescape-headless` `README.md`/`AGENTS.md` (its `LAB_PIN` still names `11a68c2`; no workflows yet; use
+  `wirescape-test`'s merged rules as the pattern), the headless task list, lab rows, the cross-repo stage order;
+- questions 4 (OSC and scripts), 5 (tool page host) and 7 (guides).
+
+**New since 2a that bears on 2b:**
+- **A100 (#545):** the `hello` catalogue gains an additive, generic `data_slots: [slot id…]` per module, generated
+  from descriptors. A client discovers live data slots (Groove `pattern`, later Macro `labels`) without a
+  module-named capability. The Player can use it; 2b need not invent another discovery path.
+- **RS #624 merged:** desktop restarts now back off indefinitely (250 ms up to 30 s; a stable status heartbeat resets
+  it; `apps/desktop/main.ts:15-19`). The scout highlight below ("3 exits per 30 s, then a dialog") is stale.
+- **Gate P0 #631** (extra OSC Out gate rise) is still open under A98; OSC Out reliability claims wait for it.
+- **A99:** OB-h2 #601 now owns the OSC Out branch of `host/document/runtime_module_config.h`. OSC In stays frozen.
+- OB-h4 Gate Delay merged (#609, experimental).
+
+**After 2b merges** the Architect transcribes 0025, files the headless and lab tasks, and lifts the freeze.
+
 ## Architect-verified highlights from the scout pack
 Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
 - **OSC Out network permission:** `setOsc` is refused (`host/sidecar/session.cpp:1257`). Architect run 46
@@ -186,7 +221,7 @@ Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
   - no runtime OSC configuration;
   - no shutdown command (stdin EOF only);
   - the settings path is relative to the working directory.
-- **Desktop restart policy:** 3 unexpected exits per 30 s, then a dialog; main never reloads the patch
+- **Desktop restart policy (stale since RS #624; see Run 2b prep):** 3 unexpected exits per 30 s, then a dialog; main never reloads the patch
   (`apps/desktop/main.ts:258-266`; the renderer re-sends `loadGraph` on a new `hello`).
 - **Process weight (S5):**
   - 358 commits in 12 days; 72 % touch only non-product paths;
