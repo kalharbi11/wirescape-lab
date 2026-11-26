@@ -27,7 +27,6 @@ const target: ModuleDescriptor = {
 };
 
 test('MM1 Node: derives macro, CC and OSC ownership, not ordinary modulation, without mutating authored bytes', async () => {
-  // @ts-ignore -- test-first import resolves only after the model is implemented; remove with the fix.
   const { deriveMappings } = await import('../src/app/mappings');
   const p = fixture();
   p.connections.push(cable(5, 'row1', 4, 'depth', .5));

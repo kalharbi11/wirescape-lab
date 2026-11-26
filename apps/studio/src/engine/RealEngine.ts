@@ -743,6 +743,23 @@ export class RealEngine implements EngineClient {
   setModAmount(connection: Connection, amount: number): void {
     this.enqueue('setModAmount', { connection: copy(connection), amount });
   }
+  /** MM1 acknowledged live edits: unlike optimistic knob drags, never
+   * fall back to a whole-graph load when the current session is unavailable. */
+  private confirmedLiveEdit(type: 'setParam' | 'setModAmount', payload: Wire): Promise<void> {
+    if (!this.ready || !this.session || this.load || !this.confirmed)
+      return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live mapping edit.'));
+    return new Promise<void>((resolve, reject) => {
+      this.queue.push({ id: this.id(), session: this.session, mutation: { type, payload },
+        inverse: this.projection(), resolve, reject });
+      this.pumpEdits();
+    });
+  }
+  setParamConfirmed(moduleId: number, paramId: string, value: number): Promise<void> {
+    return this.confirmedLiveEdit('setParam', { moduleId, paramId, value });
+  }
+  setModAmountConfirmed(connection: Connection, amount: number): Promise<void> {
+    return this.confirmedLiveEdit('setModAmount', { connection: copy(connection), amount });
+  }
   setData(moduleId: number, slot: string, value: Wire, authored?: DataAuthoring): Promise<void> {
     if (!this.ready || !this.session || this.load || !this.confirmed)
       return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live data edit.'));

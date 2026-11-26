@@ -4,7 +4,8 @@ import { ModuleRegistry, findParam, findPort } from '../modules/registry';
 import { PanelOverrides } from '../panels/layouts';
 import { PatchDoc } from '../patch/PatchDoc';
 import { History, type HistoryCheckpoint } from '../patch/History';
-import type { Connection, PatchV2 } from '../patch/types';
+import type { Connection, Endpoint, PatchV2 } from '../patch/types';
+import { deriveMappings, planMappingRange, planAddMapping, planRemoveMapping, type MappingGraphEdit } from './mappings';
 import { FakeEngine } from '../engine/FakeEngine';
 import { RealEngine, sameConfig, type DeferredCompletion } from '../engine/RealEngine';
 import { EngineRefusal, type SystemStatus, type EngineClient, type Device } from '../engine/EngineClient';
@@ -1487,6 +1488,98 @@ export class App {
     this.trackRollback(() => this.doc.setModAmount(c, previous ?? 0));
   }
 
+  // ---- MM1 mappings model (the panel and map mode consume these in MM2/3) ----
+
+  private async editMappingRange(c: Connection, end: 'min' | 'max', normalized: number): Promise<void> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy)
+      throw new Error('The document is busy.');
+    const before = this.doc.toJSON();
+    const old = deriveMappings(before, this.registry).find(m => connKey(m.connection) === connKey(c));
+    if (!old) throw new Error('The mapping no longer exists.');
+    const edit = planMappingRange(before, this.registry, c, end, normalized);
+    const engine = this.editEngine();
+    const setBase = async (value: number) => {
+      if (engine instanceof RealEngine) await engine.setParamConfirmed(c.to.module, c.to.port, value);
+      else engine.setParam(c.to.module, c.to.port, value);
+    };
+    const setAmount = async () => {
+      if (engine instanceof RealEngine) await engine.setModAmountConfirmed(edit.connection, edit.amount);
+      else engine.setModAmount(edit.connection, edit.amount);
+    };
+    this.history.flush();
+    this.beginDocumentOperation();
+    let baseAccepted = false;
+    try {
+      if (edit.base !== undefined) { await setBase(edit.base); baseAccepted = true; }
+      await setAmount();
+      // Author one history gesture only after both live replies.
+      if (edit.base !== undefined) this.doc.setParam(c.to.module, c.to.port, edit.base);
+      this.doc.setModAmount(c, edit.amount);
+      this.history.flush();
+      this.refreshDirty();
+    } catch (err) {
+      if (baseAccepted) {
+        try { await setBase(old.base); }
+        catch {
+          // A disconnect reloads the unchanged authored document. If the
+          // same session still has a confirmed base, reflect that truth.
+          const confirmed = engine instanceof RealEngine ? engine.confirmedDocument() : null;
+          const value = confirmed?.modules.find(m => m.id === c.to.module)?.parameters?.[c.to.port];
+          if (value !== undefined && value !== old.base) {
+            this.doc.setParam(c.to.module, c.to.port, value);
+            this.history.flush();
+            this.refreshDirty();
+          }
+          this.toasts.show('Range edit and its live compensation were refused.', 'error');
+        }
+      }
+      throw err;
+    } finally { this.endDocumentOperation(); }
+  }
+
+  private async changeMappingGraph(build: (patch: PatchV2) => MappingGraphEdit, adding: boolean): Promise<void> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy)
+      throw new Error('The document is busy.');
+    const engine = this.editEngine();
+    if (engine instanceof RealEngine && !engine.hasApplyGraph())
+      throw new Error('Live mapping requires an engine that supports applyGraph.');
+    const previous = this.doc.toJSON(), plan = build(previous);
+    const before = { patch: previous, dirty: this.doc.dirty, restoreHistory: this.history.checkpoint() };
+    this.beginDocumentOperation();
+    try {
+      for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
+      if (adding) this.doc.connect(plan.connection);
+      else this.doc.disconnect(plan.connection);
+      this.history.flush();
+      await this.applyAuthoredGraph(before, this.doc.toJSON());
+      this.ticker.resetTelemetry();
+      this.refreshDirty();
+      // Successful partial ACK handling is held for B1-MM1-ack: the
+      // existing onUnapplied callback reconciles the acknowledged base.
+    } finally { this.endDocumentOperation(); }
+  }
+
+  private addMapping(from: Endpoint, to: Endpoint): Promise<void> {
+    return this.changeMappingGraph(patch => planAddMapping(patch, this.registry, from, to,
+      this.ticker.last?.effective[to.module]?.[to.port]), true);
+  }
+
+  private removeMapping(c: Connection, observed?: number): Promise<void> {
+    return this.changeMappingGraph(patch => {
+      const m = deriveMappings(patch, this.registry).find(x => connKey(x.connection) === connKey(c));
+      let value = observed ?? this.ticker.last?.outputs?.[c.from.module + ':' + c.from.port];
+      if (value === undefined && m?.source.kind === 'macro') {
+        const knob = 'knob' + m.source.row;
+        const modulated = patch.connections.some(x => x.kind === 'modulation' &&
+          x.to.module === c.from.module && x.to.port === knob);
+        value = this.ticker.last?.effective[c.from.module]?.[knob];
+        if (value === undefined && !modulated)
+          value = patch.modules.find(x => x.id === c.from.module)?.parameters?.[knob] ?? 0;
+      }
+      return planRemoveMapping(patch, this.registry, c, value);
+    }, false);
+  }
+
   private describeSource(c: Connection): string {
     const m = this.doc.modules.get(c.from.module);
     const d = m && this.registry.get(m.module);
@@ -2187,6 +2280,10 @@ export class App {
       canEdit: () => !this.documentBusy,
       engine: this.engine,
       commitParam: (m: number, p: string, v: number, commit = true) => this.commitParam(m, p, v, commit),
+      mappings: () => deriveMappings(this.doc.toJSON(), this.registry),
+      editMappingRange: (c: Connection, end: 'min' | 'max', n: number) => this.editMappingRange(c, end, n),
+      addMapping: (from: Endpoint, to: Endpoint) => this.addMapping(from, to),
+      removeMapping: (c: Connection, observed?: number) => this.removeMapping(c, observed),
       commitOscConfig: (id: number, cfg: OscConfig, type: 'osc.in' | 'osc.out') => this.commitOscConfig(id, cfg, type),
       restoreSnapshot: (p: PatchV2) => this.restoreSnapshot(p),
       setMidiEndpoint: (id: number, endpoint: string, systemName?: string) => this.setMidiEndpoint(id, endpoint, systemName),
