@@ -296,3 +296,65 @@ test.describe('MIDI Learn (#287)', () => {
     await expect(page.getByTestId('learn-bar')).toBeHidden();
   });
 });
+
+
+// Run the A95 witnesses through the real editor bundle in Chromium, not Node's
+// strip-only loader (which cannot parse the production Learn parameter property).
+const a95Positions = { '1': [50, 80] as [number, number], '5': [400, 80] as [number, number], ...VCF_POS };
+const a95Modules = (rows: Record<string, unknown>[]) => [
+  { id: 1, module: 'midi.in', config: ksIn },
+  { id: 5, module: 'midi.cc_to_cv', config: { rows } },
+  ...vcf,
+];
+
+test('A95 legacy short mapping saves eight rows; after reload Learn reuses first free row', async ({ page }) => {
+  await boot(page);
+  await load(page, a95Modules([{ controller: 41 }]), [ev(1, 5)], a95Positions);
+  await learn(page, 2, 'cutoff', { channel: 2, controller: 71 });
+  const saved = await state(page);
+  expect(mods(saved, 'midi.cc_to_cv')).toHaveLength(1);
+  expect(saved.modules.find((m: any) => m.id === 5).data.mapping.rows)
+    .toEqual(fullRows([{ controller: 41 }, { channel: 2, controller: 71 }]));
+  await page.evaluate(p => window.__wirescapeTest.load(JSON.parse(JSON.stringify(p)), 'Again'), saved);
+  await settle(page);
+  await learn(page, 2, 'resonance', { channel: 2, controller: 72 });
+  const after = await state(page);
+  expect(after.modules).toHaveLength(3);
+  expect(mods(after, 'midi.cc_to_cv')[0].data.mapping.rows)
+    .toEqual(fullRows([{ controller: 41 }, { channel: 2, controller: 71 }, { channel: 2, controller: 72 }]));
+  expect(modCables(after).map((c: any) => c.from.port).sort()).toEqual(['cc2', 'cc3']);
+});
+
+test('A95 Forget resets an unwired row and Learn reuses it without trimming', async ({ page }) => {
+  await boot(page);
+  await load(page, a95Modules([{ controller: 41 }]), [ev(1, 5)], a95Positions);
+  await learn(page, 2, 'cutoff', { channel: 2, controller: 71 });
+  await knob(page, 2, 'cutoff').click({ button: 'right' });
+  await page.getByTestId('context-forget').click();
+  await settle(page);
+  const freed = await state(page);
+  expect(modCables(freed)).toHaveLength(0);
+  expect(mods(freed, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ controller: 41 }]));
+  await learn(page, 2, 'cutoff', { channel: 2, controller: 72 });
+  const after = await state(page);
+  expect(after.modules).toHaveLength(3);
+  expect(mods(after, 'midi.cc_to_cv')[0].data.mapping.rows)
+    .toEqual(fullRows([{ controller: 41 }, { channel: 2, controller: 72 }]));
+  expect(modCables(after).map((c: any) => c.from.port)).toEqual(['cc2']);
+});
+
+test('A95 never takes a wired default or a non-default unwired row', async ({ page }) => {
+  await boot(page);
+  const modules: any[] = a95Modules([{ controller: 1 }, { controller: 42 }]);
+  // Explicit complete mapping, as after migration and reload.
+  modules[1] = { id: 5, module: 'midi.cc_to_cv', data: { mapping: { rows: fullRows([{ controller: 1 }, { controller: 42 }]) } } };
+  const wired = { kind: 'modulation', from: { module: 5, port: 'cc1' }, to: { module: 2, port: 'resonance' }, amount: 1 };
+  await load(page, modules, [ev(1, 5), wired], a95Positions);
+  await learn(page, 2, 'cutoff', { channel: 2, controller: 71 });
+  const after = await state(page);
+  expect(after.modules).toHaveLength(3);
+  expect(mods(after, 'midi.cc_to_cv')[0].data.mapping.rows)
+    .toEqual(fullRows([{ controller: 1 }, { controller: 42 }, { channel: 2, controller: 71 }]));
+  expect(modCables(after)).toContainEqual(wired);
+  expect(modCables(after).map((c: any) => c.from.port).sort()).toEqual(['cc1', 'cc3']);
+});

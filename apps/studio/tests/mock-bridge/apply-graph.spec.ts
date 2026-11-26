@@ -2,7 +2,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { boot, settle, state } from '../helpers';
 import { mockBridge } from './bridge';
-import { picoDefaults } from '../../src/app/OscEditor';
+const oscRows = () => Array.from({ length: 8 }, (_, i) => ({
+  pattern: '/pico1/knob/' + (i + 1), argument: 0, kind: 'cv',
+  input_min: 0, input_max: 1, output_min: 0, output_max: 1,
+  smoothing_ms: 5, timeout_ms: 1000, stale: 'hold',
+}));
 
 type Wire = { type: string; patch?: any };
 const patch = (modules: any[]) => ({
@@ -33,7 +37,7 @@ for (const capability of [true, false]) {
       await page.evaluate(async rows => {
         await window.__wirescapeTest.commitOscConfig(1,
           { port: 9005, lan: false, rows }, 'osc.in');
-      }, picoDefaults().rows);
+      }, oscRows());
       await expectGraphCommands(page, [wire]);
       await page.evaluate(() => window.__wirescapeTest.undo());
       await expectGraphCommands(page, [wire, wire]);
@@ -90,7 +94,7 @@ test('capability-on graph refusal leaves running document, graph and generation 
   }));
   await page.evaluate(() => (window as any).__mockBridge.refuseNext('applyGraph', 'refused'));
   await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9012, lan: false, rows }, 'osc.in'), picoDefaults().rows);
+    { port: 9012, lan: false, rows }, 'osc.in'), oscRows());
   await expectGraphCommands(page, ['applyGraph']);
   await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph())).toEqual(before.graph);
   await expect.poll(async () => (await state(page)).modules[0].config).toBeUndefined();
@@ -114,7 +118,7 @@ test('successful applyGraph with unapplied values reconciles engine and visible 
 test('refused undo restores history position and authored document without a compensating reload', async ({ page }) => {
   await setup(page, true, [{ id: 1, module: 'osc.in' }]);
   await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9021, lan: false, rows }, 'osc.in'), picoDefaults().rows);
+    { port: 9021, lan: false, rows }, 'osc.in'), oscRows());
   await expectGraphCommands(page, ['applyGraph']);
   const depth = await page.evaluate(() => window.__wirescapeTest.historyDepth());
   const before = await state(page);
