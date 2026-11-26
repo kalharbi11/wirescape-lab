@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-26 05:21 EST (existing GPT work)
+
+- B1 #606 auto-merged `9957004`; no new task released. B2 #540 draft Lab 15/15 / Studio 408/408 green, ready-event Lab/Golden/paired underway; final Result/Architect packet not ready. B5 #545 exact Lab/Web/E4b green; keep shared writer with B2 until actual #540 merge. #610 advanced to `329c0dc`, current Lab/ASan evidence pending.
+- #600 reopened after bootstrap auto-closure: main dispatch/facts still incomplete. Added execution request to the Architect inbox, using full #608 merge pin `48479fc38d5d1d74eefd0851ff893988d9398220`. No connector dispatch; browser fallback signed out. B3 resumes artifact audit after authenticated dispatch.
+- #592 exact facts-only Lab green, but 33 original JSON files remain unretained. Tried authorized transfer: GitHub artifact API 403 outside sandbox; connector-provided download URLs unreadable in executor. No file retention claimed. Added precise existing-branch/hash-manifest execution packet to inbox and `needs/architect`; #609 still waits for actual merge. This is operational help, no new design ruling or product review.
+- Two execution requests are ready for one Architect batch after this inbox merges. B2/B5 contract reviews are not yet ready. No roadmap/gate change. Owner starts: `2:run`, `5:run`; B3 after dispatch and B4 after retention transfer.
+- Next milestone OB1 still needs OB-d owner listening, OB-a2 real-folder run, candidate Studio recheck and Pi 6a/6b evidence, then Architect acceptance/tag. No acceptance substituted or waived.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Lead run — 2026-11-26 05:10 EST (GPT delivery only)
 
 - Owner: ignore new-plan updates; focus on existing GPT-agent work. Repository verified as `kalharbi11/wirescape-lab`; local preloaded `wirescape` checkout was not used for writes. No new scope released.
