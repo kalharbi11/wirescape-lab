@@ -3,19 +3,19 @@
  * MIDI Learn commit and Forget (#287, PLAN D8, ENGINE_PROTOCOL §4/§5/§6).
  *
  * The engine only observes a moved CC. The UI owns the document: it writes the
- * `midi.cc_to_cv` row into `config.rows`, adds a CC module (and a MIDI In to feed
+ * `midi.cc_to_cv` row into `data.mapping.rows`, adds a CC module (and a MIDI In to feed
  * it) when no usable row exists, and cables the row's output onto the learned
  * parameter. The App sends the result to the engine as ONE live replan of the
- * document (`loadGraph`, as a MIDI input change does) rather than as separate
+ * document (`applyGraph`, with the existing legacy fallback) rather than as separate
  * addModule / ccMap.set / connect edits, so a refusal of any part leaves the
  * engine on the previous graph instead of a half-learned row.
  *
  * A row only counts as learned from the device that moved: the converter it sits
  * on must be fed by a `midi.in` whose endpoint takes that device (`all_enabled`,
  * or the same `name` + `system_name`). A converter with no feed gets one in the
- * same edit, so a learned row is never inert. Rows beyond `config.rows` keep their
- * implicit CC n defaults, so a slot past the end is reached by writing those
- * defaults explicitly (no holes) and a wired implicit output never changes meaning.
+ * same edit, so a learned row is never inert. A95: all eight rows have indexed
+ * defaults; the lowest unwired canonical default is free. Wired or non-default
+ * rows are occupied. Forget resets an unwired row rather than shortening the slot.
  *
  * Edits retain inverses for local construction errors. App serializes the
  * atomic load and restores its pre-Learn snapshot on a later refusal.
@@ -23,6 +23,7 @@
 import type { Device } from '../engine/EngineClient';
 import type { PatchDoc } from '../patch/PatchDoc';
 import type { Connection } from '../patch/types';
+import { ccDefaultRow, ccRowIsDefault, splitCcMappingSave } from './ioData';
 
 export const CC_TYPE = 'midi.cc_to_cv';
 export const MAX_CC_ROWS = 8;
@@ -82,6 +83,8 @@ class Edit implements Revertible {
     const m = this.doc.modules.get(id);
     if (!m) return;
     const before = m.config === undefined ? undefined : structuredClone(m.config);
+    const beforeData = m.data === undefined ? undefined : structuredClone(m.data);
+    const next = splitCcMappingSave(m, rows).authored;
     const ui = this.doc.ui as Record<string, unknown>;
     const hadMap = Object.prototype.hasOwnProperty.call(ui, 'ccMap');
     const labels = record(ui.ccMap);
@@ -90,7 +93,7 @@ class Edit implements Revertible {
     const hadModuleLabels = Object.prototype.hasOwnProperty.call(labels, key);
     const hadPortLabel = label ? Object.prototype.hasOwnProperty.call(beforeLabels, label.port) : false;
     const beforePortLabel = label ? beforeLabels[label.port] : undefined;
-    // The CC n label follows the learned controller; trimming a row restores its implicit CC n.
+    // The CC n label follows the learned controller; resetting restores its indexed default.
     if (label) {
       const nextPortLabels = { ...beforeLabels };
       if (label.controller === null) delete nextPortLabels[label.port];
@@ -101,12 +104,12 @@ class Edit implements Revertible {
       if (Object.keys(nextLabels).length || hadMap) ui.ccMap = nextLabels;
       else delete ui.ccMap;
     }
-    const next = { ...record(m.config), rows: structuredClone(rows) };
-    this.doc.setConfig(id, next);
+    this.doc.setIoFields(id, next.config, next.data);
     this.undo.push(() => {
       const now = this.doc.modules.get(id);
       if (!now) return;
-      if (same(now.config, next)) this.doc.setConfig(id, before); // keep any newer row edit
+      if (same(now.config, next.config) && same(now.data, next.data))
+        this.doc.setIoFields(id, before, beforeData); // keep any newer row edit
       if (!label) return;
       const u = this.doc.ui as Record<string, unknown>;
       const currentLabels = record(u.ccMap);
@@ -160,8 +163,9 @@ function feedOf(doc: PatchDoc, cc: number, ep: Endpoint): 'none' | 'takes' | 'ot
 }
 
 function freeRow(doc: PatchDoc, id: number): number {
-  for (let row = doc.ccRows(id).length; row < MAX_CC_ROWS; row++) {
-    if (!doc.cablesFrom(id, outPort(row)).length) return row;
+  const rows = doc.ccRows(id);
+  for (let row = 0; row < MAX_CC_ROWS; row++) {
+    if (!doc.cablesFrom(id, outPort(row)).length && ccRowIsDefault(rows[row], row)) return row;
   }
   return -1;
 }
@@ -179,12 +183,14 @@ function freeSlot(doc: PatchDoc, ep: Endpoint): { module: number; row: number } 
   return null;
 }
 
-/** Drop a row freed at the end of its module's rows (back to its implicit default). */
-function trimRow(doc: PatchDoc, edit: Edit, module: number, port: string): void {
+/** Reset a freed row to its indexed default, preserving opaque fields and other rows. */
+function resetRow(doc: PatchDoc, edit: Edit, module: number, port: string): void {
   const rows = doc.ccRows(module);
-  if (rowOf(port) === rows.length - 1 && rows.length > 1 && !doc.cablesFrom(module, port).length) {
-    edit.rows(module, rows.slice(0, -1).map(r => ({ ...r })), { port, controller: null });
-  }
+  const index = rowOf(port);
+  if (index < 0 || index >= rows.length || doc.cablesFrom(module, port).length) return;
+  rows[index] = { ...rows[index], ...ccDefaultRow(index) };
+  delete rows[index].bipolar;
+  edit.rows(module, rows, { port, controller: null });
 }
 
 /** Cable a MIDI In that delivers the endpoint into an unfed converter, adding one if none does. */
@@ -220,7 +226,7 @@ export function commitLearn(svc: LearnServices, target: LearnTarget, capture: Le
       slot = { module: existing.from.module, row: rowOf(existing.from.port) };
     } else if (existing) {
       edit.disconnect(existing);
-      trimRow(doc, edit, existing.from.module, existing.from.port);
+      resetRow(doc, edit, existing.from.module, existing.from.port);
     }
     slot ??= freeSlot(doc, ep);
     let created = false;
@@ -243,12 +249,11 @@ export function commitLearn(svc: LearnServices, target: LearnTarget, capture: Le
   }
 }
 
-/** Set one row, writing implicit-default rows first so there is no hole. */
+/** Set one row in the complete eight-row mapping. */
 function writeRow(doc: PatchDoc, edit: Edit, module: number, row: number,
   learned: { channel: number; controller: number }): void {
   const rows = doc.ccRows(module).map(r => ({ ...r }));
-  while (rows.length < row) rows.push({ channel: 0, controller: rows.length + 1 });
-  const merged: Record<string, unknown> = row < rows.length ? { ...rows[row], ...learned } : { ...learned };
+  const merged: Record<string, unknown> = { ...rows[row], ...learned };
   // Fourteen-bit rows need an MSB controller 0..31; a learned higher controller is a plain 7-bit CC.
   if (merged.fourteen_bit && learned.controller > 31) merged.fourteen_bit = false;
   rows[row] = merged;
@@ -256,9 +261,8 @@ function writeRow(doc: PatchDoc, edit: Edit, module: number, row: number,
 }
 
 /**
- * Remove the CC cables onto a parameter. A row this frees at the end of its module's
- * rows is dropped again (back to its implicit default) so re-learning does not use
- * up rows; a row another knob still uses, and every unrelated cable, stays.
+ * Remove CC cables onto a parameter. Freed rows reset to their indexed default;
+ * a row another knob still uses, and every unrelated cable, stays.
  */
 export function forgetLearn(svc: LearnServices, target: LearnTarget): ForgetResult | null {
   const { doc } = svc;
@@ -267,7 +271,7 @@ export function forgetLearn(svc: LearnServices, target: LearnTarget): ForgetResu
   const edit = new Edit(doc);
   for (const c of cables) edit.disconnect(c);
   for (const c of [...cables].sort((a, b) => rowOf(b.from.port) - rowOf(a.from.port))) {
-    trimRow(doc, edit, c.from.module, c.from.port);
+    resetRow(doc, edit, c.from.module, c.from.port);
   }
   return { count: cables.length, revert: () => edit.revert() };
 }

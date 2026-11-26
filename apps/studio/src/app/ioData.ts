@@ -88,12 +88,27 @@ export function splitOscEditorSave(m: PatchModule, draft: OscConfig | OscOutConf
   return { config, value, authored };
 }
 
-/** CC editor projection: keep the authored row length for existing Learn
- * allocation logic, but never read stale legacy rows when mapping is present. */
+/** CC editor projection: explicit mapping always wins over stale legacy rows. */
 export function ccMappingSource(m: PatchModule): RecordValue[] {
   const data = object(m.data);
   const source = own(data, 'mapping') ? object(data.mapping) : object(m.config);
   return Array.isArray(source.rows) ? copy(source.rows.map(object)) : [];
+}
+
+/** Indexed defaults are part of the native eight-row mapping contract (A95). */
+export function ccDefaultRow(index: number): RecordValue {
+  return { channel: 0, controller: index + 1, fourteen_bit: false, smoothing_ms: 5, min: 0, max: 1 };
+}
+export function ccEffectiveRows(m: PatchModule): RecordValue[] {
+  const rows = ccMappingSource(m);
+  return Array.from({ length: 8 }, (_, index) => {
+    const row = object(rows[index]);
+    const defaults = ccDefaultRow(index);
+    return { ...defaults, ...(row.bipolar === true ? { min: -1 } : {}), ...row };
+  });
+}
+export function ccRowIsDefault(row: RecordValue, index: number): boolean {
+  return Object.entries(ccDefaultRow(index)).every(([key, value]) => row[key] === value);
 }
 
 export interface CcSlotEdit {
@@ -114,8 +129,8 @@ export function splitCcMappingSave(m: PatchModule, rows: RecordValue[]): CcSlotE
   const prior = Array.isArray(old.rows) ? old.rows : [];
   const wireRows = Array.from({ length: 8 }, (_, index) => {
     const row = object(rows[index]);
-    const defaults: RecordValue = { channel: 0, controller: index + 1,
-      fourteen_bit: false, smoothing_ms: 5, min: row.bipolar === true ? -1 : 0, max: 1 };
+    const defaults = ccDefaultRow(index);
+    if (row.bipolar === true) defaults.min = -1;
     for (const key of keys) if (own(row, key)) defaults[key] = row[key];
     return defaults;
   });
