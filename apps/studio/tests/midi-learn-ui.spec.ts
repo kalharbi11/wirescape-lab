@@ -39,6 +39,10 @@ async function learn(page: Page, module: number, param: string, cc: { channel: n
 const armed = (page: Page) => page.evaluate(() => (window.__wirescapeTest.engine as any).status.midi.learn?.armed === true);
 const undoAll = async (page: Page) => { await page.getByTestId('undo').click(); await settle(page); };
 const mods = (s: any, type: string) => s.modules.filter((m: any) => m.module === type);
+// Exact complete slot, including indexed defaults (A95).
+const fullRows = (rows: Record<string, unknown>[]) => Array.from({ length: 8 }, (_, i) => ({
+  channel: 0, controller: i + 1, fourteen_bit: false, smoothing_ms: 5, min: 0, max: 1, ...rows[i],
+}));
 const modCables = (s: any) => s.connections.filter((c: any) => c.kind === 'modulation');
 
 test.describe('MIDI Learn (#287)', () => {
@@ -56,14 +60,15 @@ test.describe('MIDI Learn (#287)', () => {
     expect(src).toHaveLength(1);
     // The new MIDI In listens to exactly the device that moved.
     expect(src[0].config).toEqual(ksIn);
-    expect(cc[0].config).toEqual({ rows: [{ channel: 2, controller: 74 }] });
+    expect(cc[0].config).toBeUndefined();
+    expect(cc[0].data.mapping.rows).toEqual(fullRows([{ channel: 2, controller: 74 }]));
     expect(s.connections).toContainEqual({ kind: 'event', from: { module: src[0].id, port: 'midi' }, to: { module: cc[0].id, port: 'midi' } });
     expect(modCables(s)).toEqual([{ kind: 'modulation', from: { module: cc[0].id, port: 'cc1' },
       to: { module: 2, port: 'resonance' }, amount: 1 }]);
     expect(s.ui.ccMap[String(cc[0].id)].cc1).toBe(74);
     await expect(page.getByTestId(`port-${cc[0].id}-output-cc1`).locator('.cc-label')).toHaveText('CC 74');
     const fake = await page.evaluate(id => (window.__wirescapeTest.engine as any).ccRowsOf(id), cc[0].id);
-    expect(fake).toEqual([{ channel: 2, controller: 74 }]);
+    expect(fake).toEqual(fullRows([{ channel: 2, controller: 74 }]));
 
     await undoAll(page);
     const after = await state(page);
@@ -76,7 +81,7 @@ test.describe('MIDI Learn (#287)', () => {
     await load(page, vcf, [], VCF_POS);
     await learn(page, 2, 'cutoff', { channel: 5, controller: 21 }, { any: true });
     const saved = await state(page);
-    expect(mods(saved, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 0, controller: 21 }]);
+    expect(mods(saved, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ channel: 0, controller: 21 }]));
     await page.evaluate(p => window.__wirescapeTest.load(JSON.parse(JSON.stringify(p)), 'Again'), saved);
     await settle(page);
     const { ui: a, ...rest } = await state(page);
@@ -93,13 +98,13 @@ test.describe('MIDI Learn (#287)', () => {
     let s = await state(page);
     const cc = mods(s, 'midi.cc_to_cv');
     expect(cc).toHaveLength(1);
-    expect(cc[0].config.rows).toEqual([{ channel: 1, controller: 20 }, { channel: 1, controller: 21 }]);
+    expect(cc[0].data.mapping.rows).toEqual(fullRows([{ channel: 1, controller: 20 }, { channel: 1, controller: 21 }]));
     expect(modCables(s).map((c: any) => `${c.from.port}>${c.to.port}`).sort()).toEqual(['cc1>cutoff', 'cc2>resonance']);
 
     await learn(page, 2, 'cutoff', { channel: 3, controller: 30 });
     s = await state(page);
     expect(mods(s, 'midi.cc_to_cv')).toHaveLength(1);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 3, controller: 30 }, { channel: 1, controller: 21 }]);
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ channel: 3, controller: 30 }, { channel: 1, controller: 21 }]));
     expect(modCables(s)).toHaveLength(2);
   });
 
@@ -110,19 +115,19 @@ test.describe('MIDI Learn (#287)', () => {
       [{ kind: 'event', from: { module: 1, port: 'midi' }, to: { module: 5, port: 'midi' } },
         { kind: 'modulation', from: { module: 5, port: 'cc1' }, to: { module: 2, port: 'resonance' }, amount: 0.1 }],
       { '1': [50, 80], '5': [400, 80], ...VCF_POS });
-    // Output cc2..cc8 are uncabled but explicit rows: they are occupied, so a new module is needed.
+    // Output cc2..cc8 are uncabled but non-default rows: they are occupied, so a new module is needed.
     await learn(page, 2, 'cutoff', { channel: 1, controller: 74 });
     const s = await state(page);
     const cc = mods(s, 'midi.cc_to_cv');
     expect(cc).toHaveLength(2);
     expect(cc.find((m: any) => m.id === 5).config.rows).toEqual(rows);
     const added = cc.find((m: any) => m.id !== 5);
-    expect(added.config.rows).toEqual([{ channel: 1, controller: 74 }]);
+    expect(added.data.mapping.rows).toEqual(fullRows([{ channel: 1, controller: 74 }]));
     expect(mods(s, 'midi.in')).toHaveLength(1);
     expect(s.connections.filter((c: any) => c.kind === 'event' && c.to.module === added.id)).toHaveLength(1);
   });
 
-  test('a wired implicit default output keeps its meaning: holes are written as explicit defaults', async ({ page }) => {
+  test('a wired default output keeps its meaning in the fixed eight-row slot', async ({ page }) => {
     await boot(page);
     await load(page, [{ id: 5, module: 'midi.cc_to_cv' }, ...vcf],
       [{ kind: 'modulation', from: { module: 5, port: 'cc1' }, to: { module: 2, port: 'cutoff' }, amount: 0.5 }],
@@ -130,7 +135,7 @@ test.describe('MIDI Learn (#287)', () => {
     await learn(page, 2, 'resonance', { channel: 1, controller: 74 });
     const s = await state(page);
     expect(mods(s, 'midi.cc_to_cv')).toHaveLength(1);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 0, controller: 1 }, { channel: 1, controller: 74 }]);
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ channel: 0, controller: 1 }, { channel: 1, controller: 74 }]));
     expect(modCables(s).map((c: any) => `${c.from.port}>${c.to.port}`).sort()).toEqual(['cc1>cutoff', 'cc2>resonance']);
     // An unfed converter gets its MIDI feed in the same edit: the learned row is never inert.
     const src = mods(s, 'midi.in');
@@ -138,7 +143,7 @@ test.describe('MIDI Learn (#287)', () => {
     expect(src[0].config).toEqual(ksIn);
     expect(s.connections).toContainEqual(ev(src[0].id, 5));
     expect(await page.evaluate(() => (window.__wirescapeTest.engine as any).ccRowsOf(5))).toEqual(
-      [{ channel: 0, controller: 1 }, { channel: 1, controller: 74 }]);
+      fullRows([{ channel: 0, controller: 1 }, { channel: 1, controller: 74 }]));
   });
 
   test('two device-specific feeds: a CC from the second device lands on the converter that hears it', async ({ page }) => {
@@ -150,7 +155,7 @@ test.describe('MIDI Learn (#287)', () => {
     const s = await state(page);
     expect(s.modules).toHaveLength(modules.length);
     expect(s.modules.find((m: any) => m.id === 5).config).toBeUndefined();
-    expect(s.modules.find((m: any) => m.id === 6).config).toEqual({ rows: [{ channel: 4, controller: 12 }] });
+    expect(s.modules.find((m: any) => m.id === 6).data.mapping.rows).toEqual(fullRows([{ channel: 4, controller: 12 }]));
     expect(modCables(s)).toEqual([{ kind: 'modulation', from: { module: 6, port: 'cc1' }, to: { module: 2, port: 'cutoff' }, amount: 1 }]);
   });
 
@@ -166,7 +171,7 @@ test.describe('MIDI Learn (#287)', () => {
     const ins = mods(s, 'midi.in');
     expect(ins.map((m: any) => m.config)).toEqual([ksIn, lpIn]);
     const added = mods(s, 'midi.cc_to_cv').find((m: any) => m.id !== 5);
-    expect(added.config).toEqual({ rows: [{ channel: 1, controller: 40 }] });
+    expect(added.data.mapping.rows).toEqual(fullRows([{ channel: 1, controller: 40 }]));
     expect(s.connections).toContainEqual(ev(ins[1].id, added.id));
     expect(s.connections).toHaveLength(routes.length + 2);
   });
@@ -179,7 +184,7 @@ test.describe('MIDI Learn (#287)', () => {
     const s = await state(page);
     expect(s.modules).toHaveLength(3);
     expect(s.modules.find((m: any) => m.id === 1).config).toEqual({ endpoint: 'all_enabled' });
-    expect(s.modules.find((m: any) => m.id === 5).config).toEqual({ rows: [{ channel: 9, controller: 3 }] });
+    expect(s.modules.find((m: any) => m.id === 5).data.mapping.rows).toEqual(fullRows([{ channel: 9, controller: 3 }]));
   });
 
   test('a device that went away before Confirm is refused visibly and the patch is untouched', async ({ page }) => {
@@ -204,18 +209,18 @@ test.describe('MIDI Learn (#287)', () => {
       [ev(1, 5), shared('cutoff'), shared('resonance')], { '1': [0, 0], '5': [400, 0], ...VCF_POS });
     await learn(page, 2, 'cutoff', { channel: 2, controller: 30 });
     let s = await state(page);
-    expect(s.modules.find((m: any) => m.id === 5).config.rows).toEqual([...rows, { channel: 2, controller: 30 }]);
+    expect(s.modules.find((m: any) => m.id === 5).data.mapping.rows).toEqual(fullRows([...rows, { channel: 2, controller: 30 }]));
     expect(modCables(s).map((c: any) => `${c.from.port}>${c.to.port}`).sort()).toEqual(['cc1>resonance', 'cc2>cutoff']);
     await knob(page, 2, 'resonance').click({ button: 'right' });
     await page.getByTestId('context-forget').click();
     await settle(page);
     s = await state(page);
     expect(modCables(s).map((c: any) => `${c.from.port}>${c.to.port}`)).toEqual(['cc2>cutoff']);
-    expect(s.modules.find((m: any) => m.id === 5).config.rows).toEqual([...rows, { channel: 2, controller: 30 }]);
+    expect(s.modules.find((m: any) => m.id === 5).data.mapping.rows).toEqual(fullRows([{}, { channel: 2, controller: 30 }]));
     expect(s.connections).toContainEqual(ev(1, 5));
   });
 
-  test('Forget removes only the learned cable, drops the freed trailing row, keeps unrelated cables', async ({ page }) => {
+  test('Forget removes only the learned cable, resets the freed row, keeps unrelated cables', async ({ page }) => {
     await boot(page);
     await load(page, vcf, [], VCF_POS);
     await learn(page, 2, 'cutoff', { channel: 1, controller: 20 });
@@ -225,22 +230,22 @@ test.describe('MIDI Learn (#287)', () => {
     await settle(page);
     let s = await state(page);
     expect(modCables(s).map((c: any) => `${c.from.port}>${c.to.port}`)).toEqual(['cc1>cutoff']);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 1, controller: 20 }]);
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ channel: 1, controller: 20 }]));
     expect(mods(s, 'midi.in')).toHaveLength(1);
     // Nothing learned on this knob any more: no Forget entry.
     await knob(page, 2, 'resonance').click({ button: 'right' });
     await expect(page.getByTestId('context-forget')).toHaveCount(0);
     await page.keyboard.press('Escape');
-    // Forgetting the only remaining mapping keeps its single row.
+    // Forgetting the only remaining mapping restores all eight indexed defaults.
     await knob(page, 2, 'cutoff').click({ button: 'right' });
     await page.getByTestId('context-forget').click();
     await settle(page);
     s = await state(page);
     expect(modCables(s)).toEqual([]);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 1, controller: 20 }]);
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([]));
   });
 
-  test('Forget trims the freed CC label and undo restores its saved hint', async ({ page }) => {
+  test('Forget clears the freed CC label and undo restores its saved hint', async ({ page }) => {
     await boot(page);
     await load(page, vcf, [], VCF_POS);
     await learn(page, 2, 'cutoff', { channel: 1, controller: 20 });
@@ -254,15 +259,15 @@ test.describe('MIDI Learn (#287)', () => {
     await page.getByTestId('context-forget').click();
     await settle(page);
     s = await state(page);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([{ channel: 1, controller: 20 }]);
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([{ channel: 1, controller: 20 }]));
     expect(s.ui.ccMap[String(ccId)]).toEqual({ cc1: 20 });
     await expect(page.getByTestId(`port-${ccId}-output-cc2`).locator('.cc-label')).toHaveText('CC 2');
 
     await undoAll(page);
     s = await state(page);
-    expect(mods(s, 'midi.cc_to_cv')[0].config.rows).toEqual([
+    expect(mods(s, 'midi.cc_to_cv')[0].data.mapping.rows).toEqual(fullRows([
       { channel: 1, controller: 20 }, { channel: 1, controller: 21 },
-    ]);
+    ]));
     expect(s.ui.ccMap[String(ccId)]).toEqual({ cc1: 20, cc2: 21 });
     await expect(page.getByTestId(`port-${ccId}-output-cc2`).locator('.cc-label')).toHaveText('CC 21');
   });

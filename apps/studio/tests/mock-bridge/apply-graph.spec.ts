@@ -48,14 +48,18 @@ for (const capability of [true, false]) {
       expect(graph.modules[0].config.port).toBe(9010);
     });
 
-    test('OSC In row edit and MIDI endpoint config edit use the negotiated command', async ({ page }) => {
+    test('OSC In row edit uses setData; MIDI endpoint uses the negotiated graph command', async ({ page }) => {
       await setup(page, capability, [{ id: 1, module: 'osc.in' }, { id: 2, module: 'midi.in' }]);
       await page.getByTestId('osc-edit-1').click();
       await page.getByTestId('osc-row1-pattern').fill('/e1b/row');
       await page.getByTestId('osc-editor-save').click();
-      await expectGraphCommands(page, [wire]);
+      await expect(page.getByTestId('osc-editor')).toBeHidden();
+      await expectGraphCommands(page, []);
+      const rows = await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].data.routes.rows);
+      expect(rows[0].pattern).toBe('/e1b/row');
+      expect(rows).toHaveLength(8);
       await page.evaluate(() => window.__wirescapeTest.setMidiEndpoint(2, 'M8 MIDI 1', 'M8:M8 MIDI 1'));
-      await expectGraphCommands(page, [wire, wire]);
+      await expectGraphCommands(page, [wire]);
     });
 
     test('CC Learn commits one complete graph using the negotiated command', async ({ page }) => {

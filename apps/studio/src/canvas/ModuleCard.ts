@@ -8,6 +8,7 @@ import { attachModuleInfo } from '../panels/widgets/InfoBox';
 import { el, motionOff } from '../app/dom';
 import type { Telemetry, OscStatus } from '../engine/EngineClient';
 import { readOscConfig } from '../app/OscEditor';
+import { oscProjection } from '../patch/ioProjection';
 import { readOscRaw } from '../app/oscCapture';
 
 export interface PortAnchor { x: number; y: number }
@@ -172,7 +173,8 @@ export class ModuleCard {
         clamps.hidden = true;
         box.append(clamps);
         const renderClamps = (t: Telemetry | null) => {
-          const { config } = readOscConfig(o.host.doc.modules.get(o.moduleId)?.config);
+          const node = o.host.doc.modules.get(o.moduleId);
+          const { config } = readOscConfig(node ? oscProjection(node) : undefined);
           let visible = false;
           config.rows.forEach((row, i) => {
             const raw = row.kind === 'cv' && row.enabled !== false
