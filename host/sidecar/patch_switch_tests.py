@@ -292,7 +292,7 @@ def analyze(capture, switches, mark_ids):
                               last_nonzero=nonzero[-1], blocks=block_summary)
                 raise SoakFailure(
                     f'switch {number}: gate/note retained after swap; '
-                    + json.dumps(detail, sort_keys=True))
+                    + json.dumps(detail, separators=(',', ':')))
             try:
                 gaps.append(fade_gap(audio))
             except SoakFailure as error:
