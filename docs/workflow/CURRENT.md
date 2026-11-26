@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect + lead session — 2026-11-26 14:25 EST (owner: builder PRs only; parallel to run 47)
+- **#540:** the strict paired gap was the CPU probe, not the runner. Fixed `65a3eb8`. All exact-head gates are green, and paired is 100/102 on both arches, equal to base. Waiting on B2's Result and packet, then the Architect review.
+- **#592:** 33 raw JSON files retained at `b77b6e7` (owner allowed the artifact host); B4 re-verified at `4026404`. Waiting on Lab, the Result and a lead merge.
+- **#610:** released from #545 (no shared path, test-only), ready, auto-merge on. **#609:** released from #592; waits on #540 only (`module_catalog.h`).
+- **Rulings:** B1-RS-modal (#621 `App.ts` guard after #540) and B3-OBh6-timing (#604 opt-in `wirescape_render` timing). Inbox PRs #625/#626 are superseded by this entry.
+- **Lanes before Planner run 2:** keep running on the BUILDERS queues. Everything queued now is in run 1's areas. Run 2's areas stay frozen (macros, mapping, OSC In features, scripts, tool page host, new-repo design).
+- **Next:** `lead:run` once B2 posts #540's Result; `architect:run` (medium) for the #540 review.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect run 47 — 2026-11-26 13:45 EST (Planner run 1 transcribed, run 2 prep; owner `architect:run`)
 
 - **Planner run 1** ([0023](../../proposals/0023-review-and-replan.md), #618 `337d8e8`) checked at source by a scout: every citation supports its claim except R2.5's `RealEngine.ts:300-304` (actual `:393-436`); the ruling stands. No CONSTRAINTS conflict.
