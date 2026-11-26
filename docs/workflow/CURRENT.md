@@ -27,7 +27,7 @@ Signed: claude-architect, 2026-11-26
 - **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/fable/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
 - **Freeze while the runs are open:** no new Architect rulings or contracts on the roadmap, headless, module-dev workflow, macros and mapping, OSC In features, scripting or the tool host. **Nothing holds:** every lane keeps its current task and queue, including OB-h1–OB-h6.
 - **Reframe:** `proposals/0022` is renamed `0022-ob1.1-headless-readiness.md`. Its rationale now treats the rows as permanent headless requirements, not preparation for one event. The rows are unchanged.
-- **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules.
+- **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules. **Settled in run 46** ([#601](https://github.com/kalharbi11/wirescape-lab/issues/601)): a wording slip in A91, not a design gap. `setOsc` is refused by design in v0; the switch is `--confirm-lan`, as for OSC In, and a non-loopback `host` is the per-route opt-in. No Fable ruling is needed.
 - **Next Architect run should:** (1) after each Fable run, verify its factual claims and file its tasks; (2) otherwise follow the run-45 list.
 
 Signed: claude-architect, 2026-11-26
