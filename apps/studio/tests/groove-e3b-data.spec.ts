@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
-import { grooveExecution, grooveEditorConfig, mergeGroovePattern } from '../src/groove/livePattern';
+import { grooveExecution, grooveEditorConfig, mergeGroovePattern, classifyGrooveApply } from '../src/groove/livePattern';
+import { stepFor, upgrade } from '../src/groove/pattern';
 
 test('Groove E3b projection separates live fields and preserves typed rows', () => {
   const cfg = { version: 2, bpm: 120, tempo_source: 'host', extra: 'preserved',
@@ -107,4 +108,51 @@ test('Groove E3b canonical slot removal reads silent descriptor defaults in the 
   const legacy = { version: 1, bpm: 120, tracks: [{ steps: [{ kind: 'note', key: 72, velocity: .8 }] }] };
   expect(grooveEditorConfig({ config: legacy, data: {} })).toEqual(legacy);
   expect(grooveEditorConfig({ config, data: { pattern: null } })).toBeNull();
+});
+
+test('Groove E3b A90 pattern-only Apply preserves v1 construction and unrelated saved bytes', () => {
+  const module = { id: 17, config: { version: 1, bpm: 120, tracks: [{ armed: true }] },
+    data: { other: { keep: true }, pattern: { length_1: 32, length_2: 64,
+      steps_1: [{ kind: 'note', key: 60, keys: [60, 0, 0, 0, 0], velocity: .5 },
+        { kind: 'tie', future: 'untouched' }],
+      steps_2: [{ kind: 'note', key: 72, keys: [72, 0, 0, 0, 0], velocity: .75 }],
+      future: 3 } } };
+  const before = structuredClone(module);
+  const editor = grooveEditorConfig(module)!;
+  stepFor(editor, 0, 0).key = 61; // upgrade() adds the absent second track to the view
+  expect(editor.tracks).toHaveLength(2);
+  const result = classifyGrooveApply(module, editor)!;
+  expect(result.kind).toBe('pattern');
+  if (result.kind !== 'pattern') throw new Error('expected live pattern');
+  const expected = structuredClone(module);
+  expected.data.pattern.steps_1[0] = { ...expected.data.pattern.steps_1[0]!, key: 61, keys: [61, 0, 0, 0, 0] };
+  expect(result.saved).toEqual(expected);
+  expect(JSON.stringify(result.saved.config)).toBe(JSON.stringify(before.config));
+  expect(result.pattern.steps_1[0]).toMatchObject({ key: 61, keys: [61, 0, 0, 0, 0] });
+  expect(result.pattern.steps_2).toEqual(module.data.pattern.steps_2);
+  expect(module).toEqual(before);
+  expect(grooveEditorConfig(result.saved)!.tracks).toHaveLength(1);
+  expect(grooveEditorConfig(result.saved)!.tracks[0]!.steps[0]!.key).toBe(61);
+});
+
+test('Groove E3b A90 divisor and explicit absent-track edits disclose construction', () => {
+  const module = { config: { version: 1, bpm: 120, tracks: [{ steps: [{ kind: 'note', key: 60, velocity: .5 }] }] } };
+  const note = grooveEditorConfig(module)!;
+  stepFor(note, 0, 0).key = 62;
+  const live = classifyGrooveApply(module, note)!;
+  expect(live.kind).toBe('pattern');
+  if (live.kind === 'pattern') {
+    expect(live.saved.config).toEqual(module.config);
+    expect(grooveEditorConfig(live.saved)!.tracks[0]!.steps[0]!.key).toBe(62);
+  }
+  const divisor = grooveEditorConfig(module)!;
+  upgrade(divisor);
+  divisor.tracks[0]!.div = 2;
+  expect(classifyGrooveApply(module, divisor)).toMatchObject({ kind: 'construction', reason: 'divisor' });
+  const second = grooveEditorConfig(module)!;
+  stepFor(second, 1, 0).kind = 'note';
+  expect(classifyGrooveApply(module, second)).toMatchObject({ kind: 'construction', reason: 'track-count' });
+  const explicit = grooveEditorConfig(module)!;
+  upgrade(explicit);
+  expect(classifyGrooveApply(module, explicit, true)).toMatchObject({ kind: 'construction', reason: 'track-count' });
 });
