@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead check — 2026-11-26 17:54 EST (owner: prepare Architect inbox; leave agent tasks to Architect)
+
+- New Planner ruling checked: merged 0024 §9 (#662), lab/test-only amendment; full 2b Player/OSC/scripts/tool-host design remains frozen. Merged Architect transcription #669 `d4fb34f` on scoped exact-head docs Lab success: M3 r2.2, A101 in MM I1, RULINGS, MM/MOD roadmap rows. No new ruling made by lead.
+- Consolidated pending inbox-only requests #666 (OB-h6 renderer timing scope), #667 (E3b contract review), #668 (P0b host wrapper scope) preserving exact questions/pins. #545 head `638d8b62af22b06d12db16b0b66a6430e6d93ffb`: signed Result 7205009649 and exact-head Lab/Golden/paired/PV1/Web success verified; Architect review still required.
+- #642 has green gates but explicitly blocked Result awaiting MB1 naming/offline-reader ruling. #648 green Result awaits renderer scope. #610 latest diagnostic `b59aef6` follows real sanitizer failure `gate/note retained after swap`; not the old #631 extra-rise failure. No product merge, rerun or gate waiver. #638/#649/#627/#655 remain builder work/evidence, not merge-ready.
+- Planner implementation follow-through: test PR #4 implements §9.1–§9.3; #652 closes only after actual merge. Lab limitations #663–#665 filed. Architect should verify separate-session review, route limitations, and refresh agents' tasks at run end as owner requested. BUILDERS was intentionally not edited this run.
+- No architect-ready/review-ready/architect-wake trigger, command, dispatch or automation created. Owner starts Architect manually after inbox merge. Shared usage/reset unavailable (unknown).
+
+Signed: gpt-lead, 2026-11-26
+
 ## Lead run — 2026-11-26 17:10 EST (owner: inspect, merge, inbox; no Architect run)
 
 - Checked all five lane heads and newest signed lane Results against run 49. Shared usage/reset unavailable (unknown). Product-independent reviews remain Architect-owned (SR11).
