@@ -15,7 +15,7 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 - Inbox-only #650 `8d82941` and #651 `e6e56d4` merged on docs-scope Lab success (SR13); requests are recorded, not decided. Added #652 MOD-0 T2 catalogue-registration limitation, already needs/architect. No Architect trigger labels, command or run; owner explicitly prohibited a wake.
 - B1 #649 actual MM1 runtime red obtained; partial-ACK error policy waits #651. B4 #642 Lab green, final Result waits #650 plus ready gates. B3 #648 final gates/Result pending; #655 draft-ahead full workload waits native Macro promotion. #523 already merged. B5 #545/#627 fresh fixture corrections pending CI, no review-ready claim.
 - Next: owner may resume B1–B5 with numbered triggers. Architect manual batch: MB1 naming/offline reader, MM1 partial ACK, MOD-0 T2 scratch scope. Planner 2b remains the design route for frozen Player/OSC/scripts/tool-host areas; no run started.
-- Milestones: MB1 → MB2/CAT-1 → M3 acceptance; M4 E3b and final CN/acceptance remain. OB1 owner listening, real-folder OB-a2, Pi 6a/6b and Architect candidate recheck/tag remain owner/Architect-only and gate no new work. Pi postponement unchanged.
+- Milestones: MB1 → MB2/CAT-1 → M3 acceptance; M4 E3b and acceptance reconciliation remain; final CN #523 is already merged. OB1 owner listening, real-folder OB-a2, Pi 6a/6b and Architect candidate recheck/tag remain owner/Architect-only and gate no new work. Pi postponement unchanged.
 
 Signed: gpt-lead, 2026-11-26
 
