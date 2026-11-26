@@ -120,6 +120,19 @@ class Pattern {
             std::memcpy(literal_.data(), pattern.data(), pattern.size());
         return true;
     }
+    // Compare compiled identity, not raw slot bytes or a collision-prone hash.
+    // Called only on a route serial change, never on the message hot path.
+    bool same_compiled_pattern(const Pattern &other) const {
+        if (size_ != other.size_ || is_literal_ != other.is_literal_) return false;
+        if (is_literal_)
+            return std::memcmp(literal_.data(), other.literal_.data(), size_) == 0;
+        for (uint16_t i = 0; i <= size_; ++i) {
+            const auto &a = nodes_[i], &b = other.nodes_[i];
+            if (a.kind != b.kind || a.next != b.next || a.literal != b.literal ||
+                a.mask != b.mask || alternatives_[i] != other.alternatives_[i]) return false;
+        }
+        return true;
+    }
     bool match(std::string_view address) const {
         if (address.size() > 255) return false;
         if (is_literal_) return address == std::string_view(literal_.data(), size_);

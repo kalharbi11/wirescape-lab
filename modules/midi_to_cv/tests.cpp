@@ -2,7 +2,7 @@
 #include "../../engine/engine2.h"
 #include "../../host/midi/module_test_support.h"
 #include "../adsr/dsp.h"
-#include "../midi_cc_to_cv/dsp.h"
+#include "../midi_cc_to_cv/data_validation.h"
 #include "../midi_in/dsp.h"
 #include "../output/dsp.h"
 #include "../vca/dsp.h"
@@ -472,6 +472,11 @@ static void coordinator_poly_soak(uint32_t seconds, bool paced) {
     std::vector<uint8_t> cc_bytes(sizeof(cc));
     std::memcpy(cc_bytes.data(), &cc, sizeof(cc));
     REQUIRE(e.add_node(7, ws::Module<CcToCv>::descriptor(), cc_bytes));
+    CcRows mapping{};
+    char error[128]{};
+    REQUIRE(materialize_cc_rows(cc, mapping, error));
+    const auto *slot = reinterpret_cast<const uint8_t *>(&mapping);
+    REQUIRE(e.set_data_packed(7, 0, std::vector<uint8_t>(slot, slot + sizeof(mapping))) == WS2_OK);
     REQUIRE(e.add_node(8, ws::Module<ws2ports::Vca>::descriptor()));
     const uint32_t edges[][4] = {{1, 0, 2, 0}, {1, 0, 7, 0}, {2, 0, 3, 0}, {2, 1, 4, 0}, {3, 0, 5, 0},
                                  {4, 0, 5, 1}, {5, 0, 8, 0}, {7, 0, 8, 1}, {8, 0, 6, 0}};

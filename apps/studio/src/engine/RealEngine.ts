@@ -2,9 +2,10 @@
 import { validateProtocolV0, type ProtocolPush } from './generated/protocol_v0';
 import type { PatchV2, Connection } from '../patch/types';
 import { connKey } from '../patch/types';
+import { ioObject, mergeSlotValue } from '../patch/ioProjection';
 import type { ModuleDescriptor } from '../modules/types';
 import type { ModuleRegistry } from '../modules/registry';
-import { EngineRefusal, type EngineClient, type EngineError, type Device, type SystemStatus, type Telemetry, type UnappliedParameter } from './EngineClient';
+import { EngineRefusal, type EngineClient, type DataAuthoring, type EngineError, type Device, type SystemStatus, type Telemetry, type UnappliedParameter } from './EngineClient';
 
 /** The complete five-member Electron preload surface; never expose Node to the renderer. */
 export interface WirescapeBridge {
@@ -19,10 +20,12 @@ export interface WirescapeBridge {
 declare global { interface Window { wirescape?: WirescapeBridge } }
 
 type Wire = Record<string, unknown>;
-type Mutation = { type: string; payload: Wire };
+type Mutation = { type: string; payload: Wire; authored?: DataAuthoring };
 type Edit = {
   id: string; session: string; mutation: Mutation; inverse: PatchV2 | null;
   rollback?: () => void;
+  resolve?: () => void;
+  reject?: (reason: EngineRefusal) => void;
 };
 type Pending = {
   session: string; type: string; kind: 'load' | 'edit' | 'query' | 'control' | 'restart';
@@ -359,6 +362,7 @@ export class RealEngine implements EngineClient {
     for (const cb of this.statusCbs) cb(s);
   }
   private rejectPending(error: EngineRefusal): void {
+    for (const edit of this.queue) edit.reject?.(error);
     for (const [id, p] of this.pending) {
       if (p.kind === 'restart') continue;
       if (p.timeout !== undefined) window.clearTimeout(p.timeout);
@@ -480,7 +484,7 @@ export class RealEngine implements EngineClient {
     }
     if (p.type === 'hello' && !validateProtocolV0(message)) return;
     const g = generation(message.gen);
-    if (p.kind !== 'restart' && (g === null || g < BigInt(this.gen))) return;
+    if (p.kind !== 'restart' && (g === null || (g < BigInt(this.gen) && p.type !== 'setData'))) return;
     this.pending.delete(message.re);
     if (p.timeout !== undefined) window.clearTimeout(p.timeout);
     if (g !== null && g > BigInt(this.gen) && p.kind !== 'restart') {
@@ -575,6 +579,7 @@ export class RealEngine implements EngineClient {
       }
     } else if (p.kind === 'edit' && p.edit) {
       if (this.confirmed) applyMutation(this.confirmed, p.edit.mutation, this.usedIds);
+      p.edit.resolve?.();
       this.queue.shift();
       this.active = undefined;
       this.pumpEdits();
@@ -620,6 +625,10 @@ export class RealEngine implements EngineClient {
     this.playhead = {};
     this.loadedOnce = true;
     this.ready = false;
+    for (const edit of this.queue) if (edit.reject) {
+      this.pending.delete(edit.id);
+      edit.reject(refusal('unavailable', 'Patch load superseded data edit.'));
+    }
     this.active = undefined;
     this.queue = [];
     this.lastEdit = undefined;
@@ -701,6 +710,7 @@ export class RealEngine implements EngineClient {
     this.active = undefined;
     this.queue = this.queue.filter(x => x !== entry);
     entry.rollback?.();
+    entry.reject?.(err);
     for (const cb of this.refusalCbs) cb({
       requestId: entry.id, type: entry.mutation.type, detail: err.detail, gen: this.gen,
     });
@@ -732,6 +742,16 @@ export class RealEngine implements EngineClient {
   setParam(moduleId: number, paramId: string, value: number): void { this.enqueue('setParam', { moduleId, paramId, value }); }
   setModAmount(connection: Connection, amount: number): void {
     this.enqueue('setModAmount', { connection: copy(connection), amount });
+  }
+  setData(moduleId: number, slot: string, value: Wire, authored?: DataAuthoring): Promise<void> {
+    if (!this.ready || !this.session || this.load || !this.confirmed)
+      return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live data edit.'));
+    const mutation: Mutation = { type: 'setData', payload: { moduleId, slot, value: copy(value) },
+      ...(authored ? { authored: copy(authored) } : {}) };
+    return new Promise<void>((resolve, reject) => {
+      this.queue.push({ id: this.id(), session: this.session, mutation, inverse: this.projection(), resolve, reject });
+      this.pumpEdits();
+    });
   }
   noteOn(note: number, velocity: number): void { this.control('noteOn', { note, velocity }); }
   noteOff(note: number): void { this.control('noteOff', { note }); }
@@ -796,6 +816,17 @@ function applyMutation(patch: PatchV2, m: Mutation, used: Set<number>): boolean 
       const node = patch.modules.find(x => x.id === id);
       if (!node) return false;
       (node.parameters ??= {})[p.paramId as string] = p.value as number;
+      return true;
+    }
+    case 'setData': {
+      const node = patch.modules.find(x => x.id === id);
+      if (!node || typeof p.slot !== 'string' || !isRecord(p.value)) return false;
+      const data = ioObject(node.data);
+      node.data = { ...data, [p.slot]: m.authored ? copy(m.authored.value) : mergeSlotValue(data[p.slot], p.value) };
+      if (m.authored?.replaceConfig) {
+        if (m.authored.config === undefined) delete node.config;
+        else node.config = cloneConfig(m.authored.config);
+      }
       return true;
     }
     case 'setModAmount': {

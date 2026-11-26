@@ -51,7 +51,9 @@ test('inferred output mode round-trips all existing config fields unchanged', as
     await expect(page.getByTestId('osc-row1-output-mode')).toHaveValue(mode);
     await page.getByTestId('osc-editor-save').click();
     await expect(page.getByTestId('osc-editor')).toBeHidden();
-    expect((await state(page)).modules[0].config).toEqual(before);
+    const after = (await state(page)).modules[0];
+    expect(after.config).toEqual({ port: before.port, lan: before.lan });
+    expect(after.data.routes.rows).toEqual(before.rows.map((r: object) => ({ ...r, enabled: true })));
   }
 });
 
@@ -64,10 +66,10 @@ test('bipolar writes only the existing output range keys', async ({ page }) => {
   await expect(page.getByTestId('osc-row1-output-mode')).toHaveValue('bipolar');
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
-  const after = (await state(page)).modules[0].config;
-  expect(after).toEqual({ ...before, rows: [
-    { ...before.rows[0], output_min: -1, output_max: 1 }, ...before.rows.slice(1),
-  ] });
+  const after = (await state(page)).modules[0];
+  expect(after.config).toEqual({ port: before.port, lan: before.lan });
+  expect(after.data.routes.rows).toEqual(before.rows.map((r: object, i: number) => ({ ...r, enabled: true,
+    ...(i === 0 ? { output_min: -1, output_max: 1 } : {}) })));
 });
 
 test('live Set max / Set min commits two raw bounds only when saved', async ({ page }) => {
@@ -85,7 +87,7 @@ test('live Set max / Set min commits two raw bounds only when saved', async ({ p
   await expect(page.getByTestId('osc-editor-save')).toBeEnabled();
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
-  expect((await state(page)).modules[0].config.rows[0]).toMatchObject({ input_min: 121, input_max: 1689 });
+  expect((await state(page)).modules[0].data.routes.rows[0]).toMatchObject({ input_min: 121, input_max: 1689 });
 });
 
 test('capture refuses missing, other-source and unsupported Monitor data', async ({ page }) => {

@@ -6,7 +6,7 @@ Claude here runs under the name the first message gives:
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with
   the same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
 - `review` → **Claude Architect**: use the inbox and pinned independent-review request.
-- `planner: run 1` or `planner: run 2` → **claude-planner** (owner, 2026-11-26): one bounded planning
+- `planner: run 1`, `planner: run 2a`, `planner: run 2b` or `planner: run 2` → **claude-planner** (owner, 2026-11-26): one bounded planning
   run on Opus, separate from the Architect. Read `docs/context/planner/README.md` first and follow it;
   skip the Architect run protocol below. It signs `Signed: claude-planner, <date>`. Its rulings in the
   two runs are final (authority in that folder); the Claude Architect transcribes them into contracts

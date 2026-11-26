@@ -2,6 +2,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { boot, settle, state } from '../helpers';
 import { mockBridge } from './bridge';
+const oscRows = () => Array.from({ length: 8 }, (_, i) => ({
+  pattern: '/pico1/knob/' + (i + 1), argument: 0, kind: 'cv',
+  input_min: 0, input_max: 1, output_min: 0, output_max: 1,
+  smoothing_ms: 5, timeout_ms: 1000, stale: 'hold',
+}));
 
 type Wire = { type: string; patch?: any };
 const patch = (modules: any[]) => ({
@@ -29,10 +34,10 @@ for (const capability of [true, false]) {
   test.describe('E1b real bridge ' + (capability ? 'applyGraph capability' : 'legacy fallback'), () => {
     test('config edit, undo, redo and explicit snapshot restore all use the negotiated command', async ({ page }) => {
       await setup(page, capability, [{ id: 1, module: 'osc.in' }]);
-      await page.evaluate(async () => {
+      await page.evaluate(async rows => {
         await window.__wirescapeTest.commitOscConfig(1,
-          { port: 9005, lan: false, rows: [] }, 'osc.in');
-      });
+          { port: 9005, lan: false, rows }, 'osc.in');
+      }, oscRows());
       await expectGraphCommands(page, [wire]);
       await page.evaluate(() => window.__wirescapeTest.undo());
       await expectGraphCommands(page, [wire, wire]);
@@ -48,14 +53,18 @@ for (const capability of [true, false]) {
       expect(graph.modules[0].config.port).toBe(9010);
     });
 
-    test('OSC In row edit and MIDI endpoint config edit use the negotiated command', async ({ page }) => {
+    test('OSC In row edit uses setData; MIDI endpoint uses the negotiated graph command', async ({ page }) => {
       await setup(page, capability, [{ id: 1, module: 'osc.in' }, { id: 2, module: 'midi.in' }]);
       await page.getByTestId('osc-edit-1').click();
       await page.getByTestId('osc-row1-pattern').fill('/e1b/row');
       await page.getByTestId('osc-editor-save').click();
-      await expectGraphCommands(page, [wire]);
+      await expect(page.getByTestId('osc-editor')).toBeHidden();
+      await expectGraphCommands(page, []);
+      const rows = await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].data.routes.rows);
+      expect(rows[0].pattern).toBe('/e1b/row');
+      expect(rows).toHaveLength(8);
       await page.evaluate(() => window.__wirescapeTest.setMidiEndpoint(2, 'M8 MIDI 1', 'M8:M8 MIDI 1'));
-      await expectGraphCommands(page, [wire, wire]);
+      await expectGraphCommands(page, [wire]);
     });
 
     test('CC Learn commits one complete graph using the negotiated command', async ({ page }) => {
@@ -84,8 +93,8 @@ test('capability-on graph refusal leaves running document, graph and generation 
     gen: (window as any).__mockBridge.generation(),
   }));
   await page.evaluate(() => (window as any).__mockBridge.refuseNext('applyGraph', 'refused'));
-  await page.evaluate(() => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9012, lan: false, rows: [] }, 'osc.in'));
+  await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
+    { port: 9012, lan: false, rows }, 'osc.in'), oscRows());
   await expectGraphCommands(page, ['applyGraph']);
   await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph())).toEqual(before.graph);
   await expect.poll(async () => (await state(page)).modules[0].config).toBeUndefined();
@@ -108,8 +117,8 @@ test('successful applyGraph with unapplied values reconciles engine and visible 
 
 test('refused undo restores history position and authored document without a compensating reload', async ({ page }) => {
   await setup(page, true, [{ id: 1, module: 'osc.in' }]);
-  await page.evaluate(() => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9021, lan: false, rows: [] }, 'osc.in'));
+  await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
+    { port: 9021, lan: false, rows }, 'osc.in'), oscRows());
   await expectGraphCommands(page, ['applyGraph']);
   const depth = await page.evaluate(() => window.__wirescapeTest.historyDepth());
   const before = await state(page);
@@ -758,3 +767,27 @@ for (const editConfirmed of [true, false]) {
     expect(after.history.future).toBe(baseline.history.future);
   });
 }
+
+
+test('A86 OSC Out row-only editor Save uses one retained setData and no graph command', async ({ page }) => {
+  await setup(page, true, [{ id: 1, module: 'osc.out' }]);
+  const gen = await page.evaluate(() => (window as any).__mockBridge.generation());
+  await page.getByTestId('osc-out-edit-1').click();
+  await page.getByTestId('osc-out-row1-address').fill('/a86/live');
+  await page.getByTestId('osc-out-save').click();
+  await expect(page.getByTestId('osc-out-save')).toBeHidden();
+  await expectGraphCommands(page, []);
+  const result = await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    const e = window.__wirescapeTest.engine as any;
+    return { writes: b.sent.filter((m: any) => m.type === 'setData'), gen: b.generation(),
+      native: b.getGraph().modules[0].data.routes, confirmed: e.confirmed.modules[0].data.routes,
+      authored: window.__wirescapeTest.state().modules[0].data };
+  });
+  expect(result.writes).toHaveLength(1);
+  expect(result.gen).toBe(gen);
+  expect(result.native.rows).toHaveLength(8);
+  expect(result.native.rows[0].address).toBe('/a86/live');
+  expect(result.confirmed).toEqual(result.native);
+  expect(result.authored).toMatchObject({ routes: result.native });
+});

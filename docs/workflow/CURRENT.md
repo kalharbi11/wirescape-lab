@@ -6,7 +6,31 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 **Older entries** (before Architect run 43, 2026-11-25 04:15 ET) were trimmed in run 44. They stay
 valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://github.com/kalharbi11/wirescape-lab/blob/6ede6f8f009793296b4484d4020377bc8600f6de/docs/workflow/CURRENT.md); earlier trims are linked from there.
 
-**Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Architect run 48 + lead — 2026-11-26 14:20 EST (owner: `architect:run`, act as lead, all reviews and merges)
+- **#540 E3c approved and merged** `f8c994c` ([review](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7201383615)). No High or Medium findings. Low: OSC In compiles route patterns on the render thread when the serial changes (bounded and allocation-free; for the portable tier, move it control-side), invalid-pattern fallback, A95 red-first witness missing, lost-ACK follow-up. Main drift since the tested base was CI/docs only. The shared writer (`App.ts`, `module_catalog.h`) is released to B5 #545, B1 #624 and B4 #609.
+- **#610 OB-h3 holds.** The sole red, `unexpected_gate_edge: 1`, is an extra rise emitted by the sidecar. That is a real egress defect, not a flake. Fix owner B2, **[#631](https://github.com/kalharbi11/wirescape-lab/issues/631)** (Gate P0, red-first on `f8c994c`, ahead of OB-h2 #601). No rerun or waiver.
+- **#592 CMP-1:** Result and exact-head facts-only Lab green; marked ready, auto-merge on (lead merge).
+- Closed docs PRs #629 and #630 (their rows were answered in this run). Labels on #540 and #610 cleared.
+- **Next Architect run:** `architect-ready` when #545 is pinned (medium), or after Planner run 2 (high). **Next run should:** (1) after run 2: verify, transcribe 0024/0025, file tasks, end the freeze; (2) review #545 against A90 (a)–(c); (3) check that #631 has a red-first witness and names its cause; (4) read OB-h1 facts (#600) and confirm the #326/#494/#631 routing; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Architect — 2026-11-26 ET (Planner run 2 brief; owner request)
+- [Planner brief](../context/planner/02_PLANNER_RUNS.md) updated so run 2 redoes no setup. It now lists everything done in run 47, #628 and #540, has a trimmed reading list per session, and records today's state of the new repos.
+- **Run 2 is split** (Architect recommendation): `planner: run 2a` covers `wirescape-test`, macros and mapping, and the module batch (writes 0024). `planner: run 2b` covers the headless Player, OSC and scripts, the tool host, guides and the final order (writes 0025), after 2a merges. Each runs at max effort; `planner: run 2` is the one-session fallback. Triggers updated in `CLAUDE.md` and `AGENTS.md`.
+- After 2a merges, the Architect may file the `wirescape-test` tasks at once. The freeze lifts after 2b.
+
+## Architect + lead session — 2026-11-26 14:25 EST (owner: builder PRs only; parallel to run 47)
+- **#540:** the strict paired gap was the CPU probe, not the runner. Fixed `65a3eb8`. All exact-head gates are green, and paired is 100/102 on both arches, equal to base. Waiting on B2's Result and packet, then the Architect review.
+- **#592:** 33 raw JSON files retained at `b77b6e7` (owner allowed the artifact host); B4 re-verified at `4026404`. Waiting on Lab, the Result and a lead merge.
+- **#610:** released from #545 (no shared path, test-only), ready, auto-merge on. **#609:** released from #592; waits on #540 only (`module_catalog.h`).
+- **Rulings:** B1-RS-modal (#621 `App.ts` guard after #540) and B3-OBh6-timing (#604 opt-in `wirescape_render` timing). Inbox PRs #625/#626 are superseded by this entry.
+- **Lanes before Planner run 2:** keep running on the BUILDERS queues. Everything queued now is in run 1's areas. Run 2's areas stay frozen (macros, mapping, OSC In features, scripts, tool page host, new-repo design).
+- **Next:** `lead:run` once B2 posts #540's Result; `architect:run` (medium) for the #540 review.
+
+Signed: claude-architect, 2026-11-26
 
 ## Architect run 47 — 2026-11-26 13:45 EST (Planner run 1 transcribed, run 2 prep; owner `architect:run`)
 

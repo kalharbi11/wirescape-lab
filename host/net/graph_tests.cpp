@@ -4,6 +4,7 @@
 #include "../osc/codec.h"
 #include "osc_service.h"
 #include "runtime_patch.h"
+#include "../document/runtime_module_config.h"
 #include <atomic>
 #include <chrono>
 #include <cstring>
@@ -29,7 +30,41 @@ struct GraphSink {
         return status;
     }
 };
+// A77/E3c: test legacy partial CC/OSC Out rows via the same loader
+// used by sidecar and Web. The direct OSC In legacy witness follows below.
+static void legacy_cc_and_out() {
+    using namespace wirescape;
+    const std::string patch = R"({"format":"wirescape.native.patch","version":2,"settings":{},"modules":[{"id":1,"module":"midi.cc_to_cv","version":1,"config":{"rows":[{"controller":11,"smoothing_ms":0,"min":0.25,"max":0.75}]}},{"id":2,"module":"osc.out","version":1,"config":{"rows":[{"enabled":false},{"address":"/legacy/second"}]}}],"connections":[{"kind":"signal","from":{"module":1,"port":"cc1"},"to":{"module":2,"port":"row2"}}],"outputs":[{"module":1,"port":"cc1","bus_channel":0}]})";
+    engine2::Config config{};
+    config.max_block = 128;
+    osc::OutBus bus;
+    const std::map<uint32_t, osc::OutBus *> buses{{2, &bus}};
+    document::ScopedOutBuses scoped(buses);
+    std::string error;
+    std::unique_ptr<AppEngine, decltype(&app_engine_destroy)> engine(
+        document::load_runtime_patch(patch, nullptr, config, error), app_engine_destroy);
+    if (!engine) std::fprintf(stderr, "legacy CC/OSC Out load: %s\n", error.c_str());
+    REQUIRE(bool(engine));
+    auto &graph = app_engine_native(engine.get());
+    ws2_event event{};
+    event.struct_size = sizeof(event);
+    event.type = WS2_MIDI;
+    event.channel = -1;
+    event.note_id = -1;
+    event.source_id = 1;
+    event.ump_words = 1;
+    event.ump[0] = 0x20b00b7fu; // CC 11, value 127
+    REQUIRE(graph.enqueue(0, 1, 0, event, 0, engine2::Timing::Immediate) == WS2_OK);
+    float samples[128]{};
+    float *outputs[]{samples};
+    REQUIRE(graph.render(outputs, 1, 128) == WS2_OK);
+    REQUIRE(graph.output_sample(1, 0, 0, 127) == .75f);
+    REQUIRE(bus.rows[0].blocks.load() == 0);
+    REQUIRE(bus.rows[1].blocks.load() > 0);
+    REQUIRE(bus.rows[1].value.load() == .75f);
+}
 int main() {
+    legacy_cc_and_out();
     const std::string patch =
         R"({"format":"wirescape.native.patch","version":2,"settings":{},"modules":[{"id":1,"module":"osc.in","version":1,"parameters":{},"config":{"rows":[{"pattern":"/pico1/knob/*","smoothing_ms":0}]}},{"id":2,"module":"essentials.vco","version":1,"parameters":{}}],"connections":[],"outputs":[{"module":2,"port":"audio","bus_channel":0}]})";
     wirescape::engine2::Config config{};

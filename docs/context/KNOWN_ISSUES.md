@@ -53,6 +53,8 @@ Numbers are issues/PRs in `kalharbi11/wirescape` (frozen). Open PRs there were n
   (`review.json`, silence_gap_diagnostic_flags).
 - FlexASIO not listed on Windows (owner evidence pending).
 
+- **OB1.1 A86: OSC Out whole-document replacement.** A whole-document `applyGraph` that touches `osc.out` still stages a fresh construction bus and lists the replacement, even for data-only changes. Row-only saves use live `setData` and retain the instance/bus. This exception is restricted to OSC Out and expires at OB1.1 close; a follow-up designs bus-ownership transfer.
+
 ## Not built yet
 - Installer or packaged build (source only; PortAudio DLL supplied by the user on Windows).
 - Web demo audio in an AudioWorklet. Stereo Output module. MIDI Out. OSC to the LAN.
