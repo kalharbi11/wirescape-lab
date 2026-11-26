@@ -975,8 +975,38 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 and observed_out['state'] == 'sending' and observed_out['dropped'] >= 0)
         assert 'payload' not in observed_out and 'address' not in observed_out
 
+        # OB-h2 r2.13: actually deliver a high gate, then retire the graph
+        # without a noteOff. The old address must receive exactly one zero.
+        # Do not infer a release from the graph ACK or disappearance in status.
+        out_engine.call('noteOn', note=65, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 held gate never reached the loopback receiver'
         clean_gen = out_engine.call('loadGraph', patch=minimal())['gen']
         assert clean_gen != outgoing_gen
+        released = []
+        # Successful swap retires and joins the old sender before replying.
+        # Drain its already-enqueued datagrams; no other graph sends here.
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                released.extend(values)
+        assert released == [0.0], ('OB-h2 retired gate must release exactly once', released)
         # No sender remains after replan, and EOF must join worker before exit.
         saw_clear = False
         until = time.monotonic() + 3
