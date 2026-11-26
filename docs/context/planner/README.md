@@ -9,16 +9,23 @@ Python scripting, and the roadmap. The Planner's rulings in these runs are final
 ## How to start (owner)
 Open a Claude Code session on Opus with `kalharbi11/wirescape-lab`, `kalharbi11/wirescape-test` and
 `kalharbi11/wirescape-headless` attached, and send exactly one of:
-- `planner: run 1` — the review and roadmap (run it first);
-- `planner: run 2` — the architecture and contracts (after run 1's proposal merges).
+- ~~`planner: run 1`~~ — **done** (#618, `proposals/0023`; transcribed by Architect run 47);
+- ~~`planner: run 2a`~~ — **done** ([`proposals/0024`](../../../proposals/0024-test-repo-macros-modules.md);
+  `wirescape-test` rules PR open for review);
+- **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order
+  (**recommended next**, after 2a's lab PR merges; max effort; read 0024 §0 and §6 first);
+- `planner: run 2` — fallback: all of run 2 in one session (max effort).
+
+Run 2 does not redo setup: read "Run 2 prep" in [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) first.
 
 Anything after the trigger is an extra ask. The trigger is defined in `CLAUDE.md`.
 
 ## What the Planner does in a run
 1. Read this folder in the order given in [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) ("Reading order").
 2. Decide the questions for that run and write the outputs it lists.
-3. Open **one docs PR** in the lab (branch `planner/run-<n>`), enable auto-merge, and, for run 2,
-   one PR in each new repo with its replacement `README.md`/`AGENTS.md`. No product code.
+3. Open **one docs PR** in the lab (any branch the session allows), enable auto-merge, and, for run 2,
+   one PR against `main` in each new repo the session covers (2a: `wirescape-test`; 2b: `wirescape-headless`)
+   with its replacement `README.md`/`AGENTS.md`. No product code, no issues, no lane edits.
 4. End with a chat summary: decisions, what each repo does next, what would overturn the major
    rulings. Last line: `Signed: claude-planner, <YYYY-MM-DD> <HH:MM> ET`.
 5. When the run is over, it is over: no watchers or wake-ups.
@@ -35,6 +42,7 @@ Anything after the trigger is an extra ask. The trigger is defined in `CLAUDE.md
 | `scout/S5_workflow_cost.md` | commit split, process docs, workflows, rulings |
 | `scout/S6_studio_map.md` | Studio and desktop code map, mapping today, panels, patch format |
 | `scout/S7_docs_patches_tools.md` | user docs and staleness, device wording, patches, tools |
+| `scout/S8_module_params.md` | per-parameter table for the run-2 module batch (Architect run 47, at `337d8e8`) |
 | `examples/generative_ws.py` | example Python generative script (OSC triggers, notes, CV) |
 
 The scout files are Sonnet reports, facts only, at lab `11a68c2`. The Architect verified the

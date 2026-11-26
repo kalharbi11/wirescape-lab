@@ -8,6 +8,7 @@ import { attachModuleInfo } from '../panels/widgets/InfoBox';
 import { el, motionOff } from '../app/dom';
 import type { Telemetry, OscStatus } from '../engine/EngineClient';
 import { readOscConfig } from '../app/OscEditor';
+import { oscProjection } from '../patch/ioProjection';
 import { readOscRaw } from '../app/oscCapture';
 
 export interface PortAnchor { x: number; y: number }
@@ -172,7 +173,8 @@ export class ModuleCard {
         clamps.hidden = true;
         box.append(clamps);
         const renderClamps = (t: Telemetry | null) => {
-          const { config } = readOscConfig(o.host.doc.modules.get(o.moduleId)?.config);
+          const node = o.host.doc.modules.get(o.moduleId);
+          const { config } = readOscConfig(node ? oscProjection(node) : undefined);
           let visible = false;
           config.rows.forEach((row, i) => {
             const raw = row.kind === 'cv' && row.enabled !== false
@@ -601,7 +603,8 @@ export class ModuleCard {
       return;
     }
     const route = osc?.routes?.find(r => r.module === String(this.o.moduleId));
-    const rows = (this.o.host.doc.modules.get(this.o.moduleId)?.config as { rows?: unknown } | undefined)?.rows;
+    const node = this.o.host.doc.modules.get(this.o.moduleId);
+    const rows = node ? oscProjection(node).rows : undefined;
     const off = Array.isArray(rows) ? rows.slice(0, 8)
       .filter(r => (r as { enabled?: unknown } | null)?.enabled === false).length : 0;
     const active = ` · ${8 - off} of 8 rows active`;

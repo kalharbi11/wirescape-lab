@@ -168,6 +168,12 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
             JSON.stringify([c.kind, c.from, c.to]) !==
             JSON.stringify([cmd.connection.kind, cmd.connection.from, cmd.connection.to]));
           gen++; reply(cmd, true, {}, s); break;
+        case 'setData': {
+          const node = graph.modules.find((m: Message) => m.id === cmd.moduleId);
+          if (!node) { reply(cmd, false, { code: 'not-found', message: 'No module' }, s); break; }
+          (node.data ??= {})[cmd.slot] = copy(cmd.value);
+          reply(cmd, true, {}, s); break;
+        }
         case 'setParam': {
           const node = graph.modules.find((m: Message) => m.id === cmd.moduleId);
           if (!node) { reply(cmd, false, { code: 'not-found', message: 'No module' }, s); break; }

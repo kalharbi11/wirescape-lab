@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import type { PatchV2, PatchModule, PatchUi, Connection, Endpoint } from './types';
 import { EMPTY_PATCH, connKey } from './types';
+import { ccEffectiveRows } from '../app/ioData';
 import catalogue from '../../public/wirescape_modules.json' with { type: 'json' };
 
 const descriptors = new Map(catalogue.modules.map(m => [m.id, m]));
@@ -231,12 +232,27 @@ export class PatchDoc {
     this.emit({ t: 'config', id });
   }
 
-  /** The explicit `config.rows` of a `midi.cc_to_cv` module (rows beyond them keep their CC n defaults). */
+  /** Eight effective rows; legacy short configurations project without authoring a migration. */
   ccRows(id: number): Record<string, unknown>[] {
     const m = this.modules.get(id);
-    const rows = m?.module === 'midi.cc_to_cv' && m.config && typeof m.config === 'object'
-      ? (m.config as { rows?: unknown }).rows : undefined;
-    return Array.isArray(rows) ? rows.filter((r): r is Record<string, unknown> => !!r && typeof r === 'object') : [];
+    return m?.module === 'midi.cc_to_cv' ? ccEffectiveRows(m) : [];
+  }
+
+  /** Atomically author the config/data pair for a live I/O edit. */
+  setIoFields(id: number, config: unknown, data: unknown): void {
+    const m = this.modules.get(id);
+    if (!m) return;
+    if (config === undefined) delete m.config; else m.config = structuredClone(config);
+    if (data === undefined) delete m.data; else m.data = structuredClone(data);
+    this.emit({ t: 'config', id });
+  }
+
+  /** Author only a data-slot edit; a pending construction config is independent. */
+  setModuleData(id: number, data: unknown): void {
+    const m = this.modules.get(id);
+    if (!m) return;
+    if (data === undefined) delete m.data; else m.data = structuredClone(data);
+    this.emit({ t: 'config', id });
   }
 
   /** Replace a module's whole `config` (absent when `undefined`); Learn's rows and their inverse. */

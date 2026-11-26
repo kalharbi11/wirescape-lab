@@ -1,0 +1,2984 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-arm64",
+    "architecture": "aarch64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "CPU implementer\t: 0x41",
+      "CPU part\t: 0xd49"
+    ],
+    "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:25:27.944169-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "engine": {
+    "rate": 48000,
+    "block": 256,
+    "unit": "ns/block",
+    "metrics": {
+      "mean_ns": {
+        "status": "measured",
+        "before": 73500.71,
+        "after": 72567.67,
+        "delta": -933.0400000000081,
+        "ratio": 0.987305700856495
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 77378.0,
+        "after": 75131.0,
+        "delta": -2247.0,
+        "ratio": 0.9709607381943188
+      }
+    }
+  },
+  "modules": [
+    {
+      "module": "essentials.adsr",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1344,
+        "after": 1281,
+        "delta": -63,
+        "ratio": 0.953125
+      },
+      "worst": {
+        "status": "measured",
+        "before": 16705,
+        "after": 18177,
+        "delta": 1472,
+        "ratio": 1.0881173301406764
+      }
+    },
+    {
+      "module": "essentials.adsr",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 10632,
+        "after": 9344,
+        "delta": -1288,
+        "ratio": 0.8788562829194884
+      },
+      "worst": {
+        "status": "measured",
+        "before": 20641,
+        "after": 16400,
+        "delta": -4241,
+        "ratio": 0.7945351484908677
+      }
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 46921,
+        "after": 49482,
+        "delta": 2561,
+        "ratio": 1.0545811044095394
+      },
+      "worst": {
+        "status": "measured",
+        "before": 63234,
+        "after": 70706,
+        "delta": 7472,
+        "ratio": 1.1181642787108201
+      }
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 340419,
+        "after": 363612,
+        "delta": 23193,
+        "ratio": 1.068130744758665
+      },
+      "worst": {
+        "status": "measured",
+        "before": 371228,
+        "after": 379684,
+        "delta": 8456,
+        "ratio": 1.022778454211428
+      }
+    },
+    {
+      "module": "essentials.chord",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "worst": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "module": "essentials.chord",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "worst": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "module": "essentials.clock",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 2337,
+        "after": 2456,
+        "delta": 119,
+        "ratio": 1.0509199828840394
+      },
+      "worst": {
+        "status": "measured",
+        "before": 32177,
+        "after": 15585,
+        "delta": -16592,
+        "ratio": 0.4843521770208534
+      }
+    },
+    {
+      "module": "essentials.clock",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 19841,
+        "after": 22953,
+        "delta": 3112,
+        "ratio": 1.1568469331182905
+      },
+      "worst": {
+        "status": "measured",
+        "before": 45578,
+        "after": 32433,
+        "delta": -13145,
+        "ratio": 0.7115933125630787
+      }
+    },
+    {
+      "module": "essentials.function_envelope",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1753,
+        "after": 1784,
+        "delta": 31,
+        "ratio": 1.0176839703365659
+      },
+      "worst": {
+        "status": "measured",
+        "before": 27929,
+        "after": 19289,
+        "delta": -8640,
+        "ratio": 0.6906441333381074
+      }
+    },
+    {
+      "module": "essentials.function_envelope",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 15305,
+        "after": 16641,
+        "delta": 1336,
+        "ratio": 1.0872917347272133
+      },
+      "worst": {
+        "status": "measured",
+        "before": 43849,
+        "after": 35505,
+        "delta": -8344,
+        "ratio": 0.8097105977331296
+      }
+    },
+    {
+      "module": "essentials.ladder",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 7137,
+        "after": 7160,
+        "delta": 23,
+        "ratio": 1.0032226425669049
+      },
+      "worst": {
+        "status": "measured",
+        "before": 25705,
+        "after": 23977,
+        "delta": -1728,
+        "ratio": 0.9327757245672048
+      }
+    },
+    {
+      "module": "essentials.ladder",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 62306,
+        "after": 64058,
+        "delta": 1752,
+        "ratio": 1.0281192822521106
+      },
+      "worst": {
+        "status": "measured",
+        "before": 101299,
+        "after": 94859,
+        "delta": -6440,
+        "ratio": 0.9364258284879416
+      }
+    },
+    {
+      "module": "essentials.lfo",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 5656,
+        "after": 5504,
+        "delta": -152,
+        "ratio": 0.9731258840169731
+      },
+      "worst": {
+        "status": "measured",
+        "before": 16977,
+        "after": 25849,
+        "delta": 8872,
+        "ratio": 1.5225893856393944
+      }
+    },
+    {
+      "module": "essentials.lfo",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 46529,
+        "after": 44434,
+        "delta": -2095,
+        "ratio": 0.954974317092566
+      },
+      "worst": {
+        "status": "measured",
+        "before": 71915,
+        "after": 60137,
+        "delta": -11778,
+        "ratio": 0.8362233191962734
+      }
+    },
+    {
+      "module": "essentials.mixer",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1656,
+        "after": 1584,
+        "delta": -72,
+        "ratio": 0.9565217391304348
+      },
+      "worst": {
+        "status": "measured",
+        "before": 8368,
+        "after": 16256,
+        "delta": 7888,
+        "ratio": 1.94263862332696
+      }
+    },
+    {
+      "module": "essentials.mixer",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 14936,
+        "after": 15425,
+        "delta": 489,
+        "ratio": 1.032739689341189
+      },
+      "worst": {
+        "status": "measured",
+        "before": 33858,
+        "after": 29537,
+        "delta": -4321,
+        "ratio": 0.8723787583436706
+      }
+    },
+    {
+      "module": "essentials.noise",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 776,
+        "after": 776,
+        "delta": 0,
+        "ratio": 1.0
+      },
+      "worst": {
+        "status": "measured",
+        "before": 29217,
+        "after": 12072,
+        "delta": -17145,
+        "ratio": 0.41318410514426535
+      }
+    },
+    {
+      "module": "essentials.noise",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 5752,
+        "after": 5736,
+        "delta": -16,
+        "ratio": 0.9972183588317107
+      },
+      "worst": {
+        "status": "measured",
+        "before": 44106,
+        "after": 24153,
+        "delta": -19953,
+        "ratio": 0.5476125697184057
+      }
+    },
+    {
+      "module": "essentials.notes_to_cv",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4752,
+        "after": 4744,
+        "delta": -8,
+        "ratio": 0.9983164983164983
+      },
+      "worst": {
+        "status": "measured",
+        "before": 21377,
+        "after": 42666,
+        "delta": 21289,
+        "ratio": 1.9958834261121767
+      }
+    },
+    {
+      "module": "essentials.notes_to_cv",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4760,
+        "after": 4760,
+        "delta": 0,
+        "ratio": 1.0
+      },
+      "worst": {
+        "status": "measured",
+        "before": 22040,
+        "after": 55802,
+        "delta": 33762,
+        "ratio": 2.531851179673321
+      }
+    },
+    {
+      "module": "essentials.output",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 616,
+        "after": 616,
+        "delta": 0,
+        "ratio": 1.0
+      },
+      "worst": {
+        "status": "measured",
+        "before": 9736,
+        "after": 17785,
+        "delta": 8049,
+        "ratio": 1.8267255546425636
+      }
+    },
+    {
+      "module": "essentials.output",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4416,
+        "after": 4408,
+        "delta": -8,
+        "ratio": 0.9981884057971014
+      },
+      "worst": {
+        "status": "measured",
+        "before": 31113,
+        "after": 19305,
+        "delta": -11808,
+        "ratio": 0.620480185131617
+      }
+    },
+    {
+      "module": "essentials.quad_vca",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4792,
+        "after": 3736,
+        "delta": -1056,
+        "ratio": 0.7796327212020033
+      },
+      "worst": {
+        "status": "measured",
+        "before": 189966,
+        "after": 18313,
+        "delta": -171653,
+        "ratio": 0.0964014613141299
+      }
+    },
+    {
+      "module": "essentials.quad_vca",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 38874,
+        "after": 30737,
+        "delta": -8137,
+        "ratio": 0.7906827185265216
+      },
+      "worst": {
+        "status": "measured",
+        "before": 66898,
+        "after": 57418,
+        "delta": -9480,
+        "ratio": 0.8582917277048642
+      }
+    },
+    {
+      "module": "essentials.quantizer",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 960,
+        "after": 976,
+        "delta": 16,
+        "ratio": 1.0166666666666666
+      },
+      "worst": {
+        "status": "measured",
+        "before": 7520,
+        "after": 16721,
+        "delta": 9201,
+        "ratio": 2.223537234042553
+      }
+    },
+    {
+      "module": "essentials.quantizer",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 6184,
+        "after": 6105,
+        "delta": -79,
+        "ratio": 0.9872250970245796
+      },
+      "worst": {
+        "status": "measured",
+        "before": 19593,
+        "after": 48818,
+        "delta": 29225,
+        "ratio": 2.491604144337263
+      }
+    },
+    {
+      "module": "essentials.resonator",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 18376,
+        "after": 19272,
+        "delta": 896,
+        "ratio": 1.0487592511972137
+      },
+      "worst": {
+        "status": "measured",
+        "before": 43770,
+        "after": 35281,
+        "delta": -8489,
+        "ratio": 0.8060543751427919
+      }
+    },
+    {
+      "module": "essentials.resonator",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 135108,
+        "after": 136725,
+        "delta": 1617,
+        "ratio": 1.0119682032152055
+      },
+      "worst": {
+        "status": "measured",
+        "before": 140117,
+        "after": 154021,
+        "delta": 13904,
+        "ratio": 1.099231356651941
+      }
+    },
+    {
+      "module": "essentials.scale_offset",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1432,
+        "after": 1416,
+        "delta": -16,
+        "ratio": 0.9888268156424581
+      },
+      "worst": {
+        "status": "measured",
+        "before": 23761,
+        "after": 22401,
+        "delta": -1360,
+        "ratio": 0.9427633517107866
+      }
+    },
+    {
+      "module": "essentials.scale_offset",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 13224,
+        "after": 12489,
+        "delta": -735,
+        "ratio": 0.9444192377495463
+      },
+      "worst": {
+        "status": "measured",
+        "before": 40737,
+        "after": 21681,
+        "delta": -19056,
+        "ratio": 0.5322188673687311
+      }
+    },
+    {
+      "module": "essentials.slew",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1896,
+        "after": 1904,
+        "delta": 8,
+        "ratio": 1.0042194092827004
+      },
+      "worst": {
+        "status": "measured",
+        "before": 3216,
+        "after": 20401,
+        "delta": 17185,
+        "ratio": 6.343594527363184
+      }
+    },
+    {
+      "module": "essentials.slew",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 18345,
+        "after": 17440,
+        "delta": -905,
+        "ratio": 0.9506677568819842
+      },
+      "worst": {
+        "status": "measured",
+        "before": 37001,
+        "after": 41041,
+        "delta": 4040,
+        "ratio": 1.1091862382097781
+      }
+    },
+    {
+      "module": "essentials.vca",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 200,
+        "after": 216,
+        "delta": 16,
+        "ratio": 1.08
+      },
+      "worst": {
+        "status": "measured",
+        "before": 1840,
+        "after": 20505,
+        "delta": 18665,
+        "ratio": 11.144021739130435
+      }
+    },
+    {
+      "module": "essentials.vca",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 928,
+        "after": 952,
+        "delta": 24,
+        "ratio": 1.0258620689655173
+      },
+      "worst": {
+        "status": "measured",
+        "before": 2488,
+        "after": 43714,
+        "delta": 41226,
+        "ratio": 17.569935691318328
+      }
+    },
+    {
+      "module": "essentials.vcf",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 5176,
+        "after": 5169,
+        "delta": -7,
+        "ratio": 0.9986476043276662
+      },
+      "worst": {
+        "status": "measured",
+        "before": 34817,
+        "after": 21152,
+        "delta": -13665,
+        "ratio": 0.6075193152770199
+      }
+    },
+    {
+      "module": "essentials.vcf",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 43954,
+        "after": 48089,
+        "delta": 4135,
+        "ratio": 1.09407562451654
+      },
+      "worst": {
+        "status": "measured",
+        "before": 62962,
+        "after": 62746,
+        "delta": -216,
+        "ratio": 0.9965693592960834
+      }
+    },
+    {
+      "module": "essentials.vco",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 10960,
+        "after": 12457,
+        "delta": 1497,
+        "ratio": 1.1365875912408758
+      },
+      "worst": {
+        "status": "measured",
+        "before": 24081,
+        "after": 47913,
+        "delta": 23832,
+        "ratio": 1.989659897844774
+      }
+    },
+    {
+      "module": "essentials.vco",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 79586,
+        "after": 79618,
+        "delta": 32,
+        "ratio": 1.0004020807679743
+      },
+      "worst": {
+        "status": "measured",
+        "before": 99427,
+        "after": 84571,
+        "delta": -14856,
+        "ratio": 0.8505838454343387
+      }
+    },
+    {
+      "module": "example.random_source",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1521,
+        "after": 1505,
+        "delta": -16,
+        "ratio": 0.9894806048652203
+      },
+      "worst": {
+        "status": "measured",
+        "before": 70090,
+        "after": 15528,
+        "delta": -54562,
+        "ratio": 0.22154372949065487
+      }
+    },
+    {
+      "module": "example.random_source",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1513,
+        "after": 1512,
+        "delta": -1,
+        "ratio": 0.9993390614672836
+      },
+      "worst": {
+        "status": "measured",
+        "before": 13161,
+        "after": 24121,
+        "delta": 10960,
+        "ratio": 1.832763467821594
+      }
+    },
+    {
+      "module": "example.step_sequencer",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1792,
+        "after": 1784,
+        "delta": -8,
+        "ratio": 0.9955357142857143
+      },
+      "worst": {
+        "status": "measured",
+        "before": 4968,
+        "after": 16649,
+        "delta": 11681,
+        "ratio": 3.3512479871175525
+      }
+    },
+    {
+      "module": "example.step_sequencer",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 1816,
+        "after": 1792,
+        "delta": -24,
+        "ratio": 0.986784140969163
+      },
+      "worst": {
+        "status": "measured",
+        "before": 19417,
+        "after": 41601,
+        "delta": 22184,
+        "ratio": 2.142503991347788
+      }
+    },
+    {
+      "module": "fx.delay",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 5192,
+        "after": 5320,
+        "delta": 128,
+        "ratio": 1.024653312788906
+      },
+      "worst": {
+        "status": "measured",
+        "before": 15376,
+        "after": 34089,
+        "delta": 18713,
+        "ratio": 2.2170265348595213
+      }
+    },
+    {
+      "module": "fx.delay",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 5240,
+        "after": 5248,
+        "delta": 8,
+        "ratio": 1.001526717557252
+      },
+      "worst": {
+        "status": "measured",
+        "before": 29481,
+        "after": 54202,
+        "delta": 24721,
+        "ratio": 1.8385400766595434
+      }
+    },
+    {
+      "module": "fx.reverb",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 36081,
+        "after": 34745,
+        "delta": -1336,
+        "ratio": 0.9629722014356586
+      },
+      "worst": {
+        "status": "measured",
+        "before": 76987,
+        "after": 46881,
+        "delta": -30106,
+        "ratio": 0.6089469650720252
+      }
+    },
+    {
+      "module": "fx.reverb",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 33169,
+        "after": 34401,
+        "delta": 1232,
+        "ratio": 1.0371431155597093
+      },
+      "worst": {
+        "status": "measured",
+        "before": 44714,
+        "after": 48858,
+        "delta": 4144,
+        "ratio": 1.0926779084850382
+      }
+    },
+    {
+      "module": "host.keyboard",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 13505,
+        "after": 8497,
+        "delta": -5008,
+        "ratio": 0.6291743798593114
+      },
+      "worst": {
+        "status": "measured",
+        "before": 23753,
+        "after": 27425,
+        "delta": 3672,
+        "ratio": 1.1545909990317011
+      }
+    },
+    {
+      "module": "host.keyboard",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 15281,
+        "after": 10929,
+        "delta": -4352,
+        "ratio": 0.7152018846934102
+      },
+      "worst": {
+        "status": "measured",
+        "before": 53986,
+        "after": 26729,
+        "delta": -27257,
+        "ratio": 0.4951098432927055
+      }
+    },
+    {
+      "module": "midi.cc_to_cv",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 12753,
+        "after": 12649,
+        "delta": -104,
+        "ratio": 0.9918450560652395
+      },
+      "worst": {
+        "status": "measured",
+        "before": 34769,
+        "after": 22312,
+        "delta": -12457,
+        "ratio": 0.641721073369956
+      }
+    },
+    {
+      "module": "midi.cc_to_cv",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 12448,
+        "after": 12473,
+        "delta": 25,
+        "ratio": 1.002008354755784
+      },
+      "worst": {
+        "status": "measured",
+        "before": 35929,
+        "after": 24809,
+        "delta": -11120,
+        "ratio": 0.6905007097330847
+      }
+    },
+    {
+      "module": "midi.in",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 80,
+        "after": 88,
+        "delta": 8,
+        "ratio": 1.1
+      },
+      "worst": {
+        "status": "measured",
+        "before": 10400,
+        "after": 11073,
+        "delta": 673,
+        "ratio": 1.0647115384615384
+      }
+    },
+    {
+      "module": "midi.in",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 80,
+        "after": 81,
+        "delta": 1,
+        "ratio": 1.0125
+      },
+      "worst": {
+        "status": "measured",
+        "before": 11120,
+        "after": 9233,
+        "delta": -1887,
+        "ratio": 0.8303057553956834
+      }
+    },
+    {
+      "module": "midi.to_cv",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 12153,
+        "after": 4688,
+        "delta": -7465,
+        "ratio": 0.3857483748868592
+      },
+      "worst": {
+        "status": "measured",
+        "before": 52178,
+        "after": 25801,
+        "delta": -26377,
+        "ratio": 0.4944804323661313
+      }
+    },
+    {
+      "module": "midi.to_cv",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 9929,
+        "after": 4600,
+        "delta": -5329,
+        "ratio": 0.4632893544163561
+      },
+      "worst": {
+        "status": "measured",
+        "before": 60434,
+        "after": 23056,
+        "delta": -37378,
+        "ratio": 0.3815070986530761
+      }
+    },
+    {
+      "module": "monitor",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 224,
+        "after": 208,
+        "delta": -16,
+        "ratio": 0.9285714285714286
+      },
+      "worst": {
+        "status": "measured",
+        "before": 11168,
+        "after": 2144,
+        "delta": -9024,
+        "ratio": 0.19197707736389685
+      }
+    },
+    {
+      "module": "monitor",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 224,
+        "after": 200,
+        "delta": -24,
+        "ratio": 0.8928571428571429
+      },
+      "worst": {
+        "status": "measured",
+        "before": 1976,
+        "after": 1752,
+        "delta": -224,
+        "ratio": 0.8866396761133604
+      }
+    },
+    {
+      "module": "osc.in",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 12665,
+        "after": 12937,
+        "delta": 272,
+        "ratio": 1.0214765100671142
+      },
+      "worst": {
+        "status": "measured",
+        "before": 25881,
+        "after": 20656,
+        "delta": -5225,
+        "ratio": 0.7981144468915421
+      }
+    },
+    {
+      "module": "osc.in",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 12440,
+        "after": 12672,
+        "delta": 232,
+        "ratio": 1.0186495176848875
+      },
+      "worst": {
+        "status": "measured",
+        "before": 101555,
+        "after": 53274,
+        "delta": -48281,
+        "ratio": 0.5245827384176063
+      }
+    },
+    {
+      "module": "osc.out",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 201,
+        "after": 201,
+        "delta": 0,
+        "ratio": 1.0
+      },
+      "worst": {
+        "status": "measured",
+        "before": 1088,
+        "after": 1000,
+        "delta": -88,
+        "ratio": 0.9191176470588235
+      }
+    },
+    {
+      "module": "osc.out",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 208,
+        "after": 208,
+        "delta": 0,
+        "ratio": 1.0
+      },
+      "worst": {
+        "status": "measured",
+        "before": 736,
+        "after": 1120,
+        "delta": 384,
+        "ratio": 1.5217391304347827
+      }
+    },
+    {
+      "module": "ports.macro_oscillator",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 23281,
+        "after": 23201,
+        "delta": -80,
+        "ratio": 0.9965637214896267
+      },
+      "worst": {
+        "status": "measured",
+        "before": 43114,
+        "after": 34337,
+        "delta": -8777,
+        "ratio": 0.7964234355429791
+      }
+    },
+    {
+      "module": "ports.macro_oscillator",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 177406,
+        "after": 182702,
+        "delta": 5296,
+        "ratio": 1.0298524288919202
+      },
+      "worst": {
+        "status": "measured",
+        "before": 192214,
+        "after": 205670,
+        "delta": 13456,
+        "ratio": 1.0700053065853683
+      }
+    },
+    {
+      "module": "sequencing.groove",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 16241,
+        "after": 17289,
+        "delta": 1048,
+        "ratio": 1.0645280463025675
+      },
+      "worst": {
+        "status": "measured",
+        "before": 56882,
+        "after": 23913,
+        "delta": -32969,
+        "ratio": 0.420396610527056
+      }
+    },
+    {
+      "module": "sequencing.groove",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 15456,
+        "after": 16241,
+        "delta": 785,
+        "ratio": 1.0507893374741202
+      },
+      "worst": {
+        "status": "measured",
+        "before": 37929,
+        "after": 33089,
+        "delta": -4840,
+        "ratio": 0.872393155632893
+      }
+    },
+    {
+      "module": "sound.blend",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4353,
+        "after": 4408,
+        "delta": 55,
+        "ratio": 1.012634964392373
+      },
+      "worst": {
+        "status": "measured",
+        "before": 21712,
+        "after": 27537,
+        "delta": 5825,
+        "ratio": 1.2682848194546794
+      }
+    },
+    {
+      "module": "sound.blend",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 4352,
+        "after": 4385,
+        "delta": 33,
+        "ratio": 1.0075827205882353
+      },
+      "worst": {
+        "status": "measured",
+        "before": 17497,
+        "after": 19072,
+        "delta": 1575,
+        "ratio": 1.09001543121678
+      }
+    },
+    {
+      "module": "sound.spectral",
+      "channels": 1,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 153005,
+        "after": 154069,
+        "delta": 1064,
+        "ratio": 1.0069540211104213
+      },
+      "worst": {
+        "status": "measured",
+        "before": 180142,
+        "after": 160997,
+        "delta": -19145,
+        "ratio": 0.8937227298464545
+      }
+    },
+    {
+      "module": "sound.spectral",
+      "channels": 8,
+      "instances": 2,
+      "block": 128,
+      "rate": 48000,
+      "unit": "ns/block",
+      "p99": {
+        "status": "measured",
+        "before": 152525,
+        "after": 155669,
+        "delta": 3144,
+        "ratio": 1.0206130142599574
+      },
+      "worst": {
+        "status": "measured",
+        "before": 164205,
+        "after": 180262,
+        "delta": 16057,
+        "ratio": 1.0977863037057336
+      }
+    }
+  ],
+  "patches": [
+    {
+      "patch": "basics-01-first-tone.json",
+      "fixture_sha256": "b6f6048e2fd972429c5946d038b0846b10e29081fadf948762577579c7a47c64",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "basics-02-fm-filter-lfo.json",
+      "fixture_sha256": "984d169cac944fe2c45c92bdcd8948f35dd0f90f5439b064f179eb3e5c08cbfc",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "basics-03-echo-and-reverb.json",
+      "fixture_sha256": "a1b13250aa7fc6a167c1e57d7451d94ca2adc02082b7a8bf3297fc7d880a5137",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "basics-04-sequencer-and-quantizer.json",
+      "fixture_sha256": "54efd3ff29b822aeacd558043e51db4e17da1e7bd0265ec69ec6ead83a36eae6",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 21457,
+        "after": 21808,
+        "delta": 351,
+        "ratio": 1.0163582979913315
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 0.8046375000000001,
+        "after": 0.8178000000000001,
+        "delta": 0.013162499999999966,
+        "ratio": 1.0163582979913315
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 30889,
+        "after": 32865,
+        "delta": 1976,
+        "ratio": 1.0639709929100973
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 1.1583375,
+        "after": 1.2324375,
+        "delta": 0.07410000000000005,
+        "ratio": 1.0639709929100976
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 73210,
+        "after": 69898,
+        "delta": -3312,
+        "ratio": 0.9547602786504575
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 2.745375,
+        "after": 2.621175,
+        "delta": -0.12420000000000009,
+        "ratio": 0.9547602786504575
+      }
+    },
+    {
+      "patch": "basics-05-random-melody.json",
+      "fixture_sha256": "a5e38ed75a9a626d2c78d63d8615e0dffdbbf4821157bea46679c64b30e95589",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 33577,
+        "after": 34081,
+        "delta": 504,
+        "ratio": 1.01501027489055
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 1.2591375,
+        "after": 1.2780375000000002,
+        "delta": 0.01890000000000014,
+        "ratio": 1.0150102748905503
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 44121,
+        "after": 44090,
+        "delta": -31,
+        "ratio": 0.9992973867319417
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 1.6545375000000002,
+        "after": 1.6533750000000003,
+        "delta": -0.0011624999999999552,
+        "ratio": 0.9992973867319417
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 87610,
+        "after": 75970,
+        "delta": -11640,
+        "ratio": 0.8671384545143248
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 3.285375,
+        "after": 2.848875,
+        "delta": -0.4365000000000001,
+        "ratio": 0.8671384545143248
+      }
+    },
+    {
+      "patch": "basics-06-chaos-keys.json",
+      "fixture_sha256": "b6f7d055d6ce44462a36ea2620c4b02bc12d74c9a805a0b7ea8acbc986f4dd72",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "basics-07-macro-keys.json",
+      "fixture_sha256": "b02af166d3fce36762b78c4202a7babd3958c32ade2e931e22302024b2cd5fb0",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "basics-08-clocked-groove.json",
+      "fixture_sha256": "d6abf9519bea36d8dc7973f8c9b422874c59767d6dd9e0024f1f4e26db33e2cd",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 19041,
+        "after": 20345,
+        "delta": 1304,
+        "ratio": 1.0684837981198467
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 0.7140375000000001,
+        "after": 0.7629375,
+        "delta": 0.048899999999999944,
+        "ratio": 1.0684837981198465
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 28009,
+        "after": 29617,
+        "delta": 1608,
+        "ratio": 1.0574101181763005
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 1.0503375000000001,
+        "after": 1.1106375000000002,
+        "delta": 0.06030000000000002,
+        "ratio": 1.0574101181763005
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 82836,
+        "after": 66450,
+        "delta": -16386,
+        "ratio": 0.8021874547298277
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 3.1063500000000004,
+        "after": 2.4918750000000003,
+        "delta": -0.6144750000000001,
+        "ratio": 0.8021874547298276
+      }
+    },
+    {
+      "patch": "chaos-01-ember-veil-pad.json",
+      "fixture_sha256": "903d22c6742b4803a91e630c69b6d14e03fde65aa1eb687cf1c5ac64469625e0",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "chaos-02-wireglass-lead.json",
+      "fixture_sha256": "6a8c8e4e5b7c0e8cdbc36ce0fd37584548faa10008bb45d02d3eef3b879ac992",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "chaos-03-orbiting-iron-fx.json",
+      "fixture_sha256": "b2f3fad43a0a6806694afe854d49f138f936d0599ad79ef2d6ac3e9c5624c695",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 52958,
+        "after": 54718,
+        "delta": 1760,
+        "ratio": 1.0332338834548132
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 1.9859250000000002,
+        "after": 2.051925,
+        "delta": 0.06600000000000006,
+        "ratio": 1.0332338834548134
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 64050,
+        "after": 66394,
+        "delta": 2344,
+        "ratio": 1.0365964090554254
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 2.4018750000000004,
+        "after": 2.4897750000000003,
+        "delta": 0.08789999999999987,
+        "ratio": 1.0365964090554254
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 147461,
+        "after": 91811,
+        "delta": -55650,
+        "ratio": 0.622612080482297
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 5.5297875,
+        "after": 3.4429125000000003,
+        "delta": -2.086875,
+        "ratio": 0.622612080482297
+      }
+    },
+    {
+      "patch": "chaos-04-radio-static-fx.json",
+      "fixture_sha256": "09a4863b4512e7572ba36b49c45ae43c4412d4cf1b2fada1f52cda816e350af2",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 45938,
+        "after": 47466,
+        "delta": 1528,
+        "ratio": 1.0332622229962123
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 1.7226750000000002,
+        "after": 1.779975,
+        "delta": 0.05729999999999991,
+        "ratio": 1.0332622229962123
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 58746,
+        "after": 59394,
+        "delta": 648,
+        "ratio": 1.0110305382494127
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 2.2029750000000003,
+        "after": 2.227275,
+        "delta": 0.024299999999999766,
+        "ratio": 1.0110305382494127
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 80738,
+        "after": 86483,
+        "delta": 5745,
+        "ratio": 1.0711560851148159
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 3.0276750000000003,
+        "after": 3.2431125000000005,
+        "delta": 0.21543750000000017,
+        "ratio": 1.0711560851148159
+      }
+    },
+    {
+      "patch": "chaos-05-moonlit-drift-pad.json",
+      "fixture_sha256": "30ed466ba1b208183879d44342322d8cbb37a18baa0a0d2b3930d45426527a58",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "osc-out-01.json",
+      "fixture_sha256": "ae6b0d2111b88952797ea844e915de69e62bae939b6ceba0a7a1f55eed904fe3",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "quad-vca-01-lpg-plucks.json",
+      "fixture_sha256": "5c9c6da4162fa309b176f12630e7e99ddf08ee6a3886aa5e4d04d0d40b1a4f86",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "quad-vca-02-four-gate-mix.json",
+      "fixture_sha256": "1bca694b3fc55362beac073447853142c80a7d04fb3a1c9a692f9c42b9d839ad",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 15840,
+        "after": 15656,
+        "delta": -184,
+        "ratio": 0.9883838383838384
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 0.5940000000000001,
+        "after": 0.5871000000000001,
+        "delta": -0.006900000000000017,
+        "ratio": 0.9883838383838384
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 21241,
+        "after": 21481,
+        "delta": 240,
+        "ratio": 1.0112989030648274
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 0.7965375000000001,
+        "after": 0.8055375000000001,
+        "delta": 0.009000000000000008,
+        "ratio": 1.0112989030648274
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 37545,
+        "after": 42393,
+        "delta": 4848,
+        "ratio": 1.129125049940072
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 1.4079375,
+        "after": 1.5897375000000002,
+        "delta": 0.18180000000000018,
+        "ratio": 1.129125049940072
+      }
+    },
+    {
+      "patch": "scene-01-hollow-chapel.json",
+      "fixture_sha256": "fa9f83c3f6b20120902da733bb102a6326e59cd004342b3770a188c8adbe9287",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 87859,
+        "after": 98923,
+        "delta": 11064,
+        "ratio": 1.1259290454022923
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 3.2947125,
+        "after": 3.7096125000000004,
+        "delta": 0.41490000000000027,
+        "ratio": 1.1259290454022923
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 99371,
+        "after": 114977,
+        "delta": 15606,
+        "ratio": 1.1570478308560848
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 3.7264125000000003,
+        "after": 4.311637500000001,
+        "delta": 0.5852250000000003,
+        "ratio": 1.1570478308560848
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 123588,
+        "after": 159078,
+        "delta": 35490,
+        "ratio": 1.287163802310904
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 4.634550000000001,
+        "after": 5.965425000000001,
+        "delta": 1.3308749999999998,
+        "ratio": 1.2871638023109038
+      }
+    },
+    {
+      "patch": "scene-02-breathing-walls.json",
+      "fixture_sha256": "370a33ea03ba4d8639ec2432c4bfcffa5581ff078b4b90a446345b697fdc767d",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 67754,
+        "after": 75978,
+        "delta": 8224,
+        "ratio": 1.1213802875107004
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 2.5407750000000004,
+        "after": 2.8491750000000002,
+        "delta": 0.3083999999999998,
+        "ratio": 1.1213802875107004
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 85011,
+        "after": 88795,
+        "delta": 3784,
+        "ratio": 1.0445118866970158
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 3.1879125000000004,
+        "after": 3.3298125000000005,
+        "delta": 0.14190000000000014,
+        "ratio": 1.0445118866970158
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 109651,
+        "after": 150437,
+        "delta": 40786,
+        "ratio": 1.3719619520113815
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 4.111912500000001,
+        "after": 5.6413875,
+        "delta": 1.5294749999999997,
+        "ratio": 1.3719619520113815
+      }
+    },
+    {
+      "patch": "scene-03-black-ice-choir.json",
+      "fixture_sha256": "efc1e0352bcdd082cfa11a07f9106e40f0706e23270c974a65ed2804f00348a3",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "scene-04-vowel-apparitions.json",
+      "fixture_sha256": "7d55d1e052b23b78088b2145dc7630aa4c9742810ef0ebb25d482bd3e6ef75c1",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "median_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "p99_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_ns": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      },
+      "max_percent_period": {
+        "status": "unmeasured",
+        "before": null,
+        "after": null,
+        "reason": "positive finite paired measurements required",
+        "subject_status": {
+          "before": "unmeasured",
+          "after": "unmeasured"
+        }
+      }
+    },
+    {
+      "patch": "scene-05-glass-cathedrals.json",
+      "fixture_sha256": "15ad782ebdc78526b33f179923b74648d5b3f43cefe7eadcd9106f4b21ddf2cb",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 107131,
+        "after": 117554,
+        "delta": 10423,
+        "ratio": 1.0972921003257694
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 4.017412500000001,
+        "after": 4.408275000000001,
+        "delta": 0.3908624999999999,
+        "ratio": 1.0972921003257694
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 117811,
+        "after": 126590,
+        "delta": 8779,
+        "ratio": 1.0745176596412898
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 4.417912500000001,
+        "after": 4.7471250000000005,
+        "delta": 0.3292124999999997,
+        "ratio": 1.0745176596412898
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 206486,
+        "after": 192302,
+        "delta": -14184,
+        "ratio": 0.931307691562624
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 7.743225000000001,
+        "after": 7.211325,
+        "delta": -0.5319000000000003,
+        "ratio": 0.931307691562624
+      }
+    },
+    {
+      "patch": "scene-06-dust-reactor.json",
+      "fixture_sha256": "910325886fb7d48f0c4f97640efdb90bab210bed0ed793676a7a4da94cfeda28",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 53738,
+        "after": 59530,
+        "delta": 5792,
+        "ratio": 1.1077822025382411
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 2.015175,
+        "after": 2.232375,
+        "delta": 0.21720000000000006,
+        "ratio": 1.1077822025382411
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 70506,
+        "after": 73875,
+        "delta": 3369,
+        "ratio": 1.0477831673900093
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 2.643975,
+        "after": 2.7703125,
+        "delta": 0.1263375,
+        "ratio": 1.0477831673900093
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 98947,
+        "after": 117317,
+        "delta": 18370,
+        "ratio": 1.185654946587567
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 3.7105125000000005,
+        "after": 4.3993875000000005,
+        "delta": 0.6888749999999999,
+        "ratio": 1.185654946587567
+      }
+    },
+    {
+      "patch": "scene-07-witching-hour.json",
+      "fixture_sha256": "988f927303253110b1ccfb9db35fd8bae23784e7aabdc3ed2e4dc18a33ae7224",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 44321,
+        "after": 44697,
+        "delta": 376,
+        "ratio": 1.0084835630965006
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 1.6620375,
+        "after": 1.6761375,
+        "delta": 0.014100000000000001,
+        "ratio": 1.0084835630965006
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 56706,
+        "after": 57330,
+        "delta": 624,
+        "ratio": 1.0110041265474552
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 2.126475,
+        "after": 2.149875,
+        "delta": 0.023400000000000087,
+        "ratio": 1.0110041265474554
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 90531,
+        "after": 98195,
+        "delta": 7664,
+        "ratio": 1.0846560846560847
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 3.3949125,
+        "after": 3.6823125000000005,
+        "delta": 0.2874000000000003,
+        "ratio": 1.0846560846560847
+      }
+    },
+    {
+      "patch": "scene-08-neon-elegy.json",
+      "fixture_sha256": "f27d78f3b62e68c3af787374294789a47cd4497426cc7bb507fdfcd5057c978b",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "median_ns": {
+        "status": "measured",
+        "before": 48769,
+        "after": 51962,
+        "delta": 3193,
+        "ratio": 1.0654719186368389
+      },
+      "median_percent_period": {
+        "status": "measured",
+        "before": 1.8288375000000001,
+        "after": 1.9485750000000002,
+        "delta": 0.11973750000000005,
+        "ratio": 1.065471918636839
+      },
+      "p99_ns": {
+        "status": "measured",
+        "before": 67442,
+        "after": 63954,
+        "delta": -3488,
+        "ratio": 0.9482814863141662
+      },
+      "p99_percent_period": {
+        "status": "measured",
+        "before": 2.529075,
+        "after": 2.3982750000000004,
+        "delta": -0.1307999999999998,
+        "ratio": 0.9482814863141663
+      },
+      "max_ns": {
+        "status": "measured",
+        "before": 110739,
+        "after": 98699,
+        "delta": -12040,
+        "ratio": 0.891275882931939
+      },
+      "max_percent_period": {
+        "status": "measured",
+        "before": 4.152712500000001,
+        "after": 3.7012125000000005,
+        "delta": -0.45150000000000023,
+        "ratio": 0.891275882931939
+      }
+    }
+  ],
+  "patch_ranks": {
+    "before": {
+      "coverage": "partial",
+      "measured": 12,
+      "expected": 24,
+      "maximum_p99_among_measured": "scene-05-glass-cathedrals.json"
+    },
+    "after": {
+      "coverage": "partial",
+      "measured": 12,
+      "expected": 24,
+      "maximum_p99_among_measured": "scene-05-glass-cathedrals.json"
+    }
+  },
+  "ratio_definition": "after/before; timing is hosted-runner diagnostic"
+}

@@ -4,21 +4,20 @@
 ## The role
 **`claude-planner`** is a planning seat run on Opus, separate from the Claude Architect so that its
 review of the build and the Architect's verification stay independent. It replaces the retired Fable
-seat for these two runs only. Suggested effort: **max** for both runs (they set months of work and
-are read-heavy); xhigh is acceptable for run 1 if usage runs short.
+seat for these runs only. **Run 1 is done** ([0023](../../../proposals/0023-review-and-replan.md), #618). **Run 2 is
+recommended as two sessions, `planner: run 2a` then `planner: run 2b`, each at max effort** (see "Run 2").
+A single `planner: run 2` at max effort is the fallback.
 
 ## Before deciding anything
-Read the whole plan first: `01_OWNER_WANTS.md` (all of sections A–D), this file, and all seven scout
-reports. Only then start the run's questions.
+Run 2 does **not** reread the whole plan. Read only the list for your run in "Reading order" below, and
+read "Run 2 prep": it lists the setup that is already done, so a run 2 session does none of it again.
 
 ## Authority
 - The owner gives the Planner **final decisions** on the questions below for these two runs. The Claude
   Architect writes them into contracts, tasks and lane assignments without reopening them. It flags
   only (a) conflicts with "Fixed" items in `docs/context/CONSTRAINTS.md` (owner only), (b) factual
   errors, with the source line, and (c) contradictions between the two runs.
-- The Planner rules on design. It does not write or merge lab product code (`engine/`, `host/`, `modules/`,
-  `apps/`, `tools/`, `sdk/`). It may write proposals, contracts and docs in the lab (one docs PR per
-  run) and docs/rules in `wirescape-test` and `wirescape-headless`.
+- The owner granted the Planner the same git authority as the Claude Architect (2026-11-26): it may write, open, review and merge PRs within the contracts, gates and SR rules. "Fixed" items in CONSTRAINTS still need the owner.
 - The Architect's recommendations in `01_OWNER_WANTS.md` are inputs, not constraints. The owner's
   wants (section B) and principles (section A) are the requirements. Section C items marked "Planner
   decides" are the Planner's.
@@ -26,6 +25,7 @@ reports. Only then start the run's questions.
   builder lanes keep their current tasks.
 
 ## Run 1 — independent review of the build, then the roadmap
+**Status: done** (#618 `337d8e8`; transcribed by Architect run 47, #623). Kept for the record.
 **Why first:** nobody has reviewed the build as a whole against the first plan (0001–0004, written by the
 retired Fable seat) since it was written. Run 2's designs
 depend on what the engine, SDK and workflow can actually carry.
@@ -76,15 +76,131 @@ Decide:
 7. **Guides:** the list, where each lives, the agent-ready format.
 8. **Order:** stages, cross-repo dependencies, and the first task batch per repo.
 
-Output: `proposals/0024-player-and-test-repos.md` (1, 2, 5, 7), `proposals/0025-macros-mapping-osc-scripts.md`
-(3, 4, 6), replacement `AGENTS.md`/`README.md` for the two new repos, and a task list per repo ready
-to file as issues (title, paths, acceptance, tier, dependencies).
+### Recommended: two sessions (2a, then 2b), each at max effort
+Eight questions, two proposals, two repo rule sets and three task lists will not fit one session's context
+without compaction, and compaction loses the nuance these rulings need. The split follows the dependency
+order: module work unblocks first, and the Player consumes what 2a decides.
 
-Suggested order inside run 2: 1 and 8 for `wirescape-test` first (it unblocks module work), then 3 and 6
-(macros, mapping, modules), then 2 and 5 (Player, tool host), then 4 and 7. If the session is
-cut short, commit what is decided so far; the next `planner: run 2` continues from the open items.
+| Session | Questions | Outputs |
+|---|---|---|
+| **`planner: run 2a`** (modules) | 1 (`wirescape-test`), 3 (macros and mapping), 6 (module batch), 8 for `wirescape-test` | `proposals/0024-test-repo-macros-modules.md`; `wirescape-test` `README.md`/`AGENTS.md` (+ `modules/README.md`); the `wirescape-test` task list; lab rows for macro and mapping engine or Studio work; what `player.json` must carry for macros (for 2b) |
+| **`planner: run 2b`** (Player) | 2 (`wirescape-headless`), 4 (OSC and scripts), 5 (tool page host), 7 (guides), 8 for headless, the lab and the cross-repo order | `proposals/0025-player-osc-scripts-tools.md`; `wirescape-headless` `README.md`/`AGENTS.md`; the headless task list; Gate P1 (e) controller stream message shapes; lab task rows; the final stage order across the three repos |
 
-If only one run is possible: run 2, opening with a short version of run 1's questions 2–4.
+- 2b starts after 2a's lab PR merges. 2b builds on 0024 and does not reopen it. It may flag a contradiction
+  in its own proposal, and the Architect brings it to the owner.
+- The freeze on run 2's areas lifts only after 2b merges. The Architect may file the `wirescape-test` tasks
+  from 2a straight away, so module work starts while 2b runs.
+
+### Fallback: one session (`planner: run 2`, max effort)
+Answer all eight questions in this order: 1 and 8 for `wirescape-test`, then 3 and 6, then 2 and 5, then 4
+and 7, then 8 for everything. Write 0024 (2a's scope) and then 0025 (2b's scope), with the same file names as
+above. If the session is cut short, commit what is decided so far; the next run continues from the open items.
+
+### Every run 2 session
+- One docs PR in the lab, with auto-merge enabled.
+- One PR in each new repo it covers, against `main`.
+- It does not file issues and does not edit lane assignments: the Architect does both from the task lists.
+- Task list format: title, repo, paths, acceptance, tier, dependencies, lane or agent. For lab rows, also name
+  the contract each row goes into (OB, M3, Gate P1, or a new contract).
+
+## Run 2 prep: already done, do not redo (Architect run 47 and the follow-up session, 2026-11-26)
+**Lab `main` at writing: `f8c994c`.** [`proposals/0023`](../../../proposals/0023-review-and-replan.md) binds run 2. Build on it and do not
+re-derive it. The Architect checked 0023's citations at source and found one wrong line: R2.5 cites
+`RealEngine.ts:300-304`, but the reload is at `:393-436`. The ruling holds.
+
+**Run 1 transcription (#623):**
+- **Contracts:**
+  - [M3 r2](../../workflow/milestones/M3.md): stage MB unparked, TR1h without PV2, T1.5 cut, V1 parked, M3 accepted at MB2;
+  - [M7 r1.7](../../workflow/milestones/M7.md);
+  - [OB r2.13](../../workflow/milestones/OB.md): OB1 gates no new work, the freeze ends at MB2, OB-h2 gate release, OB-h3 rows,
+    Gate P0 rows;
+  - [STANDING](../../workflow/STANDING.md) SR22 (where rulings live), SR23 (reading budget), SR24 (no renewed exceptions) and
+    SR25 (evidence workflows).
+- **CI:** CI-S1–S3 applied. Docs PRs, including every `docs/**/*.md` outside `docs/specs/`, run only `scope` and
+  `foundation` (about 1 min). `facts.yml` is manual-only, and e4b-stress runs on ready PRs only.
+- **Process docs:** [`RULINGS.md`](../../workflow/RULINGS.md) index, `QUESTIONS_HISTORY.md`, and banners on closed and parked
+  contracts.
+- **Doc fixes:** B.4 erratum in `01_OWNER_WANTS.md`; stale paths in `SDK_AUTHOR_GUIDE.md` and `ARCHITECTURE.md`;
+  Clock README.
+
+**Lab issues filed or reopened:**
+- MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363) and MB2 + CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) (B4);
+- P0a render liveness [#619](https://github.com/kalharbi11/wirescape-lab/issues/619) (B5) and P0b fault tolerance [#620](https://github.com/kalharbi11/wirescape-lab/issues/620) (B2);
+- Studio restart policy [#621](https://github.com/kalharbi11/wirescape-lab/issues/621) (B1);
+- fake MIDI endpoint rename [#622](https://github.com/kalharbi11/wirescape-lab/issues/622).
+
+Gate P1 (f)–(i) is filed at Stage 2. **P1 (e), the controller input stream, waits for run 2's message shapes**:
+2b owns them.
+
+**Merged since run 1 (relevant to run 2):**
+- M4 E3c live CC/OSC data (#540, `f8c994c`). Under A95, the eight-row mapping slot is the truth for CC Learn
+  occupancy: an unwired default row is free, Learn takes the lowest free index, Forget resets the row, and
+  Studio-only hints are refused.
+- OB-h5 OSC presets (#606); the generic OSC default its presets carry is run 2's call.
+- CMP-1 raw artifacts are retained (#592).
+
+**Lab lanes:** wrap-up has ended for run 1's areas, and lanes B1–B5 run 0023 §7.3 queues ([BUILDERS](../../workflow/BUILDERS.md)).
+Nothing in a lane touches run 2's frozen areas: macros, mapping, OSC In features, scripts, the tool page host
+and the new repos' design.
+
+**New scout S8:** [`scout/S8_module_params.md`](scout/S8_module_params.md), a per-parameter table for question 6. It covers flags,
+ranges, defaults, and whether a parameter sets allocation or structure.
+
+**Facts for run 2 (checked at source, `337d8e8`):**
+- No shipped module exists today for Random or sample-and-hold, Clock Div/Mult, Macro, or a rhythmic modulator
+  other than Groove. Each is new. (Erratum, run 49, from 0024 §7: the SDK example `example.random_source`, a
+  clocked sample-and-hold, is in the app catalogue, `engine/control/module_catalog.inc:32`.)
+- `function_envelope` is gated AR: `rise`, `fall` and `curve`, all modulatable. It has no trigger mode and no
+  `delay`. ADSR already has Gate/Trigger `mode` and `hold`.
+- `lfo` has one shape (sine) and no inputs. It has `sync` and `beats` parameters.
+- Clock's only multiply is `ticks_per_beat` (1–24).
+- Allocation and structure parameters among the batch: `host_keyboard` voices and mode; `midi_to_cv`
+  voice_count, allocation_mode, mono_priority, legato and channel_filter; `notes_to_cv` voices; `midi_in`
+  channel_filter.
+- `midi_to_cv` `steal_policy` has range 0..0 and is never read. Details in S8 §Notes.
+- The engine's default settings path is relative (`host/sidecar/session.h:22`). The Player must pass an
+  absolute `--settings` (R2.3 f).
+
+**The two new repos (checked 2026-11-26):**
+- The default branch of both `wirescape-headless` and `wirescape-test` is **`main`**. The owner switched
+  headless today; nothing in either repo named the old branch.
+- Neither repo has workflows yet. Both `LAB_PIN` files pin lab `11a68c2`; run 2 decides the bump rule and the
+  first bump.
+- `wirescape-test/modules/README.md` repeats the B.4 error. Its Envelope row also says Function Envelope has
+  no modulatable parameters, which is wrong. 2a replaces that README.
+- Open run 2's PRs against `main`. Use whatever branch the session allows.
+
+## Run 2b prep (Architect run 49, 2026-11-26): read this before the scout pack
+**Lab `main` at writing: `45f71a7`.** Run 2a merged as #636 (`4c5b932`). The Architect checked 0024 §1 at source:
+every fact holds (Gate Delay moved `example.random_source` to `module_catalog.inc:32`; no effect). No conflict with a
+CONSTRAINTS "Fixed" item.
+
+**Transcribed from 0024 §8 (do not redo):**
+- [MM r1](../../workflow/milestones/MM.md) (Studio macros and mapping; MM1 [#643](https://github.com/kalharbi11/wirescape-lab/issues/643) released to B1, MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644) queued in B3, MM4 waits on Gate P1 (e));
+- [M3 r2.1](../../workflow/milestones/M3.md): SDK-1 and PROMO-n rows;
+- `wirescape-test` #1 (2a's rules) reviewed and merged `19e16c9`; MOD-0 filed as [wirescape-test #2](https://github.com/kalharbi11/wirescape-test/issues/2);
+- errata: S8's header and this file's "no Random module" fact.
+
+**What 2b owes (0024 §6 and this file's Run 2 table):**
+- `player.json` macro and param targets exactly as 0024 §6 (page and knob, or module and parameter ID; `setParam` only;
+  label overrides; three bundle-check warnings);
+- **Gate P1 (e) message shapes** for CC observations (device, channel, controller) and OSC observations (address,
+  including unmatched addresses while a learn is armed). MM4 and map mode consume them;
+- `wirescape-headless` `README.md`/`AGENTS.md` (its `LAB_PIN` still names `11a68c2`; no workflows yet; use
+  `wirescape-test`'s merged rules as the pattern), the headless task list, lab rows, the cross-repo stage order;
+- questions 4 (OSC and scripts), 5 (tool page host) and 7 (guides).
+
+**New since 2a that bears on 2b:**
+- **A100 (#545):** the `hello` catalogue gains an additive, generic `data_slots: [slot id…]` per module, generated
+  from descriptors. A client discovers live data slots (Groove `pattern`, later Macro `labels`) without a
+  module-named capability. The Player can use it; 2b need not invent another discovery path.
+- **RS #624 merged:** desktop restarts now back off indefinitely (250 ms up to 30 s; a stable status heartbeat resets
+  it; `apps/desktop/main.ts:15-19`). The scout highlight below ("3 exits per 30 s, then a dialog") is stale.
+- **Gate P0 #631** (extra OSC Out gate rise) is still open under A98; OSC Out reliability claims wait for it.
+- **A99:** OB-h2 #601 now owns the OSC Out branch of `host/document/runtime_module_config.h`. OSC In stays frozen.
+- OB-h4 Gate Delay merged (#609, experimental).
+
+**After 2b merges** the Architect transcribes 0025, files the headless and lab tasks, and lifts the freeze.
 
 ## Architect-verified highlights from the scout pack
 Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
@@ -101,7 +217,7 @@ Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
   - no runtime OSC configuration;
   - no shutdown command (stdin EOF only);
   - the settings path is relative to the working directory.
-- **Desktop restart policy:** 3 unexpected exits per 30 s, then a dialog; main never reloads the patch
+- **Desktop restart policy (stale since RS #624; see Run 2b prep):** 3 unexpected exits per 30 s, then a dialog; main never reloads the patch
   (`apps/desktop/main.ts:258-266`; the renderer re-sends `loadGraph` on a new `hello`).
 - **Process weight (S5):**
   - 358 commits in 12 days; 72 % touch only non-product paths;
@@ -125,15 +241,27 @@ Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
   - no macro or mapping layer, no lock mode, no sandboxed panel `ui/` yet.
 
 ## Reading order and budget
-1. `README.md` (this folder), `01_OWNER_WANTS.md`, this file.
-2. The scout pack `scout/S1`–`S7`. Read source only to confirm or overturn a finding you rely on.
-3. As needed: `proposals/0001`–`0004`, `0015`, `0021`, `0022`, `docs/workflow/ROADMAP.md`, `OB_PLAN.md`,
-   `docs/context/CONSTRAINTS.md`, `host/sidecar/DESIGN.md`, `docs/specs/ENGINE_PROTOCOL.md`,
-   `docs/specs/ABI2_SPEC.md` (D7 modulation).
-No whole-tree reads. Use Sonnet subagents for any further inventory, and verify what they quote.
+**Every run 2 session**, in order:
+1. this folder's `README.md`, then this file's "Authority", "Run 2" and "Run 2 prep";
+2. `01_OWNER_WANTS.md` sections A, B and C;
+3. 0023 §0, §2.3–2.4, §3.3–3.4, §4.3 W1 and §7.2.
+
+**Then for 2a:** scout S1 §1–3 (registration, for the `wirescape-test` script), S6 (Studio, for map mode and the
+Mappings panel), S8 (parameters), and `docs/specs/ABI2_SPEC.md` D7 (modulation) as needed. 2a skips S2.
+
+**Then for 2b:** the 2a proposal (0024) §0 and its `player.json` hand-off, scout S2 (sidecar and protocol), S6
+§panels (tool host), `proposals/0015` (panel host) and `0022`, `docs/specs/ENGINE_PROTOCOL.md` as needed,
+and `examples/generative_ws.py`.
+
+**Not needed:** S3, S4 and S5 (0023 covers them), `proposals/0001`–`0004` and `0021`. Open one only for a
+specific fact. No whole-tree reads. Use Sonnet subagents for any further inventory, and verify what they quote.
 
 ## After each run
 The Architect checks factual claims against source, files the tasks and gives the owner a one-page
-summary. Run 2 starts only after run 1's proposal is merged.
+summary. Run 1 is done and transcribed. 2b starts after 2a's lab PR merges. After 2a, the Architect may file
+the `wirescape-test` tasks at once. After 2b (or the single run 2), it transcribes everything and lifts the
+freeze.
+
+Revised for run 2 (split, setup done): claude-architect, 2026-11-26.
 
 Signed: claude-architect, 2026-11-26

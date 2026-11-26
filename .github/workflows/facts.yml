@@ -2,12 +2,8 @@
 name: Generate device-off facts
 
 on:
+  # Proposal 0023 R1.4 (CI-S2): dispatch only; no push or pull_request trigger.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ['bench/**']
-  pull_request:
-    paths: ['bench/offline/**', '.github/workflows/facts.yml']
 
 permissions:
   contents: write

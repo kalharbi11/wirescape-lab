@@ -8,6 +8,7 @@
 #include "../../modules/delay/dsp.h"
 #include "../../modules/function_envelope/dsp.h"
 #include "../../modules/groove/dsp.h"
+#include "../../modules/gate_delay/dsp.h"
 #include "../../modules/host_keyboard/dsp.h"
 #include "../../modules/ladder/dsp.h"
 #include "../../modules/lfo/dsp.h"
@@ -39,6 +40,7 @@
 #include "../../sdk/examples/step_sequencer/dsp.h"
 #include <vector>
 #include "app_engine.h"
+#include "../../host/document/io_data_validator.h"
 namespace wirescape::app {
 inline const std::vector<const ws2_descriptor *> &builtin_modules() {
     static const std::vector<const ws2_descriptor *> modules{
@@ -51,7 +53,11 @@ inline const std::vector<const ws2_descriptor *> &builtin_modules() {
 // Host-only catalogue registration seam. E3c registers its module-local
 // callbacks here; the packer, loader and sidecar remain module-agnostic.
 inline AppDataValidator builtin_data_validator(const ws2_descriptor *d) {
-    static const std::vector<std::pair<const ws2_descriptor *, AppDataValidator>> validators{};
+    static const std::vector<std::pair<const ws2_descriptor *, AppDataValidator>> validators{
+        {ws::Module<midi::CcToCv>::descriptor(), document::validate_io_data<midi::CcRows, midi::validate_cc_rows>},
+        {ws::Module<osc::OscIn>::descriptor(), document::validate_io_data<osc::OscInRows, osc::validate_osc_in_rows>},
+        {ws::Module<osc::OscOut>::descriptor(), document::validate_io_data<osc::OscOutRoutes, osc::validate_osc_out_routes>}
+    };
     for (const auto &entry : validators)
         if (entry.first == d) return entry.second;
     return nullptr;

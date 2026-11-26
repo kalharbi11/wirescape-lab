@@ -1,0 +1,150 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-x64",
+    "architecture": "x86_64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "model name\t: Intel(R) Xeon(R) 6975P-C"
+    ],
+    "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:26:12.036910-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "collector_subject": "73f411dd1010675967230ed535ad163d35ebaf24",
+  "results": {
+    "before": {
+      "status": "measured",
+      "data": {
+        "commit": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+        "date_et": "2026-11-26",
+        "machine": {
+          "os": "linux",
+          "arch": "x64",
+          "cpu": "Intel(R) Xeon(R) 6975P-C",
+          "audio_devices": "not accessed"
+        },
+        "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
+        "results": [
+          {
+            "modules": 50,
+            "action": "knob",
+            "frames": 55,
+            "p50_ms": 16.699999999999932,
+            "p95_ms": 16.799999999999955,
+            "max_ms": 16.80000000000001
+          },
+          {
+            "modules": 50,
+            "action": "cable",
+            "frames": 59,
+            "p50_ms": 16.699999999999932,
+            "p95_ms": 16.799999999999955,
+            "max_ms": 33.299999999999955
+          },
+          {
+            "modules": 100,
+            "action": "knob",
+            "frames": 59,
+            "p50_ms": 16.700000000000045,
+            "p95_ms": 16.700000000000045,
+            "max_ms": 16.799999999999955
+          },
+          {
+            "modules": 100,
+            "action": "cable",
+            "frames": 66,
+            "p50_ms": 16.699999999999932,
+            "p95_ms": 33.30000000000007,
+            "max_ms": 50
+          },
+          {
+            "modules": 200,
+            "action": "knob",
+            "frames": 71,
+            "p50_ms": 16.700000000000045,
+            "p95_ms": 33.299999999999955,
+            "max_ms": 50
+          },
+          {
+            "modules": 200,
+            "action": "cable",
+            "frames": 78,
+            "p50_ms": 16.700000000000045,
+            "p95_ms": 83.30000000000018,
+            "max_ms": 116.69999999999982
+          }
+        ]
+      }
+    },
+    "after": {
+      "status": "measured",
+      "data": {
+        "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+        "date_et": "2026-11-26",
+        "machine": {
+          "os": "linux",
+          "arch": "x64",
+          "cpu": "Intel(R) Xeon(R) 6975P-C",
+          "audio_devices": "not accessed"
+        },
+        "method": "Chromium rAF intervals during Playwright mouse drags; trace zip per workload",
+        "results": [
+          {
+            "modules": 50,
+            "action": "knob",
+            "frames": 53,
+            "p50_ms": 16.699999999999932,
+            "p95_ms": 16.700000000000045,
+            "max_ms": 16.799999999999955
+          },
+          {
+            "modules": 50,
+            "action": "cable",
+            "frames": 59,
+            "p50_ms": 16.699999999999932,
+            "p95_ms": 16.700000000000045,
+            "max_ms": 33.40000000000009
+          },
+          {
+            "modules": 100,
+            "action": "knob",
+            "frames": 62,
+            "p50_ms": 16.700000000000045,
+            "p95_ms": 16.700000000000045,
+            "max_ms": 16.799999999999955
+          },
+          {
+            "modules": 100,
+            "action": "cable",
+            "frames": 67,
+            "p50_ms": 16.699999999999818,
+            "p95_ms": 33.39999999999998,
+            "max_ms": 66.60000000000014
+          },
+          {
+            "modules": 200,
+            "action": "knob",
+            "frames": 73,
+            "p50_ms": 16.699999999999818,
+            "p95_ms": 33.299999999999955,
+            "max_ms": 50
+          },
+          {
+            "modules": 200,
+            "action": "cable",
+            "frames": 83,
+            "p50_ms": 16.700000000000045,
+            "p95_ms": 66.59999999999991,
+            "max_ms": 150
+          }
+        ]
+      }
+    }
+  }
+}

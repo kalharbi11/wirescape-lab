@@ -23,6 +23,7 @@ import { Modal, field, select, switchButton } from './Modal';
 import { showOscEditor, type OscConfig } from './OscEditor';
 import { showOscOutEditor, type OscOutConfig } from './OscOutEditor';
 import { readOscRaw } from './oscCapture';
+import { oscEditorSource, oscConstructionChanged, splitOscEditorSave } from './ioData';
 import { STARTERS, BUNDLED_STARTERS, DEFAULT_STARTER, type Starter } from './starters';
 import { CURATED_PATCHES } from './curated';
 import { sharedPatches } from './SharedPatches';
@@ -447,7 +448,10 @@ export class App {
       this.engine.onGraphError(e => this.toasts.show(e.message, 'error'));
       this.engine.onCatalogue(() => { this.library.refresh(); this.canvas.rebuild(); this.fillStarters(); });
       window.wirescape?.onMessage(m => {
-        if (m.type === 'app.engineExited' && m.expected !== true) this.offerRecovery('engine');
+        // RS: the desktop supervisor owns engine-crash recovery; app-startup recovery is unchanged.
+        if (m.type === 'app.engineExited' && m.expected !== true &&
+            !(window as Window & { wirescapeRestartPolicy?: unknown }).wirescapeRestartPolicy)
+          this.offerRecovery('engine');
         if (m.type === 'app.menuOpenPatch') void this.openPatchFile();
         if (m.type === 'app.menuSavePatch') void this.savePatchFile(m.saveAs === true);
       });
@@ -1152,15 +1156,15 @@ export class App {
   private openOscEditor(id: number): void {
     const mod = this.doc.modules.get(id);
     if (this.documentBusy || !mod) return;
-    if (mod.module === 'osc.in') showOscEditor(this.oscEditor, mod.config,
+    if (mod.module === 'osc.in') showOscEditor(this.oscEditor, oscEditorSource(mod),
       async (config: OscConfig) => this.commitOscConfig(id, config, 'osc.in'),
       row => readOscRaw(this.doc, this.ticker.last, id, row),
       refresh => this.ticker.bindGlobal(refresh));
-    else if (mod.module === 'osc.out') showOscOutEditor(this.oscEditor, mod.config,
+    else if (mod.module === 'osc.out') showOscOutEditor(this.oscEditor, oscEditorSource(mod),
       async (config: OscOutConfig) => this.commitOscConfig(id, config, 'osc.out'));
   }
 
-  /** A config save is one authored edit and one ordinary whole-graph replan. */
+  /** Row-only saves use live data; construction edits remain one ordinary graph replan. */
   private async commitOscConfig(id: number, config: OscConfig | OscOutConfig,
     type: 'osc.in' | 'osc.out'): Promise<boolean> {
     if (this.documentBusy || !await this.waitBeforeGraphAuthoring()) return false;
@@ -1170,7 +1174,31 @@ export class App {
     const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
       restoreHistory: this.history.checkpoint() };
     this.history.flush();
-    this.doc.setModuleConfig(id, config);
+    const edit = splitOscEditorSave(mod, config);
+    if (!oscConstructionChanged(mod, config)) {
+      const running = this.editEngine();
+      const pending = running instanceof RealEngine && running.hasPendingConfig(id);
+      // A retained data write must not replace a pending construction intent.
+      this.beginDocumentOperation();
+      try {
+        if (!running.setData) throw new Error('Live OSC data is unavailable.');
+        const data = edit.authored.data as Record<string, Record<string, unknown>>;
+        await running.setData(id, 'routes', edit.value, {
+          value: data.routes, replaceConfig: !pending, config: edit.authored.config,
+        });
+        if (epoch !== this.viewEpoch) return false;
+        if (pending) this.doc.setModuleData(id, edit.authored.data);
+        else this.doc.setIoFields(id, edit.authored.config, edit.authored.data);
+        this.history.flush();
+        this.toasts.show(`${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
+        return true;
+      } catch (e) {
+        if (epoch === this.viewEpoch)
+          this.toasts.show(e instanceof Error ? e.message : 'OSC data refused.', 'error');
+        return false;
+      } finally { this.endDocumentOperation(); }
+    }
+    this.doc.setIoFields(id, edit.authored.config, edit.authored.data);
     try {
       await this.applyAuthoredGraph(before, this.doc.toJSON());
       if (epoch !== this.viewEpoch) return false;

@@ -9,11 +9,11 @@ Porting a prototype you already have (a Web Audio app, an offline renderer)? Rea
 
 | You are building | Copy | It shows |
 |---|---|---|
-| A signal processor (filter, gain, shaper) | `native/sdk/template/` | The smallest module: one input, one output, one parameter, CONSTANT fast path |
-| A signal source (random, LFO, noise, S&H) | `native/sdk/examples/random_source/` | Clock input with `ws::Schmitt`, seeded `ws::Random` per voice, the output channel count set by a parameter, smoothing, CONSTANT path, versioned state |
-| Anything that plays notes (sequencer, arpeggiator, chord tool) | `native/sdk/examples/step_sequencer/` | Clock/reset/run, pitch + gate CV **and** note events via `b.emit`, reset-wins rule, ties, never stranding a note-off, versioned state |
+| A signal processor (filter, gain, shaper) | `sdk/template/` | The smallest module: one input, one output, one parameter, CONSTANT fast path |
+| A signal source (random, LFO, noise, S&H) | `sdk/examples/random_source/` | Clock input with `ws::Schmitt`, seeded `ws::Random` per voice, the output channel count set by a parameter, smoothing, CONSTANT path, versioned state |
+| Anything that plays notes (sequencer, arpeggiator, chord tool) | `sdk/examples/step_sequencer/` | Clock/reset/run, pitch + gate CV **and** note events via `b.emit`, reset-wins rule, ties, never stranding a note-off, versioned state |
 
-Real ported modules live in `native/modules2/` (for example `noise`, `slew`, `vca`). Read one only if the examples don't cover your case.
+Real ported modules live in `modules/` (for example `noise`, `slew`, `vca`). Read one only if the examples don't cover your case.
 
 For a time loop, fetch `signal.row(channel, scratch, frames)` once per channel. It aliases a varying signal and expands a constant or missing channel into the supplied scratch row. Reserve separate rows for simultaneously live inputs in `prepare`, sized to `max_block()`, and include their bytes in `memory_requirements`. A bool-returning `prepare` returns false on allocation failure; void-returning prepare remains supported. The template demonstrates two rows; the VCA uses three and multiplies `audio*cv*gain` with `f4` chunks plus a scalar tail, preserving operation order. Keep CONSTANT output length at one sample. Hosts supply finite inputs and parameters; the SDK validates output samples.
 
@@ -22,7 +22,7 @@ ADSR gate precedence: a connected gate signal owns each voice's gate (Schmitt >0
 
 ## 1. Folder layout and files
 ```
-native/modules2/<name>/          (or native/sdk/examples/<name>/ for MIT examples)
+modules/<name>/          (or sdk/examples/<name>/ for MIT examples)
   dsp.h        the module class (all the code)
   module.cpp   SPDX line, #include "dsp.h", WS_REGISTER_MODULE(Class)
   module.json  metadata the host and patch migration read
@@ -33,7 +33,7 @@ native/modules2/<name>/          (or native/sdk/examples/<name>/ for MIT example
 ```
 - Every new file except `module.json` (JSON has no comments) starts with an SPDX header: `// SPDX-License-Identifier: GPL-3.0-only` for Essentials and app code, `MIT` for SDK examples. Your own modules may use any licence (the SDK is MIT); code derived from GPL sources stays GPL.
 - `module.json`: `schema_version` 2, `abi_version` 2, `id`, `name`, `library` (the CMake target, prefix `ws2_`), `parameters` mapping each parameter ID to its **slot index** (0, 1, 2… in the order of `params`; not a default value), `inputs`/`outputs` mapping port IDs to `"signal"` or `"event"`, optional `description` and `license`.
-- Build wiring: add a `ws2_<name>` SHARED library and an `abi2_<name>_tests` executable + `add_test` in `native/engine2/CMakeLists.txt` (see how `guide_ringmod` and the examples are wired).
+- Build wiring: add a `ws2_<name>` SHARED library and an `abi2_<name>_tests` executable + `add_test` in `engine/CMakeLists.txt` (see how `guide_ringmod` and the examples are wired).
 
 ## 2. IDs never change
 - Module ID: `<prefix>.<name>`, independent of the CMake library name (`ws2_<name>`), for example `essentials.vcf`, `midi.to_cv`, `ports.macro_oscillator`, or your own prefix (`kal.random`).
@@ -68,7 +68,7 @@ native/modules2/<name>/          (or native/sdk/examples/<name>/ for MIT example
 - Keep per-voice state in fixed `std::array<Voice, 16>`, never in vectors grown at runtime.
 - A source must keep `n <= s.max_channels()`: remember `max_channels()` from `prepare` (the `Block` doesn't expose it). `b.channels()` is what the host computed from the inputs, not a limit you choose.
 
-**J2 note allocation:** when a module translates notes into voices, reuse `native/voice/allocator.h` (`wirescape::voice::Allocator`) and its fixed-capacity storage instead of writing a second voice-stealing policy. It supports up to 16 voices, source/note identity, sustain, and rotate/reuse/reset/mono allocation; read `native/voice/README.md` for exact semantics. Configure it while the engine is quiescent, then give it ordered events from one owner. Read `voice(i)` to render pitch, gate, velocity, pressure, and timbre per channel; clear one-shot triggers after the downstream envelope consumes them. `native/voice/note_to_cv.h` adapts ABI2 note events, and `native/modules2/midi_to_cv/dsp.h` shows a production integration. See `native/voice/tests.cpp` for allocator behavior and bounds.
+**J2 note allocation:** when a module translates notes into voices, reuse `engine/voice/allocator.h` (`wirescape::voice::Allocator`) and its fixed-capacity storage instead of writing a second voice-stealing policy. It supports up to 16 voices, source/note identity, sustain, and rotate/reuse/reset/mono allocation; read `engine/voice/README.md` for exact semantics. Configure it while the engine is quiescent, then give it ordered events from one owner. Read `voice(i)` to render pitch, gate, velocity, pressure, and timbre per channel; clear one-shot triggers after the downstream envelope consumes them. `engine/voice/note_to_cv.h` adapts ABI2 note events, and `modules/midi_to_cv/dsp.h` shows a production integration. See `engine/voice/tests.cpp` for allocator behavior and bounds.
 
 Channels remain voices, never stereo. A source chooses its channel count and sets it on every output block; processors propagate the count resolved from their inputs. Keep note-off/choke handling correct after voice steals and when bounded event queues fill.
 
@@ -119,7 +119,7 @@ void process(ws::Block& b) {
 }
 ```
 - `auto x = b.in(i).ch(c)` is a value view (handles CONSTANT and unpatched for you), not a `const float*`.
-- For tight loops or SIMD, get a plain pointer with `b.in(i).row(c, scratch, frames)`: it aliases a varying signal or fills `scratch` for a constant one. Reserve one scratch row per simultaneously live input in `prepare` and count it in `memory_requirements` (see `native/sdk/template/module.cpp`).
+- For tight loops or SIMD, get a plain pointer with `b.in(i).row(c, scratch, frames)`: it aliases a varying signal or fills `scratch` for a constant one. Reserve one scratch row per simultaneously live input in `prepare` and count it in `memory_requirements` (see `sdk/template/module.cpp`).
 - Parameters arrive already smoothed and modulated, in plain units, through `b.param(i)` (same view API as inputs).
 
 ## 10. Events (notes, MIDI, messages)
@@ -130,9 +130,9 @@ void process(ws::Block& b) {
 - Same-frame clock and reset: **reset wins** (the clock then plays step 1). Stop or reset releases any sounding note at that sample, and gate outputs drop with it.
 - Hosts supply finite inputs and parameters; your outputs must stay finite anyway (feedback, division).
 - Don't keep pointers to event payloads after `process` returns. `b.transport()` may be null.
-- For note → pitch/gate/velocity across voices, use the shared allocator in `native/voice/` rather than writing your own.
+- For note → pitch/gate/velocity across voices, use the shared allocator in `engine/voice/` rather than writing your own.
 
-The committed MIDI modules are concrete examples: `native/modules2/midi_to_cv/` (`midi.to_cv`) turns MIDI note and expression events into poly pitch/gate/velocity/pressure/aftertouch/bend/mod signals and note events. `native/modules2/midi_cc_to_cv/` (`midi.cc_to_cv`) maps eight configured CC rows to signal outputs; its README and tests cover channel/controller selection, 14-bit CC pairing, bipolar values, and smoothing. CC runtime configuration is validated by `config.h`; patch data remains JSON, not a serialized C++ struct. Issue #163 is a planned coordinator follow-up, not an available API; do not depend on a coordinator, Learn, or mapping service.
+The committed MIDI modules are concrete examples: `modules/midi_to_cv/` (`midi.to_cv`) turns MIDI note and expression events into poly pitch/gate/velocity/pressure/aftertouch/bend/mod signals and note events. `modules/midi_cc_to_cv/` (`midi.cc_to_cv`) maps eight configured CC rows to signal outputs; its README and tests cover channel/controller selection, 14-bit CC pairing, bipolar values, and smoothing. CC runtime configuration is validated by `config.h`; patch data remains JSON, not a serialized C++ struct. Issue #163 is a planned coordinator follow-up, not an available API; do not depend on a coordinator, Learn, or mapping service.
 
 ## 11. State save/load
 - Only state the parameters don't already hold (the host saves parameters): playback position, held values, RNG state.
@@ -143,7 +143,7 @@ The committed MIDI modules are concrete examples: `native/modules2/midi_to_cv/` 
 - Patch compatibility matters more than exact DSP continuity: never break loading of an older version.
 
 ## 12. Tests (copy from the examples) and definition of done
-Tests call the real C callbacks through the wrapper (`ws::Module<Class>::descriptor()`), not just the class. Copy the harness from the example closest to yours (`native/sdk/examples/test_support.h` holds the shared pieces: arena, `REQUIRE`, state byte sink/source, fixed buffers). The wrapper requires every output, event outputs included, to have `max_channels` non-null rows, and it rejects non-finite outputs with `WS2_INVALID`. Code under `native/sdk/` (examples and their tests) may not include `<vector>`, `<functional>` and similar (`abi2_banned_includes`); use fixed arrays. `native/modules2/*/tests.cpp` is exempt. Wrapper rules your harness must satisfy, or `process` returns `WS2_INVALID`: each output's `max_channels` equals `config.max_channels`, `ctx.sample_rate` equals the prepared rate, `ctx.channels >= 1`, and the input/output/parameter counts equal the descriptor's. Includes from `native/modules2/<name>/tests.cpp`: `../../sdk/examples/test_support.h` and `../../tests2/allocation_watch.h`; link `native/tests2/allocation_watch.cpp`. Banned under `native/sdk/`: `<vector> <string> <thread> <mutex> <iostream> <filesystem> <map> <unordered_map> <list> <deque> <functional> <sstream> <fstream> <chrono>`. **Windows gives a test a 1 MB stack:** keep big sample buffers on the heap (`std::make_unique`), as the examples' `Rig::Buffers` do. A single-channel module (FIRST inputs, one output voice) replaces the channel matrix with a "reads channel 0 only" test. Every module covers:
+Tests call the real C callbacks through the wrapper (`ws::Module<Class>::descriptor()`), not just the class. Copy the harness from the example closest to yours (`sdk/examples/test_support.h` holds the shared pieces: arena, `REQUIRE`, state byte sink/source, fixed buffers). The wrapper requires every output, event outputs included, to have `max_channels` non-null rows, and it rejects non-finite outputs with `WS2_INVALID`. Code under `sdk/` (examples and their tests) may not include `<vector>`, `<functional>` and similar (`abi2_banned_includes`); use fixed arrays. `modules/*/tests.cpp` is exempt. Wrapper rules your harness must satisfy, or `process` returns `WS2_INVALID`: each output's `max_channels` equals `config.max_channels`, `ctx.sample_rate` equals the prepared rate, `ctx.channels >= 1`, and the input/output/parameter counts equal the descriptor's. Includes from `modules/<name>/tests.cpp`: `../../sdk/examples/test_support.h` and `../../tests/native/abi2/allocation_watch.h`; link `tests/native/abi2/allocation_watch.cpp`. Banned under `sdk/`: `<vector> <string> <thread> <mutex> <iostream> <filesystem> <map> <unordered_map> <list> <deque> <functional> <sstream> <fstream> <chrono>`. **Windows gives a test a 1 MB stack:** keep big sample buffers on the heap (`std::make_unique`), as the examples' `Rig::Buffers` do. A single-channel module (FIRST inputs, one output voice) replaces the channel matrix with a "reads channel 0 only" test. Every module covers:
 1. **Frame matrix:** one block vs blocks of 1, 17, 64 and 256 frames give bit-identical output (and identical events at absolute frames).
 2. **Rate matrix:** 44.1, 48 and 96 kHz prepare and behave (times scale with rate).
 3. **Channel matrix:** 1, 4 and 16 voices; voices are independent; mono input broadcasts.
@@ -151,10 +151,10 @@ Tests call the real C callbacks through the wrapper (`ws::Module<Class>::descrip
 5. **State round trip:** save mid-run, load into a fresh instance, continue → identical. Unknown version and truncated data rejected.
 6. **CONSTANT:** set when expected, never on running audio.
 7. **Extremes:** min/max parameters and hot inputs stay finite.
-8. **No allocation in process** (`native/tests2/allocation_watch.h`).
+8. **No allocation in process** (`tests/native/abi2/allocation_watch.h`).
 9. Behaviour tests for what the module is for (independent reference math, not the same formula copied).
 
-**Run the module on its own:** `native/sdk/examples/random_source/tests.cpp` is a complete callback-level signal-source test; `native/modules2/midi_to_cv/tests.cpp` is an event/poly module example. Both use `allocation_watch::Scope` around the actual `process` call. Construct the instance, allocate buffers, and call `create`/`prepare` before opening the scope: the process watcher does not check control/lifecycle work. Put each input event in the process context before the watched call; synchronous event handling in `process` is then covered. If `process` emits events, reserve the test's event collector before the scope too, so the test harness itself does not allocate during the callback. The MIDI harness in `native/io/midi/module_test_support.h` demonstrates this pattern.
+**Run the module on its own:** `sdk/examples/random_source/tests.cpp` is a complete callback-level signal-source test; `modules/midi_to_cv/tests.cpp` is an event/poly module example. Both use `allocation_watch::Scope` around the actual `process` call. Construct the instance, allocate buffers, and call `create`/`prepare` before opening the scope: the process watcher does not check control/lifecycle work. Put each input event in the process context before the watched call; synchronous event handling in `process` is then covered. If `process` emits events, reserve the test's event collector before the scope too, so the test harness itself does not allocate during the callback. The MIDI harness in `host/midi/module_test_support.h` demonstrates this pattern.
 
 The committed standalone MIDI test can be built and run with these existing target and test names:
 
@@ -163,20 +163,20 @@ python tools/dev.py build --headless
 ctest --test-dir build/native -R '^abi2_midi_to_cv_tests$' --output-on-failure
 ```
 
-`native/io/midi/CMakeLists.txt` creates `abi2_midi_to_cv_tests` from `native/modules2/midi_to_cv/tests.cpp` and links the allocation watcher. Add equivalent module-specific executable and `add_test` entries in the appropriate CMake file for a new module; do not assume a target exists before adding that wiring.
+`host/midi/CMakeLists.txt` creates `abi2_midi_to_cv_tests` from `modules/midi_to_cv/tests.cpp` and links the allocation watcher. Add equivalent module-specific executable and `add_test` entries in the appropriate CMake file for a new module; do not assume a target exists before adding that wiring.
 
 **Definition of done**
 - [ ] Folder complete (§1), SPDX headers, `module.json` slot indices match `params` order.
 - [ ] IDs final and documented in `README.md` (ports, parameters, units, ranges).
 - [ ] Realtime checklist (§8) passes by reading your own `process`.
 - [ ] `python tools/dev.py build --headless` and `python tools/dev.py test` pass locally.
-- [ ] The module appears in the app catalogue (`WS_APP_MODULE(Class)` in `native/control/module_catalog.inc`, with its DSP header included by `module_catalog.h`; see `docs/ARCHITECTURE.md`) and plays in a patch.
-- [ ] For heavy modules, request offline Pi evidence through the task-specific runner flow (`docs/PI_RUNNER.md`); device testing is user-only.
+- [ ] The module appears in the app catalogue (`WS_APP_MODULE(Class)` in `engine/control/module_catalog.inc`, with its DSP header included by `engine/control/module_catalog.h`; see `docs/ARCHITECTURE.md`) and plays in a patch.
+- [ ] For heavy modules, request offline Pi evidence through the task-specific runner flow (`docs/PI_RUNNER.md` (removed)); device testing is user-only.
 - [ ] Third-party code pinned and recorded in `DESIGN.md` with its licence.
 
 **Pi evidence:** for a task-specific run, put the exact command in a `pi-run:` line in the issue's acceptance block and label the PR `ci/pi-accept`. The private Pi bridge runs the task command and publishes `pi5/accept`; verify that status on the exact PR head. A generic build/test pass is not a substitute for the requested Pi command. Keep agent/CI checks offline and device-free; physical audio or MIDI verification is user-only.
 
-The CHAOS two-instance reference is a 120-second offline CPU render on the Pi at 48 kHz, block size 128, 45,000 blocks: worst block 489,275 ns, zero callback allocations, and zero engine faults. Its existing bound is <1,333 µs (half the 128-frame period). The command is `python tools/chaos_two_probe.py`; see `docs/tasks/done/J7_CHAOS_LITE.md` and `native/examples/chaos_two.json`. This is a measured offline workload reference, not a physical-device/round-trip latency result or a guarantee for another module.
+The CHAOS two-instance reference is a 120-second offline CPU render on the Pi at 48 kHz, block size 128, 45,000 blocks: worst block 489,275 ns, zero callback allocations, and zero engine faults. Its existing bound is <1,333 µs (half the 128-frame period). The command is `python tools/chaos_two_probe.py`; see `docs/tasks/done/J7_CHAOS_LITE.md` (removed) and `host/examples/chaos_two.json`. This is a measured offline workload reference, not a physical-device/round-trip latency result or a guarantee for another module.
 
 **Common mistakes**
 - Storing `b.in(i).ch(c)` as `const float*` (it's a view; use `auto`).
@@ -197,7 +197,7 @@ The CHAOS two-instance reference is a 120-second offline CPU render on the Pi at
 - `ws::Setup`: `sample_rate()`, `max_channels()`, `max_block()`, `config.seed`, `alloc(bytes, alignment=32, hint=WS2_FAST)`.
 - `ws::Block`: `frames()`, `channels()`, `sample_rate()`, `frame_position()`, `in(i)`, `param(i)`, `out(i)`, `events()`, `events_in(port)`, `split(range, event)`, `emit(port, e)`, `transport()`.
 - Signal view: `channels()`, `constant()`, `connected()`, `ch(c)[i]`, `value(c, i)`, `row(c, scratch, frames)`. Output: `set_channels(n)`, `ch(c)` (writable), `mark_constant(bool)`, `channels()`.
-- Helpers (`native/sdk/signals.h`): `ws::Schmitt`, `ws::Trigger` (≥1 ms), `ws::Random` (`seed(instance, channel)`, `next()`, `bipolar()`, `save()`, `restore()`), `ws::LinearRamp`. `native/sdk/simd.h`: `ws::simd::f4` (load/store, `+ - *`). `native/sdk/fastmath.h`: `tan_small` only for |x| ≤ 0.25 rad. No global fast-math flags; keep `double` only where precision needs it.
+- Helpers (`sdk/signals.h`): `ws::Schmitt`, `ws::Trigger` (≥1 ms), `ws::Random` (`seed(instance, channel)`, `next()`, `bipolar()`, `save()`, `restore()`), `ws::LinearRamp`. `sdk/simd.h`: `ws::simd::f4` (load/store, `+ - *`). `sdk/fastmath.h`: `tan_small` only for |x| ≤ 0.25 rad. No global fast-math flags; keep `double` only where precision needs it.
 - Limits: 16 channels, 32 ports, 64 parameters (raised from 32 in #402; a module above 32 fails cleanly on older hosts), event payload ≤ 1,472 bytes.
 - Known SDK gaps (additive fixes planned after J9): no `Schmitt::high()`, no stepped-parameter helper (spell out `WS2_STEPPED|WS2_AUTOMATABLE, WS2_LINEAR, 0, 4, 1`), no 64-bit `Writer`/`Reader` helpers, `Reader` can't report remaining bytes, `reset()` can't emit events (the host chokes notes on reset).
 - **Compatibility promise (from J-R2):** additive SDK changes only; a breaking change needs a migration note here and in the PR.
@@ -205,7 +205,7 @@ The CHAOS two-instance reference is a 120-second offline CPU render on the Pi at
 ## 14. Where to look next
 - The contract and its reasons: `docs/specs/ABI2_PLAN.md` (D1–D16).
 - How the app and engine fit together: `docs/ARCHITECTURE.md`.
-- Example of a guide-only authoring exercise and its findings: `native/tests2/guide_ringmod/README.md`.
+- Example of a guide-only authoring exercise and its findings: `tests/native/abi2/guide_ringmod/README.md`.
 
 ## 15. Porting a prototype (Web Audio, an offline renderer, another language)
 Many modules start as a working prototype (a JS AudioWorklet, an offline "render the whole file" tool, a notebook). Keep its sound and its parameter meanings, and rebuild the code to the rules above. Things that always change:
@@ -224,7 +224,7 @@ Many modules start as a working prototype (a JS AudioWorklet, an offline "render
 | Large audio history (STFT rings, delay lines, grain buffers) | Not saved in state. Save settings, positions, RNG and phase; on load the module restarts its analysis deterministically. The §12 state test then checks save → load → run equals a fresh instance on the same schedule (Keel, #302). |
 | Latency that depends on a parameter (FFT size) | Return the current value from `latency_frames()`, published atomically by `process` (relaxed ordering suffices for the reported count). The engine can query it on the control thread concurrently with `process`, refreshing latency on replan and at status ticks (at most 10 Hz). |
 | Display data (spectrograms, provenance tints, waveforms) | Not part of the module. Telemetry is Phase 3A; leave a note in `DESIGN.md`. |
-| Uses a helper the SDK lacks (an FFT, a resampler) | Write it inside the module folder as original code, or stop and ask (a new dependency is a stop, `AGENTS.md`). Promote to `native/sdk/` later only with a Keel ruling. |
+| Uses a helper the SDK lacks (an FFT, a resampler) | Write it inside the module folder as original code, or stop and ask (a new dependency is a stop, `AGENTS.md`). Promote to `sdk/` later only with a Keel ruling. |
 | Loads files (samples, impulse responses) | Not yet: modules can't do I/O. That waits for the sample buffer service (PLAN Track S3). Capture from a live input instead. |
 
 Also record in `DESIGN.md`: which prototype and revision you ported, what changed and why, and a listening note comparing both. Where the prototype can render offline (Node), add an **offline parity test**: render the same input through both and compare a feature (pitch, spectral centroid, RMS envelope) within a stated tolerance, not samples bit for bit. Heavy modules (FFT, convolution, many grains) need a `pi-run:` CPU line: worst block < 50% of the period at 48 kHz / 128 frames with two instances.
