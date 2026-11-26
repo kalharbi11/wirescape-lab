@@ -213,6 +213,16 @@ export class App {
       rename: id => this.renameModule(id),
       onEditOsc: id => this.openOscEditor(id),
       oscStatus: () => this.lastStatus?.osc,
+      connectMapping: c => {
+        if (c.kind !== 'modulation') return false;
+        const type = this.doc.modules.get(c.from.module)?.module;
+        if (!['essentials.macro', 'midi.cc_to_cv', 'osc.in'].includes(type ?? '')) return false;
+        void this.addMapping(c.from, c.to).catch(err => {
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping refused.', 'error');
+          this.canvas.shake(c.to.module);
+        });
+        return true;
+      },
       engineConnect: c => {
         this.editEngine().connect(c);
         this.trackRollback(() => { this.doc.disconnect(c); this.canvas.shake(c.to.module); });

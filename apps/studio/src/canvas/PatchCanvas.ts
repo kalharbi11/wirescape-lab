@@ -37,6 +37,8 @@ export interface CanvasServices extends PanelHost {
   onEditOsc(moduleId: number): void;
   oscStatus(): OscStatus | undefined;
   /** Send a connect to the engine; throws EngineRefusal if it is refused. */
+  /** Return true when the host owns this mapping transaction. */
+  connectMapping?(c: Connection): boolean;
   engineConnect(c: Connection): void;
   engineDisconnect(c: Connection): void;
   /** MIDI Learn (#287). Absent or `available() === false` when the engine cannot observe CCs. */
@@ -877,6 +879,7 @@ export class PatchCanvas {
   private commitConnection(c: Connection, additive: boolean): void {
     if (!this.s.canEdit()) return;
     if (this.s.doc.has(c)) { this.s.toast('Already connected.'); return; }
+    if (this.s.connectMapping?.(c)) return;
     const replaced: Connection[] = [];
     if (c.kind !== 'modulation' && !additive) {
       replaced.push(...this.s.doc.cablesInto(c.to.module, c.to.port));
