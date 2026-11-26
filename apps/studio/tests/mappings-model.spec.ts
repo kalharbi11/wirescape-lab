@@ -118,3 +118,51 @@ test('MM1 Studio: second owner refused; new macro mapping full range; removal an
   expect(result.finalDepth).toBe(result.depth2);
   expect(result.applies).toBe(3);
 });
+
+
+test('MM1 canvas: one owner enforced before mutation, ordinary modulation still adds', async ({ page }) => {
+  await boot(page);
+  await page.evaluate(async p => {
+    const a = window.__wirescapeTest;
+    await a.load(p);
+    a.flushHistory();
+  }, fixture());
+  const snapshot = () => page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    a.flushHistory();
+    return { patch: a.state(), history: a.historyDepth() };
+  });
+  const before = await snapshot();
+  await page.evaluate(async c => {
+    await (window.__wirescapeTest.canvas as any).commitConnection(c, false);
+  }, cable(1, 'out2'));
+  expect(await snapshot()).toEqual(before);
+  await expect(page.getByText('Mapped to Macros 1 · Knob 1. Remove that mapping, or map the source to a macro.', { exact: true })).toBeVisible();
+  await page.evaluate(async c => {
+    await (window.__wirescapeTest.canvas as any).commitConnection(c, false);
+  }, cable(4, 'control', 3, 'offset', .15));
+  await expect.poll(async () => (await snapshot()).patch.connections).toContainEqual(cable(4, 'control', 3, 'offset', .15));
+  expect((await snapshot()).patch.connections).toContainEqual(cable(2, 'cc1', 3, 'offset', -.4));
+});
+
+test('MM1 canvas: new mapping uses full range and first Macro knob initialization', async ({ page }) => {
+  await boot(page);
+  await page.evaluate(async p => {
+    const a = window.__wirescapeTest;
+    await a.load(p);
+    a.flushHistory();
+  }, fixture());
+  const depth = await page.evaluate(() => window.__wirescapeTest.historyDepth().past);
+  await page.evaluate(async c => {
+    await (window.__wirescapeTest.canvas as any).commitConnection(c, false);
+  }, cable(1, 'out2', 4, 'depth', .25));
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    a.flushHistory();
+    const p = a.state();
+    return { knob: p.modules.find((m: any) => m.id === 1).parameters.knob2,
+      base: p.modules.find((m: any) => m.id === 4).parameters?.depth,
+      amount: p.connections.find((c: any) => c.from.module === 1 && c.from.port === 'out2')?.amount,
+      depth: a.historyDepth().past };
+  })).toEqual({ knob: 1, base: 0, amount: 1, depth: depth + 1 });
+});
