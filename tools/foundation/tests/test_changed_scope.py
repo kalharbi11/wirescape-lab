@@ -40,7 +40,17 @@ class ChangedScopeTests(unittest.TestCase):
 
     def test_empty_and_unlisted_paths(self):
         self.assertTrue(scope.requires_code([]))
-        for path in ["extras/value.txt", "docs/README.md", "apps/studio/tests/editor.spec.ts"]:
+        for path in ["extras/value.txt", "apps/studio/tests/editor.spec.ts"]:
+            with self.subTest(path=path):
+                self.assertTrue(scope.requires_code([path]))
+
+    def test_prose_docs_are_notes(self):
+        # Proposal 0023 R1.3 / CI-S1: every *.md under docs/ outside docs/specs/ is notes.
+        for path in ["docs/INSTALL.md", "docs/sequencer/GROOVE.md", "docs/README.md"]:
+            with self.subTest(path=path):
+                self.assertFalse(scope.requires_code([path]))
+        for path in ["docs/specs/ENGINE_PROTOCOL.md", "docs/specs/protocol.schema.json",
+                     "docs/x.png", "docs/history/manifest.json"]:
             with self.subTest(path=path):
                 self.assertTrue(scope.requires_code([path]))
 

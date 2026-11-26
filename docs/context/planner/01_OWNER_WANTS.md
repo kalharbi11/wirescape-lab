@@ -70,10 +70,14 @@ the Planner runs (see 02_PLANNER_RUNS.md) make the final decisions.
   engine's 32-producer limit.
 
 ### 4. Map any parameter without patching (Ableton-style)
-- Found: 22 modules have no modulatable parameters, so no MIDI Learn, macro or cable can reach them:
-  chord, clock, cv_to_notes, function_envelope, groove, host_keyboard, ladder, midi_cc_to_cv,
-  midi_in, midi_to_cv, mixer, monitor, noise, notes_to_cv, osc_in, osc_out, output, poly_merge,
-  poly_split, quantizer, scale_offset, slew.
+- Found (**corrected 2026-11-26**, [0023 §3.1](../../../proposals/0023-review-and-replan.md), checked at
+  source; per-parameter table in [`scout/S8_module_params.md`](scout/S8_module_params.md)). The first list
+  named 22 modules; 7 of them already have modulatable parameters (clock, function_envelope, ladder,
+  mixer, noise, scale_offset, slew). Of the other 15:
+  - **8 have parameters, all stepped, none modulatable** (the batch): chord, cv_to_notes, groove,
+    host_keyboard, midi_in, midi_to_cv, notes_to_cv, quantizer;
+  - **7 have no parameters:** midi_cc_to_cv, monitor, osc_in, osc_out, output, poly_merge, poly_split.
+  Mapping by `setParam` does not need the flag (0023 R3.3 rule 4).
 - Engine side: mark meaningful parameters modulatable, bit-identical when unmodulated (a module batch).
 - Studio side: map mode (click Map, click a parameter, move a CC, OSC address or macro). The helper
   CC/MIDI modules are hidden "mapping" nodes, listed in the Mappings panel. Shared with macros.

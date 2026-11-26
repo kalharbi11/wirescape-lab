@@ -26,6 +26,9 @@ def is_notes_path(path: str) -> bool:
         return True
     if parts[:2] in (["docs", "context"], ["docs", "workflow"]):
         return len(parts) >= 3
+    if parts[0] == "docs":
+        # Proposal 0023 R1.3 (CI-S1): prose guides are notes; specs stay code.
+        return parts[1] != "specs" and path.endswith(".md")
     return parts[0] == "facts" and parts[1] != "dsp"
 
 

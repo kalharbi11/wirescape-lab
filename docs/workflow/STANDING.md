@@ -109,6 +109,27 @@ follow-up task, released when that PR merges. The whole PR never waits for anoth
 it changes a contract gate. (c) Work that has not started yet moves to the least loaded lane
 whose paths fit it, even when an earlier contract row named another lane.
 
+**SR22 Where rulings live (Architect, 2026-11-26, run 47; Planner run 1, [`0023`](../../proposals/0023-review-and-replan.md) W3).**
+A ruling binds only once it is a revision line in the contract it changes, or in this file, with its
+date and a source link. A commit message, PR or issue comment is evidence, not a rule. A-numbers are
+optional labels; [RULINGS.md](RULINGS.md) maps each live one to its line.
+
+**SR23 Reading budget (0023 W4).** An agent's mandatory reading is AGENTS.md, its role brief, its lane
+row and its task's contract row: at most 400 lines. Accepted contracts (M0, M1, M2, CI1) and parked
+ones carry a one-line banner and are read only when a task names them. Closed questions live in
+[QUESTIONS_HISTORY.md](QUESTIONS_HISTORY.md). ROADMAP keeps one row per item, each cell at most 40
+words, with no appended deltas; CURRENT holds deltas and is trimmed weekly.
+
+**SR24 No renewed exceptions (0023 W5).** A bounded exception names its rows, platforms, cap, expiry
+and its structural fix. If the same class recurs, the fix is scheduled instead of a new exception.
+MB2 is the fix for the instruction-gate codegen class (A39, M7 r1.6/r1.6a expire at MB2).
+
+**SR25 Evidence workflows (0023 R1.5).** One-off evidence uses `/dev-run` or a dispatch of an existing
+workflow. A new workflow file needs a second user and the lead's approval. The lead deletes an
+evidence workflow (its facts stay) once the milestone that cites it is accepted: `continuity-e5*.yml`,
+`e5v-keyboard-attribution.yml` and `quad-vca-d5.yml` with M4/M7; `choke-listening.yml` with M7;
+`osc-gate-snapshot-witness.yml` and `ob-c-a10.yml` with OB-g/OB-c.
+
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.
 2. **The design authority in session** (Fable, or Fable's deputy on an Opus session; see

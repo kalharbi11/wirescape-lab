@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CI1 r3 evidence — CI1 r4 contract (GAP ONLY)
 
-Prepared 2026-11-16 America/New_York against main 1e072cf239b804eb2a8fa3cbb7ee692546a374b6. Run timestamps use UTC. This is a notes-only evidence record under issue #141, **not** a CI1 acceptance, K8 keep/revert verdict, or product authorization. Governing contract: [CI1 r4](../milestones/CI1.md), [Fable Q17](../QUESTIONS.md).
+Prepared 2026-11-16 America/New_York against main 1e072cf239b804eb2a8fa3cbb7ee692546a374b6. Run timestamps use UTC. This is a notes-only evidence record under issue #141, **not** a CI1 acceptance, K8 keep/revert verdict, or product authorization. Governing contract: [CI1 r4](../milestones/CI1.md), [Fable Q17](../QUESTIONS_HISTORY.md).
 
 ## Completed predecessor stages — repository-linked evidence
 

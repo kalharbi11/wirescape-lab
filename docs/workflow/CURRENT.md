@@ -8,6 +8,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 47 — 2026-11-26 13:45 EST (Planner run 1 transcribed, run 2 prep; owner `architect:run`)
+
+- **Planner run 1** ([0023](../../proposals/0023-review-and-replan.md), #618 `337d8e8`) checked at source by a scout: every citation supports its claim except R2.5's `RealEngine.ts:300-304` (actual `:393-436`); the ruling stands. No CONSTRAINTS conflict.
+- **Transcribed (§8):** [M3 r2](milestones/M3.md) stage MB, TR1h without PV2, T1.5 cut, V1 parked, accepted at MB2; [M7 r1.7](milestones/M7.md) dispatched before/after; [OB r2.13](milestones/OB.md) OB1 gates no new work, freeze ends at MB2, OB-h2 gate release, OB-h3 extra rows, Gate P0 rows; [STANDING SR22–SR25](STANDING.md); [RULINGS.md](RULINGS.md); banners on closed/parked contracts; [QUESTIONS_HISTORY.md](QUESTIONS_HISTORY.md); B.4 erratum.
+- **Applied by the Architect (were lead tasks):** CI-S1 `changed_scope.py` (test first; `docs/README.md` moves from code to notes per R1.3), CI-S2 `facts.yml` dispatch-only, CI-S3 `e4b-stress` skips drafts (plus `ready_for_review` so the ready head runs). Docs fixes: Clock README, `SDK_AUTHOR_GUIDE.md`/`ARCHITECTURE.md` paths. The `M8 MIDI 1` spec rename is the fake harness endpoint too, so it is one task, #622 (B2, low).
+- **Issues:** MB1 #363 and MB2+CAT-1 #358 reopened (B4); P0a #619 (B5), P0b #620 (B2), Studio restart #621 (B1, now), #622. Gate P1 is filed at Stage 2.
+- **Inbox:** OB-h1 soak dispatched ([45877224981](https://github.com/kalharbi11/wirescape-lab/actions/runs/45877224981), `ref=48479fc…`). CMP-1 #592 artifacts: download URLs obtained, but this session was not permitted to fetch them; owner step in the inbox (expire 2026-12-10).
+- **Lanes:** wrap-up ends for run 1's areas; queues per 0023 §7.3 in [BUILDERS](BUILDERS.md). Run 2's areas stay frozen until Planner run 2 merges.
+- **Run 2 prep:** [02_PLANNER_RUNS.md "Run 2 prep"](../context/planner/02_PLANNER_RUNS.md) (trimmed reading, verified facts, new-repo state) and [scout S8](../context/planner/scout/S8_module_params.md). `wirescape-headless` default branch is now `main`; nothing referenced the old branch.
+- **Next Architect run:** after Planner run 2 merges (high effort), or `architect-ready` when #540 is pinned (medium). **Next run should:** (1) after run 2: verify its claims, transcribe 0024/0025 into contracts, file the task lists in all three repos, end the freeze; (2) review #540 against A81(3)/A82/A86/A95; (3) review #545 against A90 (a)–(c); (4) read OB-h1's facts from run 45877224981 and confirm #326/#494 routing; (5) check #592 retained digests; (6) OB1 acceptance once owner evidence exists.
+
 ## Lead run — 2026-11-26 05:21 EST (existing GPT work)
 
 - B1 #606 auto-merged `9957004`; no new task released. B2 #540 draft Lab 15/15 / Studio 408/408 green, ready-event Lab/Golden/paired underway; final Result/Architect packet not ready. B5 #545 exact Lab/Web/E4b green; keep shared writer with B2 until actual #540 merge. #610 advanced to `329c0dc`, current Lab/ASan evidence pending.

@@ -2,6 +2,8 @@
 name: E4b layout stress
 on:
   pull_request:
+    # ready_for_review so a draft that turns ready gets its exact-head run (0023 CI-S3).
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'engine/**'
       - 'tests/native/abi2/live_replan_tests.cpp'
@@ -12,6 +14,8 @@ permissions:
   contents: read
 jobs:
   stress:
+    # Proposal 0023 CI-S3: ready PRs and manual dispatch only; drafts skip.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
