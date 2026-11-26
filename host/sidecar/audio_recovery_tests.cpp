@@ -61,6 +61,8 @@ struct Stream::Impl {
     std::atomic<bool> quit{false};
     std::thread callback;
     uint32_t frames = 0;
+    uint64_t started_ns = app_engine_clock_ns();
+    std::atomic<uint64_t> blocks{0}, last_ns{0};
 };
 Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate, uint32_t block,
                std::function<void()> producers, bool allow_preferred_retry)
@@ -87,7 +89,11 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
             const auto period = std::chrono::duration<double>(block / rate);
             while (!impl->quit.load()) {
                 live = impl->slot.adopt(live);
-                app_engine_render_live(live, rows, 2, block, app_engine_clock_ns());
+                const int rendered = app_engine_render_live(live, rows, 2, block, app_engine_clock_ns());
+                if (rendered == WS2_OK) {
+                    impl->blocks.fetch_add(1, std::memory_order_relaxed);
+                    impl->last_ns.store(app_engine_clock_ns(), std::memory_order_release);
+                }
                 fake::completed_blocks.fetch_add(1, std::memory_order_release);
                 std::this_thread::sleep_for(period);
             }
@@ -117,6 +123,13 @@ bool Stream::exchange(EngineOwner &next, std::chrono::steady_clock::time_point d
     return true;
 }
 bool Stream::running() const { return bool(impl_->engine) && fake::active; }
+uint64_t Stream::rendered_blocks() const noexcept { return impl_->blocks.load(std::memory_order_relaxed); }
+bool Stream::stalled() const {
+    if (!running() || !fake::render) return false;
+    const auto last = (std::max)(impl_->started_ns, impl_->last_ns.load(std::memory_order_acquire));
+    const auto now = app_engine_clock_ns();
+    return now >= last && now - last >= 500'000'000ULL;
+}
 double Stream::cpu_percent() const { return 0; }
 uint64_t Stream::dropouts() const { return 0; }
 uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
@@ -1463,6 +1476,87 @@ void test_e3c_accepted_routes(const std::filesystem::path &root) {
     s.shutdown();
 }
 
+namespace {
+std::atomic<bool> p0a_hold{false}, p0a_entered{false};
+struct P0aStallSource {
+    static constexpr ws::Info info{"test.p0a_session_stall", "P0a status fixture", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("out", "Out", WS2_CV_BI)};
+    static constexpr std::array<ws2_param, 0> params{};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &b) {
+        if (p0a_hold.load(std::memory_order_acquire)) {
+            p0a_entered.store(true, std::memory_order_release);
+            while (p0a_hold.load(std::memory_order_acquire)) {}
+        }
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant();
+        b.out(0).ch(0)[0] = 0.f;
+    }
+};
+void test_p0a_status(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.block = 128;
+    options.rate = 48000;
+    options.settings = (root / "p0a-status.json").string();
+    fake::outputs = {output("P0a stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    struct Release {
+        ~Release() { p0a_hold.store(false, std::memory_order_release); }
+    } release;
+    p0a_hold.store(false);
+    p0a_entered.store(false);
+    check(!audio(s).contains("renderedBlocks"), "P0a legacy status has no unnegotiated field");
+    const auto caps = s.hello()["capabilities"];
+    check(std::find(caps.begin(), caps.end(), "audio.renderLiveness") != caps.end(),
+          "P0a hello advertises capability");
+    check(s.reply({{{"v", 0}, {"id", "p0a"}, {"type", "hello"},
+        {"capabilities", Json::array({"audio.renderLiveness"})}}, {}, {}})["ok"] == true,
+          "P0a client opts in");
+    s.start();
+    wirescape::engine2::Config cfg{};
+    cfg.sample_rate = 48000;
+    cfg.max_block = 128;
+    cfg.max_nodes = 64;
+    cfg.event_budget = 2048;
+    wirescape::audio::EngineOwner candidate(app_engine_create(&cfg), app_engine_destroy);
+    check(bool(candidate), "P0a synthetic candidate exists");
+    auto &graph = app_engine_native(candidate.get());
+    check(graph.add_node(2, ws::Module<P0aStallSource>::descriptor()) &&
+          graph.output(2, 0, 0) && app_engine_prepare(candidate.get(), 1, 0) == WS2_OK,
+          "P0a synthetic graph prepares");
+    // Inject only through the test-owned fake backend's live engine and normal
+    // replan; no shipped catalogue entry, protocol command, or production seam.
+    check(app_engine_native(fake::engine).replan(graph, 500'000'000ULL), "P0a synthetic live graph adopted");
+    auto wait = [](auto predicate, auto deadline) {
+        while (!predicate() && std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(1ms);
+        return predicate();
+    };
+    check(wait([&] { return audio(s).value("renderedBlocks", uint64_t{0}) >= 2; },
+               std::chrono::steady_clock::now() + 2s), "P0a status reports progress");
+    check(audio(s)["state"] == "running", "P0a healthy state");
+    p0a_hold.store(true, std::memory_order_release);
+    check(wait([] { return p0a_entered.load(std::memory_order_acquire); },
+               std::chrono::steady_clock::now() + 2s), "P0a test module entered process");
+    const auto entered = std::chrono::steady_clock::now();
+    const auto frozen = audio(s).at("renderedBlocks").get<uint64_t>();
+    check(wait([&] { return audio(s)["state"] == "stalled"; }, entered + 1s),
+          "P0a active callback reports stalled within 1s");
+    check(fake::active && audio(s)["renderedBlocks"] == frozen, "P0a heartbeat stops while backend active");
+    p0a_hold.store(false, std::memory_order_release);
+    check(wait([&] { auto a = audio(s); return a["state"] == "running" &&
+                a.value("renderedBlocks", uint64_t{0}) > frozen; }, std::chrono::steady_clock::now() + 1s),
+          "P0a resumed rendering clears stalled");
+    s.shutdown();
+    check(audio(s)["renderedBlocks"].get<uint64_t>() > frozen, "P0a stop retains count");
+    fake::render = false;
+}
+} // namespace
+
 int main() {
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
@@ -2131,6 +2225,7 @@ int main() {
         test_a81_synthetic_slot();
         test_a82_osc_in_slot(root);
         test_e3c_accepted_routes(root);
+        test_p0a_status(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
