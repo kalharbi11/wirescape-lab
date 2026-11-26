@@ -6,7 +6,7 @@ import { PatchDoc } from '../patch/PatchDoc';
 import { History, type HistoryCheckpoint } from '../patch/History';
 import type { Connection, PatchV2 } from '../patch/types';
 import { FakeEngine } from '../engine/FakeEngine';
-import { RealEngine } from '../engine/RealEngine';
+import { RealEngine, sameConfig, type DeferredCompletion } from '../engine/RealEngine';
 import { EngineRefusal, type SystemStatus, type EngineClient, type Device } from '../engine/EngineClient';
 import { Ticker } from '../runtime/Ticker';
 import { PatchCanvas, type Selection } from '../canvas/PatchCanvas';
@@ -45,6 +45,11 @@ const CLIPBOARD_KEY = 'wirescape.clipboard.v1';
 
 interface ClipModule { id: number; module: string; parameters: Record<string, number>; pos: [number, number]; label?: string; extra: Record<string, unknown> }
 interface Clip { modules: ClipModule[]; connections: Connection[]; colors: Record<string, string> }
+type PlayingDocument = {
+  patch: PatchV2; name: string; bundled: boolean; dirty: boolean;
+  restoreHistory?: HistoryCheckpoint;
+  configReconciliations?: { before: PatchV2; after: PatchV2 }[];
+};
 
 export class App {
   readonly root: HTMLElement;
@@ -89,10 +94,10 @@ export class App {
   private documentBusy = false;
   private viewEpoch = 0;
   private readEpoch = 0;
-  private playingSnapshot: {
-    patch: PatchV2; name: string; bundled: boolean; dirty: boolean;
-    restoreHistory?: () => void;
-  } | null = null;
+  private playingSnapshot: PlayingDocument | null = null;
+  /** During an explicit namespace load, a terminal still belongs to the
+   * old playing document until the load ACK, never to the opening patch. */
+  private openingPatch: { previous?: PlayingDocument } | null = null;
   private octaveEl!: HTMLElement;
   private lastStatus: SystemStatus | null = null;
   private learn!: MidiLearn;
@@ -108,6 +113,7 @@ export class App {
     /** Saved cursors are copied at authoring time, before preceding ACKs.
      * Keep only cursors in this in-flight chain, not unrelated history. */
     checkpoints: Set<HistoryCheckpoint>;
+    deferredEvents: DeferredCompletion[];
   } | null = null;
   private undoBtn!: HTMLButtonElement;
   private redoBtn!: HTMLButtonElement;
@@ -433,6 +439,7 @@ export class App {
       this.toasts.show('Some parameter values were not applied; previous values were kept.', 'error');
     });
     if (this.engine instanceof RealEngine) {
+      this.engine.onDeferredConfig(event => this.reconcileDeferredConfig(event));
       this.engine.onConnection(state => {
         this.statusBar.setEngineState(state);
         if (state === 'restarting') { this.ticker.resetTelemetry(); this.lastStatus = null; }
@@ -598,6 +605,61 @@ export class App {
     }
   }
 
+  /** Terminal pushes reconcile just the correlated config, never another
+   * module or a newer authored value. Keep the chain's rollback anchor valid
+   * even when a terminal arrives while a second snapshot is in flight. */
+  private reconcileDeferredConfig(event: DeferredCompletion): void {
+    if (!event.overlay || event.outcome === 'applied') return;
+    const normalize = (patch: PatchV2): PatchV2 | undefined => {
+      const next = structuredClone(patch);
+      const node = next.modules.find(m => m.id === event.moduleId && m.module === event.module);
+      if (!node || !sameConfig(node.config, event.desired)) return;
+      if (event.actual === undefined) delete node.config;
+      else node.config = structuredClone(event.actual);
+      return next;
+    };
+    const updateSaved = (saved?: PlayingDocument | null) => {
+      if (!saved) return;
+      const normalized = normalize(saved.patch);
+      if (!normalized) return;
+      // A checkpoint's reconcile also changes live History. Delay that
+      // until this saved document is visible again.
+      (saved.configReconciliations ??= []).push({ before: saved.patch, after: normalized });
+      saved.patch = normalized;
+      saved.dirty = true;
+    };
+    if (this.openingPatch) {
+      updateSaved(this.openingPatch.previous);
+      return;
+    }
+    const chain = this.graphChain;
+    if (chain && chain.epoch === this.viewEpoch && !this.draftVisible) {
+      const previous = chain.anchor.patch, normalized = normalize(previous);
+      if (normalized) {
+        for (const checkpoint of chain.checkpoints) checkpoint.reconcile(previous, normalized);
+        chain.anchor.patch = normalized;
+      }
+      // A later snapshot may explicitly commit the formerly pending value.
+      // Reconcile its visible config only after that exact ACK/refusal.
+      chain.deferredEvents.push(event);
+      return;
+    }
+    if (this.draftVisible) {
+      updateSaved(this.playingSnapshot);
+      return;
+    }
+    const before = this.doc.toJSON(), after = normalize(before);
+    if (!after) return;
+    const history = this.history.checkpoint();
+    const next = after.modules.find(m => m.id === event.moduleId)!;
+    this.doc.setModuleConfig(event.moduleId, next.config);
+    history.reconcile(before, after);
+    this.history.flush();
+    this.refreshDirty();
+    if (event.outcome === 'failed')
+      this.toasts.show('Queued configuration could not be applied; the running value was restored.', 'error');
+  }
+
   private applyAuthoredGraph(
     before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
     submitted: PatchV2,
@@ -606,7 +668,7 @@ export class App {
     let chain = this.graphChain;
     if (!chain || chain.epoch !== epoch) {
       chain = { epoch, pending: 0, refused: false, anchor: before,
-        checkpoints: new Set<HistoryCheckpoint>() };
+        checkpoints: new Set<HistoryCheckpoint>(), deferredEvents: [] };
       this.graphChain = chain;
     }
     const activeChain = chain;
@@ -622,7 +684,7 @@ export class App {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
-      const confirmed = engine instanceof RealEngine ? (engine.confirmedDocument() ?? after.patch) : after.patch;
+      const confirmed = engine instanceof RealEngine ? (engine.confirmedAuthoredDocument() ?? after.patch) : after.patch;
       // A later request's saved rollback cursor may predate this ACK.
       // Reconcile every same-chain cursor, as well as live History, using
       // History's exact non-UI graph match. A distinct B value is untouched.
@@ -645,7 +707,16 @@ export class App {
       throw err;
     }).finally(() => {
       activeChain.pending--;
-      if (this.graphChain === activeChain && activeChain.pending === 0) this.graphChain = null;
+      if (this.graphChain === activeChain && activeChain.pending === 0) {
+        this.graphChain = null;
+        if (epoch !== this.viewEpoch || !(engine instanceof RealEngine)) return;
+        const confirmed = engine.confirmedAuthoredDocument();
+        for (const event of activeChain.deferredEvents) {
+          const actual = confirmed?.modules.find(m => m.id === event.moduleId && m.module === event.module);
+          if (actual && !sameConfig(actual.config, event.desired))
+            this.reconcileDeferredConfig({ ...event, actual: actual.config });
+        }
+      }
     });
   }
 
@@ -691,12 +762,19 @@ export class App {
     this.doc.markClean();
     if (playing.dirty) this.doc.markDirty();
     this.history.reset();
-    playing.restoreHistory?.();
+    this.restorePlayingHistory(playing);
     this.ticker.resetTelemetry();
     this.canvas.select({ kind: 'none' });
     this.restoreDraftView();
     this.canvas.invalidateAnchors();
     this.refreshDraftControls();
+  }
+
+  private restorePlayingHistory(saved: PlayingDocument): void {
+    saved.restoreHistory?.();
+    const checkpoint = this.history.checkpoint();
+    for (const pair of saved.configReconciliations ?? [])
+      checkpoint.reconcile(pair.before, pair.after);
   }
 
   private async applyRefusedDraft(): Promise<void> {
@@ -739,12 +817,17 @@ export class App {
     if (this.draftVisible) this.backToPlaying();
     const coordinated = this.engine instanceof RealEngine;
     if (!restoring && coordinated) this.beginDocumentOperation();
+    let opening: { previous?: PlayingDocument } | undefined;
     try {
       if (coordinated) await this.settlePlayingEdits();
       ++this.viewEpoch;
       // What is showing (and, if it ran, still sounding) before this load.
-      const previous = restoring ? undefined : { patch: this.doc.toJSON(), name: this.patchName,
+      const previous: PlayingDocument | undefined = restoring ? undefined : { patch: this.doc.toJSON(), name: this.patchName,
         dirty: this.doc.dirty, bundled: this.bundledPatch, restoreHistory: this.history?.checkpoint() };
+      if (coordinated) {
+        opening = { previous };
+        this.openingPatch = opening;
+      }
       this.ticker.resetTelemetry();
       this.doc.replace(patch);
       this.patchName = name;
@@ -786,15 +869,19 @@ export class App {
             (e.detail.code === 'unavailable' || e.detail.code === 'busy')) {
           this.refusedDraft = { patch: this.doc.toJSON(), name, bundled: forceSaveAs };
           this.toasts.show(`${name} could not start: ${e.message}. Still playing ${previous.name}. Open the refused draft to edit it.`, 'error');
+          if (this.openingPatch === opening) this.openingPatch = null;
           await this.loadPatch(previous.patch, previous.name, previous.bundled, true);
-          previous.restoreHistory?.();
+          this.restorePlayingHistory(previous);
           if (previous.dirty) { this.doc.markDirty(); this.refreshDirty(); }
           this.refreshDraftControls();
           return;
         }
         this.toasts.show(e instanceof Error ? e.message : 'Patch could not run; the editable document was kept.', 'error');
       }
-    } finally { if (!restoring && coordinated) this.endDocumentOperation(); }
+    } finally {
+      if (this.openingPatch === opening) this.openingPatch = null;
+      if (!restoring && coordinated) this.endDocumentOperation();
+    }
   }
 
   // ---- system (phase 5) ---------------------------------------------------
@@ -1088,7 +1175,10 @@ export class App {
       await this.applyAuthoredGraph(before, this.doc.toJSON());
       if (epoch !== this.viewEpoch) return false;
       this.history.flush();
-      this.toasts.show(`${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
+      const running = this.editEngine();
+      this.toasts.show(running instanceof RealEngine && running.hasPendingConfig(id)
+        ? 'Configuration queued until the previous transition finishes.'
+        : `${type === 'osc.out' ? 'OSC Out' : 'OSC'} addresses applied.`);
       return true;
     } catch (e) {
       if (epoch === this.viewEpoch) {
