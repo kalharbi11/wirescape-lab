@@ -183,7 +183,7 @@ struct GateDelay {
     }
     void process(ws::Block &b) {
         const uint32_t n = std::min<uint32_t>(max_channels,
-            std::max({1u, b.in(0).channels(), b.in(1).channels()}));
+            std::max<uint32_t>({1u, b.in(0).channels(), b.in(1).channels()}));
         for (uint32_t o = 0; o < 3; ++o) {
             b.out(o).set_channels(n);
             b.out(o).mark_constant(false);
