@@ -2,9 +2,9 @@
 import type { PatchV2 } from '../patch/types';
 import type { PatchDoc } from '../patch/PatchDoc';
 import { GROOVE, engineConfig, readConfig, type GrooveConfig } from './pattern';
-import { classifyGrooveApply, grooveEditorConfig, type GrooveApply } from './livePattern';
+import { classifyGrooveApply, grooveEditorConfig, grooveExecution, mergeGroovePattern, type GrooveApply } from './livePattern';
 
-interface Source { config?: unknown; data?: unknown }
+export interface GrooveSource { config?: unknown; data?: unknown }
 interface Applied { engine: string; raw: unknown; data: unknown }
 
 const json = (v: unknown): string => JSON.stringify(v ?? null);
@@ -66,10 +66,15 @@ export class GrooveSession {
   /** The applied pattern as the document held it (unknown keys kept), for Revert and change cues. */
   appliedRaw(id: number): unknown { return clone(this.applied.get(id)?.raw); }
 
-  /** Source construction and slot bytes remain separate from the editor's v2 draft. */
-  appliedFields(id: number): Source | undefined {
+  /** GrooveSource construction and slot bytes remain separate from the editor's v2 draft. */
+  appliedFields(id: number): GrooveSource | undefined {
     const a = this.applied.get(id);
     return a && { config: clone(a.raw), data: clone(a.data) };
+  }
+
+  appliedEditorConfig(id: number): GrooveConfig | null {
+    const source = this.appliedFields(id);
+    return source ? grooveEditorConfig(source) : null;
   }
 
   /** Canonical slot data wins on load; an edited config view wins only while it
@@ -89,30 +94,54 @@ export class GrooveSession {
       this.absentTrackEdits.add(id);
   }
 
-  classify(id: number): GrooveApply<Source> | null {
+  classify(id: number): GrooveApply<GrooveSource> | null {
     const source = this.appliedFields(id), edited = this.editorConfig(id);
     return source && edited ? classifyGrooveApply(source, edited, this.absentTrackEdits.has(id)) : null;
   }
 
   /** Invoke only after the correlated accepted slot reply, before the document
    * emits its change event. No pending draft may enter an unrelated graph load. */
-  acceptPattern(id: number, saved: Source): void {
+  acceptPattern(id: number, saved: GrooveSource): void {
     this.applied.set(id, { engine: json(engineConfig(saved.config)), raw: clone(saved.config), data: clone(saved.data) });
     this.absentTrackEdits.delete(id);
   }
 
   /** Restore the complete accepted source, including the data envelope. */
-  revertFields(id: number): Source | undefined {
+  revertFields(id: number): GrooveSource | undefined {
     this.absentTrackEdits.delete(id);
     return this.appliedFields(id);
   }
 
-  /** Mark the current draft as the one to send; returns an undo for a refused load. */
-  stage(id: number): () => void {
-    const before = this.applied.get(id);
-    this.record(id);
+  /** Construction changes may upgrade the version/track count. Rebuild the
+   * explicit pattern together with the edited config so a stale canonical
+   * slot cannot override a new construction edit on reload. */
+  constructionFields(id: number): GrooveSource | null {
+    const source = this.appliedFields(id), edited = this.editorConfig(id);
+    if (!source || !edited) return null;
+    const data = source.data;
+    const canonical = data && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>).pattern : undefined;
+    const projection = grooveExecution(edited, true, canonical);
+    return projection ? { config: clone(edited), data: mergeGroovePattern(data, projection.pattern) } : null;
+  }
+
+  /** Stage an explicit source for applyGraph; restore the accepted source on
+   * a refusal. Caller owns document rollback and correlated deferral. */
+  stageFields(id: number, source: GrooveSource): () => void {
+    const before = this.applied.get(id), intent = this.absentTrackEdits.has(id);
+    this.acceptPattern(id, source);
     this.changed();
-    return () => { if (before) this.applied.set(id, before); else this.applied.delete(id); this.changed(); };
+    return () => {
+      if (before) this.applied.set(id, before); else this.applied.delete(id);
+      if (intent) this.absentTrackEdits.add(id);
+      this.changed();
+    };
+  }
+
+  /** Legacy stopped Apply keeps the old behavior. */
+  stage(id: number): () => void {
+    const m = this.doc.modules.get(id);
+    return this.stageFields(id, { config: m?.config, data: m?.data });
   }
 
   onChange(cb: () => void): () => void { this.listeners.add(cb); return () => this.listeners.delete(cb); }

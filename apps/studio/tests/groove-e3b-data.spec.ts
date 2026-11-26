@@ -227,3 +227,31 @@ test('Groove E3b session projects accepted data, not the editor draft, until ACK
   restore();
   expect(session.project(patch()).modules[0]?.data).toEqual(data);
 });
+
+
+test('Groove E3b construction staging refreshes canonical data and restores on refusal', () => {
+  const original: PatchModule = { id: 1, module: 'sequencing.groove',
+    config: { version: 1, bpm: 120, tracks: [{}] },
+    data: { pattern: { length_1: 32, steps_1: [{ kind: 'note', key: 60,
+      keys: [60, 0, 0, 0, 0], velocity: .5 }], future: 'keep' } } };
+  const modules = new Map([[1, structuredClone(original)]]);
+  const doc = { modules, on: () => () => {} } as unknown as PatchDoc;
+  const session = new GrooveSession(doc);
+  const patch = (): PatchV2 => ({ format: 'wirescape.native.patch', version: 2,
+    modules: [...modules.values()], connections: [] });
+  session.project(patch());
+  const edited = session.editorConfig(1)!;
+  stepFor(edited, 0, 0).key = 65;
+  edited.tracks[0]!.div = 4;
+  modules.get(1)!.config = edited;
+  expect(session.classify(1)).toMatchObject({ kind: 'construction', reason: 'divisor' });
+  const next = session.constructionFields(1)!;
+  expect(grooveEditorConfig(next)!.tracks[0]!.steps[0]!.key).toBe(65);
+  expect(grooveEditorConfig(next)!.tracks[0]!.div).toBe(4);
+  expect(next.data).toMatchObject({ pattern: { future: 'keep' } });
+  const undo = session.stageFields(1, next);
+  expect(session.project(patch()).modules[0]?.data).toEqual(next.data);
+  undo();
+  expect(session.project(patch()).modules[0]?.data).toEqual(original.data);
+  expect(session.isDraft(1)).toBe(true);
+});
