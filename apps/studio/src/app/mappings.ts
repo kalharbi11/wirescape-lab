@@ -45,10 +45,10 @@ export function mappingSource(patch: PatchV2, endpoint: Endpoint): MappingSource
     if (!row) return;
     const config = ccEffectiveRows(m)[Number(row) - 1];
     const source = patch.connections.find(c => c.kind === 'event' && c.to.module === m.id && c.to.port === 'midi');
-    const endpoint = source && ioObject(node(patch, source.from.module)?.config).endpoint;
+    const deviceEndpoint = source && ioObject(node(patch, source.from.module)?.config).endpoint;
     return { kind: 'cc', row: Number(row), label: 'CC ' + config.controller +
       ' · ' + (config.channel === 0 ? 'any channel' : 'ch ' + config.channel) +
-      (typeof endpoint === 'string' ? ' · ' + endpoint : '') };
+      (typeof deviceEndpoint === 'string' ? ' · ' + deviceEndpoint : '') };
   }
   if (m.module === 'osc.in') {
     const row = rowIndex(endpoint.port, 'row');
