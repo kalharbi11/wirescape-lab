@@ -26,6 +26,9 @@ std::string refuse_id;  // fake a single device-specific PortAudio open failure
 std::string open_error; // injected malformed/multibyte host diagnostic
 std::vector<std::string> installed_asio;
 bool active = true, refuse = false, enumeration_throws = false, render = false;
+// P0a's 128-frame fake callback needs sub-OS-tick pacing on Windows.
+// Captured at stream construction; never changes a production wait or gate.
+bool precise_pacing = false;
 uint32_t rejected_rate = 0;
 // Fake ASIO buffer negotiation: when accept_block is set, any other block fails to
 // open; a first attempt then reports `preferred` (0 = driver offers no size).
@@ -83,7 +86,8 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     fake::engine = impl_->engine.get();
     fake::active = true;
     if (fake::render) {
-        impl_->callback = std::thread([impl = impl_.get(), live = impl_->engine.get(), block, rate]() mutable {
+        impl_->callback = std::thread([impl = impl_.get(), live = impl_->engine.get(), block, rate,
+                                      precise = fake::precise_pacing]() mutable {
             std::vector<float> left(block), right(block);
             float *rows[] = {left.data(), right.data()};
             const auto period = std::chrono::duration<double>(block / rate);
@@ -95,7 +99,11 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
                     impl->last_ns.store(app_engine_clock_ns(), std::memory_order_release);
                 }
                 fake::completed_blocks.fetch_add(1, std::memory_order_release);
-                std::this_thread::sleep_for(period);
+                if (precise) {
+                    const auto until = std::chrono::steady_clock::now() + period;
+                    while (!impl->quit.load() && std::chrono::steady_clock::now() < until)
+                        std::this_thread::yield();
+                } else std::this_thread::sleep_for(period);
             }
         });
         fake::freeze_render = [impl = impl_.get()] {
@@ -1503,6 +1511,7 @@ void test_p0a_status(const std::filesystem::path &root) {
     options.settings = (root / "p0a-status.json").string();
     fake::outputs = {output("P0a stereo", 0, true)};
     fake::render = true;
+    fake::precise_pacing = true;
     Session s(options);
     struct Release {
         ~Release() { p0a_hold.store(false, std::memory_order_release); }
@@ -1567,6 +1576,7 @@ void test_p0a_status(const std::filesystem::path &root) {
     s.shutdown();
     check(audio(s)["renderedBlocks"].get<uint64_t>() > frozen, "P0a stop retains count");
     fake::render = false;
+    fake::precise_pacing = false;
 }
 
 // Exercise the real device-off sink, including the ordinary single client
