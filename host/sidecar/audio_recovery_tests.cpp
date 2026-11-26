@@ -1511,8 +1511,6 @@ void test_p0a_status(const std::filesystem::path &root) {
     p0a_entered.store(false);
     check(!audio(s).contains("renderedBlocks"), "P0a legacy status has no unnegotiated field");
     const auto caps = s.hello()["capabilities"];
-    check(std::find(caps.begin(), caps.end(), "audio.renderLiveness") != caps.end(),
-          "P0a hello advertises capability");
     check(s.reply({{{"v", 0}, {"id", "p0a"}, {"type", "hello"},
         {"capabilities", Json::array({"audio.renderLiveness"})}}, {}, {}})["ok"] == true,
           "P0a client opts in");
@@ -1536,17 +1534,21 @@ void test_p0a_status(const std::filesystem::path &root) {
             std::this_thread::sleep_for(1ms);
         return predicate();
     };
-    check(wait([&] { return audio(s).value("renderedBlocks", uint64_t{0}) >= 2; },
-               std::chrono::steady_clock::now() + 2s), "P0a status reports progress");
+    const auto before_blocks = fake::completed_blocks.load(std::memory_order_acquire);
+    check(wait([&] { return fake::completed_blocks.load(std::memory_order_acquire) >= before_blocks + 2; },
+               std::chrono::steady_clock::now() + 2s), "P0a fake callback actually renders");
     check(audio(s)["state"] == "running", "P0a healthy state");
     p0a_hold.store(true, std::memory_order_release);
     check(wait([] { return p0a_entered.load(std::memory_order_acquire); },
                std::chrono::steady_clock::now() + 2s), "P0a test module entered process");
     const auto entered = std::chrono::steady_clock::now();
-    const auto frozen = audio(s).at("renderedBlocks").get<uint64_t>();
+    const auto frozen = audio(s).value("renderedBlocks", uint64_t{0});
     check(wait([&] { return audio(s)["state"] == "stalled"; }, entered + 1s),
           "P0a active callback reports stalled within 1s");
-    check(fake::active && audio(s)["renderedBlocks"] == frozen, "P0a heartbeat stops while backend active");
+    check(std::find(caps.begin(), caps.end(), "audio.renderLiveness") != caps.end(),
+          "P0a hello advertises capability");
+    check(frozen >= 2 && fake::active && audio(s)["renderedBlocks"] == frozen,
+          "P0a negotiated heartbeat advances, then stops while backend active");
     p0a_hold.store(false, std::memory_order_release);
     check(wait([&] { auto a = audio(s); return a["state"] == "running" &&
                 a.value("renderedBlocks", uint64_t{0}) > frozen; }, std::chrono::steady_clock::now() + 1s),
