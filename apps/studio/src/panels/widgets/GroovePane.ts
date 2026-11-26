@@ -19,12 +19,14 @@ export interface GrooveHost {
   config(id: number): unknown;
   /** Whether the Groove's clock input has an authored signal cable. */
   clockPatched(id: number): boolean;
-  setConfig(id: number, config: GrooveConfig): void;
-  /** Current-generation measured stop (G3 `canApplyGroove`); false when the engine cannot say. */
+  setConfig(id: number, config: GrooveConfig, editedTrack?: number): void;
+  /** True only for a classified pattern-only edit on a supporting engine. */
+  liveApply?(id: number): boolean;
+  /** Current-generation measured stop for legacy Apply; live pattern edits do not need it. */
   canApply(id: number): boolean;
   isDraft(id: number): boolean;
   appliedRaw(id: number): unknown;
-  /** Stopped Apply through the whole-graph load; resolves false on refusal (draft kept). */
+  /** Apply resolves false on refusal; the editable draft stays intact. */
   apply(id: number): Promise<boolean>;
   revert(id: number): void;
   /** Rising-edge transport request (`run`, `stop`, `reset`, `t1_run`, …); never touches the document. */
@@ -191,12 +193,12 @@ export class GroovePane {
     return octave ? clamp(key + n * 12, 0, 127) : movePitch(key, n, this.view.root, this.view.scale);
   }
 
-  private edit(fn: (c: GrooveConfig) => void, base?: GrooveConfig): void {
+  private edit(fn: (c: GrooveConfig) => void, base?: GrooveConfig, track = this.t): void {
     const c = base ? JSON.parse(JSON.stringify(base)) as GrooveConfig : readConfig(this.host.config(this.id));
     if (!c) return;
     upgrade(c);
     fn(c);
-    this.host.setConfig(this.id, c);
+    this.host.setConfig(this.id, c, track);
   }
   private setPitch(c: GrooveConfig, i: number, key: number): void {
     let j = sourceOf(c, this.t, i);
@@ -298,13 +300,13 @@ export class GroovePane {
         e.stopPropagation();
         const obs = this.last?.groove?.[this.id]?.[t];
         if (this.running()) this.host.command(this.id, `t${t + 1}_${obs?.playing ? 'stop' : 'run'}`);
-        else this.edit(c => { c.tracks[t]!.armed = c.tracks[t]!.armed === false; });
+        else this.edit(c => { c.tracks[t]!.armed = c.tracks[t]!.armed === false; }, undefined, t);
       });
       const pos = el('span', 'g-pos', '');
       pos.dataset.testid = `groove-pos-${this.id}-${t + 1}`;
       const mute = this.button(`g-tg${track?.mute ? ' on' : ''}`, `mute-${t + 1}`, 'Mute (part of the pattern draft)');
       mute.innerHTML = '<span class="g-led"></span>M';
-      mute.addEventListener('click', e => { e.stopPropagation(); this.edit(c => { c.tracks[t]!.mute = !c.tracks[t]!.mute; }); });
+      mute.addEventListener('click', e => { e.stopPropagation(); this.edit(c => { c.tracks[t]!.mute = !c.tracks[t]!.mute; }, undefined, t); });
       tab.title = this.cfg ? `Cycle: ${trackCycle(this.cfg, t)} sixteenths` : '';
       const speed = el('span', 'g-speed', this.cfg && trackDiv(this.cfg, t) !== 1 ? SPEED_LABEL[trackDiv(this.cfg, t)] + '×' : '');
       speed.dataset.testid = `groove-speed-badge-${this.id}-${t + 1}`;
@@ -1066,9 +1068,11 @@ export class GroovePane {
     this.draftEl.textContent = draft ? 'Draft · not playing yet' : '';
     this.draftEl.hidden = !draft;
     this.apply.disabled = !draft || !canApply || this.applying;
-    this.apply.title = canApply ? 'Load this pattern (the Groove starts stopped)'
+    const live = this.host.liveApply?.(this.id) === true;
+    this.apply.title = live ? 'Apply pattern at the next render block without replacing the Groove'
+      : canApply ? 'Apply construction or legacy pattern through a graph edit'
       : 'Apply waits for a measured stop: stop the Groove first';
-    this.stopApply.hidden = !draft || !running;
+    this.stopApply.hidden = !draft || !running || live;
     this.stopApply.classList.toggle('soft', this.pendingApply);
     this.revert.disabled = !draft || this.applying;
     this.undoBtn.disabled = !this.host.canUndo();

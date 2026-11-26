@@ -2,6 +2,9 @@
 import { test, expect } from '@playwright/test';
 import { grooveExecution, grooveEditorConfig, mergeGroovePattern, classifyGrooveApply } from '../src/groove/livePattern';
 import { stepFor, upgrade } from '../src/groove/pattern';
+import { GrooveSession } from '../src/groove/GrooveSession';
+import type { PatchDoc } from '../src/patch/PatchDoc';
+import type { PatchModule, PatchV2 } from '../src/patch/types';
 
 test('Groove E3b projection separates live fields and preserves typed rows', () => {
   const cfg = { version: 2, bpm: 120, tempo_source: 'host', extra: 'preserved',
@@ -188,4 +191,39 @@ test('Groove E3b A90 absent or empty config preserves native v1 one-track defaul
     expect(classifyGrooveApply(module, editor, true)).toMatchObject({
       kind: 'construction', reason: 'track-count' });
   }
+});
+
+
+test('Groove E3b session projects accepted data, not the editor draft, until ACK', () => {
+  const config = { version: 1, bpm: 120, tracks: [{ armed: true }] };
+  const data = { pattern: { length_1: 32, steps_1: [{ kind: 'note', key: 60,
+    keys: [60, 0, 0, 0, 0], velocity: .5 }], extra: 17 } };
+  const original: PatchModule = { id: 1, module: 'sequencing.groove', config, data };
+  const modules = new Map([[1, structuredClone(original)]]);
+  const doc = { modules, on: () => () => {} } as unknown as PatchDoc;
+  const session = new GrooveSession(doc);
+  const patch = (): PatchV2 => ({ format: 'wirescape.native.patch', version: 2,
+    modules: [...modules.values()], connections: [] });
+  expect(session.project(patch()).modules[0]?.data).toEqual(data);
+  const draft = session.editorConfig(1)!;
+  expect(draft.tracks[0]!.steps[0]!.key).toBe(60);
+  stepFor(draft, 0, 0).key = 61;
+  modules.get(1)!.config = draft;
+  expect(session.isDraft(1)).toBe(true);
+  const edit = session.classify(1);
+  expect(edit?.kind).toBe('pattern');
+  if (edit?.kind !== 'pattern') throw new Error('expected pattern');
+  expect(session.project(patch()).modules[0]?.data).toEqual(data);
+  expect(session.appliedFields(1)).toEqual({ config, data });
+  const restore = session.checkpoint();
+  session.acceptPattern(1, edit.saved);
+  modules.get(1)!.config = edit.saved.config;
+  modules.get(1)!.data = edit.saved.data;
+  expect(session.isDraft(1)).toBe(false);
+  expect(session.editorConfig(1)!.tracks[0]!.steps[0]!.key).toBe(61);
+  expect(session.project(patch()).modules[0]?.data).toEqual(edit.saved.data);
+  expect(edit.saved.config).toEqual(config);
+  expect(edit.saved.data.pattern).toMatchObject({ extra: 17 });
+  restore();
+  expect(session.project(patch()).modules[0]?.data).toEqual(data);
 });
