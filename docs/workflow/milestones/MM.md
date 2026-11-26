@@ -14,6 +14,15 @@ measurement is MM-f (facts only; the cap stays 64).
 - **I1 Live edits only.** A range edit is `setParam` (base) and `setModAmount` (amount). No range edit
   sends `loadGraph` or `applyGraph`. A new mapping or a removal commits as one `applyGraph`, and a
   refusal leaves the document unchanged (0024 §3.2, §3.7).
+  - **A101 (Architect, 2026-11-26, inbox B1-MM1-ack, within 0024 §9.5): partial ACK.** An
+    `applyGraph` ACK that carries any `unapplied` parameter event counts as a refusal of that mapping
+    commit.
+  - Studio sends one compensating `applyGraph` of the prior document state, then restores that state
+    in the model and shows the refusal text.
+  - There is no correlated per-event live compensation: one code path. If the compensating
+    `applyGraph` is also refused, Studio reloads the engine's last acknowledged document.
+  - Tests: a fake ACK with one `unapplied` event leaves the document byte-identical, with exactly one
+    extra `applyGraph` and no `setParam` or `setModAmount`.
 - **I2 One owner per parameter** (§3.3); ordinary modulation cables still add under D7.
 - **I3 Patches stay self-contained.** Mapping helpers are Studio-only `ui` keys (`ui.mappingNodes`);
   a patch without them loads, renders and saves byte-identically to today (§3.5). Macro names live in the
