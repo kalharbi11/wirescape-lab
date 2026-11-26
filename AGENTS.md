@@ -11,6 +11,7 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 | Name | Runs on | Does |
 |---|---|---|
 | **Claude Architect** | Claude | design, contracts, rulings, Architect reviews, acceptance; trigger `architect:run` |
+| `claude-planner` | Claude (Opus) | two bounded planning runs (owner, 2026-11-26): build review, roadmap, new-repo architecture; rulings final; trigger `planner: run 2a` / `2b` (run 1 done) |
 | `gpt-lead` | Codex | delivery lead ([lead brief](docs/context/CODEX_LEAD.md)): keeps lanes moving, checks evidence, merges what it is delegated, prepares Architect and review requests; trigger `lead:run` |
 | `claude-lead` | Claude | the same lead role when the owner assigns it to Claude; trigger `claude lead: run`. One lead is active at a time (named in CURRENT) |
 | `gpt-builder1` … `gpt-builder5` | ChatGPT chat | lanes B1–B5 in [BUILDERS](docs/workflow/BUILDERS.md): implement, test, correct, post Results, move to the next lane task |
@@ -20,7 +21,7 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 | Trigger | Read first, in order |
 |---|---|
 | `architect:run` | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` |
-| `fable: design run 1` / `2` | [Fable design brief](docs/context/fable/README.md) (owner, 2026-11-26: two bounded design runs; rulings final) |
+| `planner: run 2a` / `2b` (or `2`) | [Planner brief](docs/context/planner/README.md) (`claude-planner` on Opus, owner 2026-11-26: two bounded planning runs; rulings final) |
 | `lead:run` | [Lead brief](docs/context/CODEX_LEAD.md) → [BUILDERS](docs/workflow/BUILDERS.md) → [ROADMAP](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) |
 | `1:run` through `5:run` (builder chats) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
 

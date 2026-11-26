@@ -3,6 +3,7 @@
 #include "../../modules/osc_out/config.h"
 #include <array>
 #include <atomic>
+#include <bitset>
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -13,6 +14,7 @@
 
 namespace wirescape::osc {
 struct Message;
+struct OscOutRoutes;
 // Test-only deterministic send seam; production always uses the loopback socket.
 using SendOverride = bool (*)(const Message &, uint16_t);
 struct OutState {
@@ -27,8 +29,10 @@ struct OutState {
 class OutHost {
     struct RowCursor {
         uint32_t rises = 0, falls = 0;
+        bool wait_for_table = false;
+        uint32_t seen_serial = 0;
         float previous = 0;
-        bool initialized = false, gate_high = false, retry = false;
+        bool initialized = false, gate_high = false, sent_high = false, retry = false;
         std::chrono::steady_clock::time_point last_send{};
     };
     struct Route {
@@ -36,6 +40,30 @@ class OutHost {
         OutConfiguration config{};
         std::unique_ptr<OutBus> bus = std::make_unique<OutBus>();
         std::array<RowCursor, 8> cursors{};
+        // Only the sender updates delivered levels. Control moves them to a
+        // bounded old-address release set after joining the worker.
+        std::array<std::bitset<128>, 18> notes_high{}, notes_release{}; // channel -1..16
+        std::array<OutRowConfig, 8> gate_release{};
+        std::bitset<8> release_gates{};
+        char release_notes_address[64]{};
+        bool notes_cleanup = false;
+        uint32_t note_serial = 0;
+        bool has_cleanup() const noexcept {
+            if (notes_cleanup) return true;
+            for (const auto &cursor : cursors) if (cursor.wait_for_table) return true;
+            return false;
+        }
+        void drop_releases() noexcept {
+            uint64_t count = release_gates.count();
+            release_gates.reset();
+            for (auto &keys : notes_release) { count += keys.count(); keys.reset(); }
+            dropped.fetch_add(count, std::memory_order_relaxed);
+        }
+        bool has_releases() const noexcept {
+            if (release_gates.any()) return true;
+            for (const auto &keys : notes_release) if (keys.any()) return true;
+            return false;
+        }
         std::atomic<uint64_t> sent{0}, dropped{0};
         std::atomic<uint32_t> error{0};
         bool enabled = false;
@@ -55,6 +83,9 @@ class OutHost {
     OutHost(const OutHost &) = delete;
     OutHost &operator=(const OutHost &) = delete;
     const std::map<uint32_t, OutBus *> &buses() const noexcept { return buses_; }
+    // Adopt validated data only after the engine has accepted the slot write.
+    // The construction bus stays owned by this graph; no instance replacement.
+    void commit_data(uint32_t node, const OscOutRoutes &) noexcept;
     void start() noexcept;
     void stop() noexcept;
     std::vector<OutState> states() const;

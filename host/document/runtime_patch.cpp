@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <tuple>
 #include "runtime_module_config.h"
+#include "io_data_migration.h"
 #include "groove_data_migration.h"
 #include "../../engine/data_pack.h"
 #include <cmath>
@@ -102,16 +103,26 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
    }
    need(descriptor != nullptr, "unknown-module");
    if(version==2){need(m.at("version").is_number_integer()&&m.at("version").get<int64_t>()>0,"Invalid module version");if(m.contains("config"))need(m["config"].is_object(),"Module config must be an object");}
-   auto execution = m;
-   if (version == 2) materialize_groove_legacy_data(execution, node);
-   const auto authored_config = version == 2 ? execution.value("config", Json::object()) : Json::object();
+   auto authored_config = version == 2 ? m.value("config", Json::object()) : Json::object();
+   auto data = version == 2 ? m.value("data", Json::object()) : Json::object();
+   if (io_slot_id(type)) {
+       Json execution = {{"id", node}, {"module", type}, {"config", authored_config}, {"data", data}};
+       migrate_io_module(execution, &ignored_osc_keys);
+       authored_config = execution.value("config", Json::object());
+       data = execution.at("data");
+   }
+   if (version == 2 && type == "sequencing.groove") {
+       Json execution = m;
+       materialize_groove_legacy_data(execution, node);
+       authored_config = execution.value("config", Json::object());
+       data = execution.at("data");
+   }
    auto module_config = type == "sequencing.groove" ? groove_construction_bytes(authored_config, node) :
        runtime_module_config(type, authored_config, node, &ignored_osc_keys);
    need(app_engine_add_node_config(engine.get(),node,type.c_str(),module_config)==WS2_OK,"Module unavailable or prepare failed");
    // Pack every declared slot, including an omitted slot's defaults, before
    // prepare. Unknown stored keys remain in the authored document.
-   if (version == 2) {
-       const auto data = execution.value("data", Json::object());
+   if (version == 2 || io_slot_id(type)) {
        need(data.is_object(), "data: expected object");
        const uint32_t slots = descriptor->struct_size >= offsetof(ws2_descriptor, data_slot_count) +
            sizeof(descriptor->data_slot_count) ? descriptor->data_slot_count : 0;

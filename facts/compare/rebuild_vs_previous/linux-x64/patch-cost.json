@@ -1,0 +1,1227 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-x64",
+    "architecture": "x86_64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "model name\t: Intel(R) Xeon(R) 6975P-C"
+    ],
+    "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:26:12.036910-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "rows": [
+    {
+      "patch": "basics-01-first-tone.json",
+      "fixture_sha256": "b6f6048e2fd972429c5946d038b0846b10e29081fadf948762577579c7a47c64",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "basics-02-fm-filter-lfo.json",
+      "fixture_sha256": "984d169cac944fe2c45c92bdcd8948f35dd0f90f5439b064f179eb3e5c08cbfc",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "basics-03-echo-and-reverb.json",
+      "fixture_sha256": "a1b13250aa7fc6a167c1e57d7451d94ca2adc02082b7a8bf3297fc7d880a5137",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "basics-04-sequencer-and-quantizer.json",
+      "fixture_sha256": "54efd3ff29b822aeacd558043e51db4e17da1e7bd0265ec69ec6ead83a36eae6",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 15220,
+            "median": 29573,
+            "p99": 34645,
+            "p99_9": 39643,
+            "max": 54290
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 15605,
+            "median": 30893,
+            "p99": 35923,
+            "p99_9": 41129,
+            "max": 56632
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.541682184
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 15652,
+            "median": 30714,
+            "p99": 36368,
+            "p99_9": 41756,
+            "max": 62890
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 16019,
+            "median": 32143.5,
+            "p99": 37937,
+            "p99_9": 43924,
+            "max": 64237
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.541682184
+        }
+      }
+    },
+    {
+      "patch": "basics-05-random-melody.json",
+      "fixture_sha256": "a5e38ed75a9a626d2c78d63d8615e0dffdbbf4821157bea46679c64b30e95589",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 28688,
+            "median": 45662.5,
+            "p99": 53190,
+            "p99_9": 67032,
+            "max": 89835
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 29275,
+            "median": 46988.5,
+            "p99": 54770,
+            "p99_9": 68619,
+            "max": 92400
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.640666544
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 29502,
+            "median": 49012,
+            "p99": 69584,
+            "p99_9": 75469,
+            "max": 82243
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 29855,
+            "median": 50325,
+            "p99": 71130,
+            "p99_9": 77045,
+            "max": 83869
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.572755873
+        }
+      }
+    },
+    {
+      "patch": "basics-06-chaos-keys.json",
+      "fixture_sha256": "b6f7d055d6ce44462a36ea2620c4b02bc12d74c9a805a0b7ea8acbc986f4dd72",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "basics-07-macro-keys.json",
+      "fixture_sha256": "b02af166d3fce36762b78c4202a7babd3958c32ade2e931e22302024b2cd5fb0",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "basics-08-clocked-groove.json",
+      "fixture_sha256": "d6abf9519bea36d8dc7973f8c9b422874c59767d6dd9e0024f1f4e26db33e2cd",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 14566,
+            "median": 29018,
+            "p99": 34415,
+            "p99_9": 39896,
+            "max": 55225
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 15137,
+            "median": 30402.5,
+            "p99": 35921,
+            "p99_9": 41287,
+            "max": 57876
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.472357988
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 14043,
+            "median": 27912,
+            "p99": 33066,
+            "p99_9": 43548,
+            "max": 61414
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 14410,
+            "median": 29257,
+            "p99": 34419,
+            "p99_9": 45071,
+            "max": 63759
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.472357988
+        }
+      }
+    },
+    {
+      "patch": "chaos-01-ember-veil-pad.json",
+      "fixture_sha256": "903d22c6742b4803a91e630c69b6d14e03fde65aa1eb687cf1c5ac64469625e0",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "chaos-02-wireglass-lead.json",
+      "fixture_sha256": "6a8c8e4e5b7c0e8cdbc36ce0fd37584548faa10008bb45d02d3eef3b879ac992",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "chaos-03-orbiting-iron-fx.json",
+      "fixture_sha256": "b2f3fad43a0a6806694afe854d49f138f936d0599ad79ef2d6ac3e9c5624c695",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 42093,
+            "median": 61195,
+            "p99": 66914,
+            "p99_9": 81676,
+            "max": 94964
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 42518,
+            "median": 62584.5,
+            "p99": 68389,
+            "p99_9": 83429,
+            "max": 96287
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.110489331
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 42069,
+            "median": 64491.5,
+            "p99": 71149,
+            "p99_9": 86489,
+            "max": 125443
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 42915,
+            "median": 65852,
+            "p99": 72580,
+            "p99_9": 87765,
+            "max": 127166
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0992571414
+        }
+      }
+    },
+    {
+      "patch": "chaos-04-radio-static-fx.json",
+      "fixture_sha256": "09a4863b4512e7572ba36b49c45ae43c4412d4cf1b2fada1f52cda816e350af2",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 36216,
+            "median": 57082,
+            "p99": 81126,
+            "p99_9": 85911,
+            "max": 97684
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 37071,
+            "median": 58463.5,
+            "p99": 82786,
+            "p99_9": 87464,
+            "max": 99481
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0925931036
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 38368,
+            "median": 59003.5,
+            "p99": 75477,
+            "p99_9": 86029,
+            "max": 105956
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 39005,
+            "median": 60428,
+            "p99": 77038,
+            "p99_9": 87604,
+            "max": 108134
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0814617127
+        }
+      }
+    },
+    {
+      "patch": "chaos-05-moonlit-drift-pad.json",
+      "fixture_sha256": "30ed466ba1b208183879d44342322d8cbb37a18baa0a0d2b3930d45426527a58",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "osc-out-01.json",
+      "fixture_sha256": "ae6b0d2111b88952797ea844e915de69e62bae939b6ceba0a7a1f55eed904fe3",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "quad-vca-01-lpg-plucks.json",
+      "fixture_sha256": "5c9c6da4162fa309b176f12630e7e99ddf08ee6a3886aa5e4d04d0d40b1a4f86",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "quad-vca-02-four-gate-mix.json",
+      "fixture_sha256": "1bca694b3fc55362beac073447853142c80a7d04fb3a1c9a692f9c42b9d839ad",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 10580,
+            "median": 20167,
+            "p99": 39587,
+            "p99_9": 47139,
+            "max": 51508
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 11829,
+            "median": 21533,
+            "p99": 41537,
+            "p99_9": 48678,
+            "max": 53364
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.889819801
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 10811,
+            "median": 20267.5,
+            "p99": 25778,
+            "p99_9": 40892,
+            "max": 72795
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 11201,
+            "median": 21641.5,
+            "p99": 27489,
+            "p99_9": 42930,
+            "max": 74289
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.889819801
+        }
+      }
+    },
+    {
+      "patch": "scene-01-hollow-chapel.json",
+      "fixture_sha256": "fa9f83c3f6b20120902da733bb102a6326e59cd004342b3770a188c8adbe9287",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 65707,
+            "median": 90611.5,
+            "p99": 106510,
+            "p99_9": 124348,
+            "max": 146949
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 67648,
+            "median": 92050,
+            "p99": 108319,
+            "p99_9": 125912,
+            "max": 149183
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.95045799
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 71408,
+            "median": 98219.5,
+            "p99": 118667,
+            "p99_9": 132374,
+            "max": 157025
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 72150,
+            "median": 99582,
+            "p99": 120245,
+            "p99_9": 134014,
+            "max": 157698
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.978190482
+        }
+      }
+    },
+    {
+      "patch": "scene-02-breathing-walls.json",
+      "fixture_sha256": "370a33ea03ba4d8639ec2432c4bfcffa5581ff078b4b90a446345b697fdc767d",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 53610,
+            "median": 78346,
+            "p99": 85792,
+            "p99_9": 105091,
+            "max": 122119
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 54556,
+            "median": 79770,
+            "p99": 87293,
+            "p99_9": 106766,
+            "max": 123541
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.38514173
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 60052,
+            "median": 83732,
+            "p99": 92561,
+            "p99_9": 112242,
+            "max": 142886
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 61067,
+            "median": 85165.5,
+            "p99": 94140,
+            "p99_9": 113856,
+            "max": 144260
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.428069621
+        }
+      }
+    },
+    {
+      "patch": "scene-03-black-ice-choir.json",
+      "fixture_sha256": "efc1e0352bcdd082cfa11a07f9106e40f0706e23270c974a65ed2804f00348a3",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "scene-04-vowel-apparitions.json",
+      "fixture_sha256": "7d55d1e052b23b78088b2145dc7630aa4c9742810ef0ebb25d482bd3e6ef75c1",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wirescape_soak: graph setup/render failed\n"
+      }
+    },
+    {
+      "patch": "scene-05-glass-cathedrals.json",
+      "fixture_sha256": "15ad782ebdc78526b33f179923b74648d5b3f43cefe7eadcd9106f4b21ddf2cb",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 86262,
+            "median": 104706,
+            "p99": 134082,
+            "p99_9": 141421,
+            "max": 152096
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 86782,
+            "median": 106117,
+            "p99": 135688,
+            "p99_9": 143026,
+            "max": 154123
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.000146120059
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 90209,
+            "median": 107537,
+            "p99": 133004,
+            "p99_9": 139635,
+            "max": 172492
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 90578,
+            "median": 108875.5,
+            "p99": 134533,
+            "p99_9": 141157,
+            "max": 173919
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.000130339089
+        }
+      }
+    },
+    {
+      "patch": "scene-06-dust-reactor.json",
+      "fixture_sha256": "910325886fb7d48f0c4f97640efdb90bab210bed0ed793676a7a4da94cfeda28",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 43859,
+            "median": 69781.5,
+            "p99": 89059,
+            "p99_9": 99416,
+            "max": 105458
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 44692,
+            "median": 71273,
+            "p99": 90840,
+            "p99_9": 101198,
+            "max": 107033
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.645248234
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 46220,
+            "median": 72932,
+            "p99": 99036,
+            "p99_9": 106424,
+            "max": 153147
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 46610,
+            "median": 74376.5,
+            "p99": 100710,
+            "p99_9": 108291,
+            "max": 155111
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.700864315
+        }
+      }
+    },
+    {
+      "patch": "scene-07-witching-hour.json",
+      "fixture_sha256": "988f927303253110b1ccfb9db35fd8bae23784e7aabdc3ed2e4dc18a33ae7224",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 34616,
+            "median": 61110.5,
+            "p99": 70238,
+            "p99_9": 77073,
+            "max": 99458
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 35421,
+            "median": 62590.5,
+            "p99": 72020,
+            "p99_9": 78665,
+            "max": 101087
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.603727341
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 34974,
+            "median": 61632,
+            "p99": 71660,
+            "p99_9": 87887,
+            "max": 99438
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 36095,
+            "median": 63042,
+            "p99": 73347,
+            "p99_9": 89835,
+            "max": 101365
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.11490738
+        }
+      }
+    },
+    {
+      "patch": "scene-08-neon-elegy.json",
+      "fixture_sha256": "f27d78f3b62e68c3af787374294789a47cd4497426cc7bb507fdfcd5057c978b",
+      "fixture_subject": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+      "input_mode": "original; no scripted keyboard substitution",
+      "rate": 48000,
+      "block": 128,
+      "seconds": 30,
+      "before": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 43429,
+            "median": 69109,
+            "p99": 80525,
+            "p99_9": 96672,
+            "max": 116614
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 44065,
+            "median": 70638,
+            "p99": 82237,
+            "p99_9": 98457,
+            "max": 118608
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.455453694
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "graph": "document",
+          "sample_rate": 48000,
+          "block": 128,
+          "seconds": 30,
+          "blocks": 11250,
+          "period_ns": 2666666.67,
+          "render_ns": {
+            "min": 44881,
+            "median": 74745,
+            "p99": 97978,
+            "p99_9": 103162,
+            "max": 115840
+          },
+          "cpu_clock": "CLOCK_THREAD_CPUTIME_ID",
+          "cpu_ns": {
+            "min": 45696,
+            "median": 76354,
+            "p99": 99779,
+            "p99_9": 105056,
+            "max": 117725
+          },
+          "preempted": 0,
+          "over_50_percent": 0,
+          "over_100_percent": 0,
+          "late_deadlines": 0,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.447924078
+        }
+      }
+    }
+  ],
+  "own_patch_names": {
+    "before": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-05-random-melody.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "basics-08-clocked-groove.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "osc-out-01.json",
+      "quad-vca-01-lpg-plucks.json",
+      "quad-vca-02-four-gate-mix.json",
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ],
+    "after": [
+      "basics-01-first-tone.json",
+      "basics-02-fm-filter-lfo.json",
+      "basics-03-echo-and-reverb.json",
+      "basics-04-sequencer-and-quantizer.json",
+      "basics-05-random-melody.json",
+      "basics-06-chaos-keys.json",
+      "basics-07-macro-keys.json",
+      "basics-08-clocked-groove.json",
+      "chaos-01-ember-veil-pad.json",
+      "chaos-02-wireglass-lead.json",
+      "chaos-03-orbiting-iron-fx.json",
+      "chaos-04-radio-static-fx.json",
+      "chaos-05-moonlit-drift-pad.json",
+      "osc-out-01.json",
+      "quad-vca-01-lpg-plucks.json",
+      "quad-vca-02-four-gate-mix.json",
+      "scene-01-hollow-chapel.json",
+      "scene-02-breathing-walls.json",
+      "scene-03-black-ice-choir.json",
+      "scene-04-vowel-apparitions.json",
+      "scene-05-glass-cathedrals.json",
+      "scene-06-dust-reactor.json",
+      "scene-07-witching-hour.json",
+      "scene-08-neon-elegy.json"
+    ]
+  }
+}

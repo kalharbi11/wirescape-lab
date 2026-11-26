@@ -1,0 +1,3455 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-arm64",
+    "architecture": "aarch64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "CPU implementer\t: 0x41",
+      "CPU part\t: 0xd49"
+    ],
+    "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:25:27.944169-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "collector_subject": "73f411dd1010675967230ed535ad163d35ebaf24",
+  "rows": [
+    {
+      "patch": "basics-01-first-tone.json",
+      "fixture_sha256": "b6f6048e2fd972429c5946d038b0846b10e29081fadf948762577579c7a47c64",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "044135e858ccc873f3e693c8a48dfcffc0f72bba074817bf9d963c3e2278d5e2",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/basics-01-first-tone.json",
+        "peak_fs": 0.2199699431657791,
+        "rms_fs": 0.06865050245577684,
+        "dc_fs": 4.4882435074965107e-07,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -140.190324
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -138.707981
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -137.555087
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -135.818542
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -134.287565
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -132.361123
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -129.928632
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -126.621837
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -122.421497
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -115.955816
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -103.759465
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -23.244897
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -98.072539
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -117.159276
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -126.492654
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -133.283439
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -138.727705
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -143.403713
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -147.521086
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -151.281423
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -154.769041
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -158.072789
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -161.239959
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -164.27823
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -167.19403
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -169.907725
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -172.307392
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -174.298446
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -175.478739
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -175.85817
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -175.638577
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-02-fm-filter-lfo.json",
+      "fixture_sha256": "984d169cac944fe2c45c92bdcd8948f35dd0f90f5439b064f179eb3e5c08cbfc",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "f048e68941a1d0b528a18d7e4a95792720a3fa44415fea4b60140c0c8955c110",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/basics-02-fm-filter-lfo.json",
+        "peak_fs": 0.2016621083021164,
+        "rms_fs": 0.04864412436245839,
+        "dc_fs": -0.0008149446427121244,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -61.802293
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -60.553851
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -57.945903
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -56.50126
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -56.004697
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -55.619226
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -54.580003
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -53.827909
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -53.215632
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -52.573513
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -52.058132
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -50.775417
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -50.927861
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -49.982448
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -31.406184
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -53.586931
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -60.829213
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -39.06201
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -50.488727
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -45.202265
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -37.010862
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -36.861994
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -40.483382
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -46.54369
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -63.96919
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -89.440633
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -102.431981
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -116.642177
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -128.235424
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -144.776465
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -171.827202
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-03-echo-and-reverb.json",
+      "fixture_sha256": "a1b13250aa7fc6a167c1e57d7451d94ca2adc02082b7a8bf3297fc7d880a5137",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "b6b416a218426e79ce1037c86fd090f7e618f5688be913bd70d0b40dd102d0c6",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/basics-03-echo-and-reverb.json",
+        "peak_fs": 0.2558436095714569,
+        "rms_fs": 0.024339048977291326,
+        "dc_fs": 4.301675820041837e-05,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -81.646352
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -80.058588
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -77.317355
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -73.828495
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -68.555407
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -43.84715
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -58.981263
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -69.755945
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -74.570063
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -78.306384
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -81.975859
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -85.983685
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -86.516768
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -64.095377
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -52.531382
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -48.065161
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -85.723552
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -46.284601
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -72.104571
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -49.886492
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -56.135055
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -66.908049
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -80.828382
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -87.527018
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -95.391779
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -101.941752
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -106.254948
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -111.370666
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -115.915726
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -120.686387
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -123.64143
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-04-sequencer-and-quantizer.json",
+      "fixture_sha256": "54efd3ff29b822aeacd558043e51db4e17da1e7bd0265ec69ec6ead83a36eae6",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "5ea18ff38613df36ccbdd11ce630424e948b8097f94fc7f8e4a4932aa9edc3f0",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/basics-04-sequencer-and-quantizer.json",
+        "peak_fs": 0.5415874123573303,
+        "rms_fs": 0.1824176374076494,
+        "dc_fs": 1.0668561644023144e-05,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -81.74769
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -80.641171
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -79.361391
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -78.917991
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -78.881475
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -77.691593
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -75.758875
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -71.105952
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -64.917271
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -57.697558
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -49.039787
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -23.376634
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -23.611822
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -17.405129
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -22.411635
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -51.910909
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -68.896123
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -76.543181
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -81.806312
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -86.698848
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -90.809867
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -94.284235
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -97.646667
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -100.870096
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -103.919558
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -106.859233
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -109.638045
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -112.258351
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -114.585331
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -116.450565
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -117.446006
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-05-random-melody.json",
+      "fixture_sha256": "a5e38ed75a9a626d2c78d63d8615e0dffdbbf4821157bea46679c64b30e95589",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "8a3cea67fe5aaf1355373fc5ea0dac5676f516e7117090b096bc65173ff15e1f",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/basics-05-random-melody.json",
+        "peak_fs": 0.5851230025291443,
+        "rms_fs": 0.04223581366438157,
+        "dc_fs": -2.536766813215588e-05,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -42.575538
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -41.248481
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -39.517692
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -39.037718
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -37.838066
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -37.748369
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -37.587475
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -37.845049
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -38.429554
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -39.026361
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -41.450245
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -44.576728
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -46.59132
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -48.626584
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -47.622032
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -49.031813
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -56.211391
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -61.903379
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -67.907362
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -74.100249
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -81.227162
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -88.693585
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -95.507451
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -100.59588
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -106.54606
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -115.419029
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -123.80673
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -129.250223
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -135.571064
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -140.182375
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -143.179978
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-06-chaos-keys.json",
+      "fixture_sha256": "b6f7d055d6ce44462a36ea2620c4b02bc12d74c9a805a0b7ea8acbc986f4dd72",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "1b33254d9dc55be6c0a4e65791d831855342aa89fffdf386906f78aaad4505f8",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/basics-06-chaos-keys.json",
+        "peak_fs": 0.3039048910140991,
+        "rms_fs": 0.0772372691424451,
+        "dc_fs": 0.00012335958859041905,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -83.267077
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -81.272904
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -77.703714
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -79.947308
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -81.755746
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -79.78583
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -76.641524
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -67.673909
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -24.707219
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -62.745082
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -73.363568
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -32.752659
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -69.906943
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -32.403487
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -31.140028
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -38.854137
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -41.886264
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -36.548119
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -40.81325
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -39.38529
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -41.880556
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -44.37731
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -44.992468
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -46.420081
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -48.056748
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -49.98626
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -51.565076
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -53.851419
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -55.695714
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -57.116301
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -57.947601
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-07-macro-keys.json",
+      "fixture_sha256": "b02af166d3fce36762b78c4202a7babd3958c32ade2e931e22302024b2cd5fb0",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "16d625235b28cc7558c4c714547802e90b54d9bd6fb0b0b15bc5c9405eda06cd",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/basics-07-macro-keys.json",
+        "peak_fs": 0.2687370777130127,
+        "rms_fs": 0.06504964510777037,
+        "dc_fs": 0.0025773666121986873,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -107.739389
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -110.107253
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -113.098555
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -116.45402
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -119.031607
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -121.156935
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -121.017716
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -117.956821
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -114.073531
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -107.260874
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -75.645301
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -25.155242
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -101.452694
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -91.752765
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -34.271231
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -39.057283
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -37.939203
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -39.133296
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -39.979559
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -42.706904
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -41.999729
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -43.171819
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -44.197837
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -45.371059
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -47.002788
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -47.93281
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -50.400333
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -52.943578
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -56.828068
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -63.586902
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -71.230409
+          }
+        ]
+      }
+    },
+    {
+      "patch": "basics-08-clocked-groove.json",
+      "fixture_sha256": "d6abf9519bea36d8dc7973f8c9b422874c59767d6dd9e0024f1f4e26db33e2cd",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "49e146ca1b90757e76361e6a556d561cba4d70fad33bfe2a30edd8b6e7a16502",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/basics-08-clocked-groove.json",
+        "peak_fs": 0.47179949283599854,
+        "rms_fs": 0.1267351324114766,
+        "dc_fs": -7.913055659576996e-06,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -80.305196
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -79.362708
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -78.211296
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -77.163765
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -76.228323
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -75.269511
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -73.316537
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -70.106559
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -64.756908
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -57.992951
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -48.910193
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -25.434366
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -22.342929
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -23.316476
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -26.249204
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -50.547713
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -70.143339
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -77.30387
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -82.210606
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -86.438937
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -90.21126
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -94.059188
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -97.381881
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -100.466983
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -103.532456
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -106.461659
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -109.215146
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -111.785459
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -114.031361
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -115.766733
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -116.626428
+          }
+        ]
+      }
+    },
+    {
+      "patch": "chaos-01-ember-veil-pad.json",
+      "fixture_sha256": "903d22c6742b4803a91e630c69b6d14e03fde65aa1eb687cf1c5ac64469625e0",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "2e5fe9e3f2dbb27875615eba7963f0ca6d0865fddd520bbb8a93a44c4044325c",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/chaos-01-ember-veil-pad.json",
+        "peak_fs": 0.18934300541877747,
+        "rms_fs": 0.07640956075191087,
+        "dc_fs": -1.0800334828107236e-06,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -98.563924
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -96.684233
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -93.727348
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -91.293031
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -93.044474
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -87.880429
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -82.544291
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -77.202074
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -21.944655
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -73.484996
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -81.644886
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -83.235424
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -84.543486
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -41.229431
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -81.971049
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -48.009688
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -80.938047
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -51.667654
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -51.09267
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -52.991511
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -54.691689
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -56.522997
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -57.04723
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -58.843086
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -59.561698
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -62.374917
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -65.768307
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -67.684277
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -69.451406
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -70.389778
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -71.591356
+          }
+        ]
+      }
+    },
+    {
+      "patch": "chaos-02-wireglass-lead.json",
+      "fixture_sha256": "6a8c8e4e5b7c0e8cdbc36ce0fd37584548faa10008bb45d02d3eef3b879ac992",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "ed8627a5274ad985a50653fa9ebe491764d4e75b9d90d9779c231e51e1bb4e38",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/chaos-02-wireglass-lead.json",
+        "peak_fs": 0.08228602260351181,
+        "rms_fs": 0.019166681112280034,
+        "dc_fs": -3.911326373197665e-05,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -92.231583
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -88.97496
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -87.577393
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -87.954472
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -87.847811
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -84.582533
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -83.375652
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -85.966153
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -81.453637
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -77.413654
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -70.853445
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -34.597364
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -68.637074
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -76.595545
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -54.878279
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -82.014291
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -51.646514
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -62.859617
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -54.325519
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -66.299096
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -58.684987
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -61.396206
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -62.675451
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -62.749134
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -68.152307
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -66.756373
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -70.309307
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -71.342497
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -73.313367
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -75.085681
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -75.749616
+          }
+        ]
+      }
+    },
+    {
+      "patch": "chaos-03-orbiting-iron-fx.json",
+      "fixture_sha256": "b2f3fad43a0a6806694afe854d49f138f936d0599ad79ef2d6ac3e9c5624c695",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "b8bd96460a7f75138931046bfcfab55270f5ec83441048a4e1156d450b21e72f",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/chaos-03-orbiting-iron-fx.json",
+        "peak_fs": 0.10861935466527939,
+        "rms_fs": 0.018286023817297426,
+        "dc_fs": -0.00012412489468308313,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -69.45544
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -67.529006
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -64.566451
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -59.49347
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -53.752442
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -35.580099
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -52.097508
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -59.211387
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -66.272093
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -67.260775
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -53.917265
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -71.566783
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -64.673001
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -72.46005
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -53.995833
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -62.232701
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -58.324871
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -46.541654
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -61.959685
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -62.800168
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -56.646235
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -59.374681
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -60.114569
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -64.531387
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -59.813064
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -66.141994
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -71.434371
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -69.980819
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -74.505641
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -75.736098
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -77.665035
+          }
+        ]
+      }
+    },
+    {
+      "patch": "chaos-04-radio-static-fx.json",
+      "fixture_sha256": "09a4863b4512e7572ba36b49c45ae43c4412d4cf1b2fada1f52cda816e350af2",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "d2d8403025b4013a2e3e48b62fcece557c1291fb0b35aad2487848b60f1380b2",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/chaos-04-radio-static-fx.json",
+        "peak_fs": 0.08856786787509918,
+        "rms_fs": 0.015024751395459345,
+        "dc_fs": -8.226066759750886e-06,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -77.423471
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -76.346885
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -75.620256
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -71.843708
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -70.512457
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -65.094503
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -60.813634
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -55.372373
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -37.877381
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -53.420085
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -60.420925
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -59.612402
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -66.468572
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -52.460575
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -47.341698
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -53.315022
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -66.596696
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -53.620679
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -61.312901
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -56.933522
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -62.472714
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -62.721118
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -61.942827
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -67.188607
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -65.382231
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -69.826196
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -72.474613
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -72.685751
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -75.460388
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -77.020296
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -77.900705
+          }
+        ]
+      }
+    },
+    {
+      "patch": "chaos-05-moonlit-drift-pad.json",
+      "fixture_sha256": "30ed466ba1b208183879d44342322d8cbb37a18baa0a0d2b3930d45426527a58",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "8b14ad9c319c09819da02f444f2a4a913d62e092a4a3fffd6bc18aed0d704ddb",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/chaos-05-moonlit-drift-pad.json",
+        "peak_fs": 0.13357527554035187,
+        "rms_fs": 0.056209924034886324,
+        "dc_fs": -4.7234394304604224e-07,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -99.919601
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -99.853942
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -100.341657
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -92.755178
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -88.887757
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -92.458804
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -82.248241
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -77.320833
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -24.553752
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -72.432765
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -80.579779
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -85.467382
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -86.802076
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -47.652656
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -88.844003
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -54.281694
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -88.981114
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -55.001886
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -57.681168
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -56.28473
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -61.48622
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -65.850193
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -65.27439
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -67.819281
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -67.909569
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -72.288164
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -73.897719
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -76.446528
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -78.744214
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -79.997306
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -81.121426
+          }
+        ]
+      }
+    },
+    {
+      "patch": "osc-out-01.json",
+      "fixture_sha256": "ae6b0d2111b88952797ea844e915de69e62bae939b6ceba0a7a1f55eed904fe3",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "044135e858ccc873f3e693c8a48dfcffc0f72bba074817bf9d963c3e2278d5e2",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/osc-out-01.json",
+        "peak_fs": 0.2199699431657791,
+        "rms_fs": 0.06865050245577684,
+        "dc_fs": 4.4882435074965107e-07,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -140.190324
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -138.707981
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -137.555087
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -135.818542
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -134.287565
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -132.361123
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -129.928632
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -126.621837
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -122.421497
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -115.955816
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -103.759465
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -23.244897
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -98.072539
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -117.159276
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -126.492654
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -133.283439
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -138.727705
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -143.403713
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -147.521086
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -151.281423
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -154.769041
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -158.072789
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -161.239959
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -164.27823
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -167.19403
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -169.907725
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -172.307392
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -174.298446
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -175.478739
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -175.85817
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -175.638577
+          }
+        ]
+      }
+    },
+    {
+      "patch": "quad-vca-01-lpg-plucks.json",
+      "fixture_sha256": "5c9c6da4162fa309b176f12630e7e99ddf08ee6a3886aa5e4d04d0d40b1a4f86",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "09f7470cc0e0c150f2597d060804458ec1c12f892a96f5428eb9eb88dd2b352a",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/quad-vca-01-lpg-plucks.json",
+        "peak_fs": 0.5683756470680237,
+        "rms_fs": 0.05544817203461666,
+        "dc_fs": 4.666844218009968e-06,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -141.282546
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -143.304643
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -144.489561
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -141.073244
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -139.421691
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -139.074793
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -137.222082
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -137.346894
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -138.905043
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -138.191714
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -124.450826
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -39.543658
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -116.145959
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -133.876338
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -139.053048
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -144.419594
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -156.87807
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -161.523582
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -168.900694
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -175.125306
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -180.737031
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -183.167988
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -186.889975
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -190.552076
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -193.128588
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -194.414104
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -196.121825
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -196.99388
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -197.951354
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -198.47697
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -198.191946
+          }
+        ]
+      }
+    },
+    {
+      "patch": "quad-vca-02-four-gate-mix.json",
+      "fixture_sha256": "1bca694b3fc55362beac073447853142c80a7d04fb3a1c9a692f9c42b9d839ad",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "a49aca47c69a6eb98f72df5f684df9ea5cdbf70335b9002feaaa587424be6f06",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/quad-vca-02-four-gate-mix.json",
+        "peak_fs": 0.8898198008537292,
+        "rms_fs": 0.3848323557229933,
+        "dc_fs": -1.789441627389142e-05,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -151.07707
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -149.250225
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -147.394157
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -144.910703
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -142.027476
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -138.178601
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -132.901075
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -124.778302
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -109.746849
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -8.485623
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -72.822628
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -120.521769
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -137.334364
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -148.678208
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -157.698812
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -165.269369
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -170.782661
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -173.365869
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -173.497145
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -172.578474
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -171.629217
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -170.707279
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -169.830527
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -168.509927
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -167.657621
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -166.666228
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -165.757527
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -164.724464
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -163.610505
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -162.583994
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -161.710321
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-01-hollow-chapel.json",
+      "fixture_sha256": "fa9f83c3f6b20120902da733bb102a6326e59cd004342b3770a188c8adbe9287",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "f022e34e7bde40f8bfc09c4daa42d27a2c4c4ef195bdc77b2fed0dba71a88ab1",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/scene-01-hollow-chapel.json",
+        "peak_fs": 0.6574420928955078,
+        "rms_fs": 0.2302892429633754,
+        "dc_fs": 0.00041068203689482974,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -61.976112
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -54.192918
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -51.988113
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -51.782959
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -43.316453
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -12.514316
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -48.470799
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -53.109565
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -33.796737
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -58.305018
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -37.330328
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -54.540763
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -38.435797
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -54.108816
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -45.061947
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -42.35528
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -41.562459
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -46.423253
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -51.142193
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -50.883781
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -53.895988
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -56.930623
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -61.501394
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -66.864223
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -75.460041
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -81.819406
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -90.782406
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -102.158391
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -114.214344
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -130.411589
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -149.260786
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-02-breathing-walls.json",
+      "fixture_sha256": "370a33ea03ba4d8639ec2432c4bfcffa5581ff078b4b90a446345b697fdc767d",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "a91c41843648f34c45d8f8cc66985a70bbc9876217f7c5bd8828e099c0c5b16c",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/scene-02-breathing-walls.json",
+        "peak_fs": 0.3839343190193176,
+        "rms_fs": 0.09021575146690886,
+        "dc_fs": -0.0007868107649697171,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -47.502534
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -47.42847
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -46.600518
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -45.639453
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -44.104896
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -28.576066
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -41.331396
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -40.879575
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -24.9006
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -38.78203
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -33.175396
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -34.001306
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -33.196994
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -34.339831
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -34.121163
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -34.868273
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -36.594646
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -38.541719
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -41.838935
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -45.697357
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -50.367036
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -55.59794
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -61.418636
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -67.937262
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -74.671384
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -82.052685
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -90.094408
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -99.076234
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -109.698447
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -123.784926
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -145.880836
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-03-black-ice-choir.json",
+      "fixture_sha256": "efc1e0352bcdd082cfa11a07f9106e40f0706e23270c974a65ed2804f00348a3",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "2262303166f7cf6ad6e6aba552a30e9b331f517fc412703f6af79da5d7f83284",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/scene-03-black-ice-choir.json",
+        "peak_fs": 0.17112846672534943,
+        "rms_fs": 0.04018548007945654,
+        "dc_fs": -1.6714001936860975e-06,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -89.88352
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -87.226337
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -82.946141
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -80.279468
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -78.636903
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -78.119176
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -74.637342
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -70.922252
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -33.741227
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -68.978731
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -71.540437
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -29.292897
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -67.984114
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -45.94978
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -72.086945
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -53.290421
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -39.607076
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -54.739775
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -46.536322
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -60.811417
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -50.958386
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -51.670991
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -50.690545
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -54.687634
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -56.908916
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -57.834725
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -60.782496
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -61.587354
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -63.96672
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -65.887552
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -66.805996
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-04-vowel-apparitions.json",
+      "fixture_sha256": "7d55d1e052b23b78088b2145dc7630aa4c9742810ef0ebb25d482bd3e6ef75c1",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "0596539a63d66813bd78a92927e37d3ca21392cd23eb3eb52e31b7a3f11bf705",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/scene-04-vowel-apparitions.json",
+        "peak_fs": 0.2856638729572296,
+        "rms_fs": 0.03966005092606998,
+        "dc_fs": -0.0010183033405775515,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -112.263578
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -109.958827
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -108.570153
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -108.345021
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -106.565293
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -107.439097
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -105.027374
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -103.133489
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -104.030674
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -101.723751
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -100.487935
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -57.299068
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -93.04815
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -85.251299
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -34.129879
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -80.599158
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -39.94456
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -49.850596
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -51.783859
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -40.899278
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -32.768492
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -35.386492
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -46.026353
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -37.073731
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -40.43842
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -48.008748
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -52.66182
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -66.239597
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -66.520588
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -79.37347
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -109.648722
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-05-glass-cathedrals.json",
+      "fixture_sha256": "15ad782ebdc78526b33f179923b74648d5b3f43cefe7eadcd9106f4b21ddf2cb",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "0ec2db3d645b17efd74f41ac277a01c2219dd91808d16566428110eb0ba3f305",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 2,
+        "script_note_key": 60,
+        "source": "bundled/scene-05-glass-cathedrals.json",
+        "peak_fs": 0.2698059380054474,
+        "rms_fs": 0.059214812556942054,
+        "dc_fs": 0.00011534548824581243,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -118.154578
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -114.725594
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -112.960946
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -114.188898
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -112.035098
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -111.338678
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -110.615847
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -108.667389
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -107.064132
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -108.157841
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -105.372049
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -84.089089
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -100.934934
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -103.690319
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -94.464708
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -105.669537
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -101.726761
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -64.265843
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -78.801224
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -43.064809
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -35.605981
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -36.144461
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -52.043334
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -27.699898
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -28.172462
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -76.21577
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -107.789525
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -114.206227
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -118.46074
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -133.112976
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -143.452795
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-06-dust-reactor.json",
+      "fixture_sha256": "910325886fb7d48f0c4f97640efdb90bab210bed0ed793676a7a4da94cfeda28",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "323afb177480c27e9de6ba72b8c125ec21da769c276ef9866113ef3eb0392c40",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/scene-06-dust-reactor.json",
+        "peak_fs": 0.6083230376243591,
+        "rms_fs": 0.09548054922636129,
+        "dc_fs": -0.00012356131206813105,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -44.733302
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -41.779479
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -41.255321
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -39.319963
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -23.362282
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -24.488115
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -40.119838
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -43.616868
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -46.894353
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -50.203994
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -50.985199
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -49.395654
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -52.008139
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -60.434284
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -62.676161
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -66.643956
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -74.221745
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -80.421368
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -88.095327
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -95.910898
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -103.883641
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -110.949462
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -119.512282
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -127.625111
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -133.541378
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -141.152259
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -146.638452
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -151.271363
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -154.412479
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -156.73639
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -157.774126
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-07-witching-hour.json",
+      "fixture_sha256": "988f927303253110b1ccfb9db35fd8bae23784e7aabdc3ed2e4dc18a33ae7224",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "bff3f451bf7d8cd14032b9d21f0031223e588a1d5a5f07dff0fa380293d5fcbd",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/scene-07-witching-hour.json",
+        "peak_fs": 0.6037273406982422,
+        "rms_fs": 0.16680474604800682,
+        "dc_fs": -0.0001308819777711921,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -57.297586
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -56.698541
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -54.660394
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -51.857924
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -49.071583
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -44.71196
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -25.27121
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -23.418282
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -17.318063
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -28.803702
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -42.450546
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -52.039479
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -60.952536
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -69.58049
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -69.18113
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -77.984899
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -78.045662
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -81.899589
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -85.639389
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -87.818949
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -92.258305
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -95.240873
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -97.984723
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -100.92179
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -104.115755
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -106.771652
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -109.492382
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -112.11449
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -114.395357
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -116.191681
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -117.185395
+          }
+        ]
+      }
+    },
+    {
+      "patch": "scene-08-neon-elegy.json",
+      "fixture_sha256": "f27d78f3b62e68c3af787374294789a47cd4497426cc7bb507fdfcd5057c978b",
+      "status": "measured",
+      "data": {
+        "sha256_float32_pcm": "44d00a0547bdf0a1e1db8ce496829841fc0da4c065467ad758ffbb643a54c8ea",
+        "frames": 480000,
+        "channels": 2,
+        "repeat_identical": true,
+        "scripted_note_count": 0,
+        "script_note_key": null,
+        "source": "bundled/scene-08-neon-elegy.json",
+        "peak_fs": 0.4371693432331085,
+        "rms_fs": 0.1572365851456925,
+        "dc_fs": 0.01750691993291489,
+        "third_octave_bands": [
+          {
+            "center_hz": 20.0,
+            "level_dbfs": -63.867058
+          },
+          {
+            "center_hz": 25.198421,
+            "level_dbfs": -60.628655
+          },
+          {
+            "center_hz": 31.748021,
+            "level_dbfs": -56.451254
+          },
+          {
+            "center_hz": 40.0,
+            "level_dbfs": -54.069773
+          },
+          {
+            "center_hz": 50.396842,
+            "level_dbfs": -36.346347
+          },
+          {
+            "center_hz": 63.496042,
+            "level_dbfs": -32.134802
+          },
+          {
+            "center_hz": 80.0,
+            "level_dbfs": -31.367568
+          },
+          {
+            "center_hz": 100.793684,
+            "level_dbfs": -27.98745
+          },
+          {
+            "center_hz": 126.992084,
+            "level_dbfs": -35.155739
+          },
+          {
+            "center_hz": 160.0,
+            "level_dbfs": -31.369591
+          },
+          {
+            "center_hz": 201.587368,
+            "level_dbfs": -34.892058
+          },
+          {
+            "center_hz": 253.984168,
+            "level_dbfs": -32.927787
+          },
+          {
+            "center_hz": 320.0,
+            "level_dbfs": -30.050429
+          },
+          {
+            "center_hz": 403.174736,
+            "level_dbfs": -26.907038
+          },
+          {
+            "center_hz": 507.968337,
+            "level_dbfs": -26.890256
+          },
+          {
+            "center_hz": 640.0,
+            "level_dbfs": -23.72696
+          },
+          {
+            "center_hz": 806.349472,
+            "level_dbfs": -24.796888
+          },
+          {
+            "center_hz": 1015.936673,
+            "level_dbfs": -24.422251
+          },
+          {
+            "center_hz": 1280.0,
+            "level_dbfs": -27.176367
+          },
+          {
+            "center_hz": 1612.698944,
+            "level_dbfs": -32.235083
+          },
+          {
+            "center_hz": 2031.873347,
+            "level_dbfs": -42.495911
+          },
+          {
+            "center_hz": 2560.0,
+            "level_dbfs": -56.69164
+          },
+          {
+            "center_hz": 3225.397888,
+            "level_dbfs": -72.358243
+          },
+          {
+            "center_hz": 4063.746693,
+            "level_dbfs": -81.314515
+          },
+          {
+            "center_hz": 5120.0,
+            "level_dbfs": -91.938663
+          },
+          {
+            "center_hz": 6450.795775,
+            "level_dbfs": -104.926335
+          },
+          {
+            "center_hz": 8127.493386,
+            "level_dbfs": -118.088008
+          },
+          {
+            "center_hz": 10240.0,
+            "level_dbfs": -128.98928
+          },
+          {
+            "center_hz": 12901.591551,
+            "level_dbfs": -145.41525
+          },
+          {
+            "center_hz": 16254.986772,
+            "level_dbfs": -151.076207
+          },
+          {
+            "center_hz": 20480.0,
+            "level_dbfs": -150.805298
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 # Wirescape — owner wants and current decisions (2026-11-26)
 
 Status: owner wants are fixed. Each "Recommended" item is the Claude Architect's suggestion;
-the Fable runs (see 02_FABLE_PROPOSAL.md) make the final decisions.
+the Planner runs (see 02_PLANNER_RUNS.md) make the final decisions.
 
 ## A. Standing principles
 1. Two products, one engine: **Studio** (full UI, Windows + Pi) for building; **Player**
@@ -70,10 +70,14 @@ the Fable runs (see 02_FABLE_PROPOSAL.md) make the final decisions.
   engine's 32-producer limit.
 
 ### 4. Map any parameter without patching (Ableton-style)
-- Found: 22 modules have no modulatable parameters, so no MIDI Learn, macro or cable can reach them:
-  chord, clock, cv_to_notes, function_envelope, groove, host_keyboard, ladder, midi_cc_to_cv,
-  midi_in, midi_to_cv, mixer, monitor, noise, notes_to_cv, osc_in, osc_out, output, poly_merge,
-  poly_split, quantizer, scale_offset, slew.
+- Found (**corrected 2026-11-26**, [0023 §3.1](../../../proposals/0023-review-and-replan.md), checked at
+  source; per-parameter table in [`scout/S8_module_params.md`](scout/S8_module_params.md)). The first list
+  named 22 modules; 7 of them already have modulatable parameters (clock, function_envelope, ladder,
+  mixer, noise, scale_offset, slew). Of the other 15:
+  - **8 have parameters, all stepped, none modulatable** (the batch): chord, cv_to_notes, groove,
+    host_keyboard, midi_in, midi_to_cv, notes_to_cv, quantizer;
+  - **7 have no parameters:** midi_cc_to_cv, monitor, osc_in, osc_out, output, poly_merge, poly_split.
+  Mapping by `setParam` does not need the flag (0023 R3.3 rule 4).
 - Engine side: mark meaningful parameters modulatable, bit-identical when unmodulated (a module batch).
 - Studio side: map mode (click Map, click a parameter, move a CC, OSC address or macro). The helper
   CC/MIDI modules are hidden "mapping" nodes, listed in the Mappings panel. Shared with macros.
@@ -152,7 +156,7 @@ the Fable runs (see 02_FABLE_PROPOSAL.md) make the final decisions.
 - Envelope parameter mapping: dropped as a question (covered by B.4's batch).
 - Macros: 8 per Macro module, in pages of 8. **Yes.**
 - Bars: 4/4 until the transport has a time signature. **Yes.**
-- **Fable decides:** how `wirescape-test` pins the lab and whether Windows CI runs only on ready PRs; the reference UI
+- **Planner decides:** how `wirescape-test` pins the lab and whether Windows CI runs only on ready PRs; the reference UI
   technology (kiosk web page or native); script auto-sync overwrite vs unlink; whether Python scripts
   run with the owner's normal rights; when to rename the OSC Out defaults.
 

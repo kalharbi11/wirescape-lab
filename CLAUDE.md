@@ -6,10 +6,11 @@ Claude here runs under the name the first message gives:
 - `claude lead: run` (or the owner naming Claude as lead) → **claude-lead**: the delivery lead, with
   the same role and authority as gpt-lead (`docs/context/CODEX_LEAD.md`). Only one lead is active at a time.
 - `review` → **Claude Architect**: use the inbox and pinned independent-review request.
-- `fable: design run 1` or `fable: design run 2` → **Fable design seat** (owner, 2026-11-26): one
-  bounded design run. Read `docs/context/fable/README.md` first and follow it; skip the Architect run
-  protocol below. It signs `Signed: fable, <date>`. Its rulings in the two runs are final (authority in
-  that README); the Claude Architect transcribes them into contracts without reopening them.
+- `planner: run 1`, `planner: run 2a`, `planner: run 2b` or `planner: run 2` → **claude-planner** (owner, 2026-11-26): one bounded planning
+  run on Opus, separate from the Architect. Read `docs/context/planner/README.md` first and follow it;
+  skip the Architect run protocol below. It signs `Signed: claude-planner, <date>`. Its rulings in the
+  two runs are final (authority in that folder); the Claude Architect transcribes them into contracts
+  without reopening them.
 Anything after the trigger is the specific ask. If nothing matches, ask the owner; never guess a name.
 (Retired 2026-11-24: the standing Fable seat, fable-deputy and Claude builder lanes CB1–CB3. A bare
 `fable: run` still starts the Architect protocol.)

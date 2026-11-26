@@ -5,14 +5,14 @@ You are gpt-lead. You deliver the active milestone at its recorded contract revi
 Read: AGENTS.md, this file, [BUILDERS](../workflow/BUILDERS.md), [ROADMAP](../workflow/ROADMAP.md),
 CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B5.
 
-## Wrap-up mode (owner, 2026-11-26, while the Fable design runs are open)
+## After Planner run 1 (Architect run 47, 2026-11-26)
 
-Close what is open; open nothing. Do not create task issues, release queued tasks or approve new
-draft-aheads. Queue items with no open PR (OB-h2 #601, OB-h6 #604, A67 #494, the OB-h2 Studio Host
-field) hold until Fable run 1 replans. Each run: for every open PR, check the exact-head CI and the
-Result, then merge `merge: lead` work at once (auto-merge where it is allowed). Route required reviews
-to the inbox with pinned SHAs. Close an issue or PR that is superseded or stale, with one line of
-reason. Target: each lane at zero or one open PR. Mode ends when a Fable run's tasks are filed.
+Wrap-up mode has ended for run 1's areas: release lane queues per [BUILDERS](../workflow/BUILDERS.md)
+(0023 §7.3), with standing release and draft-aheads. Still frozen until Planner run 2 merges: macros,
+mapping, OSC In features, scripts, the tool host and the two new repos' design. CI-S1–S3 were applied
+by the Architect in run 47. The R1.5 evidence-workflow deletions are yours when each milestone is
+accepted ([STANDING SR25](../workflow/STANDING.md)). Rulings bind only where written (SR22); the
+reading budget is SR23.
 
 ## Entry check and manual handoff
 

@@ -2,7 +2,7 @@
 # Architecture today
 
 This is the implemented native architecture after the M0 clean-copy migration.
-The roadmap is in [PLAN.md](PLAN.md); evidence and limits are in [STATUS.md](STATUS.md).
+The roadmap is in [ROADMAP.md](workflow/ROADMAP.md); measured facts are in [facts/BASELINE.md](../facts/BASELINE.md).
 The app is alpha. Offline ABI2 proofs and the active ABI2-backed sidecar
 have separate acceptance and hardware-evidence boundaries.
 
@@ -20,7 +20,7 @@ Git tree; it is not built or maintained. No Surge binaries are bundled.
 
 `apps/studio/` contains the TypeScript/Vite UI imported from Wirescape-UI at
 `da600d852d09415aa39e6d48106e3e58f0dd8aa9`, with complete Git history
-(see [import record](../apps/studio/IMPORT.md)). Its patch document, catalogue,
+(see import record (removed)). Its patch document, catalogue,
 canvas, panels and shared animation ticker currently run against `FakeEngine`.
 The existing Playwright tests cover the UI without opening audio/MIDI devices.
 The P1F Electron shell in `apps/desktop/` owns the native window, local-only
@@ -75,15 +75,15 @@ without opening hardware; no audio-thread polling or new protocol command is use
 
 ## ABI1 engine (retained until R6; not the Electron app)
 
-- `native/include/wirescape/module.h`: experimental C module boundary; immutable descriptors,
+- `native/include/wirescape/module.h` (removed): experimental C module boundary; immutable descriptors,
   mono float AUDIO/CONTROL ports, numeric parameter IDs, lifecycle/event/process callbacks.
-- `native/include/wirescape/engine.h`, `native/src/engine.cpp`: dynamic module loading,
+- `native/include/wirescape/engine.h` (removed), `native/src/engine.cpp` (removed): dynamic module loading,
   prepared mono DAG, preallocated buffers, one SPSC event producer and one render consumer.
   Topology changes happen quiescently. Cycles and multiple signal sources per input are rejected.
 - Qt Quick UI, QtCore document inspection and Qt-specific audio bridge sources are
-  removed. The current app uses Studio's patch codec, `native/document/runtime_patch.*`
+  removed. The current app uses Studio's patch codec, `host/document/runtime_patch.*`
   and the separate sidecar audio service, not the retired ABI1/Qt UI.
-- `native/control/provider_bridge.*`: offline single-owner timestamp/coalescing proof;
+- `native/control/provider_bridge.*` (removed): offline single-owner timestamp/coalescing proof;
   no real MIDI/network service.
 
 Processing/event/reset are bounded, allocation-free and nonblocking. Prepare/create/destroy
@@ -108,14 +108,14 @@ has a CONTROL gate and gated rise/fall/curve. Slew is linear, not exponential la
 VCF exposes12/24dB taps of a four-pole TPT network; Ladder is bounded ladder-inspired DSP,
 with documented approximation/aliasing limits. Neither is an exact analogue model claim.
 
-Ordinary modules are folders under `native/modules/` with module.cpp/json/CMakeLists;
+Ordinary modules are folders under `native/modules/` (removed) with module.cpp/json/CMakeLists;
 root CMake discovers them. The app discovers `ws_` libraries beside its executable.
 Source copying alone does not install a module. Native code is trusted, not isolated.
 
 ## ABI2 foundation (SDK still experimental)
 
-`native/include/wirescape/module2.h`, `native/sdk/`, `native/engine2/`, `native/voice/`,
-`native/modules2/` and `native/tests2/` contain the ABI2 engine, module contract
+`sdk/include/wirescape/module2.h`, `sdk/`, `engine/`, `engine/voice/`,
+`modules/` and `tests/native/abi2/` contain the ABI2 engine, module contract
 and offline proofs. The Electron sidecar uses ABI2 through `AppEngine`; its SDK
 and port equivalence tests are not substitutes for live-device verification.
 The ABI1 module bridge remains pending R6; the Qt plugin host was removed.
@@ -142,7 +142,7 @@ Current documents use `wirescape.native.patch` v1. Unknown/incomplete module sta
 editable and round-trip; failed preparation or unsupported input must not replace accepted data.
 The document library supports v2 with finalized schema/example and a bit-identical demo render
 through save/reload. App integration uses this library in M2-6.
-`native/examples/Six_Essentials_Demo.json` demonstrates the six imported modules plus VCA/Output.
+`host/examples/Six_Essentials_Demo.json` demonstrates the six imported modules plus VCA/Output.
 Synthetic legacy fixtures are public test inputs, not personal patches.
 
 `tools/dev.py` orchestrates deterministic native build/test/report, UI checks, offline render,
@@ -175,8 +175,8 @@ Manual real-device probes require explicit confirmation/authorization and are ne
 
 `linux-arm64` runs the headless native/ABI2 suites and ABI2 benchmark on PR updates and pushes to `main`.
 `windows-x64` runs MSVC native and Qt-free app tests on main,
-manual runs and every PR run, including drafts; the `ci/windows` opt-in label is no longer needed.
-`guard` runs as a dedicated `pull_request_target` workflow and evaluates PR changes with the base branch's `tools/ci/guard.py`, reading the PR's labels live so re-runs see current labels.
+manual runs and every PR run, including drafts; the `ci/windows` (removed) opt-in label is no longer needed.
+`guard` runs as a dedicated `pull_request_target` workflow and evaluates PR changes with the base branch's `tools/ci/guard.py` (removed), reading the PR's labels live so re-runs see current labels.
 PortAudio v19.7.0 is built at `147dd722548358763a8b649b3e4b41dfffbcfbb6`
 under its MIT licence (`LICENSE.txt` upstream); `WIRESCAPE_PORTAUDIO` locates the DLL.
 Summary JSON and ARM64 benchmark numbers are artifacts; full logs upload on failure.
@@ -191,12 +191,12 @@ The `sanitizers` job runs headless ASan+UBSan and TSan ABI2 suites on Linux ARM6
 `tools/capture/` renders native patch v1 via ABI1 without opening devices and
 compares signals using alignment, level, timing and response metrics. CTest's
 `capture_offline_selftests` uses synthetic captures and a fully mocked runner.
-`native/tools/capture/` builds a separate Windows SDK process-loopback helper;
+`tools/capture/` builds a separate Windows SDK process-loopback helper;
 `python tools/capture/run.py --confirm-audio` is the explicit manual entry point.
 It captures only the dedicated helper's render stream on Windows build 20348+,
 never microphones or an unisolated endpoint mix. Reports stay in `build_reports/`.
 Device execution is unverified and reserved for the user; CI only compiles the
-helper and runs offline tests. See `tools/capture/README.md` for bounds and scope.
+helper and runs offline tests. See `tools/capture/README.md` (removed) for bounds and scope.
 
 Clock, function envelope and ladder have isolated ABI2 ports with per-voice state and exact ABI1 default references. Clock remains free-running; the existing filter stress functions also execute against ABI2 ladder through a test-only callback bridge.
 
@@ -216,9 +216,9 @@ Device and input-selection controls remain stop-only.
 
 ## J1 app integration candidate
 
-`native/control/app_engine.*` adapts app control and metadata to engine2; built-in
+`engine/control/app_engine.*` adapts app control and metadata to engine2; built-in
 Essentials use native ABI2 descriptors, while dynamically loaded ABI1 modules use
-the shim. `native/document/runtime_patch.*` builds engine2 graphs from native patch data.
+the shim. `host/document/runtime_patch.*` builds engine2 graphs from native patch data.
 The Electron sidecar and CLI renderer call the Qt-free control facade. The planner accepted the app-only
 Six Essentials reference-render delta (<=1e-7); explicit Noise default initialization
 differs between ABI1 double-ramp and ABI2 cached-float parameter handling. Per-module
@@ -230,8 +230,8 @@ legacy-document fixtures remain byte-preserved and are not silently imported
 as executable patches.
 
 The ABI2 built-in catalogue has one registration list,
-`native/control/module_catalog.inc`: add `WS_APP_MODULE(Class)` and include the
-module DSP header in `module_catalog.h`. Step Sequencer and Random Source share the
+`engine/control/module_catalog.inc`: add `WS_APP_MODULE(Class)` and include the
+module DSP header in `engine/control/module_catalog.h`. Step Sequencer and Random Source share the
 MIT SDK-example DSP headers and keep their stable `example.step_sequencer` and
 `example.random_source` identities. Modules with external link dependencies
 attach those dependencies to the `wirescape_catalog_dependencies` interface target
@@ -239,7 +239,7 @@ in their own CMake registration. The app engine links that target.
 
 ## J2 keyboard polyphony candidate
 
-`native/voice/note_to_cv.h` (MIT) is the reusable event-to-voice adapter used by
+`engine/voice/note_to_cv.h` (MIT) is the reusable event-to-voice adapter used by
 `host.keyboard` and available to MIDI→CV. It preserves source identity, isolates
 sustain by source/channel, forwards assigned-voice events, and emits choke before
 replacement attack. Anonymous repeated-key releases are FIFO in the allocator.
@@ -252,7 +252,7 @@ Studio/Electron input path, not the retired QML UI. Panic resets every voice at 
 
 ## J3 runtime candidate
 
-`native/document/runtime_patch.*` is the Qt-free v1/v2 parser and graph builder
+`host/document/runtime_patch.*` is the Qt-free v1/v2 parser and graph builder
 used by the sidecar and `wirescape_cli play`. The pinned MIT nlohmann/json
 library is used only quiescently. Studio's patch codec owns lossless editing and
 persistence; the retired QtCore writer is not part of the runtime. Runtime input rejects duplicates, oversized/deep documents,
@@ -261,15 +261,15 @@ config adapters are left to J4/J5 rather than silently dropping configuration.
 
 Without `--confirm-audio`, play writes a ten-second stereo WAV under build and
 reports peak/RMS and block timings. `--seconds 600 --pace` runs the loader soak.
-Only explicit user confirmation reaches `native/io/audio/portaudio_service.*`,
+Only explicit user confirmation reaches `host/audio/portaudio_service.*`,
 which dynamically loads PortAudio and keeps backend code resident. Its callback
 renders engine2 into preallocated stereo buffers; control code prints CPU/xruns.
 Ctrl+C stops the loop and closes/terminates the backend before destroying the
 engine. The Qt-free runner exposes reserved MIDI/OSC options that currently refuse
 execution pending their services. See `docs/PI_SETUP.md` for the user commands.
 
-MIDI ingress uses `native/io/midi/` (pinned libremidi plus a fake backend).
-`native/control/midi_host.*` owns endpoint selections and the service lifetime;
+MIDI ingress uses `host/midi/` (pinned libremidi plus a fake backend).
+`engine/control/midi_host.*` owns endpoint selections and the service lifetime;
 producer 1 is reserved before engine preparation for timestamped D13 ingress.
 Interactive Studio accepts an explicit, remembered Enable MIDI preference;
 `--confirm-midi` remains supported for manual runner use. Offline, startup,
@@ -312,7 +312,7 @@ Only accepted swaps advance the protocol generation.
 
 OSC In uses the portable bounded codec and module from slice A, with one
 nonblocking UDP worker owned by the sidecar Session via
-`native/control/osc_host.*` and `native/io/net/osc_service.*`. Producer 2
+`engine/control/osc_host.*` and `host/net/osc_service.*`. Producer 2
 enqueues receive-timestamped messages against the committed engine generation;
 no audio callback opens a socket, parses OSC, allocates or locks. At most 32
 routes share at most 32 sockets (one per physical port), with a fixed receive
@@ -329,7 +329,7 @@ observations and errors, not packet payloads. OSC In's receiver never
 sends outbound packets.
 
 OSC Out uses an independent control-owned sender in
-`native/control/osc_out_host.*`. Each prepared `osc.out` instance writes
+`engine/control/osc_out_host.*`. Each prepared `osc.out` instance writes
 signal values, gate crossing counters, and a 64-event SPSC note ring to a
 host-owned lock-free `osc::OutBus`; no render callback allocates, locks,
 formats OSC or touches a socket. The sidecar's worker polls these buses every
@@ -346,12 +346,12 @@ OSC Out never enables LAN, regardless of `--confirm-lan`.
 
 ## Stdio engine sidecar (P1B)
 
-`native/sidecar` builds the Qt-free `wirescape-engine` process. Its reader and
+`host/sidecar` builds the Qt-free `wirescape-engine` process. Its reader and
 writer isolate bounded NDJSON transport from the single control executor; audio
 uses the existing AppEngine/PortAudio callback and MIDI host. Null mode runs a
 paced discard sink and fake endpoints without device access. The UI owns saved
 documents; sidecar candidates are disposable execution copies. Details and
-shutdown ownership are in `native/sidecar/DESIGN.md`.
+shutdown ownership are in `host/sidecar/DESIGN.md`.
 
 Audio loss leaves the same graph and remembered output identity owned by the
 control thread. Stream retirement retains the existing quarantine-on-unsafe-stop

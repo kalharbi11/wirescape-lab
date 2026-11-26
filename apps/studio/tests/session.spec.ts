@@ -643,14 +643,16 @@ test('edits eight send rows and notes with lossless unknown fields after reload'
   expect(saved.modules[0].ownerNote).toBe('keep');
   expect(saved.modules[0].config).toMatchObject({
     version: 1, port: 9200, rate_hz: 200, futureOption: { x: 1 },
-    notes: { address: '/note/custom', futureNote: 42, enabled: true },
+    notes: { futureNote: 42 },
   });
-  expect(saved.modules[0].config.rows).toHaveLength(8);
-  expect(saved.modules[0].config.rows[0]).toMatchObject({
-    address: '/custom/one', kind: 'gate', deadband: 0.02, futureRow: ['a'],
+  expect(saved.modules[0].config.rows[0]).toEqual({ futureRow: ['a'] });
+  const routes = saved.modules[0].data.routes;
+  expect(routes).toMatchObject({ notes_address: '/note/custom', notes_enabled: true });
+  expect(routes.rows).toHaveLength(8);
+  expect(routes.rows[0]).toEqual({
+    address: '/custom/one', kind: 'gate', deadband: 0.02, enabled: true,
   });
-  expect(saved.modules[0].config.rows[0].enabled).toBeUndefined(); // true is omitted
-  expect(saved.modules[0].config.rows[7].address).toBe('/custom/eight');
+  expect(routes.rows[7].address).toBe('/custom/eight');
   await page.evaluate(p => window.__wirescapeTest.load(p), saved);
   await settle(page);
   await openOscOut(page);
