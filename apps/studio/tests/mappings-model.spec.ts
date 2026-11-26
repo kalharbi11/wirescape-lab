@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { boot } from './helpers';
 import type { PatchV2, Connection } from '../src/patch/types';
-import { ModuleRegistry } from '../src/modules/registry';
+import type { ModuleRegistry } from '../src/modules/registry';
 import type { ModuleDescriptor } from '../src/modules/types';
 
 const cable = (source: number, port: string, target = 3, param = 'depth', amount = .4): Connection =>
@@ -32,7 +32,7 @@ test('MM1 Node: derives macro, CC and OSC ownership, not ordinary modulation, wi
   const p = fixture();
   p.connections.push(cable(5, 'row1', 4, 'depth', .5));
   const before = JSON.stringify(p);
-  const rows = deriveMappings(p, new ModuleRegistry([target]));
+  const rows = deriveMappings(p, { get: (id: string) => id === target.id ? target : undefined } as ModuleRegistry);
   expect(rows.map((m: any) => m.connection.from.module)).toEqual([1, 2, 5]);
   expect(rows[0]).toMatchObject({ min: .25, max: .65, inverted: false });
   expect(rows[1].min).toBeCloseTo(.6);
