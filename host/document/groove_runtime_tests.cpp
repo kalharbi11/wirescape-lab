@@ -4,11 +4,14 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "../../tests/native/abi2/test_modules.h"
 #include "runtime_module_config.h"
+#include "groove_data_migration.h"
+#include "../../engine/data_pack.h"
 #include "runtime_patch.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -129,6 +132,212 @@ static std::vector<float> trace(AppEngine *e, uint32_t count, uint32_t block, bo
     if (verify_cv) check(audible, "pitch and gate drive audible native CV patch");
     return out;
 }
+// E3b shared-loader witness: a declared slot must validate cross-field
+// lengths before prepare. Explicit authored data wins over migrated legacy.
+static void test_shared_pattern_loader(AppEngine *cat) {
+    std::string error;
+    auto p = patch(pattern());
+    p["modules"][0]["data"]["pattern"] = {{"length_1", 12}, {"length_2", 32}};
+    check(!load(p, cat, 48000, error), "shared loader refuses invalid live pattern length");
+    check(error.find("pattern.length_1") != std::string::npos,
+          "shared loader names invalid pattern length");
+    p["modules"][0]["data"]["pattern"] = {
+        {"length_1", 32}, {"length_2", 32},
+        {"steps_1", Json::array({{{"kind", "note"}, {"key", 79}, {"velocity", 1.},
+                                  {"keys", Json::array({79, 0, 0, 0, 0})}}})}};
+    auto e = load(p, cat, 48000, error, true);
+    check(bool(e), "shared loader accepts explicit live pattern");
+    trace(e.get(), 1, 1);
+    run_command(e.get(), run_id(e.get()), 1.f);
+    check(trace(e.get(), 1, 1)[0] == 1.f, "explicit data starts note");
+    check(app_engine_native(e.get()).output_sample(1, 0, 0, 0) == 19.f / 12.f,
+          "explicit live data overrides legacy pitch");
+}
+
+// Real loader -> render -> accepted live ring edit. The held note and phase
+// survive the update, and the next scheduled step reads the new borrowed row.
+static void test_shared_live_pattern(AppEngine *cat) {
+    std::string error;
+    const auto legacy = patch(pattern());
+    auto canonical = legacy;
+    wirescape::document::materialize_groove_legacy_data(canonical["modules"][0], 1);
+    auto live = load(legacy, cat, 48000, error, true);
+    auto control = load(canonical, cat, 48000, error, true);
+    check(bool(live) && bool(control), "legacy and canonical Groove both load");
+    auto start = [&](AppEngine *engine) {
+        trace(engine, 1, 1);
+        run_command(engine, run_id(engine), 1.f);
+        check(trace(engine, 1, 1)[0] == 1.f, "held note starts on both paths");
+    };
+    start(live.get());
+    start(control.get());
+    auto &g = app_engine_native(live.get());
+    auto &c = app_engine_native(control.get());
+    wirescape::engine2::Outgoing first{}, reference{};
+    check(g.pop_egress(first) && c.pop_egress(reference) &&
+          first.event.type == WS2_NOTE_ON && first.event.key == 72 &&
+          first.event.note_id == reference.event.note_id && first.frame == reference.frame,
+          "canonical migration preserves exact legacy note identity and onset");
+    auto value = canonical["modules"][0]["data"]["pattern"];
+    value["steps_1"][1] = {{"kind", "note"}, {"key", 67}, {"velocity", 1.},
+                            {"keys", Json::array({67, 0, 0, 0, 0})}};
+    const auto *descriptor = app_engine_native_descriptor(live.get(), "sequencing.groove");
+    std::vector<uint8_t> packed;
+    check(ws::data_layout::pack_data_slot(descriptor->data_slots[0], value,
+          ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+          app_engine_data_validator(live.get(), descriptor)), "edited pattern packs through registered validator");
+    check(g.set_data_packed(1, 0, packed) == WS2_OK, "real engine accepts live data ring update");
+    check(trace(live.get(), 128, 128) == trace(control.get(), 128, 128),
+          "edit leaves the held gate sample-identical before next boundary");
+    check(g.output_sample(1, 0, 0, 127) == c.output_sample(1, 0, 0, 127) &&
+          g.output_sample(1, 10, 0, 127) == c.output_sample(1, 10, 0, 127),
+          "held pitch and playhead unchanged at live adoption");
+    wirescape::engine2::Outgoing event{};
+    check(!g.pop_egress(event), "live adoption emits no spurious note event");
+    trace(live.get(), 6000 - 128, 128);
+    trace(control.get(), 6000 - 128, 128);
+    wirescape::engine2::Outgoing off{}, on{}, control_off{};
+    check(g.pop_egress(off) && g.pop_egress(on) && c.pop_egress(control_off) &&
+          off.event.type == WS2_NOTE_OFF && off.event.note_id == first.event.note_id &&
+          off.frame == control_off.frame && on.event.type == WS2_NOTE_ON &&
+          on.event.key == 67 && on.frame == off.frame,
+          "next boundary preserves phase and releases prior note once before new authored note");
+    check(!g.pop_egress(event), "one new note only after the live edit");
+    auto reset = canonical;
+    reset["modules"][0].erase("data");
+    auto silent = load(reset, cat, 48000, error, true);
+    check(bool(silent), "canonical removed data loads valid defaults");
+    trace(silent.get(), 1, 1);
+    run_command(silent.get(), run_id(silent.get()), 1.f);
+    check(trace(silent.get(), 1, 1)[0] == 0.f, "canonical reset never resurrects legacy note");
+}
+
+// Full-document preparation uses canonical construction bytes, so a change
+// confined to data must retain the running Groove when the graph adopts it.
+// A separate, untouched render supplies the exact musical boundary oracle.
+static void test_shared_pattern_replan(AppEngine *cat) {
+    std::string error;
+    auto authored = patch(pattern());
+    auto edited = authored;
+    wirescape::document::materialize_groove_legacy_data(edited["modules"][0], 1);
+    auto &slot = edited["modules"][0]["data"]["pattern"];
+    slot["steps_1"][1] = {{"kind", "note"}, {"key", 69}, {"velocity", 1.},
+                         {"keys", Json::array({69, 0, 0, 0, 0})}};
+    slot["length_1"] = 16;
+    auto live = load(authored, cat, 48000, error, true);
+    auto unchanged = load(authored, cat, 48000, error, true);
+    auto candidate = load(edited, cat, 48000, error, true);
+    check(bool(live) && bool(unchanged) && bool(candidate), "replan candidates load through shared document path");
+    for (auto *e : {live.get(), unchanged.get()}) {
+        trace(e, 1, 1);
+        run_command(e, run_id(e), 1.f);
+        check(trace(e, 1, 1)[0] == 1.f, "held note begins before data-only replan");
+    }
+    auto &graph = app_engine_native(live.get());
+    auto &reference = app_engine_native(unchanged.get());
+    auto &prepared = app_engine_native(candidate.get());
+    wirescape::engine2::Outgoing first{}, oracle_first{};
+    check(graph.pop_egress(first) && reference.pop_egress(oracle_first) &&
+          first.event.note_id == oracle_first.event.note_id && first.event.key == 72,
+          "matching held note before full-document adoption");
+    std::atomic<bool> staged{false}, done{false}, accepted{false};
+    std::thread planner([&] {
+        // Production replan bound: three 256-frame blocks at 48 kHz.
+        // The previous 200 ms argument was rejected before staging.
+        accepted = graph.replan(prepared, 16000000, [](void *ctx) noexcept {
+            static_cast<std::atomic<bool> *>(ctx)->store(true, std::memory_order_release);
+        }, &staged);
+        done.store(true, std::memory_order_release);
+    });
+    // Do not advance the music during control-side staging. Once the hook
+    // fires, render one frame at a time while permitting the control thread
+    // to publish. The pacing only coordinates this device-free fixture;
+    // musical comparison uses sample positions, never wall-clock latency.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (!staged.load(std::memory_order_acquire) && !done.load(std::memory_order_acquire) &&
+           std::chrono::steady_clock::now() < deadline)
+        std::this_thread::yield();
+    uint32_t elapsed = 0;
+    bool held = true;
+    while (!done.load(std::memory_order_acquire) && elapsed < 6000 &&
+           std::chrono::steady_clock::now() < deadline) {
+        held &= trace(live.get(), 1, 1)[0] == 1.f;
+        ++elapsed;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    planner.join();
+    if (!accepted.load()) std::fprintf(stderr, "Groove data-only replan refused: %s\n", graph.error().c_str());
+    check(accepted.load() && elapsed < 6000, "real replan adopts data before next musical boundary");
+    check(held, "held gate remains high throughout data-only adoption");
+    // Catch a replacement that reset the transport even if its first sample
+    // happened to look unchanged.
+    check(trace(live.get(), 1, 1)[0] == 1.f, "retained transport keeps sounding after publication");
+    ++elapsed;
+    check(trace(unchanged.get(), elapsed, 128) == std::vector<float>(elapsed, 1.f),
+          "reference stays held across the same frame interval");
+    wirescape::engine2::Outgoing event{};
+    check(!graph.pop_egress(event), "data-only replan emits no replacement release or retrigger");
+    trace(live.get(), 6000 - elapsed, 128);
+    trace(unchanged.get(), 6000 - elapsed, 128);
+    wirescape::engine2::Outgoing off{}, on{}, oracle_off{};
+    check(graph.pop_egress(off) && graph.pop_egress(on) && reference.pop_egress(oracle_off) &&
+          off.event.type == WS2_NOTE_OFF && off.event.note_id == first.event.note_id &&
+          off.frame == oracle_off.frame && on.event.type == WS2_NOTE_ON &&
+          on.event.key == 69 && on.frame == off.frame,
+          "retained replan delivers changed row at original next boundary");
+    check(!graph.pop_egress(event), "retained replan produces exactly the expected release and onset");
+}
+
+// A90: a saved pattern-only Apply retains the authored v1 construction,
+// even when the editor was upgraded to a v2 view. Reload the exact saved
+// source through the real document loader, not through a second parser.
+static void test_a90_saved_construction(AppEngine *cat) {
+    using wirescape::document::groove_construction_bytes;
+    std::string error;
+    const auto authored = patch(pattern());
+    auto saved = authored;
+    auto &module = saved["modules"][0];
+    module["data"]["pattern"] = wirescape::document::groove_legacy_pattern_value(module["config"], 1);
+    auto &edited = module["data"]["pattern"]["steps_1"][0];
+    edited["key"] = 73;
+    edited["keys"][0] = 73;
+    auto outside_pattern = saved;
+    outside_pattern["modules"][0].erase("data");
+    check(outside_pattern.dump() == authored.dump(), "A90 saved source unchanged outside pattern slot");
+
+    const auto original_bytes = groove_construction_bytes(authored["modules"][0]["config"], 1);
+    const auto saved_bytes = groove_construction_bytes(module["config"], 1);
+    groove::Config decoded{};
+    check(original_bytes == saved_bytes &&
+          groove::decode(saved_bytes.data(), static_cast<uint32_t>(saved_bytes.size()), decoded) &&
+          decoded.authored_version == 1 && decoded.track_count == 1,
+          "A90 reload construction retains v1, one track and identical seed/bytes");
+    auto live = load(authored, cat, 48000, error, true);
+    auto fresh = load(Json::parse(saved.dump()), cat, 48000, error, true);
+    check(bool(live) && bool(fresh), "A90 saved patch reloads through native document loader");
+    const auto *descriptor = app_engine_native_descriptor(live.get(), "sequencing.groove");
+    std::vector<uint8_t> packed;
+    check(ws::data_layout::pack_data_slot(descriptor->data_slots[0], module["data"]["pattern"],
+          ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+          app_engine_data_validator(live.get(), descriptor)), "A90 edited slot packs");
+    check(app_engine_native(live.get()).set_data_packed(1, 0, packed) == WS2_OK,
+          "A90 live graph accepts saved pattern");
+    for (auto *e : {live.get(), fresh.get()}) {
+        trace(e, 1, 1);
+        run_command(e, run_id(e), 1.f);
+        check(trace(e, 1, 1)[0] == 1.f, "A90 live and reloaded pattern start");
+    }
+    wirescape::engine2::Outgoing a{}, b{};
+    check(app_engine_native(live.get()).pop_egress(a) &&
+          app_engine_native(fresh.get()).pop_egress(b) &&
+          a.event.type == WS2_NOTE_ON && b.event.type == WS2_NOTE_ON &&
+          a.event.key == 73 && b.event.key == a.event.key &&
+          b.event.note_id == a.event.note_id && b.frame == a.frame,
+          "A90 reloaded source reproduces live note identity and onset");
+    check(trace(live.get(), 12000, 128) == trace(fresh.get(), 12000, 128),
+          "A90 reloaded source reproduces live gate timing");
+}
+
 static void test_refusals(AppEngine *cat) {
     std::string error;
     Json good = pattern();
@@ -475,6 +684,12 @@ static void test_s1_engine_saturation_replan() {
         std::memcpy(bytes.data(), &config, sizeof(config));
         check(engine.add_node(1, ws::Module<GrooveReleaseFlood>::descriptor()), "real flood node");
         check(engine.add_node(2, ws::Module<groove::Sequencer>::descriptor(), bytes), "real Groove node");
+        groove::Config decoded{};
+        check(groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded), "legacy direct fixture decodes");
+        const auto live = groove::materialize_legacy_pattern(decoded);
+        std::vector<uint8_t> packed(sizeof(live));
+        std::memcpy(packed.data(), &live, sizeof(live));
+        check(engine.set_data_packed(2, 0, packed) == WS2_OK, "direct fixture seeds Groove data");
         check(engine.add_node(3, ws::Module<GrooveHostReceiver>::descriptor()), "real retained note receiver");
         check(engine.connect(2, 4, 3, 0) && engine.output(3, 0, 0), "real Groove notes route");
         check(engine.register_producer() == 0 && engine.prepare(), "real prepared graph");
@@ -644,6 +859,141 @@ struct GrooveV2Rig {
         render();
     }
 };
+// E3b: an active note survives a data serial change. The next step reads
+// the new borrowed row, without rewinding phase, loop or note identity.
+static void test_live_pattern_migration() {
+    groove::Config legacy{};
+    legacy.tracks[0].length = 16;
+    legacy.tracks[1].length = 8;
+    legacy.tempo_source = groove::TempoHost;
+    legacy.authored_version = 2;
+    auto &hidden = legacy.tracks[0].steps[31];
+    hidden.kind = groove::Note;
+    hidden.key = hidden.keys[0] = 64;
+    hidden.velocity = .75f;
+    hidden.key_count = 2;
+    hidden.keys[1] = 67;
+    hidden.cond_type = groove::AB;
+    hidden.cond_a = 1;
+    hidden.cond_b = 2;
+    auto data = groove::materialize_legacy_pattern(legacy);
+    check(data.length_1 == 16 && data.length_2 == 8 && data.count_1 == 64 &&
+          data.count_2 == 64 && data.tempo_source == groove::TempoHost &&
+          data.steps_1[31].keys[1] == 67 && data.steps_1[31].cond_b == 2,
+          "legacy materialization preserves hidden rows, chord, conditions and tempo");
+    const auto &slot = groove::Sequencer::data_slots[0];
+    std::vector<uint8_t> packed(sizeof(data));
+    auto validate = [&] {
+        std::memcpy(packed.data(), &data, sizeof(data));
+        return groove::validate_pattern_slot(slot, packed.data(), packed.size());
+    };
+    auto refused = [&](const char *field, int row = -1) {
+        const auto result = validate();
+        return !result && std::strcmp(result.field, field) == 0 && result.row == row;
+    };
+    check(bool(validate()), "canonical legacy materialization validates");
+    data.steps_1[31].cond_a = 3;
+    check(refused("pattern.steps_1", 31), "invalid A:B row refused off render");
+    data.steps_1[31].cond_a = 1;
+    data.steps_1[31].keys[1] = 64;
+    check(refused("pattern.steps_1", 31), "duplicate chord key refused off render");
+    data.steps_1[31].keys[1] = 67;
+    data.length_2 = 12;
+    check(refused("pattern.length_2"), "unsupported length refused off render");
+    data.length_2 = 8;
+    check(bool(validate()), "valid candidate accepted after refusal");
+}
+
+static void test_groove_host_adapter() {
+    using namespace wirescape::document;
+    auto module = patch(pattern())["modules"][0];
+    materialize_groove_legacy_data(module, 1);
+    check(!module["config"]["tracks"][0].contains("steps") &&
+              !module["config"]["tracks"][0].contains("length"), "migration strips only live construction keys");
+    const auto canonical = module;
+    materialize_groove_legacy_data(module, 1);
+    check(module == canonical, "canonical migration is idempotent");
+    auto reset = module;
+    reset.erase("data");
+    materialize_groove_legacy_data(reset, 1);
+    check(reset["data"]["pattern"] == Json::object(), "removed slot does not resurrect old rows");
+    auto &value = module["data"]["pattern"];
+    check(value["length_1"] == 32 && value["steps_1"].size() == 64 &&
+              value["steps_1"][0]["key"] == 72 && value["steps_1"][2]["key"] == 64 &&
+              !value.contains("count_1"), "legacy rows materialized as typed data");
+    const auto &slot = groove::Sequencer::data_slots[0];
+    std::vector<uint8_t> bytes;
+    std::string error;
+    check(ws::data_layout::pack_data_slot(slot, value, ws::data_layout::DataLoad::Edit,
+              bytes, error, nullptr, validate_groove_data_slot), "migrated JSON packs through shared table");
+    groove::LivePattern packed{};
+    std::memcpy(&packed, bytes.data(), sizeof(packed));
+    check(packed.count_1 == 64 && packed.steps_1[0].key == 72 &&
+              packed.steps_1[0].velocity == .8f && packed.steps_1[3].kind == groove::Tie,
+          "typed legacy migration retains exact step values and ties");
+    value["length_1"] = 12;
+    materialize_groove_legacy_data(module, 1);
+    check(module["data"]["pattern"]["length_1"] == 12,
+          "explicit data remains authoritative rather than falling back to legacy");
+    auto legacy = pattern();
+    legacy["version"] = 2;
+    legacy["tracks"][0]["length"] = 16;
+    const auto construction = groove_construction_bytes(legacy, 17);
+    legacy["tracks"][0]["steps"][0]["key"] = 75;
+    legacy["tracks"][0]["length"] = 32;
+    legacy["tempo_source"] = "host";
+    check(groove_construction_bytes(legacy, 17) == construction,
+          "steps, length and tempo source do not replace construction instance");
+    auto converted = groove_legacy_pattern_value(legacy, 17);
+    check(converted["length_1"] == 32 && converted["tempo_source"] == "host" &&
+              converted["steps_1"][0]["key"] == 75, "v2 legacy migration includes tempo and edited rows");
+    legacy["bpm"] = 125;
+    check(groove_construction_bytes(legacy, 17) != construction,
+          "genuine construction change is not hidden");
+    const auto prior = bytes;
+    // Migration replaces the JSON data object transactionally. Reacquire
+    // the value rather than keeping a reference into the old object.
+    check(!ws::data_layout::pack_data_slot(slot, module.at("data").at("pattern"), ws::data_layout::DataLoad::Edit,
+              bytes, error, nullptr, validate_groove_data_slot) &&
+              error.find("pattern.length_1") != std::string::npos && bytes == prior,
+          "host validation refuses transactionally and names field");
+}
+
+static void test_live_pattern_data() {
+    GrooveV2Rig rig;
+    alignas(16) groove::LivePattern data{};
+    data.length_1 = data.length_2 = 8;
+    data.count_1 = 2;
+    data.steps_1[0] = {groove::Note, 60, 1.f, 0.f, 0.f, 4};
+    data.steps_1[1] = {groove::Note, 62, 1.f, 0.f, 0.f, 4};
+    data.steps_1[1].keys[0] = 62;
+    ws2_data slot{sizeof(ws2_data), &data, sizeof(data), 1};
+    rig.raw.struct_size = sizeof(rig.raw);
+    rig.raw.data_count = 1;
+    rig.raw.data = &slot;
+    rig.start();
+    check(rig.count == 1 && rig.accepted[0].type == WS2_NOTE_ON &&
+          rig.accepted[0].key == 60, "live pattern initial note");
+    const auto id = rig.accepted[0].note_id;
+    const auto loop = rig.seq.players[0].loop;
+    const auto rng = rig.seq.players[0].rng;
+    const auto phase = rig.seq.phase;
+    alignas(16) auto edited = data;
+    edited.steps_1[1].key = edited.steps_1[1].keys[0] = 65;
+    edited.length_1 = 16;
+    slot.data = &edited;
+    slot.serial = 2;
+    rig.render();
+    check(rig.count == 1 && rig.seq.running && rig.seq.players[0].sounding.notes[0].id == id &&
+          rig.seq.players[0].loop == loop && rig.seq.players[0].rng == rng &&
+          rig.seq.phase == phase + 1., "live edit preserves held identity, loop, RNG and phase");
+    for (unsigned i = 0; i < 4 && rig.count < 3; ++i) rig.render();
+    check(rig.count == 3 && rig.accepted[1].type == WS2_NOTE_OFF &&
+          rig.accepted[1].note_id == id && rig.accepted[2].type == WS2_NOTE_ON &&
+          rig.accepted[2].key == 65 && rig.seq.step_t[0] == 1,
+          "next step reads new row and releases prior note once");
+}
+
 static void test_v2_gates_and_skipped_ties() {
     {
         GrooveV2Rig rig;
@@ -1009,6 +1359,12 @@ static void test_chord_to_notes_cv() {
     Engine engine;
     check(engine.add_node(1, ws::Module<groove::Sequencer>::descriptor(), bytes),
           "three-key Groove node loads from Studio-shaped JSON");
+    groove::Config decoded{};
+    check(groove::decode(bytes.data(), static_cast<uint32_t>(bytes.size()), decoded), "legacy chord fixture decodes");
+    const auto live = groove::materialize_legacy_pattern(decoded);
+    std::vector<uint8_t> packed(sizeof(live));
+    std::memcpy(packed.data(), &live, sizeof(live));
+    check(engine.set_data_packed(1, 0, packed) == WS2_OK, "direct chord fixture seeds Groove data");
     check(engine.add_node(2, ws::Module<ws2test::NotesToCv>::descriptor()), "device-free test NotesToCv node");
     check(engine.connect(1, 4, 2, 0) && engine.register_producer() == 0 && engine.prepare(),
           "Groove notes route reaches NotesToCv");
@@ -1147,20 +1503,57 @@ static void test_tempo_source() {
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
     try {
+        // Draft-ahead diagnostic only: exercise the direct borrowed-slot DSP
+        // fixture without bypassing the ordinary full runtime test or its
+        // E3a shared-loader dependency.
+        if (argc == 2 && std::string(argv[1]) == "--live-pattern-only") {
+            test_live_pattern_migration();
+            test_groove_host_adapter();
+            test_live_pattern_data();
+            std::puts("PASS Groove live pattern direct continuity");
+            return 0;
+        }
+        const bool shared_only = argc == 2 && std::string(argv[1]) == "--shared-live-pattern-only";
+        check(argc == 1 || shared_only, "unknown Groove test arguments");
         wirescape::engine2::Config cfg{};
-    cfg.sample_rate = 48000;
-    cfg.max_block = 256;
-    cfg.max_nodes = 64;
-    cfg.event_budget = 2048;
+        cfg.sample_rate = 48000;
+        cfg.max_block = 256;
+        cfg.max_nodes = 64;
+        cfg.event_budget = 2048;
         Owner cat(app_engine_create(&cfg), app_engine_destroy);
         check(bool(cat), "native catalogue creation");
+        // E3b fail-first: the live pattern must be described by the E3a slot
+        // table rather than being exclusively construction-time config.
+        const auto *groove = app_engine_native_descriptor(cat.get(), "sequencing.groove");
+        check(groove != nullptr, "Groove descriptor available");
+        check(groove->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(groove->data_slots) &&
+                  groove->data_slot_count > 0 && groove->data_slots != nullptr,
+              "E3b Groove exposes live pattern data slots");
+
+        test_shared_pattern_loader(cat.get());
+        test_shared_live_pattern(cat.get());
+        test_shared_pattern_replan(cat.get());
+        test_a90_saved_construction(cat.get());
+        // Focused ASan diagnostic for the E3b shared loader/ring and migration
+        // witnesses. The no-argument CTest retains every original assertion,
+        // rate/block combination and the existing 60-second test deadline.
+        if (shared_only) {
+            test_live_pattern_migration();
+            test_groove_host_adapter();
+            test_live_pattern_data();
+            std::puts("PASS Groove shared loader and live pattern continuity");
+            return 0;
+        }
         test_refusals(cat.get());
         test_s1_refusals(cat.get());
         test_chord_to_notes_cv();
         test_v2_config_and_conditions(cat.get());
         test_v2_gates_and_skipped_ties();
+        test_live_pattern_migration();
+        test_groove_host_adapter();
+        test_live_pattern_data();
         test_tempo_source();
         test_s1_transport(cat.get());
         test_s1_deliberate_saturation();
