@@ -173,6 +173,12 @@ export class EngineRefusal extends Error {
 /** A parameter not applied by the live event queue; previous is the committed value. */
 export interface UnappliedParameter { moduleId: number; paramId: string; previous?: number }
 
+/** Optional local authored projection; never sent over the wire. */
+export interface DataAuthoring {
+  value: Record<string, unknown>;
+  replaceConfig?: boolean;
+  config?: unknown;
+}
 export interface EngineClient {
   // ---- the patch -------------------------------------------------------
   loadGraph(patch: PatchV2): Promise<void>;
@@ -185,8 +191,8 @@ export interface EngineClient {
   disconnect(c: Connection): void;
   setParam(moduleId: number, paramId: string, value: number): void;
   setModAmount(c: Connection, amount: number): void;
-  /** Live complete-slot write; resolves only after the accepted reply. Optional until the A80 transport handoff. */
-  setData?(moduleId: number, slot: string, value: Record<string, unknown>): Promise<void>;
+  /** Live complete-slot write; resolves only after the correlated accepted reply. */
+  setData?(moduleId: number, slot: string, value: Record<string, unknown>, authored?: DataAuthoring): Promise<void>;
 
   // ---- playing ---------------------------------------------------------
   noteOn(note: number, velocity: number): void;

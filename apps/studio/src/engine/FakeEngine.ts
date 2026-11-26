@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import type {
-  EngineClient, OscStatus, Telemetry, SystemStatus, Device, EngineError, MonitorEntry, UnavailableAudioDriver,
+  EngineClient, DataAuthoring, OscStatus, Telemetry, SystemStatus, Device, EngineError, MonitorEntry, UnavailableAudioDriver,
   UnappliedParameter,
 } from './EngineClient';
 import { EngineRefusal } from './EngineClient';
 import type { PatchV2, Connection } from '../patch/types';
-import { ioObject, ioRows, oscProjection, ioConstruction } from '../patch/ioProjection';
+import { ioObject, mergeSlotValue, ioRows, oscProjection, ioConstruction } from '../patch/ioProjection';
 import type { ModuleRegistry } from '../modules/registry';
 import { findParam, findPort, normToValue, valueToNorm } from '../modules/registry';
 import { hzToMidi } from '../modules/musicalPitch';
@@ -357,7 +357,7 @@ export class FakeEngine implements EngineClient {
     if (committed) committed.amount = amount;
   }
 
-  async setData(moduleId: number, slot: string, value: Record<string, unknown>): Promise<void> {
+  async setData(moduleId: number, slot: string, value: Record<string, unknown>, authored?: DataAuthoring): Promise<void> {
     this.guardRefusal();
     const m = this.document?.modules.find(item => item.id === moduleId);
     const node = this.nodes.get(moduleId);
@@ -375,8 +375,13 @@ export class FakeEngine implements EngineClient {
       throw new EngineRefusal({ code: 'invalid', message: slot + '.rows: expected eight rows' });
     // The native descriptor packer remains the range/cross-field authority.
     // FakeEngine simulates the accepted transaction, not DSP.
-    const next = structuredClone(value);
-    m.data = { ...ioObject(m.data), [slot]: next };
+    const prior = ioObject(m.data);
+    const next = authored ? structuredClone(authored.value) : mergeSlotValue(prior[slot], value);
+    m.data = { ...prior, [slot]: next };
+    if (authored?.replaceConfig) {
+      if (authored.config === undefined) delete m.config;
+      else m.config = structuredClone(authored.config);
+    }
     if (slot === 'mapping') node.ccRows = ioRows(m, 'mapping');
     if (slot === 'routes') {
       const priorIn = this.osc.routes?.map(route => ({ ...route })) ?? [];

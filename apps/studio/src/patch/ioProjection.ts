@@ -34,3 +34,14 @@ export function ioConstruction(module: PatchModule): unknown {
   if (module.module === 'osc.out') delete config.notes;
   return config;
 }
+
+/** Replace declared data fields while preserving opaque authored slot and row metadata. */
+export function mergeSlotValue(previous: unknown, value: Value): Value {
+  const old = ioObject(previous);
+  const next = { ...old, ...structuredClone(value) };
+  if (Array.isArray(value.rows)) {
+    const rows = Array.isArray(old.rows) ? old.rows : [];
+    next.rows = value.rows.map((row, i) => ({ ...ioObject(rows[i]), ...ioObject(row) }));
+  }
+  return next;
+}
