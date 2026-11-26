@@ -23,4 +23,10 @@
 
 The N=16 graph requires 96 modules because each voice contains five modules, the summing tree contains 15 mixers and the graph contains one output module: `5*16 + 15 + 1 = 96`. The native 64-module limit is reached before DSP load is measured. N=8 uses 48 modules and 47 connections. This file records a graph capacity boundary, not a CPU or audible-dropout threshold.
 
+## Delay v2 state save capacity
+
+- **Source:** lab commit [`8c9bb10`](https://github.com/kalharbi11/wirescape-lab/commit/8c9bb10d9eb8acf616395404c26ed0c3964e19d2), 2026-11-25 ET. Source inspection on Windows. The [Architect review](https://github.com/kalharbi11/wirescape-lab/pull/539#issuecomment-7157010908) cites the hosted device-off capacity preflight test.
+- **Capacity row:** `modules/delay/dsp.h` sets a 1,048,576-byte cap. A v2 save uses `144 + 8 × size` bytes, where `size = ceil(2 × sample_rate_hz) + 8`. The largest fitting ring size is 131,054 frames, corresponding to 65,523 Hz. Above that rate, including 88.2 and 96 kHz, the save preflight returns `WS2_CAPACITY` before writing the payload.
+- **Follow-up from review L1:** characterize high-rate Delay state in the stopped-graph replacement path. The snapshot uses `old.save_state(id)` at [`host/sidecar/session.cpp:518`](https://github.com/kalharbi11/wirescape-lab/blob/8c9bb10d9eb8acf616395404c26ed0c3964e19d2/host/sidecar/session.cpp#L518).
+
 The native `noteOn`/`noteOff` and `setParam` paths report `busy` on event-queue failure (`native/sidecar/session.cpp:1075-1078,1099-1100`); successful live-event command acknowledgements establish queue acceptance, not completed rendering (`docs/specs/ENGINE_PROTOCOL.md:69-104`).

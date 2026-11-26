@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <filesystem>
+#include <iterator>
 #include <memory>
 #include <set>
 #include <nlohmann/json.hpp>
@@ -112,6 +114,35 @@ int main(int argc, char **argv) {
     // No graph yet: silence, and edits are refused.
     CHECK(loudest(4) == 0);
     CHECK(command({{"type", "setParam"}, {"moduleId", 1}, {"paramId", "x"}, {"value", 0}})["code"] == "unavailable");
+
+    // OB-a3 pin 7: the real browser-engine loadGraph refuses a disk-backed
+    // native v1 document without rewriting its source or creating a backup.
+    // Keep the valid v2 load below as the independent positive control.
+    {
+        namespace fs = std::filesystem;
+        const fs::path old = fs::path(examples) / "Six_Essentials_Demo.json";
+        const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+        const fs::path staging = fs::temp_directory_path() /
+                                 ("wirescape-ob-a3-web-" + std::to_string(nonce));
+        CHECK(fs::create_directory(staging));
+        const fs::path copied = staging / "native-v1.json";
+        fs::copy_file(old, copied);
+        std::ifstream input(copied, std::ios::binary);
+        const std::string raw((std::istreambuf_iterator<char>(input)), {});
+        CHECK(Json::parse(raw)["version"] == 1);
+        const auto stamp = fs::last_write_time(copied);
+        auto refusal = command({{"type", "loadGraph"}, {"patch", Json::parse(raw)}});
+        CHECK(refusal["ok"] == false);
+        CHECK(refusal.contains("code"));
+        CHECK(loudest(2) == 0); // No graph was accepted by the refusal.
+        std::ifstream recheck(copied, std::ios::binary);
+        const std::string after((std::istreambuf_iterator<char>(recheck)), {});
+        CHECK(after == raw && fs::last_write_time(copied) == stamp);
+        CHECK(std::distance(fs::directory_iterator(staging), fs::directory_iterator{}) == 1);
+        CHECK(!fs::exists(copied.string() + ".bak-v1"));
+        CHECK(!fs::exists(copied.string() + ".v1.json"));
+        fs::remove_all(staging);
+    }
 
     auto patch = load(examples + "/chaos_two.json");
     auto reply = command({{"type", "loadGraph"}, {"patch", patch}});

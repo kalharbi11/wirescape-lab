@@ -6,6 +6,17 @@ on:
       - "bench/continuity/**"
       - ".github/workflows/continuity.yml"
   workflow_dispatch:
+    inputs:
+      e4_capture:
+        description: "Capture the three M4 E4 checkpoints for A50"
+        required: false
+        default: false
+        type: boolean
+      latency_only:
+        description: "Capture only the report-only latency probe"
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -20,3 +31,114 @@ jobs:
           python-version: "3.11"
       - name: Synthetic tests (stdlib only; no audio or MIDI)
         run: python -m unittest discover -s bench/continuity/tests -v
+
+  e4-capture:
+    if: github.event_name == 'workflow_dispatch' && inputs.e4_capture
+    name: A50 Linux x64 / ${{ matrix.stage }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - stage: before-e4a
+            engine: c8a3c38d2fc1e4128aeecd0b596c383f09c12c83
+          - stage: e4a
+            engine: b3e11ea3242aa2711054c0b177002e85499c8d9c
+          - stage: e4b
+            engine: 8e8783b0602660d964892f9fe66e0cfe310dc009
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.engine }}
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Build the pinned null-sink sidecar
+        run: |
+          cmake -S engine-source/native -B "$RUNNER_TEMP/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/build" --target wirescape_engine_sidecar --parallel 2
+      - name: Capture and compare edit continuity
+        env:
+          ENGINE_HEAD: ${{ matrix.engine }}
+          LATENCY_ONLY: ${{ inputs.latency_only }}
+        run: |
+          cases=('latency compensation limit')
+          if [[ "$LATENCY_ONLY" != true ]]; then
+            cases+=('addModule unconnected' 'removeModule unconnected' 'removeModule connected' \
+            'connect signal' 'disconnect signal' 'connect event' 'disconnect event' \
+            'connect modulation' 'disconnect modulation' setModAmount ccMap.set \
+            'applyGraph identical' 'applyGraph Groove steps' 'applyGraph Groove length' \
+            'applyGraph voice count' 'applyGraph OSC In row' 'applyGraph one parameter' \
+            'applyGraph deleted module' 'applyGraph restored module')
+          fi
+          python harness/bench/continuity/run.py \
+            --engine "$RUNNER_TEMP/build/wirescape-engine" \
+            --engine-source engine-source --built-head "$ENGINE_HEAD" \
+            --repeats 3 --out "$RUNNER_TEMP/a50/report" --keep "$RUNNER_TEMP/a50/raw" \
+            --only "${cases[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a50-${{ matrix.stage }}
+          path: ${{ runner.temp }}/a50
+          if-no-files-found: warn
+          retention-days: 14
+
+  a62-buffer-capture:
+    if: github.event_name == 'pull_request'
+    needs: synthetic-continuity
+    name: A62 E7 buffer continuity / Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      HARNESS_HEAD: ${{ github.event.pull_request.head.sha }}
+      ENGINE_HEAD: 8c9bb10d9eb8acf616395404c26ed0c3964e19d2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HARNESS_HEAD }}
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ENGINE_HEAD }}
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify source pins and install tools
+        run: |
+          set -euo pipefail
+          test "$(git -C harness rev-parse HEAD)" = "$HARNESS_HEAD"
+          test "$(git -C engine-source rev-parse HEAD)" = "$ENGINE_HEAD"
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          mkdir -p "$RUNNER_TEMP/a62"
+          printf 'harness=%s\nsubject=%s\n' "$HARNESS_HEAD" "$ENGINE_HEAD" > "$RUNNER_TEMP/a62/pins.txt"
+      - name: Build pinned null-sink sidecar
+        run: |
+          cmake -S engine-source/native -B "$RUNNER_TEMP/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/build" --target wirescape_engine_sidecar --parallel 2
+      - name: Capture both buffer changes with three setup-matched controls
+        run: |
+          python harness/bench/continuity/run.py \
+            --engine "$RUNNER_TEMP/build/wirescape-engine" \
+            --engine-source engine-source --built-head "$ENGINE_HEAD" \
+            --repeats 3 --only 'setBufferFrames smaller' 'setBufferFrames larger' \
+            --out "$RUNNER_TEMP/a62/report" --keep "$RUNNER_TEMP/a62/raw"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a62-buffer-continuity
+          path: ${{ runner.temp }}/a62
+          if-no-files-found: warn
+          retention-days: 14

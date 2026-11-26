@@ -21,6 +21,8 @@
 #include "../../modules/noise/dsp.h"
 #include "../../modules/notes_to_cv/dsp.h"
 #include "../../modules/cv_to_notes/dsp.h"
+#include "../../modules/poly_merge/dsp.h"
+#include "../../modules/poly_split/dsp.h"
 #include "../../modules/osc_in/dsp.h"
 #include "../../modules/osc_out/dsp.h"
 #include "../../modules/output/dsp.h"
@@ -37,6 +39,7 @@
 #include "../../sdk/examples/random_source/dsp.h"
 #include "../../sdk/examples/step_sequencer/dsp.h"
 #include <vector>
+#include "app_engine.h"
 namespace wirescape::app {
 inline const std::vector<const ws2_descriptor *> &builtin_modules() {
     static const std::vector<const ws2_descriptor *> modules{
@@ -45,5 +48,13 @@ inline const std::vector<const ws2_descriptor *> &builtin_modules() {
 #undef WS_APP_MODULE
     };
     return modules;
+}
+// Host-only catalogue registration seam. E3c registers its module-local
+// callbacks here; the packer, loader and sidecar remain module-agnostic.
+inline AppDataValidator builtin_data_validator(const ws2_descriptor *d) {
+    static const std::vector<std::pair<const ws2_descriptor *, AppDataValidator>> validators{};
+    for (const auto &entry : validators)
+        if (entry.first == d) return entry.second;
+    return nullptr;
 }
 } // namespace wirescape::app

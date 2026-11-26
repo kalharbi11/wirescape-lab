@@ -3,6 +3,7 @@
 #include <memory>
 #include <cstring>
 #include <limits>
+#include <cmath>
 #ifndef WS2_PORTABLE_TEST
 #include "allocation_watch.h"
 #include "frozen_reference.h"
@@ -189,10 +190,97 @@ static void vca_exact(){
  }
  std::puts("PASS exact VCA scalar equality across rate/channel/frame/constant matrix");
 }
+
+static double vcf_tone_gain(float cutoff,float resonance,double frequency,uint32_t tap) {
+ auto f=std::make_unique<DspFixture>(descriptors[2],48000.,1);
+ f->parameter[0][0][0]=cutoff;f->parameter[1][0][0]=resonance;
+ constexpr double pi=3.14159265358979323846;
+ double dry_energy=0,wet_energy=0;
+ // More than 0.5 s of warmup and 0.5 s of measurement at 48 kHz.
+ for(uint32_t block=0;block<200;++block){
+  for(uint32_t i=0;i<256;++i){
+   const double t=double(block*256+i)/48000.;
+   f->input[0][0][i]=static_cast<float>(std::sin(2*pi*frequency*t));
+  }
+  f->run(256);
+  if(block>=96)for(uint32_t i=0;i<256;++i){
+   const double dry=f->input[0][0][i],wet=f->output[tap][0][i];
+   dry_energy+=dry*dry;wet_energy+=wet*wet;
+  }
+ }
+ VERIFY(dry_energy>0&&std::isfinite(wet_energy));
+ return std::sqrt(wet_energy/dry_energy);
+}
+static void vcf_passband() {
+ for(float cutoff:{100.f,1000.f,5000.f})for(float resonance:{.25f,.5f,.75f,.9f})
+  for(uint32_t tap=0;tap<2;++tap){
+   double mean_db=0;
+   for(uint32_t bin=0;bin<5;++bin){
+    const double frequency=20.+(cutoff/4.-20.)*bin/4.;
+    const double baseline=vcf_tone_gain(cutoff,0.f,frequency,tap);
+    const double measured=vcf_tone_gain(cutoff,resonance,frequency,tap);
+    VERIFY(baseline>0&&measured>0);
+    mean_db+=20*std::log10(measured/baseline)/5.;
+   }
+   std::printf("VCF S7.7 passband fc=%g resonance=%g tap=%s mean_relative_db=%.4f\n",
+               double(cutoff),double(resonance),tap?"low24":"low12",mean_db);
+   VERIFY(std::abs(mean_db)<=1.0);
+  }
+ std::puts("PASS VCF passband +/-1 dB, 20 Hz through fc/4, both taps");
+}
+// The M7 VCF change is output-only. Re-run the pre-S7.7 recursion as an
+// independent test reference, including a single-sample excitation followed
+// by silence at high resonance: no pole, state, or self-oscillation change.
+static void vcf_state_and_peak_invariants() {
+ constexpr double pi=3.14159265358979323846;
+ for(float cutoff:{100.f,1000.f,5000.f})for(float resonance:{.5f,.9f,.95f}){
+  auto f=std::make_unique<DspFixture>(descriptors[2],48000.,1);
+  f->parameter[0][0][0]=cutoff;f->parameter[1][0][0]=resonance;
+  ws2ports::Vcf actual;actual.reset();
+  std::array<double,4> old_state{};
+  const double g=std::tan(pi*cutoff/48000.),a=g/(1+g);
+  const double k=(3.2/.95)*resonance;
+  const double makeup=1.+.9*k;
+  for(uint32_t n=0;n<400;++n){
+   float reference12[256]{},reference24[256]{};
+   for(uint32_t i=0;i<256;++i){
+    const double x=(n==0&&i==0)?1.:0.;
+    f->input[0][0][i]=static_cast<float>(x);
+    double zero=0;
+    for(auto state:old_state)zero=a*zero+(1-a)*state;
+    const double a2=a*a,a4=a2*a2;
+    const double feedback=(a4*x+zero)/(1+k*a4);
+    double stage=x-k*feedback;
+    for(int j=0;j<4;++j){
+     const double v=(stage-old_state[j])*a;
+     stage=old_state[j]+v;
+     old_state[j]=stage+v;
+     if(std::abs(old_state[j])<1.e-20)old_state[j]=0;
+     if(j==1)reference12[i]=static_cast<float>(stage*makeup);
+    }
+    reference24[i]=static_cast<float>(stage*makeup);
+   }
+   ws::Block block(f->process);actual.process(block);
+   for(uint32_t i=0;i<256;++i){
+    VERIFY(std::abs(f->output[0][0][i]-reference12[i])<1.e-6f);
+    VERIFY(std::abs(f->output[1][0][i]-reference24[i])<1.e-6f);
+   }
+   for(uint32_t j=0;j<4;++j)VERIFY(actual.z[0][j]==old_state[j]);
+  }
+  // Constant positive makeup preserves the frequency of every spectral peak;
+  // at resonance 0.9 it can only raise (never lower) the peak height.
+  if(resonance==.9f)VERIFY(makeup>=1.);
+ }
+ std::puts("PASS VCF pre-S7.7 state and single-impulse tail exactly unchanged; fixed-gain peak invariant");
+}
+
 #ifndef WS2_PORTABLE_TEST
 static void equivalence(const char*report){
  FILE*file=std::fopen(report,"w");VERIFY(file);std::fprintf(file,"{\"modules\":[");
  for(uint32_t m=0;m<std::size(descriptors);++m){double worst=0;
+  // Only VCF's nine ABI1 PCM cases are retired for the intended M7 sound change.
+  // The source-verified frozen data remain intact and every other module stays strict.
+  if(m==2){std::puts("retired: intended sound change S7.7 — VCF nine frozen ABI1 cases");continue;}
   for(double rate:{44100.,48000.,96000.})for(uint32_t block:{1u,17u,256u}){
    auto f=std::make_unique<DspFixture>(descriptors[m],rate,1);
    char reference_name[128];
@@ -240,6 +328,8 @@ int main(int argc, char **argv) {
         vca_exact();
         vca_broadcast();
         lfo_phase();
+        vcf_passband();
+        vcf_state_and_peak_invariants();
 #ifndef WS2_PORTABLE_TEST
         noalloc();
         VERIFY(argc==2);

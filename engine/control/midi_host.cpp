@@ -8,6 +8,17 @@
 #include <stdexcept>
 namespace wirescape::midi {
 namespace {
+// Service-owned counters only; release_panics_ already spans the Host lifetime.
+void add_service_counters(Counters &total, const Counters &live) noexcept {
+    total.received += live.received;
+    total.dropped += live.dropped;
+    total.malformed += live.malformed;
+    total.oversize += live.oversize;
+    total.ring_full += live.ring_full;
+    total.disconnects += live.disconnects;
+    total.send_fail += live.send_fail;
+    total.ignored_rpn += live.ignored_rpn;
+}
 std::vector<Route> subscriptions(const std::string &document) {
     const auto j = nlohmann::json::parse(document);
     std::vector<Route> routes;
@@ -90,11 +101,16 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         for (auto &s : enabled_)
             if (!service_->enable({s.name, s.system_name})) throw std::runtime_error("Too many enabled MIDI endpoints");
         if (!service_->replace_routes(std::move(routes))) throw std::runtime_error("Invalid MIDI routes");
+        // Resolve/open once on the control thread before reporting an explicit
+        // enable result. Saved disconnected endpoints remain offline but are
+        // tolerated at startup; Session checks the requested identity on toggle.
+        service_->poll();
         if (!service_->start()) throw std::runtime_error("MIDI service did not start");
         error.clear();
         return true;
  }catch(const std::exception&e){error=e.what();stop();return false;}}
-bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error) {
+bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
+                  engine2::Engine::BeforePublish before_publish, void *context) {
     try {
         auto routes = subscriptions(document); // Parse/allocate before attempting any live change.
         if (std::any_of(routes.begin(), routes.end(), [](const Route &r) { return !r.node; }))
@@ -102,12 +118,15 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         // replace_routes calls commit only after acquiring its try-lock. A valid
         // route table with no commit invocation therefore means MIDI contention.
         bool commit_entered = false;
+        int result = WS2_STATE;
         auto commit = [&] {
             commit_entered = true;
-            return engine_ && app_engine_replan(engine_, candidate, timeout_ns) == WS2_OK;
+            if (engine_) result = app_engine_replan(engine_, candidate, timeout_ns, before_publish, context);
+            return result == WS2_OK;
         };
         if (!(service_ ? service_->replace_routes(std::move(routes), commit) : commit())) {
-            error = service_ && !commit_entered ? "MIDI worker busy" : "Live graph refused";
+            error = service_ && !commit_entered ? "MIDI worker busy" :
+                result == WS2_CAPACITY ? app_engine_error(engine_) : "Live graph refused";
             return false;
         }
         error.clear();
@@ -117,10 +136,18 @@ bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t ti
         return false;
     }
 }
+bool Host::online(const Endpoint &endpoint) const {
+    if (!service_) return false;
+    const auto states = service_->endpoint_states();
+    return std::any_of(states.begin(), states.end(), [&](const auto &s) {
+        return s.saved.name == endpoint.name && s.saved.system_name == endpoint.system_name && s.online;
+    });
+}
 void Host::stop() {
     if (service_) {
         service_->stop();
-        last_statistics_ = diagnostics();
+        last_statistics_ = diagnostics(); // Snapshot cumulative totals and stopped ports.
+        add_service_counters(completed_, service_->counters());
         service_.reset();
     }
     engine_ = nullptr;
@@ -143,7 +170,8 @@ std::string Host::diagnostics() const {
         .dump();
 }
 Counters Host::counters()const noexcept{
-    auto c = service_ ? service_->counters() : Counters{};
+    auto c = completed_;
+    if (service_) add_service_counters(c, service_->counters());
     c.release_panics = release_panics_.load(std::memory_order_relaxed);
     return c;
 }

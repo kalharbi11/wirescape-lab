@@ -47,26 +47,22 @@ job; no `continue-on-error`; not a required check. `ci.yml` is edited only by it
 The file counts as part of the task's allowed paths. Precedent: Q11.
 **SR9 Evidence substitutions.** Hosted-runner results satisfy a criterion that names no machine.
 Hosted timing is an advisory fact, never a pass mark. Device-only rows stay device-only: no agent
-run fills them. Local or worker builds support diagnosis; merge needs hosted exact-head CI. "Golden
+run fills them. `/dev-run` and local builds support diagnosis; merge needs hosted exact-head CI. "Golden
 24 identical" is always three platforms. Precedent: R2, M0 acceptance table.
 **SR10 Unmeasured rows.** Record `unmeasured`, `not_built_*`, `unavailable` or `device-only`
 with the reason. Never zero, never interpolated or copied from another row. Carry it into the
 acceptance report as an exception; no claim may cite it until it is measured. Precedent: R4,
 M0 acceptance (`ringmod2`).
-**SR11 Contract review.** "Contract-review" means a reviewer who is neither the lead nor the
-builder checks the quoted invariants on the exact head; nothing High means the lead merges. The lead
-records the merge condition with `review-required`. When the current head is ready, the lead
-posts the pinned review request once and adds `review-ready` per the [label lifecycle](README.md#github-labels-for-work-and-review).
-Only Architect-only work needs `needs/architect` and an [Open inbox row](ARCHITECT_INBOX.md).
-The lead tells the owner once and continues unaffected tasks.
-Where a contract from M3 on says contract-review without the word **Claude**, and no Claude
-session has answered within 24 hours, a fresh `gpt-reviewer` chat may run the same checklist; the
-PR records which reviewer it was. Where the contract says **Claude**, and for M1 and M2, only a
-Claude session counts. Precedent: M1 contract-review rule.
+**SR11 Contract review.** A reviewer independent of the lead and builder checks the quoted
+  invariants and evidence at the exact head. Nothing High means the lead can merge under the
+  existing contract. Routing (owner, 2026-11-24): the Claude Architect performs all independent
+  and Claude contract reviews via the inbox, with pinned base/head, `review-required` and
+  `needs/architect`. The owner or lead may apply one `architect-ready` wake per verified batch.
+  Builders and the lead keep unrelated work moving.
 **SR12 Staffing.** The lead may move a task to another builder when the writer gave no substantive
 result after one supported retry, or stopped. The old writer is told to stop first; the branch, PR and
-round count carry over; a handoff comment records the change. At most four builders. New Claude
-builder tasks and lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
+round count carry over; a handoff comment records the change. At most five builders (B1–B5, all ChatGPT chat sessions; no Codex builder sandboxes, 2026-11-24).
+Claude builder lanes (CB1–CB3) are off. Lead changes are the owner's. Precedent: Q15 staffing, CURRENT.
 **SR13 Doc-only PRs.** CURRENT, LOG, QUESTIONS and `facts/` PRs merge on green under the scope
 rule. A facts PR also gets a neutral-wording review. A required check that hangs on a doc-only PR is
 a CI defect to fix under SR3, never a waiver. Precedent: Q7, CODEX_LEAD step 5.
@@ -91,6 +87,27 @@ file states numbers and sources; it never says what should be done.
 **SR19 Nothing waits for the design authority.** A question or review that is pending blocks only
 the task it names. Every other ready task proceeds. An acceptance report is filed when a
 milestone's tasks are merged; the next milestone's tasks start on their own "Depends on" cells.
+
+**SR20 Fewer stops (Architect, 2026-11-24, run 29, A57; owner: "move forward without many stops
+until merge-ready").** (a) **Self-release:** a builder starts the next task in its BUILDERS queue
+when its predecessor merges; if the issue does not exist it opens one quoting the contract row.
+No lead assignment comment is needed. (b) **Low findings never block a merge.** They become one
+follow-up line in the lane queue. (c) **`merge: lead` with no review condition:** exact-head
+required checks plus a signed Result are enough; the lead (or the Architect) merges or enables
+auto-merge without a separate pinned request. (d) **Facts-only PRs** (`facts/` only, no product
+path) auto-merge on required checks under SR18. (e) **Rulings travel:** when a written ruling
+covers a case (for example A58's OSC fix routing), the lead releases the task without asking the
+Architect again. (f) A Claude contract-review is asked **once**, at the head the builder calls
+merge-ready; intermediate heads are not reviewed. None of this changes a gate, a tolerance or a
+"Fixed" item.
+
+**SR21 Split, don't wait (Architect, 2026-11-25, run 37; owner: "B4 is stuck because of B1").**
+(a) When a task needs a file that another lane is still writing in an open PR, the part inside
+the builder's own paths ships on its own. The part that touches the other lane's file becomes a
+follow-up task, released when that PR merges. The whole PR never waits for another lane.
+(b) The lead names the split in the assignment comment. A split needs no Architect ruling unless
+it changes a contract gate. (c) Work that has not started yet moves to the least loaded lane
+whose paths fit it, even when an earlier contract row named another lane.
 
 ## Who decides what
 1. **The lead:** in-scope implementation, test design, merge order, and SR1–SR19 within B1–B6.

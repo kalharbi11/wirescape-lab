@@ -140,7 +140,10 @@ class CoverageTests(unittest.TestCase):
         modules=registry(ROOT)
         self.assertEqual(set(modules), allowed_ids(ROOT))
         self.assertEqual(len(golden_ids(ROOT)), 34)
-        self.assertEqual(EXPERIMENTAL, {"essentials.cv_to_notes", "essentials.gate_delay"})
+        self.assertEqual(EXPERIMENTAL, {
+            "essentials.cv_to_notes", "essentials.poly_merge", "essentials.poly_split",
+            "essentials.gate_delay",
+        })
         self.assertIn("osc.out",modules)
         self.assertIn("midi.in",modules)
         self.assertIn("monitor",modules)

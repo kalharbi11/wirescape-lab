@@ -10,6 +10,8 @@
 #include "../osc/codec.h"
 #include "../../modules/osc_out/dsp.h"
 #include "session.h"
+#include "wirescape_sdk.h"
+#include <cstring>
 #include <algorithm>
 #include <cerrno>
 #include <filesystem>
@@ -28,6 +30,7 @@ uint32_t rejected_rate = 0;
 // Fake ASIO buffer negotiation: when accept_block is set, any other block fails to
 // open; a first attempt then reports `preferred` (0 = driver offers no size).
 uint32_t accept_block = 0;
+std::string accept_block_device; // empty: all fake devices; otherwise only this endpoint
 int64_t preferred = 0;
 std::vector<uint32_t> blocks;
 std::string rate_refused_id;
@@ -35,6 +38,9 @@ int stopped = 0, exchanges = 0;
 std::vector<wirescape::audio::DeviceQuery> queries;
 std::atomic<uint64_t> completed_blocks{0};
 AppEngine *engine = nullptr;
+// Test-only: join the paced callback without closing the fake stream, so state
+// snapshots and manually stepped renders have a single, quiescent owner.
+std::function<void()> freeze_render;
 }
 // Legacy-shaped fake output: the id is the bare name, as before host-API identity.
 wirescape::audio::Device output(const std::string &name, int index, bool is_default = false) {
@@ -61,7 +67,8 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     : impl_(std::make_unique<Impl>()) {
     fake::attempts.push_back(selection.name);
     fake::blocks.push_back(block);
-    if (fake::accept_block && block != fake::accept_block) {
+    if (fake::accept_block && block != fake::accept_block &&
+        (fake::accept_block_device.empty() || selection.name == fake::accept_block_device)) {
         if (allow_preferred_retry && fake::preferred) throw PreferredBufferSize(fake::preferred);
         throw std::runtime_error("fake ASIO buffer refused");
     }
@@ -73,7 +80,7 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
     impl_->producers = std::move(producers);
     fake::engine = impl_->engine.get();
     fake::active = true;
-    if (fake::render)
+    if (fake::render) {
         impl_->callback = std::thread([impl = impl_.get(), live = impl_->engine.get(), block, rate]() mutable {
             std::vector<float> left(block), right(block);
             float *rows[] = {left.data(), right.data()};
@@ -85,12 +92,18 @@ Stream::Stream(EngineOwner &owner, const StreamSelection &selection, double rate
                 std::this_thread::sleep_for(period);
             }
         });
+        fake::freeze_render = [impl = impl_.get()] {
+            impl->quit.store(true);
+            if (impl->callback.joinable()) impl->callback.join();
+        };
+    }
 }
 Stream::~Stream() { stop(); }
 EngineOwner Stream::stop() {
     impl_->quit.store(true);
     if (impl_->callback.joinable()) impl_->callback.join();
     if (impl_->engine) {
+        fake::freeze_render = {};
         if (impl_->producers) impl_->producers();
         ++fake::stopped;
     }
@@ -282,6 +295,754 @@ void test_osc_out_held_gate_reset_sender() {
           "sender emits only the initial low, actual rise and actual fall");
 }
 
+// A70/A73 E7c-a: larger blocks rebuild. Delay v2 is the separate E7c-b
+// follow-up; its full tail witness is preserved at c0219b5. Observe the actual DSP path
+// against an uninterrupted, equally stepped twin, not merely a successful
+// reply or a serialized version word. Fake streams never open real devices.
+using A70Samples = std::array<std::vector<float>, 2>;
+struct A70Witness {
+    A70Samples before, after, wide;
+    Json fresh = Json::array();
+    bool held_before = false, held_after = false, released = false;
+};
+A70Witness a70_buffer_witness(const std::filesystem::path &root, bool rebuild) {
+    Options options;
+    options.audio = true;
+    options.rate = 48000;
+    options.block = 256;
+    options.settings = (root / (rebuild ? "a70-rebuild.json" : "a70-control.json")).string();
+    fake::outputs = {output("A70 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json command = {{"v", 0}, {"id", id}, {"type", type}};
+        command.update(payload);
+        return s.reply({command, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({
+            {{"id", 1}, {"module", "essentials.output"}},
+            {{"id", 4}, {"module", "host.keyboard"}, {"parameters", {{"voices", 1}}}},
+            {{"id", 5}, {"module", "essentials.adsr"},
+             {"parameters", {{"attack", .0001}, {"decay", .01}, {"sustain", .7}, {"release", .01}}}},
+            {{"id", 6}, {"module", "essentials.vco"}, {"parameters", {{"frequency", 431.}}}},
+            {{"id", 7}, {"module", "essentials.vca"}}
+        })},
+        {"connections", Json::array({
+            {{"kind", "signal"}, {"from", {{"module", 4}, {"port", "gate"}}},
+                                 {"to", {{"module", 5}, {"port", "gate"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 5}, {"port", "envelope"}}},
+                                 {"to", {{"module", 7}, {"port", "gain_cv"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 6}, {"port", "audio"}}},
+                                 {"to", {{"module", 7}, {"port", "audio"}}}},
+            {{"kind", "signal"}, {"from", {{"module", 7}, {"port", "audio"}}},
+                                 {"to", {{"module", 1}, {"port", "audio"}}}}
+        })}
+    };
+    check(call("a70-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "A70 patch loads");
+    check(bool(fake::freeze_render), "A70 fake callback can quiesce");
+    fake::freeze_render();
+    fake::render = false;
+    // The paced load handoff can have rendered a different number of blocks
+    // in each twin. Reset both once, BEFORE either witness starts. From here
+    // all samples are deterministic and manually advanced by the same owner.
+    check(app_engine_reset(fake::engine) == WS2_OK, "A70 align cold twin state");
+    check(call("a70-held", "noteOn", {{"note", 60}, {"velocity", .8}})["ok"] == true,
+          "A70 initial held note");
+    std::array<float, 512> bus{};
+    auto step = [&](uint32_t frames) {
+        check(app_engine_render(fake::engine, bus.data(), frames) == WS2_OK,
+              "A70 manual render");
+    };
+    auto raw = [&](uint32_t node, uint32_t port, uint32_t frame) {
+        return app_engine_native(fake::engine).output_sample(node, port, 0, frame);
+    };
+    auto record = [&](A70Samples &dst, uint32_t frames) {
+        // Inspect the raw node outputs, before the stopped-stream master fade.
+        // A70 is a module-state witness; the output-device fade is unchanged.
+        constexpr uint32_t nodes[] = {7, 6}; // held-note VCA, free-running VCO
+        for (size_t i = 0; i < dst.size(); ++i)
+            for (uint32_t f = 0; f < frames; ++f)
+                dst[i].push_back(raw(nodes[i], 0, f));
+    };
+    for (int i = 0; i < 68; ++i) step(256); // retain original held-note warmup
+    A70Witness result;
+    record(result.before, 256);
+    result.held_before = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
+    if (rebuild) {
+        const auto *old = fake::engine;
+        const auto reply = call("a70-larger", "setBufferFrames", {{"frames", 512}});
+        check(reply["ok"] == true && fake::engine != old && audio(s)["bufferFrames"] == 512,
+              "A70 must still take rule 2 and reopen at 512");
+        check(reply.contains("result") && reply["result"].contains("freshModules") &&
+                  reply["result"]["freshModules"].is_array(),
+              "A70 rebuild must report freshModules");
+        result.fresh = reply["result"]["freshModules"];
+    }
+    // Same sample partition on both sides of the edit, even though the
+    // rebuilt engine now supports 512. Also exercise the actual larger size.
+    for (int i = 0; i < 2; ++i) {
+        step(256);
+        record(result.after, 256);
+    }
+    result.held_after = raw(4, 1, 255) == 1.f && raw(5, 0, 255) > .5f;
+    // Keep the note held through a real 512-frame
+    // block. The uninterrupted 256-frame twin supplies the same 512 samples
+    // as two blocks, so this also detects a block-size-dependent discontinuity.
+    if (rebuild) {
+        step(512);
+        record(result.wide, 512);
+    } else {
+        for (int i = 0; i < 2; ++i) {
+            step(256);
+            record(result.wide, 256);
+        }
+    }
+    result.held_after = result.held_after &&
+        raw(4, 1, rebuild ? 511 : 255) == 1.f &&
+        raw(5, 0, rebuild ? 511 : 255) > .5f;
+    check(call("a70-release", "noteOff", {{"note", 60}})["ok"] == true,
+          "A70 later NOTE_OFF must be accepted");
+    if (rebuild) step(512);
+    else { step(256); step(256); }
+    result.released = raw(4, 1, rebuild ? 511 : 255) == 0.f &&
+                      raw(5, 0, rebuild ? 511 : 255) == 0.f;
+    s.shutdown();
+    return result;
+}
+void test_a70_buffer_state(const std::filesystem::path &root) {
+    const auto reference = a70_buffer_witness(root, false);
+    const auto switched = a70_buffer_witness(root, true);
+    auto peak = [](const std::vector<float> &samples) {
+        float value = 0.f;
+        for (float sample : samples) value = (std::max)(value, std::abs(sample));
+        return value;
+    };
+    check(reference.before == switched.before && reference.held_before && switched.held_before,
+          "A70 uninterrupted and restart twins must agree before the edit");
+    check(reference.held_after && reference.released,
+          "A70 uninterrupted note remains held and releases on NOTE_OFF");
+    for (size_t i = 0; i < reference.before.size(); ++i) {
+        check(peak(reference.before[i]) > .001f && peak(reference.after[i]) > .001f &&
+                  peak(reference.wide[i]) > .001f,
+              "A70 control must have nontrivial held-note and VCO witnesses");
+        std::cout << "A70 raw witness " << i << " before_peak=" << peak(reference.before[i])
+                  << " control_peak=" << peak(reference.after[i])
+                  << " rebuilt_peak=" << peak(switched.after[i])
+                  << " identical=" << (reference.after[i] == switched.after[i])
+                  << " wide_control_peak=" << peak(reference.wide[i])
+                  << " wide_rebuilt_peak=" << peak(switched.wide[i])
+                  << " wide_identical=" << (reference.wide[i] == switched.wide[i]) << '\n';
+    }
+    std::cout << "A70 freshModules=" << switched.fresh.dump()
+              << " held=" << switched.held_after << " released=" << switched.released << std::endl;
+    check(switched.held_after, "A70 held note must continue through a larger-buffer rebuild");
+    check(reference.after[0] == switched.after[0], "A70 held-note waveform continues exactly");
+    check(reference.after[1] == switched.after[1], "A70 VCO phase continues exactly");
+    check(reference.wide[0] == switched.wide[0], "A70 held waveform at 512 matches two 256 blocks");
+    check(reference.wide[1] == switched.wide[1], "A70 VCO phase at 512 matches two 256 blocks");
+    for (const auto &entry : switched.fresh) {
+        const uint32_t id = entry.at("moduleId").get<uint32_t>();
+        check(id != 4 && id != 5 && id != 6 && id != 7,
+              "A70 carried modules must not be named fresh");
+    }
+    check(switched.released, "A70 restored held-note ID must match later NOTE_OFF");
+}
+
+void test_e7_state_restart(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // link-time fake only
+    options.settings = (root / "e7-state.json").string();
+    fake::outputs = {output("E7 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "essentials.vco"}},
+                                 {{"id", 4}, {"module", "essentials.clock"},
+                                  {"parameters", {{"bpm", 300}, {"ticks_per_beat", 24}, {"duty", 0.5}}}},
+                                 {{"id", 5}, {"module", "essentials.function_envelope"},
+                                  {"parameters", {{"rise", 0.0001}, {"fall", 0.5}}}},
+                                 {{"id", 6}, {"module", "host.keyboard"},
+                                  {"parameters", {{"voices", 1}}}},
+                                 {{"id", 7}, {"module", "essentials.adsr"},
+                                  {"parameters", {{"attack", 0.0001}, {"decay", 0.01}, {"sustain", 0.7}}}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 4}, {"port", "clock"}}},
+                                      {"to", {{"module", 5}, {"port", "gate"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 6}, {"port", "gate"}}},
+                                      {"to", {{"module", 7}, {"port", "gate"}}}}})}
+    };
+    check(call("e7-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "E7 state witness patch must load with a paced fake callback");
+    check(bool(fake::freeze_render), "E7 fake must expose its quiescence seam");
+    fake::freeze_render();
+    fake::render = false; // subsequent fake streams are manually stepped
+    const auto state_before_step = app_engine_native(fake::engine).save_state(2);
+    std::array<float, 256> samples{};
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "E7 witness render must advance actual noise state");
+    check(call("e7-held", "noteOn", {{"note", 60}, {"velocity", 0.8}})["ok"] == true,
+          "E7 hold a keyboard note before the stream edit");
+    auto render = [&](uint32_t frames) {
+        check(app_engine_render(fake::engine, samples.data(), frames) == WS2_OK,
+              "E7 manual witness render must succeed");
+    };
+    auto witness = [&](uint32_t id, uint32_t port, uint32_t frame) {
+        return app_engine_native(fake::engine).output_sample(id, port, 0, frame);
+    };
+    // 300 BPM × 24 ticks: 400 samples/cycle. Find a real falling gate
+    // with an envelope tail, without depending on the paced startup phase.
+    for (int n = 0; n < 160; ++n) {
+        render(16);
+        if (witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+            witness(7, 0, 15) > 0.5f) break;
+    }
+    check(witness(4, 0, 15) == 0.f && witness(5, 0, 15) > 0.5f &&
+              witness(7, 0, 15) > 0.5f,
+          "E7 witnesses must be a live falling envelope tail and held note");
+    const auto clock_state = app_engine_native(fake::engine).save_state(4);
+    const auto envelope_state = app_engine_native(fake::engine).save_state(5);
+    check(!clock_state.empty() && !envelope_state.empty(), "E7 clock and envelope must serialize state");
+    const auto state = app_engine_native(fake::engine).save_state(2);
+    check(!state.empty() && state != state_before_step,
+          "E7 noise witness must have nontrivial, advancing state");
+    const auto *prepared = fake::engine;
+    check(call("e7-small", "setBufferFrames", {{"frames", 128}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 smaller buffer must retain both engine and exact quiescent state");
+    check(call("e7-fit", "setBufferFrames", {{"frames", 256}})["ok"] == true &&
+              fake::engine == prepared && app_engine_native(fake::engine).save_state(2) == state,
+          "E7 original prepared capacity must remain usable after a smaller stream");
+    check(app_engine_native(fake::engine).save_state(4) == clock_state &&
+              app_engine_native(fake::engine).save_state(5) == envelope_state,
+          "E7 smaller buffer must preserve clock and tail state exactly");
+    render(16);
+    check(witness(7, 0, 15) > 0.5f && witness(5, 0, 15) > 0.5f,
+          "E7 smaller buffer must render the held note envelope and tail after resume");
+    const auto next_noise = app_engine_native(fake::engine).save_state(2);
+    const auto next_clock = app_engine_native(fake::engine).save_state(4);
+    const auto next_envelope = app_engine_native(fake::engine).save_state(5);
+    // Deliberately exercise the engine's unsupported-blob retention: this is
+    // not a live VCO snapshot and must not be carried by E7 as one.
+    const std::vector<uint8_t> unsupported{99, 0, 0, 0};
+    check(app_engine_native(fake::engine).load_state(3, unsupported) == WS2_UNSUPPORTED &&
+              app_engine_native(fake::engine).preserved_state(3) == unsupported,
+          "E7 unsupported state witness must be retained by the old engine");
+    auto larger = call("e7-large", "setBufferFrames", {{"frames", 512}});
+    check(larger["ok"] == true && fake::engine != prepared,
+          "E7 larger buffer must rebuild a runnable engine");
+    check(app_engine_native(fake::engine).save_state(2) == next_noise,
+          "E7 larger buffer must restore nontrivial stopped-instance state");
+    check(app_engine_native(fake::engine).save_state(4) == next_clock &&
+              app_engine_native(fake::engine).save_state(5) == next_envelope &&
+              app_engine_native(fake::engine).preserved_state(3).empty(),
+          "E7 larger buffer must restore clock/tail but not stale unsupported bytes");
+    render(16);
+    check(witness(5, 0, 15) > 0.5f,
+          "E7 larger buffer must render the saved envelope tail after resume");
+    const auto restored_noise = app_engine_native(fake::engine).save_state(2);
+    const Json fresh_vco = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}}});
+    const Json fresh_rate = Json::array({{{"moduleId", 3}, {"module", "essentials.vco"}},
+                                       {{"moduleId", 6}, {"module", "host.keyboard"}},
+                                       {{"moduleId", 7}, {"module", "essentials.adsr"}}});
+    check(larger["result"]["freshModules"] == fresh_vco,
+          "E7 must name only the deliberately unsupported VCO, not restored modules");
+    auto rate = call("e7-rate", "setSampleRate", {{"hz", 44100}});
+    check(rate["ok"] == true && rate["result"]["freshModules"] == fresh_rate &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 rate change must attempt saved state and name the C2-refused voice chain");
+    const auto *at_rate = fake::engine;
+    fake::rejected_rate = 96000;
+    check(call("e7-rate-refused", "setSampleRate", {{"hz", 96000}})["ok"] == false &&
+              fake::engine == at_rate && app_engine_native(fake::engine).save_state(2) == restored_noise &&
+              audio(s)["sampleRate"] == 44100,
+          "E7 refused rate must roll back the original graph and state");
+    fake::rejected_rate = 0;
+    fake::outputs.push_back(output("E7 second stereo", 1));
+    auto device = call("e7-device", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
+    check(device["ok"] == true && !device.contains("result") && fake::engine == at_rate &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 ordinary device switch must retain the prepared engine");
+    fake::accept_block = 128;
+    fake::preferred = 128;
+    auto smaller_driver = call("e7-driver-small", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
+    check(smaller_driver["ok"] == true && !smaller_driver.contains("result") &&
+              fake::engine == at_rate && audio(s)["bufferFrames"] == 128 &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 preferred driver size inside prepared capacity must retain the graph");
+    fake::accept_block = 1024;
+    fake::preferred = 1024;
+    auto larger_driver = call("e7-driver-large", "selectAudioDevice", {{"deviceId", "E7 second stereo"}});
+    check(larger_driver["ok"] == true && larger_driver["result"]["freshModules"] == Json::array() &&
+              fake::engine != at_rate && audio(s)["bufferFrames"] == 1024 &&
+              app_engine_native(fake::engine).save_state(2) == restored_noise,
+          "E7 preferred driver size beyond capacity must restore matching stopped state");
+    // The replacement stream can open successfully, then persistence can fail.
+    // Force that exact path; the old device must still accept its old block.
+    const auto *before_failed_persist = fake::engine;
+    const auto before_failed_gen = s.status()["gen"];
+    const auto before_failed_clock = app_engine_native(fake::engine).save_state(4);
+    const auto before_failed_envelope = app_engine_native(fake::engine).save_state(5);
+    auto read_preferences = [&] {
+        std::ifstream file(options.settings);
+        Json saved;
+        file >> saved;
+        return saved;
+    };
+    const auto before_failed_prefs = read_preferences();
+    auto temp = std::filesystem::path(options.settings);
+    temp += ".tmp";
+    check(std::filesystem::create_directory(temp), "E7 obstruct the temporary settings file");
+    fake::accept_block = 2048;
+    fake::preferred = 2048;
+    fake::accept_block_device = "E7 stereo";
+    const auto before_failed_attempts = fake::attempts.size();
+    auto failed_persist = call("e7-persist-refused", "selectAudioDevice", {{"deviceId", "E7 stereo"}});
+    check(fake::attempts.size() == before_failed_attempts + 3 &&
+              fake::blocks[fake::blocks.size() - 3] == 1024 &&
+              fake::blocks[fake::blocks.size() - 2] == 2048 &&
+              fake::blocks.back() == 1024,
+          "E7 must actually open the larger candidate then reopen the original block");
+    check(failed_persist["ok"] == false && !failed_persist.contains("result") &&
+              fake::engine == before_failed_persist && s.status()["gen"] == before_failed_gen &&
+              audio(s)["state"] == "running" && audio(s)["deviceId"] == "E7 second stereo" &&
+              audio(s)["bufferFrames"] == 1024 && read_preferences() == before_failed_prefs,
+          "E7 failed persistence must restore the original graph, stream and settings");
+    check(app_engine_native(fake::engine).save_state(2) == restored_noise &&
+              app_engine_native(fake::engine).save_state(4) == before_failed_clock &&
+              app_engine_native(fake::engine).save_state(5) == before_failed_envelope,
+          "E7 post-open rollback must preserve the original stopped DSP state");
+    std::filesystem::remove(temp);
+    fake::accept_block_device.clear();
+    fake::accept_block = 0;
+    fake::preferred = 0;
+    s.shutdown();
+}
+
+
+void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true; // fake backend only
+    options.rate = 96000;
+    options.settings = (root / "e7-c2.json").string();
+    fake::outputs = {output("E7 C2 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *id, const char *type, const Json &payload = Json::object()) {
+        Json cmd = {{"v", 0}, {"id", id}, {"type", type}};
+        cmd.update(payload);
+        return s.reply({cmd, {}, {}});
+    };
+    const Json patch = {
+        {"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                 {{"id", 2}, {"module", "essentials.noise"}},
+                                 {{"id", 3}, {"module", "sound.spectral"}}})},
+        {"connections", Json::array({{{"kind", "signal"},
+                                      {"from", {{"module", 2}, {"port", "audio"}}},
+                                      {"to", {{"module", 3}, {"port", "a"}}}},
+                                     {{"kind", "signal"},
+                                      {"from", {{"module", 3}, {"port", "audio"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}
+    };
+    check(call("c2-load", "loadGraph", {{"patch", patch}})["ok"] == true,
+          "C2 spectral witness must prepare at 96 kHz");
+    check(bool(fake::freeze_render), "C2 callback quiescence seam available");
+    fake::freeze_render();
+    fake::render = false;
+    // Spectral v2 state: second LE u32 is hop_pos. At default size 2048
+    // the hop is 1024 at 96 kHz and 512 at 48 kHz. Obtain a valid live
+    // high-rate position that the lower-rate module explicitly refuses.
+    auto hop = [](const std::vector<uint8_t> &bytes) {
+        check(bytes.size() == 13 * sizeof(uint32_t), "C2 spectral v2 state shape");
+        return uint32_t(bytes[4]) | (uint32_t(bytes[5]) << 8) |
+               (uint32_t(bytes[6]) << 16) | (uint32_t(bytes[7]) << 24);
+    };
+    std::array<float, 64> samples{};
+    auto state = app_engine_native(fake::engine).save_state(3);
+    for (unsigned n = 0; n < 32 && hop(state) < 512; ++n) {
+        check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+              "C2 step the live high-rate spectral engine");
+        state = app_engine_native(fake::engine).save_state(3);
+    }
+    check(hop(state) >= 512 && hop(state) < 1024,
+          "C2 real saved hop must be valid at 96 kHz but invalid at 48 kHz");
+    const auto noise = app_engine_native(fake::engine).save_state(2);
+    const auto *before = fake::engine;
+    const auto reply = call("c2-rate", "setSampleRate", {{"hz", 48000}});
+    check(reply["ok"] == true && fake::engine != before &&
+              audio(s)["sampleRate"] == 48000 && audio(s)["state"] == "running",
+          "C2 actual module refusal must not refuse the stream change");
+    const Json refused = Json::array({{{"moduleId", 3}, {"module", "sound.spectral"}}});
+    check(reply["result"]["freshModules"] == refused &&
+              hop(app_engine_native(fake::engine).save_state(3)) == 0 &&
+              app_engine_native(fake::engine).save_state(2) == noise,
+          "C2 refused Spectral starts fresh and compatible Noise restores");
+    check(app_engine_render(fake::engine, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "C2 new stream remains runnable after the module refusal");
+    s.shutdown();
+}
+
+// A81 synthetic slot fixture: no registration in the shipped catalogue.
+// A prepared candidate really replaces the DSP by changing its config bytes;
+// the same control-side event staging helper as Session is exercised.
+struct A81Source {
+    static constexpr ws::Info info{"test.a81", "A81 synthetic", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("out", "Out", WS2_CV_BI)};
+    static constexpr std::array<ws2_param, 0> params{};
+    static constexpr std::array fields{
+        ws::data_field<WS2_F_F32, float>("value", "Value", 0, ws::data_range(0, 1, .25))
+    };
+    static constexpr std::array data_slots{ws::data_slot<float>("settings", "Settings", fields)};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &b) {
+        uint32_t serial = 0;
+        const auto *value = b.data<float>(0, serial);
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant();
+        b.out(0).ch(0)[0] = value ? *value : 0.f;
+    }
+};
+void test_a81_synthetic_slot() {
+    using wirescape::engine2::Engine;
+    auto d = *ws::Module<A81Source>::descriptor();
+    d.replace_fade_ms = 500;
+    wirescape::engine2::Config cfg;
+    cfg.max_block = 4096;
+    auto packed = [](float value) {
+        std::vector<uint8_t> bytes(sizeof(value));
+        std::memcpy(bytes.data(), &value, sizeof(value));
+        return bytes;
+    };
+    auto make = [&](uint8_t shape, float value) {
+        auto e = std::make_unique<Engine>(cfg);
+        check(e->add_node(1, &d, {shape}) && e->output(1, 0, 0), "A81 synthetic slot node");
+        check(e->set_data_packed(1, 0, packed(value)) == WS2_OK &&
+              e->register_producer() == 0 && e->prepare(), "A81 synthetic candidate prepares");
+        return e;
+    };
+    auto live = make(1, .25f);
+    std::array<float, 4096> samples{};
+    float *output[] = {samples.data()};
+    auto render = [&](uint32_t frames) {
+        check(live->render(output, 1, frames) == WS2_OK, "A81 synthetic render");
+    };
+    auto publish = [&](Engine &next) {
+        std::atomic<bool> finished{false};
+        bool accepted = false;
+        std::thread control([&] {
+            accepted = live->replan(next, 200000000);
+            finished.store(true, std::memory_order_release);
+        });
+        do {
+            render(1);
+            std::this_thread::sleep_for(100us);
+        } while (!finished.load(std::memory_order_acquire));
+        control.join();
+        check(accepted && live->replacement_tail_pending(1), "A81 actual replacement with predecessor");
+    };
+    auto retire = [&] {
+        for (unsigned i = 0; i < 25 && live->replacement_tail_pending(1); ++i) render(4096);
+        check(!live->replacement_tail_pending(1), "A81 predecessor retired");
+    };
+    render(1);
+    auto first = make(2, .25f);
+    publish(*first);
+    auto blocked = make(3, .25f);
+    check(!live->replan(*blocked, 200000000) &&
+          live->replacement_blocked_ids() == std::vector<uint32_t>{1}, "A81 genuine A75 busy");
+    std::map<uint32_t, PendingConfig> pending{{1, {"test.a81", "a81", Json{{"shape", 3}},
+        std::chrono::steady_clock::now() + 2s}}};
+    Json events = Json::array();
+    check(live->set_data_packed(1, 0, packed(.5f)) == WS2_OK, "A81 retained setData");
+    render(1);
+    stage_data_supersession(pending, events, "synthetic", 1, true, false, 1);
+    check(pending.size() == 1 && events.empty() && live->replacement_tail_pending(1),
+          "A81 retained data does not supersede");
+    retire();
+    auto unchanged = make(4, .5f);
+    publish(*unchanged);
+    stage_data_supersession(pending, events, "synthetic", 1, false, true, 2);
+    check(pending.size() == 1 && events.empty(), "A81 unchanged data replacement does not supersede");
+    retire();
+    auto changed = make(5, .75f);
+    // Stage before publication like Session, but only adopt on success.
+    auto staged = pending;
+    auto staged_events = events;
+    stage_data_supersession(staged, staged_events, "synthetic", 1, true, true, 3);
+    check(pending.size() == 1 && events.empty(), "A81 pending unchanged before publish");
+    publish(*changed);
+    pending.swap(staged);
+    events.swap(staged_events);
+    render(1);
+    check(live->output_sample(1, 0, 0, 0) == .75f, "A81 replacement sees candidate data");
+    const Json expected = {{"v", 0}, {"session", "synthetic"}, {"type", "configDeferred"},
+        {"deferId", "a81"}, {"moduleId", 1}, {"outcome", "superseded"}, {"generation", "3"}};
+    check(pending.empty() && events.size() == 1 && events[0] == expected,
+          "A81 changed data replacement emits correlated superseded");
+    stage_data_supersession(pending, events, "synthetic", 1, true, true, 4);
+    check(events.size() == 1, "A81 no duplicate terminal event");
+}
+
+// A78: use the existing fake stream, then freeze the paced callback and
+// advance the graph one frame at a time. No wall-clock sleep stands in for
+// retirement, and no real device is opened.
+void test_a78_deferred_config(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.block = 1024;
+    options.settings = (root / "a78-deferred.json").string();
+    fake::outputs = {output("A78 stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *type, const Json &payload) {
+        Json command = {{"v", 0}, {"id", "a78"}, {"type", type}};
+        command.update(payload);
+        return s.reply({command, {}, {}});
+    };
+    auto groove = [](int bpm) {
+        return Json{{"id", 2}, {"module", "sequencing.groove"},
+                    {"config", {{"version", 1}, {"bpm", bpm},
+                        {"tracks", Json::array({{{"steps", Json::array({{{"kind", "note"},
+                            {"key", 60}, {"velocity", 1}}})}}})}}}};
+    };
+    Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+                  {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                                           groove(120), {{"id", 3}, {"module", "essentials.lfo"}}})},
+                  {"connections", Json::array({{{"kind", "signal"},
+                     {"from", {{"module", 2}, {"port", "t1_mod1"}}},
+                     {"to", {{"module", 1}, {"port", "audio"}}}}})}};
+    const uint16_t port = select_loopback_osc_port();
+    patch["modules"].push_back({{"id", 4}, {"module", "osc.in"},
+        {"config", {{"port", port}, {"lan", false},
+            {"rows", Json::array({{{"pattern", "/reconnect"}, {"kind", "cv"}}})}}}});
+    check(call("loadGraph", {{"patch", patch}})["ok"] == true, "A78 graph loads");
+    check(bool(fake::freeze_render), "A78 fake callback available");
+    fake::freeze_render();
+    fake::render = false;
+    auto *const live = fake::engine;
+    auto &graph = app_engine_native(live);
+    const auto stops = fake::stopped, exchanges = fake::exchanges;
+    // For an accepted live publication, a render owner advances only tiny
+    // blocks while the control owner executes the real sidecar transaction.
+    auto with_render = [&](auto action) {
+        std::atomic<bool> done{false}, render_ok{true};
+        std::thread renderer([&] {
+            float sample = 0;
+            for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
+                if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+                std::this_thread::sleep_for(200us);
+            }
+        });
+        try {
+            action();
+        } catch (...) {
+            done.store(true, std::memory_order_release);
+            renderer.join();
+            throw;
+        }
+        done.store(true, std::memory_order_release);
+        renderer.join();
+        check(render_ok.load(), "A78 publication render succeeds");
+        check(fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
+              "A78 never falls back to D5 or reopens the stream");
+    };
+    auto apply = [&](const Json &p) { return call("applyGraph", {{"patch", p}}); };
+    auto edit = [&](int bpm) {
+        auto p = patch;
+        p["modules"][1] = groove(bpm);
+        return p;
+    };
+    auto accept = [&](const Json &p) {
+        Json reply;
+        with_render([&] { reply = apply(p); });
+        check(reply["ok"] == true && reply["result"]["path"] == "live",
+              ("A78 live commit: " + reply.dump()).c_str());
+        return reply["gen"];
+    };
+    auto retire = [&] {
+        std::array<float, 1024> samples{};
+        for (unsigned i = 0; i < 25 && graph.replacement_tail_pending(2); ++i)
+            check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+                  "A78 render predecessor retirement");
+        check(!graph.replacement_tail_pending(2), "A78 predecessor retired by samples");
+    };
+    auto deferred = [&](const Json &p, const Json &gen) {
+        const auto reply = apply(p);
+        check(reply["ok"] == false && reply["code"] == "busy" &&
+              reply["gen"] == gen && reply["deferred"] == true &&
+              reply["deferId"].is_string(), ("A78 deferred refusal: " + reply.dump()).c_str());
+        return reply["deferId"];
+    };
+    auto terminal = [&](const Json &id, const char *outcome, const Json &gen) {
+        const auto events = s.take_config_events();
+        check(events.size() == 1 && events[0]["type"] == "configDeferred" &&
+              events[0]["deferId"] == id && events[0]["moduleId"] == 2 &&
+              events[0]["outcome"] == outcome && events[0]["generation"] == gen,
+              ("A78 correlated terminal event: " + events.dump()).c_str());
+        check(s.take_config_events().empty(), "A78 terminal event is drained exactly once");
+    };
+    auto current = edit(140);
+    auto gen = accept(current);
+    check(graph.replacement_tail_pending(2), "A78 unfinished predecessor witness");
+    send_local_osc(port);
+    auto route = [&] { return s.status()["status"]["osc"]["routes"].at(0); };
+    const auto received_deadline = std::chrono::steady_clock::now() + 1s;
+    while (route()["received"].get<uint64_t>() == 0 &&
+           std::chrono::steady_clock::now() < received_deadline)
+        std::this_thread::sleep_for(5ms);
+    const auto before_route = route();
+    check(before_route["state"] == "listening" && before_route["received"].get<uint64_t>() == 1,
+          "A78 active ingress route receives loopback witness");
+    // Legacy client cannot silently acquire pending work.
+    const auto legacy = apply(edit(160));
+    check(legacy["ok"] == false && legacy["code"] == "busy" && legacy["gen"] == gen &&
+          !legacy.contains("deferred") && !legacy.contains("deferId") && s.take_config_events().empty(),
+          "A80 legacy client gets plain busy");
+    check(call("hello", {{"capabilities", Json::array({"configDeferred"})}})["ok"] == true,
+          "A80 fake client opts in");
+    auto a = deferred(edit(160), gen);
+    auto mixed = edit(180);
+    mixed["modules"][2]["parameters"] = {{"rate", 2}};
+    const auto refused = apply(mixed);
+    check(refused["ok"] == false && refused["code"] == "busy" && refused["gen"] == gen &&
+          !refused.contains("deferred") && !refused.contains("deferId"),
+          ("A78 mixed transaction must not defer: " + refused.dump()).c_str());
+    check(s.take_config_events().empty(), "A78 mixed refusal leaves pending request intact");
+    auto b = deferred(edit(200), gen);
+    check(a != b, "A78 latest edit has new correlation ID");
+    terminal(a, "superseded", gen);
+    check(route() == before_route, "A78 refused initial/mixed/latest edits preserve active OSC counters and binding");
+    // A80: same pending config in a full snapshot does not reapply it.
+    auto other = edit(200);
+    other["modules"][2]["parameters"] = {{"rate", 3}};
+    gen = accept(other);
+    check(s.take_config_events().empty() && graph.replacement_tail_pending(2),
+          "A80 unrelated snapshot retains pending config");
+    // Keep the unrelated authored change in all subsequent snapshots.
+    patch["modules"][2]["parameters"] = {{"rate", 3}};
+    // No frames advance while polling. The graph may not commit or emit.
+    auto now = std::chrono::steady_clock::now();
+    const auto after_other = route();
+    for (unsigned i = 0; i < 4; ++i) {
+        s.poll(now);
+        check(s.status()["gen"] == gen && s.take_config_events().empty() &&
+              graph.replacement_tail_pending(2) && route() == after_other, "A78 poll before retirement is inert");
+    }
+    retire();
+    with_render([&] { s.poll(now); });
+    gen = s.status()["gen"];
+    terminal(b, "applied", gen);
+    // The exact applied document is now a no-op; no replacement or stale retry.
+    current = edit(200);
+    retire();
+    const auto reply = [&] { Json r; with_render([&] { r = apply(current); }); return r; }();
+    check(reply["ok"] == true && reply["result"]["replaced"].empty(),
+          "A78 latest config actually committed");
+    // A second predecessor, explicit revert, then removal, each under a
+    // manually held tail. Expiry uses the injected control clock.
+    current = edit(220);
+    gen = accept(current);
+    a = deferred(edit(240), gen);
+    gen = accept(current);
+    terminal(a, "superseded", gen);
+    retire();
+    current = edit(250);
+    gen = accept(current);
+    a = deferred(edit(260), gen);
+    s.poll(std::chrono::steady_clock::now() + 3s);
+    terminal(a, "failed", gen);
+    check(s.status()["gen"] == gen, "A78 deadline leaves document unchanged");
+    retire();
+    current = edit(270);
+    gen = accept(current);
+    a = deferred(edit(280), gen);
+    auto removed = current;
+    removed["modules"].erase(1);
+    removed["connections"] = Json::array();
+    gen = accept(removed);
+    terminal(a, "superseded", gen);
+    retire();
+    s.poll(std::chrono::steady_clock::now() + 3s);
+    check(s.status()["gen"] == gen && s.take_config_events().empty(),
+          "A78 removed ID cannot be resurrected");
+    // Two independently blocked IDs share one request-level defer ID.
+    // Use fresh IDs in the same namespace and the same real Groove module.
+    auto multi = removed;
+    auto first = groove(120), second = groove(120);
+    first["id"] = 5;
+    second["id"] = 6;
+    multi["modules"].push_back(first);
+    multi["modules"].push_back(second);
+    // Each signal input accepts one connection. Give the two predecessors
+    // independent output paths so one can retire while the other fades.
+    multi["modules"].push_back({{"id", 7}, {"module", "essentials.output"}});
+    multi["outputs"] = Json::array({{{"module", 1}, {"port", "audio"}, {"bus_channel", 0}},
+                                    {{"module", 7}, {"port", "audio"}, {"bus_channel", 1}}});
+    for (auto id : {5, 6}) multi["connections"].push_back({{"kind", "signal"},
+        {"from", {{"module", id}, {"port", "t1_mod1"}}},
+        {"to", {{"module", id == 5 ? 1 : 7}, {"port", "audio"}}}});
+    gen = accept(multi);
+    for (auto &m : multi["modules"]) if (m["id"] == 5) m["config"]["bpm"] = 140;
+    gen = accept(multi);
+    std::array<float, 1024> samples{};
+    // Separate the two replacement starts by 480 samples, not wall time.
+    check(app_engine_render(live, samples.data(), 480) == WS2_OK, "A80 stagger replacements");
+    check(graph.replacement_tail_pending(5), "A80 first predecessor still fading");
+    for (auto &m : multi["modules"]) if (m["id"] == 6) m["config"]["bpm"] = 140;
+    gen = accept(multi);
+    check(graph.replacement_tail_pending(5) && graph.replacement_tail_pending(6),
+          "A80 both predecessor tails held");
+    auto both = multi;
+    for (auto &m : both["modules"]) if (m["id"] == 5 || m["id"] == 6) m["config"]["bpm"] = 160;
+    const auto shared = deferred(both, gen);
+    // Retire only the first predecessor, then prove its completion does not
+    // wait for the other ID. Render in single frames to stop at the boundary.
+    for (unsigned i = 0; i < 25000 && graph.replacement_tail_pending(5); ++i)
+        check(app_engine_render(live, samples.data(), 1) == WS2_OK, "A80 first retirement");
+    check(!graph.replacement_tail_pending(5) && graph.replacement_tail_pending(6),
+          "A80 first retired, second still fading");
+    const auto multi_now = std::chrono::steady_clock::now();
+    auto expect_applied = [&](uint32_t id) {
+        with_render([&] { s.poll(multi_now); });
+        gen = s.status()["gen"];
+        const auto events = s.take_config_events();
+        check(events.size() == 1 && events[0]["deferId"] == shared &&
+              events[0]["moduleId"] == id && events[0]["outcome"] == "applied" &&
+              events[0]["generation"] == gen, ("A80 independent terminal event: " + events.dump()).c_str());
+    };
+    expect_applied(5);
+    check(graph.replacement_tail_pending(6), "A80 other predecessor remains live after first completion");
+    for (unsigned i = 0; i < 25 && graph.replacement_tail_pending(6); ++i)
+        check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK, "A80 second retirement");
+    check(!graph.replacement_tail_pending(6), "A80 second predecessor retired");
+    expect_applied(6);
+    s.poll(multi_now);
+    check(s.take_config_events().empty() && s.status()["gen"] == gen,
+          "A80 no duplicate multi-ID completions");
+    s.shutdown();
+}
+
 int main() {
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
@@ -434,7 +1195,7 @@ int main() {
             };
             auto hello = s.hello();
             const auto caps = Json::array({"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate",
-                                           "setBufferFrames", "osc", "osc.out", "applyGraph"});
+                                           "setBufferFrames", "osc", "osc.out", "applyGraph", "configDeferred"});
             check(hello["audioDevices"].size() == 2 && hello["capabilities"] == caps,
                   "hello must expose the supported device catalogue and methods");
             auto listed = call("list", "listAudioDevices")["result"]["devices"];
@@ -487,10 +1248,18 @@ int main() {
             check(rate["ok"] == true && rate["gen"] == "1" && audio(s)["state"] == "running" &&
                       audio(s)["sampleRate"] == 44100 && audio(s)["bufferFrames"] == 256,
                   "rate ack requires a running new stream");
+            check(rate["result"]["freshModules"] == Json::array(),
+                  "E7 rebuild without uncarried instances must report an empty list");
+            // E7: the prepared 256-frame engine must survive a smaller stream.
+            const auto prepared_engine = fake::engine;
+            const auto before_buffer_restart = fake::stopped;
             auto frames = call("frames", "setBufferFrames", {{"frames", 128}});
             check(frames["ok"] == true && frames["gen"] == "2" && audio(s)["sampleRate"] == 44100 &&
                       audio(s)["bufferFrames"] == 128,
                   "buffer restart must keep selected rate");
+            check(!frames.contains("result"), "E7 retained engine must omit the rebuild result");
+            check(fake::engine == prepared_engine && fake::stopped == before_buffer_restart + 1,
+                  "E7 smaller buffer must restart the stream without rebuilding the prepared engine");
             std::ifstream saved(options.settings);
             Json prefs;
             saved >> prefs;
@@ -934,6 +1703,11 @@ int main() {
         fake::accept_block = 0;
         fake::preferred = 0;
         options.block = saved_block;
+        test_a70_buffer_state(root);
+        test_e7_state_restart(root);
+        test_e7_rate_dependent_state_refusal(root);
+        test_a78_deferred_config(root);
+        test_a81_synthetic_slot();
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';

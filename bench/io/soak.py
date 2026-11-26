@@ -204,6 +204,32 @@ def counters(message):
     return result
 
 
+def osc_drop_diagnostics(status):
+    """Preserve optional OSC attribution fields without affecting stop gates.
+
+    Listener snapshots repeat across routes on a shared port. Deduplicate
+    identical observations, but retain disagreements: relaxed atomic reads
+    are observational, not one transactional service snapshot.
+    """
+    routes, listeners = {}, {}
+    for i, route in enumerate(status.get("osc", {}).get("routes", [])):
+        port = route.get("port")
+        split = {name: route[name] for name in ("budget_dropped", "enqueue_dropped")
+                 if type(route.get(name)) is int}
+        if split:
+            if type(port) is int:
+                split["port"] = port
+            routes[str(route.get("module", i))] = split
+        observed = {name: route["listener_" + name]
+                    for name in ("budget_dropped", "enqueue_dropped")
+                    if type(route.get("listener_" + name)) is int}
+        if observed and type(port) is int:
+            snapshots = listeners.setdefault(str(port), [])
+            if observed not in snapshots:
+                snapshots.append(observed)
+    return {"routes": routes, "listeners": listeners}
+
+
 def midi_received(status):
     details = status.get("midi", {}).get("counters")
     if not isinstance(details, dict) or any(
@@ -219,6 +245,29 @@ def check_counters(before, after):
                 raise Stop("counter_rise", f"{name}: {before[name]} -> {value}")
             if value < before[name]:
                 raise Stop("counter_reset", f"{name}: {before[name]} -> {value}")
+
+
+def record_counters(result, baseline, current):
+    """Keep the actual failing sample and include fresh-service stop counters.
+
+    OSC route/out counters start at zero when the graph creates the service.
+    MIDI hello supplies the pre-load baseline for its own counters. A newly
+    exposed OSC key (including mixed profiles) must not hide early losses.
+    """
+    for name in current:
+        baseline.setdefault(name, 0)
+    result["counters_before"] = dict(baseline)
+    result["counters_after"] = dict(current)
+    check_counters(baseline, current)
+
+
+def record_midi_received(result, received):
+    """Retain the observed sample even when the monotonicity check fails."""
+    previous = result["midi_received_after"]
+    result["midi_received_after"] = received
+    if received < previous:
+        raise Stop("midi_counter_reset", f"received count decreased: {previous} -> {received}")
+    return received > previous
 
 
 def percentile(values, percent):
@@ -481,6 +530,7 @@ def reports(dest, result):
              f"- First failure: {failure.get('check', 'none')}: {failure.get('detail', '')}",
              f"- Counters before: {json.dumps(result['counters_before'], sort_keys=True)}",
              f"- Counters after: {json.dumps(result['counters_after'], sort_keys=True)}",
+             f"- OSC drop diagnostics (latest status; absent means unobserved): {json.dumps(result.get('osc_drop_diagnostics', {}), sort_keys=True)}",
              f"- RTT p99 ms: {result['p99_ms']}; L0 baseline ms: {result['l0_p99_ms']}",
              f"- RSS peak bytes: {result['rss_peak_bytes']}; bench: {result['bench']}",
              f"- Counter coverage: {result['counter_visibility']}",
@@ -501,6 +551,7 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
               "engine_sha": "unknown", "advisory": True, "status": "blocked",
               "first_failure": None, "counters_before": {}, "counters_after": {},
               "counter_visibility": {}, "bench": None, "p99_ms": None, "l0_p99_ms": None,
+              "osc_drop_diagnostics": {"routes": {}, "listeners": {}},
               "rss_peak_bytes": None, "events_last_5s": [], "elapsed_s": 0.0,
               "load_edits": 0, "messages_sent": 0, "messages_received": 0,
               "scripted_midi": profile in MIDI_PROFILES,
@@ -539,10 +590,10 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
             next_seq = next_load = next_rss = start
             next_fall = None
             next_edit = start + 30
-            # Use scripted hello's zero counters so early drops cannot hide
-            # before the first periodic status creates a baseline.
+            # MIDI hello provides pre-load counts. Fresh OSC service stop
+            # counters have a zero baseline, including before the first status.
             initial = (counters({"status": {"midi": child.hello.get("midi", {})}})
-                       if profile in MIDI_PROFILES else None)
+                       if profile in MIDI_PROFILES else {})
             rss_anchor = None
             rss_peak = 0
             load_count = 0
@@ -600,6 +651,7 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                         raise Stop("malformed_sidecar", "invalid NDJSON")
                     if msg.get("type") == "status":
                         status = msg.get("status", {})
+                        result["osc_drop_diagnostics"] = osc_drop_diagnostics(status)
                         osc = status.get("osc", {})
                         if osc.get("lan") is True or osc.get("bind") not in (None, HOST):
                             raise Stop("lan_forbidden", str(osc.get("bind")))
@@ -610,22 +662,14 @@ def run_tier(engine, profile, mode, tier, output, in_port, out_port, l0_path, pr
                             if route.get("state") != "sending":
                                 raise Stop("osc_out_unavailable", str(route))
                         current = counters(msg)
+                        record_counters(result, initial, current)
                         if profile in MIDI_PROFILES:
                             received = midi_received(status)
-                            if received < result["midi_received_after"]:
-                                raise Stop("midi_counter_reset", "received count decreased")
-                            if received > result["midi_received_after"]:
+                            if record_midi_received(result, received):
                                 midi_last_progress = now
                                 watch.note(now, f"midi received={received}")
-                            result["midi_received_after"] = received
                             if now - midi_last_progress > 2.0:
                                 raise Stop("midi_stalled", "no scripted Host receives for >2s")
-                        if initial is None and current:
-                            initial = dict(current)
-                        if initial is not None:
-                            check_counters(initial, current)
-                        result["counters_before"] = dict(initial or {})
-                        result["counters_after"] = current
                 if now >= next_rss:
                     mem = rss_bytes(child.proc.pid)
                     if mem is not None:

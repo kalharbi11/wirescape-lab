@@ -56,6 +56,7 @@ class Allocator {
 public:
     explicit Allocator(Config config = {}) noexcept;
     Status configure(Config config) noexcept; // Resets state.
+    Status resize(int max_voices) noexcept; // Preserves voices below the new count.
     void reset() noexcept;
     Result note_on(Note note) noexcept;
     Status note_off(Note note) noexcept;
@@ -83,6 +84,7 @@ public:
     // Reserved for a future MPE adapter. Per-note expression can already be
     // addressed by note_id; no MPE channel ownership or pitch bend is implied.
 private:
+    friend class NoteToCv;
     struct Held {
         bool used = false;
         bool down = false;

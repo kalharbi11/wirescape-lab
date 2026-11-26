@@ -3,6 +3,7 @@
 #include "wirescape/module2.h"
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 namespace wirescape::engine2 {
@@ -54,6 +55,14 @@ public:
     bool add_node(uint32_t id,const ws2_descriptor*,const std::vector<uint8_t>&config={});
     bool connect(uint32_t from,uint32_t output,uint32_t to,uint32_t input);
     bool modulate(uint32_t from,uint32_t output,uint32_t to,uint32_t parameter,float amount);
+    // Control producer only. After a quiescent reset, resend the document amount.
+    [[nodiscard]] int set_mod_amount(uint32_t from, uint32_t output, uint32_t to,
+                                     uint32_t parameter, float amount) noexcept;
+    // Control-only, already validated/packed by the field-table host. Before
+    // prepare installs the initial block; after prepare uses producer 0's
+    // critical ring. WS2_CAPACITY is busy. Resend document data after reset.
+    [[nodiscard]] int set_data_packed(uint32_t node, uint32_t slot,
+                                      const std::vector<uint8_t>& bytes);
     bool output(uint32_t node,uint32_t port,uint32_t bus_channel);
     int register_producer();
     bool prepare();
@@ -72,7 +81,10 @@ public:
     bool pop_egress(Outgoing&)noexcept;
     void panic()noexcept;
     void reset();
-    void transport(double bpm,bool playing,double beat=0);
+    // Control-owner-only. After prepare, uses producer 0's critical ring; its
+    // enqueue calls on handle 0 must have the same writer. WS2_CAPACITY means busy.
+    // Omit beat to keep phase continuous. After reset, resend document state.
+    [[nodiscard]] int transport(double bpm,bool playing,std::optional<double> beat=std::nullopt) noexcept;
     // Render-thread-only: publishes anchors owned by render; never call concurrently.
     bool publish_clock(uint64_t frame,uint64_t time_ns);
     Meter meter()const noexcept;
@@ -82,18 +94,27 @@ public:
     bool output_constant(uint32_t node,uint32_t port)const;
     float output_sample(uint32_t node,uint32_t port,uint32_t channel,uint32_t frame)const;
     uint32_t feedback_edges()const;
-    // Control-owner-only, may overlap render; modules publish dynamic latency
-    // atomically from process(). Uses pre-sized scratch and performs no allocations.
+    // Control-owner-only, may overlap render; reads atomic per-instance latency
+    // refreshed by render on parameter changes and adoption. No allocation.
     void refresh_latency() noexcept;
     uint32_t latency_frames(uint32_t bus_channel)const;
     std::vector<FeedbackLoop> feedback_loops()const;
     std::vector<uint8_t>save_state(uint32_t node);
     int load_state(uint32_t node,const std::vector<uint8_t>&bytes);
     const std::vector<uint8_t>&preserved_state(uint32_t node)const;
-    bool reconfigure(uint32_t node,const std::vector<uint8_t>&config);
     // One control owner stages a prepared candidate while render remains active.
-    // A timed-out park never changes the live graph. Candidate retirement is control-side.
-    bool replan(Engine &prepared_candidate, uint64_t timeout_ns);
-    uint32_t dropped_connections()const;
+    // A timed-out unclaimed publication never changes the live graph. Candidate retirement is control-side.
+    // A75: false with "Replacement busy: predecessor still fading" is an
+    // atomic prepublication refusal; keep the latest edit and retry after retirement.
+    // Optional non-RT host quiescence hook runs only after every staging
+    // refusal, immediately before publication; never called by render.
+    using BeforePublish = void (*)(void *) noexcept;
+    bool replan(Engine &prepared_candidate, uint64_t timeout_ns,
+                BeforePublish before_publish = nullptr, void *context = nullptr);
+    // Control-owner-only: IDs named by the most recent replan's A75 refusal.
+    const std::vector<uint32_t>& replacement_blocked_ids() const noexcept;
+    // Control-owner-only, may overlap render; observes unfinished predecessor
+    // signal/modulation paths using the same fade acknowledgements as replan.
+    bool replacement_tail_pending(uint32_t id) const;
 };
 }

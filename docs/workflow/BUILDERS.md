@@ -1,58 +1,63 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Builder queue
+# Builder queue: five GPT chat lanes
 
-Updated 2026-11-23 12:03 EST (gpt-lead, Architect run 18 handoff). The five fresh B1–B5 chats are the designated continuations. Earlier GPT chats are retired as writers. Builders read their row,
-then their issue and the latest PR Result. [CURRENT](CURRENT.md) is the lead–Architect
-handoff. [ROADMAP](ROADMAP.md) shows milestone order and completion.
+Refreshed by claude-architect, 2026-11-26 (run 46, wrap-up mode). Every builder is a
+**ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
+run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
+Codex is the **lead** only.
 
-**Merged today:**
+**Owner-started lanes.** The owner starts or resumes the existing builder chats with
+`1:run` through `5:run`. Read the live lane row and linked packets on entry. Standing releases
+and draft-ahead permissions apply in an active session. The manager/coordinator trial ended.
 
-| PR | Task | Merge commit |
-|---|---|---|
-| #311 | OB-g2 | `3f8f646` |
-| #325 | ADSR trigger | `d4884bd` |
-| #334 | CV to Notes | `5bff39c` |
-| #343 | WEB1 | `92747e4` |
-| #336 | OB-b | `3eeedd6` |
-| #344 | T1.6a | `ef11118` |
-| #309 | OB-g7 | `4efb204` |
-| #357 | OB-g9 | `f02c4f5` |
-| #345 | TR2 | `224d16f` |
-| #360 | T1.6b | `7cc20c7` |
+**How a lane works**
+- **Long-running sessions.** A lane is a queue, not a single task. Keep working through it: implement,
+  push, read CI, correct, post the Result, then start or draft the next task. Do not end the session
+  while your lane has work ([continuation rules](README.md#builder-continuation-after-ci)).
+- **Standing release.** A task is released when its predecessor in the same lane merges on `main`.
+  Start it without asking, on its own `task/<issue#>-<slug>` branch and PR.
+- **Draft-ahead.** While a PR waits on review or merge, you may open the next task in your lane as a
+  draft PR. It rebases after its predecessor merges, and only merges after that.
+- **Writers.** Stay inside your lane's paths. Shared files (catalogues, `CMakeLists.txt`, workflows)
+  follow the merge order named in the row. A file in another lane needs that lane's PR merged first.
+- **Auto-merge (owner, 2026-11-24).** For a task whose contract says `merge: lead` and has no review
+  condition, the lead turns on auto-merge at release. It merges itself when the Result is posted and
+  exact-head required checks are green. A reviewed task waits for its reviewer, then the lead or the Architect merges it.
+- **Fewer stops ([SR20](STANDING.md)).** Start the next queue task yourself when its predecessor merges (open the issue if missing). Low findings never block. `merge: lead` tasks merge on exact-head green plus your Result. Ask for a Claude review once, at the merge-ready head.
+- **Split, don't wait ([SR21](STANDING.md)).** If your task needs a file another lane is still writing in an open PR, ship the part inside your own paths now. The cross-lane part becomes a follow-up task, released when that PR merges.
+- **Keep the Architect inbox current.** When a task is ready for required review, needs a ruling,
+  or raises an Architect question, add or update one row in the
+  [Architect inbox](ARCHITECT_INBOX.md) through a docs PR. Link the signed Result or question,
+  include exact head and base when applicable, and name the task waiting. Use `needs/architect`
+  for Architect work. The owner and delivery lead own the `architect-ready` and `review-ready`
+  trigger labels. Keep working on independent lane items while the request waits.
 
-**Merge order (lead):**
-1. #298, after the Architect's Claude review.
-2. #333 (bounded LFO exception, see below).
-3. Poly Merge #356.
-4. #324, #339 and #322 when green.
-5. T1.6c.
-6. CAT-1 #358.
+**Wrap-up mode (owner, 2026-11-26, while the Fable design runs are open).** Finish what is in hand; open nothing new.
+- Each lane finishes its **current PR** and then the draft PR it **already has open** (listed in its row). Nothing else.
+- **No new task issues, no new branches or PRs, no new draft-aheads.** Queue items with no open PR (OB-h2 #601, OB-h6 #604, A67 #494 and the OB-h2 Studio Host field) **hold until Fable run 1 replans the roadmap**. The standing release (SR20) is suspended for them.
+- Corrections, rebases and Results on existing PRs continue as normal. A question goes to the inbox, and you keep working on your other open PR.
+- When the lane's open PRs have merged or are waiting on someone else, post one lane-status comment on your last PR and stop.
 
-Each needs green Lab, Golden and M1 paired at its exact head. Only the non-required `Offline facts / windows-latest` and advisory soak jobs may fail.
-
-| Builder / lane | Active issue and PR | Next action and evidence | Queued work and release condition |
+| Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B1** `gpt-builder1` · Studio / install, then module build | OB-a3 [#287](https://github.com/kalharbi11/wirescape-lab/issues/287) / [#298](https://github.com/kalharbi11/wirescape-lab/pull/298) `5ecf300` | Lab 14/14, three-platform Golden, paired M1 and native web tests green at `5ecf300`; six pin-7 routes. Post the final exact-head Result. Preserve the head for review. The lead pins `review-ready` with an inbox row and `needs/architect`, because the **Architect does the required Claude review**. | **M3 MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363)** after #298 handoff and lead release. TR2 is merged. Preserve the 34 frozen IDs. |
-| **B2** `gpt-builder2` · OSC / I/O | OB-g8 [#326](https://github.com/kalharbi11/wirescape-lab/issues/326) / [#339](https://github.com/kalharbi11/wirescape-lab/pull/339) `6c86cd5` | Lab 45201051466, Golden and M1 red. Merge `main` (OB-g9's egress drain is in), fix the build, then add the **OSC generation-pinning** fail-first test and fix ([note](https://github.com/kalharbi11/wirescape-lab/pull/339#issuecomment-7105337882)). Hosted `osc-heavy` L0 runs on the PR. | OB-f1 at candidate. |
-| **B3** `gpt-builder3` · module DSP | OB-g6 [#307](https://github.com/kalharbi11/wirescape-lab/issues/307) / [#322](https://github.com/kalharbi11/wirescape-lab/pull/322) `49b90cd` | Merge `main`. Post function-level attribution of the `host.keyboard` rise on x64 and ARM64. A wrapper-only cause gets an Architect-named bounded exception (inbox row); otherwise fix it ([note](https://github.com/kalharbi11/wirescape-lab/pull/322#issuecomment-7105336061)). | #291 after #298, then S7.6 [#314](https://github.com/kalharbi11/wirescape-lab/issues/314) → S7.7 → S7.8 → S7.9. |
-| **B4** `gpt-builder4` · modules | Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) / [#333](https://github.com/kalharbi11/wirescape-lab/pull/333) `e7867b7` (from CB1); Poly Merge [#328](https://github.com/kalharbi11/wirescape-lab/issues/328) / [#356](https://github.com/kalharbi11/wirescape-lab/pull/356) `1e2f196` | **#333 first:** at `e7867b7`, Golden and the Instruction gate fail on all three platforms, which the bounded LFO exception does **not** cover. Merge `main` (TR2 changed Clock and S0), regenerate S0, and diagnose the Golden failure; a Golden difference is a defect. Then #356 (Lab green; M1, Golden, Instruction and portability red at `1e2f196`). | **CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** after #356. |
-| **B5** `gpt-builder5` · OB-g3, then engine | OB-g3 [#317](https://github.com/kalharbi11/wirescape-lab/issues/317) / [#324](https://github.com/kalharbi11/wirescape-lab/pull/324) `b5736c4` | Red native builds and sanitizers on the new native fail-first test. Fix the build, show the test failing first, then the control-thread fix. | **M3 T1.6c [#364](https://github.com/kalharbi11/wirescape-lab/issues/364)** after #324 handoff and lead release (move functions to `build/render/edit.cpp`, split `process_node`; 0007 rules 2–5). B5 becomes the **single engine writer** for T1.6c → TR1e. T1.6c needs the Architect's contract-review. |
-| **CB1–CB3** `claude-builder1..3` | **Closed** (owner, 2026-11-23: Codex is back) | T1.6a, T1.6b, #333's integration, TR2, WEB1 and OB-g9 are done or handed over. | No new Claude builder work unless the owner reopens it. The Architect keeps rulings and Claude reviews. |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, OB-d ledger and module-local M7 paths | **#585 merged `05cf0d7`** (A80 approved, run 46). **Now: OB-h5 #606** ([#603](https://github.com/kalharbi11/wirescape-lab/issues/603)): rebase on main, add the A96 `OscOutEditor.ts` Save/Load, exact-head Lab, signed Result, leave draft. `merge: lead` | **Wrap-up: stop after #606.** The OB-h2 Studio Host field holds for Fable run 1. |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, OSC/CC module-local paths and `engine/control/` handlers | **#540 `7196890`**: #585 has merged, so the shared RealEngine/App writes are released (SR21). Rebase, implement **A95** CC Learn (option B, three tests), finish the A81(3)/A82/A86 witnesses on both Linux arches, then pin base/head and one inbox row for the Claude contract review | **Wrap-up: stop after #540.** OB-h2 #601 and A67 #494 hold for Fable run 1 (note: OB-h2's `setOsc.allowNetwork` finding is already queued for Fable run 2). |
+| **B3** `gpt-builder3` · **Floater / facts** | CN facts and authorized immutable workflow pins | **#598 merged `4310daf`**, #578 closed; **#584 merged `9fb5943`**, #579 closed. **Now: OB-h1 #608** ([#600](https://github.com/kalharbi11/wirescape-lab/issues/600)): finish the workflow-only change, exact Lab, dispatch the L0→L2 `still` lanes at main, one facts file, the #326/#494 routing, signed Result | **Wrap-up: stop after #608.** OB-h6 #604 holds for Fable run 1. The OB1-candidate OB-f1 re-dispatch is an Architect acceptance step, not lane work. |
+| **B4** `gpt-builder4` · **Sound** | Modules, module tests and sound facts outside B1's OB-d ledger; #564 probe scope | **#567 merged `73f411d`**, #564 closed; bootstrap **#597 merged `8a64caa`**. **Now: CMP-1 #592**: the Architect dispatched [run 45791608325](https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325) (`660556f` → `73f411d`). Merge main, write the facts from raw artifacts, post the signed Result. `merge: lead`; A89's two-PR exception expires on merge | **Then OB-h4 #609** (Gate Delay #329, already open): §6 exception rows, goldens identical, signed Result. **Wrap-up: stop after #609.** |
+| **B5** `gpt-builder5` · **Engine** | E3a-2 shared engine/document/server; module-local E3b until shared release | **#545 `97717e4`**: Studio shards 1–4, desktop and the web smoke are **red** at this head. Rebase on main (#585 merged), fix them, and show the A90 witnesses (a)–(c) on both arches at the exact head. Then pin base/head with one inbox row for the Claude contract review | **Then OB-h3 #610** ([#602](https://github.com/kalharbi11/wirescape-lab/issues/602), already open, test-only): 200/1000-switch test on both arches plus ASan/LSan, gap and RSS facts. **Wrap-up: stop after #610.** |
+
+**OB1.1 Tier 1 (OB r2.12, owner 2026-11-25):** OB-h1, OB-h3, OB-h4 and OB-h5 continue on their open PRs; OB-h2 #601, OB-h6 #604 and A67 #494 hold under wrap-up mode (see each row and the [OB-h table](milestones/OB.md)). Gate Delay is OB-h4 (#329, branch `task/329-gate-delay`). A67 #494 is unparked. Tier 2 is suggested only (`proposals/0022` §9).
+**Parked until after OB1** (PRs closed in the run-44 cleanup, issues closed `not planned` in run 46, branches kept; reopen when scheduled): MT2 #175/#176; CAT-1 #358 (+MB1 #363). Note Trigger #322 and M7 batch 2 were unparked in run 29.
+**Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
+
+**Manual starts:** `1:run` to `5:run` in the existing builder chats. All reviews go to the Architect inbox.
 
 ## How the lead maintains this table
+- Each lead run checks every lane: PR heads, exact-head CI, latest Result, labels. Refresh the
+  "Now" cell and move finished tasks out. Keep evidence on GitHub.
+- When a lane runs dry, add its next task from the roadmap. If none fits, lend the builder to the
+  floater pool.
+- The Architect refreshes this table on every Architect run as well. On a conflict, the lead's
+  dispatch wins.
 
-- Every lead run checks each builder's open issues, PR heads, Results, checks and labels.
-  Refresh every row's next action, including lower priority work with no Architect request.
-  When a row is unchanged, retain the next action and update the review date above.
-- Keep each builder's active and queued work visible. Put serial tasks in order. Mark tasks
-  parallel when their prerequisites are met, scopes do not overlap and the lead released
-  both. Each keeps its own issue, writer, branch and PR. A queued entry is planning only.
-- Prefer continuity in each lane. Fill a free slot with ready independent work. If waiting
-  is better, name the dependency, who can clear it and the next trigger.
-- Remove finished tasks after merge or final disposition. Keep final evidence on GitHub
-  and completed milestones on the roadmap. Update issue and PR labels in the same handoff.
-  See [label rules](README.md#github-labels-for-work-and-review).
-- In cloud, give the owner one runnable start list. Resume a CI-dependent task when its
-  results enable a new action.
-
-Signed: codex-lead, 2026-11-23, 12:03 EST
+Signed: claude-architect, 2026-11-26

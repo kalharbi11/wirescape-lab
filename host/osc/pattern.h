@@ -17,6 +17,9 @@ class Pattern {
     std::array<Node, 257> nodes_{};
     std::array<uint16_t, 257> alternatives_{};
     uint16_t size_ = 0;
+    // Owned bytes: the caller's pattern view may expire after compile().
+    std::array<char, 255> literal_{};
+    bool is_literal_ = false;
     void closure(uint16_t start, std::array<uint16_t, 257> &active, uint16_t &count,
                  std::array<bool, 257> &seen) const {
         std::array<uint16_t, 257> queue{};
@@ -44,6 +47,7 @@ class Pattern {
   public:
     bool compile(std::string_view pattern) {
         if (pattern.size() > 255) return false;
+        is_literal_ = false;
         size_ = uint16_t(pattern.size());
         nodes_ = {};
         alternatives_.fill(UINT16_MAX);
@@ -109,10 +113,16 @@ class Pattern {
         }
         if (depth) return false;
         nodes_[size_].kind = End;
+        // Only unescaped literals qualify. Keep the NFA for all metacharacters,
+        // including punctuation the compiler rejects outside classes/groups.
+        is_literal_ = pattern.find_first_of("*?[]{},\\") == std::string_view::npos;
+        if (is_literal_ && !pattern.empty())
+            std::memcpy(literal_.data(), pattern.data(), pattern.size());
         return true;
     }
     bool match(std::string_view address) const {
         if (address.size() > 255) return false;
+        if (is_literal_) return address == std::string_view(literal_.data(), size_);
         std::array<uint16_t, 257> active{}, next{};
         std::array<bool, 257> seen{};
         uint16_t count = 0;

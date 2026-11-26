@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: S7.5 D5 actual switch (devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/quad-vca-d5.yml"
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - stage: before
+            source: 42f07aa7e27eb1d3148be8a3600f42f198265b0a
+          - stage: after
+            source: a875881138238ecaa6470b3efd0f01f0c11a3e11
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify source and install tools
+        env:
+          SOURCE: ${{ matrix.source }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          python -m pip install -r bench/offline/requirements.txt cmake==4.2.3 ninja==1.13.0
+      - name: Build pinned native renderer
+        run: |
+          cmake -S native -B build/native -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/native --target wirescape_render --parallel 2
+      - name: Retain original T7.0b Quad VCA switch WAV and control
+        env:
+          SOURCE: ${{ matrix.source }}
+          STAGE: ${{ matrix.stage }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, sys
+          from pathlib import Path
+          import numpy as np
+          sys.path.insert(0, "bench/offline")
+          from run_all import descriptors, executable, build_module_patch, provenance, wav_run
+          from t7_0 import SWITCHES, measure_switch_pair
+          build = Path("build/native")
+          renderer = executable(build, "wirescape_render")
+          meta = provenance(build)
+          assert renderer and meta["commit"] == os.environ["SOURCE"]
+          module, param, old, new, extra = SWITCHES[0]
+          assert (module, param, old, new, extra) == ("essentials.quad_vca", "mode1", 0, 1, {"level1": 1})
+          patch, reason = build_module_patch(module, descriptors()[module], {**extra, param: old})
+          assert patch is not None, reason
+          frame, rate, seconds, block, seed = 48000, 48000, 2, 128, 7
+          events = [{"frame": frame, "type": "setParam", "node": 1, "parameter": param, "value": new}]
+          root = Path(os.environ["RUNNER_TEMP"]) / "quad-vca-d5"
+          root.mkdir()
+          arrays, results = {}, {}
+          for name, script in (("switch", events), ("control", [])):
+              folder = root / name
+              folder.mkdir()
+              audio, result = wav_run(renderer, patch, script, seconds, block, folder, seed, rate)
+              assert result["status"] == "measured", result
+              assert audio.shape == (96000, 2) and np.isfinite(audio).all()
+              counters = result["counters"]
+              assert counters and all(v == 0 for v in counters.values()), counters
+              arrays[name], results[name] = audio, result
+          assert np.array_equal(arrays["switch"][:frame], arrays["control"][:frame])
+          identity = dict(module=module, parameter=param, before=old, after=new,
+                          sample_rate_hz=rate, switch_frame=frame, fixture="unclocked")
+          metric = measure_switch_pair(renderer, patch, identity)
+          assert metric["status"] == "measured", metric
+          sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          report = dict(stage=os.environ["STAGE"], source_commit=os.environ["SOURCE"],
+                        renderer_sha256=sha(renderer), provenance=meta,
+                        rate=rate, seconds=seconds, block=block, seed=seed, switch_frame=frame,
+                        results=results, switch_metric=metric,
+                        files={p.relative_to(root).as_posix(): sha(p)
+                               for p in sorted(root.rglob("*")) if p.is_file()})
+          (root / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quad-vca-d5-${{ matrix.stage }}
+          path: ${{ runner.temp }}/quad-vca-d5
+          if-no-files-found: error
+          retention-days: 14

@@ -5,6 +5,7 @@
 #include "../audio/engine_slot.h"
 #include "../audio/portaudio_service.h"
 #include "devices.h"
+#include "deferred_config.h"
 #include "midi_host.h"
 #include "scripted_backend.h"
 #include "null_sink_capture.h"
@@ -12,6 +13,7 @@
 #include <array>
 #include <chrono>
 #include <optional>
+#include <map>
 #include <set>
 namespace wirescape::sidecar {
 struct Options {
@@ -89,6 +91,13 @@ class Session {
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
     std::set<uint32_t> used_ids_;
+    // A78: latest refused config per blocked live module, never a stale graph.
+    uint64_t next_defer_id_ = 0;
+    bool client_deferred_ = false, client_hello_seen_ = false;
+    std::map<uint32_t, PendingConfig> pending_configs_;
+    Json config_events_ = Json::array();
+    Json config_event(uint32_t, const PendingConfig &, const char *, uint64_t) const;
+    bool retry_config(std::chrono::steady_clock::time_point);
     document::telemetry::Sampler telemetry_;
     std::array<bool, 128> keyboard_{};
     std::mutex sink_mutex_;
@@ -114,16 +123,26 @@ class Session {
     // host API on the command thread, so it runs at most every kColdEnumeration.
     std::optional<std::chrono::steady_clock::time_point> cold_enumeration_;
     std::chrono::milliseconds audio_backoff_{100};
-    void start_audio(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+    // Resources travel with the stopped engine; destroy the graph before its host buses.
+    struct StoppedGraph {
+        document::telemetry::Sampler telemetry;
+        std::unique_ptr<osc::OutHost> out;
+        audio::EngineOwner engine{nullptr, app_engine_destroy};
+    };
+    StoppedGraph prepare_stopped_graph(const engine2::Config &, Json *fresh);
+    void swap_stopped_graph(StoppedGraph &) noexcept;
+    void start_audio(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
+                     StoppedGraph *rollback = nullptr, Json *fresh = nullptr);
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
-    void open_at_driver_block(int64_t frames);
+    void open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh);
     void stop_audio();
     void start_midi();
     void start_osc();
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
     Json execution(Json);
-    bool commit(Json, bool); // true: live replan; false: D5 replacement
+    bool commit(Json, bool, std::optional<uint32_t> retry_id = std::nullopt,
+                bool explicit_graph = false); // true: live replan; false: D5 replacement
     Json reconcile_graph(const Json &before, bool live);
     Json apply(const Json &);
     Json audio_status() const;
@@ -141,6 +160,7 @@ class Session {
     Json status() const;
     Json telemetry();
     Json devices();
+    Json take_config_events();
     bool poll(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 };
 Options parse_options(int, char **);

@@ -137,6 +137,9 @@
         },
         "state": {
           "type": "object"
+        },
+        "data": {
+          "type": "object"
         }
       }
     },
@@ -503,7 +506,33 @@
           "$ref": "#/$defs/midi"
         },
         "osc": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "routes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "budget_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "enqueue_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "listener_budget_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "listener_enqueue_dropped": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
         },
         "clock": {
           "type": "object"
@@ -840,6 +869,39 @@
             },
             "value": {
               "type": "number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "moduleId",
+            "slot",
+            "value"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "setData"
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "slot": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "value": {
+              "type": "object"
             }
           }
         },
@@ -1208,6 +1270,34 @@
               "const": "app.restartEngine"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "capabilities"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "hello"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "maxItems": 256
+            }
+          }
         }
       ]
     },
@@ -1246,6 +1336,12 @@
             "result": {
               "type": "object",
               "properties": {
+                "warnings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "path": {
                   "enum": [
                     "live",
@@ -1271,6 +1367,27 @@
                         "$ref": "#/$defs/moduleId"
                       },
                       "paramId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      }
+                    }
+                  }
+                },
+                "freshModules": {
+                  "type": "array",
+                  "maxItems": 64,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "moduleId",
+                      "module"
+                    ],
+                    "properties": {
+                      "moduleId": {
+                        "$ref": "#/$defs/moduleId"
+                      },
+                      "module": {
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 256
@@ -1331,6 +1448,14 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 1024
+            },
+            "deferred": {
+              "const": true
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
             }
           }
         }
@@ -1567,6 +1692,49 @@
             },
             "saveAs": {
               "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "session",
+            "type",
+            "deferId",
+            "moduleId",
+            "outcome",
+            "generation"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "session": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "type": {
+              "const": "configDeferred"
+            },
+            "deferId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "moduleId": {
+              "$ref": "#/$defs/moduleId"
+            },
+            "outcome": {
+              "enum": [
+                "applied",
+                "superseded",
+                "failed"
+              ]
+            },
+            "generation": {
+              "$ref": "#/$defs/gen"
             }
           }
         }

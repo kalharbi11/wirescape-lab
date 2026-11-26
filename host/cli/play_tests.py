@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Device-free play regression, including clean interrupted teardown on POSIX."""
+import hashlib
 import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import struct
 import subprocess
 import sys
@@ -22,6 +24,33 @@ with tempfile.TemporaryDirectory(prefix="play-", dir=Path.cwd()) as work:
     assert data[:4] == b"RIFF" and data[8:12] == b"WAVE"
     assert struct.unpack_from("<HHIIHH", data, 20) == (1, 2, 48000, 192000, 4, 16)
     assert len(data) == 44 + 480000 * 4
+    # OB-a3 pin 7: invoke the real offline CLI with a copied native v1
+    # document, not merely the shared loader. Rendering may create an output
+    # WAV only in a separate disposable directory; the source remains inert.
+    legacy = Path(patch)
+    assert json.loads(legacy.read_text())["version"] == 1, "CLI regression requires executable native v1"
+    v1dir = Path(work) / "legacy-input"
+    v1dir.mkdir()
+    v1 = v1dir / "patch_v1.json"
+    shutil.copy2(legacy, v1)
+    def source_snapshot():
+        raw = v1.read_bytes()
+        return (raw, hashlib.sha256(raw).hexdigest(),
+                v1.stat().st_mtime_ns, tuple(sorted(p.name for p in v1dir.iterdir())))
+    before = source_snapshot()
+    assert before[3] == ("patch_v1.json",)
+    legacy_wav = Path(work) / "legacy-offline.wav"
+    v1_result = subprocess.run(
+        [runner, "play", str(v1), "--output", str(legacy_wav)],
+        capture_output=True, text=True, timeout=30)
+    assert v1_result.returncode == 0, v1_result.stderr
+    legacy_report = json.loads(v1_result.stdout)
+    assert legacy_report["offline"] and legacy_report["loader"] == "runtime_patch"
+    assert legacy_wav.is_file() and legacy_wav.read_bytes()[:4] == b"RIFF"
+    assert source_snapshot() == before, "v1 CLI execution mutated source bytes, hash, mtime or siblings"
+    assert not any(p.name.startswith("patch_v1.json.bak-v1") or
+                   p.name.endswith(".v1.json") for p in v1dir.iterdir())
+
     # Future service hooks fail before any endpoint is opened.
     refused = subprocess.run([runner, "play", patch, "--midi", "fake"], capture_output=True, timeout=10)
     assert refused.returncode != 0 and b"confirmation" in refused.stderr

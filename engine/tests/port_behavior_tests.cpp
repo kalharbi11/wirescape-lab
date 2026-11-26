@@ -29,7 +29,17 @@ static void vcf(){
  ws2ports::Vcf dsp;dsp.reset();auto probe=std::make_unique<DspFixture>(ws::Module<ws2ports::Vcf>::descriptor(),48000,4);probe->process.frames=17;ws::Block block(probe->process);dsp.process(block);VERIFY(dsp.coefficient_recomputes==4);probe->parameter[0][0][0]=2000;dsp.process(block);VERIFY(dsp.coefficient_recomputes==8);dsp.process(block);VERIFY(dsp.coefficient_recomputes==8);probe->pars[0].flags=0;for(int i=0;i<17;++i)probe->parameter[0][0][i]=1000+100.f*i;dsp.process(block);VERIFY(dsp.coefficient_recomputes==76);
 }
 static void vco(){
- auto a=std::make_unique<DspFixture>(ws::Module<ws2ports::Vco>::descriptor()),b=std::make_unique<DspFixture>(ws::Module<ws2ports::Vco>::descriptor());for(auto*f:{a.get(),b.get()}){f->ins[0].flags=WS2_CONSTANT;std::fill_n(f->input[1][0],256,0);}auto e=note(WS2_NOTE_ON);a->process.events=b->process.events={sizeof(ws2_event_list),1,&e};a->run(17);b->run(17);b->process.events.count=0;e=note(WS2_NOTE_OFF);a->run(17);b->run(17);for(int i=0;i<17;++i)VERIFY(a->output[0][0][i]==b->output[0][0][i]);e=note(WS2_NOTE_CHOKE);a->run(17);VERIFY(a->output[0][0][0]==0);VERIFY(a->output[0][0][1]==static_cast<float>(std::sin(6.283185307179586476925286766559*220./48000.)));
+ auto a=std::make_unique<DspFixture>(ws::Module<ws2ports::Vco>::descriptor()),b=std::make_unique<DspFixture>(ws::Module<ws2ports::Vco>::descriptor());for(auto*f:{a.get(),b.get()}){f->ins[0].flags=WS2_CONSTANT;std::fill_n(f->input[1][0],256,0);}auto e=note(WS2_NOTE_ON);a->process.events=b->process.events={sizeof(ws2_event_list),1,&e};a->run(17);b->run(17);b->process.events.count=0;e=note(WS2_NOTE_OFF);a->run(17);b->run(17);for(int i=0;i<17;++i)VERIFY(a->output[0][0][i]==b->output[0][0][i]);e=note(WS2_NOTE_CHOKE);a->run(17);b->run(17);
+ // retired: intended sound change S7.9 (A63): CHOKE no longer resets phase.
+ VERIFY(a->output[0][0][0]==b->output[0][0][0]);
+ constexpr double tau=6.283185307179586476925286766559;
+ for(int i=1;i<17;++i){
+  const float expected=static_cast<float>(std::sin(tau*(34.*440.+i*220.)/48000.));
+  if(a->output[0][0][i]!=expected){
+   std::fprintf(stderr,"S7.9 VCO CHOKE first mismatch sample %d: actual %.9g expected %.9g\n",i,a->output[0][0][i],expected);
+   VERIFY(a->output[0][0][i]==expected);
+  }
+ }
  a->process.events.count=0;a->ins[1].flags=WS2_CONNECTED|WS2_CONSTANT;a->input[1][0][0]=-1000;a->run(17);VERIFY(a->output[0][0][0]!=0);for(int i=1;i<17;++i)VERIFY(a->output[0][0][i]==a->output[0][0][0]);
 }
 struct Cv {
@@ -84,7 +94,9 @@ static void cv_new_ports(){
     if(variant==1)VERIFY(e.modulate(1,0,2,p,.75f));
     if(variant==2){
      VERIFY(e.modulate(1,0,2,p,.6f));
-     VERIFY(e.modulate(1,0,2,p,-.6f));
+     VERIFY(e.add_node(4,ws::Module<Cv>::descriptor()));
+     VERIFY(e.set_channels(4,4));
+     VERIFY(e.modulate(4,0,2,p,-.6f));
     }
     for(uint32_t channel=0;channel<4;++channel)VERIFY(e.output(2,0,channel));
     VERIFY(e.prepare());

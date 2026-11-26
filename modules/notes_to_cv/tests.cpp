@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <initializer_list>
 #include <memory>
 
@@ -46,11 +47,11 @@ struct Rig {
     const ws2_descriptor *desc = ws::Module<NotesToCv>::descriptor();
     void *state = nullptr;
     struct Buffers {
-        float output[3][16][kFrames]{};
+        float output[4][16][kFrames]{};
     };
     std::unique_ptr<Buffers> storage = std::make_unique<Buffers>();
-    float *out_rows[3][16]{};
-    ws2_signal_out outs[3]{};
+    float *out_rows[4][16]{};
+    ws2_signal_out outs[4]{};
     ws2_signal input[1]{};
     float voice_param = 4;
     const float *voice_rows[1]{&voice_param};
@@ -62,7 +63,7 @@ struct Rig {
         const ws2_config cfg{sizeof(cfg), rate, kFrames, host_channels, 42, nullptr, 0};
         state = desc->create(&host);
         REQUIRE(state && desc->prepare(state, &cfg, &host) == WS2_OK);
-        for (int p = 0; p < 3; ++p) {
+        for (int p = 0; p < 4; ++p) {
             for (uint32_t c = 0; c < 16; ++c) out_rows[p][c] = storage->output[p][c];
             outs[p] = {sizeof(ws2_signal_out), out_rows[p], 0, 0, host_channels};
         }
@@ -71,7 +72,7 @@ struct Rig {
         ctx.sample_rate = rate;
         ctx.channels = 1;
         ctx.input_count = 1;
-        ctx.output_count = 3;
+        ctx.output_count = 4;
         ctx.param_count = 1;
         ctx.inputs = input;
         ctx.outputs = outs;
@@ -152,20 +153,41 @@ static void anonymous_fifo_and_repeated_roots() {
 
 static void voice_count_change_and_reset() {
     Rig a;
-    a.run({note({WS2_NOTE_ON, 60, 0})});
-    REQUIRE(a.outs[0].channels == 4 && a.value(1, 0, 1) == 1.f);
-
+    a.run({note({WS2_NOTE_ON, 60, 0}), note({WS2_NOTE_ON, 64, 1}),
+           note({WS2_NOTE_ON, 67, 2}), note({WS2_NOTE_ON, 71, 3})});
+    REQUIRE(a.outs[0].channels == 4);
+    const auto check_kept = [&] {
+        for (uint32_t frame = 0; frame < 128; ++frame) {
+            REQUIRE(a.value(1, 0, frame) == 1.f && a.value(1, 1, frame) == 1.f);
+            REQUIRE(a.value(0, 0, frame) == 0.f && a.value(0, 1, frame) == 4.f / 12.f);
+            REQUIRE(a.value(2, 0, frame) == .75f && a.value(2, 1, frame) == .75f);
+        }
+    };
     a.voice_param = 2.f;
-    a.run();
+    {
+        allocation_watch::Scope scope;
+        a.run();
+        REQUIRE(scope.allocations() == 0);
+    }
     REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    check_kept();
+    a.run(); // same count is a no-op
+    check_kept();
 
-    a.run({note({WS2_NOTE_ON, 64, 1})});
-    REQUIRE(a.outs[0].channels == 2 && a.value(1, 0, 1) == 1.f);
+    a.voice_param = 4.f;
+    a.run();
+    REQUIRE(a.outs[0].channels == 4);
+    check_kept();
+    for (uint32_t c = 2; c < 4; ++c)
+        for (uint32_t frame = 0; frame < 128; ++frame)
+            REQUIRE(a.value(1, c, frame) == 0.f);
+    a.run({note({WS2_NOTE_OFF, 67, 2}), note({WS2_NOTE_OFF, 71, 3})});
+    check_kept(); // retired notes must not close the retained voices
+    a.run({note({WS2_NOTE_OFF, 60, 0})});
+    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 1.f);
     a.desc->reset(a.state);
     a.run();
-    REQUIRE(a.outs[0].channels == 2);
-    REQUIRE(a.value(1, 0, 0) == 0.f && a.value(1, 1, 0) == 0.f);
+    for (uint32_t c = 0; c < 4; ++c) REQUIRE(a.value(1, c, 0) == 0.f);
 }
 static void voice_count_bounds_and_host_cap() {
     struct Case {
@@ -299,7 +321,76 @@ static void native_keyboard_graph(const std::array<int, 4> &keys, uint32_t count
     REQUIRE(e.meter().faults == 0);
 }
 
+
+static void trigger_pulse_voice_routing_and_reset() {
+    for (double rate : {44100., 48000., 96000.}) {
+        const uint32_t width = uint32_t(std::lround(rate / 1000.0));
+        Rig poly(rate);
+        REQUIRE(poly.desc->output_count == 4);
+        REQUIRE(std::strcmp(poly.desc->outputs[3].id, "trig") == 0);
+        poly.run({note({WS2_NOTE_ON, 60, 1, 7, 0, 3}),
+                  note({WS2_NOTE_ON, 64, 2, 7, 0, 19})}, width + 32);
+        REQUIRE(poly.outs[3].channels == 4);
+        for (uint32_t i = 0; i < width + 32; ++i) {
+            REQUIRE(poly.value(3, 0, i) == float(i >= 3 && i < 3 + width));
+            REQUIRE(poly.value(3, 1, i) == float(i >= 19 && i < 19 + width));
+            REQUIRE(poly.value(3, 2, i) == 0 && poly.value(3, 3, i) == 0);
+            REQUIRE(poly.value(1, 0, i) == float(i >= 3));
+            REQUIRE(poly.value(1, 1, i) == float(i >= 19));
+        }
+
+        // A voice's pulse survives a block boundary, including a short note.
+        Rig tail(rate);
+        tail.run({note({WS2_NOTE_ON, 60, 1, 1, 0, 127}),
+                  note({WS2_NOTE_OFF, 60, 1, 1, 0, 127})}, 128);
+        REQUIRE(tail.value(3, 0, 126) == 0 && tail.value(3, 0, 127) == 1);
+        tail.run({}, width + 1);
+        for (uint32_t i = 0; i < width + 1; ++i)
+            REQUIRE(tail.value(3, 0, i) == float(i < width - 1));
+        REQUIRE(tail.value(1, 0, 0) == 0);
+        tail.run({note({WS2_NOTE_ON, 72, 2})});
+        REQUIRE(tail.value(3, 1, 0) == 1);
+        tail.desc->reset(tail.state);
+        tail.run();
+        for (uint32_t c = 0; c < 4; ++c) REQUIRE(tail.value(3, c, 0) == 0);
+
+        Rig resized(rate);
+        resized.run({note({WS2_NOTE_ON, 60, 1, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 64, 2, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 67, 3, 1, 0, 31}),
+                     note({WS2_NOTE_ON, 71, 4, 1, 0, 31})}, 32);
+        resized.voice_param = 2;
+        resized.run({}, 8);
+        REQUIRE(resized.outs[3].channels == 2);
+        for (uint32_t c = 0; c < 2; ++c)
+            for (uint32_t i = 0; i < 8; ++i)
+                REQUIRE(resized.value(3, c, i) == 1 && resized.value(1, c, i) == 1);
+        resized.voice_param = 4;
+        resized.run({}, width);
+        REQUIRE(resized.outs[3].channels == 4);
+        for (uint32_t i = 0; i < width; ++i) {
+            for (uint32_t c = 0; c < 2; ++c)
+                REQUIRE(resized.value(3, c, i) == float(i < width - 9) && resized.value(1, c, i) == 1);
+            for (uint32_t c = 2; c < 4; ++c)
+                REQUIRE(resized.value(3, c, i) == 0 && resized.value(1, c, i) == 0);
+        }
+
+        // A steal/retrigger restarts only that voice's pulse.
+        Rig steal(rate);
+        steal.voice_param = 1;
+        const uint32_t retrigger = width + 14;
+        steal.run({note({WS2_NOTE_ON, 60, 1, 1, 0, 9}),
+                   note({WS2_NOTE_ON, 64, 2, 1, 0, retrigger})}, retrigger + width + 2);
+        for (uint32_t i = 0; i < retrigger + width + 2; ++i)
+            REQUIRE(steal.value(3, 0, i) ==
+                    float((i >= 9 && i < 9 + width) || (i >= retrigger && i < retrigger + width)));
+        REQUIRE(steal.value(1, 0, retrigger) == 0); // existing one-sample retrigger gate dip
+        REQUIRE(steal.value(1, 0, retrigger + 1) == 1);
+    }
+}
+
 int main() {
+    trigger_pulse_voice_routing_and_reset();
     poly_triads_and_offs();
     source_identity_and_choke();
     anonymous_fifo_and_repeated_roots();

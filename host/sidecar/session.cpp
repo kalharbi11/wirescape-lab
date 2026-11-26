@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "session.h"
 #include "../document/runtime_module_config.h"
+#include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
+#include "runtime_patch_normalize.h"
 #include "wirescape_sidecar_categories.h"
 #include <algorithm>
 #include <chrono>
@@ -110,8 +112,9 @@ class SinkScheduling {
 };
 #endif
 struct Refusal : std::runtime_error {
-    std::string code;
-    Refusal(std::string c, const char *m) : std::runtime_error(m), code(std::move(c)) {}
+    std::string code, defer_id;
+    Refusal(std::string c, const char *m, std::string deferred = {})
+        : std::runtime_error(m), code(std::move(c)), defer_id(std::move(deferred)) {}
 };
 void need(bool condition, const char *code = "invalid", const char *message = "Invalid command") {
     if (!condition) throw Refusal(code, message);
@@ -300,7 +303,8 @@ Session::Session(Options options)
         scripted_source = std::move(scripted);
     }
     auto observed = std::make_unique<ObservedMidi>(options_.null_audio && !options_.scripted_midi,
-                                                    options_.midi, std::move(scripted_source));
+                                                    options_.midi, std::move(scripted_source),
+                                                    options_.scripted_midi);
     observer_ = observed.get();
     observer_->endpoints();
     monitor_ = std::make_unique<monitor::Capture>();
@@ -384,7 +388,7 @@ void Session::shutdown() {
                   << " overrun_wake_max_us=" << bench_.overrun_wake_max_us << '\n';
     }
 }
-void Session::start_audio(std::chrono::steady_clock::time_point now) {
+void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGraph *rollback, Json *fresh) {
     stop_sink_.store(false);
     audio_reason_.clear();
     if (options_.audio) {
@@ -411,7 +415,7 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
                 stream_ = std::make_unique<audio::Stream>(engine_, audio::StreamSelection{options_.directory, device_},
                                                           options_.rate, options_.block, [this] { midi_->stop(); });
             } catch (const audio::PreferredBufferSize &driver) {
-                open_at_driver_block(driver.frames()); // exactly one retry; throws on refusal
+                open_at_driver_block(driver.frames(), rollback, fresh); // exactly one retry; throws on refusal
             }
             audio_state_ = "running";
             audio_error_.clear(); // an actual successful reopen clears the last error
@@ -493,27 +497,83 @@ void Session::start_audio(std::chrono::steady_clock::time_point now) {
 }
 // Control thread, no stream running (the failed open returned engine_). Keel's
 // #627 ruling: same quiescent path as setBufferFrames, one open, no persistence.
-void Session::open_at_driver_block(int64_t frames) {
+Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next_config, Json *fresh) {
+    // E7: both instances are quiescent. The same committed document supplies
+    // IDs, types and configs to both graphs; never replay a stored document
+    // snapshot as if it were current runtime state. In particular, an earlier
+    // unsupported blob retained by Engine::load_state is not a live snapshot.
+    struct Snapshot {
+        uint32_t id;
+        std::string type;
+        const ws2_descriptor *descriptor;
+        std::vector<uint8_t> bytes;
+    };
+    std::vector<Snapshot> snapshots;
+    auto runtime = patch_;
+    auto &old = app_engine_native(engine_.get());
+    for (auto &m : runtime["modules"]) {
+        const auto id = m["id"].get<uint32_t>();
+        const auto type = m["module"].get<std::string>();
+        const auto *d = old.descriptor(id);
+        Snapshot snapshot{id, type, d, {}};
+        if (d && type == d->id && old.preserved_state(id).empty())
+            snapshot.bytes = old.save_state(id);
+        snapshots.push_back(std::move(snapshot));
+        // The normal patch loader remains strict; only this rebuild copy omits
+        // authored state so a rate-dependent live state refusal is nonfatal.
+        m.erase("state");
+    }
+    StoppedGraph next;
+    next.telemetry = document::telemetry::Sampler(
+        document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
+    next.out = std::make_unique<osc::OutHost>(patch_.dump());
+    document::ScopedOutBuses staged_out(next.out->buses());
+    std::string error;
+    next.engine.reset(document::load_runtime_patch(runtime.dump(), catalogue_.get(), next_config, error,
+                                                  &next.telemetry.taps()));
+    if (!next.engine) return next;
+    auto &candidate = app_engine_native(next.engine.get());
+    for (const auto &snapshot : snapshots) {
+        // Current built-in state writers with a successful hook write at least
+        // a version word. Engine::save_state returns empty for unsupported/error.
+        // Match the actual descriptor as well as the unchanged document config.
+        const bool restored = snapshot.descriptor && candidate.descriptor(snapshot.id) == snapshot.descriptor &&
+                              !snapshot.bytes.empty() &&
+                              candidate.load_state(snapshot.id, snapshot.bytes) == WS2_OK;
+        if (!restored && fresh) {
+            Json entry = {{"moduleId", snapshot.id}, {"module", snapshot.type}};
+            if (std::find(fresh->begin(), fresh->end(), entry) == fresh->end())
+                fresh->push_back(std::move(entry));
+        }
+    }
+    app_engine_prepare_master_fade_in(next.engine.get());
+    return next;
+}
+
+void Session::swap_stopped_graph(StoppedGraph &other) noexcept {
+    engine_.swap(other.engine);
+    telemetry_.swap(other.telemetry);
+    osc_out_.swap(other.out);
+    active_ = engine_.get();
+}
+
+void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh) {
     if (frames < 1 || frames > 4096)
         throw std::runtime_error("ASIO driver requires " + std::to_string(frames) + " frames (supported 1-4096)");
     const auto block = uint32_t(frames);
-    document::telemetry::Sampler next_telemetry(
-        document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
+    // A driver-selected block within the prepared capacity needs no graph change.
+    if (block <= config_.max_block) {
+        stream_ = std::make_unique<audio::Stream>(
+            engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
+            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
+        if (!requested_block_) requested_block_ = options_.block;
+        options_.block = block;
+        return;
+    }
     engine2::Config next_config = config_;
     next_config.max_block = block;
-    std::string error;
-    auto next_out = std::make_unique<osc::OutHost>(patch_.dump());
-    document::ScopedOutBuses staged_out(next_out->buses());
-    audio::EngineOwner prepared(
-        document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config, error, &next_telemetry.taps()),
-        app_engine_destroy);
-    if (!prepared)
-        throw std::runtime_error("Graph cannot prepare at the ASIO driver's " + std::to_string(block) + " frames");
-    app_engine_prepare_master_fade_in(prepared.get());
     // Preferred-buffer retries may run after a failed startup or hot-unplug:
     // OSC/MIDI workers can still hold the old graph while stream_ is null.
-    // Join both producers before replacing it; resume OSC against whichever
-    // graph is committed (new on success, restored on failed retry).
     const bool had_osc = !osc_->states().empty() || !osc_out_->states().empty();
     osc_out_->stop();
     osc_->stop();
@@ -538,26 +598,27 @@ void Session::open_at_driver_block(int64_t frames) {
         }
     };
     std::unique_ptr<void, decltype(resume_midi)> midi_restart(this, resume_midi);
-    auto previous = std::move(engine_);
-    engine_ = std::move(prepared);
-    active_ = engine_.get();
+    auto previous = prepare_stopped_graph(next_config, fresh);
+    if (!previous.engine)
+        throw std::runtime_error("Graph cannot prepare at the ASIO driver's " + std::to_string(block) + " frames");
+    swap_stopped_graph(previous);
     try {
         stream_ = std::make_unique<audio::Stream>(
             engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
-            [this] { midi_->stop(); },
-            /*allow_preferred_retry=*/false);
+            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
     } catch (...) {
-        engine_ = std::move(previous); // keep the graph prepared for the configured block
-        active_ = engine_.get();
+        swap_stopped_graph(previous);
         throw;
     }
     restore_midi_on_failure = false; // caller start()/poll_audio()/apply() resumes MIDI
-    osc_out_.swap(next_out);         // previous engine has stopped; keep its bus alive until retirement
+    // A command may still fail after opening the stream (e.g. persistence).
+    // Keep its original engine AND buses until the whole command commits.
+    if (rollback && !rollback->engine) *rollback = std::move(previous);
     if (!requested_block_) requested_block_ = options_.block;
     config_ = next_config;
     options_.block = block;
-    telemetry_.swap(next_telemetry);
 }
+
 void Session::stop_audio() {
     stop_sink_.store(true);
 #ifdef _WIN32
@@ -725,8 +786,73 @@ Json Session::execution(Json patch) {
     need(patch.dump().size() <= LineLimit, "limit", "Patch exceeds byte limit");
     return patch;
 }
-bool Session::commit(Json patch, bool new_namespace) {
+Json Session::config_event(uint32_t id, const PendingConfig &pending,
+                           const char *outcome, uint64_t generation) const {
+    return deferred_config_event(token_, id, pending, outcome, generation);
+}
+Json Session::take_config_events() {
+    Json events = Json::array();
+    events.swap(config_events_);
+    return events;
+}
+bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> retry_id, bool explicit_graph) {
     patch = execution(std::move(patch));
+    // A80: an opted-in full snapshot can carry still-pending authored
+    // configs alongside unrelated edits. Execute those nodes at their
+    // committed config until their correlated deferral completes.
+    std::set<uint32_t> snapshot_supersedes;
+    if (explicit_graph) {
+        for (auto &m : patch["modules"]) {
+            const auto id = integer(m.at("id"));
+            const auto pending = pending_configs_.find(id);
+            if (pending == pending_configs_.end()) continue;
+            if (m.at("module") != pending->second.module ||
+                m.value("config", Json::object()) != pending->second.config) {
+                snapshot_supersedes.insert(id);
+                continue;
+            }
+            const auto &old = node(patch_, id);
+            if (old.contains("config")) m["config"] = old.at("config");
+            else m.erase("config");
+        }
+    }
+    // loadGraph is a stored document; a changed live slot is an edit.
+    // Unchanged forward-compatible stored fields remain opaque.
+    if (!new_namespace) for (const auto &m : patch["modules"]) {
+        const auto data = m.value("data", Json::object());
+        need(data.is_object(), "invalid", "data: expected object");
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &n) { return n.at("id") == m.at("id") && n.at("module") == m.at("module"); });
+        const auto prior = old == patch_["modules"].end() ? Json::object() : old->value("data", Json::object());
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            if (prior.contains(it.key()) && prior.at(it.key()) == it.value()) continue;
+            uint32_t slot = 0;
+            while (slot < count && it.key() != d->data_slots[slot].id) ++slot;
+            need(slot < count, "invalid", ("data." + it.key() + ": unknown slot").c_str());
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(d->data_slots[slot], it.value(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
+        // Removing a declared slot is a live reset to its packed defaults.
+        // Validate that edit with the same descriptor callback and field path.
+        for (uint32_t slot = 0; slot < count; ++slot) {
+            const auto &declared = d->data_slots[slot];
+            if (!prior.contains(declared.id) || data.contains(declared.id)) continue;
+            std::vector<uint8_t> packed;
+            std::string diagnostic;
+            if (!ws::data_layout::pack_data_slot(declared, Json::object(),
+                    ws::data_layout::DataLoad::Edit, packed, diagnostic, nullptr,
+                    app_engine_data_validator(catalogue_.get(), d)))
+                throw Refusal("invalid", diagnostic.c_str());
+        }
+    }
     std::string error;
     const auto patch_bytes = patch.dump();
     // Stage metadata and cursor storage before any live graph swap.
@@ -741,12 +867,69 @@ bool Session::commit(Json patch, bool new_namespace) {
     // Stage all potentially throwing document/ID work before accepting a live graph.
     std::set<uint32_t> ids = new_namespace ? std::set<uint32_t>{} : used_ids_;
     for (const auto &m : patch["modules"]) ids.insert(integer(m["id"]));
-    // Pause the OSC ingress before any live replan, fade/swap or graph retirement.
-    // The destructor restarts the worker against whichever graph actually commits
-    // (including the original graph on refusal). Socket errors never refuse patches.
-    osc_out_->stop();
-    osc_->stop();
-    auto resume_osc = [this](void *) noexcept {
+    // Stage queue and terminal events before accepting the graph. A
+    // refused ordinary transaction never publishes these changes.
+    auto next_pending = pending_configs_;
+    auto next_events = config_events_;
+    std::set<uint32_t> changed_data;
+    for (auto it = next_pending.begin(); it != next_pending.end();) {
+        const auto id = it->first;
+        auto next = std::find_if(patch["modules"].begin(), patch["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+            [&](const Json &m) { return m.at("id") == id; });
+        const bool applied = retry_id && *retry_id == id;
+        const bool data_changed = next != patch["modules"].end() && old != patch_["modules"].end() &&
+            next->value("data", Json::object()) != old->value("data", Json::object());
+        if (data_changed) changed_data.insert(id);
+        if (applied || new_namespace || snapshot_supersedes.count(id) ||
+            next == patch["modules"].end() || old == patch_["modules"].end() ||
+            next->at("module") != it->second.module ||
+            next->value("config", Json::object()) != old->value("config", Json::object())) {
+            next_events.push_back(config_event(id, it->second, applied ? "applied" : "superseded", generation_ + 1));
+            it = next_pending.erase(it);
+        } else ++it;
+    }
+    // Live data delivery normally retains the instance. OSC Out is the
+    // existing exception: its freshly staged bus is construction config.
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true,
+                               node(patch, id).at("module") == "osc.out", generation_ + 1);
+    // Determine eligibility by reverting ONLY changed config fields in an
+    // execution copy and comparing the entire transaction to committed state.
+    // Mixed data/topology/parameter/metadata changes can never be deferred.
+    Json config_only = patch;
+    std::vector<uint32_t> changed_configs;
+    if (!new_namespace && !retry_id) {
+        for (auto &m : config_only["modules"]) {
+            const auto id = integer(m.at("id"));
+            auto old = std::find_if(patch_["modules"].begin(), patch_["modules"].end(),
+                [&](const Json &n) { return n.at("id") == id; });
+            if (old == patch_["modules"].end() || old->at("module") != m.at("module")) continue;
+            if (old->value("config", Json::object()) == m.value("config", Json::object())) continue;
+            changed_configs.push_back(id);
+            if (old->contains("config")) m["config"] = old->at("config");
+            else m.erase("config");
+        }
+    }
+    // A pending-config revert in a mixed refused snapshot must not be
+    // silently dropped. Only newly changed config IDs are admitted here.
+    const bool eligible_shape = !changed_configs.empty() && config_only == patch_ &&
+        std::all_of(snapshot_supersedes.begin(), snapshot_supersedes.end(), [&](uint32_t id) {
+            return std::find(changed_configs.begin(), changed_configs.end(), id) != changed_configs.end();
+        });
+    // A75/MIDI-busy refusals must leave live routes, counters and caches
+    // untouched. Quiesce OSC only after the engine's staging preflight and
+    // before publication, or immediately before the D5 swap.
+    bool osc_paused = false;
+    auto pause_osc = [&]() noexcept {
+        if (osc_paused) return;
+        osc_out_->stop();
+        osc_->stop();
+        osc_paused = true;
+    };
+    auto resume_osc = [this, &osc_paused](void *) noexcept {
+        if (!osc_paused) return;
         try {
             start_osc();
         } catch (...) {
@@ -760,10 +943,13 @@ bool Session::commit(Json patch, bool new_namespace) {
         const uint64_t timeout_ns = 3ULL * options_.block * 1000000000ULL / options_.rate;
         // A busy MIDI dispatch is transient; a graph refusal is not. Never stop for busy.
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
-            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error)) {
+            if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
+                    [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
+                pending_configs_.swap(next_pending);
+                config_events_.swap(next_events);
                 // Rebuild direct-only routing and clear old ring on commit.
                 monitor_->configure(patch_);
                 telemetry_.swap(next_telemetry); // Engine2 counts restart at every replan.
@@ -771,13 +957,54 @@ bool Session::commit(Json patch, bool new_namespace) {
                 std::cerr << "commit path=live gen=" << generation_ << '\n';
                 return true;
             }
+            // A75 is not an ordinary replan refusal: D5 would cut the
+            // predecessor tail. Preserve the live graph and report busy.
+            if (error == "Replacement busy: predecessor still fading") {
+                const auto &blocked = app_engine_native(active_).replacement_blocked_ids();
+                if (client_deferred_ && !retry_id && eligible_shape &&
+                    std::all_of(changed_configs.begin(), changed_configs.end(), [&](uint32_t id) {
+                        return std::find(blocked.begin(), blocked.end(), id) != blocked.end();
+                    })) {
+                    auto deferred = pending_configs_;
+                    auto events = config_events_;
+                    const auto defer_id = std::to_string(++next_defer_id_);
+                    const auto now = std::chrono::steady_clock::now();
+                    for (auto id : changed_configs) {
+                        const auto &m = node(patch, id);
+                        const auto *d = app_engine_native(active_).descriptor(id);
+                        uint32_t ms = WS2_REPLACE_FADE_DEFAULT_MS;
+                        if (d && d->struct_size >= offsetof(ws2_descriptor, replace_fade_ms) + sizeof(d->replace_fade_ms) &&
+                            d->replace_fade_ms)
+                            ms = std::min(d->replace_fade_ms, WS2_REPLACE_FADE_MAX_MS);
+                        const auto previous = deferred.find(id);
+                        if (previous != deferred.end())
+                            events.push_back(config_event(id, previous->second, "superseded", generation_));
+                        deferred.insert_or_assign(id, PendingConfig{m.at("module").get<std::string>(),
+                            defer_id, m.value("config", Json::object()),
+                            now + std::chrono::milliseconds(2 * ms + 1000)});
+                    }
+                    Refusal refusal("busy", error.c_str(), defer_id);
+                    pending_configs_.swap(deferred);
+                    config_events_.swap(events);
+                    throw refusal;
+                }
+                throw Refusal("busy", error.c_str());
+            }
             if (error != "MIDI worker busy") break;
-            if (attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
+            if (retry_id || attempt == 3) throw Refusal("busy", "MIDI worker busy; graph unchanged");
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
     }
+    // Deferred A75 retries must never fall through to D5, even on another error.
+    if (retry_id) throw Refusal("unavailable", "Deferred live config retry unavailable");
+    // D5 replaces every instance, so a changed data slot now supersedes
+    // that ID's pending config. Keep unrelated pending IDs (A80).
+    // Stage before the swap; an unsuccessful D5 publishes no events.
+    for (auto id : changed_data)
+        stage_data_supersession(next_pending, next_events, token_, id, true, true, generation_ + 1);
     // D5 directly for loadGraph, stopped/lost streams and non-busy replan refusal.
     // The candidate was fully prepared above, so validation refusal is untouched.
+    pause_osc();
     const auto begun = std::chrono::steady_clock::now();
     // D5 budgets (see kMuteBudget/kGapBudget); they stretch only when a block period is longer.
     const auto period = std::chrono::microseconds(int64_t(1e6 * double(options_.block) / double(options_.rate)));
@@ -896,6 +1123,8 @@ bool Session::commit(Json patch, bool new_namespace) {
     ++generation_;
     keyboard_.fill(false);
     used_ids_.swap(ids);
+    pending_configs_.swap(next_pending);
+    config_events_.swap(next_events);
     // No old-generation messages survive a successful graph commit.
     monitor_->configure(patch_);
     telemetry_.swap(next_telemetry); // D5 also resets all last-seen event counts.
@@ -998,6 +1227,20 @@ Json Session::apply(const Json &command) {
         throw Refusal("refused", "rate-unsupported");
     };
     auto type = command.at("type").get<std::string>();
+    if (type == "hello") {
+        need(!client_hello_seen_, "duplicate", "Client hello already received");
+        const auto &capabilities = command.at("capabilities");
+        need(capabilities.is_array() && capabilities.size() <= 256, "invalid", "Invalid capabilities");
+        bool supports_deferred = false;
+        for (const auto &capability : capabilities) {
+            need(capability.is_string() && capability.get_ref<const std::string &>().size() <= 128,
+                 "invalid", "Invalid capability");
+            supports_deferred |= capability == "configDeferred";
+        }
+        client_deferred_ = supports_deferred;
+        client_hello_seen_ = true;
+        return nullptr;
+    }
     if (type == "listAudioDevices") {
         refresh_devices();
         Json result = {{"devices", audio_devices_}};
@@ -1042,12 +1285,12 @@ Json Session::apply(const Json &command) {
         }
         if (next_rate == options_.rate && next_block == options_.block) return nullptr;
 
-        // Control thread only. Quiesce the old stream before preparing a new
-        // runnable graph, retaining the document and selected MIDI endpoints.
+        // Control thread only. Keep the prepared graph when only the stream's
+        // block size changes within its capacity; never panic or reset it.
         const auto old_config = config_;
         const auto old_rate = options_.rate, old_block = options_.block, old_requested = requested_block_;
         const auto old_preferences = preferences_;
-        // The stream change destroys/replaces the engine; suspend ingress first.
+        const bool rebuild = next_rate != old_rate || next_block > config_.max_block;
         osc_out_->stop();
         osc_->stop();
         auto resume_osc = [this](void *) noexcept {
@@ -1059,61 +1302,51 @@ Json Session::apply(const Json &command) {
             }
         };
         std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-        // Keep candidate taps alive through rollback, until its render thread is joined.
-        document::telemetry::Sampler next_telemetry(
-            document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true));
-        auto next_out = std::make_unique<osc::OutHost>(patch_.dump());
         midi_->stop();
-        app_engine_panic(active_); // release held notes before replacing DSP state
         stop_audio();
-        auto previous = std::move(engine_);
+        StoppedGraph previous;
+        Json fresh = Json::array();
         try {
-            engine2::Config next_config = config_;
-            next_config.sample_rate = next_rate;
-            next_config.max_block = next_block;
-            std::string error;
-            document::ScopedOutBuses staged_out(next_out->buses());
-            audio::EngineOwner prepared(document::load_runtime_patch(patch_.dump(), catalogue_.get(), next_config,
-                                                                     error, &next_telemetry.taps()),
-                                        app_engine_destroy);
-            need(bool(prepared), "unavailable", "Graph cannot prepare at requested stream configuration");
-            app_engine_prepare_master_fade_in(prepared.get());
-            engine_ = std::move(prepared);
-            active_ = engine_.get();
-            config_ = next_config;
+            if (rebuild) {
+                engine2::Config next_config = config_;
+                next_config.sample_rate = next_rate;
+                next_config.max_block = next_block;
+                previous = prepare_stopped_graph(next_config, &fresh);
+                need(bool(previous.engine), "unavailable", "Graph cannot prepare at requested stream configuration");
+                swap_stopped_graph(previous);
+                config_ = next_config;
+            }
             options_.rate = next_rate;
             options_.block = next_block;
             requested_block_ = 0;
-            start_audio();
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || (stream_ && stream_->running()), "unavailable",
                  "Audio device refused the new stream");
             start_midi();
             preferences_["audio"]["sampleRate"] = next_rate;
             preferences_["audio"]["bufferFrames"] = next_block;
+            Json result = previous.engine ? Json{{"freshModules", std::move(fresh)}} : Json(nullptr);
             persist(); // only after the replacement stream is running
             ++generation_;
-            keyboard_.fill(false);
-            telemetry_.swap(next_telemetry);
-            osc_out_.swap(next_out); // replace only after the new stream succeeds
-            return nullptr;
+            if (previous.engine) keyboard_.fill(false);
+            return result;
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             midi_->stop();
             stop_audio();
-            engine_ = std::move(previous);
-            active_ = engine_.get();
+            if (previous.engine) swap_stopped_graph(previous);
             config_ = old_config;
             options_.rate = old_rate;
             options_.block = old_block;
             requested_block_ = old_requested;
             preferences_ = old_preferences;
-            app_engine_prepare_master_fade_in(active_);
             start_audio();
             start_midi();
             if (rate_refused) refuse_rate();
             throw Refusal("unavailable", "Stream change refused; previous configuration restored");
         }
     }
+
     if (type == "selectAudioDevice") {
         need(command.at("deviceId").is_string());
         auto id = command.at("deviceId").get<std::string>();
@@ -1133,6 +1366,10 @@ Json Session::apply(const Json &command) {
             refuse_rate();
         need(options_.audio || options_.null_audio, "unavailable", "Audio device access is not authorized");
         auto old_device = device_;
+        const auto old_config = config_;
+        const auto old_block = options_.block, old_requested = requested_block_;
+        StoppedGraph previous;
+        Json fresh = Json::array(), result;
         // A device switch also tears down an audio worker. Join the packet
         // producer first, and resume against the same committed graph on
         // both success and restored-device failure paths.
@@ -1151,10 +1388,12 @@ Json Session::apply(const Json &command) {
         stop_audio();
         device_ = id;
         try {
-            start_audio();
+            start_audio(std::chrono::steady_clock::now(), &previous, &fresh);
             need(!options_.audio || bool(stream_), "unavailable", "Cannot open audio output");
             start_midi();
+            if (previous.engine) result = Json{{"freshModules", std::move(fresh)}};
             persist();
+            if (previous.engine) keyboard_.fill(false);
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
             // Preserve the attempted PortAudio/ASIO failure before a successful
@@ -1162,6 +1401,10 @@ Json Session::apply(const Json &command) {
             const std::string failed_open = audio_error_;
             midi_->stop();
             stop_audio();
+            if (previous.engine) swap_stopped_graph(previous);
+            config_ = old_config;
+            options_.block = old_block;
+            requested_block_ = old_requested;
             device_ = old_device;
             start_audio();
             start_midi();
@@ -1170,7 +1413,7 @@ Json Session::apply(const Json &command) {
             throw;
         }
         refresh_devices(true, false);
-        return nullptr;
+        return result;
     }
     if (type == "setMidiEnabled") {
         need(command.at("deviceId").is_string() && command.at("on").is_boolean());
@@ -1179,17 +1422,21 @@ Json Session::apply(const Json &command) {
             std::find_if(midi_devices_.begin(), midi_devices_.end(), [&](const Json &d) { return d.at("id") == id; });
         need(found != midi_devices_.end(), "not-found", "No such MIDI input");
         need(options_.midi || options_.null_audio, "unavailable", "MIDI device access is not authorized");
+        const midi::Endpoint selection{found->at("name").get<std::string>(),
+                                       found->at("system_name").get<std::string>()};
+        const bool enable = command.at("on").get<bool>();
         auto old = midi_->enabled();
         midi_->stop();
-        midi_->select({found->at("name").get<std::string>(), found->at("system_name").get<std::string>()},
-                      command.at("on").get<bool>());
+        midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
             start_midi();
+            // An ACK for a newly enabled input must mean its backend opened.
+            // Startup restore still tolerates saved disconnected endpoints.
+            if (enable) need(midi_->online(selection), "unavailable", "MIDI input could not be opened");
             persist();
         } catch (...) {
             midi_->stop();
-            for (auto &e : midi_->enabled()) (void)e;
             auto selected = midi_->enabled();
             for (auto &e : selected) midi_->select(e, false);
             for (auto &e : old) midi_->select(e, true);
@@ -1247,16 +1494,81 @@ Json Session::apply(const Json &command) {
         m["parameters"][param] = value;
         return nullptr;
     }
-    Json candidate = patch_;
-    if (type == "loadGraph") {
-        commit(command.at("patch"), true);
+    if (type == "setData") {
+        const auto id = integer(command.at("moduleId"));
+        auto &m = node(patch_, id);
+        const auto *d = app_engine_native_descriptor(catalogue_.get(), m.at("module").get<std::string>().c_str());
+        need(d, "unknown-module", "Module not installed");
+        need(command.at("slot").is_string(), "invalid", "data.slot: expected string");
+        const auto slot_id = command.at("slot").get<std::string>();
+        const auto count = d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots)
+            ? d->data_slot_count : 0;
+        uint32_t slot = 0;
+        while (slot < count && slot_id != d->data_slots[slot].id) ++slot;
+        need(slot < count, "invalid", ("data." + slot_id + ": unknown slot").c_str());
+        const auto &value = command.at("value");
+        std::vector<uint8_t> packed;
+        std::string error;
+        if (!ws::data_layout::pack_data_slot(d->data_slots[slot], value,
+                ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+                app_engine_data_validator(catalogue_.get(), d)))
+            throw Refusal("invalid", error.c_str());
+        // All JSON work and validation must precede the ring insertion. On
+        // capacity/invalid/state refusal the execution document is unchanged.
+        auto updated = m;
+        if (!updated.contains("data")) updated["data"] = Json::object();
+        updated["data"][slot_id] = value;
+        const auto result = app_engine_native(active_).set_data_packed(id, slot, packed);
+        need(result != WS2_CAPACITY, "busy", "Data queue full");
+        need(result != WS2_INVALID, "invalid", "Invalid data slot");
+        need(result == WS2_OK, "unavailable", "Data slot unavailable");
+        m.swap(updated);
         return nullptr;
     }
+    if (type == "loadGraph") {
+        auto loaded = command.at("patch");
+        auto &connections = loaded.at("connections");
+        need(connections.is_array());
+        need(connections.size() <= 128, "limit", "Graph capacity exceeded");
+        std::vector<std::string> warnings;
+        try {
+            warnings = document::normalize_stored_modulation(connections, 2);
+        } catch (const std::invalid_argument &e) {
+            throw Refusal("invalid", e.what());
+        }
+        commit(std::move(loaded), true);
+        if (!warnings.empty()) return Json{{"warnings", std::move(warnings)}};
+        return nullptr;
+    }
+    if (type == "setModAmount") {
+        const auto key = identity(command.at("connection"));
+        auto &cables = patch_.at("connections");
+        auto found = std::find_if(cables.begin(), cables.end(),
+                                  [&](const Json &cable) { return identity(cable) == key; });
+        need(found != cables.end(), "not-found", "No such connection");
+        need(found->at("kind") == "modulation");
+        const auto from = integer(key.at("from").at("module"));
+        const auto to = integer(key.at("to").at("module"));
+        const auto amount = number(command.at("amount"), -1, 1);
+        auto &engine = app_engine_native(active_);
+        auto *source = engine.descriptor(from);
+        auto *destination = engine.descriptor(to);
+        need(source && destination, "not-found", "No such module");
+        auto *out = port(source, key.at("from").at("port").get<std::string>(), true);
+        auto *param = parameter(destination, key.at("to").at("port").get<std::string>());
+        const auto result = engine.set_mod_amount(from, uint32_t(out - source->outputs), to,
+                                                  uint32_t(param - destination->params), float(amount));
+        need(result != WS2_CAPACITY, "busy", "Event queue full");
+        need(result == WS2_OK, "unavailable", "Modulation edge unavailable");
+        (*found)["amount"] = amount;
+        return nullptr;
+    }
+    Json candidate = patch_;
     if (type == "applyGraph") {
         // Same validation and execution copy as loadGraph, but in the current ID namespace and
         // through the live replan: unchanged modules keep their instances (0005 section 3).
         const Json before = patch_;
-        const bool live = commit(command.at("patch"), false);
+        const bool live = commit(command.at("patch"), false, std::nullopt, true);
         return reconcile_graph(before, live);
     }
     if (type == "addModule") {
@@ -1279,7 +1591,7 @@ Json Session::apply(const Json &command) {
         auto &outputs = candidate["outputs"];
         outputs.erase(std::remove_if(outputs.begin(), outputs.end(), [&](const Json &o) { return o["module"] == id; }),
                       outputs.end());
-    } else if (type == "connect" || type == "disconnect" || type == "setModAmount") {
+    } else if (type == "connect" || type == "disconnect") {
         auto connection = command.at("connection");
         need(connection.is_object());
         auto &cables = candidate["connections"];
@@ -1290,11 +1602,7 @@ Json Session::apply(const Json &command) {
             cables.push_back(connection);
         } else {
             need(found != cables.end(), "not-found", "No such connection");
-            if (type == "disconnect") cables.erase(found);
-            else {
-                need(found->at("kind") == "modulation");
-                (*found)["amount"] = number(command.at("amount"), -1, 1);
-            }
+            cables.erase(found);
         }
     } else if (type == "ccMap.set") {
         auto &m = node(candidate, integer(command.at("moduleId")));
@@ -1347,6 +1655,10 @@ Json Session::reply(const Request &request) {
     } catch (const Refusal &e) {
         result["code"] = e.code;
         result["message"] = e.what();
+        if (!e.defer_id.empty()) {
+            result["deferred"] = true;
+            result["deferId"] = e.defer_id;
+        }
     } catch (const Json::exception &) {
         result["code"] = "invalid";
         result["message"] = "Invalid command field";
@@ -1403,7 +1715,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph"});
+         "applyGraph", "configDeferred"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},
@@ -1440,6 +1752,10 @@ Json Session::status() const {
         entry["state"] = route.state;
         entry["received"] = route.received;
         entry["dropped"] = route.dropped;
+        entry["budget_dropped"] = route.budget_dropped;
+        entry["enqueue_dropped"] = route.enqueue_dropped;
+        entry["listener_budget_dropped"] = route.listener_budget_dropped;
+        entry["listener_enqueue_dropped"] = route.listener_enqueue_dropped;
         osc_routes.push_back(std::move(entry));
     }
     osc_status["enabled"] = any_bound;
@@ -1561,6 +1877,47 @@ void Session::drain_egress() noexcept {
     for (uint32_t i = 0; i < kEgressDrainPerPoll && live.pop_egress(discarded); ++i) {
     }
 }
+bool Session::retry_config(std::chrono::steady_clock::time_point now) {
+    // Deadlines expire even when rendering has stopped. Inspect retirement
+    // before building a candidate or pausing host workers; one attempt only.
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end();) {
+        if (now >= it->second.deadline) {
+            config_events_.push_back(config_event(it->first, it->second, "failed", generation_));
+            it = pending_configs_.erase(it);
+        } else ++it;
+    }
+    if (pending_configs_.empty() ||
+        !((stream_ && stream_->running()) || sink_rendering_.load(std::memory_order_acquire))) return false;
+    auto &graph = app_engine_native(active_);
+    for (auto it = pending_configs_.begin(); it != pending_configs_.end(); ++it) {
+        const auto id = it->first;
+        if (graph.replacement_tail_pending(id)) continue;
+        try {
+            Json candidate = patch_; // rebase only config on the newest committed document
+            auto &m = node(candidate, id);
+            if (m.at("module") != it->second.module ||
+                m.value("config", Json::object()) == it->second.config) {
+                config_events_.push_back(config_event(id, it->second, "superseded", generation_));
+                pending_configs_.erase(id);
+                return false;
+            }
+            m["config"] = it->second.config;
+            commit(std::move(candidate), false, id);
+            return true;
+        } catch (const std::exception &e) {
+            std::cerr << "deferred config refused: " << e.what() << '\n';
+            // A retirement permits exactly one attempt. Never retry a refusal
+            // every poll or fall back to D5.
+            const auto pending = pending_configs_.find(id);
+            if (pending != pending_configs_.end()) {
+                config_events_.push_back(config_event(id, pending->second, "failed", generation_));
+                pending_configs_.erase(pending);
+            }
+            return false;
+        }
+    }
+    return false;
+}
 bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (scripted_midi_ && scripted_started_enabled_ && now >= scripted_started_) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - scripted_started_).count();
@@ -1579,6 +1936,7 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (!warm && cold_due) cold_enumeration_ = now;
     const auto enumerated = refresh_devices(warm || cold_due, !warm);
     auto changed = poll_audio(now, enumerated);
+    changed = retry_config(now) || changed;
     return changed || old_audio != audio_devices_ || old_midi != midi_devices_ ||
            old_unavailable != unavailable_audio_drivers_;
 }

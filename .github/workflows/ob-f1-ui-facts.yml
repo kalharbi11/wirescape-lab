@@ -1,17 +1,21 @@
 # SPDX-License-Identifier: GPL-3.0-only
+# OB-f1 Studio UI facts (device-off advisory). Restored by Architect ruling A87 (2026-11-25)
+# from cde860221c8006d03051e81e05852834ebff4f46 (run 44719535007). Collectors unchanged.
 name: OB-f1 Studio UI facts (device-off advisory)
 
 on:
   pull_request:
     paths:
       - 'bench/ui/**'
-      - 'facts/app/ui_smoothness_2026-11-17.md'
-      - 'facts/app/ui_cpu_rank_2026-11-20.md'
       - '.github/workflows/ob-f1-ui-facts.yml'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Full 40-hex candidate SHA to capture (empty = the dispatched branch head)'
+        required: false
+        default: ''
 
-# SR8 separate advisory; never touches shared ci.yml or existing workflows.
-# No checks/merges, release writes, facts-auto branches or release uploads.
+# SR8 separate advisory; never a required check. No writes, releases or uploads beyond the artifact.
 permissions:
   contents: read
   actions: read
@@ -25,10 +29,18 @@ jobs:
       CI: '1'
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
+      - name: Validate requested ref
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          if [ -n "$REF" ] && ! printf '%s' "$REF" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "ref must be a full 40-hex SHA" >&2; exit 2
+          fi
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -49,6 +61,10 @@ jobs:
           set -euo pipefail
           npm --prefix apps/studio run build
           python tools/dev.py build --headless --config Release
+      - name: Record the captured commit
+        run: |
+          mkdir -p build_reports/ob-f1
+          git rev-parse HEAD | tee build_reports/ob-f1/captured_sha.txt
       - name: Pure OB-f1 selector/metrics/ACK known-answer regressions
         run: |
           set -euo pipefail
@@ -56,13 +72,13 @@ jobs:
           node --check bench/ui/ob_f1_metrics.cjs
           node --check bench/ui/test_ob_f1_metrics.cjs
           node bench/ui/test_ob_f1_metrics.cjs
-      - name: Rank 24 bundled patches by actual idle-only offline CPU and capture winner in Studio
+      - name: Rank bundled patches by actual idle-only offline CPU and capture the winner in Studio
         run: node bench/ui/ob_f1_capture.cjs
-      - name: Upload original CPU CLI observations, UI frame intervals and native sidecar ACKs
+      - name: Upload CPU CLI observations, UI frame intervals and native sidecar ACKs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ob-f1-ui-facts-${{ github.run_id }}
           path: build_reports/ob-f1/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14

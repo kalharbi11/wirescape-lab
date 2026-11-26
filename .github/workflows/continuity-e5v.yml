@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: E5v held-note continuity (devices off)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/continuity-e5v.yml"
+permissions:
+  contents: read
+jobs:
+  e5v-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      HARNESS_HEAD: 1acb54d7a44c019e1818ca78254c6642645d23ec
+      ENGINE_HEAD: 7d89559544ac5d59623b9f339cee42639afdb7dc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1acb54d7a44c019e1818ca78254c6642645d23ec
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 7d89559544ac5d59623b9f339cee42639afdb7dc
+          path: engine-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify pins and install build tools
+        run: |
+          set -euo pipefail
+          test "$(git -C harness rev-parse HEAD)" = "$HARNESS_HEAD"
+          test "$(git -C engine-source rev-parse HEAD)" = "$ENGINE_HEAD"
+          python -m pip install cmake==4.2.3 ninja==1.13.0
+          mkdir -p "$RUNNER_TEMP/e5v"
+          printf 'harness=%s\nsubject=%s\n' "$HARNESS_HEAD" "$ENGINE_HEAD" > "$RUNNER_TEMP/e5v/pins.txt"
+      - name: Build pinned null-sink sidecar
+        run: |
+          cmake -S engine-source/native -B "$RUNNER_TEMP/build" -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/build" --target wirescape_engine_sidecar --parallel 2
+      - name: Capture voice-count edit continuity
+        run: |
+          python harness/bench/continuity/run.py \
+            --engine "$RUNNER_TEMP/build/wirescape-engine" \
+            --engine-source engine-source --built-head "$ENGINE_HEAD" \
+            --repeats 3 --only 'applyGraph voice count' \
+            --out "$RUNNER_TEMP/e5v/report" --keep "$RUNNER_TEMP/e5v/raw"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e5v-voice-count-continuity
+          path: ${{ runner.temp }}/e5v
+          if-no-files-found: warn
+          retention-days: 14

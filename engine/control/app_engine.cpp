@@ -63,11 +63,18 @@ const ws2_descriptor *app_engine_native_descriptor(const AppEngine *e, const cha
     const auto *entry = e->find(module);
     return entry ? entry->native : nullptr;
 }
+AppDataValidator app_engine_data_validator(const AppEngine *e, const ws2_descriptor *d) {
+    if (!e || !d) return nullptr;
+    for (const auto &entry : e->entries)
+        if (entry.native == d) return wirescape::app::builtin_data_validator(d);
+    return nullptr;
+}
 int app_engine_add_node(AppEngine*e,uint32_t id,const char*type){return app_engine_add_node_config(e,id,type,{});}
 int app_engine_add_node_config(AppEngine*e,uint32_t id,const char*type,const std::vector<uint8_t>&config){auto*d=e->find(type);if(!d)return WS2_UNSUPPORTED;bool ok=d->native&&e->engine.add_node(id,d->native,config);if(ok)e->nodes[id]=d;return ok?WS2_OK:WS2_STATE;}
 int app_engine_connect(AppEngine*e,uint32_t a,uint32_t ap,uint32_t b,uint32_t bp){return e->engine.connect(a,ap,b,bp)?WS2_OK:WS2_STATE;}
 int app_engine_prepare(AppEngine*e,uint32_t n,uint32_t p){return e->engine.output(n,p,0)&&e->engine.prepare()?WS2_OK:WS2_STATE;}
-int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns) {
+int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns,
+                      wirescape::engine2::Engine::BeforePublish before_publish, void *context) {
     if (!live || !candidate || live == candidate) return WS2_INVALID;
     try {
         std::map<uint32_t, const AppEngine::Entry *> nodes;
@@ -79,7 +86,10 @@ int app_engine_replan(AppEngine *live, AppEngine *candidate, uint64_t timeout_ns
             }
             nodes.emplace(item.first, entry);
         }
-        if (!live->engine.replan(candidate->engine, timeout_ns)) return WS2_STATE;
+        if (!live->engine.replan(candidate->engine, timeout_ns, before_publish, context)) {
+            live->error = live->engine.error();
+            return live->error == "Replacement busy: predecessor still fading" ? WS2_CAPACITY : WS2_STATE;
+        }
         live->nodes.swap(nodes);
         live->error.clear();
         return WS2_OK;

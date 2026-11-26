@@ -337,7 +337,7 @@ async function libraryPatch(request: unknown): Promise<{ text: string; name: str
   try {
     if (!request || typeof request !== 'object') throw new Error();
     const { library, name } = request as { library: unknown; name?: unknown };
-    if (library === 'reset') { patchPath = null; originalV1 = undefined; return null; }
+    if (library === 'reset') { patchPath = null; return null; }
     if (library !== 'list' && library !== 'read') throw new Error();
     const directory = path.join(app.getPath('userData'), 'patches');
     await fs.promises.mkdir(directory, { recursive: true, mode: 0o700 });
@@ -360,15 +360,12 @@ async function libraryPatch(request: unknown): Promise<{ text: string; name: str
         path.dirname(await fs.promises.realpath(filename)) !== root) throw new Error();
     const source = await readNativeFile(filename);
     patchPath = filename;
-    originalV1 = source.value.version === 1
-      ? { bytes: source.bytes, object: JSON.stringify(source.value) } : undefined;
     return { name, text: source.text };
   } catch { throw new Error('Could not access user patch (JSON files, 2 MiB maximum)'); }
 }
 
 // File identity is bound only after a supported native document has been read.
 // The renderer remains the editable-document owner; these checks only guard I/O.
-let originalV1: { bytes: Buffer; object: string } | undefined;
 function nativeFile(text: string): { version: number; preserved?: unknown } {
   const value = JSON.parse(text);
   if (!value || value.format !== 'wirescape.native.patch' || ![1, 2].includes(value.version) ||
@@ -433,17 +430,37 @@ async function readNativeFile(filename: string): Promise<{ bytes: Buffer; text: 
   const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   return { bytes, text, value: nativeFile(text) };
 }
+// OB-a3: stage and fsync the original bytes, then atomically link a backup
+// without clobbering an existing name. Backups are deliberately not *.json.
 async function backupV1(filename: string, bytes: Buffer): Promise<void> {
-  const parsed = path.parse(filename);
-  const backup = path.join(parsed.dir, parsed.name + '.v1' + parsed.ext);
+  const backup = filename + '.bak-v1';
   const staged = backup + '.' + randomUUID() + '.tmp';
   try {
-    await fs.promises.writeFile(staged, bytes, { flag: 'wx', mode: 0o600 });
-    try { await fs.promises.link(staged, backup); }
-    catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST' ||
-          !(await fs.promises.lstat(backup)).isFile()) throw error;
+    const handle = await fs.promises.open(staged, 'wx', 0o600);
+    try {
+      await handle.writeFile(bytes);
+      await handle.sync();
+    } finally { await handle.close(); }
+    for (let index = 1; index <= 10000; ++index) {
+      const candidate = index === 1 ? backup : backup + '.' + index;
+      try {
+        await fs.promises.link(staged, candidate); // atomic no-clobber
+        return;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      }
+      // A directory, symlink or unusual file at a backup name is a refusal,
+      // never a reason to follow it or silently skip to another suffix.
+      const stat = await fs.promises.lstat(candidate);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('Unsafe backup collision');
+      const existing = await fs.promises.open(candidate,
+        fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+      try {
+        if (!(await existing.stat()).isFile()) throw new Error('Unsafe backup collision');
+        if ((await existing.readFile()).equals(bytes)) return; // no new write
+      } finally { await existing.close(); }
     }
+    throw new Error('Too many backup collisions');
   } finally { await fs.promises.rm(staged, { force: true }).catch(() => {}); }
 }
 async function openPatch(): Promise<{ text: string; name: string } | null> {
@@ -457,8 +474,6 @@ async function openPatch(): Promise<{ text: string; name: string } | null> {
     const filename = result.filePaths[0];
     const source = await readNativeFile(filename);
     patchPath = filename;
-    originalV1 = source.value.version === 1
-      ? { bytes: source.bytes, object: JSON.stringify(source.value) } : undefined;
     return { text: source.text, name: path.basename(filename) };
   } catch { throw new Error('Could not read a supported UTF-8 native patch (2 MiB maximum)'); }
 }
@@ -476,13 +491,15 @@ async function savePatch(input: unknown): Promise<{ name: string } | null> {
     if (result.canceled || !result.filePath) return null;
     filename = result.filePath;
   }
-  const output = nativeFile(text);
+  // In Save As the explicitly chosen filename is the destination, even when
+  // it matches the opened path (OB r2.2a); any v1 destination gets a backup.
+  nativeFile(text);
   let previous: Awaited<ReturnType<typeof readNativeFile>> | undefined;
   try { previous = await readNativeFile(filename); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw new Error('Refusing to overwrite an unsupported patch'); }
-  const original = previous?.value.version === 1 ? previous.bytes
-    : originalV1 && JSON.stringify(output.preserved) === originalV1.object ? originalV1.bytes : undefined;
-  try { if (original) await backupV1(filename, original); }
+  // Only the existing destination's native v1 bytes qualify for a backup.
+  // Neither a v2 destination nor a new Save As file gets a v1 backup.
+  try { if (previous?.value.version === 1) await backupV1(filename, previous.bytes); }
   catch { throw new Error('Could not create original patch backup; target was kept'); }
   const temp = path.join(path.dirname(filename), '.' + path.basename(filename) + '.' + randomUUID() + '.tmp');
   try {

@@ -22,7 +22,76 @@ static Note n(uint32_t source, int id, int key, int channel = 0) {
     return note;
 }
 
+// Before A55 the only count-change operation is configure(), which resets
+// the held state. Exercise that old path at the test-only head.
+template<class A>
+static auto change_count(A &a, int count, int) -> decltype(a.resize(count)) {
+    return a.resize(count);
+}
+template<class A>
+static Status change_count(A &a, int count, long) {
+    if (count < 1 || count > kMaxVoices) return Status::InvalidConfig;
+    auto config = a.config();
+    config.max_voices = static_cast<uint8_t>(count);
+    return a.configure(config);
+}
+
+static void resize_kept_voices() {
+    for (auto mode : {Mode::Rotate, Mode::Reuse, Mode::Reset}) {
+        Allocator a({4, mode});
+        for (int i = 0; i < 4; ++i) {
+            auto held = n(7, 10 + i, 60 + i);
+            held.velocity = float(i + 1) / 4.f;
+            CHECK(a.note_on(held).voice == i);
+        }
+        CHECK(a.sustain(7, true) == Status::Ok);
+        CHECK(a.note_off(n(7, 10, 60)) == Status::Ok);
+        CHECK(a.expression(n(7, 11, 61), .4f, .7f) == Status::Ok);
+        a.clear_triggers();
+        const auto v0 = a.voice(0), v1 = a.voice(1);
+        const auto kept = [&] {
+            CHECK(a.active_count() == 2 && a.held_count() == 2);
+            for (int i = 0; i < 2; ++i) {
+                const auto &before = i == 0 ? v0 : v1;
+                const auto &after = a.voice(i);
+                CHECK(after.gate && after.assigned && !after.trigger && !after.retrigger);
+                CHECK(after.key == before.key && after.note_id == before.note_id &&
+                      after.source_id == before.source_id && after.channel == before.channel);
+                CHECK(after.pitch == before.pitch && after.velocity == before.velocity &&
+                      after.pressure == before.pressure && after.timbre == before.timbre &&
+                      after.start_order == before.start_order);
+            }
+        };
+        CHECK(change_count(a, 2, 0) == Status::Ok && a.voice_count() == 2);
+        kept();
+        CHECK(change_count(a, 2, 0) == Status::Ok);
+        kept();
+        CHECK(change_count(a, 0, 0) == Status::InvalidConfig);
+        CHECK(change_count(a, kMaxVoices + 1, 0) == Status::InvalidConfig);
+        CHECK(a.voice_count() == 2);
+        kept();
+        CHECK(change_count(a, 4, 0) == Status::Ok && a.voice_count() == 4);
+        kept();
+        CHECK(!a.voice(2).assigned && !a.voice(2).gate && !a.voice(3).assigned && !a.voice(3).gate);
+        CHECK(a.note_off(n(7, 12, 62)) == Status::NotFound);
+        CHECK(a.note_off(n(7, 13, 63)) == Status::NotFound);
+        CHECK(a.sustain(7, false) == Status::Ok);
+        CHECK(!a.voice(0).gate && a.voice(1).gate);
+        CHECK(a.note_off(n(7, 11, 61)) == Status::Ok && a.held_count() == 0);
+    }
+    Allocator mono({4, Mode::Mono, Priority::Last, true});
+    mono.note_on(n(7, 1, 60));
+    mono.note_on(n(7, 2, 64));
+    mono.clear_triggers();
+    CHECK(change_count(mono, 2, 0) == Status::Ok && mono.voice_count() == 1);
+    CHECK(mono.voice(0).gate && mono.voice(0).key == 64 && !mono.voice(0).trigger && mono.held_count() == 2);
+    CHECK(change_count(mono, 4, 0) == Status::Ok && mono.voice_count() == 1);
+    CHECK(mono.note_off(n(7, 2, 64)) == Status::Ok);
+    CHECK(mono.voice(0).gate && mono.voice(0).key == 60 && !mono.voice(0).trigger);
+}
+
 int main() {
+    resize_kept_voices();
     {
         Allocator a({3, Mode::Rotate});
         CHECK(a.note_on(n(1, 1, 60)).voice == 0);
