@@ -1,6 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
-import { test, expect } from '@playwright/test';
+import { test, expect, type Download, type Page } from '@playwright/test';
 import { boot, settle, state } from './helpers';
+
+// Use the actual Playwright download bytes and DOM File API without adding
+// Node ambient types or dependencies to the Studio browser project.
+async function readPreset(download: Download) {
+  const stream = await download.createReadStream();
+  const decoder = new TextDecoder();
+  let text = '';
+  for await (const chunk of stream) text += decoder.decode(chunk, { stream: true });
+  return JSON.parse(text + decoder.decode());
+}
+async function uploadPreset(page: Page, value: unknown) {
+  await page.getByTestId('osc-preset-file').evaluate((input, json) => {
+    const data = new DataTransfer();
+    data.items.add(new File([json], 'preset.json', { type: 'application/json' }));
+    (input as HTMLInputElement).files = data.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, JSON.stringify(value));
+}
 
 test('OB-h5 Script preset maps MIDI pitch and preserves LAN and patch shape', async ({ page }) => {
   await boot(page);
@@ -60,17 +78,14 @@ test('OB-h5 OSC In portable file round trip, wrong module and network isolation'
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save preset…', exact: true }).click();
   const download = await downloading;
-  const fs = await import('node:fs/promises');
-  const file = JSON.parse(await fs.readFile((await download.path())!, 'utf8'));
+  const file = await readPreset(download);
   expect(file).toMatchObject({ format: 'wirescape.osc.preset', version: 1, module: 'osc.in', name: 'Script copy' });
   expect(Object.keys(file.config).sort()).toEqual(['port', 'rows']);
   expect(file.config.port).toBe(9123);
   expect(file.config.rows[0].pattern).toBe('/ws/pitch/*');
   expect((await state(page)).modules[0].config.rows).toBeUndefined();
   await page.getByTestId('osc-preset-pico').click();
-  const upload = async (value: unknown) => page.getByTestId('osc-preset-file').setInputFiles({
-    name: 'preset.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)),
-  });
+  const upload = (value: unknown) => uploadPreset(page, value);
   await upload({ ...file, module: 'osc.out' });
   await expect(page.getByTestId('osc-editor-errors')).toContainText('Wrong module');
   await expect(page.getByTestId('osc-row1-pattern')).toHaveValue('/pico1/knob/1');
@@ -98,17 +113,13 @@ test('OB-h5 OSC Out portable file round trip excludes destination and preserves 
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save preset…', exact: true }).click();
   const download = await downloading;
-  const fs = await import('node:fs/promises');
-  const file = JSON.parse(await fs.readFile((await download.path())!, 'utf8'));
+  const file = await readPreset(download);
   expect(file.module).toBe('osc.out');
   expect(Object.keys(file.config).sort()).toEqual(['notes', 'port', 'rate_hz', 'rows']);
   await page.getByTestId('osc-out-row1-address').fill('/changed');
   await page.getByTestId('osc-out-row2-enabled').check();
   await page.getByTestId('osc-out-notes-enabled').uncheck();
-  await page.getByTestId('osc-preset-file').setInputFiles({
-    name: 'out.json', mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify({ ...file, config: { ...file.config, host: '192.0.2.1', lan: true } })),
-  });
+  await uploadPreset(page, { ...file, config: { ...file.config, host: '192.0.2.1', lan: true } });
   await expect(page.getByTestId('osc-out-row1-address')).toHaveValue('/custom/send');
   await expect(page.getByTestId('osc-out-row2-enabled')).not.toBeChecked();
   await expect(page.getByTestId('osc-out-notes-enabled')).toBeChecked();
