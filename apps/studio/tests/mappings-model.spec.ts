@@ -214,3 +214,109 @@ test('MM1 A101 fake: partial ACK is refused and compensated exactly once', async
   expect(JSON.stringify(result.after)).toBe(JSON.stringify(result.before));
   expect(result.finalHistory).toEqual(result.history);
 });
+
+test('MM1 canvas: grabbing a mapping preserves it until an atomic reconnect; occupied destination refuses', async ({ page }) => {
+  await boot(page);
+  const p = fixture();
+  p.connections = [p.connections[0], p.connections[2]];
+  await page.evaluate(async patch => {
+    const a = window.__wirescapeTest;
+    await a.load(patch);
+    a.flushHistory();
+  }, p);
+  const before = await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  });
+  await page.evaluate(c => {
+    const canvas = window.__wirescapeTest.canvas as any;
+    canvas.beginGrabEnd(c, { clientX: 0, clientY: 0, pointerId: 1, currentTarget: {} });
+  }, p.connections[0]);
+  expect(await page.evaluate(() => window.__wirescapeTest.state())).toEqual(before.patch);
+  await page.evaluate(() => {
+    const canvas = window.__wirescapeTest.canvas as any;
+    canvas.dropOnKnob(3, 'offset');
+    canvas.cancelPatch();
+  });
+  await expect(page.getByText(/^Mapped to CC /)).toBeVisible();
+  expect(await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  })).toEqual(before);
+  await page.evaluate(c => {
+    const canvas = window.__wirescapeTest.canvas as any;
+    canvas.beginGrabEnd(c, { clientX: 0, clientY: 0, pointerId: 1, currentTarget: {} });
+    canvas.dropOnKnob(4, 'depth');
+    canvas.cancelPatch();
+  }, p.connections[0]);
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest, patch = a.state();
+    const c = patch.connections.find((x: any) => x.from.module === 1 && x.from.port === 'out1');
+    return { to: c?.to, amount: c?.amount, base: patch.modules.find((m: any) => m.id === 4).parameters?.depth,
+      oldBase: patch.modules.find((m: any) => m.id === 3).parameters?.depth,
+      past: a.historyDepth().past };
+  })).toEqual({ to: { module: 4, port: 'depth' }, amount: 1, base: 0, oldBase: .33,
+    past: before.history.past + 1 });
+});
+
+test('MM1 canvas: deleting a mapping source holds surviving target and is atomic', async ({ page }) => {
+  await boot(page);
+  const p = fixture();
+  p.connections = [p.connections[0]];
+  await page.evaluate(async patch => {
+    const a = window.__wirescapeTest;
+    await a.load(patch);
+    a.flushHistory();
+    a.select({ kind: 'modules', ids: [1] });
+  }, p);
+  const before = await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  });
+  await page.evaluate(() => window.__wirescapeTest.deleteSelection());
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest, patch = a.state();
+    return { deleted: !patch.modules.some((m: any) => m.id === 1), cables: patch.connections.length,
+      depth: patch.modules.find((m: any) => m.id === 3).parameters.depth, past: a.historyDepth().past };
+  })).toEqual({ deleted: true, cables: 0, depth: .33, past: before.history.past + 1 });
+});
+
+test('MM1 canvas: paste copies a mapping as one graph, preserves authored range and refuses atomically', async ({ page }) => {
+  await boot(page);
+  const p = fixture();
+  p.connections = [p.connections[0]];
+  await page.evaluate(async patch => {
+    const a = window.__wirescapeTest;
+    await a.load(patch);
+    a.flushHistory();
+    a.select({ kind: 'modules', ids: [1, 3] });
+    a.copy();
+    const engine = a.engine;
+    const calls: string[] = [];
+    (window as any).__mmCalls = calls;
+    for (const method of ['applyGraph', 'loadGraph', 'connect', 'addModule']) {
+      const original = engine[method].bind(engine);
+      engine[method] = (...args: any[]) => { calls.push(method); return original(...args); };
+    }
+    a.paste();
+  }, p);
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest, patch = a.state();
+    const c = patch.connections.find((x: any) => x.from.module > 5);
+    return { modules: patch.modules.length, amount: c?.amount,
+      base: patch.modules.find((m: any) => m.id === c?.to.module)?.parameters?.depth,
+      calls: (window as any).__mmCalls };
+  })).toEqual({ modules: 7, amount: .4, base: .25, calls: ['applyGraph'] });
+  const before = await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    a.flushHistory();
+    a.engine.debug.refuseEdits = true;
+    return { patch: a.state(), history: a.historyDepth() };
+  });
+  await page.evaluate(() => window.__wirescapeTest.paste());
+  await expect.poll(() => page.evaluate(() => (window as any).__mmCalls)).toEqual(['applyGraph', 'applyGraph']);
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  })).toEqual(before);
+});
