@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { el } from './dom';
 import { Modal } from './Modal';
+import { addOscPresetControls, draftNumber } from './oscPresets';
 
 /** OSC Out v1: unknown config properties are preserved, including inside rows. */
 export interface OscOutRow {
@@ -114,6 +115,7 @@ export function showOscOutEditor(modal: Modal, raw: unknown,
   noteGroup.append(field('Send note on/off', notesEnabled), field('OSC address', notesAddress));
   const errors = el('p', 'osc-error');
   errors.dataset.testid = 'osc-out-errors'; errors.setAttribute('role', 'alert');
+  let applying = false;
   const actions = el('div', 'osc-actions');
   const cancel = el('button', 'btn', 'Cancel') as HTMLButtonElement;
   cancel.type = 'button'; cancel.addEventListener('click', () => modal.close());
@@ -157,16 +159,33 @@ export function showOscOutEditor(modal: Modal, raw: unknown,
     delete notes.enabled;
     if (notesEnabled.checked) notes.enabled = true;
     const next: OscOutConfig = { ...config, port: p, rate_hz: hz, rows: nextRows, notes };
+    applying = true;
     submit.disabled = true;
     try {
       if (await save(next)) modal.close();
       else errors.textContent = 'Engine refused OSC Out configuration; the previous patch is unchanged.';
     } catch (e) {
       errors.textContent = e instanceof Error ? e.message : 'Could not apply OSC Out.';
-    } finally { submit.disabled = false; }
+    } finally { applying = false; submit.disabled = false; }
   });
+  const presets = el('div', 'osc-presets');
+  addOscPresetControls(presets, 'osc.out', () => ({
+    port: draftNumber(port), rate_hz: draftNumber(rate),
+    rows: fields.map(c => ({ address: c.address.value, kind: c.kind.value,
+      deadband: draftNumber(c.deadband), ...(c.enabled.checked ? {} : { enabled: false }) })),
+    notes: { address: notesAddress.value, ...(notesEnabled.checked ? { enabled: true } : {}) },
+  }), next => {
+    port.value = String(next.port); rate.value = String(next.rate_hz);
+    fields.forEach((c, i) => {
+      const row = next.rows[i];
+      c.address.value = row.address; c.kind.value = row.kind;
+      c.deadband.value = String(row.deadband); c.enabled.checked = row.enabled !== false;
+      c.enabled.dispatchEvent(new Event('change'));
+    });
+    notesAddress.value = next.notes.address; notesEnabled.checked = next.notes.enabled === true;
+  }, errors, () => applying);
   actions.append(cancel, submit);
   body.append(intro, hint, warning, field('Destination UDP port', port),
-    field('Send rate per CV row (Hz)', rate), rows, noteGroup, errors, actions);
+    field('Send rate per CV row (Hz)', rate), presets, rows, noteGroup, errors, actions);
   modal.open('OSC Out · loopback sender');
 }
