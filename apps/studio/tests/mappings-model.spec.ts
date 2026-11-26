@@ -166,3 +166,25 @@ test('MM1 canvas: new mapping uses full range and first Macro knob initializatio
       depth: a.historyDepth().past };
   })).toEqual({ knob: 1, base: 0, amount: 1, depth: depth + 1 });
 });
+
+
+test('MM1 canvas: selected mapping removal holds source contribution and is one undo step', async ({ page }) => {
+  await boot(page);
+  const p = fixture();
+  p.connections = [p.connections[0]];
+  await page.evaluate(async patch => {
+    const a = window.__wirescapeTest;
+    await a.load(patch);
+    a.flushHistory();
+    a.select({ kind: 'cable', c: patch.connections[0] });
+  }, p);
+  const before = await page.evaluate(() => window.__wirescapeTest.historyDepth().past);
+  await page.evaluate(() => window.__wirescapeTest.deleteSelection());
+  await expect.poll(() => page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    a.flushHistory();
+    const p = a.state();
+    return { cables: p.connections.length, depth: p.modules.find((m: any) => m.id === 3).parameters.depth,
+      past: a.historyDepth().past };
+  })).toEqual({ cables: 0, depth: .33, past: before + 1 });
+});
