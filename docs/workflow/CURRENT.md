@@ -8,6 +8,18 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-26 05:10 EST (GPT delivery only)
+
+- Owner: ignore new-plan updates; focus on existing GPT-agent work. Repository verified as `kalharbi11/wirescape-lab`; local preloaded `wirescape` checkout was not used for writes. No new scope released.
+- B1 #606 signed Result at `70ad2fa`, draft Lab green: lead marked ready and enabled auto-merge under OB-h5 / SR20(c). Required ready-event checks still gate merge; skipped draft evidence is not a pass.
+- B2 #540 `6fbc953`: targeted correction 14/14 passed, full Lab pending; finish evidence before Architect review. B5 #545 `11762c5` has a new construction-default correction and awaits current evidence; shared writer waits for actual #540 merge. #610 Lab green; long-switch and sanitizer rows still need final evidence.
+- B3 #608 signed Result/ready Lab green, but merge conflict; [correction](https://github.com/kalharbi11/wirescape-lab/pull/608#issuecomment-7188970928) returns main integration to B3, preserving matrix and stop criteria. #600 stays open through pinned-main dispatch and facts.
+- B4 #592 `011485b` remains blocked on original JSON retention, not measured results. Both CMP-1 jobs passed; original ZIPs expire Dec 10. #609 Lab green, but release still waits for #592 merge; Golden/paired/portability and exception evidence follow ready state.
+- No new ready Architect batch or wake. Manual continuation: B2 `2:run`, B3 `3:run`, B4 `4:run`, B5 `5:run`; B1 implementation finished, lead owns ready gates. Preserve all branches and correction ledgers.
+- OB1 still needs owner OB-d listening, real-patch-folder OB-a2, candidate Studio recheck, and Pi 6a/6b session evidence, then Architect acceptance/tag. No milestone gate changed.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 46 — 2026-11-26 ET (wrap-up mode; owner `architect:run`)
 
 - **Owner direction (wrap-up mode):** while the Fable runs are open, lanes finish their current PR and the draft they already have open, and open nothing new. This replaces "nothing holds" in the session entry below for queue items without a PR: OB-h2 #601, OB-h6 #604, A67 #494 and the OB-h2 Host field **hold until Fable run 1 replans**. Written into [BUILDERS](BUILDERS.md) and the [lead brief](../context/CODEX_LEAD.md#wrap-up-mode-owner-2026-11-26-while-the-fable-design-runs-are-open).
