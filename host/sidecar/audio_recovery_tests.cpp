@@ -232,6 +232,75 @@ void test_osc_out_budget() {
               "coalesced edges and deterministic EWOULDBLOCK count as observed drops");
     }
 }
+// A98 diagnostic only: the #635 forced-poll schedule, expressed using the
+// actual pre-E3c producer stores (value, counters, release blocks).
+// The later gate row is an independent sentinel, not a timing assumption.
+std::vector<float> historic_gate_trace;
+std::atomic<unsigned> historic_sentinels{0};
+bool historic_gate_send(const wirescape::osc::Message &message, uint16_t) {
+    if (message.address == "/ws/row/1") historic_gate_trace.push_back(message.arguments[0].real);
+    if (message.address == "/ws/row/2")
+        historic_sentinels.fetch_add(1, std::memory_order_release);
+    return true;
+}
+void test_631_historical_gate_snapshot_interleaving() {
+    using namespace wirescape::osc;
+    Json rows = Json::array();
+    for (unsigned i = 0; i < 8; ++i)
+        rows.push_back({{"kind", "gate"}, {"enabled", i < 2}});
+    const Json patch = {{"modules", Json::array({{{"id", 19}, {"module", "osc.out"},
+        {"config", {{"rows", rows}, {"notes", {{"enabled", false}}}}}}})}};
+    historic_gate_trace.clear();
+    historic_sentinels.store(0);
+    OutHost sender(patch.dump(), historic_gate_send);
+    auto *bus = sender.buses().at(19);
+    auto &gate = bus->rows[0];
+    auto &sentinel = bus->rows[1];
+    auto publish = [](OutRow &row, float value, uint32_t rises, uint32_t falls) {
+        row.value.store(value, std::memory_order_relaxed);
+        if (rises) row.rises.fetch_add(rises, std::memory_order_relaxed);
+        if (falls) row.falls.fetch_add(falls, std::memory_order_relaxed);
+        row.blocks.fetch_add(1, std::memory_order_release);
+    };
+    std::vector<std::vector<float>> observed;
+    auto poll = [&](unsigned expected_sentinels) {
+        sender.start();
+        const auto deadline = std::chrono::steady_clock::now() + 2s;
+        while (historic_sentinels.load(std::memory_order_acquire) < expected_sentinels &&
+               std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(1ms);
+        sender.stop();
+        check(historic_sentinels.load() == expected_sentinels, "#631 historical sentinel poll observed");
+        observed.push_back(historic_gate_trace);
+        std::cerr << "#631 historical poll " << expected_sentinels << " gate:";
+        for (float value : historic_gate_trace) std::cerr << ' ' << value;
+        std::cerr << '\n';
+    };
+    publish(gate, 0.f, 0, 0);
+    publish(sentinel, 0.f, 0, 0);
+    poll(1);
+    gate.value.store(1.f, std::memory_order_relaxed);
+    publish(sentinel, 1.f, 1, 0);
+    poll(2);
+    gate.rises.fetch_add(1, std::memory_order_relaxed);
+    gate.blocks.fetch_add(1, std::memory_order_release);
+    publish(sentinel, 0.f, 0, 1);
+    poll(3);
+    gate.value.store(0.f, std::memory_order_relaxed);
+    publish(sentinel, 1.f, 1, 0);
+    poll(4);
+    gate.falls.fetch_add(1, std::memory_order_relaxed);
+    gate.blocks.fetch_add(1, std::memory_order_release);
+    publish(sentinel, 0.f, 0, 1);
+    poll(5);
+    // Same cumulative expected traces as #635; evaluate after all five polls
+    // so the first partial-rise violation cannot hide the falling-block trace.
+    const std::vector<std::vector<float>> expected{
+        {0.f}, {0.f}, {0.f, 1.f}, {0.f, 1.f}, {0.f, 1.f, 0.f}};
+    check(sender.states().at(0).dropped == 0, "#631 historical zero drops");
+    check(observed == expected, "#631 gate trace contains only completed-block edges");
+}
+
 // A deterministic sender seam observes the actual OSC Out DSP bus. Panic
 // while a gate stays high must not inject an extra 0/1 pair on the wire.
 void test_osc_out_held_gate_reset_sender() {
@@ -1052,6 +1121,7 @@ int main() {
     } cleanup{root};
     try {
         std::filesystem::create_directories(root);
+        test_631_historical_gate_snapshot_interleaving();
         test_osc_out_budget();
         test_osc_out_held_gate_reset_sender();
         using wirescape::audio::classify_rates;
