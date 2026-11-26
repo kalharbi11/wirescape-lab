@@ -85,3 +85,51 @@ test('Groove E3b canonical reopen hydrates slot without authoring and Revert kee
   const sent = await page.evaluate(() => (window as any).__mockBridge.sent);
   expect(sent.filter((m: any) => ['setData','loadGraph','applyGraph'].includes(m.type))).toHaveLength(0);
 });
+
+
+test('Groove E3b A90 construction divisor discloses deferred and accepted replacement', async ({ page }) => {
+  await mockBridge(page, { applyGraph: true, configDeferred: true, dataSlots: { 'sequencing.groove': ['pattern'] } });
+  await boot(page);
+  const source = { id: 1, module: 'sequencing.groove', version: 2,
+    config: { version: 1, bpm: 120, tracks: [{ armed: true }] },
+    data: { pattern: { length_1: 32, steps_1: [{ kind: 'note', key: 60,
+      keys: [60, 0, 0, 0, 0], velocity: .5 }] } } };
+  const patch = { format: 'wirescape.native.patch', version: 2, connections: [], modules: [source] };
+  await page.evaluate(p => window.__wirescapeTest.load(p, 'A90 construction'), patch);
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph().modules.length)).toBe(1);
+  await settle(page);
+  await page.evaluate(() => {
+    const v = window.__wirescapeTest.canvas.viewport;
+    const c = document.querySelector('[data-testid="groove-1"]')!.getBoundingClientRect();
+    const r = v.rect();
+    v.setView(v.view.x - (c.left - r.left) + 40, v.view.y - (c.top - r.top) + 60, 1);
+    const b = (window as any).__mockBridge;
+    b.telemetry({ playhead: { 1: [3, -1] } });
+    b.sent.length = 0;
+    b.deferNextGraph('a90-divisor');
+  });
+  await page.getByTestId('groove-div-4-1').click();
+  const apply = page.getByTestId('groove-apply-1');
+  await expect(apply).toBeEnabled();
+  await apply.click();
+  await expect(page.getByTestId('toast')).toContainText('construction (divisor) queued');
+  const submitted = await page.evaluate(() => (window as any).__mockBridge.sent.find((m: any) => m.type === 'applyGraph'));
+  expect(submitted.patch.modules[0].data).toEqual(source.data); // pure config: A75 eligible
+  expect((await state(page)).modules[0].config.tracks[0].div).toBe(4);
+  expect(await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].config)).toEqual(source.config);
+  await page.evaluate(() => (window as any).__mockBridge.completeConfig(1, 'failed'));
+  await expect.poll(async () => (await state(page)).modules[0].config).toEqual(source.config);
+  expect((await state(page)).modules[0].data).toEqual(source.data);
+  await page.getByTestId('groove-div-4-1').click();
+  await expect(apply).toBeEnabled();
+  await apply.click();
+  await expect(page.getByTestId('toast')).toContainText('construction (divisor) applied through graph replacement');
+  const result = await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    return { node: b.getGraph().modules[0], sent: b.sent };
+  });
+  expect(result.node.config.tracks[0].div).toBe(4);
+  expect(result.node.data).toEqual(source.data);
+  expect(result.sent.filter((m: any) => m.type === 'applyGraph')).toHaveLength(2);
+  expect(result.sent.filter((m: any) => m.type === 'setData')).toHaveLength(0);
+});

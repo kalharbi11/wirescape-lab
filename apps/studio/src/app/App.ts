@@ -224,7 +224,7 @@ export class App {
           if (track !== undefined && this.groovePatternEnabled()) this.grooves.noteTrackEdit(id, track);
           this.doc.setModuleConfig(id, cfg);
         },
-        liveApply: id => this.groovePatternEnabled() && this.grooves.classify(id)?.kind === 'pattern',
+        liveApply: id => this.groovePatternEnabled() && this.grooves.isDraft(id) && this.grooves.classify(id)?.kind === 'pattern',
         canApply: id => !this.draftVisible && !this.documentBusy && this.engine.canApplyGroove(id),
         isDraft: id => this.grooves.isDraft(id),
         appliedRaw: id => this.groovePatternEnabled() ? this.grooves.appliedEditorConfig(id) : this.grooves.appliedRaw(id),

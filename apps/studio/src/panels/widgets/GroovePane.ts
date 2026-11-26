@@ -129,7 +129,7 @@ export class GroovePane {
     this.bpm.setAttribute('aria-label', 'Tempo (BPM)');
     this.bpm.addEventListener('change', () => {
       const v = Number(this.bpm.value);
-      if (Number.isFinite(v)) this.edit(c => { c.bpm = Math.round(clamp(v, 20, 300) * 10) / 10; });
+      if (Number.isFinite(v)) this.edit(c => { c.bpm = Math.round(clamp(v, 20, 300) * 10) / 10; }, undefined, null);
     });
     const reset = this.button('', 'reset', 'Reset to step 1', 'Reset');
     reset.addEventListener('click', () => host.command(id, 'reset'));
@@ -193,12 +193,12 @@ export class GroovePane {
     return octave ? clamp(key + n * 12, 0, 127) : movePitch(key, n, this.view.root, this.view.scale);
   }
 
-  private edit(fn: (c: GrooveConfig) => void, base?: GrooveConfig, track = this.t): void {
+  private edit(fn: (c: GrooveConfig) => void, base?: GrooveConfig, track: number | null = this.t): void {
     const c = base ? JSON.parse(JSON.stringify(base)) as GrooveConfig : readConfig(this.host.config(this.id));
     if (!c) return;
     upgrade(c);
     fn(c);
-    this.host.setConfig(this.id, c, track);
+    this.host.setConfig(this.id, c, track ?? undefined);
   }
   private setPitch(c: GrooveConfig, i: number, key: number): void {
     let j = sourceOf(c, this.t, i);
@@ -299,7 +299,9 @@ export class GroovePane {
       dot.addEventListener('click', e => {
         e.stopPropagation();
         const obs = this.last?.groove?.[this.id]?.[t];
-        if (this.running()) this.host.command(this.id, `t${t + 1}_${obs?.playing ? 'stop' : 'run'}`);
+        if (this.running() && this.applied && t >= this.applied.tracks.length)
+          this.edit(c => { c.tracks[t]!.armed = true; }, undefined, t); // A90: actual absent track is construction
+        else if (this.running()) this.host.command(this.id, `t${t + 1}_${obs?.playing ? 'stop' : 'run'}`);
         else this.edit(c => { c.tracks[t]!.armed = c.tracks[t]!.armed === false; }, undefined, t);
       });
       const pos = el('span', 'g-pos', '');
