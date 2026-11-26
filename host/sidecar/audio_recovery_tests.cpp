@@ -1525,7 +1525,7 @@ void test_p0a_status(const std::filesystem::path &root) {
     auto &graph = app_engine_native(candidate.get());
     check(graph.add_node(2, ws::Module<P0aStallSource>::descriptor()), "P0a synthetic node");
     check(graph.output(2, 0, 0), "P0a synthetic output");
-    check(graph.register_producer() == 0, "P0a synthetic producer");
+    // AppEngine constructor already registers all three standard producers.
     check(graph.prepare(), "P0a synthetic graph prepares");
     // Inject only through the test-owned fake backend's live engine and normal
     // replan; no shipped catalogue entry, protocol command, or production seam.
