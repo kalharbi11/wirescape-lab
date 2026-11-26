@@ -131,6 +131,35 @@ test('RS retries indefinitely with 250ms doubling capped at 30s, non-modal banne
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+test('RS stable status resets retry delay and clears the banner', async () => {
+  test.setTimeout(60000);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-stable-restart-'));
+  const countFile = path.join(dir, 'spawns');
+  const app = await launch({ STUB_CRASH_COUNT_FILE: countFile, STUB_STABLE_SPAWN: '4' });
+  try {
+    const page = await app.firstWindow();
+    await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
+    await page.evaluate(() => {
+      window.__restartDelays = [];
+      window.wirescape.onMessage(message => {
+        if (message.type === 'app.engineRestartPolicy' && message.phase === 'waiting')
+          window.__restartDelays.push(message.delayMs);
+      });
+    });
+    await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 3)), { timeout: 15000 })
+      .toEqual([250, 500, 1000]);
+    await expect(page.getByTestId('engine-restart-banner')).toBeVisible();
+    // The fourth engine has a continuous status heartbeat for >30s, then crashes.
+    // It must recover from the prior crash loop without restarting the UI.
+    await expect(page.getByTestId('engine-restart-banner')).toBeHidden({ timeout: 40000 });
+    await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 4)), { timeout: 5000 })
+      .toEqual([250, 500, 1000, 250]);
+    expect(Number(fs.readFileSync(countFile, 'utf8'))).toBeGreaterThanOrEqual(4);
+  } finally {
+    await app.close().catch(() => {});
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 test('native File intents and open/save round-trip never expose a filesystem path', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-shell-'));
   const file = path.join(dir, 'patch.json');

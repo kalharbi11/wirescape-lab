@@ -30,7 +30,15 @@ if (process.env.STUB_CRASH_COUNT_FILE) {
   let previous = 0;
   try { previous = Number(fs.readFileSync(file, 'utf8')) || 0; } catch {}
   fs.writeFileSync(file, String(previous + 1));
-  setTimeout(() => process.exit(9), previous === 0 ? 1500 : 300);
+  if (previous + 1 === Number(process.env.STUB_STABLE_SPAWN)) {
+    const heartbeat = setInterval(() => send({ v: 0, session, gen: '0', type: 'status',
+      status: { audio, midi: { devices: [], activity: {} } } }), 250);
+    heartbeat.unref();
+    setTimeout(() => process.exit(9), 32500);
+  } else {
+    // Allow the initial renderer load to complete before inducing the first crash.
+    setTimeout(() => process.exit(9), previous === 0 ? 3000 : 300);
+  }
 }
 const input = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
 input.on('line', line => {
