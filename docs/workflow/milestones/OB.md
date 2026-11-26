@@ -107,8 +107,17 @@ additions are additive, capability-gated v0 fields (R2.1, SR17). Devices off; te
 | **RS** Studio restart policy (R2.5) | [#621](https://github.com/kalharbi11/wirescape-lab/issues/621) | B1, now | `apps/desktop/main.ts`, `preload.ts` (banner IPC), Studio banner, tests | 250 ms doubling to 30 s, no limit; non-modal banner after three fast crashes; patch reloads on `hello` | lead |
 | **P0c, P0d** | — | — | OSC Out gate release is OB-h2 (r2.13 (3)); #326/#494 routing is OB-h1 | as those rows | as those rows |
 
-Gate P1 (0023 R2.3 e–i: controller input stream, settings fsync and absolute path, SIGTERM, coverage, TR1h) is
-filed at Stage 2; (e) waits for Planner run 2's message shapes.
+Gate P1 (0023 R2.3 e–i: controller input stream, settings fsync and absolute path, SIGTERM, coverage, TR1h).
+**r2.15 (Architect run 50, transcribes [0025](../../../proposals/0025-player-osc-scripts-tools.md) §3 and §6.3):**
+
+| Row | Issue | Lane, after | Paths | Done when | Merge |
+|---|---|---|---|---|---|
+| **P1-e** controller stream | [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) | B2, after P0b #620 | `host/midi/`, `host/osc/`, `host/sidecar/`, schema, spec, generated files, fixtures, tests | 0025 §3.1, §3.2, §3.4 and the §3.5 rows | **Claude contract review** |
+| **P1-e2** control OSC port | #672 (second PR) | B2, after P1-e | `host/osc/`, `host/sidecar/session.*`, spec, tests | 0025 §3.3 and §3.5 row 6 | **Claude contract review** |
+| **P1-f, P1-g** settings fsync and absolute path; SIGTERM | not filed | when a lane is free | as 0023 R2.3 | as 0023 R2.3 | as filed |
+| **P1-h, P1-i** coverage; TR1h | as filed | as filed | as 0023 R2.3 | as 0023 R2.3 | as filed |
+
+Consumers: MM4 and `wirescape-headless` H-7. Scripts and OSC In features are contract [SC](SC.md).
 
 **OB-h acceptance (OB1.1 Tier 1, Architect):** every row above merged or closed with its routing; one owner
 overnight run on the Pi with the owner's own patches is recorded (not required, r2.4a style).

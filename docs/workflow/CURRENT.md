@@ -8,6 +8,15 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 50 — 2026-11-26 18:30 EST (owner: `architect:run`; Planner run 2b transcription and headless setup)
+- **Transcribed 0025 (final):** Gate P1 (e) filed as [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) (B2 after P0b #620, Claude contract review, e2 as second PR); [OB r2.15](milestones/OB.md) Gate P1 table; new contract [SC](milestones/SC.md) r1 (SC1–SC7); MM4 depends on #672; ROADMAP and PRIORITY rows for the Player, P1 (e) and SC; facts H-f1–H-f3 named as unmeasured; planner `02` marked done.
+- **Freeze lifted** for the Player, OSC In features, scripts and the tool host (SC5 stays design-first until headless H-10 exists).
+- **`wirescape-headless`:** Planner PR #1 reviewed and merged `2cad95c`. H-0 CI skeleton written by this run ([headless #16](https://github.com/kalharbi11/wirescape-headless/pull/16)) and waiting for a different session's review. H-1…H-12 and H-G filed as an **unassigned task pool** in bundles A–G (headless #3–#15, `docs/TASKS.md`); any agent starts with `headless: run`. Bundle A (H-1, H-2) is free now.
+- **Lanes:** B2 queue gains P1-e → P1-e2 → SC2; B1 gains SC1 (after OB-h5 #603) → SC4 → SC3 (after H-10). Lead dispatch wins on conflict.
+- **Concurrent session:** another Architect session reviewed #545 at 23:11 ET (Approved 638d8b6, auto-merge on) and holds the other Open rows; this run did not touch them.
+- **Owner settings:** headless branch protection after H-0 merges (required `H0 gate`, `H1 gate`, no approvals); allow auto-merge and squash on headless.
+- **Next Architect run:** after headless H-0 and lab #620 merge (medium). **Next run should:** (1) confirm #672 is dispatched to B2 once #620 merges; (2) check headless bundle A progress and that reviews come from different sessions; (3) review P1-e when pinned; (4) OB1 acceptance once owner evidence exists.
+
 ## Lead check — 2026-11-26 17:54 EST (owner: prepare Architect inbox; leave agent tasks to Architect)
 
 - New Planner ruling checked: merged 0024 §9 (#662), lab/test-only amendment; full 2b Player/OSC/scripts/tool-host design remains frozen. Merged Architect transcription #669 `d4fb34f` on scoped exact-head docs Lab success: M3 r2.2, A101 in MM I1, RULINGS, MM/MOD roadmap rows. No new ruling made by lead.
