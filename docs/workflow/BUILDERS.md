@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Builder queue: five GPT chat lanes
 
-Refreshed by gpt-lead, 2026-11-26 05:21 EST (existing GPT work only; no new-plan releases). Every builder is a
+Refreshed by claude-architect, run 47, 2026-11-26 13:45 EST (Planner run 1 transcribed; lane queues per [0023 §7.3](../../proposals/0023-review-and-replan.md)). Every builder is a
 **ChatGPT chat session** with the GitHub connector. Its PR is its build and test environment: push to
 run Lab CI, comment `/dev-run …` for targeted runs ([DEV_RUN](DEV_RUN.md)). No Codex sandbox is needed.
 Codex is the **lead** only.
@@ -32,22 +32,21 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
   for Architect work. The owner and delivery lead own the `architect-ready` and `review-ready`
   trigger labels. Keep working on independent lane items while the request waits.
 
-**Wrap-up mode (owner, 2026-11-26, while the Fable design runs are open).** Finish what is in hand; open nothing new.
-- Each lane finishes its **current PR** and then the draft PR it **already has open** (listed in its row). Nothing else.
-- **No new task issues, no new branches or PRs, no new draft-aheads.** Queue items with no open PR (OB-h2 #601, OB-h6 #604, A67 #494 and the OB-h2 Studio Host field) **hold until Fable run 1 replans the roadmap**. The standing release (SR20) is suspended for them.
-- Corrections, rebases and Results on existing PRs continue as normal. A question goes to the inbox, and you keep working on your other open PR.
-- When the lane's open PRs have merged or are waiting on someone else, post one lane-status comment on your last PR and stop.
+**Wrap-up mode ended for Planner run 1's areas (Architect run 47, 2026-11-26; 0023 §8.9).** Standing release (SR20) and
+draft-ahead are back for every queue item below. **Still frozen until Planner run 2 merges:** macros, mapping, OSC In
+features, scripts, the tool page host and the design of `wirescape-test` and `wirescape-headless`. No lane starts work in
+those areas. The two new repos get their own agents under their own rules, not lab lanes (0023 §7.3).
 
 | Lane | Owns (paths) | Now | Then, in order (standing release) |
 |---|---|---|---|
-| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, OB-d ledger and module-local M7 paths | **#606 merged `9957004`**. OB-h5 implementation complete; no remaining released PR. Stop under wrap-up; Host-field follow-up remains held. | **Wrap-up: stop after #606.** The OB-h2 Studio Host field holds for Fable run 1. |
-| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, OSC/CC module-local paths and `engine/control/` handlers | **#540 `6fbc953`**: draft Lab 45797945801 15/15 green, Studio 408/408; now ready. Ready-event Lab 45799977345 and Golden 45799977391 pending, paired 45799977423 running at entry. Final signed Result and A81/A82/A86/A95 inbox review packet follow green evidence. Shared writer remains B2 until merge. | **Wrap-up: stop after #540.** OB-h2 #601 and A67 #494 hold for Fable run 1 (the OB-h2 permission switch is `--confirm-lan`; see the run-46 clarification on #601). |
-| **B3** `gpt-builder3` · **Floater / facts** | CN facts and authorized immutable workflow pins | **#608 merged `48479fc`**. #600 reopened: bootstrap auto-closure did not complete main facts. Pinned main dispatch remains blocked by connector capability and signed-out browser. Open inbox execution request uses `48479fc38d5d1d74eefd0851ff893988d9398220`; B3 audits raw four-lane artifacts after authenticated dispatch. | **Wrap-up: stop after #608.** OB-h6 #604 holds for Fable run 1. The OB1-candidate OB-f1 re-dispatch is an Architect acceptance step, not lane work. |
-| **B4** `gpt-builder4` · **Sound** | Modules, module tests and sound facts outside B1's OB-d ledger; #564 probe scope | **#592 `011485b`**: facts-only exact Lab 45798363654 green; signed Result still blocked on original 33 JSON files. Lead artifact API transfer returned 403 and service-file links were unreadable from the executor. Open inbox execution request names existing branch/manifest. Authenticated writer verifies ZIP/member digests, retains bytes, returns new head for Lab/lead merge. No rerun or new task. | **Then OB-h4 #609** (Gate Delay #329, already open): §6 exception rows, goldens identical, signed Result. **Wrap-up: stop after #609.** |
-| **B5** `gpt-builder5` · **Engine** | E3a-2 shared engine/document/server; module-local E3b until shared release | **#545 `11762c5`**: exact Lab 45796776789, Web and E4b green. Module-local A90 exact-head sanitizer evidence and signed checkpoint continue; shared App/RealEngine/PatchDoc writes wait for actual #540 merge. #610 now `329c0dc`: 1000-switch both-arch diagnostic passed at prior `f1a772a`, raw gap/RSS documented; current Lab and both-arch ASan/LSan pending. | **Then OB-h3 #610** ([#602](https://github.com/kalharbi11/wirescape-lab/issues/602), already open, test-only): 200/1000-switch test on both arches plus ASan/LSan, gap and RSS facts. **Wrap-up: stop after #610.** |
+| **B1** `gpt-builder1` · **Studio / OB-c / facts, sound overflow** | Studio/OB-c tests, OB-d ledger, module-local M7 paths, `apps/desktop/` for RS | **Studio restart policy [#621](https://github.com/kalharbi11/wirescape-lab/issues/621)** (RS, OB r2.13; released now, `merge: lead`, auto-merge at release). | OB-h2 Studio Host field (SR21 follow-up, after #601 merges) → TR3 (after TR1h) → macro/mapping UI (after Planner run 2). |
+| **B2** `gpt-builder2` · **I/O + sidecar** | `host/`, OSC/CC module-local paths and `engine/control/` handlers | **#540 `2337896`** ready, `review-required`; finish evidence and the A81/A82/A86/A95 inbox packet. Shared writer stays B2 until merge. | **OB-h2 [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) with gate release** (OB r2.13 (3), adds the OB-h3 OSC Out gate row test-first; `--confirm-lan`) → #494 if OB-h1 routes it → **P0b [#620](https://github.com/kalharbi11/wirescape-lab/issues/620)** → #622 rename (low) → controller stream (Stage 2, after run 2). |
+| **B3** `gpt-builder3` · **Floater / facts** | CN facts and authorized immutable workflow pins | **OB-h1 [#600](https://github.com/kalharbi11/wirescape-lab/issues/600):** Architect dispatched [45877224981](https://github.com/kalharbi11/wirescape-lab/actions/runs/45877224981) (`ref=48479fc…`). Audit four-lane raw artifacts, publish facts, route #326/#494 (Gate P0 d, arm64 rows). | CN final facts #523 (M4) → OB-h6 [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) → Player soak harness facts (Stage 3). |
+| **B4** `gpt-builder4` · **Sound + module build** | Modules, module tests, sound facts outside B1's ledger; MB build paths per M3 r2 | **#592 `011485b`** blocked: raw artifacts of run 45791608325 need an authenticated download (expire 2026-12-10; owner step, see inbox). | OB-h4 #609 (Gate Delay, last module under the freeze) → **MB1 [#363](https://github.com/kalharbi11/wirescape-lab/issues/363)** → **MB2+CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358)** → MB3 → promotions. If #592 stays blocked, start MB1 now (0023 R3.1). |
+| **B5** `gpt-builder5` · **Engine** | Engine; E3b module-local until shared release; `host/audio/` and status for P0a | **#545 `11762c5`** E3b; shared writes wait for #540 merge. | OB-h3 #610 (+ OSC In route-relisten row, OB r2.13 (4)) → **P0a [#619](https://github.com/kalharbi11/wirescape-lab/issues/619)** → TR1h (M3 r2, Stage 2) → P1 (g) SIGTERM, (h) coverage. |
 
-**OB1.1 Tier 1 (OB r2.12, owner 2026-11-25):** OB-h1, OB-h3, OB-h4 and OB-h5 continue on their open PRs; OB-h2 #601, OB-h6 #604 and A67 #494 hold under wrap-up mode (see each row and the [OB-h table](milestones/OB.md)). Gate Delay is OB-h4 (#329, branch `task/329-gate-delay`). A67 #494 is unparked. Tier 2 is suggested only (`proposals/0022` §9).
-**Parked until after OB1** (PRs closed in the run-44 cleanup, issues closed `not planned` in run 46, branches kept; reopen when scheduled): MT2 #175/#176; CAT-1 #358 (+MB1 #363). Note Trigger #322 and M7 batch 2 were unparked in run 29.
+**OB1.1 Tier 1 and Gate P0 (OB r2.12, r2.13):** OB-h1–h4, h6 and #494 continue in their lanes; OB-h5 merged (#606). Gate P0 is P0a #619, P0b #620, OB-h2 gate release and OB-h1. OB1 acceptance stands but gates no new work (0023).
+**Parked (0023 §7.1):** M5 PV2+, M6 MT2+ (#175/#176), M8–M12, V1; T1.5 cut. **Unparked:** stage MB (#363, #358).
 **Postponed to the OB1 candidate:** Pi work (PI-1 #369, OB-g4, A31) and acceptance item 7.
 
 **Manual starts:** `1:run` to `5:run` in the existing builder chats. All reviews go to the Architect inbox.
@@ -61,11 +60,3 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
   dispatch wins.
 
 Signed: claude-architect, 2026-11-26
-
-Lead check: B4 #609 `3d63130` Lab green; ready-event Golden/paired/portability and §6 attribution follow #592 merge. B5 #610 `f1a772a` Lab green; both-arch 1000-switch gap/RSS and 200-switch ASan/LSan evidence plus #545 merge remain. No required Architect review is ready in this batch.
-
-Signed: gpt-lead, 2026-11-26
-
-Lead reconciliation 05:21 EST: B4 #609 remains draft at `3d63130`, full Lab and targeted both-arch tests green; ready gates follow #592 merge. Two operational inbox requests only; no product contract review is ready and no new planning work is released.
-
-Signed: gpt-lead, 2026-11-26

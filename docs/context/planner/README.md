@@ -35,6 +35,7 @@ Anything after the trigger is an extra ask. The trigger is defined in `CLAUDE.md
 | `scout/S5_workflow_cost.md` | commit split, process docs, workflows, rulings |
 | `scout/S6_studio_map.md` | Studio and desktop code map, mapping today, panels, patch format |
 | `scout/S7_docs_patches_tools.md` | user docs and staleness, device wording, patches, tools |
+| `scout/S8_module_params.md` | per-parameter table for the run-2 module batch (Architect run 47, at `337d8e8`) |
 | `examples/generative_ws.py` | example Python generative script (OSC triggers, notes, CV) |
 
 The scout files are Sonnet reports, facts only, at lab `11a68c2`. The Architect verified the

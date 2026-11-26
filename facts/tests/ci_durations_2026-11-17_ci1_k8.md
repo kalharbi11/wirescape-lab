@@ -4,7 +4,7 @@
 Date: 2026-11-17 America/New_York. Repository: kalharbi11/wirescape-lab.
 Measured lab commit: `309bf8851008976070b899768db35eb1e500a6b1` (PR #159).
 Machine class: hosted Linux x64, Ubuntu 26.04.1, runner image ubuntu-26.04 / 20261111.196.1.
-Sources: [Q17](../../docs/workflow/QUESTIONS.md), [CI1 r4](../../docs/workflow/milestones/CI1.md),
+Sources: [Q17](../../docs/workflow/QUESTIONS_HISTORY.md), [CI1 r4](../../docs/workflow/milestones/CI1.md),
 [run 44028971243](https://github.com/kalharbi11/wirescape-lab/actions/runs/44028971243),
 [sanitizer job 133856058680](https://github.com/kalharbi11/wirescape-lab/actions/runs/44028971243/job/133856058680).
 
