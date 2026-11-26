@@ -1,90 +1,53 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Cortex-M7 module compile-only facts
+# Cortex-M7 compile-only module measurements
 
-Commit: 9d04963daf664355c3596d63f2832ed582cf3e3f
-Date (New York): 2026-11-15
-Compiler: arm-none-eabi-g++ (Arm GNU Toolchain 14.2.Rel1 (Build arm-14.52)) 14.2.1 20241119
-Archive SHA-256: 62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823
-Target flags: -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -fno-exceptions -fno-rtti -Os
+Measured commit: `0f6149282a9a8032f0403ea73260432e6972ce72`; date (New York): 2026-11-25.
 
-Catalog modules: 34. SDK template: 1. Compilations: 70.
-Section sizes are sums of .text.*, .data.* and .bss.* entries reported by arm-none-eabi-size -A.
+Machine: hosted Linux x86_64; Cortex-M7 object target. ARM compiler: arm-none-eabi-g++ (Arm GNU Toolchain 14.2.Rel1, Build arm-14.52) 14.2.1 20241119, executable SHA-256 `55c6e7fe55c98c3360394ca313337d88b6d058aabeee4f0e1f41bd505e78b6ad`, archive SHA-256 `62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823`.
 
-| Source | FPU | Compiles | .text B | .data B | .bss B | Double/softfloat refs | Float libm refs | Heap refs | Static guard refs |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| native/modules2/adsr/module.cpp | fpv5-d16 | yes | 2564 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/adsr/module.cpp | fpv5-sp-d16 | yes | 2612 | 0 | 0 | 6 | 0 | 0 | 0 |
-| native/modules2/blend/module.cpp | fpv5-d16 | yes | 3264 | 0 | 0 | 0 | 2 | 0 | 0 |
-| native/modules2/blend/module.cpp | fpv5-sp-d16 | yes | 3380 | 0 | 0 | 9 | 2 | 0 | 0 |
-| native/modules2/chaos_lite/module.cpp | fpv5-d16 | yes | 6640 | 0 | 0 | 0 | 4 | 0 | 0 |
-| native/modules2/chaos_lite/module.cpp | fpv5-sp-d16 | yes | 6724 | 0 | 0 | 9 | 4 | 0 | 0 |
-| native/modules2/chord/module.cpp | fpv5-d16 | yes | 3108 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/chord/module.cpp | fpv5-sp-d16 | yes | 3132 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/clock/module.cpp | fpv5-d16 | yes | 3738 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/clock/module.cpp | fpv5-sp-d16 | yes | 4002 | 0 | 0 | 12 | 0 | 0 | 0 |
-| native/modules2/delay/module.cpp | fpv5-d16 | yes | 4270 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/delay/module.cpp | fpv5-sp-d16 | yes | 4746 | 0 | 0 | 18 | 0 | 0 | 0 |
-| native/modules2/function_envelope/module.cpp | fpv5-d16 | yes | 3352 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/modules2/function_envelope/module.cpp | fpv5-sp-d16 | yes | 3516 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/groove/module.cpp | fpv5-d16 | yes | 7900 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/groove/module.cpp | fpv5-sp-d16 | yes | 7974 | 0 | 0 | 10 | 0 | 0 | 0 |
-| native/modules2/host_keyboard/module.cpp | fpv5-d16 | yes | 4474 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/host_keyboard/module.cpp | fpv5-sp-d16 | yes | 4486 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/ladder/module.cpp | fpv5-d16 | yes | 3410 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/modules2/ladder/module.cpp | fpv5-sp-d16 | yes | 3808 | 0 | 0 | 12 | 0 | 0 | 0 |
-| native/modules2/lfo/module.cpp | fpv5-d16 | yes | 2054 | 0 | 0 | 2 | 0 | 0 | 0 |
-| native/modules2/lfo/module.cpp | fpv5-sp-d16 | yes | 2214 | 0 | 0 | 14 | 0 | 0 | 0 |
-| native/modules2/macro_oscillator/module.cpp | fpv5-d16 | yes | 3822 | 16 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/macro_oscillator/module.cpp | fpv5-sp-d16 | yes | 3838 | 16 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/midi_cc_to_cv/module.cpp | fpv5-d16 | yes | 2956 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/modules2/midi_cc_to_cv/module.cpp | fpv5-sp-d16 | yes | 3152 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/midi_in/module.cpp | fpv5-d16 | yes | 2158 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/midi_in/module.cpp | fpv5-sp-d16 | yes | 2186 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/midi_to_cv/module.cpp | fpv5-d16 | yes | 7216 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/midi_to_cv/module.cpp | fpv5-sp-d16 | yes | 7260 | 0 | 0 | 6 | 0 | 0 | 0 |
-| native/modules2/mixer/module.cpp | fpv5-d16 | yes | 2832 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/mixer/module.cpp | fpv5-sp-d16 | yes | 3018 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/monitor/module.cpp | fpv5-d16 | yes | 3578 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/modules2/monitor/module.cpp | fpv5-sp-d16 | yes | 3584 | 0 | 0 | 6 | 0 | 0 | 0 |
-| native/modules2/noise/module.cpp | fpv5-d16 | yes | 2516 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/noise/module.cpp | fpv5-sp-d16 | yes | 2656 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/notes_to_cv/module.cpp | fpv5-d16 | yes | 3292 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/notes_to_cv/module.cpp | fpv5-sp-d16 | yes | 3312 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/osc_in/module.cpp | fpv5-d16 | yes | 8852 | 0 | 0 | 2 | 0 | 0 | 0 |
-| native/modules2/osc_in/module.cpp | fpv5-sp-d16 | yes | 9056 | 0 | 0 | 14 | 0 | 0 | 0 |
-| native/modules2/osc_out/module.cpp | fpv5-d16 | yes | 2294 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/osc_out/module.cpp | fpv5-sp-d16 | yes | 2322 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/output/module.cpp | fpv5-d16 | yes | 1384 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/output/module.cpp | fpv5-sp-d16 | yes | 1408 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/quad_vca/module.cpp | fpv5-d16 | yes | 2962 | 0 | 0 | 3 | 0 | 0 | 0 |
-| native/modules2/quad_vca/module.cpp | fpv5-sp-d16 | yes | 3098 | 0 | 0 | 10 | 0 | 0 | 0 |
-| native/modules2/quantizer/module.cpp | fpv5-d16 | yes | 3476 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/quantizer/module.cpp | fpv5-sp-d16 | yes | 3520 | 0 | 0 | 16 | 0 | 0 | 0 |
-| native/modules2/resonator/module.cpp | fpv5-d16 | yes | 3742 | 0 | 0 | 0 | 2 | 0 | 0 |
-| native/modules2/resonator/module.cpp | fpv5-sp-d16 | yes | 3798 | 0 | 0 | 9 | 2 | 0 | 0 |
-| native/modules2/reverb/module.cpp | fpv5-d16 | yes | 4776 | 0 | 0 | 1 | 2 | 0 | 0 |
-| native/modules2/reverb/module.cpp | fpv5-sp-d16 | yes | 5068 | 0 | 0 | 13 | 2 | 0 | 0 |
-| native/modules2/scale_offset/module.cpp | fpv5-d16 | yes | 2776 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/scale_offset/module.cpp | fpv5-sp-d16 | yes | 2974 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/slew/module.cpp | fpv5-d16 | yes | 2560 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/slew/module.cpp | fpv5-sp-d16 | yes | 2784 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/spectral/module.cpp | fpv5-d16 | yes | 9750 | 0 | 0 | 4 | 2 | 0 | 0 |
-| native/modules2/spectral/module.cpp | fpv5-sp-d16 | yes | 10086 | 0 | 0 | 13 | 2 | 0 | 0 |
-| native/modules2/vca/module.cpp | fpv5-d16 | yes | 2356 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/modules2/vca/module.cpp | fpv5-sp-d16 | yes | 2384 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/modules2/vcf/module.cpp | fpv5-d16 | yes | 2326 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/modules2/vcf/module.cpp | fpv5-sp-d16 | yes | 2638 | 0 | 0 | 11 | 0 | 0 | 0 |
-| native/modules2/vco/module.cpp | fpv5-d16 | yes | 2046 | 0 | 0 | 2 | 0 | 0 | 0 |
-| native/modules2/vco/module.cpp | fpv5-sp-d16 | yes | 2210 | 0 | 0 | 13 | 0 | 0 | 0 |
-| native/sdk/examples/random_source/module.cpp | fpv5-d16 | yes | 3424 | 0 | 0 | 1 | 0 | 0 | 0 |
-| native/sdk/examples/random_source/module.cpp | fpv5-sp-d16 | yes | 3660 | 0 | 0 | 12 | 0 | 0 | 0 |
-| native/sdk/examples/step_sequencer/module.cpp | fpv5-d16 | yes | 3410 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/sdk/examples/step_sequencer/module.cpp | fpv5-sp-d16 | yes | 3438 | 0 | 0 | 4 | 0 | 0 | 0 |
-| native/sdk/template/module.cpp | fpv5-d16 | yes | 1446 | 0 | 0 | 0 | 0 | 0 | 0 |
-| native/sdk/template/module.cpp | fpv5-sp-d16 | yes | 1474 | 0 | 0 | 4 | 0 | 0 | 0 |
+[Portability run 45718066852](https://github.com/kalharbi11/wirescape-lab/actions/runs/45718066852), [artifact 15071440548](https://github.com/kalharbi11/wirescape-lab/actions/runs/45718066852/artifacts/15071440548), ZIP SHA-256 `7a5540fd8d9fdcd1df4dec25d3706feb15fa01a898b27bd08e93341b8f733877`. Raw modules.json and s2.json, generated README.md and s2_symbols.md contain per-object symbol names and exact relocation section/offset. 
 
-## First compilation errors
+Flags: -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -fno-exceptions -fno-rtti -Os, compile only; section bytes from arm-none-eabi-size -A. All 37 catalogue modules and SDK template compiled on both fpv5-d16 and fpv5-sp-d16 (76/76). All .bss = 0; .data = 0 except macro_oscillator (16 B on each FPU). Source paths are modules/<name>/module.cpp unless SDK path specified.
 
-None (70 of 70 compilations succeeded).
+| Module | fpv5-d16 .text B | fpv5-sp-d16 .text B | fpv5-d16 double/soft-float relocation symbols and source functions |
+|---|---:|---:|---|
+| adsr | 5694 | 5766 | __aeabi_ul2f — Adsr::process_default_gate and process lambdas |
+| blend | 3264 | 3380 | none shown |
+| chaos_lite | 6972 | 7056 | none shown |
+| chord | 3108 | 3132 | none shown |
+| clock | 4348 | 4674 | none shown |
+| cv_to_notes | 2378 | 2410 | none shown |
+| delay | 10306 | 11324 | __aeabi_ul2d — Delay::clock_tick; cos, sin — process_transition and process_settled (Tail and Block); exp — update_tone, update_tone_settled, SDK prepare lambda; pow — update_tone and update_tone_settled |
+| function_envelope | 3352 | 3516 | __aeabi_ul2d, expm1 — FunctionEnvelope::process |
+| groove | 9888 | 10074 | __aeabi_d2lz — Sequencer::frames<true>; __aeabi_ul2d — frames<true> and process |
+| host_keyboard | 9134 | 9162 | none shown |
+| ladder | 3554 | 4124 | tan — Ladder::process |
+| lfo | 2054 | 2214 | fmod, sin — Lfo::process |
+| macro_oscillator | 6128 | 6420 | __aeabi_d2ulz, __aeabi_ul2d — MacroOscillator::process; cos, sin — RateConverter::prepare |
+| midi_cc_to_cv | 2956 | 3152 | exp — SDK Module<CcToCv>::prepare lambda |
+| midi_in | 2158 | 2186 | none shown |
+| midi_to_cv | 13098 | 13162 | none shown |
+| mixer | 2832 | 3018 | none shown |
+| monitor | 3578 | 3584 | __aeabi_d2ulz — Monitor::permit and process; __aeabi_ul2d — permit |
+| noise | 2516 | 2656 | none shown |
+| notes_to_cv | 5988 | 6008 | none shown |
+| osc_in | 8994 | 9192 | __aeabi_d2ulz — OscIn::process lambda; exp — SDK Module<OscIn>::prepare lambda |
+| osc_out | 2294 | 2322 | none shown |
+| output | 1384 | 1408 | none shown |
+| poly_merge | 1302 | 1322 | none shown |
+| poly_split | 1242 | 1298 | none shown |
+| quad_vca | 3540 | 3696 | exp, pow, tan — SDK Module<QuadVca>::prepare lambda |
+| quantizer | 3476 | 3520 | none shown |
+| resonator | 3742 | 3798 | none shown |
+| reverb | 6972 | 7356 | exp — Reverb::refresh |
+| scale_offset | 2776 | 2974 | none shown |
+| slew | 2560 | 2784 | none shown |
+| spectral | 9750 | 10086 | cos, log, sin — Spectral::prepare; exp — vocoder_layout and vocoder |
+| vca | 2442 | 2470 | none shown |
+| vcf | 2350 | 2678 | tan — Vcf::process |
+| vco | 2652 | 2856 | pow — Vco::process lambda and Block::split specialization; sin — Vco::process lambda |
+| sdk/examples/random_source | 3424 | 3660 | exp — RandomSource::coefficient |
+| sdk/examples/step_sequencer | 3410 | 3438 | none shown |
+| sdk/template | 1446 | 1474 | not in S2 catalogue symbol probe |
 
-Full undefined symbol names are recorded in modules.json.
+Relocation names above are grouped by source function; full mangled sections and byte offsets are in s2_symbols.md in the pinned ZIP. No linked firmware or timing measurement. See [module memory](../module_memory.md) for DSP sizes and host state/memory matrix.

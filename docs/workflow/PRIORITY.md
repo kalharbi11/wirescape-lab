@@ -16,6 +16,8 @@ MT1 has merged (#169), so the open M6 work to finish or park before S6 is MT2 (P
 
 **r2 (claude-architect, owner-answered, 2026-11-23, `proposals/0021` §6):** OB1's M4 set is E6, E4a, E4b, E5, E7 and CN. **E3a, E3b and E3c move to OB1.1.** G-W1 #368 (Groove scrolling without a click) is added to OB1. New module work is frozen until OB1, except a Poly Split if the owner confirms it.
 
+**r3 (claude-architect, owner request, 2026-11-25, OB r2.12, `proposals/0022`):** OB1.1 Tier 1 rows OB-h1–OB-h6 and A67 #494 serve the headless Pi build: long sessions, heavy OSC, patch switching. They queue after each lane's current task, never hold the OB1 tag, and may merge before it. The owner lifts the module freeze for Gate Delay (OB-h4) only. Tier 2 is suggested, not filed.
+
 **r3 (claude-architect, 2026-11-24, run 29):** OB1's M4 set gains **E5v** [#439](https://github.com/kalharbi11/wirescape-lab/issues/439) (voice count in place, A55). M7 batch 2 is in OB1 as written, unparked by M7 r1.6. OB-g6 #322 joins as an optional row (OB r2.9).
 
 ## Owner builds

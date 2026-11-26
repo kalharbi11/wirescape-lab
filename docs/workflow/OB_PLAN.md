@@ -6,6 +6,39 @@ Owner-directed scope: OB r2.1, PRIORITY, M1 r3.1, M2 r4, M3 r1, M4 r2, M7 r1.2 a
 Use [ROADMAP](ROADMAP.md) for the summary and [BUILDERS](BUILDERS.md) for live assignments.
 The dated dispatch entries below are history.
 
+## OB1.1 Tier 1 plan — 2026-11-25 ET (Architect, owner request; OB r2.12, `proposals/0022`)
+
+**Goal:** the owner can leave a complex generative patch running for hours on the Pi, drive it with
+OSC from a Python script, send OSC out to network controllers (LEDs and servos), and switch patches
+without restarting anything. The same patch files must also run on a later headless Pi build (the separate
+`wirescape-headless` repo). Tier 1 holds only engine, Studio and shared-tool work, so the full app benefits
+as well.
+
+**Queue rule:** each row starts after its lane's current task. No row holds the OB1 tag. Rows may
+merge before it.
+
+| Order | Row | Lane | Starts after | Why it is Tier 1 |
+|---|---|---|---|---|
+| 1 | OB-h1 OSC soak status [#600](https://github.com/kalharbi11/wirescape-lab/issues/600) | B3 | #579 Result | No hosted `osc-heavy` result since #394/#433; the nightly is parked |
+| 1b | A67 enqueue refusals [#494](https://github.com/kalharbi11/wirescape-lab/issues/494) | B2 | #540 (before OB-h2 only if OB-h1 finds a `still` failure) | Dropped OSC input under load |
+| 2 | OB-h2 OSC Out network destinations [#601](https://github.com/kalharbi11/wirescape-lab/issues/601) | B2 | #540 (or #494) | Pico W over WiFi cannot receive today: localhost only |
+| 3 | OB-h3 patch switching witness [#602](https://github.com/kalharbi11/wirescape-lab/issues/602) | B5 | #545 | Switches must be clean under OSC load; fix only what fails |
+| 4 | OB-h4 Gate Delay [#329](https://github.com/kalharbi11/wirescape-lab/issues/329) | B4 | CMP-1 #592 | Strum, ratchet, humanize and trig out for patch design; already built |
+| 5 | OB-h5 OSC presets [#603](https://github.com/kalharbi11/wirescape-lab/issues/603) | B1 | #585 | No retyping of mappings; one `/ws/…` scheme for every script |
+| 6 | OB-h6 patch check tool [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) | B3 | OB-h1 facts | Proves each patch loads and fits the Pi's CPU before copying |
+
+**Reviews:** OB-h2 needs a Claude contract review (network egress). OB-h3 needs one only if it changes
+`host/sidecar/` product code. The rest are lead merges.
+
+**Tier 2 (suggested, not filed; re-evaluated after Tier 1):** an engine heartbeat with hang detection; desktop
+recovery without the three-crash dialog, reloading the last patch; trig utilities; Pi OSC soak L3+;
+CPU during silence; MIDI Program Change to a patch slot; OSC Out poly and more rows.
+
+**If lanes shrink to two full-version builders** (owner, 2026-11-25): the lead keeps the order above and
+merges lanes as I/O + engine (OB-h1, A67, OB-h2, OB-h3) and Studio + sound (OB-h5, OB-h4, OB-h6).
+
+Signed: claude-architect, 2026-11-25
+
 ## Active OB1 sequence — 2026-11-25 03:32 EST
 
 - **Live editing:** E5v, E5, E7, E7b and both E7c state-hook PRs are merged. B3 audits integrated A62/A76 and A69a evidence on #525 at `8c9bb10`, records actual results and supplies the signed exact-head evidence. The KNOWN_ISSUES A2 rewrite follows the measured rows.
