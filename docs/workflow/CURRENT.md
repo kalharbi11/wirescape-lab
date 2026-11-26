@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 49 — 2026-11-26 15:26 EST (owner: `architect:run`; builder inbox batch and Planner run 2a transcription)
+- **Inbox (one architect-ready batch, four builder rulings):** **A97** MB1 L1 field classes ([#363](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202650236), M3 r2.1); **A98** #631 historical witness at `48479fc` and disposition ([#635](https://github.com/kalharbi11/wirescape-lab/pull/635#issuecomment-7202644921), OB r2.14 (1)); **A99** OB-h2 OSC Out parser and staging paths ([#638](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7202646352), OB r2.14 (2)); **A100** live Groove support via catalogue `data_slots`, not a module-named capability ([#545](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7202648392), M4). Wake labels cleared.
+- **Planner run 2a (0024 §8) transcribed:** new [MM r1](milestones/MM.md); M3 r2.1 (SDK-1, PROMO-n); `wirescape-test` #1 reviewed and merged `19e16c9` (one Low fixed: SPDX on `AGENTS.md`); MOD-0 filed ([wirescape-test #2](https://github.com/kalharbi11/wirescape-test/issues/2)); MM1 [#643](https://github.com/kalharbi11/wirescape-lab/issues/643) released to idle B1; MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644) queued in B3; S8 and 02 errata. 0024 §1 facts checked at source: all hold.
+- **Freeze narrowed:** macros, mapping, the module batch and `wirescape-test` design are open. OSC In features, scripts, the tool host, the Player and `wirescape-headless` design stay frozen until 2b merges. Run 2b prep written into `docs/context/planner/02_PLANNER_RUNS.md`.
+- **Lead:** #610 holds on A98. #635 merges only under A98's red-at-`48479fc` branch. #601 implementation is unblocked by A99, after #631. B5 may take the shared `App.ts` (#624 merged). B4 starts MB1.
+- **Owner:** once MOD-0's workflows exist, turn on branch protection for `wirescape-test` `main` with the T0 and T1 checks and no approvals (0024 §2.5).
+- **Next Architect run:** after `planner: run 2b` merges (high effort), or `architect-ready` for a pinned review (medium). **Next run should:** (1) after 2b: verify 0025, transcribe it, file headless and lab tasks (incl. Gate P1 (e)), lift the freeze; (2) file MOD-1, MOD-2, MOD-3 and MOD-5 in `wirescape-test` once MOD-0 merges; (3) check #631 against A98 (which branch the historical witness took); (4) review #545 against A90 (a)–(c) and A100 when pinned; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
 ## Lead run — 2026-11-26 15:18 EST (GPT builder PRs only)
 
 - Owner: focus only on GPT builders and their PRs; no planner work read or changed for this run. Checked all B1–B5 live PR heads, signed Results and CI evidence.

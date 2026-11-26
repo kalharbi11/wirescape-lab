@@ -3,7 +3,7 @@
 
 Lab commit: `337d8e8`. Sonnet scout for the Claude Architect, 2026-11-26. Facts only.
 
-Flag key (`sdk/include/wirescape/module2.h:27`): MOD = `WS2_MODULATABLE`, STEP = `WS2_STEPPED`, AUTO = `WS2_AUTOMATABLE`, PV = `WS2_PER_VOICE`, AR = `WS2_AUDIO_RATE_OK`. Sources are under `modules/<id>/`. Engine facts: a STEPPED param jumps to its target instead of smoothing (`engine/render.cpp:528`); `engine/tests/port_behavior_tests.cpp:50,75` assert, for the modules listed there (adsr, lfo, vca, vcf, vco), that every non-STEPPED param is MOD and every STEPPED param is not MOD. `ws::param(...)` last args `4, 1` = slot kind/stepped marker as written in source.
+Flag key (`sdk/include/wirescape/module2.h:27`): MOD = `WS2_MODULATABLE`, STEP = `WS2_STEPPED`, AUTO = `WS2_AUTOMATABLE`, PV = `WS2_PER_VOICE`, AR = `WS2_AUDIO_RATE_OK`. Sources are under `modules/<id>/`. Engine facts: a STEPPED param jumps to its target instead of smoothing (`engine/render.cpp:528`); `engine/tests/port_behavior_tests.cpp:49-50` asserts that every non-STEPPED param of adsr, lfo, vca, vcf and vco is MOD; `:65-75` asserts that every STEPPED param of mixer, noise, output, scale_offset, slew, clock, function_envelope and ladder is not MOD (erratum, Architect run 49, from 0024 §7). `ws::param(...)` last args `4, 1` = slot kind/stepped marker as written in source.
 
 ## chord
 | # | id | name | range / options | default | flags | sets allocation or structure? | source |
@@ -129,7 +129,7 @@ Searched `modules/*/module.json` names and descriptions (35 module folders): ads
 
 ## Notes
 - `midi_to_cv/module.json` parameter slots skip 5 (legato=4, sustain=6); code declares sustain at slot 6 as the 6th array entry. `steal_policy` has range 0..0 and no read in `dsp.h`.
-- `chord`, `cv_to_notes`, `host_keyboard`, `midi_in`, `midi_to_cv`, `notes_to_cv`, `quantizer` and `groove` have no param with MOD; all are STEP|AUTO. The engine tests that assert STEP implies not MOD cover only adsr, lfo, vca, vcf, vco (`port_behavior_tests.cpp:48`).
+- `chord`, `cv_to_notes`, `host_keyboard`, `midi_in`, `midi_to_cv`, `notes_to_cv`, `quantizer` and `groove` have no param with MOD; all are STEP|AUTO. The engine test that asserts STEP implies not MOD covers mixer, noise, output, scale_offset, slew, clock, function_envelope and ladder (`port_behavior_tests.cpp:65-75`), none of these eight (erratum, run 49).
 - `lfo` has mixed flag sets: `sync` STEP without AUTO; `beats` MOD without PV/AR; first three include PV and AR.
 - `clock` params 1 and 3 (`ticks_per_beat`, `run`) are MOD although the code rounds/thresholds them (integer ticks; run `>= .5`).
 - `function_envelope` module.json description says "Single-channel" but code is 16-voice per-channel.
