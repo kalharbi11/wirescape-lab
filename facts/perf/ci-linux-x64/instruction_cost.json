@@ -1,17 +1,17 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.196.1",
+      "runner_image_version": "20261116.202.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -28,8 +28,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -39,47 +39,47 @@
         "architecture": "x86_64",
         "compiler": "c++",
         "configuration": "Release",
-        "cpu": "AMD EPYC 7763 64-Core Processor",
-        "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43"
       },
       "method": "python bench/offline/run_all.py",
       "sample_rate_hz": 48000
     },
     "rows": [
       {
-        "ir_per_block": 64058.86,
+        "ir_per_block": 64247.86,
         "name": "abi2_mono",
         "status": "measured",
         "totals": [
-          5349165,
-          11755051
+          5378600,
+          11803386
         ]
       },
       {
-        "ir_per_block": 186846.09,
+        "ir_per_block": 187913.09,
         "name": "abi2_modulated",
         "status": "measured",
         "totals": [
-          11402185,
-          30086794
+          11476047,
+          30267356
         ]
       },
       {
-        "ir_per_block": 487057.01,
+        "ir_per_block": 485131.55,
         "name": "abi2_poly8",
         "status": "measured",
         "totals": [
-          26848311,
-          75554012
+          26770950,
+          75284105
         ]
       },
       {
-        "ir_per_block": 1484425.55,
+        "ir_per_block": 1268760.55,
         "name": "abi2_quad_vca_lpg8",
         "status": "measured",
         "totals": [
-          77141022,
-          225583577
+          66375135,
+          193251190
         ]
       }
     ],

@@ -1,36 +1,50 @@
 top_level,section,language,files,code,comment,blank
-SUM,product,unknown,1,90612,5583,5791
+SUM,product,unknown,1,111864,6939,7075
 apps,product,Bourne Shell,2,104,7,2
 apps,product,CSS,12,1403,120,82
 apps,product,HTML,6,3712,6,108
 apps,product,JavaScript,5,309,14,10
-apps,product,TypeScript,71,13827,1180,1073
-apps,tests,JavaScript,10,1389,41,51
-apps,tests,TypeScript,58,9243,287,619
-bench,tests,JavaScript,3,182,11,5
-bench,tests,Python,32,3767,141,544
-bench,tools,C++,2,468,14,5
-bench,tools,JavaScript,5,601,26,5
-bench,tools,Python,46,9484,621,1002
+apps,product,TypeScript,71,14130,1215,1077
+apps,tests,JavaScript,11,1556,48,56
+apps,tests,TypeScript,61,9695,326,649
+bench,tests,JavaScript,4,294,17,9
+bench,tests,Python,39,4526,165,633
+bench,tools,C++,5,896,34,11
+bench,tools,JavaScript,7,1059,45,9
+bench,tools,Python,55,11507,729,1232
 docs,product,C++,8,915,29,0
 docs,product,C/C++ Header,6,372,15,0
 docs,product,HTML,2,634,1,0
 docs,product,JavaScript,2,1206,107,30
-docs,product,Python,1,39,4,2
+docs,product,Python,2,102,17,19
 docs,tests,C++,2,170,5,2
-lab,product,Python,1,67,9,7
-native,product,C++,109,18855,769,352
-native,product,C/C++ Header,89,8704,1339,510
-native,product,CMake,2,150,5,3
-native,product,Python,7,1920,155,165
-native,tests,C,1,5,1,0
-native,tests,C++,23,2679,70,33
-native,tests,C/C++ Header,14,741,32,24
-native,tests,JavaScript,1,31,4,2
+engine,product,C++,13,4165,154,106
+engine,product,C/C++ Header,19,1880,158,50
+engine,tests,C,1,21,1,0
+engine,tests,C++,15,2373,76,35
+engine,tests,C/C++ Header,3,60,3,1
+host,product,C++,34,10699,549,132
+host,product,C/C++ Header,26,2434,929,345
+host,product,Python,8,2062,186,179
+host,tests,C/C++ Header,1,58,1,0
+lab,product,Python,13,1281,88,150
+modules,product,C++,65,8059,363,202
+modules,product,C/C++ Header,50,6288,422,130
+modules,product,CMake,2,150,5,3
+modules,tests,C/C++ Header,1,40,2,1
+sdk,product,C++,6,774,36,54
+sdk,product,C/C++ Header,7,923,65,44
+sdk,tests,C/C++ Header,1,53,6,5
+targets,product,C++,2,782,43,20
+targets,product,C/C++ Header,1,13,4,0
+tests,tests,C++,14,2869,123,41
+tests,tests,C/C++ Header,9,598,24,18
+tests,tests,JavaScript,1,31,4,2
+tests,tests,Python,7,1161,93,113
 tools,tests,C++,1,83,7,6
-tools,tests,Python,36,4161,259,558
+tools,tests,Python,44,4829,281,662
 tools,tests,TypeScript,1,113,17,7
 tools,tools,Bourne Shell,6,316,18,26
-tools,tools,C++,3,30,3,1
+tools,tools,C++,4,236,6,2
 tools,tools,C/C++ Header,2,372,10,4
-tools,tools,Python,34,4560,256,553
+tools,tools,Python,44,6551,365,808

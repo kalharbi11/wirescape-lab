@@ -1,31 +1,31 @@
 path,name,start_line,end_line,length,nloc,cyclomatic_complexity
-native/sidecar/audio_recovery_tests.cpp,main(),285,942,658,627,143
-native/document/runtime_module_config.h,"wirescape::document::runtime_module_config_impl( const std :: string & type , const nlohmann :: json & value , uint32_t instance_id , std :: vector<std::string> * ignored_keys)",53,427,375,366,223
-native/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),969,1295,327,315,73
+host/sidecar/audio_recovery_tests.cpp,main(),1046,1716,671,639,144
+engine/edit.cpp,"wirescape::engine2::Engine::replan( Engine & candidate , uint64_t timeout_ns , BeforePublish before_publish , * context)",375,800,426,397,169
+host/sidecar/session.cpp,wirescape::sidecar::Session::apply( const Json & command),1224,1629,406,391,93
+host/document/runtime_module_config.h,"wirescape::document::runtime_module_config_impl( const std :: string & type , const nlohmann :: json & value , uint32_t instance_id , std :: vector<std::string> * ignored_keys)",53,435,383,374,228
+host/sidecar/session.cpp,"wirescape::sidecar::Session::commit( Json patch , bool new_namespace , std :: optional<uint32_t> retry_id , bool explicit_graph)",798,1133,336,291,93
+targets/web/web_engine_tests.cpp,"main( int argc , char ** argv)",76,391,316,279,43
+host/net/heavy_ingress_tests.cpp,reproduce( bool panic_only),112,419,308,270,44
 apps/studio/src/app/OscEditor.ts,"showOscEditor ( modal , raw , save ( value : OscConfig ) , readRaw ( row : Pick < OscRow , 'pattern' | 'argument' | 'enabled' > ) ( ) => , subscribe ( refresh : ( ) => void ) ( ) ( ) => } )",70,367,298,152,10
-native/sidecar/protocol_unit_tests.cpp,run_tests(),210,482,273,246,38
-apps/studio/src/app/App.ts,openSettings ( ),1613,1885,273,88,6
-native/web/web_engine_tests.cpp,"main( int argc , char ** argv)",71,338,268,237,37
-native/document/groove_runtime_tests.cpp,test_v2_config_and_conditions( AppEngine * cat),726,991,266,252,89
-apps/studio/src/engine/RealEngine.ts,receive ( message ),248,444,197,182,105
-native/sidecar/session.cpp,"wirescape::sidecar::Session::commit( Json patch , bool new_namespace)",702,878,177,154,34
-native/modules2/groove/dsp.h,groove::Sequencer::process( ws :: Block & b),393,566,174,164,84
-native/engine2/engine2.cpp,"wirescape::engine2::Engine::Impl::process_node( Node & n , uint32_t start , uint32_t frames)",544,702,159,154,118
-native/engine2/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,217,159,157,71
-native/engine2/engine2.cpp,"wirescape::engine2::Engine::replan( Engine & candidate , uint64_t timeout_ns)",1069,1221,153,147,58
-native/document/groove_observation_tests.cpp,external_clock_contract(),505,656,152,138,24
-native/control/osc_out_host.cpp,wirescape::osc::OutHost::loop(),88,234,147,133,49
+apps/studio/src/app/App.ts,openSettings ( ),1703,1991,289,89,6
+host/sidecar/protocol_unit_tests.cpp,run_tests(),210,484,275,249,38
+host/document/groove_runtime_tests.cpp,test_v2_config_and_conditions( AppEngine * cat),728,993,266,252,89
+host/sidecar/audio_recovery_tests.cpp,test_a78_deferred_config( const std :: filesystem :: path & root),809,1044,236,220,58
+apps/studio/src/engine/RealEngine.ts,receive ( message ),377,583,207,189,117
+modules/delay/tests.cpp,state_and_extremes(),431,614,184,167,28
+tests/native/abi2/ob_e2_240_smoke.cpp,"smoke( const std :: string & id , const ws2_descriptor * d , uint32_t rate , uint32_t block)",172,353,182,177,70
+host/sidecar/audio_recovery_tests.cpp,test_e7_state_restart( const std :: filesystem :: path & root),455,636,182,176,47
+modules/midi_to_cv/dsp.h,wirescape::midi::MidiToCv::process( ws :: Block & b),203,378,176,168,100
+modules/groove/dsp.h,"groove::Sequencer::frames( ws :: Block & b , bool external_clock , bool external_run , bool external_reset , [ [ maybe_unused ] ] const ws2_transport * host , [ [ maybe_unused ] ] bool host_playing , [ [ maybe_unused ] ] double host_step)",453,612,160,148,81
+engine/tests/module_cpu_probe.cpp,"main( int argc , char ** argv)",59,217,159,157,71
+host/document/groove_observation_tests.cpp,external_clock_contract(),505,656,152,138,24
+engine/control/osc_out_host.cpp,wirescape::osc::OutHost::loop(),88,234,147,133,49
+host/net/tests.cpp,main(),191,337,147,129,30
 apps/studio/src/panels/widgets/Knob.ts,constructor ( private readonly o ),71,216,146,108,19
-apps/studio/src/app/App.ts,(anonymous),1622,1762,141,79,22
-native/io/net/tests.cpp,main(),34,170,137,120,28
-apps/studio/src/app/App.ts,"applyLearn ( change ( ) , what )",1207,1343,137,49,12
+modules/midi_to_cv/dsp.h,wirescape::midi::MidiToCv::process_no_trigger( ws :: Block & b),59,202,144,141,85
+tools/render/main.cpp,"main( int argc , char ** argv)",70,210,141,140,46
+apps/studio/src/app/App.ts,(anonymous),1713,1853,141,79,22
+apps/studio/src/app/App.ts,"applyLearn ( change ( ) , what )",1297,1433,137,49,12
 apps/studio/src/panels/PanelBuilder.ts,"constructor ( private readonly host , private readonly moduleId , private readonly d , ov , private readonly onLayoutChanged ( ) , )",57,191,135,79,15
-native/tools/render/main.cpp,"main( int argc , char ** argv)",70,203,134,133,44
-native/voice/tests.cpp,main(),25,156,132,132,22
-apps/studio/src/panels/widgets/GroovePane.ts,renderRoll ( ),537,666,130,78,33
-apps/studio/src/engine/FakeEngine.ts,step ( ),496,624,129,106,50
-native/document/runtime_module_config_tests.cpp,main(),230,356,127,126,35
-apps/studio/src/app/OscOutEditor.ts,"showOscOutEditor ( modal , raw , save ( value : OscOutConfig ) )",47,172,126,63,7
-native/modules2/reverb/dsp.h,reverb::Reverb::process( ws :: Block & b),249,373,125,116,33
-native/modules2/midi_to_cv/dsp.h,wirescape::midi::MidiToCv::process( ws :: Block & b),54,177,124,122,77
-apps/studio/src/canvas/ModuleCard.ts,constructor ( private readonly o ),89,211,123,87,18
+engine/voice/tests.cpp,main(),93,225,133,133,22
+apps/studio/src/panels/widgets/GroovePane.ts,renderRoll ( ),538,667,130,78,33

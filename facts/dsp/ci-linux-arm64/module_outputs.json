@@ -1,7 +1,7 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",
@@ -32,8 +32,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -113,12 +113,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": -8.401331542885674e-06,
+        "dc_fs": -5.938011326960147e-06,
         "finite_samples": 132300,
         "module": "essentials.chaos_lite",
         "nonfinite_samples": 0,
-        "peak_fs": 0.09230177104473114,
-        "rms_fs": 0.03785336920463043,
+        "peak_fs": 0.09221616387367249,
+        "rms_fs": 0.03779519774068127,
         "sample_rate_hz": 44100,
         "status": "measured"
       },
@@ -131,12 +131,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": -5.91591701599518e-06,
+        "dc_fs": -3.803982745433575e-06,
         "finite_samples": 144000,
         "module": "essentials.chaos_lite",
         "nonfinite_samples": 0,
-        "peak_fs": 0.09191247820854187,
-        "rms_fs": 0.037536570078043265,
+        "peak_fs": 0.09225808829069138,
+        "rms_fs": 0.037503321604314376,
         "sample_rate_hz": 48000,
         "status": "measured"
       },
@@ -149,12 +149,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 3.412191324867939e-05,
+        "dc_fs": 3.483806364891093e-05,
         "finite_samples": 288000,
         "module": "essentials.chaos_lite",
         "nonfinite_samples": 0,
-        "peak_fs": 0.0892905667424202,
-        "rms_fs": 0.0357715184969137,
+        "peak_fs": 0.08950541913509369,
+        "rms_fs": 0.035795137470920974,
         "sample_rate_hz": 96000,
         "status": "measured"
       },
@@ -1211,12 +1211,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 0.0001956921550797315,
+        "dc_fs": 0.00017455739316014598,
         "finite_samples": 132300,
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 1.1004359722137451,
-        "rms_fs": 0.7221784943050228,
+        "peak_fs": 0.9815889000892639,
+        "rms_fs": 0.6441832310132841,
         "sample_rate_hz": 44100,
         "status": "measured"
       },
@@ -1229,12 +1229,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 0.00019585485114945812,
+        "dc_fs": 0.0001747025138788055,
         "finite_samples": 144000,
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 1.0993894338607788,
-        "rms_fs": 0.722111370127144,
+        "peak_fs": 0.9806553721427917,
+        "rms_fs": 0.6441233562672695,
         "sample_rate_hz": 48000,
         "status": "measured"
       },
@@ -1247,12 +1247,12 @@
           "ring_full_events": 0,
           "stale_events": 0
         },
-        "dc_fs": 0.000195854890024708,
+        "dc_fs": 0.00017470260085687646,
         "finite_samples": 288000,
         "module": "fx.reverb",
         "nonfinite_samples": 0,
-        "peak_fs": 1.0993894338607788,
-        "rms_fs": 0.7218418482287151,
+        "peak_fs": 0.9806553721427917,
+        "rms_fs": 0.6438829426858511,
         "sample_rate_hz": 96000,
         "status": "measured"
       },

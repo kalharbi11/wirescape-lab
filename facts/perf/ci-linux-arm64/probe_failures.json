@@ -1,7 +1,7 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",
@@ -28,8 +28,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -53,7 +53,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"
@@ -65,7 +65,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"
@@ -77,7 +77,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"
@@ -89,7 +89,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"
@@ -101,7 +101,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"
@@ -113,7 +113,7 @@
         "input_mode": "direct_descriptor_without_chord_instance_tag",
         "instances": 1,
         "module": "essentials.chord",
-        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (native/modules2/chord/dsp.h:54-56, native/document/runtime_module_config.h:35-38)",
+        "reason": "exit code 2: module_cpu_probe: create/prepare failed; direct probe passes zero config bytes; Chord needs four (modules/chord/dsp.h:54-56, host/document/runtime_module_config.h:35-38)",
         "sample_rate_hz": 48000,
         "seconds": 2,
         "status": "unavailable"

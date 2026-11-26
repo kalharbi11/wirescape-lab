@@ -2,59 +2,59 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
     "connect": {
-      "max_ms": 5.991799,
+      "max_ms": 7.756955,
       "n": 100,
-      "p50_ms": 5.32444,
-      "p95_ms": 5.362982,
-      "p99_ms": 5.436161
+      "p50_ms": 5.32702,
+      "p95_ms": 5.360354,
+      "p99_ms": 5.383329
     },
-    "date_et": "2026-11-18",
+    "date_et": "2026-11-26",
     "disconnect": {
-      "max_ms": 5.987919,
+      "max_ms": 10.723588,
       "n": 100,
-      "p50_ms": 5.322512,
-      "p95_ms": 5.365341,
-      "p99_ms": 5.389284
+      "p50_ms": 5.322924,
+      "p95_ms": 10.663015,
+      "p99_ms": 10.674854
     },
-    "hello_ms": 7.411376,
+    "hello_ms": 7.588109,
     "loadGraph": [
       {
         "code": "invalid",
-        "ms": 0.294613,
+        "ms": 0.377027,
         "ok": false,
-        "path": "native/examples/Six_Essentials_Demo.json"
+        "path": "host/examples/Six_Essentials_Demo.json"
       },
       {
         "code": null,
-        "ms": 22.050218,
+        "ms": 21.921925,
         "ok": true,
-        "path": "native/examples/chaos_two.json"
+        "path": "host/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 26.017198,
+        "ms": 25.804106,
         "ok": true,
-        "path": "native/examples/chaos_usb_midi.json"
+        "path": "host/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 21.095549,
+        "ms": 21.234732,
         "ok": true,
-        "path": "native/examples/class_demo_1_chaos.json"
+        "path": "host/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 19.829275,
+        "ms": 19.719649,
         "ok": true,
-        "path": "native/examples/class_demo_2_subtractive.json"
+        "path": "host/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 21.085429,
+        "ms": 21.916109,
         "ok": true,
-        "path": "native/examples/class_demo_3_macro.json"
+        "path": "host/examples/class_demo_3_macro.json"
       }
     ],
     "machine": {
@@ -65,16 +65,16 @@
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.910216,
+      "max_ms": 0.17411,
       "n": 1000,
-      "p50_ms": 0.101754,
-      "p95_ms": 0.117473,
-      "p99_ms": 0.15559
+      "p50_ms": 0.089075,
+      "p95_ms": 0.109562,
+      "p99_ms": 0.126289
     }
   },
   "provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",

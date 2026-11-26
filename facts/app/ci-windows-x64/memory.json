@@ -1,40 +1,40 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "electron_note": "Electron process RSS measured separately in startup.json",
     "electron_process_rss_kib": null,
-    "engine_idle_rss_kib": 14424,
+    "engine_idle_rss_kib": 14648,
     "largest_bundled_patch": {
       "accepted": true,
       "error_code": null,
-      "loadGraph_ms": 24.5306,
-      "patch": "native/examples/chaos_usb_midi.json",
+      "loadGraph_ms": 23.4322,
+      "patch": "host/examples/chaos_usb_midi.json",
       "patch_bytes": 4116,
-      "rss_kib": 18360
+      "rss_kib": 18520
     },
     "machine": {
       "architecture": "AMD64",
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "os": "Windows-2025Server-10.0.26100-SP0"
     },
     "method": "psutil.Process.memory_info().rss (Windows), 500 ms after null-audio startup/load"
   },
   "provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
       "runner": "windows-x64",
       "runner_arch": "X64",
       "runner_image": "win25-vs2026",
-      "runner_image_version": "20261103.298.1",
+      "runner_image_version": "20261116.315.1",
       "runner_os": "Windows"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

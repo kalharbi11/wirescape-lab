@@ -2,36 +2,36 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "binary_sizes": {
-      "files": 379,
+      "files": 402,
       "missing_roots": 0
     },
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
     "complexity": {
-      "functions": 3594,
+      "functions": 4032,
       "lizard_version": "not exposed"
     },
-    "date_et": "2026-11-18",
+    "date_et": "2026-11-26",
     "dependencies": {
       "entries": 146,
       "note": "Native licences require the dependency licence files; npm lock licences may be absent."
     },
     "graph": {
-      "edges": 228,
+      "edges": 246,
       "svg": true,
-      "targets": 136
+      "targets": 148
     },
     "includes": {
-      "direct_includes": 384,
-      "files": 46
+      "direct_includes": 464,
+      "files": 60
     },
     "loc": {
       "cloc": "[path]",
-      "files": 604
+      "files": 702
     },
     "long_lines": {
-      "files": 236,
-      "over_120": 706,
-      "over_200": 199
+      "files": 269,
+      "over_120": 680,
+      "over_200": 186
     },
     "machine": {
       "architecture": "aarch64",
@@ -47,26 +47,26 @@
       "residue": "Python regex patterns recorded below"
     },
     "residue": {
-      "matched_files": 128,
+      "matched_files": 117,
       "patterns": {
         "abi1_symbols": "\\b(?:ws_engine|ws_module|ws_port|ws_parameter|ws_engine_config|ws_module_descriptor)\\w*\\b",
         "agent_names": "(?i)\\b(?:gpt-builder\\d+|claude-builder\\d+|gpt-helper|gpt-reviewer|claude-reviewer|fable|keel)\\b",
         "issue_refs": "(?<!\\w)#\\d+\\b",
         "qt_mentions": "(?i)\\b(?:qt|qtcore|qml|qt-free|qt quick)\\b"
       },
-      "scope": "native/, apps/, tools/ tracked text files",
+      "scope": "native/, engine/, host/, modules/, sdk/, targets/, tests/native/, apps/, tools/ tracked text files",
       "totals": {
-        "abi1_symbols": 145,
-        "agent_names": 14,
-        "issue_refs": 182,
+        "abi1_symbols": 12,
+        "agent_names": 16,
+        "issue_refs": 199,
         "qt_mentions": 72
       }
     },
-    "source_files_tracked": 1432
+    "source_files_tracked": 1592
   },
   "provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",

@@ -137,11 +137,11 @@ source-map-js,1.2.2,BSD-3-Clause,apps/studio/package-lock.json
 typescript,5.7.2,Apache-2.0,apps/studio/package-lock.json
 vite,6.0.7,MIT,apps/studio/package-lock.json
 vite/node_modules/fsevents,2.3.3,MIT,apps/studio/package-lock.json
-nlohmann_json,not specified,see vendor source / licence file,native/document/CMakeLists.txt
-midi_alsa_headers,not specified,see vendor source / licence file,native/io/midi/CMakeLists.txt
-wirescape_libremidi,not specified,see vendor source / licence file,native/io/midi/CMakeLists.txt
-macro_eurorack,not specified,see vendor source / licence file,native/modules2/macro_oscillator/CMakeLists.txt
-macro_stmlib,not specified,see vendor source / licence file,native/modules2/macro_oscillator/CMakeLists.txt
-macro_eurorack,not specified,see vendor source / licence file,native/web/CMakeLists.txt
-macro_stmlib,not specified,see vendor source / licence file,native/web/CMakeLists.txt
-nlohmann_json,not specified,see vendor source / licence file,native/web/CMakeLists.txt
+nlohmann_json,not specified,see vendor source / licence file,host/document/CMakeLists.txt
+midi_alsa_headers,not specified,see vendor source / licence file,host/midi/CMakeLists.txt
+wirescape_libremidi,not specified,see vendor source / licence file,host/midi/CMakeLists.txt
+macro_eurorack,not specified,see vendor source / licence file,modules/macro_oscillator/CMakeLists.txt
+macro_stmlib,not specified,see vendor source / licence file,modules/macro_oscillator/CMakeLists.txt
+macro_eurorack,not specified,see vendor source / licence file,targets/web/CMakeLists.txt
+macro_stmlib,not specified,see vendor source / licence file,targets/web/CMakeLists.txt
+nlohmann_json,not specified,see vendor source / licence file,targets/web/CMakeLists.txt

@@ -1,17 +1,17 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.196.1",
+      "runner_image_version": "20261116.202.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -30,8 +30,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -41,8 +41,8 @@
         "architecture": "x86_64",
         "compiler": "c++",
         "configuration": "Release",
-        "cpu": "AMD EPYC 7763 64-Core Processor",
-        "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43"
       },
       "method": "python bench/offline/run_all.py",
       "sample_rate_hz": 48000
@@ -62,8 +62,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.14024159850981424,
-        "highpass_rms_fs": 0.014315214360206345,
+        "highpass_peak_fs": 0.11811285773187509,
+        "highpass_rms_fs": 0.01303579837687759,
         "max": 2.0,
         "min": 0.0,
         "module": "essentials.chaos_lite",
@@ -305,8 +305,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.010816660957760349,
-        "highpass_rms_fs": 0.007320816133888645,
+        "highpass_peak_fs": 0.009648437852660896,
+        "highpass_rms_fs": 0.006530168132101898,
         "max": 1.0,
         "min": 0.0,
         "module": "fx.reverb",

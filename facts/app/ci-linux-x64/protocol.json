@@ -2,89 +2,89 @@
   "SPDX-License-Identifier": "GPL-3.0-only",
   "measurements": {
     "audio": "--null-audio",
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
     "connect": {
-      "max_ms": 5.850114,
+      "max_ms": 5.585592,
       "n": 100,
-      "p50_ms": 5.326276,
-      "p95_ms": 5.374295,
-      "p99_ms": 5.748193
+      "p50_ms": 5.325888,
+      "p95_ms": 5.369164,
+      "p99_ms": 5.394111
     },
-    "date_et": "2026-11-18",
+    "date_et": "2026-11-26",
     "disconnect": {
-      "max_ms": 5.742273,
+      "max_ms": 11.038011,
       "n": 100,
-      "p50_ms": 5.32323,
-      "p95_ms": 5.364619,
-      "p99_ms": 5.396704
+      "p50_ms": 5.325798,
+      "p95_ms": 10.6908,
+      "p99_ms": 10.748402
     },
-    "hello_ms": 8.78288,
+    "hello_ms": 8.242957,
     "loadGraph": [
       {
         "code": "invalid",
-        "ms": 0.344994,
+        "ms": 0.308878,
         "ok": false,
-        "path": "native/examples/Six_Essentials_Demo.json"
+        "path": "host/examples/Six_Essentials_Demo.json"
       },
       {
         "code": null,
-        "ms": 21.998538,
+        "ms": 21.980237,
         "ok": true,
-        "path": "native/examples/chaos_two.json"
+        "path": "host/examples/chaos_two.json"
       },
       {
         "code": null,
-        "ms": 25.842925,
+        "ms": 25.855568,
         "ok": true,
-        "path": "native/examples/chaos_usb_midi.json"
+        "path": "host/examples/chaos_usb_midi.json"
       },
       {
         "code": null,
-        "ms": 20.855052,
+        "ms": 20.272906,
         "ok": true,
-        "path": "native/examples/class_demo_1_chaos.json"
+        "path": "host/examples/class_demo_1_chaos.json"
       },
       {
         "code": null,
-        "ms": 20.14115,
+        "ms": 20.872979,
         "ok": true,
-        "path": "native/examples/class_demo_2_subtractive.json"
+        "path": "host/examples/class_demo_2_subtractive.json"
       },
       {
         "code": null,
-        "ms": 21.928707,
+        "ms": 21.121185,
         "ok": true,
-        "path": "native/examples/class_demo_3_macro.json"
+        "path": "host/examples/class_demo_3_macro.json"
       }
     ],
     "machine": {
       "architecture": "x86_64",
       "audio_devices": "not accessed",
       "cpu": "x86_64",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43"
+      "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43"
     },
     "method": "one in-flight NDJSON command, stdout correlated reply, perf_counter_ns",
     "setParam": {
-      "max_ms": 0.904066,
+      "max_ms": 0.122836,
       "n": 1000,
-      "p50_ms": 0.125053,
-      "p95_ms": 0.166211,
-      "p99_ms": 0.228099
+      "p50_ms": 0.06623,
+      "p95_ms": 0.089786,
+      "p99_ms": 0.098689
     }
   },
   "provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
-      "os": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "os": "Linux-7.0.0-1020-azure-x86_64-with-glibc2.43",
       "runner": "linux-x64",
       "runner_arch": "X64",
       "runner_image": "ubuntu26",
-      "runner_image_version": "20261111.196.1",
+      "runner_image_version": "20261116.202.1",
       "runner_os": "Linux"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"

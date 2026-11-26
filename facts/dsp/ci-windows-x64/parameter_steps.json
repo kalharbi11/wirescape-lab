@@ -1,17 +1,17 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
-      "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+      "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
       "lan_sockets": "not accessed",
       "midi_devices": "not accessed",
       "os": "Windows-2025Server-10.0.26100-SP0",
       "runner": "windows-x64",
       "runner_arch": "X64",
       "runner_image": "win25-vs2026",
-      "runner_image_version": "20261103.298.1",
+      "runner_image_version": "20261116.315.1",
       "runner_os": "Windows"
     },
     "method": "GitHub Actions hosted runner; Python offline collectors"
@@ -30,8 +30,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -41,7 +41,7 @@
         "architecture": "AMD64",
         "compiler": "unavailable",
         "configuration": "multi-config/unavailable",
-        "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+        "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
         "os": "Windows-2025Server-10.0.26100-SP0"
       },
       "method": "python bench/offline/run_all.py",
@@ -62,8 +62,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.14024160823269385,
-        "highpass_rms_fs": 0.014315214136142836,
+        "highpass_peak_fs": 0.11811285304999351,
+        "highpass_rms_fs": 0.01303579859158202,
         "max": 2.0,
         "min": 0.0,
         "module": "essentials.chaos_lite",
@@ -305,8 +305,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.010816656023503568,
-        "highpass_rms_fs": 0.007320816133465018,
+        "highpass_peak_fs": 0.009648429771686451,
+        "highpass_rms_fs": 0.006530168134979927,
         "max": 1.0,
         "min": 0.0,
         "module": "fx.reverb",

@@ -1,7 +1,7 @@
 {
   "ci_provenance": {
-    "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-    "date_et": "2026-11-18",
+    "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "date_et": "2026-11-26",
     "machine": {
       "audio_devices": "not accessed",
       "cpu": "0xd49",
@@ -30,8 +30,8 @@
         128,
         256
       ],
-      "commit": "34b3da3ab40618a4470d00c6d7b079af5dc41ee2",
-      "date_et": "2026-11-18",
+      "commit": "73f411dd1010675967230ed535ad163d35ebaf24",
+      "date_et": "2026-11-26",
       "dsp_sample_rates_hz": [
         44100,
         48000,
@@ -62,8 +62,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.14024159850981424,
-        "highpass_rms_fs": 0.014315214360206345,
+        "highpass_peak_fs": 0.11811285773187509,
+        "highpass_rms_fs": 0.01303579837687759,
         "max": 2.0,
         "min": 0.0,
         "module": "essentials.chaos_lite",
@@ -305,8 +305,8 @@
       },
       {
         "highpass_hz": 2000,
-        "highpass_peak_fs": 0.010816665104318224,
-        "highpass_rms_fs": 0.007320816132896788,
+        "highpass_peak_fs": 0.009648442128217471,
+        "highpass_rms_fs": 0.0065301681309205524,
         "max": 1.0,
         "min": 0.0,
         "module": "fx.reverb",
