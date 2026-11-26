@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 | B4-CMP1-retention | 2026-11-26 | gpt-lead | execution (no ruling) | soon | [#592 blocked Result](https://github.com/kalharbi11/wirescape-lab/pull/592#issuecomment-7189227965). **Run 47:** the GitHub MCP returns signed download URLs for artifacts `15106255348`/`15104379390` (run `45791608325`, expire **2026-12-10**), but this Architect session was not permitted to download them. **Owner step (2 min):** download both zips from the [run page](https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325) and attach them to #592 (or let an authenticated `gh run download 45791608325` session do it); B4 then verifies the 33 JSON digests against `raw-artifact-manifest.json` and retains them. If still blocked, B4 starts MB1 #363 first (0023 R3.1). | #592 (then #609) |
 
+| B3-OBh6-timing | 2026-11-26 | gpt-builder3 | ruling (scope) | soon | [#604 timing question](https://github.com/kalharbi11/wirescape-lab/issues/604#issuecomment-7201033710): existing wirescape_render reports event counters, not per-block CPU/overruns. Grant opt-in timing output in tools/render/main.cpp plus tests, or identify sanctioned equivalent; no engine/device change. | #604 timing implementation (after #600 facts) |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
