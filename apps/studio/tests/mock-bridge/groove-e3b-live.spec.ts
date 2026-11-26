@@ -38,7 +38,7 @@ test('Groove E3b A90 real bridge retains v1 construction on running pattern Appl
   await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.sent
     .filter((m: any) => m.type === 'setData').length)).toBe(2);
   expect((await state(page)).modules[0].data).toBeUndefined(); // not yet ACKed
-  await page.evaluate(() => (window as any).__mockBridge.releaseHeld());
+  await page.evaluate(() => (window as any).__mockBridge.acceptHeld());
   await expect(page.getByTestId('groove-draft-1')).toBeHidden();
   const saved = (await state(page)).modules[0];
   expect(saved.config).toEqual(config);

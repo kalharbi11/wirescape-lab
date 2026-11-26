@@ -287,6 +287,8 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
       refuseNext: (type: string, code = 'refused') => { refused.push({ type, code }); },
       holdNext: (type: string) => { holdType = type; },
       releaseHeld: () => { for (const h of held.splice(0)) reply(h.cmd, true, {}, h.session, h.gen); },
+      // Unlike stale-reply injection, complete a held command through the normal mutation path.
+      acceptHeld: () => { for (const h of held.splice(0)) accept(h.cmd, h.session); },
       exit,
       devices: () => emit({ v: 0, type: 'devices', session: session(), gen: String(gen),
         audioDevices: copy(audio), midiDevices: copy(midi) }),
