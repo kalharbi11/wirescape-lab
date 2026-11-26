@@ -8,10 +8,21 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect session — 2026-11-26 ET (Fable design brief; owner direction)
+
+- **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/fable/01_OWNER_WANTS.md`](../context/fable/01_OWNER_WANTS.md).
+- **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/fable/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
+- **Freeze while the runs are open:** no new Architect rulings or contracts on the roadmap, headless, module-dev workflow, macros and mapping, OSC In features, scripting or the tool host. **Nothing holds:** every lane keeps its current task and queue, including OB-h1–OB-h6.
+- **Reframe:** `proposals/0022` is renamed `0022-ob1.1-headless-readiness.md`. Its rationale now treats the rows as permanent headless requirements, not preparation for one event. The rows are unchanged.
+- **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules.
+- **Next Architect run should:** (1) after each Fable run, verify its factual claims and file its tasks; (2) otherwise follow the run-45 list.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect session — 2026-11-25 ET (OB r2.12: OB1.1 Tier 1 plan; owner request)
 
-- **Owner direction:** the Pi installation is 7 days away: multi-hour runs, heavy OSC in (Python generative sequencer) and OSC out (Pico W 2 boards: LEDs, servos), and patch switching. Stability and recovery come before perfect live editing. Patches are designed in Studio and must also run unchanged on a later headless build (separate repo, not planned yet).
-- **Plan:** [`proposals/0022`](../../proposals/0022-ob1.1-installation-readiness.md), contract [OB r2.12](milestones/OB.md) (OB-h table), [OB_PLAN](OB_PLAN.md) "OB1.1 Tier 1 plan". Rulings A91 (OSC Out v2 `host`, owner permission, `lan-refused`), A92 (OSC presets, `/ws/…` Script preset, no network keys in presets), A93 (patch switching witness), A94 (patch check tool).
+- **Owner direction:** the headless Pi build needs multi-hour runs, heavy OSC in (Python generative scripts) and OSC out (network controllers: LEDs, servos), and patch switching (reframed 2026-11-26 as permanent requirements). Stability and recovery come before perfect live editing. Patches are designed in Studio and must also run unchanged on a later headless build (separate repo, not planned yet).
+- **Plan:** [`proposals/0022`](../../proposals/0022-ob1.1-headless-readiness.md), contract [OB r2.12](milestones/OB.md) (OB-h table), [OB_PLAN](OB_PLAN.md) "OB1.1 Tier 1 plan". Rulings A91 (OSC Out v2 `host`, owner permission, `lan-refused`), A92 (OSC presets, `/ws/…` Script preset, no network keys in presets), A93 (patch switching witness), A94 (patch check tool).
 - **Tasks created, each queued after the lane's current task:**
   - B3: OB-h1 [#600](https://github.com/kalharbi11/wirescape-lab/issues/600), then OB-h6 [#604](https://github.com/kalharbi11/wirescape-lab/issues/604);
   - B2: OB-h2 [#601](https://github.com/kalharbi11/wirescape-lab/issues/601);
