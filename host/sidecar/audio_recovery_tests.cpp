@@ -1529,7 +1529,10 @@ void test_p0a_status(const std::filesystem::path &root) {
     check(graph.prepare(), "P0a synthetic graph prepares");
     // Inject only through the test-owned fake backend's live engine and normal
     // replan; no shipped catalogue entry, protocol command, or production seam.
-    check(app_engine_native(fake::engine).replan(graph, 500'000'000ULL), "P0a synthetic live graph adopted");
+    auto &live = app_engine_native(fake::engine);
+    const uint64_t adoption_ns = 3ULL * options.block * 1000000000ULL / options.rate;
+    if (!live.replan(graph, adoption_ns))
+        throw std::runtime_error("P0a synthetic live graph: " + live.error());
     auto wait = [](auto predicate, auto deadline) {
         while (!predicate() && std::chrono::steady_clock::now() < deadline)
             std::this_thread::sleep_for(1ms);
