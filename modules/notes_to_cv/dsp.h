@@ -120,7 +120,7 @@ struct NotesToCv {
             configured_voices = desired;
         }
         const uint32_t n = static_cast<uint32_t>(core.allocator().voice_count());
-        const auto trig_frames = std::max(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
+        const auto trig_frames = std::max<uint32_t>(1u, uint32_t(std::lround(b.sample_rate() / 1000.0)));
         // The common no-event path has no live trigger: represent it as a
         // constant zero without a per-sample pulse/decrement branch.
         const bool silent_trigger = b.events().size() == 0 && trig_active_mask == 0;

@@ -76,7 +76,7 @@ struct Delay {
         }
         alpha = 1.0 - std::exp(-1.0 / (kGlide * rate));
         mode_step = static_cast<float>(1.0 / (0.010 * rate));
-        fade_frames = std::max(1u, static_cast<uint32_t>(std::ceil(.010 * rate)));
+        fade_frames = std::max<uint32_t>(1u, static_cast<uint32_t>(std::ceil(.010 * rate)));
         dc_r = static_cast<float>(1.0 - 6.283185307179586 * 10.0 / rate);
         reset();
         return true;

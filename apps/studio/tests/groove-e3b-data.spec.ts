@@ -125,7 +125,7 @@ test('Groove E3b A90 pattern-only Apply preserves v1 construction and unrelated 
   expect(result.kind).toBe('pattern');
   if (result.kind !== 'pattern') throw new Error('expected live pattern');
   const expected = structuredClone(module);
-  expected.data.pattern.steps_1[0] = { ...expected.data.pattern.steps_1[0]!, key: 61, keys: [61, 0, 0, 0, 0] };
+  expected.data.pattern.steps_1[0] = { kind: 'note', velocity: .5, key: 61, keys: [61, 0, 0, 0, 0] };
   expect(result.saved).toEqual(expected);
   expect(JSON.stringify(result.saved.config)).toBe(JSON.stringify(before.config));
   expect(result.pattern.steps_1[0]).toMatchObject({ key: 61, keys: [61, 0, 0, 0, 0] });

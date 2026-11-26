@@ -286,7 +286,8 @@ export function classifyGrooveApply<T extends { config?: unknown; data?: unknown
         const old = a[i] ?? {}, fresh = b[i] ?? {};
         if (same(old, fresh)) continue;
         while (rows.length <= i) rows.push({});
-        const r = isObject(rows[i]) ? rows[i] : {};
+        const previous = rows[i];
+        const r = isObject(previous) ? previous : {};
         const oldFields = old as Record<string, unknown>, newFields = fresh as Record<string, unknown>;
         for (const name of ROW_FIELDS) {
           if (same(oldFields[name], newFields[name])) continue;
