@@ -1568,6 +1568,44 @@ void test_p0a_status(const std::filesystem::path &root) {
     check(audio(s)["renderedBlocks"].get<uint64_t>() > frozen, "P0a stop retains count");
     fake::render = false;
 }
+
+// Exercise the real device-off sink, including the ordinary single client
+// hello and buffer change. Legacy clients never see the new status fields.
+void test_p0a_null_sink(const std::filesystem::path &root) {
+    Options options;
+    options.null_audio = true;
+    options.block = 128;
+    options.rate = 48000;
+    options.settings = (root / "p0a-null-sink.json").string();
+    Session s(options);
+    s.start();
+    auto legacy = audio(s);
+    check(legacy["state"] == "no-device" && !legacy.contains("renderedBlocks"),
+          "P0a null sink legacy status unchanged");
+    const auto hello = s.reply({{{"v", 0}, {"id", "p0a-null"}, {"type", "hello"},
+        {"capabilities", Json::array({"configDeferred", "audio.renderLiveness"})}}, {}, {}});
+    check(hello["ok"] == true, "P0a null sink negotiates both capabilities");
+    auto count = [&] { return audio(s).at("renderedBlocks").get<uint64_t>(); };
+    auto wait_for_progress = [&](uint64_t before) {
+        const auto deadline = std::chrono::steady_clock::now() + 1s;
+        while (count() <= before && std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(1ms);
+        return count() > before;
+    };
+    check(wait_for_progress(count()), "P0a real null sink increments count");
+    const auto before = count();
+    check(s.reply({{{"v", 0}, {"id", "p0a-null-block"}, {"type", "setBufferFrames"},
+        {"frames", 256}}, {}, {}})["ok"] == true, "P0a null sink buffer rebuild");
+    check(count() >= before && wait_for_progress(count()), "P0a null sink rebuild preserves count");
+    auto healthy = audio(s);
+    check(healthy["state"] == "no-device" && healthy["deviceId"].is_null(),
+          "P0a healthy sink does not claim a physical device");
+    s.shutdown();
+    const auto stopped = count();
+    std::this_thread::sleep_for(10ms);
+    check(stopped >= before && count() == stopped && audio(s)["state"] != "stalled",
+          "P0a stopped sink retains stable count without reporting a stall");
+}
 } // namespace
 
 int main() {
@@ -2240,6 +2278,7 @@ int main() {
         test_a82_osc_in_slot(root);
         test_e3c_accepted_routes(root);
         test_p0a_status(root);
+        test_p0a_null_sink(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
