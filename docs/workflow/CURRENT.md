@@ -8,6 +8,19 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 46 — 2026-11-26 ET (wrap-up mode; owner `architect:run`)
+
+- **Owner direction (wrap-up mode):** while the Fable runs are open, lanes finish their current PR and the draft they already have open, and open nothing new. This replaces "nothing holds" in the session entry below for queue items without a PR: OB-h2 #601, OB-h6 #604, A67 #494 and the OB-h2 Host field **hold until Fable run 1 replans**. Written into [BUILDERS](BUILDERS.md) and the [lead brief](../context/CODEX_LEAD.md#wrap-up-mode-owner-2026-11-26-while-the-fable-design-runs-are-open).
+- **#585 A80 approved and merged `05cf0d7`** ([review](https://github.com/kalharbi11/wirescape-lab/pull/585#issuecomment-7187866441)); #555 closed. This releases the shared writer to #540 and #545.
+- **M4 A95** ([#540](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7187938502)): CC Learn occupancy, option B. **A96** ([#603](https://github.com/kalharbi11/wirescape-lab/issues/603#issuecomment-7187939926)): `OscOutEditor.ts` granted for preset Save/Load only. Both are bounded rulings inside existing contracts, not frozen-area design.
+- **Lead merges taken by the Architect:** #597 CMP-1 bootstrap `8a64caa` (blob `f4d10bb` identical), #598 OB-f1 pre-candidate facts `4310daf` (every r2.3 row met; #578 closed, and the candidate re-dispatch becomes an Architect acceptance step), #584 Pi 6a runner `9fb5943` (#579 closed), #567 M10 S2 facts `73f411d` (#564 closed).
+- **CMP-1 dispatched:** [run 45791608325](https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325), `before=660556f`, `after=73f411d`. #589 was reopened after #597 auto-closed it; #592 closes it.
+- **Cleanup:** inbox PRs #599 and #607 were closed (rows Cleared). Issue #512 (E3a done) was closed as completed. Closed as not planned (stale or superseded; reopen if scheduled): #82, #175, #192, #199, #203, #204, #205, #219, #222, #226, #286, #319, #327, #358, #363. Kept: trackers #198, #200–#202, OB-c #223, wake #265, #326, #451, #494, #590, Pi #369.
+- **Open PRs now 7** (#540, #545, #592, #606, #608, #609, #610), at most two per lane, each with a stop point in BUILDERS.
+- **Next Architect run:** `architect-ready` when #540 or #545 is pinned for its Claude contract review (medium effort), or after a Fable run. **Next run should:** (1) review #540 against A81(3)/A82/A86/A95; (2) review #545 against A90 (a)–(c); (3) check #592's facts against run 45791608325's raw artifacts; (4) after each Fable run, verify its claims, file its tasks and end wrap-up mode; (5) take OB1 acceptance once the owner evidence exists (OB-d listening, OB-a2, 6a/6b), including the OB-f1 candidate re-dispatch.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect session — 2026-11-26 ET (Fable design brief; owner direction)
 
 - **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/fable/01_OWNER_WANTS.md`](../context/fable/01_OWNER_WANTS.md).
