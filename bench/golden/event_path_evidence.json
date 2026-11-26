@@ -30,8 +30,8 @@
       "classification": "event-path",
       "test_target": "abi2_midi_cc_to_cv_tests",
       "test_file": "modules/midi_cc_to_cv/tests.cpp",
-      "line_start": 5,
-      "line_end": 24,
+      "line_start": 19,
+      "line_end": 38,
       "assertion": "REQUIRE(r.sample(0) == float(17. / 16383.))",
       "exercise": "MIDI CC UMP events alter 14-bit CV across endpoint/channel matrix"
     },
@@ -40,8 +40,8 @@
       "classification": "event-path",
       "test_target": "abi2_osc_in_tests",
       "test_file": "modules/osc_in/tests.cpp",
-      "line_start": 68,
-      "line_end": 95,
+      "line_start": 197,
+      "line_end": 211,
       "assertion": "REQUIRE(r.outputs[0].channels == 2",
       "exercise": "Encoded OSC messages populate CV and trigger outputs and forward message events"
     },

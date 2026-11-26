@@ -100,3 +100,29 @@ contextBridge.exposeInMainWorld('wirescape', Object.freeze({
   },
   platform: process.platform
 }));
+
+// A92: independent file-only bridge; existing five-member engine/patch bridge
+// remains unchanged. Main repeats input validation and checks the sender.
+contextBridge.exposeInMainWorld('wirescapeOscPresets', Object.freeze({
+  list(module: string): Promise<{ file: string; name: string }[]> {
+    if (module !== 'osc.in' && module !== 'osc.out') return Promise.reject(new TypeError('Invalid OSC preset module'));
+    return ipcRenderer.invoke('wirescape:osc-presets', { op: 'list', module });
+  },
+  read(file: string): Promise<string> {
+    if (typeof file !== 'string' || file.length > 240 || !/^[^\\/:*?"<>|\x00-\x1f]+\.json$/i.test(file))
+      return Promise.reject(new TypeError('Invalid OSC preset filename'));
+    return ipcRenderer.invoke('wirescape:osc-presets', { op: 'read', file });
+  },
+  choose(): Promise<string | null> {
+    return ipcRenderer.invoke('wirescape:osc-presets', { op: 'choose' });
+  },
+  async save(text: string, name: string): Promise<void> {
+    if (typeof text !== 'string' || new TextEncoder().encode(text).length > 256 * 1024 ||
+        typeof name !== 'string' || !name.trim() || name.length > 120)
+      throw new TypeError('Invalid OSC preset');
+    await ipcRenderer.invoke('wirescape:osc-presets', { op: 'save', text, name });
+  },
+  async openFolder(): Promise<void> {
+    await ipcRenderer.invoke('wirescape:osc-presets', { op: 'folder' });
+  },
+}));

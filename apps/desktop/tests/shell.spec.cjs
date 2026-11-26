@@ -535,3 +535,48 @@ test('atomic rename failure preserves disk contents and the Studio dirty marker 
     }
   }
 });
+
+test('OB-h5 preset IPC lists typed files, bounds reads and never exposes paths', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-presets-'));
+  const folder = path.join(root, 'presets', 'osc');
+  const file = path.join(folder, 'Custom.json');
+  const app = await launch();
+  const preset = JSON.stringify({ format: 'wirescape.osc.preset', version: 1, module: 'osc.in',
+    name: 'Custom', config: { port: 9000, rows: Array.from({ length: 8 }, (_, i) => ({
+      pattern: '/test/' + (i + 1), kind: 'cv', argument: 0, input_min: 0, input_max: 1,
+      output_min: 0, output_max: 1, smoothing_ms: 5, timeout_ms: 1000, stale: 'hold',
+    })) } });
+  try {
+    const page = await app.firstWindow();
+    await app.evaluate(({ app, dialog, shell }, args) => {
+      app.setPath('userData', args.root);
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: args.file });
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [args.file] });
+      shell.openPath = async value => { globalThis.__presetOpened = value; return ''; };
+    }, { root, file });
+    expect(await page.evaluate(() => window.wirescapeOscPresets.list('osc.in'))).toEqual([]);
+    expect(fs.existsSync(folder)).toBe(true);
+    await page.evaluate(text => window.wirescapeOscPresets.save(text, 'Custom'), preset);
+    expect(fs.readFileSync(file, 'utf8')).toBe(preset);
+    await expect(page.evaluate(text => {
+      const p = JSON.parse(text); p.config.lan = true;
+      return window.wirescapeOscPresets.save(JSON.stringify(p), 'Custom');
+    }, preset)).rejects.toThrow('portable mapping fields');
+    await expect(page.evaluate(text => {
+      const p = JSON.parse(text); p.config.rows[0].host = '192.0.2.1';
+      return window.wirescapeOscPresets.save(JSON.stringify(p), 'Custom');
+    }, preset)).rejects.toThrow('portable mapping fields');
+    expect(fs.readFileSync(file, 'utf8')).toBe(preset);
+    fs.writeFileSync(path.join(folder, 'Invalid.json'), '{}');
+    fs.writeFileSync(path.join(folder, 'Out.json'), preset.replace('osc.in', 'osc.out'));
+    fs.writeFileSync(path.join(folder, 'Large.json'), ' '.repeat(262145));
+    expect(await page.evaluate(() => window.wirescapeOscPresets.list('osc.in')))
+      .toEqual([{ file: 'Custom.json', name: 'Custom' }]);
+    expect(await page.evaluate(() => window.wirescapeOscPresets.read('Custom.json'))).toBe(preset);
+    expect(await page.evaluate(() => window.wirescapeOscPresets.choose())).toBe(preset);
+    await expect(page.evaluate(() => window.wirescapeOscPresets.read('../Custom.json'))).rejects.toThrow();
+    await expect(page.evaluate(() => window.wirescapeOscPresets.read('Large.json'))).rejects.toThrow();
+    await page.evaluate(() => window.wirescapeOscPresets.openFolder());
+    expect(await app.evaluate(() => globalThis.__presetOpened)).toBe(folder);
+  } finally { await app.close(); fs.rmSync(root, { recursive: true, force: true }); }
+});

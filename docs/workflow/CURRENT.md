@@ -8,6 +8,28 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-26 05:21 EST (existing GPT work)
+
+- B1 #606 auto-merged `9957004`; no new task released. B2 #540 draft Lab 15/15 / Studio 408/408 green, ready-event Lab/Golden/paired underway; final Result/Architect packet not ready. B5 #545 exact Lab/Web/E4b green; keep shared writer with B2 until actual #540 merge. #610 advanced to `329c0dc`, current Lab/ASan evidence pending.
+- #600 reopened after bootstrap auto-closure: main dispatch/facts still incomplete. Added execution request to the Architect inbox, using full #608 merge pin `48479fc38d5d1d74eefd0851ff893988d9398220`. No connector dispatch; browser fallback signed out. B3 resumes artifact audit after authenticated dispatch.
+- #592 exact facts-only Lab green, but 33 original JSON files remain unretained. Tried authorized transfer: GitHub artifact API 403 outside sandbox; connector-provided download URLs unreadable in executor. No file retention claimed. Added precise existing-branch/hash-manifest execution packet to inbox and `needs/architect`; #609 still waits for actual merge. This is operational help, no new design ruling or product review.
+- Two execution requests are ready for one Architect batch after this inbox merges. B2/B5 contract reviews are not yet ready. No roadmap/gate change. Owner starts: `2:run`, `5:run`; B3 after dispatch and B4 after retention transfer.
+- Next milestone OB1 still needs OB-d owner listening, OB-a2 real-folder run, candidate Studio recheck and Pi 6a/6b evidence, then Architect acceptance/tag. No acceptance substituted or waived.
+
+Signed: gpt-lead, 2026-11-26
+
+## Lead run — 2026-11-26 05:10 EST (GPT delivery only)
+
+- Owner: ignore new-plan updates; focus on existing GPT-agent work. Repository verified as `kalharbi11/wirescape-lab`; local preloaded `wirescape` checkout was not used for writes. No new scope released.
+- B1 #606 signed Result at `70ad2fa`, draft Lab green: lead marked ready and enabled auto-merge under OB-h5 / SR20(c). Required ready-event checks still gate merge; skipped draft evidence is not a pass.
+- B2 #540 `6fbc953`: targeted correction 14/14 passed, full Lab pending; finish evidence before Architect review. B5 #545 `11762c5` has a new construction-default correction and awaits current evidence; shared writer waits for actual #540 merge. #610 Lab green; long-switch and sanitizer rows still need final evidence.
+- B3 #608 merged `48479fc38d5d1d74eefd0851ff893988d9398220` after signed Result and all 15 ready Lab jobs verified. Initial non-mergeable snapshot was transient; correction withdrawn (7189022402). Normal squash merge followed auto-merge refusal on advisory unstable status. #600 stays open through pinned-main dispatch and facts; available connector has no workflow-dispatch operation.
+- B4 #592 `011485b` remains blocked on original JSON retention, not measured results. Both CMP-1 jobs passed; original ZIPs expire Dec 10. #609 Lab green, but release still waits for #592 merge; Golden/paired/portability and exception evidence follow ready state.
+- No new ready Architect batch or wake. Manual continuation: B2 `2:run`, B3 `3:run`, B4 `4:run`, B5 `5:run`; B1 implementation finished, lead owns ready gates. Preserve all branches and correction ledgers.
+- OB1 still needs owner OB-d listening, real-patch-folder OB-a2, candidate Studio recheck, and Pi 6a/6b session evidence, then Architect acceptance/tag. No milestone gate changed.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 46 — 2026-11-26 ET (wrap-up mode; owner `architect:run`)
 
 - **Owner direction (wrap-up mode):** while the Fable runs are open, lanes finish their current PR and the draft they already have open, and open nothing new. This replaces "nothing holds" in the session entry below for queue items without a PR: OB-h2 #601, OB-h6 #604, A67 #494 and the OB-h2 Host field **hold until Fable run 1 replans**. Written into [BUILDERS](BUILDERS.md) and the [lead brief](../context/CODEX_LEAD.md#wrap-up-mode-owner-2026-11-26-while-the-fable-design-runs-are-open).
@@ -21,13 +43,20 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 Signed: claude-architect, 2026-11-26
 
+## Architect session — 2026-11-26 ET (Fable → Planner)
+
+- **Owner:** no Fable access. The two design runs move to **`claude-planner`** on Opus (`planner: run 1|2`), a seat separate from the Architect, with the same final authority. The brief is now `docs/context/planner/` (renamed from `docs/context/fable/`). Run 1 also decides CI speed: docs and plan changes must not wait on long CI.
+- Nothing holds; the freeze in the entry below now applies to the Planner runs.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect session — 2026-11-26 ET (Fable design brief; owner direction)
 
-- **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/fable/01_OWNER_WANTS.md`](../context/fable/01_OWNER_WANTS.md).
-- **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/fable/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
+- **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/planner/01_OWNER_WANTS.md`](../context/planner/01_OWNER_WANTS.md).
+- **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/planner/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
 - **Freeze while the runs are open:** no new Architect rulings or contracts on the roadmap, headless, module-dev workflow, macros and mapping, OSC In features, scripting or the tool host. **Nothing holds:** every lane keeps its current task and queue, including OB-h1–OB-h6.
 - **Reframe:** `proposals/0022` is renamed `0022-ob1.1-headless-readiness.md`. Its rationale now treats the rows as permanent headless requirements, not preparation for one event. The rows are unchanged.
-- **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules.
+- **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules. **Settled in run 46** ([#601](https://github.com/kalharbi11/wirescape-lab/issues/601)): a wording slip in A91, not a design gap. `setOsc` is refused by design in v0; the switch is `--confirm-lan`, as for OSC In, and a non-loopback `host` is the per-route opt-in. No Fable ruling is needed.
 - **Next Architect run should:** (1) after each Fable run, verify its factual claims and file its tasks; (2) otherwise follow the run-45 list.
 
 Signed: claude-architect, 2026-11-26
