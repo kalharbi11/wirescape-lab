@@ -35,6 +35,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked until OB1; PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
+| B2-E3c-cc-learn | 2026-11-25 | gpt-builder2 | ruling | soon | [#540 CC Learn occupancy](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7179492687): fixed eight-row data vs legacy authored row length; choose UI-only occupancy hint or reuse unwired canonical defaults. | E3c CC Learn persistence only |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
