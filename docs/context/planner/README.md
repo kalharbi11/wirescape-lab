@@ -12,6 +12,8 @@ Open a Claude Code session on Opus with `kalharbi11/wirescape-lab`, `kalharbi11/
 - ~~`planner: run 1`~~ — **done** (#618, `proposals/0023`; transcribed by Architect run 47);
 - ~~`planner: run 2a`~~ — **done** ([`proposals/0024`](../../../proposals/0024-test-repo-macros-modules.md);
   `wirescape-test` rules PR open for review);
+- ~~2b part 1~~ — **done** (lab and `wirescape-test` items of `03_PLANNER_REVIEW.md`:
+  [0024 §9](../../../proposals/0024-test-repo-macros-modules.md));
 - **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order
   (**recommended next**, after 2a's lab PR merges; max effort; read [`03_PLANNER_REVIEW.md`](03_PLANNER_REVIEW.md) first, then 0024 §0 and §6);
 - `planner: run 2` — fallback: all of run 2 in one session (max effort).
