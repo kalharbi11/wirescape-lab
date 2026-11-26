@@ -320,3 +320,24 @@ test('MM1 canvas: paste copies a mapping as one graph, preserves authored range 
     return { patch: a.state(), history: a.historyDepth() };
   })).toEqual(before);
 });
+
+test('MM1 Learn: a Macro-owned target refuses a second CC owner without graph or history mutation', async ({ page }) => {
+  await boot(page);
+  await page.evaluate(async p => {
+    const a = window.__wirescapeTest;
+    await a.load(p);
+    a.flushHistory();
+    (a.canvas as any).s.midiLearn.begin(3, 'depth');
+    a.engine.emitMidiCc('Arturia KeyStep|midi:0', 1, 74, 64);
+  }, fixture());
+  const before = await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  });
+  await page.getByTestId('learn-confirm').click();
+  await expect(page.getByText('Mapped to Macros 1 · Knob 1. Remove that mapping, or map the source to a macro.', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => {
+    const a = window.__wirescapeTest;
+    return { patch: a.state(), history: a.historyDepth() };
+  })).toEqual(before);
+});

@@ -137,3 +137,35 @@ test('MM1 A101 real bridge: refused compensation restores last acknowledged grap
   });
   expect(after.patch.modules[2].parameters.depth).toBe(.5);
 });
+
+test('MM1 Forget: known CC source holds the base in one applyGraph and undo step', async ({ page }) => {
+  await setup(page);
+  const before = await snapshot(page);
+  await page.evaluate(() => (window as any).__mockBridge.telemetry({ outputs: { '1:cc1': .5 } }));
+  await expect.poll(() => page.evaluate(() => window.__wirescapeTest.ticker.last?.outputs?.['1:cc1'])).toBe(.5);
+  await page.evaluate(() => (window.__wirescapeTest.canvas as any).s.midiLearn.forget(2, 'depth'));
+  await expect.poll(() => page.evaluate(() => window.__wirescapeTest.canEdit())).toBe(true);
+  expect(await commands(page)).toEqual(['applyGraph']);
+  const after = await snapshot(page);
+  expect(after.patch.connections).toHaveLength(0);
+  expect(after.patch.modules[1].parameters.depth).toBeCloseTo(.45);
+  expect(after.history.past).toBe(before.history.past + 1);
+  expect(after.graph.modules[1].parameters.depth).toBeCloseTo(.45);
+});
+
+test('MM1 Forget: partial ACK uses A101 whole-graph compensation', async ({ page }) => {
+  await setup(page);
+  const before = await snapshot(page);
+  await page.evaluate(() => (window as any).__mockBridge.telemetry({ outputs: { '1:cc1': .5 } }));
+  await expect.poll(() => page.evaluate(() => window.__wirescapeTest.ticker.last?.outputs?.['1:cc1'])).toBe(.5);
+  await page.evaluate(() => {
+    (window as any).__mockBridge.setUnapplied([{ moduleId: 2, paramId: 'depth' }]);
+    (window.__wirescapeTest.canvas as any).s.midiLearn.forget(2, 'depth');
+  });
+  await expect.poll(() => page.evaluate(() => window.__wirescapeTest.canEdit())).toBe(true);
+  expect(await commands(page)).toEqual(['applyGraph', 'applyGraph']);
+  const after = await snapshot(page);
+  expect(after.patch).toEqual(before.patch);
+  expect(after.history).toEqual(before.history);
+  expect(after.graph).toEqual(before.graph);
+});
