@@ -9,6 +9,9 @@ const snapshot = (a: number, b: number) => ({
   modules: [{ id: 1, module: 'osc.in', config: config(a) },
     { id: 2, module: 'osc.in', config: config(b) }],
   connections: [],
+  // Both real editor controls must be independently clickable after any snapshot restore.
+  ui: { positions: { '1': [70, 50] as [number, number], '2': [650, 50] as [number, number] },
+    view: { x: 0, y: 0, zoom: 1 } },
 });
 async function setup(page: Page, capability: boolean) {
   await mockBridge(page, { applyGraph: true, configDeferred: capability });
