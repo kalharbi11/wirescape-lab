@@ -14,8 +14,9 @@ Open a Claude Code session on Opus with `kalharbi11/wirescape-lab`, `kalharbi11/
   `wirescape-test` rules PR open for review);
 - ~~2b part 1~~ — **done** (lab and `wirescape-test` items of `03_PLANNER_REVIEW.md`:
   [0024 §9](../../../proposals/0024-test-repo-macros-modules.md));
-- **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order
-  (**recommended next**, after 2a's lab PR merges; max effort; read [`03_PLANNER_REVIEW.md`](03_PLANNER_REVIEW.md) first, then 0024 §0 and §6);
+- ~~`planner: run 2b`~~ — **done** ([`proposals/0025`](../../../proposals/0025-player-osc-scripts-tools.md):
+  the headless Player, Gate P1 (e) shapes, OSC and scripts, order, guide list, tool-host boundaries;
+  `wirescape-headless` rules PR open for review);
 - `planner: run 2` — fallback: all of run 2 in one session (max effort).
 
 Run 2 does not redo setup: read "Run 2 prep" in [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) first.
