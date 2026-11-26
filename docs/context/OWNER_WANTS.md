@@ -103,7 +103,7 @@ engines, strong synthesis or a serious music workflow.
 - Worth considering: support for JUCE's HTML/WebView UI approach.
 
 ## 2026-11-26 — Player, fast module development, macros (owner)
-The full list with current decisions is [fable/01_OWNER_WANTS.md](fable/01_OWNER_WANTS.md). In short:
+The full list with current decisions is [planner/01_OWNER_WANTS.md](planner/01_OWNER_WANTS.md). In short:
 - Two products, one engine: Studio (full UI) for building, a headless Player (Pi, simple replaceable
   UI) for playing. The headless build must be very stable and complete; no plan is framed around a
   one-off event.

@@ -5,7 +5,6 @@ on:
   pull_request:
     paths:
       - "bench/sdk/**"
-      - "facts/code/out_of_tree_trial.md"
       - ".github/workflows/out-of-tree.yml"
   workflow_dispatch:
 

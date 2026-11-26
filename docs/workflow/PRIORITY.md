@@ -1,41 +1,30 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# PRIORITY — what to work on first (owner-directed, 2026-11-17 ET)
+# PRIORITY — what to work on first
 
-**Goal of the next weeks: an Owner Build the owner can use alone on the Pi 5 (Windows second).**
-It does not include Daisy or other hardware, third-party module drop-in, the SDK, the dev loop, panels
-or protocol publication. Those come later and are already contracted (M6, M8–M12).
+**r4 (claude-planner, run 1, 2026-11-26, [`proposals/0023`](../../proposals/0023-review-and-replan.md)):**
+replaces the 2026-11-17 goal and tiers. Earlier revisions are in git history: r1 (owner-directed,
+accepted in `0017`), r2 (`0021` §6) and r3 (`0022`, OB r2.12).
 
-**How this sits with STANDING SR16:** the lanes and contracts are unchanged. Among ready tasks,
-the lead picks from the highest tier first. Inside a tier SR16's order applies. This replaces only
-SR16's line "M10 batch 0 and M12 P0 never wait": they now run only when a builder has nothing
-in P0–P2. No contract, invariant or gate changes.
+**Goal of the next weeks:** a stable headless Player on the Pi and fast module development, on the same
+engine as Studio. OB1 acceptance stands as written (owner-only items recorded, never waived), and it
+gates no new work.
 
-**Accepted by Fable, 2026-11-17** (`proposals/0017` sections 3 and 4). Two clarifications:
-the sidecar lane order is TR1e → E6 → E5/E3a → E7, and PV2b/TR1h/PV3 never make an M4 task wait;
-MT1 has merged (#169), so the open M6 work to finish or park before S6 is MT2 (PR #176).
-
-**r2 (claude-architect, owner-answered, 2026-11-23, `proposals/0021` §6):** OB1's M4 set is E6, E4a, E4b, E5, E7 and CN. **E3a, E3b and E3c move to OB1.1.** G-W1 #368 (Groove scrolling without a click) is added to OB1. New module work is frozen until OB1, except a Poly Split if the owner confirms it.
-
-**r3 (claude-architect, owner request, 2026-11-25, OB r2.12, `proposals/0022`):** OB1.1 Tier 1 rows OB-h1–OB-h6 and A67 #494 serve the headless Pi build: long sessions, heavy OSC, patch switching. They queue after each lane's current task, never hold the OB1 tag, and may merge before it. The owner lifts the module freeze for Gate Delay (OB-h4) only. Tier 2 is suggested, not filed.
-
-**r3 (claude-architect, 2026-11-24, run 29):** OB1's M4 set gains **E5v** [#439](https://github.com/kalharbi11/wirescape-lab/issues/439) (voice count in place, A55). M7 batch 2 is in OB1 as written, unparked by M7 r1.6. OB-g6 #322 joins as an optional row (OB r2.9).
-
-## Owner builds
-| Build | What the owner gets | Needs on `main` |
-|---|---|---|
-| **OB0** (soon, before the S6 rename) | Studio edits (undo/redo, restore, config, OSC rows, CC Learn) stop reloading the whole patch; first sound fixes | M2 E1b-r; M7 T7.0, S7.1, S7.2, S7.4 (and S7.3/S7.5/S7.6 if merged); a tag on `main` |
-| **OB1** (the real one) | Edits never restart the patch (gapless add/remove, replace keeps state, Groove editable while running, device and buffer changes keep state); filter and CHOKE fixes | M1 S3–S6; M3 T1.6a–c, TR1e; M4 E6, E4a, E4b, E5v, E5, E7, CN; M7 batches 1 and 2; G-W1 #368; the OB tasks below |
+The lead picks the highest tier first among ready tasks. Inside a tier, STANDING SR16's order applies.
+This page loosens no contract, invariant or gate.
 
 ## Tiers
 | Tier | Work | Rule |
 |---|---|---|
-| **P0: OB critical path** | M1 S3→S4→S5a→S5b→S6 · M2 E1b-r (#165) · M3 T1.6a→b→c→TR1e · M4 E6→E4a→E4b→E5 and E7, CN · G-W1 #368 · M7 T7.0 (#152), S7.1 (#155), S7.2–S7.9 · M2 evidence #150 (the M4 continuity rows read it) | Always first. Before S6 opens, keep open product PRs few: S6 needs them merged or parked |
-| **P1: OB gaps** (contract: [OB](milestones/OB.md)) | OB-a saved-patch round-trip test across S5/S6/E5 for OB1 and E3a for OB1.1 · OB-b Pi install and launch refresh after S6 (one script plus `docs/INSTALL.md`) · OB-c T6.8 device-free regressions (MIDI to CV, ASIO list, panic and buffer gaps) and the 4 unverified items in `KNOWN_ISSUES.md` · OB-d list of bundled patches to rebuild after M7 | File OB-a1 and the OB-c regression tests now; the rest on their Depends cells |
-| **P2: finish what is open** | M6 MT1 (#153) to merge or park (it must be gone before S6) · M5 PV2b→PV3 only as M4 needs them (sidecar lane, after TR1e) · M3 RL (Reload engine) | Finish the work in flight. Open no new M6 task |
-| **P3: future facts, idle builders only** | M10 S1–S6 · M12 P0 | Only when no P0–P2 task is ready for that builder |
-| **P4: parked until OB1** | M6 MT2–MT5 · M3 MB1–MB3, V1, T1.5, TR1h/TR2/TR3 · M5 PV4–PV5 · M8 · M9 · M10 beyond batch 0 · M11 · M12 beyond P0 · CI1 beyond what is open | Do not file. M8–M12 cannot start before M4 anyway |
+| **P0: finish and foundations** | In-flight lane tasks: #540 E3c, #545 E3b, #592 CMP-1, #600 OB-h1, #609 OB-h4, #610 OB-h3. M4 CN final facts #523, then M4 acceptance. MB1, then MB2 (0023 R3.1). Player gate P0: render liveness and controller faults that degrade (R2.2 a, b); OB-h1, then #494. CI-S1–S3 | Always first |
+| **P1: Player and Studio bridge** | OB-h2 with gate release; OB-h6. Studio restart policy (R2.5). Player gate P1 (R2.3 e–i: the controller stream after run 2, settings fsync, SIGTERM, coverage, TR1h). TR3, MB3, promotions from `wirescape-test` after MB2. Studio macro, mapping, lock and bundle work per run 2 | After P0 in the same lane |
+| **P2: owner items and docs** | Owner-only: OB-d listening list, OB-a2 folder check, Pi 6a/6b. Doc fixes (0023 §8 item 7) | The owner's time; docs in free slots |
+| **P3: future facts, idle builders only** | M10 batch 0 · M12 P0 | Only when nothing in P0–P2 is ready |
+| **P4: parked** | M5 PV2a–PV5 · M6 MT2–MT5 · M8 · M9 · M10 beyond batch 0 · M11 · M12 beyond P0 (unless run 2 pulls P3 forward) · M3 V1 · M3 T1.5 (cut) | Do not file |
 
-**V1 (native v1 removal) stays parked** until OB-a proves the owner's saved patches load without it
-(CONSTRAINTS "Fixed": the owner's saved patches keep loading).
+**Module freeze:** no new module enters the lab until MB2 merges. Gate Delay (OB-h4) is the exception.
+New modules start in `wirescape-test` and are promoted after MB2.
 
-Signed: claude-architect (owner-directed), 2026-11-17
+**V1 stays parked** until the owner decides (CONSTRAINTS "Fixed": the owner's saved patches keep
+loading).
+
+Signed: claude-planner, 2026-11-26
