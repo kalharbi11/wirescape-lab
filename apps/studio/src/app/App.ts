@@ -223,6 +223,7 @@ export class App {
         });
         return true;
       },
+      disconnectMapping: c => this.removeMappingFromCanvas(c),
       engineConnect: c => {
         this.editEngine().connect(c);
         this.trackRollback(() => { this.doc.disconnect(c); this.canvas.shake(c.to.module); });
@@ -1703,10 +1704,24 @@ export class App {
     this.root.dataset.selection = s.kind;
   }
 
+  private removeMappingFromCanvas(c: Connection): boolean {
+    if (!deriveMappings(this.doc.toJSON(), this.registry).some(m => connKey(m.connection) === connKey(c))) return false;
+    void this.removeMapping(c).then(() => {
+      const selected = this.canvas.currentSelection;
+      if (selected.kind === 'cable' && connKey(selected.c) === connKey(c)) this.canvas.select({ kind: 'none' });
+      this.toasts.show('Mapping removed.');
+    }).catch(err => {
+      this.toasts.show(err instanceof Error ? err.message : 'Mapping removal refused.', 'error');
+      this.canvas.shake(c.to.module);
+    });
+    return true;
+  }
+
   private deleteSelection(): void {
     if (this.documentBusy) return;
     const s = this.canvas.currentSelection;
     if (s.kind === 'cable') {
+      if (this.removeMappingFromCanvas(s.c)) return;
       this.doc.disconnect(s.c);
       try { this.editEngine().disconnect(s.c); this.trackRollback(() => this.doc.connect(s.c)); }
       catch { /* ignore */ }

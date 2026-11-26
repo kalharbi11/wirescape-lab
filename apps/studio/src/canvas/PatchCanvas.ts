@@ -39,6 +39,7 @@ export interface CanvasServices extends PanelHost {
   /** Send a connect to the engine; throws EngineRefusal if it is refused. */
   /** Return true when the host owns this mapping transaction. */
   connectMapping?(c: Connection): boolean;
+  disconnectMapping?(c: Connection): boolean;
   engineConnect(c: Connection): void;
   engineDisconnect(c: Connection): void;
   /** MIDI Learn (#287). Absent or `available() === false` when the engine cannot observe CCs. */
@@ -99,6 +100,7 @@ export class PatchCanvas {
       this.select({ kind: 'cable', c: cable });
       this.showMenu(e, [['Remove cable', () => {
         if (!this.s.canEdit()) return;
+        if (this.s.disconnectMapping?.(cable)) return;
         this.s.doc.disconnect(cable);
         try { this.s.engineDisconnect(cable); } catch { /* optimistic rollback is tracked by the host */ }
         this.select({ kind: 'none' });
