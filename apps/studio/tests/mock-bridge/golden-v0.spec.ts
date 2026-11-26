@@ -59,6 +59,7 @@ async function goldenBridge(page: Page): Promise<void> {
     let sessionNumber = 1;
     let oldSession = '';
     let selected = '';
+    const optedIn = new Set<string>();
     const session = () => 'golden-' + sessionNumber;
     const emit = (value: Message) => { for (const cb of listeners) cb(value); };
     const copy = (value: Message) => JSON.parse(JSON.stringify(value));
@@ -90,6 +91,19 @@ async function goldenBridge(page: Page): Promise<void> {
     };
     const send = (cmd: Message) => {
       sent.push(copy(cmd));
+      // The server hello in the shared transcript advertises A80, but
+      // its native legacy-client cases intentionally do not opt in.
+      // Acknowledge the Studio-only negotiation without consuming the
+      // selected transcript case (including the restart load r15).
+      if (cmd.type === 'hello') {
+        if (optedIn.has(session()) || !same(cmd, { v: 0, type: 'hello', capabilities: ['configDeferred'] })) {
+          errors.push('Unexpected A80 opt-in: ' + JSON.stringify(cmd));
+          return;
+        }
+        optedIn.add(session());
+        emit({ v: 0, session: session(), re: cmd.id, ok: true, gen: String(generation) });
+        return;
+      }
       const name = selected;
       selected = '';
       if (name) {
@@ -208,6 +222,7 @@ test('golden v0: RealEngine maps commands, replies, refusals and pushes through 
     gen: (window as any).__goldenBridge.generation(),
   }));
   expect(result.errors).toEqual([]);
+  expect(result.sent.filter((r: Wire) => r.type === 'hello')).toHaveLength(1);
   expect(result.refusals.map((r: Wire) => r.detail.code)).toEqual([
     'unknown-module', 'kind-mismatch', 'busy',
   ]);
@@ -251,4 +266,5 @@ test('golden v0: RealEngine maps commands, replies, refusals and pushes through 
   await expect.poll(() => page.evaluate(() => window.__wirescapeTest.ticker.last?.heldNotes))
     .toEqual([]);
   expect(await page.evaluate(() => (window as any).__goldenBridge.errors)).toEqual([]);
+  expect(await page.evaluate(() => (window as any).__goldenBridge.sent.filter((r: Wire) => r.type === 'hello').length)).toBe(2);
 });
