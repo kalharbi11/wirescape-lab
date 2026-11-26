@@ -92,3 +92,48 @@ test('MM1 real bridge: no applyGraph capability refuses new mapping without load
   expect(await commands(page)).toEqual([]);
   expect(await snapshot(page)).toEqual(before);
 });
+
+test('MM1 A101 real bridge: partial ACK compensates the whole prior document', async ({ page }) => {
+  await setup(page);
+  const before = await snapshot(page);
+  const error = await page.evaluate(async () => {
+    const a = window.__wirescapeTest, b = (window as any).__mockBridge;
+    b.setUnapplied([{ moduleId: 3, paramId: 'depth' }]);
+    try { await a.addMapping({ module: 1, port: 'cc2' }, { module: 3, port: 'depth' }); return ''; }
+    catch (e) { return (e as Error).message; }
+  });
+  expect(error).not.toBe('');
+  expect(await commands(page)).toEqual(['applyGraph', 'applyGraph']);
+  const after = await snapshot(page);
+  expect(after.patch).toEqual(before.patch);
+  expect(JSON.stringify(after.patch)).toBe(JSON.stringify(before.patch));
+  expect(after.history).toEqual(before.history);
+  expect(after.graph).toEqual(before.graph);
+});
+
+test('MM1 A101 real bridge: refused compensation restores last acknowledged graph', async ({ page }) => {
+  await setup(page);
+  await page.evaluate(() => {
+    const a = window.__wirescapeTest, b = (window as any).__mockBridge;
+    b.setUnapplied([{ moduleId: 3, paramId: 'depth' }]);
+    b.holdNext('applyGraph');
+    (window as any).__mmPending = a.addMapping({ module: 1, port: 'cc2' }, { module: 3, port: 'depth' })
+      .then(() => '', (e: Error) => e.message);
+  });
+  await expect.poll(() => commands(page)).toEqual(['applyGraph']);
+  await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    b.refuseNext('applyGraph', 'refused');
+    b.acceptHeld();
+  });
+  expect(await page.evaluate(() => (window as any).__mmPending)).not.toBe('');
+  expect(await commands(page)).toEqual(['applyGraph', 'applyGraph']);
+  const after = await snapshot(page);
+  expect(after.patch.connections).toEqual(after.graph.connections);
+  expect(after.patch.modules).toEqual(after.graph.modules);
+  expect(after.patch.connections).toContainEqual({
+    kind: 'modulation', from: { module: 1, port: 'cc2' },
+    to: { module: 3, port: 'depth' }, amount: 1,
+  });
+  expect(after.patch.modules[2].parameters.depth).toBe(.5);
+});

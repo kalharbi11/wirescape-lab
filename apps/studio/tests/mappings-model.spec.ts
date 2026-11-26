@@ -188,3 +188,29 @@ test('MM1 canvas: selected mapping removal holds source contribution and is one 
       past: a.historyDepth().past };
   })).toEqual({ cables: 0, depth: .33, past: before + 1 });
 });
+
+test('MM1 A101 fake: partial ACK is refused and compensated exactly once', async ({ page }) => {
+  await boot(page);
+  const result = await page.evaluate(async p => {
+    const a = window.__wirescapeTest;
+    await a.load(p);
+    a.flushHistory();
+    const before = a.state(), history = a.historyDepth();
+    const engine = a.engine;
+    const calls: string[] = [];
+    for (const method of ['applyGraph', 'loadGraph', 'setParam', 'setModAmount']) {
+      const original = engine[method].bind(engine);
+      engine[method] = (...args: any[]) => { calls.push(method); return original(...args); };
+    }
+    engine.setNextUnapplied([{ moduleId: 1, paramId: 'knob2' }]);
+    let error = '';
+    try { await a.addMapping({ module: 1, port: 'out2' }, { module: 4, port: 'depth' }); }
+    catch (e) { error = (e as Error).message; }
+    return { before, history, after: a.state(), finalHistory: a.historyDepth(), calls, error };
+  }, fixture());
+  expect(result.error).not.toBe('');
+  expect(result.calls).toEqual(['applyGraph', 'applyGraph']);
+  expect(result.after).toEqual(result.before);
+  expect(JSON.stringify(result.after)).toBe(JSON.stringify(result.before));
+  expect(result.finalHistory).toEqual(result.history);
+});
