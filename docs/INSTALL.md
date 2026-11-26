@@ -203,6 +203,22 @@ real Pi timing, the screen, audio and MIDI. Those come from the records below.
 
 ## Testing and reporting
 
+**Offline patch preflight (OB-h6, on the Pi).** Before deploying your Studio patch folder,
+run the compiled device-off renderer on the target Pi:
+
+```sh
+python3 tools/patch_library.py check /path/to/patch-folder --rate 48000 --block 128 --seconds 10 --json build_reports/patch-check.json
+```
+
+Use your actual rate and block size, and an existing report parent directory outside the patch
+folder. The tool uses no input events, audio or MIDI devices, or sockets; it reports every patch's
+load/render status, nonfinite samples, peak/RMS, post-first-second silence and per-block render
+wall time as a percentage of the configured period. Silence and overruns are informational;
+inspect overruns and worst-block headroom on the Pi. Load/render refusal or NaN/Inf fails the
+check. Silence is unmeasured for durations without samples after the first second. Timing is
+host-specific and does not establish real-device reliability. The existing `check --shared`
+structural validation and `install` commands are unchanged.
+
 Every record is device-off unless the step says 🔊. Upload each zip to
 [OWNER-REC #590](https://github.com/kalharbi11/wirescape-lab/issues/590) and paste its summary table.
 The lead turns it into a `facts/device/results/` file.
