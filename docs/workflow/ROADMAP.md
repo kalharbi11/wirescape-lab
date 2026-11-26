@@ -24,12 +24,12 @@ as written, but it gates no new work.
 ## In progress and next
 | Stage | Item | State | Next / completion |
 |---|---|---|---|
-| 0 | [M4](milestones/M4.md) gapless live edits | E6, E4a/b, E5v, E5, E7, E7b and E7c merged | Final CN and cost facts [#523](https://github.com/kalharbi11/wirescape-lab/issues/523) (B3), the KNOWN_ISSUES A2 rewrite, then acceptance |
-| 0 | M4 E3a/b/c (OB1.1) | E3a-1 merged; E3b #545 and E3c #540 in flight | Merge under M4; no OB1 hold |
+| 0 | [M4](milestones/M4.md) gapless live edits | E6, E4a/b, E5v, E5, E7, E7b and E7c merged | Final CN #523 and A2 rewrite merged; finish E3b #545 and reconcile acceptance |
+| 0 | M4 E3a/b/c (OB1.1) | E3a-1 and E3c #540 merged; E3b #545 in flight | Merge under M4; no OB1 hold |
 | 0 | [M7](milestones/M7.md) sound work | Batches 1 and 2 merged | OB-d owner listening list, then close |
 | 0 | [OB1](milestones/OB.md) gapless Owner Build | Code prerequisites merged | Owner-only: OB-d, the OB-a2 folder check, Pi 6a/6b. Architect tags `owner-build-1`. Gates nothing new |
-| 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 bootstrap #608; h3 #610 and h4 #609 drafts; h5 merged | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
-| 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | Lead: CI-S1 notes scope, CI-S2 `facts.yml` dispatch-only, CI-S3 `e4b-stress` on ready PRs only |
+| 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 facts #634, h4 #609 and h5 merged; h3 #610 released after #635; h6 #648 awaiting gates | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
+| 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | CI-S1–S3 applied by Architect run 47 |
 | 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | Unparked by 0023 R3.1 | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3. The lab module freeze ends when MB2 merges |
 | 1 | Player gate P0 (0023 R2.2) | New | (a) render liveness: `stalled` state in status (B5); (b) controller faults degrade, never exit (B2); OB-h1, then #494 if needed |
 | 1 | Studio restart policy (0023 R2.5) | New | Growing delay, never gives up, non-modal banner (B1) |
