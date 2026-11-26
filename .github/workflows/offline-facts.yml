@@ -7,13 +7,6 @@ on:
     paths:
       - 'bench/offline/**'
       - '.github/workflows/offline-facts.yml'
-      - 'native/**'
-      - 'engine/**'
-      - 'host/**'
-      - 'modules/**'
-      - 'sdk/**'
-      - 'targets/**'
-      - 'tests/native/**'
       - 'tools/dev.py'
       - 'tools/foundation/tests/test_build_failure_diagnostics.py'
       - 'tools/render/**'
