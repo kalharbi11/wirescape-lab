@@ -14,8 +14,9 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(len(golden_ids()), 34)
         self.assertEqual(EXPERIMENTAL, {
             "essentials.cv_to_notes", "essentials.poly_merge", "essentials.poly_split",
+            "essentials.gate_delay",
         })
-        self.assertEqual(len(catalogue), 37)
+        self.assertEqual(len(catalogue), 38)
         self.assertIn("osc.out", catalogue)
 
     def test_missing_osc_out_rows_fail_coverage(self):
