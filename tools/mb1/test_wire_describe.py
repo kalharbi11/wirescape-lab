@@ -51,8 +51,15 @@ class DescriptorEquality(unittest.TestCase):
         for identity, manifest in manifests.items():
             with self.subTest(module=identity):
                 descriptor = descriptors[identity]
-                for field in ("id", "name", "abi_version", "inputs", "outputs", "parameters"):
+                for field in ("id", "name", "abi_version", "inputs", "outputs"):
                     self.assertEqual(descriptor[field], manifest[field], field)
+                # The historical Output manifest omits parameters because it has none.
+                # No missing or nonempty native parameter map may pass this exception.
+                if identity == "essentials.output" and "parameters" not in manifest:
+                    self.assertEqual(descriptor["parameters"], {})
+                    self.assertEqual(descriptor["parameter_details"], [])
+                else:
+                    self.assertEqual(descriptor["parameters"], manifest["parameters"])
                 self.assertFalse(set(manifest) - {"id", "name", "abi_version", "inputs",
                                                       "outputs", "parameters", "schema_version",
                                                       "library", "license", "description"},
