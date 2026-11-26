@@ -36,6 +36,10 @@ const input = readline.createInterface({ input: process.stdin, crlfDelay: Infini
 input.on('line', line => {
   let request;
   try { request = JSON.parse(line); } catch { return; }
+  if (process.env.STUB_LOAD_LOG && request.type === 'loadGraph') {
+    const { id, v, session: ignoredSession, ...graph } = request;
+    fs.appendFileSync(process.env.STUB_LOAD_LOG, JSON.stringify({ session, graph }) + '\n');
+  }
   if (process.env.STUB_CRASH_ON_PANIC === '1' && request.type === 'panic') process.exit(9);
   send({ v: 0, session, re: request.id, ok: true, gen: '0' });
 });

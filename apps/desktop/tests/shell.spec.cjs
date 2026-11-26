@@ -80,37 +80,52 @@ test('NDJSON replies, unexpected crash notification and bounded automatic restar
     expect(new Set(hellos.map(h => h.session)).size).toBe(hellos.length);
   } finally { await app.close(); }
 });
-test('four crashes within 30s stop at the failure dialog, even after renderer restart', async () => {
+// RS: the old stop-at-four assertion is intentionally replaced by the
+// planner's opposite contract. Use real supervisor timers and a socket-free
+// stub; the cap is observed twice, including a restart after reaching it.
+test('RS retries indefinitely with 250ms doubling capped at 30s, non-modal banner and graph replay', async () => {
+  test.setTimeout(150000);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wirescape-crash-loop-'));
   const countFile = path.join(dir, 'spawns');
-  const app = await launch({ STUB_CRASH_COUNT_FILE: countFile });
+  const loadsFile = path.join(dir, 'loads.jsonl');
+  const app = await launch({ STUB_CRASH_COUNT_FILE: countFile, STUB_LOAD_LOG: loadsFile });
   try {
     const page = await app.firstWindow();
     await app.evaluate(({ dialog }) => {
       globalThis.__failureDialogCount = 0;
       dialog.showMessageBox = async () => {
         globalThis.__failureDialogCount++;
-        return new Promise(() => {}); // Hold the dialog: no user-requested reset.
+        return new Promise(() => {});
       };
     });
+    await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
     await page.evaluate(() => {
-      window.__unexpectedExits = 0;
-      window.__rendererRestartSent = false;
+      window.__restartDelays = [];
+      window.__restartHellos = [];
       window.wirescape.onMessage(message => {
-        if (message.type !== 'app.engineExited' || message.expected !== false) return;
-        window.__unexpectedExits++;
-        if (!window.__rendererRestartSent) {
-          window.__rendererRestartSent = true;
-          window.wirescape.send({ v: 0, id: 'renderer-restart', type: 'app.restartEngine' });
-        }
+        if (message.type === 'app.engineRestartPolicy' && message.phase === 'waiting')
+          window.__restartDelays.push(message.delayMs);
+        if (message.type === 'hello') window.__restartHellos.push(message.session);
       });
+      // A valid snapshot exercises the existing Studio crash-recovery modal path.
+      localStorage.setItem('wirescape.autosave.v2', JSON.stringify({
+        name: 'RS snapshot', patch: { format: 'wirescape.native.patch', version: 2, modules: [], connections: [] }
+      }));
     });
-    await expect.poll(() => page.evaluate(() => window.__rendererRestartSent)).toBe(true);
-    await expect.poll(() => app.evaluate(() => globalThis.__failureDialogCount), { timeout: 15000 }).toBe(1);
-    expect(await page.evaluate(() => window.__unexpectedExits)).toBe(4);
-    expect(Number(fs.readFileSync(countFile, 'utf8'))).toBe(4);
-    await page.waitForTimeout(650); // A fifth spawn would have appeared by now.
-    expect(Number(fs.readFileSync(countFile, 'utf8'))).toBe(4);
+    await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 3)), { timeout: 12000 })
+      .toEqual([250, 500, 1000]);
+    await expect(page.getByTestId('engine-restart-banner')).toBeVisible();
+    await expect(page.getByTestId('recovery-modal')).toBeHidden();
+    await expect(page.getByTestId('open-settings')).toBeEnabled();
+    await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 9)), { timeout: 115000 })
+      .toEqual([250, 500, 1000, 2000, 4000, 8000, 16000, 30000, 30000]);
+    expect(Number(fs.readFileSync(countFile, 'utf8'))).toBeGreaterThanOrEqual(9);
+    expect(await app.evaluate(() => globalThis.__failureDialogCount)).toBe(0);
+    const loads = fs.readFileSync(loadsFile, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    expect(new Set(loads.map(entry => entry.session)).size).toBeGreaterThanOrEqual(2);
+    expect(loads[1].graph).toEqual(loads[0].graph);
+    const sessions = await page.evaluate(() => window.__restartHellos);
+    expect(new Set(sessions).size).toBeGreaterThanOrEqual(8);
   } finally {
     await app.close().catch(() => {});
     fs.rmSync(dir, { recursive: true, force: true });
