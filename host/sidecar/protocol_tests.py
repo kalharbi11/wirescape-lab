@@ -882,7 +882,9 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 notes=dict(address='/ws/note', enabled=True))),
             dict(id=20, module='essentials.lfo'),
             dict(id=21, module='host.keyboard'),
-            dict(id=22, module='essentials.notes_to_cv')
+            # OSC Out reads FIRST (channel 0); use one voice so the second
+            # keyboard attack cannot rotate to an unobserved voice lane.
+            dict(id=22, module='essentials.notes_to_cv', parameters=dict(voices=1))
         ]
         outgoing_patch['connections'] += [
             edge('signal', 20, 'control', 19, 'row1'),
@@ -1068,6 +1070,45 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 break
         assert saw_no_listener
         out_engine.close()
+
+# OB-h2 A91 permission: a nonloopback destination is refused without
+# consent and under --null-audio even with consent. The TEST-NET host
+# is only configured, never contacted. A localhost receiver detects a
+# forbidden silent fallback. This does not open an audio/MIDI/LAN device.
+with tempfile.TemporaryDirectory() as refused_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as fallback:
+        fallback.bind(('127.0.0.1', 0))
+        fallback.settimeout(0.2)
+        port = fallback.getsockname()[1]
+        for flags, name in (((), 'unconfirmed'), (('--confirm-lan',), 'null-confirmed')):
+            denied = Engine(Path(refused_dir) / (name + '.json'), *flags)
+            try:
+                patch = minimal()
+                patch['modules'].append(dict(id=19, module='osc.out',
+                    config=dict(version=2, host='192.0.2.17', port=port,
+                                rows=[dict(address='/a91/refused', kind='cv')] +
+                                     [dict(enabled=False) for _ in range(7)])))
+                generation = denied.call('loadGraph', patch=patch)['gen']
+                until = time.monotonic() + 3
+                while time.monotonic() < until:
+                    message = denied.pushes.pop(0) if denied.pushes else denied.receive()
+                    if message.get('type') != 'status' or message['gen'] != generation:
+                        continue
+                    routes = message['status']['osc']['out']
+                    if len(routes) == 1:
+                        route = routes[0]
+                        assert route['module'] == '19' and route['port'] == port, route
+                        assert route['state'] == 'lan-refused' and route['sent'] == 0, route
+                        break
+                else:
+                    raise AssertionError('A91 missing denied route status')
+                try:
+                    payload, _ = fallback.recvfrom(1500)
+                    raise AssertionError(f'A91 silent localhost fallback: {payload!r}')
+                except socket.timeout:
+                    pass
+            finally:
+                denied.close()
 
 # OB-h2 A91: two independent module destinations using only loopback sockets.
 # The explicit v2 localhost config must load and deliver, while the legacy
