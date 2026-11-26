@@ -448,7 +448,10 @@ export class App {
       this.engine.onGraphError(e => this.toasts.show(e.message, 'error'));
       this.engine.onCatalogue(() => { this.library.refresh(); this.canvas.rebuild(); this.fillStarters(); });
       window.wirescape?.onMessage(m => {
-        if (m.type === 'app.engineExited' && m.expected !== true) this.offerRecovery('engine');
+        // RS: the desktop supervisor owns engine-crash recovery; app-startup recovery is unchanged.
+        if (m.type === 'app.engineExited' && m.expected !== true &&
+            !(window as Window & { wirescapeRestartPolicy?: unknown }).wirescapeRestartPolicy)
+          this.offerRecovery('engine');
         if (m.type === 'app.menuOpenPatch') void this.openPatchFile();
         if (m.type === 'app.menuSavePatch') void this.savePatchFile(m.saveAs === true);
       });
