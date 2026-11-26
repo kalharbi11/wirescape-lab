@@ -17,9 +17,7 @@ read "Run 2 prep": it lists the setup that is already done, so a run 2 session d
   Architect writes them into contracts, tasks and lane assignments without reopening them. It flags
   only (a) conflicts with "Fixed" items in `docs/context/CONSTRAINTS.md` (owner only), (b) factual
   errors, with the source line, and (c) contradictions between the two runs.
-- The Planner rules on design. It does not write or merge lab product code (`engine/`, `host/`, `modules/`,
-  `apps/`, `tools/`, `sdk/`). It may write proposals, contracts and docs in the lab (one docs PR per
-  run) and docs/rules in `wirescape-test` and `wirescape-headless`.
+- The owner granted the Planner the same git authority as the Claude Architect (2026-11-26): it may write, open, review and merge PRs within the contracts, gates and SR rules. "Fixed" items in CONSTRAINTS still need the owner.
 - The Architect's recommendations in `01_OWNER_WANTS.md` are inputs, not constraints. The owner's
   wants (section B) and principles (section A) are the requirements. Section C items marked "Planner
   decides" are the Planner's.
