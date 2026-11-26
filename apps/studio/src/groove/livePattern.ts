@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pure Groove editor -> E3b wire projection. Shared client transport is owned
 // separately; this module performs no I/O and does not mutate saved drafts.
-import { engineConfig, trackLength, readConfig, LENGTHS, type GrooveConfig, type Step, type Track } from './pattern';
+import { engineConfig, trackLength, readConfig, upgrade, LENGTHS, type GrooveConfig, type Step, type Track } from './pattern';
 
 export interface LivePatternRow {
   kind: 'rest' | 'note' | 'tie';
@@ -221,4 +221,82 @@ export function mergeGroovePattern(rawData: unknown, pattern: GrooveLivePattern)
   data.pattern = { ...old, ...pattern, steps_1: mergeRows(old.steps_1, pattern.steps_1),
     steps_2: mergeRows(old.steps_2, pattern.steps_2) };
   return data;
+}
+
+export type GrooveApply<T> =
+  | { kind: 'pattern'; pattern: GrooveLivePattern; saved: T & { data: Record<string, unknown> } }
+  | { kind: 'construction'; reason: 'bpm' | 'divisor' | 'armed' | 'mute' | 'track-count' | 'version' };
+
+/**
+ * A90: the editor's automatic v2/two-track upgrade is not a construction edit.
+ * An explicit edit of the otherwise absent track must pass its intent even if
+ * the final value equals the synthetic track's default (e.g. an activation).
+ * This is pure preparation; the caller still owns the correlated ACK,
+ * document commit/history and construction replacement disclosure.
+ */
+export function classifyGrooveApply<T extends { config?: unknown; data?: unknown }>(
+  module: T, edited: GrooveConfig, explicitAbsentTrackEdit = false): GrooveApply<T> | null {
+  const original = grooveEditorConfig(module);
+  const source = module.config;
+  if (!original || !isObject(source) || (source.version !== 1 && source.version !== 2) ||
+      !Array.isArray(source.tracks) || source.tracks.length < 1 || source.tracks.length > 2 ||
+      edited.tracks.length < source.tracks.length || edited.tracks.length > 2) return null;
+  const count = source.tracks.length;
+  const baseline = structuredClone(original);
+  const next = structuredClone(edited);
+  // Compare in the same editor schema so v1's implicit 32-step length and
+  // the synthetic second track are not mistaken for authored construction.
+  if (baseline.version === 1 || next.tracks.length > count) upgrade(baseline);
+  if (next.version !== 1 && next.version !== 2) return { kind: 'construction', reason: 'version' };
+  if (baseline.bpm !== next.bpm) return { kind: 'construction', reason: 'bpm' };
+  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+  for (let t = 0; t < count; ++t) {
+    const a = original.tracks[t]!, b = next.tracks[t]!;
+    if ((a.div ?? 1) !== (b.div ?? 1)) return { kind: 'construction', reason: 'divisor' };
+    if ((a.armed ?? true) !== (b.armed ?? true)) return { kind: 'construction', reason: 'armed' };
+    if ((a.mute ?? false) !== (b.mute ?? false)) return { kind: 'construction', reason: 'mute' };
+  }
+  if (count === 1 && (explicitAbsentTrackEdit ||
+      (next.tracks.length === 2 && !same(baseline.tracks[1], next.tracks[1]))))
+    return { kind: 'construction', reason: 'track-count' };
+  // Do not pass the synthetic track to the native projection. A canonical
+  // inactive track's authored slot is independent from the editor placeholder.
+  baseline.tracks.length = count;
+  next.tracks.length = count;
+  const canonical = isObject(module.data) && isObject(module.data.pattern) ? module.data.pattern : undefined;
+  const before = grooveExecution(baseline, true, canonical);
+  const after = grooveExecution(next, true, canonical);
+  if (!before || !after) return null;
+  // The native slot validates independently of construction version: all
+  // lengths, conditions, gate quarters, chords and tempo source are expressible.
+  // Preserve the source construction verbatim, including a legacy source
+  // (explicit pattern wins at reload, the host migrates only the execution copy).
+  let data: Record<string, unknown>;
+  if (!canonical) {
+    data = mergeGroovePattern(module.data, after.pattern);
+  } else {
+    data = structuredClone(module.data as Record<string, unknown>);
+    const saved = data.pattern as Record<string, unknown>;
+    for (const key of ['length_1', 'length_2', 'tempo_source'] as const)
+      if (!same(before.pattern[key], after.pattern[key])) saved[key] = after.pattern[key];
+    for (const key of ['steps_1', 'steps_2'] as const) {
+      const a = before.pattern[key], b = after.pattern[key];
+      const rows = Array.isArray(saved[key]) ? saved[key] as unknown[] : [];
+      for (let i = 0; i < Math.max(a.length, b.length); ++i) {
+        const old = a[i] ?? {}, fresh = b[i] ?? {};
+        if (same(old, fresh)) continue;
+        while (rows.length <= i) rows.push({});
+        const r = isObject(rows[i]) ? rows[i] : {};
+        const oldFields = old as Record<string, unknown>, newFields = fresh as Record<string, unknown>;
+        for (const name of ROW_FIELDS) {
+          if (same(oldFields[name], newFields[name])) continue;
+          if (Object.prototype.hasOwnProperty.call(newFields, name)) r[name] = structuredClone(newFields[name]);
+          else delete r[name];
+        }
+        rows[i] = r;
+        saved[key] = rows;
+      }
+    }
+  }
+  return { kind: 'pattern', pattern: after.pattern, saved: { ...structuredClone(module), data } };
 }
