@@ -72,7 +72,7 @@ test('Groove E3b canonical reopen hydrates slot without authoring and Revert kee
     (window as any).__mockBridge.sent.length = 0;
   });
   const pad = page.getByTestId('groove-pad-1-1');
-  await expect(pad.locator('.g-nn')).toHaveText('G');
+  await expect(pad.locator('.g-nn')).toHaveText('G4');
   expect((await state(page)).modules[0]).toEqual(source);
   await expect(page.getByTestId('groove-draft-1')).toBeHidden();
   await pad.click();
@@ -80,7 +80,7 @@ test('Groove E3b canonical reopen hydrates slot without authoring and Revert kee
   await expect(page.getByTestId('groove-draft-1')).toBeVisible();
   await page.getByTestId('groove-revert-1').click();
   await expect(page.getByTestId('groove-draft-1')).toBeHidden();
-  await expect(pad.locator('.g-nn')).toHaveText('G');
+  await expect(pad.locator('.g-nn')).toHaveText('G4');
   expect((await state(page)).modules[0]).toEqual(source);
   const sent = await page.evaluate(() => (window as any).__mockBridge.sent);
   expect(sent.filter((m: any) => ['setData','loadGraph','applyGraph'].includes(m.type))).toHaveLength(0);
