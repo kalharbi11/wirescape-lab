@@ -5,7 +5,7 @@ import { PanelOverrides } from '../panels/layouts';
 import { PatchDoc } from '../patch/PatchDoc';
 import { History, type HistoryCheckpoint } from '../patch/History';
 import type { Connection, Endpoint, PatchV2 } from '../patch/types';
-import { deriveMappings, planMappingRange, planAddMapping, planRemoveMapping, type MappingGraphEdit } from './mappings';
+import { deriveMappings, mappingSource, mappingOwner, ownerRefusal, planMappingRange, planAddMapping, planRemoveMapping, type MappingGraphEdit } from './mappings';
 import { FakeEngine } from '../engine/FakeEngine';
 import { RealEngine, sameConfig, type DeferredCompletion } from '../engine/RealEngine';
 import { EngineRefusal, type SystemStatus, type EngineClient, type Device } from '../engine/EngineClient';
@@ -225,6 +225,13 @@ export class App {
         return true;
       },
       disconnectMapping: c => this.removeMappingFromCanvas(c),
+      isMapping: c => this.isMapping(c),
+      reconnectMapping: (old, next) => {
+        void this.reconnectMapping(old, next).catch(err => {
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping reconnect refused.', 'error');
+          this.canvas.shake(next.to.module);
+        });
+      },
       engineConnect: c => {
         this.editEngine().connect(c);
         this.trackRollback(() => { this.doc.disconnect(c); this.canvas.shake(c.to.module); });
@@ -1081,6 +1088,14 @@ export class App {
       dx = cx - (minX + maxX) / 2 - 150 + 24 * (this.pasteCount - 1);
       dy = cy - (minY + maxY) / 2 - 100 + 24 * (this.pasteCount - 1);
     }
+    const copied: PatchV2 = { format: 'wirescape.native.patch', version: 2,
+      modules: clip.modules.map(m => ({ ...m.extra, id: m.id, module: m.module, parameters: m.parameters })),
+      connections: clip.connections };
+    if (copied.connections.some(c => c.kind === 'modulation' && mappingSource(copied, c.from))) {
+      void this.pasteMappedGraph(clip, dx, dy).catch(err =>
+        this.toasts.show(err instanceof Error ? err.message : 'Mapping paste refused.', 'error'));
+      return;
+    }
     const map = new Map<number, number>();
     const skipped: string[] = [];
     for (const m of clip.modules) {
@@ -1112,6 +1127,40 @@ export class App {
     this.toasts.show(skipped.length
       ? `Pasted ${ids.length}; ${skipped.length} unknown module${skipped.length > 1 ? 's' : ''} skipped.`
       : `Pasted ${ids.length} module${ids.length > 1 ? 's' : ''}.`);
+  }
+
+  /** A copied graph preserves authored mapping ranges, but never creates a
+   * second owner. All remapped IDs, module data, colours and cables commit together. */
+  private async pasteMappedGraph(clip: Clip, dx: number, dy: number): Promise<void> {
+    const map = new Map<number, number>();
+    await this.mutateMappingGraph(() => {
+      for (const m of clip.modules) {
+        if (!this.registry.get(m.module)) throw new Error('Unknown module "' + m.module + '".');
+        const id = this.allocateId();
+        this.doc.addModule(m.module, m.parameters ?? {}, m.pos[0] + dx, m.pos[1] + dy, id);
+        Object.assign(this.doc.modules.get(id)!, m.extra);
+        if (m.label) this.doc.setLabel(id, m.label);
+        map.set(m.id, id);
+      }
+      for (const c of clip.connections) {
+        const from = map.get(c.from.module), to = map.get(c.to.module);
+        if (from === undefined || to === undefined) continue;
+        const nc = { ...c, from: { ...c.from, module: from }, to: { ...c.to, module: to } };
+        if (this.doc.has(nc)) continue;
+        const patch = this.doc.toJSON();
+        if (nc.kind === 'modulation' && mappingSource(patch, nc.from)) {
+          const owner = mappingOwner(patch, this.registry, nc.to);
+          if (owner) throw ownerRefusal(owner);
+        }
+        this.doc.connect(nc);
+        const col = clip.colors[connKey(c)];
+        if (col) this.doc.setCableColor(connKey(nc), col);
+      }
+    });
+    const ids = [...map.values()];
+    this.canvas.select({ kind: 'modules', ids });
+    this.canvas.invalidateAnchors();
+    this.toasts.show(`Pasted ${ids.length} module${ids.length > 1 ? 's' : ''}.`);
   }
 
   private newPatch(): void {
@@ -1556,24 +1605,42 @@ export class App {
     } finally { this.endDocumentOperation(); }
   }
 
-  private async changeMappingGraph(build: (patch: PatchV2) => MappingGraphEdit, adding: boolean): Promise<void> {
+  /** All mapping-bearing edits share the same graph/ACK/undo boundary. */
+  private async mutateMappingGraph(author: (previous: PatchV2) => void): Promise<void> {
     if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy)
       throw new Error('The document is busy.');
     const engine = this.editEngine();
     if (engine instanceof RealEngine && !engine.hasApplyGraph())
       throw new Error('Live mapping requires an engine that supports applyGraph.');
-    const previous = this.doc.toJSON(), plan = build(previous);
+    const previous = this.doc.toJSON();
     const before = { patch: previous, dirty: this.doc.dirty, restoreHistory: this.history.checkpoint() };
     this.beginDocumentOperation();
     try {
-      for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
-      if (adding) this.doc.connect(plan.connection);
-      else this.doc.disconnect(plan.connection);
+      try { author(previous); }
+      catch (err) {
+        this.doc.replace(previous);
+        if (!before.dirty) this.doc.markClean();
+        before.restoreHistory();
+        this.refreshDirty();
+        throw err;
+      }
       this.history.flush();
-      await this.applyMappingGraph(before, this.doc.toJSON());
+      const submitted = this.doc.toJSON();
+      if (JSON.stringify(submitted) === JSON.stringify(previous)) return;
+      await this.applyMappingGraph(before, submitted);
       this.ticker.resetTelemetry();
       this.refreshDirty();
     } finally { this.endDocumentOperation(); }
+  }
+
+  private authorMapping(plan: MappingGraphEdit, adding: boolean): void {
+    for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
+    if (adding) this.doc.connect(plan.connection);
+    else this.doc.disconnect(plan.connection);
+  }
+
+  private changeMappingGraph(build: (patch: PatchV2) => MappingGraphEdit, adding: boolean): Promise<void> {
+    return this.mutateMappingGraph(patch => this.authorMapping(build(patch), adding));
   }
 
   /** A101: one correlated, serialized mapping graph transaction. Any partial
@@ -1630,20 +1697,52 @@ export class App {
       this.ticker.last?.effective[to.module]?.[to.port]), true);
   }
 
+  private removalPlan(patch: PatchV2, c: Connection, observed?: number): MappingGraphEdit {
+    const m = deriveMappings(patch, this.registry).find(x => connKey(x.connection) === connKey(c));
+    let value = observed ?? this.ticker.last?.outputs?.[c.from.module + ':' + c.from.port];
+    if (value === undefined && m?.source.kind === 'macro') {
+      const knob = 'knob' + m.source.row;
+      const modulated = patch.connections.some(x => x.kind === 'modulation' &&
+        x.to.module === c.from.module && x.to.port === knob);
+      value = this.ticker.last?.effective[c.from.module]?.[knob];
+      if (value === undefined && !modulated)
+        value = patch.modules.find(x => x.id === c.from.module)?.parameters?.[knob] ?? 0;
+    }
+    return planRemoveMapping(patch, this.registry, c, value);
+  }
+
   private removeMapping(c: Connection, observed?: number): Promise<void> {
-    return this.changeMappingGraph(patch => {
-      const m = deriveMappings(patch, this.registry).find(x => connKey(x.connection) === connKey(c));
-      let value = observed ?? this.ticker.last?.outputs?.[c.from.module + ':' + c.from.port];
-      if (value === undefined && m?.source.kind === 'macro') {
-        const knob = 'knob' + m.source.row;
-        const modulated = patch.connections.some(x => x.kind === 'modulation' &&
-          x.to.module === c.from.module && x.to.port === knob);
-        value = this.ticker.last?.effective[c.from.module]?.[knob];
-        if (value === undefined && !modulated)
-          value = patch.modules.find(x => x.id === c.from.module)?.parameters?.[knob] ?? 0;
+    return this.changeMappingGraph(patch => this.removalPlan(patch, c, observed), false);
+  }
+
+  private isMapping(c: Connection): boolean {
+    return deriveMappings(this.doc.toJSON(), this.registry).some(m => connKey(m.connection) === connKey(c));
+  }
+
+  private async reconnectMapping(old: Connection, next: Connection): Promise<void> {
+    if (connKey(old) === connKey(next)) return;
+    if (next.kind !== 'modulation') throw new Error('Reconnect a mapping to a modulatable parameter.');
+    await this.mutateMappingGraph(patch => {
+      const removed = this.removalPlan(patch, old);
+      const added = planAddMapping(removed.patch, this.registry, next.from, next.to,
+        this.ticker.last?.effective[next.to.module]?.[next.to.port]);
+      this.authorMapping(removed, false);
+      this.authorMapping(added, true);
+    });
+    this.toasts.show('Mapping reconnected.');
+  }
+
+  private async deleteMappedModules(ids: number[]): Promise<void> {
+    const selected = new Set(ids);
+    await this.mutateMappingGraph(patch => {
+      for (const m of deriveMappings(patch, this.registry)) {
+        if (selected.has(m.connection.from.module) && !selected.has(m.connection.to.module))
+          this.authorMapping(this.removalPlan(this.doc.toJSON(), m.connection), false);
       }
-      return planRemoveMapping(patch, this.registry, c, value);
-    }, false);
+      for (const id of ids) this.doc.removeModule(id);
+    });
+    this.canvas.select({ kind: 'none' });
+    this.toasts.show(`${ids.length} module${ids.length > 1 ? 's' : ''} deleted.`);
   }
 
   private describeSource(c: Connection): string {
@@ -1783,6 +1882,13 @@ export class App {
       this.canvas.select({ kind: 'none' });
       this.toasts.show('Cable removed.');
     } else if (s.kind === 'modules') {
+      const ids = new Set(s.ids);
+      if (deriveMappings(this.doc.toJSON(), this.registry).some(m =>
+          ids.has(m.connection.from.module) || ids.has(m.connection.to.module))) {
+        void this.deleteMappedModules([...ids]).catch(err =>
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping deletion refused.', 'error'));
+        return;
+      }
       for (const id of s.ids) {
         const m = this.doc.modules.get(id);
         if (!m) continue;
