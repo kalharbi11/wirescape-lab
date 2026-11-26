@@ -15,11 +15,11 @@
 namespace wirescape::osc {
 struct Message;
 struct OscOutRoutes;
-// Test-only deterministic send seam; production always uses the loopback socket.
+// Test-only deterministic send seam; production uses the validated route destination.
 using SendOverride = bool (*)(const Message &, uint16_t);
 struct OutState {
     uint32_t node = 0, port = 0;
-    const char *state = "disabled"; // sending | disabled | error
+    const char *state = "disabled"; // sending | disabled | error | lan-refused
     uint64_t sent = 0, dropped = 0;
     const char *last_error = nullptr;
 };
@@ -37,6 +37,8 @@ class OutHost {
     };
     struct Route {
         uint32_t node = 0;
+        uint32_t destination = 0x7f000001u; // host byte order
+        bool lan_refused = false;
         OutConfiguration config{};
         std::unique_ptr<OutBus> bus = std::make_unique<OutBus>();
         std::array<RowCursor, 8> cursors{};
@@ -78,7 +80,8 @@ class OutHost {
     void loop() noexcept;
 
   public:
-    explicit OutHost(const std::string &document, SendOverride send_override = nullptr);
+    explicit OutHost(const std::string &document, SendOverride send_override = nullptr,
+                     bool allow_network = false);
     ~OutHost() { stop(); }
     OutHost(const OutHost &) = delete;
     OutHost &operator=(const OutHost &) = delete;
