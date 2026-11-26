@@ -8,6 +8,7 @@
 #include "../../modules/delay/dsp.h"
 #include "../../modules/function_envelope/dsp.h"
 #include "../../modules/groove/dsp.h"
+#include "../../modules/gate_delay/dsp.h"
 #include "../../modules/host_keyboard/dsp.h"
 #include "../../modules/ladder/dsp.h"
 #include "../../modules/lfo/dsp.h"

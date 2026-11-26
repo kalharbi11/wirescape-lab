@@ -34,6 +34,12 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
+| B4-MB1-L1 | 2026-11-26 | gpt-builder4 | ruling | soon | [#363 preflight](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202408493): manifests carry description, license, library and schema version absent from descriptor; rule on preservation and field-equality method before MB1. | MB1 metadata/equality scope (after #609 merge) |
+
+| B2-631-historical-red | 2026-11-26 | gpt-builder2 | ruling | now | [#635 request](https://github.com/kalharbi11/wirescape-lab/pull/635#issuecomment-7202403530): post-E3c forced poll and original gate green at `2c9d09a50e7070f578beffa664f3bc7e0db38209`; authorize historical diagnostic red at `48479fc` and disposition if E3c already fixes race | #631 / #610 |
+| B2-601-parser-scope | 2026-11-26 | gpt-builder2 | ruling | soon | [#638 request](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7202416263): grant OSC Out-only real document parser/staging paths for A91 v2; draft test head `efd4cfa4a3802b6cb64c96e60631f2d2ba44c836` | #601 implementation |
+
+| B5-E3b-capability | 2026-11-26 | gpt-builder5 | ruling (scope / compatibility) | now | #545: grant additive `groove.livePattern` hello advertisement, Studio capability check, old-engine stopped Apply fallback, spec note and named hello fixtures? `applyGraph` predates E3b; catalogue omits slots. [Question](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7202434918) | #545 production Apply |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
