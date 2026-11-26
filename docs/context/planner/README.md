@@ -10,9 +10,10 @@ Python scripting, and the roadmap. The Planner's rulings in these runs are final
 Open a Claude Code session on Opus with `kalharbi11/wirescape-lab`, `kalharbi11/wirescape-test` and
 `kalharbi11/wirescape-headless` attached, and send exactly one of:
 - ~~`planner: run 1`~~ — **done** (#618, `proposals/0023`; transcribed by Architect run 47);
-- **`planner: run 2a`** — `wirescape-test`, macros and mapping, the module batch (**recommended next**, max effort);
-- **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order (after
-  2a's lab PR merges; max effort);
+- ~~`planner: run 2a`~~ — **done** ([`proposals/0024`](../../../proposals/0024-test-repo-macros-modules.md);
+  `wirescape-test` rules PR open for review);
+- **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order
+  (**recommended next**, after 2a's lab PR merges; max effort; read 0024 §0 and §6 first);
 - `planner: run 2` — fallback: all of run 2 in one session (max effort).
 
 Run 2 does not redo setup: read "Run 2 prep" in [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) first.
