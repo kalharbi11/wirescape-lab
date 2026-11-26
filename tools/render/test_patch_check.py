@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import math
+import os
 from pathlib import Path
 import struct
 import subprocess
@@ -13,9 +14,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-RENDER = ROOT / "build/native/wirescape_render"
-if sys.platform == "win32":
-    RENDER = RENDER.with_suffix(".exe")
+RENDER = Path(os.environ.get("WIRESCAPE_TEST_RENDERER", str(ROOT / "build/native" /
+              ("wirescape_render.exe" if sys.platform == "win32" else "wirescape_render"))))
 LIBRARY = ROOT / "tools/patch_library.py"
 FIXTURE = ROOT / "tests/fixtures/patch_shapes/no-config.json"
 RATE, BLOCK, SECONDS = 48000, 128, 1.25
@@ -63,7 +63,8 @@ class PatchCheckTests(unittest.TestCase):
         before = {p.name: p.read_bytes() for p in self.folder.glob("*.json")}
         run = subprocess.run([sys.executable, str(LIBRARY), "check", str(self.folder),
                               "--rate", str(RATE), "--block", str(BLOCK),
-                              "--seconds", str(SECONDS), "--json", str(dest)],
+                              "--seconds", str(SECONDS), "--json", str(dest),
+                              "--renderer", str(RENDER)],
                              capture_output=True, text=True, timeout=120)
         self.assertTrue(dest.is_file(), run.stdout + run.stderr)
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.folder.glob("*.json")})
