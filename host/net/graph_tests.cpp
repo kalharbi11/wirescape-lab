@@ -63,8 +63,50 @@ static void legacy_cc_and_out() {
     REQUIRE(bus.rows[1].blocks.load() > 0);
     REQUIRE(bus.rows[1].value.load() == .75f);
 }
+// OB-h2 A91: exercise the real document parser, not a second test parser.
+static void osc_out_v2_destination_config() {
+    using namespace wirescape;
+    using Json = nlohmann::json;
+    const Json v1 = {{"port", 9001}, {"rate_hz", 100}};
+    auto explicit_v1 = v1;
+    explicit_v1["version"] = 1;
+    REQUIRE(document::runtime_module_config("osc.out", v1) ==
+            document::runtime_module_config("osc.out", explicit_v1));
+    auto accepts = [](const Json &config) {
+        try {
+            const auto bytes = document::runtime_module_config("osc.out", config);
+            osc::OutConfiguration decoded;
+            return osc::out_configuration(bytes.data(), uint32_t(bytes.size()), decoded);
+        } catch (const std::exception &) {
+            return false;
+        }
+    };
+    REQUIRE(accepts(explicit_v1));
+    auto v2 = explicit_v1;
+    v2["version"] = 2;
+    v2["host"] = "192.0.2.17"; // validation only; no socket or send.
+    REQUIRE(accepts(v2));
+    v2["host"] = "127.0.0.1";
+    REQUIRE(accepts(v2));
+    v2.erase("host");
+    REQUIRE(accepts(v2)); // host is optional in v2
+    for (const char *bad : {"example.test", "127.0.0", "256.0.0.1",
+                            "127.0.0.1:9001", "127.0.0.1 ", "::1", ""}) {
+        v2["host"] = bad;
+        REQUIRE(!accepts(v2));
+    }
+    v2["host"] = 42;
+    REQUIRE(!accepts(v2));
+    explicit_v1["host"] = "192.0.2.17";
+    REQUIRE(!accepts(explicit_v1));
+    v2["version"] = 3;
+    v2["host"] = "127.0.0.1";
+    REQUIRE(!accepts(v2));
+}
+
 int main() {
     legacy_cc_and_out();
+    osc_out_v2_destination_config();
     const std::string patch =
         R"({"format":"wirescape.native.patch","version":2,"settings":{},"modules":[{"id":1,"module":"osc.in","version":1,"parameters":{},"config":{"rows":[{"pattern":"/pico1/knob/*","smoothing_ms":0}]}},{"id":2,"module":"essentials.vco","version":1,"parameters":{}}],"connections":[],"outputs":[{"module":2,"port":"audio","bus_channel":0}]})";
     wirescape::engine2::Config config{};
