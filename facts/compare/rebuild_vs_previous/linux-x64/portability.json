@@ -1,0 +1,1202 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-x64",
+    "architecture": "x86_64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "model name\t: Intel(R) Xeon(R) 6975P-C"
+    ],
+    "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:26:12.036910-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 14.2.Rel1 (Build arm-14.52)) 14.2.1 20241119",
+  "archive_sha256": "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823",
+  "method": "portability.yml compile flags, native CMake pinned macro sources, old/new include paths",
+  "results": {
+    "before": {
+      "catalogue_count": 34,
+      "rows": [
+        {
+          "source": "native/modules2/adsr/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/adsr/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/blend/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/blend/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/chaos_lite/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/chaos_lite/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/chord/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/chord/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/clock/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/clock/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/delay/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/delay/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/function_envelope/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/function_envelope/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/groove/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/groove/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/host_keyboard/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/host_keyboard/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/ladder/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/ladder/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/lfo/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/lfo/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/macro_oscillator/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/macro_oscillator/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_cc_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_cc_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_in/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_in/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/midi_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/mixer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/mixer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/monitor/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/monitor/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/noise/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/noise/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/notes_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/notes_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/osc_in/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/osc_in/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/osc_out/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/osc_out/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/output/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/output/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/quad_vca/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/quad_vca/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/quantizer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/quantizer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/resonator/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/resonator/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/reverb/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/reverb/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/scale_offset/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/scale_offset/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/slew/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/slew/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/spectral/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/spectral/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vca/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vca/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vcf/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vcf/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vco/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/modules2/vco/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/examples/random_source/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/examples/random_source/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/examples/step_sequencer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/examples/step_sequencer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/template/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "native/sdk/template/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        }
+      ]
+    },
+    "after": {
+      "catalogue_count": 37,
+      "rows": [
+        {
+          "source": "modules/adsr/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/adsr/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/blend/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/blend/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/chaos_lite/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/chaos_lite/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/chord/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/chord/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/clock/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/clock/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/cv_to_notes/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/cv_to_notes/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/delay/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/delay/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/function_envelope/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/function_envelope/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/groove/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/groove/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/host_keyboard/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/host_keyboard/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/ladder/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/ladder/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/lfo/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/lfo/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/macro_oscillator/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/macro_oscillator/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_cc_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_cc_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_in/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_in/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/midi_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/mixer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/mixer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/monitor/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/monitor/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/noise/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/noise/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/notes_to_cv/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/notes_to_cv/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/osc_in/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/osc_in/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/osc_out/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/osc_out/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/output/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/output/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/poly_merge/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/poly_merge/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/poly_split/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/poly_split/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/quad_vca/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/quad_vca/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/quantizer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/quantizer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/resonator/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/resonator/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/reverb/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/reverb/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/scale_offset/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/scale_offset/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/slew/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/slew/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/spectral/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/spectral/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vca/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vca/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vcf/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vcf/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vco/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "modules/vco/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/examples/random_source/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/examples/random_source/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/examples/step_sequencer/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/examples/step_sequencer/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/template/module.cpp",
+          "fpu": "fpv5-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        },
+        {
+          "source": "sdk/template/module.cpp",
+          "fpu": "fpv5-sp-d16",
+          "status": "measured",
+          "compiles": true,
+          "exit_code": 0,
+          "first_error": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,578 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-x64",
+    "architecture": "x86_64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "model name\t: Intel(R) Xeon(R) 6975P-C"
+    ],
+    "os": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:26:12.036910-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "scope": [
+    "native/engine2",
+    "native/control",
+    "native/document",
+    "native/sidecar",
+    "native/io"
+  ],
+  "rows": [
+    {
+      "path": "native/engine2/engine2.cpp",
+      "line": 146,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/engine2/engine2.cpp",
+      "line": 147,
+      "id": "ports.macro_oscillator"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 150,
+      "id": "essentials.adsr"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 151,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 255,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 255,
+      "id": "essentials.adsr"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 255,
+      "id": "essentials.vca"
+    },
+    {
+      "path": "native/control/app_engine.cpp",
+      "line": 255,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/control/app_engine_tests.cpp",
+      "line": 46,
+      "id": "essentials.quad_vca"
+    },
+    {
+      "path": "native/control/app_engine_tests.cpp",
+      "line": 89,
+      "id": "essentials.noise"
+    },
+    {
+      "path": "native/control/midi_host.cpp",
+      "line": 16,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host.cpp",
+      "line": 21,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 62,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 70,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 146,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 147,
+      "id": "midi.to_cv"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 148,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 150,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 158,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 160,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 160,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/control/midi_host_tests.cpp",
+      "line": 160,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/control/monitor_capture.h",
+      "line": 68,
+      "id": "monitor"
+    },
+    {
+      "path": "native/control/monitor_capture.h",
+      "line": 87,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/control/monitor_capture.h",
+      "line": 88,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/control/osc_host.cpp",
+      "line": 36,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/control/osc_out_host.cpp",
+      "line": 54,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/control/osc_out_host.cpp",
+      "line": 59,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/builtin_source_tests.cpp",
+      "line": 23,
+      "id": "essentials.clock"
+    },
+    {
+      "path": "native/document/builtin_source_tests.cpp",
+      "line": 25,
+      "id": "example.step_sequencer"
+    },
+    {
+      "path": "native/document/builtin_source_tests.cpp",
+      "line": 25,
+      "id": "example.random_source"
+    },
+    {
+      "path": "native/document/builtin_source_tests.cpp",
+      "line": 30,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 46,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 50,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 54,
+      "id": "essentials.vca"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 80,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 738,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 752,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 758,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/groove_runtime_tests.cpp",
+      "line": 1006,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/qt_free_patch_coverage_tests.cpp",
+      "line": 203,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/document/qt_free_patch_coverage_tests.cpp",
+      "line": 204,
+      "id": "ports.macro_oscillator"
+    },
+    {
+      "path": "native/document/qt_free_patch_coverage_tests.cpp",
+      "line": 205,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 35,
+      "id": "essentials.chord"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 41,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 42,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 187,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 265,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 351,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 359,
+      "id": "midi.cc_to_cv"
+    },
+    {
+      "path": "native/document/runtime_module_config.h",
+      "line": 415,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 8,
+      "id": "essentials.chord"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 12,
+      "id": "essentials.chord"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 20,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 27,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 35,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 39,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 45,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 55,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 72,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 99,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 120,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 132,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 139,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 152,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 161,
+      "id": "midi.cc_to_cv"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 189,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 191,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 222,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_module_config_tests.cpp",
+      "line": 230,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/runtime_patch_tests.cpp",
+      "line": 32,
+      "id": "essentials.lfo"
+    },
+    {
+      "path": "native/document/runtime_patch_tests.cpp",
+      "line": 99,
+      "id": "midi.cc_to_cv"
+    },
+    {
+      "path": "native/document/runtime_patch_tests.cpp",
+      "line": 101,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 73,
+      "id": "essentials.adsr"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 73,
+      "id": "essentials.function_envelope"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 74,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 74,
+      "id": "ports.macro_oscillator"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 75,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 80,
+      "id": "essentials.lfo"
+    },
+    {
+      "path": "native/document/telemetry_taps.h",
+      "line": 83,
+      "id": "sequencing.groove"
+    },
+    {
+      "path": "native/document/ui_patch_conformance.cpp",
+      "line": 69,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 161,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 336,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 500,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 501,
+      "id": "essentials.lfo"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 593,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 595,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 726,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/audio_recovery_tests.cpp",
+      "line": 728,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/sidecar/protocol_unit_tests.cpp",
+      "line": 359,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/sidecar/protocol_unit_tests.cpp",
+      "line": 359,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/protocol_unit_tests.cpp",
+      "line": 372,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 292,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 624,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 626,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 1072,
+      "id": "host.keyboard"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 1148,
+      "id": "midi.cc_to_cv"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 1237,
+      "id": "osc.out"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 1312,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/sidecar/session.cpp",
+      "line": 1335,
+      "id": "monitor"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 28,
+      "id": "midi.in"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 29,
+      "id": "midi.to_cv"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 30,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 31,
+      "id": "essentials.adsr"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 32,
+      "id": "essentials.vca"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 33,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/io/audio/callback_live_midi_tests.cpp",
+      "line": 44,
+      "id": "essentials.vco"
+    },
+    {
+      "path": "native/io/audio/stream_lifecycle_tests.cpp",
+      "line": 45,
+      "id": "essentials.output"
+    },
+    {
+      "path": "native/io/net/graph_tests.cpp",
+      "line": 34,
+      "id": "osc.in"
+    },
+    {
+      "path": "native/io/net/graph_tests.cpp",
+      "line": 34,
+      "id": "essentials.vco"
+    }
+  ]
+}

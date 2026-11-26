@@ -1,0 +1,3560 @@
+{
+  "provenance": {
+    "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+    "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "before_upstream": "44da1e4a235e606ebecd5bd6232f908d4df9b97f",
+    "machine": "linux-arm64",
+    "architecture": "aarch64",
+    "workflow_sha": "73f411dd1010675967230ed535ad163d35ebaf24",
+    "cpu": [
+      "CPU implementer\t: 0x41",
+      "CPU part\t: 0xd49"
+    ],
+    "os": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+    "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cmake": "cmake version 4.2.3",
+    "python": "3.12.16",
+    "date_et": "2026-11-26T04:25:27.944169-05:00",
+    "run_url": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325"
+  },
+  "rows": [
+    {
+      "module": "essentials.adsr",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.adsr",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 16705,
+            "p99": 1344
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.adsr",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 18177,
+            "p99": 1281
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.adsr",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.adsr",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 20641,
+            "p99": 10632
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.adsr",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 16400,
+            "p99": 9344
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.chaos_lite",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 63234,
+            "p99": 46921
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.chaos_lite",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 70706,
+            "p99": 49482
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.chaos_lite",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.chaos_lite",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 371228,
+            "p99": 340419
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.chaos_lite",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 379684,
+            "p99": 363612
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.chord",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "module_cpu_probe: create/prepare failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "module_cpu_probe: create/prepare failed\n"
+      }
+    },
+    {
+      "module": "essentials.chord",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "unmeasured",
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "module_cpu_probe: create/prepare failed\n"
+      },
+      "after": {
+        "status": "unmeasured",
+        "exit_code": 2,
+        "stdout": "",
+        "stderr": "module_cpu_probe: create/prepare failed\n"
+      }
+    },
+    {
+      "module": "essentials.clock",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.clock",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 32177,
+            "p99": 2337
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.clock",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 15585,
+            "p99": 2456
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.clock",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.clock",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 45578,
+            "p99": 19841
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.clock",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 32433,
+            "p99": 22953
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.function_envelope",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.function_envelope",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 27929,
+            "p99": 1753
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.function_envelope",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 19289,
+            "p99": 1784
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.function_envelope",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.function_envelope",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 43849,
+            "p99": 15305
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.function_envelope",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 35505,
+            "p99": 16641
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.ladder",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.ladder",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 25705,
+            "p99": 7137
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.437866,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.ladder",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 23977,
+            "p99": 7160
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.437866,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.ladder",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.ladder",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 101299,
+            "p99": 62306
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.437866,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.ladder",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 94859,
+            "p99": 64058
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.437866,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.lfo",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.lfo",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 16977,
+            "p99": 5656
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.lfo",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 25849,
+            "p99": 5504
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.lfo",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.lfo",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 71915,
+            "p99": 46529
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.lfo",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 60137,
+            "p99": 44434
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.mixer",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.mixer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 8368,
+            "p99": 1656
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.398474,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.mixer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 16256,
+            "p99": 1584
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.398474,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.mixer",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.mixer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 33858,
+            "p99": 14936
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.398474,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.mixer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 29537,
+            "p99": 15425
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.398474,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.noise",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.noise",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 29217,
+            "p99": 776
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.199999,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.noise",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 12072,
+            "p99": 776
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.199999,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.noise",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.noise",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 44106,
+            "p99": 5752
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.2,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.noise",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 24153,
+            "p99": 5736
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.2,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.notes_to_cv",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.notes_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 21377,
+            "p99": 4752
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.notes_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 42666,
+            "p99": 4744
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.notes_to_cv",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.notes_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 22040,
+            "p99": 4760
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.notes_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 55802,
+            "p99": 4760
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.output",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.output",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 9736,
+            "p99": 616
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.output",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 17785,
+            "p99": 616
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.output",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.output",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 31113,
+            "p99": 4416
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.output",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 19305,
+            "p99": 4408
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.quad_vca",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quad_vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 189966,
+            "p99": 4792
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.39501,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quad_vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 18313,
+            "p99": 3736
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.39501,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.quad_vca",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quad_vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 66898,
+            "p99": 38874
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.39501,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quad_vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 57418,
+            "p99": 30737
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.39501,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.quantizer",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quantizer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 7520,
+            "p99": 960
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.416667,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quantizer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 16721,
+            "p99": 976
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.416667,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.quantizer",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quantizer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 19593,
+            "p99": 6184
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.416667,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.quantizer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 48818,
+            "p99": 6105
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.416667,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.resonator",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.resonator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 43770,
+            "p99": 18376
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.23292,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.resonator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 35281,
+            "p99": 19272
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.23292,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.resonator",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.resonator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 140117,
+            "p99": 135108
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.23292,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.resonator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 154021,
+            "p99": 136725
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1.23292,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.scale_offset",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.scale_offset",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 23761,
+            "p99": 1432
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.scale_offset",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 22401,
+            "p99": 1416
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.scale_offset",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.scale_offset",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 40737,
+            "p99": 13224
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.scale_offset",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 21681,
+            "p99": 12489
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.5,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.slew",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.slew",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 3216,
+            "p99": 1896
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0454167,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.slew",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 20401,
+            "p99": 1904
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0454167,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.slew",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.slew",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 37001,
+            "p99": 18345
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0454167,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.slew",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 41041,
+            "p99": 17440
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.0454167,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vca",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 1840,
+            "p99": 200
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.149725,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 20505,
+            "p99": 216
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.149725,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vca",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 2488,
+            "p99": 928
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.149725,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vca",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 43714,
+            "p99": 952
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.149725,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vcf",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vcf",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 34817,
+            "p99": 5176
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.464828,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vcf",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 21152,
+            "p99": 5169
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.464828,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vcf",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vcf",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 62962,
+            "p99": 43954
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.464828,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vcf",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 62746,
+            "p99": 48089
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.464828,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vco",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vco",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 24081,
+            "p99": 10960
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vco",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 47913,
+            "p99": 12457
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "essentials.vco",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vco",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 99427,
+            "p99": 79586
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "essentials.vco",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 84571,
+            "p99": 79618
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "example.random_source",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "example.random_source",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 70090,
+            "p99": 1521
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "example.random_source",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 15528,
+            "p99": 1505
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "example.random_source",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "example.random_source",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 13161,
+            "p99": 1513
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "example.random_source",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 24121,
+            "p99": 1512
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "example.step_sequencer",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "example.step_sequencer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 4968,
+            "p99": 1792
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "example.step_sequencer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 16649,
+            "p99": 1784
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "example.step_sequencer",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "example.step_sequencer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 19417,
+            "p99": 1816
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "example.step_sequencer",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 41601,
+            "p99": 1792
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "fx.delay",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "fx.delay",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 15376,
+            "p99": 5192
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.568614,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "fx.delay",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 34089,
+            "p99": 5320
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.568614,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "fx.delay",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "fx.delay",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 29481,
+            "p99": 5240
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.568614,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "fx.delay",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 54202,
+            "p99": 5248
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.568614,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "fx.reverb",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "fx.reverb",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 76987,
+            "p99": 36081
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.516555,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "fx.reverb",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 46881,
+            "p99": 34745
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.460767,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "fx.reverb",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "fx.reverb",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 44714,
+            "p99": 33169
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.516555,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "fx.reverb",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 48858,
+            "p99": 34401
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.460767,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "host.keyboard",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "host.keyboard",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 23753,
+            "p99": 13505
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "host.keyboard",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 27425,
+            "p99": 8497
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "host.keyboard",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "host.keyboard",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 53986,
+            "p99": 15281
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "host.keyboard",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 26729,
+            "p99": 10929
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.cc_to_cv",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.cc_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 34769,
+            "p99": 12753
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.cc_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 22312,
+            "p99": 12649
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.cc_to_cv",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.cc_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 35929,
+            "p99": 12448
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.cc_to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 24809,
+            "p99": 12473
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.in",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 10400,
+            "p99": 80
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 11073,
+            "p99": 88
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.in",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 11120,
+            "p99": 80
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 9233,
+            "p99": 81
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.to_cv",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 52178,
+            "p99": 12153
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 25801,
+            "p99": 4688
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "midi.to_cv",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "midi.to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 60434,
+            "p99": 9929
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "midi.to_cv",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 23056,
+            "p99": 4600
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "monitor",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "monitor",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 11168,
+            "p99": 224
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "monitor",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 2144,
+            "p99": 208
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "monitor",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "monitor",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 1976,
+            "p99": 224
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "monitor",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 1752,
+            "p99": 200
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "osc.in",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "osc.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 25881,
+            "p99": 12665
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "osc.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 20656,
+            "p99": 12937
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "osc.in",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "osc.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 101555,
+            "p99": 12440
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "osc.in",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 53274,
+            "p99": 12672
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "osc.out",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "osc.out",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 1088,
+            "p99": 201
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "osc.out",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 1000,
+            "p99": 201
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "osc.out",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "osc.out",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 736,
+            "p99": 208
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "osc.out",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 1120,
+            "p99": 208
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "ports.macro_oscillator",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "ports.macro_oscillator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 43114,
+            "p99": 23281
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.699982,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "ports.macro_oscillator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 34337,
+            "p99": 23201
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.699982,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "ports.macro_oscillator",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "ports.macro_oscillator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 192214,
+            "p99": 177406
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.699982,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "ports.macro_oscillator",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 205670,
+            "p99": 182702
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.699982,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sequencing.groove",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sequencing.groove",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 56882,
+            "p99": 16241
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sequencing.groove",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 23913,
+            "p99": 17289
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sequencing.groove",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sequencing.groove",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 37929,
+            "p99": 15456
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sequencing.groove",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 33089,
+            "p99": 16241
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 1,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sound.blend",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sound.blend",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 21712,
+            "p99": 4353
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.563527,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sound.blend",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 27537,
+            "p99": 4408
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.563527,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sound.blend",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sound.blend",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 17497,
+            "p99": 4352
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.563527,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sound.blend",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 19072,
+            "p99": 4385
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.563527,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sound.spectral",
+      "channels": 1,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sound.spectral",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 180142,
+            "p99": 153005
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.373509,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sound.spectral",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 1,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 160997,
+            "p99": 154069
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.373509,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    },
+    {
+      "module": "sound.spectral",
+      "channels": 8,
+      "instances": 2,
+      "rate": 48000,
+      "block": 128,
+      "seconds": 2,
+      "before": {
+        "status": "measured",
+        "data": {
+          "module": "sound.spectral",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "blocks": 750,
+          "render_ns": {
+            "max": 164205,
+            "p99": 152525
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.373509,
+          "params": "",
+          "alternate": ""
+        }
+      },
+      "after": {
+        "status": "measured",
+        "data": {
+          "module": "sound.spectral",
+          "instances": 2,
+          "sample_rate": 48000,
+          "block": 128,
+          "channels": 8,
+          "seconds": 2,
+          "input_mode": "normal",
+          "blocks": 750,
+          "render_ns": {
+            "max": 180262,
+            "p99": 155669
+          },
+          "period_ns": 2666667,
+          "allocations": 0,
+          "faults": 0,
+          "peak": 0.373509,
+          "params": "",
+          "alternate": ""
+        }
+      }
+    }
+  ]
+}

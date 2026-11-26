@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "date_et": "2026-11-26",
+  "run_id": 45791608325,
+  "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+  "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+  "note": "Independently computed SHA-256 of downloaded archive and each exact raw JSON file. Manifest is not raw evidence retention. Copy raw JSON byte-for-byte into this directory under machine subdirectories; verify archive and file digests before committing.",
+  "artifacts": [
+    {
+      "machine": "linux-x64",
+      "id": 15106255348,
+      "zip_sha256": "621d8e5e141430da15b6459a1d673f99a7466776c5f9f06669a37b0e08e5ac6f",
+      "files": {
+        "after-binary-size.json": "ae1b608392f62a4477250908baae6638be8f2d8c7ddc623a3eb4897042882f72",
+        "after-core-id-matches.json": "97b7d86d527eb61b01af94822fcd5d8d7f7134c2291f64edd3d3f4458288eb1f",
+        "after-engine.json": "73875cc0bcdf825d7629d8b6f2daa30c9ba081c8762cec07a667cea9cd3cf7c9",
+        "after-golden.json": "d431a3e663e65dd8de1329bc35c8a3afa35d20113bd87f0762e0ea9f61e7db67",
+        "before-binary-size.json": "bd50eeb70c46cf7b5a0be32b8722c4ce03469f1caf3be61a1908770597d7ed4b",
+        "before-core-id-matches.json": "010ac5eded7b9bb30506cd2c472a66c892705d376ec75082243cb8318998837e",
+        "before-engine.json": "bc4f9b00a8951e19e4e92c644b1e754722666c9eeaaa50818270a241852f431a",
+        "before-golden.json": "638701f684540e49748d9cf26597394ffe4c0d875572756a79d0ef347d059e0f",
+        "continuity-source.json": "3e7abc8604ba4693dfeb6d2c89fd7a3641cc7c8b15a08e18be72f9b3a8116767",
+        "external-sdk.json": "de1a306473d2a0235b5329a596e4542a5d3fe889e056f94ebdd47d7bc6fc1643",
+        "inventory.json": "beb4b9515fb8f61470cd8d1e5aa17d6390bbfae8728399b557085cc107882f49",
+        "module-cpu.json": "4e6a6aad48d2b8cf71a1978988526f5ae9eee8ed932688863b250146e1a29093",
+        "paired-timing-summary.json": "ceffa3713ad43953ef660eaef07875fd8cf9170b295ca51def86def61a37d299",
+        "patch-cost.json": "ba84cd4ae3209bb0dcdf69ce52e90ab0bed96416f3c97d2de0c5f3eee6f9ae8d",
+        "portability.json": "8187b1c28436104460c75358b8bdfe16f4777732b1928594aea4c379b48d78f9",
+        "provenance.json": "dcbc7d0df9c4dfcdbb813ac1b86fe2ff198134bcaf64554912ee1f11a145274b",
+        "ui-frames.json": "abfb1f90aa7c0c8470b73b7eaed3d3fea1f0d5536c76481c01a4666660391c06"
+      }
+    },
+    {
+      "machine": "linux-arm64",
+      "id": 15104379390,
+      "zip_sha256": "c78dfd5471746727e1ea08ebf1cb5b558b3766e94c158a78c06db4de2a90a8df",
+      "files": {
+        "after-binary-size.json": "212b47625655098ac704108e178df0f8fcf1cdf7071f4a1fb5887800f966973f",
+        "after-core-id-matches.json": "798b4e1e457418923b139961512a4a26fa2d1e4d1d1b8117ad53b339bb7d2c45",
+        "after-engine.json": "2ccfc6bb7792f8c7c20166a7da142f75d5de62625afdb04d644dfcacd0ac9dfa",
+        "after-golden.json": "511c7cb8c30e317223dbc25cb218750d7c3673b91e659f2f3c33c033cf489b17",
+        "before-binary-size.json": "e9b8c568b638bd94ae7427e552733ad167ad2edfd9400f5a17f34cc04f7f51cf",
+        "before-core-id-matches.json": "2a53db24dd8d9c5689d749dc18ac800a7cb2018a96b346abbd9146cd7b593fa1",
+        "before-engine.json": "fc024a82796c7817d5e06f20e826f098f3f4ea979b148adf0ce858006dfdcfe7",
+        "before-golden.json": "6f9e083b389e106af3ddb49538e7a8424b6f58788e6e3bcdb39535e85a446614",
+        "continuity-source.json": "3453981d42bc81c619078fed3799cf7cd5f5f324444bd363d6e165c74d91a835",
+        "external-sdk.json": "f6fd1d5391d69b4d6c26a18b58911f418a5446803e03882a39bdf11e79f26cab",
+        "inventory.json": "923a8856c5640cdb06068139619de5769487a9238a86222f061318d8f8b1fd18",
+        "module-cpu.json": "1f1a84ea10c41b10a43b854e315809dccf57dd8fec019a8175528c5ba9519b22",
+        "paired-timing-summary.json": "67f90eae5b2490b3a1a25fa0d33a232df57be23a668694fa9577f81e046b8721",
+        "patch-cost.json": "23c63f21f9b84845a07f3766eb576c3696a89c33a461851317ab04e4a6c06ec5",
+        "provenance.json": "e515fc7e3fa4ad41ecfcd3424a013edb2b87359f815e14ead4792c1c744e5931",
+        "ui-frames.json": "2deafde4091bcc654bd7348b5cc15464f24c204be5a8a244553b87dee4d0649b"
+      }
+    }
+  ]
+}
