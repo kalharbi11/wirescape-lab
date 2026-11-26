@@ -8,6 +8,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-26 17:10 EST (owner: inspect, merge, inbox; no Architect run)
+
+- Checked all five lane heads and newest signed lane Results against run 49. Shared usage/reset unavailable (unknown). Product-independent reviews remain Architect-owned (SR11).
+- Merged #635 `a32947615d02f386a51a68c3ef1e8a798644bd7b` under A98/OB r2.14(1): historical actual-sender red, regression-only diff, signed Result; exact Lab 45893299391, Golden 45893299401 and M1 paired 45893299357 success. Advisory config-edit failures remain recorded failures. #631 closed; #610 released to integrate main and qualify its own head, no rerun/waiver. B2 #601 continues independent parser work; shared switching witness waits #610 merge.
+- Inbox-only #650 `8d82941` and #651 `e6e56d4` merged on docs-scope Lab success (SR13); requests are recorded, not decided. Added #652 MOD-0 T2 catalogue-registration limitation, already needs/architect. No Architect trigger labels, command or run; owner explicitly prohibited a wake.
+- B1 #649 actual MM1 runtime red obtained; partial-ACK error policy waits #651. B4 #642 Lab green, final Result waits #650 plus ready gates. B3 #648 final gates/Result pending; #655 draft-ahead full workload waits native Macro promotion. #523 already merged. B5 #545/#627 fresh fixture corrections pending CI, no review-ready claim.
+- Next: owner may resume B1–B5 with numbered triggers. Architect manual batch: MB1 naming/offline reader, MM1 partial ACK, MOD-0 T2 scratch scope. Planner 2b remains the design route for frozen Player/OSC/scripts/tool-host areas; no run started.
+- Milestones: MB1 → MB2/CAT-1 → M3 acceptance; M4 E3b and final CN/acceptance remain. OB1 owner listening, real-folder OB-a2, Pi 6a/6b and Architect candidate recheck/tag remain owner/Architect-only and gate no new work. Pi postponement unchanged.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 49 — 2026-11-26 15:26 EST (owner: `architect:run`; builder inbox batch and Planner run 2a transcription)
 - **Inbox (one architect-ready batch, four builder rulings):** **A97** MB1 L1 field classes ([#363](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202650236), M3 r2.1); **A98** #631 historical witness at `48479fc` and disposition ([#635](https://github.com/kalharbi11/wirescape-lab/pull/635#issuecomment-7202644921), OB r2.14 (1)); **A99** OB-h2 OSC Out parser and staging paths ([#638](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7202646352), OB r2.14 (2)); **A100** live Groove support via catalogue `data_slots`, not a module-named capability ([#545](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7202648392), M4). Wake labels cleared.
 - **Planner run 2a (0024 §8) transcribed:** new [MM r1](milestones/MM.md); M3 r2.1 (SDK-1, PROMO-n); `wirescape-test` #1 reviewed and merged `19e16c9` (one Low fixed: SPDX on `AGENTS.md`); MOD-0 filed ([wirescape-test #2](https://github.com/kalharbi11/wirescape-test/issues/2)); MM1 [#643](https://github.com/kalharbi11/wirescape-lab/issues/643) released to idle B1; MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644) queued in B3; S8 and 02 errata. 0024 §1 facts checked at source: all hold.
