@@ -53,6 +53,9 @@ type PlayingDocument = {
   configReconciliations?: { before: PatchV2; after: PatchV2 }[];
 };
 
+/** A101 has already restored either the prior patch or the actual acknowledged graph. */
+class MappingAckRefusal extends Error {}
+
 export class App {
   readonly root: HTMLElement;
   private doc = new PatchDoc();
@@ -1377,6 +1380,10 @@ export class App {
       return;
     }
     this.applyLearn(() => {
+      const owner = deriveMappings(this.doc.toJSON(), this.registry).find(m =>
+        m.connection.to.module === target.module && m.connection.to.port === target.param &&
+        m.source.kind !== 'cc');
+      if (owner) throw ownerRefusal(owner);
       const r = commitLearn(this.learnServices(), target, capture, anyChannel);
       const note = r.notes.length ? ` (${r.notes.join('; ')})` : '';
       return { revert: r.revert, message: `CC ${capture.controller} learned${note}.` };
@@ -1385,7 +1392,12 @@ export class App {
 
   private forgetLearn(target: LearnTarget): void {
     this.applyLearn(() => {
+      const patch = this.doc.toJSON();
+      const owner = deriveMappings(patch, this.registry).find(m => m.source.kind === 'cc' &&
+        m.connection.to.module === target.module && m.connection.to.port === target.param);
+      const plan = owner && this.removalPlan(patch, owner.connection);
       const r = forgetLearn(this.learnServices(), target);
+      if (r && plan) for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
       return r && { revert: r.revert, message: 'MIDI mapping forgotten.' };
     }, 'Forget MIDI mapping');
   }
@@ -1429,7 +1441,10 @@ export class App {
     const restore = () => {
       if (restored) return;
       restored = true;
-      this.doc.replace({ ...previous, ui: { ...(previous.ui ?? {}), view: this.doc.ui.view } });
+      const restoredPatch = structuredClone(previous), view = this.doc.ui.view;
+      if (view !== undefined) (restoredPatch.ui ??= {}).view = view;
+      else if (restoredPatch.ui) delete restoredPatch.ui.view;
+      this.doc.replace(restoredPatch);
       if (!wasDirty) this.doc.markClean();
       restoreHistory();
       requestAnimationFrame(() => this.canvas.invalidateAnchors());
@@ -1500,8 +1515,12 @@ export class App {
         if (state === 'restarting' && phase !== 'applied' && phase !== 'not-applied') requireRestart();
       });
     }
-    const pending = this.applyAuthoredGraph(
-      { patch: previous, dirty: wasDirty, restoreHistory }, submitted).then(() => {
+    const before = { patch: previous, dirty: wasDirty, restoreHistory };
+    // Preserve the legacy Learn loadGraph protocol when no live capability
+    // is advertised; current engines use the A101 mapping transaction.
+    const request = real && !real.hasApplyGraph()
+      ? this.applyAuthoredGraph(before, submitted) : this.applyMappingGraph(before, submitted);
+    const pending = request.then(() => {
       if (phase !== 'not-applied' && phase !== 'restart-required' && phase !== 'restart') {
         phase = 'applied';
         this.toasts.show(result.message);
@@ -1511,6 +1530,7 @@ export class App {
       if (phase === 'not-applied') return;
       if (phase === 'restart-required' || phase === 'restart') { await recoveryDone; return; }
       if (this.viewEpoch !== epoch || this.editEngine() !== engine) return;
+      if (err instanceof MappingAckRefusal) return; // A101 already reconciled model and history.
       const reason = err instanceof EngineRefusal && err.detail.engine
         ? `${what} was refused: ${err.message}` : (err instanceof Error ? err.message : `${what} failed.`);
       restore();
@@ -1685,7 +1705,7 @@ export class App {
       const message = restored ? 'Mapping refused: some parameter values were not applied.'
         : 'Mapping refused and compensation failed; the last acknowledged graph was restored.';
       this.toasts.show(message, 'error');
-      throw new Error(message);
+      throw new MappingAckRefusal(message);
     } finally {
       off?.();
       this.mappingGraphEngine = null;
