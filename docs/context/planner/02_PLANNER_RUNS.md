@@ -1,22 +1,33 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-# Fable design runs 1 and 2 (owner direction, 2026-11-26)
+# Planner runs 1 and 2 (owner direction, 2026-11-26)
+
+## The role
+**`claude-planner`** is a planning seat run on Opus, separate from the Claude Architect so that its
+review of the build and the Architect's verification stay independent. It replaces the retired Fable
+seat for these two runs only. Suggested effort: **max** for both runs (they set months of work and
+are read-heavy); xhigh is acceptable for run 1 if usage runs short.
+
+## Before deciding anything
+Read the whole plan first: `01_OWNER_WANTS.md` (all of sections A–D), this file, and all seven scout
+reports. Only then start the run's questions.
 
 ## Authority
-- The owner gives Fable **final decisions** on the questions below for these two runs. The Claude
+- The owner gives the Planner **final decisions** on the questions below for these two runs. The Claude
   Architect writes them into contracts, tasks and lane assignments without reopening them. It flags
   only (a) conflicts with "Fixed" items in `docs/context/CONSTRAINTS.md` (owner only), (b) factual
   errors, with the source line, and (c) contradictions between the two runs.
-- Fable rules on design. It does not write or merge lab product code (`engine/`, `host/`, `modules/`,
+- The Planner rules on design. It does not write or merge lab product code (`engine/`, `host/`, `modules/`,
   `apps/`, `tools/`, `sdk/`). It may write proposals, contracts and docs in the lab (one docs PR per
   run) and docs/rules in `wirescape-test` and `wirescape-headless`.
 - The Architect's recommendations in `01_OWNER_WANTS.md` are inputs, not constraints. The owner's
-  wants (section B) and principles (section A) are the requirements. Section C items marked "Fable
-  decides" are Fable's.
+  wants (section B) and principles (section A) are the requirements. Section C items marked "Planner
+  decides" are the Planner's.
 - Freeze: while the runs are open, no new Architect rulings or contracts in the areas below. The
   builder lanes keep their current tasks.
 
 ## Run 1 — independent review of the build, then the roadmap
-**Why first:** Fable wrote the first plan (0001–0004) and has not seen the build since. Run 2's designs
+**Why first:** nobody has reviewed the build as a whole against the first plan (0001–0004, written by the
+retired Fable seat) since it was written. Run 2's designs
 depend on what the engine, SDK and workflow can actually carry.
 
 Decide:
@@ -36,6 +47,15 @@ Decide:
 Output: `proposals/0023-review-and-replan.md`: findings ranked High/Medium/Low with file:line, rulings on
 1–5, the new roadmap table, and "what would overturn this" for each major ruling. Update
 `ROADMAP.md`/`PRIORITY.md` to match, or list the exact edits for the Architect.
+
+6. **CI speed (owner, 2026-11-26):** docs, plan and proposal changes, and Planner and Architect runs in
+   general, must not wait on long CI. Decide which workflows run or skip for each kind of change
+   (docs-only, facts-only, module-only, Studio-only, engine/host), what stays required before a merge,
+   and what moves to nightly or manual runs. Never loosen a test to pass. Write rulings plus the exact
+   workflow edits; apply them in the run-1 PR if they are path filters only.
+
+Suggested order inside run 1: CI speed (6) first, so the rest of the session's PRs merge fast; then 2–4;
+then 1 and 5.
 
 ## Run 2 — the new architecture and its contracts
 Decide:
@@ -60,13 +80,72 @@ Output: `proposals/0024-player-and-test-repos.md` (1, 2, 5, 7), `proposals/0025-
 (3, 4, 6), replacement `AGENTS.md`/`README.md` for the two new repos, and a task list per repo ready
 to file as issues (title, paths, acceptance, tier, dependencies).
 
+Suggested order inside run 2: 1 and 8 for `wirescape-test` first (it unblocks module work), then 3 and 6
+(macros, mapping, modules), then 2 and 5 (Player, tool host), then 4 and 7. If the session is
+cut short, commit what is decided so far; the next `planner: run 2` continues from the open items.
+
 If only one run is possible: run 2, opening with a short version of run 1's questions 2–4.
+
+## Run 2 prep (Architect run 47, 2026-11-26)
+Run 1 merged as #618 (`337d8e8`). [`proposals/0023`](../../../proposals/0023-review-and-replan.md) binds run 2. Build on it and do
+not re-derive it. The Architect checked 0023's citations at source and found one wrong line: R2.5 cites
+`RealEngine.ts:300-304`, but the reload is at `:393-436`. The ruling holds.
+
+**Already done; do not redo:**
+- Transcribed: M3 r2 (stage MB, TR1h without PV2, T1.5 cut, V1 parked), M7 r1.7, OB r2.13 (Gate P0 rows,
+  OB-h2 gate release, freeze ends at MB2) and STANDING SR22–SR25 (W3, W4, W5, R1.5).
+- CI-S1–S3 applied, and the rulings index [`RULINGS.md`](../../workflow/RULINGS.md) built.
+- Closed questions moved to `QUESTIONS_HISTORY.md`; banners added on closed and parked contracts.
+- Lab issues: MB1 #363 and MB2+CAT-1 #358 reopened; P0a #619, P0b #620, Studio restart #621 and the fake
+  MIDI endpoint rename #622 filed.
+- B.4 erratum fixed in `01_OWNER_WANTS.md`.
+- Stale paths fixed in `SDK_AUTHOR_GUIDE.md` and `ARCHITECTURE.md`, and the Clock README corrected.
+- Lab lanes refreshed. Wrap-up has ended for run 1's areas, and run 2's areas stay frozen.
+
+**Reading for run 2 (trimmed):**
+- this folder's README;
+- `01_OWNER_WANTS.md` (A, B, C);
+- the run 2 section above;
+- 0023 §0, §2.3–2.4, §3.3–3.4, §4.3 W1 and §7.2;
+- scout S2 (sidecar, for the Player), S6 (Studio, for macros, mapping and the tool host), S1 §1–3 (registration,
+  for the `wirescape-test` script) and the new **S8** (per-parameter table for question 6).
+
+S3, S4 and S5 are covered by 0023; open them only for a specific fact.
+
+**Facts for run 2 (checked at source, `337d8e8`):**
+- No module exists today for Random or sample-and-hold, Clock Div/Mult, Macro, or a rhythmic modulator other
+  than Groove. Each is new.
+- `function_envelope` is gated AR: `rise`, `fall` and `curve`, all modulatable. It has no trigger mode and no
+  `delay`. ADSR already has Gate/Trigger `mode` and `hold`.
+- `lfo` has one shape (sine) and no inputs. It has `sync` and `beats` parameters.
+- Clock's only multiply is `ticks_per_beat` (1–24).
+- Allocation and structure parameters among the batch: `host_keyboard` voices and mode; `midi_to_cv`
+  voice_count, allocation_mode, mono_priority, legato and channel_filter; `notes_to_cv` voices; `midi_in`
+  channel_filter.
+- `midi_to_cv` `steal_policy` has range 0..0 and is never read. Details in S8 §Notes.
+- The engine's default settings path is relative (`host/sidecar/session.h:22`). The Player must pass an
+  absolute `--settings` (R2.3 f).
+
+**The two new repos (checked 2026-11-26):**
+- The default branch of both `wirescape-headless` and `wirescape-test` is **`main`**. The owner switched
+  headless today; nothing in either repo named the old branch.
+- Each also has a leftover branch `claude/wirescape-modes-architecture-tnszf8`, identical to `main`. The owner
+  may delete it.
+- Neither repo has workflows yet. Both `LAB_PIN` files pin lab `11a68c2` (on lab `main`); run 2 decides the
+  bump rule.
+- `wirescape-test/modules/README.md` repeats the B.4 error. Its Envelope row also says Function Envelope has
+  no modulatable parameters, which is wrong. Run 2 replaces that README.
+- Open run 2's repo PRs against `main`. Use whatever branch the session allows. `planner/run-2` is
+  preferred, not required.
+
+**Output the Architect needs to file tasks fast:**
+- The per-repo task list as a table (title, paths, acceptance, tier, dependencies, lane or agent).
+- For the lab, name the contract each row goes into: OB, M3, a new contract, or Gate P1.
 
 ## Architect-verified highlights from the scout pack
 Checked at source by the Architect on 2026-11-26 (lab `11a68c2`):
-- **`setOsc` is refused outright** (`host/sidecar/session.cpp:1257`: "Capability not available"), yet
-  0022 OB-h2 gates OSC Out network hosts on `setOsc.allowNetwork` or `--confirm-lan`. Resolve the
-  permission path.
+- **OSC Out network permission:** `setOsc` is refused (`host/sidecar/session.cpp:1257`). Architect run 46
+  (A91, #613) already ruled the permission switch is `--confirm-lan`; no action needed.
 - **Registering a module means three hand edits in core files:** `engine/control/module_catalog.h`,
   `engine/control/module_catalog.inc` (37 `WS_APP_MODULE` lines) and `engine/CMakeLists.txt`.
 - **No shipped patch uses `osc.in`** (apps/studio/patches, host/examples).

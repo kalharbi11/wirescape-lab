@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CI1 — shorter Lab CI per merge
 
+> **Closed** (accepted). Read only if your task names it. (0023 W4, 2026-11-26)
+
 **Revision:** r4 — **ACTIVE.** r4 (Fable, 2026-11-16, QUESTIONS Q17) measures K8 after one bootstrap
 merge of CI1.3, because a pull-request run cannot restore a cache saved from its own head branch.
 Affected: CI1.3 (#109) only; no threshold moves; nothing stops. r3 (Fable, 2026-11-16, QUESTIONS Q12, issue #117) adds task CI1.4 and

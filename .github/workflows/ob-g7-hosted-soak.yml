@@ -6,7 +6,7 @@
 # Pilot code removed to avoid testing a historical SHA on future PR heads.
 # S6 merged at 25b1a822; #298 integrated S6 first at 67c60fa6.
 # PR-head Linux I/O L0 and bounded Windows L0 released after #311 merged into main.
-# Nightly OSC remains parked pending first PR-head L0 evidence and Windows lane validation.
+# OB-h1: nightly OSC still-mode Linux x64/arm64 only; Windows/config-edits remain parked.
 # OB-g2/PR311 merged at 3f8f646; PR Linux injected MIDI and Windows L0 are source-head advisory only.
 name: OB-g7 hosted I/O soak (advisory draft)
 
@@ -30,6 +30,12 @@ on:
       - 'native/CMakeLists.txt'
       - 'apps/studio/**/osc*'
       - 'apps/studio/**/midi*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Full 40-hex source commit SHA on main'
+        required: true
+        type: string
   # GitHub schedule executes on the default branch (main) only.
   schedule:
     - cron: '19 5 * * *'
@@ -71,7 +77,7 @@ jobs:
             echo "- MIDI #308/PR311 remains unmerged/unintegrated" 
             echo "- S6 mapped I/O paths: host/, engine/control/midi_host*, modules/osc_*/midi_*"
             echo "- PR-head Linux OSC L0 lanes active: verify each individual JSON/report artifact; workflow top-level green is advisory" 
-            echo "- Hosted nightly OSC and MIDI remain parked; no L1/L2 claim" 
+            echo "- Hosted nightly OSC still-mode Linux enabled by OB-h1; MIDI remains parked; this inventory makes no L1/L2 claim" 
             echo "- No required CI, bench/io sources, physical devices, LAN or private runner"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -244,26 +250,45 @@ jobs:
           retention-days: 14
 
   nightly-osc:
-    name: Hosted OSC / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (PARKED)
-    # Gated until #305 merged and real CLI/report interface verified; main cron only.
-    if: ${{ false }}
+    name: Hosted OSC / ${{ matrix.runner }} / ${{ matrix.profile }} / ${{ matrix.mode }} (advisory)
+    # OB-h1: main only; pinned dispatch or scheduled default-branch SHA.
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     continue-on-error: true
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, windows-2022]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
         profile: [osc-gates, osc-heavy]
-        mode: [still, config-edits]
+        mode: [still]
     defaults:
       run:
         shell: bash
     steps:
+      - name: Validate immutable source pin
+        env:
+          DISPATCH_REF: ${{ inputs.ref }}
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            [[ "$DISPATCH_REF" =~ ^[0-9a-fA-F]{40}$ ]]
+          fi
+          [[ "$EXACT_HEAD" =~ ^[0-9a-fA-F]{40}$ ]]
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
           persist-credentials: false
+      - name: Verify and record captured SHA
+        env:
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "${EXACT_HEAD,,}"
+          mkdir -p build_reports/ob-g7
+          printf '%s\n' "$actual" > build_reports/ob-g7/captured_sha.txt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -295,9 +320,10 @@ jobs:
         run: python tools/dev.py build --headless --config Release
       - name: L0 (60s) then L1 (10m) then L2 (1h), stop at first nonpass
         env:
-          EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXACT_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
         run: |
           set -euo pipefail
+          EXACT_HEAD="${EXACT_HEAD,,}"
           test "$(git rev-parse HEAD)" = "$EXACT_HEAD"
           profile="${{ matrix.profile }}"
           mode="${{ matrix.mode }}"

@@ -42,6 +42,10 @@ class Host {
     void observe(monitor::Capture *capture) noexcept { monitor_ = capture; }
     Host(const Host &) = delete;
     Host &operator=(const Host &) = delete;
+    // Stage filters and socket declarations without opening sockets. Activate
+    // only after the engine accepts the corresponding document/slot write.
+    void prepare(AppEngine *, const std::string &document);
+    void activate() noexcept;
     void start(AppEngine *, const std::string &document);
     void stop() noexcept;
     std::vector<RouteState> states() const;

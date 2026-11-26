@@ -102,6 +102,8 @@ bool out_configuration(const uint8_t *data, uint32_t bytes, OutConfiguration &c)
 - Sending to loopback is allowed in every mode, including `--null-audio` tests. Nothing ever sends
   beyond loopback in v1.
 
+**OB1.1 A86 live route amendment:** the accepted-only route write retains the DSP instance and bus. The host-owned bus additionally carries exact bounded wire metadata (address, kind, deadband, enabled), coherent block snapshots and crossing baselines; note ring entries carry their originating address. The module still retains no slot copy or pointer. The sender does not wait for a particular engine slot serial: it discards mismatched old observations rather than encoding them with the new table, counts dropped crossings/notes and releases locally accepted high gates/notes on the old address before sending new data. Disabled cleanup requires no socket; old-route releases share the existing 64-datagram budget. No core ABI or wire-packet change.
+
 ## 5. Protocol (additive; ENGINE_PROTOCOL §status)
 - `hello.capabilities` gains `"osc.out"` when the sender is installed.
 - `status.osc.out?` is an `out` array **inside the existing `status.osc` object** (so readers that only know

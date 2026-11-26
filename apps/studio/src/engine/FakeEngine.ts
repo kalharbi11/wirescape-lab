@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import type {
-  EngineClient, OscStatus, Telemetry, SystemStatus, Device, EngineError, MonitorEntry, UnavailableAudioDriver,
+  EngineClient, DataAuthoring, OscStatus, Telemetry, SystemStatus, Device, EngineError, MonitorEntry, UnavailableAudioDriver,
   UnappliedParameter,
 } from './EngineClient';
 import { EngineRefusal } from './EngineClient';
 import type { PatchV2, Connection } from '../patch/types';
+import { ioObject, mergeSlotValue, ioRows, oscProjection, ioConstruction } from '../patch/ioProjection';
 import type { ModuleRegistry } from '../modules/registry';
 import { findParam, findPort, normToValue, valueToNorm } from '../modules/registry';
 import { hzToMidi } from '../modules/musicalPitch';
@@ -128,9 +129,9 @@ export class FakeEngine implements EngineClient {
     this.currentEffective.clear(); this.meterPeak.clear(); this.eventActivity.clear();
     this.monitorEntries = {}; // New graph generation has no previous Monitor events.
     for (const m of patch.modules) {
-      const rows = (m.config as { rows?: unknown } | undefined)?.rows;
+      const rows = ioRows(m, 'mapping');
       this.nodes.set(m.id, { id: m.id, type: m.module, params: { ...(m.parameters ?? {}) },
-        ...(m.module === 'midi.cc_to_cv' && Array.isArray(rows) ? { ccRows: (rows as Record<string, unknown>[]).map(r => ({ ...r })) } : {}) });
+        ...(m.module === 'midi.cc_to_cv' ? { ccRows: (rows as Record<string, unknown>[]).map(r => ({ ...r })) } : {}) });
     }
     for (const c of patch.connections) {
       try { this.validateConnection(c); this.conns.push({ ...c }); }
@@ -140,11 +141,10 @@ export class FakeEngine implements EngineClient {
   }
 
   /** Rebuild OSC/status projections without resetting any retained DSP state. */
-  private refreshGraphStatus(patch: PatchV2): void {
+  private refreshGraphStatus(patch: PatchV2, notify = true): void {
     const oscModules = patch.modules.filter(m => m.module === 'osc.in');
     this.osc.routes = oscModules.map(m => {
-      const cfg = m.config && typeof m.config === 'object' && !Array.isArray(m.config)
-        ? m.config as Record<string, unknown> : {};
+      const cfg = oscProjection(m);
       const port = typeof cfg.port === 'number' ? cfg.port : 9000;
       // Mirrors the sidecar (#612): eight explicitly disabled rows bind nothing.
       const rows = Array.isArray(cfg.rows) ? cfg.rows : [];
@@ -156,8 +156,7 @@ export class FakeEngine implements EngineClient {
       };
     });
     this.osc.out = patch.modules.filter(m => m.module === 'osc.out').map(m => {
-      const cfg = m.config && typeof m.config === 'object' && !Array.isArray(m.config)
-        ? m.config as Record<string, unknown> : {};
+      const cfg = oscProjection(m);
       const rows = Array.isArray(cfg.rows) ? cfg.rows : [];
       const allOff = rows.length >= 8 && rows.slice(0, 8)
         .every(r => (r as { enabled?: unknown } | null)?.enabled === false);
@@ -172,7 +171,7 @@ export class FakeEngine implements EngineClient {
     this.osc.lan = false;
     this.osc.port = this.osc.routes[0]?.port ?? this.legacyOsc.port;
     this.osc.allowNetwork = this.legacyOsc.allowNetwork;
-    this.pushStatus();
+    if (notify) this.pushStatus();
   }
 
 
@@ -210,18 +209,19 @@ export class FakeEngine implements EngineClient {
       // E1a treats OSC Out's staged bus pointer as execution config:
       // every structural replan replaces that instance even with identical JSON.
       const sameConfig = old?.module === module.module && module.module !== 'osc.out' &&
-        this.sameConfig(old?.config, module.config);
+        this.sameConfig(old && ioConstruction(old), ioConstruction(module));
       const existing = this.nodes.get(module.id);
       if (sameConfig && existing) {
         retained.add(module.id);
         // Keep all simulated time/phase/tail state; new document.state is ignored.
-        nextNodes.set(module.id, { ...existing, params: { ...(module.parameters ?? {}) } });
+        nextNodes.set(module.id, { ...existing, params: { ...(module.parameters ?? {}) },
+          ...(module.module === 'midi.cc_to_cv' ? { ccRows: ioRows(module, 'mapping') } : {}) });
       } else {
         if (old) replaced.push(module.id);
-        const rows = (module.config as { rows?: unknown } | undefined)?.rows;
+        const rows = ioRows(module, 'mapping');
         nextNodes.set(module.id, { id: module.id, type: module.module,
           params: { ...(module.parameters ?? {}) },
-          ...(module.module === 'midi.cc_to_cv' && Array.isArray(rows)
+          ...(module.module === 'midi.cc_to_cv'
             ? { ccRows: structuredClone(rows as Record<string, unknown>[]) } : {}) });
       }
     }
@@ -355,6 +355,52 @@ export class FakeEngine implements EngineClient {
     if (found) found.amount = amount;
     const committed = this.document?.connections.find(x => key(x) === k);
     if (committed) committed.amount = amount;
+  }
+
+  async setData(moduleId: number, slot: string, value: Record<string, unknown>, authored?: DataAuthoring): Promise<void> {
+    this.guardRefusal();
+    const m = this.document?.modules.find(item => item.id === moduleId);
+    const node = this.nodes.get(moduleId);
+    if (!m || !node) throw new EngineRefusal({ code: 'not-found', message: 'Module not found' });
+    const declared = m.module === 'midi.cc_to_cv' ? 'mapping' :
+      ['osc.in', 'osc.out'].includes(m.module) ? 'routes' :
+      m.module === 'sequencing.groove' ? 'pattern' : undefined;
+    if (slot !== declared || value === null || typeof value !== 'object' || Array.isArray(value))
+      throw new EngineRefusal({ code: 'invalid', message: 'Unknown or invalid data slot' });
+    if (this.capabilities.length === 0 && (m.module === 'osc.in' || m.module === 'osc.out'))
+      throw new EngineRefusal({ code: 'unavailable', message: 'OSC data is not available in Web preview' });
+    if (slot !== 'pattern' && value.rows !== undefined &&
+        (!Array.isArray(value.rows) || value.rows.length !== 8 ||
+         value.rows.some(row => !row || typeof row !== 'object' || Array.isArray(row))))
+      throw new EngineRefusal({ code: 'invalid', message: slot + '.rows: expected eight rows' });
+    // The native descriptor packer remains the range/cross-field authority.
+    // FakeEngine simulates the accepted transaction, not DSP.
+    const prior = ioObject(m.data);
+    const next = authored ? structuredClone(authored.value) : mergeSlotValue(prior[slot], value);
+    m.data = { ...prior, [slot]: next };
+    if (authored?.replaceConfig) {
+      if (authored.config === undefined) delete m.config;
+      else m.config = structuredClone(authored.config);
+    }
+    if (slot === 'mapping') node.ccRows = ioRows(m, 'mapping');
+    if (slot === 'routes') {
+      const priorIn = this.osc.routes?.map(route => ({ ...route })) ?? [];
+      const priorOut = this.osc.out?.map(route => ({ ...route })) ?? [];
+      this.refreshGraphStatus(this.document!, false);
+      for (const route of this.osc.routes ?? []) {
+        const prior = priorIn.find(item => item.module === route.module);
+        if (prior && route.module !== String(moduleId)) Object.assign(route, prior);
+      }
+      for (const route of this.osc.out ?? []) {
+        const prior = priorOut.find(item => item.module === route.module);
+        if (prior) {
+          route.sent = prior.sent;
+          route.dropped = prior.dropped;
+          if (route.module !== String(moduleId)) Object.assign(route, prior);
+        }
+      }
+      this.pushStatus();
+    }
   }
 
   /** Test hook: the rows the running fake graph holds for a CC module. */

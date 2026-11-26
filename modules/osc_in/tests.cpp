@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "../../host/midi/module_test_support.h"
 #include "dsp.h"
+#include "data_validation.h"
 using namespace wirescape;
 struct Rig {
     MidiArena arena;
@@ -15,6 +16,8 @@ struct Rig {
     ws2_signal_out outputs[9]{};
     ws2_event_out events[9]{};
     ws2_process ctx{};
+    alignas(16) osc::OscInRows slot_data{};
+    ws2_data slot_view{sizeof(ws2_data), &slot_data, sizeof(slot_data), 1};
     uint32_t emitted = 0;
     static int WS2_CALL push(void *p, uint32_t, const ws2_event *) {
         ++static_cast<Rig *>(p)->emitted;
@@ -36,6 +39,11 @@ struct Rig {
         ctx.output_count = 9;
         ctx.outputs = outputs;
         ctx.event_outputs = events;
+        // Direct descriptor harness: supply the same fully materialized rows as
+        // the document loader will. Preserve all existing fixture assertions.
+        char error[128]{};
+        REQUIRE(osc::materialize_osc_in_rows(cfg, slot_data, error));
+        ctx.data_count = 1; ctx.data = &slot_view;
     }
     ~Rig() { d->destroy(state); }
     void run(const std::vector<ws2_event> &input = {}, uint32_t frames = 32) {
@@ -77,7 +85,115 @@ static ws2_event message(const std::vector<uint8_t> &bytes, uint32_t offset = 0)
     e.offset = offset;
     return e;
 }
+// E3c: a live route edit takes effect in the same prepared instance.
+// Descriptor offsets, not a duplicated storage struct, construct the test block.
+static void live_route_data() {
+    osc::Configuration cfg;
+    cfg.rows[0].smoothing_ms = 0;
+    Rig rig(cfg);
+    const ws2_data_slot *slot = nullptr;
+    const ws2_field *rows = nullptr;
+    for (uint32_t i = 0; i < rig.d->data_slot_count; ++i) {
+        const auto &s = rig.d->data_slots[i];
+        for (uint32_t j = 0; j < s.field_count; ++j) {
+            const auto &f = s.fields[j];
+            if (std::strcmp(f.id, "rows") == 0 && f.type == WS2_F_RECORD) {
+                slot = &s; rows = &f; break;
+            }
+        }
+        if (slot) break;
+    }
+    REQUIRE(slot && rows && rows->count == 8);
+    const ws2_field *pattern = nullptr, *smooth = nullptr;
+    for (uint32_t i = 0; i < rows->field_count; ++i) {
+        const auto &f = rows->fields[i];
+        if (std::strcmp(f.id, "pattern") == 0) pattern = &f;
+        if (std::strcmp(f.id, "smoothing_ms") == 0) smooth = &f;
+    }
+    REQUIRE(pattern && pattern->type == WS2_F_TEXT && pattern->count > 16);
+    REQUIRE(smooth && smooth->type == WS2_F_F32);
+    // Seed every scalar from its descriptor defaults; text defaults are empty.
+    // Build complete records with explicit routes to avoid relying on migration.
+    REQUIRE(slot->bytes == sizeof(osc::OscInRows));
+    alignas(16) std::array<uint8_t, sizeof(osc::OscInRows)> packed{};
+    for (uint32_t row = 0; row < rows->count; ++row) {
+        auto *dst = packed.data() + rows->offset + row * rows->stride;
+        for (uint32_t j = 0; j < rows->field_count; ++j) {
+            const auto &f = rows->fields[j];
+            if (f.type == WS2_F_F32) { float v = float(f.initial); std::memcpy(dst + f.offset, &v, sizeof(v)); }
+            else if (f.type == WS2_F_U32 || f.type == WS2_F_ENUM) { uint32_t v = uint32_t(f.initial); std::memcpy(dst + f.offset, &v, sizeof(v)); }
+            else if (f.type == WS2_F_U8 || f.type == WS2_F_BOOL) dst[f.offset] = uint8_t(f.initial);
+        }
+        std::snprintf(reinterpret_cast<char *>(dst + pattern->offset), pattern->count, "/pico1/knob/%u", row + 1);
+        float zero = 0; std::memcpy(dst + smooth->offset, &zero, sizeof(zero));
+    }
+    std::vector<ws2_data> data(rig.d->data_slot_count);
+    REQUIRE(data.size() == 1); // one rows slot for this module
+    data[0] = {sizeof(ws2_data), packed.data(), slot->bytes, 1};
+    rig.ctx.data_count = uint32_t(data.size()); rig.ctx.data = data.data();
+    auto first = packet("/pico1/knob/1", .25f), next = packet("/live/route", .75f);
+    auto other = packet("/pico1/knob/2", .5f);
+    rig.run({message(first), message(other)});
+    REQUIRE(rig.data->values[0][0][31] == .25f);
+    auto *text = packed.data() + rows->offset + pattern->offset;
+    std::memset(text, 0, pattern->count);
+    std::memcpy(text, "/live/route", sizeof("/live/route"));
+    ++data[0].serial;
+    rig.run({message(next)});
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+    rig.run({message(first)});
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+    REQUIRE(rig.data->values[1][0][31] == .5f); // untouched row retains held value
+}
+// A new wildcard route must not inherit the old route's full numeric voice
+// table: otherwise disjoint indices can never be discovered on the new route.
+static void live_wildcard_route_reclaims_indices() {
+    osc::Configuration cfg;
+    std::strcpy(cfg.rows[0].pattern, "/old/*");
+    cfg.rows[0].smoothing_ms = 0;
+    cfg.rows[1].smoothing_ms = 0;
+    Rig rig(cfg);
+    for (uint32_t i = 1; i <= 16; ++i) {
+        char address[32];
+        std::snprintf(address, sizeof(address), "/old/%u", i);
+        auto bytes = packet(address, .25f);
+        rig.run({message(bytes)});
+    }
+    auto untouched = packet("/pico1/knob/2", .5f);
+    rig.run({message(untouched)});
+    REQUIRE(rig.outputs[0].channels == 16);
+    // Unrelated edit publishes a new serial but must keep the same compiled
+    // route's voice indices and held CVs.
+    rig.slot_data.rows[2].smoothing_ms = 0;
+    ++rig.slot_view.serial;
+    rig.run();
+    REQUIRE(rig.outputs[0].channels == 16);
+    REQUIRE(rig.data->values[0][15][31] == .25f);
+    std::strcpy(rig.slot_data.rows[0].pattern, "/new/*");
+    ++rig.slot_view.serial;
+    auto next = packet("/new/99", .75f);
+    rig.run({message(next)});
+    REQUIRE(rig.outputs[0].channels == 1);
+    REQUIRE(rig.data->values[0][0][31] == .75f);
+    REQUIRE(rig.data->values[1][0][31] == .5f);
+}
 int main() {
+    live_route_data();
+    live_wildcard_route_reclaims_indices();
+    {
+        osc::Configuration cfg;
+        Rig rig(cfg);
+        char error[128]{};
+        REQUIRE(osc::validate_osc_in_rows(rig.slot_data, error));
+        auto invalid = rig.slot_data;
+        invalid.rows[3].input_max = invalid.rows[3].input_min;
+        REQUIRE(!osc::validate_osc_in_rows(invalid, error));
+        REQUIRE(std::strstr(error, "routes.rows[3].input_max") != nullptr);
+        invalid = rig.slot_data;
+        std::strcpy(invalid.rows[5].pattern, "/bad/[");
+        REQUIRE(!osc::validate_osc_in_rows(invalid, error));
+        REQUIRE(std::strstr(error, "routes.rows[5].pattern") != nullptr);
+    }
     osc::Statistics stats;
     osc::Configuration cfg;
     cfg.statistics = &stats;

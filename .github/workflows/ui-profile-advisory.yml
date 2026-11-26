@@ -7,7 +7,6 @@ on:
     paths:
       - 'bench/offline/ui_profile*.cjs'
       - 'bench/offline/test_ui_profile_parse.cjs'
-      - 'facts/app/ui-attribution*.json'
       - '.github/workflows/ui-profile-advisory.yml'
 
 permissions:
