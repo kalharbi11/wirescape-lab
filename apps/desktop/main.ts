@@ -131,7 +131,11 @@ let lastRestartPolicy = {
 };
 function publishRestartPolicy(phase: RestartPhase, delayMs = 0): void {
   lastRestartPolicy = { v: 0, type: 'app.engineRestartPolicy', phase, delayMs, banner: restartBanner };
-  notify(lastRestartPolicy);
+  sendRestartPolicy();
+}
+function sendRestartPolicy(): void {
+  if (window && !window.isDestroyed() && !window.webContents.isDestroyed())
+    window.webContents.send('wirescape:restart-policy', lastRestartPolicy);
 }
 function cancelRestartTimer(): void {
   if (restartTimer !== null) clearTimeout(restartTimer);
@@ -308,7 +312,7 @@ function startEngine(): void {
     });
   } catch (error) {
     console.error('wirescape-engine spawn:', error);
-    notify({ v: 0, type: 'app.engineExited', exitCode: null, signal: null, expected: false, supervisedRestart: true });
+    notify({ v: 0, type: 'app.engineExited', exitCode: null, signal: null, expected: false });
     scheduleCrashRestart();
     return;
   }
@@ -332,8 +336,7 @@ function startEngine(): void {
     lastHello = null;
     for (const id of pending) refusal(id, 'unavailable', 'Engine disconnected');
     pending.clear();
-    notify({ v: 0, type: 'app.engineExited', exitCode: code, signal, expected: state.expected,
-      supervisedRestart: !state.expected && !shuttingDown && !restartInProgress });
+    notify({ v: 0, type: 'app.engineExited', exitCode: code, signal, expected: state.expected });
     if (!state.expected && !shuttingDown && !restartInProgress) scheduleCrashRestart();
   });
 }
@@ -768,8 +771,8 @@ app.whenReady().then(() => {
   ipcMain.on('wirescape:ready', event => {
     if (!senderAllowed(event)) return;
     if (lastHello) notify(lastHello);
-    notify(lastRestartPolicy);
   });
+  ipcMain.on('wirescape:restart-policy-ready', event => { if (senderAllowed(event)) sendRestartPolicy(); });
   ipcMain.on('wirescape:escape', event => {
     if (senderAllowed(event) && window?.isFullScreen()) window.setFullScreen(false);
   });

@@ -102,9 +102,14 @@ test('RS retries indefinitely with 250ms doubling capped at 30s, non-modal banne
     await page.evaluate(() => {
       window.__restartDelays = [];
       window.__restartHellos = [];
-      window.wirescape.onMessage(message => {
-        if (message.type === 'app.engineRestartPolicy' && message.phase === 'waiting')
+      window.__restartTimes = [];
+      window.wirescapeRestartPolicy.subscribe(message => {
+        if (message.phase === 'waiting') {
           window.__restartDelays.push(message.delayMs);
+          window.__restartTimes.push(Date.now());
+        }
+      });
+      window.wirescape.onMessage(message => {
         if (message.type === 'hello') window.__restartHellos.push(message.session);
       });
       // A valid snapshot exercises the existing Studio crash-recovery modal path.
@@ -119,6 +124,9 @@ test('RS retries indefinitely with 250ms doubling capped at 30s, non-modal banne
     await expect(page.getByTestId('open-settings')).toBeEnabled();
     await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 9)), { timeout: 115000 })
       .toEqual([250, 500, 1000, 2000, 4000, 8000, 16000, 30000, 30000]);
+    const times = await page.evaluate(() => window.__restartTimes);
+    const delays = [250, 500, 1000, 2000, 4000, 8000, 16000, 30000];
+    for (let i = 0; i < delays.length; i++) expect(times[i + 1] - times[i]).toBeGreaterThanOrEqual(delays[i]);
     expect(Number(fs.readFileSync(countFile, 'utf8'))).toBeGreaterThanOrEqual(9);
     expect(await app.evaluate(() => globalThis.__failureDialogCount)).toBe(0);
     const loads = fs.readFileSync(loadsFile, 'utf8').trim().split('\n').map(line => JSON.parse(line));
@@ -141,9 +149,8 @@ test('RS stable status resets retry delay and clears the banner', async () => {
     await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
     await page.evaluate(() => {
       window.__restartDelays = [];
-      window.wirescape.onMessage(message => {
-        if (message.type === 'app.engineRestartPolicy' && message.phase === 'waiting')
-          window.__restartDelays.push(message.delayMs);
+      window.wirescapeRestartPolicy.subscribe(message => {
+        if (message.phase === 'waiting') window.__restartDelays.push(message.delayMs);
       });
     });
     await expect.poll(() => page.evaluate(() => window.__restartDelays.slice(0, 3)), { timeout: 15000 })

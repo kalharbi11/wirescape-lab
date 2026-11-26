@@ -51,12 +51,6 @@ ipcRenderer.on('wirescape:message', (_event, raw: string) => {
     lastHello = value;
   }
   if (value.type === 'app.engineExited') lastHello = null;
-  if (value.type === 'app.engineRestartPolicy') {
-    lastRestartPolicy = value;
-    for (const listener of [...restartListeners]) {
-      try { listener(value); } catch (e) { console.error('Restart banner listener failed', e); }
-    }
-  }
   for (const listener of [...listeners]) {
     try { listener(value); } catch (e) { console.error('Wirescape message listener failed', e); }
   }
@@ -135,11 +129,23 @@ contextBridge.exposeInMainWorld('wirescapeOscPresets', Object.freeze({
   },
 }));
 
-// RS: read-only main-owned restart state; no new engine commands or Node access.
+// RS: separate local banner IPC, not an engine-protocol push. No new engine
+// commands, schema changes, or Node access.
+ipcRenderer.on('wirescape:restart-policy', (_event, value: Wire) => {
+  if (!value || typeof value !== 'object' || value.type !== 'app.engineRestartPolicy' ||
+      typeof value.banner !== 'boolean' || !['starting', 'waiting', 'recovering', 'stable'].includes(String(value.phase)) ||
+      typeof value.delayMs !== 'number' || value.delayMs < 0 || value.delayMs > 30000) return;
+  lastRestartPolicy = value;
+  for (const listener of [...restartListeners]) {
+    try { listener(value); } catch (e) { console.error('Restart banner listener failed', e); }
+  }
+});
+let requestedRestartPolicy = false;
 contextBridge.exposeInMainWorld('wirescapeRestartPolicy', Object.freeze({
   subscribe(listener: (message: Wire) => void): () => void {
     if (typeof listener !== 'function') throw new TypeError('Expected callback');
     restartListeners.add(listener);
+    if (!requestedRestartPolicy) { requestedRestartPolicy = true; ipcRenderer.send('wirescape:restart-policy-ready'); }
     if (lastRestartPolicy) queueMicrotask(() => {
       if (restartListeners.has(listener) && lastRestartPolicy) listener(lastRestartPolicy);
     });
