@@ -288,6 +288,56 @@ static void test_shared_pattern_replan(AppEngine *cat) {
     check(!graph.pop_egress(event), "retained replan produces exactly the expected release and onset");
 }
 
+// A90: a saved pattern-only Apply retains the authored v1 construction,
+// even when the editor was upgraded to a v2 view. Reload the exact saved
+// source through the real document loader, not through a second parser.
+static void test_a90_saved_construction(AppEngine *cat) {
+    using wirescape::document::groove_construction_bytes;
+    std::string error;
+    const auto authored = patch(pattern());
+    auto saved = authored;
+    auto &module = saved["modules"][0];
+    module["data"]["pattern"] = wirescape::document::groove_legacy_pattern_value(module["config"], 1);
+    auto &edited = module["data"]["pattern"]["steps_1"][0];
+    edited["key"] = 73;
+    edited["keys"][0] = 73;
+    auto outside_pattern = saved;
+    outside_pattern["modules"][0].erase("data");
+    check(outside_pattern.dump() == authored.dump(), "A90 saved source unchanged outside pattern slot");
+
+    const auto original_bytes = groove_construction_bytes(authored["modules"][0]["config"], 1);
+    const auto saved_bytes = groove_construction_bytes(module["config"], 1);
+    groove::Config decoded{};
+    check(original_bytes == saved_bytes &&
+          groove::decode(saved_bytes.data(), static_cast<uint32_t>(saved_bytes.size()), decoded) &&
+          decoded.authored_version == 1 && decoded.track_count == 1,
+          "A90 reload construction retains v1, one track and identical seed/bytes");
+    auto live = load(authored, cat, 48000, error, true);
+    auto fresh = load(Json::parse(saved.dump()), cat, 48000, error, true);
+    check(bool(live) && bool(fresh), "A90 saved patch reloads through native document loader");
+    const auto *descriptor = app_engine_native_descriptor(live.get(), "sequencing.groove");
+    std::vector<uint8_t> packed;
+    check(ws::data_layout::pack_data_slot(descriptor->data_slots[0], module["data"]["pattern"],
+          ws::data_layout::DataLoad::Edit, packed, error, nullptr,
+          app_engine_data_validator(live.get(), descriptor)), "A90 edited slot packs");
+    check(app_engine_native(live.get()).set_data_packed(1, 0, packed) == WS2_OK,
+          "A90 live graph accepts saved pattern");
+    for (auto *e : {live.get(), fresh.get()}) {
+        trace(e, 1, 1);
+        run_command(e, run_id(e), 1.f);
+        check(trace(e, 1, 1)[0] == 1.f, "A90 live and reloaded pattern start");
+    }
+    wirescape::engine2::Outgoing a{}, b{};
+    check(app_engine_native(live.get()).pop_egress(a) &&
+          app_engine_native(fresh.get()).pop_egress(b) &&
+          a.event.type == WS2_NOTE_ON && b.event.type == WS2_NOTE_ON &&
+          a.event.key == 73 && b.event.key == a.event.key &&
+          b.event.note_id == a.event.note_id && b.frame == a.frame,
+          "A90 reloaded source reproduces live note identity and onset");
+    check(trace(live.get(), 12000, 128) == trace(fresh.get(), 12000, 128),
+          "A90 reloaded source reproduces live gate timing");
+}
+
 static void test_refusals(AppEngine *cat) {
     std::string error;
     Json good = pattern();
@@ -1485,6 +1535,7 @@ int main(int argc, char **argv) {
         test_shared_pattern_loader(cat.get());
         test_shared_live_pattern(cat.get());
         test_shared_pattern_replan(cat.get());
+        test_a90_saved_construction(cat.get());
         // Focused ASan diagnostic for the E3b shared loader/ring and migration
         // witnesses. The no-argument CTest retains every original assertion,
         // rate/block combination and the existing 60-second test deadline.
