@@ -19,9 +19,11 @@ unchanged. New OSC In modules still default to Pico knobs.
 | 4 | `/ws/vel/*` | CV | 0–1 |
 | 5–8 | `/ws/cv/1` … `/ws/cv/4` | CV | 0–1, 5 ms smoothing |
 
-The wildcard is a matching suffix, not a promise of polyphony or voice allocation. Send
-concrete OSC addresses, e.g. `/ws/pitch/1` with numeric argument 60. The receiver's configured
-port and network permission still govern routing.
+Send concrete OSC addresses, e.g. `/ws/pitch/1` with numeric argument 60. OSC In already
+maps numeric final wildcard segments to densely sorted poly channels (up to 16); it does not
+allocate MIDI voices. Send initial values for every intended index before playing to stabilize
+channel ordering. See [OSC In](../../modules/osc_in/README.md). The configured UDP port and
+network permission still govern routing.
 
 ## Version 1 file envelope
 

@@ -104,9 +104,9 @@ export function addOscPresetControls<M extends Module>(
   const name = el('input', 'input-text') as HTMLInputElement;
   name.type = 'text'; name.maxLength = 120; name.value = module === 'osc.in' ? 'OSC In' : 'OSC Out';
   name.dataset.testid = 'osc-preset-name'; name.setAttribute('aria-label', 'Preset name');
-  const button = (label: string, action: () => void): HTMLButtonElement => {
+  const button = (label: string, id: string, action: () => void): HTMLButtonElement => {
     const b = el('button', 'btn', label) as HTMLButtonElement;
-    b.type = 'button'; b.addEventListener('click', action); return b;
+    b.type = 'button'; b.dataset.testid = id; b.addEventListener('click', action); return b;
   };
   let active = false;
   const run = async (fn: () => Promise<void>) => {
@@ -118,7 +118,7 @@ export function addOscPresetControls<M extends Module>(
   };
   const load = (text: string) => {
     const p = decodePreset(module, text);
-    if (!group.isConnected || isBusy()) return;
+    if (!group.isConnected || !group.getClientRects().length || isBusy()) return;
     apply(p.config); name.value = p.name;
   };
   const list = el('div', 'osc-presets');
@@ -127,7 +127,7 @@ export function addOscPresetControls<M extends Module>(
     const files = await bridge.list(module);
     if (!group.isConnected) return;
     list.replaceChildren();
-    for (const file of files) list.append(button(file.name, () => {
+    for (const file of files) list.append(button(file.name, 'osc-preset-library-' + file.file, () => {
       void run(async () => load(await bridge.read(file.file)));
     }));
   };
@@ -141,7 +141,7 @@ export function addOscPresetControls<M extends Module>(
       load(await selected.text());
     });
   });
-  group.append(name, button('Save preset…', () => {
+  group.append(name, button('Save preset…', 'osc-preset-save-file', () => {
     void run(async () => {
       const text = encodePreset(module, name.value, snapshot());
       if (bridge) { await bridge.save(text, name.value.trim()); await refresh(); }
@@ -153,12 +153,12 @@ export function addOscPresetControls<M extends Module>(
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     });
-  }), button('Load preset…', () => {
+  }), button('Load preset…', 'osc-preset-load-file', () => {
     if (bridge) void run(async () => { const text = await bridge.choose(); if (text !== null) load(text); });
     else if (!active && !isBusy()) file.click();
   }), file);
   if (bridge) {
-    group.append(button('Open presets folder', () => { void run(async () => { await bridge.openFolder(); }); }), list);
+    group.append(button('Open presets folder', 'osc-preset-open-folder', () => { void run(async () => { await bridge.openFolder(); }); }), list);
   }
   parent.append(group);
   if (bridge) void run(refresh);

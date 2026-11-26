@@ -342,6 +342,22 @@ function presetHeader(text: string): { module: PresetModule; name: string; confi
       Array.isArray(p.config)) throw new Error('Invalid OSC preset header.');
   return { module: p.module, name: p.name, config: p.config };
 }
+// At the write boundary accept only the v1 portable shape; imports may contain
+// extra fields because Studio explicitly discards them before applying a preset.
+function portablePreset(preset: ReturnType<typeof presetHeader>): boolean {
+  const isIn = preset.module === 'osc.in';
+  const only = (v: unknown, keys: string[]): v is Record<string, unknown> =>
+    !!v && typeof v === 'object' && !Array.isArray(v) &&
+    Object.keys(v).every(k => keys.includes(k));
+  const config = preset.config;
+  const rowKeys = isIn ? ['pattern', 'argument', 'kind', 'input_min', 'input_max',
+    'output_min', 'output_max', 'smoothing_ms', 'timeout_ms', 'stale', 'enabled']
+    : ['address', 'kind', 'deadband', 'enabled'];
+  return only(config, isIn ? ['port', 'rows'] : ['port', 'rows', 'notes', 'rate_hz']) &&
+    Array.isArray(config.rows) && config.rows.length === 8 &&
+    config.rows.every(row => only(row, rowKeys)) &&
+    (isIn || only(config.notes, ['address', 'enabled']));
+}
 function presetLeaf(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 240 && /^[^\\/:*?"<>|\x00-\x1f]+\.json$/i.test(value) &&
     path.basename(value) === value;
@@ -414,8 +430,8 @@ async function presetOperation(request: unknown): Promise<unknown> {
   if (op === 'save') {
     if (typeof text !== 'string' || typeof name !== 'string') throw new Error('Invalid OSC preset save.');
     const preset = presetHeader(text);
-    if (name !== preset.name || 'lan' in preset.config || 'host' in preset.config)
-      throw new Error('OSC presets cannot store network settings.');
+    if (name !== preset.name || !portablePreset(preset))
+      throw new Error('OSC presets may contain only portable mapping fields, not network settings.');
     const leaf = name.replace(/[^a-zA-Z0-9_-]+/g, '_') + '.json';
     const result = await dialog.showSaveDialog(window, { title: 'Save OSC preset',
       defaultPath: path.join(root, leaf), filters: [{ name: 'OSC preset', extensions: ['json'] }] });
