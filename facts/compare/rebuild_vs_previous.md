@@ -14,7 +14,7 @@
 | linux-x64 | Intel(R) Xeon(R) 6975P-C | 2026-11-26T04:26:12.036910-05:00 | [15106255348](https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325/artifacts/15106255348) `621d8e5e141430da15b6459a1d673f99a7466776c5f9f06669a37b0e08e5ac6f` |
 | linux-arm64 | CPU implementer 0x41 / CPU part 0xd49 | 2026-11-26T04:25:27.944169-05:00 | [15104379390](https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325/artifacts/15104379390) `c78dfd5471746727e1ea08ebf1cb5b558b3766e94c158a78c06db4de2a90a8df` |
 
-The artifact files are the raw evidence; the adjacent `derived-comparison.json` is a transcription of the measured numeric rows, not a replacement for raw JSON. Repository raw-file retention is pending the bulk transfer (see PR #592). No completed Result is asserted here.
+The 33 original JSON members are retained byte-for-byte in `rebuild_vs_previous/linux-x64/` (17) and `rebuild_vs_previous/linux-arm64/` (16). Both archive SHA-256 values and all member SHA-256 values match `rebuild_vs_previous/raw-artifact-manifest.json`; the Architect verified the extracted and committed bytes, and B4 independently matched every committed Git blob SHA-1 to the corresponding original ZIP member. The adjacent `derived-comparison.json` is a transcription of the measured numeric rows, not a replacement for raw JSON. Log members are excluded. See PR #592 for exact-head CI and Result.
 
 ## 1. Engine: abi2_poly8
 
