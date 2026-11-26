@@ -131,6 +131,8 @@ struct Context {
     EngineOwner engine;
     std::vector<float> scratch;
     std::atomic<uint64_t> faults{0};
+    static_assert(std::atomic<uint64_t>::is_always_lock_free);
+    std::atomic<uint64_t> rendered_blocks{0}, last_completed_ns{0};
     // `engine` is control-owned; the callback renders only `live`, which it alone
     // writes after the stream starts, adopting exchanged engines at block starts.
     EngineSlot slot;
@@ -147,6 +149,10 @@ int callback(const void *, void *output, unsigned long frames, const PaStreamCal
     const bool ok = render_callback_block(c.live, c.scratch.data(), size, out, frames, now, c.faults);
     const auto end = app_engine_clock_ns();
     c.metrics.publish(end >= now ? end - now : 0, frames, c.rate, (flags & paOutputUnderflow) != 0);
+    if (ok) {
+        c.rendered_blocks.fetch_add(1, std::memory_order_relaxed);
+        c.last_completed_ns.store(end, std::memory_order_release);
+    }
     return ok ? paContinue : paAbort;
 }
 } // namespace
@@ -215,6 +221,7 @@ struct Stream::Impl {
     std::unique_ptr<Context> context;
     PaStream *stream = nullptr;
     uint64_t retired_dropouts = 0;
+    uint64_t retired_blocks = 0, started_ns = 0;
     uint32_t frames = 0;
     Impl(EngineOwner &engine, const StreamSelection &selection, double rate, uint32_t block,
          std::function<void()> producers, bool allow_preferred_retry)
@@ -259,6 +266,7 @@ struct Stream::Impl {
             engine = retire();
             b.check(started, is_asio);
         }
+        started_ns = app_engine_clock_ns();
     }
     EngineOwner retire() {
         if (!context) return EngineOwner(nullptr, app_engine_destroy);
@@ -277,6 +285,7 @@ struct Stream::Impl {
         if (terminated < 0) std::cerr << "PortAudio termination reported failure after stream closed\n";
         if (context->faults.load()) std::cerr << "Audio callback stopped after render fault\n";
         retired_dropouts = context->metrics.underflows.load(std::memory_order_relaxed);
+        retired_blocks = context->rendered_blocks.load(std::memory_order_relaxed);
         auto owner = std::move(context->engine);
         context.reset();
         return owner;
@@ -303,6 +312,18 @@ bool Stream::exchange(EngineOwner &next, std::chrono::steady_clock::time_point d
 }
 uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
 bool Stream::running() const { return impl_->stream && impl_->backend->active(impl_->stream) > 0; }
+uint64_t Stream::rendered_blocks() const noexcept {
+    return impl_->context ? impl_->context->rendered_blocks.load(std::memory_order_relaxed) : impl_->retired_blocks;
+}
+bool Stream::stalled() const {
+    if (!impl_->context || !running()) return false;
+    // The callback already samples this monotonic clock for load metrics.
+    // No render-thread watchdog, extra clock read, or access to the live graph.
+    const auto last = (std::max)(impl_->started_ns,
+        impl_->context->last_completed_ns.load(std::memory_order_acquire));
+    const auto now = app_engine_clock_ns();
+    return now >= last && now - last >= 500'000'000ULL;
+}
 double Stream::cpu_percent() const {
     return impl_->context ? impl_->context->metrics.read() : std::numeric_limits<double>::quiet_NaN();
 }
