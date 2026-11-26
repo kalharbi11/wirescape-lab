@@ -270,7 +270,29 @@ def analyze(capture, switches, mark_ids):
             _, held = samples(stream, segments, hold['b0'], swap['b0'])
             require(any(x > 0 for x in held) and gate[0] > 0,
                     f'switch {number}: no held note immediately before swap')
-            require(not any(gate[-BLOCK:]), f'switch {number}: gate/note retained after swap')
+            if any(gate[-BLOCK:]):
+                # Do not change the oracle, bracket, offered load or deadline.
+                # A later intentional noteOn may overlap the R7 bracket: report
+                # its marks and the offending sample positions to distinguish
+                # that hypothesis from a genuinely retained gate.
+                next_hold = (by_id[mark_ids[number][0]]
+                             if number < len(mark_ids) else None)
+                final = gate[-BLOCK:]
+                nonzero = [i for i, value in enumerate(final) if value != 0.0]
+                block_summary = [
+                    dict(block=first + offset // BLOCK,
+                         nonzero=sum(value != 0.0 for value in gate[offset:offset + BLOCK]),
+                         minimum=min(gate[offset:offset + BLOCK]),
+                         maximum=max(gate[offset:offset + BLOCK]))
+                    for offset in range(0, len(gate), BLOCK)
+                ]
+                detail = dict(switch=number, hold=hold, swap=swap,
+                              next_hold=next_hold, first_block=first, end_block=end,
+                              last_block=end - 1, first_nonzero=nonzero[0],
+                              last_nonzero=nonzero[-1], blocks=block_summary)
+                raise SoakFailure(
+                    f'switch {number}: gate/note retained after swap; '
+                    + json.dumps(detail, sort_keys=True))
             try:
                 gaps.append(fade_gap(audio))
             except SoakFailure as error:
