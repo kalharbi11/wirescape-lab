@@ -993,6 +993,21 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 assert tags == ',f' and values in ([0.0], [1.0])
                 held = values == [1.0]
         assert held, 'OB-h2 held gate never reached the loopback receiver'
+        # A91 refusal is not retirement: even with a held high, a malformed
+        # destination must leave the old graph and its delivered gate intact.
+        malformed = json.loads(json.dumps(outgoing_patch))
+        malformed['modules'][1]['config'].update(version=2, host='127.0.0.256')
+        refused = out_engine.call('loadGraph', expected=False, patch=malformed)
+        assert refused['gen'] == outgoing_gen, refused
+        until = time.monotonic() + 0.3
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values == [1.0], ('refusal released held gate', values)
         clean_gen = out_engine.call('loadGraph', patch=minimal())['gen']
         assert clean_gen != outgoing_gen
         released = []
@@ -1069,7 +1084,37 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 saw_no_listener = True
                 break
         assert saw_no_listener
+
+        # Terminal EOF is distinct from a graph swap: leave a delivered gate
+        # high, close stdin without noteOff, and observe the old destination
+        # after the sender has joined. The destructor must not release twice.
+        out_engine.call('loadGraph', patch=outgoing_patch)
+        out_engine.call('noteOn', note=66, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 terminal gate never reached the loopback receiver'
         out_engine.close()
+        terminal = []
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                terminal.extend(values)
+        assert terminal == [0.0], ('OB-h2 EOF must release exactly once', terminal)
 
 # OB-h2 A91 permission: a nonloopback destination is refused without
 # consent and under --null-audio even with consent. The TEST-NET host
