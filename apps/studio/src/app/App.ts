@@ -713,7 +713,10 @@ export class App {
       if (this.graphChain === activeChain && !activeChain.refused && epoch === this.viewEpoch) {
         activeChain.refused = true;
         const anchor = activeChain.anchor, view = this.doc.ui.view;
-        this.doc.replace({ ...anchor.patch, ui: { ...(anchor.patch.ui ?? {}), view } });
+        const restored = structuredClone(anchor.patch);
+        if (view !== undefined) (restored.ui ??= {}).view = view;
+        else if (restored.ui) delete restored.ui.view;
+        this.doc.replace(restored);
         if (!anchor.dirty) this.doc.markClean();
         else this.doc.markDirty();
         anchor.restoreHistory();
