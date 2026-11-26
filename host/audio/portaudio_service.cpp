@@ -149,9 +149,9 @@ int callback(const void *, void *output, unsigned long frames, const PaStreamCal
     const bool ok = render_callback_block(c.live, c.scratch.data(), size, out, frames, now, c.faults);
     const auto end = app_engine_clock_ns();
     c.metrics.publish(end >= now ? end - now : 0, frames, c.rate, (flags & paOutputUnderflow) != 0);
-    if (ok) {
-        c.rendered_blocks.fetch_add(1, std::memory_order_relaxed);
+    if (ok && frames != 0) {
         c.last_completed_ns.store(end, std::memory_order_release);
+        c.rendered_blocks.fetch_add(1, std::memory_order_relaxed);
     }
     return ok ? paContinue : paAbort;
 }

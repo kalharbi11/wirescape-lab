@@ -455,6 +455,8 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
 #endif
                 capture_.begin(options_.rate, channels, options_.block); // no-op without the flag
                 auto next = std::chrono::steady_clock::now();
+                sink_last_completed_ns_.store(uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    next.time_since_epoch()).count()), std::memory_order_release);
                 sink_rendering_.store(true, std::memory_order_release);
                 while (!stop_sink_.load()) {
                     live = sink_slot_.adopt(live); // same block-boundary handoff as the PortAudio callback
@@ -467,6 +469,9 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
                     }
                     if (render != WS2_OK) break;
                     auto after = std::chrono::steady_clock::now();
+                    sink_last_completed_ns_.store(uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        after.time_since_epoch()).count()), std::memory_order_release);
+                    rendered_blocks_.fetch_add(1, std::memory_order_relaxed);
                     // Null-sink thread only (not Engine::render, not a device callback).
                     capture_.append(rows.data(), channels, options_.block, scratch.data());
                     double percent =
@@ -635,6 +640,7 @@ void Session::stop_audio() {
     if (stream_) {
         engine_ = stream_->stop();
         dropouts_.fetch_add(stream_->dropouts()); // include the final callback after stop joins
+        rendered_blocks_.fetch_add(stream_->rendered_blocks(), std::memory_order_relaxed);
         stream_.reset();
     }
     cpu_.store(0);
@@ -1255,13 +1261,15 @@ Json Session::apply(const Json &command) {
         need(!client_hello_seen_, "duplicate", "Client hello already received");
         const auto &capabilities = command.at("capabilities");
         need(capabilities.is_array() && capabilities.size() <= 256, "invalid", "Invalid capabilities");
-        bool supports_deferred = false;
+        bool supports_deferred = false, supports_render_liveness = false;
         for (const auto &capability : capabilities) {
             need(capability.is_string() && capability.get_ref<const std::string &>().size() <= 128,
                  "invalid", "Invalid capability");
             supports_deferred |= capability == "configDeferred";
+            supports_render_liveness |= capability == "audio.renderLiveness";
         }
         client_deferred_ = supports_deferred;
+        client_render_liveness_ = supports_render_liveness;
         client_hello_seen_ = true;
         return nullptr;
     }
@@ -1747,6 +1755,14 @@ Json Session::audio_status() const {
     auto state = audio_state_;
     if (options_.audio && stream_ && !selected) state = "device-lost";
     else if (selected && !measured) state = "starting";
+    if (client_render_liveness_) {
+        if (selected && stream_->stalled()) state = "stalled";
+        else if (!options_.audio && sink_rendering_.load(std::memory_order_acquire)) {
+            const auto last = sink_last_completed_ns_.load(std::memory_order_acquire);
+            const auto now = app_engine_clock_ns();
+            if (now >= last && now - last >= 500'000'000ULL) state = "stalled";
+        }
+    }
     Json result = {{"state", state},
                    {"deviceId", selected ? Json(device_) : Json(nullptr)},
                    {"deviceName", selected ? Json(device_) : Json(nullptr)},
@@ -1755,6 +1771,9 @@ Json Session::audio_status() const {
                    {"latencyMs", 2. * options_.block / options_.rate * 1000},
                    {"cpuPercent", measured ? cpu : 0},
                    {"dropouts", dropouts_.load() + (stream_ ? stream_->dropouts() : 0)}};
+    if (client_render_liveness_)
+        result["renderedBlocks"] = rendered_blocks_.load(std::memory_order_relaxed) +
+            (stream_ ? stream_->rendered_blocks() : 0);
     if (!audio_reason_.empty()) result["reason"] = audio_reason_;
     if (!audio_error_.empty()) result["error"] = audio_error_;
     // The ASIO driver forced bufferFrames; the user's saved size is unchanged.
@@ -1775,7 +1794,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph", "configDeferred"});
+         "applyGraph", "configDeferred", "audio.renderLiveness"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},

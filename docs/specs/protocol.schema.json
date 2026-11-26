@@ -297,7 +297,8 @@
             "running",
             "no-device",
             "device-lost",
-            "reconnecting"
+            "reconnecting",
+            "stalled"
           ]
         },
         "deviceId": {
@@ -330,6 +331,10 @@
           "minimum": 0
         },
         "dropouts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "renderedBlocks": {
           "type": "integer",
           "minimum": 0
         },

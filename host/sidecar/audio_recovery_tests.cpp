@@ -1557,6 +1557,13 @@ void test_p0a_status(const std::filesystem::path &root) {
     check(wait([&] { auto a = audio(s); return a["state"] == "running" &&
                 a.value("renderedBlocks", uint64_t{0}) > frozen; }, std::chrono::steady_clock::now() + 1s),
           "P0a resumed rendering clears stalled");
+    const auto before_reopen = audio(s)["renderedBlocks"].get<uint64_t>();
+    fake::outputs.push_back(output("P0a other", 1));
+    check(s.reply({{{"v", 0}, {"id", "p0a-reopen"}, {"type", "selectAudioDevice"},
+        {"deviceId", "P0a other"}}, {}, {}})["ok"] == true, "P0a fake output reopens");
+    check(audio(s)["renderedBlocks"].get<uint64_t>() >= before_reopen, "P0a reopen never resets count");
+    check(wait([&] { return audio(s)["renderedBlocks"].get<uint64_t>() > before_reopen; },
+               std::chrono::steady_clock::now() + 1s), "P0a new stream advances total");
     s.shutdown();
     check(audio(s)["renderedBlocks"].get<uint64_t>() > frozen, "P0a stop retains count");
     fake::render = false;
