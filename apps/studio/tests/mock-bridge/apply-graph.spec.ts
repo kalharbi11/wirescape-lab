@@ -2,6 +2,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { boot, settle, state } from '../helpers';
 import { mockBridge } from './bridge';
+import { picoDefaults } from '../../src/app/OscEditor';
 
 type Wire = { type: string; patch?: any };
 const patch = (modules: any[]) => ({
@@ -29,10 +30,10 @@ for (const capability of [true, false]) {
   test.describe('E1b real bridge ' + (capability ? 'applyGraph capability' : 'legacy fallback'), () => {
     test('config edit, undo, redo and explicit snapshot restore all use the negotiated command', async ({ page }) => {
       await setup(page, capability, [{ id: 1, module: 'osc.in' }]);
-      await page.evaluate(async () => {
+      await page.evaluate(async rows => {
         await window.__wirescapeTest.commitOscConfig(1,
-          { port: 9005, lan: false, rows: [] }, 'osc.in');
-      });
+          { port: 9005, lan: false, rows }, 'osc.in');
+      }, picoDefaults().rows);
       await expectGraphCommands(page, [wire]);
       await page.evaluate(() => window.__wirescapeTest.undo());
       await expectGraphCommands(page, [wire, wire]);
@@ -88,8 +89,8 @@ test('capability-on graph refusal leaves running document, graph and generation 
     gen: (window as any).__mockBridge.generation(),
   }));
   await page.evaluate(() => (window as any).__mockBridge.refuseNext('applyGraph', 'refused'));
-  await page.evaluate(() => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9012, lan: false, rows: [] }, 'osc.in'));
+  await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
+    { port: 9012, lan: false, rows }, 'osc.in'), picoDefaults().rows);
   await expectGraphCommands(page, ['applyGraph']);
   await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph())).toEqual(before.graph);
   await expect.poll(async () => (await state(page)).modules[0].config).toBeUndefined();
@@ -112,8 +113,8 @@ test('successful applyGraph with unapplied values reconciles engine and visible 
 
 test('refused undo restores history position and authored document without a compensating reload', async ({ page }) => {
   await setup(page, true, [{ id: 1, module: 'osc.in' }]);
-  await page.evaluate(() => window.__wirescapeTest.commitOscConfig(1,
-    { port: 9021, lan: false, rows: [] }, 'osc.in'));
+  await page.evaluate(rows => window.__wirescapeTest.commitOscConfig(1,
+    { port: 9021, lan: false, rows }, 'osc.in'), picoDefaults().rows);
   await expectGraphCommands(page, ['applyGraph']);
   const depth = await page.evaluate(() => window.__wirescapeTest.historyDepth());
   const before = await state(page);
@@ -762,3 +763,27 @@ for (const editConfirmed of [true, false]) {
     expect(after.history.future).toBe(baseline.history.future);
   });
 }
+
+
+test('A86 OSC Out row-only editor Save uses one retained setData and no graph command', async ({ page }) => {
+  await setup(page, true, [{ id: 1, module: 'osc.out' }]);
+  const gen = await page.evaluate(() => (window as any).__mockBridge.generation());
+  await page.getByTestId('osc-out-edit-1').click();
+  await page.getByTestId('osc-out-row1-address').fill('/a86/live');
+  await page.getByTestId('osc-out-save').click();
+  await expect(page.getByTestId('osc-out-save')).toBeHidden();
+  await expectGraphCommands(page, []);
+  const result = await page.evaluate(() => {
+    const b = (window as any).__mockBridge;
+    const e = window.__wirescapeTest.engine as any;
+    return { writes: b.sent.filter((m: any) => m.type === 'setData'), gen: b.generation(),
+      native: b.getGraph().modules[0].data.routes, confirmed: e.confirmed.modules[0].data.routes,
+      authored: window.__wirescapeTest.state().modules[0].data };
+  });
+  expect(result.writes).toHaveLength(1);
+  expect(result.gen).toBe(gen);
+  expect(result.native.rows).toHaveLength(8);
+  expect(result.native.rows[0].address).toBe('/a86/live');
+  expect(result.confirmed).toEqual(result.native);
+  expect(result.authored).toMatchObject({ routes: result.native });
+});

@@ -101,10 +101,11 @@ export function ccDefaultRow(index: number): RecordValue {
 }
 export function ccEffectiveRows(m: PatchModule): RecordValue[] {
   const rows = ccMappingSource(m);
+  const legacy = !own(object(m.data), 'mapping');
   return Array.from({ length: 8 }, (_, index) => {
     const row = object(rows[index]);
     const defaults = ccDefaultRow(index);
-    return { ...defaults, ...(row.bipolar === true ? { min: -1 } : {}), ...row };
+    return { ...defaults, ...(legacy && row.bipolar === true ? { min: -1 } : {}), ...row };
   });
 }
 export function ccRowIsDefault(row: RecordValue, index: number): boolean {
@@ -123,6 +124,7 @@ export function splitCcMappingSave(m: PatchModule, rows: RecordValue[]): CcSlotE
   if (rows.length > 8) throw new Error('CC row capacity exceeded');
   const authored = copy(m);
   const data = copy(object(m.data));
+  const legacy = !own(data, 'mapping');
   const old = object(data.mapping);
   const config = copy(object(m.config));
   const keys = ['channel', 'controller', 'fourteen_bit', 'smoothing_ms', 'min', 'max'];
@@ -130,13 +132,14 @@ export function splitCcMappingSave(m: PatchModule, rows: RecordValue[]): CcSlotE
   const wireRows = Array.from({ length: 8 }, (_, index) => {
     const row = object(rows[index]);
     const defaults = ccDefaultRow(index);
-    if (row.bipolar === true) defaults.min = -1;
+    if (legacy && row.bipolar === true) defaults.min = -1;
     for (const key of keys) if (own(row, key)) defaults[key] = row[key];
     return defaults;
   });
   const authoredRows = wireRows.map((row, index) => {
     const opaque = { ...object(prior[index]), ...object(rows[index]) };
-    for (const key of [...keys, 'bipolar']) delete opaque[key];
+    for (const key of keys) delete opaque[key];
+    if (legacy) delete opaque.bipolar;
     return { ...opaque, ...row };
   });
   delete config.rows;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
-import { oscEditorSource, splitOscEditorSave, oscConstructionChanged, ccMappingSource, splitCcMappingSave } from '../src/app/ioData';
+import { oscEditorSource, splitOscEditorSave, oscConstructionChanged, ccMappingSource, ccEffectiveRows, splitCcMappingSave } from '../src/app/ioData';
 import type { OscOutConfig } from '../src/app/OscOutEditor';
 
 test('E3c editor data projection wins over stale config without changing authored patch', () => {
@@ -154,11 +154,21 @@ test('A95 never takes a wired default or a non-default unwired row', () => {
   // Save/reload a complete slot to prove length is not occupancy.
   const patch = doc.toJSON();
   const node = patch.modules.find(m => m.id === 2)!;
-  Object.assign(node, splitCcMappingSave(node, ccMappingSource(node)).authored);
+  patch.modules[patch.modules.indexOf(node)] = splitCcMappingSave(node, ccMappingSource(node)).authored;
   const reloaded = PatchDoc.from(patch);
   const learned = commitLearn(learnServices(reloaded), ccTarget, ccCapture, false);
   expect(learned).toMatchObject({ module: 2, row: 2, created: false });
   expect(reloaded.ccRows(2)[0]).toMatchObject({ controller: 1 });
   expect(reloaded.ccRows(2)[1]).toMatchObject({ controller: 42 });
   expect(reloaded.cablesFrom(2, 'cc1')).toHaveLength(1);
+});
+
+
+test('E3c explicit mapping treats legacy bipolar shorthand as opaque, not effective range', () => {
+  const m = { id: 9, module: 'midi.cc_to_cv', data: { mapping: { rows: [{ bipolar: true }] } } };
+  expect(ccEffectiveRows(m)[0]).toMatchObject({ controller: 1, min: 0, max: 1 });
+  const edit = splitCcMappingSave(m, ccEffectiveRows(m));
+  expect((edit.value.rows as unknown[])[0]).toMatchObject({ min: 0, max: 1 });
+  expect((edit.value.rows as unknown[])[0]).not.toHaveProperty('bipolar');
+  expect(edit.authored.data).toMatchObject({ mapping: { rows: [expect.objectContaining({ bipolar: true, min: 0 }), ...Array.from({ length: 7 }, () => expect.anything())] } });
 });

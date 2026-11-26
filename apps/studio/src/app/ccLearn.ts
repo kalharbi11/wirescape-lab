@@ -189,7 +189,6 @@ function resetRow(doc: PatchDoc, edit: Edit, module: number, port: string): void
   const index = rowOf(port);
   if (index < 0 || index >= rows.length || doc.cablesFrom(module, port).length) return;
   rows[index] = { ...rows[index], ...ccDefaultRow(index) };
-  delete rows[index].bipolar;
   edit.rows(module, rows, { port, controller: null });
 }
 
