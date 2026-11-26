@@ -9,9 +9,9 @@ The dated dispatch entries below are history.
 ## OB1.1 Tier 1 plan — 2026-11-25 ET (Architect, owner request; OB r2.12, `proposals/0022`)
 
 **Goal:** the owner can leave a complex generative patch running for hours on the Pi, drive it with
-OSC from a Python script, send OSC out to Pico W 2 boards (LEDs and servos), and switch patches
-without restarting anything. The same patch files must also run on a later headless Pi build (a separate
-repo, not planned here). Tier 1 holds only engine, Studio and shared-tool work, so the full app benefits
+OSC from a Python script, send OSC out to network controllers (LEDs and servos), and switch patches
+without restarting anything. The same patch files must also run on a later headless Pi build (the separate
+`wirescape-headless` repo). Tier 1 holds only engine, Studio and shared-tool work, so the full app benefits
 as well.
 
 **Queue rule:** each row starts after its lane's current task. No row holds the OB1 tag. Rows may

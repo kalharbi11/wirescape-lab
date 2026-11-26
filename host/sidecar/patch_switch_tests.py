@@ -2,7 +2,7 @@
 """A93 OB-h3: device-free patch-switch witness, 200 (or 1000) switches.
 
 Run with the local wirescape-engine executable. Draft-ahead: no product
-change, no physical audio/MIDI, no LAN, no CI registration until release.
+change, no physical audio/MIDI, no LAN. Linux-only CTest registration.
 The 50 ms ingress-to-echo deadline is a contract gate, never retried.
 """
 import argparse
@@ -59,11 +59,19 @@ class CaptureSidecar(Sidecar):
 
     def route(self, node, out_node):
         deadline = time.monotonic() + self.timeout
-        while True:
+        status_seen = notes_seen = False
+        while not (status_seen and notes_seen):
             msg = self._next(deadline)
             require(msg.get('session') == self.session and msg.get('v') == 0,
                     'status session/version mismatch')
-            if msg.get('type') != 'status' or msg.get('gen') != str(self.gen):
+            if msg.get('gen') != str(self.gen):
+                continue
+            if msg.get('type') == 'telemetry':
+                require(msg['telemetry']['heldNotes'] == [],
+                        f'new generation has held MIDI notes: {msg["telemetry"]["heldNotes"]}')
+                notes_seen = True
+                continue
+            if msg.get('type') != 'status':
                 continue
             osc = msg['status']['osc']
             routes = osc['routes']
@@ -77,7 +85,17 @@ class CaptureSidecar(Sidecar):
             require(len(out) == 1 and out[0]['module'] == str(out_node) and
                     out[0]['port'] == PORT_OUT and out[0]['state'] == 'sending',
                     f'new generation egress not sending: {out}')
-            return
+            status_seen = True
+
+    def held(self, key):
+        deadline = time.monotonic() + self.timeout
+        while True:
+            msg = self._next(deadline)
+            require(msg.get('session') == self.session and msg.get('v') == 0,
+                    'held-note session/version mismatch')
+            if msg.get('gen') == str(self.gen) and msg.get('type') == 'telemetry':
+                if key in msg['telemetry']['heldNotes']:
+                    return
 
 
 def pad(value):
@@ -296,6 +314,7 @@ def run(binary, switches):
                 hold_id = f'soak-{engine.step}'
                 receive_until(receiver, time.monotonic() + 2, {
                     (address + '/gate', (1.0,)), (address + '/note', (60, .5, 0))})
+                engine.held(60)
                 # Allow the real held block to be captured before the command;
                 # the offline witness still requires a high pre-swap sample.
                 time.sleep(2 * BLOCK / RATE)

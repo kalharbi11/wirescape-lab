@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Lab log (newest first)
 
+## 2026-11-26 — Claude Architect session (Fable design brief)
+Owner direction: a headless Player (new repo `wirescape-headless`), a loose module-dev repo (`wirescape-test`), macros and mapping, OSC and Python scripting. Brief and scout pack in `docs/context/fable/`. Two Fable design runs (`fable: design run 1|2`) have final say. 0022 is reframed as headless readiness. Lanes are unchanged.
+Signed: claude-architect, 2026-11-26
+
 ## 2026-11-25 — Claude Architect session (OB r2.12, OB1.1 Tier 1)
 Owner Pi installation in 7 days. `proposals/0022` and OB r2.12 add OB-h1–OB-h6 (OSC soak status, OSC Out network destinations, patch switching witness, Gate Delay, OSC presets, patch check tool). A67 #494 is unparked. Each row is queued after its lane's current task. Tier 2 is suggested only.
 Signed: claude-architect, 2026-11-25
