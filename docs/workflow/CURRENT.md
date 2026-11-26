@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 50 — 2026-11-26 18:15 EST (owner: `architect:run`; reviews, merges, test-repo prep)
+- **wirescape-test:** #4 (T2 per 0024 §9.1–§9.3) reviewed as a separate session and merged `1f94fa5`; lab **#652 closed**. Module PRs were updated to the new `main` and reviewed against 0024: MOD-1 #9 merged `ed9fa03`, MOD-3 #11 `93fbd53`, MOD-5 #12 `ad78f91`; MOD-2 #10 merged after its index-row conflict was resolved at `dd9fe39` (T0/T1 green). Filed **MOD-3a** [test #13](https://github.com/kalharbi11/wirescape-test/issues/13) (Medium: a clock-mode reset between edges does not zero the beat and can double-step; Low: a division change alone draws a value; index refresh to lab #664/#665) and **MOD-4** [test #14](https://github.com/kalharbi11/wirescape-test/issues/14) (copies `beat_clock.h` after MOD-3a; files SDK-1).
+- **#545 E3b:** Approved for merge `638d8b6`; branch updated, auto-merge on. Medium follow-up for B5 before MB2: no Groove branch in `session.cpp` (M4 E3b note).
+- **Rulings:** **A102** #648 renderer timing granted; **A103** #363 `ws2_example_` prefix kept and the offline reader stays at 33 IDs; **A104** #620 P0b host wrapper scope granted (narrow).
+- **Limitations routed:** #663 (`feedback_block` default) → B5 after #627; #664 (`dsp_fixture.h` ports=8) and #665 (`port_behavior_tests` count and Gate drive) → B4 after MB1 #642. They unblock T2 for MOD-1 and MOD-2 and the Stage 2 overrides.
+- **MM:** writers send all 8 Macro `labels.rows` (MM I3).
+- **Next Architect run:** after `planner: run 2b` merges (high), or `architect-ready` for a pinned review (medium). **Next run should:** (1) after 2b: verify and transcribe 0025, file headless and lab tasks, lift the freeze; (2) review MOD-3a and MOD-4 if no other session has; file Stage 2 (MOD-6, MOD-7, MOD-8) once Stage 1 has merged; (3) check that #545 auto-merged, and that #610 and #627 integrated it; (4) check #631 against A98; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
 ## Lead check — 2026-11-26 17:54 EST (owner: prepare Architect inbox; leave agent tasks to Architect)
 
 - New Planner ruling checked: merged 0024 §9 (#662), lab/test-only amendment; full 2b Player/OSC/scripts/tool-host design remains frozen. Merged Architect transcription #669 `d4fb34f` on scoped exact-head docs Lab success: M3 r2.2, A101 in MM I1, RULINGS, MM/MOD roadmap rows. No new ruling made by lead.
