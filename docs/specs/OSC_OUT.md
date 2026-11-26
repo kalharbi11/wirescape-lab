@@ -108,6 +108,12 @@ bool out_configuration(const uint8_t *data, uint32_t bytes, OutConfiguration &c)
 
 **OB1.1 A86 live route amendment:** the accepted-only route write retains the DSP instance and bus. The host-owned bus additionally carries exact bounded wire metadata (address, kind, deadband, enabled), coherent block snapshots and crossing baselines; note ring entries carry their originating address. The module still retains no slot copy or pointer. The sender does not wait for a particular engine slot serial: it discards mismatched old observations rather than encoding them with the new table, counts dropped crossings/notes and releases locally accepted high gates/notes on the old address before sending new data. Disabled cleanup requires no socket; old-route releases share the existing 64-datagram budget. No core ABI or wire-packet change.
 
+**OB r2.13 gate retirement:** on terminal stop or successful graph replacement, each gate row
+whose last locally accepted value was high sends one best-effort zero to its old address and
+old destination. It counts as sent or dropped by the same rules and uses the same bounded
+release set and sender worker. A temporary pause, rejected replacement or rollback is not
+retirement and must not release a held gate.
+
 ## 5. Protocol (additive; ENGINE_PROTOCOL §status)
 - `hello.capabilities` gains `"osc.out"` when the sender is installed.
 - `status.osc.out?` is an `out` array **inside the existing `status.osc` object** (so readers that only know

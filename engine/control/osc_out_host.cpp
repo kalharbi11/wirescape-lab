@@ -147,8 +147,11 @@ void OutHost::start() noexcept {
     for (const auto &route : routes_)
         enabled |= !route->lan_refused && (route->enabled || route->has_releases() || route->has_cleanup());
     if (!enabled) return; // disabled modules must not open a socket
+    launch_worker(true);
+}
+void OutHost::launch_worker(bool poll) noexcept {
     socket_error_.store(0);
-    running_.store(true, std::memory_order_release);
+    running_.store(poll, std::memory_order_release);
     try {
         worker_ = std::thread([this] { loop(); });
     } catch (...) {
@@ -161,10 +164,32 @@ void OutHost::stop() noexcept {
     running_.store(false, std::memory_order_release);
     if (worker_.joinable()) worker_.join();
 }
+void OutHost::retire() noexcept {
+    stop(); // no sender may mutate the delivered-level cursors after this join
+    bool pending = false;
+    for (auto &item : routes_) {
+        auto &route = *item;
+        if (route.lan_refused) continue;
+        for (size_t i = 0; i < route.cursors.size(); ++i) {
+            auto &cursor = route.cursors[i];
+            const auto &cfg = route.config.rows[i];
+            if (!cfg.enabled || cfg.kind != 1 || !cursor.sent_high) continue;
+            route.gate_release[i] = cfg;
+            route.release_gates.set(i);
+            cursor.sent_high = false; // one best-effort attempt, even on failure
+        }
+        pending |= route.has_releases();
+    }
+    if (pending) {
+        launch_worker(false); // drain releases only; never publish a fresh high
+        stop();
+    }
+}
 void OutHost::loop() noexcept {
+    const bool poll = running_.load(std::memory_order_acquire);
     bool need_socket = false, need_lan = false;
     for (const auto &route : routes_) {
-        if (route->lan_refused || !(route->enabled || route->has_releases())) continue;
+        if (route->lan_refused || !((poll && route->enabled) || route->has_releases())) continue;
         need_socket = true;
         need_lan |= route->destination != 0x7f000001u;
     }

@@ -77,12 +77,13 @@ class OutHost {
     std::atomic<uint32_t> socket_error_{0};
     SendOverride send_override_ = nullptr;
 
+    void launch_worker(bool poll) noexcept;
     void loop() noexcept;
 
   public:
     explicit OutHost(const std::string &document, SendOverride send_override = nullptr,
                      bool allow_network = false);
-    ~OutHost() { stop(); }
+    ~OutHost() { retire(); }
     OutHost(const OutHost &) = delete;
     OutHost &operator=(const OutHost &) = delete;
     const std::map<uint32_t, OutBus *> &buses() const noexcept { return buses_; }
@@ -90,7 +91,11 @@ class OutHost {
     // The construction bus stays owned by this graph; no instance replacement.
     void commit_data(uint32_t node, const OscOutRoutes &) noexcept;
     void start() noexcept;
+    // Pause/join preserves delivered levels for same-graph resume or rollback.
     void stop() noexcept;
+    // Terminal only: release delivered high gates once, before graph destruction.
+    // Uses the existing bounded release set and sender; does not poll fresh data.
+    void retire() noexcept;
     std::vector<OutState> states() const;
 };
 } // namespace wirescape::osc

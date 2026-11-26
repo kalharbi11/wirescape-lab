@@ -367,7 +367,7 @@ Session::~Session() {
     }
 }
 void Session::shutdown() {
-    osc_out_->stop();
+    osc_out_->retire();
     osc_->stop(); // stop/join packet acquisition before audio or engine teardown
     midi_->stop();
     stop_audio();
@@ -969,6 +969,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
             if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
                     [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
+                osc_out_->retire(); // successful commit only, before new sender starts
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
@@ -1143,6 +1144,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             throw;
         }
     }
+    osc_out_->retire(); // old graph is now irrevocably retired, not merely paused
     osc_out_.swap(next_out); // only after a successful D5 commit; rollback retains the old bus
     ++generation_;
     keyboard_.fill(false);
