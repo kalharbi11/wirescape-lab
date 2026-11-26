@@ -171,10 +171,12 @@ export function grooveEditorConfig(module: { config?: unknown; data?: unknown })
     !Object.prototype.hasOwnProperty.call(config, 'tempo_source') &&
     config.tracks.every(t => isObject(t) && !Object.prototype.hasOwnProperty.call(t, 'steps') &&
       !Object.prototype.hasOwnProperty.call(t, 'length'));
-  if (!explicit && !constructionOnly) return readConfig(module.config);
+  // No authored config is native Config{} (v1, one track, 120 BPM), not
+  // readConfig's two-track template for new editor-created modules.
+  const empty = Object.keys(config).length === 0;
+  if (!explicit && !constructionOnly && !empty) return readConfig(module.config);
   const data = explicit ? envelope!.pattern : {};
   if (!isObject(data)) return null;
-  const empty = Object.keys(config).length === 0;
   if (!empty && ((config.version !== 1 && config.version !== 2) || !number(config.bpm, 20, 300) ||
       !Array.isArray(config.tracks) || config.tracks.length < 1 || config.tracks.length > 2)) return null;
   const construction = empty ? [{}] : config.tracks as unknown[];
@@ -237,11 +239,13 @@ export type GrooveApply<T> =
 export function classifyGrooveApply<T extends { config?: unknown; data?: unknown }>(
   module: T, edited: GrooveConfig, explicitAbsentTrackEdit = false): GrooveApply<T> | null {
   const original = grooveEditorConfig(module);
-  const source = module.config;
-  if (!original || !isObject(source) || (source.version !== 1 && source.version !== 2) ||
-      !Array.isArray(source.tracks) || source.tracks.length < 1 || source.tracks.length > 2 ||
-      edited.tracks.length < source.tracks.length || edited.tracks.length > 2) return null;
-  const count = source.tracks.length;
+  const source = module.config === undefined ? {} : module.config;
+  if (!original || !isObject(source)) return null;
+  const implicit = Object.keys(source).length === 0;
+  if (!implicit && ((source.version !== 1 && source.version !== 2) ||
+      !Array.isArray(source.tracks) || source.tracks.length < 1 || source.tracks.length > 2)) return null;
+  const count = original.tracks.length;
+  if (edited.tracks.length < count || edited.tracks.length > 2) return null;
   const baseline = structuredClone(original);
   const next = structuredClone(edited);
   // Compare in the same editor schema so v1's implicit 32-step length and
