@@ -51,3 +51,37 @@ test('Groove E3b A90 real bridge retains v1 construction on running pattern Appl
   expect(wire.sent.filter((m: any) => m.type === 'loadGraph' || m.type === 'applyGraph')).toHaveLength(0);
   expect(wire.native.data.pattern.steps_1[0]).toEqual({});
 });
+
+
+test('Groove E3b canonical reopen hydrates slot without authoring and Revert keeps source bytes', async ({ page }) => {
+  await mockBridge(page, { applyGraph: true, configDeferred: true });
+  await boot(page);
+  const source = { id: 1, module: 'sequencing.groove', version: 2,
+    config: { version: 1, bpm: 120, tracks: [{ armed: true }] },
+    data: { future_slot: { keep: true }, pattern: { length_1: 32, tempo_source: 'internal',
+      steps_1: [{ kind: 'note', key: 67, keys: [67, 0, 0, 0, 0], velocity: .5, future: 7 }] } } };
+  const patch = { format: 'wirescape.native.patch', version: 2, connections: [], modules: [source] };
+  await page.evaluate(p => window.__wirescapeTest.load(p, 'Canonical Groove'), patch);
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph().modules.length)).toBe(1);
+  await settle(page);
+  await page.evaluate(() => {
+    const v = window.__wirescapeTest.canvas.viewport;
+    const c = document.querySelector('[data-testid="groove-1"]')!.getBoundingClientRect();
+    const r = v.rect();
+    v.setView(v.view.x - (c.left - r.left) + 40, v.view.y - (c.top - r.top) + 60, 1);
+    (window as any).__mockBridge.sent.length = 0;
+  });
+  const pad = page.getByTestId('groove-pad-1-1');
+  await expect(pad.locator('.g-nn')).toHaveText('G');
+  expect((await state(page)).modules[0]).toEqual(source);
+  await expect(page.getByTestId('groove-draft-1')).toBeHidden();
+  await pad.click();
+  await pad.click();
+  await expect(page.getByTestId('groove-draft-1')).toBeVisible();
+  await page.getByTestId('groove-revert-1').click();
+  await expect(page.getByTestId('groove-draft-1')).toBeHidden();
+  await expect(pad.locator('.g-nn')).toHaveText('G');
+  expect((await state(page)).modules[0]).toEqual(source);
+  const sent = await page.evaluate(() => (window as any).__mockBridge.sent);
+  expect(sent.filter((m: any) => ['setData','loadGraph','applyGraph'].includes(m.type))).toHaveLength(0);
+});
