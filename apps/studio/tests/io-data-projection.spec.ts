@@ -105,3 +105,60 @@ test('E3c explicit mapping wins, edits preserve opaque row/slot fields only in a
   ] } });
   expect(ccMappingSource({ ...m, data: { mapping: {} } })).toEqual([]);
 });
+
+import { PatchDoc } from '../src/patch/PatchDoc';
+import { commitLearn, forgetLearn } from '../src/app/ccLearn';
+import type { PatchV2, Connection } from '../src/patch/types';
+import type { Device } from '../src/engine/EngineClient';
+
+const ccDevice: Device = { id: 'Controller|test', name: 'Controller', system_name: 'test', kind: 'midi', enabled: true };
+const ccTarget = { module: 3, param: 'gain' };
+const ccCapture = { deviceId: ccDevice.id, channel: 2, controller: 71 };
+function learnDoc(config: unknown, connections: Connection[] = []): PatchDoc {
+  const patch: PatchV2 = { format: 'wirescape.native.patch', version: 2, modules: [
+    { id: 1, module: 'midi.in' }, { id: 2, module: 'midi.cc_to_cv', config },
+    { id: 3, module: 'essentials.vca' }, { id: 4, module: 'essentials.vca' },
+  ], connections: [{ kind: 'event', from: { module: 1, port: 'midi' }, to: { module: 2, port: 'midi' } }, ...connections] };
+  return PatchDoc.from(patch);
+}
+const learnServices = (doc: PatchDoc) => ({ doc, allocateId: () => doc.nextId(), devices: () => [ccDevice] });
+
+test('A95 legacy short mapping saves eight rows; after reload Learn reuses first free row', () => {
+  const doc = learnDoc({ rows: [{ controller: 41 }] });
+  const first = commitLearn(learnServices(doc), ccTarget, ccCapture, false);
+  expect(first).toMatchObject({ module: 2, row: 1, created: false });
+  const saved = doc.toJSON();
+  expect(saved.modules.find(m => m.id === 2)?.data).toMatchObject({ mapping: { rows: expect.any(Array) } });
+  const reloaded = PatchDoc.from(saved);
+  expect(reloaded.ccRows(2)).toHaveLength(8);
+  const second = commitLearn(learnServices(reloaded), { module: 4, param: 'gain' },
+    { ...ccCapture, controller: 72 }, false);
+  expect(second).toMatchObject({ module: 2, row: 2, created: false });
+  expect(reloaded.modules.size).toBe(4);
+});
+
+test('A95 Forget resets an unwired row and Learn reuses it without trimming', () => {
+  const doc = learnDoc({ rows: [{ controller: 41 }] });
+  const svc = learnServices(doc);
+  expect(commitLearn(svc, ccTarget, ccCapture, false).row).toBe(1);
+  expect(forgetLearn(svc, ccTarget)?.count).toBe(1);
+  expect(doc.ccRows(2)).toHaveLength(8);
+  expect(doc.ccRows(2)[1]).toMatchObject({ channel: 0, controller: 2, fourteen_bit: false, smoothing_ms: 5, min: 0, max: 1 });
+  expect(commitLearn(svc, ccTarget, { ...ccCapture, controller: 72 }, false)).toMatchObject({ module: 2, row: 1, created: false });
+});
+
+test('A95 never takes a wired default or a non-default unwired row', () => {
+  const doc = learnDoc({ rows: [{ controller: 1 }, { controller: 42 }] }, [
+    { kind: 'modulation', from: { module: 2, port: 'cc1' }, to: { module: 4, port: 'gain' }, amount: 1 },
+  ]);
+  // Save/reload a complete slot to prove length is not occupancy.
+  const patch = doc.toJSON();
+  const node = patch.modules.find(m => m.id === 2)!;
+  Object.assign(node, splitCcMappingSave(node, ccMappingSource(node)).authored);
+  const reloaded = PatchDoc.from(patch);
+  const learned = commitLearn(learnServices(reloaded), ccTarget, ccCapture, false);
+  expect(learned).toMatchObject({ module: 2, row: 2, created: false });
+  expect(reloaded.ccRows(2)[0]).toMatchObject({ controller: 1 });
+  expect(reloaded.ccRows(2)[1]).toMatchObject({ controller: 42 });
+  expect(reloaded.cablesFrom(2, 'cc1')).toHaveLength(1);
+});
