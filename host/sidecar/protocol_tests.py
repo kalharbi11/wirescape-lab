@@ -1039,6 +1039,50 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
         assert saw_no_listener
         out_engine.close()
 
+# OB-h2 A91: two independent module destinations using only loopback sockets.
+# The explicit v2 localhost config must load and deliver, while the legacy
+# v1 route stays independent. A single shared destination cannot pass.
+with tempfile.TemporaryDirectory() as destinations_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as first, \
+         socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as second:
+        for receiver in (first, second):
+            receiver.bind(('127.0.0.1', 0))
+            receiver.settimeout(2.0)
+        ports = [receiver.getsockname()[1] for receiver in (first, second)]
+        assert ports[0] != ports[1]
+        destinations = Engine(Path(destinations_dir) / 'settings.json')
+        try:
+            patch = minimal()
+            for node, port, address, version in (
+                    (19, ports[0], '/a91/first', 1),
+                    (20, ports[1], '/a91/second', 2)):
+                config = dict(version=version, port=port, rate_hz=100,
+                              rows=[dict(address=address, kind='cv')] +
+                                   [dict(enabled=False) for _ in range(7)])
+                if version == 2:
+                    config['host'] = '127.0.0.1'
+                patch['modules'].append(dict(id=node, module='osc.out', config=config))
+            generation = destinations.call('loadGraph', patch=patch)['gen']
+            for receiver, expected in ((first, '/a91/first'), (second, '/a91/second')):
+                packet, source = receiver.recvfrom(1500)
+                assert source[0] == '127.0.0.1', source
+                address, tags, values = unpack_outgoing(packet)
+                assert address == expected and tags == ',f' and len(values) == 1, (address, tags, values)
+            until = time.monotonic() + 3
+            while time.monotonic() < until:
+                message = destinations.pushes.pop(0) if destinations.pushes else destinations.receive()
+                if message.get('type') != 'status' or message['gen'] != generation:
+                    continue
+                routes = message['status']['osc']['out']
+                if len(routes) == 2 and all(route['sent'] >= 1 for route in routes):
+                    assert {route['module']: route['port'] for route in routes} == {'19': ports[0], '20': ports[1]}
+                    assert all(route['state'] == 'sending' for route in routes)
+                    break
+            else:
+                raise AssertionError('A91 did not observe both independent sending routes')
+        finally:
+            destinations.close()
+
 # OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
 # endpoint toggle. The opt-in scripted backend has one virtual identity; this
 # covers re-enabling it without restarting the running null-audio engine, NOT
