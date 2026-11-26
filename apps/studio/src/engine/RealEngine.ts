@@ -600,6 +600,14 @@ export class RealEngine implements EngineClient {
     return this.applyGraphEnabled && (this.ready || this.load?.type === 'applyGraph')
       ? this.submitGraph(patch, 'applyGraph') : this.loadGraph(patch);
   }
+  /** Mapping commits and compensation must never silently fall back to loadGraph. */
+  applyGraphLive(patch: PatchV2): Promise<void> {
+    if (!this.applyGraphEnabled || !this.ready || !this.session || this.load ||
+        this.hasUnconfirmedEdits())
+      return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live mapping edit.'));
+    return this.submitGraph(patch, 'applyGraph');
+  }
+
   /** Used only on a success reply whose metadata cannot be trusted. */
   private failGraphAck(load: Load, message: string): void {
     const error = refusal('invalid', message);

@@ -182,6 +182,11 @@ export class FakeEngine implements EngineClient {
   onUnapplied(cb: (items: UnappliedParameter[]) => void): () => void {
     this.unappliedCbs.add(cb); return () => this.unappliedCbs.delete(cb);
   }
+  /** Last acknowledged graph for A101 recovery, not the optimistic editor. */
+  confirmedDocument(): PatchV2 | null {
+    return this.document ? structuredClone(this.document) : null;
+  }
+
   /** Test hook: simulate an exhausted native parameter-event queue. */
   setNextUnapplied(items: { moduleId: number; paramId: string }[]): void {
     this.nextUnapplied = items.map(item => ({ ...item }));

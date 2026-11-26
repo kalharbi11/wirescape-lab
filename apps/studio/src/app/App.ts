@@ -94,6 +94,7 @@ export class App {
   private refusedDraft: { patch: PatchV2; name: string; bundled: boolean } | null = null;
   private draftVisible = false;
   private documentBusy = false;
+  private mappingGraphEngine: EngineClient | null = null;
   private viewEpoch = 0;
   private readEpoch = 0;
   private playingSnapshot: PlayingDocument | null = null;
@@ -437,6 +438,8 @@ export class App {
     });
     this.engine.onRefusal?.(r => this.toasts.show(r.detail.message, 'error'));
     this.engine.onUnapplied?.(items => {
+      // A101 owns whole-graph compensation for mapping transactions.
+      if (this.mappingGraphEngine === this.engine) return;
       // Live graph committed, but these parameter events were not queued.
       // Restore the actual old values to the editable document and panel.
       for (const { moduleId, paramId, previous } of items) {
@@ -679,6 +682,7 @@ export class App {
   private applyAuthoredGraph(
     before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
     submitted: PatchV2,
+    strictLive = false,
   ): Promise<void> {
     const engine = this.editEngine(), epoch = this.viewEpoch;
     let chain = this.graphChain;
@@ -696,7 +700,8 @@ export class App {
     activeChain.checkpoints.add(before.restoreHistory);
     activeChain.checkpoints.add(after.restoreHistory);
     activeChain.pending++;
-    return engine.applyGraph(submitted).then(() => {
+    const request = strictLive && engine instanceof RealEngine ? engine.applyGraphLive(submitted) : engine.applyGraph(submitted);
+    return request.then(() => {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
@@ -1565,12 +1570,59 @@ export class App {
       if (adding) this.doc.connect(plan.connection);
       else this.doc.disconnect(plan.connection);
       this.history.flush();
-      await this.applyAuthoredGraph(before, this.doc.toJSON());
+      await this.applyMappingGraph(before, this.doc.toJSON());
       this.ticker.resetTelemetry();
       this.refreshDirty();
-      // Successful partial ACK handling is held for B1-MM1-ack: the
-      // existing onUnapplied callback reconciles the acknowledged base.
     } finally { this.endDocumentOperation(); }
+  }
+
+  /** A101: one correlated, serialized mapping graph transaction. Any partial
+   * ACK refuses the entire gesture; only the prior graph may compensate it. */
+  private async applyMappingGraph(
+    before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
+    submitted: PatchV2,
+  ): Promise<void> {
+    const engine = this.editEngine();
+    this.mappingGraphEngine = engine;
+    let partial = false;
+    const off = engine.onUnapplied?.(items => { if (items.length) partial = true; });
+    const confirmed = () => engine instanceof RealEngine ? engine.confirmedAuthoredDocument()
+      : engine instanceof FakeEngine ? engine.confirmedDocument() : null;
+    try {
+      await this.applyAuthoredGraph(before, submitted, true);
+      if (!partial) return;
+      const firstAck = confirmed();
+      let restored = false;
+      partial = false;
+      try {
+        if (engine instanceof RealEngine) await engine.applyGraphLive(before.patch);
+        else await engine.applyGraph(before.patch);
+        restored = !partial;
+      } catch { /* Refused compensation: the last ACK is authoritative. */ }
+      if (restored) {
+        this.doc.replace(before.patch);
+        if (!before.dirty) this.doc.markClean();
+        before.restoreHistory();
+      } else {
+        const actual = confirmed() ?? firstAck;
+        if (actual) {
+          this.history.checkpoint().reconcile(submitted, actual);
+          if (firstAck) this.history.checkpoint().reconcile(firstAck, actual);
+          this.doc.replace(actual);
+          this.doc.markDirty();
+        }
+      }
+      this.ticker.resetTelemetry();
+      this.canvas.invalidateAnchors();
+      this.refreshDirty();
+      const message = restored ? 'Mapping refused: some parameter values were not applied.'
+        : 'Mapping refused and compensation failed; the last acknowledged graph was restored.';
+      this.toasts.show(message, 'error');
+      throw new Error(message);
+    } finally {
+      off?.();
+      this.mappingGraphEngine = null;
+    }
   }
 
   private addMapping(from: Endpoint, to: Endpoint): Promise<void> {
