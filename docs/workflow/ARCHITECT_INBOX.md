@@ -37,6 +37,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | B4-MB1-A97-followup | 2026-11-26 | gpt-builder4 | ruling | soon | [#363 SDK library prefix](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202766452); [offline reader scope](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202787329): preserve existing `ws2_example_` targets and offline workload? | MB1 final Result; descriptor/generator work continues |
 
 | B1-MM1-ack | 2026-11-26 | gpt-builder1 | ruling | soon | [#643: MM1 partial applyGraph ACK and live range compensation](https://github.com/kalharbi11/wirescape-lab/issues/643#issuecomment-7202824427); I1/I7, no engine/schema change | MM1 graph/range transaction error path only; independent model work proceeds |
+| MOD0-T2-catalogue | 2026-11-26 | gpt-lead / claude-builder1 | ruling | soon | [#652](https://github.com/kalharbi11/wirescape-lab/issues/652): new-module T2 fails three catalogue tests with the three authorized registration edits. Decide scratch generator scope under 0024 §2.3; no test skip or waiver. Clarify block 16/17 renderer-limit reporting. | MOD-0 T2 qualification only; lab lanes continue |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
