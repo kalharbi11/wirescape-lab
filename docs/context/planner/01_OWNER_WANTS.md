@@ -2,7 +2,7 @@
 # Wirescape — owner wants and current decisions (2026-11-26)
 
 Status: owner wants are fixed. Each "Recommended" item is the Claude Architect's suggestion;
-the Fable runs (see 02_FABLE_PROPOSAL.md) make the final decisions.
+the Planner runs (see 02_PLANNER_RUNS.md) make the final decisions.
 
 ## A. Standing principles
 1. Two products, one engine: **Studio** (full UI, Windows + Pi) for building; **Player**
@@ -152,7 +152,7 @@ the Fable runs (see 02_FABLE_PROPOSAL.md) make the final decisions.
 - Envelope parameter mapping: dropped as a question (covered by B.4's batch).
 - Macros: 8 per Macro module, in pages of 8. **Yes.**
 - Bars: 4/4 until the transport has a time signature. **Yes.**
-- **Fable decides:** how `wirescape-test` pins the lab and whether Windows CI runs only on ready PRs; the reference UI
+- **Planner decides:** how `wirescape-test` pins the lab and whether Windows CI runs only on ready PRs; the reference UI
   technology (kiosk web page or native); script auto-sync overwrite vs unlink; whether Python scripts
   run with the owner's normal rights; when to rename the OSC Out defaults.
 

@@ -21,10 +21,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 Signed: claude-architect, 2026-11-26
 
+## Architect session — 2026-11-26 ET (Fable → Planner)
+
+- **Owner:** no Fable access. The two design runs move to **`claude-planner`** on Opus (`planner: run 1|2`), a seat separate from the Architect, with the same final authority. The brief is now `docs/context/planner/` (renamed from `docs/context/fable/`). Run 1 also decides CI speed: docs and plan changes must not wait on long CI.
+- Nothing holds; the freeze in the entry below now applies to the Planner runs.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect session — 2026-11-26 ET (Fable design brief; owner direction)
 
-- **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/fable/01_OWNER_WANTS.md`](../context/fable/01_OWNER_WANTS.md).
-- **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/fable/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
+- **Owner direction:** two products, one engine. Studio (full UI) builds patches. A headless Player (Pi) plays them, in the new repo `kalharbi11/wirescape-headless`. Fast module development happens in the new loose repo `kalharbi11/wirescape-test`, followed by promotion to this lab. Further wants: macros, mapping any parameter, envelope trigger and delay, clock-synced random and division, OSC In indicators, labels and script auto-sync, integrated Python, a tool page host, agent-ready guides. The full list is in [`docs/context/planner/01_OWNER_WANTS.md`](../context/planner/01_OWNER_WANTS.md).
+- **Fable design runs 1 and 2** (triggers `fable: design run 1|2`, see `CLAUDE.md`). Their rulings are final ([brief](../context/planner/README.md)). Run 1 reviews the build and replans the roadmap. Run 2 decides the new architecture and contracts.
 - **Freeze while the runs are open:** no new Architect rulings or contracts on the roadmap, headless, module-dev workflow, macros and mapping, OSC In features, scripting or the tool host. **Nothing holds:** every lane keeps its current task and queue, including OB-h1–OB-h6.
 - **Reframe:** `proposals/0022` is renamed `0022-ob1.1-headless-readiness.md`. Its rationale now treats the rows as permanent headless requirements, not preparation for one event. The rows are unchanged.
 - **Found (for run 2):** OB-h2 gates network hosts on `setOsc.allowNetwork`, but the engine refuses `setOsc` (`host/sidecar/session.cpp:1257`). B2 should use `--confirm-lan` until Fable rules. **Settled in run 46** ([#601](https://github.com/kalharbi11/wirescape-lab/issues/601)): a wording slip in A91, not a design gap. `setOsc` is refused by design in v0; the switch is `--confirm-lan`, as for OSC In, and a non-loopback `host` is the per-route opt-in. No Fable ruling is needed.
