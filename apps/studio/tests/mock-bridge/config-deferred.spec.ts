@@ -164,3 +164,34 @@ test('A80 old-namespace terminal cannot change an opening patch with the same ID
   });
   await expect.poll(() => ports(page)).toEqual({ authored: [9011, 9032], confirmed: [9011, 9032], native: [9011, 9032] });
 });
+
+test('E3c row-only Save waits for correlated setData ACK and retains A80 deferral', async ({ page }) => {
+  await setup(page, true);
+  await defer(page, 'route-pending', 9011, 9002);
+  const before = await page.evaluate(() => window.__wirescapeTest.state());
+  await page.evaluate(() => (window as any).__mockBridge.holdNext('setData'));
+  await page.getByTestId('osc-edit-1').click();
+  await page.getByTestId('osc-row1-pattern').fill('/new/route');
+  await page.getByTestId('osc-editor-save').click();
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.sent.filter((m: any) => m.type === 'setData').length)).toBe(1);
+  const sent = await page.evaluate(() => (window as any).__mockBridge.sent.find((m: any) => m.type === 'setData'));
+  expect(sent).toMatchObject({ moduleId: 1, slot: 'routes', value: { rows: [expect.objectContaining({ pattern: '/new/route' }), ...Array.from({ length: 7 }, () => expect.anything())] } });
+  await page.evaluate(() => (window as any).__mockBridge.status());
+  expect(await page.evaluate(() => window.__wirescapeTest.state())).toEqual(before);
+  await page.evaluate(() => (window as any).__mockBridge.refuseHeld('busy'));
+  await expect(page.getByTestId('osc-editor-errors')).toContainText('refused');
+  expect(await page.evaluate(() => window.__wirescapeTest.state())).toEqual(before);
+  await page.getByTestId('osc-editor-save').click();
+  await expect(page.getByTestId('osc-editor')).toBeHidden();
+  const result = await page.evaluate(() => {
+    const t = window.__wirescapeTest, b = (window as any).__mockBridge;
+    return { authored: t.state().modules[0].data.routes.rows[0].pattern,
+      confirmed: t.engine.confirmedDocument().modules[0].data.routes.rows[0].pattern,
+      native: b.getGraph().modules[0].data.routes.rows[0].pattern,
+      pending: t.engine.hasPendingConfig(1), graphs: b.sent.filter((m: any) => m.type === 'applyGraph').length };
+  });
+  expect(result).toEqual({ authored: '/new/route', confirmed: '/new/route', native: '/new/route', pending: true, graphs: 1 });
+  await page.evaluate(() => (window as any).__mockBridge.completeConfig(1, 'failed'));
+  await expect.poll(() => ports(page)).toEqual({ authored: [9001, 9002], confirmed: [9001, 9002], native: [9001, 9002] });
+  expect(await page.evaluate(() => window.__wirescapeTest.state().modules[0].data.routes.rows[0].pattern)).toBe('/new/route');
+});
