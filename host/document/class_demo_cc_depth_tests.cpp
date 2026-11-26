@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "app_engine.h"
 #include "runtime_module_config.h"
+#include "io_data_migration.h"
 #include "wirescape_sdk.h"
 #include <array>
 #include <cmath>
@@ -74,9 +75,23 @@ static Endpoint render(const Json &patch, unsigned controller, unsigned value, A
             original_process = copy.process;
             copy.process = observe;
         }
+        auto execution = module;
+        wirescape::document::migrate_io_module(execution);
         check(engine.add_node(node, &copy,
-                              wirescape::document::runtime_module_config(type, module.value("config", Json::object()))),
+                              wirescape::document::runtime_module_config(type, execution.value("config", Json::object()))),
               "add node");
+        if (wirescape::document::io_slot_id(type)) {
+            const auto &data = execution.at("data");
+            for (uint32_t i = 0; i < descriptor->data_slot_count; ++i) {
+                const auto &slot = descriptor->data_slots[i];
+                std::vector<uint8_t> packed;
+                std::string error;
+                check(ws::data_layout::pack_data_slot(slot, data.at(slot.id),
+                    ws::data_layout::DataLoad::StoredDocument, packed, error, nullptr,
+                    app_engine_data_validator(catalog, descriptor)), "pack migrated class-demo data");
+                check(engine.set_data_packed(node, i, packed) == WS2_OK, "seed migrated class-demo data");
+            }
+        }
     }
     for (const auto &cable : patch.at("connections")) {
         uint32_t from = cable.at("from").at("module"), to = cable.at("to").at("module");

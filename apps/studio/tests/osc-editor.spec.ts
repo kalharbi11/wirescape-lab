@@ -53,8 +53,8 @@ test('editor round-trips eight rows with stable module ID and patch extras', asy
   expect(saved.modules[0]).toMatchObject({ id: 1, ownerNote: 'keep me' });
   expect(saved.ownerExtension).toEqual({ survive: 1 });
   expect(saved.modules[0].config).toMatchObject({ port: 9001, lan: false });
-  expect(saved.modules[0].config.rows).toHaveLength(8);
-  expect(saved.modules[0].config.rows[0]).toMatchObject({
+  expect(saved.modules[0].data.routes.rows).toHaveLength(8);
+  expect(saved.modules[0].data.routes.rows[0]).toMatchObject({
     pattern: '/show/voice/*', kind: 'gate', argument: 1, input_max: 2,
   });
   await open(page);
@@ -98,8 +98,8 @@ test('presets fill all rows, while config unknowns only drop on editor save', as
   await expect(page.getByTestId('osc-editor')).toBeHidden();
   const saved = await state(page);
   expect(saved.modules[0].config.futureOption).toBeUndefined();
-  expect(saved.modules[0].config.rows[0].futureField).toBeUndefined();
-  expect(saved.modules[0].config.rows[7].pattern).toBe('/1/fader8');
+  expect(saved.modules[0].data.routes.rows[0].futureField).toBeUndefined();
+  expect(saved.modules[0].data.routes.rows[7].pattern).toBe('/1/fader8');
   expect(saved.modules[0].ownerNote).toBe('keep me');
   expect(saved.ownerExtension).toEqual({ survive: 1 });
 });
@@ -147,7 +147,7 @@ test('Reset to Pico defaults restores UDP port and clears LAN request before sav
   await expect(page.getByTestId('osc-editor')).toBeHidden();
   const saved = await state(page);
   expect(saved.modules[0].config).toMatchObject({ port: 9000, lan: false });
-  expect(saved.modules[0].config.rows[0].pattern).toBe('/pico1/knob/1');
+  expect(saved.modules[0].data.routes.rows[0].pattern).toBe('/pico1/knob/1');
 });
 
 test('copyable OSC example follows TouchOSC, custom rows and concrete wildcard addresses', async ({ page }) => {
@@ -175,7 +175,7 @@ test('copyable OSC example follows TouchOSC, custom rows and concrete wildcard a
   expect(await page.evaluate(() => (window as Window & { __oscCopied?: string }).__oscCopied))
     .toContain('send /show/voice/1 0.5 to 127.0.0.1:9012');
   await page.getByTestId('osc-editor-save').click();
-  expect((await state(page)).modules[0].config.rows[0].pattern).toBe('/show/voice/*');
+  expect((await state(page)).modules[0].data.routes.rows[0].pattern).toBe('/show/voice/*');
 });
 
 test('LAN checkbox requests a route but cannot authorize a LAN socket', async ({ page }) => {
@@ -199,10 +199,11 @@ test('row toggles round-trip, Clear disables all rows and old patches open with 
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
   let saved = await state(page);
-  const rows = saved.modules[0].config.rows as Record<string, unknown>[];
-  // Writers emit `enabled` only when false.
+  const rows = saved.modules[0].data.routes.rows as Record<string, unknown>[];
+  // The live slot materializes every enabled flag.
   expect(rows[2]).toMatchObject({ pattern: '/pico1/knob/3', enabled: false });
-  expect(rows.filter(r => 'enabled' in r)).toHaveLength(1);
+  expect(rows.filter(r => r.enabled === false)).toHaveLength(1);
+  expect(rows.filter(r => r.enabled === true)).toHaveLength(7);
   expect(rows[0].pattern).toBe('/legacy/1');
   await expect(page.getByTestId('osc-status-1')).toHaveText('Listening on 127.0.0.1:9000 · 7 of 8 rows active');
 
@@ -214,7 +215,7 @@ test('row toggles round-trip, Clear disables all rows and old patches open with 
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
   saved = await state(page);
-  const cleared = saved.modules[0].config.rows as Record<string, unknown>[];
+  const cleared = saved.modules[0].data.routes.rows as Record<string, unknown>[];
   expect(cleared.every(r => r.enabled === false)).toBe(true);
   expect(cleared[0].pattern).toBe('/legacy/1');
   expect(cleared[7].pattern).toBe('/pico1/knob/8');
@@ -226,7 +227,7 @@ test('row toggles round-trip, Clear disables all rows and old patches open with 
   await expect(page.getByTestId('osc-editor-active')).toHaveText('8 of 8 rows active');
   await page.getByTestId('osc-editor-save').click();
   saved = await state(page);
-  expect((saved.modules[0].config.rows as Record<string, unknown>[]).some(r => 'enabled' in r)).toBe(false);
+  expect((saved.modules[0].data.routes.rows as Record<string, unknown>[]).every(r => r.enabled === true)).toBe(true);
 });
 
 
@@ -247,7 +248,7 @@ test('combined OSC edited, disabled and future keys survive autosave and a real 
   const authored = await state(page);
   authored.modules[0].config.version = 1;
   authored.modules[0].config.futureMapping = { safeToRetain: true };
-  authored.modules[0].config.rows[1].futureCurve = ['not-yet-supported'];
+  authored.modules[0].data.routes.rows[1].futureCurve = ['not-yet-supported'];
   await page.evaluate(p => window.__wirescapeTest.load(p), authored);
   await settle(page);
   await page.evaluate(() => window.__wirescapeTest.autosaveNow());
@@ -263,6 +264,7 @@ test('combined OSC edited, disabled and future keys survive autosave and a real 
 
   const restored = await state(page);
   expect(restored.modules[0].config).toEqual(authored.modules[0].config);
+  expect(restored.modules[0].data).toEqual(authored.modules[0].data);
   expect(restored.modules[0]).toMatchObject({ id: 1, ownerNote: 'keep me' });
   expect(restored.ownerExtension).toEqual({ survive: 1 });
   await expect(page.getByTestId('osc-status-1'))
@@ -275,6 +277,7 @@ test('combined OSC edited, disabled and future keys survive autosave and a real 
     .toContainText('ignored by this engine: futureMapping, rows[1].futureCurve');
   await page.getByTestId('osc-editor').getByRole('button', { name: 'Cancel' }).click();
   expect((await state(page)).modules[0].config).toEqual(authored.modules[0].config);
+  expect((await state(page)).modules[0].data).toEqual(authored.modules[0].data);
 });
 
 test('unknown row keys on a disabled row survive unrelated edits and drop only on editor save (#612)', async ({ page }) => {
@@ -294,7 +297,7 @@ test('unknown row keys on a disabled row survive unrelated edits and drop only o
   await open(page);
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
-  row = (await state(page)).modules[0].config.rows[1];
+  row = (await state(page)).modules[0].data.routes.rows[1];
   expect(row).toMatchObject({ pattern: '/b', enabled: false });
   expect(row.futureRowKey).toBeUndefined();
 });

@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif
 #include "../osc/codec.h"
-#include "../../modules/osc_out/dsp.h"
+#include "../../modules/osc_out/data_validation.h"
 #include "session.h"
 #include "wirescape_sdk.h"
 #include <cstring>
@@ -215,10 +215,9 @@ void test_osc_out_budget() {
         injected_values.fill(-1);
         wirescape::osc::OutHost sender(patch.dump(), hook);
         auto *bus = sender.buses().at(19);
-        bus->rows[0].rises.store(500, std::memory_order_relaxed);
-        bus->rows[0].falls.store(500, std::memory_order_relaxed);
-        bus->rows[0].value.store(0, std::memory_order_relaxed);
-        bus->rows[0].blocks.store(1, std::memory_order_release);
+        wirescape::osc::OutConfiguration cfg;
+        const auto mark = wirescape::osc::out_wire_mark(cfg.rows[0].address, 1, cfg.rows[0].deadband, true);
+        bus->rows[0].publish(&mark, true, 0, 500, 500);
         sender.start();
         const auto deadline = std::chrono::steady_clock::now() + 2s;
         while (injected_calls.load(std::memory_order_relaxed) < 2 && std::chrono::steady_clock::now() < deadline)
@@ -231,6 +230,152 @@ void test_osc_out_budget() {
                   state.dropped == (hook == accept_outgoing ? 998u : 1000u),
               "coalesced edges and deterministic EWOULDBLOCK count as observed drops");
     }
+}
+// A86: record actual sender datagrams, including the address and note arguments.
+struct A86Wire { std::string address; float value; int key, channel; };
+std::vector<A86Wire> a86_wire;
+std::atomic<unsigned> a86_count{0};
+bool a86_send(const wirescape::osc::Message &message, uint16_t) {
+    a86_wire.push_back({std::string(message.address),
+        message.arguments[message.count == 3 ? 1 : 0].real,
+        message.count == 3 ? message.arguments[0].integer : -1,
+        message.count == 3 ? message.arguments[2].integer : -1});
+    a86_count.store(unsigned(a86_wire.size()), std::memory_order_release);
+    return true;
+}
+void test_a86_route_release() {
+    using namespace wirescape::osc;
+    OutConfiguration cfg;
+    for (auto &row : cfg.rows) row.enabled = false;
+    cfg.rows[0].enabled = true;
+    cfg.rows[0].kind = 1;
+    cfg.notes.enabled = true;
+    Json rows = Json::array({{{"kind", "gate"}}});
+    for (unsigned i = 1; i < 8; ++i) rows.push_back({{"enabled", false}});
+    Json patch = {{"modules", Json::array({{{"id", 19}, {"module", "osc.out"},
+        {"config", {{"rows", rows}, {"notes", {{"enabled", true}}}}}}})}};
+    a86_wire.clear();
+    a86_count.store(0);
+    OutHost sender(patch.dump(), a86_send);
+    auto *bus = sender.buses().at(19);
+    cfg.bus = bus;
+    OscOutRoutes data{};
+    char diagnostic[128]{};
+    check(materialize_osc_out_routes(cfg, data, diagnostic), "A86 original routes");
+    OscOut module;
+    ws2_config setup{sizeof(setup), 48000., 16, 16, 1,
+        reinterpret_cast<const uint8_t *>(&cfg), uint32_t(sizeof(cfg))};
+    ws2_host host{};
+    host.struct_size = sizeof(host);
+    check(module.prepare(ws::Setup{setup, host}), "A86 same module prepared");
+    module.reset();
+    float level = 1;
+    const float *channels[]{&level};
+    std::array<ws2_signal, 9> inputs{};
+    inputs[0] = {sizeof(ws2_signal), channels, 1, WS2_CONNECTED | WS2_CONSTANT};
+    ws2_data view{sizeof(view), &data, sizeof(data), 1};
+    ws2_event note{};
+    note.struct_size = sizeof(note);
+    note.type = WS2_NOTE_ON;
+    note.key = 60; note.channel = 2; note.value = .75f;
+    ws2_process ctx{};
+    ctx.struct_size = sizeof(ctx);
+    ctx.frames = 1;
+    ctx.input_count = uint32_t(inputs.size()); ctx.inputs = inputs.data();
+    ctx.data_count = 1; ctx.data = &view;
+    ctx.events = {sizeof(ws2_event_list), 1, &note};
+    ws::Block block(ctx);
+    auto drain = [&](unsigned expected, uint64_t dropped = 0) {
+        sender.start();
+        const auto end = std::chrono::steady_clock::now() + 2s;
+        while ((a86_count.load(std::memory_order_acquire) < expected ||
+                sender.states().at(0).dropped < dropped) &&
+               std::chrono::steady_clock::now() < end) std::this_thread::sleep_for(5ms);
+        sender.stop();
+        check(a86_count.load() == expected, "A86 exact datagram count");
+    };
+    module.process(block);
+    drain(2);
+    check(a86_wire[0].address == "/ws/row/1" && a86_wire[0].value == 1 &&
+          a86_wire[1].address == "/ws/note" && a86_wire[1].key == 60 &&
+          a86_wire[1].value == .75f, "A86 old table high gate and note");
+    // Leave one old-table crossing and note queued, without a consumer.
+    level = 0;
+    note.key = 61;
+    module.process(block);
+    level = 1;
+    ctx.events.count = 0;
+    module.process(block);
+    const auto prior_blocks = bus->rows[0].blocks.load();
+    auto next = data;
+    std::strcpy(next.rows[0].address, "/new/gate");
+    std::strcpy(next.notes_address, "/new/note");
+    sender.commit_data(19, next);
+    drain(4, 3);
+    check(a86_wire[2].address == "/ws/row/1" && a86_wire[2].value == 0 &&
+          a86_wire[3].address == "/ws/note" && a86_wire[3].key == 60 &&
+          a86_wire[3].channel == 2 && a86_wire[3].value == 0,
+          "A86 old route receives one gate and note release");
+    check(sender.states().at(0).dropped == 3, "A86 two discarded crossings and one note counted");
+    // The old callback can finish after the accepted host table changes.
+    // It must never send an old falling edge/note to a new address.
+    level = 0;
+    note.key = 63;
+    ctx.events.count = 1;
+    module.process(block); // old data view and serial, exactly one in-flight block
+    sender.start();
+    const auto until = std::chrono::steady_clock::now() + 2s;
+    while (sender.states().at(0).dropped < 5 && a86_count.load(std::memory_order_acquire) == 4 &&
+           std::chrono::steady_clock::now() < until) std::this_thread::sleep_for(5ms);
+    sender.stop();
+    check(a86_count.load() == 4 && sender.states().at(0).dropped == 5,
+          "A86 one late old block suppressed, its edge and note counted");
+    view.data = &next;
+    view.serial = 2;
+    level = 1;
+    note.key = 62;
+    module.process(block);
+    drain(6, 5);
+    check(bus == sender.buses().at(19) && bus->rows[0].blocks.load() == prior_blocks + 2,
+          "A86 same bus, one late old block and first fresh block delivered");
+    check(a86_wire[4].address == "/new/gate" && a86_wire[4].value == 1 &&
+          a86_wire[5].address == "/new/note" && a86_wire[5].key == 62 &&
+          a86_wire[5].value == .75f, "A86 first fresh block only new table");
+    // Reverse ordering: render can adopt the new slot before control has
+    // handed it to the sender. An unchanged gate proves the old worker polled
+    // that very block; the fresh note must stay queued, not be sent/dropped.
+    auto third = next;
+    std::strcpy(third.notes_address, "/third/note");
+    view.data = &third; view.serial = 3;
+    level = 0; note.key = 64;
+    module.process(block);
+    drain(7, 5);
+    check(a86_wire[6].address == "/new/gate" && a86_wire[6].value == 0 &&
+          sender.states().at(0).dropped == 5, "A86 early fresh note remains queued");
+    sender.commit_data(19, third);
+    drain(9, 5);
+    check(a86_wire[7].address == "/new/note" && a86_wire[7].key == 62 &&
+          a86_wire[7].value == 0 && a86_wire[8].address == "/third/note" &&
+          a86_wire[8].key == 64 && a86_wire[8].value == .75f,
+          "A86 release old note before delivering early fresh note");
+    // Likewise, an unchanged note proves the sender inspected the early
+    // fresh gate block before the control-side table was adopted.
+    auto fourth = third;
+    std::strcpy(fourth.rows[0].address, "/fourth/gate");
+    view.data = &fourth; view.serial = 4;
+    level = 1; note.key = 65;
+    module.process(block);
+    drain(10, 5);
+    check(a86_wire[9].address == "/third/note" && a86_wire[9].key == 65 &&
+          sender.states().at(0).dropped == 5, "A86 early fresh crossing preserved");
+    sender.commit_data(19, fourth);
+    drain(11, 5);
+    check(a86_wire[10].address == "/fourth/gate" && a86_wire[10].value == 1,
+          "A86 early fresh gate encoded only with its own table");
+    const auto state = sender.states().at(0);
+    check(state.sent == 11 && state.dropped == 5, "A86 exact sent/drop accounting");
+    std::cout << "A86 wire sent=" << state.sent << " dropped=" << state.dropped
+              << " stale blocks suppressed <=1; old gate/note released\n";
 }
 // A deterministic sender seam observes the actual OSC Out DSP bus. Panic
 // while a gate stays high must not inject an extra 0/1 pair on the wire.
@@ -258,10 +403,18 @@ void test_osc_out_held_gate_reset_sender() {
     const float *channel[] = {&level};
     std::array<ws2_signal, 9> inputs{};
     inputs[0] = {sizeof(ws2_signal), channel, 1, WS2_CONNECTED | WS2_CONSTANT};
+    alignas(16) wirescape::osc::OscOutRoutes slot_data{};
+    char slot_error[128]{};
+    check(wirescape::osc::materialize_osc_out_routes(cfg, slot_data, slot_error),
+          "OSC Out gate fixture materializes its declared slot");
+    ws2_data view{sizeof(view), &slot_data, sizeof(slot_data), 1};
     ws2_process context{};
+    context.struct_size = sizeof(context);
     context.frames = 1;
     context.input_count = uint32_t(inputs.size());
     context.inputs = inputs.data();
+    context.data_count = 1;
+    context.data = &view;
     ws::Block block(context);
 
     auto consume = [&](uint32_t expected) {
@@ -851,7 +1004,9 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
             float sample = 0;
             for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
                 if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
-                std::this_thread::sleep_for(200us);
+                // Pace by wall clock without spending more of the 128-sample tail budget.
+                // Slow sanitizer staging must not exhaust the renderer before publication.
+                std::this_thread::sleep_for(5ms);
             }
         });
         try {
@@ -1043,6 +1198,271 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     s.shutdown();
 }
 
+// A82: real shipped OSC In slot, an actual held predecessor, no LAN socket.
+// All rows are disabled so even a changed port binds nothing. The disabled CV
+// output_min is still a render-observable slot value, not a test-only seam.
+Json e3c_osc_rows(float minimum, bool enabled = false) {
+    Json rows = Json::array();
+    for (uint32_t i = 0; i < 8; ++i)
+        rows.push_back({{"pattern", i == 0 ? "/reconnect" : "/a82/" + std::to_string(i)},
+                        {"enabled", enabled && i == 0}, {"kind", "cv"},
+                        {"smoothing_ms", 0}, {"output_min", i == 0 ? minimum : 0.f}});
+    return {{"rows", std::move(rows)}};
+}
+void test_a82_osc_in_slot(const std::filesystem::path &root) {
+    for (bool replacement : {false, true}) {
+        Options options;
+        options.audio = true;
+        options.block = 1024;
+        options.settings = (root / (replacement ? "a82-d5.json" : "a82-retained.json")).string();
+        fake::outputs = {output("A82 stereo", 0, true)};
+        fake::render = true;
+        Session s(options);
+        s.start();
+        auto call = [&](const char *type, const Json &payload) {
+            Json command = {{"v", 0}, {"id", "a82"}, {"type", type}};
+            command.update(payload);
+            return s.reply({command, {}, {}});
+        };
+        check(call("hello", {{"capabilities", Json::array({"configDeferred"})}})["ok"] == true,
+              "A82 fake client opts in");
+        Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+            {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+                {{"id", 2}, {"module", "osc.in"}, {"config", {{"port", 9000}, {"lan", false}}},
+                    {"data", {{"routes", e3c_osc_rows(.25f)}}}}})},
+            {"connections", Json::array({{{"kind", "signal"}, {"from", {{"module", 2}, {"port", "row1"}}},
+                                          {"to", {{"module", 1}, {"port", "audio"}}}}})}};
+        auto apply = [&](const Json &p) { return call("applyGraph", {{"patch", p}}); };
+        check(call("loadGraph", {{"patch", patch}})["ok"] == true, "A82 real slot graph loads");
+        check(bool(fake::freeze_render), "A82 fake callback available");
+        fake::freeze_render();
+        fake::render = false;
+        auto *const live = fake::engine;
+        auto &graph = app_engine_native(live);
+        const auto stops = fake::stopped, exchanges = fake::exchanges;
+        auto route = [&] { return s.status()["status"]["osc"]["routes"].at(0); };
+        check(route()["state"] == "disabled" && route()["bind"] == "127.0.0.1" &&
+              s.status()["status"]["osc"]["lan"] == false,
+              "A82 disabled route binds no socket");
+        auto with_render = [&](auto action) {
+            std::atomic<bool> done{false}, render_ok{true};
+            std::thread renderer([&] {
+                float sample = 0;
+                for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
+                    if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+                    // Pace by wall clock without spending more of the 128-sample tail budget.
+                // Slow sanitizer staging must not exhaust the renderer before publication.
+                std::this_thread::sleep_for(5ms);
+                }
+            });
+            try { action(); } catch (...) {
+                done.store(true, std::memory_order_release);
+                renderer.join();
+                throw;
+            }
+            done.store(true, std::memory_order_release);
+            renderer.join();
+            check(render_ok.load() && fake::engine == live && fake::stopped == stops &&
+                  fake::exchanges == exchanges, "A82 live publication retains the stream");
+        };
+        std::array<float, 1024> samples{};
+        auto step = [&](AppEngine *e, float expected) {
+            check(app_engine_render(e, samples.data(), 1) == WS2_OK, "A82 manual render");
+            check(app_engine_native(e).output_sample(2, 0, 0, 0) == expected,
+                  "A82 shipped slot value observed in render");
+        };
+        step(live, .25f);
+        patch["modules"][1]["config"]["port"] = 9001;
+        Json first;
+        with_render([&] { first = apply(patch); });
+        check(first["ok"] == true && first["result"]["path"] == "live" &&
+              first["result"]["replaced"] == Json::array({2}) &&
+              graph.replacement_tail_pending(2), "A82 first port-only replacement has held predecessor");
+        auto pending = patch;
+        pending["modules"][1]["config"]["port"] = 9002;
+        const auto deferred = apply(pending);
+        check(deferred["ok"] == false && deferred["code"] == "busy" &&
+              deferred["deferred"] == true && deferred["deferId"].is_string() &&
+              deferred["gen"] == first["gen"] && route()["port"] == 9001,
+              ("A82 real second port replacement defers: " + deferred.dump()).c_str());
+        const auto defer_id = deferred["deferId"];
+        const auto edited_data = e3c_osc_rows(.5f);
+        const auto edit = call("setData", {{"moduleId", 2}, {"slot", "routes"}, {"value", edited_data}});
+        check(edit["ok"] == true && edit["gen"] == first["gen"] &&
+              s.take_config_events().empty() && graph.replacement_tail_pending(2) &&
+              fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
+              "A82 retained setData keeps the pending config");
+        step(live, .5f);
+        check(graph.replacement_tail_pending(2), "A82 predecessor still held after data adoption");
+        auto terminal = [&](const char *outcome, const Json &generation) {
+            const auto events = s.take_config_events();
+            check(events.size() == 1 && events[0]["type"] == "configDeferred" &&
+                  events[0]["deferId"] == defer_id && events[0]["moduleId"] == 2 &&
+                  events[0]["outcome"] == outcome && events[0]["generation"] == generation,
+                  ("A82 correlated terminal outcome: " + events.dump()).c_str());
+            check(s.take_config_events().empty(), "A82 terminal outcome exactly once");
+        };
+        if (!replacement) {
+            for (unsigned i = 0; i < 25 && graph.replacement_tail_pending(2); ++i)
+                check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+                      "A82 render retirement");
+            check(!graph.replacement_tail_pending(2), "A82 predecessor retired by samples");
+            with_render([&] { s.poll(std::chrono::steady_clock::now()); });
+            terminal("applied", s.status()["gen"]);
+            check(route()["port"] == 9002 && route()["state"] == "disabled",
+                  "A82 retained deferral really completed");
+            step(live, .5f);
+        } else {
+            // Full snapshot repeats the pending config (not a revert). The
+            // existing D5 lost-stream path creates a real new graph; no hook
+            // forces a normal retained data edit to replace its instance.
+            pending["modules"][1]["data"]["routes"] = e3c_osc_rows(.75f);
+            fake::active = false;
+            fake::render = true;
+            const auto d5 = apply(pending);
+            check(d5["ok"] == true && d5["result"]["path"] == "restart" &&
+                  fake::engine != live && fake::stopped > stops &&
+                  route()["port"] == 9001 && route()["state"] == "disabled",
+                  ("A82 actual D5 new instance without config revert: " + d5.dump()).c_str());
+            check(bool(fake::freeze_render), "A82 replacement fake callback available");
+            fake::freeze_render();
+            fake::render = false;
+            step(fake::engine, .75f);
+            terminal("superseded", d5["gen"]);
+        }
+        s.shutdown();
+    }
+}
+// A77: refuse invalid and busy writes without changing either host's
+// route table, then accept the same valid write without replacing the graph.
+void test_e3c_accepted_routes(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.block = 1024;
+    options.settings = (root / "e3c-routes.json").string();
+    fake::outputs = {output("E3c stereo", 0, true)};
+    fake::render = true;
+    Session s(options);
+    s.start();
+    auto call = [&](const char *type, const Json &payload) {
+        Json command = {{"v", 0}, {"id", "e3c"}, {"type", type}};
+        command.update(payload);
+        return s.reply({command, {}, {}});
+    };
+    auto out_rows = [](bool enabled) {
+        Json rows = Json::array();
+        for (uint32_t i = 0; i < 8; ++i)
+            rows.push_back({{"address", "/e3c/" + std::to_string(i)}, {"enabled", enabled && i == 0}});
+        return Json{{"rows", std::move(rows)}, {"notes_enabled", false}, {"notes_address", "/e3c/note"}};
+    };
+    const auto port = select_loopback_osc_port();
+    Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+            {{"id", 2}, {"module", "osc.in"}, {"config", {{"port", port}, {"lan", false}}},
+                {"data", {{"routes", e3c_osc_rows(0)}}}},
+            {{"id", 3}, {"module", "osc.out"}, {"data", {{"routes", out_rows(false)}}}},
+            {{"id", 4}, {"module", "midi.cc_to_cv"}}})},
+        {"connections", Json::array({{{"kind", "signal"}, {"from", {{"module", 2}, {"port", "row1"}}},
+                                      {"to", {{"module", 1}, {"port", "audio"}}}}})}};
+    const auto loaded = call("loadGraph", {{"patch", patch}});
+    check(loaded["ok"] == true, "E3c route graph loads");
+    check(bool(fake::freeze_render), "E3c fake callback available");
+    fake::freeze_render();
+    fake::render = false;
+    auto *const live = fake::engine;
+    auto &graph = app_engine_native(live);
+    const auto stops = fake::stopped, exchanges = fake::exchanges;
+    auto osc_status = [&] { return s.status()["status"]["osc"]; };
+    const auto before = osc_status();
+    check(before["routes"][0]["state"] == "disabled" && before["out"][0]["state"] == "disabled",
+          "E3c disabled routes open no socket");
+    auto set = [&](uint32_t id, const Json &value) {
+        return call("setData", {{"moduleId", id}, {"slot", "routes"}, {"value", value}});
+    };
+    auto invalid_in = e3c_osc_rows(0, true);
+    invalid_in["rows"][0]["input_max"] = 0;
+    auto invalid_out = out_rows(true);
+    invalid_out["rows"][0]["address"] = "/invalid/*";
+    const auto rejected_in = set(2, invalid_in), rejected_out = set(3, invalid_out);
+    check(rejected_in["ok"] == false && rejected_in["code"] == "invalid" &&
+          rejected_in["message"].get<std::string>().find("input_max") != std::string::npos &&
+          rejected_out["ok"] == false && rejected_out["code"] == "invalid" &&
+          rejected_out["message"].get<std::string>().find("address") != std::string::npos &&
+          osc_status() == before, "E3c cross-field refusal leaves host routes unchanged");
+    // The existing control critical ring, not a new test hook. A sequence of
+    // harmless transport values fills it while the fake callback is frozen.
+    int full = WS2_OK;
+    for (unsigned i = 0; i < 65536 && full == WS2_OK; ++i) full = graph.transport(120, true);
+    check(full == WS2_CAPACITY, "E3c real critical ring is full");
+    const auto busy_in = set(2, e3c_osc_rows(0, true)), busy_out = set(3, out_rows(true));
+    check(busy_in["ok"] == false && busy_in["code"] == "busy" && busy_in["gen"] == loaded["gen"] &&
+          busy_out["ok"] == false && busy_out["code"] == "busy" && busy_out["gen"] == loaded["gen"] &&
+          osc_status() == before, "E3c busy data refuses without adopting staged host routes");
+    std::array<float, 1024> samples{};
+    for (unsigned i = 0; i < 16; ++i)
+        check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+              "E3c drain full critical ring");
+    const auto accepted_in = set(2, e3c_osc_rows(0, true)), accepted_out = set(3, out_rows(true));
+    check(accepted_in["ok"] == true && accepted_out["ok"] == true &&
+          accepted_in["gen"] == loaded["gen"] && accepted_out["gen"] == loaded["gen"] &&
+          osc_status()["routes"][0]["state"] == "listening" &&
+          osc_status()["out"][0]["state"] == "sending",
+          "E3c only accepted data writes adopt both host route tables");
+    const auto cc = call("ccMap.set", {{"moduleId", 4}, {"row", 0},
+        {"mapping", {{"channel", 0}, {"controller", 11}, {"smoothing_ms", 0}, {"min", .25}, {"max", .75}}}});
+    check(cc["ok"] == true && cc["gen"] == loaded["gen"] && fake::engine == live &&
+          fake::stopped == stops && fake::exchanges == exchanges,
+          "E3c ccMap.set writes live data without graph replacement");
+    ws2_event event{};
+    event.struct_size = sizeof(event);
+    event.type = WS2_MIDI;
+    event.channel = -1;
+    event.note_id = -1;
+    event.source_id = 1;
+    event.ump_words = 1;
+    event.ump[0] = 0x20b00b7fu;
+    check(graph.enqueue(0, 4, 0, event, 0, wirescape::engine2::Timing::Immediate) == WS2_OK,
+          "E3c inject synthetic CC");
+    check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK &&
+          graph.output_sample(4, 0, 0, 1023) == .75f, "E3c live CC row adopted");
+
+    // A86(1): the live row edit above retained the stream and graph. A
+    // whole-document data-only OSC Out edit is the one allowed exception:
+    // it stages a fresh bus and reports exactly that replacement.
+    patch["modules"][1]["data"]["routes"] = e3c_osc_rows(0, true);
+    patch["modules"][2]["data"]["routes"] = out_rows(true);
+    patch["modules"][2]["data"]["routes"]["rows"][0]["address"] = "/e3c/replaced";
+    patch["modules"][3]["config"] = {{"rows", Json::array({{{"channel", 0}, {"controller", 11},
+        {"smoothing_ms", 0}, {"min", .25}, {"max", .75}}})}};
+    Json replaced;
+    std::atomic<bool> done{false}, render_ok{true};
+    std::thread renderer([&] {
+        float sample = 0;
+        for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
+            if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+            std::this_thread::sleep_for(5ms);
+        }
+    });
+    try {
+        replaced = call("applyGraph", {{"patch", patch}});
+    } catch (...) {
+        done.store(true, std::memory_order_release);
+        renderer.join();
+        throw;
+    }
+    done.store(true, std::memory_order_release);
+    renderer.join();
+    check(render_ok.load() && replaced["ok"] == true && replaced["re"] == "e3c" &&
+          replaced["gen"] != loaded["gen"] && replaced["result"]["path"] == "live" &&
+          replaced["result"]["replaced"] == Json::array({3}) &&
+          fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
+          ("A86 only OSC Out fresh-bus replacement: " + replaced.dump()).c_str());
+    check(app_engine_render(live, samples.data(), uint32_t(samples.size())) == WS2_OK,
+          "A86 render after old bus retirement");
+    std::cout << "A86 data-only applyGraph replaced=" << replaced["result"]["replaced"].dump() << '\n';
+    s.shutdown();
+}
+
 int main() {
     const auto root = std::filesystem::temp_directory_path() /
                       ("wirescape-audio-recovery-" + std::to_string(app_engine_clock_ns()));
@@ -1054,6 +1474,7 @@ int main() {
         std::filesystem::create_directories(root);
         test_osc_out_budget();
         test_osc_out_held_gate_reset_sender();
+        test_a86_route_release();
         using wirescape::audio::classify_rates;
         const auto supported = classify_rates({0, -1, 0}, -1);
         const auto invalid = classify_rates({-1, -1, -1}, -1);
@@ -1708,6 +2129,8 @@ int main() {
         test_e7_rate_dependent_state_refusal(root);
         test_a78_deferred_config(root);
         test_a81_synthetic_slot();
+        test_a82_osc_in_slot(root);
+        test_e3c_accepted_routes(root);
         std::cout << "audio recovery fake-backend tests passed\n";
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';

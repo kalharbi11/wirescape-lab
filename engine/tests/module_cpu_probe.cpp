@@ -5,6 +5,7 @@
 // K blocks (forces mode crossfades, band-layout changes and so on). Prints one line:
 //   module_cpu_probe {"module":..., "render_ns":{"max":..,"p99":..}, "allocations":.., ...}
 #include "../../tests/native/abi2/allocation_watch.h"
+#include "../data_slots.h"
 #include "module_catalog.h"
 #include "module_cpu_probe_output.h"
 #include <algorithm>
@@ -47,6 +48,9 @@ struct Instance {
     std::vector<const float *> value_rows;
     std::vector<ws2_signal> params;
     std::vector<ws2_event_list> event_inputs;
+    // Descriptor-default data slots, packed off the timed path exactly as the
+    // engine does at build (initialize_data_slots); views stay stable for process.
+    wirescape::engine2::InstanceData data;
     ws2_process ctx{};
 };
 
@@ -129,6 +133,8 @@ int main(int argc, char **argv) {
         x->arena.bytes.resize(memory.fast_bytes + memory.large_bytes + (1u << 20));
         x->self = d->create(&x->host);
         if (!x->self || d->prepare(x->self, &config, &x->host) != WS2_OK) return fail("create/prepare failed");
+        std::string data_error;
+        if (!wirescape::engine2::initialize_data_slots(*d, x->data, data_error)) return fail("data slot initialization failed");
         x->out_store.assign(size_t(d->output_count) * capacity, std::vector<float>(block));
         x->out_rows.resize(d->output_count);
         for (uint32_t o = 0; o < d->output_count; ++o) {
@@ -164,6 +170,8 @@ int main(int argc, char **argv) {
         c.params = x->params.data();
         c.event_inputs = x->event_inputs.data();
         c.events = {sizeof(ws2_event_list), 0, nullptr};
+        c.data_count = uint32_t(x->data.view.size());
+        c.data = x->data.view.empty() ? nullptr : x->data.view.data();
         all.push_back(std::move(x));
     }
 

@@ -38,7 +38,8 @@ test('OB-h5 Script preset maps MIDI pitch and preserves LAN and patch shape', as
   await expect(page.getByTestId('osc-editor')).toBeHidden();
   const saved = await state(page);
   expect(saved.modules[0].config.lan).toBe(true);
-  const rows = saved.modules[0].config.rows;
+  expect(saved.modules[0].config.rows).toBeUndefined();
+  const rows = saved.modules[0].data.routes.rows;
   expect(rows).toHaveLength(8);
   expect(rows[0]).toMatchObject({ pattern: '/ws/pitch/*', kind: 'cv', input_min: 0, input_max: 127, smoothing_ms: 0 });
   // MIDI to CV uses 1 V/oct with MIDI note 60 = 0 (engine/voice/allocator.h).
@@ -61,7 +62,9 @@ test('OB-h5 Script preset maps MIDI pitch and preserves LAN and patch shape', as
   await page.reload();
   await page.waitForFunction(() => document.body.dataset.ready === 'true');
   await settle(page);
-  expect((await state(page)).modules[0].config).toEqual(saved.modules[0].config);
+  const reloaded = (await state(page)).modules[0];
+  expect(reloaded.config).toEqual(saved.modules[0].config);
+  expect(reloaded.data).toEqual(saved.modules[0].data);
 });
 
 test('OB-h5 OSC In portable file round trip, wrong module and network isolation', async ({ page }) => {
@@ -83,7 +86,9 @@ test('OB-h5 OSC In portable file round trip, wrong module and network isolation'
   expect(Object.keys(file.config).sort()).toEqual(['port', 'rows']);
   expect(file.config.port).toBe(9123);
   expect(file.config.rows[0].pattern).toBe('/ws/pitch/*');
-  expect((await state(page)).modules[0].config.rows).toBeUndefined();
+  const beforeSave = (await state(page)).modules[0];
+  expect(beforeSave.config.rows).toBeUndefined();
+  expect(beforeSave.data).toBeUndefined();
   await page.getByTestId('osc-preset-pico').click();
   const upload = (value: unknown) => uploadPreset(page, value);
   await upload({ ...file, module: 'osc.out' });
@@ -94,7 +99,11 @@ test('OB-h5 OSC In portable file round trip, wrong module and network isolation'
   await expect(page.getByTestId('osc-editor-lan')).toBeChecked();
   await page.getByTestId('osc-editor-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
-  expect((await state(page)).modules[0].config).toMatchObject({ port: 9123, lan: true, rows: file.config.rows });
+  const saved = (await state(page)).modules[0];
+  expect(saved.config).toMatchObject({ port: 9123, lan: true });
+  expect(saved.config.rows).toBeUndefined();
+  expect(saved.config.host).toBeUndefined();
+  expect(saved.data.routes.rows).toEqual(file.config.rows.map((row: Record<string, unknown>) => ({ ...row, enabled: row.enabled !== false })));
 });
 
 test('OB-h5 OSC Out portable file round trip excludes destination and preserves unknown authored fields', async ({ page }) => {
@@ -125,8 +134,15 @@ test('OB-h5 OSC Out portable file round trip excludes destination and preserves 
   await expect(page.getByTestId('osc-out-notes-enabled')).toBeChecked();
   await page.getByTestId('osc-out-save').click();
   await expect(page.getByTestId('osc-editor')).toBeHidden();
-  const config = (await state(page)).modules[0].config;
-  expect(config).toMatchObject({ ...file.config, futureOption: true });
+  const saved = (await state(page)).modules[0];
+  const config = saved.config;
+  expect(config).toMatchObject({ port: file.config.port, rate_hz: file.config.rate_hz, futureOption: true });
+  expect(config.rows).toBeUndefined();
+  expect(config.notes).toBeUndefined();
+  expect(saved.data.routes).toMatchObject({
+    rows: file.config.rows.map((row: Record<string, unknown>) => ({ ...row, enabled: row.enabled !== false })),
+    notes_address: file.config.notes.address, notes_enabled: file.config.notes.enabled === true,
+  });
   expect(config.host).toBeUndefined();
   expect(config.lan).toBeUndefined();
 });

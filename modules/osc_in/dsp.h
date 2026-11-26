@@ -11,7 +11,41 @@
 #include "../../host/osc/pattern.h"
 #include "config.h"
 #include "wirescape_sdk.h"
+#include <limits>
 namespace wirescape::osc {
+// Slot storage and its field table share one declaration. Device settings and
+// host-owned statistics remain prepare-time config, never authored data bytes.
+inline constexpr const char *osc_in_kinds[] = {"cv", "gate", "trigger"};
+inline constexpr const char *osc_in_stale[] = {"hold", "zero"};
+inline constexpr float osc_in_limit = std::numeric_limits<float>::max();
+#define WS_OSC_IN_ROW_FIELDS(X) \
+    X(char, pattern, [256], WS2_F_TEXT, ws::data_range(0, 0, 0)) \
+    X(uint32_t, argument, , WS2_F_U32, ws::data_range(0, 31, 0)) \
+    X(uint32_t, kind, , WS2_F_ENUM, ws::data_options(osc_in_kinds, 0)) \
+    X(float, input_min, , WS2_F_F32, ws::data_range(-osc_in_limit, osc_in_limit, 0)) \
+    X(float, input_max, , WS2_F_F32, ws::data_range(-osc_in_limit, osc_in_limit, 1)) \
+    X(float, output_min, , WS2_F_F32, ws::data_range(-osc_in_limit, osc_in_limit, 0)) \
+    X(float, output_max, , WS2_F_F32, ws::data_range(-osc_in_limit, osc_in_limit, 1)) \
+    X(float, smoothing_ms, , WS2_F_F32, ws::data_range(0, 2000, 5)) \
+    X(float, timeout_ms, , WS2_F_F32, ws::data_range(0, 3600000, 1000)) \
+    X(uint32_t, stale, , WS2_F_ENUM, ws::data_options(osc_in_stale, 0)) \
+    X(uint8_t, enabled, , WS2_F_BOOL, ws::data_range(0, 1, 1))
+struct OscInRowData {
+#define WS_DECLARE(type, id, extent, kind, rules) type id extent;
+    WS_OSC_IN_ROW_FIELDS(WS_DECLARE)
+#undef WS_DECLARE
+};
+inline constexpr std::array osc_in_row_fields{
+#define WS_DESCRIBE(type, id, extent, kind, rules) \
+    ws::data_field<kind, decltype(OscInRowData::id)>(#id, #id, offsetof(OscInRowData, id), rules),
+    WS_OSC_IN_ROW_FIELDS(WS_DESCRIBE)
+#undef WS_DESCRIBE
+};
+#undef WS_OSC_IN_ROW_FIELDS
+struct OscInRows { OscInRowData rows[8]; };
+inline constexpr std::array osc_in_fields{
+    ws::data_field<WS2_F_RECORD, decltype(OscInRows::rows)>(
+        "rows", "Rows", offsetof(OscInRows, rows), ws::data_record(osc_in_row_fields))};
 struct OscIn {
     static constexpr ws::Info info{"osc.in", "OSC In", 1};
     static constexpr std::array<ws2_port, 0> inputs{};
@@ -26,6 +60,7 @@ struct OscIn {
         ws::port("row8", "Row 8", WS2_CV_BI),
         ws::port("messages", "Messages", WS2_EV_MESSAGE, WS2_POLY, 0, nullptr, WS2_EVENT)};
     static constexpr std::array<ws2_param, 0> params{};
+    static constexpr std::array data_slots{ws::data_slot<OscInRows>("routes", "Routes", osc_in_fields)};
     struct Voice {
         int32_t index = 0;
         double current = 0, target = 0;
@@ -37,40 +72,65 @@ struct OscIn {
         Pattern pattern;
         std::array<Voice, 16> voices{};
         uint32_t count = 1, triggers = 0;
-        bool poly = false, active = true; // active=false: disabled in config, matches nothing
+        bool poly = false, active = true; // active=false: disabled row
+        uint32_t mode = 0; // previous processing mode, for clearing incompatible voice state
         double coefficient = 1;
     };
-    Configuration config;
+    uint32_t last_serial = 0;
     Statistics local_statistics;
     Statistics *statistics = &local_statistics;
     std::array<Row, 8> rows{};
     uint32_t maximum = 16;
     double rate = 48000;
     bool prepare(const ws::Setup &s) {
+        Configuration config;
         if (!configuration(s.config.data, s.config.bytes, config)) return false;
+        // Keep the legacy prepare validation until the document migration lands.
+        Pattern checked;
+        for (const auto &r : config.rows) if (!checked.compile(r.pattern)) return false;
         maximum = s.max_channels();
         rate = s.sample_rate();
         statistics = config.statistics ? config.statistics : &local_statistics;
-        for (uint32_t i = 0; i < 8; ++i) {
-            if (!rows[i].pattern.compile(config.rows[i].pattern)) return false;
-            const char *component = std::strrchr(config.rows[i].pattern, '/');
-            rows[i].poly = component && std::strpbrk(component, "*?[{");
-            rows[i].active = config.rows[i].enabled != 0;
-            rows[i].coefficient =
-                config.rows[i].smoothing_ms > 0 ? 1. - std::exp(-1000. / (config.rows[i].smoothing_ms * rate)) : 1;
-        }
         return true;
     }
     void reset() {
-        for (uint32_t i = 0; i < 8; ++i) {
-            auto &r = rows[i];
+        last_serial = 0;
+        for (auto &r : rows) {
             r.voices = {};
-            r.count = r.poly && r.active ? 0 : 1;
+            r.count = 1;
             r.triggers = 0;
-            // A disabled CV row holds output_min; disabled gate/trigger rows stay low.
-            if (!r.active && config.rows[i].kind == 0)
-                r.voices[0].current = r.voices[0].target = config.rows[i].output_min;
         }
+    }
+    void derive(const OscInRows &data, uint32_t serial) {
+        Pattern next_pattern;
+        for (uint32_t i = 0; i < 8; ++i) {
+            const auto &cfg = data.rows[i];
+            auto &r = rows[i];
+            // The host validates the pattern before publishing. Compile its
+            // bounded automaton only when the serial changes; keep no slot copy.
+            const auto *end = static_cast<const char *>(std::memchr(cfg.pattern, 0, sizeof(cfg.pattern)));
+            const bool valid = end && cfg.pattern[0] == '/' &&
+                next_pattern.compile(std::string_view(cfg.pattern, size_t(end - cfg.pattern)));
+            if (!valid) next_pattern.compile({});
+            const bool changed = !r.pattern.same_compiled_pattern(next_pattern);
+            r.pattern = next_pattern;
+            const char *component = valid ? std::strrchr(cfg.pattern, '/') : nullptr;
+            const bool poly = component && std::strpbrk(component, "*?[{");
+            const bool active = valid && cfg.enabled != 0;
+            if (!last_serial || r.poly != poly || r.active != active || r.mode != cfg.kind || (poly && changed)) {
+                r.voices = {};
+                r.count = poly && active ? 0 : 1;
+            }
+            r.poly = poly;
+            r.active = active;
+            r.mode = cfg.kind;
+            r.coefficient = cfg.smoothing_ms > 0 ? 1. - std::exp(-1000. / (cfg.smoothing_ms * rate)) : 1;
+            if (!active) {
+                r.voices = {};
+                if (cfg.kind == 0) r.voices[0].current = r.voices[0].target = cfg.output_min;
+            }
+        }
+        last_serial = serial;
     }
     static int32_t index(std::string_view address) {
         const auto slash = address.find_last_of('/');
@@ -102,6 +162,10 @@ struct OscIn {
         return e.type == WS2_MESSAGE && e.message_kind == WS2_MSG_OSC && parse(e.data, e.bytes, f);
     }
     void process(ws::Block &b) {
+        uint32_t serial = 0;
+        const auto *data = b.data<OscInRows>(0, serial);
+        if (!data) return; // SDK rejects missing or malformed blocks before process.
+        if (serial != last_serial) derive(*data, serial);
         // Discover numeric wildcard indices first, so channel ordering is stable for
         // the entire block, including samples preceding a newly arrived index.
         for (const auto &e : b.events())
@@ -118,7 +182,7 @@ struct OscIn {
         for (const auto &e : b.events()) {
             message(e, [&](const Message &m) {
                 for (uint32_t r = 0; r < 8; ++r)
-                    if (rows[r].active && config.rows[r].kind != 2 && rows[r].pattern.match(m.address)) {
+                    if (rows[r].active && data->rows[r].kind != 2 && rows[r].pattern.match(m.address)) {
                         const int c = slot(rows[r], m.address, false);
                         if (c >= 0) rows[r].voices[c].last_event = sequence;
                     }
@@ -136,7 +200,7 @@ struct OscIn {
                 for (uint32_t r = 0; r < 8; ++r)
                     for (uint32_t c = 0; c < std::max<uint32_t>(1, rows[r].count); ++c) {
                         auto &v = rows[r].voices[c];
-                        const auto &cfg = config.rows[r];
+                        const auto &cfg = data->rows[r];
                         for (uint32_t i = first; i < end; ++i) {
                             if (v.seen != UINT64_MAX && cfg.timeout_ms > 0 && cfg.stale &&
                                 b.frame_position() + i - v.seen >= uint64_t(std::ceil(cfg.timeout_ms * rate / 1000.)))
@@ -161,7 +225,7 @@ struct OscIn {
                     ++statistics->received;
                     for (uint32_t r = 0; r < 8; ++r) {
                         auto &row = rows[r];
-                        const auto &cfg = config.rows[r];
+                        const auto &cfg = data->rows[r];
                         if (!row.pattern.match(m.address)) continue;
                         if (!row.active) {
                             off = true;

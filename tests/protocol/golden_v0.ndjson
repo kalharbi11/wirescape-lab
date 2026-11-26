@@ -68,7 +68,7 @@
 > {"v":0,"id":"pre12","type":"addModule","moduleId":12,"moduleType":"midi.cc_to_cv"}
 < {"v":0,"session":"*","re":"pre12","ok":true,"gen":"+1"}
 > {"v":0,"id":"r12","type":"ccMap.set","moduleId":12,"row":0,"mapping":{"channel":0,"controller":21,"fourteen_bit":false,"bipolar":false,"smoothing_ms":10}}
-< {"v":0,"session":"*","re":"r12","ok":true,"gen":"+1"}
+< {"v":0,"session":"*","re":"r12","ok":true,"gen":"="}
 
 # T13
 < {"v":0,"session":"*","type":"status","gen":"=","status":{"audio":{"state":"running","deviceId":"USB Stereo","deviceName":"USB Stereo","sampleRate":48000,"bufferFrames":256,"latencyMs":10.6667,"cpuPercent":2.1,"dropouts":0},"midi":{"devices":[],"activity":{}},"osc":{"enabled":false,"bind":"127.0.0.1","port":0,"lan":false,"routes":[]}}}

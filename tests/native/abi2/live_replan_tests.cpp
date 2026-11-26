@@ -2,7 +2,7 @@
 #include "allocation_watch.h"
 #include "engine2.h"
 #include "wirescape_sdk.h"
-#include "../../../modules/osc_out/dsp.h"
+#include "../../../modules/osc_out/data_validation.h"
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -788,6 +788,11 @@ static void osc_out_retirement() {
                 const auto *bytes = reinterpret_cast<const uint8_t *>(&cfg);
                 CHECK(e->add_node(2, ws::Module<OscOut>::descriptor(),
                                   std::vector<uint8_t>(bytes, bytes + sizeof(cfg))));
+                OscOutRoutes routes{};
+                char error[128]{};
+                CHECK(materialize_osc_out_routes(cfg, routes, error));
+                const auto *slot = reinterpret_cast<const uint8_t *>(&routes);
+                CHECK(e->set_data_packed(2, 0, std::vector<uint8_t>(slot, slot + sizeof(routes))) == WS2_OK);
                 CHECK(e->connect(1, 0, 2, 0));
             }
             CHECK(e->output(1, 0, 0));
