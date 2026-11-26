@@ -156,3 +156,36 @@ test('Groove E3b A90 divisor and explicit absent-track edits disclose constructi
   upgrade(explicit);
   expect(classifyGrooveApply(module, explicit, true)).toMatchObject({ kind: 'construction', reason: 'track-count' });
 });
+
+test('Groove E3b A90 absent or empty config preserves native v1 one-track default', () => {
+  // Config{} in modules/groove/config.h: authored_version=1, track_count=1,
+  // BPM=120. The live descriptor defaults to 32 steps, not the editor's
+  // old new-module two-track template.
+  const modules: { id: number; config?: unknown; data?: unknown }[] = [
+    { id: 17 },
+    { id: 17, config: {} },
+    { id: 17, data: { future_slot: { keep: true }, pattern: {} } },
+  ];
+  for (const module of modules) {
+    const before = structuredClone(module);
+    const editor = grooveEditorConfig(module)!;
+    expect(editor.tracks).toHaveLength(1);
+    expect(editor.tracks[0]!.length).toBe(32);
+    const note = stepFor(editor, 0, 0);
+    note.kind = 'note';
+    note.key = 63;
+    note.velocity = .5;
+    const live = classifyGrooveApply(module, editor);
+    expect(live?.kind).toBe('pattern');
+    if (live?.kind !== 'pattern') throw new Error('expected live pattern');
+    expect(Object.prototype.hasOwnProperty.call(live.saved, 'config')).toBe(Object.prototype.hasOwnProperty.call(before, 'config'));
+    expect(live.saved.config).toEqual(before.config);
+    expect(live.pattern.length_1).toBe(32);
+    expect(live.pattern.steps_1[0]).toMatchObject({ kind: 'note', key: 63, velocity: .5 });
+    expect(grooveEditorConfig(live.saved)!.tracks).toHaveLength(1);
+    expect(grooveEditorConfig(live.saved)!.tracks[0]!.steps[0]!.key).toBe(63);
+    expect(module).toEqual(before);
+    expect(classifyGrooveApply(module, editor, true)).toMatchObject({
+      kind: 'construction', reason: 'track-count' });
+  }
+});
