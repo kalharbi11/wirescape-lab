@@ -123,8 +123,8 @@ test('MM1 A101 real bridge: refused compensation restores last acknowledged grap
   await expect.poll(() => commands(page)).toEqual(['applyGraph']);
   await page.evaluate(() => {
     const b = (window as any).__mockBridge;
-    b.refuseNext('applyGraph', 'refused');
     b.acceptHeld();
+    b.refuseNext('applyGraph', 'refused');
   });
   expect(await page.evaluate(() => (window as any).__mmPending)).not.toBe('');
   expect(await commands(page)).toEqual(['applyGraph', 'applyGraph']);
