@@ -17,6 +17,11 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 Signed: claude-architect, 2026-11-26
 
+## Architect — 2026-11-26 ET (Planner run 2 brief; owner request)
+- [Planner brief](../context/planner/02_PLANNER_RUNS.md) updated so run 2 redoes no setup. It now lists everything done in run 47, #628 and #540, has a trimmed reading list per session, and records today's state of the new repos.
+- **Run 2 is split** (Architect recommendation): `planner: run 2a` covers `wirescape-test`, macros and mapping, and the module batch (writes 0024). `planner: run 2b` covers the headless Player, OSC and scripts, the tool host, guides and the final order (writes 0025), after 2a merges. Each runs at max effort; `planner: run 2` is the one-session fallback. Triggers updated in `CLAUDE.md` and `AGENTS.md`.
+- After 2a merges, the Architect may file the `wirescape-test` tasks at once. The freeze lifts after 2b.
+
 ## Architect + lead session — 2026-11-26 14:25 EST (owner: builder PRs only; parallel to run 47)
 - **#540:** the strict paired gap was the CPU probe, not the runner. Fixed `65a3eb8`. All exact-head gates are green, and paired is 100/102 on both arches, equal to base. Waiting on B2's Result and packet, then the Architect review.
 - **#592:** 33 raw JSON files retained at `b77b6e7` (owner allowed the artifact host); B4 re-verified at `4026404`. Waiting on Lab, the Result and a lead merge.
