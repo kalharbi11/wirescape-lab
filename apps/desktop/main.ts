@@ -12,7 +12,11 @@ protocol.registerSchemesAsPrivileged([{
 const LIMIT = 2 * 1024 * 1024;
 const MAX_PENDING = 256;
 const MAX_STDIN_BUFFER = 4 * LIMIT;
+// RS / 0023 R2.5: indefinite backoff; only a stable heartbeat resets it.
+const RESTART_INITIAL_MS = 250;
+const RESTART_MAX_MS = 30_000;
 const RESTART_WINDOW_MS = 30_000;
+const RESTART_STATUS_GAP_MS = 2_000;
 const ENGINE_FLAGS_WITH_VALUE = new Set(['--device', '--block', '--rate', '--settings']);
 const argv = process.argv.slice(1);
 let enginePath: string | undefined;
@@ -101,7 +105,11 @@ if (isolatedProfile !== null) {
 }
 let window: BrowserWindow | null = null;
 const UI_DIR = path.resolve(__dirname, '../../studio/dist');
-let active: { process: ChildProcessWithoutNullStreams; expected: boolean } | null = null;
+type EngineProcess = {
+  process: ChildProcessWithoutNullStreams; expected: boolean; session: string | null;
+  statusSince: number | null; lastStatusAt: number | null; stable: boolean;
+};
+let active: EngineProcess | null = null;
 let shuttingDown = false;
 let restartInProgress = false;
 let lastHello: string | null = null;
@@ -112,7 +120,56 @@ let loggedAudioTime = false;
 let patchPath: string | null = null;
 let menuId = 0;
 const pending = new Set<string>();
-const failures: number[] = [];
+const fastCrashes: number[] = [];
+let nextRestartDelay = RESTART_INITIAL_MS;
+let restartTimer: ReturnType<typeof setTimeout> | null = null;
+let restartBanner = false;
+type RestartPhase = 'starting' | 'waiting' | 'recovering' | 'stable';
+let lastRestartPolicy = {
+  v: 0, type: 'app.engineRestartPolicy', phase: 'starting' as RestartPhase,
+  delayMs: 0, banner: false,
+};
+function publishRestartPolicy(phase: RestartPhase, delayMs = 0): void {
+  lastRestartPolicy = { v: 0, type: 'app.engineRestartPolicy', phase, delayMs, banner: restartBanner };
+  notify(lastRestartPolicy);
+}
+function cancelRestartTimer(): void {
+  if (restartTimer !== null) clearTimeout(restartTimer);
+  restartTimer = null;
+}
+function scheduleCrashRestart(): void {
+  if (shuttingDown || restartTimer !== null) return;
+  const now = performance.now();
+  fastCrashes.push(now);
+  while (fastCrashes.length && now - fastCrashes[0] > RESTART_WINDOW_MS) fastCrashes.shift();
+  if (fastCrashes.length >= 3) restartBanner = true;
+  // Only the three newest failures matter to the banner; no unbounded history.
+  if (fastCrashes.length > 3) fastCrashes.shift();
+  const delay = nextRestartDelay;
+  nextRestartDelay = Math.min(RESTART_MAX_MS, delay * 2);
+  publishRestartPolicy('waiting', delay);
+  console.error('engine-restart-delay-ms=' + delay);
+  restartTimer = setTimeout(() => {
+    restartTimer = null;
+    if (!active && !shuttingDown && !restartInProgress) startEngine();
+  }, delay);
+}
+// Stability is 30 seconds of status from the current hello/session, with no
+// gap above 2 seconds. A hello alone or merely an alive process is not proof
+// of recovery. This is a reset condition, not a new hang-kill policy.
+function observeRestartStatus(state: EngineProcess): void {
+  if (state.stable) return;
+  const now = performance.now();
+  if (state.lastStatusAt === null || now - state.lastStatusAt > RESTART_STATUS_GAP_MS)
+    state.statusSince = now;
+  state.lastStatusAt = now;
+  if (state.statusSince === null || now - state.statusSince < RESTART_WINDOW_MS) return;
+  state.stable = true;
+  nextRestartDelay = RESTART_INITIAL_MS;
+  fastCrashes.length = 0;
+  restartBanner = false;
+  publishRestartPolicy('stable');
+}
 
 function notify(message: object | string): void {
   if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) {
@@ -127,7 +184,8 @@ function decodeLine(bytes: Buffer): string | null {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { return null; }
 }
 function handleEngineLine(raw: string, owner: ChildProcessWithoutNullStreams): void {
-  if (active?.process !== owner) return;
+  const state = active;
+  if (!state || state.process !== owner) return;
   let obj: Record<string, unknown>;
   try {
     obj = JSON.parse(raw);
@@ -135,6 +193,12 @@ function handleEngineLine(raw: string, owner: ChildProcessWithoutNullStreams): v
   } catch { return; }
   if (obj.type === 'hello') {
     if (typeof obj.session !== 'string') return;
+    if (state.session !== obj.session) {
+      state.session = obj.session;
+      state.statusSince = state.lastStatusAt = null;
+      state.stable = false;
+      publishRestartPolicy('recovering');
+    }
     engineReady = true;
     lastHello = raw;
     if (!loggedHelloTime && readyAt !== null) {
@@ -142,7 +206,10 @@ function handleEngineLine(raw: string, owner: ChildProcessWithoutNullStreams): v
       console.error('boot-to-first-hello-ms=' + Number(process.hrtime.bigint() - readyAt) / 1e6);
     }
   } else if (!engineReady) return;
-  const status = obj.status as { audio?: { state?: unknown } } | undefined;
+  const status = obj.status as { audio?: { state?: unknown }; midi?: unknown } | undefined;
+  if (obj.type === 'status' && state.session !== null && obj.session === state.session &&
+      status && typeof status === 'object' && status.audio && typeof status.audio === 'object' &&
+      status.midi && typeof status.midi === 'object') observeRestartStatus(state);
   if (obj.type === 'status' && !loggedAudioTime && readyAt !== null &&
       status?.audio?.state === 'running') {
     loggedAudioTime = true;
@@ -224,18 +291,29 @@ function engineExecutable(): string {
   return path.resolve(app.getAppPath(), '../../build/native', filename);
 }
 function startEngine(): void {
+  if (active || shuttingDown) return;
+  publishRestartPolicy('starting');
   engineReady = false;
   lastHello = null;
   pending.clear();
   const executable = engineExecutable();
   // Only the explicit test harness may run a Node protocol stub.
   const stub = process.env.WIRESCAPE_TEST_STUB === '1';
-  const child = spawn(stub ? process.execPath : executable, stub ? [executable, ...engineArgs] : engineArgs, {
-    // Node's default stdio is three pipes; no socket or shell is involved.
-    windowsHide: true,
-    env: stub ? { ...process.env, ELECTRON_RUN_AS_NODE: '1' } : process.env
-  });
-  const state = { process: child, expected: false };
+  let child: ChildProcessWithoutNullStreams;
+  try {
+    child = spawn(stub ? process.execPath : executable, stub ? [executable, ...engineArgs] : engineArgs, {
+      // Node's default stdio is three pipes; no socket or shell is involved.
+      windowsHide: true,
+      env: stub ? { ...process.env, ELECTRON_RUN_AS_NODE: '1' } : process.env
+    });
+  } catch (error) {
+    console.error('wirescape-engine spawn:', error);
+    notify({ v: 0, type: 'app.engineExited', exitCode: null, signal: null, expected: false, supervisedRestart: true });
+    scheduleCrashRestart();
+    return;
+  }
+  const state: EngineProcess = { process: child, expected: false, session: null,
+    statusSince: null, lastStatusAt: null, stable: false };
   active = state;
   drainLines(child);
   child.stdin.on('error', () => {
@@ -254,16 +332,9 @@ function startEngine(): void {
     lastHello = null;
     for (const id of pending) refusal(id, 'unavailable', 'Engine disconnected');
     pending.clear();
-    notify({ v: 0, type: 'app.engineExited', exitCode: code, signal, expected: state.expected });
-    if (!state.expected && !shuttingDown && !restartInProgress) {
-      const now = Date.now();
-      failures.push(now);
-      while (failures.length && now - failures[0] > RESTART_WINDOW_MS) failures.shift();
-      if (failures.length <= 3) setTimeout(() => {
-        if (!active && !shuttingDown && !restartInProgress) startEngine();
-      }, 250);
-      else void showEngineFailure();
-    }
+    notify({ v: 0, type: 'app.engineExited', exitCode: code, signal, expected: state.expected,
+      supervisedRestart: !state.expected && !shuttingDown && !restartInProgress });
+    if (!state.expected && !shuttingDown && !restartInProgress) scheduleCrashRestart();
   });
 }
 async function stopEngine(): Promise<void> {
@@ -278,26 +349,17 @@ async function stopEngine(): Promise<void> {
     child.once('close', () => { clearTimeout(timeout); resolve(); });
   });
 }
-async function restartEngine(resetFailures = false): Promise<void> {
+async function restartEngine(): Promise<void> {
   if (shuttingDown || restartInProgress) throw new Error('Restart unavailable');
   restartInProgress = true;
+  // Explicit user restart supersedes a scheduled retry, but does not reset its
+  // backoff history. Only stable status resets that. Never leave a second timer.
+  cancelRestartTimer();
   try {
     await stopEngine();
-    if (resetFailures) failures.length = 0;
+    active = null;
     startEngine();
   } finally { restartInProgress = false; }
-}
-async function showEngineFailure(): Promise<void> {
-  if (!window || window.isDestroyed() || shuttingDown) return;
-  const { response } = await dialog.showMessageBox(window, {
-    type: 'error', title: 'Wirescape engine stopped',
-    message: 'The engine exited repeatedly. Audio and MIDI are disconnected.',
-    buttons: ['Restart engine', 'Quit'], defaultId: 0, cancelId: 1
-  });
-  if (response === 0) {
-    failures.length = 0;
-    if (!active && !shuttingDown) startEngine();
-  } else app.quit();
 }
 function savedBounds(): Electron.Rectangle | undefined {
   try {
@@ -657,7 +719,7 @@ function configureMenu(): void {
       { label: 'Reload UI', accelerator: 'CmdOrCtrl+R', click: () => window?.reload() }
     ] },
     { label: 'Engine', submenu: [
-      { label: 'Restart engine', click: () => { void restartEngine(true).catch(() => showEngineFailure()); } },
+      { label: 'Restart engine', click: () => { void restartEngine().catch(error => console.error('Engine restart:', error)); } },
       { label: 'Panic', click: () => command(JSON.stringify({ v: 0, id: 'menu-' + (++menuId), type: 'panic' })) }
     ] }
   ]);
@@ -703,7 +765,11 @@ app.whenReady().then(() => {
       return net.fetch(pathToFileURL(filename).toString());
     } catch { return new Response('Invalid path', { status: 400 }); }
   });
-  ipcMain.on('wirescape:ready', event => { if (senderAllowed(event) && lastHello) notify(lastHello); });
+  ipcMain.on('wirescape:ready', event => {
+    if (!senderAllowed(event)) return;
+    if (lastHello) notify(lastHello);
+    notify(lastRestartPolicy);
+  });
   ipcMain.on('wirescape:escape', event => {
     if (senderAllowed(event) && window?.isFullScreen()) window.setFullScreen(false);
   });
@@ -731,5 +797,6 @@ app.on('before-quit', event => {
   if (shuttingDown) return;
   event.preventDefault();
   shuttingDown = true;
+  cancelRestartTimer();
   void stopEngine().finally(() => app.quit());
 });

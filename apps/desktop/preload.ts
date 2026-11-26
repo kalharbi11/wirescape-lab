@@ -6,6 +6,8 @@ type Wire = Record<string, unknown>;
 const listeners = new Set<(message: Wire) => void>();
 let requestedInitialHello = false;
 let lastHello: Wire | null = null;
+let lastRestartPolicy: Wire | null = null;
+const restartListeners = new Set<(message: Wire) => void>();
 
 function checkedCommand(value: Wire): string {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Invalid command');
@@ -49,6 +51,12 @@ ipcRenderer.on('wirescape:message', (_event, raw: string) => {
     lastHello = value;
   }
   if (value.type === 'app.engineExited') lastHello = null;
+  if (value.type === 'app.engineRestartPolicy') {
+    lastRestartPolicy = value;
+    for (const listener of [...restartListeners]) {
+      try { listener(value); } catch (e) { console.error('Restart banner listener failed', e); }
+    }
+  }
   for (const listener of [...listeners]) {
     try { listener(value); } catch (e) { console.error('Wirescape message listener failed', e); }
   }
@@ -124,5 +132,17 @@ contextBridge.exposeInMainWorld('wirescapeOscPresets', Object.freeze({
   },
   async openFolder(): Promise<void> {
     await ipcRenderer.invoke('wirescape:osc-presets', { op: 'folder' });
+  },
+}));
+
+// RS: read-only main-owned restart state; no new engine commands or Node access.
+contextBridge.exposeInMainWorld('wirescapeRestartPolicy', Object.freeze({
+  subscribe(listener: (message: Wire) => void): () => void {
+    if (typeof listener !== 'function') throw new TypeError('Expected callback');
+    restartListeners.add(listener);
+    if (lastRestartPolicy) queueMicrotask(() => {
+      if (restartListeners.has(listener) && lastRestartPolicy) listener(lastRestartPolicy);
+    });
+    return () => { restartListeners.delete(listener); };
   },
 }));
