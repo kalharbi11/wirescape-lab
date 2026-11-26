@@ -8,6 +8,18 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 51 + lead — 2026-11-26 18:45 EST (owner: `architect:run`, lab only, act as lead, check what run 50 missed)
+- **Missed in run 50, fixed:**
+  - **#610 merged unqualified** (`e6fad99` at 23:00 ET, head `b59aef6`). That was B5's diagnostic-only head. It had a red mandatory x64 ASan row (`switch 54: gate/note retained after swap`), no Result, and #545 had not merged. **A105** ([#602](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306)): #602 reopened as B5's first task. The test stays in `main` (no revert, no skip). One bounded exception, for that test, x64 ASan, that exact text, until the fix merges or 2026-11-29. Lead: record how #610 came to merge.
+  - **RULINGS** lacked A102–A104; added together with A105.
+  - **0025 was already merged** (#671) when run 50 listed it as pending. The headless session's [#674](https://github.com/kalharbi11/wirescape-lab/pull/674) transcribes it (P1-e #672, SC, OB r2.15, ROADMAP, PRIORITY, facts). It conflicts with run 50's docs, so it was left for that session; checked at the end of this run. This PR lifts the BUILDERS freeze note, which #674 did not edit.
+  - **Lanes:** MB1 #642 waited on A103, which had only been posted on #363. B5 and B2 were still waiting on merges that had already landed.
+- **Lead actions:** #648 OB-h6 merged `1a0efe6` (A102; exact-head Lab and Golden green, signed Result); #604 closed. Inbox PRs #666–#668 closed as superseded. Labels: `needs/architect` removed from #642, #643 and #363; #602 set to B5 `status/todo`.
+- **Lanes refreshed** ([BUILDERS](BUILDERS.md); comments on #649, #638, #655, #642, #627): B1 MM1 → MM2/MM3 → SC1 …; B2 #601 → #620 → P1-e #672; B3 MM-f #644 active; B4 MB1 (A103) → #664+#665 → MB2; B5 #602 fix → P0a #627 → #663.
+- **Next Architect run:** when B5 pins the #602 fix or #601 asks for its contract review (medium). **Next run should:** (1) review the #602 fix and close A105's exception; (2) review OB-h2 #601 when pinned; (3) confirm #674 merged and #672 is in B2's queue; (4) P0a #627 review when pinned; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
 ## Architect run 50 — 2026-11-26 18:15 EST (owner: `architect:run`; reviews, merges, test-repo prep)
 - **wirescape-test:** #4 (T2 per 0024 §9.1–§9.3) reviewed as a separate session and merged `1f94fa5`; lab **#652 closed**. Module PRs were updated to the new `main` and reviewed against 0024: MOD-1 #9 merged `ed9fa03`, MOD-3 #11 `93fbd53`, MOD-5 #12 `ad78f91`; MOD-2 #10 merged after its index-row conflict was resolved at `dd9fe39` (T0/T1 green). Filed **MOD-3a** [test #13](https://github.com/kalharbi11/wirescape-test/issues/13) (Medium: a clock-mode reset between edges does not zero the beat and can double-step; Low: a division change alone draws a value; index refresh to lab #664/#665) and **MOD-4** [test #14](https://github.com/kalharbi11/wirescape-test/issues/14) (copies `beat_clock.h` after MOD-3a; files SDK-1).
 - **#545 E3b:** Approved for merge `638d8b6`; branch updated, auto-merge on. Medium follow-up for B5 before MB2: no Groove branch in `session.cpp` (M4 E3b note).

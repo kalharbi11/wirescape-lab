@@ -95,6 +95,8 @@ devices off and no LAN in CI, no loosening, and gaps recorded as facts.
 | **OB-h5** OSC presets, A92 (0022 §7) | [#603](https://github.com/kalharbi11/wirescape-lab/issues/603) | B1, after #585 | `apps/studio/src/app/OscEditor.ts` and preset helpers, `apps/studio/src/app/OscOutEditor.ts` (preset Save/Load only, A96, run 46), `apps/desktop/main.ts` and `preload.ts` (presets folder only), Studio tests, `docs/specs/OSC_PRESETS.md` | Script preset with the pitch test; save/load round trip; presets carry no network settings; patch format unchanged | lead |
 | **OB-h6** patch check tool, A94 (0022 §8) | [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) | B3, after OB-h1 | `tools/patch_library.py`, its tests, `docs/INSTALL.md` (one owner step) | renders a folder offline; table and JSON; exit codes as §8 | lead |
 
+**A105 (run 51):** #610 merged `e6fad99` before OB-h3 qualified (x64 ASan `switch 54: gate/note retained after swap`, no Result). #602 is open again and is B5's first task. The test stays in `main`. Bounded exception until the fix merges or 2026-11-29 23:59 ET: another PR's `sanitizers` failure on that one test, linux-x64 ASan, with that exact text, is #602 rather than the PR's red. Every other row must be green. [ruling](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306)
+
 ### r2.13 additions (Architect, 2026-11-26, run 47): Gate P0 and the Studio restart policy
 Design: [`proposals/0023`](../../proposals/0023-review-and-replan.md) §2 (final). Gate P0 must merge before any
 `wirescape-headless` Player build relies on the engine; Player development does not wait for it. Protocol
