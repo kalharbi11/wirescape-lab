@@ -20,6 +20,7 @@ chat sessions** working five long-running lanes (owner, 2026-11-24). "Fixed" ite
 | Trigger | Read first, in order |
 |---|---|
 | `architect:run` | `docs/workflow/ARCHITECT_INBOX.md` → Architect rows of `docs/workflow/CURRENT.md` → its "Next run should" list; protocol in `CLAUDE.md` |
+| `fable: design run 1` / `2` | [Fable design brief](docs/context/fable/README.md) (owner, 2026-11-26: two bounded design runs; rulings final) |
 | `lead:run` | [Lead brief](docs/context/CODEX_LEAD.md) → [BUILDERS](docs/workflow/BUILDERS.md) → [ROADMAP](docs/workflow/ROADMAP.md) → [CURRENT](docs/workflow/CURRENT.md) |
 | `1:run` through `5:run` (builder chats) | your row in [BUILDERS](docs/workflow/BUILDERS.md) → your task issue → [DEV_RUN](docs/workflow/DEV_RUN.md) → the contract row |
 

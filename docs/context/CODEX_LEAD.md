@@ -5,6 +5,15 @@ You are gpt-lead. You deliver the active milestone at its recorded contract revi
 Read: AGENTS.md, this file, [BUILDERS](../workflow/BUILDERS.md), [ROADMAP](../workflow/ROADMAP.md),
 CURRENT, STANDING and the relevant contract. Check live GitHub state for B1–B5.
 
+## Wrap-up mode (owner, 2026-11-26, while the Fable design runs are open)
+
+Close what is open; open nothing. Do not create task issues, release queued tasks or approve new
+draft-aheads. Queue items with no open PR (OB-h2 #601, OB-h6 #604, A67 #494, the OB-h2 Studio Host
+field) hold until Fable run 1 replans. Each run: for every open PR, check the exact-head CI and the
+Result, then merge `merge: lead` work at once (auto-merge where it is allowed). Route required reviews
+to the inbox with pinned SHAs. Close an issue or PR that is superseded or stale, with one line of
+reason. Target: each lane at zero or one open PR. Mode ends when a Fable run's tasks are filed.
+
 ## Entry check and manual handoff
 
 Start with the smallest useful check on every owner interaction, including an ordinary question,

@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 
 /** Electron's five-member bridge, injected before any Studio module runs. */
-export async function mockBridge(page: Page, options: { applyGraph?: boolean } = {}): Promise<void> {
+export async function mockBridge(page: Page, options: { applyGraph?: boolean; configDeferred?: boolean; dropHelloAck?: boolean } = {}): Promise<void> {
   await page.addInitScript((options) => {
     type Message = Record<string, any>;
     const listeners = new Set<(m: Message) => void>();
@@ -19,6 +19,24 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
     let nextUnapplied: { moduleId: number; paramId: string }[] = [];
     let nextReplaced: number[] | undefined;
     const sent: Message[] = [];
+    let deferredEnabled = false;
+    let dropHelloAck = options.dropHelloAck === true;
+    let deferNext: string | undefined;
+    const deferred = new Map<number, { deferId: string; config: any }>();
+    const terminal = (moduleId: number, outcome: 'applied' | 'failed' | 'superseded') => {
+      const entry = deferred.get(moduleId);
+      if (!entry) throw new Error('No pending config for module ' + moduleId);
+      if (outcome === 'applied') {
+        const node = graph.modules.find((m: Message) => m.id === moduleId);
+        if (!node) throw new Error('Missing deferred module');
+        if (entry.config === undefined) delete node.config;
+        else node.config = copy(entry.config);
+        gen++;
+      }
+      deferred.delete(moduleId);
+      emit({ v: 0, type: 'configDeferred', session: session(), deferId: entry.deferId,
+        moduleId, outcome, generation: String(gen) });
+    };
     let learnArmed = false, learnSeq = 0, learnPacket: Message | null = null;
     const session = () => 's' + sessionNo;
     const emit = (m: Message) => { for (const cb of listeners) cb(m); };
@@ -35,7 +53,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
         catalogue = await (await fetch('/wirescape_modules.json')).json();
       }
       emit({ v: 0, type: 'hello', session: session(), protocol: 0,
-        engine: { version: 'test', sha: 'abc1234' }, capabilities: ['midiLearn', 'telemetry.playhead', ...(options.applyGraph ? ['applyGraph'] : [])],
+        engine: { version: 'test', sha: 'abc1234' }, capabilities: ['midiLearn', 'telemetry.playhead', ...(options.applyGraph ? ['applyGraph'] : []), ...(options.configDeferred ? ['configDeferred'] : [])],
         catalogue, audio: audioStatus,
         midi: midiStatus() });
     };
@@ -79,6 +97,11 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
         return;
       }
       switch (cmd.type) {
+        case 'hello':
+          deferredEnabled = options.configDeferred === true &&
+            cmd.capabilities?.includes('configDeferred');
+          if (dropHelloAck) { dropHelloAck = false; break; }
+          reply(cmd, true, {}, s); break;
         case 'loadGraph':
         case 'applyGraph': {
           if (cmd.type === 'applyGraph' && !options.applyGraph) {
@@ -89,7 +112,41 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
             reply(cmd, false, { code: 'unknown-module', message: 'Module not installed' }, s);
             return;
           }
+          if (cmd.type === 'applyGraph' && deferNext !== undefined) {
+            const deferId = deferNext; deferNext = undefined;
+            if (!deferredEnabled) { reply(cmd, false, { code: 'busy', message: 'Scripted busy' }, s); break; }
+            const superseded: Message[] = [];
+            for (const node of cmd.patch.modules as Message[]) {
+              const old = graph.modules.find((m: Message) => m.id === node.id);
+              const pending = deferred.get(node.id);
+              if (old && canonical(node.config) !== canonical(old.config) &&
+                  canonical(node.config) !== canonical(pending ? pending.config : old.config)) {
+                if (pending) superseded.push({ v: 0, type: 'configDeferred', session: session(),
+                  deferId: pending.deferId, moduleId: node.id, outcome: 'superseded', generation: String(gen) });
+                deferred.set(node.id, { deferId, config: node.config === undefined ? undefined : copy(node.config) });
+              }
+            }
+            reply(cmd, false, { code: 'busy', message: 'Scripted deferred', deferred: true, deferId }, s);
+            // Sidecar sends the reply before draining terminal events.
+            for (const event of superseded) emit(event);
+            break;
+          }
+          const original = cmd.patch;
+          const superseded: number[] = [];
+          if (deferred.size) {
+            cmd = { ...cmd, patch: copy(original) };
+            for (const [id, pending] of deferred) {
+              const node = cmd.patch.modules.find((m: Message) => m.id === id);
+              const old = graph.modules.find((m: Message) => m.id === id);
+              if (cmd.type === 'applyGraph' && node && old && node.module === old.module &&
+                  canonical(node.config) === canonical(pending.config)) {
+                if (old.config === undefined) delete node.config;
+                else node.config = copy(old.config);
+              } else superseded.push(id);
+            }
+          }
           reply(cmd, true, commitGraph(cmd), s);
+          for (const id of superseded) terminal(id, 'superseded');
           break;
         }
         case 'addModule':
@@ -163,6 +220,7 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
       emit({ v: 0, type: 'app.engineExited', exitCode: expected ? 0 : null,
         signal: null, expected });
       sessionNo++; gen = 0;
+      deferredEnabled = false; deferred.clear(); deferNext = undefined;
       learnArmed = false; learnPacket = null;
       graph = { modules: [], connections: [] };
       setTimeout(() => void hello(), 250);
@@ -187,6 +245,10 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean } =
       platform: 'linux',
     };
     (window as any).__mockBridge = {
+      deferNextGraph: (id: string) => { deferNext = id; },
+      completeConfig: terminal,
+      pushConfig: (payload: Message) => emit({ v: 0, type: 'configDeferred', session: session(),
+        generation: String(gen), ...payload }),
       sent, getGraph: () => copy(graph), getSession: session, generation: () => String(gen),
       getSaved: () => saved, getSaves: () => copy(saves), openCount: () => opens, restartCount: () => restarts,
       dropNextRestartReply: () => { dropRestartReply = true; },

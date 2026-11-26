@@ -1,8 +1,8 @@
 {
   "SPDX-License-Identifier": "GPL-3.0-only",
   "schema": 1,
-  "commit": "9d04963daf664355c3596d63f2832ed582cf3e3f",
-  "date_et": "2026-11-15",
+  "commit": "0f6149282a9a8032f0403ea73260432e6972ce72",
+  "date_et": "2026-11-25",
   "machine": "cortex-m7",
   "toolchain_version": "arm-none-eabi-g++ (Arm GNU Toolchain 14.2.Rel1 (Build arm-14.52)) 14.2.1 20241119",
   "toolchain_archive_sha256": "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823",
@@ -11,14 +11,14 @@
     "fpv5-d16",
     "fpv5-sp-d16"
   ],
-  "catalog_modules": 34,
+  "catalog_modules": 37,
   "sdk_template_count": 1,
   "modules": {
-    "native/modules2/adsr/module.cpp": {
+    "modules/adsr/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2564,
+        "text_bytes": 5694,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -29,7 +29,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2612,
+        "text_bytes": 5766,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -45,7 +45,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/blend/module.cpp": {
+    "modules/blend/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -85,11 +85,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/chaos_lite/module.cpp": {
+    "modules/chaos_lite/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 6640,
+        "text_bytes": 6972,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -105,7 +105,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 6724,
+        "text_bytes": 7056,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -129,7 +129,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/chord/module.cpp": {
+    "modules/chord/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -158,11 +158,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/clock/module.cpp": {
+    "modules/clock/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3738,
+        "text_bytes": 4348,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -173,7 +173,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4002,
+        "text_bytes": 4674,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -195,11 +195,40 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/delay/module.cpp": {
+    "modules/cv_to_notes/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4270,
+        "text_bytes": 2378,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 2410,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "modules/delay/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 10306,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -209,13 +238,16 @@
           "sin"
         ],
         "float_libm_symbols": [],
-        "heap_symbols": [],
+        "heap_symbols": [
+          "_ZdaPv",
+          "_ZnajRKSt9nothrow_t"
+        ],
         "static_guard_symbols": []
       },
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4746,
+        "text_bytes": 11324,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -224,6 +256,7 @@
           "__aeabi_d2uiz",
           "__aeabi_dadd",
           "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
           "__aeabi_dcmpgt",
           "__aeabi_dcmple",
           "__aeabi_dcmplt",
@@ -239,11 +272,14 @@
           "sin"
         ],
         "float_libm_symbols": [],
-        "heap_symbols": [],
+        "heap_symbols": [
+          "_ZdaPv",
+          "_ZnajRKSt9nothrow_t"
+        ],
         "static_guard_symbols": []
       }
     },
-    "native/modules2/function_envelope/module.cpp": {
+    "modules/function_envelope/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -281,14 +317,16 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/groove/module.cpp": {
+    "modules/groove/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 7900,
+        "text_bytes": 9888,
         "data_bytes": 0,
         "bss_bytes": 0,
-        "double_or_softfloat_symbols": [],
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2lz"
+        ],
         "float_libm_symbols": [],
         "heap_symbols": [],
         "static_guard_symbols": []
@@ -296,10 +334,11 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 7974,
+        "text_bytes": 10074,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
+          "__aeabi_d2lz",
           "__aeabi_dadd",
           "__aeabi_dcmpeq",
           "__aeabi_dcmpge",
@@ -309,18 +348,19 @@
           "__aeabi_ddiv",
           "__aeabi_dmul",
           "__aeabi_dsub",
-          "__aeabi_f2d"
+          "__aeabi_f2d",
+          "floor"
         ],
         "float_libm_symbols": [],
         "heap_symbols": [],
         "static_guard_symbols": []
       }
     },
-    "native/modules2/host_keyboard/module.cpp": {
+    "modules/host_keyboard/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4474,
+        "text_bytes": 9134,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -331,7 +371,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4486,
+        "text_bytes": 9162,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -345,11 +385,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/ladder/module.cpp": {
+    "modules/ladder/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3410,
+        "text_bytes": 3554,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -362,7 +402,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3808,
+        "text_bytes": 4124,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -384,7 +424,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/lfo/module.cpp": {
+    "modules/lfo/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -426,14 +466,18 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/macro_oscillator/module.cpp": {
+    "modules/macro_oscillator/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3822,
+        "text_bytes": 6128,
         "data_bytes": 16,
         "bss_bytes": 0,
-        "double_or_softfloat_symbols": [],
+        "double_or_softfloat_symbols": [
+          "__aeabi_d2ulz",
+          "cos",
+          "sin"
+        ],
         "float_libm_symbols": [],
         "heap_symbols": [],
         "static_guard_symbols": []
@@ -441,21 +485,32 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3838,
+        "text_bytes": 6420,
         "data_bytes": 16,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
+          "__aeabi_d2f",
+          "__aeabi_d2uiz",
+          "__aeabi_d2ulz",
+          "__aeabi_dadd",
           "__aeabi_dcmpeq",
           "__aeabi_dcmpgt",
           "__aeabi_dcmplt",
-          "__aeabi_dcmpun"
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv",
+          "__aeabi_dmul",
+          "__aeabi_dsub",
+          "__aeabi_f2d",
+          "ceil",
+          "cos",
+          "sin"
         ],
         "float_libm_symbols": [],
         "heap_symbols": [],
         "static_guard_symbols": []
       }
     },
-    "native/modules2/midi_cc_to_cv/module.cpp": {
+    "modules/midi_cc_to_cv/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -493,7 +548,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/midi_in/module.cpp": {
+    "modules/midi_in/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -522,11 +577,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/midi_to_cv/module.cpp": {
+    "modules/midi_to_cv/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 7216,
+        "text_bytes": 13098,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -537,7 +592,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 7260,
+        "text_bytes": 13162,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -553,7 +608,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/mixer/module.cpp": {
+    "modules/mixer/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -589,7 +644,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/monitor/module.cpp": {
+    "modules/monitor/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -622,7 +677,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/noise/module.cpp": {
+    "modules/noise/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -658,11 +713,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/notes_to_cv/module.cpp": {
+    "modules/notes_to_cv/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3292,
+        "text_bytes": 5988,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -673,25 +728,26 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3312,
+        "text_bytes": 6008,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
           "__aeabi_dcmpeq",
           "__aeabi_dcmpgt",
           "__aeabi_dcmplt",
-          "__aeabi_dcmpun"
+          "__aeabi_dcmpun",
+          "__aeabi_ddiv"
         ],
         "float_libm_symbols": [],
         "heap_symbols": [],
         "static_guard_symbols": []
       }
     },
-    "native/modules2/osc_in/module.cpp": {
+    "modules/osc_in/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 8852,
+        "text_bytes": 8994,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -705,7 +761,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 9056,
+        "text_bytes": 9192,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -729,7 +785,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/osc_out/module.cpp": {
+    "modules/osc_out/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -758,7 +814,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/output/module.cpp": {
+    "modules/output/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -787,11 +843,69 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/quad_vca/module.cpp": {
+    "modules/poly_merge/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2962,
+        "text_bytes": 1302,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1322,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "modules/poly_split/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1242,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      },
+      "fpv5-sp-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 1298,
+        "data_bytes": 0,
+        "bss_bytes": 0,
+        "double_or_softfloat_symbols": [
+          "__aeabi_dcmpeq",
+          "__aeabi_dcmpgt",
+          "__aeabi_dcmplt",
+          "__aeabi_dcmpun"
+        ],
+        "float_libm_symbols": [],
+        "heap_symbols": [],
+        "static_guard_symbols": []
+      }
+    },
+    "modules/quad_vca/module.cpp": {
+      "fpv5-d16": {
+        "compiles": true,
+        "first_error": null,
+        "text_bytes": 3540,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -806,7 +920,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 3098,
+        "text_bytes": 3696,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -826,7 +940,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/quantizer/module.cpp": {
+    "modules/quantizer/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -867,7 +981,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/resonator/module.cpp": {
+    "modules/resonator/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -907,11 +1021,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/reverb/module.cpp": {
+    "modules/reverb/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 4776,
+        "text_bytes": 6972,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -927,7 +1041,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 5068,
+        "text_bytes": 7356,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -935,6 +1049,7 @@
           "__aeabi_d2uiz",
           "__aeabi_dadd",
           "__aeabi_dcmpeq",
+          "__aeabi_dcmpge",
           "__aeabi_dcmpgt",
           "__aeabi_dcmplt",
           "__aeabi_dcmpun",
@@ -953,7 +1068,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/scale_offset/module.cpp": {
+    "modules/scale_offset/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -989,7 +1104,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/slew/module.cpp": {
+    "modules/slew/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -1025,7 +1140,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/spectral/module.cpp": {
+    "modules/spectral/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -1074,11 +1189,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/vca/module.cpp": {
+    "modules/vca/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2356,
+        "text_bytes": 2442,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [],
@@ -1089,7 +1204,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2384,
+        "text_bytes": 2470,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -1103,11 +1218,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/vcf/module.cpp": {
+    "modules/vcf/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2326,
+        "text_bytes": 2350,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -1120,7 +1235,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2638,
+        "text_bytes": 2678,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -1141,11 +1256,11 @@
         "static_guard_symbols": []
       }
     },
-    "native/modules2/vco/module.cpp": {
+    "modules/vco/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2046,
+        "text_bytes": 2652,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -1159,7 +1274,7 @@
       "fpv5-sp-d16": {
         "compiles": true,
         "first_error": null,
-        "text_bytes": 2210,
+        "text_bytes": 2856,
         "data_bytes": 0,
         "bss_bytes": 0,
         "double_or_softfloat_symbols": [
@@ -1182,7 +1297,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/sdk/examples/random_source/module.cpp": {
+    "sdk/examples/random_source/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -1221,7 +1336,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/sdk/examples/step_sequencer/module.cpp": {
+    "sdk/examples/step_sequencer/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
@@ -1250,7 +1365,7 @@
         "static_guard_symbols": []
       }
     },
-    "native/sdk/template/module.cpp": {
+    "sdk/template/module.cpp": {
       "fpv5-d16": {
         "compiles": true,
         "first_error": null,
