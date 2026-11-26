@@ -8,6 +8,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead run — 2026-11-26 15:18 EST (GPT builder PRs only)
+
+- Owner: focus only on GPT builders and their PRs; no planner work read or changed for this run. Checked all B1–B5 live PR heads, signed Results and CI evidence.
+- #609 Gate Delay merged `0330809eec698d13bb2a823bb7e58ab3cc93bb77`: signed Result at `178c593`, exact Lab 15/15, Golden all three platforms, paired all three jobs and portability green. No §6 exception. #592 already merged. B4 continues MB1 #363; its L1 question is preserved in merged inbox #637 (`feb4759`).
+- B1 #624 auto-merge enabled on signed RS Result; ready-state Lab had Windows/arm64 pending at check. B5 App.ts writer release follows actual #624 merge. B3 #634 facts-only Lab green: final signed Result/ready handoff requested; no heavy reliability pass claimed.
+- B2 #635 green current-head tests do not establish historical red/root cause; #610 remains held. #638 parser draft-ahead needs red execution and a scope ruling. B5 #545 needs explicit capability/legacy boundary; P0a #627 current fixture/status evidence pending.
+- #639/#640 inbox merges conflicted after #637 appended at the same location. This handoff preserves their exact four builder questions (MB1 plus two B2 plus Groove); no product scope decision made. Superseded docs PRs close only when this consolidated inbox merges. Then one architect-ready batch serves builder blockers.
+- Next delivery actions: B1 ready gates/merge; B3 Result then facts merge → #604; B4 authorized MB1 work/ruling; B2 historical/parser ruling → #631/#601; B5 capability ruling and #624 writer release. Owner-only OB1 listening, patch-folder and Pi evidence remain outstanding; acceptance unchanged.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 48 + lead — 2026-11-26 14:20 EST (owner: `architect:run`, act as lead, all reviews and merges)
 - **#540 E3c approved and merged** `f8c994c` ([review](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7201383615)). No High or Medium findings. Low: OSC In compiles route patterns on the render thread when the serial changes (bounded and allocation-free; for the portable tier, move it control-side), invalid-pattern fallback, A95 red-first witness missing, lost-ACK follow-up. Main drift since the tested base was CI/docs only. The shared writer (`App.ts`, `module_catalog.h`) is released to B5 #545, B1 #624 and B4 #609.
 - **#610 OB-h3 holds.** The sole red, `unexpected_gate_edge: 1`, is an extra rise emitted by the sidecar. That is a real egress defect, not a flake. Fix owner B2, **[#631](https://github.com/kalharbi11/wirescape-lab/issues/631)** (Gate P0, red-first on `f8c994c`, ahead of OB-h2 #601). No rerun or waiver.
