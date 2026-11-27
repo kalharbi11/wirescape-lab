@@ -113,3 +113,40 @@ test('SC1 real bridge quick kind sends one graph; label editor keeps metadata of
   expect((await state(page)).modules[0].data.routes.rows[0].label).toBe('Cutoff');
   await expect(page.getByTestId('port-1-output-row1').locator('.port-label')).toHaveText('Cutoff');
 });
+
+test('SC2 row indicators follow native per-row status, timeout, disabled and route errors', async ({ page }) => {
+  await mockBridge(page, { applyGraph: true });
+  await boot(page);
+  const patch: PatchV2 = { ...legacy, modules: [{ id: 1, module: 'osc.in', config: { rows: [
+    { pattern: '/a', label: 'Active', timeout_ms: 100 }, { pattern: '/b', timeout_ms: 100 },
+    { pattern: '/c', enabled: false }, { pattern: '/d', timeout_ms: 0 }
+  ] } }] };
+  await page.evaluate(p => window.__wirescapeTest.load(p), patch);
+  await settle(page);
+  const dot = (n: number) => page.getByTestId(`osc-row-indicator-1-row${n}`);
+  const push = async (routeState: string, rows?: { received: number; ageMs: number | null }[]) => {
+    await page.evaluate(({ routeState, rows }) => (window as any).__mockBridge.oscStatus({
+      enabled: true, port: 9000, bind: '127.0.0.1', lan: false, routes: [{
+        module: '1', port: 9000, bind: '127.0.0.1', state: routeState, received: 4, dropped: 0,
+        ...(rows ? { rows } : {})
+      }] }), { routeState, rows });
+  };
+  const activity = [{ received: 1, ageMs: 100 }, { received: 1, ageMs: 101 },
+    { received: 1, ageMs: 0 }, { received: 1, ageMs: 100000 }];
+  await push('listening'); // older engines omit rows
+  await expect(dot(1)).toHaveAttribute('data-state', 'grey');
+  await push('listening', activity);
+  await expect(dot(1)).toHaveAttribute('data-state', 'green');
+  await expect(dot(2)).toHaveAttribute('data-state', 'amber');
+  await expect(dot(3)).toHaveAttribute('data-state', 'grey');
+  await expect(dot(4)).toHaveAttribute('data-state', 'green');
+  await expect(dot(5)).toHaveAttribute('data-state', 'grey');
+  await expect(dot(1)).toHaveAttribute('aria-label', 'Active: Receiving');
+  await push('port-busy', activity);
+  await expect(dot(1)).toHaveAttribute('data-state', 'red');
+  await push('lan-not-confirmed', activity);
+  await expect(dot(3)).toHaveAttribute('data-state', 'red');
+  await push('listening', Array.from({ length: 8 }, () => ({ received: 0, ageMs: null })));
+  await expect(dot(1)).toHaveAttribute('data-state', 'grey');
+  expect((await state(page)).modules).toEqual(patch.modules);
+});

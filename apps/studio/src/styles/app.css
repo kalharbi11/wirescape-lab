@@ -482,6 +482,11 @@ body.hide-port-labels .port-label { display: none; }
   border-radius: 50%; background: var(--sub); opacity: .35;
 }
 .osc-activity-dot.listening { background: #258154; opacity: .65; }
+.osc-row-indicator { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; }
+.osc-row-indicator[data-state='grey'] { background: #858585; }
+.osc-row-indicator[data-state='red'] { background: #bc4337; }
+.osc-row-indicator[data-state='amber'] { background: #c48524; }
+.osc-row-indicator[data-state='green'] { background: #258154; }
 .osc-edit { font-size: 11px; }
 .modal-backdrop[data-testid="osc-editor"] .modal { width: min(780px, calc(100vw - 24px)); }
 .osc-help { font-size: 12px; line-height: 1.5; color: var(--sub); }
