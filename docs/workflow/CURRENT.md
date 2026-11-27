@@ -6,7 +6,135 @@ delivery order in [ROADMAP](ROADMAP.md), open asks in the [inbox](ARCHITECT_INBO
 **Older entries** (before Architect run 43, 2026-11-25 04:15 ET) were trimmed in run 44. They stay
 valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://github.com/kalharbi11/wirescape-lab/blob/6ede6f8f009793296b4484d4020377bc8600f6de/docs/workflow/CURRENT.md); earlier trims are linked from there.
 
-**Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in run 44 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+**Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
+
+## Lead check — 2026-11-26 20:58 EST (owner: finish started tasks only; planner pending)
+
+- Owner hold supersedes self-release, draft-aheads and later lane queues. Finish existing lab PRs only: B1 #649/#685; B2 #638/#660; B3 #678; B5 #627. B4 has no started product PR, so holds. No new task/claim in lab, test or headless based on a merge. Usage/reset unavailable (unknown).
+- Merged #677 `9813b2837a3d5200652b3ae9cc04cbac17208505`, exact head 74043db, signed Result 7207654013, Lab 45923801448, Golden 45923801583 and paired 45923801381 all success. Test-only sequencing fix retains oracle/load/deadline; causal red and both-arch ASan repeat=3 pinned. B2 shared witness writer released; B5 integrates into existing #627. A105 closure is for Architect to record.
+- Merged #655 `6e6900f4016165f7b2a8a9881b0d6ef1eba94464` under SR18/SR20(c): four bench-only files, scoped exact Lab success and signed Result 7207500280. Lead corrected its earlier unnecessary Golden/paired demand: existing workflow filters exclude bench/mm_f; MM-f names no such gate. No failed gate waived or paths widened. #678 may finish because already started; final Result/ready CI requested, then stop.
+- MM1 #649 e03d95a signed Result, full exact Lab/Web success verified; ready-state Lab pending, auto-merge enabled. #685 still active. #638 awaits integrated witness, #660 its existing predecessor gate, #627 exact integrated qualification/Architect review. No speculative reruns or new tasks.
+- Architect inbox updated for A105 closure after #677 merge; no new design ruling requested. Headless #17 still has its existing H0 correction packet; do not start newer bundles. Test #18 compatibility remains required before a future pin bump, but do not start it under this hold unless it was already started. Planner may revise order. OB1 owner evidence/acceptance unchanged; gates no new work.
+
+Signed: gpt-lead, 2026-11-26
+
+## Lead check — 2026-11-26 19:58 EST
+
+- Reconciled Architect run 52/A106 and all five live lane updates. Usage/reset unavailable (unknown). Prioritized test/headless integration.
+- MB1 #642 merged `fad44d049c7f2777a5e556ec588edf085152fd0f` at exact tested `566a1c2`, signed Result 7206773992; Lab, Golden, M1 paired and Offline all success. A106 does not gate MB1. Notified B4 and test #18; first MB1-containing test pin bump waits MOD-T2c. Fixture #683 merged at the end check; no duplicate B4 work.
+- MB2 #358 waits open control writer #638; preflight only. B1 SC1 #685 started after #674 merged. B3 #655 Lab green but no final Result/exact Golden-paired reported; completion requested, #678 remains behind merge. B5 #677 has causal evidence and raw 1000-switch facts; final-head qualification pending, no premature writer release or A105 closure.
+- Test repo has no open PR; MOD-T2c #18 is the next priority. Headless #17 remains unchanged at a8bee37 with H0 replay failure, correction packet already posted; owner resumes headless session with `headless: run`. Bundle D is independent; E/F wait B/C merge. No blind rerun, product approval or Architect wake.
+- No new ready Architect batch: A106 answered #679 and #674 merged. Next Architect run after #677/#638/#627 is pinned, or a new design stop. Route: MB1 → fixture/compatibility → MB2; Player P0 → P1-e → H-7 → owner facts. OB1 owner listening, real-folder roundtrip, Pi 6a/6b and candidate acceptance remain unchanged and gate no new work.
+
+Signed: gpt-lead, 2026-11-26
+
+## Architect run 52 + lead — 2026-11-26 19:45 EST (owner: `architect:run`; resolve lab agents' asks, act as lead, serve the test-repo Architect)
+- **A106** on [#679](https://github.com/kalharbi11/wirescape-lab/issues/679#issuecomment-7206774997): post-MB1 test pin bump needs MOD-T2c ([test #18](https://github.com/kalharbi11/wirescape-test/issues/18)); MB1 merge not gated. M3 r2.3.
+- **SDK-1 filed** as [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) (B4, after MB1 and MOD-T2c); M3 and BUILDERS link it.
+- **Lead:** #674 reconciled with main (run 50 transcription kept as "run 50b"; newer inbox and BUILDERS from main kept) and merged with this entry. #664 + #665 taken by the Architect as one test-only PR, [#683](https://github.com/kalharbi11/wirescape-lab/pull/683) (auto-merge on exact-head Lab green).
+- **Held:** test-repo T2 for random, macro and clock_divmult needs the owner's go-ahead, not the Architect's. adsr and function_envelope T2 wait for the #664/#665 merge, then the test pin bump. The first post-MB1 pin needs MOD-T2c.
+- **Lanes:** unchanged from the 19:16 lead check; no lane is idle.
+- **Next Architect run:** when #602's fix (#677) or #627 is pinned for review (medium). **Next run should:** (1) review the #602 fix and close A105's exception; (2) review OB-h2 #601 when pinned; (3) check that the #664/#665 PR merged; (4) P0a #627 review; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Lead check — 2026-11-26 19:16 EST
+
+- Checked all five lanes and test/headless live PRs; usage/reset unavailable (unknown). Prioritized cross-repo integration.
+- Merged inbox #680 `2c757aa` after exact docs Lab success 45915203485. Source-verified #679: prepare_tree invokes generator before descriptor build, tracks only UI output, and MB1 requires known-ID plus experimental membership consistency. Architect ruling/compatibility task required before next MB1-containing test pin bump; old pin unaffected.
+- Headless #17 `a8bee37`: H1 success but H0 45914524482 fails control replay after restart at test_scripting.py:331. Posted bounded correction packet; no merge/approval. Independent review remains after correction. Bundle D may proceed; E/F wait B/C merge. Test repo has no open PRs.
+- Lab #674 still conflicts: Architect must reconcile transcription with newer run-51 docs; SC1 waits merged contract. #642 exact Lab/Golden/paired/offline success verified but final Result absent; other product heads remain builder work/evidence. No product merge or test waiver.
+- Next Architect run is useful now for #679 and #674; do not wait for #677/#638/#627 to become review-ready. No automatic wake applied. Next milestone: MB1 → fixture fixes → MB2; Player hardware path P0 → P1-e → H-7 → owner facts. OB1 owner listening, real-folder roundtrip, Pi 6a/6b and Architect candidate acceptance remain unchanged and gate no new work.
+
+Signed: gpt-lead, 2026-11-26
+
+## Architect run 51 + lead — 2026-11-26 18:45 EST (owner: `architect:run`, lab only, act as lead, check what run 50 missed)
+- **Missed in run 50, fixed:**
+  - **#610 merged unqualified** (`e6fad99` at 23:00 ET, head `b59aef6`). That was B5's diagnostic-only head. It had a red mandatory x64 ASan row (`switch 54: gate/note retained after swap`), no Result, and #545 had not merged. **A105** ([#602](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306)): #602 reopened as B5's first task. The test stays in `main` (no revert, no skip). One bounded exception, for that test, x64 ASan, that exact text, until the fix merges or 2026-11-29. Lead: record how #610 came to merge.
+  - **RULINGS** lacked A102–A104; added together with A105.
+  - **0025 was already merged** (#671) when run 50 listed it as pending. The headless session's [#674](https://github.com/kalharbi11/wirescape-lab/pull/674) transcribes it (P1-e #672, SC, OB r2.15, ROADMAP, PRIORITY, facts). It conflicts with run 50's docs, so it was left for that session; checked at the end of this run. This PR lifts the BUILDERS freeze note, which #674 did not edit.
+  - **Lanes:** MB1 #642 waited on A103, which had only been posted on #363. B5 and B2 were still waiting on merges that had already landed.
+- **Lead actions:** #648 OB-h6 merged `1a0efe6` (A102; exact-head Lab and Golden green, signed Result); #604 closed. Inbox PRs #666–#668 closed as superseded. Labels: `needs/architect` removed from #642, #643 and #363; #602 set to B5 `status/todo`.
+- **Lanes refreshed** ([BUILDERS](BUILDERS.md); comments on #649, #638, #655, #642, #627): B1 MM1 → MM2/MM3 → SC1 …; B2 #601 → #620 → P1-e #672; B3 MM-f #644 active; B4 MB1 (A103) → #664+#665 → MB2; B5 #602 fix → P0a #627 → #663.
+- **Next Architect run:** when B5 pins the #602 fix or #601 asks for its contract review (medium). **Next run should:** (1) review the #602 fix and close A105's exception; (2) review OB-h2 #601 when pinned; (3) confirm #674 merged and #672 is in B2's queue; (4) P0a #627 review when pinned; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Architect run 50b — 2026-11-26 18:30 EST (owner: `architect:run`; Planner run 2b transcription and headless setup)
+- **Transcribed 0025 (final):** Gate P1 (e) filed as [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) (B2 after P0b #620, Claude contract review, e2 as second PR); [OB r2.15](milestones/OB.md) Gate P1 table; new contract [SC](milestones/SC.md) r1 (SC1–SC7); MM4 depends on #672; ROADMAP and PRIORITY rows for the Player, P1 (e) and SC; facts H-f1–H-f3 named as unmeasured; planner `02` marked done.
+- **Freeze lifted** for the Player, OSC In features, scripts and the tool host (SC5 stays design-first until headless H-10 exists).
+- **`wirescape-headless`:** Planner PR #1 reviewed and merged `2cad95c`. H-0 CI skeleton written by this run ([headless #16](https://github.com/kalharbi11/wirescape-headless/pull/16)) and waiting for a different session's review. H-1…H-12 and H-G filed as an **unassigned task pool** in bundles A–G (headless #3–#15, `docs/TASKS.md`); any agent starts with `headless: run`. Bundle A (H-1, H-2) is free now.
+- **Lanes:** B2 queue gains P1-e → P1-e2 → SC2; B1 gains SC1 (after OB-h5 #603) → SC4 → SC3 (after H-10). Lead dispatch wins on conflict.
+- **Concurrent session:** another Architect session reviewed #545 at 23:11 ET (Approved 638d8b6, auto-merge on) and holds the other Open rows; this run did not touch them.
+- **Owner settings:** headless branch protection after H-0 merges (required `H0 gate`, `H1 gate`, no approvals); allow auto-merge and squash on headless.
+- **Next Architect run:** after headless H-0 and lab #620 merge (medium). **Next run should:** (1) confirm #672 is dispatched to B2 once #620 merges; (2) check headless bundle A progress and that reviews come from different sessions; (3) review P1-e when pinned; (4) OB1 acceptance once owner evidence exists.
+
+## Architect run 50 — 2026-11-26 18:15 EST (owner: `architect:run`; reviews, merges, test-repo prep)
+- **wirescape-test:** #4 (T2 per 0024 §9.1–§9.3) reviewed as a separate session and merged `1f94fa5`; lab **#652 closed**. Module PRs were updated to the new `main` and reviewed against 0024: MOD-1 #9 merged `ed9fa03`, MOD-3 #11 `93fbd53`, MOD-5 #12 `ad78f91`; MOD-2 #10 merged after its index-row conflict was resolved at `dd9fe39` (T0/T1 green). Filed **MOD-3a** [test #13](https://github.com/kalharbi11/wirescape-test/issues/13) (Medium: a clock-mode reset between edges does not zero the beat and can double-step; Low: a division change alone draws a value; index refresh to lab #664/#665) and **MOD-4** [test #14](https://github.com/kalharbi11/wirescape-test/issues/14) (copies `beat_clock.h` after MOD-3a; files SDK-1).
+- **#545 E3b:** Approved for merge `638d8b6`; branch updated, auto-merge on. Medium follow-up for B5 before MB2: no Groove branch in `session.cpp` (M4 E3b note).
+- **Rulings:** **A102** #648 renderer timing granted; **A103** #363 `ws2_example_` prefix kept and the offline reader stays at 33 IDs; **A104** #620 P0b host wrapper scope granted (narrow).
+- **Limitations routed:** #663 (`feedback_block` default) → B5 after #627; #664 (`dsp_fixture.h` ports=8) and #665 (`port_behavior_tests` count and Gate drive) → B4 after MB1 #642. They unblock T2 for MOD-1 and MOD-2 and the Stage 2 overrides.
+- **MM:** writers send all 8 Macro `labels.rows` (MM I3).
+- **Next Architect run:** after `planner: run 2b` merges (high), or `architect-ready` for a pinned review (medium). **Next run should:** (1) after 2b: verify and transcribe 0025, file headless and lab tasks, lift the freeze; (2) review MOD-3a and MOD-4 if no other session has; file Stage 2 (MOD-6, MOD-7, MOD-8) once Stage 1 has merged; (3) check that #545 auto-merged, and that #610 and #627 integrated it; (4) check #631 against A98; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Lead check — 2026-11-26 17:54 EST (owner: prepare Architect inbox; leave agent tasks to Architect)
+
+- New Planner ruling checked: merged 0024 §9 (#662), lab/test-only amendment; full 2b Player/OSC/scripts/tool-host design remains frozen. Merged Architect transcription #669 `d4fb34f` on scoped exact-head docs Lab success: M3 r2.2, A101 in MM I1, RULINGS, MM/MOD roadmap rows. No new ruling made by lead.
+- Consolidated pending inbox-only requests #666 (OB-h6 renderer timing scope), #667 (E3b contract review), #668 (P0b host wrapper scope) preserving exact questions/pins. #545 head `638d8b62af22b06d12db16b0b66a6430e6d93ffb`: signed Result 7205009649 and exact-head Lab/Golden/paired/PV1/Web success verified; Architect review still required.
+- #642 has green gates but explicitly blocked Result awaiting MB1 naming/offline-reader ruling. #648 green Result awaits renderer scope. #610 latest diagnostic `b59aef6` follows real sanitizer failure `gate/note retained after swap`; not the old #631 extra-rise failure. No product merge, rerun or gate waiver. #638/#649/#627/#655 remain builder work/evidence, not merge-ready.
+- Planner implementation follow-through: test PR #4 implements §9.1–§9.3; #652 closes only after actual merge. Lab limitations #663–#665 filed. Architect should verify separate-session review, route limitations, and refresh agents' tasks at run end as owner requested. BUILDERS was intentionally not edited this run.
+- No architect-ready/review-ready/architect-wake trigger, command, dispatch or automation created. Owner starts Architect manually after inbox merge. Shared usage/reset unavailable (unknown).
+
+Signed: gpt-lead, 2026-11-26
+
+## Lead run — 2026-11-26 17:10 EST (owner: inspect, merge, inbox; no Architect run)
+
+- Checked all five lane heads and newest signed lane Results against run 49. Shared usage/reset unavailable (unknown). Product-independent reviews remain Architect-owned (SR11).
+- Merged #635 `a32947615d02f386a51a68c3ef1e8a798644bd7b` under A98/OB r2.14(1): historical actual-sender red, regression-only diff, signed Result; exact Lab 45893299391, Golden 45893299401 and M1 paired 45893299357 success. Advisory config-edit failures remain recorded failures. #631 closed; #610 released to integrate main and qualify its own head, no rerun/waiver. B2 #601 continues independent parser work; shared switching witness waits #610 merge.
+- Inbox-only #650 `8d82941` and #651 `e6e56d4` merged on docs-scope Lab success (SR13); requests are recorded, not decided. Added #652 MOD-0 T2 catalogue-registration limitation, already needs/architect. No Architect trigger labels, command or run; owner explicitly prohibited a wake.
+- B1 #649 actual MM1 runtime red obtained; partial-ACK error policy waits #651. B4 #642 Lab green, final Result waits #650 plus ready gates. B3 #648 final gates/Result pending; #655 draft-ahead full workload waits native Macro promotion. #523 already merged. B5 #545/#627 fresh fixture corrections pending CI, no review-ready claim.
+- Next: owner may resume B1–B5 with numbered triggers. Architect manual batch: MB1 naming/offline reader, MM1 partial ACK, MOD-0 T2 scratch scope. Planner 2b remains the design route for frozen Player/OSC/scripts/tool-host areas; no run started.
+- Milestones: MB1 → MB2/CAT-1 → M3 acceptance; M4 E3b and acceptance reconciliation remain; final CN #523 is already merged. OB1 owner listening, real-folder OB-a2, Pi 6a/6b and Architect candidate recheck/tag remain owner/Architect-only and gate no new work. Pi postponement unchanged.
+
+Signed: gpt-lead, 2026-11-26
+
+## Architect run 49 — 2026-11-26 15:26 EST (owner: `architect:run`; builder inbox batch and Planner run 2a transcription)
+- **Inbox (one architect-ready batch, four builder rulings):** **A97** MB1 L1 field classes ([#363](https://github.com/kalharbi11/wirescape-lab/issues/363#issuecomment-7202650236), M3 r2.1); **A98** #631 historical witness at `48479fc` and disposition ([#635](https://github.com/kalharbi11/wirescape-lab/pull/635#issuecomment-7202644921), OB r2.14 (1)); **A99** OB-h2 OSC Out parser and staging paths ([#638](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7202646352), OB r2.14 (2)); **A100** live Groove support via catalogue `data_slots`, not a module-named capability ([#545](https://github.com/kalharbi11/wirescape-lab/pull/545#issuecomment-7202648392), M4). Wake labels cleared.
+- **Planner run 2a (0024 §8) transcribed:** new [MM r1](milestones/MM.md); M3 r2.1 (SDK-1, PROMO-n); `wirescape-test` #1 reviewed and merged `19e16c9` (one Low fixed: SPDX on `AGENTS.md`); MOD-0 filed ([wirescape-test #2](https://github.com/kalharbi11/wirescape-test/issues/2)); MM1 [#643](https://github.com/kalharbi11/wirescape-lab/issues/643) released to idle B1; MM-f [#644](https://github.com/kalharbi11/wirescape-lab/issues/644) queued in B3; S8 and 02 errata. 0024 §1 facts checked at source: all hold.
+- **Freeze narrowed:** macros, mapping, the module batch and `wirescape-test` design are open. OSC In features, scripts, the tool host, the Player and `wirescape-headless` design stay frozen until 2b merges. Run 2b prep written into `docs/context/planner/02_PLANNER_RUNS.md`.
+- **Lead:** #610 holds on A98. #635 merges only under A98's red-at-`48479fc` branch. #601 implementation is unblocked by A99, after #631. B5 may take the shared `App.ts` (#624 merged). B4 starts MB1.
+- **End-of-run check (owner request):** no new inbox rows. **#634 OB-h1 facts merged** `8a9a2f3` as lead (signed Result, ready-event Lab green at `edc6d7e`, facts only, `merge: lead`); #600 closed. **#326 reopened**: #618 had closed it automatically, but x64 heavy L0 still fails. It stays parked behind #631; #494 has no trigger (zero enqueue drops in ten reports). **#604 released to B3.** No other PR is ready: #545, #627, #638 and #642 are drafts, and #610 and #635 hold under A98.
+- **Owner:** once MOD-0's workflows exist, turn on branch protection for `wirescape-test` `main` with the T0 and T1 checks and no approvals (0024 §2.5).
+- **Next Architect run:** after `planner: run 2b` merges (high effort), or `architect-ready` for a pinned review (medium). **Next run should:** (1) after 2b: verify 0025, transcribe it, file headless and lab tasks (incl. Gate P1 (e)), lift the freeze; (2) file MOD-1, MOD-2, MOD-3 and MOD-5 in `wirescape-test` once MOD-0 merges; (3) check #631 against A98 (which branch the historical witness took); (4) review #545 against A90 (a)–(c) and A100 when pinned; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Lead run — 2026-11-26 15:18 EST (GPT builder PRs only)
+
+- Owner: focus only on GPT builders and their PRs; no planner work read or changed for this run. Checked all B1–B5 live PR heads, signed Results and CI evidence.
+- #609 Gate Delay merged `0330809eec698d13bb2a823bb7e58ab3cc93bb77`: signed Result at `178c593`, exact Lab 15/15, Golden all three platforms, paired all three jobs and portability green. No §6 exception. #592 already merged. B4 continues MB1 #363; its L1 question is preserved in merged inbox #637 (`feb4759`).
+- B1 #624 auto-merge enabled on signed RS Result; ready-state Lab had Windows/arm64 pending at check. B5 App.ts writer release follows actual #624 merge. B3 #634 facts-only Lab green: final signed Result/ready handoff requested; no heavy reliability pass claimed.
+- B2 #635 green current-head tests do not establish historical red/root cause; #610 remains held. #638 parser draft-ahead needs red execution and a scope ruling. B5 #545 needs explicit capability/legacy boundary; P0a #627 current fixture/status evidence pending.
+- #639/#640 inbox merges conflicted after #637 appended at the same location. This handoff preserves their exact four builder questions (MB1 plus two B2 plus Groove); no product scope decision made. Superseded docs PRs close only when this consolidated inbox merges. Then one architect-ready batch serves builder blockers.
+- Next delivery actions: B1 ready gates/merge; B3 Result then facts merge → #604; B4 authorized MB1 work/ruling; B2 historical/parser ruling → #631/#601; B5 capability ruling and #624 writer release. Owner-only OB1 listening, patch-folder and Pi evidence remain outstanding; acceptance unchanged.
+
+Signed: gpt-lead, 2026-11-26
+
+## Architect run 48 + lead — 2026-11-26 14:20 EST (owner: `architect:run`, act as lead, all reviews and merges)
+- **#540 E3c approved and merged** `f8c994c` ([review](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7201383615)). No High or Medium findings. Low: OSC In compiles route patterns on the render thread when the serial changes (bounded and allocation-free; for the portable tier, move it control-side), invalid-pattern fallback, A95 red-first witness missing, lost-ACK follow-up. Main drift since the tested base was CI/docs only. The shared writer (`App.ts`, `module_catalog.h`) is released to B5 #545, B1 #624 and B4 #609.
+- **#610 OB-h3 holds.** The sole red, `unexpected_gate_edge: 1`, is an extra rise emitted by the sidecar. That is a real egress defect, not a flake. Fix owner B2, **[#631](https://github.com/kalharbi11/wirescape-lab/issues/631)** (Gate P0, red-first on `f8c994c`, ahead of OB-h2 #601). No rerun or waiver.
+- **#592 CMP-1:** Result and exact-head facts-only Lab green; marked ready, auto-merge on (lead merge).
+- Closed docs PRs #629 and #630 (their rows were answered in this run). Labels on #540 and #610 cleared.
+- **Next Architect run:** `architect-ready` when #545 is pinned (medium), or after Planner run 2 (high). **Next run should:** (1) after run 2: verify, transcribe 0024/0025, file tasks, end the freeze; (2) review #545 against A90 (a)–(c); (3) check that #631 has a red-first witness and names its cause; (4) read OB-h1 facts (#600) and confirm the #326/#494/#631 routing; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Architect — 2026-11-26 ET (Planner run 2 brief; owner request)
+- [Planner brief](../context/planner/02_PLANNER_RUNS.md) updated so run 2 redoes no setup. It now lists everything done in run 47, #628 and #540, has a trimmed reading list per session, and records today's state of the new repos.
+- **Run 2 is split** (Architect recommendation): `planner: run 2a` covers `wirescape-test`, macros and mapping, and the module batch (writes 0024). `planner: run 2b` covers the headless Player, OSC and scripts, the tool host, guides and the final order (writes 0025), after 2a merges. Each runs at max effort; `planner: run 2` is the one-session fallback. Triggers updated in `CLAUDE.md` and `AGENTS.md`.
+- After 2a merges, the Architect may file the `wirescape-test` tasks at once. The freeze lifts after 2b.
 
 ## Architect + lead session — 2026-11-26 14:25 EST (owner: builder PRs only; parallel to run 47)
 - **#540:** the strict paired gap was the CPU probe, not the runner. Fixed `65a3eb8`. All exact-head gates are green, and paired is 100/102 on both arches, equal to base. Waiting on B2's Result and packet, then the Architect review.

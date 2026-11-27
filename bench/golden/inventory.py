@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[2]
 
-# The M1 Golden set is frozen at 34 IDs (33 known IDs plus osc.out).
+# The M1 Golden set is frozen at 34 IDs; known IDs include experimental modules.
 # New modules must be reviewed into this explicit tier, never blindly counted.
 def module_sets(root=ROOT):
     """The frozen Golden module IDs and explicit post-M1 experimental additions."""
@@ -29,13 +29,11 @@ EXPERIMENTAL = module_sets(ROOT)[1]
 
 def golden_ids(root=ROOT):
     fixture=root/"tools/foundation/fixtures/known_module_ids.txt"
-    ids={s.strip() for s in fixture.read_text(encoding="utf-8").splitlines()
-         if s.strip() and not s.startswith("#")}
-    if len(ids)!=33 or "osc.out" in ids:
-        raise ValueError("frozen Golden compatibility fixture changed")
-    golden,_=module_sets(root)
-    if golden != ids | {"osc.out"}:
-        raise ValueError("Golden module set changed from frozen 34-ID fixture")
+    ids=[s.strip() for s in fixture.read_text(encoding="utf-8").splitlines()
+         if s.strip() and not s.startswith("#")]
+    golden,experimental=module_sets(root)
+    if len(ids)!=len(set(ids)) or set(ids)!=golden | experimental:
+        raise ValueError("known module ID fixture differs from Golden/experimental membership")
     return golden
 
 def allowed_ids(root=ROOT):

@@ -3,6 +3,7 @@
 #include "runtime_patch.h"
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -70,13 +71,19 @@ static void wav(const std::string &path, const std::vector<float> &samples, uint
 int main(int argc, char **argv) {
     try {
         std::map<std::string, std::string> args;
-        for (int i = 1; i < argc; i += 2) {
-            need(i + 1 < argc, "missing option value");
-            const std::string key(argv[i]);
+        bool timing = false;
+        for (int i = 1; i < argc;) {
+            const std::string key(argv[i++]);
+            if (key == "--timing") {
+                need(!timing, "duplicate option: --timing");
+                timing = true;
+                continue;
+            }
+            need(i < argc, "missing option value");
             const bool io_option = key == "--patch" || key == "--script" || key == "--out";
             const bool run_option = key == "--rate" || key == "--block" || key == "--seconds" || key == "--seed";
             need(io_option || run_option || key == "--late-fixture", "unknown option: " + key);
-            need(args.emplace(key, argv[i + 1]).second, "duplicate option: " + key);
+            need(args.emplace(key, argv[i++]).second, "duplicate option: " + key);
         }
         for (const char *key : {"--patch", "--script", "--out", "--rate", "--block", "--seconds", "--seed"})
             need(args.count(key) != 0, std::string("missing ") + key);
@@ -167,6 +174,11 @@ int main(int argc, char **argv) {
         }
         std::vector<float> interleaved(size_t(frames) * 2);
         std::vector<float> left(block), right(block);
+        // Only the opt-in path allocates timing storage or reads the clock.
+        using Clock = std::chrono::steady_clock;
+        std::vector<double> durations(timing ? size_t((frames + block - 1) / block) : 0);
+        const double period_us = double(block) * 1e6 / double(rate);
+        size_t overruns = 0;
         for (uint64_t start = 0; start < frames; start += block) {
             const auto n = uint32_t(std::min<uint64_t>(block, frames - start));
             float *rows[]{left.data(), right.data()};
@@ -181,8 +193,19 @@ int main(int argc, char **argv) {
                 need(app_engine_enqueue(engine.get(), 1, late, 0, app_engine_generation(engine.get())) == WS2_OK,
                      "late fixture enqueue failed");
             }
-            need(app_engine_render_channels(engine.get(), rows, 2, n) == WS2_OK,
-                 "render failed at frame " + std::to_string(start));
+            if (timing) {
+                const auto before = Clock::now();
+                const auto status = app_engine_render_channels(engine.get(), rows, 2, n);
+                const auto after = Clock::now();
+                const double us = std::chrono::duration<double, std::micro>(after - before).count();
+                durations[size_t(start / block)] = us;
+                // Compare every call against the configured block deadline.
+                if (us > period_us) ++overruns;
+                need(status == WS2_OK, "render failed at frame " + std::to_string(start));
+            } else {
+                need(app_engine_render_channels(engine.get(), rows, 2, n) == WS2_OK,
+                     "render failed at frame " + std::to_string(start));
+            }
             for (uint32_t i = 0; i < n; ++i) {
                 interleaved[size_t(start + i) * 2] = left[i];
                 interleaved[size_t(start + i) * 2 + 1] = right[i];
@@ -196,6 +219,15 @@ int main(int argc, char **argv) {
         counters["ring_full_events"] = meter.ring_full;
         counters["stale_events"] = meter.stale;
         counters["arena_full_events"] = meter.arena_full;
+        if (timing) {
+            std::sort(durations.begin(), durations.end());
+            const auto percentile = [&](double q) {
+                return durations[size_t(std::ceil(q * durations.size())) - 1];
+            };
+            counters["timing"] = {{"p50_us", percentile(0.5)}, {"p99_us", percentile(0.99)},
+                                  {"worst_us", durations.back()}, {"period_us", period_us},
+                                  {"overruns", overruns}, {"blocks", durations.size()}};
+        }
         std::cout << "render_metrics " << counters.dump() << '\n';
         std::cout.flush();
         const bool events_clean = meter.faults == 0 && meter.late == 0 && meter.dropped == 0;

@@ -266,6 +266,12 @@ target_include_directories(wirescape_app_engine PUBLIC control)
 target_link_libraries(wirescape_app_engine PUBLIC wirescape_engine2 wirescape_catalog_dependencies)
 target_link_libraries(wirescape_cli PRIVATE wirescape_app_engine)
 
+# MB1: device-free descriptor inspection; no JSON dependency in the DSP engine.
+add_executable(wire-describe ../tools/mb1/wire_describe.cpp)
+target_link_libraries(wire-describe PRIVATE wirescape_app_engine nlohmann_json::nlohmann_json)
+add_test(NAME abi2_wire_describe_equality COMMAND ${Python3_EXECUTABLE}
+  "${PROJECT_SOURCE_DIR}/../tools/mb1/test_wire_describe.py" --describe $<TARGET_FILE:wire-describe>)
+
 # Device-free, deterministic benchmark shared by all built-in modules.
 add_executable(abi2_module_cpu_probe_output_tests tests/module_cpu_probe_output_tests.cpp)
 target_link_libraries(abi2_module_cpu_probe_output_tests PRIVATE wirescape_engine2)
@@ -360,6 +366,7 @@ add_subdirectory(../modules/quantizer quantizer)
 add_subdirectory(../modules/quad_vca quad_vca)
 add_subdirectory(../modules/notes_to_cv notes_to_cv)
 add_subdirectory(../modules/cv_to_notes cv_to_notes)
+add_subdirectory(../modules/gate_delay gate_delay)
 add_subdirectory(../modules/poly_merge poly_merge)
 add_subdirectory(../modules/poly_split poly_split)
 add_subdirectory(../modules/chord chord)

@@ -24,18 +24,22 @@ as written, but it gates no new work.
 ## In progress and next
 | Stage | Item | State | Next / completion |
 |---|---|---|---|
-| 0 | [M4](milestones/M4.md) gapless live edits | E6, E4a/b, E5v, E5, E7, E7b and E7c merged | Final CN and cost facts [#523](https://github.com/kalharbi11/wirescape-lab/issues/523) (B3), the KNOWN_ISSUES A2 rewrite, then acceptance |
-| 0 | M4 E3a/b/c (OB1.1) | E3a-1 merged; E3b #545 and E3c #540 in flight | Merge under M4; no OB1 hold |
+| 0 | [M4](milestones/M4.md) gapless live edits | E6, E4a/b, E5v, E5, E7, E7b and E7c merged | Final CN #523 and A2 rewrite merged; finish E3b #545 and reconcile acceptance |
+| 0 | M4 E3a/b/c (OB1.1) | E3a-1 and E3c #540 merged; E3b #545 in flight | Merge under M4; no OB1 hold |
 | 0 | [M7](milestones/M7.md) sound work | Batches 1 and 2 merged | OB-d owner listening list, then close |
 | 0 | [OB1](milestones/OB.md) gapless Owner Build | Code prerequisites merged | Owner-only: OB-d, the OB-a2 folder check, Pi 6a/6b. Architect tags `owner-build-1`. Gates nothing new |
-| 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 bootstrap #608; h3 #610 and h4 #609 drafts; h5 merged | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
-| 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | Lead: CI-S1 notes scope, CI-S2 `facts.yml` dispatch-only, CI-S3 `e4b-stress` on ready PRs only |
-| 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | Unparked by 0023 R3.1 | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3. The lab module freeze ends when MB2 merges |
+| 1 | [MM](milestones/MM.md) macros and mapping (0024 §3) | MM r1 contract; A101 rules the MM1 partial ACK | B1: MM1 → MM2 → MM3, MM4 after Gate P1 (e); B3: MM-f facts. MM2's RealEngine path waits for the Macro PROMO |
+| 1 | `wirescape-test` modules MOD-1 to MOD-9 (0024 §2, §4, §9) | MOD-0 merged. T2 §9.1–§9.3 is in test PR #4. MOD-1, 2, 3 and 5 are filed (test #5–#8). MOD-1 is held on lab #665 and MOD-2 on #664 for T2 | MOD-4 after MOD-3 merges; Stage 2 MOD-6–8; Stage 3 MOD-9. PROMO-n per module after MB2 or the §9.6 fallback date (M3 r2.2) |
+| 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 facts #634, h4 #609 and h5 merged; h3 #610 released after #635; h6 #648 awaiting gates | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
+| 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | CI-S1–S3 applied by Architect run 47 |
+| 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | MB1 merged `fad44d0`; #683 fixture fixes merged; A106 test compatibility #18 before pin bump | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3. The lab module freeze ends when MB2 merges |
 | 1 | Player gate P0 (0023 R2.2) | New | (a) render liveness: `stalled` state in status (B5); (b) controller faults degrade, never exit (B2); OB-h1, then #494 if needed |
 | 1 | Studio restart policy (0023 R2.5) | New | Growing delay, never gives up, non-modal banner (B1) |
 | 1 | M3 acceptance | T1.6a–c and TR1e merged | Accept when MB2 merges |
 | 1 | `wirescape-test` | Skeleton | Run 2 rules; harness pinned to the lab; T0/T1 CI; first modules |
-| 1 | `wirescape-headless` | Skeleton | Run 2 design; Player service with supervision (0023 R2.4), fake player, API v0, bundle check |
+| 1 | `wirescape-headless` Player ([0025](../../proposals/0025-player-osc-scripts-tools.md) §2, §6.2) | Design final; README/AGENTS merged; H-0 CI in review; tasks H-1…H-12, H-G filed as an unassigned pool ([TASKS](https://github.com/kalharbi11/wirescape-headless/blob/main/docs/TASKS.md)) | Fake-player track (H-1–H-3, H-6) needs no engine change; real engine H-4 at the first pin; hardware map H-7 needs P1-e. **Player v1** = gates PG1–PG10 (0025 §2.10) + Gate P0 + P1 (e)–(h) merged + facts H-f1, H-f2 |
+| 2 | Gate P1 (e) controller stream, (e2) control OSC port ([OB](milestones/OB.md) r2.15) | Filed [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) | B2 after P0b #620; Claude contract review. Critical path for a Player on hardware: P0 → P1-e → H-7 → H-f1 |
+| 2 | [SC](milestones/SC.md) scripts and OSC features | SC r1 contract; OSC In features unfrozen | SC1 (B1 after OB-h5 #603), SC2 (B2 after P1-e), SC4 at Stage 2; SC3 after headless H-10; SC5 design first; SC6 → SC7 |
 | 2 | Player gate P1 (0023 R2.3) | New | Controller stream with Program Change (after run 2), settings fsync, SIGTERM, callback and OSC allocation coverage |
 | 2 | M3 TR1h, then TR3 | Unparked | Additive v0 `setTransport` and `status.transport`; Studio tempo and play control |
 | 2 | Studio bridge | Run 2 specs | Macro UI, Mappings panel, map mode, lock toggle, bundle export, Player preview; MB3; first promotions |

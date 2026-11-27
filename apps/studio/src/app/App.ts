@@ -217,16 +217,24 @@ export class App {
         this.trackRollback(() => { this.doc.disconnect(c); this.canvas.shake(c.to.module); });
       },
       groove: {
-        config: id => this.doc.modules.get(id)?.config,
+        config: id => this.groovePatternEnabled() ? this.grooves.editorConfig(id) : this.doc.modules.get(id)?.config,
         clockPatched: id => this.doc.connections.some(c => c.to.module === id && c.to.port === 'clock'),
-        setConfig: (id, cfg: GrooveConfig) => { if (!this.documentBusy) this.doc.setModuleConfig(id, cfg); },
+        setConfig: (id, cfg: GrooveConfig, track) => {
+          if (this.documentBusy) return;
+          if (track !== undefined && this.groovePatternEnabled()) this.grooves.noteTrackEdit(id, track);
+          this.doc.setModuleConfig(id, cfg);
+        },
+        liveApply: id => this.groovePatternEnabled() && this.grooves.isDraft(id) && this.grooves.classify(id)?.kind === 'pattern',
         canApply: id => !this.draftVisible && !this.documentBusy && this.engine.canApplyGroove(id),
         isDraft: id => this.grooves.isDraft(id),
-        appliedRaw: id => this.grooves.appliedRaw(id),
+        appliedRaw: id => this.groovePatternEnabled() ? this.grooves.appliedEditorConfig(id) : this.grooves.appliedRaw(id),
         apply: id => this.applyGroove(id),
         revert: id => {
           if (this.documentBusy) return;
-          this.doc.setModuleConfig(id, this.grooves.appliedRaw(id));
+          if (this.groovePatternEnabled()) {
+            const fields = this.grooves.revertFields(id);
+            if (fields) this.doc.setIoFields(id, fields.config, fields.data);
+          } else this.doc.setModuleConfig(id, this.grooves.appliedRaw(id));
         },
         command: (id, param) => this.grooveCommand(id, param),
         undo: () => this.undo(), redo: () => this.redo(),
@@ -448,7 +456,10 @@ export class App {
       this.engine.onGraphError(e => this.toasts.show(e.message, 'error'));
       this.engine.onCatalogue(() => { this.library.refresh(); this.canvas.rebuild(); this.fillStarters(); });
       window.wirescape?.onMessage(m => {
-        if (m.type === 'app.engineExited' && m.expected !== true) this.offerRecovery('engine');
+        // RS: the desktop supervisor owns engine-crash recovery; app-startup recovery is unchanged.
+        if (m.type === 'app.engineExited' && m.expected !== true &&
+            !(window as Window & { wirescapeRestartPolicy?: unknown }).wirescapeRestartPolicy)
+          this.offerRecovery('engine');
         if (m.type === 'app.menuOpenPatch') void this.openPatchFile();
         if (m.type === 'app.menuSavePatch') void this.savePatchFile(m.saveAs === true);
       });
@@ -610,6 +621,10 @@ export class App {
    * module or a newer authored value. Keep the chain's rollback anchor valid
    * even when a terminal arrives while a second snapshot is in flight. */
   private reconcileDeferredConfig(event: DeferredCompletion): void {
+    if (event.overlay && event.module === 'sequencing.groove') {
+      const result = this.grooves.finishConstruction(event.moduleId, event.desired, event.outcome);
+      if (result) event = { ...event, desired: result.desired.config, actual: result.actual.config };
+    }
     if (!event.overlay || event.outcome === 'applied') return;
     const normalize = (patch: PatchV2): PatchV2 | undefined => {
       const next = structuredClone(patch);
@@ -1264,10 +1279,17 @@ export class App {
    * through the existing whole-graph load. The new graph starts stopped; a
    * refusal keeps the draft and never starts anything.
    */
+  private groovePatternEnabled(): boolean {
+    return this.engine instanceof RealEngine && this.engine.supportsGroovePattern();
+  }
+
   private async applyGroove(id: number): Promise<boolean> {
     if (this.documentBusy || this.draftVisible || !this.engine.canApplyGroove(id)) return false;
     // Q16: a groove graph replan must not anchor ahead of an unconfirmed edit.
-    if (!await this.waitBeforeGraphAuthoring() || this.documentBusy || this.draftVisible) return false;
+    if (!await this.waitBeforeGraphAuthoring() || this.documentBusy || this.draftVisible ||
+        !this.engine.canApplyGroove(id)) return false;
+    if (this.engine instanceof RealEngine && this.engine.supportsGroovePattern())
+      return this.applyLiveGroove(id, this.engine);
     const unstage = this.grooves.stage(id);
     try {
       const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
@@ -1279,6 +1301,60 @@ export class App {
       unstage();
       this.toasts.show(`Pattern not applied, the draft is kept: ${e instanceof Error ? e.message : 'refused'}`, 'error');
       return false;
+    }
+  }
+
+  /** A100: only descriptor-advertised pattern slots use the live path. */
+  private async applyLiveGroove(id: number, engine: RealEngine): Promise<boolean> {
+    const edit = this.grooves.classify(id), epoch = this.viewEpoch;
+    if (!edit) {
+      this.toasts.show('Invalid Groove draft; no pattern or construction was applied.', 'error');
+      return false;
+    }
+    this.beginDocumentOperation();
+    try {
+      if (edit.kind === 'pattern') {
+        const pending = engine.hasPendingConfig(id);
+        await engine.setData(id, 'pattern', edit.pattern, {
+          value: edit.saved.data.pattern as Record<string, unknown>,
+          replaceConfig: !pending, config: edit.saved.config,
+        });
+        if (epoch !== this.viewEpoch) return false;
+        this.grooves.acceptPattern(id, edit.saved);
+        this.doc.setIoFields(id, edit.saved.config, edit.saved.data);
+        this.history.flush();
+        this.toasts.show('Groove pattern applied live; construction and transport retained.');
+        return true;
+      }
+      if (!engine.hasApplyGraph()) throw new Error('Groove construction requires applyGraph.');
+      const fields = this.grooves.constructionFields(id);
+      if (!fields) throw new Error('Invalid Groove construction.');
+      const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+        restoreHistory: this.history.checkpoint() };
+      this.history.flush();
+      const unstage = this.grooves.stageFields(id, fields);
+      try {
+        this.doc.setIoFields(id, fields.config, fields.data);
+        await this.applyAuthoredGraph(before, this.doc.toJSON());
+        if (epoch !== this.viewEpoch) return false;
+        if (engine.hasPendingConfig(id)) {
+          unstage();
+          this.grooves.queueConstruction(id, fields);
+          this.toasts.show(`Groove construction (${edit.reason}) queued until the previous transition finishes.`);
+        } else this.toasts.show(`Groove construction (${edit.reason}) applied through graph replacement.`);
+        this.history.flush();
+        return true;
+      } catch (e) {
+        unstage();
+        throw e;
+      }
+    } catch (e) {
+      if (epoch === this.viewEpoch)
+        this.toasts.show(`Groove draft not applied: ${e instanceof Error ? e.message : 'refused'}`, 'error');
+      return false;
+    } finally {
+      this.endDocumentOperation();
+      this.grooves.changed();
     }
   }
 

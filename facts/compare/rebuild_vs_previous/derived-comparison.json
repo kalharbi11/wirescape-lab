@@ -1,0 +1,2898 @@
+{
+  "kind": "derived/transcribed comparison; not raw runner JSON",
+  "before": "660556fbfb6ef30f828c68e9a05afa38ce0ee957",
+  "after": "73f411dd1010675967230ed535ad163d35ebaf24",
+  "run": "https://github.com/kalharbi11/wirescape-lab/actions/runs/45791608325",
+  "architectures": [
+    {
+      "machine": "linux-x64",
+      "cpu": "Intel(R) Xeon(R) 6975P-C",
+      "date_et": "2026-11-26T04:26:12.036910-05:00",
+      "artifact": 15106255348,
+      "zip_sha256": "621d8e5e141430da15b6459a1d673f99a7466776c5f9f06669a37b0e08e5ac6f",
+      "engine": {
+        "mean_ns": {
+          "before": 66400.299,
+          "after": 66205.29,
+          "delta": -195.00900000000547,
+          "ratio": 0.9970631306946373
+        },
+        "p99_ns": {
+          "before": 76694,
+          "after": 75376,
+          "delta": -1318,
+          "ratio": 0.9828148225415286
+        }
+      },
+      "modules": [
+        {
+          "id": "essentials.adsr",
+          "channels": 1,
+          "p99": {
+            "before": 1129,
+            "after": 1230,
+            "delta": 101,
+            "ratio": 1.0894596988485385
+          },
+          "worst": {
+            "before": 12823,
+            "after": 13423,
+            "delta": 600,
+            "ratio": 1.0467909225610232
+          }
+        },
+        {
+          "id": "essentials.adsr",
+          "channels": 8,
+          "p99": {
+            "before": 13168,
+            "after": 12099,
+            "delta": -1069,
+            "ratio": 0.918818347509113
+          },
+          "worst": {
+            "before": 46077,
+            "after": 27054,
+            "delta": -19023,
+            "ratio": 0.5871476007552575
+          }
+        },
+        {
+          "id": "essentials.chaos_lite",
+          "channels": 1,
+          "p99": {
+            "before": 41752,
+            "after": 44936,
+            "delta": 3184,
+            "ratio": 1.0762598198888675
+          },
+          "worst": {
+            "before": 50875,
+            "after": 58103,
+            "delta": 7228,
+            "ratio": 1.1420737100737102
+          }
+        },
+        {
+          "id": "essentials.chaos_lite",
+          "channels": 8,
+          "p99": {
+            "before": 268318,
+            "after": 292444,
+            "delta": 24126,
+            "ratio": 1.0899156970460424
+          },
+          "worst": {
+            "before": 297584,
+            "after": 319922,
+            "delta": 22338,
+            "ratio": 1.075064519597828
+          }
+        },
+        {
+          "id": "essentials.chord",
+          "channels": 1,
+          "p99": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          },
+          "worst": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          }
+        },
+        {
+          "id": "essentials.chord",
+          "channels": 8,
+          "p99": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          },
+          "worst": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          }
+        },
+        {
+          "id": "essentials.clock",
+          "channels": 1,
+          "p99": {
+            "before": 2576,
+            "after": 2179,
+            "delta": -397,
+            "ratio": 0.8458850931677019
+          },
+          "worst": {
+            "before": 33583,
+            "after": 8783,
+            "delta": -24800,
+            "ratio": 0.26153113182264837
+          }
+        },
+        {
+          "id": "essentials.clock",
+          "channels": 8,
+          "p99": {
+            "before": 24379,
+            "after": 25840,
+            "delta": 1461,
+            "ratio": 1.0599286270970918
+          },
+          "worst": {
+            "before": 46641,
+            "after": 53966,
+            "delta": 7325,
+            "ratio": 1.1570506635792543
+          }
+        },
+        {
+          "id": "essentials.function_envelope",
+          "channels": 1,
+          "p99": {
+            "before": 1995,
+            "after": 2055,
+            "delta": 60,
+            "ratio": 1.0300751879699248
+          },
+          "worst": {
+            "before": 14976,
+            "after": 5828,
+            "delta": -9148,
+            "ratio": 0.3891559829059829
+          }
+        },
+        {
+          "id": "essentials.function_envelope",
+          "channels": 8,
+          "p99": {
+            "before": 17918,
+            "after": 22010,
+            "delta": 4092,
+            "ratio": 1.2283737024221453
+          },
+          "worst": {
+            "before": 35789,
+            "after": 38217,
+            "delta": 2428,
+            "ratio": 1.0678420743803962
+          }
+        },
+        {
+          "id": "essentials.ladder",
+          "channels": 1,
+          "p99": {
+            "before": 8374,
+            "after": 6980,
+            "delta": -1394,
+            "ratio": 0.8335323620730833
+          },
+          "worst": {
+            "before": 20877,
+            "after": 41951,
+            "delta": 21074,
+            "ratio": 2.00943622167936
+          }
+        },
+        {
+          "id": "essentials.ladder",
+          "channels": 8,
+          "p99": {
+            "before": 51567,
+            "after": 62881,
+            "delta": 11314,
+            "ratio": 1.2194038823278452
+          },
+          "worst": {
+            "before": 66285,
+            "after": 67049,
+            "delta": 764,
+            "ratio": 1.0115259862714039
+          }
+        },
+        {
+          "id": "essentials.lfo",
+          "channels": 1,
+          "p99": {
+            "before": 5258,
+            "after": 4730,
+            "delta": -528,
+            "ratio": 0.899581589958159
+          },
+          "worst": {
+            "before": 19705,
+            "after": 28160,
+            "delta": 8455,
+            "ratio": 1.429078913981223
+          }
+        },
+        {
+          "id": "essentials.lfo",
+          "channels": 8,
+          "p99": {
+            "before": 40022,
+            "after": 39314,
+            "delta": -708,
+            "ratio": 0.9823097296486932
+          },
+          "worst": {
+            "before": 54534,
+            "after": 683737,
+            "delta": 629203,
+            "ratio": 12.537811273700811
+          }
+        },
+        {
+          "id": "essentials.mixer",
+          "channels": 1,
+          "p99": {
+            "before": 1986,
+            "after": 1627,
+            "delta": -359,
+            "ratio": 0.8192346424974823
+          },
+          "worst": {
+            "before": 17379,
+            "after": 14819,
+            "delta": -2560,
+            "ratio": 0.8526957822659532
+          }
+        },
+        {
+          "id": "essentials.mixer",
+          "channels": 8,
+          "p99": {
+            "before": 19854,
+            "after": 16688,
+            "delta": -3166,
+            "ratio": 0.8405359121587589
+          },
+          "worst": {
+            "before": 32184,
+            "after": 21713,
+            "delta": -10471,
+            "ratio": 0.6746520009942829
+          }
+        },
+        {
+          "id": "essentials.noise",
+          "channels": 1,
+          "p99": {
+            "before": 817,
+            "after": 775,
+            "delta": -42,
+            "ratio": 0.9485924112607099
+          },
+          "worst": {
+            "before": 7674,
+            "after": 17505,
+            "delta": 9831,
+            "ratio": 2.281078967943706
+          }
+        },
+        {
+          "id": "essentials.noise",
+          "channels": 8,
+          "p99": {
+            "before": 6977,
+            "after": 6849,
+            "delta": -128,
+            "ratio": 0.9816540060197793
+          },
+          "worst": {
+            "before": 19373,
+            "after": 27164,
+            "delta": 7791,
+            "ratio": 1.4021576420791824
+          }
+        },
+        {
+          "id": "essentials.notes_to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 3049,
+            "after": 2614,
+            "delta": -435,
+            "ratio": 0.8573302722204001
+          },
+          "worst": {
+            "before": 11231,
+            "after": 18129,
+            "delta": 6898,
+            "ratio": 1.6141928590508414
+          }
+        },
+        {
+          "id": "essentials.notes_to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 4010,
+            "after": 3650,
+            "delta": -360,
+            "ratio": 0.9102244389027432
+          },
+          "worst": {
+            "before": 30240,
+            "after": 14605,
+            "delta": -15635,
+            "ratio": 0.48296957671957674
+          }
+        },
+        {
+          "id": "essentials.output",
+          "channels": 1,
+          "p99": {
+            "before": 488,
+            "after": 558,
+            "delta": 70,
+            "ratio": 1.1434426229508197
+          },
+          "worst": {
+            "before": 2732,
+            "after": 5603,
+            "delta": 2871,
+            "ratio": 2.050878477306003
+          }
+        },
+        {
+          "id": "essentials.output",
+          "channels": 8,
+          "p99": {
+            "before": 3477,
+            "after": 4207,
+            "delta": 730,
+            "ratio": 1.2099511072763878
+          },
+          "worst": {
+            "before": 18105,
+            "after": 30349,
+            "delta": 12244,
+            "ratio": 1.6762772714719691
+          }
+        },
+        {
+          "id": "essentials.quad_vca",
+          "channels": 1,
+          "p99": {
+            "before": 4149,
+            "after": 4582,
+            "delta": 433,
+            "ratio": 1.1043624969872259
+          },
+          "worst": {
+            "before": 12515,
+            "after": 25948,
+            "delta": 13433,
+            "ratio": 2.0733519776268476
+          }
+        },
+        {
+          "id": "essentials.quad_vca",
+          "channels": 8,
+          "p99": {
+            "before": 39378,
+            "after": 35805,
+            "delta": -3573,
+            "ratio": 0.9092640560719183
+          },
+          "worst": {
+            "before": 56663,
+            "after": 44555,
+            "delta": -12108,
+            "ratio": 0.7863155851260963
+          }
+        },
+        {
+          "id": "essentials.quantizer",
+          "channels": 1,
+          "p99": {
+            "before": 1405,
+            "after": 1143,
+            "delta": -262,
+            "ratio": 0.8135231316725978
+          },
+          "worst": {
+            "before": 9643,
+            "after": 9952,
+            "delta": 309,
+            "ratio": 1.0320439697189672
+          }
+        },
+        {
+          "id": "essentials.quantizer",
+          "channels": 8,
+          "p99": {
+            "before": 9091,
+            "after": 14506,
+            "delta": 5415,
+            "ratio": 1.5956440435595645
+          },
+          "worst": {
+            "before": 21079,
+            "after": 39842,
+            "delta": 18763,
+            "ratio": 1.8901276151620097
+          }
+        },
+        {
+          "id": "essentials.resonator",
+          "channels": 1,
+          "p99": {
+            "before": 22160,
+            "after": 22447,
+            "delta": 287,
+            "ratio": 1.012951263537906
+          },
+          "worst": {
+            "before": 30588,
+            "after": 26888,
+            "delta": -3700,
+            "ratio": 0.8790375310579313
+          }
+        },
+        {
+          "id": "essentials.resonator",
+          "channels": 8,
+          "p99": {
+            "before": 122999,
+            "after": 122504,
+            "delta": -495,
+            "ratio": 0.9959755770372117
+          },
+          "worst": {
+            "before": 144319,
+            "after": 136522,
+            "delta": -7797,
+            "ratio": 0.9459738495970732
+          }
+        },
+        {
+          "id": "essentials.scale_offset",
+          "channels": 1,
+          "p99": {
+            "before": 1242,
+            "after": 1802,
+            "delta": 560,
+            "ratio": 1.4508856682769726
+          },
+          "worst": {
+            "before": 15683,
+            "after": 8199,
+            "delta": -7484,
+            "ratio": 0.5227953835363132
+          }
+        },
+        {
+          "id": "essentials.scale_offset",
+          "channels": 8,
+          "p99": {
+            "before": 13744,
+            "after": 17076,
+            "delta": 3332,
+            "ratio": 1.2424330616996508
+          },
+          "worst": {
+            "before": 28933,
+            "after": 22024,
+            "delta": -6909,
+            "ratio": 0.7612069263470778
+          }
+        },
+        {
+          "id": "essentials.slew",
+          "channels": 1,
+          "p99": {
+            "before": 1781,
+            "after": 2589,
+            "delta": 808,
+            "ratio": 1.4536777091521618
+          },
+          "worst": {
+            "before": 12799,
+            "after": 20292,
+            "delta": 7493,
+            "ratio": 1.585436362215798
+          }
+        },
+        {
+          "id": "essentials.slew",
+          "channels": 8,
+          "p99": {
+            "before": 17552,
+            "after": 18879,
+            "delta": 1327,
+            "ratio": 1.0756039197812215
+          },
+          "worst": {
+            "before": 25500,
+            "after": 25749,
+            "delta": 249,
+            "ratio": 1.009764705882353
+          }
+        },
+        {
+          "id": "essentials.vca",
+          "channels": 1,
+          "p99": {
+            "before": 200,
+            "after": 186,
+            "delta": -14,
+            "ratio": 0.93
+          },
+          "worst": {
+            "before": 3943,
+            "after": 3867,
+            "delta": -76,
+            "ratio": 0.9807253360385493
+          }
+        },
+        {
+          "id": "essentials.vca",
+          "channels": 8,
+          "p99": {
+            "before": 969,
+            "after": 1073,
+            "delta": 104,
+            "ratio": 1.107327141382869
+          },
+          "worst": {
+            "before": 4866,
+            "after": 24561,
+            "delta": 19695,
+            "ratio": 5.0474722564734895
+          }
+        },
+        {
+          "id": "essentials.vcf",
+          "channels": 1,
+          "p99": {
+            "before": 9781,
+            "after": 5473,
+            "delta": -4308,
+            "ratio": 0.5595542378079951
+          },
+          "worst": {
+            "before": 18898,
+            "after": 16689,
+            "delta": -2209,
+            "ratio": 0.8831093237379617
+          }
+        },
+        {
+          "id": "essentials.vcf",
+          "channels": 8,
+          "p99": {
+            "before": 50038,
+            "after": 51314,
+            "delta": 1276,
+            "ratio": 1.0255006195291578
+          },
+          "worst": {
+            "before": 65135,
+            "after": 61094,
+            "delta": -4041,
+            "ratio": 0.9379596223228679
+          }
+        },
+        {
+          "id": "essentials.vco",
+          "channels": 1,
+          "p99": {
+            "before": 10991,
+            "after": 11062,
+            "delta": 71,
+            "ratio": 1.0064598307706305
+          },
+          "worst": {
+            "before": 27128,
+            "after": 18947,
+            "delta": -8181,
+            "ratio": 0.6984296667649661
+          }
+        },
+        {
+          "id": "essentials.vco",
+          "channels": 8,
+          "p99": {
+            "before": 63356,
+            "after": 61993,
+            "delta": -1363,
+            "ratio": 0.978486646884273
+          },
+          "worst": {
+            "before": 73679,
+            "after": 76014,
+            "delta": 2335,
+            "ratio": 1.0316915267579636
+          }
+        },
+        {
+          "id": "example.random_source",
+          "channels": 1,
+          "p99": {
+            "before": 1891,
+            "after": 1898,
+            "delta": 7,
+            "ratio": 1.0037017451084083
+          },
+          "worst": {
+            "before": 13144,
+            "after": 12495,
+            "delta": -649,
+            "ratio": 0.9506238587948874
+          }
+        },
+        {
+          "id": "example.random_source",
+          "channels": 8,
+          "p99": {
+            "before": 1893,
+            "after": 1883,
+            "delta": -10,
+            "ratio": 0.9947173798203909
+          },
+          "worst": {
+            "before": 12447,
+            "after": 12136,
+            "delta": -311,
+            "ratio": 0.9750140596127581
+          }
+        },
+        {
+          "id": "example.step_sequencer",
+          "channels": 1,
+          "p99": {
+            "before": 1717,
+            "after": 1755,
+            "delta": 38,
+            "ratio": 1.0221316249271986
+          },
+          "worst": {
+            "before": 6530,
+            "after": 8713,
+            "delta": 2183,
+            "ratio": 1.3343032159264931
+          }
+        },
+        {
+          "id": "example.step_sequencer",
+          "channels": 8,
+          "p99": {
+            "before": 2170,
+            "after": 2180,
+            "delta": 10,
+            "ratio": 1.0046082949308757
+          },
+          "worst": {
+            "before": 16243,
+            "after": 18862,
+            "delta": 2619,
+            "ratio": 1.1612386874345872
+          }
+        },
+        {
+          "id": "fx.delay",
+          "channels": 1,
+          "p99": {
+            "before": 5194,
+            "after": 4258,
+            "delta": -936,
+            "ratio": 0.8197920677705044
+          },
+          "worst": {
+            "before": 19650,
+            "after": 29526,
+            "delta": 9876,
+            "ratio": 1.5025954198473281
+          }
+        },
+        {
+          "id": "fx.delay",
+          "channels": 8,
+          "p99": {
+            "before": 4324,
+            "after": 5894,
+            "delta": 1570,
+            "ratio": 1.3630897317298798
+          },
+          "worst": {
+            "before": 16356,
+            "after": 24141,
+            "delta": 7785,
+            "ratio": 1.4759721203228173
+          }
+        },
+        {
+          "id": "fx.reverb",
+          "channels": 1,
+          "p99": {
+            "before": 34680,
+            "after": 34915,
+            "delta": 235,
+            "ratio": 1.0067762399077278
+          },
+          "worst": {
+            "before": 54581,
+            "after": 50073,
+            "delta": -4508,
+            "ratio": 0.9174071563364541
+          }
+        },
+        {
+          "id": "fx.reverb",
+          "channels": 8,
+          "p99": {
+            "before": 34663,
+            "after": 32547,
+            "delta": -2116,
+            "ratio": 0.9389550817874968
+          },
+          "worst": {
+            "before": 49747,
+            "after": 49201,
+            "delta": -546,
+            "ratio": 0.989024463786761
+          }
+        },
+        {
+          "id": "host.keyboard",
+          "channels": 1,
+          "p99": {
+            "before": 15337,
+            "after": 11145,
+            "delta": -4192,
+            "ratio": 0.7266740562039512
+          },
+          "worst": {
+            "before": 19216,
+            "after": 16593,
+            "delta": -2623,
+            "ratio": 0.8634991673605329
+          }
+        },
+        {
+          "id": "host.keyboard",
+          "channels": 8,
+          "p99": {
+            "before": 10960,
+            "after": 9331,
+            "delta": -1629,
+            "ratio": 0.8513686131386862
+          },
+          "worst": {
+            "before": 19461,
+            "after": 17355,
+            "delta": -2106,
+            "ratio": 0.8917835671342685
+          }
+        },
+        {
+          "id": "midi.cc_to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 19767,
+            "after": 20654,
+            "delta": 887,
+            "ratio": 1.0448727677442202
+          },
+          "worst": {
+            "before": 31744,
+            "after": 37266,
+            "delta": 5522,
+            "ratio": 1.1739541330645162
+          }
+        },
+        {
+          "id": "midi.cc_to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 19556,
+            "after": 19664,
+            "delta": 108,
+            "ratio": 1.0055226017590508
+          },
+          "worst": {
+            "before": 29140,
+            "after": 36896,
+            "delta": 7756,
+            "ratio": 1.2661633493479754
+          }
+        },
+        {
+          "id": "midi.in",
+          "channels": 1,
+          "p99": {
+            "before": 75,
+            "after": 90,
+            "delta": 15,
+            "ratio": 1.2
+          },
+          "worst": {
+            "before": 4008,
+            "after": 16201,
+            "delta": 12193,
+            "ratio": 4.042165668662674
+          }
+        },
+        {
+          "id": "midi.in",
+          "channels": 8,
+          "p99": {
+            "before": 69,
+            "after": 79,
+            "delta": 10,
+            "ratio": 1.144927536231884
+          },
+          "worst": {
+            "before": 5123,
+            "after": 3310,
+            "delta": -1813,
+            "ratio": 0.6461057973843451
+          }
+        },
+        {
+          "id": "midi.to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 9917,
+            "after": 4402,
+            "delta": -5515,
+            "ratio": 0.44388423918523745
+          },
+          "worst": {
+            "before": 18946,
+            "after": 14320,
+            "delta": -4626,
+            "ratio": 0.755832365670854
+          }
+        },
+        {
+          "id": "midi.to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 7553,
+            "after": 5624,
+            "delta": -1929,
+            "ratio": 0.7446047927975639
+          },
+          "worst": {
+            "before": 18126,
+            "after": 14687,
+            "delta": -3439,
+            "ratio": 0.810272536687631
+          }
+        },
+        {
+          "id": "monitor",
+          "channels": 1,
+          "p99": {
+            "before": 206,
+            "after": 212,
+            "delta": 6,
+            "ratio": 1.029126213592233
+          },
+          "worst": {
+            "before": 3437,
+            "after": 4089,
+            "delta": 652,
+            "ratio": 1.1897003200465521
+          }
+        },
+        {
+          "id": "monitor",
+          "channels": 8,
+          "p99": {
+            "before": 204,
+            "after": 198,
+            "delta": -6,
+            "ratio": 0.9705882352941176
+          },
+          "worst": {
+            "before": 1127,
+            "after": 892,
+            "delta": -235,
+            "ratio": 0.7914818101153505
+          }
+        },
+        {
+          "id": "osc.in",
+          "channels": 1,
+          "p99": {
+            "before": 22703,
+            "after": 22525,
+            "delta": -178,
+            "ratio": 0.9921596264810818
+          },
+          "worst": {
+            "before": 40611,
+            "after": 46989,
+            "delta": 6378,
+            "ratio": 1.1570510452832976
+          }
+        },
+        {
+          "id": "osc.in",
+          "channels": 8,
+          "p99": {
+            "before": 21773,
+            "after": 22273,
+            "delta": 500,
+            "ratio": 1.0229642217425252
+          },
+          "worst": {
+            "before": 25993,
+            "after": 50054,
+            "delta": 24061,
+            "ratio": 1.925672296387489
+          }
+        },
+        {
+          "id": "osc.out",
+          "channels": 1,
+          "p99": {
+            "before": 197,
+            "after": 151,
+            "delta": -46,
+            "ratio": 0.766497461928934
+          },
+          "worst": {
+            "before": 706,
+            "after": 800,
+            "delta": 94,
+            "ratio": 1.13314447592068
+          }
+        },
+        {
+          "id": "osc.out",
+          "channels": 8,
+          "p99": {
+            "before": 204,
+            "after": 153,
+            "delta": -51,
+            "ratio": 0.75
+          },
+          "worst": {
+            "before": 585,
+            "after": 551,
+            "delta": -34,
+            "ratio": 0.9418803418803419
+          }
+        },
+        {
+          "id": "ports.macro_oscillator",
+          "channels": 1,
+          "p99": {
+            "before": 23815,
+            "after": 23756,
+            "delta": -59,
+            "ratio": 0.9975225698089439
+          },
+          "worst": {
+            "before": 31014,
+            "after": 28861,
+            "delta": -2153,
+            "ratio": 0.9305797381827562
+          }
+        },
+        {
+          "id": "ports.macro_oscillator",
+          "channels": 8,
+          "p99": {
+            "before": 161684,
+            "after": 160624,
+            "delta": -1060,
+            "ratio": 0.9934440018802108
+          },
+          "worst": {
+            "before": 176171,
+            "after": 179226,
+            "delta": 3055,
+            "ratio": 1.0173411060844293
+          }
+        },
+        {
+          "id": "sequencing.groove",
+          "channels": 1,
+          "p99": {
+            "before": 18147,
+            "after": 18375,
+            "delta": 228,
+            "ratio": 1.0125640601752355
+          },
+          "worst": {
+            "before": 26500,
+            "after": 28274,
+            "delta": 1774,
+            "ratio": 1.066943396226415
+          }
+        },
+        {
+          "id": "sequencing.groove",
+          "channels": 8,
+          "p99": {
+            "before": 16978,
+            "after": 17102,
+            "delta": 124,
+            "ratio": 1.0073035693250088
+          },
+          "worst": {
+            "before": 33105,
+            "after": 23911,
+            "delta": -9194,
+            "ratio": 0.7222776015707597
+          }
+        },
+        {
+          "id": "sound.blend",
+          "channels": 1,
+          "p99": {
+            "before": 4261,
+            "after": 5693,
+            "delta": 1432,
+            "ratio": 1.3360713447547523
+          },
+          "worst": {
+            "before": 45996,
+            "after": 21002,
+            "delta": -24994,
+            "ratio": 0.456604922167145
+          }
+        },
+        {
+          "id": "sound.blend",
+          "channels": 8,
+          "p99": {
+            "before": 5614,
+            "after": 5986,
+            "delta": 372,
+            "ratio": 1.0662629141432134
+          },
+          "worst": {
+            "before": 24153,
+            "after": 14145,
+            "delta": -10008,
+            "ratio": 0.585641535213017
+          }
+        },
+        {
+          "id": "sound.spectral",
+          "channels": 1,
+          "p99": {
+            "before": 121723,
+            "after": 125139,
+            "delta": 3416,
+            "ratio": 1.0280637184426937
+          },
+          "worst": {
+            "before": 133733,
+            "after": 143278,
+            "delta": 9545,
+            "ratio": 1.0713735577606125
+          }
+        },
+        {
+          "id": "sound.spectral",
+          "channels": 8,
+          "p99": {
+            "before": 122030,
+            "after": 122007,
+            "delta": -23,
+            "ratio": 0.999811521756945
+          },
+          "worst": {
+            "before": 134977,
+            "after": 129757,
+            "delta": -5220,
+            "ratio": 0.96132674455648
+          }
+        }
+      ],
+      "patches": [
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "median_ns": {
+            "before": 29573,
+            "after": 30714,
+            "delta": 1141,
+            "ratio": 1.038582490785514
+          },
+          "p99_ns": {
+            "before": 34645,
+            "after": 36368,
+            "delta": 1723,
+            "ratio": 1.0497330062058017
+          },
+          "max_ns": {
+            "before": 54290,
+            "after": 62890,
+            "delta": 8600,
+            "ratio": 1.158408546693682
+          }
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "median_ns": {
+            "before": 45662.5,
+            "after": 49012,
+            "delta": 3349.5,
+            "ratio": 1.0733534081576785
+          },
+          "p99_ns": {
+            "before": 53190,
+            "after": 69584,
+            "delta": 16394,
+            "ratio": 1.3082158300432412
+          },
+          "max_ns": {
+            "before": 89835,
+            "after": 82243,
+            "delta": -7592,
+            "ratio": 0.9154895085434408
+          }
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "median_ns": {
+            "before": 29018,
+            "after": 27912,
+            "delta": -1106,
+            "ratio": 0.9618857261010407
+          },
+          "p99_ns": {
+            "before": 34415,
+            "after": 33066,
+            "delta": -1349,
+            "ratio": 0.9608019758826093
+          },
+          "max_ns": {
+            "before": 55225,
+            "after": 61414,
+            "delta": 6189,
+            "ratio": 1.1120688094160254
+          }
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "median_ns": {
+            "before": 61195,
+            "after": 64491.5,
+            "delta": 3296.5,
+            "ratio": 1.0538687801290956
+          },
+          "p99_ns": {
+            "before": 66914,
+            "after": 71149,
+            "delta": 4235,
+            "ratio": 1.0632901933825507
+          },
+          "max_ns": {
+            "before": 94964,
+            "after": 125443,
+            "delta": 30479,
+            "ratio": 1.3209532033191524
+          }
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "median_ns": {
+            "before": 57082,
+            "after": 59003.5,
+            "delta": 1921.5,
+            "ratio": 1.0336621001366455
+          },
+          "p99_ns": {
+            "before": 81126,
+            "after": 75477,
+            "delta": -5649,
+            "ratio": 0.9303675763626951
+          },
+          "max_ns": {
+            "before": 97684,
+            "after": 105956,
+            "delta": 8272,
+            "ratio": 1.0846812169853814
+          }
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "median_ns": {
+            "before": 20167,
+            "after": 20267.5,
+            "delta": 100.5,
+            "ratio": 1.004983388704319
+          },
+          "p99_ns": {
+            "before": 39587,
+            "after": 25778,
+            "delta": -13809,
+            "ratio": 0.6511733649935585
+          },
+          "max_ns": {
+            "before": 51508,
+            "after": 72795,
+            "delta": 21287,
+            "ratio": 1.4132756076725945
+          }
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "median_ns": {
+            "before": 90611.5,
+            "after": 98219.5,
+            "delta": 7608,
+            "ratio": 1.0839628523973226
+          },
+          "p99_ns": {
+            "before": 106510,
+            "after": 118667,
+            "delta": 12157,
+            "ratio": 1.114139517416205
+          },
+          "max_ns": {
+            "before": 146949,
+            "after": 157025,
+            "delta": 10076,
+            "ratio": 1.0685680065873193
+          }
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "median_ns": {
+            "before": 78346,
+            "after": 83732,
+            "delta": 5386,
+            "ratio": 1.0687463303806193
+          },
+          "p99_ns": {
+            "before": 85792,
+            "after": 92561,
+            "delta": 6769,
+            "ratio": 1.0789001305483028
+          },
+          "max_ns": {
+            "before": 122119,
+            "after": 142886,
+            "delta": 20767,
+            "ratio": 1.1700554377287729
+          }
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "median_ns": {
+            "before": 104706,
+            "after": 107537,
+            "delta": 2831,
+            "ratio": 1.027037610070101
+          },
+          "p99_ns": {
+            "before": 134082,
+            "after": 133004,
+            "delta": -1078,
+            "ratio": 0.9919601437926046
+          },
+          "max_ns": {
+            "before": 152096,
+            "after": 172492,
+            "delta": 20396,
+            "ratio": 1.1340995160950977
+          }
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "median_ns": {
+            "before": 69781.5,
+            "after": 72932,
+            "delta": 3150.5,
+            "ratio": 1.0451480693306965
+          },
+          "p99_ns": {
+            "before": 89059,
+            "after": 99036,
+            "delta": 9977,
+            "ratio": 1.1120268585993556
+          },
+          "max_ns": {
+            "before": 105458,
+            "after": 153147,
+            "delta": 47689,
+            "ratio": 1.4522084621365852
+          }
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "median_ns": {
+            "before": 61110.5,
+            "after": 61632,
+            "delta": 521.5,
+            "ratio": 1.0085337217008534
+          },
+          "p99_ns": {
+            "before": 70238,
+            "after": 71660,
+            "delta": 1422,
+            "ratio": 1.0202454511802728
+          },
+          "max_ns": {
+            "before": 99458,
+            "after": 99438,
+            "delta": -20,
+            "ratio": 0.9997989100927025
+          }
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "median_ns": {
+            "before": 69109,
+            "after": 74745,
+            "delta": 5636,
+            "ratio": 1.0815523303766514
+          },
+          "p99_ns": {
+            "before": 80525,
+            "after": 97978,
+            "delta": 17453,
+            "ratio": 1.216740142812791
+          },
+          "max_ns": {
+            "before": 116614,
+            "after": 115840,
+            "delta": -774,
+            "ratio": 0.993362718026995
+          }
+        }
+      ],
+      "unmeasured_patches": [
+        {
+          "patch": "basics-01-first-tone.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        }
+      ],
+      "ui_p95_ms": {
+        "before": 83.30000000000018,
+        "after": 66.59999999999991,
+        "delta": -16.700000000000273,
+        "ratio": 0.7995198079231665
+      },
+      "engine_bytes": {
+        "before": 2488768,
+        "after": 2857120,
+        "delta": 368352,
+        "ratio": 1.148005760279785
+      },
+      "engine_text_bytes": {
+        "before": 1543549,
+        "after": 1827382,
+        "delta": 283833,
+        "ratio": 1.1838833752605198
+      },
+      "catalogue_text_bytes": {
+        "before": 586099,
+        "after": 736452,
+        "delta": 150353,
+        "ratio": 1.2565317463431946
+      },
+      "common_library_text_bytes": {
+        "before": 586099,
+        "after": 722937,
+        "delta": 136838,
+        "ratio": 1.233472502085825
+      }
+    },
+    {
+      "machine": "linux-arm64",
+      "cpu": "CPU implementer 0x41 / CPU part 0xd49",
+      "date_et": "2026-11-26T04:25:27.944169-05:00",
+      "artifact": 15104379390,
+      "zip_sha256": "c78dfd5471746727e1ea08ebf1cb5b558b3766e94c158a78c06db4de2a90a8df",
+      "engine": {
+        "mean_ns": {
+          "before": 73500.71,
+          "after": 72567.67,
+          "delta": -933.0400000000081,
+          "ratio": 0.987305700856495
+        },
+        "p99_ns": {
+          "before": 77378,
+          "after": 75131,
+          "delta": -2247,
+          "ratio": 0.9709607381943188
+        }
+      },
+      "modules": [
+        {
+          "id": "essentials.adsr",
+          "channels": 1,
+          "p99": {
+            "before": 1344,
+            "after": 1281,
+            "delta": -63,
+            "ratio": 0.953125
+          },
+          "worst": {
+            "before": 16705,
+            "after": 18177,
+            "delta": 1472,
+            "ratio": 1.0881173301406764
+          }
+        },
+        {
+          "id": "essentials.adsr",
+          "channels": 8,
+          "p99": {
+            "before": 10632,
+            "after": 9344,
+            "delta": -1288,
+            "ratio": 0.8788562829194884
+          },
+          "worst": {
+            "before": 20641,
+            "after": 16400,
+            "delta": -4241,
+            "ratio": 0.7945351484908677
+          }
+        },
+        {
+          "id": "essentials.chaos_lite",
+          "channels": 1,
+          "p99": {
+            "before": 46921,
+            "after": 49482,
+            "delta": 2561,
+            "ratio": 1.0545811044095394
+          },
+          "worst": {
+            "before": 63234,
+            "after": 70706,
+            "delta": 7472,
+            "ratio": 1.1181642787108201
+          }
+        },
+        {
+          "id": "essentials.chaos_lite",
+          "channels": 8,
+          "p99": {
+            "before": 340419,
+            "after": 363612,
+            "delta": 23193,
+            "ratio": 1.068130744758665
+          },
+          "worst": {
+            "before": 371228,
+            "after": 379684,
+            "delta": 8456,
+            "ratio": 1.022778454211428
+          }
+        },
+        {
+          "id": "essentials.chord",
+          "channels": 1,
+          "p99": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          },
+          "worst": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          }
+        },
+        {
+          "id": "essentials.chord",
+          "channels": 8,
+          "p99": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          },
+          "worst": {
+            "status": "unmeasured",
+            "reason": "module_cpu_probe create/prepare failed (exit 2)",
+            "before": null,
+            "after": null
+          }
+        },
+        {
+          "id": "essentials.clock",
+          "channels": 1,
+          "p99": {
+            "before": 2337,
+            "after": 2456,
+            "delta": 119,
+            "ratio": 1.0509199828840394
+          },
+          "worst": {
+            "before": 32177,
+            "after": 15585,
+            "delta": -16592,
+            "ratio": 0.4843521770208534
+          }
+        },
+        {
+          "id": "essentials.clock",
+          "channels": 8,
+          "p99": {
+            "before": 19841,
+            "after": 22953,
+            "delta": 3112,
+            "ratio": 1.1568469331182905
+          },
+          "worst": {
+            "before": 45578,
+            "after": 32433,
+            "delta": -13145,
+            "ratio": 0.7115933125630787
+          }
+        },
+        {
+          "id": "essentials.function_envelope",
+          "channels": 1,
+          "p99": {
+            "before": 1753,
+            "after": 1784,
+            "delta": 31,
+            "ratio": 1.0176839703365659
+          },
+          "worst": {
+            "before": 27929,
+            "after": 19289,
+            "delta": -8640,
+            "ratio": 0.6906441333381074
+          }
+        },
+        {
+          "id": "essentials.function_envelope",
+          "channels": 8,
+          "p99": {
+            "before": 15305,
+            "after": 16641,
+            "delta": 1336,
+            "ratio": 1.0872917347272133
+          },
+          "worst": {
+            "before": 43849,
+            "after": 35505,
+            "delta": -8344,
+            "ratio": 0.8097105977331296
+          }
+        },
+        {
+          "id": "essentials.ladder",
+          "channels": 1,
+          "p99": {
+            "before": 7137,
+            "after": 7160,
+            "delta": 23,
+            "ratio": 1.0032226425669049
+          },
+          "worst": {
+            "before": 25705,
+            "after": 23977,
+            "delta": -1728,
+            "ratio": 0.9327757245672048
+          }
+        },
+        {
+          "id": "essentials.ladder",
+          "channels": 8,
+          "p99": {
+            "before": 62306,
+            "after": 64058,
+            "delta": 1752,
+            "ratio": 1.0281192822521106
+          },
+          "worst": {
+            "before": 101299,
+            "after": 94859,
+            "delta": -6440,
+            "ratio": 0.9364258284879416
+          }
+        },
+        {
+          "id": "essentials.lfo",
+          "channels": 1,
+          "p99": {
+            "before": 5656,
+            "after": 5504,
+            "delta": -152,
+            "ratio": 0.9731258840169731
+          },
+          "worst": {
+            "before": 16977,
+            "after": 25849,
+            "delta": 8872,
+            "ratio": 1.5225893856393944
+          }
+        },
+        {
+          "id": "essentials.lfo",
+          "channels": 8,
+          "p99": {
+            "before": 46529,
+            "after": 44434,
+            "delta": -2095,
+            "ratio": 0.954974317092566
+          },
+          "worst": {
+            "before": 71915,
+            "after": 60137,
+            "delta": -11778,
+            "ratio": 0.8362233191962734
+          }
+        },
+        {
+          "id": "essentials.mixer",
+          "channels": 1,
+          "p99": {
+            "before": 1656,
+            "after": 1584,
+            "delta": -72,
+            "ratio": 0.9565217391304348
+          },
+          "worst": {
+            "before": 8368,
+            "after": 16256,
+            "delta": 7888,
+            "ratio": 1.94263862332696
+          }
+        },
+        {
+          "id": "essentials.mixer",
+          "channels": 8,
+          "p99": {
+            "before": 14936,
+            "after": 15425,
+            "delta": 489,
+            "ratio": 1.032739689341189
+          },
+          "worst": {
+            "before": 33858,
+            "after": 29537,
+            "delta": -4321,
+            "ratio": 0.8723787583436706
+          }
+        },
+        {
+          "id": "essentials.noise",
+          "channels": 1,
+          "p99": {
+            "before": 776,
+            "after": 776,
+            "delta": 0,
+            "ratio": 1
+          },
+          "worst": {
+            "before": 29217,
+            "after": 12072,
+            "delta": -17145,
+            "ratio": 0.41318410514426535
+          }
+        },
+        {
+          "id": "essentials.noise",
+          "channels": 8,
+          "p99": {
+            "before": 5752,
+            "after": 5736,
+            "delta": -16,
+            "ratio": 0.9972183588317107
+          },
+          "worst": {
+            "before": 44106,
+            "after": 24153,
+            "delta": -19953,
+            "ratio": 0.5476125697184057
+          }
+        },
+        {
+          "id": "essentials.notes_to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 4752,
+            "after": 4744,
+            "delta": -8,
+            "ratio": 0.9983164983164983
+          },
+          "worst": {
+            "before": 21377,
+            "after": 42666,
+            "delta": 21289,
+            "ratio": 1.9958834261121767
+          }
+        },
+        {
+          "id": "essentials.notes_to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 4760,
+            "after": 4760,
+            "delta": 0,
+            "ratio": 1
+          },
+          "worst": {
+            "before": 22040,
+            "after": 55802,
+            "delta": 33762,
+            "ratio": 2.531851179673321
+          }
+        },
+        {
+          "id": "essentials.output",
+          "channels": 1,
+          "p99": {
+            "before": 616,
+            "after": 616,
+            "delta": 0,
+            "ratio": 1
+          },
+          "worst": {
+            "before": 9736,
+            "after": 17785,
+            "delta": 8049,
+            "ratio": 1.8267255546425636
+          }
+        },
+        {
+          "id": "essentials.output",
+          "channels": 8,
+          "p99": {
+            "before": 4416,
+            "after": 4408,
+            "delta": -8,
+            "ratio": 0.9981884057971014
+          },
+          "worst": {
+            "before": 31113,
+            "after": 19305,
+            "delta": -11808,
+            "ratio": 0.620480185131617
+          }
+        },
+        {
+          "id": "essentials.quad_vca",
+          "channels": 1,
+          "p99": {
+            "before": 4792,
+            "after": 3736,
+            "delta": -1056,
+            "ratio": 0.7796327212020033
+          },
+          "worst": {
+            "before": 189966,
+            "after": 18313,
+            "delta": -171653,
+            "ratio": 0.0964014613141299
+          }
+        },
+        {
+          "id": "essentials.quad_vca",
+          "channels": 8,
+          "p99": {
+            "before": 38874,
+            "after": 30737,
+            "delta": -8137,
+            "ratio": 0.7906827185265216
+          },
+          "worst": {
+            "before": 66898,
+            "after": 57418,
+            "delta": -9480,
+            "ratio": 0.8582917277048642
+          }
+        },
+        {
+          "id": "essentials.quantizer",
+          "channels": 1,
+          "p99": {
+            "before": 960,
+            "after": 976,
+            "delta": 16,
+            "ratio": 1.0166666666666666
+          },
+          "worst": {
+            "before": 7520,
+            "after": 16721,
+            "delta": 9201,
+            "ratio": 2.223537234042553
+          }
+        },
+        {
+          "id": "essentials.quantizer",
+          "channels": 8,
+          "p99": {
+            "before": 6184,
+            "after": 6105,
+            "delta": -79,
+            "ratio": 0.9872250970245796
+          },
+          "worst": {
+            "before": 19593,
+            "after": 48818,
+            "delta": 29225,
+            "ratio": 2.491604144337263
+          }
+        },
+        {
+          "id": "essentials.resonator",
+          "channels": 1,
+          "p99": {
+            "before": 18376,
+            "after": 19272,
+            "delta": 896,
+            "ratio": 1.0487592511972137
+          },
+          "worst": {
+            "before": 43770,
+            "after": 35281,
+            "delta": -8489,
+            "ratio": 0.8060543751427919
+          }
+        },
+        {
+          "id": "essentials.resonator",
+          "channels": 8,
+          "p99": {
+            "before": 135108,
+            "after": 136725,
+            "delta": 1617,
+            "ratio": 1.0119682032152055
+          },
+          "worst": {
+            "before": 140117,
+            "after": 154021,
+            "delta": 13904,
+            "ratio": 1.099231356651941
+          }
+        },
+        {
+          "id": "essentials.scale_offset",
+          "channels": 1,
+          "p99": {
+            "before": 1432,
+            "after": 1416,
+            "delta": -16,
+            "ratio": 0.9888268156424581
+          },
+          "worst": {
+            "before": 23761,
+            "after": 22401,
+            "delta": -1360,
+            "ratio": 0.9427633517107866
+          }
+        },
+        {
+          "id": "essentials.scale_offset",
+          "channels": 8,
+          "p99": {
+            "before": 13224,
+            "after": 12489,
+            "delta": -735,
+            "ratio": 0.9444192377495463
+          },
+          "worst": {
+            "before": 40737,
+            "after": 21681,
+            "delta": -19056,
+            "ratio": 0.5322188673687311
+          }
+        },
+        {
+          "id": "essentials.slew",
+          "channels": 1,
+          "p99": {
+            "before": 1896,
+            "after": 1904,
+            "delta": 8,
+            "ratio": 1.0042194092827004
+          },
+          "worst": {
+            "before": 3216,
+            "after": 20401,
+            "delta": 17185,
+            "ratio": 6.343594527363184
+          }
+        },
+        {
+          "id": "essentials.slew",
+          "channels": 8,
+          "p99": {
+            "before": 18345,
+            "after": 17440,
+            "delta": -905,
+            "ratio": 0.9506677568819842
+          },
+          "worst": {
+            "before": 37001,
+            "after": 41041,
+            "delta": 4040,
+            "ratio": 1.1091862382097781
+          }
+        },
+        {
+          "id": "essentials.vca",
+          "channels": 1,
+          "p99": {
+            "before": 200,
+            "after": 216,
+            "delta": 16,
+            "ratio": 1.08
+          },
+          "worst": {
+            "before": 1840,
+            "after": 20505,
+            "delta": 18665,
+            "ratio": 11.144021739130435
+          }
+        },
+        {
+          "id": "essentials.vca",
+          "channels": 8,
+          "p99": {
+            "before": 928,
+            "after": 952,
+            "delta": 24,
+            "ratio": 1.0258620689655173
+          },
+          "worst": {
+            "before": 2488,
+            "after": 43714,
+            "delta": 41226,
+            "ratio": 17.569935691318328
+          }
+        },
+        {
+          "id": "essentials.vcf",
+          "channels": 1,
+          "p99": {
+            "before": 5176,
+            "after": 5169,
+            "delta": -7,
+            "ratio": 0.9986476043276662
+          },
+          "worst": {
+            "before": 34817,
+            "after": 21152,
+            "delta": -13665,
+            "ratio": 0.6075193152770199
+          }
+        },
+        {
+          "id": "essentials.vcf",
+          "channels": 8,
+          "p99": {
+            "before": 43954,
+            "after": 48089,
+            "delta": 4135,
+            "ratio": 1.09407562451654
+          },
+          "worst": {
+            "before": 62962,
+            "after": 62746,
+            "delta": -216,
+            "ratio": 0.9965693592960834
+          }
+        },
+        {
+          "id": "essentials.vco",
+          "channels": 1,
+          "p99": {
+            "before": 10960,
+            "after": 12457,
+            "delta": 1497,
+            "ratio": 1.1365875912408758
+          },
+          "worst": {
+            "before": 24081,
+            "after": 47913,
+            "delta": 23832,
+            "ratio": 1.989659897844774
+          }
+        },
+        {
+          "id": "essentials.vco",
+          "channels": 8,
+          "p99": {
+            "before": 79586,
+            "after": 79618,
+            "delta": 32,
+            "ratio": 1.0004020807679743
+          },
+          "worst": {
+            "before": 99427,
+            "after": 84571,
+            "delta": -14856,
+            "ratio": 0.8505838454343387
+          }
+        },
+        {
+          "id": "example.random_source",
+          "channels": 1,
+          "p99": {
+            "before": 1521,
+            "after": 1505,
+            "delta": -16,
+            "ratio": 0.9894806048652203
+          },
+          "worst": {
+            "before": 70090,
+            "after": 15528,
+            "delta": -54562,
+            "ratio": 0.22154372949065487
+          }
+        },
+        {
+          "id": "example.random_source",
+          "channels": 8,
+          "p99": {
+            "before": 1513,
+            "after": 1512,
+            "delta": -1,
+            "ratio": 0.9993390614672836
+          },
+          "worst": {
+            "before": 13161,
+            "after": 24121,
+            "delta": 10960,
+            "ratio": 1.832763467821594
+          }
+        },
+        {
+          "id": "example.step_sequencer",
+          "channels": 1,
+          "p99": {
+            "before": 1792,
+            "after": 1784,
+            "delta": -8,
+            "ratio": 0.9955357142857143
+          },
+          "worst": {
+            "before": 4968,
+            "after": 16649,
+            "delta": 11681,
+            "ratio": 3.3512479871175525
+          }
+        },
+        {
+          "id": "example.step_sequencer",
+          "channels": 8,
+          "p99": {
+            "before": 1816,
+            "after": 1792,
+            "delta": -24,
+            "ratio": 0.986784140969163
+          },
+          "worst": {
+            "before": 19417,
+            "after": 41601,
+            "delta": 22184,
+            "ratio": 2.142503991347788
+          }
+        },
+        {
+          "id": "fx.delay",
+          "channels": 1,
+          "p99": {
+            "before": 5192,
+            "after": 5320,
+            "delta": 128,
+            "ratio": 1.024653312788906
+          },
+          "worst": {
+            "before": 15376,
+            "after": 34089,
+            "delta": 18713,
+            "ratio": 2.2170265348595213
+          }
+        },
+        {
+          "id": "fx.delay",
+          "channels": 8,
+          "p99": {
+            "before": 5240,
+            "after": 5248,
+            "delta": 8,
+            "ratio": 1.001526717557252
+          },
+          "worst": {
+            "before": 29481,
+            "after": 54202,
+            "delta": 24721,
+            "ratio": 1.8385400766595434
+          }
+        },
+        {
+          "id": "fx.reverb",
+          "channels": 1,
+          "p99": {
+            "before": 36081,
+            "after": 34745,
+            "delta": -1336,
+            "ratio": 0.9629722014356586
+          },
+          "worst": {
+            "before": 76987,
+            "after": 46881,
+            "delta": -30106,
+            "ratio": 0.6089469650720252
+          }
+        },
+        {
+          "id": "fx.reverb",
+          "channels": 8,
+          "p99": {
+            "before": 33169,
+            "after": 34401,
+            "delta": 1232,
+            "ratio": 1.0371431155597093
+          },
+          "worst": {
+            "before": 44714,
+            "after": 48858,
+            "delta": 4144,
+            "ratio": 1.0926779084850382
+          }
+        },
+        {
+          "id": "host.keyboard",
+          "channels": 1,
+          "p99": {
+            "before": 13505,
+            "after": 8497,
+            "delta": -5008,
+            "ratio": 0.6291743798593114
+          },
+          "worst": {
+            "before": 23753,
+            "after": 27425,
+            "delta": 3672,
+            "ratio": 1.1545909990317011
+          }
+        },
+        {
+          "id": "host.keyboard",
+          "channels": 8,
+          "p99": {
+            "before": 15281,
+            "after": 10929,
+            "delta": -4352,
+            "ratio": 0.7152018846934102
+          },
+          "worst": {
+            "before": 53986,
+            "after": 26729,
+            "delta": -27257,
+            "ratio": 0.4951098432927055
+          }
+        },
+        {
+          "id": "midi.cc_to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 12753,
+            "after": 12649,
+            "delta": -104,
+            "ratio": 0.9918450560652395
+          },
+          "worst": {
+            "before": 34769,
+            "after": 22312,
+            "delta": -12457,
+            "ratio": 0.641721073369956
+          }
+        },
+        {
+          "id": "midi.cc_to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 12448,
+            "after": 12473,
+            "delta": 25,
+            "ratio": 1.002008354755784
+          },
+          "worst": {
+            "before": 35929,
+            "after": 24809,
+            "delta": -11120,
+            "ratio": 0.6905007097330847
+          }
+        },
+        {
+          "id": "midi.in",
+          "channels": 1,
+          "p99": {
+            "before": 80,
+            "after": 88,
+            "delta": 8,
+            "ratio": 1.1
+          },
+          "worst": {
+            "before": 10400,
+            "after": 11073,
+            "delta": 673,
+            "ratio": 1.0647115384615384
+          }
+        },
+        {
+          "id": "midi.in",
+          "channels": 8,
+          "p99": {
+            "before": 80,
+            "after": 81,
+            "delta": 1,
+            "ratio": 1.0125
+          },
+          "worst": {
+            "before": 11120,
+            "after": 9233,
+            "delta": -1887,
+            "ratio": 0.8303057553956834
+          }
+        },
+        {
+          "id": "midi.to_cv",
+          "channels": 1,
+          "p99": {
+            "before": 12153,
+            "after": 4688,
+            "delta": -7465,
+            "ratio": 0.3857483748868592
+          },
+          "worst": {
+            "before": 52178,
+            "after": 25801,
+            "delta": -26377,
+            "ratio": 0.4944804323661313
+          }
+        },
+        {
+          "id": "midi.to_cv",
+          "channels": 8,
+          "p99": {
+            "before": 9929,
+            "after": 4600,
+            "delta": -5329,
+            "ratio": 0.4632893544163561
+          },
+          "worst": {
+            "before": 60434,
+            "after": 23056,
+            "delta": -37378,
+            "ratio": 0.3815070986530761
+          }
+        },
+        {
+          "id": "monitor",
+          "channels": 1,
+          "p99": {
+            "before": 224,
+            "after": 208,
+            "delta": -16,
+            "ratio": 0.9285714285714286
+          },
+          "worst": {
+            "before": 11168,
+            "after": 2144,
+            "delta": -9024,
+            "ratio": 0.19197707736389685
+          }
+        },
+        {
+          "id": "monitor",
+          "channels": 8,
+          "p99": {
+            "before": 224,
+            "after": 200,
+            "delta": -24,
+            "ratio": 0.8928571428571429
+          },
+          "worst": {
+            "before": 1976,
+            "after": 1752,
+            "delta": -224,
+            "ratio": 0.8866396761133604
+          }
+        },
+        {
+          "id": "osc.in",
+          "channels": 1,
+          "p99": {
+            "before": 12665,
+            "after": 12937,
+            "delta": 272,
+            "ratio": 1.0214765100671142
+          },
+          "worst": {
+            "before": 25881,
+            "after": 20656,
+            "delta": -5225,
+            "ratio": 0.7981144468915421
+          }
+        },
+        {
+          "id": "osc.in",
+          "channels": 8,
+          "p99": {
+            "before": 12440,
+            "after": 12672,
+            "delta": 232,
+            "ratio": 1.0186495176848875
+          },
+          "worst": {
+            "before": 101555,
+            "after": 53274,
+            "delta": -48281,
+            "ratio": 0.5245827384176063
+          }
+        },
+        {
+          "id": "osc.out",
+          "channels": 1,
+          "p99": {
+            "before": 201,
+            "after": 201,
+            "delta": 0,
+            "ratio": 1
+          },
+          "worst": {
+            "before": 1088,
+            "after": 1000,
+            "delta": -88,
+            "ratio": 0.9191176470588235
+          }
+        },
+        {
+          "id": "osc.out",
+          "channels": 8,
+          "p99": {
+            "before": 208,
+            "after": 208,
+            "delta": 0,
+            "ratio": 1
+          },
+          "worst": {
+            "before": 736,
+            "after": 1120,
+            "delta": 384,
+            "ratio": 1.5217391304347827
+          }
+        },
+        {
+          "id": "ports.macro_oscillator",
+          "channels": 1,
+          "p99": {
+            "before": 23281,
+            "after": 23201,
+            "delta": -80,
+            "ratio": 0.9965637214896267
+          },
+          "worst": {
+            "before": 43114,
+            "after": 34337,
+            "delta": -8777,
+            "ratio": 0.7964234355429791
+          }
+        },
+        {
+          "id": "ports.macro_oscillator",
+          "channels": 8,
+          "p99": {
+            "before": 177406,
+            "after": 182702,
+            "delta": 5296,
+            "ratio": 1.0298524288919202
+          },
+          "worst": {
+            "before": 192214,
+            "after": 205670,
+            "delta": 13456,
+            "ratio": 1.0700053065853683
+          }
+        },
+        {
+          "id": "sequencing.groove",
+          "channels": 1,
+          "p99": {
+            "before": 16241,
+            "after": 17289,
+            "delta": 1048,
+            "ratio": 1.0645280463025675
+          },
+          "worst": {
+            "before": 56882,
+            "after": 23913,
+            "delta": -32969,
+            "ratio": 0.420396610527056
+          }
+        },
+        {
+          "id": "sequencing.groove",
+          "channels": 8,
+          "p99": {
+            "before": 15456,
+            "after": 16241,
+            "delta": 785,
+            "ratio": 1.0507893374741202
+          },
+          "worst": {
+            "before": 37929,
+            "after": 33089,
+            "delta": -4840,
+            "ratio": 0.872393155632893
+          }
+        },
+        {
+          "id": "sound.blend",
+          "channels": 1,
+          "p99": {
+            "before": 4353,
+            "after": 4408,
+            "delta": 55,
+            "ratio": 1.012634964392373
+          },
+          "worst": {
+            "before": 21712,
+            "after": 27537,
+            "delta": 5825,
+            "ratio": 1.2682848194546794
+          }
+        },
+        {
+          "id": "sound.blend",
+          "channels": 8,
+          "p99": {
+            "before": 4352,
+            "after": 4385,
+            "delta": 33,
+            "ratio": 1.0075827205882353
+          },
+          "worst": {
+            "before": 17497,
+            "after": 19072,
+            "delta": 1575,
+            "ratio": 1.09001543121678
+          }
+        },
+        {
+          "id": "sound.spectral",
+          "channels": 1,
+          "p99": {
+            "before": 153005,
+            "after": 154069,
+            "delta": 1064,
+            "ratio": 1.0069540211104213
+          },
+          "worst": {
+            "before": 180142,
+            "after": 160997,
+            "delta": -19145,
+            "ratio": 0.8937227298464545
+          }
+        },
+        {
+          "id": "sound.spectral",
+          "channels": 8,
+          "p99": {
+            "before": 152525,
+            "after": 155669,
+            "delta": 3144,
+            "ratio": 1.0206130142599574
+          },
+          "worst": {
+            "before": 164205,
+            "after": 180262,
+            "delta": 16057,
+            "ratio": 1.0977863037057336
+          }
+        }
+      ],
+      "patches": [
+        {
+          "patch": "basics-04-sequencer-and-quantizer.json",
+          "median_ns": {
+            "before": 21457,
+            "after": 21808,
+            "delta": 351,
+            "ratio": 1.0163582979913315
+          },
+          "p99_ns": {
+            "before": 30889,
+            "after": 32865,
+            "delta": 1976,
+            "ratio": 1.0639709929100973
+          },
+          "max_ns": {
+            "before": 73210,
+            "after": 69898,
+            "delta": -3312,
+            "ratio": 0.9547602786504575
+          }
+        },
+        {
+          "patch": "basics-05-random-melody.json",
+          "median_ns": {
+            "before": 33577,
+            "after": 34081,
+            "delta": 504,
+            "ratio": 1.01501027489055
+          },
+          "p99_ns": {
+            "before": 44121,
+            "after": 44090,
+            "delta": -31,
+            "ratio": 0.9992973867319417
+          },
+          "max_ns": {
+            "before": 87610,
+            "after": 75970,
+            "delta": -11640,
+            "ratio": 0.8671384545143248
+          }
+        },
+        {
+          "patch": "basics-08-clocked-groove.json",
+          "median_ns": {
+            "before": 19041,
+            "after": 20345,
+            "delta": 1304,
+            "ratio": 1.0684837981198467
+          },
+          "p99_ns": {
+            "before": 28009,
+            "after": 29617,
+            "delta": 1608,
+            "ratio": 1.0574101181763005
+          },
+          "max_ns": {
+            "before": 82836,
+            "after": 66450,
+            "delta": -16386,
+            "ratio": 0.8021874547298277
+          }
+        },
+        {
+          "patch": "chaos-03-orbiting-iron-fx.json",
+          "median_ns": {
+            "before": 52958,
+            "after": 54718,
+            "delta": 1760,
+            "ratio": 1.0332338834548132
+          },
+          "p99_ns": {
+            "before": 64050,
+            "after": 66394,
+            "delta": 2344,
+            "ratio": 1.0365964090554254
+          },
+          "max_ns": {
+            "before": 147461,
+            "after": 91811,
+            "delta": -55650,
+            "ratio": 0.622612080482297
+          }
+        },
+        {
+          "patch": "chaos-04-radio-static-fx.json",
+          "median_ns": {
+            "before": 45938,
+            "after": 47466,
+            "delta": 1528,
+            "ratio": 1.0332622229962123
+          },
+          "p99_ns": {
+            "before": 58746,
+            "after": 59394,
+            "delta": 648,
+            "ratio": 1.0110305382494127
+          },
+          "max_ns": {
+            "before": 80738,
+            "after": 86483,
+            "delta": 5745,
+            "ratio": 1.0711560851148159
+          }
+        },
+        {
+          "patch": "quad-vca-02-four-gate-mix.json",
+          "median_ns": {
+            "before": 15840,
+            "after": 15656,
+            "delta": -184,
+            "ratio": 0.9883838383838384
+          },
+          "p99_ns": {
+            "before": 21241,
+            "after": 21481,
+            "delta": 240,
+            "ratio": 1.0112989030648274
+          },
+          "max_ns": {
+            "before": 37545,
+            "after": 42393,
+            "delta": 4848,
+            "ratio": 1.129125049940072
+          }
+        },
+        {
+          "patch": "scene-01-hollow-chapel.json",
+          "median_ns": {
+            "before": 87859,
+            "after": 98923,
+            "delta": 11064,
+            "ratio": 1.1259290454022923
+          },
+          "p99_ns": {
+            "before": 99371,
+            "after": 114977,
+            "delta": 15606,
+            "ratio": 1.1570478308560848
+          },
+          "max_ns": {
+            "before": 123588,
+            "after": 159078,
+            "delta": 35490,
+            "ratio": 1.287163802310904
+          }
+        },
+        {
+          "patch": "scene-02-breathing-walls.json",
+          "median_ns": {
+            "before": 67754,
+            "after": 75978,
+            "delta": 8224,
+            "ratio": 1.1213802875107004
+          },
+          "p99_ns": {
+            "before": 85011,
+            "after": 88795,
+            "delta": 3784,
+            "ratio": 1.0445118866970158
+          },
+          "max_ns": {
+            "before": 109651,
+            "after": 150437,
+            "delta": 40786,
+            "ratio": 1.3719619520113815
+          }
+        },
+        {
+          "patch": "scene-05-glass-cathedrals.json",
+          "median_ns": {
+            "before": 107131,
+            "after": 117554,
+            "delta": 10423,
+            "ratio": 1.0972921003257694
+          },
+          "p99_ns": {
+            "before": 117811,
+            "after": 126590,
+            "delta": 8779,
+            "ratio": 1.0745176596412898
+          },
+          "max_ns": {
+            "before": 206486,
+            "after": 192302,
+            "delta": -14184,
+            "ratio": 0.931307691562624
+          }
+        },
+        {
+          "patch": "scene-06-dust-reactor.json",
+          "median_ns": {
+            "before": 53738,
+            "after": 59530,
+            "delta": 5792,
+            "ratio": 1.1077822025382411
+          },
+          "p99_ns": {
+            "before": 70506,
+            "after": 73875,
+            "delta": 3369,
+            "ratio": 1.0477831673900093
+          },
+          "max_ns": {
+            "before": 98947,
+            "after": 117317,
+            "delta": 18370,
+            "ratio": 1.185654946587567
+          }
+        },
+        {
+          "patch": "scene-07-witching-hour.json",
+          "median_ns": {
+            "before": 44321,
+            "after": 44697,
+            "delta": 376,
+            "ratio": 1.0084835630965006
+          },
+          "p99_ns": {
+            "before": 56706,
+            "after": 57330,
+            "delta": 624,
+            "ratio": 1.0110041265474552
+          },
+          "max_ns": {
+            "before": 90531,
+            "after": 98195,
+            "delta": 7664,
+            "ratio": 1.0846560846560847
+          }
+        },
+        {
+          "patch": "scene-08-neon-elegy.json",
+          "median_ns": {
+            "before": 48769,
+            "after": 51962,
+            "delta": 3193,
+            "ratio": 1.0654719186368389
+          },
+          "p99_ns": {
+            "before": 67442,
+            "after": 63954,
+            "delta": -3488,
+            "ratio": 0.9482814863141662
+          },
+          "max_ns": {
+            "before": 110739,
+            "after": 98699,
+            "delta": -12040,
+            "ratio": 0.891275882931939
+          }
+        }
+      ],
+      "unmeasured_patches": [
+        {
+          "patch": "basics-01-first-tone.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-02-fm-filter-lfo.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-03-echo-and-reverb.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-06-chaos-keys.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "basics-07-macro-keys.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-01-ember-veil-pad.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-02-wireglass-lead.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "chaos-05-moonlit-drift-pad.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "osc-out-01.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "quad-vca-01-lpg-plucks.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "scene-03-black-ice-choir.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        },
+        {
+          "patch": "scene-04-vowel-apparitions.json",
+          "reason": "graph setup/render failed on both pins, exit 1"
+        }
+      ],
+      "ui_p95_ms": {
+        "before": 50,
+        "after": 66.70000000000027,
+        "delta": 16.700000000000273,
+        "ratio": 1.3340000000000054
+      },
+      "engine_bytes": {
+        "before": 2348176,
+        "after": 2661272,
+        "delta": 313096,
+        "ratio": 1.1333358317264124
+      },
+      "engine_text_bytes": {
+        "before": 1307184,
+        "after": 1523104,
+        "delta": 215920,
+        "ratio": 1.1651795003610814
+      },
+      "catalogue_text_bytes": {
+        "before": 473644,
+        "after": 599224,
+        "delta": 125580,
+        "ratio": 1.2651358404202313
+      },
+      "common_library_text_bytes": {
+        "before": 473644,
+        "after": 585592,
+        "delta": 111948,
+        "ratio": 1.2363547305571272
+      }
+    }
+  ]
+}

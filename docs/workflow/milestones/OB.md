@@ -31,6 +31,8 @@ section 4 and section 6, [PRIORITY.md](../PRIORITY.md). Windows is second; the w
 
 **r2.13 (Architect, 2026-11-26, run 47; transcribes Planner run 1, [`proposals/0023`](../../proposals/0023-review-and-replan.md) §8.5, final):** (1) **OB1 acceptance stands as written** (owner items recorded, never waived), but **it gates no new work.** (2) **The lab new-module freeze ends when M3 MB2 merges**, not at the `owner-build-1` tag; OB-h4 Gate Delay stays the one exception until then. New modules start in `wirescape-test` (0023 R3.2). (3) **OB-h2 gains gate release** (R2.2 c): on stop, replacement or graph swap, every OSC Out gate or trigger row whose last sent value was nonzero sends 0 once (best effort, counted). Test first: a witness row in the OB-h3 switching test that fails before the fix. (4) **OB-h3's witness gains two rows:** an OSC In route-relisten row (in #610 now) and the OSC Out gate row (added by OB-h2 with its fix, because it cannot pass before it). (5) **Wrap-up holds end for run-1 areas:** OB-h2 #601, OB-h6 #604 and #494 return to their lanes (BUILDERS). Run-2 areas (macros, mapping, OSC In features, scripts, tool host, the new repos) stay frozen until Planner run 2 merges.
 
+**r2.14 (Architect, 2026-11-26, run 49; inbox B2-631-historical-red and B2-601-parser-scope):** (1) **A98, Gate P0 #631 disposition.** B2 may push one diagnostic-only branch based on `48479fc` (never merged, no production edits) that runs the same forced-poll witness as #635 against the old sender and bus. **If it is red there and green on #635's head,** the cause is named (a falling block published low before its fall count), E3c `f8c994c` is the fix, #635 merges as a regression test (lead merge on exact-head Lab green plus a signed Result that links both runs), and #631 closes as fixed by #540. #610 then rebases on `main` and runs its own exact-head gates, heavy tier included; no rerun of the old head and no waiver. **If it is green on `48479fc` too,** the cause is not named: #631 stays open, #635 does not close it, and B2 next reproduces the heavy-tier failure on `48479fc` with the sidecar's edge trace before any repair. Green current-head runs alone never close #631. (2) **A99, OB-h2 #601 paths.** Added to OB-h2's paths: the OSC Out branch and its binary staging in `host/document/runtime_module_config.h`, and OSC Out-only normalization in `host/document/io_data_migration.h` if the red test needs it. Nothing in the CC or OSC In branches (OSC In stays frozen until Planner run 2b merges). v1 authored bytes stay identical; a v1 `host` or an invalid v2 `host` fails closed; no new protocol field, thread or queue; LAN only with `--confirm-lan`. The red-first witness is #638 run 45889339426 (`accepts(v2)`).
+
 **Outcome:** two tagged builds. **OB0** (before the M1 S6 rename): Studio edits stop reloading the
 whole patch, plus the first sound fixes. **OB1**: edits never restart the patch (M4), filter and
 CHOKE fixes, and the owner's saved patches still load, render and save without loss.
@@ -93,6 +95,8 @@ devices off and no LAN in CI, no loosening, and gaps recorded as facts.
 | **OB-h5** OSC presets, A92 (0022 §7) | [#603](https://github.com/kalharbi11/wirescape-lab/issues/603) | B1, after #585 | `apps/studio/src/app/OscEditor.ts` and preset helpers, `apps/studio/src/app/OscOutEditor.ts` (preset Save/Load only, A96, run 46), `apps/desktop/main.ts` and `preload.ts` (presets folder only), Studio tests, `docs/specs/OSC_PRESETS.md` | Script preset with the pitch test; save/load round trip; presets carry no network settings; patch format unchanged | lead |
 | **OB-h6** patch check tool, A94 (0022 §8) | [#604](https://github.com/kalharbi11/wirescape-lab/issues/604) | B3, after OB-h1 | `tools/patch_library.py`, its tests, `docs/INSTALL.md` (one owner step) | renders a folder offline; table and JSON; exit codes as §8 | lead |
 
+**A105 (run 51):** #610 merged `e6fad99` before OB-h3 qualified (x64 ASan `switch 54: gate/note retained after swap`, no Result). #602 is open again and is B5's first task. The test stays in `main`. Bounded exception until the fix merges or 2026-11-29 23:59 ET: another PR's `sanitizers` failure on that one test, linux-x64 ASan, with that exact text, is #602 rather than the PR's red. Every other row must be green. [ruling](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306)
+
 ### r2.13 additions (Architect, 2026-11-26, run 47): Gate P0 and the Studio restart policy
 Design: [`proposals/0023`](../../proposals/0023-review-and-replan.md) §2 (final). Gate P0 must merge before any
 `wirescape-headless` Player build relies on the engine; Player development does not wait for it. Protocol
@@ -105,8 +109,17 @@ additions are additive, capability-gated v0 fields (R2.1, SR17). Devices off; te
 | **RS** Studio restart policy (R2.5) | [#621](https://github.com/kalharbi11/wirescape-lab/issues/621) | B1, now | `apps/desktop/main.ts`, `preload.ts` (banner IPC), Studio banner, tests | 250 ms doubling to 30 s, no limit; non-modal banner after three fast crashes; patch reloads on `hello` | lead |
 | **P0c, P0d** | — | — | OSC Out gate release is OB-h2 (r2.13 (3)); #326/#494 routing is OB-h1 | as those rows | as those rows |
 
-Gate P1 (0023 R2.3 e–i: controller input stream, settings fsync and absolute path, SIGTERM, coverage, TR1h) is
-filed at Stage 2; (e) waits for Planner run 2's message shapes.
+Gate P1 (0023 R2.3 e–i: controller input stream, settings fsync and absolute path, SIGTERM, coverage, TR1h).
+**r2.15 (Architect run 50, transcribes [0025](../../../proposals/0025-player-osc-scripts-tools.md) §3 and §6.3):**
+
+| Row | Issue | Lane, after | Paths | Done when | Merge |
+|---|---|---|---|---|---|
+| **P1-e** controller stream | [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) | B2, after P0b #620 | `host/midi/`, `host/osc/`, `host/sidecar/`, schema, spec, generated files, fixtures, tests | 0025 §3.1, §3.2, §3.4 and the §3.5 rows | **Claude contract review** |
+| **P1-e2** control OSC port | #672 (second PR) | B2, after P1-e | `host/osc/`, `host/sidecar/session.*`, spec, tests | 0025 §3.3 and §3.5 row 6 | **Claude contract review** |
+| **P1-f, P1-g** settings fsync and absolute path; SIGTERM | not filed | when a lane is free | as 0023 R2.3 | as 0023 R2.3 | as filed |
+| **P1-h, P1-i** coverage; TR1h | as filed | as filed | as 0023 R2.3 | as 0023 R2.3 | as filed |
+
+Consumers: MM4 and `wirescape-headless` H-7. Scripts and OSC In features are contract [SC](SC.md).
 
 **OB-h acceptance (OB1.1 Tier 1, Architect):** every row above merged or closed with its routing; one owner
 overnight run on the Pi with the owner's own patches is recorded (not required, r2.4a style).

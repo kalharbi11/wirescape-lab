@@ -109,3 +109,22 @@ test('an intentional engine exit does not offer recovery', async ({ page }) => {
   await expect.poll(loads).toBeGreaterThan(before);
   await expect(page.getByTestId('recovery-modal')).toBeHidden();
 });
+
+// RS: the desktop-only restart bridge suppresses engine-crash offers, not
+// recovery after the application itself ended uncleanly.
+test('RS supervised desktop still offers unclean app startup recovery', async ({ page }) => {
+  await mockBridge(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'wirescapeRestartPolicy', {
+      value: { subscribe: () => () => {} }, configurable: true,
+    });
+  });
+  const raw = JSON.stringify(snapshot);
+  await seed(page, raw);
+  await expect(page.getByTestId('recovery-modal')).toBeVisible();
+  await page.evaluate(() => window.__wirescapeTest.autosaveNow());
+  expect(await page.evaluate(() => localStorage.getItem('wirescape.autosave.v2'))).toBe(raw);
+  await page.getByTestId('recovery-restore').click();
+  expect((await state(page)).futureTop).toEqual(snapshot.patch.futureTop);
+  expect(await page.evaluate(() => window.__wirescapeTest.patchName())).toBe(snapshot.name);
+});

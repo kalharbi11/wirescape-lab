@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "id": "essentials.gate_delay",
+  "name": "Gate Delay",
+  "abi_version": 2,
+  "library": "ws2_gate_delay",
+  "description": "Experimental 16-lane gate-edge and 1 kHz CV delay, with strum, seeded humanization and repeats.",
+  "parameters": {
+    "mode": 0,
+    "time": 1,
+    "spread": 2,
+    "strum": 3,
+    "humanize": 4,
+    "repeats": 5
+  },
+  "inputs": {
+    "in": "signal",
+    "cv": "signal",
+    "time_cv": "signal"
+  },
+  "outputs": {
+    "out": "signal",
+    "trig": "signal",
+    "cv_out": "signal"
+  },
+  "license": "GPL-3.0-only"
+}
