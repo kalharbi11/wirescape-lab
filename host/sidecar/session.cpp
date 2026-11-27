@@ -283,7 +283,7 @@ Options parse_options(int argc, char **argv) {
     if (o.null_audio) o.audio = o.midi = false;
     return o;
 }
-Session::Session(Options options)
+Session::Session(Options options, std::unique_ptr<midi::Backend> injected_midi)
     : options_(std::move(options)),
       config_([](const Options &options) {
           engine2::Config native{};
@@ -308,8 +308,9 @@ Session::Session(Options options)
     } catch (...) {
         preferences_ = Json::object();
     }
-    std::unique_ptr<midi::Backend> scripted_source;
+    std::unique_ptr<midi::Backend> scripted_source = std::move(injected_midi);
     if (options_.scripted_midi) {
+        need(!scripted_source, "invalid", "Cannot combine scripted and injected MIDI");
         auto scripted = std::make_unique<midi::ScriptedBackend>();
         scripted_midi_ = scripted.get();
         scripted_source = std::move(scripted);

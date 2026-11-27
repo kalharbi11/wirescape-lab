@@ -142,7 +142,7 @@ double Stream::cpu_percent() const { return 0; }
 uint64_t Stream::dropouts() const { return 0; }
 uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
 } // namespace wirescape::audio
-// Link-time MIDI seam: this executable never constructs a real MIDI backend.
+// Explicit MIDI injection: this test never constructs a real MIDI backend.
 namespace fake {
 std::atomic<unsigned> midi_enumerations{0}, midi_opens{0}, midi_closes{0};
 std::atomic<bool> midi_throw_once{false}, midi_throw_while{false}, midi_close_throw_once{false},
@@ -177,11 +177,6 @@ public:
         ++midi_closes;
     }
 };
-}
-namespace wirescape::midi {
-std::unique_ptr<Backend> real_backend(bool authorized) {
-    return authorized ? std::make_unique<fake::MidiBackend>() : nullptr;
-}
 }
 using namespace wirescape::sidecar;
 using namespace std::chrono_literals;
@@ -1650,7 +1645,7 @@ void test_p0b_midi_start_failure(const std::filesystem::path &root) {
     fake::midi_throw_once = false;
     const auto base = std::chrono::steady_clock::now();
     {
-        Session session(options);
+        Session session(options, std::make_unique<fake::MidiBackend>());
         session.start(base);
         check(audio(session)["state"] == "running", "P0b initial audio running");
         check(fake::midi_opens.load() > 0, "P0b initial MIDI opened");

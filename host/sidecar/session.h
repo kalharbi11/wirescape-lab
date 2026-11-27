@@ -163,7 +163,7 @@ class Session {
     Json base() const;
 
   public:
-    explicit Session(Options);
+    explicit Session(Options, std::unique_ptr<midi::Backend> injected_midi = {});
     ~Session();
     void shutdown();
     // Begin rendering only after the hello handshake is flushed.
