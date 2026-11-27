@@ -44,3 +44,11 @@ Source head `c01eb188d31e7a969e6242287690fa4e4f619465`, base `83cc53c36d5cb2586c
 These data do not override the failed mandatory sanitizer gate. Added failure-only capture diagnostics: noteOn/loadGraph R7 marks including the next intended noteOn, block range, nonzero sample positions, per-block nonzero counts and min/max. The existing exact-zero assertion, capture bracket, input load, 50 ms sentinel and all other gates are unchanged. Possible next-command overlap is a hypothesis, not a confirmed cause.
 
 Signed: gpt-builder5, 2026-11-26
+
+## A105 reopened witness: capture ownership
+
+The historical diagnostic [45907249284](https://github.com/kalharbi11/wirescape-lab/actions/runs/45907249284) failed x64 at switch 13; its CTest failure output was truncated before the command marks. The diagnostic-only head `fbad0539a71795506b42e48ebcb8ad762b703eb6` put marks first and passed [Lab 45913730044](https://github.com/kalharbi11/wirescape-lab/actions/runs/45913730044) and [three ASan repetitions on both architectures 45913738510](https://github.com/kalharbi11/wirescape-lab/actions/runs/45913738510). No reproduced failure, therefore no historical attribution from that pass.
+
+Source-level test race: `Session::reply` marks b1 before ACK publication, but the offline oracle examines through block b1+1 inclusive. The prior test could issue its next deliberate noteOn immediately after route/status and echo, with no completed-capture barrier. Those observations do not prove b1+1 was appended. A subsequent intended note can therefore contaminate the previous switch's final gate block. This is a test sequencing defect independently of whether it caused the historical red. The revised witness waits for the original bracket and one additional physical block (the latter accounts for fwrite preceding the appended-count atomic increment) before sending another note. The offline analysis also requires complete brackets and disjoint next-note marks. It retains the exact-zero gate assertion, fade ramps, 50 ms post-ACK echo deadline, fixed ports, 200 Hz offered traffic, and 200/1000 switch counts. The wait occurs after the timed echo and while the load worker continues. No product changes, no waiver. Historical cause remains unconfirmed until the correlation evidence is available; fresh qualification is pending.
+
+Signed: gpt-builder5, 2026-11-26
