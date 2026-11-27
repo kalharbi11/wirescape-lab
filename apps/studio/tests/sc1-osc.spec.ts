@@ -61,3 +61,23 @@ test('SC1 OSC In optional labels are recognized and survive editor save and reop
   await page.getByTestId('osc-edit-1').click();
   await expect(page.getByTestId('osc-row1-label')).toHaveValue('Cutoff');
 });
+
+
+test('SC1 canvas shows authored output label and quick kind change is one undo step', async ({ page }) => {
+  await boot(page);
+  const patch: PatchV2 = { ...legacy, modules: [{ id: 1, module: 'osc.in',
+    config: { rows: [{ pattern: '/ws/knob/1', label: 'Filter' }] } }] };
+  await page.evaluate(p => window.__wirescapeTest.load(p), patch);
+  await settle(page);
+  await expect(page.getByTestId('port-1-output-row1').locator('.port-label')).toHaveText('Filter');
+  const before = await page.evaluate(() => window.__wirescapeTest.historyDepth());
+  const kind = page.getByTestId('osc-quick-kind-1-row1');
+  await expect(kind).toHaveValue('cv');
+  await kind.selectOption('gate');
+  await settle(page);
+  const saved = await state(page);
+  const rows = saved.modules[0].data?.routes?.rows ?? saved.modules[0].config?.rows;
+  expect(rows[0]).toMatchObject({ label: 'Filter', kind: 'gate', pattern: '/ws/knob/1' });
+  expect((await page.evaluate(() => window.__wirescapeTest.historyDepth())).past).toBe(before.past + 1);
+  await expect(kind).toHaveValue('gate');
+});
