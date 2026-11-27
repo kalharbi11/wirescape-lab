@@ -16,6 +16,8 @@ interface NativeBundleWriter {
   write(input: { playerJson: string; patches: PlayerBundle['patches']; scripts: { name: string; bytes: Uint8Array }[] }): Promise<{ name: string } | null>;
 }
 
+declare global { interface Window { wirescapeBundleExport?: NativeBundleWriter } }
+
 async function writeFile(dir: DirectoryHandle, name: string, content: string | Blob): Promise<void> {
   const handle = await dir.getFileHandle(name, { create: true });
   const stream = await handle.createWritable();
@@ -86,6 +88,8 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
       const manifestSize = encoder.encode(JSON.stringify(bundle.player, null, 2) + '\n').length;
       if (sizes.some(size => size > MAX_FILE) || manifestSize > MAX_FILE)
         throw new Error('An exported patch or manifest exceeds 2 MiB.');
+      if (1 + bundle.patches.length + bundle.scripts.length > MAX_FILES)
+        throw new Error('Bundle exceeds 256 files including player.json.');
       const files = new Map<string, File>();
       for (const file of scriptFiles) {
         if (!safeScriptName(file.name) || file.size > MAX_FILE || files.has(file.name))
@@ -110,8 +114,8 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
   write.addEventListener('click', async () => {
     if (!ready || busy) return;
     const picked = ready;
-    const host = window as unknown as { showDirectoryPicker?: DirectoryPicker; wirescapeBundleExport?: NativeBundleWriter };
-    const picker = host.showDirectoryPicker, native = host.wirescapeBundleExport;
+    const picker = (window as unknown as { showDirectoryPicker?: DirectoryPicker }).showDirectoryPicker;
+    const native = window.wirescapeBundleExport;
     if (!picker && !native) {
       status.textContent = 'Folder export is unavailable in this browser. Open Studio in a browser with directory access.';
       return;
