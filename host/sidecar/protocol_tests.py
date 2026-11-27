@@ -1369,7 +1369,9 @@ with tempfile.TemporaryDirectory() as control_dir:
             shared = minimal()
             shared['modules'].append(dict(id=9, module='osc.in', config=dict(
                 port=control_port, rows=[dict(pattern='/control/matched', enabled=True),
-                                        dict(pattern='/control/disabled', enabled=False)])))
+                                        dict(pattern='/control/disabled', enabled=False),
+                                        dict(pattern='/control/matched', enabled=True),
+                                        dict(pattern='/control/matched', enabled=False)])))
             gen = control.call('loadGraph', patch=shared)['gen']
             control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
                          and control_route(m)['state'] == 'listening' and any(
@@ -1382,8 +1384,35 @@ with tempfile.TemporaryDirectory() as control_dir:
                 e.get('address') == '/control/matched' for e in m['events']))
             events = [e for e in push['events'] if e.get('address') == '/control/matched']
             assert len(events) == 1 and events[0]['matched'] is True, push
-            control_next('status', lambda m: m['gen'] == gen and any(
-                r['module'] == '9' and r['received'] >= 1 for r in m['status']['osc']['routes']))
+            def graph_activity(message):
+                return next((r['rows'] for r in message['status']['osc']['routes'] if r['module'] == '9'), [])
+
+            def counts(expected):
+                status = control_next('status', lambda m: m['gen'] == gen and graph_activity(m)
+                                      and graph_activity(m)[0]['received'] >= expected)
+                rows = graph_activity(status)
+                assert len(rows) == 8 and [r['received'] for r in rows] == [expected, 0, expected, 0, 0, 0, 0, 0], rows
+                assert rows[0]['ageMs'] >= 0 and rows[2]['ageMs'] >= 0, rows
+                assert all(r['ageMs'] is None for i, r in enumerate(rows) if i not in (0, 2)), rows
+                assert 'rows' not in control_route(status), status
+                return rows
+
+            counts(1)
+            # Same address is a cache hit. A missing argument still counts, and
+            # disabling the controller subscriber cannot disable graph telemetry.
+            assert control.call('controllerStream', kinds=[])['gen'] == gen
+            encoded = b'/control/matched\0'
+            encoded += b'\0' * ((-len(encoded)) % 4)
+            sender.sendto(encoded + b',\0\0\0', ('127.0.0.1', control_port))
+            counts(2)
+            # A valid string argument is not a numeric CV argument; it still matches.
+            sender.sendto(encoded + b',s\0\0' + b'bad\0', ('127.0.0.1', control_port))
+            counts(3)
+            # An accepted graph commit resets all rows, not the launch control route.
+            gen = control.call('loadGraph', patch=shared)['gen']
+            reset = control_next('status', lambda m: m['gen'] == gen and graph_activity(m))
+            assert graph_activity(reset) == [dict(received=0, ageMs=None)] * 8, reset
+            assert 'rows' not in control_route(reset), reset
     finally:
         control.close()
 

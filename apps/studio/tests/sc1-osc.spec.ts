@@ -142,6 +142,16 @@ test('SC2 row indicators follow native per-row status, timeout, disabled and rou
   await expect(dot(4)).toHaveAttribute('data-state', 'green');
   await expect(dot(5)).toHaveAttribute('data-state', 'grey');
   await expect(dot(1)).toHaveAttribute('aria-label', 'Active: Receiving');
+  // Observe the animation synchronously with the status push (no timing sleeps).
+  const pulse = await page.evaluate(() => {
+    (window as any).__mockBridge.oscStatus({ enabled: true, port: 9000, routes: [{
+      module: '1', port: 9000, bind: '127.0.0.1', state: 'listening', received: 5, dropped: 0,
+      rows: [{ received: 2, ageMs: 0 }]
+    }] });
+    const dot = document.querySelector('[data-testid="osc-row-indicator-1-row1"]')!;
+    return dot.getAnimations().map(a => a.effect?.getTiming().duration);
+  });
+  expect(pulse).toContain(250);
   await push('port-busy', activity);
   await expect(dot(1)).toHaveAttribute('data-state', 'red');
   await push('lan-not-confirmed', activity);
