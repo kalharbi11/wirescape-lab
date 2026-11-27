@@ -21,7 +21,7 @@ frequency-dependent level compensation; the sine endpoint and phase advance are 
 This reduces discontinuity aliasing rather than promising a brick-wall band limit.
 Gate amplitude is immediate; patch an envelope externally when a release is desired.
 
-Parameter slots are stable and listed in `module.json`; ranges/defaults are in the
+Parameter slots, ranges and defaults are stable and listed in the
 SDK descriptor in `dsp.h`. Shapes span saw 0 → square 1 → sine 2. A/B octave is −3..3,
 B detune −60..60 cents, A/B level 0..1, pan −1..1. Route is 0 parallel, 1 ring/AM,
 2 delay-bend (3.5 ± 2.5 ms). Depth, mix, roughness, drift, jitter, fall and LFO depth

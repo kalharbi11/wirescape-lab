@@ -3,7 +3,7 @@
 
 `inspect()` keeps its legacy classification and byte-retention behavior. The separate `read_patch()` API accepts native v1/v2, rejects duplicate keys (including escaped aliases), and returns canonical v2 plus the original bytes. It does not load processors or open devices.
 
-Hosts construct `ModuleCatalog` with `add_manifest()` from each module.json and the descriptor's output-zero port ID. Migration maps numeric parameter keys through those manifests. Unmapped values remain unchanged inside `module.preserved.values`. Unknown modules retain their complete v1 module under `preserved`, are inactive, and keep their cables. No DSP state is synthesized.
+The runtime patch loader resolves modules through the native registry and maps legacy numeric parameter keys through each descriptor's stable `legacy_index`. Unmapped values remain unchanged inside `module.preserved.values`. Unknown modules retain their complete v1 module under `preserved`, are inactive, and keep their cables. No DSP state is synthesized.
 
 Every migrated document and module also retains its entire original v1 object under `preserved`. This deliberately preserves even collisions with names newly defined by v2 (including an existing v1 `preserved` field). Ordinary unknown fields remain in place too. V2 reads/saves never unwrap or reinterpret these envelopes; JSON values survive repeated round trips. Native v1 audio/control cables become signal cables; the original kinds remain in the preservation envelope. Newly defined v2 settings/config/state/device fields do not interpret opaque v1 data with colliding names; those originals remain in the envelopes.
 

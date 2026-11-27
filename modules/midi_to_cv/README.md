@@ -5,7 +5,7 @@ Input `midi` is an event stream. Outputs: poly `pitch`, `gate`, `velocity`,
 `aftertouch`, `pressure`, `bend`, `mod`, and assigned-voice `notes` events.
 C4=0 pitch, 1/oct; velocity/pressure/mod 0..1, bend −1..1. Channels are voices.
 
-Stable parameter slots are in `module.json`: voice_count 1–16 (default4), modes
+Stable parameter slots are in the native descriptor in `dsp.h`: voice_count 1–16 (default4), modes
 rotate/reuse/reset/mono, oldest stealing (the shared allocator's supported policy),
 mono last/low/high priority, legato, sustain hold/ignore, bend range 0–48 st (default2),
 apply_bend, and channel filter (0 Omni,1–16). RPN0 is ignored; the bend range remains

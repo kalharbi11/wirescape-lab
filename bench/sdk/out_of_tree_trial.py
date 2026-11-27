@@ -286,7 +286,7 @@ def main():
                   [sys.executable,"tools/gen_ui_catalogue.py","--check","--describe",str(describe_binary())])
         trial.run("Run native module callback tests",DOC+" §B.2,§B.5 / "+SDK+" §12",
                   ["ctest","--test-dir","build/native","-C","Release",
-                   "-R","^abi2_trial_gain_tests$","--output-on-failure"],timeout=240)
+                   "-R","^abi2_trial_gain_tests$","--no-tests=error","--output-on-failure"],timeout=240)
         trial.step("Confirm hello and loadGraph using null sink",DOC+" §B.3,§B.5 / "+SDK+" §12",
                    "wirescape-engine --null-audio and v0 loadGraph trial.gain",False,
                    lambda: sidecar_check(out))
