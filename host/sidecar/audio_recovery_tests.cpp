@@ -142,6 +142,29 @@ double Stream::cpu_percent() const { return 0; }
 uint64_t Stream::dropouts() const { return 0; }
 uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
 } // namespace wirescape::audio
+// Link-time MIDI seam: this executable never constructs a real MIDI backend.
+namespace fake {
+std::atomic<unsigned> midi_enumerations{0}, midi_opens{0}, midi_closes{0};
+std::atomic<bool> midi_throw_once{false};
+class MidiBackend final : public wirescape::midi::Backend {
+public:
+    std::vector<wirescape::midi::Endpoint> endpoints() override {
+        ++midi_enumerations;
+        if (midi_throw_once.exchange(false)) throw std::runtime_error("injected MIDI startup failure");
+        return {{"Fake MIDI", "fake:midi"}};
+    }
+    bool open(const wirescape::midi::Endpoint &, wirescape::midi::Callback) override {
+        ++midi_opens;
+        return true;
+    }
+    void close(const wirescape::midi::Endpoint &) override { ++midi_closes; }
+};
+}
+namespace wirescape::midi {
+std::unique_ptr<Backend> real_backend(bool authorized) {
+    return authorized ? std::make_unique<fake::MidiBackend>() : nullptr;
+}
+}
 using namespace wirescape::sidecar;
 using namespace std::chrono_literals;
 void check(bool ok, const char *message) {
@@ -1593,6 +1616,53 @@ struct P0aStallSource {
         b.out(0).ch(0)[0] = 0.f;
     }
 };
+// P0b: fail a MIDI start on the actual audio reconnect path. The stream
+// must continue rendering, and MIDI must recover without graph or audio restart.
+void test_p0b_midi_start_failure(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.midi = true;
+    options.settings = (root / "p0b-midi.json").string();
+    options.device = "P0b stereo";
+    std::ofstream(options.settings) << Json{{"devices", Json::array({
+        {{"kind", "midi"}, {"name", "Fake MIDI"}, {"system_name", "fake:midi"}, {"enabled", true}}
+    })}}.dump();
+    fake::outputs = {output("P0b stereo", 0, true)};
+    fake::render = true;
+    fake::midi_throw_once = false;
+    const auto base = std::chrono::steady_clock::now();
+    {
+        Session session(options);
+        session.start(base);
+        check(audio(session)["state"] == "running", "P0b initial audio running");
+        check(fake::midi_opens.load() > 0, "P0b initial MIDI opened");
+        auto *const graph = fake::engine;
+        const auto generation = session.status()["gen"];
+        fake::active = false;
+        session.poll(base + 100ms);
+        check(audio(session)["state"] == "device-lost", "P0b fake audio loss detected");
+        const auto opens = fake::midi_opens.load();
+        fake::midi_throw_once = true;
+        session.poll(base + 200ms); // synchronous Service::poll throws once
+        check(audio(session)["state"] == "running" && fake::engine == graph,
+              "P0b MIDI failure cannot take recovered audio down");
+        check(fake::midi_opens.load() == opens, "P0b injected MIDI startup failed");
+        const auto stops = fake::stopped, exchanges = fake::exchanges;
+        const auto attempts = fake::attempts.size();
+        const auto blocks = fake::completed_blocks.load();
+        const auto until = std::chrono::steady_clock::now() + 2s;
+        while (fake::completed_blocks.load() <= blocks && std::chrono::steady_clock::now() < until)
+            std::this_thread::sleep_for(1ms);
+        check(fake::completed_blocks.load() > blocks, "P0b audio callbacks continue during MIDI failure");
+        for (int i = 1; i <= 20 && fake::midi_opens.load() == opens; ++i)
+            session.poll(base + 200ms + i * 100ms);
+        check(fake::midi_opens.load() > opens, "P0b MIDI restarted through control poll");
+        check(fake::engine == graph && session.status()["gen"] == generation &&
+                  fake::stopped == stops && fake::exchanges == exchanges && fake::attempts.size() == attempts,
+              "P0b recovery cannot rebuild graph or restart audio");
+    }
+    fake::render = false;
+}
 void test_p0a_status(const std::filesystem::path &root) {
     Options options;
     options.audio = true;
@@ -2378,6 +2448,7 @@ int main() {
         test_a81_synthetic_slot();
         test_a82_osc_in_slot(root);
         test_e3c_accepted_routes(root);
+        test_p0b_midi_start_failure(root);
         test_p0a_status(root);
         test_p0a_null_sink(root);
         std::cout << "audio recovery fake-backend tests passed\n";
