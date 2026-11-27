@@ -18,6 +18,10 @@ struct Request {
     std::string error, tracked_id;
 };
 Json strict_json(const std::string &);
+#ifndef _WIN32
+// Install before starting workers; the handler only sets a lock-free flag.
+void install_shutdown_signals();
+#endif
 // Reader never owns engine state. Writer alone serializes stdout.
 // Production uses platform-native pipe handles; tests use stream-backed pipes.
 class Pipe;

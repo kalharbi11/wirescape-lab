@@ -7,6 +7,9 @@ int main(int argc, char **argv) {
     std::signal(SIGPIPE, SIG_IGN);
 #endif
     try {
+#ifndef _WIN32
+        wirescape::sidecar::install_shutdown_signals();
+#endif
         auto options = wirescape::sidecar::parse_options(argc, argv);
         wirescape::sidecar::Session session(std::move(options));
         wirescape::sidecar::Transport transport;
