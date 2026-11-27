@@ -51,7 +51,7 @@ Do not start TR1h until M merges: TR1h writes `engine/control/`, and MB2 require
 |---|---|---|---|
 | **T: transport** | TR1h [#740](https://github.com/kalharbi11/wirescape-lab/issues/740) → TR3 [#741](https://github.com/kalharbi11/wirescape-lab/issues/741) | After M completes (#725 and #731), Gate P0/TR1e; serialize sidecar/control with active SC2, and Studio with SC1/SC2. TR3 also requires TR2. | lead, M3 |
 | **B: build verification** | MB3 [#742](https://github.com/kalharbi11/wirescape-lab/issues/742) | After M completes. Only its new workflow and tools/ci or bench helpers; no MB2 evidence-file overlap. | lead, M3 |
-| **N: neutral fixture names** | [#622](https://github.com/kalharbi11/wirescape-lab/issues/622) | After SC1 #685; serialize fixture/spec/sidecar files with active SC2 or T. Historical facts unchanged. | lead, original issue |
+| **N: neutral fixture names** | [#622](https://github.com/kalharbi11/wirescape-lab/issues/622) | **Released** (SC1 merged `23f3fe2`, run 59e). Serialize fixture, spec and sidecar files with SC2 or T once they open. Historical facts unchanged. | lead, original issue |
 
 These are task packets, not advance agent assignments. No draft-ahead for T, B or N.
 
