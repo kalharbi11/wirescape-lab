@@ -34,6 +34,7 @@ export function buildPlayerBundle(title: string, inputs: readonly ExportPatch[])
     for (const mod of patch.modules) {
       if (mod.module !== 'essentials.macro') continue;
       const page = pages.length + 1;
+      if (page > 64) throw new Error('Player supports at most 64 macro pages per patch.');
       const ids: string[] = [];
       for (let knob = 1; knob <= 8; knob++) {
         const id = `macro-${page}-${knob}`;
