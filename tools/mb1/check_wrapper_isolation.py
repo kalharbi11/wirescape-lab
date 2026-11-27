@@ -74,16 +74,29 @@ def descriptors(executable):
     return by_id
 
 
-def wrapper_cost(path):
-    """Inclusive Ir of the one actual descriptor process callback.
+def wrapper_cost(path, expected_calls):
+    """Inclusive cost of external calls into the descriptor process callback.
 
-    Callgrind cost lines following calls= belong to the caller's inclusive
-    cost, as do its ordinary self-cost lines. Inline frames are still the
-    enclosing function. Do not count nested lambda functions a second time.
+    Callgrind may label a nested context with '2, '3, etc. Do not sum
+    inclusive costs of nested wrapper contexts: that double-counts callees.
+    Instead sum the incoming edges from outside the wrapper and require
+    exactly the number of process calls performed by the probe.
     """
     names = {}
-    costs = {}
-    current = None
+    incoming = {}
+    current = callee = None
+    pending = None
+    def canonical(name):
+        if not name:
+            return None
+        name = re.sub(r"'\d+$", "", name)
+        if name.startswith("_ZN2ws6Module"):
+            name = subprocess.run(["c++filt", name], check=True, text=True,
+                                  capture_output=True, timeout=10).stdout.strip()
+        if re.fullmatch(r"ws::Module<.*>::process\([^)]*\)(?: \[clone [^\]]+\])?", name):
+            return name
+        return None
+
     for line in path.read_text(encoding="utf-8", errors="strict").splitlines():
         if line.startswith("positions:") and line.split()[1:] != ["line"]:
             raise ValueError("unexpected Callgrind positions")
@@ -101,19 +114,25 @@ def wrapper_cost(path):
                 name = names[index]
             if key == "fn":
                 current = name
-        elif current and re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", line):
-            fields = line.split()
-            costs[current] = costs.get(current, 0) + (int(fields[1]) if len(fields) == 2 else 0)
-    candidates = []
-    for name, ir in costs.items():
-        if name.startswith("_ZN2ws6Module"):
-            name = subprocess.run(["c++filt", name], check=True, text=True,
-                                  capture_output=True, timeout=10).stdout.strip()
-        if re.fullmatch(r"ws::Module<.*>::process\([^)]*\)(?: \[clone [^\]]+\])?", name) and ir:
-            candidates.append((name, ir))
-    if len(candidates) != 1 or candidates[0][1] <= 0:
-        raise ValueError(f"expected one measured wrapper process callback, got {candidates}")
-    return candidates[0]
+            else:
+                callee = name
+        elif line.startswith("calls="):
+            if pending is not None or current is None or callee is None:
+                raise ValueError("malformed Callgrind call edge")
+            pending = int(line.split()[0].split("=", 1)[1])
+        elif pending is not None and re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", line):
+            target = canonical(callee)
+            if target and canonical(current) != target:
+                fields = line.split()
+                count, ir = incoming.get(target, (0, 0))
+                incoming[target] = (count + pending, ir + (int(fields[1]) if len(fields) == 2 else 0))
+            pending = None
+    if pending is not None or len(incoming) != 1:
+        raise ValueError(f"expected one external process callback, got {incoming}")
+    name, (count, ir) = next(iter(incoming.items()))
+    if count != expected_calls or ir <= 0:
+        raise ValueError(f"expected {expected_calls} process calls, got {count}, Ir={ir}")
+    return name, ir
 
 
 def measure(probe, ident, voices, valgrind):
@@ -131,7 +150,7 @@ def measure(probe, ident, voices, valgrind):
                         "sample_rate": RATE, "block": FRAMES, "blocks": n,
                         "seconds": duration}
             totals.append(callgrind(command, output, valgrind, expected_probe=expected))
-            name, ir = wrapper_cost(output)
+            name, ir = wrapper_cost(output, n)
             names.append(name)
             wrapper_totals.append(ir)
     delta = totals[1] - totals[0]
