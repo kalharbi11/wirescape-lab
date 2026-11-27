@@ -34,12 +34,12 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
+| U-review | 2026-11-27 | claude-architect | independent review | **now** | Bundle U ([TASKS](TASKS.md)): fix for #718 and #719 C4, written by the Architect, so a **separate session** reviews it (`Approved for merge <sha7>`). PR link in CURRENT run 57. | test bundle G (pin bump), test PRs #40 and #47 |
 
 
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| P1-e2-port-range (#715) | 2026-11-27 | owner `architect:run`: review and merge #715 and #685 | **Approved and merged** [#715](https://github.com/kalharbi11/wirescape-lab/pull/715#issuecomment-7212943661) at head `93ba5bb` as `289f070` (no findings). |
-| SC1-hold (#685) | 2026-11-27 | owner: merge #685 | **Held** [#685](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7212949401): draft, no signed Result, ready-state Golden not run on `b34ca76`. Early notes: Medium (Promise return from `addModuleAt` for OSC types: check every caller), Low (README: non-string labels are dropped). Comes back with an inbox row when ready. |
-
+| test #38 GUTTR | 2026-11-27 | owner: review and merge GUTTR | **Merged** `3cc1b4b` after [review](https://github.com/kalharbi11/wirescape-test/pull/38#issuecomment-7216596131) at `2edbf19` (local T0, Studio shot, exact-head T0/T1). |
+| #718/#719 hold | 2026-11-27 | owner: open #718 and #719 | **Released** as bundle U; renderer half split to #722 (bundle R). |

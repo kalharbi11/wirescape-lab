@@ -12,6 +12,8 @@ and draft-ahead permissions apply in an active session. The manager/coordinator 
 
 **Owner hold — 2026-11-26:** finish only tasks already started; no newer tasks, claims or draft-aheads until the owner/planner changes this instruction. This overrides standing release, SR20 self-release and all `Then` queues below. A merge releases only an already-started dependent PR. Existing lab set: B1 #649/#685; B2 #638/#660; B3 #678 (#655 merged); B4 no product PR (MB2/SDK-1 not started, held); B5 #627 (#677 merged). Test-repo agents likewise finish already-started work only; no new MOD-T2c claim merely because a predecessor merges. **Headless exception (owner, 2026-11-26):** owner manages the headless run and authorizes continuation through bundles E and F; the lab hold does not stop it. Normal dependency/review/CI gates remain, including lab P1-e for H-7 real-engine coverage. **Hardware-test release (owner via Architect run 55, 2026-11-26):** the hold is lifted for exactly two lab chains: B2 #660 → **P1-e #672** → P1-e2, and B5 **P1-f/g #699**. Every other lane item stays held.
 
+**Bundle pool (owner, 2026-11-27):** new lab work is in [TASKS](TASKS.md), as short bundles that any session can claim. Nobody is assigned a bundle in advance. #358, #682 and #663 moved there from the B4 and B5 queues. The lane rows below record history and started work only.
+
 **How a lane works**
 - **Long-running sessions.** A lane is a queue, not a single task. Keep working through it: implement,
   push, read CI, correct, post the Result, then start or draft the next task. Do not end the session

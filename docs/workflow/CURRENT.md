@@ -8,6 +8,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 57 — 2026-11-27 (owner: `architect:run`; review and merge the test-repo GUTTR, unblock #718/#719, start short lab bundles)
+
+- **Decided:**
+  - **Test repo:** GUTTR [test #38](https://github.com/kalharbi11/wirescape-test/pull/38) reviewed at `2edbf19` ([review](https://github.com/kalharbi11/wirescape-test/pull/38#issuecomment-7216596131)): local T0 PASS, Studio shot 0 errors, exact-head T0/T1 green. Squash-merged as `3cc1b4b`; #48 closed as superseded.
+  - **Lab hold lifted for #718 and #719 (owner):** the Architect writes the fix as bundle U, one PR that needs a separate session's review. Its merge feeds test bundle G (pin bump).
+  - **New lab work moves to short, unassigned bundles** in [TASKS](TASKS.md) (owner): U, M (MB2 → SDK-1), S (SC4 #720 → SC2 #721) and R (#663 → #722). Agent labels were removed from #358, #682 and #663.
+- **Held:** TR1h/TR3 (bundle T) until M merges, because TR1h writes `engine/control/`. Lane queues not in TASKS stay on the 2026-11-26 hold. SC1 #685 is unchanged.
+- **Next Architect run:** when U is reviewed, or when M's MB2 PR is pinned for contract review (medium). **Next run should:** (1) merge U after its independent review; (2) check that test bundle G picked up the pin; (3) contract-review MB2; (4) review SC1 #685 when it is ready.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 56 — 2026-11-27 (owner: `architect:run`, very quick: review and merge #715, #685 and any open lab PR)
 
 - **Decided:** #715 approved and merged as `289f070` ([review](https://github.com/kalharbi11/wirescape-lab/pull/715#issuecomment-7212943661)). This closes the #708 Low follow-up. #685 SC1 is held ([note](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7212949401)): it is a draft with no signed Result and no ready-state Golden. No other lab PRs were open.
