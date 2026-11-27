@@ -8,6 +8,17 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead bundle refresh — 2026-11-27 13:52 EST
+
+- Owner requested new and updated bundles any agent can claim. Filed T: TR1h #740 → TR3 #741; B: MB3 #742; released existing #622 into the task pool as N, subject to its writer gates. No advance agent assignment or draft-ahead.
+- Reconciled live B1–B5: M #725/#731 drafts; S #726 merged, #721 waits on SC1 and MB2 under A117; R #727 merged, #736 now qualifying Golden; B4 has no active product PR; B5 SC1 #685 needs integration and final Result. No product merge performed.
+- Preserve A112–A117. T and B wait for M completion; serialize T/N with active SC2 sidecar/control/spec writers and Studio work. #734 remains Architect-slotted after M with dependency scope still required; #326/#494 are closed.
+- SR16/SR21 govern writer order; SR13 governs this docs handoff. Existing owner-authorized SDK-1 draft exception stays bounded to #731.
+- Route: MB2 fallback qualification → exact-head evidence → Architect contract review → M3 acceptance by Architect. SDK-1 completes M; T/B then become available on their issue gates. OB1 still needs owner listening, real-folder round trip and candidate Pi session; these gates remain unchanged.
+- No Architect wake: no new pinned review-ready Result in the checked lane reports. Task creation and status handoff only.
+
+Signed: codex-lead, 2026-11-27, 13:52 EST
+
 ## Architect run 59b — 2026-11-27 (owner: check the inbox)
 - **A116** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225734313)): MB2 tries the contracted fallback first. A noinline `finite_samples` pin is allowed only if the fallback misses.
 - **A117** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/721#issuecomment-7225734569)): SC2 path grant and count semantics. SC2 now also waits for MB2.

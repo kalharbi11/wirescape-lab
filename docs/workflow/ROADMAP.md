@@ -32,7 +32,7 @@ as written, but it gates no new work.
 | 1 | `wirescape-test` modules MOD-1 to MOD-9 (0024 §2, §4, §9) | MOD-0 merged. T2 §9.1–§9.3 is in test PR #4. MOD-1, 2, 3 and 5 are filed (test #5–#8). MOD-1 is held on lab #665 and MOD-2 on #664 for T2 | MOD-4 after MOD-3 merges; Stage 2 MOD-6–8; Stage 3 MOD-9. PROMO-n per module after MB2 or the §9.6 fallback date (M3 r2.2) |
 | 0 | OB-h1–h6 ([0022](../../proposals/0022-ob1.1-headless-readiness.md)) | h1 facts #634, h4 #609 and h5 merged; h3 #610 released after #635; h6 #648 awaiting gates | As OB.md, plus 0023 R2.2(c): OB-h2 gate release; OB-h3 OSC Out gate and route-relisten rows |
 | 0 | CI speed (0023 §1) | Trigger edits merged with 0023 | CI-S1–S3 applied by Architect run 47 |
-| 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | MB1 merged `fad44d0`; #683 fixture fixes merged; A106 test compatibility #18 before pin bump | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3. The lab module freeze ends when MB2 merges |
+| 1 | **MB** ([M3](milestones/M3.md) MB1–MB3 + CAT-1 #358) | MB1 merged `fad44d0`; #683 fixture fixes merged; A106 test compatibility #18 before pin bump | MB1, then MB2 (one translation unit per module, generated registry, goldens identical; its re-baseline ends A39 and r1.6/r1.6a), then MB3 (bundle B #742, unassigned after M). The lab module freeze ends when MB2 merges |
 | 1 | Player gate P0 (0023 R2.2) | New | (a) render liveness: `stalled` state in status (B5); (b) controller faults degrade, never exit (B2); OB-h1, then #494 if needed |
 | 1 | Studio restart policy (0023 R2.5) | New | Growing delay, never gives up, non-modal banner (B1) |
 | 1 | M3 acceptance | T1.6a–c and TR1e merged | Accept when MB2 merges |
@@ -41,7 +41,7 @@ as written, but it gates no new work.
 | 2 | Gate P1 (e) controller stream, (e2) control OSC port ([OB](milestones/OB.md) r2.15) | [#672](https://github.com/kalharbi11/wirescape-lab/issues/672): P1-e #702 and P1-e2 #708 merged | Player hardware work proceeds through the headless pin and smoke. H-12 waits for the first smoke result. |
 | 2 | [SC](milestones/SC.md) scripts and OSC features | SC r1 contract; OSC In features unfrozen | SC1 (B1 after OB-h5 #603), SC2 (B2 after P1-e), SC4 at Stage 2; SC3 after headless H-10; SC5 design first; SC6 → SC7 |
 | 2 | Player gate P1 (0023 R2.3) | (e)/(e2) #702/#708 and (f)/(g) #701 merged | Remaining row (h) covers callback and OSC allocation. |
-| 2 | M3 TR1h, then TR3 | Unparked | Additive v0 `setTransport` and `status.transport`; Studio tempo and play control |
+| 2 | M3 TR1h, then TR3 | Bundle T filed: #740 → #741, unassigned | After M and shared writer release; additive v0 transport, then Studio controls |
 | 2 | Studio bridge | Run 2 specs | Macro UI, Mappings panel, map mode, lock toggle, bundle export, Player preview; MB3; first promotions |
 | 2 | Player v1 | Run 2 specs | Reference UI, `player.json` pages and hardware map, switching by UI, controller and Program Change, variations, UI guide |
 | 3 | Scripts and tool host | Run 2 specs | Python runner and helper library, OSC auto-sync, declared controls, Studio tool page host |

@@ -28,7 +28,7 @@ covers lane queues that are not listed here. Contracts, reviews, CI gates and SR
 
 ## Bundles
 
-Claims live on the task issues. As of 2026-11-27, M, S and R are claimed: drafts #725 and #727, and PR #726.
+Claims live on the task issues. Lead check, 2026-11-27: M, S and R remain claimed; MB2 #725 and SDK-1 #731 are drafts, SC4 #726 and #663 #727 merged, and renderer #736 is open. T, B and N are unassigned; check the release gates below before claiming.
 Rulings: A112 (SC4 bridge and headless check), A113 (MB2 order and projection), A114/A115 (MB2 isolation evidence and SDK trial runner).
 **2026-11-27 run 59:** #663 merged (`bbe07ff`), so R moves to #722. SC4 merged (`99f7c7f`), so S's SC2 waits on SC1 #685 and, under A117 (it writes `engine/control/osc_host`), on MB2 #725. A116 rules on MB2's `finite_samples` regression.
 
@@ -45,6 +45,24 @@ Rulings: A112 (SC4 bridge and headless check), A113 (MB2 order and projection), 
 
 Do not start TR1h until M merges: TR1h writes `engine/control/`, and MB2 requires no open PR there.
 
-**Next bundle, not filed yet:** **T: transport**, TR1h → TR3 ([M3](milestones/M3.md)). It opens when M merges.
+## New unassigned bundles (owner request, 2026-11-27)
+
+| Bundle | Tasks in order | Release / writer gate | Merge |
+|---|---|---|---|
+| **T: transport** | TR1h [#740](https://github.com/kalharbi11/wirescape-lab/issues/740) → TR3 [#741](https://github.com/kalharbi11/wirescape-lab/issues/741) | After M completes (#725 and #731), Gate P0/TR1e; serialize sidecar/control with active SC2, and Studio with SC1/SC2. TR3 also requires TR2. | lead, M3 |
+| **B: build verification** | MB3 [#742](https://github.com/kalharbi11/wirescape-lab/issues/742) | After M completes. Only its new workflow and tools/ci or bench helpers; no MB2 evidence-file overlap. | lead, M3 |
+| **N: neutral fixture names** | [#622](https://github.com/kalharbi11/wirescape-lab/issues/622) | After SC1 #685; serialize fixture/spec/sidecar files with active SC2 or T. Historical facts unchanged. | lead, original issue |
+
+These are task packets, not advance agent assignments. No draft-ahead for T, B or N.
+Use the claim comment in rule 1 on the first issue; read its complete paths, tests and evidence gates.
+Release gates are checked on current main, not inferred from a green draft.
+SR16/SR21 serialize overlapping writers; new packets do not change contracts.
+SC2 remains behind **SC1 and MB2**, including A117's engine/control/osc_host paths.
+SDK-1 #731 is an existing owner-authorized draft-ahead exception, not a general permission.
+
+**Parked:** #734 (VS18/libremidi) still needs the Architect's post-M slot and dependency-pin contract scope.
+#326 and #494 are closed; do not create duplicate soak work from the one diagnostic L2 overrun.
+
+Signed: codex-lead, 2026-11-27, 13:51 EST
 
 Signed: claude-architect, 2026-11-27
