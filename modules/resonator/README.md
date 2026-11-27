@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Resonator (`essentials.resonator`)
 
+Three-comb polyphonic resonant body with deterministic internal strike exciter; eight active voices.
+
 Polyphonic, three-tap comb resonator adapted from CHAOS-lite. Strike to play a
 deterministic five-millisecond mallet/pick, or patch `audio` to use an external
 exciter. `pitch` is 1 V/oct relative to C4 (261.6256 Hz at 0), and a mono

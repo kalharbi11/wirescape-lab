@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Example Random Source (`example.random_source`)
 
+Clocked sample and hold of random values with a smoothed twin output
+
 A worked SDK example: a clocked random sample & hold with a smoothed twin output. It shows a
 source module that sets its own channel count, per-voice state, deterministic seeding, a
 `CONSTANT` fast path and versioned state. Library `ws2_example_random_source`, test
