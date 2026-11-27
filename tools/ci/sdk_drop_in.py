@@ -48,7 +48,7 @@ def verify_discovery(document):
     return row
 
 def status(root):
-    return run(["git", "status", "--porcelain=v1", "--untracked-files=all"], root, True)
+    return run(["git", "status", "--porcelain=v1", "--untracked-files=all", "--ignored=matching"], root, True)
 
 def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -120,7 +120,9 @@ def trial(source, build, overlay, report):
     registry_before = registry.read_text(encoding="utf-8")
     if status(source):
         raise ValueError("baseline build changed scratch source")
-    shutil.copytree(source / "sdk/template", module)
+    # MB2 uses the descriptor only; the standalone SDK still ships a legacy
+    # manifest. Do not stage that manifest as part of the native drop-in.
+    shutil.copytree(source / "sdk/template", module, ignore=shutil.ignore_patterns("module.json"))
     cpp = module / "module.cpp"
     original = cpp.read_text(encoding="utf-8")
     identity = '"example.gain2","Example Gain"'
