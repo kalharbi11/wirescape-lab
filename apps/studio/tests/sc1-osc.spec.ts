@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from '@playwright/test';
 import { boot, settle, state } from './helpers';
+import { mockBridge } from './mock-bridge/bridge';
 import type { PatchV2 } from '../src/patch/types';
 
 const legacy: PatchV2 = {
@@ -80,4 +81,31 @@ test('SC1 canvas shows authored output label and quick kind change is one undo s
   expect(rows[0]).toMatchObject({ label: 'Filter', kind: 'gate', pattern: '/ws/knob/1' });
   expect((await page.evaluate(() => window.__wirescapeTest.historyDepth())).past).toBe(before.past + 1);
   await expect(kind).toHaveValue('gate');
+});
+
+test('SC1 real bridge quick kind sends one graph; label editor keeps metadata off setData', async ({ page }) => {
+  await mockBridge(page, { applyGraph: true });
+  await boot(page);
+  const patch: PatchV2 = { ...legacy, modules: [{ id: 1, module: 'osc.in',
+    config: { rows: [{ pattern: '/ws/knob/1', label: 'Filter' }] } }] };
+  await page.evaluate(p => window.__wirescapeTest.load(p), patch);
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph().modules.length)).toBe(1);
+  await settle(page);
+  await page.evaluate(() => { (window as any).__mockBridge.sent.length = 0; });
+  const commands = () => page.evaluate(() => (window as any).__mockBridge.sent
+    .filter((m: any) => ['applyGraph', 'loadGraph', 'setData'].includes(m.type)));
+  await page.getByTestId('osc-quick-kind-1-row1').selectOption('trigger');
+  await expect.poll(async () => (await commands()).map((m: any) => m.type)).toEqual(['applyGraph']);
+  await expect(page.getByTestId('osc-quick-kind-1-row1')).toBeEnabled();
+  const after = await state(page);
+  expect(after.modules[0].data.routes.rows[0]).toMatchObject({ label: 'Filter', kind: 'trigger' });
+  await page.getByTestId('osc-edit-1').click();
+  await page.getByTestId('osc-row1-label').fill('Cutoff');
+  await page.getByTestId('osc-editor-save').click();
+  await expect(page.getByTestId('osc-editor')).toBeHidden();
+  const sent = await commands();
+  expect(sent.map((m: any) => m.type)).toEqual(['applyGraph', 'setData']);
+  expect(sent[1].value.rows[0]).not.toHaveProperty('label');
+  expect((await state(page)).modules[0].data.routes.rows[0].label).toBe('Cutoff');
+  await expect(page.getByTestId('port-1-output-row1').locator('.port-label')).toHaveText('Cutoff');
 });
