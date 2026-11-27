@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead check — 2026-11-26 21:17 EST (headless owner exception)
+
+- Owner continues managing headless through bundles E and F; previous stop-at-#17 instruction superseded there. Lab/test existing-task hold remains. Normal headless prerequisites, independent reviews and exact CI remain; H-7 real-engine portion still waits on lab P1-e. No lab successor release implied. Usage/reset unavailable (unknown).
+- MM1 #649 auto-merged; B1 continues existing SC1 #685 native diagnosis only. Merged facts protocol #678 `be979bb9b36d05447576599cb8223d9594a37a5c`: signed Result, neutral protocol-only diff and exact scoped Lab 45925750045 success (SR13/SR18/SR20(c)); all owner numeric outcomes remain unmeasured. B3 stops, B4 holds.
+- Merged inbox-only #688 `95553fe3937c31503390ce8f4b58bce6e1ec1960` on scoped Lab 45926754403 success. B5 #627 now diagnostic head fb99c05, ARM64 A78 trace pending; inbox is a scope request, not approval or waiver. No product fix authorized without cause and path authority.
+- B2 #638 historical red cannot run via current-head-only dev-run. Authorized one temporary diagnostic-only PR at 29c0736, test-only against 13acf73, DO NOT MERGE/no Closes, close after pinning actual failure. Existing task evidence collection only; no new product task or rollback/force-push. #660 retains existing predecessor gate.
+- Next: planner may run now. Architect inbox contains A105 closure and B5 A78 scope; no automatic wake. Existing SC1/#638/#627 continue diagnostics, not review-ready. OB1 owner listening/real-folder/Pi evidence and acceptance remain unchanged; headless E/F normal dependencies remain explicit.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Lead check — 2026-11-26 20:58 EST (owner: finish started tasks only; planner pending)
 
 - Owner hold supersedes self-release, draft-aheads and later lane queues. Finish existing lab PRs only: B1 #649/#685; B2 #638/#660; B3 #678; B5 #627. B4 has no started product PR, so holds. No new task/claim in lab, test or headless based on a merge. Usage/reset unavailable (unknown).
