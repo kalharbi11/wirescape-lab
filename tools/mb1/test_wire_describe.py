@@ -34,7 +34,10 @@ class DescriptorEquality(unittest.TestCase):
         result = subprocess.run([str(DESCRIBE.resolve())], check=True,
                                 capture_output=True, text=True, encoding="utf-8",
                                 timeout=30)
-        descriptors = index(json.loads(result.stdout)["modules"])
+        rows = json.loads(result.stdout)["modules"]
+        ids = [row["id"] for row in rows]
+        self.assertEqual(ids, sorted(ids), "MB2 registry must be ordered by module ID")
+        descriptors = index(rows)
         paths = sorted((ROOT / "modules").glob("*/module.json"))
         paths += sorted((ROOT / "sdk/examples").glob("*/module.json"))
         manifests = index([read_json(path) for path in paths])
