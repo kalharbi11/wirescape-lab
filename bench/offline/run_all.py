@@ -33,7 +33,7 @@ from r2_probe import collect_r2
 ROOT = Path(__file__).resolve().parents[2]
 RATE = 48000
 BLOCKS = (64, 128, 256)
-MODULE_FIXTURE = ROOT / "tools/foundation/fixtures/known_module_ids.txt"
+MODULE_SETS = ROOT / "bench/module_sets.json"
 PATCHES = ROOT / "apps/studio/patches"
 COST_HELPER = ROOT / "tools/bench/abi2_cost.py"
 NUMBER = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?f?"
@@ -47,8 +47,12 @@ def num(text):
 
 
 def modules():
-    return [line.strip() for line in MODULE_FIXTURE.read_text().splitlines()
-            if line.strip() and not line.startswith("#")]
+    # A103: preserve the historical offline diagnostic workload, not the
+    # growing registry fixture. OSC Out was not in the original 33 IDs.
+    golden = json.loads(MODULE_SETS.read_text(encoding="utf-8"))["golden_set"]
+    if len(golden) != 34 or len(set(golden)) != 34 or "osc.out" not in golden:
+        raise ValueError("invalid frozen Golden module set for offline diagnostics")
+    return sorted(module_id for module_id in golden if module_id != "osc.out")
 
 
 def parameter_info(text):

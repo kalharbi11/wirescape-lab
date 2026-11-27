@@ -38,7 +38,7 @@ add_test(NAME ui_patch_conformance COMMAND ui_patch_conformance
   "${CMAKE_CURRENT_SOURCE_DIR}/ui_starters.json"
   "${PROJECT_SOURCE_DIR}/../apps/studio/public/wirescape_modules.json")
 add_test(NAME ui_catalogue_sync COMMAND ${Python3_EXECUTABLE}
-  "${PROJECT_SOURCE_DIR}/../tools/gen_ui_catalogue.py" --check)
+  "${PROJECT_SOURCE_DIR}/../tools/gen_ui_catalogue.py" --check --describe $<TARGET_FILE:wire-describe>)
 add_test(NAME abi2_offline_play COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/../host/cli/play_tests.py $<TARGET_FILE:wirescape_cli> "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json")
 set_tests_properties(abi2_offline_play PROPERTIES TIMEOUT 45)
 add_test(NAME class_demo_patches COMMAND ${Python3_EXECUTABLE}

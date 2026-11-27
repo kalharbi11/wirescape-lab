@@ -22,7 +22,7 @@ class UiCatalogueTests(unittest.TestCase):
         for pattern in ('modules/*/module.json', 'modules/*/dsp.h',
                         'sdk/examples/*/module.json', 'sdk/examples/*/dsp.h',
                         'apps/studio/public/*catalogue*.json', 'apps/studio/public/wirescape_modules.json',
-                        'tools/gen_ui_catalogue.py'):
+                        'tools/gen_ui_catalogue.py', 'tools/foundation/fixtures/known_module_ids.txt'):
             for path in ROOT.glob(pattern):
                 target = self.root / path.relative_to(ROOT)
                 target.parent.mkdir(parents=True, exist_ok=True)
