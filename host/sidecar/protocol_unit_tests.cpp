@@ -1,4 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
 // Compile the real helper with Qt's keyword macro in scope, before session.h includes it.
 #include <nlohmann/json.hpp>
 #define slots
@@ -356,6 +367,146 @@ void controller_stream_parallel_ingress() {
     }
 }
 
+// A110: the real Service owns the authoritative admission bit. A backend
+// that throws before joining may still invoke its callback into retained
+// storage; the new controller stream must not report that callback.
+void controller_stream_quiesced_midi() {
+    using namespace wirescape::midi;
+    struct LateBackend : Backend {
+        Endpoint endpoint{"Late MIDI", "test:late"};
+        Callback callback{};
+        bool close_fails = false;
+        std::vector<Endpoint> endpoints() override { return {endpoint}; }
+        bool open(const Endpoint &, Callback cb) override { callback = cb; return true; }
+        void close(const Endpoint &) override {
+            if (close_fails) throw std::runtime_error("test close fault");
+            callback = {};
+        }
+        void emit(uint8_t value) {
+            const uint8_t cc[]{0xB0, 7, value};
+            callback.message(callback.context, cc, sizeof(cc), app_engine_clock_ns());
+        }
+    };
+    auto late = std::make_unique<LateBackend>();
+    auto *source = late.get();
+    ObservedMidi observed(false, false, std::move(late));
+    Service service(observed, {});
+    check(service.enable({source->endpoint.name, source->endpoint.system_name}));
+    service.poll();
+    auto &capture = observed.controller_stream();
+    capture.configure({"cc"}, false);
+    source->emit(1);
+    auto first = capture.drain();
+    check(first.size() == 1 && first[0]["value"] == 1);
+    source->close_fails = true;
+    bool threw = false;
+    try { service.stop(); } catch (const std::exception &) { threw = true; }
+    check(threw);
+    source->emit(2); // deliberately late callback after Service accepting=false
+    const auto quiesced = capture.drain();
+    source->close_fails = false;
+    service.stop(); // close/join before destruction, even if the assertion fails
+    check(quiesced.empty());
+}
+
+// A110: actual loopback ingress into a Session, with a real occupied
+// Transport writer slot. Commit a graph before releasing that slot;
+// the pending old-filter event must be discarded and counted once.
+void controller_stream_graph_commit() {
+#ifdef _WIN32
+    WSADATA data{};
+    check(WSAStartup(MAKEWORD(2, 2), &data) == 0);
+    struct SocketCleanup { ~SocketCleanup() { WSACleanup(); } } cleanup;
+    using Socket = SOCKET;
+    constexpr Socket invalid = INVALID_SOCKET;
+    auto close_socket = [](Socket fd) { closesocket(fd); };
+#else
+    using Socket = int;
+    constexpr Socket invalid = -1;
+    auto close_socket = [](Socket fd) { close(fd); };
+#endif
+    struct OwnedSocket {
+        Socket fd;
+        decltype(close_socket) closer;
+        ~OwnedSocket() { if (fd != invalid) closer(fd); }
+    };
+    OwnedSocket reserve{socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), close_socket};
+    check(reserve.fd != invalid);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    check(bind(reserve.fd, reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == 0);
+#ifdef _WIN32
+    int size = sizeof(address);
+#else
+    socklen_t size = sizeof(address);
+#endif
+    check(getsockname(reserve.fd, reinterpret_cast<sockaddr *>(&address), &size) == 0);
+    const uint16_t port = ntohs(address.sin_port);
+    close_socket(reserve.fd); reserve.fd = invalid;
+    OwnedSocket sender{socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), close_socket};
+    check(sender.fd != invalid && port != 0);
+
+    Options options;
+    options.null_audio = true;
+    options.settings.clear(); // no physical devices or preferences write
+    Session session(options);
+    session.start();
+    const Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+            {{"id", 9}, {"module", "osc.in"}, {"config", {{"port", port},
+                {"rows", Json::array({{{"pattern", "/x"}, {"enabled", true}}})}}}}})},
+        {"connections", Json::array()}};
+    auto call = [&](Json command) {
+        command["v"] = 0; command["id"] = "controller-commit";
+        auto result = session.reply({std::move(command), {}, {}});
+        if (result["ok"] != true) throw std::runtime_error(result.dump());
+        return result;
+    };
+    const auto first_gen = call({{"type", "loadGraph"}, {"patch", patch}})["gen"];
+    call({{"type", "controllerStream"}, {"kinds", Json::array({"osc"})}});
+    auto send = [&] {
+        const char packet[]{'/', 'x', 0, 0, ',', 'i', 0, 0, 0, 0, 0, 7};
+        check(sendto(sender.fd, packet, int(sizeof(packet)), 0,
+                     reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == int(sizeof(packet)));
+    };
+    auto received = [&] {
+        const auto status = session.status();
+        const auto &routes = status["status"]["osc"]["routes"];
+        return !routes.empty() && (routes[0]["received"].get<uint64_t>() +
+                                    routes[0]["enqueue_dropped"].get<uint64_t>()) != 0;
+    };
+    auto wait_ingress = [&] {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+        while (!received() && std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        check(received());
+    };
+    std::istringstream input("");
+    std::ostringstream output;
+    Transport held(input, output);
+    held.send({{"type", "controller"}, {"gen", first_gen}, {"probe", true}}, true);
+    check(!held.controller_available());
+    send(); wait_ingress();
+    const auto next_gen = call({{"type", "loadGraph"}, {"patch", patch}})["gen"];
+    check(next_gen != first_gen);
+    held.start(); held.finish();
+    check(held.controller_available());
+    check(session.controller().is_null());
+    check(session.status()["status"]["controller"]["dropped"]["latest"] == 1);
+    send(); wait_ingress();
+    Json current;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    do {
+        current = session.controller();
+        if (!current.is_null()) break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    } while (std::chrono::steady_clock::now() < deadline);
+    check(current["gen"] == next_gen && current["events"].size() == 1 &&
+          current["events"][0]["address"] == "/x" && current["events"][0]["matched"] == true);
+    session.shutdown();
+}
+
 void d5_phase_deadline_regression() {
     using Clock = std::chrono::steady_clock;
     using Ms = std::chrono::milliseconds;
@@ -458,6 +609,8 @@ int run_tests() {
     controller_stream_osc_codec();
     controller_stream_osc_capture();
     controller_stream_parallel_ingress();
+    controller_stream_quiesced_midi();
+    controller_stream_graph_commit();
     RenderHistogram histogram;
     check(histogram.percentile(50) == 0);
     allocation_watch::count.store(0);
