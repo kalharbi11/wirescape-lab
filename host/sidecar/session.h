@@ -91,6 +91,7 @@ class Session {
     std::string token_, device_, audio_state_ = "no-device", audio_reason_, audio_error_;
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
+    uint64_t osc_filter_generation_ = 0; // control-owned; each worker captures an immutable copy
     std::set<uint32_t> used_ids_;
     // A78: latest refused config per blocked live module, never a stale graph.
     uint64_t next_defer_id_ = 0;
@@ -151,6 +152,7 @@ class Session {
     bool stop_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) noexcept;
     void start_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
                     bool strict = false);
+    osc::ControllerObserver controller_observer(uint64_t route_generation) noexcept;
     void start_osc();
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});

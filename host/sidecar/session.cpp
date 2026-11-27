@@ -687,8 +687,23 @@ void Session::start_midi(std::chrono::steady_clock::time_point now, bool strict)
     if (!defer_close) midi_failed(midi_->recovering() ? "worker-failed" : "start-failed", now);
     if (strict) throw Refusal("unavailable", "Cannot start MIDI subscriptions");
 }
+osc::ControllerObserver Session::controller_observer(uint64_t route_generation) noexcept {
+    return {&observer_->controller_stream(),
+            [](void *context) noexcept {
+                return static_cast<ControllerStream *>(context)->osc_enabled();
+            },
+            [](void *context, uint16_t port, const osc::Message &message, bool matched,
+               bool disabled_only, uint64_t generation) noexcept {
+                static_cast<ControllerStream *>(context)->osc_message(port, message, matched,
+                                                                     disabled_only, generation);
+            },
+            route_generation};
+}
 void Session::start_osc() {
-    osc_->start(active_, patch_.dump());
+    // prepare stops/joins any previous worker before installing the observer.
+    osc_->prepare(active_, patch_.dump());
+    osc_->observe_controller(controller_observer(osc_filter_generation_));
+    osc_->activate();
     osc_out_->start(); // control-owned sender; never touches the render thread
 }
 bool Session::refresh_devices(bool audio, bool probe_rates, const std::string &target) {
@@ -1028,6 +1043,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
                 monitor_->configure(patch_);
                 telemetry_.swap(next_telemetry); // Engine2 counts restart at every replan.
                 ++generation_;
+                ++osc_filter_generation_;
                 std::cerr << "commit path=live gen=" << generation_ << '\n';
                 return true;
             }
@@ -1196,6 +1212,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     osc_out_->retire(); // old graph is now irrevocably retired, not merely paused
     osc_out_.swap(next_out); // only after a successful D5 commit; rollback retains the old bus
     ++generation_;
+    ++osc_filter_generation_;
     keyboard_.fill(false);
     used_ids_.swap(ids);
     pending_configs_.swap(next_pending);
@@ -1428,6 +1445,7 @@ Json Session::apply(const Json &command) {
             Json result = previous.engine ? Json{{"freshModules", std::move(fresh)}} : Json(nullptr);
             persist(); // only after the replacement stream is running
             ++generation_;
+            ++osc_filter_generation_;
             if (previous.engine) keyboard_.fill(false);
             return result;
         } catch (...) {
@@ -1664,6 +1682,7 @@ Json Session::apply(const Json &command) {
                 next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio);
                 next_in->observe(monitor_.get());
                 next_in->prepare(active_, staged_patch.dump()); // no socket opens yet
+                next_in->observe_controller(controller_observer(osc_filter_generation_ + 1));
             }
         } else if (type == "osc.out") {
             need(osc_out_->buses().count(id) != 0, "unavailable", "OSC Out route unavailable");
@@ -1678,6 +1697,7 @@ Json Session::apply(const Json &command) {
         // invalid, busy or unavailable. Only accepted writes reach here.
         if (next_in) {
             osc_->stop();
+            ++osc_filter_generation_; // only the accepted filter edit retires pending OSC
             osc_.swap(next_in);
             osc_->activate();
         }
@@ -1882,7 +1902,7 @@ Json Session::hello() const {
             {"midi", midi_status()}};
 }
 Json Session::controller() {
-    auto events = observer_->controller_stream().drain();
+    auto events = observer_->controller_stream().drain(osc_filter_generation_);
     if (events.empty()) return nullptr;
     auto value = base();
     value["type"] = "controller";
