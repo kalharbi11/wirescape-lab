@@ -1284,6 +1284,16 @@ with tempfile.TemporaryDirectory() as consent_dir:
         finally:
             consent.close()
 
+# P1-e2 #672: out-of-range decimal values use the normal startup refusal.
+for port_arg in ('1023', '65536', '99999999999999999999'):
+    result = subprocess.run([str(Path(BINARY).resolve()), '--null-audio',
+                             '--control-osc-port', port_arg],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=10)
+    assert result.returncode == 1 and not result.stdout, result
+    assert b'Control OSC port outside 1024..65535' in result.stderr, result
+
+
 # P1-e2 #672, 0025 §3.5 row 6: patch-independent OSC control listener.
 with tempfile.TemporaryDirectory() as control_dir:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
