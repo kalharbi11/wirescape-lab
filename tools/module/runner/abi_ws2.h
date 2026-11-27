@@ -221,7 +221,9 @@ public:
                 o.errors.push_back("param[" + std::to_string(i) + "] duplicate id" +
                                    (valid_id ? ": " + id : " (malformed)"));
             if (!std::isfinite(p.minimum) || !std::isfinite(p.maximum) || !std::isfinite(p.initial) ||
-                !(p.minimum < p.maximum) || p.initial < p.minimum || p.initial > p.maximum)
+                // A finite singleton range (min == max == initial) is valid, as the engine
+                // and ABI treat it (lab #719); inverted ranges stay invalid.
+                !(p.minimum <= p.maximum) || p.initial < p.minimum || p.initial > p.maximum)
                 o.errors.push_back("param[" + std::to_string(i) + "] range/initial invalid" +
                                    (valid_id ? ": " + id : " (malformed id)"));
             o.params.push_back({id, safe(p.name), safe(p.unit), p.minimum, p.maximum,
