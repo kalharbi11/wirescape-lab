@@ -801,6 +801,7 @@ No new `wirescape-test` tasks come from 2b.
 | Graphical sequencer editing in the Player | after Player v1, if cheap to test | not built |
 | Timestamped OSC bundles for scripts | a facts row shows untimed loopback jitter is audible | untimed UDP |
 | 14-bit CC, NRPN, pitch bend, clock in the controller stream | a `player.json` need | not reported |
+| Text and note-grid script control values in the Player API (Architect A108, transcribed) | the owner wants to edit text or note grids on the Player UI | not Player controls in v1 (a check warning); `button` is a momentary press (H-11a) |
 | Script graphics | after SC7 | none |
 | Engine fallback OSC In default bytes | OB-h6 shows no patch relies on them | unchanged |
 
