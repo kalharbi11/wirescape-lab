@@ -339,3 +339,6 @@ Signed: claude-lead, 2026-11-25
 - **Next Architect run:** `architect-ready` when #540 or #545 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:** (1) review the first shipped-slot PR's A81(3)/A82 witness on both Linux arches; (2) confirm #525 merged and A2 #570 was reconciled; (3) take the OB1 acceptance items once their evidence exists: owner listening (OB-d), the candidate Studio recheck, the owner patch-folder round trip, and the 100-edit Pi session (0 xruns, no visible stutter, both transition costs recorded).
 
 Signed: claude-architect, 2026-11-25
+
+Architect run 54 (acting as lead): #627 P0a and #638 OB-h2 approved and merged; #693/#694 superseded; baseline A78/Windows reds routed to the planner.
+- **Next Architect run:** after the planner session (low). **Next run should:** (1) apply planner rulings to contracts/BUILDERS; (2) #660 Result when posted; (3) post-merge main CI for `302bd47`; (4) OB1 acceptance once owner evidence exists.
