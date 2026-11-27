@@ -37,7 +37,7 @@ Rulings: A112 (SC4 bridge and headless check), A113 (MB2 order and projection), 
 | **U: unblock wirescape-test** (done) | #718 + #719 C4 | — | Merged as `3d3db7a` (#724), 2026-11-27. Test bundle G may bump the pin. |
 | **M: module build** | MB2+CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) → SDK-1 [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) | per [M3](milestones/M3.md) MB2 and SDK-1 rows | Ends the lab module freeze and accepts M3. Promotions from `wirescape-test` wait on it. |
 | **S: Studio export and OSC** | SC4 [#720](https://github.com/kalharbi11/wirescape-lab/issues/720) → SC2 [#721](https://github.com/kalharbi11/wirescape-lab/issues/721) (after SC1 #685 merges) | `apps/studio/`, `apps/desktop/main.ts`; SC2 also `host/osc/`, `host/sidecar/` status, protocol schema | The Studio→Player bundle path and the OSC In indicator ([SC](milestones/SC.md)). |
-| **R: render and engine gaps** | #663 `feedback_block` default → renderer UMP events [#722](https://github.com/kalharbi11/wirescape-lab/issues/722) | engine prepare for #663; `tools/render/` for #722 | Small fixes. #722 gives MIDI modules real render coverage (test LR-13). |
+| **R: render and engine gaps** (done: #663 `bbe07ff`, #722 `74f4a3a`) | #663 `feedback_block` default → renderer UMP events [#722](https://github.com/kalharbi11/wirescape-lab/issues/722) | engine prepare for #663; `tools/render/` for #722 | Small fixes. #722 gives MIDI modules real render coverage (test LR-13). |
 
 **Overlap.** M, S and R write different areas. Two files are shared:
 - `engine/CMakeLists.txt`: M owns it, so R rebases onto M on conflict.
