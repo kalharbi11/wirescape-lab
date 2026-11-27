@@ -15,6 +15,7 @@
 #include "runtime_patch.h"
 #include "session.h"
 #include <iostream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -230,6 +231,36 @@ void controller_stream_osc_codec() {
         check(legacy_packet); ++delivered;
     }));
     check(delivered == 1);
+
+    // Decode actual mixed wire tags to the same bounded capture used by
+    // the future worker hook. Non-finite or nonnumeric args are skipped,
+    // not converted to JSON null, and later numeric args fill free slots.
+    ControllerStream capture;
+    capture.configure({"osc"}, true);
+    Message mixed;
+    mixed.address = "/mixed";
+    mixed.count = 8;
+    mixed.arguments[0].type = 'h';
+    mixed.arguments[0].wide_integer = INT64_C(-9007199254740993);
+    mixed.arguments[1].type = 'f';
+    mixed.arguments[1].real = std::numeric_limits<float>::quiet_NaN();
+    mixed.arguments[2].type = 's';
+    mixed.arguments[3].type = 'd';
+    mixed.arguments[3].wide_real = 0.25;
+    mixed.arguments[4].type = 'T';
+    mixed.arguments[5].type = 'F';
+    mixed.arguments[6].type = 'i';
+    mixed.arguments[6].integer = 5;
+    mixed.arguments[7].type = 'N';
+    {
+        allocation_watch::ThreadScope scope;
+        capture.osc_message(9000, mixed, false, false);
+        allocations = scope.allocations();
+    }
+    check(allocations == 0);
+    const auto events = capture.drain();
+    check(events.size() == 1 && events[0]["more"] == true);
+    check(events[0]["args"] == Json::array({INT64_C(-9007199254740993), 0.25, 1, 0}));
 }
 
 // P1-e: direct capture boundary before the worker hook is granted.
