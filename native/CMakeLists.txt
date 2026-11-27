@@ -230,16 +230,20 @@ target_link_libraries(real_callback_rt_watch_tests PRIVATE
 add_dependencies(real_callback_rt_watch_tests qt_free_fake_portaudio)
 set(_rt_watch_args "$<TARGET_FILE_DIR:qt_free_fake_portaudio>"
   "$<TARGET_FILE:qt_free_fake_portaudio>" "$<TARGET_FILE_DIR:wirescape_engine_sidecar>")
-# Red-first: both injections must fail the unmodified zero-count assertions.
+# Raw --inject-* modes intentionally fail (red-first evidence on 952057f).
+# Normal CI runs the unchanged zero-count check and independent witnesses,
+# each of which must detect exactly its own injected violation in every block.
+add_test(NAME abi2_real_callback_rt_watch_clean
+  COMMAND real_callback_rt_watch_tests ${_rt_watch_args})
 add_test(NAME abi2_real_callback_rt_watch_allocation
-  COMMAND real_callback_rt_watch_tests ${_rt_watch_args} --inject-allocation)
+  COMMAND real_callback_rt_watch_tests ${_rt_watch_args} --expect-allocation)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_compile_definitions(real_callback_rt_watch_tests PRIVATE WS_CALLBACK_LOCK_WATCH=1)
   target_link_options(real_callback_rt_watch_tests PRIVATE
     "-Wl,--wrap=pthread_mutex_lock" "-Wl,--wrap=pthread_mutex_trylock")
   add_test(NAME abi2_real_callback_rt_watch_lock
-    COMMAND real_callback_rt_watch_tests ${_rt_watch_args} --inject-lock)
+    COMMAND real_callback_rt_watch_tests ${_rt_watch_args} --expect-lock)
   set_tests_properties(abi2_real_callback_rt_watch_lock PROPERTIES TIMEOUT 30)
 endif()
-set_tests_properties(abi2_real_callback_rt_watch_allocation PROPERTIES TIMEOUT 30)
+set_tests_properties(abi2_real_callback_rt_watch_clean abi2_real_callback_rt_watch_allocation PROPERTIES TIMEOUT 30)
 
