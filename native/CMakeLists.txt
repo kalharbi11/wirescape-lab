@@ -135,6 +135,19 @@ set_tests_properties(abi2_ob_a3_sidecar_no_write PROPERTIES TIMEOUT 60)
 add_test(NAME abi2_sidecar_capture_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/capture_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar>)
 set_tests_properties(abi2_sidecar_capture_tests PROPERTIES TIMEOUT 90)
+# A93 uses fixed localhost ports and Linux VmRSS; serialize with other tests.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_test(NAME abi2_sidecar_patch_switch_tests COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/patch_switch_tests.py
+    $<TARGET_FILE:wirescape_engine_sidecar>)
+  set_tests_properties(abi2_sidecar_patch_switch_tests PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)
+  # Opt-in long diagnostic: ctest -C OBH3Long -R ^ob_h3_patch_switch_1000$ -V.
+  # Excluded from normal Release and sanitizer inventories; the 200-switch gate stays mandatory.
+  add_test(NAME ob_h3_patch_switch_1000 COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/patch_switch_tests.py
+    $<TARGET_FILE:wirescape_engine_sidecar> --switches 1000 CONFIGURATIONS OBH3Long)
+  set_tests_properties(ob_h3_patch_switch_1000 PROPERTIES TIMEOUT 600 RUN_SERIAL TRUE)
+endif()
 add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/golden_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar> ${CMAKE_CURRENT_SOURCE_DIR}/../tests/protocol/golden_v0.ndjson)
 set_tests_properties(sidecar_golden PROPERTIES TIMEOUT 180)

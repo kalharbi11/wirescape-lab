@@ -398,6 +398,79 @@ void test_a86_route_release() {
     std::cout << "A86 wire sent=" << state.sent << " dropped=" << state.dropped
               << " stale blocks suppressed <=1; old gate/note released\n";
 }
+// #631: force a poll during each half-published gate block. Row 2 is a
+// distinct sentinel: its datagram proves the worker passed row 1 while the
+// latter's publication was paused. No timing assumption about poll cadence.
+// This isolates the still-mode mixed-block candidate, not the MIDI source.
+void test_631_gate_snapshot_interleaving() {
+    using namespace wirescape::osc;
+    OutConfiguration cfg;
+    Json rows = Json::array();
+    for (unsigned i = 0; i < 8; ++i) {
+        cfg.rows[i].enabled = i < 2;
+        cfg.rows[i].kind = 1;
+        rows.push_back({{"kind", "gate"}, {"enabled", i < 2}});
+    }
+    const Json patch = {{"modules", Json::array({{{"id", 19}, {"module", "osc.out"},
+        {"config", {{"rows", rows}, {"notes", {{"enabled", false}}}}}}})}};
+    a86_wire.clear();
+    a86_count.store(0);
+    OutHost sender(patch.dump(), a86_send);
+    auto *bus = sender.buses().at(19);
+    const auto mark0 = out_wire_mark(cfg.rows[0].address, 1, cfg.rows[0].deadband, true);
+    const auto mark1 = out_wire_mark(cfg.rows[1].address, 1, cfg.rows[1].deadband, true);
+    auto &gate = bus->rows[0];
+    auto &sentinel = bus->rows[1];
+    gate.publish(&mark0, true, 0.f, 0, 0);
+    sentinel.publish(&mark1, true, 0.f, 0, 0);
+    unsigned sentinel_count = 0;
+    auto poll = [&](unsigned expected_sentinels, std::initializer_list<float> expected_gate) {
+        sender.start();
+        const auto deadline = std::chrono::steady_clock::now() + 2s;
+        // The callback is single-writer. Join before inspecting its vector.
+        // Minimum message count is enough to wake us: if an unexpected gate
+        // message came first, wait for the sentinel as well by stopping only
+        // after a known minimum and checking the complete joined trace.
+        const auto minimum = expected_sentinels + unsigned(expected_gate.size());
+        while (a86_count.load(std::memory_order_acquire) < minimum &&
+               std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(1ms);
+        sender.stop();
+        std::vector<float> actual;
+        sentinel_count = 0;
+        for (const auto &message : a86_wire) {
+            if (message.address == "/ws/row/1") actual.push_back(message.value);
+            if (message.address == "/ws/row/2") ++sentinel_count;
+        }
+        check(sentinel_count == expected_sentinels, "#631 sentinel poll observed");
+        check(actual == std::vector<float>(expected_gate),
+              "#631 gate trace contains only completed-block edges");
+    };
+    poll(1, {0.f});
+    // Model the actual OutRow::publish stores in their production order;
+    // pause after value, before edge counters/blocks and final sequence.
+    gate.sequence.fetch_add(1, std::memory_order_acq_rel);
+    gate.value.store(1.f, std::memory_order_release);
+    sentinel.publish(nullptr, true, 1.f, 1, 0);
+    poll(2, {0.f});
+    gate.rises.fetch_add(1, std::memory_order_release);
+    gate.blocks.fetch_add(1, std::memory_order_release);
+    gate.sequence.fetch_add(1, std::memory_order_release);
+    sentinel.publish(nullptr, true, 0.f, 0, 1);
+    poll(3, {0.f, 1.f});
+    gate.sequence.fetch_add(1, std::memory_order_acq_rel);
+    gate.value.store(0.f, std::memory_order_release);
+    sentinel.publish(nullptr, true, 1.f, 1, 0);
+    poll(4, {0.f, 1.f});
+    gate.falls.fetch_add(1, std::memory_order_release);
+    gate.blocks.fetch_add(1, std::memory_order_release);
+    gate.sequence.fetch_add(1, std::memory_order_release);
+    sentinel.publish(nullptr, true, 0.f, 0, 1);
+    poll(5, {0.f, 1.f, 0.f});
+    check(sender.states().at(0).dropped == 0, "#631 coherent edges were not dropped");
+    std::cout << "#631 forced partial rise/fall: gate trace 0,1,0; five sentinel polls; zero drops\n";
+}
+
 // A deterministic sender seam observes the actual OSC Out DSP bus. Panic
 // while a gate stays high must not inject an extra 0/1 pair on the wire.
 void test_osc_out_held_gate_reset_sender() {
@@ -1630,6 +1703,7 @@ int main() {
         test_osc_out_budget();
         test_osc_out_held_gate_reset_sender();
         test_a86_route_release();
+        test_631_gate_snapshot_interleaving();
         using wirescape::audio::classify_rates;
         const auto supported = classify_rates({0, -1, 0}, -1);
         const auto invalid = classify_rates({-1, -1, -1}, -1);

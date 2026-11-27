@@ -38,3 +38,9 @@ add_test(NAME abi2_ob_a3_renderer_no_write COMMAND ${Python3_EXECUTABLE}
   "${PROJECT_SOURCE_DIR}/../host/examples/Six_Essentials_Demo.json"
   "${CMAKE_CURRENT_SOURCE_DIR}/cases/frequency-step.json")
 set_tests_properties(abi2_ob_a3_renderer_no_write PROPERTIES TIMEOUT 120)
+
+# OB-h6: device-free actual renderer and patch-folder checker contract.
+add_test(NAME abi2_ob_h6_patch_check
+  COMMAND ${CMAKE_COMMAND} -E env "WIRESCAPE_TEST_RENDERER=$<TARGET_FILE:wirescape_render>"
+    ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/test_patch_check.py")
+set_tests_properties(abi2_ob_h6_patch_check PROPERTIES TIMEOUT 240)

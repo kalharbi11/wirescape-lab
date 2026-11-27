@@ -73,6 +73,35 @@ export class StatusBar {
     right.append(this.clock, this.clockBtn, this.osc, this.midi, panic, settings);
 
     this.root.append(left, right);
+    // Non-modal, passive banner above the status bar. It never captures focus
+    // or pointer input and does not change the engine/document state.
+    const banner = el('div', '', '');
+    banner.dataset.testid = 'engine-restart-banner';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.hidden = true;
+    Object.assign(banner.style, {
+      position: 'fixed', left: '50%', bottom: 'calc(var(--foot-h) + 8px)',
+      transform: 'translateX(-50%)', zIndex: '390', maxWidth: 'calc(100vw - 24px)',
+      padding: '8px 14px', background: 'var(--card)', color: 'var(--ink)',
+      border: '1px solid var(--rust)', borderRadius: '4px', pointerEvents: 'none',
+      fontSize: '12px', textAlign: 'center',
+    });
+    this.root.append(banner);
+    const bridge = (window as Window & {
+      wirescapeRestartPolicy?: { subscribe(cb: (message: Record<string, unknown>) => void): () => void };
+    }).wirescapeRestartPolicy;
+    bridge?.subscribe(message => {
+      if (message.type !== 'app.engineRestartPolicy') return;
+      banner.hidden = message.banner !== true;
+      if (banner.hidden) { banner.textContent = ''; return; }
+      const delay = typeof message.delayMs === 'number' ? message.delayMs : 0;
+      banner.textContent = message.phase === 'waiting'
+        ? 'Engine exited repeatedly. Retrying in ' + (delay / 1000) + ' s. Your patch is kept.'
+        : message.phase === 'recovering'
+          ? 'Engine restarted. Monitoring recovery; your patch is kept.'
+          : 'Engine exited repeatedly. Restarting; your patch is kept.';
+    });
   }
 
   setEngineState(state: 'real' | 'simulated' | 'restarting'): void {

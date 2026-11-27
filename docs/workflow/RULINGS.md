@@ -78,6 +78,15 @@ Status: **live** (binds a current contract) · **spent** (its task merged or clo
 | A94 | 2026-11-26 | OB-h6 patch check tool | milestones/OB.md:92 | live |
 | A95 | 2026-11-26 | E3c CC Learn occupancy: eight-row mapping slot is truth | milestones/M4.md:74 | live |
 | A96 | 2026-11-26 | OscOutEditor.ts granted for preset Save/Load only | ARCHITECT_INBOX.md:45; CURRENT.md:37 | evidence only |
+| A97 | 2026-11-26 | MB1 L1: manifest field classes; known IDs from wire-describe | milestones/M3.md (MB note, L1 field classes) | live |
+| A98 | 2026-11-26 | #631 historical witness at 48479fc and disposition | milestones/OB.md r2.14 (1) | live |
+| A99 | 2026-11-26 | OB-h2 #601 OSC Out parser and staging paths | milestones/OB.md r2.14 (2) | live |
+| A100 | 2026-11-26 | E3b live Groove support via catalogue `data_slots`, not a named capability | milestones/M4.md (E3b note) | live |
+| A101 | 2026-11-26 | MM1 partial `applyGraph` ACK: any `unapplied` event is a refusal; one compensating `applyGraph` of the prior state (0024 §9.5) | milestones/MM.md (I1) | live |
+| A102 | 2026-11-26 | OB-h6 #648: opt-in renderer timing in `tools/render/main.cpp` plus its CTest; flag unset stays byte-identical | PR #648 comment 7205338334 | done (#648 merged `1a0efe6`) |
+| A103 | 2026-11-26 | MB1: SDK examples keep `ws2_example_<folder>`; `bench/offline` keeps its 33 IDs | issue #363 comment 7205339238 | live |
+| A104 | 2026-11-26 | P0b #620: narrow host-wrapper scope (`midi_host`, `osc_host` lifecycle and health, one control-thread accessor) | issue #620 comment 7205340357 | live |
+| A105 | 2026-11-26 | OB-h3 #602 reopened: #610 merged unqualified; the test stays; B5 fixes first; bounded exception for one x64 ASan signature, expires on fix merge or 2026-11-29 | issue #602 comment 7205547306; milestones/OB.md (OB-h3 row) | live |
 
 Not found: A7, A8, A9, A24, A25, A29, A30, A33, A34, A36, A38, A43, A47, A48, A49, A65, A66, A72, A73, A74.
 Ambiguous, left out: A1-A4 of 0006 are assumptions (M1.md:49) and A2 is also a KNOWN_ISSUES row; A5 and A11 are

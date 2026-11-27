@@ -6,6 +6,8 @@ type Wire = Record<string, unknown>;
 const listeners = new Set<(message: Wire) => void>();
 let requestedInitialHello = false;
 let lastHello: Wire | null = null;
+let lastRestartPolicy: Wire | null = null;
+const restartListeners = new Set<(message: Wire) => void>();
 
 function checkedCommand(value: Wire): string {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Invalid command');
@@ -124,5 +126,29 @@ contextBridge.exposeInMainWorld('wirescapeOscPresets', Object.freeze({
   },
   async openFolder(): Promise<void> {
     await ipcRenderer.invoke('wirescape:osc-presets', { op: 'folder' });
+  },
+}));
+
+// RS: separate local banner IPC, not an engine-protocol push. No new engine
+// commands, schema changes, or Node access.
+ipcRenderer.on('wirescape:restart-policy', (_event, value: Wire) => {
+  if (!value || typeof value !== 'object' || value.type !== 'app.engineRestartPolicy' ||
+      typeof value.banner !== 'boolean' || !['starting', 'waiting', 'recovering', 'stable'].includes(String(value.phase)) ||
+      typeof value.delayMs !== 'number' || value.delayMs < 0 || value.delayMs > 30000) return;
+  lastRestartPolicy = value;
+  for (const listener of [...restartListeners]) {
+    try { listener(value); } catch (e) { console.error('Restart banner listener failed', e); }
+  }
+});
+let requestedRestartPolicy = false;
+contextBridge.exposeInMainWorld('wirescapeRestartPolicy', Object.freeze({
+  subscribe(listener: (message: Wire) => void): () => void {
+    if (typeof listener !== 'function') throw new TypeError('Expected callback');
+    restartListeners.add(listener);
+    if (!requestedRestartPolicy) { requestedRestartPolicy = true; ipcRenderer.send('wirescape:restart-policy-ready'); }
+    if (lastRestartPolicy) queueMicrotask(() => {
+      if (restartListeners.has(listener) && lastRestartPolicy) listener(lastRestartPolicy);
+    });
+    return () => { restartListeners.delete(listener); };
   },
 }));

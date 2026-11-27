@@ -38,6 +38,6 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| B2-E3c-review | 2026-11-26 | #540 contract review (A81/A82/A86/A95, G1–G9), head `65a3eb8` | **Approved for merge 65a3eb8**, merged `f8c994c`. No High or Medium findings; 4 Low (OSC In render-side compile on serial change, invalid-pattern fallback, missing A95 red-first witness, lost-ACK follow-up). The `ccMap.set` golden `gen` `=` is the E3c criterion, with the spec changed in the same PR. [review](https://github.com/kalharbi11/wirescape-lab/pull/540#issuecomment-7201383615) |
-| B5-OBh3-gate | 2026-11-26 | #610 sole red `abi2_midi_egress_gate_tests` `unexpected_gate_edge: 1` | **Real egress defect** (the oracle records the expected edge before sending, so the sidecar emitted an extra rise). Fix owner B2, [#631](https://github.com/kalharbi11/wirescape-lab/issues/631), red-first on `f8c994c`. #610 holds; no rerun or waiver. [ruling](https://github.com/kalharbi11/wirescape-lab/pull/610#issuecomment-7201406602) |
-| B4-CMP1-merge | 2026-11-26 | #592 lead merge | Result and exact-head Lab (facts-only) green at `4026404`; marked ready, auto-merge on. |
+| OB-h3-unqualified-merge | 2026-11-26 | Found in run 51: #610 merged with a red mandatory x64 ASan row and no Result | **A105**: #602 reopened; the test stays; B5 fixes first; bounded one-signature exception until the fix merges or 2026-11-29. [ruling](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306), OB.md |
+| Inbox PRs #666–#668 | 2026-11-26 | Superseded builder inbox PRs | Closed: their rows were consolidated by #670 and answered by run 50 (A102, #545 review, A104) |
+| #648 merge | 2026-11-26 | OB-h6 lead merge under A102 | Merged `1a0efe6` on exact-head Lab and Golden green plus the signed Result; #604 closed |

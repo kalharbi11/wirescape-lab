@@ -153,7 +153,7 @@ function engineCond(c: unknown): Cond | undefined {
  * The execution copy: only known v1/v2 fields, each step within its track length.
  * Absent, empty or unknown-version configs pass through untouched (the engine decides).
  */
-export function engineConfig(raw: unknown): unknown {
+export function engineConfig(raw: unknown, preserveHiddenRows = false): unknown {
   // Malformed configs go to the engine unchanged so it refuses them truthfully.
   if (!isObj(raw) || !Object.keys(raw).length || !wellFormed(raw))
     return raw === undefined ? undefined : clone(raw);
@@ -161,7 +161,7 @@ export function engineConfig(raw: unknown): unknown {
   const tracks = (raw.tracks as unknown[]).slice(0, 2).map(t => {
     const track = isObj(t) ? t : {};
     const length = v2 && (LENGTHS as readonly number[]).includes(track.length as number) ? track.length as number : v2 ? 16 : 32;
-    const steps = (Array.isArray(track.steps) ? track.steps : []).slice(0, length).map(s => {
+    const steps = (Array.isArray(track.steps) ? track.steps : []).slice(0, preserveHiddenRows ? 64 : length).map(s => {
       const step = isObj(s) ? s : {};
       const kind: Kind = step.kind === 'note' || step.kind === 'tie' ? step.kind : 'rest';
       const out: Step = { kind };

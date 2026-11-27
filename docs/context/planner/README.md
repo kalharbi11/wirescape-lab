@@ -10,9 +10,13 @@ Python scripting, and the roadmap. The Planner's rulings in these runs are final
 Open a Claude Code session on Opus with `kalharbi11/wirescape-lab`, `kalharbi11/wirescape-test` and
 `kalharbi11/wirescape-headless` attached, and send exactly one of:
 - ~~`planner: run 1`~~ — **done** (#618, `proposals/0023`; transcribed by Architect run 47);
-- **`planner: run 2a`** — `wirescape-test`, macros and mapping, the module batch (**recommended next**, max effort);
-- **`planner: run 2b`** — the headless Player, OSC and scripts, the tool host, guides, the final order (after
-  2a's lab PR merges; max effort);
+- ~~`planner: run 2a`~~ — **done** ([`proposals/0024`](../../../proposals/0024-test-repo-macros-modules.md);
+  `wirescape-test` rules PR open for review);
+- ~~2b part 1~~ — **done** (lab and `wirescape-test` items of `03_PLANNER_REVIEW.md`:
+  [0024 §9](../../../proposals/0024-test-repo-macros-modules.md));
+- ~~`planner: run 2b`~~ — **done** ([`proposals/0025`](../../../proposals/0025-player-osc-scripts-tools.md):
+  the headless Player, Gate P1 (e) shapes, OSC and scripts, order, guide list, tool-host boundaries;
+  `wirescape-headless` rules PR open for review);
 - `planner: run 2` — fallback: all of run 2 in one session (max effort).
 
 Run 2 does not redo setup: read "Run 2 prep" in [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) first.
@@ -34,6 +38,7 @@ Anything after the trigger is an extra ask. The trigger is defined in `CLAUDE.md
 |---|---|
 | [01_OWNER_WANTS.md](01_OWNER_WANTS.md) | the owner's principles and wants, with the Architect's recommendations and the owner's answers |
 | [02_PLANNER_RUNS.md](02_PLANNER_RUNS.md) | authority, the questions for each run, outputs, verified highlights, reading order |
+| [03_PLANNER_REVIEW.md](03_PLANNER_REVIEW.md) | Planner self-review (2026-11-26): 0024 amendments 2b may make, prep corrections, 2b scope and open decisions, Architect actions |
 | `scout/S1_modules.md` | module inventory, registration, modulatable parameters, SDK paths |
 | `scout/S2_protocol_sidecar.md` | engine process, commands, status, switching, supervision, gaps |
 | `scout/S3_milestones.md` | proposals, milestones, OB1 acceptance, lanes, plan size |

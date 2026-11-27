@@ -16,8 +16,9 @@ class ProbeTests(unittest.TestCase):
         self.assertEqual(len(golden_ids()), 34)
         self.assertEqual(EXPERIMENTAL, {
             "essentials.cv_to_notes", "essentials.poly_merge", "essentials.poly_split",
+            "essentials.gate_delay",
         })
-        self.assertEqual(len(files), 38)
+        self.assertEqual(len(files), 39)
         self.assertTrue(any(p.as_posix().endswith("sdk/template/module.cpp") for p in files))
         self.assertEqual(sum("sdk/examples/" in p.as_posix() for p in files), 2)
 
