@@ -26,6 +26,12 @@ covers lane queues that are not listed here. Contracts, reviews, CI gates and SR
    becomes a follow-up task (SR21).
 6. **Stopping:** leave `Status: handoff-ready | blocked` and remove your claim.
 
+## Lead check — 2026-11-27 17:32 EST
+
+#752 merged as b5cc475: V1 complete, V2 #748 released from current main to the existing V session.
+#755 merged as 137e0b0: N complete. W #753 still awaits ready-state gates.
+Owner assigned #725 to the Architect; preserve that task and branch. S, T and B dependencies unchanged.
+
 ## Bundles
 
 Claims live on the task issues. Lead check, 2026-11-27: M, S and R remain claimed; MB2 #725 and SDK-1 #731 are drafts, SC4 #726 and #663 #727 merged, and renderer #736 is open. T, B and N are unassigned; check the release gates below before claiming.

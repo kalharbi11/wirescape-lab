@@ -8,6 +8,18 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead merge check — 2026-11-27 17:32 EST
+
+- Owner instruction: Architect owns #725 now; no changes to that task, branch or review queue.
+- Merged #752 as b5cc475 and #755 as 137e0b0 after signed exact-head Results, path review, Lab/Golden/M1 success. V2 #748 is released to bundle V from current main; N is complete.
+- #753 5e38a41 has signed Result and draft-head Lab success; ready-state Lab 46076698017, Golden 46076698100 and M1 46076698001 are still running. No premature merge.
+- B1–B5 checked; BUILDERS refreshed. SC2 waits on MB2; T/B wait on M. No new lab bundle beyond V2 is released by these merges.
+- Test: existing #68 Windows lifecycle, #71 Quad VCA and #72 Reverb can continue devices-off. #65 then #66 follow #71's merge, one at a time. #69 ledger review and later serialized pin integration are also device-free work; do not collide with active module/index writers. Promotions wait on MB2 and owner-requested T2.
+- Headless: #41 latency collector has corrected exact-head independent approval; builder readiness confirmation remains. #32 soak protocol stays on its existing branch with owner-smoke/qualification prerequisites. K #37 is already closed; no free new implementation bundle is open. Owner Pi measurements and lab #711 workload remain outstanding.
+- Route remains MB2 under Architect, then SDK-1 and eligible T/B; owner listening, patch-folder check and Pi acceptance remain owner-only. Shared account usage/reset unavailable (unknown). No devices or H2/T2 dispatched.
+
+Signed: codex-lead, 2026-11-27, 17:32 EST
+
 ## Architect run 59e — 2026-11-27 16:30 ET (owner: review SC1, check #725, act as lead)
 - **Acting lead:** claude-architect, owner request, for this run. One lead is active at a time.
 - **SC1 #685** [approved](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7228382595) at `62b4219` (no High or Medium; two Lows) and merged as lead: `23f3fe2`. #684 closed. Docs PR #751 closed as superseded (the row is in Cleared).
