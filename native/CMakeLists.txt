@@ -151,7 +151,10 @@ endif()
 add_test(NAME sidecar_golden COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../host/sidecar/golden_tests.py
   $<TARGET_FILE:wirescape_engine_sidecar> ${CMAKE_CURRENT_SOURCE_DIR}/../tests/protocol/golden_v0.ndjson)
 set_tests_properties(sidecar_golden PROPERTIES TIMEOUT 180)
-add_executable(sidecar_protocol_unit_tests ../host/sidecar/protocol_unit_tests.cpp ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp ../tests/native/abi2/allocation_watch.cpp)
+# P1-e A110: the held-writer graph-commit witness exercises the actual Session.
+add_executable(sidecar_protocol_unit_tests ../host/sidecar/protocol_unit_tests.cpp ../host/sidecar/protocol.cpp ../host/sidecar/devices.cpp ../tests/native/abi2/allocation_watch.cpp ../host/sidecar/session.cpp)
+target_include_directories(sidecar_protocol_unit_tests PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(sidecar_protocol_unit_tests PRIVATE WIRESCAPE_ENGINE_SHA="${engine_sha}")
 target_link_libraries(sidecar_protocol_unit_tests PRIVATE wirescape_runtime_document wirescape_audio_service
   wirescape_midi_host wirescape_osc_host nlohmann_json::nlohmann_json Threads::Threads)
 add_test(NAME abi2_sidecar_unit_tests COMMAND sidecar_protocol_unit_tests)
