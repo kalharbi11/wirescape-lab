@@ -104,7 +104,60 @@ static void osc_out_v2_destination_config() {
     REQUIRE(!accepts(v2));
 }
 
+// A111: the control-only route must never call the graph sink, even if it
+// receives a valid message. No real devices or LAN sockets in this witness.
+static void control_only_route() {
+    using namespace wirescape::osc;
+    struct Witness {
+        std::atomic<unsigned> delivered{0}, observed{0};
+        static int deliver(void *p, uint32_t, const ws2_event &, uint64_t) noexcept {
+            static_cast<Witness *>(p)->delivered.fetch_add(1, std::memory_order_relaxed);
+            return WS2_OK;
+        }
+        static bool observing(void *) noexcept { return true; }
+        static void observe(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->observed.fetch_add(1, std::memory_order_release);
+        }
+    } witness;
+    Service service({&witness, Witness::deliver, nullptr, Witness::observing, Witness::observe, Witness::observe});
+    REQUIRE(service.add({0, 0, true, true}) && service.start()); // LAN request alone cannot authorize wildcard
+    const auto initial = service.states();
+    REQUIRE(initial.size() == 1 && initial[0].control && !initial[0].lan_bound);
+    REQUIRE(std::strcmp(initial[0].state, "lan-not-confirmed") == 0);
+    Message message;
+    message.address = "/control/test";
+    message.count = 1;
+    message.arguments[0].type = 'f';
+    message.arguments[0].real = .5f;
+    uint8_t packet[1472]{};
+    bool shortened = false;
+    const auto bytes = encode(message, packet, sizeof(packet), shortened);
+    REQUIRE(bytes > 0 && !shortened);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(service.bound_port());
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    REQUIRE(sendto(sender, reinterpret_cast<const char *>(packet), int(bytes), 0,
+                   reinterpret_cast<sockaddr *>(&address), sizeof(address)) == int(bytes));
+    for (uint32_t attempt = 0; attempt < 2000 && !witness.observed.load(std::memory_order_acquire); ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Deliberately malformed datagram exercises the control route drop counter.
+    REQUIRE(sendto(sender, "bad", 3, 0, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == 3);
+    for (uint32_t attempt = 0; attempt < 2000 && !service.states()[0].dropped; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop();
+    REQUIRE(witness.observed.load() == 1 && witness.delivered.load() == 0);
+    REQUIRE(service.states()[0].received == 1 && service.states()[0].dropped == 1);
+}
+
 int main() {
+    control_only_route();
     legacy_cc_and_out();
     osc_out_v2_destination_config();
     const std::string patch =

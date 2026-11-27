@@ -1201,6 +1201,35 @@ with tempfile.TemporaryDirectory() as destinations_dir:
             destinations.close()
 
 
+# P1-e2 A111: no launch flag means no control route; either LAN flag alone
+# must leave the listener on localhost. Never request both flags in CI.
+with tempfile.TemporaryDirectory() as consent_dir:
+    def first_status(engine):
+        while True:
+            message = engine.pushes.pop(0) if engine.pushes else engine.receive()
+            if message.get('type') == 'status':
+                return message['status']['osc']
+    no_control = Engine(Path(consent_dir) / 'off.json')
+    try:
+        status = first_status(no_control)
+        assert status['routes'] == [] and not status['enabled'], status
+    finally:
+        no_control.close()
+    for i, flag in enumerate(('--confirm-lan', '--control-osc-lan')):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+            reserve.bind(('127.0.0.1', 0))
+            consent_port = reserve.getsockname()[1]
+        consent = Engine(Path(consent_dir) / f'consent-{i}.json',
+                         '--control-osc-port', str(consent_port), flag)
+        try:
+            status = first_status(consent)
+            route = next(r for r in status['routes'] if r['module'] == 'control')
+            assert route['port'] == consent_port and route['bind'] == '127.0.0.1', route
+            assert route['state'] in ('listening', 'lan-not-confirmed'), route
+            assert status['bind'] == '127.0.0.1' and not status['lan'], status
+        finally:
+            consent.close()
+
 # P1-e2 #672, 0025 §3.5 row 6: patch-independent OSC control listener.
 with tempfile.TemporaryDirectory() as control_dir:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
