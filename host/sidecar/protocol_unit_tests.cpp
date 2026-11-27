@@ -93,7 +93,7 @@ void midi_learn_observation() {
     check(fake.inject(endpoints[0], cc, 3, app_engine_clock_ns()));
     const auto first = fake.learning();
     check(first["armed"] == true && first["channel"] == 4 && first["controller"] == 21);
-    check(first["value"] == 64 && first["deviceId"] == "M8 MIDI 1|M8:M8 MIDI 1");
+    check(first["value"] == 64 && first["deviceId"] == "Test MIDI 1|Test:Test MIDI 1");
     check(first["seq"].is_string());
     uint64_t allocations = 0;
     {
