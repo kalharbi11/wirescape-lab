@@ -232,6 +232,99 @@ void controller_stream_osc_codec() {
     check(delivered == 1);
 }
 
+// P1-e: direct capture boundary before the worker hook is granted.
+// One shared capacity, exact integer OSC args, full address, no JSON
+// serialization failure on a malformed network address.
+void controller_stream_osc_capture() {
+    ControllerStream capture;
+    capture.configure({"cc", "osc"}, true);
+    using Number = ControllerStream::Number;
+    const std::array<Number, 4> args{{
+        {INT64_C(9007199254740993), 0, false}, {0, 0.25, true},
+        {1, 0, false}, {0, 0, false}
+    }};
+    capture.osc(9000, "/same", true, false, args, 4, true);
+    capture.osc(9001, "/same", false, false, args, 4, false);
+    capture.osc(9000, "/disabled", false, true, args, 4, false);
+    const std::string oversized = "/" + std::string(128, 'a');
+    capture.osc(9000, oversized, false, false, args, 4, false);
+    const std::string invalid = std::string("/") + char(0xff);
+    capture.osc(9000, invalid, false, false, args, 4, false);
+    auto first = capture.drain();
+    check(first.size() == 2);
+    check(first[0]["port"] == 9000 && first[1]["port"] == 9001);
+    check(first[0]["args"][0].get<int64_t>() == INT64_C(9007199254740993));
+    check(first[0]["args"][1] == 0.25 && first[0]["more"] == true);
+    check(!first[1].contains("more") && first[0]["matched"] == true && first[1]["matched"] == false);
+    check(!first.dump().empty());
+    check(capture.status()["dropped"]["oversize"] == 1);
+    // The 128 latest keys are shared between MIDI and OSC, not 128 per kind.
+    for (unsigned i = 0; i < 127; ++i) {
+        const uint8_t cc[]{0xB0, uint8_t(i), 1};
+        capture.midi("A", "a", cc, sizeof(cc));
+    }
+    capture.osc(9000, "/first", true, false, args, 1, false);
+    capture.osc(9000, "/extra", true, false, args, 1, false);
+    capture.osc(9000, "/first", true, false, args, 2, false);
+    auto second = capture.drain();
+    check(second.size() == 128 && second.back()["address"] == "/first");
+    check(second.back()["args"].size() == 2 && capture.status()["dropped"]["latest"] == 1);
+    capture.configure({"osc"}, false);
+    capture.osc(9000, "/unmatched", false, false, args, 0, false);
+    capture.osc(9000, "/matched", true, false, args, 0, false);
+    auto third = capture.drain();
+    check(third.size() == 1 && third[0]["address"] == "/matched");
+    capture.configure({}, false);
+    check(capture.status().is_null());
+    capture.configure({"osc"}, true);
+    check(capture.drain().empty() && capture.status()["dropped"]["latest"] == 1);
+}
+
+// All 16 permitted MIDI endpoint writers compete for the same shared
+// capture capacity. One owner per distinct device ID, no callback lock.
+void controller_stream_parallel_ingress() {
+    ControllerStream capture;
+    capture.configure({"cc", "pc"}, false);
+    std::array<std::thread, 16> writers;
+    std::array<uint64_t, 16> allocations{};
+    std::array<std::string, 16> names;
+    std::atomic<bool> start{false};
+    for (unsigned i = 0; i < writers.size(); ++i) {
+        names[i] = "device-" + std::to_string(i);
+        writers[i] = std::thread([&, i] {
+            while (!start.load(std::memory_order_acquire)) std::this_thread::yield();
+            allocation_watch::ThreadScope scope;
+            for (unsigned j = 0; j < 16; ++j) {
+                const uint8_t pc[]{0xC0, uint8_t(j)};
+                const uint8_t cc[]{0xB0, uint8_t(j % 8), uint8_t(j)};
+                capture.midi(names[i], "test", pc, sizeof(pc));
+                capture.midi(names[i], "test", cc, sizeof(cc));
+            }
+            allocations[i] = scope.allocations();
+        });
+    }
+    start.store(true, std::memory_order_release);
+    for (auto &writer : writers) writer.join();
+    const auto events = capture.drain();
+    check(events.size() == 384);
+    check(capture.status()["dropped"] == Json({{"fifo", 0}, {"latest", 0}, {"oversize", 0}}));
+    std::map<std::string, int> next_program;
+    std::map<std::string, unsigned> cc_count;
+    for (const auto &event : events) {
+        const auto device = event["deviceId"].get<std::string>();
+        if (event["kind"] == "pc") check(event["program"] == next_program[device]++);
+        else {
+            check(event["kind"] == "cc");
+            check(event["value"].get<unsigned>() == event["controller"].get<unsigned>() + 8);
+            ++cc_count[device];
+        }
+    }
+    for (unsigned i = 0; i < writers.size(); ++i) {
+        const auto id = names[i] + "|test";
+        check(allocations[i] == 0 && next_program[id] == 16 && cc_count[id] == 8);
+    }
+}
+
 void d5_phase_deadline_regression() {
     using Clock = std::chrono::steady_clock;
     using Ms = std::chrono::milliseconds;
@@ -332,6 +425,8 @@ int run_tests() {
     midi_learn_observation();
     controller_stream_midi_observation();
     controller_stream_osc_codec();
+    controller_stream_osc_capture();
+    controller_stream_parallel_ingress();
     RenderHistogram histogram;
     check(histogram.percentile(50) == 0);
     allocation_watch::count.store(0);
