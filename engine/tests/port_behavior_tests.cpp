@@ -68,7 +68,10 @@ static void cv_new_ports(){
   ws::Module<ws2ports::Output>::descriptor(),ws::Module<ws2ports::ScaleOffset>::descriptor(),
   ws::Module<ws2ports::Slew>::descriptor(),ws::Module<ws2ports::Clock>::descriptor(),
   ws::Module<ws2ports::FunctionEnvelope>::descriptor(),ws::Module<ws2ports::Ladder>::descriptor()};
- uint32_t covered=0;
+ uint32_t covered=0,expected=0;
+ for(auto*d:modules)
+  for(uint32_t p=0;p<d->param_count;++p)
+   if(!(d->params[p].flags&WS2_STEPPED))++expected;
  for(auto*d:modules){
   for(uint32_t p=0;p<d->param_count;++p){
    const auto&param=d->params[p];
@@ -91,6 +94,12 @@ static void cv_new_ports(){
     }
     if(std::strcmp(d->id,"essentials.clock")==0&&p==3)
      VERIFY(e.set_parameter(2,p,.25f));
+    // Function Envelope's hold only acts in Trigger mode (1); no-op while absent.
+    if(std::strcmp(d->id,"essentials.function_envelope")==0&&std::strcmp(param.id,"hold")==0){
+     uint32_t mode=3;
+     for(uint32_t q=0;q<d->param_count;++q)if(std::strcmp(d->params[q].id,"mode")==0){mode=q;break;}
+     if(mode<d->param_count)VERIFY(e.set_parameter(2,mode,1.f));
+    }
     if(variant==1)VERIFY(e.modulate(1,0,2,p,.75f));
     if(variant==2){
      VERIFY(e.modulate(1,0,2,p,.6f));
@@ -121,7 +130,8 @@ static void cv_new_ports(){
    VERIFY(changed);++covered;
   }
  }
- VERIFY(covered==17); // mixer 2, noise 1, output 0, scale 2, slew 2, clock 4, envelope 3, ladder 3
+ VERIFY(covered==expected); // expected = non-stepped params (17 on main: mixer 2, noise 1, output 0, scale 2, slew 2, clock 4, envelope 3, ladder 3)
+ VERIFY(expected>0);
 }
 
 // Test-only 64-param SDK module: distinct IDs, real SDK prepare/process and high-index views.
