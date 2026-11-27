@@ -74,17 +74,18 @@ def descriptors(executable):
 
 
 def wrapper_cost(path, expected_calls):
-    """Inclusive cost of external calls into the descriptor process callback.
+    """Exact callback self Ir, with independent external call-count validation.
 
-    Callgrind may label a nested context with '2, '3, etc. Do not sum
-    inclusive costs of nested wrapper contexts: that double-counts callees.
-    Instead sum the incoming edges from outside the wrapper and require
-    exactly the number of process calls performed by the probe.
+    ARM64 Callgrind reports artificial cycles between DSP and wrapper frames
+    (observed VCA -> wrapper and wrapper -> wrapper edges). Inclusive edge
+    costs double-count cycles, sometimes exceeding total probe Ir. Sum self
+    instructions across canonical wrapper contexts instead, excluding every
+    edge cost. Require exactly n direct calls from module_cpu_probe main.
+    Whole-probe Ir independently witnesses all callee costs.
     """
-    names = {}
-    incoming = {}
-    current = callee = None
-    pending = None
+    names, counts, self_costs = {}, {}, {}
+    current = callee = pending = None
+
     def canonical(name):
         if not name:
             return None
@@ -119,18 +120,24 @@ def wrapper_cost(path, expected_calls):
             if pending is not None or current is None or callee is None:
                 raise ValueError("malformed Callgrind call edge")
             pending = int(line.split()[0].split("=", 1)[1])
-        elif pending is not None and re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", line):
-            target = canonical(callee)
-            if target and canonical(current) != target:
-                fields = line.split()
-                count, ir = incoming.get(target, (0, 0))
-                incoming[target] = (count + pending, ir + (int(fields[1]) if len(fields) == 2 else 0))
-            pending = None
-    if pending is not None or len(incoming) != 1:
-        raise ValueError(f"expected one external process callback, got {incoming}")
-    name, (count, ir) = next(iter(incoming.items()))
+        elif re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", line):
+            fields = line.split()
+            ir = int(fields[1]) if len(fields) == 2 else 0
+            if pending is not None:
+                target = canonical(callee)
+                if target and re.sub(r"'\d+$", "", current) == "main":
+                    counts[target] = counts.get(target, 0) + pending
+                pending = None
+            else:
+                target = canonical(current)
+                if target:
+                    self_costs[target] = self_costs.get(target, 0) + ir
+    if pending is not None or len(counts) != 1:
+        raise ValueError(f"expected one direct process callback from main, got {counts}")
+    name, count = next(iter(counts.items()))
+    ir = self_costs.get(name, 0)
     if count != expected_calls or ir <= 0:
-        raise ValueError(f"expected {expected_calls} process calls, got {count}, Ir={ir}")
+        raise ValueError(f"expected {expected_calls} process calls, got {count}, self Ir={ir}")
     return name, ir
 
 
@@ -256,6 +263,7 @@ def main():
                                           "after": after_desc[ident],
                                           "equal": before_desc[ident] == after_desc[ident]}
                                          for ident in sorted(ids)]
+            result["instruction_metric"] = "callback-self-Ir-two-length; direct main call count checked; whole-probe Ir also exact"
             result["instruction_table"] = rows
             result["head"] = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
                                              text=True, capture_output=True,

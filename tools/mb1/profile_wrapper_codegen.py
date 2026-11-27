@@ -157,7 +157,7 @@ def measure(binary, root, folder, module, voices):
         raise ValueError("wrapper callback identity changed between lengths")
     wrapper_ir = wrapper[1][1] - wrapper[0][1]
     if not 0 < wrapper_ir <= totals[1] - totals[0]:
-        raise ValueError("wrapper inclusive Ir outside probe cost")
+        raise ValueError("wrapper self Ir outside probe cost")
     return totals[1] - totals[0], functions[1], lines[1], wrapper_ir
 
 
