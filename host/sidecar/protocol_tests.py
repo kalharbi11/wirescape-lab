@@ -563,6 +563,15 @@ with tempfile.TemporaryDirectory() as osc_dir:
                                          config=dict(port=port, lan=True,
                                                      rows=[dict(pattern='/pico1/knob/1', kind='cv',
                                                                 smoothing_ms=0)])))
+        # SC2: the no-OSC status payload is unchanged, including its serialized keys.
+        empty_osc = None
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            message = osc_engine.pushes.pop(0) if osc_engine.pushes else osc_engine.receive()
+            if message.get('type') == 'status' and message.get('gen') == '0':
+                empty_osc = json.dumps(message['status']['osc'], separators=(',', ':'))
+                break
+        assert empty_osc == '{"bind":"127.0.0.1","enabled":false,"lan":false,"out":[],"port":0,"routes":[]}', empty_osc
         gen = osc_engine.call('loadGraph', patch=osc_patch)['gen']
 
         def osc_route_when(predicate):
@@ -586,6 +595,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         failure = osc_route_when(lambda route: route['state'] == 'port-busy')
         assert failure['port'] == port and failure['received'] == 0 and failure['dropped'] == 0
         assert failure['module'] == '9'
+        assert failure['rows'] == [dict(received=0, ageMs=None)], failure
         invalid = json.loads(json.dumps(osc_patch))
         invalid['modules'][1]['config']['port'] = 65536
         assert osc_engine.call('loadGraph', False, patch=invalid)['gen'] == gen
@@ -602,12 +612,17 @@ with tempfile.TemporaryDirectory() as osc_dir:
         packet += b',f\0\0' + struct.pack('>f', 0.5)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
             sender.sendto(packet, ('127.0.0.1', port))
-        assert osc_route_when(lambda route: route['received'] > 0)['received'] >= 1
+        matched = osc_route_when(lambda route: route['received'] > 0)
+        assert matched['received'] >= 1
+        assert len(matched['rows']) == 1 and matched['rows'][0]['received'] == 1, matched
+        assert isinstance(matched['rows'][0]['ageMs'], (int, float)) and matched['rows'][0]['ageMs'] >= 0, matched
         # Successful live edits must restart ingress against the newly committed
         # generation. The same listener remains localhost-only and usable.
         edited_gen = osc_engine.call('addModule', moduleId=11, moduleType='essentials.vco')['gen']
         assert edited_gen != gen
-        assert osc_route_when(lambda route: route['state'] == 'lan-not-confirmed')['port'] == port
+        restarted = osc_route_when(lambda route: route['state'] == 'lan-not-confirmed')
+        assert restarted['port'] == port
+        assert restarted['rows'] == [dict(received=0, ageMs=None)], restarted
 
         # Removing the source must retire the worker/port before graph disposal.
         removed_gen = osc_engine.call('removeModule', moduleId=9)['gen']
@@ -618,6 +633,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
             if message.get('type') == 'status' and message['gen'] == removed_gen:
                 assert message['status']['osc'] == dict(
                     enabled=False, bind='127.0.0.1', port=0, lan=False, routes=[], out=[])
+                assert json.dumps(message['status']['osc'], separators=(',', ':')) == empty_osc
                 break
         else:
             raise AssertionError('OSC source removal did not clear status')
@@ -1320,6 +1336,7 @@ with tempfile.TemporaryDirectory() as control_dir:
         assert initial['gen'] == '0', initial
         assert route['port'] == control_port and route['bind'] == '127.0.0.1', route
         assert route['received'] == 0 and route['dropped'] == 0, route
+        assert 'rows' not in route, route  # SC2: launch-only control route is excluded.
         assert control.call('controllerStream', kinds=['osc'], oscUnmatched=False)['gen'] == '0'
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
             def send_control(address):
