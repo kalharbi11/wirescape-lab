@@ -171,6 +171,59 @@ def edge(kind, source, output, dest, port, **extra):
                             'to': dict(module=dest, port=port)}, **extra)
 
 
+# P1-f/g: a signal must terminate with stdin still open, using EOF teardown.
+# The bench summary is emitted only after the null render sink has joined.
+if os.name == 'posix':
+    import signal
+
+    def shutdown_preferences(directory, sig=None):
+        settings = Path(directory) / 'settings.json'
+        engine = Engine(settings, '--bench-summary')
+        try:
+            audio = engine.call('listAudioDevices')['result']['devices']
+            engine.call('selectAudioDevice', deviceId=audio[0]['id'])
+            midi = engine.call('listMidiDevices')['result']['devices']
+            engine.call('setMidiEnabled', deviceId=midi[0]['id'], on=True)
+            if sig is None:
+                engine.close()
+            else:
+                engine.process.send_signal(sig)
+                # Keep the writer open until the process exits: EOF must not
+                # rescue a signal path that is blocked waiting for input.
+                assert engine.process.wait(timeout=10) == 0, engine.stderr()
+                engine.reader.join(timeout=5)
+                assert not engine.reader.is_alive() and not engine.errors
+            assert 'bench blocks=' in engine.stderr(), engine.stderr()
+            assert not settings.with_suffix('.json.tmp').exists()
+            saved = json.loads(settings.read_text())
+            assert saved['audioDeviceId'] == audio[0]['id']
+            assert any(d['enabled'] and d['name'] == midi[0]['name']
+                       and d['system_name'] == midi[0]['system_name']
+                       for d in saved['devices'])
+            return saved
+        finally:
+            if engine.process.poll() is None:
+                engine.process.kill()
+                engine.process.wait(timeout=5)
+            if not engine.process.stdin.closed:
+                engine.process.stdin.close()
+
+    with tempfile.TemporaryDirectory() as directory:
+        baseline = shutdown_preferences(directory)
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        with tempfile.TemporaryDirectory() as directory:
+            assert shutdown_preferences(directory, sig) == baseline, sig
+    with tempfile.TemporaryDirectory() as directory:
+        result = subprocess.run([str(Path(BINARY).resolve()), '--null-audio',
+                                 '--settings', 'relative.json'],
+                                cwd=directory, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+        # Existing bad-argument launch refusals return 1, not protocol replies.
+        assert result.returncode == 1, result
+        assert b'absolute' in result.stderr.lower() and b'--settings' in result.stderr, result
+        assert not result.stdout and not (Path(directory) / 'relative.json').exists()
+
+
 # A44 / ER6: only saved-patch loading normalizes duplicate modulation.
 with tempfile.TemporaryDirectory() as a44_dir:
     a44 = Engine(Path(a44_dir) / 'settings.json')
