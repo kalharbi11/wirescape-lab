@@ -37,6 +37,11 @@ export interface CanvasServices extends PanelHost {
   onEditOsc(moduleId: number): void;
   oscStatus(): OscStatus | undefined;
   /** Send a connect to the engine; throws EngineRefusal if it is refused. */
+  /** Return true when the host owns this mapping transaction. */
+  connectMapping?(c: Connection): boolean;
+  disconnectMapping?(c: Connection): boolean;
+  isMapping?(c: Connection): boolean;
+  reconnectMapping?(old: Connection, next: Connection): void;
   engineConnect(c: Connection): void;
   engineDisconnect(c: Connection): void;
   /** MIDI Learn (#287). Absent or `available() === false` when the engine cannot observe CCs. */
@@ -54,6 +59,7 @@ type Pending = {
   cursor: Point;
   /** Set when the drag started by pulling an existing cable off an input. */
   detached?: Connection;
+  detachedMapping?: boolean;
 };
 
 export class PatchCanvas {
@@ -97,6 +103,7 @@ export class PatchCanvas {
       this.select({ kind: 'cable', c: cable });
       this.showMenu(e, [['Remove cable', () => {
         if (!this.s.canEdit()) return;
+        if (this.s.disconnectMapping?.(cable)) return;
         this.s.doc.disconnect(cable);
         try { this.s.engineDisconnect(cable); } catch { /* optimistic rollback is tracked by the host */ }
         this.select({ kind: 'none' });
@@ -471,12 +478,15 @@ export class PatchCanvas {
     const srcMod = this.s.doc.modules.get(c.from.module);
     const d = srcMod && this.s.registry.get(srcMod.module);
     const port = d && findPort(d, 'output', c.from.port);
-    this.s.doc.disconnect(c);
-    try { this.s.engineDisconnect(c); } catch { /* best effort */ }
+    const mapping = this.s.isMapping?.(c) === true;
+    if (!mapping) {
+      this.s.doc.disconnect(c);
+      try { this.s.engineDisconnect(c); } catch { /* best effort */ }
+    }
     this.startDrag(e, {
       module: c.from.module, port: c.from.port, direction: 'output',
       kind: port?.kind ?? 'signal', hint: String(port?.hint ?? 'audio'),
-    }, c);
+    }, c, mapping);
   }
 
   /** Grab the source end of one outgoing cable; its destination stays fixed. */
@@ -492,8 +502,8 @@ export class PatchCanvas {
     }, c);
   }
 
-  private startDrag(e: PointerEvent, origin: Pending['origin'], detached?: Connection): void {
-    this.pending = { origin, cursor: this.viewport.toWorld(e.clientX, e.clientY), detached };
+  private startDrag(e: PointerEvent, origin: Pending['origin'], detached?: Connection, detachedMapping = false): void {
+    this.pending = { origin, cursor: this.viewport.toWorld(e.clientX, e.clientY), detached, detachedMapping };
     this.gesture = 'patch';
     this.root.classList.add('patching');
     this.highlightTargets(origin);
@@ -599,7 +609,7 @@ export class PatchCanvas {
     } else {
       // A detached cable dropped on empty canvas is deliberately unplugged.
       // Only a genuinely new cable opens the quick-add menu.
-      if (pending.detached) { this.cancelPatch(); return; }
+      if (pending.detached) { this.cancelPatch(true); return; }
       const world = this.viewport.toWorld(ev.clientX, ev.clientY);
       const o = pending.origin;
       const need = { direction: (o.direction === 'output' ? 'input' : 'output') as PortDirection, kind: o.kind };
@@ -876,7 +886,14 @@ export class PatchCanvas {
    */
   private commitConnection(c: Connection, additive: boolean): void {
     if (!this.s.canEdit()) return;
+    const pending = this.pending;
+    if (pending?.detachedMapping && pending.detached) {
+      this.s.reconnectMapping?.(pending.detached, c);
+      this.pending = null;
+      return;
+    }
     if (this.s.doc.has(c)) { this.s.toast('Already connected.'); return; }
+    if (this.s.connectMapping?.(c)) return;
     const replaced: Connection[] = [];
     if (c.kind !== 'modulation' && !additive) {
       replaced.push(...this.s.doc.cablesInto(c.to.module, c.to.port));
@@ -915,14 +932,16 @@ export class PatchCanvas {
     { duration: 280, easing: 'ease-out' });
   }
 
-  private cancelPatch(): void {
+  private cancelPatch(removeDetachedMapping = false): void {
     const detached = this.pending?.detached;
+    const mapping = this.pending?.detachedMapping;
     this.pending = null;
     this.gesture = 'none';
     this.root.classList.remove('patching');
     this.clearHighlights();
     this.cables.setGhost(null, null);
-    if (detached && !this.s.doc.has(detached)) {
+    if (mapping && detached && removeDetachedMapping) this.s.disconnectMapping?.(detached);
+    if (!mapping && detached && !this.s.doc.has(detached)) {
       // The grabbed end was released over nothing: the cable stays off.
       this.s.toast('Cable removed.');
     }
