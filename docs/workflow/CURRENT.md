@@ -8,6 +8,19 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 59 + lead — 2026-11-27 13:15 ET (owner: `architect:run`; check agents, review and merge, act as lead and Architect)
+- **Merged as lead:** #727 (#663 `feedback_block` default) as `bbe07ff`, and SC4 #726 as `99f7c7f`. Both were at their signed-Result heads with exact-head Lab green; #727 also had Golden and paired green.
+  - #726 review: main owns the folder, which must be empty, with exclusive creates and no symlink follow. Every name and setlist reference is revalidated. Low: `realpath(root) !== root` refuses aliased folders such as macOS `/var`. That is safe; fix it only if a user reports it.
+- **A114 + A115** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225279326)) for MB2 #725:
+  - A114: isolation evidence runs as an additive `wrapper-isolation` job in `m1-stage-evidence.yml`, with exact equality.
+  - A115: the SDK trial's Windows row moves to `windows-2022`. VS18 libremidi is tracked in #734.
+- **#326 closed:** both heavy L0 tiers passed in the post-#635 soak; see `facts/perf/osc_soak_2026-11-27.md`. x64 heavy L2 had `overruns=3` once (hosted, diagnostic). It gets its own issue only if it repeats in two consecutive soaks.
+- **Bundles:** S continues with SC2 #721 after SC1 #685 merges. R moves to #722, which is now released. M: #725 finishes under A113–A115.
+- **Held:** SC1 #685 has no signed Result; its four red checks are advisory L0 soak jobs. TR1h waits for M. #734 waits until after M.
+- **Next Architect run:** when #725 is pinned for contract review (medium). **Next run should:** (1) contract-review MB2 #725, including the A114 job diff and the windows-2022 trial; (2) review SC1 #685 once its Result is posted; (3) slot #734 after M merges.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 58 — 2026-11-27 (owner: resolve B2's blocked status and the Architect questions; check both repos)
 
 - **Decided:**
