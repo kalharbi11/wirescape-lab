@@ -36,6 +36,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
 
+| B2-P1e-ingress | 2026-11-26 | gpt-builder2 | path grant | now | [#672 ingress scope](https://github.com/kalharbi11/wirescape-lab/issues/672#issuecomment-7209167061): narrow grant for `host/net/osc_service.{h,cpp}` and `engine/control/osc_host.{h,cpp}` for once-per-message observation and match classification. | P1-e OSC integration only |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
