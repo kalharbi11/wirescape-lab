@@ -36,6 +36,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
 
+| B2-P0b-review | 2026-11-26 | gpt-builder2 | Claude contract review | now | [#660 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/660#issuecomment-7209809211), tested base `24e61ee` / head `6ee21e6`; all required gates green; A107 baseline ARM64 diagnostic disclosed. Check A104/A104a/A104b fault containment and callback lifetime. | P0b #620 merge, P1-e #672 final combined gates |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
