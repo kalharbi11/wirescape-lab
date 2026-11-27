@@ -8,6 +8,13 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 59b — 2026-11-27 (owner: check the inbox)
+- **A116** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225734313)): MB2 tries the contracted fallback first. A noinline `finite_samples` pin is allowed only if the fallback misses.
+- **A117** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/721#issuecomment-7225734569)): SC2 path grant and count semantics. SC2 now also waits for MB2.
+- The "Next run should" list from run 59 stands, plus: check A116's measurement when #725 is pinned.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 59 + lead — 2026-11-27 13:15 ET (owner: `architect:run`; check agents, review and merge, act as lead and Architect)
 - **Merged as lead:** #727 (#663 `feedback_block` default) as `bbe07ff`, and SC4 #726 as `99f7c7f`. Both were at their signed-Result heads with exact-head Lab green; #727 also had Golden and paired green.
   - #726 review: main owns the folder, which must be empty, with exclusive creates and no symlink follow. Every name and setlist reference is revalidated. Low: `realpath(root) !== root` refuses aliased folders such as macOS `/var`. That is safe; fix it only if a user reports it.
