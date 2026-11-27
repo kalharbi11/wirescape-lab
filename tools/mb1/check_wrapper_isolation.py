@@ -244,8 +244,7 @@ def main():
                                                   and old["wrapper_function"] == new["wrapper_function"]),
                                    probe_equal=old["ir_per_block"] == new["ir_per_block"],
                                    equal=(old["wrapper_ir_per_block"] == new["wrapper_ir_per_block"]
-                                          and old["wrapper_function"] == new["wrapper_function"]
-                                          and old["ir_per_block"] == new["ir_per_block"]))
+                                          and old["wrapper_function"] == new["wrapper_function"]))
                     except (RuntimeError, ValueError, OSError) as error:
                         row.update(equal=False, error=str(error))
                     rows.append(row)
@@ -263,7 +262,8 @@ def main():
                                           "after": after_desc[ident],
                                           "equal": before_desc[ident] == after_desc[ident]}
                                          for ident in sorted(ids)]
-            result["instruction_metric"] = "callback-self-Ir-two-length; direct main call count checked; whole-probe Ir also exact"
+            result["instruction_metric"] = "callback-self-Ir-two-length; direct main call count checked; whole-probe Ir diagnostic only (A114 clarified)"
+            result["whole_probe_difference_rows"] = sum(row.get("probe_equal") is False for row in rows)
             result["instruction_table"] = rows
             result["head"] = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
                                              text=True, capture_output=True,

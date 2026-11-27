@@ -170,13 +170,37 @@ def delta_rows(before, after, limit=12):
             if value]
 
 
+def hoist_lfo(original):
+    """A118: only cache the five parameter Channel handles, per voice."""
+    text = original.decode("utf-8")
+    anchor = "            auto *phase_out = b.out(1).ch(c);\n"
+    if text.count(anchor) != 1:
+        raise ValueError("LFO loop anchor changed")
+    names = ("rateCh", "depthCh", "offsetCh", "syncCh", "beatsCh")
+    counts = (1, 1, 1, 2, 1)
+    declarations = "".join(
+        f"            const auto {name}=b.param({k}).ch(c);\n"
+        for k, name in enumerate(names))
+    text = text.replace(anchor, anchor + declarations)
+    for k, name in enumerate(names):
+        expr = f"b.param({k}).value(c,i)"
+        if text.count(expr) != counts[k]:
+            raise ValueError(f"unexpected parameter {k} read count")
+        text = text.replace(expr, name + "[i]")
+    return text.encode("utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", required=True)
     parser.add_argument("--head", required=True)
     parser.add_argument("--scratch-finite-noinline", action="store_true",
                         help="diagnostic only: change a single compiler attribute in disposable worktree")
+    parser.add_argument("--scratch-lfo-hoist", action="store_true",
+                        help="A118: scratch-only per-voice parameter Channel hoist")
     args = parser.parse_args()
+    if args.scratch_finite_noinline and args.scratch_lfo_hoist:
+        parser.error("run one scratch experiment at a time")
     if os.environ.get("GITHUB_ACTIONS") != "true" or sys.platform != "linux":
         parser.error("requires ephemeral Linux hosted runner")
     if not shutil.which("valgrind"):
@@ -194,7 +218,8 @@ def main():
                 worktrees.append(path)
             baseline, subject = build(base), build(head)
             before, after = {}, {}
-            for module, voices in PROBES:
+            probes = tuple(row for row in PROBES if row[0] == "essentials.lfo") if args.scratch_lfo_hoist else PROBES
+            for module, voices in probes:
                 key = (module, voices)
                 a, af, al, aw = before[key] = measure(baseline, base, scratch, module, voices)
                 b, bf, bl, bw = after[key] = measure(subject, head, scratch, module, voices)
@@ -232,6 +257,33 @@ def main():
                         print("MB2_FINITE_TRIAL " + json.dumps(report, sort_keys=True), flush=True)
                 finally:
                     header.write_bytes(original)
+            if args.scratch_lfo_hoist:
+                source = head / "modules/lfo/dsp.h"
+                original = source.read_bytes()
+                try:
+                    source.write_bytes(hoist_lfo(original))
+                    print("MB2_SCRATCH_TRIAL A118 five per-voice Channel handles only", flush=True)
+                    trial = build(head)
+                    for (module, voices), (a, af, al, aw) in before.items():
+                        b, bf, bl, bw = after[(module, voices)]
+                        c, cf, cl, cw = measure(trial, head, scratch, module, voices)
+                        report = dict(module=module, voices=voices,
+                                      base_ir=a/12, pinned_ir=b/12, trial_ir=c/12,
+                                      trial_vs_base_pct=100*(c-a)/a,
+                                      trial_vs_pinned_pct=100*(c-b)/b,
+                                      base_wrapper_ir=aw/12, pinned_wrapper_ir=bw/12,
+                                      trial_wrapper_ir=cw/12,
+                                      function_delta_vs_base=delta_rows(af, cf),
+                                      function_delta_vs_pinned=delta_rows(bf, cf),
+                                      source_line_delta_vs_base=delta_rows(al, cl),
+                                      source_line_delta_vs_pinned=delta_rows(bl, cl),
+                                      sdk_line_136_before=bl[("sdk/wirescape_sdk.h", 145)]/12,
+                                      sdk_line_136_after=cl[("sdk/wirescape_sdk.h", 145)]/12,
+                                      sdk_line_136_base=al[("sdk/wirescape_sdk.h", 136)]/12,
+                                      trial_unattributed_ir=(c-sum(cf.values()))/12)
+                        print("MB2_LFO_TRIAL " + json.dumps(report, sort_keys=True), flush=True)
+                finally:
+                    source.write_bytes(original)
         finally:
             for path in reversed(worktrees):
                 run(["git", "worktree", "remove", "--force", path])
