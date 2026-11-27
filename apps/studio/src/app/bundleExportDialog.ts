@@ -76,8 +76,9 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
       const inputs = [current];
       for (const file of extra) {
         if (file.size > MAX_FILE) throw new Error(`Patch exceeds 2 MiB: ${file.name}`);
-        const patch = JSON.parse(await file.text()) as PatchV2;
-        inputs.push({ title: file.name.replace(/\.json$/i, ''), patch });
+        const sourceText = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(await file.arrayBuffer());
+        const patch = JSON.parse(sourceText) as PatchV2;
+        inputs.push({ title: file.name.replace(/\.json$/i, ''), patch, sourceText });
       }
       const bundle = buildPlayerBundle(title.value, inputs);
       const encoder = new TextEncoder();
