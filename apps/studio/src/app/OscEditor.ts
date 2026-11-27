@@ -11,6 +11,8 @@ export interface OscRow {
   smoothing_ms: number; timeout_ms: number; stale: 'hold' | 'zero';
   /** Optional (#612): absent means enabled; writers emit it only when false. */
   enabled?: boolean;
+  /** SC1: optional display-only label, up to 32 UTF-8 bytes. */
+  label?: string;
 }
 export interface OscConfig { version?: number; port: number; lan: boolean; rows: OscRow[] }
 
@@ -21,6 +23,10 @@ const defaultRow = (n: number): OscRow => ({
 });
 export const picoDefaults = (): OscConfig =>
   ({ port: 9000, lan: false, rows: Array.from({ length: 8 }, (_, i) => defaultRow(i + 1)) });
+/** New modules only: do not change the display or execution fallback of old patches. */
+export const genericOscDefaults = (): OscConfig => ({ ...picoDefaults(),
+  rows: Array.from({ length: 8 }, (_, i) => ({ ...defaultRow(i + 1),
+    pattern: `/ws/knob/${i + 1}`, timeout_ms: 0 })) });
 
 const object = (v: unknown): Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
@@ -43,11 +49,12 @@ export function readOscConfig(raw: unknown): { config: OscConfig; unsupported: s
         if (key in row) (base as unknown as Record<string, unknown>)[key] = row[key];
       }
       if (row.enabled === false) base.enabled = false;
+      if (typeof row.label === 'string') base.label = row.label;
     });
   }
   const unsupported = Object.keys(source).filter(k => !['version', 'port', 'lan', 'rows'].includes(k));
   if (Array.isArray(source.rows)) source.rows.forEach((v, i) => {
-    for (const key of Object.keys(object(v))) if (key !== 'enabled' && !rowKeys.includes(key as typeof rowKeys[number]))
+    for (const key of Object.keys(object(v))) if (key !== 'enabled' && key !== 'label' && !rowKeys.includes(key as typeof rowKeys[number]))
       unsupported.push(`rows[${i}].${key}`);
   });
   return { config, unsupported };
@@ -100,7 +107,7 @@ export function showOscEditor(modal: Modal, raw: unknown,
   const errors = el('p', 'osc-error'); errors.dataset.testid = 'osc-editor-errors';
   errors.setAttribute('role', 'alert');
   type RowControls = Record<typeof rowKeys[number], HTMLInputElement | HTMLSelectElement> & {
-    enabled: HTMLInputElement; outputMode: HTMLSelectElement;
+    enabled: HTMLInputElement; label: HTMLInputElement; outputMode: HTMLSelectElement;
     refreshLayout: () => void; refreshRaw: () => void;
   };
   const fields: RowControls[] = [];
@@ -137,7 +144,8 @@ export function showOscEditor(modal: Modal, raw: unknown,
   for (let i = 0; i < 8; i++) {
     const row = config.rows[i];
     const group = el('fieldset', 'osc-row');
-    group.append(el('legend', '', `row${i + 1}`));
+    const legend = el('legend', '', row.label || `row${i + 1}`);
+    group.append(legend);
     const controls = {} as RowControls;
     const enabled = el('input') as HTMLInputElement;
     enabled.type = 'checkbox'; enabled.checked = row.enabled !== false;
@@ -155,6 +163,11 @@ export function showOscEditor(modal: Modal, raw: unknown,
     pattern.type = 'text'; pattern.value = String(row.pattern); pattern.placeholder = `/pico1/knob/${i + 1}`;
     pattern.dataset.testid = `osc-row${i + 1}-pattern`;
     controls.pattern = pattern;
+    const label = el('input', 'input-text') as HTMLInputElement;
+    label.type = 'text'; label.value = row.label ?? ''; label.dataset.testid = `osc-row${i + 1}-label`;
+    label.placeholder = `Row ${i + 1}`;
+    label.addEventListener('input', () => { legend.textContent = label.value || `row${i + 1}`; });
+    controls.label = label;
     controls.kind = choices([{ value: 'cv', name: 'CV' }, { value: 'gate', name: 'Gate' },
       { value: 'trigger', name: 'Trigger' }], row.kind);
     controls.kind.dataset.testid = `osc-row${i + 1}-kind`;
@@ -249,7 +262,7 @@ export function showOscEditor(modal: Modal, raw: unknown,
         checkCapturedRanges();
       });
     }
-    group.append(toggle, field('Address pattern (* allowed)', pattern), field('Kind', controls.kind), range);
+    group.append(toggle, field('Label (optional)', label), field('Address pattern (* allowed)', pattern), field('Kind', controls.kind), range);
     controls.refreshLayout();
     fields.push(controls);
     rows.append(group);
@@ -259,6 +272,8 @@ export function showOscEditor(modal: Modal, raw: unknown,
     fields.forEach((controls, i) => {
       const next = make(i);
       for (const key of rowKeys) controls[key].value = String(next[key]);
+      controls.label.value = next.label ?? '';
+      controls.label.dispatchEvent(new Event('input'));
       controls.enabled.checked = next.enabled !== false;
       controls.enabled.closest('fieldset')?.classList.toggle('osc-row-off', next.enabled === false);
       controls.outputMode.value = outputMode(next);
@@ -309,7 +324,7 @@ export function showOscEditor(modal: Modal, raw: unknown,
   preset('Clear (all rows off)', 'osc-preset-clear', i => {
     const keep = {} as Record<string, string>;
     for (const key of rowKeys) keep[key] = fields[i][key].value;
-    return { ...(keep as unknown as OscRow), enabled: false };
+    return { ...(keep as unknown as OscRow), ...(fields[i].label.value ? { label: fields[i].label.value } : {}), enabled: false };
   });
 
   const example = el('code', 'osc-example');
@@ -351,6 +366,10 @@ export function showOscEditor(modal: Modal, raw: unknown,
     const next: OscConfig = { ...(config.version === 1 ? { version: 1 } : {}), port: n, lan: lan.checked, rows: [] };
     for (const [i, c] of fields.entries()) {
       const pattern = c.pattern.value;
+      const label = c.label.value;
+      if (new TextEncoder().encode(label).length > 32) {
+        errors.textContent = `row${i + 1}: label must fit in 32 UTF-8 bytes.`; return;
+      }
       if (!pattern.startsWith('/') || new TextEncoder().encode(pattern).length >= 256 || pattern.includes('\0')) {
         errors.textContent = `row${i + 1}: address must start with / and fit in 255 UTF-8 bytes.`; return;
       }
@@ -371,7 +390,7 @@ export function showOscEditor(modal: Modal, raw: unknown,
         errors.textContent = `row${i + 1}: input max must exceed input min.`; return;
       }
       next.rows.push({ pattern, kind: c.kind.value as OscRow['kind'],
-        stale: c.stale.value as OscRow['stale'], ...values, ...(c.enabled.checked ? {} : { enabled: false }) });
+        stale: c.stale.value as OscRow['stale'], ...values, ...(label ? { label } : {}), ...(c.enabled.checked ? {} : { enabled: false }) });
     }
     applying = true;
     submit.disabled = true;
@@ -386,6 +405,7 @@ export function showOscEditor(modal: Modal, raw: unknown,
     port: draftNumber(port),
     rows: fields.map(c => ({
       pattern: c.pattern.value, kind: c.kind.value, stale: c.stale.value,
+      ...(c.label.value ? { label: c.label.value } : {}),
       ...Object.fromEntries(numericKeys.map(key => [key, draftNumber(c[key])])),
       ...(c.enabled.checked ? {} : { enabled: false }),
     })),

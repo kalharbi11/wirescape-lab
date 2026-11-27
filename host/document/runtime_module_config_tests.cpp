@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 using namespace wirescape::document;
-#define CHECK(x) do{if(!(x))std::abort();}while(0)
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"CHECK failed at line %d: %s\n",__LINE__,#x);std::abort();}}while(0)
 static void instance_config_union() {
     const auto chord = runtime_module_config("essentials.chord", nlohmann::json::object(), 0x12345678);
     CHECK(chord == std::vector<uint8_t>({0x78, 0x56, 0x34, 0x12}));
@@ -76,6 +76,28 @@ static void osc_future_keys() {
     wirescape::osc::Configuration legacy;
     CHECK(wirescape::osc::configuration(legacy_bytes.data(), static_cast<uint32_t>(legacy_bytes.size()), legacy));
     CHECK(legacy.port == 9011 && legacy.lan == 0 && legacy.rows[0].argument == 2 && legacy.rows[0].kind == 1);
+    // SC1: valid display metadata never enters the binary configuration or diagnostics.
+    auto labelled = all_known;
+    labelled["rows"][0]["label"] = "Filter";
+    const auto original = labelled.dump();
+    std::vector<std::string> label_diagnostics;
+    const auto labelled_bytes = runtime_module_config("osc.in", labelled, 17, &label_diagnostics);
+    if (!label_diagnostics.empty()) throw std::runtime_error("SC1 label emitted a legacy OSC In diagnostic");
+    if (labelled_bytes != legacy_bytes) {
+        for (size_t i = 0; i < std::min(labelled_bytes.size(), legacy_bytes.size()); ++i)
+            if (labelled_bytes[i] != legacy_bytes[i])
+                std::fprintf(stderr, "SC1 config byte %zu: labelled=%u baseline=%u\n", i,
+                             unsigned(labelled_bytes[i]), unsigned(legacy_bytes[i]));
+    }
+    CHECK(labelled_bytes == legacy_bytes && labelled.dump() == original);
+    // Invalid display metadata is also ignored by the execution parser.
+    for (const auto &bad_label : {Json(42), Json(false), Json(nullptr), Json::object(), Json::array()}) {
+        auto invalid_label = all_known;
+        invalid_label["rows"][0]["label"] = bad_label;
+        std::vector<std::string> diagnostics;
+        CHECK(runtime_module_config("osc.in", invalid_label, 17, &diagnostics) == legacy_bytes);
+        CHECK(diagnostics.empty());
+    }
     auto future = known;
     future["futureOption"] = Json::object({{"nested", 1}});
     future["rows"][0]["futureField"] = Json::array({1, 2});

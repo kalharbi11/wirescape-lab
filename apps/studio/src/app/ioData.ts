@@ -60,8 +60,15 @@ export function splitOscEditorSave(m: PatchModule, draft: OscConfig | OscOutConf
   };
   const rows = draft.rows.map(rowValue);
   const value: RecordValue = { rows };
-  const nextSlot: RecordValue = { ...priorSlot, rows: rows.map((row, i) =>
-    ({ ...(Array.isArray(priorSlot.rows) ? object(priorSlot.rows[i]) : {}), ...row })) };
+  const nextSlot: RecordValue = { ...priorSlot, rows: rows.map((row, i) => {
+    const next = { ...(Array.isArray(priorSlot.rows) ? object(priorSlot.rows[i]) : {}), ...row };
+    if (!out) {
+      const label = (draft.rows[i] as OscConfig['rows'][number]).label;
+      if (label) next.label = label;
+      else delete next.label;
+    }
+    return next;
+  }) };
   if (out) {
     const notes = (draft as OscOutConfig).notes;
     value.notes_address = notes.address;
