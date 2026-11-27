@@ -37,7 +37,7 @@ void check(bool ok) {
 void midi_hotplug_observation() {
     using namespace wirescape::midi;
     ObservedMidi backend(true, false);
-    const Endpoint m8{"M8 MIDI 1", "M8:M8 MIDI 1"}, pad{"Pad", "pad"};
+    const Endpoint m8{"Test MIDI 1", "Test:Test MIDI 1"}, pad{"Pad", "pad"};
     check(backend.set_fake_endpoints({m8, pad}));
     std::vector<ws2_event> events;
     events.reserve(16);
@@ -55,7 +55,7 @@ void midi_hotplug_observation() {
     check(backend.learning() == Json({{"armed", true}}));
     uint8_t first_cc[]{0xB0, 21, 74};
     check(backend.inject(m8, first_cc, 3, app_engine_clock_ns()));
-    check(backend.learning()["deviceId"] == "M8 MIDI 1|M8:M8 MIDI 1");
+    check(backend.learning()["deviceId"] == "Test MIDI 1|Test:Test MIDI 1");
     auto initial = listing();
     check(initial.size() == 2 && initial[0]["enabled"] == true);
     const uint8_t a[]{0x90, 60, 100}, b[]{0x90, 62, 100};
