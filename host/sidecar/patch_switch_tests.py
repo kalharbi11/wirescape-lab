@@ -242,7 +242,9 @@ def wait_for_swap_capture(capture, swap_id, generation, timeout):
             'wrong live capture swap mark')
     end = mark['b1'] + 2
     deadline = time.monotonic() + timeout
-    while completed_capture_blocks(capture) < end:
+    # fwrite can expose a block before capture_.appended() publishes its
+    # increment. One further on-disk block proves all bracket blocks published.
+    while completed_capture_blocks(capture) < end + 1:
         require(time.monotonic() < deadline, 'post-swap capture did not complete')
         time.sleep(.001)
     return end
@@ -304,7 +306,8 @@ def analyze(capture, switches, mark_ids):
             # M0 capture marks bracket a command through b1+1. Include one
             # preceding block and one complete following block for plateaus.
             first = max(0, swap['b0'] - 1)
-            end = min(total, swap['b1'] + 2)
+            end = swap['b1'] + 2
+            require(end <= total, f'switch {number}: incomplete post-swap capture bracket')
             audio, gate = samples(stream, segments, first, end)
             _, held = samples(stream, segments, hold['b0'], swap['b0'])
             require(any(x > 0 for x in held) and gate[0] > 0,
