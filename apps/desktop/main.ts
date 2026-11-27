@@ -718,7 +718,7 @@ function checkedBundle(input: unknown): { playerJson: string; patches: BundlePat
   const { playerJson, patches, scripts } = input as { playerJson: unknown; patches: unknown; scripts: unknown };
   if (typeof playerJson !== 'string' || Buffer.byteLength(playerJson, 'utf8') > LIMIT ||
       !Array.isArray(patches) || !patches.length || patches.length > BUNDLE_MAX_FILES ||
-      !Array.isArray(scripts) || scripts.length > BUNDLE_MAX_FILES) throw new Error('Invalid bundle or file limit');
+      !Array.isArray(scripts) || 1 + patches.length + scripts.length > BUNDLE_MAX_FILES) throw new Error('Invalid bundle or file limit');
   let total = Buffer.byteLength(playerJson, 'utf8');
   const patchPaths = new Set<string>(), scriptPaths = new Set<string>(), folded = new Set<string>();
   for (const [i, p] of patches.entries()) {
@@ -731,7 +731,7 @@ function checkedBundle(input: unknown): { playerJson: string; patches: BundlePat
   for (const s of scripts) {
     if (!s || typeof s.name !== 'string' || !/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]{0,119}\.py$/.test(s.name) ||
         /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(s.name) ||
-        folded.has(s.name.toLowerCase()) || !(s.bytes instanceof Uint8Array) || s.bytes.byteLength > LIMIT)
+        s.name.includes('..') || folded.has(s.name.toLowerCase()) || !(s.bytes instanceof Uint8Array) || s.bytes.byteLength > LIMIT)
       throw new Error('Invalid or duplicate bundle script');
     folded.add(s.name.toLowerCase());
     scriptPaths.add('scripts/' + s.name);
@@ -765,8 +765,8 @@ async function savePlayerBundle(input: unknown): Promise<{ name: string } | null
     title: 'Choose an empty Player bundle folder', properties: ['openDirectory', 'createDirectory'],
   });
   if (result.canceled || !result.filePaths.length) return null;
-  const root = await fs.promises.realpath(result.filePaths[0]);
-  if (!(await fs.promises.stat(root)).isDirectory() || (await fs.promises.readdir(root)).length)
+  const root = path.resolve(result.filePaths[0]);
+  if (await fs.promises.realpath(root) !== root || !(await fs.promises.lstat(root)).isDirectory() || (await fs.promises.readdir(root)).length)
     throw new Error('Choose an empty folder; existing files are not overwritten.');
   const patchDir = path.join(root, 'patches'), scriptDir = path.join(root, 'scripts');
   // Exclusive creation for every directory and file. A failure leaves an
@@ -774,11 +774,16 @@ async function savePlayerBundle(input: unknown): Promise<{ name: string } | null
   try {
     await fs.promises.mkdir(patchDir, { mode: 0o700 });
     await fs.promises.mkdir(scriptDir, { mode: 0o700 });
-    for (const p of bundle.patches)
-      await fs.promises.writeFile(path.join(patchDir, p.name), p.text, { flag: 'wx', mode: 0o600 });
-    for (const s of bundle.scripts)
-      await fs.promises.writeFile(path.join(scriptDir, s.name), s.bytes, { flag: 'wx', mode: 0o600 });
-    await fs.promises.writeFile(path.join(root, 'player.json'), bundle.playerJson, { flag: 'wx', mode: 0o600 });
+    const write = async (dir: string, name: string, bytes: string | Uint8Array) => {
+      if (await fs.promises.realpath(dir) !== dir || !(await fs.promises.lstat(dir)).isDirectory())
+        throw new Error('Unsafe bundle directory');
+      await fs.promises.writeFile(path.join(dir, name), bytes, {
+        flag: fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW ?? 0), mode: 0o600,
+      });
+    };
+    for (const p of bundle.patches) await write(patchDir, p.name, p.text);
+    for (const s of bundle.scripts) await write(scriptDir, s.name, s.bytes);
+    await write(root, 'player.json', bundle.playerJson);
     return { name: path.basename(root) };
   } catch {
     throw new Error('Bundle write incomplete; choose a new empty folder for retry.');
