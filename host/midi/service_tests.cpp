@@ -4,6 +4,8 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include <algorithm>
 #include <map>
+#include <chrono>
+#include <stdexcept>
 using namespace wirescape::midi;
 struct Fake : Backend {
     std::vector<Endpoint> list{{"A", "sys:A"}, {"B", "sys:B"}};
@@ -279,7 +281,48 @@ static void transactional_routes() {
     REQUIRE(out.items[0].event.type == WS2_NOTE_OFF && out.items[0].ns == 2);
     REQUIRE(backend.opens == 1 && backend.closes == 0);
 }
+// P0b: throw during the real worker's second enumeration, after an
+// endpoint was opened. No caller restarts it and no physical MIDI is used.
+static void worker_exception_recovers() {
+    using namespace std::chrono_literals;
+    struct ThrowOnce : Fake {
+        std::atomic<unsigned> enumerations{0};
+        std::vector<Endpoint> endpoints() override {
+            if (enumerations.fetch_add(1, std::memory_order_relaxed) == 1)
+                throw std::runtime_error("injected MIDI worker enumeration failure");
+            return Fake::endpoints();
+        }
+        bool open(const Endpoint& e, Callback cb) override {
+            if (!Fake::open(e, cb)) return false;
+            const uint8_t on[]{0x90, 60, 100};
+            cb.message(cb.context, on, sizeof(on), 1);
+            return true;
+        }
+    } backend;
+    Output out;
+    Service service(backend, out.sink());
+    REQUIRE(service.enable({"A", "sys:A"}));
+    REQUIRE(service.subscribe({1, {}, true}));
+    REQUIRE(service.start());
+    bool saw_recovery = false;
+    const auto deadline = std::chrono::steady_clock::now() + 4s;
+    while (std::chrono::steady_clock::now() < deadline) {
+        saw_recovery |= service.recovering();
+        if (backend.enumerations.load(std::memory_order_relaxed) >= 3 &&
+            service.endpoint_states()[0].online && !service.recovering()) break;
+        std::this_thread::sleep_for(5ms);
+    }
+    service.stop(); // join before reading non-atomic fake/backend observations
+    REQUIRE(backend.enumerations.load() >= 3); // old worker exited at 2
+    REQUIRE(saw_recovery && !service.recovering());
+    REQUIRE(backend.opens >= 2 && backend.closes == backend.opens);
+    REQUIRE(backend.callbacks.empty());
+    REQUIRE(service.counters().send_fail >= 1);
+    REQUIRE(std::count_if(out.items.begin(), out.items.end(),
+        [](const Output::Item& i) { return i.event.type == WS2_MIDI; }) >= 2);
+}
 int main() {
+    worker_exception_recovers();
     hotplug_identity_and_first_packet();
     virtual_input_listing_and_hotplug();
     transactional_routes();

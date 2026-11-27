@@ -51,6 +51,7 @@ class ObservedMidi final : public midi::Backend {
   public:
     explicit ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected = {},
                           bool scripted_busy_test_endpoint = false);
+    ~ObservedMidi() override;
     std::vector<midi::Endpoint> endpoints() override;
     std::vector<midi::Endpoint> observed();
     bool open(const midi::Endpoint &, midi::Callback) override;

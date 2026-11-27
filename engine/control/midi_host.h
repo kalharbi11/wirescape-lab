@@ -17,12 +17,14 @@ class Host {
     std::unique_ptr<Service> service_;
     AppEngine *engine_ = nullptr;
     bool authorized_ = false;
+    bool close_pending_ = false; // joined Service retained until backend quiescence
     std::string last_statistics_;
     Counters completed_{}; // Final totals from stopped services, control owner only.
     std::atomic<uint64_t> release_panics_{0}; // failed release enqueue -> global engine panic
     std::vector<Endpoint> enabled_;
     monitor::Capture *monitor_ = nullptr;
     static int deliver(void *, uint32_t, const ws2_event &, uint64_t) noexcept;
+    bool stop_impl(bool retry_close) noexcept;
 
   public:
     explicit Host(bool authorized = false, std::unique_ptr<Backend> fake = {});
@@ -34,14 +36,16 @@ class Host {
     const std::vector<Endpoint> &enabled() const { return enabled_; }
     void select(Endpoint, bool);
     void restore(const std::string &document);
-    bool start(AppEngine *, const std::string &document, std::string &error);
+    bool start(AppEngine *, const std::string &document, std::string &error, bool retry_close = true);
     // Control-thread admission check: online means the backend opened this identity.
     bool online(const Endpoint &) const;
+    bool recovering() const noexcept { return service_ && service_->recovering(); }
     // Atomically accept a prepared graph and its subscriptions on the control thread.
     // Refusal (including a busy MIDI worker) preserves graph and routes for retry.
     bool replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
                 engine2::Engine::BeforePublish before_publish = nullptr, void *context = nullptr);
-    void stop();
+    // False retains a joined, non-admitting Service; only the retry path closes again.
+    bool stop() noexcept { return stop_impl(false); }
     Counters counters() const noexcept;
     std::string diagnostics() const;
 };
