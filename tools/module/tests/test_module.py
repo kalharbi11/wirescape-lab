@@ -211,6 +211,31 @@ class ModuleToolTests(unittest.TestCase):
         self.mutate(broken)
         self.assert_failure("C4")
 
+    def _set_gain_range(self, lo, hi, init):
+        def change(source):
+            if '"gain","Gain",0,2,1' in source:
+                return source.replace('"gain","Gain",0,2,1', f'"gain","Gain",{lo},{hi},{init}')
+            return source.replace('"gain","Gain","",0,2,1', f'"gain","Gain","",{lo},{hi},{init}')
+        self.mutate(change)
+
+    def c4_status(self):
+        _, report = self.check()
+        return [r["status"] for r in report["results"] if r["test"] == "C4"]
+
+    def test_c4_singleton_range_accepted(self):
+        # lab #719: a finite singleton range with initial at that value is valid
+        # (pinned midi.to_cv steal_policy is 0,0,0).
+        self._set_gain_range(1, 1, 1)
+        self.assertEqual(self.c4_status(), ["pass"])
+
+    def test_c4_inverted_range_rejected(self):
+        self._set_gain_range(2, 0, 1)
+        self.assert_failure("C4")
+
+    def test_c4_singleton_initial_off_value_rejected(self):
+        self._set_gain_range(1, 1, 0)
+        self.assert_failure("C4")
+
     def test_c5_port_id_mismatch(self):
         metadata = self.folder / "module.json"
         payload = json.loads(metadata.read_text(encoding="utf-8"))

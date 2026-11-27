@@ -8,6 +8,7 @@
 #include "../data_slots.h"
 #include "module_catalog.h"
 #include "module_cpu_probe_output.h"
+#include "runtime_module_config.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -39,6 +40,8 @@ struct Instance {
     Arena arena;
     ws2_host host{sizeof(ws2_host), &arena, Arena::alloc};
     void *self = nullptr;
+    std::vector<uint8_t> config_bytes; // per-instance native configuration (lab #718)
+    ws2_config config{};
     std::vector<std::vector<float>> out_store;
     std::vector<std::vector<float *>> out_rows;
     std::vector<ws2_signal_out> outputs;
@@ -121,18 +124,27 @@ int main(int argc, char **argv) {
     if (!alternate_id.empty() && alternate < 0) return fail("--alternate names an unknown parameter");
 
     constexpr uint32_t capacity = 16;
-    const ws2_config config{sizeof(ws2_config), rate, block, capacity, seed, nullptr, 0};
-    ws2_memory memory{sizeof(ws2_memory), 0, 0, 0};
-    if (d->memory_requirements(&config, &memory) != WS2_OK) return fail("memory_requirements failed");
     std::vector<std::unique_ptr<Instance>> all;
     const size_t frames_total = size_t(seconds * rate);
     std::vector<float> saw(block), noise(block), zero(block, 0.f);
     for (uint32_t n = 0; n < instances; ++n) {
         auto x = std::make_unique<Instance>();
         x->d = d;
+        // The production adapter's bytes for an empty patch config, with the graph instance
+        // number n + 1 (Chord needs a distinct 4-byte tag per instance). Modules whose empty
+        // config is rejected keep the previous null configuration.
+        try {
+            x->config_bytes = wirescape::document::runtime_module_config(d->id, nlohmann::json::object(), n + 1);
+        } catch (const std::exception &) {
+            x->config_bytes.clear();
+        }
+        x->config = {sizeof(ws2_config), rate, block, capacity, seed,
+                     x->config_bytes.empty() ? nullptr : x->config_bytes.data(), uint32_t(x->config_bytes.size())};
+        ws2_memory memory{sizeof(ws2_memory), 0, 0, 0};
+        if (d->memory_requirements(&x->config, &memory) != WS2_OK) return fail("memory_requirements failed");
         x->arena.bytes.resize(memory.fast_bytes + memory.large_bytes + (1u << 20));
         x->self = d->create(&x->host);
-        if (!x->self || d->prepare(x->self, &config, &x->host) != WS2_OK) return fail("create/prepare failed");
+        if (!x->self || d->prepare(x->self, &x->config, &x->host) != WS2_OK) return fail("create/prepare failed");
         std::string data_error;
         if (!wirescape::engine2::initialize_data_slots(*d, x->data, data_error)) return fail("data slot initialization failed");
         x->out_store.assign(size_t(d->output_count) * capacity, std::vector<float>(block));

@@ -278,6 +278,9 @@ target_link_libraries(abi2_module_cpu_probe_output_tests PRIVATE wirescape_engin
 add_test(NAME abi2_module_cpu_probe_output_tests COMMAND abi2_module_cpu_probe_output_tests)
 add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests/native/abi2/allocation_watch.cpp)
 target_link_libraries(abi2_module_cpu_probe PRIVATE wirescape_app_engine)
+# Header-only production config adapter (lab #718); no host library is linked.
+target_include_directories(abi2_module_cpu_probe PRIVATE ../host/document)
+target_link_libraries(abi2_module_cpu_probe PRIVATE nlohmann_json::nlohmann_json)
 add_test(NAME abi2_module_cpu_probe_smoke COMMAND abi2_module_cpu_probe --module sound.blend --seconds 0.2)
 foreach(frames IN ITEMS 64 128 256)
   add_test(NAME abi2_module_cpu_probe_tiny_${frames} COMMAND abi2_module_cpu_probe
@@ -286,6 +289,13 @@ endforeach()
 set_tests_properties(abi2_module_cpu_probe_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0")
 add_test(NAME abi2_module_cpu_probe_stress_smoke COMMAND abi2_module_cpu_probe --module sound.blend --seconds 0.2 --param balance=0.25 --alternate mode=0:1:4)
 set_tests_properties(abi2_module_cpu_probe_stress_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0")
+# lab #718: modules with a native configuration (Chord's 4-byte instance tag) get the production
+# adapter's per-instance bytes; two instances must prepare with distinct tags.
+add_test(NAME abi2_module_cpu_probe_chord_instances COMMAND abi2_module_cpu_probe
+  --module essentials.chord --instances 2 --seconds 0.2)
+set_tests_properties(abi2_module_cpu_probe_chord_instances PROPERTIES
+  PASS_REGULAR_EXPRESSION "\"allocations\":0,\"faults\":0"
+  FAIL_REGULAR_EXPRESSION "create/prepare failed")
 add_test(NAME abi2_module_cpu_probe_poly_smoke COMMAND abi2_module_cpu_probe --module essentials.vco --seconds 0.2 --channels 8)
 set_tests_properties(abi2_module_cpu_probe_poly_smoke PROPERTIES PASS_REGULAR_EXPRESSION "\"channels\":8.*\"allocations\":0,\"faults\":0")
 add_test(NAME abi2_module_cpu_probe_spectral_smoke COMMAND abi2_module_cpu_probe --module sound.spectral --seconds 0.2 --param size=3 --param pitch=1 --alternate mode=0:1:32)
