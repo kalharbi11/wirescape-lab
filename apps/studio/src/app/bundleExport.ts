@@ -18,7 +18,7 @@ export interface PlayerBundle {
 /** Basenames only, portable across the Studio and Player platforms. */
 export function safeScriptName(value: unknown): value is string {
   return typeof value === 'string' && /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]{0,119}\.py$/.test(value)
-    && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value);
+    && !value.includes('..') && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value);
 }
 
 export function buildPlayerBundle(title: string, inputs: readonly ExportPatch[]): PlayerBundle {
