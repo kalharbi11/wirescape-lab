@@ -11,6 +11,10 @@ interface DirectoryHandle extends FileSystemDirectoryHandle {
 type DirectoryPicker = (options: { mode: 'readwrite' }) => Promise<DirectoryHandle>;
 const MAX_FILE = 2 * 1024 * 1024;
 const MAX_FILES = 256;
+const MAX_BUNDLE = 64 * 1024 * 1024;
+interface NativeBundleWriter {
+  write(input: { playerJson: string; patches: PlayerBundle['patches']; scripts: { name: string; bytes: Uint8Array }[] }): Promise<{ name: string } | null>;
+}
 
 async function writeFile(dir: DirectoryHandle, name: string, content: string | Blob): Promise<void> {
   const handle = await dir.getFileHandle(name, { create: true });
@@ -76,8 +80,11 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
         inputs.push({ title: file.name.replace(/\.json$/i, ''), patch });
       }
       const bundle = buildPlayerBundle(title.value, inputs);
-      if (bundle.patches.some(p => new TextEncoder().encode(p.text).length > MAX_FILE))
-        throw new Error('An exported patch exceeds 2 MiB.');
+      const encoder = new TextEncoder();
+      const sizes = bundle.patches.map(p => encoder.encode(p.text).length);
+      const manifestSize = encoder.encode(JSON.stringify(bundle.player, null, 2) + '\n').length;
+      if (sizes.some(size => size > MAX_FILE) || manifestSize > MAX_FILE)
+        throw new Error('An exported patch or manifest exceeds 2 MiB.');
       const files = new Map<string, File>();
       for (const file of scriptFiles) {
         if (!safeScriptName(file.name) || file.size > MAX_FILE || files.has(file.name))
@@ -88,6 +95,8 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
       summary.textContent = 'Setlist: ' + bundle.player.setlist.map(e => e.title).join(' → ');
       const missing = bundle.scripts.filter(name => !files.has(name));
       if (missing.length) throw new Error('Select linked scripts: ' + missing.join(', '));
+      const total = sizes.reduce((a, b) => a + b, manifestSize) + bundle.scripts.reduce((n, name) => n + files.get(name)!.size, 0);
+      if (total > MAX_BUNDLE) throw new Error('Bundle exceeds 64 MiB.');
       ready = { bundle, files };
       write.disabled = busy;
     } catch (e) {
@@ -100,17 +109,27 @@ export function showBundleExport(modal: Modal, current: ExportPatch): void {
   write.addEventListener('click', async () => {
     if (!ready || busy) return;
     const picked = ready;
-    const picker = (window as unknown as { showDirectoryPicker?: DirectoryPicker }).showDirectoryPicker;
-    if (!picker) {
+    const host = window as unknown as { showDirectoryPicker?: DirectoryPicker; wirescapeBundleExport?: NativeBundleWriter };
+    const picker = host.showDirectoryPicker, native = host.wirescapeBundleExport;
+    if (!picker && !native) {
       status.textContent = 'Folder export is unavailable in this browser. Open Studio in a browser with directory access.';
       return;
     }
     busy = true; write.disabled = true;
     title.disabled = patches.disabled = scripts.disabled = true;
     try {
-      // Call from the click itself, before any asynchronous file operations.
-      const dir = await picker.call(window, { mode: 'readwrite' });
-      await writePlayerBundle(dir, picked.bundle, picked.files);
+      if (native) {
+        const scriptBytes = await Promise.all(picked.bundle.scripts.map(async name => ({
+          name, bytes: new Uint8Array(await picked.files.get(name)!.arrayBuffer()),
+        })));
+        const saved = await native.write({ playerJson: JSON.stringify(picked.bundle.player, null, 2) + '\n',
+          patches: picked.bundle.patches, scripts: scriptBytes });
+        if (!saved) { status.textContent = 'Export cancelled.'; return; }
+      } else {
+        // Call from the click itself, before any asynchronous file operations.
+        const dir = await picker!.call(window, { mode: 'readwrite' });
+        await writePlayerBundle(dir, picked.bundle, picked.files);
+      }
       status.textContent = `Exported ${picked.bundle.patches.length} patches and ${picked.bundle.scripts.length} scripts.`;
     } catch (error) {
       status.textContent = error instanceof DOMException && error.name === 'AbortError' ? 'Export cancelled.'
