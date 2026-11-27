@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: GPL-3.0-only
+name: SDK module drop-in
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/sdk-drop-in.yml"
+      - "tools/ci/*sdk_drop_in.py"
+      - "tools/gen_ui_catalogue.py"
+      - "tools/mb1/wire_describe.cpp"
+      - "modules/**"
+      - "sdk/**"
+      - "native/**"
+      - "engine/**"
+      - "host/**"
+      - "apps/studio/public/catalogue-presentation.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  drop-in:
+    name: SDK template drop-in
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing pinned build tools
+        run: python -m pip install cmake==4.2.3 ninja==1.13.0
+      - name: Test discovery rejection and success
+        run: python tools/ci/test_sdk_drop_in.py
+      - name: Build absent then staged template and verify descriptors
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/mb3-report"
+          python tools/ci/sdk_drop_in.py --report-dir "$RUNNER_TEMP/mb3-report" 2>&1 | tee "$RUNNER_TEMP/mb3-report/trial.log"
+      - name: Retain commands, registry diff and catalogue results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-drop-in-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mb3-report
+          if-no-files-found: warn
