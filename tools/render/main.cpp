@@ -34,6 +34,28 @@ static uint32_t u32(const Json &x, const char *what) {
     need(value >= 0 && value <= UINT32_MAX, std::string("out-of-range ") + what);
     return uint32_t(value);
 }
+static uint32_t ump_word(const Json &x) {
+    need(x.is_number_integer(), "invalid UMP word");
+    if (x.is_number_unsigned()) {
+        const auto value = x.get<uint64_t>();
+        need(value <= UINT32_MAX, "out-of-range UMP word");
+        return uint32_t(value);
+    }
+    const auto value = x.get<int64_t>();
+    need(value >= 0 && value <= UINT32_MAX, "out-of-range UMP word");
+    return uint32_t(value);
+}
+static void parse_ump(const Json &entry, ws2_event &event) {
+    static constexpr uint8_t widths[16] = {1,1,1,2,2,4,1,1,2,2,2,3,3,4,4,4};
+    need(entry.contains("words") && entry["words"].is_array(), "invalid UMP words");
+    const auto &words = entry["words"];
+    need(!words.empty() && words.size() <= 4, "invalid UMP words size");
+    for (size_t i = 0; i < words.size(); ++i) event.ump[i] = ump_word(words[i]);
+    need(words.size() == widths[event.ump[0] >> 28], "UMP word count does not match message type");
+    event.type = WS2_MIDI;
+    event.channel = event.note_id = -1;
+    event.ump_words = uint32_t(words.size());
+}
 static void put16(std::ostream &out, uint16_t x) {
     out.put(char(x & 255));
     out.put(char((x >> 8) & 255));
@@ -134,6 +156,12 @@ int main(int argc, char **argv) {
                 event.type = type == "noteOn" ? WS2_NOTE_ON : WS2_NOTE_OFF;
                 event.note_id = key;
                 event.value = float(key);
+            } else if (type == "midi") {
+                parse_ump(entry, event);
+                bool found = false;
+                for (const auto &m : patch.at("modules"))
+                    if (u32(m.at("id"), "module id") == node) found = true;
+                need(found, "MIDI target node does not exist");
             } else if (type == "gate") {
                 gate = true;
                 gate_value = entry.at("value").get<float>();
@@ -165,7 +193,10 @@ int main(int argc, char **argv) {
             } else {
                 throw std::runtime_error("unknown event type: " + type);
             }
-            const int event_status = gate
+            const int event_status = event.type == WS2_MIDI
+                ? app_engine_native(engine.get()).enqueue(0, node, WS2_DIRECT_PORT, event, frame,
+                                                          wirescape::engine2::Timing::Frames, generation)
+                : gate
                 ? app_engine_enqueue_gate(engine.get(), node, gate_value, frame, generation, 1)
                 : app_engine_enqueue(engine.get(), node, event, frame, generation,
                                      parameter_id.empty() ? nullptr : parameter_id.c_str());

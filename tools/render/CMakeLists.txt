@@ -56,3 +56,9 @@ add_test(NAME abi2_ob_h6_patch_check
   COMMAND ${CMAKE_COMMAND} -E env "WIRESCAPE_TEST_RENDERER=$<TARGET_FILE:wirescape_render>"
     ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/test_patch_check.py")
 set_tests_properties(abi2_ob_h6_patch_check PROPERTIES TIMEOUT 240)
+
+# #722: raw MIDI UMP script framing and frame-accurate native delivery.
+add_test(NAME render_evidence_midi_ump
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_midi_ump.py
+    $<TARGET_FILE:wirescape_render>)
+set_tests_properties(render_evidence_midi_ump PROPERTIES TIMEOUT 120)
