@@ -18,7 +18,7 @@
 #define VERIFY(x) do{if(!(x)){std::fprintf(stderr,"ABI2 fixture line %d: %s\n",__LINE__,#x);std::abort();}}while(0)
 // Fixed storage callback harness; allocate the harness itself before watching.
 struct DspFixture {
- static constexpr uint32_t ports=6,channels=16,frames=256;
+ static constexpr uint32_t ports=8,channels=16,frames=256;
  struct Pool {alignas(64)unsigned char bytes[32768]{};size_t used=0;}pool;
  const ws2_descriptor*d;void*state=nullptr;ws2_config config{};ws2_host host{};
  alignas(32)float input[ports][channels][frames]{},parameter[ports][channels][frames]{},output[ports][channels][frames]{};
