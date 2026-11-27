@@ -21,6 +21,7 @@ import { ComputerKeyboard, isTyping } from './Keyboard';
 import { OnScreenKeyboard } from './OnScreenKeyboard';
 import { DevPanel } from './DevPanel';
 import { Modal, field, select, switchButton } from './Modal';
+import { showBundleExport } from './bundleExportDialog';
 import { showOscEditor, genericOscDefaults, readOscConfig, type OscConfig, type OscRow } from './OscEditor';
 import { showOscOutEditor, genericOscOutDefaults, type OscOutConfig } from './OscOutEditor';
 import { readOscRaw } from './oscCapture';
@@ -78,6 +79,7 @@ export class App {
   private oscEditor = new Modal('osc-editor');
   private shortcuts = new Modal('shortcuts-modal');
   private patchBrowser = new Modal('patch-browser');
+  private bundleExport = new Modal('bundle-export');
   private bundledPatch = false;
   private recovery = new Modal('recovery-modal');
   private recoveryPending = false;
@@ -309,7 +311,7 @@ export class App {
 
     this.root.append(
       this.library.root, main, this.libraryScrim, this.toasts.root, this.quick.root,
-      this.devPanel.root, this.learn.root, this.settings.root, this.oscEditor.root, this.shortcuts.root, this.patchBrowser.root, this.recovery.root, this.fileInput,
+      this.devPanel.root, this.learn.root, this.settings.root, this.oscEditor.root, this.shortcuts.root, this.patchBrowser.root, this.bundleExport.root, this.recovery.root, this.fileInput,
     );
 
     this.attachDropTarget();
@@ -2498,7 +2500,11 @@ export class App {
         this.patchBrowser.close();
       } catch (e) { message.textContent = e instanceof Error ? e.message : 'Could not open patch.'; }
     };
-    body.append(message, el('h3', 'settings-group', 'BUNDLED · READ ONLY'));
+    body.append(message, this.action('Export Player bundle…', () => {
+      if (this.documentBusy) return;
+      this.patchBrowser.close();
+      showBundleExport(this.bundleExport, { title: this.patchName, patch: this.doc.toJSON() });
+    }, 'open-bundle-export'), el('h3', 'settings-group', 'BUNDLED · READ ONLY'));
     const bundled = [...BUNDLED_STARTERS.map(s => ({ name: s.name, patch: s.patch() })),
       { name: 'Class demo · CHAOS', patch: demoChaos as unknown as PatchV2 },
       { name: 'Class demo · Subtractive', patch: demoSub as unknown as PatchV2 },

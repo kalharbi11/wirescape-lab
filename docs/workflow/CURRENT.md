@@ -8,6 +8,68 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead bundle refresh — 2026-11-27 13:52 EST
+
+- Owner requested new and updated bundles any agent can claim. Filed T: TR1h #740 → TR3 #741; B: MB3 #742; released existing #622 into the task pool as N, subject to its writer gates. No advance agent assignment or draft-ahead.
+- Reconciled live B1–B5: M #725/#731 drafts; S #726 merged, #721 waits on SC1 and MB2 under A117; R #727 merged, #736 now qualifying Golden; B4 has no active product PR; B5 SC1 #685 needs integration and final Result. No product merge performed.
+- Preserve A112–A117. T and B wait for M completion; serialize T/N with active SC2 sidecar/control/spec writers and Studio work. #734 remains Architect-slotted after M with dependency scope still required; #326/#494 are closed.
+- SR16/SR21 govern writer order; SR13 governs this docs handoff. Existing owner-authorized SDK-1 draft exception stays bounded to #731.
+- Route: MB2 fallback qualification → exact-head evidence → Architect contract review → M3 acceptance by Architect. SDK-1 completes M; T/B then become available on their issue gates. OB1 still needs owner listening, real-folder round trip and candidate Pi session; these gates remain unchanged.
+- No Architect wake: no new pinned review-ready Result in the checked lane reports. Task creation and status handoff only.
+
+Signed: codex-lead, 2026-11-27, 13:52 EST
+
+## Architect run 59c — 2026-11-27 (owner: help B1 unblock #725; check lab agents)
+- **#725 diagnosis** ([review](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7226620443)): the slowdown comes from compiling each module in its own TU, which changes inlining. `finite_samples` is now inlined (fixed by the A116 pin). The LFO residual is the per-sample `Signal::ch(c)` lookup, no longer hoisted on arm64. **A118:** hoist it in `modules/lfo/dsp.h` with bit-identical goldens. A114 passes on exact callback Ir; whole-probe totals are not gated.
+- **Merged as lead:** #736 (#722 raw UMP in the renderer) as `74f4a3a`. Bundle R is done.
+- **#685 (B5):** silent since 10:47 and now conflicts with main; pinged with the steps to a Result. SDK-1 #731 stays a draft (fine). SC2 waits on #685 and MB2.
+- **Next run should:** contract-review #725 once its formal paired result (with A116 and A118) and Result are posted; review #685 when its Result is posted.
+
+Signed: claude-architect, 2026-11-27
+
+## Architect run 59b — 2026-11-27 (owner: check the inbox)
+- **A116** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225734313)): MB2 tries the contracted fallback first. A noinline `finite_samples` pin is allowed only if the fallback misses.
+- **A117** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/721#issuecomment-7225734569)): SC2 path grant and count semantics. SC2 now also waits for MB2.
+- The "Next run should" list from run 59 stands, plus: check A116's measurement when #725 is pinned.
+
+Signed: claude-architect, 2026-11-27
+
+## Architect run 59 + lead — 2026-11-27 13:15 ET (owner: `architect:run`; check agents, review and merge, act as lead and Architect)
+- **Merged as lead:** #727 (#663 `feedback_block` default) as `bbe07ff`, and SC4 #726 as `99f7c7f`. Both were at their signed-Result heads with exact-head Lab green; #727 also had Golden and paired green.
+  - #726 review: main owns the folder, which must be empty, with exclusive creates and no symlink follow. Every name and setlist reference is revalidated. Low: `realpath(root) !== root` refuses aliased folders such as macOS `/var`. That is safe; fix it only if a user reports it.
+- **A114 + A115** ([ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225279326)) for MB2 #725:
+  - A114: isolation evidence runs as an additive `wrapper-isolation` job in `m1-stage-evidence.yml`, with exact equality.
+  - A115: the SDK trial's Windows row moves to `windows-2022`. VS18 libremidi is tracked in #734.
+- **#326 closed:** both heavy L0 tiers passed in the post-#635 soak; see `facts/perf/osc_soak_2026-11-27.md`. x64 heavy L2 had `overruns=3` once (hosted, diagnostic). It gets its own issue only if it repeats in two consecutive soaks.
+- **Bundles:** S continues with SC2 #721 after SC1 #685 merges. R moves to #722, which is now released. M: #725 finishes under A113–A115.
+- **Held:** SC1 #685 has no signed Result; its four red checks are advisory L0 soak jobs. TR1h waits for M. #734 waits until after M.
+- **Next Architect run:** when #725 is pinned for contract review (medium). **Next run should:** (1) contract-review MB2 #725, including the A114 job diff and the windows-2022 trial; (2) review SC1 #685 once its Result is posted; (3) slot #734 after M merges.
+
+Signed: claude-architect, 2026-11-27
+
+## Architect run 58 — 2026-11-27 (owner: resolve B2's blocked status and the Architect questions; check both repos)
+
+- **Decided:**
+  - **A112** (SC4 #720, [ruling](https://github.com/kalharbi11/wirescape-lab/pull/726#issuecomment-7217307649)): a narrow write-only bridge in `preload.ts`, with the folder chosen by main and a validated manifest. The headless check uses a committed fixture and `tools/sc4/player_check.py` at a pinned headless SHA. #726 and #720 are back to in-progress.
+  - **A113** (MB2 #358, [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217309596)): the sorted hello order is accepted with no Studio change. A generated projection `tools/mb1/descriptor_inventory.json` is accepted. A106 is unchanged.
+  - **B2 blocked items:** #494 closed as not reproduced (zero enqueue drops in all ten OB-h1 reports). #326's blocker #631 is fixed (#635). A post-fix soak was dispatched on `3d3db7a`: close #326 if both heavy L0 tiers pass, otherwise it becomes a bundle task. #622 lost its lane label.
+  - Bundle U was merged by the lead as `3d3db7a` (#724). #719 is closed; its renderer half is #722. Inbox PRs #728 and #729 are superseded by this entry.
+- **Held:** SC2 #721 until SC4 and SC1 #685 merge. Bundle T until M merges.
+- **Next Architect run:** when #725 (MB2) is pinned for contract review, or when the soak finishes (medium). **Next run should:** (1) record the soak and settle #326; (2) contract-review MB2; (3) review SC1 #685 once its Result is posted.
+
+Signed: claude-architect, 2026-11-27
+
+## Architect run 57 — 2026-11-27 (owner: `architect:run`; review and merge the test-repo GUTTR, unblock #718/#719, start short lab bundles)
+
+- **Decided:**
+  - **Test repo:** GUTTR [test #38](https://github.com/kalharbi11/wirescape-test/pull/38) reviewed at `2edbf19` ([review](https://github.com/kalharbi11/wirescape-test/pull/38#issuecomment-7216596131)): local T0 PASS, Studio shot 0 errors, exact-head T0/T1 green. Squash-merged as `3cc1b4b`; #48 closed as superseded.
+  - **Lab hold lifted for #718 and #719 (owner):** the Architect writes the fix as bundle U, one PR that needs a separate session's review. Its merge feeds test bundle G (pin bump).
+  - **New lab work moves to short, unassigned bundles** in [TASKS](TASKS.md) (owner): U, M (MB2 → SDK-1), S (SC4 #720 → SC2 #721) and R (#663 → #722). Agent labels were removed from #358, #682 and #663.
+- **Held:** TR1h/TR3 (bundle T) until M merges, because TR1h writes `engine/control/`. Lane queues not in TASKS stay on the 2026-11-26 hold. SC1 #685 is unchanged.
+- **Next Architect run:** when U is reviewed, or when M's MB2 PR is pinned for contract review (medium). **Next run should:** (1) merge U after its independent review; (2) check that test bundle G picked up the pin; (3) contract-review MB2; (4) review SC1 #685 when it is ready.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 56 — 2026-11-27 (owner: `architect:run`, very quick: review and merge #715, #685 and any open lab PR)
 
 - **Decided:** #715 approved and merged as `289f070` ([review](https://github.com/kalharbi11/wirescape-lab/pull/715#issuecomment-7212943661)). This closes the #708 Low follow-up. #685 SC1 is held ([note](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7212949401)): it is a draft with no signed Result and no ready-state Golden. No other lab PRs were open.

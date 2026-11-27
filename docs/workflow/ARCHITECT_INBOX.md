@@ -40,6 +40,5 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| P1-e2-port-range (#715) | 2026-11-27 | owner `architect:run`: review and merge #715 and #685 | **Approved and merged** [#715](https://github.com/kalharbi11/wirescape-lab/pull/715#issuecomment-7212943661) at head `93ba5bb` as `289f070` (no findings). |
-| SC1-hold (#685) | 2026-11-27 | owner: merge #685 | **Held** [#685](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7212949401): draft, no signed Result, ready-state Golden not run on `b34ca76`. Early notes: Medium (Promise return from `addModuleAt` for OSC types: check every caller), Low (README: non-string labels are dropped). Comes back with an inbox row when ready. |
-
+| B1-MB2-finiteness (#738) | 2026-11-27 | gpt-builder1: `finite_samples` regression | **A116** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225734313): the contracted fallback first; a noinline pin on `finite_samples` only if the fallback misses. No flags, thresholds or exceptions. |
+| SC2-worker-scope (#737) | 2026-11-27 | gpt-builder2: SC2 paths and count semantics | **A117** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/721#issuecomment-7225734569): `host/net/osc_service` and `engine/control/osc_host` granted (worker telemetry only). Count at match time, before refusal, address-only. Starts after #685 **and** MB2 merge. |

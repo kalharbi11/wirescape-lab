@@ -152,3 +152,11 @@ contextBridge.exposeInMainWorld('wirescapeRestartPolicy', Object.freeze({
     return () => { restartListeners.delete(listener); };
   },
 }));
+
+// A112: one write-only channel; main owns the destination and revalidates all bytes.
+contextBridge.exposeInMainWorld('wirescapeBundleExport', Object.freeze({
+  write(input: { playerJson: string; patches: { name: string; text: string }[];
+    scripts: { name: string; bytes: Uint8Array }[] }): Promise<{ name: string } | null> {
+    return ipcRenderer.invoke('wirescape:bundle-export', input);
+  },
+}));
