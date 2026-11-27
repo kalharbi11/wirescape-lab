@@ -37,6 +37,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 
 
 
+| B2-620-status | 2026-11-26 | gpt-builder2 | ruling | now | [#620 A104 follow-up](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7208623692): optional failure-only MIDI recovery state/error under existing status, absent on healthy/default. Integrated red head `3e851d0f926186f5cc5b8a302fa860da856f8a25`; no schema edits until ruling. | #660 status witness/qualification |
+
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
