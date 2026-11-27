@@ -1257,6 +1257,84 @@ with tempfile.TemporaryDirectory() as stream_dir:
     finally:
         stream.close()
 
+# P1-e #672: only the production loopback socket feeds OSC capture.
+with tempfile.TemporaryDirectory() as osc_stream_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+        reserve.bind(('127.0.0.1', 0))
+        port = reserve.getsockname()[1]
+    osc_stream = Engine(Path(osc_stream_dir) / 'settings.json')
+    try:
+        def osc_next(kind, predicate):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e missing OSC {kind}: {osc_stream.stderr()}')
+
+        def padded(text):
+            data = text.encode() + b'\0'
+            return data + b'\0' * ((-len(data)) % 4)
+
+        def osc_packet(address, tags=',f', payload=struct.pack('>f', 0.5)):
+            return padded(address) + padded(tags) + payload
+
+        def bundle(*packets):
+            return b'#bundle\0' + struct.pack('>Q', 1) + b''.join(
+                struct.pack('>I', len(packet)) + packet for packet in packets)
+
+        patch = minimal()
+        patch['modules'].append(dict(id=9, module='osc.in', config=dict(
+            port=port, rows=[dict(pattern='/stream/on', enabled=True),
+                             dict(pattern='/stream/off', enabled=False)])))
+        gen = osc_stream.call('loadGraph', patch=patch)['gen']
+        osc_next('status', lambda m: m['gen'] == gen and any(
+            route['port'] == port and route['state'] == 'listening'
+            for route in m['status']['osc']['routes']))
+        assert osc_stream.call('controllerStream', kinds=['osc'])['gen'] == gen
+
+        def collect_until(address):
+            events = []
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    assert message['gen'] == gen, message
+                    events.extend(message['events'])
+                    if any(event['address'] == address for event in events):
+                        return events
+            raise AssertionError(f'P1-e missing OSC sentinel {address}: {osc_stream.stderr()}')
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            # The allowed final child is a positive ingress barrier; the
+            # disabled-only and unmatched children must not be reported.
+            sender.sendto(bundle(osc_packet('/stream/off'), osc_packet('/stream/unmatched'),
+                                 osc_packet('/stream/on')), ('127.0.0.1', port))
+            events = collect_until('/stream/on')
+            assert [event['address'] for event in events] == ['/stream/on'], events
+            assert events[0]['matched'] is True and events[0]['args'] == [0.5], events
+            assert events[0]['port'] == port and type(events[0]['t']) is int, events
+            changed = osc_stream.call('controllerStream', kinds=['osc'], oscUnmatched=True)
+            assert changed['gen'] == gen and changed['result']['oscUnmatched'] is True, changed
+            # OSC types d/h are numeric; string and a fifth numeric arg are
+            # skipped with more=true, not silently treated as zero.
+            mixed = osc_packet('/stream/mixed', ',idhTsf',
+                               struct.pack('>idq', -2, 0.25, 42) + padded('skip') +
+                               struct.pack('>f', 0.75))
+            oversized = osc_packet('/' + 'a' * 128)
+            sender.sendto(bundle(osc_packet('/stream/off'), oversized, mixed,
+                                 osc_packet('/stream/barrier', ',F', b'')), ('127.0.0.1', port))
+            events = collect_until('/stream/barrier')
+            assert [event['address'] for event in events] == ['/stream/mixed', '/stream/barrier'], events
+            assert all(event['matched'] is False for event in events), events
+            assert events[0]['args'] == [-2, 0.25, 42, 1] and events[0]['more'] is True, events
+            assert events[1]['args'] == [0], events
+            status = osc_next('status', lambda m: m['status'].get('controller', {}).get(
+                'dropped', {}).get('oversize', 0) >= 1)
+            assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=1), status
+    finally:
+        osc_stream.close()
+
 # OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
 # endpoint toggle. The opt-in scripted backend has one virtual identity; this
 # covers re-enabling it without restarting the running null-audio engine, NOT
