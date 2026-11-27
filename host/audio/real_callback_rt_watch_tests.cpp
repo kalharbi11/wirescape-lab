@@ -47,10 +47,12 @@ using Clock = std::chrono::steady_clock;
 constexpr unsigned block = 128, prime = 4, required = 64;
 enum class Mode { clean, allocation, lock };
 Mode mode = Mode::clean;
+bool expect_detection = false;
 std::atomic<bool> primed{false}, go{false};
 std::atomic<unsigned> completed{0};
 // Worker-owned; read only after Stream::stop joins.
 unsigned invoked = 0, allocation_blocks = 0, lock_blocks = 0, witness_calls = 0;
+unsigned witness_mismatches = 0;
 uint64_t max_allocations = 0, max_locks = 0, max_trylocks = 0;
 bool audible = false, invalid_output = false, bad_callback = false;
 
@@ -108,6 +110,7 @@ int drive(PaStreamCallback *callback, void *output, unsigned long frames,
         primed.store(true, std::memory_order_release);
         if (!wait_for([] { return go.load(std::memory_order_acquire); })) return paAbort;
     }
+    const auto calls_before = witness_calls;
     uint64_t allocations;
     int result;
     {
@@ -122,6 +125,16 @@ int drive(PaStreamCallback *callback, void *output, unsigned long frames,
 #endif
         allocations = watch.allocations();
     }
+    const auto calls = witness_calls - calls_before;
+    // Match every measured invocation to the actual number of DSP witness calls.
+    // This rejects false negatives, unexpected extra allocations/locks, and a
+    // callback which never entered the witness. It does not invert a generic exit code.
+    bool mismatch = !calls || allocations != (mode == Mode::allocation ? calls : 0u);
+#ifdef WS_CALLBACK_LOCK_WATCH
+    mismatch |= lock_calls != (mode == Mode::lock ? calls : 0u) ||
+                trylock_calls != (mode == Mode::lock ? calls : 0u);
+#endif
+    if (mismatch) ++witness_mismatches;
     if (allocations) ++allocation_blocks;
     max_allocations = (std::max)(max_allocations, allocations);
 #ifdef WS_CALLBACK_LOCK_WATCH
@@ -197,7 +210,13 @@ int main(int argc, char **argv) {
         if (argc == 5) {
             if (!std::strcmp(argv[4], "--inject-allocation")) mode = Mode::allocation;
             else if (!std::strcmp(argv[4], "--inject-lock")) mode = Mode::lock;
-            else throw std::runtime_error("unknown witness mode");
+            else if (!std::strcmp(argv[4], "--expect-allocation")) {
+                mode = Mode::allocation;
+                expect_detection = true;
+            } else if (!std::strcmp(argv[4], "--expect-lock")) {
+                mode = Mode::lock;
+                expect_detection = true;
+            } else throw std::runtime_error("unknown witness mode");
         }
 #ifndef WS_CALLBACK_LOCK_WATCH
         require(mode != Mode::lock, "lock check not measured on this platform");
@@ -241,9 +260,19 @@ int main(int argc, char **argv) {
 #else
         std::puts("locks: not measured (no Linux linker interposition)");
 #endif
+        std::printf("witness_calls=%u witness_mismatches=%u\n", witness_calls, witness_mismatches);
+        if (expect_detection) {
+            require(witness_mismatches == 0, "injected violation must match per-callback counts exactly");
+            require(mode == Mode::allocation
+                        ? allocation_blocks == completed.load() && lock_blocks == 0
+                        : lock_blocks == completed.load() && allocation_blocks == 0,
+                    "every injected callback must trip only its intended watch");
+            std::puts("PASS independently detected injected callback violation");
+            return 0;
+        }
         if (allocation_blocks) std::fprintf(stderr, "FAIL callback allocation watch\n");
         if (lock_blocks) std::fprintf(stderr, "FAIL callback lock watch\n");
-        return allocation_blocks || lock_blocks ? 1 : 0;
+        return allocation_blocks || lock_blocks || witness_mismatches ? 1 : 0;
     } catch (const std::exception &e) {
         std::fprintf(stderr, "fixture failure: %s\n", e.what());
         return 2;
