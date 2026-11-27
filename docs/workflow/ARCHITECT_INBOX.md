@@ -40,6 +40,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
+| B2-A104-status | 2026-11-26 | [#620](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7208623692) MIDI recovery status field (inbox PR #696 superseded) | **A104a** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7208679577): optional `status.midi.recovery {state:"retrying", error: closed enum}`, only during failure/backoff; default/golden bytes unchanged; no capability. |
 | A105-close | 2026-11-26 | #677 closure record | Recorded: A105 exception closed by #677 `9813b28`. |
 | B5-P0a-review | 2026-11-26 | [#627](https://github.com/kalharbi11/wirescape-lab/pull/627#issuecomment-7208582660) P0a contract review (inbox PR #694 superseded) | Approved `fb99c05`, merged `040528c`. Lows: keep failure-only A78 diagnostic; ALSA stall overturn owner-run. |
 | B2-OBh2-review | 2026-11-26 | [#638](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7208584311) OB-h2 contract review (inbox PR #693 superseded) | Approved `75fa8fb`, merged `302bd47`. #660 may finish. |
