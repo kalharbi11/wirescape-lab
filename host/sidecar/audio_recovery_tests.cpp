@@ -1092,12 +1092,18 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     const auto stops = fake::stopped, exchanges = fake::exchanges;
     // For an accepted live publication, a render owner advances only tiny
     // blocks while the control owner executes the real sidecar transaction.
+    unsigned publication_attempt = 0, last_render_calls = 0;
+    double last_action_ms = 0;
     auto with_render = [&](auto action) {
+        ++publication_attempt;
+        unsigned render_calls = 0; // render owner only; read after join
         std::atomic<bool> done{false}, render_ok{true};
+        const auto action_start = std::chrono::steady_clock::now();
         std::thread renderer([&] {
             float sample = 0;
             for (unsigned i = 0; i < 128 && !done.load(std::memory_order_acquire); ++i) {
                 if (app_engine_render(live, &sample, 1) != WS2_OK) render_ok.store(false);
+                ++render_calls;
                 // Pace by wall clock without spending more of the 128-sample tail budget.
                 // Slow sanitizer staging must not exhaust the renderer before publication.
                 std::this_thread::sleep_for(5ms);
@@ -1110,8 +1116,11 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
             renderer.join();
             throw;
         }
+        last_action_ms = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - action_start).count();
         done.store(true, std::memory_order_release);
         renderer.join();
+        last_render_calls = render_calls;
         check(render_ok.load(), "A78 publication render succeeds");
         check(fake::engine == live && fake::stopped == stops && fake::exchanges == exchanges,
               "A78 never falls back to D5 or reopens the stream");
@@ -1125,6 +1134,14 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto accept = [&](const Json &p) {
         Json reply;
         with_render([&] { reply = apply(p); });
+        if (reply["ok"] != true || reply["result"]["path"] != "live") {
+            // Control thread after render join: preserve the refusal context without
+            // changing the 128-frame cap, 5 ms pacing, deadlines or oracle.
+            std::cerr << "A78 publication diagnostic: attempt=" << publication_attempt
+                      << " render_calls=" << last_render_calls
+                      << " action_ms=" << last_action_ms
+                      << " engine_error_after_join=" << graph.error() << '\\n';
+        }
         check(reply["ok"] == true && reply["result"]["path"] == "live",
               ("A78 live commit: " + reply.dump()).c_str());
         return reply["gen"];
