@@ -45,8 +45,9 @@ test('SC4 exports a set with scripts into a temporary folder from Studio', async
   await page.getByTestId('open-patch-browser').click();
   await page.getByTestId('open-bundle-export').click();
   await page.getByTestId('bundle-title').fill('Example set');
+  const sourceText = JSON.stringify(extra, null, 4) + '\n\n';
   await page.getByTestId('bundle-patches').setInputFiles({ name: 'second.json',
-    mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(extra)) });
+    mimeType: 'application/json', buffer: Buffer.from(sourceText) });
   await page.getByTestId('bundle-scripts').setInputFiles({ name: 'voice.py',
     mimeType: 'text/x-python', buffer: Buffer.from('# no execution\n') });
   await expect(page.getByTestId('bundle-write')).toBeEnabled();
@@ -57,7 +58,7 @@ test('SC4 exports a set with scripts into a temporary folder from Studio', async
   expect(manifest.setlist).toHaveLength(2);
   expect(manifest.setlist[1].scripts).toEqual([{ file: 'scripts/voice.py', port: 9000 }]);
   expect(manifest.setlist[1].pages[0].controls).toHaveLength(8);
-  expect(JSON.parse(await readFile(join(root, manifest.setlist[1].patch), 'utf8'))).toEqual(extra);
+  expect(await readFile(join(root, manifest.setlist[1].patch), 'utf8')).toBe(sourceText);
   expect(await readdir(join(root, 'scripts'))).toEqual(['voice.py']);
   expect(await readFile(join(root, 'scripts/voice.py'), 'utf8')).toBe('# no execution\n');
 });
