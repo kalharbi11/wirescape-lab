@@ -180,10 +180,10 @@ bool Service::start() {
                         if (recovering_) quiesce();
                         refresh();
                         next_refresh = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+                        pump(); // publish reopened-source packets before clearing recovery
                         backoff = std::chrono::milliseconds(100);
                         recovering_.store(false, std::memory_order_release);
-                    }
-                    pump();
+                    } else pump();
                 } catch (...) {
                     ++send_fail_;
                     recovering_.store(true, std::memory_order_release);

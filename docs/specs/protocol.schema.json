@@ -494,6 +494,25 @@
         },
         "counters": {
           "$ref": "#/$defs/midiCounters"
+        },
+        "recovery": {
+          "type": "object",
+          "required": [
+            "state",
+            "error"
+          ],
+          "properties": {
+            "state": {
+              "const": "retrying"
+            },
+            "error": {
+              "enum": [
+                "start-failed",
+                "worker-failed",
+                "enumeration-failed"
+              ]
+            }
+          }
         }
       }
     },
