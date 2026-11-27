@@ -54,6 +54,19 @@ Do not start TR1h until M merges: TR1h writes `engine/control/`, and MB2 require
 | **N: neutral fixture names** | [#622](https://github.com/kalharbi11/wirescape-lab/issues/622) | After SC1 #685; serialize fixture/spec/sidecar files with active SC2 or T. Historical facts unchanged. | lead, original issue |
 
 These are task packets, not advance agent assignments. No draft-ahead for T, B or N.
+
+## Released now: no dependency on M or open bundles (Architect run 59d, owner, 2026-11-27)
+
+Claimable today. Their paths are disjoint from #725 at `bf32d05` and from S, T, B and N, so they wait on nothing.
+
+| Bundle | Tasks in order | Paths (summary) | Release gate | Merge |
+|---|---|---|---|---|
+| **V: render case coverage** (test LR-7) | V1 [#747](https://github.com/kalharbi11/wirescape-lab/issues/747) per-note velocity and channel → V2 [#748](https://github.com/kalharbi11/wirescape-lab/issues/748) per-channel evidence | `tools/render/` only (`main.cpp`, `evidence.py`, tests, one new case). Existing cases and goldens are unchanged | none; V2 after V1 merges | lead |
+| **W: realtime coverage** (P1-h, audio half) | [#749](https://github.com/kalharbi11/wirescape-lab/issues/749) allocation and lock checks on the real PortAudio callback | `host/audio/` tests and test-only seams; `allocation_watch.*` read-only | none | lead (Claude contract review only if a product line changes) |
+
+- **V and W share no files.** Two sessions may hold them at once.
+- **The OSC-worker half of P1-h** is filed after SC2 merges, because it writes SC2's `host/osc`/`host/net` paths (A117).
+- **LR-5 (probe plays notes)** is not released: it writes the CPU probe that MB2's gates measure. File it after M.
 Use the claim comment in rule 1 on the first issue; read its complete paths, tests and evidence gates.
 Release gates are checked on current main, not inferred from a green draft.
 SR16/SR21 serialize overlapping writers; new packets do not change contracts.
