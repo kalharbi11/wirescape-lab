@@ -6,6 +6,7 @@ call-edge costs; inlined source lines are also aggregated independently.
 This is diagnostic output, not a replacement for the paired gate.
 """
 from collections import Counter
+from check_wrapper_isolation import wrapper_cost
 import argparse
 import json
 import os
@@ -122,7 +123,7 @@ def costs(path, root):
 
 
 def measure(binary, root, folder, module, voices):
-    totals, functions, lines = [], [], []
+    totals, functions, lines, wrapper = [], [], [], []
     for n in LENGTHS:
         output = folder / f"{module}-{voices}-{n}.callgrind"
         duration = n * FRAMES / RATE
@@ -144,13 +145,20 @@ def measure(binary, root, folder, module, voices):
         if abs(row["seconds"] - duration) > 1e-6:
             raise ValueError("unexpected duration")
         total, fn, line = costs(output, root)
+        callback, ir = wrapper_cost(output, n)
+        wrapper.append((callback, ir))
         totals.append(total)
         functions.append(fn)
         lines.append(line)
         output.unlink()
     functions[1].subtract(functions[0])
     lines[1].subtract(lines[0])
-    return totals[1] - totals[0], functions[1], lines[1]
+    if wrapper[0][0] != wrapper[1][0]:
+        raise ValueError("wrapper callback identity changed between lengths")
+    wrapper_ir = wrapper[1][1] - wrapper[0][1]
+    if not 0 < wrapper_ir <= totals[1] - totals[0]:
+        raise ValueError("wrapper inclusive Ir outside probe cost")
+    return totals[1] - totals[0], functions[1], lines[1], wrapper_ir
 
 
 def delta_rows(before, after, limit=12):
@@ -166,6 +174,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", required=True)
     parser.add_argument("--head", required=True)
+    parser.add_argument("--scratch-finite-noinline", action="store_true",
+                        help="diagnostic only: change a single compiler attribute in disposable worktree")
     args = parser.parse_args()
     if os.environ.get("GITHUB_ACTIONS") != "true" or sys.platform != "linux":
         parser.error("requires ephemeral Linux hosted runner")
@@ -183,15 +193,45 @@ def main():
                 checkout(path, sha)
                 worktrees.append(path)
             baseline, subject = build(base), build(head)
+            before, after = {}, {}
             for module, voices in PROBES:
-                a, af, al = measure(baseline, base, scratch, module, voices)
-                b, bf, bl = measure(subject, head, scratch, module, voices)
+                key = (module, voices)
+                a, af, al, aw = before[key] = measure(baseline, base, scratch, module, voices)
+                b, bf, bl, bw = after[key] = measure(subject, head, scratch, module, voices)
                 report = dict(module=module, voices=voices, base_ir=a/12, head_ir=b/12,
                               percent=100*(b-a)/a, function_delta=delta_rows(af, bf),
                               source_line_delta=delta_rows(al, bl),
+                              base_wrapper_ir=aw/12, head_wrapper_ir=bw/12,
                               base_unattributed_ir=(a-sum(af.values()))/12,
                               head_unattributed_ir=(b-sum(bf.values()))/12)
                 print("MB2_PROFILE " + json.dumps(report, sort_keys=True), flush=True)
+            if args.scratch_finite_noinline:
+                header = head / "sdk/wirescape_sdk.h"
+                original = header.read_bytes()
+                declaration = b"inline bool finite_samples("
+                if original.count(declaration) != 1:
+                    raise ValueError("unexpected finite_samples declaration")
+                try:
+                    header.write_bytes(original.replace(
+                        declaration, b"[[gnu::noinline]] " + declaration))
+                    print("MB2_SCRATCH_TRIAL finite_samples GNU noinline attribute only; no committed SDK edit",
+                          flush=True)
+                    trial = build(head)
+                    for (module, voices), (a, af, al, aw) in before.items():
+                        b, bf, bl, bw = after[(module, voices)]
+                        c, cf, cl, cw = measure(trial, head, scratch, module, voices)
+                        report = dict(module=module, voices=voices,
+                                      base_ir=a/12, fallback_ir=b/12, trial_ir=c/12,
+                                      trial_vs_base_pct=100*(c-a)/a,
+                                      trial_vs_fallback_pct=100*(c-b)/b,
+                                      base_wrapper_ir=aw/12, fallback_wrapper_ir=bw/12,
+                                      trial_wrapper_ir=cw/12,
+                                      function_delta=delta_rows(af, cf),
+                                      source_line_delta=delta_rows(al, cl),
+                                      trial_unattributed_ir=(c-sum(cf.values()))/12)
+                        print("MB2_FINITE_TRIAL " + json.dumps(report, sort_keys=True), flush=True)
+                finally:
+                    header.write_bytes(original)
         finally:
             for path in reversed(worktrees):
                 run(["git", "worktree", "remove", "--force", path])

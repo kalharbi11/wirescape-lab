@@ -19,8 +19,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from bench.gate.instructions import (RATE, FRAMES, COUNTS, binary, callgrind, modules)  # noqa: E402
-from bench.golden.inventory import registry  # noqa: E402
+
 
 DUMMY_ID = "test.mb2_isolation_dummy"
 DUMMY_FOLDER = ROOT / "modules/mb2_isolation_dummy"
@@ -136,6 +135,7 @@ def wrapper_cost(path, expected_calls):
 
 
 def measure(probe, ident, voices, valgrind):
+    from bench.gate.instructions import RATE, FRAMES, COUNTS, callgrind
     # The exact same two probe commands and validation as instructions.difference;
     # retain their raw files long enough to measure the wrapper independently.
     totals, wrapper_totals, names = [], [], []
@@ -164,6 +164,8 @@ def measure(probe, ident, voices, valgrind):
 
 
 def main():
+    from bench.gate.instructions import binary, modules
+    from bench.golden.inventory import registry
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=ROOT / "build/native")
     parser.add_argument("--output", type=Path, required=True)
