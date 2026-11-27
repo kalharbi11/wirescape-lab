@@ -92,13 +92,22 @@ inline double to_normal(const ws2_param&p,double value) noexcept {
     if(p.taper==WS2_EXP&&std::abs(p.curve)>1.e-8)x=std::log1p(x*std::expm1(static_cast<double>(p.curve)))/p.curve;
     return x;
 }
-inline bool finite_samples(const float*data,uint32_t count) noexcept {
+// A116: keep this exact validation algorithm out of line across module TUs.
+#if defined(_MSC_VER)
+#define WS_SDK_NOINLINE __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+#define WS_SDK_NOINLINE __attribute__((noinline))
+#else
+#define WS_SDK_NOINLINE
+#endif
+WS_SDK_NOINLINE inline bool finite_samples(const float*data,uint32_t count) noexcept {
     uint32_t exponent=0;
     for(uint32_t i=0;i<count;++i){uint32_t bits;std::memcpy(&bits,data+i,sizeof(bits));exponent|=bits&UINT32_C(0x7f800000);}
     // Mixed finite exponents can also OR to all ones; only the exact rescan rejects.
     if(exponent==UINT32_C(0x7f800000))for(uint32_t i=0;i<count;++i)if(!std::isfinite(data[i]))return false;
     return true;
 }
+#undef WS_SDK_NOINLINE
 inline bool valid_event(const ws2_event&e) noexcept {
     return e.struct_size>=sizeof(ws2_event)&&e.type>=WS2_NOTE_ON&&e.type<=WS2_MESSAGE&&
         std::isfinite(e.value)&&std::isfinite(e.value2)&&e.bytes<=WS2_MAX_PAYLOAD&&(!e.bytes||e.data)&&e.ump_words<=4;

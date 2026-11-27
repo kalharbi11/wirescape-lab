@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "app_engine.h"
-#include "module_catalog.h"
+#include "module_registry.h"
 #include <algorithm>
 #include <atomic>
 #include <chrono>

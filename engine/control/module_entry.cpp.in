@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Generated per-folder wrapper; do not edit.
+#define WS_MODULE2_ENTRY_NAME ws_module_entry_@WS_ENTRY_FOLDER@
+#define WS_MODULE2_VERSION_NAME ws_module_version_@WS_ENTRY_FOLDER@
+#include "@WS_ENTRY_SOURCE@"

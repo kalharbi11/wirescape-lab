@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     CHECK(!has_osc);
     {
         // The web catalogue is the engine catalogue minus midi.* and osc.*: no second list,
-        // so a module registered in module_catalog.inc reaches the browser by itself.
+        // so a discovered module reaches the browser by itself.
         wirescape::engine2::Config config{};
         config.sample_rate = 48000;
         config.max_block = 128;
