@@ -14,6 +14,7 @@
 #include "runtime_patch.h"
 #include "session.h"
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 using namespace wirescape::sidecar;
@@ -325,6 +326,30 @@ int run_tests() {
     check(bool(std::getline(coalesced_messages, message)));
     check(strict_json(message) == Json({{"type", "telemetry"}, {"probe", 2}}));
     check(!std::getline(coalesced_messages, message));
+
+    // P1-e: a held writer must retain the first controller push in its own
+    // slot. Status and telemetry are independent; reliable replies still win.
+    std::istringstream controller_input("");
+    std::ostringstream controller_output;
+    Transport controller_transport(controller_input, controller_output);
+    controller_transport.send({{"type", "controller"}, {"probe", 10}}, true);
+    controller_transport.send({{"type", "status"}, {"probe", 20}}, true);
+    controller_transport.send({{"type", "telemetry"}, {"probe", 30}}, true);
+    controller_transport.send({{"type", "controller"}, {"probe", 11}}, true);
+    controller_transport.send({{"re", "reliable"}, {"ok", true}});
+    controller_transport.start();
+    controller_transport.finish();
+    std::istringstream controller_messages(controller_output.str());
+    check(bool(std::getline(controller_messages, message)));
+    check(strict_json(message) == Json({{"re", "reliable"}, {"ok", true}}));
+    std::map<std::string, int> controller_probes;
+    while (std::getline(controller_messages, message)) {
+        const auto value = strict_json(message);
+        check(controller_probes.emplace(value["type"].get<std::string>(),
+                                        value["probe"].get<int>()).second);
+    }
+    check(controller_probes == std::map<std::string, int>{
+        {"controller", 10}, {"status", 20}, {"telemetry", 30}});
 
     ObservedMidi fake(true, false);
     auto endpoints = fake.endpoints();
