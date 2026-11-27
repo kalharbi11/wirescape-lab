@@ -120,7 +120,7 @@ def decode(payload):
     raise SoakFailure(f'unexpected OSC packet: {address} {tags}')
 
 
-def receive_until(receiver, deadline, expected):
+def receive_until(receiver, deadline, expected, retired_gate=None):
     """Actual UDP receipt, never a sent counter; ignore other load datagrams."""
     pending = set(expected)
     while pending:
@@ -132,8 +132,27 @@ def receive_until(receiver, deadline, expected):
         except socket.timeout as error:
             raise SoakFailure(f'OSC receive deadline: {pending}') from error
         require(source[0] == '127.0.0.1', 'non-loopback packet')
-        pending.discard(decode(payload))
+        received = decode(payload)
+        if retired_gate is not None and received == retired_gate:
+            require(retired_gate in pending, 'duplicate retired OSC gate zero')
+        pending.discard(received)
     require(time.monotonic() <= deadline, 'OSC deadline exceeded')
+
+
+def assert_no_duplicate_retired_gate(receiver, retired_gate):
+    # The old sender has retired before loadGraph acknowledges; by the time
+    # the new echo and capture barrier complete, any further old zeros are
+    # queued on this loopback socket. Do not wait or change the timed echo.
+    receiver.setblocking(False)
+    deadline = time.monotonic() + 5.0
+    while True:
+        require(time.monotonic() < deadline, 'OSC duplicate-check drain did not complete')
+        try:
+            payload, source = receiver.recvfrom(1500)
+        except BlockingIOError:
+            return
+        require(source[0] == '127.0.0.1', 'non-loopback packet')
+        require(decode(payload) != retired_gate, 'duplicate retired OSC gate zero')
 
 
 def row(address):
@@ -386,6 +405,7 @@ def run(binary, switches):
                 # Allow the real held block to be captured before the command;
                 # the offline witness still requires a high pre-swap sample.
                 time.sleep(2 * BLOCK / RATE)
+                retired_gate = (address + '/gate', (0.0,))
                 new, address, source, out = patch(number % 2)
                 started = time.monotonic()
                 engine.request('loadGraph', swap=True, patch=new)
@@ -395,13 +415,18 @@ def run(binary, switches):
                 deadline = acknowledged + .050
                 value = number / 2048  # unique exactly representable sentinel
                 sender.sendto(packet(address + '/in', value), ('127.0.0.1', PORT_IN))
-                receive_until(receiver, deadline, {(address + '/echo', (value,))})
+                # OB-h2: an actually delivered high on the old address must
+                # release once, on the old address, without noteOff or panic.
+                # Retain the original ACK+50 ms deadline for the new echo.
+                receive_until(receiver, deadline, {
+                    (address + '/echo', (value,)), retired_gate}, retired_gate)
                 # Observe the newly committed route only after the timed echo.
                 engine.route(source, out)
                 # Keep the actual OSC load running and enforce the 50 ms echo
                 # above. Wait for the entire original R7 gate/fade bracket before
                 # the next intentional noteOn can contaminate its last block.
                 wait_for_swap_capture(capture, swap_id, engine.gen, engine.timeout)
+                assert_no_duplicate_retired_gate(receiver, retired_gate)
                 marks.append((hold_id, swap_id))
                 if number in (100, 1000):
                     rss[str(number)] = rss_kib(engine.process.pid)
