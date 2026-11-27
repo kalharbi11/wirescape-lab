@@ -209,6 +209,45 @@ def capture_index(stream):
     return segments, blocks
 
 
+def completed_capture_blocks(capture):
+    """Conservative on-disk count, including a still-open capture segment."""
+    blocks = 0
+    with capture.open('rb') as stream:
+        length = stream.seek(0, 2)
+        stream.seek(0)
+        while stream.tell() + HEADER.size <= length:
+            raw = stream.read(HEADER.size)
+            magic, version, size, rate, channels, block, index, count = HEADER.unpack(raw)
+            require((magic, version, size, rate, channels, block) ==
+                    (b'WSNSCAP1', 1, HEADER.size, RATE, CHANNELS, BLOCK),
+                    'invalid live capture header')
+            block_bytes = BLOCK * CHANNELS * 4
+            available = (length - stream.tell()) // block_bytes
+            if count == 2**64 - 1:
+                return blocks + available
+            # Closed segment header is patched after all its samples were written.
+            require(count <= available, 'incomplete closed capture segment')
+            blocks += count
+            stream.seek(count * block_bytes, 1)
+    return blocks
+
+
+def wait_for_swap_capture(capture, swap_id, generation, timeout):
+    # Session::reply flushes its R7 mark before the ACK. No further graph/note
+    # command is sent while waiting, so the captured bracket is uncontaminated.
+    marks = Path(str(capture) + '.marks').read_text().splitlines()
+    mark = json.loads(marks[-1])
+    require(mark['re'] == swap_id and mark['type'] == 'loadGraph' and
+            mark['ok'] and int(mark['gen']) == generation,
+            'wrong live capture swap mark')
+    end = mark['b1'] + 2
+    deadline = time.monotonic() + timeout
+    while completed_capture_blocks(capture) < end:
+        require(time.monotonic() < deadline, 'post-swap capture did not complete')
+        time.sleep(.001)
+    return end
+
+
 def samples(stream, segments, first, end):
     """Read only the bracket, across any sink restart, not the entire long capture."""
     audio, gate = [], []
@@ -293,6 +332,10 @@ def analyze(capture, switches, mark_ids):
                 raise SoakFailure(
                     f'switch {number}: gate/note retained after swap; '
                     + json.dumps(detail, separators=(',', ':')))
+            if number < len(mark_ids):
+                next_hold = by_id[mark_ids[number][0]]
+                require(next_hold['b0'] >= swap['b1'] + 2,
+                        f'switch {number}: next intentional note overlaps capture bracket')
             try:
                 gaps.append(fade_gap(audio))
             except SoakFailure as error:
@@ -352,6 +395,10 @@ def run(binary, switches):
                 receive_until(receiver, deadline, {(address + '/echo', (value,))})
                 # Observe the newly committed route only after the timed echo.
                 engine.route(source, out)
+                # Keep the actual OSC load running and enforce the 50 ms echo
+                # above. Wait for the entire original R7 gate/fade bracket before
+                # the next intentional noteOn can contaminate its last block.
+                wait_for_swap_capture(capture, swap_id, engine.gen, engine.timeout)
                 marks.append((hold_id, swap_id))
                 if number in (100, 1000):
                     rss[str(number)] = rss_kib(engine.process.pid)
