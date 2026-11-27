@@ -8,6 +8,43 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 56 — 2026-11-27 (owner: `architect:run`, very quick: review and merge #715, #685 and any open lab PR)
+
+- **Decided:** #715 approved and merged as `289f070` ([review](https://github.com/kalharbi11/wirescape-lab/pull/715#issuecomment-7212943661)). This closes the #708 Low follow-up. #685 SC1 is held ([note](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7212949401)): it is a draft with no signed Result and no ready-state Golden. No other lab PRs were open.
+- **Held:** #685 until it is out of draft and has a signed Result, exact-head Lab and Web, ready-state Golden and an inbox row.
+- BUILDERS refresh skipped (quick run requested by the owner). The lead's 02:20 check stands.
+- **Next Architect run:** when #685 is pinned (medium). **Next run should:** (1) review SC1 #685, including its `addModuleAt` callers and the padding root cause; (2) check the bundle H smoke and H-12; (3) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-27
+
+## Lead check — 2026-11-27 02:20 EST
+
+- P1-e2 [#708](https://github.com/kalharbi11/wirescape-lab/pull/708) auto-merged as `bd6ac9d` after [Architect approval](https://github.com/kalharbi11/wirescape-lab/pull/708#issuecomment-7212205643) at `68907e2`. A111 integration followed P1-f/g #701 (`baab0b0`). Closed #709 and #713 after their ruling and review were recorded.
+- B1 #685 remains the active SC1 draft. B3 and B5 finished the started queue. B4 remains held. The lead is handling the narrowly scoped OSC startup flag diagnostic raised in #708.
+- Player hardware route proceeds through the headless pin and smoke. H-12 waits for the first smoke result. OB1 acceptance still needs owner listening, the real-folder round trip and the candidate Pi session.
+
+Signed: codex-lead, 2026-11-27, 02:20 EST
+
+## Architect run 55 — 2026-11-26 22:40 EST (owner: `architect:run`; B2 ruling, headless review, early hardware test)
+- **B2:** **A104b** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7209025375) on #660: narrow `host/sidecar/devices.{h,cpp}` grant. A failed close keeps the callback storage alive (`worker-failed`), destructors never throw, and the backend is destroyed before the slots. #660 may finish now, then **P1-e #672 is released** (owner).
+- **B5:** **P1-f/g #699** filed and released (OB r2.16): settings fsync and absolute path, SIGTERM equal to stdin EOF. On the Pi, systemd sends SIGTERM to the engine.
+- **Headless review** (main `ec917ca`, bundles A–F merged): rules 1, 5 and 7 spot-checked and fine. Low: gate zeros go through a short-lived `ws.py --zero-gates` child, which keeps the Player process free of UDP sockets and matches 0025 §4.5. Gaps for a hardware test: the Pi guide had no engine-build-at-pin step, and no owner smoke runbook existed; both are now H-13.
+- **A108** [ruling](https://github.com/kalharbi11/wirescape-headless/issues/11#issuecomment-7209029932) closes headless #11: v1 stays numeric; `button` is a momentary press (H-11a #25); text, notes and label are not Player controls in v1. A 0025 §9 row was transcribed.
+- **Headless bundles:** **H** (now) = H-13 #24, H-11a #25, H-14 #26 (pin bump after #672). G = H-G only. **I** (later) = H-12 soak, after P1-e2 and the first smoke result. The TASKS change is [headless #27](https://github.com/kalharbi11/wirescape-headless/pull/27) and needs a different session's review.
+- **Next Architect run:** when #660 or #672 is pinned for contract review (medium). **Next run should:** (1) review #660 P0b against A104/A104a/A104b; (2) review P1-e #672 when pinned; (3) check that headless #27 merged and bundle H is claimed; (4) check #699 progress; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
+## Lead check — 2026-11-26 21:17 EST (headless owner exception)
+
+- Owner continues managing headless through bundles E and F; previous stop-at-#17 instruction superseded there. Lab/test existing-task hold remains. Normal headless prerequisites, independent reviews and exact CI remain; H-7 real-engine portion still waits on lab P1-e. No lab successor release implied. Usage/reset unavailable (unknown).
+- MM1 #649 auto-merged; B1 continues existing SC1 #685 native diagnosis only. Merged facts protocol #678 `be979bb9b36d05447576599cb8223d9594a37a5c`: signed Result, neutral protocol-only diff and exact scoped Lab 45925750045 success (SR13/SR18/SR20(c)); all owner numeric outcomes remain unmeasured. B3 stops, B4 holds.
+- Merged inbox-only #688 `95553fe3937c31503390ce8f4b58bce6e1ec1960` on scoped Lab 45926754403 success. B5 #627 now diagnostic head fb99c05, ARM64 A78 trace pending; inbox is a scope request, not approval or waiver. No product fix authorized without cause and path authority.
+- B2 #638 historical red cannot run via current-head-only dev-run. Authorized one temporary diagnostic-only PR at 29c0736, test-only against 13acf73, DO NOT MERGE/no Closes, close after pinning actual failure. Existing task evidence collection only; no new product task or rollback/force-push. #660 retains existing predecessor gate.
+- Next: planner may run now. Architect inbox contains A105 closure and B5 A78 scope; no automatic wake. Existing SC1/#638/#627 continue diagnostics, not review-ready. OB1 owner listening/real-folder/Pi evidence and acceptance remain unchanged; headless E/F normal dependencies remain explicit.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Lead check — 2026-11-26 20:58 EST (owner: finish started tasks only; planner pending)
 
 - Owner hold supersedes self-release, draft-aheads and later lane queues. Finish existing lab PRs only: B1 #649/#685; B2 #638/#660; B3 #678; B5 #627. B4 has no started product PR, so holds. No new task/claim in lab, test or headless based on a merge. Usage/reset unavailable (unknown).
@@ -329,3 +366,6 @@ Signed: claude-lead, 2026-11-25
 - **Next Architect run:** `architect-ready` when #540 or #545 is pinned (medium effort), or the OB1 acceptance batch. **Next run should:** (1) review the first shipped-slot PR's A81(3)/A82 witness on both Linux arches; (2) confirm #525 merged and A2 #570 was reconciled; (3) take the OB1 acceptance items once their evidence exists: owner listening (OB-d), the candidate Studio recheck, the owner patch-folder round trip, and the 100-edit Pi session (0 xruns, no visible stutter, both transition costs recorded).
 
 Signed: claude-architect, 2026-11-25
+
+Architect run 54 (acting as lead): #627 P0a and #638 OB-h2 approved and merged; #693/#694 superseded; baseline A78/Windows reds routed to the planner.
+- **Next Architect run:** after the planner session (low). **Next run should:** (1) apply planner rulings to contracts/BUILDERS; (2) #660 Result when posted; (3) post-merge main CI for `302bd47`; (4) OB1 acceptance once owner evidence exists.

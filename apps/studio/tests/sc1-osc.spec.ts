@@ -16,14 +16,18 @@ test('SC1 new OSC modules explicitly author generic defaults; old modules remain
   await settle(page);
   const before = await state(page);
   expect(before.modules).toEqual(legacy.modules);
-  await page.evaluate(() => window.__wirescapeTest.addModule('osc.in'));
+  const inId = await page.evaluate(async () => await window.__wirescapeTest.addModule('osc.in'));
+  expect(typeof inId).toBe('number');
   await settle(page);
-  await page.evaluate(() => window.__wirescapeTest.addModule('osc.out'));
+  const outId = await page.evaluate(async () => await window.__wirescapeTest.addModule('osc.out'));
+  expect(typeof outId).toBe('number');
   await settle(page);
   const saved = await state(page);
   expect(saved.modules.slice(0, 2)).toEqual(legacy.modules);
   const input = saved.modules.find((m: any) => m.id > 2 && m.module === 'osc.in');
   const output = saved.modules.find((m: any) => m.id > 2 && m.module === 'osc.out');
+  expect(input?.id).toBe(inId);
+  expect(output?.id).toBe(outId);
   const rows = input?.data?.routes?.rows ?? input?.config?.rows;
   expect(rows).toHaveLength(8);
   for (let i = 0; i < 8; i++) {

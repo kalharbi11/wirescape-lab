@@ -7,6 +7,9 @@ int main(int argc, char **argv) {
     std::signal(SIGPIPE, SIG_IGN);
 #endif
     try {
+#ifndef _WIN32
+        wirescape::sidecar::install_shutdown_signals();
+#endif
         auto options = wirescape::sidecar::parse_options(argc, argv);
         wirescape::sidecar::Session session(std::move(options));
         wirescape::sidecar::Transport transport;
@@ -20,6 +23,11 @@ int main(int argc, char **argv) {
                 wirescape::sidecar::Request request;
                 if (transport.next(request, std::chrono::milliseconds(5))) {
                     auto reply = session.reply(request);
+                    // Unsubscribe drops queued but never interrupts an in-flight
+                    // controller write; that write finishes before this reply.
+                    if (reply.value("ok", false) && request.value.contains("type") &&
+                        request.value["type"] == "controllerStream" && reply["result"]["kinds"].empty())
+                        transport.discard_controller();
                     transport.send(reply);
                     transport.complete(request);
                     for (auto &event : session.take_config_events()) transport.send(std::move(event));
@@ -43,6 +51,12 @@ int main(int argc, char **argv) {
                     if (session.poll()) transport.send(session.devices());
                     for (auto &event : session.take_config_events()) transport.send(std::move(event));
                     devices = now;
+                }
+                // Status/telemetry retain priority. No drain while a previous
+                // controller push is queued or in-flight; keep events in capture.
+                if (transport.controller_available()) {
+                    auto controller = session.controller();
+                    if (!controller.is_null()) transport.send(std::move(controller), true);
                 }
             }
             session.shutdown();

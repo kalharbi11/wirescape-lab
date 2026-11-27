@@ -8,10 +8,12 @@
 #include <string_view>
 #include <vector>
 namespace wirescape::osc {
+struct Message;
 struct Route {
     uint32_t node = 0;
     uint16_t port = 9000;
     bool lan = false;
+    bool control = false; // explicit route identity; never delivered to a graph node
 };
 struct Sink {
     void *context = nullptr;
@@ -19,6 +21,11 @@ struct Sink {
     // Optional worker-thread filter (#612): false skips one decoded message for
     // one route before delivery, without counting it as received or dropped.
     bool (*accept)(void *, uint32_t node, std::string_view address) noexcept = nullptr;
+    // A110: optional once-per-message observation, on the existing worker.
+    // A lock-free subscription read avoids extended decode while stream off.
+    bool (*observing)(void *) noexcept = nullptr;
+    void (*observe)(void *, uint16_t port, const Message &) noexcept = nullptr;
+    void (*observe_control)(void *, uint16_t port, const Message &) noexcept = nullptr;
 };
 struct RouteState {
     uint32_t node = 0;
@@ -31,6 +38,7 @@ struct RouteState {
     // enqueue refusals count only on the route whose delivery failed.
     uint64_t budget_dropped = 0, enqueue_dropped = 0;
     uint64_t listener_budget_dropped = 0, listener_enqueue_dropped = 0;
+    bool control = false;
 };
 struct ListenerState {
     uint16_t port = 0; // actual bound port (including OS-assigned test ports)

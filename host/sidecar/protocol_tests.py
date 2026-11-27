@@ -171,6 +171,59 @@ def edge(kind, source, output, dest, port, **extra):
                             'to': dict(module=dest, port=port)}, **extra)
 
 
+# P1-f/g: a signal must terminate with stdin still open, using EOF teardown.
+# The bench summary is emitted only after the null render sink has joined.
+if os.name == 'posix':
+    import signal
+
+    def shutdown_preferences(directory, sig=None):
+        settings = Path(directory) / 'settings.json'
+        engine = Engine(settings, '--bench-summary')
+        try:
+            audio = engine.call('listAudioDevices')['result']['devices']
+            engine.call('selectAudioDevice', deviceId=audio[0]['id'])
+            midi = engine.call('listMidiDevices')['result']['devices']
+            engine.call('setMidiEnabled', deviceId=midi[0]['id'], on=True)
+            if sig is None:
+                engine.close()
+            else:
+                engine.process.send_signal(sig)
+                # Keep the writer open until the process exits: EOF must not
+                # rescue a signal path that is blocked waiting for input.
+                assert engine.process.wait(timeout=10) == 0, engine.stderr()
+                engine.reader.join(timeout=5)
+                assert not engine.reader.is_alive() and not engine.errors
+            assert 'bench blocks=' in engine.stderr(), engine.stderr()
+            assert not settings.with_suffix('.json.tmp').exists()
+            saved = json.loads(settings.read_text())
+            assert saved['audioDeviceId'] == audio[0]['id']
+            assert any(d['enabled'] and d['name'] == midi[0]['name']
+                       and d['system_name'] == midi[0]['system_name']
+                       for d in saved['devices'])
+            return saved
+        finally:
+            if engine.process.poll() is None:
+                engine.process.kill()
+                engine.process.wait(timeout=5)
+            if not engine.process.stdin.closed:
+                engine.process.stdin.close()
+
+    with tempfile.TemporaryDirectory() as directory:
+        baseline = shutdown_preferences(directory)
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        with tempfile.TemporaryDirectory() as directory:
+            assert shutdown_preferences(directory, sig) == baseline, sig
+    with tempfile.TemporaryDirectory() as directory:
+        result = subprocess.run([str(Path(BINARY).resolve()), '--null-audio',
+                                 '--settings', 'relative.json'],
+                                cwd=directory, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+        # Existing bad-argument launch refusals return 1, not protocol replies.
+        assert result.returncode == 1, result
+        assert b'absolute' in result.stderr.lower() and b'--settings' in result.stderr, result
+        assert not result.stdout and not (Path(directory) / 'relative.json').exists()
+
+
 # A44 / ER6: only saved-patch loading normalizes duplicate modulation.
 with tempfile.TemporaryDirectory() as a44_dir:
     a44 = Engine(Path(a44_dir) / 'settings.json')
@@ -503,7 +556,8 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert osc_engine.hello['capabilities'] == ['midiLearn', 'telemetry.playhead',
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
-                                                    'applyGraph', 'configDeferred']
+                                                    'applyGraph', 'configDeferred', 'audio.renderLiveness',
+                                                    'controllerStream', 'controllerStream.controlPort']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
@@ -882,7 +936,9 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 notes=dict(address='/ws/note', enabled=True))),
             dict(id=20, module='essentials.lfo'),
             dict(id=21, module='host.keyboard'),
-            dict(id=22, module='essentials.notes_to_cv')
+            # OSC Out reads FIRST (channel 0); use one voice so the second
+            # keyboard attack cannot rotate to an unobserved voice lane.
+            dict(id=22, module='essentials.notes_to_cv', parameters=dict(voices=1))
         ]
         outgoing_patch['connections'] += [
             edge('signal', 20, 'control', 19, 'row1'),
@@ -975,8 +1031,53 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 and observed_out['state'] == 'sending' and observed_out['dropped'] >= 0)
         assert 'payload' not in observed_out and 'address' not in observed_out
 
+        # OB-h2 r2.13: actually deliver a high gate, then retire the graph
+        # without a noteOff. The old address must receive exactly one zero.
+        # Do not infer a release from the graph ACK or disappearance in status.
+        out_engine.call('noteOn', note=65, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 held gate never reached the loopback receiver'
+        # A91 refusal is not retirement: even with a held high, a malformed
+        # destination must leave the old graph and its delivered gate intact.
+        malformed = json.loads(json.dumps(outgoing_patch))
+        malformed['modules'][1]['config'].update(version=2, host='127.0.0.256')
+        refused = out_engine.call('loadGraph', expected=False, patch=malformed)
+        assert refused['gen'] == outgoing_gen, refused
+        until = time.monotonic() + 0.3
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values == [1.0], ('refusal released held gate', values)
         clean_gen = out_engine.call('loadGraph', patch=minimal())['gen']
         assert clean_gen != outgoing_gen
+        released = []
+        # Successful swap retires and joins the old sender before replying.
+        # Drain its already-enqueued datagrams; no other graph sends here.
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                released.extend(values)
+        assert released == [0.0], ('OB-h2 retired gate must release exactly once', released)
         # No sender remains after replan, and EOF must join worker before exit.
         saw_clear = False
         until = time.monotonic() + 3
@@ -1037,7 +1138,484 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 saw_no_listener = True
                 break
         assert saw_no_listener
+
+        # Terminal EOF is distinct from a graph swap: leave a delivered gate
+        # high, close stdin without noteOff, and observe the old destination
+        # after the sender has joined. The destructor must not release twice.
+        out_engine.call('loadGraph', patch=outgoing_patch)
+        out_engine.call('noteOn', note=66, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 terminal gate never reached the loopback receiver'
         out_engine.close()
+        terminal = []
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                terminal.extend(values)
+        assert terminal == [0.0], ('OB-h2 EOF must release exactly once', terminal)
+
+# OB-h2 A91 permission: a nonloopback destination is refused without
+# consent and under --null-audio even with consent. The TEST-NET host
+# is only configured, never contacted. A localhost receiver detects a
+# forbidden silent fallback. This does not open an audio/MIDI/LAN device.
+with tempfile.TemporaryDirectory() as refused_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as fallback:
+        fallback.bind(('127.0.0.1', 0))
+        fallback.settimeout(0.2)
+        port = fallback.getsockname()[1]
+        for flags, name in (((), 'unconfirmed'), (('--confirm-lan',), 'null-confirmed')):
+            denied = Engine(Path(refused_dir) / (name + '.json'), *flags)
+            try:
+                patch = minimal()
+                patch['modules'].append(dict(id=19, module='osc.out',
+                    config=dict(version=2, host='192.0.2.17', port=port,
+                                rows=[dict(address='/a91/refused', kind='cv')] +
+                                     [dict(enabled=False) for _ in range(7)])))
+                generation = denied.call('loadGraph', patch=patch)['gen']
+                until = time.monotonic() + 3
+                while time.monotonic() < until:
+                    message = denied.pushes.pop(0) if denied.pushes else denied.receive()
+                    if message.get('type') != 'status' or message['gen'] != generation:
+                        continue
+                    routes = message['status']['osc']['out']
+                    if len(routes) == 1:
+                        route = routes[0]
+                        assert route['module'] == '19' and route['port'] == port, route
+                        assert route['state'] == 'lan-refused' and route['sent'] == 0, route
+                        break
+                else:
+                    raise AssertionError('A91 missing denied route status')
+                try:
+                    payload, _ = fallback.recvfrom(1500)
+                    raise AssertionError(f'A91 silent localhost fallback: {payload!r}')
+                except socket.timeout:
+                    pass
+            finally:
+                denied.close()
+
+# OB-h2 A91: two independent module destinations using only loopback sockets.
+# The explicit v2 localhost config must load and deliver, while the legacy
+# v1 route stays independent. A single shared destination cannot pass.
+with tempfile.TemporaryDirectory() as destinations_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as first, \
+         socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as second:
+        for receiver in (first, second):
+            receiver.bind(('127.0.0.1', 0))
+            receiver.settimeout(2.0)
+        ports = [receiver.getsockname()[1] for receiver in (first, second)]
+        assert ports[0] != ports[1]
+        destinations = Engine(Path(destinations_dir) / 'settings.json')
+        try:
+            patch = minimal()
+            for node, port, address, version in (
+                    (19, ports[0], '/a91/first', 1),
+                    (20, ports[1], '/a91/second', 2)):
+                config = dict(version=version, port=port, rate_hz=100,
+                              rows=[dict(address=address, kind='cv')] +
+                                   [dict(enabled=False) for _ in range(7)])
+                if version == 2:
+                    config['host'] = '127.0.0.1'
+                patch['modules'].append(dict(id=node, module='osc.out', config=config))
+            generation = destinations.call('loadGraph', patch=patch)['gen']
+            for receiver, expected in ((first, '/a91/first'), (second, '/a91/second')):
+                packet, source = receiver.recvfrom(1500)
+                assert source[0] == '127.0.0.1', source
+                address, tags, values = unpack_outgoing(packet)
+                assert address == expected and tags == ',f' and len(values) == 1, (address, tags, values)
+            until = time.monotonic() + 3
+            while time.monotonic() < until:
+                message = destinations.pushes.pop(0) if destinations.pushes else destinations.receive()
+                if message.get('type') != 'status' or message['gen'] != generation:
+                    continue
+                routes = message['status']['osc']['out']
+                if len(routes) == 2 and all(route['sent'] >= 1 for route in routes):
+                    assert {route['module']: route['port'] for route in routes} == {'19': ports[0], '20': ports[1]}
+                    assert all(route['state'] == 'sending' for route in routes)
+                    break
+            else:
+                raise AssertionError('A91 did not observe both independent sending routes')
+        finally:
+            destinations.close()
+
+
+# P1-e2 A111: no launch flag means no control route; either LAN flag alone
+# must leave the listener on localhost. Never request both flags in CI.
+with tempfile.TemporaryDirectory() as consent_dir:
+    def first_status(engine):
+        while True:
+            message = engine.pushes.pop(0) if engine.pushes else engine.receive()
+            if message.get('type') == 'status':
+                return message['status']['osc']
+    no_control = Engine(Path(consent_dir) / 'off.json')
+    try:
+        assert 'controllerStream.controlPort' in no_control.hello['capabilities']
+        status = first_status(no_control)
+        assert status['routes'] == [] and not status['enabled'], status
+    finally:
+        no_control.close()
+    for i, flag in enumerate(('--confirm-lan', '--control-osc-lan')):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+            reserve.bind(('127.0.0.1', 0))
+            consent_port = reserve.getsockname()[1]
+        consent = Engine(Path(consent_dir) / f'consent-{i}.json',
+                         '--control-osc-port', str(consent_port), flag)
+        try:
+            status = first_status(consent)
+            route = next(r for r in status['routes'] if r['module'] == 'control')
+            assert route['port'] == consent_port and route['bind'] == '127.0.0.1', route
+            assert route['state'] in ('listening', 'lan-not-confirmed'), route
+            assert status['bind'] == '127.0.0.1' and not status['lan'], status
+        finally:
+            consent.close()
+
+# P1-e2 #672: out-of-range decimal values use the normal startup refusal.
+for port_arg in ('1023', '65536', '99999999999999999999'):
+    result = subprocess.run([str(Path(BINARY).resolve()), '--null-audio',
+                             '--control-osc-port', port_arg],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=10)
+    assert result.returncode == 1 and not result.stdout, result
+    assert b'Control OSC port outside 1024..65535' in result.stderr, result
+
+
+# P1-e2 #672, 0025 §3.5 row 6: patch-independent OSC control listener.
+with tempfile.TemporaryDirectory() as control_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+        reserve.bind(('127.0.0.1', 0))
+        control_port = reserve.getsockname()[1]
+    control = Engine(Path(control_dir) / 'settings.json', '--control-osc-port', str(control_port))
+    try:
+        assert 'controllerStream.controlPort' in control.hello['capabilities'], control.hello['capabilities']
+        def control_next(kind, predicate):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = control.pushes.pop(0) if control.pushes else control.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e2 missing {kind}: {control.stderr()}')
+
+        def control_route(message):
+            routes = message['status']['osc']['routes']
+            return next((r for r in routes if r['module'] == 'control'), None)
+
+        initial = control_next('status', lambda m: control_route(m) is not None and
+                               control_route(m)['state'] == 'listening')
+        route = control_route(initial)
+        assert initial['gen'] == '0', initial
+        assert route['port'] == control_port and route['bind'] == '127.0.0.1', route
+        assert route['received'] == 0 and route['dropped'] == 0, route
+        assert control.call('controllerStream', kinds=['osc'], oscUnmatched=False)['gen'] == '0'
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            def send_control(address):
+                encoded = address.encode() + b'\0'
+                encoded += b'\0' * ((-len(encoded)) % 4)
+                sender.sendto(encoded + b',f\0\0' + struct.pack('>f', 0.5),
+                              ('127.0.0.1', control_port))
+
+            def witness(address, gen):
+                send_control(address)
+                push = control_next('controller', lambda m: any(
+                    e.get('address') == address for e in m['events']))
+                assert push['gen'] == gen, push
+                events = [e for e in push['events'] if e.get('address') == address]
+                assert len(events) == 1, events
+                event = events[0]
+                assert event['kind'] == 'osc' and event['port'] == control_port, event
+                assert event['matched'] is False and event['args'] == [0.5], event
+
+            witness('/control/before', '0')
+            counted = control_next('status', lambda m: control_route(m) is not None and
+                                   control_route(m)['received'] >= 1)
+            assert control_route(counted)['dropped'] == 0, counted
+            # The launch-only listener must survive replacing the patch.
+            gen = control.call('loadGraph', patch=minimal())['gen']
+            control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
+                         and control_route(m)['state'] == 'listening')
+            witness('/control/after', gen)
+            shared = minimal()
+            shared['modules'].append(dict(id=9, module='osc.in', config=dict(
+                port=control_port, rows=[dict(pattern='/control/matched', enabled=True),
+                                        dict(pattern='/control/disabled', enabled=False)])))
+            gen = control.call('loadGraph', patch=shared)['gen']
+            control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
+                         and control_route(m)['state'] == 'listening' and any(
+                             r['module'] == '9' and r['state'] == 'listening'
+                             for r in m['status']['osc']['routes']))
+            witness('/control/disabled', gen)
+            witness('/control/unmatched', gen)
+            send_control('/control/matched')
+            push = control_next('controller', lambda m: any(
+                e.get('address') == '/control/matched' for e in m['events']))
+            events = [e for e in push['events'] if e.get('address') == '/control/matched']
+            assert len(events) == 1 and events[0]['matched'] is True, push
+            control_next('status', lambda m: m['gen'] == gen and any(
+                r['module'] == '9' and r['received'] >= 1 for r in m['status']['osc']['routes']))
+    finally:
+        control.close()
+
+# P1-e #672: test the new opt-in stream on the real sidecar, devices off.
+with tempfile.TemporaryDirectory() as stream_dir:
+    stream = Engine(Path(stream_dir) / 'settings.json', '--scripted-midi')
+    try:
+        def next_push(kind, predicate=lambda message: True):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e missing {kind}: {stream.stderr()}')
+
+        assert 'controllerStream' in stream.hello['capabilities'], 'P1-e capability missing'
+        # Observe several complete status intervals with the scripted backend active.
+        for _ in range(3):
+            while True:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                assert message.get('type') != 'controller', message
+                if message.get('type') == 'status':
+                    assert 'controller' not in message['status']
+                    break
+        for kinds in (['unknown'], ['cc', 'cc']):
+            refusal = stream.call('controllerStream', False, kinds=kinds)
+            assert refusal['code'] == 'invalid', refusal
+            assert refusal['gen'] == '0', refusal
+        enabled = stream.call('controllerStream', kinds=['note', 'pc', 'cc'])
+        assert enabled['gen'] == '0', enabled
+        assert enabled['result'] == dict(kinds=['cc', 'note', 'pc'], oscUnmatched=False), enabled
+        sequence = next_push('controller', lambda m: m['gen'] == '0' and any(
+            e['kind'] == 'pc' and e['channel'] == 16 and e['program'] == 19 for e in m['events']))
+        seq = [e for e in sequence['events'] if e['channel'] == 16]
+        assert [(e['kind'], e.get('controller', e.get('program', e.get('note'))))
+                for e in seq] == [('cc', 4), ('pc', 17), ('cc', 3), ('pc', 18),
+                                  ('cc', 5), ('noteOff', 36), ('pc', 19)], seq
+        assert [e['value'] for e in seq if e['kind'] == 'cc'] == [20, 99, 30], seq
+        assert seq[-2]['velocity'] == 0, seq
+        gen = stream.call('loadGraph', patch=minimal())['gen']
+        event_push = next_push('controller', lambda m: m['gen'] == gen and any(
+            e['kind'] == 'noteOn' for e in m['events']))
+        endpoint = next(d for d in stream.hello['midi']['devices']
+                        if d['system_name'] == 'scripted:midi-m8:0')
+        times = [e['t'] for e in event_push['events']]
+        assert all(type(t) is int and t >= 0 for t in times), event_push
+        assert times == sorted(times), event_push
+        for event in event_push['events']:
+            assert event['deviceId'] == endpoint['id'], event
+            assert 1 <= event['channel'] <= 16, event
+        status = next_push('status', lambda m: m['gen'] == gen and
+                           m['status'].get('controller', {}).get('events', 0) > 0)
+        assert status['status']['controller']['kinds'] == ['cc', 'note', 'pc'], status
+        assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=0), status
+        disabled = stream.call('controllerStream', kinds=[])
+        assert disabled['gen'] == gen and disabled['result']['kinds'] == [], disabled
+        # An already-written push may precede the first off-status; after that
+        # barrier the stream must remain silent.
+        next_push('status', lambda m: 'controller' not in m['status'])
+        for _ in range(3):
+            while True:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                assert message.get('type') != 'controller', message
+                if message.get('type') == 'status':
+                    assert 'controller' not in message['status']
+                    break
+    finally:
+        stream.close()
+
+# P1-e #672: only the production loopback socket feeds OSC capture.
+with tempfile.TemporaryDirectory() as osc_stream_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+        reserve.bind(('127.0.0.1', 0))
+        port = reserve.getsockname()[1]
+    osc_stream = Engine(Path(osc_stream_dir) / 'settings.json')
+    try:
+        def osc_next(kind, predicate):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e missing OSC {kind}: {osc_stream.stderr()}')
+
+        def padded(text):
+            data = text.encode() + b'\0'
+            return data + b'\0' * ((-len(data)) % 4)
+
+        def osc_packet(address, tags=',f', payload=struct.pack('>f', 0.5)):
+            return padded(address) + padded(tags) + payload
+
+        def bundle(*packets):
+            return b'#bundle\0' + struct.pack('>Q', 1) + b''.join(
+                struct.pack('>I', len(packet)) + packet for packet in packets)
+
+        patch = minimal()
+        patch['modules'].append(dict(id=9, module='osc.in', config=dict(
+            port=port, rows=[dict(pattern='/stream/on', enabled=True),
+                             dict(pattern='/stream/off', enabled=False)])))
+        gen = osc_stream.call('loadGraph', patch=patch)['gen']
+        osc_next('status', lambda m: m['gen'] == gen and any(
+            route['port'] == port and route['state'] == 'listening'
+            for route in m['status']['osc']['routes']))
+        assert osc_stream.call('controllerStream', kinds=['osc'])['gen'] == gen
+
+        def collect_until(address):
+            events = []
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    assert message['gen'] == gen, message
+                    events.extend(message['events'])
+                    if any(event['address'] == address for event in events):
+                        return events
+            raise AssertionError(f'P1-e missing OSC sentinel {address}: {osc_stream.stderr()}')
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            # The allowed final child is a positive ingress barrier; the
+            # disabled-only and unmatched children must not be reported.
+            sender.sendto(bundle(osc_packet('/stream/off'), osc_packet('/stream/unmatched'),
+                                 osc_packet('/stream/on')), ('127.0.0.1', port))
+            events = collect_until('/stream/on')
+            assert [event['address'] for event in events] == ['/stream/on'], events
+            assert events[0]['matched'] is True and events[0]['args'] == [0.5], events
+            assert events[0]['port'] == port and type(events[0]['t']) is int, events
+            changed = osc_stream.call('controllerStream', kinds=['osc'], oscUnmatched=True)
+            assert changed['gen'] == gen and changed['result']['oscUnmatched'] is True, changed
+            # OSC types d/h are numeric; string and a fifth numeric arg are
+            # skipped with more=true, not silently treated as zero.
+            mixed = osc_packet('/stream/mixed', ',idhTsf',
+                               struct.pack('>idq', -2, 0.25, 42) + padded('skip') +
+                               struct.pack('>f', 0.75))
+            oversized = osc_packet('/' + 'a' * 128)
+            sender.sendto(bundle(osc_packet('/stream/off'), oversized, mixed,
+                                 osc_packet('/stream/barrier', ',F', b'')), ('127.0.0.1', port))
+            events = collect_until('/stream/barrier')
+            assert [event['address'] for event in events] == ['/stream/mixed', '/stream/barrier'], events
+            assert all(event['matched'] is False for event in events), events
+            assert events[0]['args'] == [-2, 0.25, 42, 1] and events[0]['more'] is True, events
+            assert events[1]['args'] == [0], events
+            status = osc_next('status', lambda m: m['status'].get('controller', {}).get(
+                'dropped', {}).get('oversize', 0) >= 1)
+            assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=1), status
+
+            # The worker has a per-listener 64 decoded-message budget, not
+            # merely a datagram budget. One 65-child bundle must not evade it.
+            # Use distinct keys and a post-status sentinel to distinguish
+            # missing ingress from legitimate latest-wins coalescing.
+            def route_status(message):
+                return next(r for r in message['status']['osc']['routes']
+                            if r['port'] == port)
+
+            budget_before = route_status(status)['listener_budget_dropped']
+            burst = bundle(*(osc_packet('/b/%02d' % i) for i in range(65)))
+            assert len(burst) <= 2048
+            sender.sendto(burst, ('127.0.0.1', port))
+            observed = []
+            deadline = time.monotonic() + 8
+            while True:
+                assert time.monotonic() < deadline, 'OSC worker did not report bundle budget'
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    observed.extend(event['address'] for event in message['events'])
+                elif message.get('type') == 'status':
+                    if route_status(message)['listener_budget_dropped'] > budget_before:
+                        assert route_status(message)['listener_budget_dropped'] == budget_before + 1
+                        break
+            sender.sendto(osc_packet('/stream/budget-done'), ('127.0.0.1', port))
+            observed.extend(event['address'] for event in collect_until('/stream/budget-done'))
+            assert observed == ['/b/%02d' % i for i in range(64)] + ['/stream/budget-done'], observed
+
+            # Compare cadence on this same graph, with and without 800 ingress
+            # events/s. Use 8 children per 10 ms bundle to avoid timer-dependent
+            # 1.25 ms sleeps on Windows. Observe pipe arrivals in real time.
+            def cadence(load):
+                osc_stream.pushes.clear()
+                while True:
+                    try:
+                        osc_stream.messages.get_nowait()
+                    except queue.Empty:
+                        break
+                stamps = {'status': [], 'telemetry': []}
+                packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
+                # CPython 3.12 on Windows uses GetTickCount64 for monotonic(),
+                # whose tick can exceed a 10 ms send interval. perf_counter()
+                # uses QueryPerformanceCounter; measure both scheduling and
+                # push cadence on this same high-resolution monotonic clock.
+                clock = time.perf_counter
+                start = clock()
+                end = start + 2.0
+                sent = 0
+                last_send = None
+                while True:
+                    now = clock()
+                    if now >= end:
+                        break
+                    if load:
+                        # Absolute schedule: 200 bundles of eight at 10 ms
+                        # intervals, all within the original 2 s window.
+                        while sent < 1600 and start + sent / 800 <= now < end:
+                            sender.sendto(packet, ('127.0.0.1', port))
+                            sent += 8
+                            last_send = now - start
+                            now = clock()
+                    try:
+                        msg = osc_stream.messages.get_nowait()
+                    except queue.Empty:
+                        # Leave the final 1 ms before a due send to the
+                        # high-resolution clock rather than an OS wait.
+                        # No sleeping past the next scheduled send or end.
+                        wake = min(end, start + sent / 800) if load and sent < 1600 else end
+                        delay = min(0.0005, wake - clock() - 0.001)
+                        if delay > 0:
+                            time.sleep(delay)
+                        continue
+                    if msg.get('type') in stamps:
+                        stamps[msg['type']].append(clock())
+                if load:
+                    diagnostic = (f'sent={sent}/1600 last_send={last_send} '
+                                  f'elapsed={clock() - start:.6f} '
+                                  f'perf_counter={time.get_clock_info("perf_counter")} '
+                                  f'monotonic={time.get_clock_info("monotonic")}')
+                    print(f'P1-e cadence driver: {diagnostic}', flush=True)
+                    assert sent == 1600, diagnostic
+                return stamps
+
+            idle = cadence(False)
+            before_load = osc_next('status', lambda m: m['gen'] == gen)
+            before_route = route_status(before_load)
+            before_attempted = before_route['received'] + before_route['enqueue_dropped']
+            before_emitted = before_load['status']['controller']['events']
+            busy = cadence(True)
+            after_load = osc_next('status', lambda m: m['gen'] == gen and
+                                  route_status(m)['received'] + route_status(m)['enqueue_dropped']
+                                  >= before_attempted + 1600)
+            after_route = route_status(after_load)
+            assert after_route['listener_budget_dropped'] == before_route['listener_budget_dropped']
+            assert after_load['status']['controller']['events'] > before_emitted
+            assert after_load['status']['controller']['dropped'] == before_load['status']['controller']['dropped']
+            for stamps in (idle, busy):
+                assert len(stamps['status']) >= 18, stamps
+                assert max(b - a for a, b in zip(stamps['status'], stamps['status'][1:])) < 0.150, stamps
+                assert len(stamps['telemetry']) >= 50, stamps
+            # One telemetry interval at each measurement boundary, not a
+            # widened status deadline or an altered event rate.
+            assert abs(len(idle['telemetry']) - len(busy['telemetry'])) <= 2, (idle, busy)
+
+    finally:
+        osc_stream.close()
 
 # OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
 # endpoint toggle. The opt-in scripted backend has one virtual identity; this

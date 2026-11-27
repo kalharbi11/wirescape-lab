@@ -90,6 +90,14 @@ static void osc_future_keys() {
                              unsigned(labelled_bytes[i]), unsigned(legacy_bytes[i]));
     }
     CHECK(labelled_bytes == legacy_bytes && labelled.dump() == original);
+    // Invalid display metadata is also ignored by the execution parser.
+    for (const auto &bad_label : {Json(42), Json(false), Json(nullptr), Json::object(), Json::array()}) {
+        auto invalid_label = all_known;
+        invalid_label["rows"][0]["label"] = bad_label;
+        std::vector<std::string> diagnostics;
+        CHECK(runtime_module_config("osc.in", invalid_label, 17, &diagnostics) == legacy_bytes);
+        CHECK(diagnostics.empty());
+    }
     auto future = known;
     future["futureOption"] = Json::object({{"nested", 1}});
     future["rows"][0]["futureField"] = Json::array({1, 2});
@@ -159,8 +167,19 @@ static void osc_out_config_validation() {
         }
         CHECK(invalid);
     };
+    // A91/A99: v2 is now authored syntax, but does not change the private
+    // DSP blob. Retain the unsupported-version refusal at the next version.
+    const auto legacy_bytes = runtime_module_config("osc.out", Json::parse(R"({"version":1,"port":9002})"));
+    CHECK(legacy_bytes == runtime_module_config("osc.out", Json::parse(R"({"version":2,"port":9002})")));
+    CHECK(legacy_bytes == runtime_module_config("osc.out", Json::parse(
+        R"({"version":2,"port":9002,"host":"192.0.2.17"})")));
+    CHECK(osc_out_ipv4(Json::parse(R"({"version":2,"host":"192.0.2.17"})")) == 0xc0000211u);
+    CHECK(osc_out_ipv4(Json::parse(R"({"version":2})")) == 0x7f000001u);
     for (const char *bad :
-         {R"({"version":2})", R"({"version":"1"})", R"({"port":65536})", R"({"port":0})", R"({"rate_hz":501})",
+         {R"({"version":3})", R"({"version":"1"})", R"({"version":0})",
+          R"({"version":1,"host":"127.0.0.1"})", R"({"version":2,"host":"127.000.0.1"})",
+          R"({"version":2,"host":"127.0.0.1:9002"})", R"({"version":2,"host":null})",
+          R"({"port":65536})", R"({"port":0})", R"({"rate_hz":501})",
           R"({"rate_hz":0})", R"({"host":"127.0.0.1"})", R"({"lan":false})", R"({"rows":{}})",
           R"({"rows":[{"address":"missing-slash"}]})", R"({"rows":[{"address":"/a*"}]})",
           R"({"rows":[{"kind":"trigger"}]})", R"({"rows":[{"enabled":1}]})", R"({"rows":[{"deadband":-0.1}]})",

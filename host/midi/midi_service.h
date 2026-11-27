@@ -32,7 +32,7 @@ struct EndpointState {
 class Service {
 public:
     Service(Backend&, Sink);
-    ~Service();
+    ~Service() noexcept;
     Service(const Service&) = delete;
     Service& operator=(const Service&) = delete;
     bool enable(Selection);
@@ -42,7 +42,10 @@ public:
     bool replace_routes(std::vector<Route>, const std::function<bool()> &commit = {});
     bool start();
     void stop();
+    // Host only: after worker join and backend destruction has joined all callbacks.
+    void backend_destroyed() noexcept { backend_alive_ = false; }
     void poll(); // deterministic fake-backend tests; never call while start() is active
+    bool recovering() const noexcept { return recovering_.load(std::memory_order_acquire); }
     Counters counters() const noexcept;
     std::vector<EndpointState> endpoint_states() const; // immutable names + atomic status
 private:
@@ -61,18 +64,21 @@ private:
         std::array<uint8_t, 16> rpn_msb{}, rpn_lsb{};
         Slot() { rpn_msb.fill(127); rpn_lsb.fill(127); }
         std::atomic<bool> accepting{false}, online{false}, emergency{false};
+        bool needs_close = false; // worker or joined control owner only
         std::atomic<uint64_t> received{0};
     };
     Backend& backend_;
+    bool backend_alive_ = true; // control owner; false only after final backend destruction
     Sink sink_;
     std::array<std::unique_ptr<Slot>, 16> slots_{};
     std::array<Route, 64> routes_{};
     std::mutex routes_mutex_; // Never acquired by backend callbacks or audio render.
     size_t count_ = 0, route_count_ = 0;
-    std::atomic<bool> running_{false}; std::thread worker_;
+    std::atomic<bool> running_{false}, recovering_{false}; std::thread worker_;
     std::atomic<uint64_t> received_{0}, dropped_{0}, malformed_{0}, oversize_{0}, ring_full_{0}, disconnects_{0}, send_fail_{0}, ignored_rpn_{0};
     static void midi1(void*, const uint8_t*, size_t, uint64_t);
     static void ump(void*, const uint32_t*, size_t, uint64_t);
+    void quiesce(); // worker or joined control owner, before reconnect
     void refresh();
     void pump();
     void send(const Slot&, const Packet&) noexcept;

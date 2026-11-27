@@ -13,10 +13,30 @@
 #endif
 #include <windows.h>
 #else
+#include <atomic>
 #include <cerrno>
+#include <csignal>
+#include <poll.h>
 #include <unistd.h>
 #endif
 namespace wirescape::sidecar {
+#ifndef _WIN32
+namespace {
+static_assert(std::atomic<bool>::is_always_lock_free);
+std::atomic<bool> shutdown_requested{false};
+void request_shutdown(int) noexcept {
+    shutdown_requested.store(true, std::memory_order_relaxed);
+}
+} // namespace
+void install_shutdown_signals() {
+    struct sigaction action {};
+    action.sa_handler = request_shutdown;
+    if (::sigemptyset(&action.sa_mask) != 0 ||
+        ::sigaction(SIGTERM, &action, nullptr) != 0 ||
+        ::sigaction(SIGINT, &action, nullptr) != 0)
+        throw std::runtime_error("Cannot install shutdown signal handlers");
+}
+#endif
 Json strict_json(const std::string &bytes) {
     if (bytes.size() > LineLimit) throw std::runtime_error("limit");
     if (bytes.size() >= 3 && bytes.compare(0, 3, "\xef\xbb\xbf") == 0) throw std::runtime_error("invalid");
@@ -76,6 +96,17 @@ class RawPipe final : public Pipe {
         return static_cast<std::ptrdiff_t>(received);
 #else
         for (;;) {
+            // Signals may arrive on any thread. A bounded poll lets the sole
+            // reader observe the lock-free flag without closing stdin from
+            // another thread (which need not interrupt a blocking read).
+            if (shutdown_requested.load(std::memory_order_relaxed)) return 0;
+            struct pollfd input { STDIN_FILENO, POLLIN, 0 };
+            const int ready = ::poll(&input, 1, 50);
+            if (ready < 0 && errno == EINTR) continue;
+            if (ready < 0) return -1;
+            if (ready == 0) continue;
+            if (shutdown_requested.load(std::memory_order_relaxed)) return 0;
+            if (input.revents & POLLNVAL) return -1;
             const auto received = ::read(STDIN_FILENO, data, capacity);
             if (received < 0 && errno == EINTR) continue;
             return static_cast<std::ptrdiff_t>(received);
@@ -188,13 +219,29 @@ size_t Transport::pending() {
     std::lock_guard<std::mutex> lock(mutex_);
     return commands_.size();
 }
+bool Transport::controller_available() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return controller_.is_null() && !controller_writing_;
+}
+void Transport::discard_controller() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    controller_ = nullptr;
+}
 void Transport::send(Json value, bool coalesce) {
     std::unique_lock<std::mutex> lock(mutex_);
     if (coalesce) {
         // Select the slot before move-assignment can consume value. MSVC may
         // construct JSON's by-value assignment argument before the left side.
-        auto &slot = value.value("type", "") == "status" ? status_ : telemetry_;
-        slot = std::move(value);
+        const auto type = value.value("type", "");
+        if (type == "controller") {
+            // No overwrite: the control thread leaves new events in capture
+            // tables until this slot is completely written.
+            if (controller_.is_null() && !controller_writing_)
+                controller_ = std::move(value);
+        } else {
+            auto &slot = type == "status" ? status_ : telemetry_;
+            slot = std::move(value);
+        }
     } else {
         writable_.wait(lock, [&] { return replies_.size() < PendingLimit; });
         replies_.push_back(std::move(value));
@@ -205,10 +252,12 @@ void Transport::write() {
     try {
         for (;;) {
             Json value;
+            bool controller_write = false;
             {
                 std::unique_lock<std::mutex> lock(mutex_);
                 writable_.wait(lock, [&] {
-                    return finished_ || !replies_.empty() || !status_.is_null() || !telemetry_.is_null();
+                    return finished_ || !replies_.empty() || !status_.is_null() ||
+                           !telemetry_.is_null() || !controller_.is_null();
                 });
                 if (!replies_.empty()) {
                     value = std::move(replies_.front());
@@ -219,6 +268,10 @@ void Transport::write() {
                 } else if (!telemetry_.is_null()) {
                     value = std::move(telemetry_);
                     telemetry_ = nullptr;
+                } else if (!controller_.is_null()) {
+                    value = std::move(controller_);
+                    controller_ = nullptr;
+                    controller_write = controller_writing_ = true;
                 } else if (finished_) return;
                 writable_.notify_all();
             }
@@ -236,6 +289,7 @@ void Transport::write() {
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 writing_ = false;
+                if (controller_write) controller_writing_ = false;
                 if (initial_hello) hello_written_ = true;
                 writable_.notify_all();
             }

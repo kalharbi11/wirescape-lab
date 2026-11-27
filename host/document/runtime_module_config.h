@@ -49,6 +49,36 @@ template <class T> class ZeroFilledConfig {
         return std::vector<uint8_t>(raw_, raw_ + sizeof(raw_));
     }
 };
+// A91: authored destination is host-owned, not part of the private DSP blob.
+// Parse strictly, without DNS, platform socket initialization or locale.
+inline uint32_t osc_out_ipv4(const nlohmann::json &config) {
+    const auto version = config.find("version");
+    if (version != config.end() &&
+        (!version->is_number_integer() || (*version != 1 && *version != 2)))
+        throw std::runtime_error("Unsupported OSC Out version");
+    if (config.contains("lan")) throw std::runtime_error("OSC Out has no lan key");
+    const auto host = config.find("host");
+    if (host == config.end()) return 0x7f000001u;
+    if (version == config.end() || *version != 2 || !host->is_string())
+        throw std::runtime_error("OSC Out host requires version 2 and an IPv4 literal");
+    const auto s = host->get<std::string>();
+    uint32_t address = 0;
+    size_t pos = 0;
+    for (unsigned i = 0; i < 4; ++i) {
+        const size_t begin = pos;
+        unsigned octet = 0;
+        while (pos < s.size() && s[pos] >= '0' && s[pos] <= '9') {
+            octet = octet * 10 + unsigned(s[pos++] - '0');
+            if (pos - begin > 3 || octet > 255)
+                throw std::runtime_error("Invalid OSC Out IPv4 literal");
+        }
+        if (pos == begin || (pos - begin > 1 && s[begin] == '0') ||
+            (i < 3 ? pos == s.size() || s[pos++] != '.' : pos != s.size()))
+            throw std::runtime_error("Invalid OSC Out IPv4 literal");
+        address = (address << 8) | octet;
+    }
+    return address;
+}
 // Quiescent JSON-to-module adapter. The JSON shape, not struct padding, is saved.
 inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, const nlohmann::json &value,
                                                        uint32_t instance_id, std::vector<std::string> *ignored_keys) {
@@ -238,14 +268,11 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
             std::memset(dest, 0, sizeof(dest));
             std::memcpy(dest, s.data(), s.size());
         };
+        (void)osc_out_ipv4(value); // validate authored host without changing canonical DSP bytes
         for (auto it = value.begin(); it != value.end(); ++it) {
             const auto &key = it.key();
-            if (key == "host" || key == "lan") require(false, "OSC Out destinations are loopback-only in version 1");
-            if (key != "version" && key != "port" && key != "rate_hz" && key != "rows" && key != "notes") record(key);
-        }
-        if (value.contains("version")) {
-            const auto &v = value.at("version");
-            require(v.is_number_integer() && v.get<int64_t>() == 1, "Unsupported OSC Out version");
+            if (key != "version" && key != "host" && key != "port" && key != "rate_hz" &&
+                key != "rows" && key != "notes") record(key);
         }
         for (const char *key : {"port", "rate_hz"}) {
             if (!value.contains(key)) continue;

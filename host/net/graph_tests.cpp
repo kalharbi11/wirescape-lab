@@ -63,8 +63,172 @@ static void legacy_cc_and_out() {
     REQUIRE(bus.rows[1].blocks.load() > 0);
     REQUIRE(bus.rows[1].value.load() == .75f);
 }
+// OB-h2 A91: exercise the real document parser, not a second test parser.
+static void osc_out_v2_destination_config() {
+    using namespace wirescape;
+    using Json = nlohmann::json;
+    const Json v1 = {{"port", 9001}, {"rate_hz", 100}};
+    auto explicit_v1 = v1;
+    explicit_v1["version"] = 1;
+    REQUIRE(document::runtime_module_config("osc.out", v1) ==
+            document::runtime_module_config("osc.out", explicit_v1));
+    auto accepts = [](const Json &config) {
+        try {
+            const auto bytes = document::runtime_module_config("osc.out", config);
+            osc::OutConfiguration decoded;
+            return osc::out_configuration(bytes.data(), uint32_t(bytes.size()), decoded);
+        } catch (const std::exception &) {
+            return false;
+        }
+    };
+    REQUIRE(accepts(explicit_v1));
+    auto v2 = explicit_v1;
+    v2["version"] = 2;
+    v2["host"] = "192.0.2.17"; // validation only; no socket or send.
+    REQUIRE(accepts(v2));
+    v2["host"] = "127.0.0.1";
+    REQUIRE(accepts(v2));
+    v2.erase("host");
+    REQUIRE(accepts(v2)); // host is optional in v2
+    for (const char *bad : {"example.test", "127.0.0", "256.0.0.1",
+                            "127.0.0.1:9001", "127.0.0.1 ", "::1", ""}) {
+        v2["host"] = bad;
+        REQUIRE(!accepts(v2));
+    }
+    v2["host"] = 42;
+    REQUIRE(!accepts(v2));
+    explicit_v1["host"] = "192.0.2.17";
+    REQUIRE(!accepts(explicit_v1));
+    v2["version"] = 3;
+    v2["host"] = "127.0.0.1";
+    REQUIRE(!accepts(v2));
+}
+
+// A111: the control-only route must never call the graph sink, even if it
+// receives a valid message. No real devices or LAN sockets in this witness.
+static void control_only_route() {
+    using namespace wirescape::osc;
+    struct Witness {
+        std::atomic<unsigned> delivered{0}, observed{0};
+        static int deliver(void *p, uint32_t, const ws2_event &, uint64_t) noexcept {
+            static_cast<Witness *>(p)->delivered.fetch_add(1, std::memory_order_relaxed);
+            return WS2_OK;
+        }
+        static bool observing(void *) noexcept { return true; }
+        static void observe(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->observed.fetch_add(1, std::memory_order_release);
+        }
+    } witness;
+    Service service({&witness, Witness::deliver, nullptr, Witness::observing, Witness::observe, Witness::observe});
+    REQUIRE(service.add({0, 0, true, true}) && service.start()); // LAN request alone cannot authorize wildcard
+    const auto initial = service.states();
+    REQUIRE(initial.size() == 1 && initial[0].control && !initial[0].lan_bound);
+    REQUIRE(std::strcmp(initial[0].state, "lan-not-confirmed") == 0);
+    Message message;
+    message.address = "/control/test";
+    message.count = 1;
+    message.arguments[0].type = 'f';
+    message.arguments[0].real = .5f;
+    uint8_t packet[1472]{};
+    bool shortened = false;
+    const auto bytes = encode(message, packet, sizeof(packet), shortened);
+    REQUIRE(bytes > 0 && !shortened);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(service.bound_port());
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    REQUIRE(sendto(sender, reinterpret_cast<const char *>(packet), int(bytes), 0,
+                   reinterpret_cast<sockaddr *>(&address), sizeof(address)) == int(bytes));
+    for (uint32_t attempt = 0; attempt < 2000 && !witness.observed.load(std::memory_order_acquire); ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Deliberately malformed datagram exercises the control route drop counter.
+    REQUIRE(sendto(sender, "bad", 3, 0, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == 3);
+    for (uint32_t attempt = 0; attempt < 2000 && !service.states()[0].dropped; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop();
+    REQUIRE(witness.observed.load() == 1 && witness.delivered.load() == 0);
+    REQUIRE(service.states()[0].received == 1 && service.states()[0].dropped == 1);
+}
+
+// A111: sharing one socket must not duplicate the ingress observer call,
+// even when the ordinary and control observer hooks both exist. Coalescing
+// at the sidecar writer could hide a duplicate, so count at the worker.
+static void shared_control_route() {
+    using namespace wirescape::osc;
+    struct Witness {
+        std::atomic<unsigned> delivered{0}, ordinary{0}, control{0};
+        std::atomic<bool> subscribed{true};
+        static int deliver(void *p, uint32_t, const ws2_event &, uint64_t) noexcept {
+            static_cast<Witness *>(p)->delivered.fetch_add(1, std::memory_order_release);
+            return WS2_OK;
+        }
+        static bool observing(void *p) noexcept {
+            return static_cast<Witness *>(p)->subscribed.load(std::memory_order_acquire);
+        }
+        static void observe(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->ordinary.fetch_add(1, std::memory_order_relaxed);
+        }
+        static void observe_control(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->control.fetch_add(1, std::memory_order_relaxed);
+        }
+    } witness;
+    Service service({&witness, Witness::deliver, nullptr, Witness::observing,
+                     Witness::observe, Witness::observe_control});
+    REQUIRE(service.add({1, 0, false}) && service.add({0, 0, false, true}) && service.start());
+    REQUIRE(service.counters().sockets == 1);
+    REQUIRE(service.states().size() == 2);
+    Message message;
+    message.address = "/control/shared";
+    message.count = 1;
+    message.arguments[0].type = 'f';
+    message.arguments[0].real = .5f;
+    uint8_t packet[1472]{};
+    bool shortened = false;
+    const auto bytes = encode(message, packet, sizeof(packet), shortened);
+    REQUIRE(bytes > 0 && !shortened);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(service.bound_port());
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    auto send = [&] {
+        REQUIRE(sendto(sender, reinterpret_cast<const char *>(packet), int(bytes), 0,
+                       reinterpret_cast<sockaddr *>(&address), sizeof(address)) == int(bytes));
+    };
+    send();
+    for (uint32_t attempt = 0; attempt < 2000 && witness.delivered.load(std::memory_order_acquire) < 1; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    REQUIRE(witness.delivered.load() == 1);
+    REQUIRE(witness.control.load() == 1 && witness.ordinary.load() == 0);
+    witness.subscribed.store(false, std::memory_order_release);
+    send();
+    for (uint32_t attempt = 0; attempt < 2000 && witness.delivered.load(std::memory_order_acquire) < 2; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop();
+    REQUIRE(witness.delivered.load() == 2);
+    REQUIRE(witness.control.load() == 1 && witness.ordinary.load() == 0);
+    const auto states = service.states();
+    REQUIRE(!states[0].control && states[1].control);
+    REQUIRE(states[0].received == 2 && states[1].received == 2);
+    REQUIRE(states[0].dropped == 0 && states[1].dropped == 0);
+}
+
 int main() {
+    shared_control_route();
+    control_only_route();
     legacy_cc_and_out();
+    osc_out_v2_destination_config();
     const std::string patch =
         R"({"format":"wirescape.native.patch","version":2,"settings":{},"modules":[{"id":1,"module":"osc.in","version":1,"parameters":{},"config":{"rows":[{"pattern":"/pico1/knob/*","smoothing_ms":0}]}},{"id":2,"module":"essentials.vco","version":1,"parameters":{}}],"connections":[],"outputs":[{"module":2,"port":"audio","bus_channel":0}]})";
     wirescape::engine2::Config config{};

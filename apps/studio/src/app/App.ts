@@ -176,8 +176,8 @@ export class App {
 
   private build(): void {
     this.library = new Library(this.registry, {
-      add: type => { this.setLibraryOpen(false); this.addModuleCentred(type); },
-      addAt: (type, x, y) => { this.setLibraryOpen(false); this.addModuleAt(type, x, y); },
+      add: async type => { this.setLibraryOpen(false); await this.addModuleCentred(type); },
+      addAt: async (type, x, y) => { this.setLibraryOpen(false); await this.addModuleAt(type, x, y); },
     });
 
     this.quick = new QuickAdd(this.registry);
@@ -1872,7 +1872,10 @@ export class App {
     if (this.documentBusy) return null;
     const d = this.registry.get(type);
     if (!d) { this.toasts.show(`Unknown module "${type}".`, 'error'); return null; }
-    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre);
+    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre).catch(err => {
+      this.toasts.show(err instanceof Error ? err.message : 'The engine refused that module.', 'error');
+      return null;
+    });
     const world = this.canvas.viewport.toWorld(clientX, clientY);
     const params: Record<string, number> = {};
     for (const p of d.parameters) params[p.id] = p.default;
@@ -1942,12 +1945,12 @@ export class App {
       }
     });
     vp.addEventListener('dragleave', () => vp.classList.remove('drop-target'));
-    vp.addEventListener('drop', e => {
+    vp.addEventListener('drop', async e => {
       vp.classList.remove('drop-target');
       const type = e.dataTransfer?.getData('application/x-wirescape-module');
       if (!type) return;
       e.preventDefault();
-      this.addModuleAt(type, e.clientX, e.clientY);
+      await this.addModuleAt(type, e.clientX, e.clientY);
     });
   }
 
@@ -2622,6 +2625,7 @@ export class App {
       setPref: (p: Partial<Preferences>) => this.setPref(p),
       zoomTo: (s: number) => this.canvas.viewport.zoomTo(s),
       fit: () => this.canvas.fit(),
+      // For OSC, callers must await the acknowledged ID (or null on refusal).
       addModule: (type: string) => this.addModuleCentred(type),
       connect: (c: Connection) => {
         if (this.documentBusy) return;

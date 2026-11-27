@@ -58,7 +58,7 @@ struct Service::Impl {
 #endif
     Impl(Sink s, bool confirm) : sink(s), confirmed(confirm) {}
     bool add(Route route) {
-        if (running || route_count == routes.size() || !route.node) {
+        if (running || route_count == routes.size() || (route.control ? route.node != 0 : route.node == 0)) {
             failure = "Invalid OSC route or service already running";
             return false;
         }
@@ -184,12 +184,23 @@ struct Service::Impl {
                 if (!(descriptors[j].revents & POLLIN)) continue;
                 const uint32_t i = indices[j];
                 uint32_t messages = 0; // a bundle may contain many messages per datagram
+                uint32_t observed_messages = 0; // same 64-child cap for the optional stream
+                uint32_t control_children = 0;
+                uint32_t control_route = route_count;
+                bool graph_listener = false;
+                for (uint32_t r = 0; r < route_count; ++r) {
+                    if (!route_enabled[r] || routes[r].port != listeners[i].requested) continue;
+                    if (routes[r].control) control_route = r;
+                    else graph_listener = true;
+                }
+                const bool control = control_route != route_count;
                 for (uint32_t packets = 0; packets < 64 && running.load(std::memory_order_relaxed); ++packets) {
                     auto *packet_data = reinterpret_cast<char *>(packet.data());
                     const auto length = recv(listeners[i].socket, packet_data, int(packet.size()), 0);
                     if (length <= 0) break;
                     received.fetch_add(1, std::memory_order_relaxed);
                     if (length > 2048) {
+                        if (control) route_dropped[control_route].fetch_add(1, std::memory_order_relaxed);
                         dropped.fetch_add(1, std::memory_order_relaxed);
                         continue;
                     }
@@ -199,19 +210,44 @@ struct Service::Impl {
                     // codec::parse validates the entire bundle before invoking a sink.
                     // Cap decoded messages as well as datagrams to prevent a single
                     // bundle from monopolizing the worker's delivery budget.
-                    const bool valid = parse(packet.data(), size_t(length), [&](const Message &message) {
-                        if (messages >= 64) {
+                    const bool observing = sink.observe && sink.observing && sink.observing(sink.context);
+                    bool graph_packet = true;
+                    auto receive = [&](const Message &message, bool legacy_packet) {
+                        graph_packet = legacy_packet;
+                        // The control-only route observes each child once, independently of graph
+                        // fan-out; its counters never count a graph enqueue or change graph budgets.
+                        if (control) {
+                            if (control_children < 64) {
+                                ++control_children;
+                                route_received[control_route].fetch_add(1, std::memory_order_relaxed);
+                                if (observing && sink.observe_control)
+                                    sink.observe_control(sink.context, listeners[i].bound, message);
+                            } else {
+                                route_dropped[control_route].fetch_add(1, std::memory_order_relaxed);
+                                route_budget[control_route].fetch_add(1, std::memory_order_relaxed);
+                            }
+                            if (!graph_listener) return;
+                        }
+                        if (legacy_packet && messages >= 64) {
                             dropped.fetch_add(1, std::memory_order_relaxed);
                             budget_dropped.fetch_add(1, std::memory_order_relaxed);
                             listener_budget[i].fetch_add(1, std::memory_order_relaxed);
                             for (uint32_t r = 0; r < route_count; ++r) {
-                                if (route_enabled[r] && routes[r].port == listeners[i].requested) {
+                                if (route_enabled[r] && !routes[r].control && routes[r].port == listeners[i].requested) {
                                     route_dropped[r].fetch_add(1, std::memory_order_relaxed);
                                     route_budget[r].fetch_add(1, std::memory_order_relaxed);
                                 }
                             }
                             return;
                         }
+                        // A110: one observation per decoded child, before
+                        // normalization or route fan-out. Stream-only extended
+                        // packets never consume graph delivery's old budget.
+                        if (!control && observing && observed_messages < 64) {
+                            ++observed_messages;
+                            sink.observe(sink.context, listeners[i].bound, message);
+                        }
+                        if (!legacy_packet) return;
                         ++messages;
                         bool shortened = false;
                         const auto bytes = encode(message, normalized.data(), normalized.size(), shortened);
@@ -229,7 +265,7 @@ struct Service::Impl {
                         event.data = normalized.data();
                         event.bytes = uint32_t(bytes);
                         for (uint32_t r = 0; r < route_count; ++r) {
-                            if (!route_enabled[r] || routes[r].port != listeners[i].requested) continue;
+                            if (!route_enabled[r] || routes[r].control || routes[r].port != listeners[i].requested) continue;
                             if (sink.accept && !sink.accept(sink.context, routes[r].node, message.address)) continue;
                             const auto deliver = sink.deliver;
                             if (!deliver || deliver(sink.context, routes[r].node, event, timestamp) != WS2_OK) {
@@ -242,8 +278,15 @@ struct Service::Impl {
                                 route_received[r].fetch_add(1, std::memory_order_relaxed);
                             }
                         }
-                    });
-                    if (!valid) malformed.fetch_add(1, std::memory_order_relaxed);
+                    };
+                    const bool valid = (observing || control)
+                        ? parse_controller(packet.data(), size_t(length), receive)
+                        : parse(packet.data(), size_t(length),
+                                [&](const Message &message) { receive(message, true); });
+                    // Extended decode may observe tags the old graph codec
+                    // rejects. Preserve its whole-packet validity/counters.
+                    if (control && !valid) route_dropped[control_route].fetch_add(1, std::memory_order_relaxed);
+                    if (!valid || (graph_listener && !graph_packet)) malformed.fetch_add(1, std::memory_order_relaxed);
                 }
             }
         }
@@ -277,6 +320,7 @@ std::vector<RouteState> Service::states() const {
         const bool listening = impl_->route_enabled[i] && listener && listener->socket != invalid_socket;
         RouteState report;
         report.node = route.node;
+        report.control = route.control;
         report.port = route.port;
         report.lan_requested = route.lan;
         report.lan_bound = effective_lan;

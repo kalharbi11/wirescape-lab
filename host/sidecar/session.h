@@ -22,6 +22,8 @@ struct Options {
     std::string device, settings = "user_data/settings.json", directory;
     std::string capture_null_sink; // empty: no capture (unchanged behaviour)
     uint32_t rate = 48000, block = 256;
+    uint16_t control_osc_port = 0;
+    bool control_osc_lan = false;
 };
 // The sink thread is the sole writer. Read only after it has joined.
 struct RenderHistogram {
@@ -81,6 +83,7 @@ class Session {
     midi::ScriptedBackend *scripted_midi_ = nullptr; // borrowed from injected ObservedMidi
     std::chrono::steady_clock::time_point scripted_started_{};
     bool scripted_started_enabled_ = false;
+    bool scripted_controller_pending_ = false; // test-only subscription witness
     std::unique_ptr<monitor::Capture> monitor_;
     std::unique_ptr<midi::Host> midi_;
     std::unique_ptr<osc::Host> osc_;
@@ -90,10 +93,11 @@ class Session {
     std::string token_, device_, audio_state_ = "no-device", audio_reason_, audio_error_;
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
+    uint64_t osc_filter_generation_ = 0; // control-owned; each worker captures an immutable copy
     std::set<uint32_t> used_ids_;
     // A78: latest refused config per blocked live module, never a stale graph.
     uint64_t next_defer_id_ = 0;
-    bool client_deferred_ = false, client_hello_seen_ = false;
+    bool client_deferred_ = false, client_hello_seen_ = false, client_render_liveness_ = false;
     std::map<uint32_t, PendingConfig> pending_configs_;
     Json config_events_ = Json::array();
     Json config_event(uint32_t, const PendingConfig &, const char *, uint64_t) const;
@@ -112,6 +116,10 @@ class Session {
     audio::EngineSlot sink_slot_; // null-sink twin of the PortAudio callback handoff
     std::atomic<double> cpu_{0};
     std::atomic<uint64_t> dropouts_{0};
+    // Session lifetime total (null sink plus retired device streams); only
+    // the sink or quiescent control owner increments it, never a reset.
+    static_assert(std::atomic<uint64_t>::is_always_lock_free);
+    std::atomic<uint64_t> rendered_blocks_{0}, sink_last_completed_ns_{0};
     RenderHistogram bench_; // only sink thread records; joined before shutdown reads
     NullSinkCapture capture_; // opened before, written only by, closed after the sink thread
     CaptureMarks marks_;      // <capture>.marks; control thread only (reply())
@@ -136,7 +144,17 @@ class Session {
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
     void open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh);
     void stop_audio();
-    void start_midi();
+    // Control-owned startup/enumeration backoff; worker recovery uses its own
+    // bounded retry clock and publishes only an atomic health observation.
+    const char *midi_retry_error_ = nullptr;
+    std::chrono::steady_clock::time_point midi_retry_{};
+    std::chrono::milliseconds midi_backoff_{100};
+    void midi_failed(const char *, std::chrono::steady_clock::time_point) noexcept;
+    void midi_recovered() noexcept;
+    bool stop_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) noexcept;
+    void start_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
+                    bool strict = false);
+    osc::ControllerObserver controller_observer(uint64_t route_generation) noexcept;
     void start_osc();
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
@@ -150,7 +168,7 @@ class Session {
     Json base() const;
 
   public:
-    explicit Session(Options);
+    explicit Session(Options, std::unique_ptr<midi::Backend> injected_midi = {});
     ~Session();
     void shutdown();
     // Begin rendering only after the hello handshake is flushed.
@@ -158,6 +176,7 @@ class Session {
     Json hello() const;
     Json reply(const Request &);
     Json status() const;
+    Json controller(); // control-only; called only with a free writer slot
     Json telemetry();
     Json devices();
     Json take_config_events();

@@ -158,6 +158,10 @@ class Stream {
     // touches. False (deadline passed or no stream) leaves both engines unchanged.
     bool exchange(EngineOwner &next, std::chrono::steady_clock::time_point deadline);
     bool running() const;
+    // Control-thread queries. Count successful completed blocks for this stream,
+    // including across graph exchanges; retain the last count after stop.
+    uint64_t rendered_blocks() const noexcept;
+    bool stalled() const;
     double cpu_percent() const;
     uint64_t dropouts() const;
     uint32_t buffer_frames() const noexcept; // accepted PortAudio framesPerBuffer
