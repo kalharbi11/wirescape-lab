@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CV to Notes (`essentials.cv_to_notes`) — EXPERIMENTAL
 
+Experimental polyphonic CV pitch and gate to paired note events.
+
 Polyphonic CV-to-note-event adapter, inverse to `essentials.notes_to_cv`.
 This is an **experimental** module: parameter naming and patch compatibility are not frozen.
 

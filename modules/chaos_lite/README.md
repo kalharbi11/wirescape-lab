@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # CHAOS-lite
 
+Original stereo instability instrument; up to eight voices.
+
 An original stereo instrument: two morphing saw/square/sine oscillators, coupling,
 three damped combs per side, seeded instability, roughness AM and self-modulated LFO.
 It is not a Surge port and does not reproduce the legacy CHAOS sound.
