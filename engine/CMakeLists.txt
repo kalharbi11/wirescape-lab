@@ -278,6 +278,9 @@ target_link_libraries(abi2_module_cpu_probe_output_tests PRIVATE wirescape_engin
 add_test(NAME abi2_module_cpu_probe_output_tests COMMAND abi2_module_cpu_probe_output_tests)
 add_executable(abi2_module_cpu_probe tests/module_cpu_probe.cpp ../tests/native/abi2/allocation_watch.cpp)
 target_link_libraries(abi2_module_cpu_probe PRIVATE wirescape_app_engine)
+# Header-only production config adapter (lab #718); no host library is linked.
+target_include_directories(abi2_module_cpu_probe PRIVATE ../host/document)
+target_link_libraries(abi2_module_cpu_probe PRIVATE nlohmann_json::nlohmann_json)
 add_test(NAME abi2_module_cpu_probe_smoke COMMAND abi2_module_cpu_probe --module sound.blend --seconds 0.2)
 foreach(frames IN ITEMS 64 128 256)
   add_test(NAME abi2_module_cpu_probe_tiny_${frames} COMMAND abi2_module_cpu_probe
