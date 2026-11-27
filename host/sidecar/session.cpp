@@ -27,6 +27,10 @@
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm.lib")
 #endif
+#else
+#include <cerrno>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
@@ -258,6 +262,11 @@ Options parse_options(int argc, char **argv) {
             }
         } else throw Refusal("invalid", "Unknown startup flag");
     }
+#ifndef _WIN32
+    // Keep the legacy implicit default; explicit POSIX paths must be absolute.
+    need(!cli_settings || std::filesystem::path(o.settings).is_absolute(),
+         "invalid", "--settings requires an absolute path");
+#endif
     // Explicit CLI rate/block always win for this invocation; persisted choices
     // apply only when their corresponding command-line option is absent.
     if (!cli_rate || !cli_block) {
@@ -789,7 +798,21 @@ void Session::persist() {
         MoveFileExW(temp.wstring().c_str(), path.wstring().c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH),
         "unavailable", "Cannot save device preferences");
 #else
+    // The control owner is the sole settings writer. Flush the complete temp
+    // file before publication, then the directory entry before acknowledging.
+    auto sync_path = [](const std::filesystem::path &file, int flags) {
+        int fd;
+        do { fd = ::open(file.c_str(), flags | O_CLOEXEC); } while (fd < 0 && errno == EINTR);
+        need(fd >= 0, "unavailable", "Cannot save device preferences");
+        int synced;
+        do { synced = ::fsync(fd); } while (synced < 0 && errno == EINTR);
+        const int closed = ::close(fd);
+        need(synced == 0 && closed == 0, "unavailable", "Cannot save device preferences");
+    };
+    sync_path(temp, O_RDWR);
     std::filesystem::rename(temp, path);
+    const auto parent = path.parent_path().empty() ? std::filesystem::path(".") : path.parent_path();
+    sync_path(parent, O_RDONLY | O_DIRECTORY);
 #endif
     preferences_ = std::move(preferences);
 }
