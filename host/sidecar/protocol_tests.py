@@ -1380,38 +1380,48 @@ with tempfile.TemporaryDirectory() as osc_stream_dir:
                     except queue.Empty:
                         break
                 stamps = {'status': [], 'telemetry': []}
-                start = time.monotonic()
+                packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
+                # CPython 3.12 on Windows uses GetTickCount64 for monotonic(),
+                # whose tick can exceed a 10 ms send interval. perf_counter()
+                # uses QueryPerformanceCounter; measure both scheduling and
+                # push cadence on this same high-resolution monotonic clock.
+                clock = time.perf_counter
+                start = clock()
                 end = start + 2.0
                 sent = 0
-                packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
+                last_send = None
                 while True:
-                    now = time.monotonic()
+                    now = clock()
                     if now >= end:
                         break
                     if load:
                         # Absolute schedule: 200 bundles of eight at 10 ms
                         # intervals, all within the original 2 s window.
-                        while sent < 1600 and now >= start + sent / 800:
+                        while sent < 1600 and start + sent / 800 <= now < end:
                             sender.sendto(packet, ('127.0.0.1', port))
                             sent += 8
+                            last_send = now - start
+                            now = clock()
                     try:
                         msg = osc_stream.messages.get_nowait()
                     except queue.Empty:
-                        # Queue.get(timeout=0.001) uses a coarse Windows
-                        # condition wait, which can overrun the final 10 ms
-                        # send slot. Python 3.12 sleep uses a high-resolution
-                        # waitable timer on Windows. Bound the sleep by the
-                        # next due send and measurement end; do not extend
-                        # the window or lower the required event count.
+                        # Leave the final 1 ms before a due send to the
+                        # high-resolution clock rather than an OS wait.
+                        # No sleeping past the next scheduled send or end.
                         wake = min(end, start + sent / 800) if load and sent < 1600 else end
-                        delay = min(0.0005, wake - time.monotonic())
+                        delay = min(0.0005, wake - clock() - 0.001)
                         if delay > 0:
                             time.sleep(delay)
                         continue
                     if msg.get('type') in stamps:
-                        stamps[msg['type']].append(time.monotonic())
+                        stamps[msg['type']].append(clock())
                 if load:
-                    assert sent == 1600, f'load generator missed {1600 - sent} events before its 2 s deadline'
+                    diagnostic = (f'sent={sent}/1600 last_send={last_send} '
+                                  f'elapsed={clock() - start:.6f} '
+                                  f'perf_counter={time.get_clock_info("perf_counter")} '
+                                  f'monotonic={time.get_clock_info("monotonic")}')
+                    print(f'P1-e cadence driver: {diagnostic}', flush=True)
+                    assert sent == 1600, diagnostic
                 return stamps
 
             idle = cadence(False)
