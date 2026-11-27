@@ -23,12 +23,48 @@ class ProtocolV0Tests(unittest.TestCase):
     def test_schema_uses_restricted_keywords(self):
         check_schema_subset(self.schema)
         self.assertEqual(self.schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
-        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 23)
+        self.assertEqual(len(self.schema["$defs"]["command"]["oneOf"]), 24)
         self.assertEqual(self.schema["$defs"]["requestId"], {
             "type": "string", "minLength": 1, "maxLength": 64,
             "pattern": PRINTABLE_ASCII_PATTERN,
         })
         validate_schema_patterns(self.schema)
+
+    def test_controller_stream_contract(self):
+        cmd = {"v": 0, "id": "c1", "type": "controllerStream",
+               "kinds": ["cc", "pc", "note", "osc"], "oscUnmatched": False}
+        self.assertTrue(validate(cmd, self.schema))
+        self.assertTrue(validate({**cmd, "kinds": []}, self.schema))
+        for bad in ({**cmd, "kinds": ["clock"]}, {**cmd, "kinds": "cc"},
+                    {**cmd, "oscUnmatched": 1}, {**cmd, "kinds": ["cc"] * 5}):
+            self.assertFalse(validate(bad, self.schema), bad)
+        midi = {"deviceId": "Fake MIDI|fake:0", "channel": 1, "t": 81234567}
+        events = [
+            {**midi, "kind": "cc", "controller": 0, "value": 127},
+            {**midi, "kind": "pc", "program": 5},
+            {**midi, "kind": "noteOn", "note": 36, "velocity": 100},
+            {**midi, "kind": "noteOff", "note": 36, "velocity": 0},
+            {"kind": "osc", "t": 81234568, "port": 9000,
+             "address": "/test", "args": [1, 0.25], "matched": False},
+        ]
+        push = {"v": 0, "session": "s1", "type": "controller", "gen": "5",
+                "events": events}
+        self.assertTrue(validate(push, self.schema))
+        for event in ({**events[0], "value": 128}, {**events[1], "channel": 0},
+                      {**events[2], "velocity": 0}, {**events[3], "t": -1},
+                      {**events[4], "address": "/" + "a" * 128},
+                      {**events[4], "args": [0] * 5},
+                      {**events[4], "matched": 0}):
+            self.assertFalse(validate({**push, "events": [event]}, self.schema), event)
+        self.assertFalse(validate({**push, "events": []}, self.schema))
+        self.assertFalse(validate({**push, "events": [events[1]] * 385}, self.schema))
+        shape = self.schema["$defs"]["status"]["properties"]["controller"]
+        status = {"kinds": ["cc", "osc"], "oscUnmatched": True, "events": 1234,
+                  "dropped": {"fifo": 0, "latest": 0, "oversize": 0}}
+        root = {"$defs": self.schema["$defs"], **shape}
+        self.assertTrue(validate(status, root))
+        self.assertFalse(validate({**status, "dropped": {"fifo": -1, "latest": 0,
+                                                        "oversize": 0}}, root))
 
     def test_a78_config_deferred_completion_contract(self):
         variants = self.schema["$defs"]["push"]["oneOf"]
@@ -50,7 +86,7 @@ class ProtocolV0Tests(unittest.TestCase):
             "## 10. Normative example exchanges", 1
         )[1]
         markers = re.findall(r"\*\*T(\d\d)\b", section)
-        self.assertEqual(markers, [f"{n:02d}" for n in range(1, 17)])
+        self.assertEqual(markers, [f"{n:02d}" for n in range(1, 18)])
         validated = []
         malformed = []
         for line_number, line in enumerate(section.splitlines(), 1):
