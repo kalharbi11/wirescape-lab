@@ -111,6 +111,12 @@ inline void migrate_io_module(IoJson &module, std::vector<std::string> *warnings
     const auto node = module.at("id").get<uint32_t>();
     if (!data.contains(slot)) data[slot] = legacy_io_data(type, config, node, warnings);
     else data[slot] = complete_io_slot(type, slot, data.at(slot));
+    // SC1: the caller supplied an execution copy. The authored rows retain their labels;
+    // the generic route packer sees only its actual execution fields.
+    if (type == "osc.in" && data[slot].is_object() && data[slot].contains("rows") &&
+        data[slot]["rows"].is_array())
+        for (auto &row : data[slot]["rows"])
+            if (row.is_object()) row.erase("label");
     config.erase("rows");
     if (type == "osc.out") config.erase("notes");
     if (config.empty()) module.erase("config");
