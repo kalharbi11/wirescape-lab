@@ -12,9 +12,7 @@ add_subdirectory(../host/document document)
 find_package(Threads REQUIRED)
 # ABI2-only targets and frozen references remain.
 add_subdirectory(../engine engine2)
-# OB-g5: compile and execute the ADSR Trigger/Hold bit-oracle in hosted CTest.
-# Keep this registration outside shared engine/CMakeLists.txt module-writer lanes.
-add_subdirectory(../modules/adsr adsr_ob_g5)
+# Module-local test recipes (including ADSR's OB-g5 oracle) are discovered by engine/.
 # Production ABI2 device-free renderer and behavioral CTests.
 add_subdirectory(../tools/render tools/render)
 
