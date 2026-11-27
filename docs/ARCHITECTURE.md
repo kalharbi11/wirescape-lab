@@ -231,8 +231,9 @@ as executable patches.
 
 The ABI2 built-in catalogue is generated at CMake configure time by
 `engine/control/module_registry.cmake` from `modules/*/module.cpp` and the two
-SDK example folders. Each built-in is compiled in its own static target with
-unique ABI entry/version symbols; the registry retains descriptor pointer
+SDK example folders. The CAT-1 fallback generates a separate translation unit
+for each built-in with unique ABI entry/version symbols and links the objects
+in one static library; the registry retains descriptor pointer
 identity and orders entries by module ID. Native and Web use the same folder
 discovery. Separate shared builds retain the default SDK entry names. The
 descriptor is the identity authority; `wire-describe` supplies the generated

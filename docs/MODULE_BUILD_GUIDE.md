@@ -46,7 +46,7 @@ Once merged, these IDs are permanent (§2). If the task file already lists IDs, 
 - `module.cpp`: SPDX line, `#include "dsp.h"`, `WS_REGISTER_MODULE(<ns>::<Class>)`. A small module can keep the entire class in this file.
 - `tests.cpp`: copy the closest example's tests (§12: frame, rate and channel matrix; reset; state; CONSTANT; extremes; no allocation), then add behaviour tests with independent reference math.
 - `DESIGN.md`: "original code", or the ported source with its pinned revision and licence. Porting without a licence entry is a Stop.
-- Optional `module.cmake`: only for extra built-in sources/dependencies; use the supplied `module_target` CMake target. Existing special shared-library or test recipes can remain in a folder-local CMakeLists.txt. Ordinary modules need neither. Do not add a built-in `module.json`: the compiled descriptor is the source of truth.
+- Optional `module.cmake`: only for extra built-in sources/dependencies; use the supplied `module_target` archive target for dependencies and extra sources; use `module_entry_source` for source-local compiler options, never target-wide options that affect other wrappers. Existing special shared-library or test recipes can remain in a folder-local CMakeLists.txt. Ordinary modules need neither. Do not add a built-in `module.json`: the compiled descriptor is the source of truth.
 
 **3. Lab discovery and presentation** (on promotion; no manual engine registrations):
 

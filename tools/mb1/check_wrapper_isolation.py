@@ -33,10 +33,18 @@ def build_targets(build):
 
 def object_files(build, expected):
     found = {}
-    for path in build.rglob("module.cpp.o"):
-        target = next((part.removeprefix("ws_builtin_").removesuffix(".dir")
-                       for part in path.parts
-                       if part.startswith("ws_builtin_") and part.endswith(".dir")), None)
+    for path in build.rglob("*.cpp.o"):
+        # Fallback uses the archive's generated, separate wrapper objects.
+        # The old per-folder target shape is also understood for diagnosis.
+        if ("wirescape_app_engine_builtin_modules.dir" in path.parts
+                and "wirescape_app_engine_generated_modules" in path.parts):
+            target = path.name.removesuffix(".cpp.o")
+        elif path.name == "module.cpp.o":
+            target = next((part.removeprefix("ws_builtin_").removesuffix(".dir")
+                           for part in path.parts
+                           if part.startswith("ws_builtin_") and part.endswith(".dir")), None)
+        else:
+            target = None
         if target is None:
             continue
         if target in found:
