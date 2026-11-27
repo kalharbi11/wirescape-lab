@@ -335,7 +335,7 @@ Session::Session(Options options)
               {"connections", Json::array()}};
     patch_ = execution(patch_);
     monitor_->configure(patch_);
-    osc_out_ = std::make_unique<osc::OutHost>(patch_.dump());
+    osc_out_ = std::make_unique<osc::OutHost>(patch_.dump(), nullptr, options_.lan && !options_.null_audio);
     document::ScopedOutBuses staged_out(osc_out_->buses());
     std::string error;
     engine_.reset(document::load_runtime_patch(patch_.dump(), catalogue_.get(), config_, error));
@@ -377,7 +377,7 @@ Session::~Session() {
     }
 }
 void Session::shutdown() {
-    osc_out_->stop();
+    osc_out_->retire();
     osc_->stop(); // stop/join packet acquisition before audio or engine teardown
     midi_->stop();
     stop_audio();
@@ -542,7 +542,7 @@ Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next
     StoppedGraph next;
     next.telemetry = document::telemetry::Sampler(
         document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
-    next.out = std::make_unique<osc::OutHost>(patch_.dump());
+    next.out = std::make_unique<osc::OutHost>(patch_.dump(), nullptr, options_.lan && !options_.null_audio);
     document::ScopedOutBuses staged_out(next.out->buses());
     std::string error;
     next.engine.reset(document::load_runtime_patch(runtime.dump(), catalogue_.get(), next_config, error,
@@ -661,7 +661,7 @@ void Session::start_midi() {
 }
 void Session::start_osc() {
     osc_->start(active_, patch_.dump());
-    osc_out_->start(); // control-owned loopback sender; never touches the render thread
+    osc_out_->start(); // control-owned sender; never touches the render thread
 }
 bool Session::refresh_devices(bool audio, bool probe_rates, const std::string &target) {
     bool enumerated = audio;
@@ -895,7 +895,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         document::telemetry::plan(patch, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
     std::unique_ptr<osc::OutHost> next_out;
     try {
-        next_out = std::make_unique<osc::OutHost>(patch_bytes);
+        next_out = std::make_unique<osc::OutHost>(patch_bytes, nullptr, options_.lan && !options_.null_audio);
     } catch (const std::exception &e) {
         const std::string diagnostic = e.what();
         if (diagnostic.rfind("data.", 0) == 0)
@@ -990,6 +990,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
             if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
                     [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
+                osc_out_->retire(); // successful commit only, before new sender starts
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
@@ -1164,6 +1165,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             throw;
         }
     }
+    osc_out_->retire(); // old graph is now irrevocably retired, not merely paused
     osc_out_.swap(next_out); // only after a successful D5 commit; rollback retains the old bus
     ++generation_;
     keyboard_.fill(false);

@@ -145,8 +145,19 @@ static void osc_out_config_validation() {
         }
         CHECK(invalid);
     };
+    // A91/A99: v2 is now authored syntax, but does not change the private
+    // DSP blob. Retain the unsupported-version refusal at the next version.
+    const auto legacy_bytes = runtime_module_config("osc.out", Json::parse(R"({"version":1,"port":9002})"));
+    CHECK(legacy_bytes == runtime_module_config("osc.out", Json::parse(R"({"version":2,"port":9002})")));
+    CHECK(legacy_bytes == runtime_module_config("osc.out", Json::parse(
+        R"({"version":2,"port":9002,"host":"192.0.2.17"})")));
+    CHECK(osc_out_ipv4(Json::parse(R"({"version":2,"host":"192.0.2.17"})")) == 0xc0000211u);
+    CHECK(osc_out_ipv4(Json::parse(R"({"version":2})")) == 0x7f000001u);
     for (const char *bad :
-         {R"({"version":2})", R"({"version":"1"})", R"({"port":65536})", R"({"port":0})", R"({"rate_hz":501})",
+         {R"({"version":3})", R"({"version":"1"})", R"({"version":0})",
+          R"({"version":1,"host":"127.0.0.1"})", R"({"version":2,"host":"127.000.0.1"})",
+          R"({"version":2,"host":"127.0.0.1:9002"})", R"({"version":2,"host":null})",
+          R"({"port":65536})", R"({"port":0})", R"({"rate_hz":501})",
           R"({"rate_hz":0})", R"({"host":"127.0.0.1"})", R"({"lan":false})", R"({"rows":{}})",
           R"({"rows":[{"address":"missing-slash"}]})", R"({"rows":[{"address":"/a*"}]})",
           R"({"rows":[{"kind":"trigger"}]})", R"({"rows":[{"enabled":1}]})", R"({"rows":[{"deadband":-0.1}]})",

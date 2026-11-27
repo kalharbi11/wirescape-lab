@@ -25,8 +25,11 @@ threading model or the wire format below is a technical stop (Keel). Rev 2 resol
   enabled `true`. `kind` is `cv` or `gate`. `deadband` is 0..1. The `address` must start with `/`, be 2..63
   bytes of printable ASCII and contain none of `#*,?[]{}` or spaces. `enabled` is absent or `true`, and writers emit it
   only when `false` (same as osc.in #612).
-- The destination is always `127.0.0.1` in v1. There is **no `host`/`lan` key**. A future LAN
-  destination bumps `version` (and needs `--confirm-lan`), so older engines refuse it.
+- The destination is always `127.0.0.1` in v1. There is **no `host`/`lan` key** in v1.
+  OB1.1 A91 adds version 2 with optional `host` (strict dotted IPv4 literal; no DNS).
+  Writers emit v2 only for a present non-`127.0.0.1` host; older engines refuse v2. The authored
+  host is control-owned and does not change the private DSP binary config. Non-default destinations
+  require `--confirm-lan` and are refused under `--null-audio` even with that flag; no loopback fallback.
 - Unknown keys round-trip unchanged and are ignored with bounded diagnostics (same rule as osc.in).
 - **An invalid known value refuses the whole `loadGraph`/graph mutation atomically**, exactly as for
   `osc.in` (ENGINE_PROTOCOL §5: the running graph stays untouched; the UI keeps its unsaved edits).
@@ -84,7 +87,8 @@ bool out_configuration(const uint8_t *data, uint32_t bytes, OutConfiguration &c)
 - **Control (sender):** one control-owned worker thread in the sidecar, beside the OSC In worker (it
   may share the `osc_service` worker loop). It polls each bus every 1 ms (up to 2 ms when idle),
   encodes with `native/io/osc/codec.h` `encode`, and calls `sendto` on one unconnected non-blocking UDP socket bound to
-  `127.0.0.1:0`. Nothing blocks. It stops and joins before graph retirement, replan or audio
+  `127.0.0.1:0` unless an enabled, permitted non-default destination requires `0.0.0.0:0`.
+  Each route uses its own numeric destination and port. Nothing blocks. It stops and joins before graph retirement, replan or audio
   teardown, exactly like OSC In.
 - **Counters (rev 2):** `sent` = datagrams `sendto` accepted locally. That is **not** proof of delivery:
   UDP with no listener can still "succeed". `dropped` = *observed* losses only: a `sendto` error
@@ -100,16 +104,23 @@ bool out_configuration(const uint8_t *data, uint32_t bytes, OutConfiguration &c)
   at most **64 datagrams**. Leftover CV rows carry their latest value to the next poll (not dropped);
   leftover notes stay in the ring.
 - Sending to loopback is allowed in every mode, including `--null-audio` tests. Nothing ever sends
-  beyond loopback in v1.
+  beyond loopback in v1; v2 sends beyond loopback only with explicit permission.
 
 **OB1.1 A86 live route amendment:** the accepted-only route write retains the DSP instance and bus. The host-owned bus additionally carries exact bounded wire metadata (address, kind, deadband, enabled), coherent block snapshots and crossing baselines; note ring entries carry their originating address. The module still retains no slot copy or pointer. The sender does not wait for a particular engine slot serial: it discards mismatched old observations rather than encoding them with the new table, counts dropped crossings/notes and releases locally accepted high gates/notes on the old address before sending new data. Disabled cleanup requires no socket; old-route releases share the existing 64-datagram budget. No core ABI or wire-packet change.
+
+**OB r2.13 gate retirement:** on terminal stop or successful graph replacement, each gate row
+whose last locally accepted value was high sends one best-effort zero to its old address and
+old destination. It counts as sent or dropped by the same rules and uses the same bounded
+release set and sender worker. A temporary pause, rejected replacement or rollback is not
+retirement and must not release a held gate.
 
 ## 5. Protocol (additive; ENGINE_PROTOCOL §status)
 - `hello.capabilities` gains `"osc.out"` when the sender is installed.
 - `status.osc.out?` is an `out` array **inside the existing `status.osc` object** (so readers that only know
-  OSC In ignore it): `[{module: string, port: integer, state: "sending"|"disabled"|"error",
+  OSC In ignore it): `[{module: string, port: integer, state: "sending"|"disabled"|"error"|"lan-refused",
   sent: integer, dropped: integer, last_error?: string}]`, at most 32 entries, no payloads.
-  `disabled` = all rows and notes disabled (no socket). Readers ignore unknown fields.
+  `disabled` = all rows and notes disabled (no socket). `lan-refused` = destination not permitted;
+  no packet is sent for that route. Readers ignore unknown fields.
 
 ## 6. Tests (device-off; loopback only)
 - Module: rows, deadband, gate crossings within one block, ring overflow → `dropped`, no-bus mode,
