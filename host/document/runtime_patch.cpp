@@ -81,6 +81,10 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
   const auto&modules=patch.at("modules");auto&cables=patch.at("connections");need(modules.is_array()&&modules.size()<=64&&cables.is_array()&&cables.size()<=128,"Invalid graph size/types");
   const auto warnings = normalize_stored_modulation(cables, version);
   auto native=config; // Native config, before applying saved-patch settings.
+  // The inherited default must fit the actual host block. Explicit saved settings
+  // below still override it and are validated without clamping.
+  if(native.feedback_block==engine2::Config{}.feedback_block)
+   native.feedback_block=std::min(native.feedback_block,config.max_block);
   if(version==2){const auto&settings=patch.at("settings");need(settings.is_object(),"Invalid settings");
    if(settings.contains("sample_rate"))need(settings["sample_rate"].is_number()&&std::isfinite(settings["sample_rate"].get<double>())&&settings["sample_rate"].get<double>()>0,"Invalid saved sample rate");
    if(settings.contains("max_block_frames"))need(id(settings["max_block_frames"])<=4096,"Invalid saved block limit");
