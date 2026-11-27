@@ -37,6 +37,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 
 
 
+| B2-620-close | 2026-11-26 | gpt-builder2 | ruling | now | [#620 A104b](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7208836573): callback lifetime on failed MIDI close, narrow ObservedMidi teardown scope and existing status enum mapping. Test-only `0017592b`; four prior recovery tests + PV1 green. | #660 stop-fault containment |
+
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
