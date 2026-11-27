@@ -17,6 +17,9 @@ struct ControllerObserver {
     void (*message)(void *, uint16_t, const Message &, bool matched, bool disabled_only,
                     uint64_t route_generation) noexcept = nullptr;
     uint64_t generation = 0;
+    // A111: control-port observation is independent of unmatched filtering.
+    void (*control_message)(void *, uint16_t, const Message &, bool matched,
+                            uint64_t route_generation) noexcept = nullptr;
 };
 // Control-owner host; the worker reads the current graph generation on delivery.
 class Host {
@@ -43,14 +46,18 @@ class Host {
     static bool accept(void *, uint32_t, std::string_view) noexcept;
     static bool observing(void *) noexcept;
     static void observe_message(void *, uint16_t, const Message &) noexcept;
+    static void observe_control_message(void *, uint16_t, const Message &) noexcept;
     ControllerObserver controller_{};
     AppEngine *engine_ = nullptr;
     bool authorized_ = false;
+    uint16_t control_port_ = 0;
+    bool control_lan_ = false;
     monitor::Capture *monitor_ = nullptr;
     static int deliver(void *, uint32_t, const ws2_event &, uint64_t) noexcept;
 
   public:
-    explicit Host(bool confirmed_lan = false) : authorized_(confirmed_lan) {}
+    explicit Host(bool confirmed_lan = false, uint16_t control_port = 0, bool control_lan = false)
+        : authorized_(confirmed_lan), control_port_(control_port), control_lan_(control_lan) {}
     ~Host() { stop(); }
     void observe(monitor::Capture *capture) noexcept { monitor_ = capture; }
     // Control owner only, with the worker stopped (or not yet activated).

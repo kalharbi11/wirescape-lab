@@ -22,6 +22,8 @@ struct Options {
     std::string device, settings = "user_data/settings.json", directory;
     std::string capture_null_sink; // empty: no capture (unchanged behaviour)
     uint32_t rate = 48000, block = 256;
+    uint16_t control_osc_port = 0;
+    bool control_osc_lan = false;
 };
 // The sink thread is the sole writer. Read only after it has joined.
 struct RenderHistogram {

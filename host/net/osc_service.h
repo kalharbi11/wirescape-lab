@@ -13,6 +13,7 @@ struct Route {
     uint32_t node = 0;
     uint16_t port = 9000;
     bool lan = false;
+    bool control = false; // explicit route identity; never delivered to a graph node
 };
 struct Sink {
     void *context = nullptr;
@@ -24,6 +25,7 @@ struct Sink {
     // A lock-free subscription read avoids extended decode while stream off.
     bool (*observing)(void *) noexcept = nullptr;
     void (*observe)(void *, uint16_t port, const Message &) noexcept = nullptr;
+    void (*observe_control)(void *, uint16_t port, const Message &) noexcept = nullptr;
 };
 struct RouteState {
     uint32_t node = 0;
@@ -36,6 +38,7 @@ struct RouteState {
     // enqueue refusals count only on the route whose delivery failed.
     uint64_t budget_dropped = 0, enqueue_dropped = 0;
     uint64_t listener_budget_dropped = 0, listener_enqueue_dropped = 0;
+    bool control = false;
 };
 struct ListenerState {
     uint16_t port = 0; // actual bound port (including OS-assigned test ports)

@@ -557,7 +557,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
                                                     'applyGraph', 'configDeferred', 'audio.renderLiveness',
-                                                    'controllerStream']
+                                                    'controllerStream', 'controllerStream.controlPort']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
@@ -1252,6 +1252,112 @@ with tempfile.TemporaryDirectory() as destinations_dir:
                 raise AssertionError('A91 did not observe both independent sending routes')
         finally:
             destinations.close()
+
+
+# P1-e2 A111: no launch flag means no control route; either LAN flag alone
+# must leave the listener on localhost. Never request both flags in CI.
+with tempfile.TemporaryDirectory() as consent_dir:
+    def first_status(engine):
+        while True:
+            message = engine.pushes.pop(0) if engine.pushes else engine.receive()
+            if message.get('type') == 'status':
+                return message['status']['osc']
+    no_control = Engine(Path(consent_dir) / 'off.json')
+    try:
+        assert 'controllerStream.controlPort' in no_control.hello['capabilities']
+        status = first_status(no_control)
+        assert status['routes'] == [] and not status['enabled'], status
+    finally:
+        no_control.close()
+    for i, flag in enumerate(('--confirm-lan', '--control-osc-lan')):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+            reserve.bind(('127.0.0.1', 0))
+            consent_port = reserve.getsockname()[1]
+        consent = Engine(Path(consent_dir) / f'consent-{i}.json',
+                         '--control-osc-port', str(consent_port), flag)
+        try:
+            status = first_status(consent)
+            route = next(r for r in status['routes'] if r['module'] == 'control')
+            assert route['port'] == consent_port and route['bind'] == '127.0.0.1', route
+            assert route['state'] in ('listening', 'lan-not-confirmed'), route
+            assert status['bind'] == '127.0.0.1' and not status['lan'], status
+        finally:
+            consent.close()
+
+# P1-e2 #672, 0025 §3.5 row 6: patch-independent OSC control listener.
+with tempfile.TemporaryDirectory() as control_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+        reserve.bind(('127.0.0.1', 0))
+        control_port = reserve.getsockname()[1]
+    control = Engine(Path(control_dir) / 'settings.json', '--control-osc-port', str(control_port))
+    try:
+        assert 'controllerStream.controlPort' in control.hello['capabilities'], control.hello['capabilities']
+        def control_next(kind, predicate):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = control.pushes.pop(0) if control.pushes else control.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e2 missing {kind}: {control.stderr()}')
+
+        def control_route(message):
+            routes = message['status']['osc']['routes']
+            return next((r for r in routes if r['module'] == 'control'), None)
+
+        initial = control_next('status', lambda m: control_route(m) is not None and
+                               control_route(m)['state'] == 'listening')
+        route = control_route(initial)
+        assert initial['gen'] == '0', initial
+        assert route['port'] == control_port and route['bind'] == '127.0.0.1', route
+        assert route['received'] == 0 and route['dropped'] == 0, route
+        assert control.call('controllerStream', kinds=['osc'], oscUnmatched=False)['gen'] == '0'
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            def send_control(address):
+                encoded = address.encode() + b'\0'
+                encoded += b'\0' * ((-len(encoded)) % 4)
+                sender.sendto(encoded + b',f\0\0' + struct.pack('>f', 0.5),
+                              ('127.0.0.1', control_port))
+
+            def witness(address, gen):
+                send_control(address)
+                push = control_next('controller', lambda m: any(
+                    e.get('address') == address for e in m['events']))
+                assert push['gen'] == gen, push
+                events = [e for e in push['events'] if e.get('address') == address]
+                assert len(events) == 1, events
+                event = events[0]
+                assert event['kind'] == 'osc' and event['port'] == control_port, event
+                assert event['matched'] is False and event['args'] == [0.5], event
+
+            witness('/control/before', '0')
+            counted = control_next('status', lambda m: control_route(m) is not None and
+                                   control_route(m)['received'] >= 1)
+            assert control_route(counted)['dropped'] == 0, counted
+            # The launch-only listener must survive replacing the patch.
+            gen = control.call('loadGraph', patch=minimal())['gen']
+            control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
+                         and control_route(m)['state'] == 'listening')
+            witness('/control/after', gen)
+            shared = minimal()
+            shared['modules'].append(dict(id=9, module='osc.in', config=dict(
+                port=control_port, rows=[dict(pattern='/control/matched', enabled=True),
+                                        dict(pattern='/control/disabled', enabled=False)])))
+            gen = control.call('loadGraph', patch=shared)['gen']
+            control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
+                         and control_route(m)['state'] == 'listening' and any(
+                             r['module'] == '9' and r['state'] == 'listening'
+                             for r in m['status']['osc']['routes']))
+            witness('/control/disabled', gen)
+            witness('/control/unmatched', gen)
+            send_control('/control/matched')
+            push = control_next('controller', lambda m: any(
+                e.get('address') == '/control/matched' for e in m['events']))
+            events = [e for e in push['events'] if e.get('address') == '/control/matched']
+            assert len(events) == 1 and events[0]['matched'] is True, push
+            control_next('status', lambda m: m['gen'] == gen and any(
+                r['module'] == '9' and r['received'] >= 1 for r in m['status']['osc']['routes']))
+    finally:
+        control.close()
 
 # P1-e #672: test the new opt-in stream on the real sidecar, devices off.
 with tempfile.TemporaryDirectory() as stream_dir:

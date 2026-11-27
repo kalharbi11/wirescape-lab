@@ -603,7 +603,35 @@ void sink_wait_deadline_regression() {
     check(allocation_watch::count.load() == 0);
 }
 
+// A112: retain the control-port marker through the held writer window.
+// Ordinary unmatched and disabled patch rows remain excluded, and the
+// stale-generation rule still applies to control-port OSC.
+void controller_stream_control_port() {
+    ControllerStream capture;
+    capture.configure({"osc"}, true);
+    std::array<ControllerStream::Number, 4> args{};
+    capture.osc(9000, "/control", false, false, args, 0, false, 7, true);
+    capture.osc(9001, "/ordinary", false, false, args, 0, false, 7);
+    capture.configure({"osc"}, false);
+    auto events = capture.drain(7);
+    check(events.size() == 1 && events[0]["address"] == "/control" &&
+          events[0]["matched"] == false && !events[0].contains("control_port"));
+    capture.osc(9000, "/control", false, true, args, 0, false, 7, true);
+    capture.osc(9001, "/ordinary", false, false, args, 0, false, 7);
+    capture.osc(9001, "/disabled", false, true, args, 0, false, 7);
+    events = capture.drain(7);
+    check(events.size() == 1 && events[0]["address"] == "/control" &&
+          events[0]["matched"] == false);
+    capture.osc(9000, "/stale", false, false, args, 0, false, 7, true);
+    check(capture.drain(8).empty());
+    check(capture.status()["dropped"]["latest"] == 1);
+    capture.configure({}, false);
+    capture.osc(9000, "/off", false, false, args, 0, false, 8, true);
+    check(capture.drain(8).empty() && capture.status().is_null());
+}
+
 int run_tests() {
+    controller_stream_control_port();
     midi_learn_observation();
     controller_stream_midi_observation();
     controller_stream_osc_codec();
