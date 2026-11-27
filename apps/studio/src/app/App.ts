@@ -1587,10 +1587,10 @@ export class App {
   }
 
   private addModuleAt(type: string, clientX: number, clientY: number, centre = false): number | null | Promise<number | null> {
-    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre);
     if (this.documentBusy) return null;
     const d = this.registry.get(type);
     if (!d) { this.toasts.show(`Unknown module "${type}".`, 'error'); return null; }
+    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre);
     const world = this.canvas.viewport.toWorld(clientX, clientY);
     const params: Record<string, number> = {};
     for (const p of d.parameters) params[p.id] = p.default;
