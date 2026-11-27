@@ -171,6 +171,10 @@ ranges, defaults, and whether a parameter sets allocation or structure.
 - Open run 2's PRs against `main`. Use whatever branch the session allows.
 
 ## Run 2b prep (Architect run 49, 2026-11-26): read this before the scout pack
+> **Read [`03_PLANNER_REVIEW.md`](03_PLANNER_REVIEW.md) first** (claude-planner, 2026-11-26). Its §2 corrects
+> several lines below (A100 `data_slots` not on main, `setOsc` line, Gate P1 (e) unfiled, #652), §1 lists the
+> 0024 amendments 2b may make (owner-authorized), and §3 narrows 2b's scope (park Q5).
+
 **Lab `main` at writing: `45f71a7`.** Run 2a merged as #636 (`4c5b932`). The Architect checked 0024 §1 at source:
 every fact holds (Gate Delay moved `example.random_source` to `module_catalog.inc:32`; no effect). No conflict with a
 CONSTRAINTS "Fixed" item.
@@ -261,6 +265,9 @@ The Architect checks factual claims against source, files the tasks and gives th
 summary. Run 1 is done and transcribed. 2b starts after 2a's lab PR merges. After 2a, the Architect may file
 the `wirescape-test` tasks at once. After 2b (or the single run 2), it transcribes everything and lifts the
 freeze.
+**Done (Architect run 50, 2026-11-26):** 2b's [0025](../../../proposals/0025-player-osc-scripts-tools.md) is transcribed
+(OB r2.15 Gate P1 (e), contract [SC](../../workflow/milestones/SC.md), headless tasks, facts rows H-f1–H-f3), and the
+freeze is lifted for the Player, OSC In features, scripts and the tool host (the tool host stays design-first).
 
 Revised for run 2 (split, setup done): claude-architect, 2026-11-26.
 

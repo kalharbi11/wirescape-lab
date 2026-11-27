@@ -33,8 +33,8 @@ using Socket = int;
 constexpr Socket invalid_socket = -1;
 void close_socket(Socket s) noexcept { close(s); }
 #endif
-// Only the sender thread performs network operations; all endpoints are loopback.
-bool send_message(Socket sock, const Message &message, uint16_t port) noexcept {
+// Only the sender thread performs network operations.
+bool send_message(Socket sock, const Message &message, uint16_t port, uint32_t destination) noexcept {
     std::array<uint8_t, 1472> buffer{};
     bool truncated = false;
     const auto size = encode(message, buffer.data(), buffer.size(), truncated);
@@ -42,14 +42,15 @@ bool send_message(Socket sock, const Message &message, uint16_t port) noexcept {
     sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
-    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    address.sin_addr.s_addr = htonl(destination);
     const auto result = sendto(sock, reinterpret_cast<const char *>(buffer.data()), int(size), 0,
                                reinterpret_cast<const sockaddr *>(&address), sizeof(address));
     return result == static_cast<decltype(result)>(size);
 }
 } // namespace
 
-OutHost::OutHost(const std::string &document, SendOverride send_override) : send_override_(send_override) {
+OutHost::OutHost(const std::string &document, SendOverride send_override, bool allow_network)
+    : send_override_(send_override) {
     auto patch = nlohmann::json::parse(document);
     for (auto &module : patch.at("modules")) {
         if (module.value("module", std::string{}) != "osc.out") continue;
@@ -59,6 +60,8 @@ OutHost::OutHost(const std::string &document, SendOverride send_override) : send
         document::migrate_io_module(module);
         const auto data = document::read_io_slot<OscOutRoutes, OscOut, validate_osc_out_routes>(module);
         const auto config = module.value("config", nlohmann::json::object());
+        route->destination = document::osc_out_ipv4(config);
+        route->lan_refused = route->destination != 0x7f000001u && !allow_network;
         const auto bytes = document::runtime_module_config("osc.out", config, route->node);
         if (bytes.size() != sizeof(route->config)) throw std::runtime_error("OSC Out configuration was not prepared");
         std::memcpy(&route->config, bytes.data(), sizeof(route->config));
@@ -142,10 +145,13 @@ void OutHost::start() noexcept {
     if (worker_.joinable() || routes_.empty()) return;
     bool enabled = false;
     for (const auto &route : routes_)
-        enabled |= route->enabled || route->has_releases() || route->has_cleanup();
+        enabled |= !route->lan_refused && (route->enabled || route->has_releases() || route->has_cleanup());
     if (!enabled) return; // disabled modules must not open a socket
+    launch_worker(true);
+}
+void OutHost::launch_worker(bool poll) noexcept {
     socket_error_.store(0);
-    running_.store(true, std::memory_order_release);
+    running_.store(poll, std::memory_order_release);
     try {
         worker_ = std::thread([this] { loop(); });
     } catch (...) {
@@ -158,9 +164,35 @@ void OutHost::stop() noexcept {
     running_.store(false, std::memory_order_release);
     if (worker_.joinable()) worker_.join();
 }
+void OutHost::retire() noexcept {
+    stop(); // no sender may mutate the delivered-level cursors after this join
+    bool pending = false;
+    for (auto &item : routes_) {
+        auto &route = *item;
+        if (route.lan_refused) continue;
+        for (size_t i = 0; i < route.cursors.size(); ++i) {
+            auto &cursor = route.cursors[i];
+            const auto &cfg = route.config.rows[i];
+            if (!cfg.enabled || cfg.kind != 1 || !cursor.sent_high) continue;
+            route.gate_release[i] = cfg;
+            route.release_gates.set(i);
+            cursor.sent_high = false; // one best-effort attempt, even on failure
+        }
+        pending |= route.has_releases();
+    }
+    if (pending) {
+        launch_worker(false); // drain releases only; never publish a fresh high
+        stop();
+    }
+}
 void OutHost::loop() noexcept {
-    bool need_socket = false;
-    for (const auto &route : routes_) need_socket |= route->enabled || route->has_releases();
+    const bool poll = running_.load(std::memory_order_acquire);
+    bool need_socket = false, need_lan = false;
+    for (const auto &route : routes_) {
+        if (route->lan_refused || !((poll && route->enabled) || route->has_releases())) continue;
+        need_socket = true;
+        need_lan |= route->destination != 0x7f000001u;
+    }
 #ifdef _WIN32
     WSADATA data{};
     if (need_socket && WSAStartup(MAKEWORD(2, 2), &data) != 0) {
@@ -175,7 +207,7 @@ void OutHost::loop() noexcept {
         sockaddr_in address{};
         address.sin_family = AF_INET;
         address.sin_port = 0;
-        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        address.sin_addr.s_addr = htonl(need_lan ? INADDR_ANY : INADDR_LOOPBACK);
         ready = bind(sock, reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == 0;
     }
     if (need_socket && ready) {
@@ -197,14 +229,14 @@ void OutHost::loop() noexcept {
         return;
     }
     auto send = [&](Route &route, uint32_t &budget, const char *path, uint32_t count, const Argument *args) -> bool {
-        if (!budget) return false;
+        if (!budget || route.lan_refused) return false;
         --budget;
         Message message{};
         message.address = path;
         message.count = count;
         for (uint32_t a = 0; a < count; ++a) message.arguments[a] = args[a];
         const bool accepted = send_override_ ? send_override_(message, uint16_t(route.config.port))
-                                             : send_message(sock, message, uint16_t(route.config.port));
+                                             : send_message(sock, message, uint16_t(route.config.port), route.destination);
         if (accepted) route.sent.fetch_add(1, std::memory_order_relaxed);
         else {
             route.dropped.fetch_add(1, std::memory_order_relaxed);
@@ -215,13 +247,14 @@ void OutHost::loop() noexcept {
     // Finish a finite, already accepted old-address release set even if
     // another control edit joins us. Never send new-table data after stop.
     auto pending_releases = [&] {
-        for (const auto &item : routes_) if (item->has_releases()) return true;
+        for (const auto &item : routes_) if (!item->lan_refused && item->has_releases()) return true;
         return false;
     };
     while (running_.load(std::memory_order_acquire) || pending_releases()) {
         const auto now = std::chrono::steady_clock::now();
         for (const auto &item : routes_) {
             auto &route = *item;
+            if (route.lan_refused) continue;
             uint32_t budget = 64; // Release messages share the existing per-poll budget.
             for (uint32_t i = 0; i < 8 && budget; ++i) if (route.release_gates.test(i)) {
                 Argument zero{};
@@ -387,7 +420,8 @@ void OutHost::loop() noexcept {
         }
         if (need_socket) {
             bool still_needed = false;
-            for (const auto &route : routes_) still_needed |= route->enabled || route->has_releases();
+            for (const auto &route : routes_)
+                still_needed |= !route->lan_refused && (route->enabled || route->has_releases());
             if (!still_needed) {
                 close_socket(sock);
                 sock = invalid_socket;
@@ -399,7 +433,7 @@ void OutHost::loop() noexcept {
         }
         if (!need_socket) {
             bool cleanup = false;
-            for (const auto &route : routes_) cleanup |= route->has_cleanup();
+            for (const auto &route : routes_) cleanup |= !route->lan_refused && route->has_cleanup();
             if (!cleanup) break; // disabled cleanup never opens a socket
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -417,10 +451,12 @@ std::vector<OutState> OutHost::states() const {
         OutState s;
         s.node = route.node;
         s.port = route.config.port;
-        s.state = !route.enabled ? "disabled" : socket_error_.load(std::memory_order_acquire) ? "error" : "sending";
+        s.state = route.lan_refused ? "lan-refused" : !route.enabled ? "disabled" :
+            socket_error_.load(std::memory_order_acquire) ? "error" : "sending";
         s.sent = route.sent.load(std::memory_order_relaxed);
         s.dropped = route.dropped.load(std::memory_order_relaxed) + route.bus->dropped.load(std::memory_order_relaxed);
-        if (socket_error_.load(std::memory_order_relaxed)) s.last_error = "socket-error";
+        if (route.lan_refused) s.last_error = "lan-refused";
+        else if (socket_error_.load(std::memory_order_relaxed)) s.last_error = "socket-error";
         else if (route.error.load(std::memory_order_relaxed)) s.last_error = "send-error";
         result.push_back(s);
     }

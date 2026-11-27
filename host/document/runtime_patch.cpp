@@ -5,6 +5,7 @@
 #include <tuple>
 #include "runtime_module_config.h"
 #include "io_data_migration.h"
+#include "groove_data_migration.h"
 #include "../../engine/data_pack.h"
 #include <cmath>
 #include <cstdio>
@@ -110,7 +111,14 @@ AppEngine* load_runtime_patch(const std::string&bytes,AppEngine*catalog,const en
        authored_config = execution.value("config", Json::object());
        data = execution.at("data");
    }
-   auto module_config = runtime_module_config(type, authored_config, node, &ignored_osc_keys);
+   if (version == 2 && type == "sequencing.groove") {
+       Json execution = m;
+       materialize_groove_legacy_data(execution, node);
+       authored_config = execution.value("config", Json::object());
+       data = execution.at("data");
+   }
+   auto module_config = type == "sequencing.groove" ? groove_construction_bytes(authored_config, node) :
+       runtime_module_config(type, authored_config, node, &ignored_osc_keys);
    need(app_engine_add_node_config(engine.get(),node,type.c_str(),module_config)==WS2_OK,"Module unavailable or prepare failed");
    // Pack every declared slot, including an omitted slot's defaults, before
    // prepare. Unknown stored keys remain in the authored document.

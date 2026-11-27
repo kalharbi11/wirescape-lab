@@ -503,7 +503,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert osc_engine.hello['capabilities'] == ['midiLearn', 'telemetry.playhead',
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
-                                                    'applyGraph', 'configDeferred']
+                                                    'applyGraph', 'configDeferred', 'audio.renderLiveness']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
@@ -882,7 +882,9 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 notes=dict(address='/ws/note', enabled=True))),
             dict(id=20, module='essentials.lfo'),
             dict(id=21, module='host.keyboard'),
-            dict(id=22, module='essentials.notes_to_cv')
+            # OSC Out reads FIRST (channel 0); use one voice so the second
+            # keyboard attack cannot rotate to an unobserved voice lane.
+            dict(id=22, module='essentials.notes_to_cv', parameters=dict(voices=1))
         ]
         outgoing_patch['connections'] += [
             edge('signal', 20, 'control', 19, 'row1'),
@@ -975,8 +977,53 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 and observed_out['state'] == 'sending' and observed_out['dropped'] >= 0)
         assert 'payload' not in observed_out and 'address' not in observed_out
 
+        # OB-h2 r2.13: actually deliver a high gate, then retire the graph
+        # without a noteOff. The old address must receive exactly one zero.
+        # Do not infer a release from the graph ACK or disappearance in status.
+        out_engine.call('noteOn', note=65, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 held gate never reached the loopback receiver'
+        # A91 refusal is not retirement: even with a held high, a malformed
+        # destination must leave the old graph and its delivered gate intact.
+        malformed = json.loads(json.dumps(outgoing_patch))
+        malformed['modules'][1]['config'].update(version=2, host='127.0.0.256')
+        refused = out_engine.call('loadGraph', expected=False, patch=malformed)
+        assert refused['gen'] == outgoing_gen, refused
+        until = time.monotonic() + 0.3
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values == [1.0], ('refusal released held gate', values)
         clean_gen = out_engine.call('loadGraph', patch=minimal())['gen']
         assert clean_gen != outgoing_gen
+        released = []
+        # Successful swap retires and joins the old sender before replying.
+        # Drain its already-enqueued datagrams; no other graph sends here.
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                released.extend(values)
+        assert released == [0.0], ('OB-h2 retired gate must release exactly once', released)
         # No sender remains after replan, and EOF must join worker before exit.
         saw_clear = False
         until = time.monotonic() + 3
@@ -1037,7 +1084,120 @@ with tempfile.TemporaryDirectory() as outgoing_dir:
                 saw_no_listener = True
                 break
         assert saw_no_listener
+
+        # Terminal EOF is distinct from a graph swap: leave a delivered gate
+        # high, close stdin without noteOff, and observe the old destination
+        # after the sender has joined. The destructor must not release twice.
+        out_engine.call('loadGraph', patch=outgoing_patch)
+        out_engine.call('noteOn', note=66, velocity=0.8)
+        held = False
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until and not held:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                continue
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f' and values in ([0.0], [1.0])
+                held = values == [1.0]
+        assert held, 'OB-h2 terminal gate never reached the loopback receiver'
         out_engine.close()
+        terminal = []
+        until = time.monotonic() + 2.0
+        while time.monotonic() < until:
+            try:
+                payload, _ = receiver.recvfrom(1500)
+            except socket.timeout:
+                break
+            address, tags, values = unpack_outgoing(payload)
+            if address == '/ws/row/2':
+                assert tags == ',f'
+                terminal.extend(values)
+        assert terminal == [0.0], ('OB-h2 EOF must release exactly once', terminal)
+
+# OB-h2 A91 permission: a nonloopback destination is refused without
+# consent and under --null-audio even with consent. The TEST-NET host
+# is only configured, never contacted. A localhost receiver detects a
+# forbidden silent fallback. This does not open an audio/MIDI/LAN device.
+with tempfile.TemporaryDirectory() as refused_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as fallback:
+        fallback.bind(('127.0.0.1', 0))
+        fallback.settimeout(0.2)
+        port = fallback.getsockname()[1]
+        for flags, name in (((), 'unconfirmed'), (('--confirm-lan',), 'null-confirmed')):
+            denied = Engine(Path(refused_dir) / (name + '.json'), *flags)
+            try:
+                patch = minimal()
+                patch['modules'].append(dict(id=19, module='osc.out',
+                    config=dict(version=2, host='192.0.2.17', port=port,
+                                rows=[dict(address='/a91/refused', kind='cv')] +
+                                     [dict(enabled=False) for _ in range(7)])))
+                generation = denied.call('loadGraph', patch=patch)['gen']
+                until = time.monotonic() + 3
+                while time.monotonic() < until:
+                    message = denied.pushes.pop(0) if denied.pushes else denied.receive()
+                    if message.get('type') != 'status' or message['gen'] != generation:
+                        continue
+                    routes = message['status']['osc']['out']
+                    if len(routes) == 1:
+                        route = routes[0]
+                        assert route['module'] == '19' and route['port'] == port, route
+                        assert route['state'] == 'lan-refused' and route['sent'] == 0, route
+                        break
+                else:
+                    raise AssertionError('A91 missing denied route status')
+                try:
+                    payload, _ = fallback.recvfrom(1500)
+                    raise AssertionError(f'A91 silent localhost fallback: {payload!r}')
+                except socket.timeout:
+                    pass
+            finally:
+                denied.close()
+
+# OB-h2 A91: two independent module destinations using only loopback sockets.
+# The explicit v2 localhost config must load and deliver, while the legacy
+# v1 route stays independent. A single shared destination cannot pass.
+with tempfile.TemporaryDirectory() as destinations_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as first, \
+         socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as second:
+        for receiver in (first, second):
+            receiver.bind(('127.0.0.1', 0))
+            receiver.settimeout(2.0)
+        ports = [receiver.getsockname()[1] for receiver in (first, second)]
+        assert ports[0] != ports[1]
+        destinations = Engine(Path(destinations_dir) / 'settings.json')
+        try:
+            patch = minimal()
+            for node, port, address, version in (
+                    (19, ports[0], '/a91/first', 1),
+                    (20, ports[1], '/a91/second', 2)):
+                config = dict(version=version, port=port, rate_hz=100,
+                              rows=[dict(address=address, kind='cv')] +
+                                   [dict(enabled=False) for _ in range(7)])
+                if version == 2:
+                    config['host'] = '127.0.0.1'
+                patch['modules'].append(dict(id=node, module='osc.out', config=config))
+            generation = destinations.call('loadGraph', patch=patch)['gen']
+            for receiver, expected in ((first, '/a91/first'), (second, '/a91/second')):
+                packet, source = receiver.recvfrom(1500)
+                assert source[0] == '127.0.0.1', source
+                address, tags, values = unpack_outgoing(packet)
+                assert address == expected and tags == ',f' and len(values) == 1, (address, tags, values)
+            until = time.monotonic() + 3
+            while time.monotonic() < until:
+                message = destinations.pushes.pop(0) if destinations.pushes else destinations.receive()
+                if message.get('type') != 'status' or message['gen'] != generation:
+                    continue
+                routes = message['status']['osc']['out']
+                if len(routes) == 2 and all(route['sent'] >= 1 for route in routes):
+                    assert {route['module']: route['port'] for route in routes} == {'19': ports[0], '20': ports[1]}
+                    assert all(route['state'] == 'sending' for route in routes)
+                    break
+            else:
+                raise AssertionError('A91 did not observe both independent sending routes')
+        finally:
+            destinations.close()
 
 # OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
 # endpoint toggle. The opt-in scripted backend has one virtual identity; this

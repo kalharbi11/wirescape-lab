@@ -45,3 +45,11 @@ This execution environment had no repository checkout and outbound GitHub DNS re
 | 1,000 setParam p50/p95/p99, per-patch loadGraph, live connect/disconnect | Unmeasured: sidecar executable absent; collector: `protocol_facts.py` |
 
 The only captured repository metadata is `facts/repo/github_tree_inventory.json`, which reports bytes and blob counts, not lines of code or built artifact sizes.
+
+## Named rows not yet measured (0025, 2026-11-26)
+Each stays **unmeasured** until an owner device run records it in `perf/` with commit, machine and date.
+| Row | What | Pass line (0025) | Status |
+|---|---|---|---|
+| H-f1 | Player hardware-knob added latency (controller stream → `setParam`), 8 controllers, Pi 5 | p99 ≤ 10 ms (§2.8) | unmeasured |
+| H-f2 | Reference UI cost on the Pi, Play page at 30 Hz for 30 min | dropouts = UI-off baseline; UI tree ≤ 25 % of one core; RSS ≤ 350 MB (§2.9) | unmeasured |
+| H-f3 | Player v1 soak (PG10), 4–12 h | flat RSS and silent CPU for Player and engine; zero OSC drops (§2.10) | unmeasured |

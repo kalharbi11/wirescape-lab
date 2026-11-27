@@ -2,6 +2,7 @@
 #include "session.h"
 #include "../document/runtime_module_config.h"
 #include "io_data_migration.h"
+#include "../document/groove_data_migration.h"
 #include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
@@ -196,8 +197,17 @@ Json catalogue(AppEngine *engine) {
             }
             params.push_back(value);
         }
-        result.push_back(
-            {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)}, {"ports", ports}, {"parameters", params}});
+        Json entry = {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)},
+                      {"ports", ports}, {"parameters", params}};
+        // A100: advertise declared slots generically, not module-specific capabilities.
+        if (d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots) &&
+            d->data_slots && d->data_slot_count) {
+            Json slots = Json::array();
+            for (uint32_t slot = 0; slot < d->data_slot_count; ++slot)
+                slots.push_back(d->data_slots[slot].id);
+            entry["data_slots"] = std::move(slots);
+        }
+        result.push_back(std::move(entry));
     }
     return {{"modules", result}};
 }
@@ -325,7 +335,7 @@ Session::Session(Options options)
               {"connections", Json::array()}};
     patch_ = execution(patch_);
     monitor_->configure(patch_);
-    osc_out_ = std::make_unique<osc::OutHost>(patch_.dump());
+    osc_out_ = std::make_unique<osc::OutHost>(patch_.dump(), nullptr, options_.lan && !options_.null_audio);
     document::ScopedOutBuses staged_out(osc_out_->buses());
     std::string error;
     engine_.reset(document::load_runtime_patch(patch_.dump(), catalogue_.get(), config_, error));
@@ -367,7 +377,7 @@ Session::~Session() {
     }
 }
 void Session::shutdown() {
-    osc_out_->stop();
+    osc_out_->retire();
     osc_->stop(); // stop/join packet acquisition before audio or engine teardown
     midi_->stop();
     stop_audio();
@@ -455,6 +465,8 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
 #endif
                 capture_.begin(options_.rate, channels, options_.block); // no-op without the flag
                 auto next = std::chrono::steady_clock::now();
+                sink_last_completed_ns_.store(uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    next.time_since_epoch()).count()), std::memory_order_release);
                 sink_rendering_.store(true, std::memory_order_release);
                 while (!stop_sink_.load()) {
                     live = sink_slot_.adopt(live); // same block-boundary handoff as the PortAudio callback
@@ -467,6 +479,9 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
                     }
                     if (render != WS2_OK) break;
                     auto after = std::chrono::steady_clock::now();
+                    sink_last_completed_ns_.store(uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        after.time_since_epoch()).count()), std::memory_order_release);
+                    rendered_blocks_.fetch_add(1, std::memory_order_relaxed);
                     // Null-sink thread only (not Engine::render, not a device callback).
                     capture_.append(rows.data(), channels, options_.block, scratch.data());
                     double percent =
@@ -527,7 +542,7 @@ Session::StoppedGraph Session::prepare_stopped_graph(const engine2::Config &next
     StoppedGraph next;
     next.telemetry = document::telemetry::Sampler(
         document::telemetry::plan(patch_, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
-    next.out = std::make_unique<osc::OutHost>(patch_.dump());
+    next.out = std::make_unique<osc::OutHost>(patch_.dump(), nullptr, options_.lan && !options_.null_audio);
     document::ScopedOutBuses staged_out(next.out->buses());
     std::string error;
     next.engine.reset(document::load_runtime_patch(runtime.dump(), catalogue_.get(), next_config, error,
@@ -635,6 +650,7 @@ void Session::stop_audio() {
     if (stream_) {
         engine_ = stream_->stop();
         dropouts_.fetch_add(stream_->dropouts()); // include the final callback after stop joins
+        rendered_blocks_.fetch_add(stream_->rendered_blocks(), std::memory_order_relaxed);
         stream_.reset();
     }
     cpu_.store(0);
@@ -645,7 +661,7 @@ void Session::start_midi() {
 }
 void Session::start_osc() {
     osc_->start(active_, patch_.dump());
-    osc_out_->start(); // control-owned loopback sender; never touches the render thread
+    osc_out_->start(); // control-owned sender; never touches the render thread
 }
 bool Session::refresh_devices(bool audio, bool probe_rates, const std::string &target) {
     bool enumerated = audio;
@@ -752,6 +768,11 @@ Json Session::execution(Json patch) {
             if (diagnostic.rfind("data.", 0) == 0 || diagnostic.rfind("data:", 0) == 0)
                 throw Refusal("invalid", diagnostic.c_str());
             throw Refusal("refused", "Graph configuration or state refused");
+        }
+        try {
+            document::materialize_groove_legacy_data(m, id);
+        } catch (const std::exception &e) {
+            throw Refusal("invalid", e.what());
         }
         if (std::string(d->id) == "essentials.output") output = std::min(output, id);
         auto values = m.value("parameters", Json::object());
@@ -874,7 +895,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         document::telemetry::plan(patch, catalogue_.get(), /*phase_enabled=*/true, /*groove_enabled=*/true));
     std::unique_ptr<osc::OutHost> next_out;
     try {
-        next_out = std::make_unique<osc::OutHost>(patch_bytes);
+        next_out = std::make_unique<osc::OutHost>(patch_bytes, nullptr, options_.lan && !options_.null_audio);
     } catch (const std::exception &e) {
         const std::string diagnostic = e.what();
         if (diagnostic.rfind("data.", 0) == 0)
@@ -969,6 +990,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
         for (unsigned attempt = 0; attempt < 4; ++attempt) {
             if (midi_->replan(candidate.get(), patch_bytes, timeout_ns, error,
                     [](void *ctx) noexcept { (*static_cast<decltype(pause_osc) *>(ctx))(); }, &pause_osc)) {
+                osc_out_->retire(); // successful commit only, before new sender starts
                 osc_out_.swap(next_out); // rendered graph now owns the new bus
                 patch_.swap(patch);
                 used_ids_.swap(ids);
@@ -1143,6 +1165,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
             throw;
         }
     }
+    osc_out_->retire(); // old graph is now irrevocably retired, not merely paused
     osc_out_.swap(next_out); // only after a successful D5 commit; rollback retains the old bus
     ++generation_;
     keyboard_.fill(false);
@@ -1169,6 +1192,9 @@ Json Session::reconcile_graph(const Json &before, bool live) {
         if (type != b["module"].get<std::string>() || type == "osc.out") return false;
         try {
             const auto id = a["id"].get<uint32_t>();
+            if (type == "sequencing.groove")
+                return document::groove_construction_bytes(a.value("config", Json::object()), id) ==
+                       document::groove_construction_bytes(b.value("config", Json::object()), id);
             return document::runtime_module_config(type, a.value("config", Json::object()), id) ==
                    document::runtime_module_config(type, b.value("config", Json::object()), id);
         } catch (...) {
@@ -1255,13 +1281,15 @@ Json Session::apply(const Json &command) {
         need(!client_hello_seen_, "duplicate", "Client hello already received");
         const auto &capabilities = command.at("capabilities");
         need(capabilities.is_array() && capabilities.size() <= 256, "invalid", "Invalid capabilities");
-        bool supports_deferred = false;
+        bool supports_deferred = false, supports_render_liveness = false;
         for (const auto &capability : capabilities) {
             need(capability.is_string() && capability.get_ref<const std::string &>().size() <= 128,
                  "invalid", "Invalid capability");
             supports_deferred |= capability == "configDeferred";
+            supports_render_liveness |= capability == "audio.renderLiveness";
         }
         client_deferred_ = supports_deferred;
+        client_render_liveness_ = supports_render_liveness;
         client_hello_seen_ = true;
         return nullptr;
     }
@@ -1747,6 +1775,14 @@ Json Session::audio_status() const {
     auto state = audio_state_;
     if (options_.audio && stream_ && !selected) state = "device-lost";
     else if (selected && !measured) state = "starting";
+    if (client_render_liveness_) {
+        if (selected && stream_->stalled()) state = "stalled";
+        else if (!options_.audio && sink_rendering_.load(std::memory_order_acquire)) {
+            const auto last = sink_last_completed_ns_.load(std::memory_order_acquire);
+            const auto now = app_engine_clock_ns();
+            if (now >= last && now - last >= 500'000'000ULL) state = "stalled";
+        }
+    }
     Json result = {{"state", state},
                    {"deviceId", selected ? Json(device_) : Json(nullptr)},
                    {"deviceName", selected ? Json(device_) : Json(nullptr)},
@@ -1755,6 +1791,9 @@ Json Session::audio_status() const {
                    {"latencyMs", 2. * options_.block / options_.rate * 1000},
                    {"cpuPercent", measured ? cpu : 0},
                    {"dropouts", dropouts_.load() + (stream_ ? stream_->dropouts() : 0)}};
+    if (client_render_liveness_)
+        result["renderedBlocks"] = rendered_blocks_.load(std::memory_order_relaxed) +
+            (stream_ ? stream_->rendered_blocks() : 0);
     if (!audio_reason_.empty()) result["reason"] = audio_reason_;
     if (!audio_error_.empty()) result["error"] = audio_error_;
     // The ASIO driver forced bufferFrames; the user's saved size is unchanged.
@@ -1775,7 +1814,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph", "configDeferred"});
+         "applyGraph", "configDeferred", "audio.renderLiveness"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},

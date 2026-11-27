@@ -4,7 +4,8 @@ import { ModuleRegistry, findParam, findPort } from '../modules/registry';
 import { PanelOverrides } from '../panels/layouts';
 import { PatchDoc } from '../patch/PatchDoc';
 import { History, type HistoryCheckpoint } from '../patch/History';
-import type { Connection, PatchV2 } from '../patch/types';
+import type { Connection, Endpoint, PatchV2 } from '../patch/types';
+import { deriveMappings, mappingSource, mappingOwner, ownerRefusal, planMappingRange, planAddMapping, planRemoveMapping, type MappingGraphEdit } from './mappings';
 import { FakeEngine } from '../engine/FakeEngine';
 import { RealEngine, sameConfig, type DeferredCompletion } from '../engine/RealEngine';
 import { EngineRefusal, type SystemStatus, type EngineClient, type Device } from '../engine/EngineClient';
@@ -52,6 +53,9 @@ type PlayingDocument = {
   configReconciliations?: { before: PatchV2; after: PatchV2 }[];
 };
 
+/** A101 has already restored either the prior patch or the actual acknowledged graph. */
+class MappingAckRefusal extends Error {}
+
 export class App {
   readonly root: HTMLElement;
   private doc = new PatchDoc();
@@ -93,6 +97,7 @@ export class App {
   private refusedDraft: { patch: PatchV2; name: string; bundled: boolean } | null = null;
   private draftVisible = false;
   private documentBusy = false;
+  private mappingGraphEngine: EngineClient | null = null;
   private viewEpoch = 0;
   private readEpoch = 0;
   private playingSnapshot: PlayingDocument | null = null;
@@ -144,6 +149,10 @@ export class App {
     const apply = this.engine.applyGraph.bind(this.engine);
     this.engine.loadGraph = (patch: PatchV2) => load(this.grooves.project(patch));
     this.engine.applyGraph = (patch: PatchV2) => apply(this.grooves.project(patch));
+    if (this.engine instanceof RealEngine) {
+      const applyLive = this.engine.applyGraphLive.bind(this.engine);
+      this.engine.applyGraphLive = (patch: PatchV2) => applyLive(this.grooves.project(patch));
+    }
     this.root = el('div', 'app');
     this.root.dataset.testid = 'app';
   }
@@ -212,21 +221,47 @@ export class App {
       rename: id => this.renameModule(id),
       onEditOsc: id => this.openOscEditor(id),
       oscStatus: () => this.lastStatus?.osc,
+      connectMapping: c => {
+        if (c.kind !== 'modulation') return false;
+        const type = this.doc.modules.get(c.from.module)?.module;
+        if (!['essentials.macro', 'midi.cc_to_cv', 'osc.in'].includes(type ?? '')) return false;
+        void this.addMapping(c.from, c.to).catch(err => {
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping refused.', 'error');
+          this.canvas.shake(c.to.module);
+        });
+        return true;
+      },
+      disconnectMapping: c => this.removeMappingFromCanvas(c),
+      isMapping: c => this.isMapping(c),
+      reconnectMapping: (old, next) => {
+        void this.reconnectMapping(old, next).catch(err => {
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping reconnect refused.', 'error');
+          this.canvas.shake(next.to.module);
+        });
+      },
       engineConnect: c => {
         this.editEngine().connect(c);
         this.trackRollback(() => { this.doc.disconnect(c); this.canvas.shake(c.to.module); });
       },
       groove: {
-        config: id => this.doc.modules.get(id)?.config,
+        config: id => this.groovePatternEnabled() ? this.grooves.editorConfig(id) : this.doc.modules.get(id)?.config,
         clockPatched: id => this.doc.connections.some(c => c.to.module === id && c.to.port === 'clock'),
-        setConfig: (id, cfg: GrooveConfig) => { if (!this.documentBusy) this.doc.setModuleConfig(id, cfg); },
+        setConfig: (id, cfg: GrooveConfig, track) => {
+          if (this.documentBusy) return;
+          if (track !== undefined && this.groovePatternEnabled()) this.grooves.noteTrackEdit(id, track);
+          this.doc.setModuleConfig(id, cfg);
+        },
+        liveApply: id => this.groovePatternEnabled() && this.grooves.isDraft(id) && this.grooves.classify(id)?.kind === 'pattern',
         canApply: id => !this.draftVisible && !this.documentBusy && this.engine.canApplyGroove(id),
         isDraft: id => this.grooves.isDraft(id),
-        appliedRaw: id => this.grooves.appliedRaw(id),
+        appliedRaw: id => this.groovePatternEnabled() ? this.grooves.appliedEditorConfig(id) : this.grooves.appliedRaw(id),
         apply: id => this.applyGroove(id),
         revert: id => {
           if (this.documentBusy) return;
-          this.doc.setModuleConfig(id, this.grooves.appliedRaw(id));
+          if (this.groovePatternEnabled()) {
+            const fields = this.grooves.revertFields(id);
+            if (fields) this.doc.setIoFields(id, fields.config, fields.data);
+          } else this.doc.setModuleConfig(id, this.grooves.appliedRaw(id));
         },
         command: (id, param) => this.grooveCommand(id, param),
         undo: () => this.undo(), redo: () => this.redo(),
@@ -425,6 +460,8 @@ export class App {
     });
     this.engine.onRefusal?.(r => this.toasts.show(r.detail.message, 'error'));
     this.engine.onUnapplied?.(items => {
+      // A101 owns whole-graph compensation for mapping transactions.
+      if (this.mappingGraphEngine === this.engine) return;
       // Live graph committed, but these parameter events were not queued.
       // Restore the actual old values to the editable document and panel.
       for (const { moduleId, paramId, previous } of items) {
@@ -613,6 +650,10 @@ export class App {
    * module or a newer authored value. Keep the chain's rollback anchor valid
    * even when a terminal arrives while a second snapshot is in flight. */
   private reconcileDeferredConfig(event: DeferredCompletion): void {
+    if (event.overlay && event.module === 'sequencing.groove') {
+      const result = this.grooves.finishConstruction(event.moduleId, event.desired, event.outcome);
+      if (result) event = { ...event, desired: result.desired.config, actual: result.actual.config };
+    }
     if (!event.overlay || event.outcome === 'applied') return;
     const normalize = (patch: PatchV2): PatchV2 | undefined => {
       const next = structuredClone(patch);
@@ -667,6 +708,7 @@ export class App {
   private applyAuthoredGraph(
     before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
     submitted: PatchV2,
+    strictLive = false,
   ): Promise<void> {
     const engine = this.editEngine(), epoch = this.viewEpoch;
     let chain = this.graphChain;
@@ -684,7 +726,8 @@ export class App {
     activeChain.checkpoints.add(before.restoreHistory);
     activeChain.checkpoints.add(after.restoreHistory);
     activeChain.pending++;
-    return engine.applyGraph(submitted).then(() => {
+    const request = strictLive && engine instanceof RealEngine ? engine.applyGraphLive(submitted) : engine.applyGraph(submitted);
+    return request.then(() => {
       if (this.graphChain !== activeChain || activeChain.refused || epoch !== this.viewEpoch) return;
       // RealEngine's correlated ACK has already updated 'confirmed', including
       // native 'unapplied'; never derive a rollback target from optimistic B.
@@ -701,7 +744,10 @@ export class App {
       if (this.graphChain === activeChain && !activeChain.refused && epoch === this.viewEpoch) {
         activeChain.refused = true;
         const anchor = activeChain.anchor, view = this.doc.ui.view;
-        this.doc.replace({ ...anchor.patch, ui: { ...(anchor.patch.ui ?? {}), view } });
+        const restored = structuredClone(anchor.patch);
+        if (view !== undefined) (restored.ui ??= {}).view = view;
+        else if (restored.ui) delete restored.ui.view;
+        this.doc.replace(restored);
         if (!anchor.dirty) this.doc.markClean();
         else this.doc.markDirty();
         anchor.restoreHistory();
@@ -1061,6 +1107,14 @@ export class App {
       dx = cx - (minX + maxX) / 2 - 150 + 24 * (this.pasteCount - 1);
       dy = cy - (minY + maxY) / 2 - 100 + 24 * (this.pasteCount - 1);
     }
+    const copied: PatchV2 = { format: 'wirescape.native.patch', version: 2,
+      modules: clip.modules.map(m => ({ ...m.extra, id: m.id, module: m.module, parameters: m.parameters })),
+      connections: clip.connections };
+    if (copied.connections.some(c => c.kind === 'modulation' && mappingSource(copied, c.from))) {
+      void this.pasteMappedGraph(clip, dx, dy).catch(err =>
+        this.toasts.show(err instanceof Error ? err.message : 'Mapping paste refused.', 'error'));
+      return;
+    }
     const map = new Map<number, number>();
     const skipped: string[] = [];
     for (const m of clip.modules) {
@@ -1092,6 +1146,40 @@ export class App {
     this.toasts.show(skipped.length
       ? `Pasted ${ids.length}; ${skipped.length} unknown module${skipped.length > 1 ? 's' : ''} skipped.`
       : `Pasted ${ids.length} module${ids.length > 1 ? 's' : ''}.`);
+  }
+
+  /** A copied graph preserves authored mapping ranges, but never creates a
+   * second owner. All remapped IDs, module data, colours and cables commit together. */
+  private async pasteMappedGraph(clip: Clip, dx: number, dy: number): Promise<void> {
+    const map = new Map<number, number>();
+    await this.mutateMappingGraph(() => {
+      for (const m of clip.modules) {
+        if (!this.registry.get(m.module)) throw new Error('Unknown module "' + m.module + '".');
+        const id = this.allocateId();
+        this.doc.addModule(m.module, m.parameters ?? {}, m.pos[0] + dx, m.pos[1] + dy, id);
+        Object.assign(this.doc.modules.get(id)!, m.extra);
+        if (m.label) this.doc.setLabel(id, m.label);
+        map.set(m.id, id);
+      }
+      for (const c of clip.connections) {
+        const from = map.get(c.from.module), to = map.get(c.to.module);
+        if (from === undefined || to === undefined) continue;
+        const nc = { ...c, from: { ...c.from, module: from }, to: { ...c.to, module: to } };
+        if (this.doc.has(nc)) continue;
+        const patch = this.doc.toJSON();
+        if (nc.kind === 'modulation' && mappingSource(patch, nc.from)) {
+          const owner = mappingOwner(patch, this.registry, nc.to);
+          if (owner) throw ownerRefusal(owner);
+        }
+        this.doc.connect(nc);
+        const col = clip.colors[connKey(c)];
+        if (col) this.doc.setCableColor(connKey(nc), col);
+      }
+    });
+    const ids = [...map.values()];
+    this.canvas.select({ kind: 'modules', ids });
+    this.canvas.invalidateAnchors();
+    this.toasts.show(`Pasted ${ids.length} module${ids.length > 1 ? 's' : ''}.`);
   }
 
   private newPatch(): void {
@@ -1267,10 +1355,17 @@ export class App {
    * through the existing whole-graph load. The new graph starts stopped; a
    * refusal keeps the draft and never starts anything.
    */
+  private groovePatternEnabled(): boolean {
+    return this.engine instanceof RealEngine && this.engine.supportsGroovePattern();
+  }
+
   private async applyGroove(id: number): Promise<boolean> {
     if (this.documentBusy || this.draftVisible || !this.engine.canApplyGroove(id)) return false;
     // Q16: a groove graph replan must not anchor ahead of an unconfirmed edit.
-    if (!await this.waitBeforeGraphAuthoring() || this.documentBusy || this.draftVisible) return false;
+    if (!await this.waitBeforeGraphAuthoring() || this.documentBusy || this.draftVisible ||
+        !this.engine.canApplyGroove(id)) return false;
+    if (this.engine instanceof RealEngine && this.engine.supportsGroovePattern())
+      return this.applyLiveGroove(id, this.engine);
     const unstage = this.grooves.stage(id);
     try {
       const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
@@ -1282,6 +1377,60 @@ export class App {
       unstage();
       this.toasts.show(`Pattern not applied, the draft is kept: ${e instanceof Error ? e.message : 'refused'}`, 'error');
       return false;
+    }
+  }
+
+  /** A100: only descriptor-advertised pattern slots use the live path. */
+  private async applyLiveGroove(id: number, engine: RealEngine): Promise<boolean> {
+    const edit = this.grooves.classify(id), epoch = this.viewEpoch;
+    if (!edit) {
+      this.toasts.show('Invalid Groove draft; no pattern or construction was applied.', 'error');
+      return false;
+    }
+    this.beginDocumentOperation();
+    try {
+      if (edit.kind === 'pattern') {
+        const pending = engine.hasPendingConfig(id);
+        await engine.setData(id, 'pattern', edit.pattern, {
+          value: edit.saved.data.pattern as Record<string, unknown>,
+          replaceConfig: !pending, config: edit.saved.config,
+        });
+        if (epoch !== this.viewEpoch) return false;
+        this.grooves.acceptPattern(id, edit.saved);
+        this.doc.setIoFields(id, edit.saved.config, edit.saved.data);
+        this.history.flush();
+        this.toasts.show('Groove pattern applied live; construction and transport retained.');
+        return true;
+      }
+      if (!engine.hasApplyGraph()) throw new Error('Groove construction requires applyGraph.');
+      const fields = this.grooves.constructionFields(id);
+      if (!fields) throw new Error('Invalid Groove construction.');
+      const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty,
+        restoreHistory: this.history.checkpoint() };
+      this.history.flush();
+      const unstage = this.grooves.stageFields(id, fields);
+      try {
+        this.doc.setIoFields(id, fields.config, fields.data);
+        await this.applyAuthoredGraph(before, this.doc.toJSON());
+        if (epoch !== this.viewEpoch) return false;
+        if (engine.hasPendingConfig(id)) {
+          unstage();
+          this.grooves.queueConstruction(id, fields);
+          this.toasts.show(`Groove construction (${edit.reason}) queued until the previous transition finishes.`);
+        } else this.toasts.show(`Groove construction (${edit.reason}) applied through graph replacement.`);
+        this.history.flush();
+        return true;
+      } catch (e) {
+        unstage();
+        throw e;
+      }
+    } catch (e) {
+      if (epoch === this.viewEpoch)
+        this.toasts.show(`Groove draft not applied: ${e instanceof Error ? e.message : 'refused'}`, 'error');
+      return false;
+    } finally {
+      this.endDocumentOperation();
+      this.grooves.changed();
     }
   }
 
@@ -1308,6 +1457,10 @@ export class App {
       return;
     }
     this.applyLearn(() => {
+      const owner = deriveMappings(this.doc.toJSON(), this.registry).find(m =>
+        m.connection.to.module === target.module && m.connection.to.port === target.param &&
+        m.source.kind !== 'cc');
+      if (owner) throw ownerRefusal(owner);
       const r = commitLearn(this.learnServices(), target, capture, anyChannel);
       const note = r.notes.length ? ` (${r.notes.join('; ')})` : '';
       return { revert: r.revert, message: `CC ${capture.controller} learned${note}.` };
@@ -1316,7 +1469,12 @@ export class App {
 
   private forgetLearn(target: LearnTarget): void {
     this.applyLearn(() => {
+      const patch = this.doc.toJSON();
+      const owner = deriveMappings(patch, this.registry).find(m => m.source.kind === 'cc' &&
+        m.connection.to.module === target.module && m.connection.to.port === target.param);
+      const plan = owner && this.removalPlan(patch, owner.connection);
       const r = forgetLearn(this.learnServices(), target);
+      if (r && plan) for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
       return r && { revert: r.revert, message: 'MIDI mapping forgotten.' };
     }, 'Forget MIDI mapping');
   }
@@ -1360,7 +1518,10 @@ export class App {
     const restore = () => {
       if (restored) return;
       restored = true;
-      this.doc.replace({ ...previous, ui: { ...(previous.ui ?? {}), view: this.doc.ui.view } });
+      const restoredPatch = structuredClone(previous), view = this.doc.ui.view;
+      if (view !== undefined) (restoredPatch.ui ??= {}).view = view;
+      else if (restoredPatch.ui) delete restoredPatch.ui.view;
+      this.doc.replace(restoredPatch);
       if (!wasDirty) this.doc.markClean();
       restoreHistory();
       requestAnimationFrame(() => this.canvas.invalidateAnchors());
@@ -1431,8 +1592,12 @@ export class App {
         if (state === 'restarting' && phase !== 'applied' && phase !== 'not-applied') requireRestart();
       });
     }
-    const pending = this.applyAuthoredGraph(
-      { patch: previous, dirty: wasDirty, restoreHistory }, submitted).then(() => {
+    const before = { patch: previous, dirty: wasDirty, restoreHistory };
+    // Preserve the legacy Learn loadGraph protocol when no live capability
+    // is advertised; current engines use the A101 mapping transaction.
+    const request = real && !real.hasApplyGraph()
+      ? this.applyAuthoredGraph(before, submitted) : this.applyMappingGraph(before, submitted);
+    const pending = request.then(() => {
       if (phase !== 'not-applied' && phase !== 'restart-required' && phase !== 'restart') {
         phase = 'applied';
         this.toasts.show(result.message);
@@ -1442,6 +1607,7 @@ export class App {
       if (phase === 'not-applied') return;
       if (phase === 'restart-required' || phase === 'restart') { await recoveryDone; return; }
       if (this.viewEpoch !== epoch || this.editEngine() !== engine) return;
+      if (err instanceof MappingAckRefusal) return; // A101 already reconciled model and history.
       const reason = err instanceof EngineRefusal && err.detail.engine
         ? `${what} was refused: ${err.message}` : (err instanceof Error ? err.message : `${what} failed.`);
       restore();
@@ -1485,6 +1651,195 @@ export class App {
     this.doc.setModAmount(c, amount);
     this.editEngine().setModAmount(c, amount);
     this.trackRollback(() => this.doc.setModAmount(c, previous ?? 0));
+  }
+
+  // ---- MM1 mappings model (the panel and map mode consume these in MM2/3) ----
+
+  private async editMappingRange(c: Connection, end: 'min' | 'max', normalized: number): Promise<void> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy)
+      throw new Error('The document is busy.');
+    const before = this.doc.toJSON();
+    const old = deriveMappings(before, this.registry).find(m => connKey(m.connection) === connKey(c));
+    if (!old) throw new Error('The mapping no longer exists.');
+    const edit = planMappingRange(before, this.registry, c, end, normalized);
+    const engine = this.editEngine();
+    const setBase = async (value: number) => {
+      if (engine instanceof RealEngine) await engine.setParamConfirmed(c.to.module, c.to.port, value);
+      else engine.setParam(c.to.module, c.to.port, value);
+    };
+    const setAmount = async () => {
+      if (engine instanceof RealEngine) await engine.setModAmountConfirmed(edit.connection, edit.amount);
+      else engine.setModAmount(edit.connection, edit.amount);
+    };
+    this.history.flush();
+    this.beginDocumentOperation();
+    let baseAccepted = false;
+    try {
+      if (edit.base !== undefined) { await setBase(edit.base); baseAccepted = true; }
+      await setAmount();
+      // Author one history gesture only after both live replies.
+      if (edit.base !== undefined) this.doc.setParam(c.to.module, c.to.port, edit.base);
+      this.doc.setModAmount(c, edit.amount);
+      this.history.flush();
+      this.refreshDirty();
+    } catch (err) {
+      if (baseAccepted) {
+        try { await setBase(old.base); }
+        catch {
+          // A disconnect reloads the unchanged authored document. If the
+          // same session still has a confirmed base, reflect that truth.
+          const confirmed = engine instanceof RealEngine ? engine.confirmedDocument() : null;
+          const value = confirmed?.modules.find(m => m.id === c.to.module)?.parameters?.[c.to.port];
+          if (value !== undefined && value !== old.base) {
+            this.doc.setParam(c.to.module, c.to.port, value);
+            this.history.flush();
+            this.refreshDirty();
+          }
+          this.toasts.show('Range edit and its live compensation were refused.', 'error');
+        }
+      }
+      throw err;
+    } finally { this.endDocumentOperation(); }
+  }
+
+  /** All mapping-bearing edits share the same graph/ACK/undo boundary. */
+  private async mutateMappingGraph(author: (previous: PatchV2) => void): Promise<void> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy)
+      throw new Error('The document is busy.');
+    const engine = this.editEngine();
+    if (engine instanceof RealEngine && !engine.hasApplyGraph())
+      throw new Error('Live mapping requires an engine that supports applyGraph.');
+    const previous = this.doc.toJSON();
+    const before = { patch: previous, dirty: this.doc.dirty, restoreHistory: this.history.checkpoint() };
+    this.beginDocumentOperation();
+    try {
+      try { author(previous); }
+      catch (err) {
+        this.doc.replace(previous);
+        if (!before.dirty) this.doc.markClean();
+        before.restoreHistory();
+        this.refreshDirty();
+        throw err;
+      }
+      this.history.flush();
+      const submitted = this.doc.toJSON();
+      if (JSON.stringify(submitted) === JSON.stringify(previous)) return;
+      await this.applyMappingGraph(before, submitted);
+      this.ticker.resetTelemetry();
+      this.refreshDirty();
+    } finally { this.endDocumentOperation(); }
+  }
+
+  private authorMapping(plan: MappingGraphEdit, adding: boolean): void {
+    for (const w of plan.writes) this.doc.setParam(w.module, w.param, w.value);
+    if (adding) this.doc.connect(plan.connection);
+    else this.doc.disconnect(plan.connection);
+  }
+
+  private changeMappingGraph(build: (patch: PatchV2) => MappingGraphEdit, adding: boolean): Promise<void> {
+    return this.mutateMappingGraph(patch => this.authorMapping(build(patch), adding));
+  }
+
+  /** A101: one correlated, serialized mapping graph transaction. Any partial
+   * ACK refuses the entire gesture; only the prior graph may compensate it. */
+  private async applyMappingGraph(
+    before: { patch: PatchV2; dirty: boolean; restoreHistory: HistoryCheckpoint },
+    submitted: PatchV2,
+  ): Promise<void> {
+    const engine = this.editEngine();
+    this.mappingGraphEngine = engine;
+    let partial = false;
+    const off = engine.onUnapplied?.(items => { if (items.length) partial = true; });
+    const confirmed = () => engine instanceof RealEngine ? engine.confirmedAuthoredDocument()
+      : engine instanceof FakeEngine ? engine.confirmedDocument() : null;
+    try {
+      await this.applyAuthoredGraph(before, submitted, true);
+      if (!partial) return;
+      const firstAck = confirmed();
+      let restored = false;
+      partial = false;
+      try {
+        if (engine instanceof RealEngine) await engine.applyGraphLive(before.patch);
+        else await engine.applyGraph(before.patch);
+        restored = !partial;
+      } catch { /* Refused compensation: the last ACK is authoritative. */ }
+      if (restored) {
+        this.doc.replace(before.patch);
+        if (!before.dirty) this.doc.markClean();
+        before.restoreHistory();
+      } else {
+        const actual = confirmed() ?? firstAck;
+        if (actual) {
+          this.history.checkpoint().reconcile(submitted, actual);
+          if (firstAck) this.history.checkpoint().reconcile(firstAck, actual);
+          this.doc.replace(actual);
+          this.doc.markDirty();
+        }
+      }
+      this.ticker.resetTelemetry();
+      this.canvas.invalidateAnchors();
+      this.refreshDirty();
+      const message = restored ? 'Mapping refused: some parameter values were not applied.'
+        : 'Mapping refused and compensation failed; the last acknowledged graph was restored.';
+      this.toasts.show(message, 'error');
+      throw new MappingAckRefusal(message);
+    } finally {
+      off?.();
+      this.mappingGraphEngine = null;
+    }
+  }
+
+  private addMapping(from: Endpoint, to: Endpoint): Promise<void> {
+    return this.changeMappingGraph(patch => planAddMapping(patch, this.registry, from, to,
+      this.ticker.last?.effective[to.module]?.[to.port]), true);
+  }
+
+  private removalPlan(patch: PatchV2, c: Connection, observed?: number): MappingGraphEdit {
+    const m = deriveMappings(patch, this.registry).find(x => connKey(x.connection) === connKey(c));
+    let value = observed ?? this.ticker.last?.outputs?.[c.from.module + ':' + c.from.port];
+    if (value === undefined && m?.source.kind === 'macro') {
+      const knob = 'knob' + m.source.row;
+      const modulated = patch.connections.some(x => x.kind === 'modulation' &&
+        x.to.module === c.from.module && x.to.port === knob);
+      value = this.ticker.last?.effective[c.from.module]?.[knob];
+      if (value === undefined && !modulated)
+        value = patch.modules.find(x => x.id === c.from.module)?.parameters?.[knob] ?? 0;
+    }
+    return planRemoveMapping(patch, this.registry, c, value);
+  }
+
+  private removeMapping(c: Connection, observed?: number): Promise<void> {
+    return this.changeMappingGraph(patch => this.removalPlan(patch, c, observed), false);
+  }
+
+  private isMapping(c: Connection): boolean {
+    return deriveMappings(this.doc.toJSON(), this.registry).some(m => connKey(m.connection) === connKey(c));
+  }
+
+  private async reconnectMapping(old: Connection, next: Connection): Promise<void> {
+    if (connKey(old) === connKey(next)) return;
+    if (next.kind !== 'modulation') throw new Error('Reconnect a mapping to a modulatable parameter.');
+    await this.mutateMappingGraph(patch => {
+      const removed = this.removalPlan(patch, old);
+      const added = planAddMapping(removed.patch, this.registry, next.from, next.to,
+        this.ticker.last?.effective[next.to.module]?.[next.to.port]);
+      this.authorMapping(removed, false);
+      this.authorMapping(added, true);
+    });
+    this.toasts.show('Mapping reconnected.');
+  }
+
+  private async deleteMappedModules(ids: number[]): Promise<void> {
+    const selected = new Set(ids);
+    await this.mutateMappingGraph(patch => {
+      for (const m of deriveMappings(patch, this.registry)) {
+        if (selected.has(m.connection.from.module) && !selected.has(m.connection.to.module))
+          this.authorMapping(this.removalPlan(this.doc.toJSON(), m.connection), false);
+      }
+      for (const id of ids) this.doc.removeModule(id);
+    });
+    this.canvas.select({ kind: 'none' });
+    this.toasts.show(`${ids.length} module${ids.length > 1 ? 's' : ''} deleted.`);
   }
 
   private describeSource(c: Connection): string {
@@ -1600,16 +1955,37 @@ export class App {
     this.root.dataset.selection = s.kind;
   }
 
+  private removeMappingFromCanvas(c: Connection): boolean {
+    if (!deriveMappings(this.doc.toJSON(), this.registry).some(m => connKey(m.connection) === connKey(c))) return false;
+    void this.removeMapping(c).then(() => {
+      const selected = this.canvas.currentSelection;
+      if (selected.kind === 'cable' && connKey(selected.c) === connKey(c)) this.canvas.select({ kind: 'none' });
+      this.toasts.show('Mapping removed.');
+    }).catch(err => {
+      this.toasts.show(err instanceof Error ? err.message : 'Mapping removal refused.', 'error');
+      this.canvas.shake(c.to.module);
+    });
+    return true;
+  }
+
   private deleteSelection(): void {
     if (this.documentBusy) return;
     const s = this.canvas.currentSelection;
     if (s.kind === 'cable') {
+      if (this.removeMappingFromCanvas(s.c)) return;
       this.doc.disconnect(s.c);
       try { this.editEngine().disconnect(s.c); this.trackRollback(() => this.doc.connect(s.c)); }
       catch { /* ignore */ }
       this.canvas.select({ kind: 'none' });
       this.toasts.show('Cable removed.');
     } else if (s.kind === 'modules') {
+      const ids = new Set(s.ids);
+      if (deriveMappings(this.doc.toJSON(), this.registry).some(m =>
+          ids.has(m.connection.from.module) || ids.has(m.connection.to.module))) {
+        void this.deleteMappedModules([...ids]).catch(err =>
+          this.toasts.show(err instanceof Error ? err.message : 'Mapping deletion refused.', 'error'));
+        return;
+      }
       for (const id of s.ids) {
         const m = this.doc.modules.get(id);
         if (!m) continue;
@@ -2187,6 +2563,10 @@ export class App {
       canEdit: () => !this.documentBusy,
       engine: this.engine,
       commitParam: (m: number, p: string, v: number, commit = true) => this.commitParam(m, p, v, commit),
+      mappings: () => deriveMappings(this.doc.toJSON(), this.registry),
+      editMappingRange: (c: Connection, end: 'min' | 'max', n: number) => this.editMappingRange(c, end, n),
+      addMapping: (from: Endpoint, to: Endpoint) => this.addMapping(from, to),
+      removeMapping: (c: Connection, observed?: number) => this.removeMapping(c, observed),
       commitOscConfig: (id: number, cfg: OscConfig, type: 'osc.in' | 'osc.out') => this.commitOscConfig(id, cfg, type),
       restoreSnapshot: (p: PatchV2) => this.restoreSnapshot(p),
       setMidiEndpoint: (id: number, endpoint: string, systemName?: string) => this.setMidiEndpoint(id, endpoint, systemName),

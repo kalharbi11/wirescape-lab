@@ -125,8 +125,14 @@ export class RealEngine implements EngineClient {
 
   stop(): void { this.unsubscribe?.(); this.unsubscribe = undefined; this.started = false; }
 
+  supportsGroovePattern(): boolean {
+    const slots = this.registry.get('sequencing.groove')?.data_slots;
+    return Array.isArray(slots) && slots.includes('pattern');
+  }
+
   canApplyGroove(moduleId: number): boolean {
     if (!this.ready || this.state !== 'real' || this.load || this.active || this.queue.length) return false;
+    if (this.supportsGroovePattern()) return true;
     if (this.statusGen === this.gen && this.status && this.status.audio.state !== 'running') return true;
     const position = this.playheadEnabled ? this.playhead?.[moduleId] : undefined;
     return position?.[0] === -1 && position[1] === -1;
@@ -600,6 +606,14 @@ export class RealEngine implements EngineClient {
     return this.applyGraphEnabled && (this.ready || this.load?.type === 'applyGraph')
       ? this.submitGraph(patch, 'applyGraph') : this.loadGraph(patch);
   }
+  /** Mapping commits and compensation must never silently fall back to loadGraph. */
+  applyGraphLive(patch: PatchV2): Promise<void> {
+    if (!this.applyGraphEnabled || !this.ready || !this.session || this.load ||
+        this.hasUnconfirmedEdits())
+      return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live mapping edit.'));
+    return this.submitGraph(patch, 'applyGraph');
+  }
+
   /** Used only on a success reply whose metadata cannot be trusted. */
   private failGraphAck(load: Load, message: string): void {
     const error = refusal('invalid', message);
@@ -742,6 +756,23 @@ export class RealEngine implements EngineClient {
   setParam(moduleId: number, paramId: string, value: number): void { this.enqueue('setParam', { moduleId, paramId, value }); }
   setModAmount(connection: Connection, amount: number): void {
     this.enqueue('setModAmount', { connection: copy(connection), amount });
+  }
+  /** MM1 acknowledged live edits: unlike optimistic knob drags, never
+   * fall back to a whole-graph load when the current session is unavailable. */
+  private confirmedLiveEdit(type: 'setParam' | 'setModAmount', payload: Wire): Promise<void> {
+    if (!this.ready || !this.session || this.load || !this.confirmed)
+      return Promise.reject(refusal('unavailable', 'Engine graph is not ready for a live mapping edit.'));
+    return new Promise<void>((resolve, reject) => {
+      this.queue.push({ id: this.id(), session: this.session, mutation: { type, payload },
+        inverse: this.projection(), resolve, reject });
+      this.pumpEdits();
+    });
+  }
+  setParamConfirmed(moduleId: number, paramId: string, value: number): Promise<void> {
+    return this.confirmedLiveEdit('setParam', { moduleId, paramId, value });
+  }
+  setModAmountConfirmed(connection: Connection, amount: number): Promise<void> {
+    return this.confirmedLiveEdit('setModAmount', { connection: copy(connection), amount });
   }
   setData(moduleId: number, slot: string, value: Wire, authored?: DataAuthoring): Promise<void> {
     if (!this.ready || !this.session || this.load || !this.confirmed)

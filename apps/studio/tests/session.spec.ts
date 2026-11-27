@@ -235,8 +235,12 @@ test.describe('the catalogue', () => {
     const knownIds: string[] = readFileSync(resolve('../../tools/foundation/fixtures/known_module_ids.txt'), 'utf8')
       .split('\n').map((line: string) => line.trim()).filter((line: string) => line && !line.startsWith('#'));
     const reportIds = report.map(r => r.id);
-    // The catalogue is generated from native module manifests; FakeEngine must not add or omit IDs.
-    expect([...reportIds].sort()).toEqual([...catalogueIds].sort());
+    // MM1 explicitly supplies exactly one simulation-only descriptor until Macro PROMO.
+    // All native IDs remain required; no other synthetic ID is permitted.
+    const macroId = 'essentials.macro';
+    const expectedIds = catalogueIds.includes(macroId) ? catalogueIds : [...catalogueIds, macroId];
+    expect([...reportIds].sort()).toEqual([...expectedIds].sort());
+    expect(report.find(r => r.id === macroId)).toMatchObject({ descriptorPorts: 8, params: 8 });
     expect(new Set(reportIds).size).toBe(reportIds.length);
     expect(knownIds.filter(id => !reportIds.includes(id))).toEqual([]);
     expect(report.some(r => r.id === 'essentials.notes_to_cv')).toBe(true);

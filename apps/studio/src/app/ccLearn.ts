@@ -240,7 +240,7 @@ export function commitLearn(svc: LearnServices, target: LearnTarget, capture: Le
 
     writeRow(doc, edit, slot.module, slot.row, { channel: anyChannel ? 0 : capture.channel, controller: capture.controller });
     edit.connect({ kind: 'modulation', from: { module: slot.module, port: outPort(slot.row) },
-      to: { module: target.module, port: target.param }, amount: 1 });
+      to: { module: target.module, port: target.param }, amount: existing?.amount ?? 1 });
     return { module: slot.module, row: slot.row, created, notes, revert: () => edit.revert() };
   } catch (err) {
     edit.revert();

@@ -8,7 +8,10 @@ import { portRef } from './types';
 export class ModuleRegistry {
   private readonly byId = new Map<string, ModuleDescriptor>();
 
-  constructor(public readonly all: ModuleDescriptor[]) {
+  readonly all: ModuleDescriptor[];
+
+  constructor(all: ModuleDescriptor[]) {
+    this.all = all;
     for (const m of all) this.byId.set(m.id, m);
   }
 
