@@ -39,18 +39,26 @@ target_compile_options(web_macro PUBLIC -include ${macro_dir}/rng_scope.hpp)
 
 add_library(web_core STATIC ${native}/engine/engine2.cpp ${native}/engine/build.cpp
   ${native}/engine/render.cpp ${native}/engine/edit.cpp ${native}/engine/control/app_engine.cpp
-  ${native}/host/document/runtime_patch.cpp ${native}/engine/voice/allocator.cpp)
+  ${native}/host/document/runtime_patch.cpp)
 target_include_directories(web_core PUBLIC ${native}/sdk/include ${native}/engine/include ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/control
   ${native}/host/document ${native}/engine/voice)
 target_compile_definitions(web_core PUBLIC WS_ENGINE_BUILD)
 target_link_libraries(web_core PUBLIC web_macro nlohmann_json::nlohmann_json ${CMAKE_DL_LIBS})
+
+# Voice allocation must follow the module archives in the native linker order.
+# Previously allocator.cpp lived in web_core, which was scanned before them.
+add_library(web_voice STATIC ${native}/engine/voice/allocator.cpp)
+target_include_directories(web_voice PUBLIC ${native}/engine/voice)
+target_compile_definitions(web_voice PRIVATE WS_ENGINE_BUILD)
+target_link_libraries(web_voice PRIVATE web_macro)
+target_link_libraries(web_core PUBLIC web_voice)
 
 # Same module sources and generated registry as native, with the web toolchain.
 add_library(web_module_dependencies INTERFACE)
 target_include_directories(web_module_dependencies INTERFACE ${native}/sdk/include ${native}/engine/include
   ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/voice)
 target_compile_definitions(web_module_dependencies INTERFACE WS_ENGINE_BUILD)
-target_link_libraries(web_module_dependencies INTERFACE web_macro)
+target_link_libraries(web_module_dependencies INTERFACE web_macro web_voice)
 include(${native}/engine/control/module_registry.cmake)
 ws_builtin_registry(web_core "${native}" web_module_dependencies)
 
@@ -66,6 +74,7 @@ if(EMSCRIPTEN)
   target_compile_options(web_core PUBLIC -fwasm-exceptions -O3)
   target_compile_options(web_macro PUBLIC -fwasm-exceptions -O3)
   target_compile_options(web_module_dependencies INTERFACE -fwasm-exceptions -O3)
+  target_compile_options(web_voice PRIVATE -fwasm-exceptions -O3)
   target_link_options(wirescape_web PRIVATE -fwasm-exceptions -O3)
 else()
   enable_testing()
