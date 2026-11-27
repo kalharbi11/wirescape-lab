@@ -20,8 +20,8 @@ import { ComputerKeyboard, isTyping } from './Keyboard';
 import { OnScreenKeyboard } from './OnScreenKeyboard';
 import { DevPanel } from './DevPanel';
 import { Modal, field, select, switchButton } from './Modal';
-import { showOscEditor, type OscConfig } from './OscEditor';
-import { showOscOutEditor, type OscOutConfig } from './OscOutEditor';
+import { showOscEditor, genericOscDefaults, type OscConfig } from './OscEditor';
+import { showOscOutEditor, genericOscOutDefaults, type OscOutConfig } from './OscOutEditor';
 import { readOscRaw } from './oscCapture';
 import { oscEditorSource, oscConstructionChanged, splitOscEditorSave } from './ioData';
 import { STARTERS, BUNDLED_STARTERS, DEFAULT_STARTER, type Starter } from './starters';
@@ -1570,12 +1570,13 @@ export class App {
 
   // ---- adding modules ---------------------------------------------------
 
-  private addModuleCentred(type: string): number | null {
+  private addModuleCentred(type: string): number | null | Promise<number | null> {
     const r = this.canvas.viewport.rect();
     return this.addModuleAt(type, r.left + r.width / 2, r.top + r.height / 2, true);
   }
 
-  private addModuleAt(type: string, clientX: number, clientY: number, centre = false): number | null {
+  private addModuleAt(type: string, clientX: number, clientY: number, centre = false): number | null | Promise<number | null> {
+    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre);
     if (this.documentBusy) return null;
     const d = this.registry.get(type);
     if (!d) { this.toasts.show(`Unknown module "${type}".`, 'error'); return null; }
@@ -1604,6 +1605,38 @@ export class App {
     this.setLibraryOpen(false);
     this.toasts.show(`${d.name} added.`);
     return id;
+  }
+
+  /** SC1: one graph addition with explicitly authored defaults; old patches and paste stay unchanged. */
+  private async addNewOsc(type: 'osc.in' | 'osc.out', clientX: number, clientY: number, centre: boolean): Promise<number | null> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy) return null;
+    const d = this.registry.get(type);
+    if (!d) { this.toasts.show('OSC module is unavailable.', 'error'); return null; }
+    const world = this.canvas.viewport.toWorld(clientX, clientY);
+    const params = Object.fromEntries(d.parameters.map(p => [p.id, p.default]));
+    this.history.flush();
+    const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty, restoreHistory: this.history.checkpoint() };
+    const id = this.allocateId();
+    this.beginDocumentOperation();
+    try {
+      this.doc.addModule(type, params, centre ? world.x - 300 : world.x - 40, centre ? world.y - 180 : world.y - 30, id);
+      const edit = splitOscEditorSave(this.doc.modules.get(id)!, type === 'osc.in' ? genericOscDefaults() : genericOscOutDefaults());
+      this.doc.setIoFields(id, edit.authored.config, edit.authored.data);
+      if (centre) {
+        const card = this.canvas.cardFor(id);
+        if (card) this.doc.setPosition(id, world.x - card.width / 2, world.y - card.height / 2);
+      }
+      this.history.flush();
+      await this.applyAuthoredGraph(before, this.doc.toJSON());
+      this.canvas.selectModule(id, false);
+      this.canvas.invalidateAnchors();
+      this.setLibraryOpen(false);
+      this.toasts.show(d.name + ' added.');
+      return id;
+    } catch (err) {
+      this.toasts.show(err instanceof Error ? err.message : 'The engine refused that module.', 'error');
+      return null;
+    } finally { this.endDocumentOperation(); }
   }
 
   private attachDropTarget(): void {
@@ -1636,9 +1669,9 @@ export class App {
     this.quick.open({
       at: client,
       need,
-      choose: type => {
+      choose: async type => {
         if (this.documentBusy || this.viewEpoch !== epoch) return;
-        const id = this.addModuleAt(type, client.x, client.y);
+        const id = await this.addModuleAt(type, client.x, client.y);
         if (id !== null && then) {
           requestAnimationFrame(() => {
             if (!this.documentBusy && this.viewEpoch === epoch) { then(id); this.canvas.invalidateAnchors(); }

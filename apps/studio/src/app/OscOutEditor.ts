@@ -44,6 +44,10 @@ export function readOscOutConfig(raw: unknown): OscOutConfig {
   };
 }
 
+/** New modules only; config-less legacy output rows keep their original addresses. */
+export const genericOscOutDefaults = (): OscOutConfig => ({ ...readOscOutConfig(undefined),
+  rows: Array.from({ length: 8 }, (_, i) => ({ ...defaultRow(i + 1), address: `/ws/out/${i + 1}` })) });
+
 /** Commit only on Save; no network destination can be authored from this editor. */
 export function showOscOutEditor(modal: Modal, raw: unknown,
   save: (value: OscOutConfig) => Promise<boolean>): void {

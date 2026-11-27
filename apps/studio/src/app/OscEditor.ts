@@ -23,6 +23,10 @@ const defaultRow = (n: number): OscRow => ({
 });
 export const picoDefaults = (): OscConfig =>
   ({ port: 9000, lan: false, rows: Array.from({ length: 8 }, (_, i) => defaultRow(i + 1)) });
+/** New modules only: do not change the display or execution fallback of old patches. */
+export const genericOscDefaults = (): OscConfig => ({ ...picoDefaults(),
+  rows: Array.from({ length: 8 }, (_, i) => ({ ...defaultRow(i + 1),
+    pattern: `/ws/knob/${i + 1}`, timeout_ms: 0 })) });
 
 const object = (v: unknown): Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
