@@ -38,6 +38,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 
 
 
+| B1-MB2-L4 | 2026-11-27 | gpt-builder1 | ruling | soon | [#358 L4 + source-only catalogue drift](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217207149): sorted native hello changes Studio first-seen category/module order; decide acceptance or UI order preservation, and MB2 generated projection/A106 scratch path. Draft #725 head `0dff96d`. | MB2 final qualification/contract review; independent work continues |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
