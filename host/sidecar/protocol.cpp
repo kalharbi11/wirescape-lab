@@ -188,13 +188,29 @@ size_t Transport::pending() {
     std::lock_guard<std::mutex> lock(mutex_);
     return commands_.size();
 }
+bool Transport::controller_available() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return controller_.is_null() && !controller_writing_;
+}
+void Transport::discard_controller() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    controller_ = nullptr;
+}
 void Transport::send(Json value, bool coalesce) {
     std::unique_lock<std::mutex> lock(mutex_);
     if (coalesce) {
         // Select the slot before move-assignment can consume value. MSVC may
         // construct JSON's by-value assignment argument before the left side.
-        auto &slot = value.value("type", "") == "status" ? status_ : telemetry_;
-        slot = std::move(value);
+        const auto type = value.value("type", "");
+        if (type == "controller") {
+            // No overwrite: the control thread leaves new events in capture
+            // tables until this slot is completely written.
+            if (controller_.is_null() && !controller_writing_)
+                controller_ = std::move(value);
+        } else {
+            auto &slot = type == "status" ? status_ : telemetry_;
+            slot = std::move(value);
+        }
     } else {
         writable_.wait(lock, [&] { return replies_.size() < PendingLimit; });
         replies_.push_back(std::move(value));
@@ -205,10 +221,12 @@ void Transport::write() {
     try {
         for (;;) {
             Json value;
+            bool controller_write = false;
             {
                 std::unique_lock<std::mutex> lock(mutex_);
                 writable_.wait(lock, [&] {
-                    return finished_ || !replies_.empty() || !status_.is_null() || !telemetry_.is_null();
+                    return finished_ || !replies_.empty() || !status_.is_null() ||
+                           !telemetry_.is_null() || !controller_.is_null();
                 });
                 if (!replies_.empty()) {
                     value = std::move(replies_.front());
@@ -219,6 +237,10 @@ void Transport::write() {
                 } else if (!telemetry_.is_null()) {
                     value = std::move(telemetry_);
                     telemetry_ = nullptr;
+                } else if (!controller_.is_null()) {
+                    value = std::move(controller_);
+                    controller_ = nullptr;
+                    controller_write = controller_writing_ = true;
                 } else if (finished_) return;
                 writable_.notify_all();
             }
@@ -236,6 +258,7 @@ void Transport::write() {
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 writing_ = false;
+                if (controller_write) controller_writing_ = false;
                 if (initial_hello) hello_written_ = true;
                 writable_.notify_all();
             }

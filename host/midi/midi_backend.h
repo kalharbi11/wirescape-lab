@@ -11,6 +11,9 @@ struct Callback {
     void* context = nullptr;
     void (*message)(void*, const uint8_t*, size_t, uint64_t) = nullptr;
     void (*ump)(void*, const uint32_t*, size_t, uint64_t) = nullptr;
+    // A110: optional read-only admission predicate for observation wrappers.
+    // The context is the retained Service slot, valid until close/join.
+    bool (*accepting)(const void*) noexcept = nullptr;
 };
 // Enumeration/open/close are control-side operations. One callback writer per endpoint.
 class Backend {

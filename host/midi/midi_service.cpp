@@ -102,7 +102,10 @@ void Service::refresh() {
         auto& slot = *slots_[i]; const auto* found = selected[i];
         if (!slot.online && found) {
             slot.actual = *found; slot.accepting = true; slot.needs_close = true;
-            const bool opened = backend_.open(*found, Callback{&slot, midi1, ump}); slot.online = opened;
+            const bool opened = backend_.open(*found, Callback{&slot, midi1, ump,
+                [](const void *context) noexcept {
+                    return static_cast<const Slot *>(context)->accepting.load(std::memory_order_acquire);
+                }}); slot.online = opened;
             if (!opened) {
                 slot.accepting = false;
                 ++send_fail_;

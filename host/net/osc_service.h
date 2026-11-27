@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 namespace wirescape::osc {
+struct Message;
 struct Route {
     uint32_t node = 0;
     uint16_t port = 9000;
@@ -19,6 +20,10 @@ struct Sink {
     // Optional worker-thread filter (#612): false skips one decoded message for
     // one route before delivery, without counting it as received or dropped.
     bool (*accept)(void *, uint32_t node, std::string_view address) noexcept = nullptr;
+    // A110: optional once-per-message observation, on the existing worker.
+    // A lock-free subscription read avoids extended decode while stream off.
+    bool (*observing)(void *) noexcept = nullptr;
+    void (*observe)(void *, uint16_t port, const Message &) noexcept = nullptr;
 };
 struct RouteState {
     uint32_t node = 0;

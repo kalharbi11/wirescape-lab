@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "osc_host.h"
+#include "../../host/osc/codec.h"
 #include "../../host/document/io_data_migration.h"
 #include <nlohmann/json.hpp>
 #include <cstring>
@@ -33,7 +34,11 @@ bool Host::accept(void *context, uint32_t node, std::string_view address) noexce
         }
     if (current == self.filters_.size()) return true; // unregistered route: prior discovery behavior
     if (address.size() > 255) return false; // OSC decoder's existing upper bound
-
+    const auto &match = self.classify(port, address);
+    return !match.known || (match.enabled_mask & (uint32_t{1} << current)) != 0;
+}
+const Host::AddressMatch &Host::classify(uint16_t port, std::string_view address) noexcept {
+    auto &self = *this;
     uint32_t hash = 2166136261u;
     for (unsigned char byte : address) {
         hash ^= byte;
@@ -74,7 +79,20 @@ bool Host::accept(void *context, uint32_t node, std::string_view address) noexce
         }
         found->valid = true;
     }
-    return !found->known || (found->enabled_mask & (uint32_t{1} << current)) != 0;
+    return *found;
+}
+bool Host::observing(void *context) noexcept {
+    const auto &observer = static_cast<Host *>(context)->controller_;
+    return observer.message && observer.enabled && observer.enabled(observer.context);
+}
+void Host::observe_message(void *context, uint16_t port, const Message &message) noexcept {
+    auto &self = *static_cast<Host *>(context);
+    if (!observing(context) || message.address.size() > 255) return;
+    const auto &match = self.classify(port, message.address);
+    const bool matched = match.enabled_mask != 0;
+    const bool disabled_only = match.known && !matched;
+    const auto &observer = self.controller_;
+    observer.message(observer.context, port, message, matched, disabled_only, observer.generation);
 }
 void Host::prepare(AppEngine *engine, const std::string &document) {
     stop();
@@ -116,7 +134,7 @@ void Host::prepare(AppEngine *engine, const std::string &document) {
     }
     if (routes.size() + disabled_.size() > 32) throw std::runtime_error("Too many OSC routes");
     if (routes.empty()) return;
-    service_ = std::make_unique<Service>(Sink{this, deliver, accept}, authorized_);
+    service_ = std::make_unique<Service>(Sink{this, deliver, accept, observing, observe_message}, authorized_);
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;

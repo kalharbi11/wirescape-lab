@@ -184,6 +184,7 @@ struct Service::Impl {
                 if (!(descriptors[j].revents & POLLIN)) continue;
                 const uint32_t i = indices[j];
                 uint32_t messages = 0; // a bundle may contain many messages per datagram
+                uint32_t observed_messages = 0; // same 64-child cap for the optional stream
                 for (uint32_t packets = 0; packets < 64 && running.load(std::memory_order_relaxed); ++packets) {
                     auto *packet_data = reinterpret_cast<char *>(packet.data());
                     const auto length = recv(listeners[i].socket, packet_data, int(packet.size()), 0);
@@ -199,8 +200,11 @@ struct Service::Impl {
                     // codec::parse validates the entire bundle before invoking a sink.
                     // Cap decoded messages as well as datagrams to prevent a single
                     // bundle from monopolizing the worker's delivery budget.
-                    const bool valid = parse(packet.data(), size_t(length), [&](const Message &message) {
-                        if (messages >= 64) {
+                    const bool observing = sink.observe && sink.observing && sink.observing(sink.context);
+                    bool graph_packet = true;
+                    auto receive = [&](const Message &message, bool legacy_packet) {
+                        graph_packet = legacy_packet;
+                        if (legacy_packet && messages >= 64) {
                             dropped.fetch_add(1, std::memory_order_relaxed);
                             budget_dropped.fetch_add(1, std::memory_order_relaxed);
                             listener_budget[i].fetch_add(1, std::memory_order_relaxed);
@@ -212,6 +216,14 @@ struct Service::Impl {
                             }
                             return;
                         }
+                        // A110: one observation per decoded child, before
+                        // normalization or route fan-out. Stream-only extended
+                        // packets never consume graph delivery's old budget.
+                        if (observing && observed_messages < 64) {
+                            ++observed_messages;
+                            sink.observe(sink.context, listeners[i].bound, message);
+                        }
+                        if (!legacy_packet) return;
                         ++messages;
                         bool shortened = false;
                         const auto bytes = encode(message, normalized.data(), normalized.size(), shortened);
@@ -242,8 +254,14 @@ struct Service::Impl {
                                 route_received[r].fetch_add(1, std::memory_order_relaxed);
                             }
                         }
-                    });
-                    if (!valid) malformed.fetch_add(1, std::memory_order_relaxed);
+                    };
+                    const bool valid = observing
+                        ? parse_controller(packet.data(), size_t(length), receive)
+                        : parse(packet.data(), size_t(length),
+                                [&](const Message &message) { receive(message, true); });
+                    // Extended decode may observe tags the old graph codec
+                    // rejects. Preserve its whole-packet validity/counters.
+                    if (!valid || !graph_packet) malformed.fetch_add(1, std::memory_order_relaxed);
                 }
             }
         }
