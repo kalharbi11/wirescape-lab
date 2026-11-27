@@ -8,6 +8,15 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead gate check — 2026-11-27 15:15 EST
+
+- B1 MB2 #725 `bf32d05bfc204c0475a94468993d3616459646c6` is out of draft; A118 scratch passed both architectures. Draft-head Lab 46059389597, Web 46059389726, SDK trial 46059389548 succeeded; ready-state Lab 46062383715, Golden 46062383756 and paired/A114 46062383839 running. Not a Result or review request. SDK-1 #731 remains unsigned draft behind MB2.
+- B5 SC1 #685 `ed2d9f9dea0f607324d7616c15ecad2e33955fa7` has old-head Lab 45985050470, Golden 45985050459 and paired 45985050602 green; still conflicts with main. Integrate and requalify before signed ready Result and Architect inbox. B2 SC2 waits on SC1 and MB2 (A117).
+- B3 R complete; B4 idle. T/B wait for M; N waits for SC1 and writer clearance. No released unclaimed bundle, no product merge, no new Architect request. SR13 docs-only handoff; SR16/SR21 writer gates unchanged.
+- Route: MB2 exact evidence and Architect contract review, M3 acceptance by Architect, SDK-1 then T/B. OB1 owner listening, folder round-trip and candidate Pi session remain outstanding.
+
+Signed: codex-lead, 2026-11-27, 15:15 EST
+
 ## Lead bundle refresh — 2026-11-27 13:52 EST
 
 - Owner requested new and updated bundles any agent can claim. Filed T: TR1h #740 → TR3 #741; B: MB3 #742; released existing #622 into the task pool as N, subject to its writer gates. No advance agent assignment or draft-ahead.
