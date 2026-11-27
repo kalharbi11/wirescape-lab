@@ -7,7 +7,7 @@ import type { PanelOverride } from '../panels/layouts';
 import { attachModuleInfo } from '../panels/widgets/InfoBox';
 import { el, motionOff } from '../app/dom';
 import type { Telemetry, OscStatus } from '../engine/EngineClient';
-import { readOscConfig } from '../app/OscEditor';
+import { readOscConfig, type OscRow } from '../app/OscEditor';
 import { oscProjection } from '../patch/ioProjection';
 import { readOscRaw } from '../app/oscCapture';
 
@@ -23,6 +23,7 @@ export interface CardOptions {
   onHeaderPointerDown(e: PointerEvent): void;
   onRenameRequest(): void;
   onEditOsc?(): void;
+  onOscKind?(row: number, kind: OscRow['kind']): Promise<boolean>;
   oscStatus?(): OscStatus | undefined;
   /** Wire a port node's gestures (called once per node, when it is created). */
   wirePort?(node: HTMLElement): void;
@@ -81,6 +82,7 @@ export class ModuleCard {
   private readonly polyBadge: HTMLElement;
   private readonly info: { destroy(): void } | null = null;
   private monitorOff: (() => void) | null = null;
+  private oscRows: { label: HTMLElement; kind: HTMLSelectElement }[] = [];
   private oscClampOff: (() => void) | null = null;
   private oscLabel?: HTMLElement;
   private oscCount?: HTMLElement;
@@ -162,6 +164,31 @@ export class ModuleCard {
         box.prepend(el('div', 'osc-help',
           'Sends to this computer (127.0.0.1) only · rows use channel 0 (FIRST)'));
       } else {
+        const rowList = el('div', 'osc-quick-rows');
+        rowList.style.cssText = 'display:grid;gap:3px;width:100%;';
+        this.oscRows = Array.from({ length: 8 }, (_, i) => {
+          const row = el('label', 'osc-quick-row');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:4px;';
+          const label = el('span', '', `Row ${i + 1}`);
+          label.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          const kind = el('select', 'input-select') as HTMLSelectElement;
+          kind.dataset.testid = `osc-quick-kind-${o.moduleId}-row${i + 1}`;
+          for (const value of ['cv', 'gate', 'trigger'] as const) {
+            const option = el('option', '', value === 'cv' ? 'CV' : value);
+            option.value = value;
+            kind.append(option);
+          }
+          kind.addEventListener('pointerdown', e => e.stopPropagation());
+          kind.addEventListener('change', async () => {
+            kind.disabled = true;
+            try { await o.onOscKind?.(i, kind.value as OscRow['kind']); }
+            finally { kind.disabled = false; this.refreshOscRows(); }
+          });
+          row.append(label, kind);
+          rowList.append(row);
+          return { label, kind };
+        });
+        box.append(rowList);
         const clamps = el('div', 'osc-clamp-hints');
         const hints = Array.from({ length: 8 }, (_, i) => {
           const hint = el('small', 'osc-clamp-hint');
@@ -202,6 +229,7 @@ export class ModuleCard {
     this.root.append(this.body);
     this.root.style.width = `${this.width}px`;
     this.syncPorts(false);
+    this.refreshOscRows();
 
     if (d) {
       this.info = attachModuleInfo(this.root, slot, {
@@ -428,7 +456,9 @@ export class ModuleCard {
     const jack = el('span', 'port-jack');
     jack.style.setProperty('--hint', hintColor(String(p.hint)));
     jack.append(el('span', 'port-ring'), el('span', 'port-activity'));
-    const label = this.railOpt(dir).assign === 'cc' ? this.ccLabel(p) : el('span', 'port-label', p.name);
+    const label = this.railOpt(dir).assign === 'cc' ? this.ccLabel(p) : el('span', 'port-label', this.oscPortName(dir, p));
+    if (this.o.savedType === 'osc.in' && dir === 'output')
+      node.title = `Output: ${this.oscPortName(dir, p)} · ${p.kind} / ${p.hint}`;
     if (dir === 'input') node.append(jack, label); else node.append(label, jack);
     this.nodePool.set(k, node);
     this.o.wirePort?.(node);
@@ -508,6 +538,36 @@ export class ModuleCard {
       inp.addEventListener('pointerdown', ev => ev.stopPropagation());
     });
     return lab;
+  }
+
+  private oscPortName(dir: PortDirection, p: ModulePort): string {
+    if (this.o.savedType !== 'osc.in' || dir !== 'output') return p.name;
+    const match = /^row([1-8])$/.exec(p.id);
+    const node = this.o.host.doc.modules.get(this.o.moduleId);
+    if (!match || !node) return p.name;
+    return readOscConfig(oscProjection(node)).config.rows[Number(match[1]) - 1].label || p.name;
+  }
+
+  /** Refresh cached port nodes as well as the quick row list after save/undo/refusal. */
+  refreshOscRows(): void {
+    if (this.o.savedType !== 'osc.in') return;
+    const node = this.o.host.doc.modules.get(this.o.moduleId);
+    if (!node) return;
+    const rows = readOscConfig(oscProjection(node)).config.rows;
+    this.oscRows.forEach(({ label, kind }, i) => {
+      label.textContent = rows[i].label || `Row ${i + 1}`;
+      label.title = label.textContent;
+      kind.setAttribute('aria-label', `${label.textContent} kind`);
+      kind.value = rows[i].kind;
+    });
+    for (const p of this.sigOuts) {
+      const port = this.nodePool.get(key('output', p.id));
+      if (!port) continue;
+      const name = this.oscPortName('output', p);
+      const label = port.querySelector('.port-label');
+      if (label) label.textContent = name;
+      port.title = `Output: ${name} · ${p.kind} / ${p.hint}`;
+    }
   }
 
   /** Re-read the `CC n` labels after a Learn (or undo) changed `ui.ccMap`. */

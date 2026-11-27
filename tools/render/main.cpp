@@ -154,8 +154,33 @@ int main(int argc, char **argv) {
                 const auto key = u32(entry.at("key"), "MIDI key");
                 need(key <= 127, "MIDI key >127");
                 event.type = type == "noteOn" ? WS2_NOTE_ON : WS2_NOTE_OFF;
-                event.note_id = key;
-                event.value = float(key);
+                // The legacy app_engine_enqueue adapter converts value (key)
+                // to native key and always overwrites velocity/channel with 1/0.
+                // Use the host MIDI service's native key/value/channel mapping
+                // while retaining the renderer's established key-based note ID.
+                event.note_id = static_cast<int32_t>(key);
+                event.key = static_cast<int32_t>(key);
+                event.value = 1.f;
+                if (entry.contains("velocity")) {
+                    const auto &velocity = entry.at("velocity");
+                    need(velocity.is_number(), "invalid note velocity");
+                    const double value = velocity.get<double>();
+                    need(std::isfinite(value) && value >= 0. && value <= 1.,
+                         "out-of-range note velocity (expected 0..1)");
+                    event.value = static_cast<float>(value);
+                }
+                if (entry.contains("channel")) {
+                    const auto &channel = entry.at("channel");
+                    need(channel.is_number_integer(), "invalid note channel (expected integer)");
+                    // Test the unsigned case separately to avoid wraparound.
+                    if (channel.is_number_unsigned())
+                        need(channel.get<uint64_t>() <= 15, "out-of-range note channel (expected 0..15)");
+                    else {
+                        const auto value = channel.get<int64_t>();
+                        need(value >= 0 && value <= 15, "out-of-range note channel (expected 0..15)");
+                    }
+                    event.channel = channel.get<int32_t>();
+                }
             } else if (type == "midi") {
                 parse_ump(entry, event);
                 bool found = false;
@@ -193,7 +218,8 @@ int main(int argc, char **argv) {
             } else {
                 throw std::runtime_error("unknown event type: " + type);
             }
-            const int event_status = event.type == WS2_MIDI
+            const int event_status = (event.type == WS2_MIDI || event.type == WS2_NOTE_ON ||
+                                      event.type == WS2_NOTE_OFF)
                 ? app_engine_native(engine.get()).enqueue(0, node, WS2_DIRECT_PORT, event, frame,
                                                           wirescape::engine2::Timing::Frames, generation)
                 : gate

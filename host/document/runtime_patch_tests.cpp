@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "runtime_patch.h"
 #include "runtime_patch_normalize.h"
+#include "io_data_migration.h"
 #include "../../engine/engine2.h"
 #include <filesystem>
 #include <cstring>
@@ -103,6 +104,30 @@ static void stored_modulation_duplicates() {
           "sum all amounts before clamping");
 }
 
+static void osc_in_label_execution_metadata() {
+    using namespace wirescape::document;
+    const auto legacy = Json::parse(R"({"id":1,"module":"osc.in","config":{"rows":[{"pattern":"/filter","kind":"gate"}]}})");
+    auto baseline = legacy;
+    migrate_io_module(baseline);
+    auto authored = baseline;
+    authored["data"]["routes"]["rows"][0]["label"] = "Filter";
+    const auto original = authored.dump();
+    auto execution = authored;
+    std::vector<std::string> warnings;
+    migrate_io_module(execution, &warnings);
+    check(warnings.empty(), "SC1 canonical row label has no load warning");
+    check(execution == baseline, "SC1 canonical row label excluded from execution copy");
+    check(authored.dump() == original, "SC1 authored label bytes preserved");
+    // Both paths must give the same complete descriptor fields, including fallback rows.
+    auto labelled_legacy = legacy;
+    labelled_legacy["config"]["rows"][0]["label"] = "Filter";
+    auto legacy_execution = labelled_legacy;
+    const auto legacy_original = labelled_legacy.dump();
+    migrate_io_module(legacy_execution, &warnings);
+    check(warnings.empty() && legacy_execution == baseline, "SC1 legacy row label excluded without warning");
+    check(labelled_legacy.dump() == legacy_original, "SC1 legacy authored bytes preserved");
+}
+
 // #663: missing feedback settings must work at Daisy-sized blocks, without
 // weakening the validation of explicitly authored feedback delays.
 static void small_block_feedback_default() {
@@ -144,6 +169,7 @@ static void small_block_feedback_default() {
 }
 
 int main(int argc,char**argv){try{
+ osc_in_label_execution_metadata();
  stored_modulation_duplicates();
  small_block_feedback_default();
  check(argc==2,"demo argument");std::ifstream input(argv[1]);std::string bytes((std::istreambuf_iterator<char>(input)),{});check(!bytes.empty(),"read demo");

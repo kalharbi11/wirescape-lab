@@ -382,6 +382,8 @@ inline std::vector<uint8_t> runtime_module_config_impl(const std::string &type, 
                             require(val == "hold" || val == "zero", "Invalid OSC timeout policy");
                             dest.stale = val == "zero" ? 1u : 0u;
                         }
+                    } else if (name == "label") {
+                        // SC1: display-only metadata; never part of the execution configuration.
                     } else if (name == "enabled") {
                         // Optional; absent means enabled so existing patches keep listening.
                         require(item.is_boolean(), "OSC row enabled must be boolean");

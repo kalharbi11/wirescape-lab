@@ -143,7 +143,7 @@ A separate stale-id exchange returns `{"v":0,"session":"s1","re":"stale1","ok":f
 
 `listMidiDevices` lists **libremidi input** endpoints with exact `name` and `system_name` (as `play --list-midi` prints). Stable UI id is `name + "|" + system_name` (never the volatile backend index), `enabled` reflects actual remembered selection and authorization. The `midi.in` instance `config` selects either:
 - `{}` or `{"endpoint":"all_enabled"}` = **all currently enabled** MIDI inputs; enabling another device includes it automatically. Both spellings are equivalent (`native/control/midi_host.cpp`); the UI writes back whichever form the patch already had and never normalises one into the other.
-- `{"endpoint":"M8 MIDI 1","system_name":"M8:M8 MIDI 1"}` = exactly that input, only while enabled. A missing or disabled named endpoint produces no events for this node, never falls back to all. No `endpoint:"*"` or numeric index in saved patches.
+- `{"endpoint":"Test MIDI 1","system_name":"Test:Test MIDI 1"}` = exactly that input, only while enabled. A missing or disabled named endpoint produces no events for this node, never falls back to all. No `endpoint:"*"` or numeric index in saved patches.
 
 Engine persists selected audio `id`, the last successfully applied `audio.sampleRate`/`audio.bufferFrames` settings, enabled MIDI `(name,system_name)` pairs and explicit device preferences to `user_data/settings.json` (or `--settings <file>`), via atomic replace on its control side; the **patch document** never stores these app-level choices. `--device` overrides the chosen audio output for that invocation; a successful selection becomes the remembered preference. On hotplug/loss/reconnection, emit `devices` immediately (not throttled), update `status.audio.state` (`starting`, `running`, `no-device`, `device-lost`, `reconnecting`) and retry without fabricating a substitute device. MIDI subscriptions are refreshed on the control side, and held notes on lost/removed sources are released. When `--confirm-audio`/`--confirm-midi` were not passed, neither subsystem opens a real device (listing is permitted without opening streams, subject to the backend's enumeration safety).
 
@@ -292,14 +292,14 @@ Each line below is a standalone JSON wire line. `>` denotes renderer→engine st
 **T10 — MIDI endpoints carry `name` and `system_name`, and changing enabled state is control-side.**
 ```text
 > {"v":0,"id":"r10a","type":"listMidiDevices"}
-< {"v":0,"session":"s1","re":"r10a","ok":true,"gen":"4","result":{"devices":[{"id":"M8 MIDI 1|M8:M8 MIDI 1","name":"M8 MIDI 1","system_name":"M8:M8 MIDI 1","kind":"midi","enabled":true}]}}
-> {"v":0,"id":"r10b","type":"setMidiEnabled","deviceId":"M8 MIDI 1|M8:M8 MIDI 1","on":false}
+< {"v":0,"session":"s1","re":"r10a","ok":true,"gen":"4","result":{"devices":[{"id":"Test MIDI 1|Test:Test MIDI 1","name":"Test MIDI 1","system_name":"Test:Test MIDI 1","kind":"midi","enabled":true}]}}
+> {"v":0,"id":"r10b","type":"setMidiEnabled","deviceId":"Test MIDI 1|Test:Test MIDI 1","on":false}
 < {"v":0,"session":"s1","re":"r10b","ok":true,"gen":"4"}
 ```
 
 **T11 — device notification is unthrottled and tied to real enumeration.**
 ```text
-< {"v":0,"session":"s1","type":"devices","gen":"4","audioDevices":[{"id":"USB Stereo","name":"USB Stereo","kind":"audio","index":3}],"midiDevices":[{"id":"M8 MIDI 1|M8:M8 MIDI 1","name":"M8 MIDI 1","system_name":"M8:M8 MIDI 1","kind":"midi","enabled":false}]}
+< {"v":0,"session":"s1","type":"devices","gen":"4","audioDevices":[{"id":"USB Stereo","name":"USB Stereo","kind":"audio","index":3}],"midiDevices":[{"id":"Test MIDI 1|Test:Test MIDI 1","name":"Test MIDI 1","system_name":"Test:Test MIDI 1","kind":"midi","enabled":false}]}
 ```
 
 **T12 — CC row write is a graph swap (precondition: node 12 is `midi.cc_to_cv`).**
@@ -339,8 +339,8 @@ Device values in T09/T13 illustrate a real device; `--null-audio` reports `no-de
 > {"v":0,"id":"r16a","type":"midiLearn","armed":true}
 < {"v":0,"session":"s1","re":"r16a","ok":true,"gen":"5","result":{"armed":true}}
 < {"v":0,"session":"s1","type":"status","gen":"5","status":{"audio":{"state":"no-device","deviceId":null,"deviceName":null,"sampleRate":48000,"bufferFrames":256,"latencyMs":10.6667,"cpuPercent":0,"dropouts":0},"midi":{"devices":[],"activity":{},"learn":{"armed":true}}}}
-# Fake MIDI harness delivers channel-2 CC74 value110 on the known endpoint M8 MIDI 1|M8:M8 MIDI 1.
-< {"v":0,"session":"s1","type":"status","gen":"5","status":{"audio":{"state":"no-device","deviceId":null,"deviceName":null,"sampleRate":48000,"bufferFrames":256,"latencyMs":10.6667,"cpuPercent":0,"dropouts":0},"midi":{"devices":[],"activity":{},"learn":{"armed":true,"seq":"1","deviceId":"M8 MIDI 1|M8:M8 MIDI 1","channel":2,"controller":74,"value":110}}}}
+# Fake MIDI harness delivers channel-2 CC74 value110 on the known endpoint Test MIDI 1|Test:Test MIDI 1.
+< {"v":0,"session":"s1","type":"status","gen":"5","status":{"audio":{"state":"no-device","deviceId":null,"deviceName":null,"sampleRate":48000,"bufferFrames":256,"latencyMs":10.6667,"cpuPercent":0,"dropouts":0},"midi":{"devices":[],"activity":{},"learn":{"armed":true,"seq":"1","deviceId":"Test MIDI 1|Test:Test MIDI 1","channel":2,"controller":74,"value":110}}}}
 > {"v":0,"id":"r16b","type":"midiLearn","armed":false}
 < {"v":0,"session":"s1","re":"r16b","ok":true,"gen":"5","result":{"armed":false}}
 ```

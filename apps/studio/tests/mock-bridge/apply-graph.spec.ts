@@ -63,7 +63,7 @@ for (const capability of [true, false]) {
       const rows = await page.evaluate(() => (window as any).__mockBridge.getGraph().modules[0].data.routes.rows);
       expect(rows[0].pattern).toBe('/e1b/row');
       expect(rows).toHaveLength(8);
-      await page.evaluate(() => window.__wirescapeTest.setMidiEndpoint(2, 'M8 MIDI 1', 'M8:M8 MIDI 1'));
+      await page.evaluate(() => window.__wirescapeTest.setMidiEndpoint(2, 'Test MIDI 1', 'Test:Test MIDI 1'));
       await expectGraphCommands(page, [wire]);
     });
 
@@ -74,7 +74,7 @@ for (const capability of [true, false]) {
       await expect(page.getByTestId('learn-bar')).toBeVisible();
       await expect(async () => {
         await page.evaluate(() => (window as any).__mockBridge.captureCc(
-          'M8 MIDI 1|M8:M8 MIDI 1', 3, 74, 64));
+          'Test MIDI 1|Test:Test MIDI 1', 3, 74, 64));
         await expect(page.getByTestId('learn-message')).toContainText('CC 74', { timeout: 600 });
       }).toPass({ timeout: 10_000 });
       await page.getByTestId('learn-confirm').click();
@@ -174,7 +174,7 @@ test('CC Learn generation push after delayed ACK threshold is not false success'
   await page.getByTestId('context-midi').click();
   await expect(async () => {
     await page.evaluate(() => (window as any).__mockBridge.captureCc(
-      'M8 MIDI 1|M8:M8 MIDI 1', 3, 74, 64));
+      'Test MIDI 1|Test:Test MIDI 1', 3, 74, 64));
     await expect(page.getByTestId('learn-message')).toContainText('CC 74', { timeout: 600 });
   }).toPass({ timeout: 10_000 });
   await page.evaluate(() => (window as any).__mockBridge.holdNext('applyGraph'));
