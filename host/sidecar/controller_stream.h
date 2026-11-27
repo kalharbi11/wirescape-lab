@@ -58,7 +58,7 @@ private:
     };
     struct Payload {
         Kind kind = Kind::cc;
-        uint64_t time = 0, epoch = 0, ordinal = 0;
+        uint64_t time = 0, epoch = 0, ordinal = 0, route_generation = 0;
         uint8_t value = 0, arg_count = 0;
         bool matched = false, more = false;
         std::array<Number, 4> args{};
@@ -308,7 +308,8 @@ public:
     // decoded, and enabled/disabled-only match classification is provided by
     // the existing host route filters. No graph or render work here.
     void osc(uint16_t port, std::string_view address, bool matched, bool disabled_only,
-             const std::array<Number, 4> &args, uint8_t count, bool more) noexcept {
+             const std::array<Number, 4> &args, uint8_t count, bool more,
+             uint64_t route_generation = 0) noexcept {
         const uint64_t filter = filter_.load(std::memory_order_acquire);
         if (disabled_only || !allowed(filter, Kind::osc, matched)) return;
         if (address.size() > 128) {
@@ -321,6 +322,7 @@ public:
         std::memcpy(key.text.data(), address.data(), address.size());
         Payload payload;
         payload.kind = Kind::osc; payload.time = now_us();
+        payload.route_generation = route_generation;
         payload.matched = matched; payload.more = more || count > 4;
         for (unsigned i = 0; i < count && i < args.size(); ++i) {
             if (args[i].floating && !std::isfinite(args[i].real)) {
@@ -338,7 +340,7 @@ public:
     // Worker-facing adapter from the validated raw OSC codec. Do not
     // allocate, copy string/blob contents or narrow 64-bit integers.
     void osc_message(uint16_t port, const wirescape::osc::Message &message,
-                     bool matched, bool disabled_only) noexcept {
+                     bool matched, bool disabled_only, uint64_t route_generation = 0) noexcept {
         if (!osc_enabled() || disabled_only) return;
         std::array<Number, 4> args{};
         uint8_t count = 0;
@@ -361,7 +363,7 @@ public:
             }
             args[count++] = number;
         }
-        osc(port, message.address, matched, disabled_only, args, count, more);
+        osc(port, message.address, matched, disabled_only, args, count, more, route_generation);
     }
 
     // Control owner only, and only when the writer slot is available. A
@@ -369,7 +371,7 @@ public:
     // word still to be identical. If a producer raced, leave the single
     // pending window intact: the 128/256 capacities must not double while
     // a preempted writer holds a retired bank. No waits or retries here.
-    Json drain() {
+    Json drain(uint64_t route_generation = 0) {
         Json events = Json::array();
         uint64_t active = gate_.load(std::memory_order_acquire);
         if (!(active & count_mask)) return events;
@@ -383,9 +385,13 @@ public:
         size_t used = 0;
         const auto filter = filter_.load(std::memory_order_acquire);
         auto include = [&](const Key &key, const Payload &payload) {
-            if (payload.epoch == (filter & ~filter_bits) &&
-                allowed(filter, payload.kind, payload.matched))
-                pending[used++] = {&key, &payload};
+            if (payload.epoch != (filter & ~filter_bits) ||
+                !allowed(filter, payload.kind, payload.matched)) return;
+            if (key.osc && payload.route_generation != route_generation) {
+                dropped_latest_.fetch_add(1, std::memory_order_relaxed);
+                return;
+            }
+            pending[used++] = {&key, &payload};
         };
         for (auto &cell : bank.latest)
             if (cell.state.load(std::memory_order_relaxed) == 2) include(cell.key, cell.payload);
