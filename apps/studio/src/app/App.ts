@@ -149,6 +149,10 @@ export class App {
     const apply = this.engine.applyGraph.bind(this.engine);
     this.engine.loadGraph = (patch: PatchV2) => load(this.grooves.project(patch));
     this.engine.applyGraph = (patch: PatchV2) => apply(this.grooves.project(patch));
+    if (this.engine instanceof RealEngine) {
+      const applyLive = this.engine.applyGraphLive.bind(this.engine);
+      this.engine.applyGraphLive = (patch: PatchV2) => applyLive(this.grooves.project(patch));
+    }
     this.root = el('div', 'app');
     this.root.dataset.testid = 'app';
   }
