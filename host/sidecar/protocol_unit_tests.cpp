@@ -9,6 +9,7 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "d5_gap_deadline.h"
 #include "devices.h"
+#include "../osc/codec.h"
 #include "midi_service.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
@@ -185,6 +186,52 @@ void controller_stream_midi_observation() {
     fake.close(endpoints[0]);
 }
 
+// P1-e stream-only OSC types must not broaden the graph codec. Validate
+// the whole bundle before either ingress consumer sees a child.
+void controller_stream_osc_codec() {
+    using namespace wirescape::osc;
+    const uint8_t simple[]{'/', 'x', 0, 0, ',', 'i', 0, 0, 0, 0, 0, 7};
+    const uint8_t wide[]{
+        '/', 'w', 0, 0, ',', 'h', 'd', 'T', 0, 0, 0, 0,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xd6, // -42 signed int64
+        0x3f, 0xd0, 0, 0, 0, 0, 0, 0                     // 0.25 binary64
+    };
+    std::array<uint8_t, 16 + 4 + sizeof(simple) + 4 + sizeof(wide)> bundle{};
+    std::memcpy(bundle.data(), "#bundle", 7);
+    size_t at = 16;
+    put32(bundle.data() + at, sizeof(simple)); at += 4;
+    std::memcpy(bundle.data() + at, simple, sizeof(simple)); at += sizeof(simple);
+    put32(bundle.data() + at, sizeof(wide)); at += 4;
+    std::memcpy(bundle.data() + at, wide, sizeof(wide));
+    unsigned delivered = 0;
+    check(!parse(bundle.data(), bundle.size(), [&](const Message &) { ++delivered; }));
+    check(delivered == 0); // exact existing graph behavior
+    uint64_t allocations;
+    {
+        allocation_watch::ThreadScope scope;
+        check(parse_controller(bundle.data(), bundle.size(), [&](const Message &message, bool legacy_packet) {
+            check(!legacy_packet);
+            if (delivered++ == 0)
+                check(message.address == "/x" && message.arguments[0].integer == 7);
+            else {
+                check(message.address == "/w" && message.count == 3);
+                check(message.arguments[0].type == 'h' && message.arguments[0].wide_integer == -42);
+                check(message.arguments[1].type == 'd' && message.arguments[1].wide_real == 0.25);
+                check(message.arguments[2].type == 'T');
+            }
+        }));
+        allocations = scope.allocations();
+    }
+    check(delivered == 2 && allocations == 0);
+    delivered = 0;
+    check(!parse_controller(bundle.data(), bundle.size() - 4, [&](const Message &, bool) { ++delivered; }));
+    check(delivered == 0); // no partial stream capture from malformed tree
+    check(parse_controller(simple, sizeof(simple), [&](const Message &, bool legacy_packet) {
+        check(legacy_packet); ++delivered;
+    }));
+    check(delivered == 1);
+}
+
 void d5_phase_deadline_regression() {
     using Clock = std::chrono::steady_clock;
     using Ms = std::chrono::milliseconds;
@@ -284,6 +331,7 @@ void sink_wait_deadline_regression() {
 int run_tests() {
     midi_learn_observation();
     controller_stream_midi_observation();
+    controller_stream_osc_codec();
     RenderHistogram histogram;
     check(histogram.percentile(50) == 0);
     allocation_watch::count.store(0);
