@@ -41,13 +41,13 @@ jobs:
       - name: Install existing pinned build tools
         run: python -m pip install cmake==4.2.3 ninja==1.13.0
       - name: Test discovery rejection and success
-        run: python tools/ci/test_sdk_drop_in.py
+        run: python -B tools/ci/test_sdk_drop_in.py
       - name: Build absent then staged template and verify descriptors
         shell: bash
         run: |
           set -o pipefail
           mkdir -p "$RUNNER_TEMP/mb3-report"
-          python tools/ci/sdk_drop_in.py --report-dir "$RUNNER_TEMP/mb3-report" 2>&1 | tee "$RUNNER_TEMP/mb3-report/trial.log"
+          python -B tools/ci/sdk_drop_in.py --report-dir "$RUNNER_TEMP/mb3-report" 2>&1 | tee "$RUNNER_TEMP/mb3-report/trial.log"
       - name: Retain commands, registry diff and catalogue results
         if: always()
         uses: actions/upload-artifact@v4
