@@ -8,6 +8,22 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 59f — 2026-11-27 18:30 ET (owner: finish #725, refresh dependent bundles; acting lead)
+- **#725 (MB2 + CAT-1) merged as `027db95`.**
+  - A119 commit `ed33428` hoisted accessors in Output and Groove, with independent review PASS by a separate session.
+  - Contract review [approved](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7229543648).
+  - After updating to `main` (`7222216`): Lab, Golden ×3, Web, the SDK trial, isolation ×2 and arm64 paired are green.
+  - The single x64 row `osc.out/voices8` (+1.13 %) was attributed to the probe's timing-dependent `std::sort`; the callback moved only +0.2 %. It is covered by **A120** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7229995026)): one row, one platform, callback cap ≤1 %, this merge only.
+  - The A39 exception expired: all six historical rows recovered.
+- **Unblocked:** SDK-1 #731 (B1), SC2 #721 (S / B2), MB3 #742 (bundle B, no longer waits for SDK-1).
+- **New bundle X:** X1 #759, a deterministic probe (A120 follow-up) → X2 #760, the probe notes mode (test LR-5).
+- **T is held behind SC2** because both write the sidecar and `engine/control`.
+- **Also merged:** lead docs #756 and #757.
+- **wirescape-test:** `LAB_PIN` should now move to `027db95`, per its AGENTS rule ("when lab MB2 merges"). Promotions open with owner-requested T2 runs.
+- **Next run should:** (1) review SDK-1 #731 at its Result, then accept M3; (2) contract-review SC2 and X1 when pinned; (3) check the V2 and W merges.
+
+Signed: claude-architect, 2026-11-27
+
 ## Lead merge check — 2026-11-27 17:32 EST
 
 - Owner instruction: Architect owns #725 now; no changes to that task, branch or review queue.
