@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,7 +19,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from bench.gate.instructions import (RATE, FRAMES, binary, difference, modules)  # noqa: E402
+from bench.gate.instructions import (RATE, FRAMES, COUNTS, binary, callgrind, modules)  # noqa: E402
 from bench.golden.inventory import registry  # noqa: E402
 
 DUMMY_ID = "test.mb2_isolation_dummy"
@@ -73,14 +74,74 @@ def descriptors(executable):
     return by_id
 
 
+def wrapper_cost(path):
+    """Inclusive Ir of the one actual descriptor process callback.
+
+    Callgrind cost lines following calls= belong to the caller's inclusive
+    cost, as do its ordinary self-cost lines. Inline frames are still the
+    enclosing function. Do not count nested lambda functions a second time.
+    """
+    names = {}
+    costs = {}
+    current = None
+    for line in path.read_text(encoding="utf-8", errors="strict").splitlines():
+        if line.startswith("positions:") and line.split()[1:] != ["line"]:
+            raise ValueError("unexpected Callgrind positions")
+        if line.startswith("events:") and line.split()[1:] != ["Ir"]:
+            raise ValueError("unexpected Callgrind events")
+        if line.startswith(("fn=", "cfn=")):
+            key, name = line.split("=", 1)
+            match = re.fullmatch(r"\((\d+)\)(?: (.*))?", name)
+            if match:
+                index, label = match.groups()
+                if label is not None:
+                    names[index] = label
+                if index not in names:
+                    raise ValueError("undefined Callgrind function reference")
+                name = names[index]
+            if key == "fn":
+                current = name
+        elif current and re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", line):
+            fields = line.split()
+            costs[current] = costs.get(current, 0) + (int(fields[1]) if len(fields) == 2 else 0)
+    candidates = []
+    for name, ir in costs.items():
+        if name.startswith("_ZN2ws6Module"):
+            name = subprocess.run(["c++filt", name], check=True, text=True,
+                                  capture_output=True, timeout=10).stdout.strip()
+        if re.fullmatch(r"ws::Module<.*>::process\([^)]*\)(?: \[clone [^\]]+\])?", name) and ir:
+            candidates.append((name, ir))
+    if len(candidates) != 1 or candidates[0][1] <= 0:
+        raise ValueError(f"expected one measured wrapper process callback, got {candidates}")
+    return candidates[0]
+
+
 def measure(probe, ident, voices, valgrind):
-    def command(n):
-        return [probe, "--module", ident, "--rate", RATE, "--block", FRAMES,
-                "--channels", voices, "--instances", 1,
-                "--seconds", n * FRAMES / RATE]
-    return difference(command, valgrind, module_probe={
-        "module": ident, "channels": voices, "instances": 1,
-        "sample_rate": RATE, "block": FRAMES})
+    # The exact same two probe commands and validation as instructions.difference;
+    # retain their raw files long enough to measure the wrapper independently.
+    totals, wrapper_totals, names = [], [], []
+    with tempfile.TemporaryDirectory(prefix="ws-mb2-wrapper-ir-") as tmp:
+        for index, n in enumerate(COUNTS):
+            duration = n * FRAMES / RATE
+            output = Path(tmp) / f"{index}.callgrind"
+            command = [probe, "--module", ident, "--rate", RATE,
+                       "--block", FRAMES, "--channels", voices,
+                       "--instances", 1, "--seconds", duration]
+            expected = {"module": ident, "channels": voices, "instances": 1,
+                        "sample_rate": RATE, "block": FRAMES, "blocks": n,
+                        "seconds": duration}
+            totals.append(callgrind(command, output, valgrind, expected_probe=expected))
+            name, ir = wrapper_cost(output)
+            names.append(name)
+            wrapper_totals.append(ir)
+    delta = totals[1] - totals[0]
+    wrapper_delta = wrapper_totals[1] - wrapper_totals[0]
+    if names[0] != names[1] or delta <= 0 or wrapper_delta <= 0 or wrapper_delta > delta:
+        raise ValueError("invalid wrapper/whole-probe two-length difference")
+    blocks = COUNTS[1] - COUNTS[0]
+    return {"ir_per_block": delta / blocks, "totals": totals,
+            "wrapper_ir_per_block": wrapper_delta / blocks,
+            "wrapper_totals": wrapper_totals, "wrapper_function": names[0]}
 
 
 def main():
@@ -145,7 +206,18 @@ def main():
                         row.update(before_ir=old["ir_per_block"],
                                    after_ir=new["ir_per_block"],
                                    before_totals=old["totals"], after_totals=new["totals"],
-                                   equal=old["ir_per_block"] == new["ir_per_block"])
+                                   before_wrapper_ir=old["wrapper_ir_per_block"],
+                                   after_wrapper_ir=new["wrapper_ir_per_block"],
+                                   before_wrapper_totals=old["wrapper_totals"],
+                                   after_wrapper_totals=new["wrapper_totals"],
+                                   before_wrapper_function=old["wrapper_function"],
+                                   after_wrapper_function=new["wrapper_function"],
+                                   wrapper_equal=(old["wrapper_ir_per_block"] == new["wrapper_ir_per_block"]
+                                                  and old["wrapper_function"] == new["wrapper_function"]),
+                                   probe_equal=old["ir_per_block"] == new["ir_per_block"],
+                                   equal=(old["wrapper_ir_per_block"] == new["wrapper_ir_per_block"]
+                                          and old["wrapper_function"] == new["wrapper_function"]
+                                          and old["ir_per_block"] == new["ir_per_block"]))
                     except (RuntimeError, ValueError, OSError) as error:
                         row.update(equal=False, error=str(error))
                     rows.append(row)
