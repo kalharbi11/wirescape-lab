@@ -94,6 +94,14 @@ void Host::observe_message(void *context, uint16_t port, const Message &message)
     const auto &observer = self.controller_;
     observer.message(observer.context, port, message, matched, disabled_only, observer.generation);
 }
+void Host::observe_control_message(void *context, uint16_t port, const Message &message) noexcept {
+    auto &self = *static_cast<Host *>(context);
+    if (!observing(context) || message.address.size() > 255) return;
+    const auto &match = self.classify(port, message.address);
+    const auto &observer = self.controller_;
+    if (observer.control_message)
+        observer.control_message(observer.context, port, message, match.enabled_mask != 0, observer.generation);
+}
 void Host::prepare(AppEngine *engine, const std::string &document) {
     stop();
     auto patch = nlohmann::json::parse(document);
@@ -132,9 +140,10 @@ void Host::prepare(AppEngine *engine, const std::string &document) {
             disabled_.push_back(state);
         } else routes.push_back({node, uint16_t(port), lan});
     }
+    if (control_port_) routes.push_back({0, control_port_, control_lan_, true});
     if (routes.size() + disabled_.size() > 32) throw std::runtime_error("Too many OSC routes");
     if (routes.empty()) return;
-    service_ = std::make_unique<Service>(Sink{this, deliver, accept, observing, observe_message}, authorized_);
+    service_ = std::make_unique<Service>(Sink{this, deliver, accept, observing, observe_message, observe_control_message}, authorized_);
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;

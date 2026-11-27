@@ -1227,7 +1227,7 @@ with tempfile.TemporaryDirectory() as control_dir:
         assert initial['gen'] == '0', initial
         assert route['port'] == control_port and route['bind'] == '127.0.0.1', route
         assert route['received'] == 0 and route['dropped'] == 0, route
-        assert control.call('controllerStream', kinds=['osc'], oscUnmatched=True)['gen'] == '0'
+        assert control.call('controllerStream', kinds=['osc'], oscUnmatched=False)['gen'] == '0'
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
             def send_control(address):
                 encoded = address.encode() + b'\0'
@@ -1255,6 +1255,24 @@ with tempfile.TemporaryDirectory() as control_dir:
             control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
                          and control_route(m)['state'] == 'listening')
             witness('/control/after', gen)
+            shared = minimal()
+            shared['modules'].append(dict(id=9, module='osc.in', config=dict(
+                port=control_port, rows=[dict(pattern='/control/matched', enabled=True),
+                                        dict(pattern='/control/disabled', enabled=False)])))
+            gen = control.call('loadGraph', patch=shared)['gen']
+            control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
+                         and control_route(m)['state'] == 'listening' and any(
+                             r['module'] == '9' and r['state'] == 'listening'
+                             for r in m['status']['osc']['routes']))
+            witness('/control/disabled', gen)
+            witness('/control/unmatched', gen)
+            send_control('/control/matched')
+            push = control_next('controller', lambda m: any(
+                e.get('address') == '/control/matched' for e in m['events']))
+            events = [e for e in push['events'] if e.get('address') == '/control/matched']
+            assert len(events) == 1 and events[0]['matched'] is True, push
+            control_next('status', lambda m: m['gen'] == gen and any(
+                r['module'] == '9' and r['received'] >= 1 for r in m['status']['osc']['routes']))
     finally:
         control.close()
 

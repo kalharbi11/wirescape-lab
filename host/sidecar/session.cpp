@@ -222,6 +222,15 @@ Options parse_options(int argc, char **argv) {
         if (arg == "--confirm-audio") o.audio = true;
         else if (arg == "--confirm-midi") o.midi = true;
         else if (arg == "--confirm-lan") o.lan = true;
+        else if (arg == "--control-osc-lan") o.control_osc_lan = true;
+        else if (arg == "--control-osc-port") {
+            need(++i < argc);
+            const std::string v = argv[i];
+            need(!v.empty() && v.find_first_not_of("0123456789") == std::string::npos);
+            const auto n = std::stoull(v);
+            need(n >= 1024 && n <= 65535, "invalid", "Control OSC port outside 1024..65535");
+            o.control_osc_port = uint16_t(n);
+        }
         else if (arg == "--null-audio") o.null_audio = true;
         else if (arg == "--scripted-midi") o.scripted_midi = true;
         else if (arg == "--bench-summary") o.bench_summary = true;
@@ -326,7 +335,8 @@ Session::Session(Options options, std::unique_ptr<midi::Backend> injected_midi)
     midi_->observe(monitor_.get());
     // The device-off null sink must not bind LAN, even when its stub launcher
     // exercises --confirm-lan forwarding. Real consent still needs both flags.
-    osc_ = std::make_unique<osc::Host>(options_.lan && !options_.null_audio);
+    osc_ = std::make_unique<osc::Host>(options_.lan && !options_.null_audio,
+                                                         options_.control_osc_port, options_.control_osc_lan);
     osc_->observe(monitor_.get());
     if ((options_.midi || options_.null_audio) && preferences_.contains("devices")) midi_->restore(preferences_.dump());
     // The synthetic endpoint has its own identity and is selected only on an
@@ -791,7 +801,7 @@ Json Session::execution(Json patch) {
         need(d, "unknown-module", "Module not installed");
         return d;
     };
-    uint32_t output = UINT32_MAX, osc_routes = 0;
+    uint32_t output = UINT32_MAX, osc_routes = options_.control_osc_port ? 1u : 0u;
     for (auto &m : patch["modules"]) {
         auto id = integer(m.at("id"));
         need(ids.insert(id).second, "duplicate", "Duplicate module ID");
@@ -1679,7 +1689,8 @@ Json Session::apply(const Json &command) {
             if (routes_changed) {
                 auto staged_patch = patch_;
                 node(staged_patch, id) = updated;
-                next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio);
+                next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio,
+                                                         options_.control_osc_port, options_.control_osc_lan);
                 next_in->observe(monitor_.get());
                 next_in->prepare(active_, staged_patch.dump()); // no socket opens yet
                 next_in->observe_controller(controller_observer(osc_filter_generation_ + 1));
@@ -1930,7 +1941,7 @@ Json Session::status() const {
         any_lan |= listening && route.lan_bound;
         port_busy |= state == "port-busy"; // a disabled route (#612) is not an error
         Json entry = Json::object();
-        entry["module"] = std::to_string(route.node);
+        entry["module"] = route.control ? "control" : std::to_string(route.node);
         entry["port"] = route.port;
         entry["bind"] = route.lan_bound ? "0.0.0.0" : "127.0.0.1";
         entry["state"] = route.state;
