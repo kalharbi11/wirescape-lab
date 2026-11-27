@@ -201,6 +201,6 @@ test('MM1 Groove: mapping applyGraph leaves an unrelated uncommitted pattern off
   await page.evaluate(() => window.__wirescapeTest.addMapping({ module: 1, port: 'cc2' }, { module: 3, port: 'depth' }));
   expect(await commands(page)).toEqual(['applyGraph']);
   const after = await snapshot(page);
-  expect(after.patch.modules.find(m => m.id === 4)?.config).toEqual(draft);
+  expect(after.patch.modules.find((m: PatchV2['modules'][number]) => m.id === 4)?.config).toEqual(draft);
   expect(after.graph.modules.find((m: any) => m.id === 4).config).toEqual(running);
 });
