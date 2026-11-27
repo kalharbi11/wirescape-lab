@@ -1,0 +1,873 @@
+{
+ "modules": [
+  {
+   "abi_version": 2,
+   "id": "essentials.adsr",
+   "inputs": {
+    "gate": "signal",
+    "notes": "event"
+   },
+   "name": "ADSR",
+   "outputs": {
+    "envelope": "signal"
+   },
+   "parameters": {
+    "attack": 0,
+    "decay": 1,
+    "hold": 5,
+    "mode": 4,
+    "release": 3,
+    "sustain": 2
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.chaos_lite",
+   "inputs": {
+    "fm": "signal",
+    "gate": "signal",
+    "pitch": "signal",
+    "velocity": "signal"
+   },
+   "name": "CHAOS",
+   "outputs": {
+    "left": "signal",
+    "right": "signal"
+   },
+   "parameters": {
+    "body_mix": 14,
+    "body_tune": 11,
+    "cutoff": 24,
+    "damping": 13,
+    "depth": 10,
+    "detune": 2,
+    "drift": 17,
+    "fall": 19,
+    "feedback": 12,
+    "jitter": 18,
+    "level": 25,
+    "level_a": 5,
+    "level_b": 6,
+    "lfo_depth": 21,
+    "lfo_rate": 20,
+    "lfo_self": 23,
+    "lfo_shape": 26,
+    "lfo_target": 22,
+    "octave_a": 3,
+    "octave_b": 4,
+    "pan_a": 7,
+    "pan_b": 8,
+    "rough_rate": 16,
+    "roughness": 15,
+    "route": 9,
+    "shape_a": 0,
+    "shape_b": 1
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.chord",
+   "inputs": {
+    "notes": "event"
+   },
+   "name": "Chord",
+   "outputs": {
+    "notes": "event"
+   },
+   "parameters": {
+    "enable1": 0,
+    "enable2": 2,
+    "enable3": 4,
+    "enable4": 6,
+    "shift1": 1,
+    "shift2": 3,
+    "shift3": 5,
+    "shift4": 7
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.clock",
+   "inputs": {
+    "reset": "signal"
+   },
+   "name": "Clock",
+   "outputs": {
+    "clock": "signal"
+   },
+   "parameters": {
+    "bpm": 0,
+    "duty": 2,
+    "run": 3,
+    "sync": 4,
+    "ticks_per_beat": 1
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.cv_to_notes",
+   "inputs": {
+    "gate": "signal",
+    "pitch": "signal",
+    "velocity": "signal"
+   },
+   "name": "CV to Notes",
+   "outputs": {
+    "notes": "event"
+   },
+   "parameters": {
+    "legato": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.function_envelope",
+   "inputs": {
+    "gate": "signal"
+   },
+   "name": "Function Envelope",
+   "outputs": {
+    "envelope": "signal"
+   },
+   "parameters": {
+    "curve": 2,
+    "fall": 1,
+    "rise": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.gate_delay",
+   "inputs": {
+    "cv": "signal",
+    "in": "signal",
+    "time_cv": "signal"
+   },
+   "name": "Gate Delay",
+   "outputs": {
+    "cv_out": "signal",
+    "out": "signal",
+    "trig": "signal"
+   },
+   "parameters": {
+    "humanize": 4,
+    "mode": 0,
+    "repeats": 5,
+    "spread": 2,
+    "strum": 3,
+    "time": 1
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.ladder",
+   "inputs": {
+    "audio": "signal"
+   },
+   "name": "Ladder Filter",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "cutoff": 0,
+    "drive": 2,
+    "resonance": 1
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.lfo",
+   "inputs": {},
+   "name": "LFO",
+   "outputs": {
+    "control": "signal",
+    "phase": "signal"
+   },
+   "parameters": {
+    "beats": 4,
+    "depth": 1,
+    "offset": 2,
+    "rate": 0,
+    "sync": 3
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.mixer",
+   "inputs": {
+    "a": "signal",
+    "b": "signal"
+   },
+   "name": "Mixer",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "level_a": 0,
+    "level_b": 1
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.noise",
+   "inputs": {},
+   "name": "Noise",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "level": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.notes_to_cv",
+   "inputs": {
+    "notes": "event"
+   },
+   "name": "Notes to CV",
+   "outputs": {
+    "gate": "signal",
+    "pitch": "signal",
+    "trig": "signal",
+    "velocity": "signal"
+   },
+   "parameters": {
+    "voices": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.output",
+   "inputs": {
+    "audio": "signal"
+   },
+   "name": "Output",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {},
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.poly_merge",
+   "inputs": {
+    "in1": "signal",
+    "in2": "signal",
+    "in3": "signal",
+    "in4": "signal",
+    "in5": "signal",
+    "in6": "signal",
+    "in7": "signal",
+    "in8": "signal"
+   },
+   "name": "Poly Merge",
+   "outputs": {
+    "out": "signal"
+   },
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.poly_split",
+   "inputs": {
+    "in": "signal"
+   },
+   "name": "Poly Split",
+   "outputs": {
+    "out1": "signal",
+    "out2": "signal",
+    "out3": "signal",
+    "out4": "signal",
+    "out5": "signal",
+    "out6": "signal",
+    "out7": "signal",
+    "out8": "signal"
+   },
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.quad_vca",
+   "inputs": {
+    "cv1": "signal",
+    "cv2": "signal",
+    "cv3": "signal",
+    "cv4": "signal",
+    "in1": "signal",
+    "in2": "signal",
+    "in3": "signal",
+    "in4": "signal"
+   },
+   "name": "Quad VCA",
+   "outputs": {
+    "mix": "signal",
+    "out1": "signal",
+    "out2": "signal",
+    "out3": "signal",
+    "out4": "signal"
+   },
+   "parameters": {
+    "level1": 0,
+    "level2": 1,
+    "level3": 2,
+    "level4": 3,
+    "mode1": 4,
+    "mode2": 5,
+    "mode3": 6,
+    "mode4": 7,
+    "response": 8
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.quantizer",
+   "inputs": {
+    "pitch": "signal",
+    "trigger": "signal"
+   },
+   "name": "Quantizer",
+   "outputs": {
+    "changed": "signal",
+    "pitch": "signal"
+   },
+   "parameters": {
+    "n0": 4,
+    "n1": 5,
+    "n10": 14,
+    "n11": 15,
+    "n2": 6,
+    "n3": 7,
+    "n4": 8,
+    "n5": 9,
+    "n6": 10,
+    "n7": 11,
+    "n8": 12,
+    "n9": 13,
+    "octave": 3,
+    "root": 1,
+    "scale": 0,
+    "shift": 2
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.resonator",
+   "inputs": {
+    "audio": "signal",
+    "pitch": "signal",
+    "strike": "signal"
+   },
+   "name": "Resonator",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "damping": 3,
+    "decay": 2,
+    "level": 7,
+    "mix": 6,
+    "strike_level": 5,
+    "strike_tone": 4,
+    "structure": 1,
+    "tune": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.scale_offset",
+   "inputs": {
+    "control": "signal"
+   },
+   "name": "Scale/Offset",
+   "outputs": {
+    "control": "signal"
+   },
+   "parameters": {
+    "offset": 1,
+    "scale": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.slew",
+   "inputs": {
+    "control": "signal"
+   },
+   "name": "Slew",
+   "outputs": {
+    "control": "signal"
+   },
+   "parameters": {
+    "fall": 1,
+    "rise": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.vca",
+   "inputs": {
+    "audio": "signal",
+    "gain_cv": "signal"
+   },
+   "name": "VCA",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "gain": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.vcf",
+   "inputs": {
+    "audio": "signal"
+   },
+   "name": "VCF",
+   "outputs": {
+    "low12": "signal",
+    "low24": "signal"
+   },
+   "parameters": {
+    "cutoff": 0,
+    "resonance": 1
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "essentials.vco",
+   "inputs": {
+    "fm": "signal",
+    "notes": "event",
+    "pitch": "signal"
+   },
+   "name": "VCO",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "frequency": 0
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "example.random_source",
+   "inputs": {
+    "clock": "signal"
+   },
+   "name": "Random Source",
+   "outputs": {
+    "smooth": "signal",
+    "step": "signal"
+   },
+   "parameters": {
+    "range": 2,
+    "smooth": 1,
+    "voices": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "example.step_sequencer",
+   "inputs": {
+    "clock": "signal",
+    "reset": "signal"
+   },
+   "name": "Step Sequencer",
+   "outputs": {
+    "gate": "signal",
+    "notes": "event",
+    "pitch": "signal",
+    "velocity": "signal"
+   },
+   "parameters": {
+    "gate1": 3,
+    "gate10": 30,
+    "gate11": 33,
+    "gate12": 36,
+    "gate13": 39,
+    "gate14": 42,
+    "gate15": 45,
+    "gate16": 48,
+    "gate2": 6,
+    "gate3": 9,
+    "gate4": 12,
+    "gate5": 15,
+    "gate6": 18,
+    "gate7": 21,
+    "gate8": 24,
+    "gate9": 27,
+    "length": 1,
+    "pitch1": 2,
+    "pitch10": 29,
+    "pitch11": 32,
+    "pitch12": 35,
+    "pitch13": 38,
+    "pitch14": 41,
+    "pitch15": 44,
+    "pitch16": 47,
+    "pitch2": 5,
+    "pitch3": 8,
+    "pitch4": 11,
+    "pitch5": 14,
+    "pitch6": 17,
+    "pitch7": 20,
+    "pitch8": 23,
+    "pitch9": 26,
+    "run": 0,
+    "vel1": 4,
+    "vel10": 31,
+    "vel11": 34,
+    "vel12": 37,
+    "vel13": 40,
+    "vel14": 43,
+    "vel15": 46,
+    "vel16": 49,
+    "vel2": 7,
+    "vel3": 10,
+    "vel4": 13,
+    "vel5": 16,
+    "vel6": 19,
+    "vel7": 22,
+    "vel8": 25,
+    "vel9": 28
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "fx.delay",
+   "inputs": {
+    "clock": "signal",
+    "left": "signal",
+    "right": "signal"
+   },
+   "name": "Delay",
+   "outputs": {
+    "left": "signal",
+    "right": "signal"
+   },
+   "parameters": {
+    "division": 1,
+    "feedback": 2,
+    "mix": 5,
+    "mode": 4,
+    "time": 0,
+    "tone": 3
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "fx.reverb",
+   "inputs": {
+    "left": "signal",
+    "right": "signal"
+   },
+   "name": "Reverb",
+   "outputs": {
+    "left": "signal",
+    "right": "signal"
+   },
+   "parameters": {
+    "damping": 2,
+    "decay": 1,
+    "freeze": 6,
+    "mix": 7,
+    "motion": 5,
+    "predelay": 3,
+    "size": 0,
+    "width": 4
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "host.keyboard",
+   "inputs": {},
+   "name": "Keyboard",
+   "outputs": {
+    "gate": "signal",
+    "notes": "event",
+    "pitch": "signal",
+    "velocity": "signal"
+   },
+   "parameters": {
+    "mode": 1,
+    "octave": 2,
+    "voices": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "midi.cc_to_cv",
+   "inputs": {
+    "midi": "event"
+   },
+   "name": "CC to CV",
+   "outputs": {
+    "cc1": "signal",
+    "cc2": "signal",
+    "cc3": "signal",
+    "cc4": "signal",
+    "cc5": "signal",
+    "cc6": "signal",
+    "cc7": "signal",
+    "cc8": "signal"
+   },
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "midi.in",
+   "inputs": {},
+   "name": "MIDI In",
+   "outputs": {
+    "midi": "event"
+   },
+   "parameters": {
+    "channel_filter": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "midi.to_cv",
+   "inputs": {
+    "midi": "event"
+   },
+   "name": "MIDI to CV",
+   "outputs": {
+    "aftertouch": "signal",
+    "bend": "signal",
+    "gate": "signal",
+    "last_note": "signal",
+    "mod": "signal",
+    "notes": "event",
+    "pitch": "signal",
+    "pressure": "signal",
+    "trig": "signal",
+    "velocity": "signal"
+   },
+   "parameters": {
+    "allocation_mode": 1,
+    "apply_bend": 8,
+    "channel_filter": 9,
+    "legato": 4,
+    "mono_priority": 3,
+    "pitch_bend_range_semitones": 7,
+    "steal_policy": 2,
+    "sustain": 6,
+    "voice_count": 0
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "monitor",
+   "inputs": {
+    "events": "event",
+    "in1": "signal",
+    "in2": "signal"
+   },
+   "name": "Monitor",
+   "outputs": {},
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "osc.in",
+   "inputs": {},
+   "name": "OSC In",
+   "outputs": {
+    "messages": "event",
+    "row1": "signal",
+    "row2": "signal",
+    "row3": "signal",
+    "row4": "signal",
+    "row5": "signal",
+    "row6": "signal",
+    "row7": "signal",
+    "row8": "signal"
+   },
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "osc.out",
+   "inputs": {
+    "notes": "event",
+    "row1": "signal",
+    "row2": "signal",
+    "row3": "signal",
+    "row4": "signal",
+    "row5": "signal",
+    "row6": "signal",
+    "row7": "signal",
+    "row8": "signal"
+   },
+   "name": "OSC Out",
+   "outputs": {},
+   "parameters": {},
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "ports.macro_oscillator",
+   "inputs": {
+    "fm": "signal",
+    "gate": "signal",
+    "harmonics_cv": "signal",
+    "level": "signal",
+    "model_cv": "signal",
+    "morph_cv": "signal",
+    "pitch": "signal",
+    "timbre_cv": "signal",
+    "trigger": "signal"
+   },
+   "name": "Macro Oscillator",
+   "outputs": {
+    "aux": "signal",
+    "main": "signal"
+   },
+   "parameters": {
+    "coarse": 1,
+    "decay": 8,
+    "fm_amount": 5,
+    "harmonics": 2,
+    "lpg_colour": 9,
+    "model": 0,
+    "morph": 4,
+    "morph_amount": 7,
+    "timbre": 3,
+    "timbre_amount": 6
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "sequencing.groove",
+   "inputs": {
+    "clock": "signal",
+    "reset": "signal",
+    "run": "signal"
+   },
+   "name": "Groove",
+   "outputs": {
+    "t1_fired": "signal",
+    "t1_gate": "signal",
+    "t1_loop_hi": "signal",
+    "t1_loop_lo": "signal",
+    "t1_mod1": "signal",
+    "t1_mod2": "signal",
+    "t1_notes": "event",
+    "t1_pitch": "signal",
+    "t1_pos": "signal",
+    "t2_fired": "signal",
+    "t2_gate": "signal",
+    "t2_loop_hi": "signal",
+    "t2_loop_lo": "signal",
+    "t2_mod1": "signal",
+    "t2_mod2": "signal",
+    "t2_notes": "event",
+    "t2_pitch": "signal",
+    "t2_pos": "signal"
+   },
+   "parameters": {
+    "mute": 3,
+    "reset": 2,
+    "run": 0,
+    "stop": 1,
+    "t1_mute": 6,
+    "t1_run": 4,
+    "t1_stop": 5,
+    "t2_mute": 9,
+    "t2_run": 7,
+    "t2_stop": 8
+   },
+   "version": 2
+  },
+  {
+   "abi_version": 2,
+   "id": "sound.blend",
+   "inputs": {
+    "a": "signal",
+    "b": "signal",
+    "switch": "signal"
+   },
+   "name": "Blend",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "balance": 1,
+    "fade": 4,
+    "jitter": 5,
+    "mode": 0,
+    "seg_a": 2,
+    "seg_b": 3
+   },
+   "version": 1
+  },
+  {
+   "abi_version": 2,
+   "id": "sound.spectral",
+   "inputs": {
+    "a": "signal",
+    "b": "signal"
+   },
+   "name": "Spectral",
+   "outputs": {
+    "audio": "signal"
+   },
+   "parameters": {
+    "amount": 5,
+    "b_level": 7,
+    "bands": 12,
+    "chunk_a": 9,
+    "chunk_b": 10,
+    "curve": 3,
+    "flatten": 13,
+    "level": 8,
+    "mode": 0,
+    "morph": 2,
+    "noise": 15,
+    "phase": 11,
+    "pitch": 4,
+    "release": 14,
+    "size": 1,
+    "smooth": 6
+   },
+   "version": 1
+  }
+ ]
+}

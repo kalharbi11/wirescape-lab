@@ -130,10 +130,11 @@ class T70Switch(unittest.TestCase):
                          {"mode1", "mode", "division", "tone"})
 
     def test_native_descriptor_identity_cannot_be_mocked_into_availability(self):
-        # Read the actual native C++ descriptor and on-disk module manifest.
+        # The native projection is independently checked against wire-describe.
         # A self-referential mocked catalogue once hid "ports.quad_vca".
-        manifest = json.loads(
-            (run_all.ROOT / "modules/quad_vca/module.json").read_text(encoding="utf-8"))
+        manifest = next(row for row in json.loads(
+            (run_all.ROOT / "tools/mb1/descriptor_inventory.json").read_text(encoding="utf-8"))["modules"]
+                        if row["id"] == "essentials.quad_vca")
         desc = run_all.descriptors()
         quad = next(switch for switch in t7_0.SWITCHES if switch[1] == "mode1")
         self.assertEqual(manifest["id"], "essentials.quad_vca")

@@ -51,6 +51,8 @@ def registry(root):
     result={}
     for source in modules:
         descriptor=source.parent/"dsp.h"
+        if not descriptor.is_file():
+            descriptor=source
         text=descriptor.read_text(encoding="utf-8")
         match=re.search(r'ws::Info\s+info\s*\{\s*"([^"]+)"',text)
         if not match:

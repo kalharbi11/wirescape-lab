@@ -19,8 +19,9 @@ class UiCatalogueTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        for pattern in ('modules/*/module.json', 'modules/*/dsp.h',
-                        'sdk/examples/*/module.json', 'sdk/examples/*/dsp.h',
+        for pattern in ('modules/*/module.cpp', 'modules/*/dsp.h',
+                        'sdk/examples/*/module.cpp', 'sdk/examples/*/dsp.h',
+                        'tools/mb1/descriptor_inventory.json',
                         'apps/studio/public/*catalogue*.json', 'apps/studio/public/wirescape_modules.json',
                         'tools/gen_ui_catalogue.py', 'tools/foundation/fixtures/known_module_ids.txt'):
             for path in ROOT.glob(pattern):
@@ -41,10 +42,11 @@ class UiCatalogueTests(unittest.TestCase):
         self.assertEqual(next(m for m in modules if m['id'] == 'host.keyboard')['version'], 7)
 
     def test_identity_mismatch_is_refused_without_rewriting_files(self):
-        path = self.root / 'modules/vco/module.json'
-        data = json.loads(path.read_text(encoding='utf-8'))
+        path = self.root / 'tools/mb1/descriptor_inventory.json'
+        inventory = json.loads(path.read_text(encoding='utf-8'))
+        data = next(row for row in inventory['modules'] if row['id'] == 'essentials.vco')
         data['inputs']['renamed'] = data['inputs'].pop('pitch')
-        path.write_text(json.dumps(data), encoding='utf-8')
+        path.write_text(json.dumps(inventory), encoding='utf-8')
         target = self.root / 'apps/studio/public/wirescape_modules.json'
         before = target.read_bytes()
         with self.assertRaisesRegex(ValueError, 'ID mismatch'):
@@ -52,10 +54,11 @@ class UiCatalogueTests(unittest.TestCase):
         self.assertEqual(target.read_bytes(), before)
 
     def test_native_port_kind_wins_over_presentation(self):
-        path = self.root / 'modules/vco/module.json'
-        data = json.loads(path.read_text(encoding='utf-8'))
+        path = self.root / 'tools/mb1/descriptor_inventory.json'
+        inventory = json.loads(path.read_text(encoding='utf-8'))
+        data = next(row for row in inventory['modules'] if row['id'] == 'essentials.vco')
         data['inputs']['pitch'] = 'event'
-        path.write_text(json.dumps(data), encoding='utf-8')
+        path.write_text(json.dumps(inventory), encoding='utf-8')
         module = next(m for m in json.loads(generator.generate(self.root))['modules'] if m['id'] == data['id'])
         self.assertEqual(next(p for p in module['ports'] if p['id'] == 'pitch')['kind'], 'event')
 
@@ -127,9 +130,9 @@ class ChaosCatalogueContractTests(unittest.TestCase):
         generated = modules[0]
         # Compare names to their source; don't freeze a display name in this test.
         if generated.get("name") != manifest.get("name"):
-            problems.append("generated descriptor name differs from native manifest")
+            problems.append("generated descriptor name differs from native descriptor projection")
         if generated.get("legacy_parameters") != ids:
-            problems.append("generated parameter slots differ from native manifest")
+            problems.append("generated parameter slots differ from native descriptor projection")
         parameters = generated.get("parameters", [])
         if [param.get("id") for param in parameters] != list(expected):
             problems.append("generated parameter ordering changed")
@@ -158,7 +161,8 @@ class ChaosCatalogueContractTests(unittest.TestCase):
     def metadata():
         root = ROOT
         return (
-            json.loads((root / "modules/chaos_lite/module.json").read_text(encoding='utf-8')),
+            next(row for row in json.loads((root / 'tools/mb1/descriptor_inventory.json').read_text(encoding='utf-8'))['modules']
+                 if row['id'] == 'essentials.chaos_lite'),
             json.loads((root / "apps/studio/public/wirescape_modules.json").read_text(encoding='utf-8')),
             json.loads((root / "apps/studio/public/panels/essentials.chaos_lite.json").read_text(encoding='utf-8')),
         )
