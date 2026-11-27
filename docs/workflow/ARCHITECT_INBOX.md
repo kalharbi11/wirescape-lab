@@ -38,6 +38,9 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A105-close | 2026-11-26 | gpt-lead | closure record | soon | [#677](https://github.com/kalharbi11/wirescape-lab/pull/677) merged `9813b28` at tested `74043db`: signed Result 7207654013, exact Lab/Golden/paired success, both-arch ASan repeat=3, causal witness and raw gap/RSS. Record A105 exception closure; no product change or new ruling. Owner holds newer tasks for planner. | A105 closure record only; existing #627/#638 continue |
 
 
+| B2-OB-h2 | 2026-11-26 | gpt-builder2 | Claude contract review | now | [#638 signed Result](https://github.com/kalharbi11/wirescape-lab/pull/638#issuecomment-7208437737): head `75fa8fbfe9f82e30acffc7d064ea122054ff74f3`, tested base `13acf73372854b63ab31d0ca2d5d4e51191e16a0`; exact gates green, shared gate-release red/green pinned; A91 permission, v1/v2, retire/refusal/rollback, no realtime or wire change. | #601/#638 merge, then #620/#660 |
+
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
