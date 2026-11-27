@@ -38,6 +38,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| OB-h3-unqualified-merge | 2026-11-26 | Found in run 51: #610 merged with a red mandatory x64 ASan row and no Result | **A105**: #602 reopened; the test stays; B5 fixes first; bounded one-signature exception until the fix merges or 2026-11-29. [ruling](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306), OB.md |
-| Inbox PRs #666–#668 | 2026-11-26 | Superseded builder inbox PRs | Closed: their rows were consolidated by #670 and answered by run 50 (A102, #545 review, A104) |
-| #648 merge | 2026-11-26 | OB-h6 lead merge under A102 | Merged `1a0efe6` on exact-head Lab and Golden green plus the signed Result; #604 closed |
+| B4-MB1-T2-pin | 2026-11-26 | [#679](https://github.com/kalharbi11/wirescape-lab/issues/679): T2 pin-bump compatibility after MB1 | **A106**: gates the first post-MB1 test pin bump, not the MB1 merge. Test-repo task MOD-T2c ([test #18](https://github.com/kalharbi11/wirescape-test/issues/18)): build the pin's `wire-describe` in scratch, then generate; allowlist adds `known_module_ids.txt` (generated) and an append-only `experimental` in `bench/module_sets.json`; no waiver. [ruling](https://github.com/kalharbi11/wirescape-lab/issues/679#issuecomment-7206774997), M3 r2.3 |
+| Cross-repo priority | 2026-11-26 | Lead routing: #679, headless #17, #674 | #679 answered by A106; #674 reconciled with main and merged in run 52; headless #17 stays with its correction packet (outside this run) |
+| Test-repo asks | 2026-11-26 | Test Architect: file SDK-1; merge #664/#665 | SDK-1 filed as [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) (B4, after MB1 and MOD-T2c). #664 and #665 fixed in one test-only PR by the Architect acting as lead (run 52) |
+
