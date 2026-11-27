@@ -86,6 +86,7 @@ void Host::restore(const std::string&document){
 
 int Host::deliver(void *opaque, uint32_t node, const ws2_event &e, uint64_t ns) noexcept {
     auto &h = *static_cast<Host *>(opaque);
+    // engine_ changes only while the Service worker is joined or not yet started.
     if (!h.engine_) return WS2_STATE;
     auto &engine = app_engine_native(h.engine_);
     int result = engine.enqueue(1, node, WS2_DIRECT_PORT, e, ns, wirescape::engine2::Timing::Timestamped,
