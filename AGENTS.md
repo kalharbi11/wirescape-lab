@@ -42,6 +42,8 @@ trigger or timed check may await a known event that needs a lead action.
 See the [Codex instructions](CODEX.md) and [lead brief](docs/context/CODEX_LEAD.md).
 
 ## Builders: one lane, long sessions
+**New work (owner, 2026-11-27):** claim a short bundle in [TASKS](docs/workflow/TASKS.md). Bundles are
+unassigned until claimed. The lane rules below still apply to started lane work.
 1. Read your lane row in `docs/workflow/BUILDERS.md`, your task issue, the contract row and the
    files it names. Your lane owns its paths. Do not write another lane's paths.
 2. Each task gets one issue, one branch `task/<issue#>-<slug>` and one PR with `Closes #<issue#>`.
