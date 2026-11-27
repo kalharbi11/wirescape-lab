@@ -15,10 +15,10 @@ struct Callback {
 // Enumeration/open/close are control-side operations. One callback writer per endpoint.
 class Backend {
 public:
-    virtual ~Backend() = default;
+    virtual ~Backend() = default; // implementation joins all remaining callback writers
     virtual std::vector<Endpoint> endpoints() = 0;
     virtual bool open(const Endpoint&, Callback) = 0;
-    virtual void close(const Endpoint&) = 0; // returns only after its callbacks have stopped
+    virtual void close(const Endpoint&) = 0; // idempotent for unopened endpoints; returns only after callbacks stop
 };
 // False returns null before constructing any library observer or backend object.
 std::unique_ptr<Backend> real_backend(bool confirm_midi);

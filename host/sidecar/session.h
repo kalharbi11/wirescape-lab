@@ -140,7 +140,16 @@ class Session {
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
     void open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh);
     void stop_audio();
-    void start_midi();
+    // Control-owned startup/enumeration backoff; worker recovery uses its own
+    // bounded retry clock and publishes only an atomic health observation.
+    const char *midi_retry_error_ = nullptr;
+    std::chrono::steady_clock::time_point midi_retry_{};
+    std::chrono::milliseconds midi_backoff_{100};
+    void midi_failed(const char *, std::chrono::steady_clock::time_point) noexcept;
+    void midi_recovered() noexcept;
+    bool stop_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) noexcept;
+    void start_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
+                    bool strict = false);
     void start_osc();
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
@@ -154,7 +163,7 @@ class Session {
     Json base() const;
 
   public:
-    explicit Session(Options);
+    explicit Session(Options, std::unique_ptr<midi::Backend> injected_midi = {});
     ~Session();
     void shutdown();
     // Begin rendering only after the hello handshake is flushed.
