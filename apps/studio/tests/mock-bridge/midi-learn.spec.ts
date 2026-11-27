@@ -20,11 +20,11 @@ test('RealEngine capability-gates MIDI Learn and forwards latest CC status', asy
   await expect.poll(state).toEqual({ armed: true });
   await page.evaluate(() => {
     const fake = (window as any).__mockBridge;
-    fake.captureCc('M8 MIDI 1|M8:M8 MIDI 1', 1, 21, 55);
-    fake.captureCc('M8 MIDI 1|M8:M8 MIDI 1', 16, 74, 127);
+    fake.captureCc('Test MIDI 1|Test:Test MIDI 1', 1, 21, 55);
+    fake.captureCc('Test MIDI 1|Test:Test MIDI 1', 16, 74, 127);
   });
   await expect.poll(state).toEqual({
-    armed: true, seq: '2', deviceId: 'M8 MIDI 1|M8:M8 MIDI 1',
+    armed: true, seq: '2', deviceId: 'Test MIDI 1|Test:Test MIDI 1',
     channel: 16, controller: 74, value: 127,
   });
   await page.evaluate(() => window.__wirescapeTest.engine.midiLearn(false));
@@ -82,8 +82,8 @@ const learnKnob = async (page: import('@playwright/test').Page, id: number, para
   await expect(page.getByTestId('learn-bar')).toBeVisible();
   // The mock engine arms after its reply delay; a CC sent earlier is ignored, so retry until captured.
   await expect(async () => {
-    await page.evaluate(c => (window as any).__mockBridge.captureCc('M8 MIDI 1|M8:M8 MIDI 1', 3, c, 64), controller);
-    await expect(page.getByTestId('learn-message')).toHaveText(`CC ${controller} · ch 3 · M8 MIDI 1`, { timeout: 500 });
+    await page.evaluate(c => (window as any).__mockBridge.captureCc('Test MIDI 1|Test:Test MIDI 1', 3, c, 64), controller);
+    await expect(page.getByTestId('learn-message')).toHaveText(`CC ${controller} · ch 3 · Test MIDI 1`, { timeout: 500 });
   }).toPass({ timeout: 10_000 });
 };
 

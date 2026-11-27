@@ -45,7 +45,7 @@ class ObservedMidi final : public midi::Backend {
     bool scripted_busy_test_endpoint_ = false;
     std::mutex mutex_;
     std::vector<midi::Endpoint> observed_;
-    std::vector<midi::Endpoint> fake_endpoints_{{"M8 MIDI 1", "M8:M8 MIDI 1"}};
+    std::vector<midi::Endpoint> fake_endpoints_{{"Test MIDI 1", "Test:Test MIDI 1"}};
     static void message(void *, const uint8_t *, size_t, uint64_t);
     static void ump(void *, const uint32_t *, size_t, uint64_t);
     static void note(Slot &, unsigned, unsigned, bool);

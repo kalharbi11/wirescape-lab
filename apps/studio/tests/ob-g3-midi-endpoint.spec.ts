@@ -11,7 +11,7 @@ import { mockBridge } from './mock-bridge/bridge';
  * that a real post-toggle MIDI subscription delivers Note On/Off to the graph.
  * That separate end-to-end witness awaits #308's injected native seam.
  */
-const DEVICE = 'M8 MIDI 1|M8:M8 MIDI 1';
+const DEVICE = 'Test MIDI 1|Test:Test MIDI 1';
 
 const toggleCommands = (page: Page) => page.evaluate(() =>
   (window as any).__mockBridge.sent.filter((m: any) => m.type === 'setMidiEnabled'));

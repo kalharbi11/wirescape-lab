@@ -56,12 +56,12 @@
 
 # T10
 > {"v":0,"id":"r10a","type":"listMidiDevices"}
-< {"v":0,"session":"*","re":"r10a","ok":true,"gen":"=","result":{"devices":[{"id":"M8 MIDI 1|M8:M8 MIDI 1","name":"M8 MIDI 1","system_name":"M8:M8 MIDI 1","kind":"midi","enabled":true}]}}
-> {"v":0,"id":"r10b","type":"setMidiEnabled","deviceId":"M8 MIDI 1|M8:M8 MIDI 1","on":false}
+< {"v":0,"session":"*","re":"r10a","ok":true,"gen":"=","result":{"devices":[{"id":"Test MIDI 1|Test:Test MIDI 1","name":"Test MIDI 1","system_name":"Test:Test MIDI 1","kind":"midi","enabled":true}]}}
+> {"v":0,"id":"r10b","type":"setMidiEnabled","deviceId":"Test MIDI 1|Test:Test MIDI 1","on":false}
 < {"v":0,"session":"*","re":"r10b","ok":true,"gen":"="}
 
 # T11
-< {"v":0,"session":"*","type":"devices","gen":"=","audioDevices":[{"id":"USB Stereo","name":"USB Stereo","kind":"audio","index":3}],"midiDevices":[{"id":"M8 MIDI 1|M8:M8 MIDI 1","name":"M8 MIDI 1","system_name":"M8:M8 MIDI 1","kind":"midi","enabled":false}]}
+< {"v":0,"session":"*","type":"devices","gen":"=","audioDevices":[{"id":"USB Stereo","name":"USB Stereo","kind":"audio","index":3}],"midiDevices":[{"id":"Test MIDI 1|Test:Test MIDI 1","name":"Test MIDI 1","system_name":"Test:Test MIDI 1","kind":"midi","enabled":false}]}
 
 # T12
 # Setup: CC row target must exist before ccMap.set.
