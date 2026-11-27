@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "protocol.h"
+#include "../osc/codec.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -329,6 +330,38 @@ public:
             payload.args[payload.arg_count++] = args[i];
         }
         submit(key, payload, filter);
+    }
+
+    bool osc_enabled() const noexcept {
+        return (filter_.load(std::memory_order_acquire) & osc_bit) != 0;
+    }
+    // Worker-facing adapter from the validated raw OSC codec. Do not
+    // allocate, copy string/blob contents or narrow 64-bit integers.
+    void osc_message(uint16_t port, const wirescape::osc::Message &message,
+                     bool matched, bool disabled_only) noexcept {
+        if (!osc_enabled() || disabled_only) return;
+        std::array<Number, 4> args{};
+        uint8_t count = 0;
+        bool more = message.count > message.arguments.size();
+        for (size_t i = 0; i < message.count && i < message.arguments.size(); ++i) {
+            const auto &arg = message.arguments[i];
+            Number number;
+            switch (arg.type) {
+                case 'i': number.integer = arg.integer; break;
+                case 'h': number.integer = arg.wide_integer; break;
+                case 'f': number.floating = true; number.real = arg.real; break;
+                case 'd': number.floating = true; number.real = arg.wide_real; break;
+                case 'T': number.integer = 1; break;
+                case 'F': number.integer = 0; break;
+                default: more = true; continue;
+            }
+            if ((number.floating && !std::isfinite(number.real)) || count == args.size()) {
+                more = true;
+                continue;
+            }
+            args[count++] = number;
+        }
+        osc(port, message.address, matched, disabled_only, args, count, more);
     }
 
     // Control owner only, and only when the writer slot is available. A
