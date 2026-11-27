@@ -89,6 +89,7 @@ void ObservedMidi::note(Slot &s, unsigned key, unsigned channel, bool on) {
 }
 void ObservedMidi::message(void *context, const uint8_t *bytes, size_t n, uint64_t time) {
     auto &s = *static_cast<Slot *>(context);
+    s.owner->controller_stream_.midi(s.endpoint.name, s.endpoint.system_name, bytes, n);
     s.activity.store(time);
     if (n >= 3) {
         unsigned status = bytes[0] >> 4, channel = bytes[0] & 15;
@@ -106,6 +107,11 @@ void ObservedMidi::ump(void *context, const uint32_t *words, size_t n, uint64_t 
     if (n) {
         auto word = words[0];
         unsigned type = word >> 28, status = (word >> 20) & 15, channel = (word >> 16) & 15;
+        if (type == 2 && n == 1 && ((word >> 24) & 15) == 0) {
+            const uint8_t bytes[]{uint8_t(word >> 16), uint8_t(word >> 8), uint8_t(word)};
+            s.owner->controller_stream_.midi(s.endpoint.name, s.endpoint.system_name, bytes,
+                                             status == 12 || status == 13 ? 2 : 3);
+        }
         if (((word >> 24) & 15) == 0 && (type == 2 || (type == 4 && n >= 2))) {
             if (status == 8 || status == 9)
                 note(s, (word >> 8) & 127, channel, status == 9 && (type == 4 || (word & 127) != 0));
