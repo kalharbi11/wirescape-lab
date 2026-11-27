@@ -62,3 +62,9 @@ add_test(NAME render_evidence_midi_ump
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_midi_ump.py
     $<TARGET_FILE:wirescape_render>)
 set_tests_properties(render_evidence_midi_ump PROPERTIES TIMEOUT 120)
+
+# #747: native note velocity/channel and backward-compatible defaults.
+add_test(NAME render_evidence_note_fields
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_note_fields.py
+    $<TARGET_FILE:wirescape_render>)
+set_tests_properties(render_evidence_note_fields PROPERTIES TIMEOUT 120)
