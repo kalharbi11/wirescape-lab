@@ -116,12 +116,14 @@ void midi_learn_observation() {
 // Use the existing ObservedMidi injection seam, not a second parser or queue.
 void controller_stream_midi_observation() {
     using namespace wirescape::midi;
-    ObservedMidi fake(true, false);
+    auto scripted = std::make_unique<ScriptedBackend>();
+    auto *source = scripted.get();
+    ObservedMidi fake(false, false, std::move(scripted));
     auto endpoints = fake.endpoints();
     check(endpoints.size() == 1 && fake.open(endpoints[0], {}));
     auto &capture = fake.controller_stream();
     const uint8_t initial[]{0xB0, 1, 7};
-    check(fake.inject(endpoints[0], initial, 3, app_engine_clock_ns()));
+    check(source->inject(initial, 3, app_engine_clock_ns()));
     check(capture.drain().empty() && capture.status().is_null());
     capture.configure({"cc", "pc", "note"}, false);
     uint64_t allocations;
@@ -130,11 +132,11 @@ void controller_stream_midi_observation() {
         const uint8_t cc1[]{0xB0, 0, 3}, cc2[]{0xB0, 32, 4}, cc3[]{0xB0, 0, 9};
         const uint8_t pc[]{0xC0, 5};
         const uint8_t off[]{0x99, 36, 0};
-        check(fake.inject(endpoints[0], cc1, 3, app_engine_clock_ns()));
-        check(fake.inject(endpoints[0], cc2, 3, app_engine_clock_ns()));
-        check(fake.inject(endpoints[0], pc, 2, app_engine_clock_ns()));
-        check(fake.inject(endpoints[0], cc3, 3, app_engine_clock_ns()));
-        check(fake.inject(endpoints[0], off, 3, app_engine_clock_ns()));
+        check(source->inject(cc1, 3, app_engine_clock_ns()));
+        check(source->inject(cc2, 3, app_engine_clock_ns()));
+        check(source->inject(pc, 2, app_engine_clock_ns()));
+        check(source->inject(cc3, 3, app_engine_clock_ns()));
+        check(source->inject(off, 3, app_engine_clock_ns()));
         allocations = scope.allocations();
     }
     check(allocations == 0);
@@ -155,7 +157,7 @@ void controller_stream_midi_observation() {
         allocation_watch::ThreadScope scope;
         for (unsigned i = 0; i < 300; ++i) {
             const uint8_t pc[]{uint8_t(0xC0 | (i / 128)), uint8_t(i % 128)};
-            check(fake.inject(endpoints[0], pc, 2, app_engine_clock_ns()));
+            check(source->inject(pc, 2, app_engine_clock_ns()));
         }
         allocations = scope.allocations();
     }
@@ -169,16 +171,16 @@ void controller_stream_midi_observation() {
     // The 128 shared latest keys are a hard bound, not an eviction cache.
     for (unsigned i = 0; i < 128; ++i) {
         const uint8_t cc[]{0xB0, uint8_t(i), 1};
-        check(fake.inject(endpoints[0], cc, 3, app_engine_clock_ns()));
+        check(source->inject(cc, 3, app_engine_clock_ns()));
     }
     const uint8_t extra[]{0xB1, 0, 2}, update[]{0xB0, 0, 99};
-    check(fake.inject(endpoints[0], extra, 3, app_engine_clock_ns()));
-    check(fake.inject(endpoints[0], update, 3, app_engine_clock_ns()));
+    check(source->inject(extra, 3, app_engine_clock_ns()));
+    check(source->inject(update, 3, app_engine_clock_ns()));
     const auto latest = capture.drain();
     check(latest.size() == 128 && latest.back()["controller"] == 0 && latest.back()["value"] == 99);
     check(capture.status()["dropped"]["latest"] == 1);
     capture.configure({}, false);
-    check(fake.inject(endpoints[0], initial, 3, app_engine_clock_ns()));
+    check(source->inject(initial, 3, app_engine_clock_ns()));
     check(capture.drain().empty() && capture.status().is_null());
     fake.close(endpoints[0]);
 }

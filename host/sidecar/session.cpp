@@ -1351,6 +1351,7 @@ Json Session::apply(const Json &command) {
              "invalid", "Invalid oscUnmatched");
         auto &capture = observer_->controller_stream();
         capture.configure(selected, command.value("oscUnmatched", false));
+        if (scripted_midi_) scripted_controller_pending_ = !selected.empty();
         return capture.setting();
     }
     if (type == "setOsc") throw Refusal("unavailable", "Capability not available");
@@ -2085,6 +2086,9 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (scripted_midi_ && scripted_started_enabled_ && now >= scripted_started_) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - scripted_started_).count();
         scripted_midi_->advance_to(uint64_t(elapsed), 4096); // bounded; no OS device, no callback allocation
+        if (scripted_controller_pending_ &&
+            scripted_midi_->controller_test_sequence(app_engine_clock_ns()))
+            scripted_controller_pending_ = false;
     }
     drain_egress();
     observer_->expire_learning(now);

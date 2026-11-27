@@ -76,6 +76,22 @@ public:
         return true;
     }
 
+    // P1-e device-off witness: emit one deterministic interleaved CC/PC/note
+    // sequence only after an explicit controller-stream subscription. Normal
+    // scripted MIDI, benchmark and soak workloads are unchanged while off.
+    bool controller_test_sequence(uint64_t timestamp_ns) noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!online_) return false;
+        const uint8_t packets[][3] = {
+            {0xBF, 3, 10}, {0xBF, 4, 20}, {0xCF, 17, 0}, {0xBF, 3, 99},
+            {0xCF, 18, 0}, {0xBF, 5, 30}, {0x9F, 36, 0}, {0xCF, 19, 0}
+        };
+        for (const auto &packet : packets)
+            callback_.message(callback_.context, packet, (packet[0] & 0xF0) == 0xC0 ? 2 : 3,
+                              timestamp_ns++);
+        return true;
+    }
+
     // elapsed_ns is monotonic relative to the injected source's virtual clock.
     // A fixed per-call bound makes even a 24-hour seek finite and interruptible.
     // A repeat call at the same elapsed_ns drains any remaining due messages.

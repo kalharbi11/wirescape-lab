@@ -81,6 +81,7 @@ class Session {
     midi::ScriptedBackend *scripted_midi_ = nullptr; // borrowed from injected ObservedMidi
     std::chrono::steady_clock::time_point scripted_started_{};
     bool scripted_started_enabled_ = false;
+    bool scripted_controller_pending_ = false; // test-only subscription witness
     std::unique_ptr<monitor::Capture> monitor_;
     std::unique_ptr<midi::Host> midi_;
     std::unique_ptr<osc::Host> osc_;

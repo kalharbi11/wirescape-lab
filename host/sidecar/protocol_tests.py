@@ -1225,9 +1225,17 @@ with tempfile.TemporaryDirectory() as stream_dir:
             refusal = stream.call('controllerStream', False, kinds=kinds)
             assert refusal['code'] == 'invalid', refusal
             assert refusal['gen'] == '0', refusal
-        enabled = stream.call('controllerStream', kinds=['note', 'cc'])
+        enabled = stream.call('controllerStream', kinds=['note', 'pc', 'cc'])
         assert enabled['gen'] == '0', enabled
-        assert enabled['result'] == dict(kinds=['cc', 'note'], oscUnmatched=False), enabled
+        assert enabled['result'] == dict(kinds=['cc', 'note', 'pc'], oscUnmatched=False), enabled
+        sequence = next_push('controller', lambda m: m['gen'] == '0' and any(
+            e['kind'] == 'pc' and e['channel'] == 16 and e['program'] == 19 for e in m['events']))
+        seq = [e for e in sequence['events'] if e['channel'] == 16]
+        assert [(e['kind'], e.get('controller', e.get('program', e.get('note'))))
+                for e in seq] == [('cc', 4), ('pc', 17), ('cc', 3), ('pc', 18),
+                                  ('cc', 5), ('noteOff', 36), ('pc', 19)], seq
+        assert [e['value'] for e in seq if e['kind'] == 'cc'] == [20, 99, 30], seq
+        assert seq[-2]['velocity'] == 0, seq
         gen = stream.call('loadGraph', patch=minimal())['gen']
         event_push = next_push('controller', lambda m: m['gen'] == gen and any(
             e['kind'] == 'noteOn' for e in m['events']))
@@ -1241,7 +1249,7 @@ with tempfile.TemporaryDirectory() as stream_dir:
             assert 1 <= event['channel'] <= 16, event
         status = next_push('status', lambda m: m['gen'] == gen and
                            m['status'].get('controller', {}).get('events', 0) > 0)
-        assert status['status']['controller']['kinds'] == ['cc', 'note'], status
+        assert status['status']['controller']['kinds'] == ['cc', 'note', 'pc'], status
         assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=0), status
         disabled = stream.call('controllerStream', kinds=[])
         assert disabled['gen'] == gen and disabled['result']['kinds'] == [], disabled
