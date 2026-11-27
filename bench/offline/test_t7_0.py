@@ -249,5 +249,50 @@ class T70Switch(unittest.TestCase):
         self.assertEqual(unused.call_count, 0)
 
 
+class OfflineInventory(unittest.TestCase):
+    def test_mb1_preserves_exact_pre_expansion_workload(self):
+        # A103: frozen diagnostic workload, including order, at MB1 base.
+        expected = [
+            "essentials.adsr",
+            "essentials.chaos_lite",
+            "essentials.chord",
+            "essentials.clock",
+            "essentials.function_envelope",
+            "essentials.ladder",
+            "essentials.lfo",
+            "essentials.mixer",
+            "essentials.noise",
+            "essentials.notes_to_cv",
+            "essentials.output",
+            "essentials.quad_vca",
+            "essentials.quantizer",
+            "essentials.resonator",
+            "essentials.scale_offset",
+            "essentials.slew",
+            "essentials.vca",
+            "essentials.vcf",
+            "essentials.vco",
+            "example.random_source",
+            "example.step_sequencer",
+            "fx.delay",
+            "fx.reverb",
+            "host.keyboard",
+            "midi.cc_to_cv",
+            "midi.in",
+            "midi.to_cv",
+            "monitor",
+            "osc.in",
+            "ports.macro_oscillator",
+            "sequencing.groove",
+            "sound.blend",
+            "sound.spectral",
+        ]
+        self.assertEqual(run_all.modules(), expected)
+        # The generated registry fixture must not be the offline workload.
+        known = (run_all.ROOT / "tools/foundation/fixtures/known_module_ids.txt").read_text(encoding="utf-8")
+        self.assertIn("osc.out", known.splitlines())
+        self.assertNotIn("osc.out", run_all.modules())
+
+
 if __name__ == "__main__":
     unittest.main()

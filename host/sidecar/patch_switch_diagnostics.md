@@ -44,3 +44,30 @@ Source head `c01eb188d31e7a969e6242287690fa4e4f619465`, base `83cc53c36d5cb2586c
 These data do not override the failed mandatory sanitizer gate. Added failure-only capture diagnostics: noteOn/loadGraph R7 marks including the next intended noteOn, block range, nonzero sample positions, per-block nonzero counts and min/max. The existing exact-zero assertion, capture bracket, input load, 50 ms sentinel and all other gates are unchanged. Possible next-command overlap is a hypothesis, not a confirmed cause.
 
 Signed: gpt-builder5, 2026-11-26
+
+## A105 reopened witness: capture ownership
+
+The historical diagnostic [45907249284](https://github.com/kalharbi11/wirescape-lab/actions/runs/45907249284) failed x64 at switch 13; its CTest failure output was truncated before the command marks. The diagnostic-only head `fbad0539a71795506b42e48ebcb8ad762b703eb6` put marks first and passed [Lab 45913730044](https://github.com/kalharbi11/wirescape-lab/actions/runs/45913730044) and [three ASan repetitions on both architectures 45913738510](https://github.com/kalharbi11/wirescape-lab/actions/runs/45913738510). No reproduced failure, therefore no historical attribution from that pass.
+
+Source-level test race: `Session::reply` marks b1 before ACK publication, but the offline oracle examines through block b1+1 inclusive. The prior test could issue its next deliberate noteOn immediately after route/status and echo, with no completed-capture barrier. Those observations do not prove b1+1 was appended. A subsequent intended note can therefore contaminate the previous switch's final gate block. This is a test sequencing defect independently of whether it caused the historical red. The revised witness waits for the original bracket and one additional physical block (the latter accounts for fwrite preceding the appended-count atomic increment) before sending another note. The offline analysis also requires complete brackets and disjoint next-note marks. It retains the exact-zero gate assertion, fade ramps, 50 ms post-ACK echo deadline, fixed ports, 200 Hz offered traffic, and 200/1000 switch counts. The wait occurs after the timed echo and while the load worker continues. No product changes, no waiver. Historical cause remains unconfirmed until the correlation evidence is available; fresh qualification is pending.
+
+Signed: gpt-builder5, 2026-11-26
+
+## A105 causal reproduction and corrected 1000-switch diagnostic
+
+[Old witness red in P0a Lab 45915171683, x64 sanitizer job 140232574582](https://github.com/kalharbi11/wirescape-lab/actions/runs/45915171683/job/140232574582), source head `080222ce92bd70752bb4091641f8113f346f8b47`, switch 26: swap b0=508, b1=517, generation 27, re=soak-53; the prior bracket ends at block 518 inclusive. Gate blocks 514, 515, 516, 517 each contain 256 exact zeros; block 518 contains 256 samples of 1.0. The next deliberate noteOn (soak-54, generation 27) has b0=b1=518. This is direct evidence of the next intentional note contaminating the previous switch's capture window after the old gate was released, reproducing the A105 signature. It does not establish the individual marks of historical switches 54 and 13, which were not preserved in their logs.
+
+Corrected source head `fe78ff3f7df39fd027f1ba9d8728d90e1bbbf519`: [Lab 45915274402](https://github.com/kalharbi11/wirescape-lab/actions/runs/45915274402) 15/15 jobs pass; [both-architecture ASan repeat=3 45915278262](https://github.com/kalharbi11/wirescape-lab/actions/runs/45915278262) pass. [1000-switch hosted run 45919017831](https://github.com/kalharbi11/wirescape-lab/actions/runs/45919017831) passed on both architectures, retaining all gate, fade, route and timing assertions and the new bracket-disjointness invariant.
+
+| Hosted runner | Switches | Captured gap p50/max (ms) | VmRSS 100 (KiB) | VmRSS 1000 (KiB) | ACK p50/max (ms) |
+|---|---:|---:|---:|---:|---:|
+| linux-arm64 | 1000 | 6.020833 / 6.020833 | 37504 | 39012 | 23.774651 / 29.850619 |
+| linux-x64 | 1000 | 6.020833 / 6.020833 | 37356 | 42196 | 23.967098 / 30.279513 |
+
+Raw emitted JSON:
+- ARM64: `{"gap_definition": "exact-zero captured samples; excludes stopped wall-clock time", "gap_ms_max": 6.020833333333333, "gap_ms_p50": 6.020833333333333, "load_ack_ms_max": 29.85061900000119, "load_ack_ms_p50": 23.77465099999654, "rss_kib": {"100": 37504, "1000": 39012}, "status": "passed", "switches": 1000}`
+- x64: `{"gap_definition": "exact-zero captured samples; excludes stopped wall-clock time", "gap_ms_max": 6.020833333333333, "gap_ms_p50": 6.020833333333333, "load_ack_ms_max": 30.279512999982217, "load_ack_ms_p50": 23.967098499994677, "rss_kib": {"100": 37356, "1000": 42196}, "status": "passed", "switches": 1000}`
+
+RSS increases by 1508 KiB on ARM64 and 4840 KiB on x64 between the two observations; no plateau or long-run leak conclusion follows from two samples. ASan/LSan is the separate gate. Hosted timing is diagnostic, not an owner-machine benchmark. No product code changed, no gates relaxed.
+
+Signed: gpt-builder5, 2026-11-26

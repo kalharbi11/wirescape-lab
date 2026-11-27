@@ -162,14 +162,14 @@ def difference(command_for_length, valgrind, lengths=COUNTS, module_probe=None):
 
 
 def modules():
-    # Frozen compatibility fixture has 33 IDs; osc.out is Golden ID #34.
+    # Generated compatibility fixture contains the entire registered catalogue.
     fixture = [line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
                if line.strip() and not line.startswith("#")]
     osc_id = json.loads((ROOT / "modules/osc_out/module.json").read_text(encoding="utf-8"))["id"]
     catalogue = ROOT / "engine/control/module_catalog.inc"
     entries = sum(line.strip().startswith("WS_APP_MODULE(")
                   for line in catalogue.read_text(encoding="utf-8").splitlines())
-    ids = fixture + ([osc_id] if osc_id not in fixture else []) + sorted(EXPERIMENTAL)
+    ids = fixture
     if (len(ids) != len(set(ids)) or set(ids) != allowed_ids(ROOT)
             or entries != len(ids) or osc_id != "osc.out"):
         raise ValueError(f"catalogue coverage mismatch: fixture={len(fixture)}, "
