@@ -1332,6 +1332,49 @@ with tempfile.TemporaryDirectory() as osc_stream_dir:
             status = osc_next('status', lambda m: m['status'].get('controller', {}).get(
                 'dropped', {}).get('oversize', 0) >= 1)
             assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=1), status
+
+            # Compare cadence on this same graph, with and without 800 ingress
+            # events/s. Use 8 children per 10 ms bundle to avoid timer-dependent
+            # 1.25 ms sleeps on Windows. Observe pipe arrivals in real time.
+            def cadence(load):
+                osc_stream.pushes.clear()
+                while True:
+                    try:
+                        osc_stream.messages.get_nowait()
+                    except queue.Empty:
+                        break
+                stamps = {'status': [], 'telemetry': []}
+                start = time.monotonic()
+                end = start + 2.0
+                sent = 0
+                packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
+                while time.monotonic() < end:
+                    now = time.monotonic()
+                    if load:
+                        # Absolute schedule, no missed tick silently removed.
+                        while sent < 1600 and now >= start + sent / 800:
+                            sender.sendto(packet, ('127.0.0.1', port))
+                            sent += 8
+                    try:
+                        msg = osc_stream.messages.get(timeout=0.001)
+                    except queue.Empty:
+                        continue
+                    if msg.get('type') in stamps:
+                        stamps[msg['type']].append(time.monotonic())
+                if load:
+                    assert sent == 1600, sent
+                return stamps
+
+            idle = cadence(False)
+            busy = cadence(True)
+            for stamps in (idle, busy):
+                assert len(stamps['status']) >= 18, stamps
+                assert max(b - a for a, b in zip(stamps['status'], stamps['status'][1:])) < 0.150, stamps
+                assert len(stamps['telemetry']) >= 50, stamps
+            # One telemetry interval at each measurement boundary, not a
+            # widened status deadline or an altered event rate.
+            assert abs(len(idle['telemetry']) - len(busy['telemetry'])) <= 2, (idle, busy)
+
     finally:
         osc_stream.close()
 
