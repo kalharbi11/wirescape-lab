@@ -707,7 +707,12 @@ osc::ControllerObserver Session::controller_observer(uint64_t route_generation) 
                 static_cast<ControllerStream *>(context)->osc_message(port, message, matched,
                                                                      disabled_only, generation);
             },
-            route_generation};
+            route_generation,
+            [](void *context, uint16_t port, const osc::Message &message, bool matched,
+               uint64_t generation) noexcept {
+                static_cast<ControllerStream *>(context)->osc_message(port, message, matched,
+                                                                     false, generation, true);
+            }};
 }
 void Session::start_osc() {
     // prepare stops/joins any previous worker before installing the observer.
@@ -1900,7 +1905,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph", "configDeferred", "audio.renderLiveness", "controllerStream"});
+         "applyGraph", "configDeferred", "audio.renderLiveness", "controllerStream", "controllerStream.controlPort"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},

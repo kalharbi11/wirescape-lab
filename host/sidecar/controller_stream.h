@@ -60,7 +60,7 @@ private:
         Kind kind = Kind::cc;
         uint64_t time = 0, epoch = 0, ordinal = 0, route_generation = 0;
         uint8_t value = 0, arg_count = 0;
-        bool matched = false, more = false;
+        bool matched = false, more = false, control_port = false;
         std::array<Number, 4> args{};
     };
     struct Latest {
@@ -135,9 +135,9 @@ private:
         }
         return 0;
     }
-    static bool allowed(uint64_t filter, Kind kind, bool matched) noexcept {
+    static bool allowed(uint64_t filter, Kind kind, bool matched, bool control_port = false) noexcept {
         return (filter & bit(kind)) &&
-               (kind != Kind::osc || matched || (filter & unmatched_bit));
+               (kind != Kind::osc || matched || control_port || (filter & unmatched_bit));
     }
     static const char *name(Kind kind) noexcept {
         switch (kind) {
@@ -309,9 +309,9 @@ public:
     // the existing host route filters. No graph or render work here.
     void osc(uint16_t port, std::string_view address, bool matched, bool disabled_only,
              const std::array<Number, 4> &args, uint8_t count, bool more,
-             uint64_t route_generation = 0) noexcept {
+             uint64_t route_generation = 0, bool control_port = false) noexcept {
         const uint64_t filter = filter_.load(std::memory_order_acquire);
-        if (disabled_only || !allowed(filter, Kind::osc, matched)) return;
+        if ((!control_port && disabled_only) || !allowed(filter, Kind::osc, matched, control_port)) return;
         if (address.size() > 128) {
             oversize_.fetch_add(1, std::memory_order_relaxed);
             return;
@@ -324,6 +324,7 @@ public:
         payload.kind = Kind::osc; payload.time = now_us();
         payload.route_generation = route_generation;
         payload.matched = matched; payload.more = more || count > 4;
+        payload.control_port = control_port;
         for (unsigned i = 0; i < count && i < args.size(); ++i) {
             if (args[i].floating && !std::isfinite(args[i].real)) {
                 payload.more = true;
@@ -340,8 +341,9 @@ public:
     // Worker-facing adapter from the validated raw OSC codec. Do not
     // allocate, copy string/blob contents or narrow 64-bit integers.
     void osc_message(uint16_t port, const wirescape::osc::Message &message,
-                     bool matched, bool disabled_only, uint64_t route_generation = 0) noexcept {
-        if (!osc_enabled() || disabled_only) return;
+                     bool matched, bool disabled_only, uint64_t route_generation = 0,
+                     bool control_port = false) noexcept {
+        if (!osc_enabled() || (!control_port && disabled_only)) return;
         std::array<Number, 4> args{};
         uint8_t count = 0;
         bool more = message.count > message.arguments.size();
@@ -363,7 +365,7 @@ public:
             }
             args[count++] = number;
         }
-        osc(port, message.address, matched, disabled_only, args, count, more, route_generation);
+        osc(port, message.address, matched, disabled_only, args, count, more, route_generation, control_port);
     }
 
     // Control owner only, and only when the writer slot is available. A
@@ -386,7 +388,7 @@ public:
         const auto filter = filter_.load(std::memory_order_acquire);
         auto include = [&](const Key &key, const Payload &payload) {
             if (payload.epoch != (filter & ~filter_bits) ||
-                !allowed(filter, payload.kind, payload.matched)) return;
+                !allowed(filter, payload.kind, payload.matched, payload.control_port)) return;
             if (key.osc && payload.route_generation != route_generation) {
                 dropped_latest_.fetch_add(1, std::memory_order_relaxed);
                 return;

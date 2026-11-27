@@ -504,7 +504,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
                                                     'applyGraph', 'configDeferred', 'audio.renderLiveness',
-                                                    'controllerStream']
+                                                    'controllerStream', 'controllerStream.controlPort']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
@@ -1211,6 +1211,7 @@ with tempfile.TemporaryDirectory() as consent_dir:
                 return message['status']['osc']
     no_control = Engine(Path(consent_dir) / 'off.json')
     try:
+        assert 'controllerStream.controlPort' in no_control.hello['capabilities']
         status = first_status(no_control)
         assert status['routes'] == [] and not status['enabled'], status
     finally:
