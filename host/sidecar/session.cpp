@@ -10,6 +10,7 @@
 #include "runtime_patch_normalize.h"
 #include "wirescape_sidecar_categories.h"
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -229,11 +230,13 @@ Options parse_options(int argc, char **argv) {
         else if (arg == "--control-osc-lan") o.control_osc_lan = true;
         else if (arg == "--control-osc-port") {
             need(++i < argc);
-            const std::string v = argv[i];
-            need(!v.empty() && v.find_first_not_of("0123456789") == std::string::npos);
-            const auto n = std::stoull(v);
-            need(n >= 1024 && n <= 65535, "invalid", "Control OSC port outside 1024..65535");
-            o.control_osc_port = uint16_t(n);
+            const std::string_view v = argv[i];
+            need(!v.empty() && v.find_first_not_of("0123456789") == std::string_view::npos);
+            uint16_t port = 0;
+            const auto result = std::from_chars(v.data(), v.data() + v.size(), port);
+            need(result.ec == std::errc{} && port >= 1024,
+                 "invalid", "Control OSC port outside 1024..65535");
+            o.control_osc_port = port;
         }
         else if (arg == "--null-audio") o.null_audio = true;
         else if (arg == "--scripted-midi") o.scripted_midi = true;
