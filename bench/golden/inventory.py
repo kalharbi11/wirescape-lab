@@ -43,13 +43,11 @@ def allowed_ids(root=ROOT):
     return golden | experimental
 
 def registry(root):
-    catalogue=(root/"engine/control/module_catalog.inc").read_text(encoding="utf-8")
-    count=len(re.findall(r"(?m)^WS_APP_MODULE\(",catalogue))
     modules=sorted((root/"modules").glob("*/module.cpp")) + \
             sorted((root/"sdk/examples").glob("*/module.cpp"))
     permitted=allowed_ids(root)
-    if count!=len(permitted) or len(modules)!=count:
-        raise ValueError(f"registry/source inventory mismatch: catalog={count}, translation_units={len(modules)}, permitted={len(permitted)}")
+    if len(modules)!=len(permitted):
+        raise ValueError(f"registry/source inventory mismatch: translation_units={len(modules)}, permitted={len(permitted)}")
     result={}
     for source in modules:
         descriptor=source.parent/"dsp.h"

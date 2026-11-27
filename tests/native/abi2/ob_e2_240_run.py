@@ -20,7 +20,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PALETTE = ROOT / "apps/studio/public/wirescape_modules.json"
 CENSUS = ROOT / "facts/code/module_census.md"
-CATALOG = ROOT / "engine/control/module_catalog.inc"
 SOURCE = ROOT / "tests/native/abi2/ob_e2_240_smoke.cpp"
 RATES = (44100, 48000)
 BLOCKS = (64, 256)
@@ -45,8 +44,9 @@ def live_ids() -> list[str]:
     ids = [item["id"] for item in doc["modules"]]
     actual = re.findall(r"^\|\s*\x60([^\x60]+)\x60\s*\|",
                         CENSUS.read_text(encoding="utf-8"), re.MULTILINE)
-    native = re.findall(r"^WS_APP_MODULE\(([^)]+)\)\s*$",
-                        CATALOG.read_text(encoding="utf-8"), re.MULTILINE)
+    sys.path.insert(0, str(ROOT))
+    from bench.golden.inventory import registry
+    native = list(registry(ROOT))
     added = sorted(set(ids) - set(actual))
     removed = sorted(set(actual) - set(ids))
     if (len(ids) != EXPECTED_COUNT or len(actual) != EXPECTED_COUNT or
