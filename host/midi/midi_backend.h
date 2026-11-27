@@ -11,14 +11,17 @@ struct Callback {
     void* context = nullptr;
     void (*message)(void*, const uint8_t*, size_t, uint64_t) = nullptr;
     void (*ump)(void*, const uint32_t*, size_t, uint64_t) = nullptr;
+    // A110: optional read-only admission predicate for observation wrappers.
+    // The context is the retained Service slot, valid until close/join.
+    bool (*accepting)(const void*) noexcept = nullptr;
 };
 // Enumeration/open/close are control-side operations. One callback writer per endpoint.
 class Backend {
 public:
-    virtual ~Backend() = default;
+    virtual ~Backend() = default; // implementation joins all remaining callback writers
     virtual std::vector<Endpoint> endpoints() = 0;
     virtual bool open(const Endpoint&, Callback) = 0;
-    virtual void close(const Endpoint&) = 0; // returns only after its callbacks have stopped
+    virtual void close(const Endpoint&) = 0; // idempotent for unopened endpoints; returns only after callbacks stop
 };
 // False returns null before constructing any library observer or backend object.
 std::unique_ptr<Backend> real_backend(bool confirm_midi);

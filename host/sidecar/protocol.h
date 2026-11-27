@@ -18,6 +18,10 @@ struct Request {
     std::string error, tracked_id;
 };
 Json strict_json(const std::string &);
+#ifndef _WIN32
+// Install before starting workers; the handler only sets a lock-free flag.
+void install_shutdown_signals();
+#endif
 // Reader never owns engine state. Writer alone serializes stdout.
 // Production uses platform-native pipe handles; tests use stream-backed pipes.
 class Pipe;
@@ -28,7 +32,8 @@ class Transport {
     std::deque<Request> commands_;
     std::set<std::string> outstanding_;
     std::deque<Json> replies_;
-    Json status_, telemetry_;
+    Json status_, telemetry_, controller_;
+    bool controller_writing_ = false;
     bool eof_ = false, finished_ = false, writing_ = false, closing_ = false, joined_ = false, hello_written_ = false;
     std::chrono::steady_clock::time_point write_deadline_, close_deadline_;
     std::thread reader_, writer_, watchdog_;
@@ -47,6 +52,10 @@ class Transport {
     void complete(const Request &);
     size_t pending();
     void send(Json, bool coalesce = false);
+    // Control owner only: reserve a push only when no earlier controller push
+    // is queued or in-flight. The writer can only make the slot more available.
+    bool controller_available();
+    void discard_controller(); // unsubscribe: discard queued, never interrupt an active write
     void finish();
 };
 } // namespace wirescape::sidecar

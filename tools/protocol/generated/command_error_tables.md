@@ -28,6 +28,7 @@ Source: `docs/specs/protocol.schema.json`; regenerate with `python tools/protoco
 | `ccMap.set` | `moduleId`, `row`, `mapping` |
 | `app.restartEngine` | — |
 | `hello` | `capabilities` |
+| `controllerStream` | `kinds` |
 
 | Refusal error code |
 | --- |

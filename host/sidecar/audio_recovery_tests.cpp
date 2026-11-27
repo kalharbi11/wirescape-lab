@@ -142,6 +142,42 @@ double Stream::cpu_percent() const { return 0; }
 uint64_t Stream::dropouts() const { return 0; }
 uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
 } // namespace wirescape::audio
+// Explicit MIDI injection: this test never constructs a real MIDI backend.
+namespace fake {
+std::atomic<unsigned> midi_enumerations{0}, midi_opens{0}, midi_closes{0};
+std::atomic<bool> midi_throw_once{false}, midi_throw_while{false}, midi_close_throw_once{false},
+    midi_close_throw_while{false};
+std::atomic<unsigned> midi_close_attempts{0}, midi_destructor_callbacks{0};
+class MidiBackend final : public wirescape::midi::Backend {
+    wirescape::midi::Callback callback_{};
+public:
+    ~MidiBackend() override {
+        if (callback_.message) {
+            const uint8_t on[]{0x90, 60, 100};
+            callback_.message(callback_.context, on, sizeof(on), app_engine_clock_ns());
+            ++midi_destructor_callbacks;
+        }
+    }
+    std::vector<wirescape::midi::Endpoint> endpoints() override {
+        ++midi_enumerations;
+        if (midi_throw_once.exchange(false) || midi_throw_while.load())
+            throw std::runtime_error("injected MIDI enumeration failure");
+        return {{"Fake MIDI", "fake:midi"}};
+    }
+    bool open(const wirescape::midi::Endpoint &, wirescape::midi::Callback callback) override {
+        callback_ = callback;
+        ++midi_opens;
+        return true;
+    }
+    void close(const wirescape::midi::Endpoint &) override {
+        ++midi_close_attempts;
+        if (midi_close_throw_once.exchange(false) || midi_close_throw_while.load())
+            throw std::runtime_error("injected MIDI close failure");
+        callback_ = {};
+        ++midi_closes;
+    }
+};
+}
 using namespace wirescape::sidecar;
 using namespace std::chrono_literals;
 void check(bool ok, const char *message) {
@@ -909,8 +945,18 @@ void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
                                       {"from", {{"module", 3}, {"port", "audio"}}},
                                       {"to", {{"module", 1}, {"port", "audio"}}}}})}
     };
-    check(call("c2-load", "loadGraph", {{"patch", patch}})["ok"] == true,
-          "C2 spectral witness must prepare at 96 kHz");
+    const auto c2_blocks_before = fake::completed_blocks.load(std::memory_order_acquire);
+    const auto c2_started = std::chrono::steady_clock::now();
+    const auto c2_loaded = call("c2-load", "loadGraph", {{"patch", patch}});
+    if (c2_loaded["ok"] != true) {
+        const auto elapsed_ms = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - c2_started).count();
+        std::cerr << "C2 load diagnostic: elapsed_ms=" << elapsed_ms
+                  << " callback_blocks="
+                  << (fake::completed_blocks.load(std::memory_order_acquire) - c2_blocks_before)
+                  << " reply=" << c2_loaded.dump() << " audio=" << audio(s).dump() << '\n';
+    }
+    check(c2_loaded["ok"] == true, "C2 spectral witness must prepare at 96 kHz");
     check(bool(fake::freeze_render), "C2 callback quiescence seam available");
     fake::freeze_render();
     fake::render = false;
@@ -1593,6 +1639,116 @@ struct P0aStallSource {
         b.out(0).ch(0)[0] = 0.f;
     }
 };
+// P0b: fail a MIDI start on the actual audio reconnect path. The stream
+// must continue rendering, and MIDI must recover without graph or audio restart.
+void test_p0b_midi_start_failure(const std::filesystem::path &root) {
+    Options options;
+    options.audio = true;
+    options.midi = true;
+    options.settings = (root / "p0b-midi.json").string();
+    options.device = "P0b stereo";
+    std::ofstream(options.settings) << Json{{"devices", Json::array({
+        {{"kind", "midi"}, {"name", "Fake MIDI"}, {"system_name", "fake:midi"}, {"enabled", true}}
+    })}}.dump();
+    fake::outputs = {output("P0b stereo", 0, true)};
+    fake::render = true;
+    fake::midi_throw_once = false;
+    const auto base = std::chrono::steady_clock::now();
+    {
+        Session session(options, std::make_unique<fake::MidiBackend>());
+        session.start(base);
+        check(audio(session)["state"] == "running", "P0b initial audio running");
+        check(fake::midi_opens.load() > 0, "P0b initial MIDI opened");
+        auto *const graph = fake::engine;
+        const auto generation = session.status()["gen"];
+        fake::active = false;
+        session.poll(base + 100ms);
+        check(audio(session)["state"] == "device-lost", "P0b fake audio loss detected");
+        const auto opens = fake::midi_opens.load();
+        fake::midi_throw_once = true;
+        session.poll(base + 200ms); // synchronous Service::poll throws once
+        check(audio(session)["state"] == "running" && fake::engine == graph,
+              "P0b MIDI failure cannot take recovered audio down");
+        check(fake::midi_opens.load() == opens, "P0b injected MIDI startup failed");
+        const auto recovery = session.status()["status"]["midi"]["recovery"];
+        check(recovery == Json{{"state", "retrying"}, {"error", "start-failed"}},
+              "P0b status reports bounded start failure and retry");
+        session.poll(base + 299ms);
+        check(fake::midi_opens.load() == opens, "P0b retry does not run before backoff");
+        const auto stops = fake::stopped, exchanges = fake::exchanges;
+        const auto attempts = fake::attempts.size();
+        const auto blocks = fake::completed_blocks.load();
+        const auto until = std::chrono::steady_clock::now() + 2s;
+        while (fake::completed_blocks.load() <= blocks && std::chrono::steady_clock::now() < until)
+            std::this_thread::sleep_for(1ms);
+        check(fake::completed_blocks.load() > blocks, "P0b audio callbacks continue during MIDI failure");
+        for (int i = 1; i <= 20 && fake::midi_opens.load() == opens; ++i)
+            session.poll(base + 200ms + i * 100ms);
+        check(fake::midi_opens.load() > opens, "P0b MIDI restarted through control poll");
+        check(!session.status()["status"]["midi"].contains("recovery"),
+              "P0b recovered status omits optional failure field");
+        check(fake::engine == graph && session.status()["gen"] == generation &&
+                  fake::stopped == stops && fake::exchanges == exchanges && fake::attempts.size() == attempts,
+              "P0b recovery cannot rebuild graph or restart audio");
+        // The actual worker, not a control-thread restart, publishes recovery.
+        fake::midi_throw_while = true;
+        const auto worker_deadline = std::chrono::steady_clock::now() + 2s;
+        auto midi = [&] { return session.status()["status"]["midi"]; };
+        while (!midi().contains("recovery") && std::chrono::steady_clock::now() < worker_deadline)
+            std::this_thread::sleep_for(5ms);
+        const auto worker_error = midi().value("recovery", Json::object());
+        const auto worker_opens = fake::midi_opens.load();
+        const auto worker_blocks = fake::completed_blocks.load();
+        fake::midi_throw_while = false;
+        check(worker_error == Json{{"state", "retrying"}, {"error", "worker-failed"}},
+              "P0b worker fault reaches Session status");
+        const auto recovered_deadline = std::chrono::steady_clock::now() + 3s;
+        while (midi().contains("recovery") && std::chrono::steady_clock::now() < recovered_deadline)
+            std::this_thread::sleep_for(5ms);
+        check(!midi().contains("recovery") && fake::midi_opens.load() > worker_opens &&
+                  fake::completed_blocks.load() > worker_blocks && fake::engine == graph &&
+                  fake::stopped == stops && fake::attempts.size() == attempts,
+              "P0b worker recovers with callbacks continuing and no stream restart");
+        // Explicit selection must refuse a stop fault and retain the old
+        // selection. The fault must not escape into a session or audio exit.
+        fake::midi_close_throw_once = true;
+        const auto before_close = fake::midi_opens.load();
+        const auto refusal = session.reply({{{"v", 0}, {"id", "p0b-close"}, {"type", "setMidiEnabled"},
+            {"deviceId", "Fake MIDI|fake:midi"}, {"on", false}}, {}, {}});
+        check(refusal["ok"] == false, "P0b explicit disable refuses failed close");
+        check(audio(session)["state"] == "running" && fake::engine == graph &&
+                  fake::stopped == stops && fake::attempts.size() == attempts,
+              "P0b stop failure does not stop audio");
+        check(midi().contains("recovery"), "P0b stop failure is reported in status");
+        const auto retry_base = std::chrono::steady_clock::now();
+        for (int i = 1; i <= 30 && fake::midi_opens.load() == before_close; ++i)
+            session.poll(retry_base + i * 100ms);
+        check(fake::midi_opens.load() > before_close && !midi().contains("recovery") &&
+                  fake::engine == graph && fake::stopped == stops && fake::attempts.size() == attempts,
+              "P0b close-fault retry restores old selection without audio restart");
+        // A permanently failing close retains the target until backend destruction.
+        fake::midi_close_throw_while = true;
+        const auto permanent = session.reply({{{"v", 0}, {"id", "p0b-permanent"}, {"type", "setMidiEnabled"},
+            {"deviceId", "Fake MIDI|fake:midi"}, {"on", false}}, {}, {}});
+        check(permanent["ok"] == false && midi()["recovery"]["error"] == "worker-failed",
+              "P0b permanent close remains retrying");
+        const auto attempts_at_fault = fake::midi_close_attempts.load();
+        const auto retry_now = std::chrono::steady_clock::now();
+        session.poll(retry_now + 100ms);
+        const auto first_retry = fake::midi_close_attempts.load();
+        check(first_retry == attempts_at_fault + 1, "P0b permanent close retries once");
+        for (int i = 0; i < 10; ++i) session.poll(retry_now + 100ms);
+        check(fake::midi_close_attempts.load() == first_retry, "P0b repeated poll cannot spin close");
+        session.poll(retry_now + 300ms);
+        check(fake::midi_close_attempts.load() == first_retry + 1 &&
+                  midi()["recovery"]["error"] == "worker-failed" && fake::engine == graph &&
+                  fake::stopped == stops && audio(session)["state"] == "running",
+              "P0b permanent close retry retains audio and status");
+    } // backend destructor fires a real callback into the retained live slots
+    fake::midi_close_throw_while = false;
+    check(fake::midi_destructor_callbacks.load() == 1, "P0b backend destructor callback reached live storage");
+    fake::render = false;
+}
 void test_p0a_status(const std::filesystem::path &root) {
     Options options;
     options.audio = true;
@@ -1863,7 +2019,7 @@ int main() {
             auto hello = s.hello();
             const auto caps = Json::array({"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate",
                                            "setBufferFrames", "osc", "osc.out", "applyGraph", "configDeferred",
-                                           "audio.renderLiveness"});
+                                           "audio.renderLiveness", "controllerStream"});
             check(hello["audioDevices"].size() == 2 && hello["capabilities"] == caps,
                   "hello must expose the supported device catalogue and methods");
             auto listed = call("list", "listAudioDevices")["result"]["devices"];
@@ -2378,6 +2534,7 @@ int main() {
         test_a81_synthetic_slot();
         test_a82_osc_in_slot(root);
         test_e3c_accepted_routes(root);
+        test_p0b_midi_start_failure(root);
         test_p0a_status(root);
         test_p0a_null_sink(root);
         std::cout << "audio recovery fake-backend tests passed\n";

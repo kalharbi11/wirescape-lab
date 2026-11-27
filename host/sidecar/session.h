@@ -81,6 +81,7 @@ class Session {
     midi::ScriptedBackend *scripted_midi_ = nullptr; // borrowed from injected ObservedMidi
     std::chrono::steady_clock::time_point scripted_started_{};
     bool scripted_started_enabled_ = false;
+    bool scripted_controller_pending_ = false; // test-only subscription witness
     std::unique_ptr<monitor::Capture> monitor_;
     std::unique_ptr<midi::Host> midi_;
     std::unique_ptr<osc::Host> osc_;
@@ -90,6 +91,7 @@ class Session {
     std::string token_, device_, audio_state_ = "no-device", audio_reason_, audio_error_;
     uint32_t requested_block_ = 0; // user's block while an ASIO driver forces another; 0 = none
     uint64_t generation_ = 0, tick_ = 0;
+    uint64_t osc_filter_generation_ = 0; // control-owned; each worker captures an immutable copy
     std::set<uint32_t> used_ids_;
     // A78: latest refused config per blocked live module, never a stale graph.
     uint64_t next_defer_id_ = 0;
@@ -140,7 +142,17 @@ class Session {
     bool poll_audio(std::chrono::steady_clock::time_point, bool enumerated);
     void open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json *fresh);
     void stop_audio();
-    void start_midi();
+    // Control-owned startup/enumeration backoff; worker recovery uses its own
+    // bounded retry clock and publishes only an atomic health observation.
+    const char *midi_retry_error_ = nullptr;
+    std::chrono::steady_clock::time_point midi_retry_{};
+    std::chrono::milliseconds midi_backoff_{100};
+    void midi_failed(const char *, std::chrono::steady_clock::time_point) noexcept;
+    void midi_recovered() noexcept;
+    bool stop_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) noexcept;
+    void start_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
+                    bool strict = false);
+    osc::ControllerObserver controller_observer(uint64_t route_generation) noexcept;
     void start_osc();
     void persist();
     bool refresh_devices(bool audio = true, bool probe_rates = true, const std::string &target = {});
@@ -154,7 +166,7 @@ class Session {
     Json base() const;
 
   public:
-    explicit Session(Options);
+    explicit Session(Options, std::unique_ptr<midi::Backend> injected_midi = {});
     ~Session();
     void shutdown();
     // Begin rendering only after the hello handshake is flushed.
@@ -162,6 +174,7 @@ class Session {
     Json hello() const;
     Json reply(const Request &);
     Json status() const;
+    Json controller(); // control-only; called only with a free writer slot
     Json telemetry();
     Json devices();
     Json take_config_events();

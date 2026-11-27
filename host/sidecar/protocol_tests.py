@@ -556,7 +556,8 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert osc_engine.hello['capabilities'] == ['midiLearn', 'telemetry.playhead',
                                                     'telemetry.monitor', 'setSampleRate',
                                                     'setBufferFrames', 'osc', 'osc.out',
-                                                    'applyGraph', 'configDeferred', 'audio.renderLiveness']
+                                                    'applyGraph', 'configDeferred', 'audio.renderLiveness',
+                                                    'controllerStream']
         osc_patch = minimal()
         osc_patch['modules'].append(dict(id=9, module='osc.in',
                                          config=dict(port=port, lan=True,
@@ -1251,6 +1252,254 @@ with tempfile.TemporaryDirectory() as destinations_dir:
                 raise AssertionError('A91 did not observe both independent sending routes')
         finally:
             destinations.close()
+
+# P1-e #672: test the new opt-in stream on the real sidecar, devices off.
+with tempfile.TemporaryDirectory() as stream_dir:
+    stream = Engine(Path(stream_dir) / 'settings.json', '--scripted-midi')
+    try:
+        def next_push(kind, predicate=lambda message: True):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e missing {kind}: {stream.stderr()}')
+
+        assert 'controllerStream' in stream.hello['capabilities'], 'P1-e capability missing'
+        # Observe several complete status intervals with the scripted backend active.
+        for _ in range(3):
+            while True:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                assert message.get('type') != 'controller', message
+                if message.get('type') == 'status':
+                    assert 'controller' not in message['status']
+                    break
+        for kinds in (['unknown'], ['cc', 'cc']):
+            refusal = stream.call('controllerStream', False, kinds=kinds)
+            assert refusal['code'] == 'invalid', refusal
+            assert refusal['gen'] == '0', refusal
+        enabled = stream.call('controllerStream', kinds=['note', 'pc', 'cc'])
+        assert enabled['gen'] == '0', enabled
+        assert enabled['result'] == dict(kinds=['cc', 'note', 'pc'], oscUnmatched=False), enabled
+        sequence = next_push('controller', lambda m: m['gen'] == '0' and any(
+            e['kind'] == 'pc' and e['channel'] == 16 and e['program'] == 19 for e in m['events']))
+        seq = [e for e in sequence['events'] if e['channel'] == 16]
+        assert [(e['kind'], e.get('controller', e.get('program', e.get('note'))))
+                for e in seq] == [('cc', 4), ('pc', 17), ('cc', 3), ('pc', 18),
+                                  ('cc', 5), ('noteOff', 36), ('pc', 19)], seq
+        assert [e['value'] for e in seq if e['kind'] == 'cc'] == [20, 99, 30], seq
+        assert seq[-2]['velocity'] == 0, seq
+        gen = stream.call('loadGraph', patch=minimal())['gen']
+        event_push = next_push('controller', lambda m: m['gen'] == gen and any(
+            e['kind'] == 'noteOn' for e in m['events']))
+        endpoint = next(d for d in stream.hello['midi']['devices']
+                        if d['system_name'] == 'scripted:midi-m8:0')
+        times = [e['t'] for e in event_push['events']]
+        assert all(type(t) is int and t >= 0 for t in times), event_push
+        assert times == sorted(times), event_push
+        for event in event_push['events']:
+            assert event['deviceId'] == endpoint['id'], event
+            assert 1 <= event['channel'] <= 16, event
+        status = next_push('status', lambda m: m['gen'] == gen and
+                           m['status'].get('controller', {}).get('events', 0) > 0)
+        assert status['status']['controller']['kinds'] == ['cc', 'note', 'pc'], status
+        assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=0), status
+        disabled = stream.call('controllerStream', kinds=[])
+        assert disabled['gen'] == gen and disabled['result']['kinds'] == [], disabled
+        # An already-written push may precede the first off-status; after that
+        # barrier the stream must remain silent.
+        next_push('status', lambda m: 'controller' not in m['status'])
+        for _ in range(3):
+            while True:
+                message = stream.pushes.pop(0) if stream.pushes else stream.receive()
+                assert message.get('type') != 'controller', message
+                if message.get('type') == 'status':
+                    assert 'controller' not in message['status']
+                    break
+    finally:
+        stream.close()
+
+# P1-e #672: only the production loopback socket feeds OSC capture.
+with tempfile.TemporaryDirectory() as osc_stream_dir:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reserve:
+        reserve.bind(('127.0.0.1', 0))
+        port = reserve.getsockname()[1]
+    osc_stream = Engine(Path(osc_stream_dir) / 'settings.json')
+    try:
+        def osc_next(kind, predicate):
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == kind and predicate(message):
+                    return message
+            raise AssertionError(f'P1-e missing OSC {kind}: {osc_stream.stderr()}')
+
+        def padded(text):
+            data = text.encode() + b'\0'
+            return data + b'\0' * ((-len(data)) % 4)
+
+        def osc_packet(address, tags=',f', payload=struct.pack('>f', 0.5)):
+            return padded(address) + padded(tags) + payload
+
+        def bundle(*packets):
+            return b'#bundle\0' + struct.pack('>Q', 1) + b''.join(
+                struct.pack('>I', len(packet)) + packet for packet in packets)
+
+        patch = minimal()
+        patch['modules'].append(dict(id=9, module='osc.in', config=dict(
+            port=port, rows=[dict(pattern='/stream/on', enabled=True),
+                             dict(pattern='/stream/off', enabled=False)])))
+        gen = osc_stream.call('loadGraph', patch=patch)['gen']
+        osc_next('status', lambda m: m['gen'] == gen and any(
+            route['port'] == port and route['state'] == 'listening'
+            for route in m['status']['osc']['routes']))
+        assert osc_stream.call('controllerStream', kinds=['osc'])['gen'] == gen
+
+        def collect_until(address):
+            events = []
+            deadline = time.monotonic() + 8
+            while time.monotonic() < deadline:
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    assert message['gen'] == gen, message
+                    events.extend(message['events'])
+                    if any(event['address'] == address for event in events):
+                        return events
+            raise AssertionError(f'P1-e missing OSC sentinel {address}: {osc_stream.stderr()}')
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+            # The allowed final child is a positive ingress barrier; the
+            # disabled-only and unmatched children must not be reported.
+            sender.sendto(bundle(osc_packet('/stream/off'), osc_packet('/stream/unmatched'),
+                                 osc_packet('/stream/on')), ('127.0.0.1', port))
+            events = collect_until('/stream/on')
+            assert [event['address'] for event in events] == ['/stream/on'], events
+            assert events[0]['matched'] is True and events[0]['args'] == [0.5], events
+            assert events[0]['port'] == port and type(events[0]['t']) is int, events
+            changed = osc_stream.call('controllerStream', kinds=['osc'], oscUnmatched=True)
+            assert changed['gen'] == gen and changed['result']['oscUnmatched'] is True, changed
+            # OSC types d/h are numeric; string and a fifth numeric arg are
+            # skipped with more=true, not silently treated as zero.
+            mixed = osc_packet('/stream/mixed', ',idhTsf',
+                               struct.pack('>idq', -2, 0.25, 42) + padded('skip') +
+                               struct.pack('>f', 0.75))
+            oversized = osc_packet('/' + 'a' * 128)
+            sender.sendto(bundle(osc_packet('/stream/off'), oversized, mixed,
+                                 osc_packet('/stream/barrier', ',F', b'')), ('127.0.0.1', port))
+            events = collect_until('/stream/barrier')
+            assert [event['address'] for event in events] == ['/stream/mixed', '/stream/barrier'], events
+            assert all(event['matched'] is False for event in events), events
+            assert events[0]['args'] == [-2, 0.25, 42, 1] and events[0]['more'] is True, events
+            assert events[1]['args'] == [0], events
+            status = osc_next('status', lambda m: m['status'].get('controller', {}).get(
+                'dropped', {}).get('oversize', 0) >= 1)
+            assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=1), status
+
+            # The worker has a per-listener 64 decoded-message budget, not
+            # merely a datagram budget. One 65-child bundle must not evade it.
+            # Use distinct keys and a post-status sentinel to distinguish
+            # missing ingress from legitimate latest-wins coalescing.
+            def route_status(message):
+                return next(r for r in message['status']['osc']['routes']
+                            if r['port'] == port)
+
+            budget_before = route_status(status)['listener_budget_dropped']
+            burst = bundle(*(osc_packet('/b/%02d' % i) for i in range(65)))
+            assert len(burst) <= 2048
+            sender.sendto(burst, ('127.0.0.1', port))
+            observed = []
+            deadline = time.monotonic() + 8
+            while True:
+                assert time.monotonic() < deadline, 'OSC worker did not report bundle budget'
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    observed.extend(event['address'] for event in message['events'])
+                elif message.get('type') == 'status':
+                    if route_status(message)['listener_budget_dropped'] > budget_before:
+                        assert route_status(message)['listener_budget_dropped'] == budget_before + 1
+                        break
+            sender.sendto(osc_packet('/stream/budget-done'), ('127.0.0.1', port))
+            observed.extend(event['address'] for event in collect_until('/stream/budget-done'))
+            assert observed == ['/b/%02d' % i for i in range(64)] + ['/stream/budget-done'], observed
+
+            # Compare cadence on this same graph, with and without 800 ingress
+            # events/s. Use 8 children per 10 ms bundle to avoid timer-dependent
+            # 1.25 ms sleeps on Windows. Observe pipe arrivals in real time.
+            def cadence(load):
+                osc_stream.pushes.clear()
+                while True:
+                    try:
+                        osc_stream.messages.get_nowait()
+                    except queue.Empty:
+                        break
+                stamps = {'status': [], 'telemetry': []}
+                packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
+                # CPython 3.12 on Windows uses GetTickCount64 for monotonic(),
+                # whose tick can exceed a 10 ms send interval. perf_counter()
+                # uses QueryPerformanceCounter; measure both scheduling and
+                # push cadence on this same high-resolution monotonic clock.
+                clock = time.perf_counter
+                start = clock()
+                end = start + 2.0
+                sent = 0
+                last_send = None
+                while True:
+                    now = clock()
+                    if now >= end:
+                        break
+                    if load:
+                        # Absolute schedule: 200 bundles of eight at 10 ms
+                        # intervals, all within the original 2 s window.
+                        while sent < 1600 and start + sent / 800 <= now < end:
+                            sender.sendto(packet, ('127.0.0.1', port))
+                            sent += 8
+                            last_send = now - start
+                            now = clock()
+                    try:
+                        msg = osc_stream.messages.get_nowait()
+                    except queue.Empty:
+                        # Leave the final 1 ms before a due send to the
+                        # high-resolution clock rather than an OS wait.
+                        # No sleeping past the next scheduled send or end.
+                        wake = min(end, start + sent / 800) if load and sent < 1600 else end
+                        delay = min(0.0005, wake - clock() - 0.001)
+                        if delay > 0:
+                            time.sleep(delay)
+                        continue
+                    if msg.get('type') in stamps:
+                        stamps[msg['type']].append(clock())
+                if load:
+                    diagnostic = (f'sent={sent}/1600 last_send={last_send} '
+                                  f'elapsed={clock() - start:.6f} '
+                                  f'perf_counter={time.get_clock_info("perf_counter")} '
+                                  f'monotonic={time.get_clock_info("monotonic")}')
+                    print(f'P1-e cadence driver: {diagnostic}', flush=True)
+                    assert sent == 1600, diagnostic
+                return stamps
+
+            idle = cadence(False)
+            before_load = osc_next('status', lambda m: m['gen'] == gen)
+            before_route = route_status(before_load)
+            before_attempted = before_route['received'] + before_route['enqueue_dropped']
+            before_emitted = before_load['status']['controller']['events']
+            busy = cadence(True)
+            after_load = osc_next('status', lambda m: m['gen'] == gen and
+                                  route_status(m)['received'] + route_status(m)['enqueue_dropped']
+                                  >= before_attempted + 1600)
+            after_route = route_status(after_load)
+            assert after_route['listener_budget_dropped'] == before_route['listener_budget_dropped']
+            assert after_load['status']['controller']['events'] > before_emitted
+            assert after_load['status']['controller']['dropped'] == before_load['status']['controller']['dropped']
+            for stamps in (idle, busy):
+                assert len(stamps['status']) >= 18, stamps
+                assert max(b - a for a, b in zip(stamps['status'], stamps['status'][1:])) < 0.150, stamps
+                assert len(stamps['telemetry']) >= 50, stamps
+            # One telemetry interval at each measurement boundary, not a
+            # widened status deadline or an altered event rate.
+            assert abs(len(idle['telemetry']) - len(busy['telemetry'])) <= 2, (idle, busy)
+
+    finally:
+        osc_stream.close()
 
 # OB-g3 / #317: real sidecar and graph-delivery witness during a live MIDI
 # endpoint toggle. The opt-in scripted backend has one virtual identity; this

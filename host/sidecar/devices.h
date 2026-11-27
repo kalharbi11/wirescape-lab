@@ -3,6 +3,7 @@
 #include "midi_backend.h"
 #include "../audio/portaudio_service.h"
 #include "protocol.h"
+#include "controller_stream.h"
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -26,6 +27,7 @@ class ObservedMidi final : public midi::Backend {
     };
     std::unique_ptr<midi::Backend> backend_;
     std::array<Slot, 16> slots_{};
+    ControllerStream controller_stream_;
     // One latest-wins observation; no queue, callbacks never allocate or lock.
     static_assert(std::atomic<uint64_t>::is_always_lock_free, "MIDI Learn packet must be lock-free");
     static_assert(std::atomic<uint32_t>::is_always_lock_free, "MIDI Learn sequence must be lock-free");
@@ -51,6 +53,8 @@ class ObservedMidi final : public midi::Backend {
   public:
     explicit ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Backend> injected = {},
                           bool scripted_busy_test_endpoint = false);
+    ~ObservedMidi() override;
+    ControllerStream &controller_stream() noexcept { return controller_stream_; }
     std::vector<midi::Endpoint> endpoints() override;
     std::vector<midi::Endpoint> observed();
     bool open(const midi::Endpoint &, midi::Callback) override;

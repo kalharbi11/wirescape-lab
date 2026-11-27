@@ -1,4 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
 // Compile the real helper with Qt's keyword macro in scope, before session.h includes it.
 #include <nlohmann/json.hpp>
 #define slots
@@ -9,11 +20,14 @@
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "d5_gap_deadline.h"
 #include "devices.h"
+#include "../osc/codec.h"
 #include "midi_service.h"
 #include "null_sink_wait.h"
 #include "runtime_patch.h"
 #include "session.h"
 #include <iostream>
+#include <limits>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 using namespace wirescape::sidecar;
@@ -109,6 +123,388 @@ void midi_learn_observation() {
     check(fake.learning() == Json({{"armed", true}}));
     fake.arm_learning(false);
     check(fake.learning().is_null());
+}
+
+// P1-e: deterministic MIDI callback witness with the control/writer held.
+// Use the existing ObservedMidi injection seam, not a second parser or queue.
+void controller_stream_midi_observation() {
+    using namespace wirescape::midi;
+    auto scripted = std::make_unique<ScriptedBackend>();
+    auto *source = scripted.get();
+    ObservedMidi fake(false, false, std::move(scripted));
+    auto endpoints = fake.endpoints();
+    check(endpoints.size() == 1 && fake.open(endpoints[0], {}));
+    auto &capture = fake.controller_stream();
+    const uint8_t initial[]{0xB0, 1, 7};
+    check(source->inject(initial, 3, app_engine_clock_ns()));
+    check(capture.drain().empty() && capture.status().is_null());
+    capture.configure({"cc", "pc", "note"}, false);
+    uint64_t allocations;
+    {
+        allocation_watch::ThreadScope scope;
+        const uint8_t cc1[]{0xB0, 0, 3}, cc2[]{0xB0, 32, 4}, cc3[]{0xB0, 0, 9};
+        const uint8_t pc[]{0xC0, 5};
+        const uint8_t off[]{0x99, 36, 0};
+        check(source->inject(cc1, 3, app_engine_clock_ns()));
+        check(source->inject(cc2, 3, app_engine_clock_ns()));
+        check(source->inject(pc, 2, app_engine_clock_ns()));
+        check(source->inject(cc3, 3, app_engine_clock_ns()));
+        check(source->inject(off, 3, app_engine_clock_ns()));
+        allocations = scope.allocations();
+    }
+    check(allocations == 0);
+    const auto events = capture.drain();
+    check(events.size() == 4);
+    check(events[0]["kind"] == "cc" && events[0]["controller"] == 32 && events[0]["value"] == 4);
+    check(events[1]["kind"] == "pc" && events[1]["program"] == 5);
+    check(events[2]["kind"] == "cc" && events[2]["controller"] == 0 && events[2]["value"] == 9);
+    check(events[3]["kind"] == "noteOff" && events[3]["channel"] == 10 &&
+          events[3]["note"] == 36 && events[3]["velocity"] == 0);
+    for (const auto &event : events)
+        check(event["deviceId"] == endpoints[0].name + "|" + endpoints[0].system_name &&
+              event["t"].is_number_unsigned());
+    check(capture.status()["dropped"] == Json({{"fifo", 0}, {"latest", 0}, {"oversize", 0}}));
+
+    // Exactly 300 FIFO arrivals without draining: reject the newest 44.
+    {
+        allocation_watch::ThreadScope scope;
+        for (unsigned i = 0; i < 300; ++i) {
+            const uint8_t pc[]{uint8_t(0xC0 | (i / 128)), uint8_t(i % 128)};
+            check(source->inject(pc, 2, app_engine_clock_ns()));
+        }
+        allocations = scope.allocations();
+    }
+    check(allocations == 0);
+    const auto fifo = capture.drain();
+    check(fifo.size() == 256);
+    for (unsigned i = 0; i < fifo.size(); ++i)
+        check(fifo[i]["kind"] == "pc" && fifo[i]["program"] == i % 128 &&
+              fifo[i]["channel"] == i / 128 + 1);
+    check(capture.status()["dropped"]["fifo"] == 44);
+    // The 128 shared latest keys are a hard bound, not an eviction cache.
+    for (unsigned i = 0; i < 128; ++i) {
+        const uint8_t cc[]{0xB0, uint8_t(i), 1};
+        check(source->inject(cc, 3, app_engine_clock_ns()));
+    }
+    const uint8_t extra[]{0xB1, 0, 2}, update[]{0xB0, 0, 99};
+    check(source->inject(extra, 3, app_engine_clock_ns()));
+    check(source->inject(update, 3, app_engine_clock_ns()));
+    const auto latest = capture.drain();
+    check(latest.size() == 128 && latest.back()["controller"] == 0 && latest.back()["value"] == 99);
+    check(capture.status()["dropped"]["latest"] == 1);
+    capture.configure({}, false);
+    check(source->inject(initial, 3, app_engine_clock_ns()));
+    check(capture.drain().empty() && capture.status().is_null());
+    fake.close(endpoints[0]);
+}
+
+// P1-e stream-only OSC types must not broaden the graph codec. Validate
+// the whole bundle before either ingress consumer sees a child.
+void controller_stream_osc_codec() {
+    using namespace wirescape::osc;
+    const uint8_t simple[]{'/', 'x', 0, 0, ',', 'i', 0, 0, 0, 0, 0, 7};
+    const uint8_t wide[]{
+        '/', 'w', 0, 0, ',', 'h', 'd', 'T', 0, 0, 0, 0,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xd6, // -42 signed int64
+        0x3f, 0xd0, 0, 0, 0, 0, 0, 0                     // 0.25 binary64
+    };
+    std::array<uint8_t, 16 + 4 + sizeof(simple) + 4 + sizeof(wide)> bundle{};
+    std::memcpy(bundle.data(), "#bundle", 7);
+    size_t at = 16;
+    put32(bundle.data() + at, sizeof(simple)); at += 4;
+    std::memcpy(bundle.data() + at, simple, sizeof(simple)); at += sizeof(simple);
+    put32(bundle.data() + at, sizeof(wide)); at += 4;
+    std::memcpy(bundle.data() + at, wide, sizeof(wide));
+    unsigned delivered = 0;
+    check(!parse(bundle.data(), bundle.size(), [&](const Message &) { ++delivered; }));
+    check(delivered == 0); // exact existing graph behavior
+    uint64_t allocations;
+    {
+        allocation_watch::ThreadScope scope;
+        check(parse_controller(bundle.data(), bundle.size(), [&](const Message &message, bool legacy_packet) {
+            check(!legacy_packet);
+            if (delivered++ == 0)
+                check(message.address == "/x" && message.arguments[0].integer == 7);
+            else {
+                check(message.address == "/w" && message.count == 3);
+                check(message.arguments[0].type == 'h' && message.arguments[0].wide_integer == -42);
+                check(message.arguments[1].type == 'd' && message.arguments[1].wide_real == 0.25);
+                check(message.arguments[2].type == 'T');
+            }
+        }));
+        allocations = scope.allocations();
+    }
+    check(delivered == 2 && allocations == 0);
+    delivered = 0;
+    check(!parse_controller(bundle.data(), bundle.size() - 4, [&](const Message &, bool) { ++delivered; }));
+    check(delivered == 0); // no partial stream capture from malformed tree
+    check(parse_controller(simple, sizeof(simple), [&](const Message &, bool legacy_packet) {
+        check(legacy_packet); ++delivered;
+    }));
+    check(delivered == 1);
+
+    // Decode actual mixed wire tags to the same bounded capture used by
+    // the future worker hook. Non-finite or nonnumeric args are skipped,
+    // not converted to JSON null, and later numeric args fill free slots.
+    ControllerStream capture;
+    capture.configure({"osc"}, true);
+    Message mixed;
+    mixed.address = "/mixed";
+    mixed.count = 8;
+    mixed.arguments[0].type = 'h';
+    mixed.arguments[0].wide_integer = INT64_C(-9007199254740993);
+    mixed.arguments[1].type = 'f';
+    mixed.arguments[1].real = std::numeric_limits<float>::quiet_NaN();
+    mixed.arguments[2].type = 's';
+    mixed.arguments[3].type = 'd';
+    mixed.arguments[3].wide_real = 0.25;
+    mixed.arguments[4].type = 'T';
+    mixed.arguments[5].type = 'F';
+    mixed.arguments[6].type = 'i';
+    mixed.arguments[6].integer = 5;
+    mixed.arguments[7].type = 'N';
+    {
+        allocation_watch::ThreadScope scope;
+        capture.osc_message(9000, mixed, false, false);
+        allocations = scope.allocations();
+    }
+    check(allocations == 0);
+    const auto events = capture.drain();
+    check(events.size() == 1 && events[0]["more"] == true);
+    check(events[0]["args"] == Json::array({INT64_C(-9007199254740993), 0.25, 1, 0}));
+}
+
+// P1-e: direct capture boundary before the worker hook is granted.
+// One shared capacity, exact integer OSC args, full address, no JSON
+// serialization failure on a malformed network address.
+void controller_stream_osc_capture() {
+    ControllerStream capture;
+    capture.configure({"cc", "osc"}, true);
+    using Number = ControllerStream::Number;
+    const std::array<Number, 4> args{{
+        {INT64_C(9007199254740993), 0, false}, {0, 0.25, true},
+        {1, 0, false}, {0, 0, false}
+    }};
+    capture.osc(9000, "/same", true, false, args, 4, true);
+    capture.osc(9001, "/same", false, false, args, 4, false);
+    capture.osc(9000, "/disabled", false, true, args, 4, false);
+    const std::string oversized = "/" + std::string(128, 'a');
+    capture.osc(9000, oversized, false, false, args, 4, false);
+    const std::string invalid = std::string("/") + char(0xff);
+    capture.osc(9000, invalid, false, false, args, 4, false);
+    auto first = capture.drain();
+    check(first.size() == 2);
+    check(first[0]["port"] == 9000 && first[1]["port"] == 9001);
+    check(first[0]["args"][0].get<int64_t>() == INT64_C(9007199254740993));
+    check(first[0]["args"][1] == 0.25 && first[0]["more"] == true);
+    check(!first[1].contains("more") && first[0]["matched"] == true && first[1]["matched"] == false);
+    check(!first.dump().empty());
+    check(capture.status()["dropped"]["oversize"] == 1);
+    // The 128 latest keys are shared between MIDI and OSC, not 128 per kind.
+    for (unsigned i = 0; i < 127; ++i) {
+        const uint8_t cc[]{0xB0, uint8_t(i), 1};
+        capture.midi("A", "a", cc, sizeof(cc));
+    }
+    capture.osc(9000, "/first", true, false, args, 1, false);
+    capture.osc(9000, "/extra", true, false, args, 1, false);
+    capture.osc(9000, "/first", true, false, args, 2, false);
+    auto second = capture.drain();
+    check(second.size() == 128 && second.back()["address"] == "/first");
+    check(second.back()["args"].size() == 2 && capture.status()["dropped"]["latest"] == 1);
+    capture.configure({"osc"}, false);
+    capture.osc(9000, "/unmatched", false, false, args, 0, false);
+    capture.osc(9000, "/matched", true, false, args, 0, false);
+    auto third = capture.drain();
+    check(third.size() == 1 && third[0]["address"] == "/matched");
+    capture.configure({}, false);
+    check(capture.status().is_null());
+    capture.configure({"osc"}, true);
+    check(capture.drain().empty() && capture.status()["dropped"]["latest"] == 1);
+}
+
+// All 16 permitted MIDI endpoint writers compete for the same shared
+// capture capacity. One owner per distinct device ID, no callback lock.
+void controller_stream_parallel_ingress() {
+    ControllerStream capture;
+    capture.configure({"cc", "pc"}, false);
+    std::array<std::thread, 16> writers;
+    std::array<uint64_t, 16> allocations{};
+    std::array<std::string, 16> names;
+    std::atomic<bool> start{false};
+    for (unsigned i = 0; i < writers.size(); ++i) {
+        names[i] = "device-" + std::to_string(i);
+        writers[i] = std::thread([&, i] {
+            while (!start.load(std::memory_order_acquire)) std::this_thread::yield();
+            allocation_watch::ThreadScope scope;
+            for (unsigned j = 0; j < 16; ++j) {
+                const uint8_t pc[]{0xC0, uint8_t(j)};
+                const uint8_t cc[]{0xB0, uint8_t(j % 8), uint8_t(j)};
+                capture.midi(names[i], "test", pc, sizeof(pc));
+                capture.midi(names[i], "test", cc, sizeof(cc));
+            }
+            allocations[i] = scope.allocations();
+        });
+    }
+    start.store(true, std::memory_order_release);
+    for (auto &writer : writers) writer.join();
+    const auto events = capture.drain();
+    check(events.size() == 384);
+    check(capture.status()["dropped"] == Json({{"fifo", 0}, {"latest", 0}, {"oversize", 0}}));
+    std::map<std::string, int> next_program;
+    std::map<std::string, unsigned> cc_count;
+    for (const auto &event : events) {
+        const auto device = event["deviceId"].get<std::string>();
+        if (event["kind"] == "pc") check(event["program"] == next_program[device]++);
+        else {
+            check(event["kind"] == "cc");
+            check(event["value"].get<unsigned>() == event["controller"].get<unsigned>() + 8);
+            ++cc_count[device];
+        }
+    }
+    for (unsigned i = 0; i < writers.size(); ++i) {
+        const auto id = names[i] + "|test";
+        check(allocations[i] == 0 && next_program[id] == 16 && cc_count[id] == 8);
+    }
+}
+
+// A110: the real Service owns the authoritative admission bit. A backend
+// that throws before joining may still invoke its callback into retained
+// storage; the new controller stream must not report that callback.
+void controller_stream_quiesced_midi() {
+    using namespace wirescape::midi;
+    struct LateBackend : Backend {
+        Endpoint endpoint{"Late MIDI", "test:late"};
+        Callback callback{};
+        bool close_fails = false;
+        std::vector<Endpoint> endpoints() override { return {endpoint}; }
+        bool open(const Endpoint &, Callback cb) override { callback = cb; return true; }
+        void close(const Endpoint &) override {
+            if (close_fails) throw std::runtime_error("test close fault");
+            callback = {};
+        }
+        void emit(uint8_t value) {
+            const uint8_t cc[]{0xB0, 7, value};
+            callback.message(callback.context, cc, sizeof(cc), app_engine_clock_ns());
+        }
+    };
+    auto late = std::make_unique<LateBackend>();
+    auto *source = late.get();
+    ObservedMidi observed(false, false, std::move(late));
+    Service service(observed, {});
+    check(service.enable({source->endpoint.name, source->endpoint.system_name}));
+    service.poll();
+    auto &capture = observed.controller_stream();
+    capture.configure({"cc"}, false);
+    source->emit(1);
+    auto first = capture.drain();
+    check(first.size() == 1 && first[0]["value"] == 1);
+    source->close_fails = true;
+    bool threw = false;
+    try { service.stop(); } catch (const std::exception &) { threw = true; }
+    check(threw);
+    source->emit(2); // deliberately late callback after Service accepting=false
+    const auto quiesced = capture.drain();
+    source->close_fails = false;
+    service.stop(); // close/join before destruction, even if the assertion fails
+    check(quiesced.empty());
+}
+
+// A110: actual loopback ingress into a Session, with a real occupied
+// Transport writer slot. Commit a graph before releasing that slot;
+// the pending old-filter event must be discarded and counted once.
+void controller_stream_graph_commit() {
+#ifdef _WIN32
+    WSADATA data{};
+    check(WSAStartup(MAKEWORD(2, 2), &data) == 0);
+    struct SocketCleanup { ~SocketCleanup() { WSACleanup(); } } cleanup;
+    using Socket = SOCKET;
+    constexpr Socket invalid = INVALID_SOCKET;
+    auto close_socket = [](Socket fd) { closesocket(fd); };
+#else
+    using Socket = int;
+    constexpr Socket invalid = -1;
+    auto close_socket = [](Socket fd) { close(fd); };
+#endif
+    struct OwnedSocket {
+        Socket fd;
+        decltype(close_socket) closer;
+        ~OwnedSocket() { if (fd != invalid) closer(fd); }
+    };
+    OwnedSocket reserve{socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), close_socket};
+    check(reserve.fd != invalid);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    check(bind(reserve.fd, reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == 0);
+#ifdef _WIN32
+    int size = sizeof(address);
+#else
+    socklen_t size = sizeof(address);
+#endif
+    check(getsockname(reserve.fd, reinterpret_cast<sockaddr *>(&address), &size) == 0);
+    const uint16_t port = ntohs(address.sin_port);
+    close_socket(reserve.fd); reserve.fd = invalid;
+    OwnedSocket sender{socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), close_socket};
+    check(sender.fd != invalid && port != 0);
+
+    Options options;
+    options.null_audio = true;
+    options.settings.clear(); // no physical devices or preferences write
+    Session session(options);
+    session.start();
+    const Json patch = {{"format", "wirescape.native.patch"}, {"version", 2},
+        {"modules", Json::array({{{"id", 1}, {"module", "essentials.output"}},
+            {{"id", 9}, {"module", "osc.in"}, {"config", {{"port", port},
+                {"rows", Json::array({{{"pattern", "/x"}, {"enabled", true}}})}}}}})},
+        {"connections", Json::array()}};
+    auto call = [&](Json command) {
+        command["v"] = 0; command["id"] = "controller-commit";
+        auto result = session.reply({std::move(command), {}, {}});
+        if (result["ok"] != true) throw std::runtime_error(result.dump());
+        return result;
+    };
+    const auto first_gen = call({{"type", "loadGraph"}, {"patch", patch}})["gen"];
+    call({{"type", "controllerStream"}, {"kinds", Json::array({"osc"})}});
+    auto send = [&] {
+        const char packet[]{'/', 'x', 0, 0, ',', 'i', 0, 0, 0, 0, 0, 7};
+        check(sendto(sender.fd, packet, int(sizeof(packet)), 0,
+                     reinterpret_cast<const sockaddr *>(&address), sizeof(address)) == int(sizeof(packet)));
+    };
+    auto received = [&] {
+        const auto status = session.status();
+        const auto &routes = status["status"]["osc"]["routes"];
+        return !routes.empty() && (routes[0]["received"].get<uint64_t>() +
+                                    routes[0]["enqueue_dropped"].get<uint64_t>()) != 0;
+    };
+    auto wait_ingress = [&] {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+        while (!received() && std::chrono::steady_clock::now() < deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        check(received());
+    };
+    std::istringstream input("");
+    std::ostringstream output;
+    Transport held(input, output);
+    held.send({{"type", "controller"}, {"gen", first_gen}, {"probe", true}}, true);
+    check(!held.controller_available());
+    send(); wait_ingress();
+    const auto next_gen = call({{"type", "loadGraph"}, {"patch", patch}})["gen"];
+    check(next_gen != first_gen);
+    held.start(); held.finish();
+    check(held.controller_available());
+    check(session.controller().is_null());
+    check(session.status()["status"]["controller"]["dropped"]["latest"] == 1);
+    send(); wait_ingress();
+    Json current;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    do {
+        current = session.controller();
+        if (!current.is_null()) break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    } while (std::chrono::steady_clock::now() < deadline);
+    check(current["gen"] == next_gen && current["events"].size() == 1 &&
+          current["events"][0]["address"] == "/x" && current["events"][0]["matched"] == true);
+    session.shutdown();
 }
 
 void d5_phase_deadline_regression() {
@@ -209,6 +605,12 @@ void sink_wait_deadline_regression() {
 
 int run_tests() {
     midi_learn_observation();
+    controller_stream_midi_observation();
+    controller_stream_osc_codec();
+    controller_stream_osc_capture();
+    controller_stream_parallel_ingress();
+    controller_stream_quiesced_midi();
+    controller_stream_graph_commit();
     RenderHistogram histogram;
     check(histogram.percentile(50) == 0);
     allocation_watch::count.store(0);
@@ -325,6 +727,30 @@ int run_tests() {
     check(bool(std::getline(coalesced_messages, message)));
     check(strict_json(message) == Json({{"type", "telemetry"}, {"probe", 2}}));
     check(!std::getline(coalesced_messages, message));
+
+    // P1-e: a held writer must retain the first controller push in its own
+    // slot. Status and telemetry are independent; reliable replies still win.
+    std::istringstream controller_input("");
+    std::ostringstream controller_output;
+    Transport controller_transport(controller_input, controller_output);
+    controller_transport.send({{"type", "controller"}, {"probe", 10}}, true);
+    controller_transport.send({{"type", "status"}, {"probe", 20}}, true);
+    controller_transport.send({{"type", "telemetry"}, {"probe", 30}}, true);
+    controller_transport.send({{"type", "controller"}, {"probe", 11}}, true);
+    controller_transport.send({{"re", "reliable"}, {"ok", true}});
+    controller_transport.start();
+    controller_transport.finish();
+    std::istringstream controller_messages(controller_output.str());
+    check(bool(std::getline(controller_messages, message)));
+    check(strict_json(message) == Json({{"re", "reliable"}, {"ok", true}}));
+    std::map<std::string, int> controller_probes;
+    while (std::getline(controller_messages, message)) {
+        const auto value = strict_json(message);
+        check(controller_probes.emplace(value["type"].get<std::string>(),
+                                        value["probe"].get<int>()).second);
+    }
+    check(controller_probes == std::map<std::string, int>{
+        {"controller", 10}, {"status", 20}, {"telemetry", 30}});
 
     ObservedMidi fake(true, false);
     auto endpoints = fake.endpoints();
