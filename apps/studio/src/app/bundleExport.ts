@@ -2,7 +2,7 @@
 import type { PatchV2 } from '../patch/types';
 import { ioObject } from '../patch/ioProjection';
 
-export interface ExportPatch { title: string; patch: PatchV2 }
+export interface ExportPatch { title: string; patch: PatchV2; sourceText?: string }
 interface MacroControl { id: string; target: { macro: { page: number; knob: number } } }
 interface MacroPage { title: string; controls: string[] }
 interface ScriptEntry { file: string; port: number }
@@ -25,7 +25,7 @@ export function buildPlayerBundle(title: string, inputs: readonly ExportPatch[])
   if (!title.trim() || !inputs.length) throw new Error('Choose a bundle title and at least one patch.');
   const scripts = new Map<string, string>();
   const patches: PlayerBundle['patches'] = [];
-  const setlist = inputs.map(({ title, patch }, i): PlayerEntry => {
+  const setlist = inputs.map(({ title, patch, sourceText }, i): PlayerEntry => {
     if (!title.trim() || patch.format !== 'wirescape.native.patch' || patch.version !== 2 ||
         !Array.isArray(patch.modules) || !Array.isArray(patch.connections))
       throw new Error('Export requires named native v2 patches.');
@@ -65,7 +65,11 @@ export function buildPlayerBundle(title: string, inputs: readonly ExportPatch[])
     }
     // Numbered filenames avoid user-controlled paths, collisions and reordering.
     const name = `patch-${String(i + 1).padStart(4, '0')}.json`;
-    patches.push({ name, text: JSON.stringify(patch, null, 2) + '\n' });
+    // File imports preserve their bytes, including whitespace and unknown fields.
+    // A current editor snapshot has no source file and is serialized normally.
+    if (sourceText !== undefined && JSON.stringify(JSON.parse(sourceText)) !== JSON.stringify(patch))
+      throw new Error('Patch source text does not match its parsed document.');
+    patches.push({ name, text: sourceText ?? (JSON.stringify(patch, null, 2) + '\n') });
     return { patch: `patches/${name}`, title, controls, pages, scripts: [...linked.values()] };
   });
   return { player: { format: 'wirescape.player', version: 1, title, setlist },
