@@ -13,6 +13,18 @@ foreach(case_name adsr-notes frequency-step blend-selection)
       --configuration "$<CONFIG>")
   set_tests_properties(render_evidence_${test_name} PROPERTIES TIMEOUT 90)
 endforeach()
+# #663: run the unchanged ADSR note case at Daisy-sized blocks.
+foreach(block_size 16 17)
+  add_test(NAME render_evidence_adsr_notes_block_${block_size}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/evidence.py
+      --render $<TARGET_FILE:wirescape_render>
+      --case ${CMAKE_CURRENT_SOURCE_DIR}/cases/adsr-notes.json
+      --block ${block_size}
+      --out ${CMAKE_BINARY_DIR}/render_evidence/adsr-notes-block-${block_size}
+      --compiler "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+      --configuration "$<CONFIG>")
+  set_tests_properties(render_evidence_adsr_notes_block_${block_size} PROPERTIES TIMEOUT 90)
+endforeach()
 # Device-free, real AppEngine regression for every published Studio patch.
 # The existing evidence SILENT_PEAK threshold is reused by library_smoke.py.
 add_test(NAME render_evidence_library_smoke
