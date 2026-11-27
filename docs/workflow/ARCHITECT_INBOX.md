@@ -34,12 +34,13 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
-| U-review | 2026-11-27 | claude-architect | independent review | **now** | Bundle U ([TASKS](TASKS.md)): fix for #718 and #719 C4, written by the Architect, so a **separate session** reviews it (`Approved for merge <sha7>`). PR link in CURRENT run 57. | test bundle G (pin bump), test PRs #40 and #47 |
 
 
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| test #38 GUTTR | 2026-11-27 | owner: review and merge GUTTR | **Merged** `3cc1b4b` after [review](https://github.com/kalharbi11/wirescape-test/pull/38#issuecomment-7216596131) at `2edbf19` (local T0, Studio shot, exact-head T0/T1). |
-| #718/#719 hold | 2026-11-27 | owner: open #718 and #719 | **Released** as bundle U; renderer half split to #722 (bundle R). |
+| U-review | 2026-11-27 | separate-session review of bundle U | **Approved and merged** by the lead as `3d3db7a` (#724); Lab, Golden, Module Tools green. |
+| SC4-export (#728) | 2026-11-27 | gpt-builder2: desktop bridge and headless check | **A112** [ruling](https://github.com/kalharbi11/wirescape-lab/pull/726#issuecomment-7217307649). |
+| B1-MB2-L4 (#729) | 2026-11-27 | gpt-builder1: MB2 UI order and source-only drift | **A113** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217309596). |
+| B2 blocked (#494, #326) | 2026-11-27 | owner: resolve B2 blocked status | #494 closed (not reproduced); #326 waits only on the post-#635 soak dispatched at `3d3db7a`. |
