@@ -182,3 +182,25 @@ test('MM1 real bridge: refused amount compensates accepted base without rebuildi
   expect(await commands(page)).toEqual(['setParam', 'setModAmount', 'setParam']);
   expect(await snapshot(page)).toEqual(before);
 });
+
+test('MM1 Groove: mapping applyGraph leaves an unrelated uncommitted pattern off the wire', async ({ page }) => {
+  await setup(page);
+  const config = { version: 1, bpm: 120, tracks: [{ steps: [{ kind: 'note', key: 60, velocity: .5 }] }] };
+  const patch: PatchV2 = { ...fixture, modules: [...fixture.modules, { id: 4, module: 'sequencing.groove', config }] };
+  await page.evaluate(p => window.__wirescapeTest.load(p, 'MM1 Groove'), patch);
+  await expect.poll(() => page.evaluate(() => (window as any).__mockBridge.getGraph().modules.length)).toBe(4);
+  await settle(page);
+  const running = await page.evaluate(() => (window as any).__mockBridge.getGraph().modules.find((m: any) => m.id === 4).config);
+  const draft = { ...config, bpm: 135 };
+  await page.evaluate(d => {
+    const a = window.__wirescapeTest;
+    a.doc.setModuleConfig(4, d);
+    a.flushHistory();
+    (window as any).__mockBridge.sent.length = 0;
+  }, draft);
+  await page.evaluate(() => window.__wirescapeTest.addMapping({ module: 1, port: 'cc2' }, { module: 3, port: 'depth' }));
+  expect(await commands(page)).toEqual(['applyGraph']);
+  const after = await snapshot(page);
+  expect(after.patch.modules.find(m => m.id === 4)?.config).toEqual(draft);
+  expect(after.graph.modules.find((m: any) => m.id === 4).config).toEqual(running);
+});
