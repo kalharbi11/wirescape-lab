@@ -3,6 +3,7 @@
 #include "../../engine/midi_release.h"
 #include <algorithm>
 #include <chrono>
+#include <stdexcept>
 namespace wirescape::midi {
 namespace {
 uint64_t now_ns() { return uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()); }
@@ -91,7 +92,7 @@ void Service::refresh() {
         if (matches != 1) found = nullptr;
         selected[i] = found;
         if (slot.online && (!found || found->system_name != slot.actual.system_name)) {
-            slot.accepting = false; backend_.close(slot.actual); slot.online = false; slot.emergency = true; ++disconnects_;
+            slot.accepting = false; backend_.close(slot.actual); slot.needs_close = false; slot.online = false; slot.emergency = true; ++disconnects_;
         }
     }
     // Drain old-source releases using the old identity before reopening. Some
@@ -100,9 +101,9 @@ void Service::refresh() {
     for (size_t i = 0; i < count_; ++i) {
         auto& slot = *slots_[i]; const auto* found = selected[i];
         if (!slot.online && found) {
-            slot.actual = *found; slot.accepting = true;
+            slot.actual = *found; slot.accepting = true; slot.needs_close = true;
             const bool opened = backend_.open(*found, Callback{&slot, midi1, ump}); slot.online = opened;
-            if (!opened) { slot.accepting = false; ++send_fail_; }
+            if (!opened) { slot.accepting = false; slot.needs_close = false; ++send_fail_; }
         }
     }
 }
@@ -142,22 +143,55 @@ void Service::pump() {
         for (uint32_t n = 0; n < Ring::capacity && slot.ring.pop(packet); ++n) send(slot, packet);
     }
 }
+void Service::quiesce() {
+    // Stop admitting packets before retiring the old source. A backend close
+    // must join its callback writers before the slot is reused (Backend contract).
+    bool close_failed = false;
+    for (size_t i = 0; i < count_; ++i) {
+        auto &slot = *slots_[i];
+        slot.accepting = false;
+        slot.online = false;
+        if (slot.needs_close) {
+            try {
+                backend_.close(slot.actual);
+                slot.needs_close = false;
+                slot.emergency = true;
+            } catch (...) { close_failed = true; }
+        }
+    }
+    pump();
+    if (close_failed) throw std::runtime_error("MIDI close failed");
+}
 void Service::poll() { if (running_) return; refresh(); pump(); }
 bool Service::start() {
     if (running_.exchange(true)) return false;
     try {
         worker_ = std::thread([this] {
             auto next_refresh = std::chrono::steady_clock::now();
-            try {
-                while (running_.load(std::memory_order_acquire)) {
+            auto backoff = std::chrono::milliseconds(100);
+            while (running_.load(std::memory_order_acquire)) {
+                try {
                     const auto now = std::chrono::steady_clock::now();
-                    if (now >= next_refresh) { refresh(); next_refresh = now + std::chrono::milliseconds(500); }
-                    pump(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    if (recovering_.load(std::memory_order_relaxed) && now < next_refresh) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        continue;
+                    }
+                    if (now >= next_refresh) {
+                        if (recovering_) quiesce();
+                        refresh();
+                        next_refresh = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+                        backoff = std::chrono::milliseconds(100);
+                        recovering_.store(false, std::memory_order_release);
+                    }
+                    pump();
+                } catch (...) {
+                    ++send_fail_;
+                    recovering_.store(true, std::memory_order_release);
+                    try { quiesce(); } catch (...) { ++send_fail_; }
+                    next_refresh = std::chrono::steady_clock::now() + backoff;
+                    backoff = (std::min)(backoff * 2, std::chrono::milliseconds(2000));
                 }
-            } catch (...) {
-                ++send_fail_;
-                for (size_t i = 0; i < count_; ++i) { auto& slot = *slots_[i]; slot.accepting = false; if (slot.online.exchange(false)) { try { backend_.close(slot.actual); } catch (...) { ++send_fail_; } slot.emergency = true; } }
-                pump(); running_ = false;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
     } catch (...) { running_ = false; return false; }
@@ -165,8 +199,8 @@ bool Service::start() {
 }
 void Service::stop() {
     running_.store(false, std::memory_order_release); if (worker_.joinable()) worker_.join();
-    for (size_t i = 0; i < count_; ++i) { auto& slot = *slots_[i]; slot.accepting = false; if (slot.online.exchange(false)) { backend_.close(slot.actual); slot.emergency = true; } }
-    pump();
+    quiesce();
+    recovering_.store(false, std::memory_order_release);
 }
 Counters Service::counters() const noexcept { return {received_, dropped_, malformed_, oversize_, ring_full_, disconnects_, send_fail_, ignored_rpn_}; }
 std::vector<EndpointState> Service::endpoint_states() const {

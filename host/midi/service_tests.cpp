@@ -304,14 +304,17 @@ static void worker_exception_recovers() {
     REQUIRE(service.enable({"A", "sys:A"}));
     REQUIRE(service.subscribe({1, {}, true}));
     REQUIRE(service.start());
+    bool saw_recovery = false;
     const auto deadline = std::chrono::steady_clock::now() + 4s;
     while (std::chrono::steady_clock::now() < deadline) {
+        saw_recovery |= service.recovering();
         if (backend.enumerations.load(std::memory_order_relaxed) >= 3 &&
-            service.endpoint_states()[0].online) break;
+            service.endpoint_states()[0].online && !service.recovering()) break;
         std::this_thread::sleep_for(5ms);
     }
     service.stop(); // join before reading non-atomic fake/backend observations
-    REQUIRE(backend.enumerations.load() >= 3); // current worker exits at 2
+    REQUIRE(backend.enumerations.load() >= 3); // old worker exited at 2
+    REQUIRE(saw_recovery && !service.recovering());
     REQUIRE(backend.opens >= 2 && backend.closes == backend.opens);
     REQUIRE(backend.callbacks.empty());
     REQUIRE(service.counters().send_fail >= 1);

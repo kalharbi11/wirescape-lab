@@ -317,7 +317,8 @@ Session::Session(Options options)
                                                     options_.midi, std::move(scripted_source),
                                                     options_.scripted_midi);
     observer_ = observed.get();
-    observer_->endpoints();
+    try { observer_->endpoints(); }
+    catch (...) { midi_failed("enumeration-failed", std::chrono::steady_clock::now()); }
     monitor_ = std::make_unique<monitor::Capture>();
     midi_ = std::make_unique<midi::Host>(options_.midi || options_.null_audio, std::move(observed));
     midi_->observe(monitor_.get());
@@ -352,7 +353,7 @@ Session::Session(Options options)
 void Session::start(std::chrono::steady_clock::time_point now) {
     try {
         start_audio(now);
-        start_midi();
+        start_midi(now);
         start_osc();
         if (scripted_midi_) {
             scripted_started_ = std::chrono::steady_clock::now();
@@ -655,9 +656,26 @@ void Session::stop_audio() {
     }
     cpu_.store(0);
 }
-void Session::start_midi() {
+void Session::midi_failed(const char *error, std::chrono::steady_clock::time_point now) noexcept {
+    midi_retry_error_ = error;
+    midi_retry_ = now + midi_backoff_;
+    midi_backoff_ = (std::min)(midi_backoff_ * 2, std::chrono::milliseconds(2000));
+}
+void Session::midi_recovered() noexcept {
+    midi_retry_error_ = nullptr;
+    midi_backoff_ = std::chrono::milliseconds(100);
+}
+void Session::start_midi(std::chrono::steady_clock::time_point now, bool strict) {
+    // Enumeration-only retry is independent of a subscription restart.
+    const bool enumeration_pending = midi_->enabled().empty() && !strict &&
+                                     midi_retry_error_ != nullptr;
     std::string error;
-    need(midi_->start(active_, patch_.dump(), error), "unavailable", "Cannot start MIDI subscriptions");
+    if (midi_->start(active_, patch_.dump(), error)) {
+        if (!enumeration_pending) midi_recovered();
+        return;
+    }
+    midi_failed("start-failed", now);
+    if (strict) throw Refusal("unavailable", "Cannot start MIDI subscriptions");
 }
 void Session::start_osc() {
     osc_->start(active_, patch_.dump());
@@ -1482,7 +1500,7 @@ Json Session::apply(const Json &command) {
         midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
-            start_midi();
+            start_midi(std::chrono::steady_clock::now(), true);
             // An ACK for a newly enabled input must mean its backend opened.
             // Startup restore still tolerates saved disconnected endpoints.
             if (enable) need(midi_->online(selection), "unavailable", "MIDI input could not be opened");
@@ -1805,6 +1823,9 @@ Json Session::midi_status() const {
     // Preserve the v0 default hello/status wire shape, including the pinned
     // S0 byte snapshot. Opt-in scripted MIDI is the only counter transport.
     Json result = {{"devices", midi_devices_}, {"activity", observer_->activity()}};
+    if (const char *error = midi_retry_error_ ? midi_retry_error_ :
+                            (midi_->recovering() ? "worker-failed" : nullptr))
+        result["recovery"] = {{"state", "retrying"}, {"error", error}};
     if (options_.scripted_midi)
         result["counters"] = Json::parse(midi_->diagnostics()); // real Host/Service counters
     auto learn = observer_->learning();
@@ -1959,7 +1980,7 @@ bool Session::poll_audio(std::chrono::steady_clock::time_point now, bool enumera
         if (audio_state_ == "device-lost") audio_state_ = "reconnecting";
         if (now < audio_retry_) return previous != audio_state_;
         start_audio(now);
-        if (stream_) start_midi();
+        if (stream_) start_midi(now);
     }
     return previous != audio_state_;
 }
@@ -2026,7 +2047,10 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     observer_->expire_learning(now);
     auto old_audio = audio_devices_, old_midi = midi_devices_;
     const auto old_unavailable = unavailable_audio_drivers_;
-    if (midi_->enabled().empty()) observer_->endpoints();
+    if (midi_->enabled().empty() && (!midi_retry_error_ || now >= midi_retry_)) {
+        try { observer_->endpoints(); midi_recovered(); }
+        catch (...) { midi_failed("enumeration-failed", now); }
+    }
     // Warm polling refreshes identities only: ALSA format probes can open a busy PCM.
     // Without a stream every call is a cold init, so space those out.
     constexpr std::chrono::seconds kColdEnumeration{2};
@@ -2035,6 +2059,11 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (!warm && cold_due) cold_enumeration_ = now;
     const auto enumerated = refresh_devices(warm || cold_due, !warm);
     auto changed = poll_audio(now, enumerated);
+    if (midi_retry_error_ && !midi_->enabled().empty() && now >= midi_retry_ &&
+        (!options_.audio || stream_)) {
+        start_midi(now);
+        changed = true;
+    }
     changed = retry_config(now) || changed;
     return changed || old_audio != audio_devices_ || old_midi != midi_devices_ ||
            old_unavailable != unavailable_audio_drivers_;

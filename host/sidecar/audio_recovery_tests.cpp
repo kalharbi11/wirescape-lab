@@ -1647,6 +1647,11 @@ void test_p0b_midi_start_failure(const std::filesystem::path &root) {
         check(audio(session)["state"] == "running" && fake::engine == graph,
               "P0b MIDI failure cannot take recovered audio down");
         check(fake::midi_opens.load() == opens, "P0b injected MIDI startup failed");
+        const auto recovery = session.status()["status"]["midi"]["recovery"];
+        check(recovery == Json{{"state", "retrying"}, {"error", "start-failed"}},
+              "P0b status reports bounded start failure and retry");
+        session.poll(base + 299ms);
+        check(fake::midi_opens.load() == opens, "P0b retry does not run before backoff");
         const auto stops = fake::stopped, exchanges = fake::exchanges;
         const auto attempts = fake::attempts.size();
         const auto blocks = fake::completed_blocks.load();
@@ -1657,6 +1662,8 @@ void test_p0b_midi_start_failure(const std::filesystem::path &root) {
         for (int i = 1; i <= 20 && fake::midi_opens.load() == opens; ++i)
             session.poll(base + 200ms + i * 100ms);
         check(fake::midi_opens.load() > opens, "P0b MIDI restarted through control poll");
+        check(!session.status()["status"]["midi"].contains("recovery"),
+              "P0b recovered status omits optional failure field");
         check(fake::engine == graph && session.status()["gen"] == generation &&
                   fake::stopped == stops && fake::exchanges == exchanges && fake::attempts.size() == attempts,
               "P0b recovery cannot rebuild graph or restart audio");

@@ -108,7 +108,8 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         if (!service_->start()) throw std::runtime_error("MIDI service did not start");
         error.clear();
         return true;
- }catch(const std::exception&e){error=e.what();stop();return false;}}
+ }catch(const std::exception&e){error=e.what();stop();return false;}
+ catch(...){error="MIDI service start failed";stop();return false;}}
 bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
                   engine2::Engine::BeforePublish before_publish, void *context) {
     try {
