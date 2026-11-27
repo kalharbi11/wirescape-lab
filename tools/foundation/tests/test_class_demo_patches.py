@@ -19,8 +19,8 @@ PATCHES = sorted((ROOT / 'host/examples').glob('class_demo_*.json'))
 class ClassDemoPatches(unittest.TestCase):
     def test_patch_contracts(self):
         self.assertEqual(len(PATCHES), 3)
-        manifests = {m['id']: m for p in (ROOT / 'modules').glob('*/module.json')
-                     for m in [json.loads(p.read_text())]}
+        manifests = {m['id']: m for m in json.loads(
+            (ROOT / 'tools/mb1/descriptor_inventory.json').read_text(encoding='utf-8'))['modules']}
         for path in PATCHES:
             with self.subTest(patch=path.name):
                 doc = json.loads(path.read_text())

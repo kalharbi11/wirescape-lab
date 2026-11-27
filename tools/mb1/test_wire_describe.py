@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""MB1: executable descriptor identity/legacy-index witness (device-free).
+"""MB2: executable descriptor/projection equality and A97 preservation (device-free).
 
-A97 classifies non-descriptor manifest metadata separately.
+The pre-removal MB1 manifest comparison is retained in the PR history.
 """
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 import subprocess
@@ -29,17 +28,25 @@ def index(rows):
 
 
 class DescriptorEquality(unittest.TestCase):
-    def test_live_registry_matches_manifest_identity(self):
+    def test_live_registry_matches_generated_projection(self):
         self.assertTrue(DESCRIBE.is_file(), f"wire-describe missing: {DESCRIBE.name}")
         result = subprocess.run([str(DESCRIBE.resolve())], check=True,
                                 capture_output=True, text=True, encoding="utf-8",
                                 timeout=30)
-        descriptors = index(json.loads(result.stdout)["modules"])
-        paths = sorted((ROOT / "modules").glob("*/module.json"))
-        paths += sorted((ROOT / "sdk/examples").glob("*/module.json"))
-        manifests = index([read_json(path) for path in paths])
-        locations = {read_json(path)['id']: path for path in paths}
-        self.assertEqual(set(descriptors), set(manifests))
+        rows = json.loads(result.stdout)["modules"]
+        ids = [row["id"] for row in rows]
+        self.assertEqual(ids, sorted(ids), "MB2 registry must be ordered by module ID")
+        descriptors = index(rows)
+        snapshot = read_json(ROOT / "tools/mb1/descriptor_inventory.json")
+        projected = index(snapshot["modules"])
+        fields = {"id", "name", "abi_version", "version", "inputs", "outputs", "parameters"}
+        self.assertEqual(set(descriptors), set(projected))
+        self.assertEqual(list(projected), sorted(projected))
+        known = [line.strip() for line in
+                 (ROOT / "tools/foundation/fixtures/known_module_ids.txt").read_text(encoding="utf-8").splitlines()
+                 if line.strip() and not line.startswith("#")]
+        self.assertEqual(known, ids)
+        self.assertEqual(len(known), len(set(known)))
         membership = read_json(ROOT / "bench/module_sets.json")
         frozen = membership["golden_set"]
         experimental = membership["experimental"]
@@ -48,36 +55,32 @@ class DescriptorEquality(unittest.TestCase):
         self.assertEqual(len(set(experimental)), len(experimental))
         self.assertFalse(set(frozen) & set(experimental))
         self.assertEqual(set(descriptors), set(frozen) | set(experimental))
-        for identity, manifest in manifests.items():
+        for identity, row in projected.items():
             with self.subTest(module=identity):
                 descriptor = descriptors[identity]
-                for field in ("id", "name", "abi_version", "inputs", "outputs"):
-                    self.assertEqual(descriptor[field], manifest[field], field)
-                # The historical Output manifest omits parameters because it has none.
-                # No missing or nonempty native parameter map may pass this exception.
-                if identity == "essentials.output" and "parameters" not in manifest:
-                    self.assertEqual(descriptor["parameters"], {})
-                    self.assertEqual(descriptor["parameter_details"], [])
-                else:
-                    self.assertEqual(descriptor["parameters"], manifest["parameters"])
-                self.assertFalse(set(manifest) - {"id", "name", "abi_version", "inputs",
-                                                      "outputs", "parameters", "schema_version",
-                                                      "library", "license", "description"},
-                                 "unclassified manifest field; escalate under L1")
-                path = locations[identity]
-                # SDK examples use the existing ws2_example_<folder> CMake targets.
-                prefix = "ws2_example_" if path.parent.parent.name == "examples" else "ws2_"
-                self.assertEqual(manifest["library"], prefix + path.parent.name)
-                self.assertEqual(manifest["schema_version"], 2)
-                if "license" in manifest:
-                    source = path.with_name("module.cpp").read_text(encoding="utf-8")
-                    spdx = re.search(r"(?m)^// SPDX-License-Identifier: (.+)$", source)
-                    self.assertIsNotNone(spdx, str(path))
-                    self.assertEqual(manifest["license"], spdx[1].strip())
-                if "description" in manifest:
-                    self.assertIsInstance(manifest["description"], str)
+                self.assertEqual(set(row), fields, "unclassified generated projection field")
+                self.assertEqual({field: descriptor[field] for field in fields}, row)
                 self.assertIs(type(descriptor["version"]), int)
                 self.assertGreaterEqual(descriptor["version"], 1)
+                if identity == "essentials.output":
+                    self.assertEqual(descriptor["parameters"], {})
+                    self.assertEqual(descriptor["parameter_details"], [])
+
+    def test_no_builtin_manifests(self):
+        paths = sorted((ROOT / "modules").glob("*/module.json"))
+        paths += sorted((ROOT / "sdk/examples").glob("*/module.json"))
+        self.assertEqual(paths, [], "built-in descriptors must not have a second authored manifest")
+
+    def test_a97_manifest_descriptions_survive(self):
+        # Frozen pre-MB2 metadata, not an input to the registry or generator.
+        descriptions = read_json(ROOT / "tools/mb1/manifest_descriptions.json")
+        self.assertEqual(len(descriptions), 25)
+        for folder, expected in descriptions.items():
+            with self.subTest(folder=folder):
+                lines = (ROOT / folder / "README.md").read_text(encoding="utf-8").splitlines()
+                title = next(i for i, line in enumerate(lines) if line.startswith("# "))
+                description = next(line for line in lines[title + 1:] if line.strip())
+                self.assertEqual(description, expected)
 
     def test_live_generator_matches_committed_outputs(self):
         result = subprocess.run([sys.executable, str(ROOT / "tools/gen_ui_catalogue.py"),

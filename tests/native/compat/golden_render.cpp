@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
-#include "module_catalog.h"
+#include "module_registry.h"
+#include "wirescape_sdk.h"
 #include "runtime_module_config.h"
 #include "runtime_patch.h"
 #include <algorithm>

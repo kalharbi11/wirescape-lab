@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Writing a Wirescape module (ABI 2 SDK guide, v2)
 
-**New module? Start with the ordered checklist in [MODULE_BUILD_GUIDE.md](MODULE_BUILD_GUIDE.md)** (owner request → builder steps → the five registration edits → review). This guide is the detail behind it, for people and AI agents. It replaces the terse v1 notes (their content is kept in §13 "Reference").
+**New module? Start with the ordered checklist in [MODULE_BUILD_GUIDE.md](MODULE_BUILD_GUIDE.md)** (owner request → builder steps → folder discovery and generated catalogue → review). This guide is the detail behind it, for people and AI agents. It replaces the terse v1 notes (their content is kept in §13 "Reference").
 
 Porting a prototype you already have (a Web Audio app, an offline renderer)? Read §15 first.
 
@@ -25,15 +25,15 @@ ADSR gate precedence: a connected gate signal owns each voice's gate (Schmitt >0
 modules/<name>/          (or sdk/examples/<name>/ for MIT examples)
   dsp.h        the module class (all the code)
   module.cpp   SPDX line, #include "dsp.h", WS_REGISTER_MODULE(Class)
-  module.json  metadata the host and patch migration read
   tests.cpp    callback-level tests (CTest)
   README.md    what it does, ports and parameters table, units
   DESIGN.md    design notes and provenance (always; say "original code" if there is no upstream), third-party sources with pinned revisions and licences
+  module.cmake optional additional built-in sources or link dependencies
   LICENSE      only if it differs from the folder's default
 ```
-- Every new file except `module.json` (JSON has no comments) starts with an SPDX header: `// SPDX-License-Identifier: GPL-3.0-only` for Essentials and app code, `MIT` for SDK examples. Your own modules may use any licence (the SDK is MIT); code derived from GPL sources stays GPL.
-- `module.json`: `schema_version` 2, `abi_version` 2, `id`, `name`, `library` (the CMake target, prefix `ws2_`), `parameters` mapping each parameter ID to its **slot index** (0, 1, 2… in the order of `params`; not a default value), `inputs`/`outputs` mapping port IDs to `"signal"` or `"event"`, optional `description` and `license`.
-- Build wiring: add a `ws2_<name>` SHARED library and an `abi2_<name>_tests` executable + `add_test` in `engine/CMakeLists.txt` (see how `guide_ringmod` and the examples are wired).
+- Every new source or documentation file starts with an SPDX header: `// SPDX-License-Identifier: GPL-3.0-only` for Essentials and app code, `MIT` for SDK examples. Your own modules may use any licence (the SDK is MIT); code derived from GPL sources stays GPL.
+- The compiled C++ descriptor provides the module ID, version, ports, parameters, legacy indices and ranges. Built-in module folders do not need a separate manifest. External SDK tooling may still accept a manifest.
+- Native and Web discover module.cpp automatically. Native also creates the shared ABI library and folder test when present; special local recipes remain in the folder. No engine registration list edits.
 
 ## 2. IDs never change
 - Module ID: `<prefix>.<name>`, independent of the CMake library name (`ws2_<name>`), for example `essentials.vcf`, `midi.to_cv`, `ports.macro_oscillator`, or your own prefix (`kal.random`).
@@ -121,6 +121,7 @@ void process(ws::Block& b) {
 - `auto x = b.in(i).ch(c)` is a value view (handles CONSTANT and unpatched for you), not a `const float*`.
 - For tight loops or SIMD, get a plain pointer with `b.in(i).row(c, scratch, frames)`: it aliases a varying signal or fills `scratch` for a constant one. Reserve one scratch row per simultaneously live input in `prepare` and count it in `memory_requirements` (see `sdk/template/module.cpp`).
 - Parameters arrive already smoothed and modulated, in plain units, through `b.param(i)` (same view API as inputs).
+- Hoist `b.param(i)` and `ch(c)` view lookups out of per-sample loops: cache the parameter view once per block and the input, parameter and output channel views once per channel (when the channel mapping is unchanged). Index those cached views inside the sample loop; keep CONSTANT semantics intact.
 
 ## 10. Events (notes, MIDI, messages)
 - Read: `for (const auto& e : b.events_in(port))` or, for sample accuracy, `b.split(range_fn, event_fn)`: it calls `range_fn(first, end)` for the samples between events and `event_fn(e)` at each event, in order. Offsets are relative to this block.
@@ -163,14 +164,14 @@ python tools/dev.py build --headless
 ctest --test-dir build/native -R '^abi2_midi_to_cv_tests$' --output-on-failure
 ```
 
-`host/midi/CMakeLists.txt` creates `abi2_midi_to_cv_tests` from `modules/midi_to_cv/tests.cpp` and links the allocation watcher. Add equivalent module-specific executable and `add_test` entries in the appropriate CMake file for a new module; do not assume a target exists before adding that wiring.
+The folder test is discovered automatically from `modules/midi_to_cv/tests.cpp`. Ordinary module folders use the standard shared library/test targets; retain a module-local custom recipe only when necessary.
 
 **Definition of done**
-- [ ] Folder complete (§1), SPDX headers, `module.json` slot indices match `params` order.
+- [ ] Folder complete (§1), SPDX headers, explicit stable legacy indices in the native descriptor.
 - [ ] IDs final and documented in `README.md` (ports, parameters, units, ranges).
 - [ ] Realtime checklist (§8) passes by reading your own `process`.
 - [ ] `python tools/dev.py build --headless` and `python tools/dev.py test` pass locally.
-- [ ] The module appears in the app catalogue (`WS_APP_MODULE(Class)` in `engine/control/module_catalog.inc`, with its DSP header included by `engine/control/module_catalog.h`; see `docs/ARCHITECTURE.md`) and plays in a patch.
+- [ ] The automatically discovered module appears in wire-describe and the app catalogue, and plays in a patch.
 - [ ] For heavy modules, request offline Pi evidence through the task-specific runner flow (`docs/PI_RUNNER.md` (removed)); device testing is user-only.
 - [ ] Third-party code pinned and recorded in `DESIGN.md` with its licence.
 
@@ -187,7 +188,7 @@ The CHAOS two-instance reference is a 120-second offline CPU render on the Pi at
 - Reading a gate with `> 0` instead of `ws::Schmitt` (chatter on noisy CV).
 - Emitting NOTE_ON without a guaranteed NOTE_OFF path on stop, reset, run-off and capacity-full.
 - Treating channels as left/right.
-- Writing `module.json` parameter values as defaults instead of slot indices.
+- Reusing or renumbering a descriptor's stable legacy parameter index.
 
 ## 13. Reference (SDK API in one place)
 - `ws::port(id, name, hint=WS2_ANY, poly=WS2_POLY, unpatched=0, stereo_pair=nullptr, kind=WS2_SIGNAL)`. `unpatched` is the value an unconnected input reads.

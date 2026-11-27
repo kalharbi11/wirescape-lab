@@ -26,43 +26,39 @@ covers lane queues that are not listed here. Contracts, reviews, CI gates and SR
    becomes a follow-up task (SR21).
 6. **Stopping:** leave `Status: handoff-ready | blocked` and remove your claim.
 
-## Bundles
+## Lead check — 2026-11-27 17:32 EST
 
-Claims live on the task issues. Lead check, 2026-11-27: M, S and R remain claimed; MB2 #725 and SDK-1 #731 are drafts, SC4 #726 and #663 #727 merged, and renderer #736 is open. T, B and N are unassigned; check the release gates below before claiming.
-Rulings: A112 (SC4 bridge and headless check), A113 (MB2 order and projection), A114/A115 (MB2 isolation evidence and SDK trial runner).
-**2026-11-27 run 59:** #663 merged (`bbe07ff`), so R moves to #722. SC4 merged (`99f7c7f`), so S's SC2 waits on SC1 #685 and, under A117 (it writes `engine/control/osc_host`), on MB2 #725. A116 rules on MB2's `finite_samples` regression.
+#752 merged as b5cc475: V1 complete, V2 #748 released from current main to the existing V session.
+#755 merged as 137e0b0: N complete. W #753 still awaits ready-state gates.
+Owner assigned #725 to the Architect; preserve that task and branch. S, T and B dependencies unchanged.
 
-| Bundle | Tasks in order | Paths (summary) | Why now |
-|---|---|---|---|
-| **U: unblock wirescape-test** (done) | #718 + #719 C4 | — | Merged as `3d3db7a` (#724), 2026-11-27. Test bundle G may bump the pin. |
-| **M: module build** | MB2+CAT-1 [#358](https://github.com/kalharbi11/wirescape-lab/issues/358) → SDK-1 [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) | per [M3](milestones/M3.md) MB2 and SDK-1 rows | Ends the lab module freeze and accepts M3. Promotions from `wirescape-test` wait on it. |
-| **S: Studio export and OSC** | SC4 [#720](https://github.com/kalharbi11/wirescape-lab/issues/720) → SC2 [#721](https://github.com/kalharbi11/wirescape-lab/issues/721) (after SC1 #685 merges) | `apps/studio/`, `apps/desktop/main.ts`; SC2 also `host/osc/`, `host/sidecar/` status, protocol schema | The Studio→Player bundle path and the OSC In indicator ([SC](milestones/SC.md)). |
-| **R: render and engine gaps** (done: #663 `bbe07ff`, #722 `74f4a3a`) | #663 `feedback_block` default → renderer UMP events [#722](https://github.com/kalharbi11/wirescape-lab/issues/722) | engine prepare for #663; `tools/render/` for #722 | Small fixes. #722 gives MIDI modules real render coverage (test LR-13). |
+## Bundles (Architect run 59f, 2026-11-27 18:30 ET: MB2 merged, pool refreshed)
 
-**Overlap.** M, S and R write different areas. Two files are shared:
-- `engine/CMakeLists.txt`: M owns it, so R rebases onto M on conflict.
-- `host/sidecar/`: S (SC2) owns it.
+**MB2 #725 merged as `027db95`** (contract review; A116, A118 and A119; bounded A120). The lab module freeze is over.
+Claims live on the task issues. Check the gate column on current `main` before claiming.
 
-Do not start TR1h until M merges: TR1h writes `engine/control/`, and MB2 requires no open PR there.
+| Bundle | Next task | State / gate | Paths (summary) | Merge |
+|---|---|---|---|---|
+| **M: module build** | SDK-1 [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) / PR #731 | **Unblocked.** B1 integrates `main`, requalifies and posts its Result | `sdk/` beat clock and SDK tests | Architect review. M3 is accepted when it merges |
+| **S: Studio export and OSC** | SC2 [#721](https://github.com/kalharbi11/wirescape-lab/issues/721) | **Released** (SC1 `23f3fe2` and MB2 are both merged). A117 paths | `apps/studio/`, `host/osc/`, `host/net/osc_service`, `engine/control/osc_host`, `host/sidecar/` status, schema | Claude contract review |
+| **B: build verification** | MB3 [#742](https://github.com/kalharbi11/wirescape-lab/issues/742) | **Released** (MB2 merged). It does not wait for SDK-1: its paths are disjoint | new workflow, `tools/ci/`, bench helpers | lead |
+| **X: CPU probe** (new) | X1 [#759](https://github.com/kalharbi11/wirescape-lab/issues/759) deterministic probe (A120) → X2 [#760](https://github.com/kalharbi11/wirescape-lab/issues/760) notes mode (test LR-5) | **Released.** X2 starts after X1 merges | `engine/tests/module_cpu_probe.cpp` and its tests (+ a `bench/gate/instructions.py` flag only if needed) | X1 Claude contract review; X2 lead |
+| **V: render case coverage** | V2 [#748](https://github.com/kalharbi11/wirescape-lab/issues/748) (PR #758) | V1 merged `b5cc475`. V2 is in progress with the V session | `tools/render/` | lead |
+| **W: realtime coverage** | P1-h audio [#749](https://github.com/kalharbi11/wirescape-lab/issues/749) (PR #753) | In progress; awaiting ready-state gates | `host/audio/` tests | lead |
+| **T: transport** | TR1h [#740](https://github.com/kalharbi11/wirescape-lab/issues/740) → TR3 [#741](https://github.com/kalharbi11/wirescape-lab/issues/741) | **Held behind SC2.** Both write `host/sidecar/` and `engine/control/` (SR16), so claim T after SC2 merges. It no longer waits for SDK-1. TR3 also needs TR2 | sidecar transport, `engine/control/`, Studio | lead, M3 |
 
-## New unassigned bundles (owner request, 2026-11-27)
+**Done:** U (`3d3db7a`), R (`bbe07ff`, `74f4a3a`), N (`137e0b0`), SC1 (`23f3fe2`), SC4 (`99f7c7f`), MB2 (`027db95`).
 
-| Bundle | Tasks in order | Release / writer gate | Merge |
-|---|---|---|---|
-| **T: transport** | TR1h [#740](https://github.com/kalharbi11/wirescape-lab/issues/740) → TR3 [#741](https://github.com/kalharbi11/wirescape-lab/issues/741) | After M completes (#725 and #731), Gate P0/TR1e; serialize sidecar/control with active SC2, and Studio with SC1/SC2. TR3 also requires TR2. | lead, M3 |
-| **B: build verification** | MB3 [#742](https://github.com/kalharbi11/wirescape-lab/issues/742) | After M completes. Only its new workflow and tools/ci or bench helpers; no MB2 evidence-file overlap. | lead, M3 |
-| **N: neutral fixture names** | [#622](https://github.com/kalharbi11/wirescape-lab/issues/622) | After SC1 #685; serialize fixture/spec/sidecar files with active SC2 or T. Historical facts unchanged. | lead, original issue |
+**Overlap rules.**
+- SC2 owns `host/sidecar/` and `engine/control/osc_host` until it merges.
+- X owns `engine/tests/module_cpu_probe.cpp`.
+- B writes no MB2 evidence files and no `bench/m1/` verdict logic.
 
-These are task packets, not advance agent assignments. No draft-ahead for T, B or N.
-Use the claim comment in rule 1 on the first issue; read its complete paths, tests and evidence gates.
-Release gates are checked on current main, not inferred from a green draft.
-SR16/SR21 serialize overlapping writers; new packets do not change contracts.
-SC2 remains behind **SC1 and MB2**, including A117's engine/control/osc_host paths.
-SDK-1 #731 is an existing owner-authorized draft-ahead exception, not a general permission.
+**Later (filed when their gate opens):**
+- the P1-h OSC-worker half, after SC2;
+- PROMO of `wirescape-test` modules (B4, M3 r2.2 and 0024 §2.7): open now that MB2 has merged, but each promotion needs the module's T2 run, which the owner requests;
+- #734 (VS18/libremidi pin) now has its post-M slot, but still needs an Architect dependency-pin scope before anyone claims it.
 
-**Parked:** #734 (VS18/libremidi) still needs the Architect's post-M slot and dependency-pin contract scope.
-#326 and #494 are closed; do not create duplicate soak work from the one diagnostic L2 overrun.
-
-Signed: codex-lead, 2026-11-27, 13:51 EST
+Rules 1–6 above still apply. SR16/SR21 serialize overlapping writers. These packets do not change contracts.
 
 Signed: claude-architect, 2026-11-27

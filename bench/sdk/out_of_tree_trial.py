@@ -32,9 +32,11 @@ def new_york_date():
         return (utc + dt.timedelta(hours=hours)).date().isoformat()
 
 ROOT = Path(__file__).resolve().parents[2]
-CORE = ["engine/CMakeLists.txt", "engine/control/module_catalog.h",
-        "engine/control/module_catalog.inc", "apps/studio/public/catalogue-presentation.json",
-        "apps/studio/public/wirescape_modules.json"]
+PRESENTATION = "apps/studio/public/catalogue-presentation.json"
+GENERATED = ("apps/studio/public/wirescape_modules.json",
+             "tools/foundation/fixtures/known_module_ids.txt",
+             "tools/mb1/descriptor_inventory.json")
+MEMBERSHIP = "bench/module_sets.json"
 MODULE = "modules/trial_gain"
 DOC = "docs/MODULE_BUILD_GUIDE.md"
 SDK = "docs/SDK_AUTHOR_GUIDE.md"
@@ -111,19 +113,13 @@ class Trial:
                 lines += [f"### Step {s['n']} {s['label']}","", "~~~text",
                           s["stderr_exact"].rstrip() or "(no stderr)", "~~~", ""]
         lines += ["## Scope","",
-                  "The first failed out-of-tree step ends that phase. The five registration files",
-                  "and patch guide are edited in the CI checkout only; no changes are committed",
+                  "The module folder is discovered automatically: no engine build or registry files",
+                  "are edited. Presentation, generated files, experimental membership and patch",
+                  "guide edits exist in the CI checkout only; no changes are committed",
                   "to the native engine, app, Studio or documentation product tree.",
                   "CI output includes one TRIAL STEP record per row with elapsed seconds.",""]
         (self.output/"out_of_tree_trial.md").write_text("\n".join(lines),encoding="utf-8")
         print("TRIAL SUMMARY "+json.dumps({k:v for k,v in record.items() if k not in ("steps","ephemeral_files")}),flush=True)
-
-
-def edit(rel, anchor, replacement):
-    path=ROOT/rel
-    content=path.read_text(encoding="utf-8")
-    if anchor not in content: raise ValueError(f"Missing anchor in {rel}: {anchor}")
-    path.write_text(content.replace(anchor,replacement,1),encoding="utf-8")
 
 
 def prepare_template(destination, template):
@@ -137,17 +133,9 @@ def prepare_template(destination, template):
     (destination/"module.cpp").write_text(
         '// SPDX-License-Identifier: MIT\n#include "dsp.h"\nWS_REGISTER_MODULE(Gain)\n',
         encoding="utf-8")
-    meta=json.loads((destination/"module.json").read_text(encoding="utf-8"))
-    meta.update(id="trial.gain",name="Trial Gain",library="ws2_trial_gain",license="MIT")
-    (destination/"module.json").write_text(json.dumps(meta,indent=2)+"\n",encoding="utf-8")
-    (destination/"CMakeLists.txt").write_text(
-        "# SPDX-License-Identifier: MIT\n"
-        "add_library(ws2_trial_gain SHARED module.cpp)\n"
-        "target_link_libraries(ws2_trial_gain PRIVATE wirescape_sdk2)\n"
-        "add_executable(abi2_trial_gain_tests tests.cpp ../../tests/native/abi2/allocation_watch.cpp)\n"
-        "target_link_libraries(abi2_trial_gain_tests PRIVATE wirescape_engine2)\n"
-        "add_test(NAME abi2_trial_gain_tests COMMAND abi2_trial_gain_tests)\n",
-        encoding="utf-8")
+    # The SDK template may ship an optional external-tool manifest. It is not
+    # an input to the built-in registry.
+    (destination/"module.json").unlink(missing_ok=True)
     (destination/"README.md").write_text(
         "<!-- SPDX-License-Identifier: MIT -->\n# trial.gain\n"
         "Signal input audio: poly, unpatched zero. Signal output audio: poly. "
@@ -158,15 +146,8 @@ def prepare_template(destination, template):
         "MIT licence. No upstream or external dependencies.\n",encoding="utf-8")
 
 
-def edit_registrations():
-    edit(CORE[0],"add_subdirectory(../modules/quantizer quantizer)",
-         "add_subdirectory(../modules/quantizer quantizer)\n"
-         "add_subdirectory(../modules/trial_gain trial_gain)")
-    edit(CORE[1],'#include "../../modules/quantizer/dsp.h"',
-         '#include "../../modules/quantizer/dsp.h"\n#include "../../modules/trial_gain/dsp.h"')
-    edit(CORE[2],"WS_APP_MODULE(quantizer::Quantizer)",
-         "WS_APP_MODULE(quantizer::Quantizer)\nWS_APP_MODULE(Gain)")
-    path=ROOT/CORE[3]
+def add_presentation():
+    path=ROOT/PRESENTATION
     data=json.loads(path.read_text(encoding="utf-8"))
     data["modules"].append(dict(id="trial.gain",name="Trial Gain",category="Utility",
         ports=[dict(id="audio",name="Audio",direction=direction,kind="signal",
@@ -174,6 +155,18 @@ def edit_registrations():
         parameters=[dict(id="gain",name="Gain",minimum=0,maximum=2,default=1,
                          unit="",taper="linear",step=0,decimals=3,modulatable=True)]))
     path.write_text(json.dumps(data,indent=2)+"\n",encoding="utf-8")
+    membership=ROOT/MEMBERSHIP
+    tiers=json.loads(membership.read_text(encoding="utf-8"))
+    if "trial.gain" in tiers["golden_set"] or "trial.gain" in tiers["experimental"]:
+        raise ValueError("trial.gain already registered")
+    tiers["experimental"].append("trial.gain")
+    membership.write_text(json.dumps(tiers,indent=2)+"\n",encoding="utf-8")
+
+
+def describe_binary():
+    candidates=[ROOT/"build/native"/sub/name for sub in ("Release","")
+                for name in ("wire-describe.exe","wire-describe")]
+    return next((p for p in candidates if p.is_file()),candidates[0])
 
 
 def add_patch_doc():
@@ -251,38 +244,49 @@ def main():
                    "copy sdk <external>/sdk",True,
                    lambda: shutil.copytree(ROOT/"sdk",outside/"sdk"))
         trial.step("Rename template to trial.gain",DOC+" §B.1-B.2 / "+SDK+" §1-§2",
-                   "copy sdk/template and rename descriptor and manifest",True,
+                   "copy sdk/template and rename descriptor; no built-in manifest",True,
                    lambda: prepare_template(outside/"trial_gain",outside/"sdk/template"))
         (outside/"CMakeLists.txt").write_text(
             "cmake_minimum_required(VERSION 3.20)\n"
             "project(TrialGain LANGUAGES CXX)\nenable_testing()\n"
-            "add_subdirectory(trial_gain)\n",encoding="utf-8")
-        trial.run("Configure documented CMake targets outside checkout",
+            "set(CMAKE_CXX_STANDARD 17)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n"
+            "add_library(ws2_trial_gain SHARED trial_gain/module.cpp)\n"
+            "target_include_directories(ws2_trial_gain PRIVATE sdk sdk/include)\n"
+            "add_executable(trial_gain_callbacks trial_gain/tests.cpp)\n"
+            "target_include_directories(trial_gain_callbacks PRIVATE sdk sdk/include)\n"
+            "add_test(NAME trial_gain_callbacks COMMAND trial_gain_callbacks)\n",encoding="utf-8")
+        configured=trial.run("Configure documented CMake targets outside checkout",
                   DOC+" §B.2 / "+SDK+" §1,§12",
                   ["cmake","-S",str(outside),"-B",str(outside/"build"),
                    "-DCMAKE_BUILD_TYPE=Release"],True,timeout=90,cwd=outside)
+        if configured and trial.run("Build standalone SDK module and callbacks", DOC+" §B.2",
+                     ["cmake","--build",str(outside/"build"),"--config","Release"],
+                     True,timeout=240,cwd=outside):
+            trial.run("Run standalone callback test", DOC+" §B.2",
+                      ["ctest","--test-dir",str(outside/"build"),"-C","Release",
+                       "--output-on-failure"],True,timeout=120,cwd=outside)
         # Stop out of tree at the first inability; run remaining tasks in a
         # disposable checkout. The committed repository is never modified.
         trial.step("Copy trial source into modules",DOC+" §B.2 / "+SDK+" §1",
                    "copy <external>/trial_gain modules/trial_gain",False,
                    lambda: shutil.copytree(outside/"trial_gain",ROOT/MODULE),files=(MODULE,))
-        trial.step("Register module in CMake, native catalogue and presentation",
-                   DOC+" §B.3 #1-#4 / "+SDK+" §1",
-                   "edit engine/CMakeLists.txt, module_catalog.h, module_catalog.inc, catalogue-presentation.json",
-                   False,edit_registrations,files=CORE[:4])
-        trial.run("Generate registration file #5",DOC+" §B.3 #5",
-                  [sys.executable,"tools/gen_ui_catalogue.py"],files=(CORE[4],))
+        trial.step("Add UI presentation and experimental membership",DOC+" §B.3 / "+SDK+" §1",
+                   "edit presentation sidecar and append experimental ID; no engine registration edits",
+                   False,add_presentation,files=(PRESENTATION,MEMBERSHIP))
         trial.step("Add patch-facing documentation",DOC+" §B.4 / "+SDK+" §12",
                    "append trial.gain to docs/PATCH_DESIGNER_GUIDE.md",False,
                    add_patch_doc,files=("docs/PATCH_DESIGNER_GUIDE.md",))
-        trial.run("Verify generated catalogue",DOC+" §B.5",
-                  [sys.executable,"tools/gen_ui_catalogue.py","--check"])
-        trial.run("Build Release engine and SDK module",DOC+" §B.5 / "+SDK+" §12",
+        trial.run("Build Release engine and discover SDK module",DOC+" §B.5 / "+SDK+" §12",
                   [sys.executable,"tools/dev.py","build","--headless","--config","Release"],
-                  timeout=2400,files=CORE[:4])
+                  timeout=2400)
+        trial.run("Generate UI catalogue and native projection from built descriptor",DOC+" §B.3",
+                  [sys.executable,"tools/gen_ui_catalogue.py","--describe",str(describe_binary())],
+                  files=GENERATED)
+        trial.run("Verify generated catalogue",DOC+" §B.5",
+                  [sys.executable,"tools/gen_ui_catalogue.py","--check","--describe",str(describe_binary())])
         trial.run("Run native module callback tests",DOC+" §B.2,§B.5 / "+SDK+" §12",
                   ["ctest","--test-dir","build/native","-C","Release",
-                   "-R","^abi2_trial_gain_tests$","--output-on-failure"],timeout=240)
+                   "-R","^abi2_trial_gain_tests$","--no-tests=error","--output-on-failure"],timeout=240)
         trial.step("Confirm hello and loadGraph using null sink",DOC+" §B.3,§B.5 / "+SDK+" §12",
                    "wirescape-engine --null-audio and v0 loadGraph trial.gain",False,
                    lambda: sidecar_check(out))

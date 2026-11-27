@@ -22,8 +22,8 @@ class CI2Tests(unittest.TestCase):
     def test_ui_inputs_and_unknown_paths_fail_closed(self):
         for path in ("apps/studio/src/app/App.ts", "apps/desktop/main.ts",
                      "protocol/v0/schema.json", "host/sidecar/session.cpp",
-                     "engine/control/module_catalog.inc", "engine/control/module_catalog.h",
-                     "modules/vco/module.json", "tests/protocol/golden_v0.ndjson",
+                     "engine/control/module_registry.cmake", "engine/control/module_registry.cpp.in",
+                     "tools/mb1/descriptor_inventory.json", "modules/vco/module.cpp", "tests/protocol/golden_v0.ndjson",
                      "tests/native/compat/fixtures/legacy_documents/example.json",
                      "host/examples/patch.json", ".github/workflows/ci.yml",
                      "engine/unknown.json", "unknown/file.cpp", "engine/../apps/a.cpp",

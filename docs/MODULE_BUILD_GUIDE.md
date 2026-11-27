@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Building a new module with agents (start here)
 
-This is the one page for adding a module to Wirescape 1.x, written for the owner and for any builder agent (ChatGPT, Codex, Claude). The engine and ABI 2 are done: a new module is a self-contained folder plus **five registration edits**, with no engine, protocol or ABI change. Detail behind each step: [SDK_AUTHOR_GUIDE.md](SDK_AUTHOR_GUIDE.md) (§ numbers below point there).
+This is the one page for adding a module to Wirescape 1.x, written for the owner and for any builder agent (ChatGPT, Codex, Claude). New module development and experiments belong in `wirescape-test`; promote a verified folder into the lab under the M3 PROMO-n contract. The lab discovers module folders automatically. No engine registration, protocol or ABI change is needed for a module without host services or configuration. Detail behind each step: [SDK_AUTHOR_GUIDE.md](SDK_AUTHOR_GUIDE.md) (§ numbers below point there).
 
 ## A. Owner: asking for a module
 1. Open an issue titled `Module: <name>`. Describe what it does, how it sounds, the knobs and jacks you want, and any reference (another module or a prototype). That is enough; Compass (or any builder) turns it into a task file.
 2. Then paste this into a fresh ChatGPT/Codex agent session:
 
 ```text
-You are a Wirescape builder (repo kalharbi11/wirescape). Read AGENTS.md, then
+You are a Wirescape builder (repo kalharbi11/wirescape-test). Read AGENTS.md, then
 docs/MODULE_BUILD_GUIDE.md and follow section B exactly for issue #<N>
 (task file docs/tasks/<FILE>.md). Claim the issue, build on branch
 task/<N>-<slug>, open one draft PR with "Closes #<N>", make CI green,
@@ -27,12 +27,12 @@ Stop and post a handoff if any Stop in AGENTS.md applies.
 
 | Building | Copy from |
 |---|---|
-| processor (filter, gain, shaper, effect) | `native/sdk/template/` (smallest), or `native/modules2/vca/` |
-| source (LFO, random, noise, S&H) | `native/sdk/examples/random_source/` |
-| notes/sequencer/arpeggiator | `native/sdk/examples/step_sequencer/` |
-| a folder with its own CMake file (preferred for new modules) | `native/modules2/quantizer/` |
+| processor (filter, gain, shaper, effect) | `sdk/template/` (smallest), or `modules/vca/` |
+| source (LFO, random, noise, S&H) | `sdk/examples/random_source/` |
+| notes/sequencer/arpeggiator | `sdk/examples/step_sequencer/` |
+| a folder with its own CMake file (preferred for new modules) | `modules/quantizer/` |
 
-**1. Fix the contract first.** Write `native/modules2/<name>/README.md`:
+**1. Fix the contract first.** Write `modules/<name>/README.md`:
 - the module ID (`essentials.<name>` for first-party modules);
 - every port and parameter ID, with its hint, unit, range and default;
 - what an unpatched input reads, and any normalling;
@@ -41,32 +41,21 @@ Stop and post a handoff if any Stop in AGENTS.md applies.
 
 Once merged, these IDs are permanent (§2). If the task file already lists IDs, use them exactly.
 
-**2. Write the module folder** `native/modules2/<name>/`:
-- `dsp.h`: the class (§3–§11). The `ws::Info{"<id>","<Name>",1}` ID must equal `module.json`'s `id`.
-- `module.cpp`: SPDX line, `#include "dsp.h"`, `WS_REGISTER_MODULE(<ns>::<Class>)`.
-- `module.json`: `schema_version` 2, `abi_version` 2, `id`, `name`, `library: "ws2_<name>"`. `parameters` maps each ID to its **slot index** (0, 1, 2… in `params` order), not to its default. `inputs`/`outputs` map IDs to `"signal"` or `"event"`.
+**2. Write the module folder** `modules/<name>/`:
+- `dsp.h`: the class (§3–§11). Its `ws::Info{id, name, version}`, ports, parameters and legacy indices are authoritative.
+- `module.cpp`: SPDX line, `#include "dsp.h"`, `WS_REGISTER_MODULE(<ns>::<Class>)`. A small module can keep the entire class in this file.
 - `tests.cpp`: copy the closest example's tests (§12: frame, rate and channel matrix; reset; state; CONSTANT; extremes; no allocation), then add behaviour tests with independent reference math.
 - `DESIGN.md`: "original code", or the ported source with its pinned revision and licence. Porting without a licence entry is a Stop.
-- `CMakeLists.txt`, as in `native/modules2/quantizer/CMakeLists.txt`:
+- Optional `module.cmake`: only for extra built-in sources/dependencies; use the supplied `module_target` archive target for dependencies and extra sources; use `module_entry_source` for source-local compiler options, never target-wide options that affect other wrappers. Existing special shared-library or test recipes can remain in a folder-local CMakeLists.txt. Ordinary modules need neither. Do not add a built-in `module.json`: the compiled descriptor is the source of truth.
 
-```cmake
-# SPDX-License-Identifier: GPL-3.0-only
-add_library(ws2_<name> SHARED module.cpp)
-target_link_libraries(ws2_<name> PRIVATE wirescape_sdk2)
-add_executable(abi2_<name>_tests tests.cpp ../../tests2/allocation_watch.cpp)
-target_link_libraries(abi2_<name>_tests PRIVATE wirescape_engine2)
-add_test(NAME abi2_<name>_tests COMMAND abi2_<name>_tests)
-```
+**3. Lab discovery and presentation** (on promotion; no manual engine registrations):
 
-**3. Registration edits** (all five, or the module won't appear in the app):
-
-| # | File | Add |
-|---|---|---|
-| 1 | `native/engine2/CMakeLists.txt` | `add_subdirectory(../modules2/<name> <name>)` next to the quantizer line |
-| 2 | `native/control/module_catalog.h` | `#include "../modules2/<name>/dsp.h"` |
-| 3 | `native/control/module_catalog.inc` | `WS_APP_MODULE(<ns>::<Class>)` |
-| 4 | `apps/studio/public/catalogue-presentation.json` | one entry with the same `id`, plus `name`, `category`, `ports` (`id`, `name`, `direction`, `kind`, `hint`, `poly`, `stereo_pair`) and `parameters` (`choices` for stepped menus). Copy the quantizer entry's shape. |
-| 5 | `apps/studio/public/wirescape_modules.json` | **generated**: run `python tools/gen_ui_catalogue.py` and never hand-edit it. `--check` fails CI on drift. |
+| File | Action |
+|---|---|
+| `modules/<name>/module.cpp` | Drop the verified folder into the tree. Native and Web discover it with the same glob and generated registry. |
+| `apps/studio/public/catalogue-presentation.json` | Insert the reviewed presentation object with the same ID and port/parameter IDs. |
+| `bench/module_sets.json` | Append the approved experimental ID; do not change the frozen Golden set. |
+| `apps/studio/public/wirescape_modules.json`, `tools/foundation/fixtures/known_module_ids.txt`, `tools/mb1/descriptor_inventory.json` | Generated by `tools/gen_ui_catalogue.py` from the rebuilt `wire-describe`; never hand-edit them. |
 
 **4. Patch-facing docs, in the same PR:**
 - a section in `docs/PATCH_DESIGNER_GUIDE.md` covering ports, ranges, normalling and one usable wiring;
@@ -77,8 +66,9 @@ add_test(NAME abi2_<name>_tests COMMAND abi2_<name>_tests)
 
 ```sh
 python tools/dev.py build --headless
+python tools/gen_ui_catalogue.py --describe build/native/wire-describe
+python tools/gen_ui_catalogue.py --check --describe build/native/wire-describe
 python tools/dev.py test
-python tools/gen_ui_catalogue.py --check
 cd apps/studio && npm ci && npm test
 ```
 
@@ -93,10 +83,10 @@ No local build (e.g. ChatGPT without a shell)? Push the draft and let CI build i
 ## C. Reviewer (another session, T1)
 Check:
 - IDs match the task;
-- `module.json` slots match the `params` order;
+- The descriptor's stable legacy indices and port/parameter IDs match the contract;
 - §8 realtime rules in `process`/`reset` (no allocation, locks, I/O or logging);
 - the tests use independent math and include the no-allocation test;
-- all five registration edits are present, and the generated catalogue is untouched by hand;
+- folder discovery works without core registration edits; the native projection, known IDs and generated UI catalogue agree with wire-describe;
 - the patch guide is updated;
 - the required checks are green on the exact head.
 
@@ -104,7 +94,7 @@ Then post `Approved for merge <sha7>` and a `Signed:` line.
 
 ## Stops (post a handoff, set `status/blocked`)
 Any of these stops the build:
-- editing `native/include/wirescape/*.h` or `native/sdk/*.h`;
+- editing `sdk/include/wirescape/*.h` or `sdk/*.h`;
 - changing an existing module's IDs;
 - a new dependency;
 - ported code without a licence;

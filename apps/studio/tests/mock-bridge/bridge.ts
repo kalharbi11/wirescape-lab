@@ -7,8 +7,8 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
     type Message = Record<string, any>;
     const listeners = new Set<(m: Message) => void>();
     const audio = [{ id: 'USB Stereo', name: 'USB Stereo', kind: 'audio', sampleRates: [48000], index: 3 }];
-    const midi = [{ id: 'M8 MIDI 1|M8:M8 MIDI 1', name: 'M8 MIDI 1',
-      system_name: 'M8:M8 MIDI 1', enabled: true, kind: 'midi' }];
+    const midi = [{ id: 'Test MIDI 1|Test:Test MIDI 1', name: 'Test MIDI 1',
+      system_name: 'Test:Test MIDI 1', enabled: true, kind: 'midi' }];
     const audioStatus = { state: 'running', deviceId: 'USB Stereo', deviceName: 'USB Stereo',
       sampleRate: 48000, bufferFrames: 256, latencyMs: 10.6667, cpuPercent: 2.1, dropouts: 0 };
     let sessionNo = 1, gen = 0, graph: Message = { modules: [], connections: [] };

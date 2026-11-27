@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Spectral (`sound.spectral`)
 
+Two-source STFT processes: morph, cross-synthesis, max, mean, min, A minus B, interleave, vocoder.
+
 Joins two sources, **A** and **B**, in the frequency domain. One streaming STFT engine (Hann windows, hop N/4) is shared by every mode. Switching modes crossfades over four frames, so it never clicks, and `mode` can be driven by a CV.
 
 | Mode | What it does |

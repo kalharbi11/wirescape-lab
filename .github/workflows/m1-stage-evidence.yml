@@ -14,6 +14,7 @@ on:
       - "tools/render/**"
       - "tools/capture/**"
       - "bench/m1/**"
+      - "tools/mb1/**"
       - ".github/workflows/m1-stage-evidence.yml"
   workflow_dispatch:
     inputs:
@@ -132,3 +133,101 @@ jobs:
           name: m1-stage-evidence-${{ matrix.machine }}
           path: evidence/
           if-no-files-found: warn
+
+  # A114: separate scratch job, without modifying the paired collection.
+  wrapper-isolation:
+    needs: paired-evidence
+    if: ${{ always() && !cancelled() && needs.paired-evidence.result != 'skipped' && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
+    name: MB2 wrapper isolation / ${{ matrix.machine }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { machine: linux-x64, runner: ubuntu-24.04 }
+          - { machine: linux-arm64, runner: ubuntu-24.04-arm }
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || inputs.head_sha }}
+      MACHINE: ${{ matrix.machine }}
+      CMAKE_BUILD_PARALLEL_LEVEL: "2"
+      CXXFLAGS: "-g"
+      CFLAGS: "-g"
+    steps:
+      - name: Validate exact input pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ "$BASE_SHA" != "$HEAD_SHA" ]] || exit 2
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          path: scratch
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select module build path changes
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C scratch rev-parse HEAD)" = "$HEAD_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            git -C scratch cat-file -e "$BASE_SHA^{commit}"
+            changes=$(git -C scratch diff --name-only "$BASE_SHA...$HEAD_SHA" -- modules/ engine/CMakeLists.txt tools/mb1/)
+            if [[ -n "$changes" ]]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "run=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.scope.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+      - name: Install identical pinned profiling/build prerequisites
+        if: steps.scope.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install cmake==4.2.3 ninja==1.13.0 numpy scipy
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends valgrind
+      - name: Record scratch provenance
+        if: steps.scope.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p isolation-evidence
+          {
+            printf 'machine=%s\nrunner_os=%s\nrunner_arch=%s\n' "$MACHINE" "$RUNNER_OS" "$RUNNER_ARCH"
+            printf 'base=%s\nhead=%s\nhead_actual=%s\n' "$BASE_SHA" "$HEAD_SHA" "$(git -C scratch rev-parse HEAD)"
+            printf 'compiler_flags=CFLAGS=%s CXXFLAGS=%s\n' "$CFLAGS" "$CXXFLAGS"
+            printf 'cmake=%s\npython=%s\ncompiler=%s\nvalgrind=%s\n' "$(cmake --version | head -n1)" "$(python --version)" "$(c++ --version | head -n1)" "$(valgrind --version)"
+            printf 'method=callgrind-Ir-two-length-difference-v1\n'
+          } > isolation-evidence/provenance.txt
+      - name: Build scratch revision in the paired configuration
+        if: steps.scope.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scratch
+          python tools/dev.py build --headless --config Release
+      - name: Compare existing wrappers before and after dummy addition
+        if: steps.scope.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scratch
+          python tools/mb1/check_wrapper_isolation.py --output ../isolation-evidence/wrapper-isolation.json | tee ../isolation-evidence/wrapper-isolation.log
+      - name: Upload complete scratch evidence
+        if: always() && steps.scope.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mb2-wrapper-isolation-${{ matrix.machine }}
+          path: isolation-evidence/
+          if-no-files-found: error

@@ -2,9 +2,10 @@
 # Cortex-M7 compile-only portability probe
 
 The advisory workflow .github/workflows/portability.yml pins Arm GNU 14.2.rel1
-and compiles every module translation unit in native/control/module_catalog.inc
-(32 under native/modules2/ and two SDK examples), plus the SDK template.
-All 35 source files are compiled twice: fpv5-d16 and fpv5-sp-d16.
+and compiles every discovered module translation unit under modules/ and
+sdk/examples/, plus the SDK template. The current 38 registered modules and
+one template are compiled twice: fpv5-d16 and fpv5-sp-d16. Inventory is
+checked against the explicit Golden/experimental ID sets.
 
 The probe does not link, load DSP modules, use audio/MIDI devices or open LAN sockets.
 Compile failures are recorded as measurements with their first compiler error.

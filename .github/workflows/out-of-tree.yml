@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - { name: linux-x64, runner: ubuntu-latest }
-          - { name: windows-x64, runner: windows-latest }
+          - { name: windows-x64, runner: windows-2022 }
     defaults:
       run:
         shell: bash
@@ -79,4 +79,6 @@ jobs:
           path: |
             bench/sdk/results/${{ matrix.name }}/trial.json
             bench/sdk/results/${{ matrix.name }}/out_of_tree_trial.md
+            build_reports/foundation/build-compile-*.log
+            build_reports/foundation/build-configure-*.log
           if-no-files-found: warn

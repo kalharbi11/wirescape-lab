@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Macro Oscillator
 
+Twenty-four-model oscillator; 48 kHz only, up to eight voices.
+
+Historical manifest text; the current supported rates are documented below.
+
 Module `ports.macro_oscillator`: 24 selectable synthesis models, main and auxiliary
 outputs. native 48 kHz Plaits core, with a device-free prepared polyphase resampler for other host rates (including 44.1 and 96 kHz). Polyphony is
 capped at eight active channels; channels above eight are silent. Main/aux are two
@@ -17,7 +21,7 @@ separate audio streams, not a left/right stereo pair.
 All inputs are poly signals. No note event input is advertised; patch a note-to-CV
 source to pitch/trigger/level. Model selection is stepped 0..23, coarse −48..48 st;
 harmonics/timbre/morph/decay/LPG colour are 0..1; three modulation amounts −1..1.
-Stable IDs and parameter slot indices are in `module.json`.
+Stable IDs and parameter slot indices are in the native descriptor in `dsp.h`.
 
 Controls are sampled on an internal 12-frame quantum. A per-channel FIFO makes host
 block divisions 1/12/17/128/256 equivalent at 48 kHz; `latency_frames()`

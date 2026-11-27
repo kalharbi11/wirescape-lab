@@ -193,13 +193,11 @@ def probe_json(stdout: str):
 
 
 def module_ids() -> list[str]:
-    ids = []
-    for path in sorted((ROOT / 'modules').glob('*/module.json')):
-        try:
-            ids.append(json.loads(path.read_text(encoding='utf-8'))['id'])
-        except (OSError, ValueError, KeyError):
-            continue
-    return [i for i in ids if not i.startswith(SKIP_PREFIXES)]
+    # Preserve the prior folder order and exclusion of SDK example modules.
+    sys.path.insert(0, str(ROOT))
+    from bench.golden.inventory import registry
+    return [ident for ident, row in registry(ROOT).items()
+            if row['translation_unit'].startswith('modules/') and not ident.startswith(SKIP_PREFIXES)]
 
 
 def summarize(meta: dict, steps: list[dict]) -> str:

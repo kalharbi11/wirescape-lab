@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Poly Merge (experimental) — implementation plan
 
+Experimental eight-mono-to-one-poly sample-accurate CV cable merger, highest-connected input sets lane count.
+
 **Issue:** #328. **Source:** proposals/0020 §3. **Owner:** gpt-builder4, by Architect run 9 / #328 comment 7095286128. **Implementation base:** post-S6 main, synchronized via non-force two-parent merge; exact test head is recorded on the PR.
 
 This is a device-off, post-S6 draft work branch. **Do not merge** before Gate Delay #329, lead approval, and exact-head Lab, Golden and M1 paired gates. No workflow changes.

@@ -26,7 +26,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from bench.golden.render import events_for_patch, sources  # noqa: E402
-from bench.golden.inventory import EXPERIMENTAL, allowed_ids  # noqa: E402
+from bench.golden.inventory import EXPERIMENTAL, allowed_ids, registry  # noqa: E402
 from tools.bench.abi2_cost import MODES, instructions as read_ir  # noqa: E402
 
 RATE = 48000
@@ -165,15 +165,13 @@ def modules():
     # Generated compatibility fixture contains the entire registered catalogue.
     fixture = [line.strip() for line in MODULE_IDS.read_text(encoding="utf-8").splitlines()
                if line.strip() and not line.startswith("#")]
-    osc_id = json.loads((ROOT / "modules/osc_out/module.json").read_text(encoding="utf-8"))["id"]
-    catalogue = ROOT / "engine/control/module_catalog.inc"
-    entries = sum(line.strip().startswith("WS_APP_MODULE(")
-                  for line in catalogue.read_text(encoding="utf-8").splitlines())
+    native = registry(ROOT)
     ids = fixture
     if (len(ids) != len(set(ids)) or set(ids) != allowed_ids(ROOT)
-            or entries != len(ids) or osc_id != "osc.out"):
+            or set(native) != set(ids)
+            or native.get("osc.out", {}).get("translation_unit") != "modules/osc_out/module.cpp"):
         raise ValueError(f"catalogue coverage mismatch: fixture={len(fixture)}, "
-                         f"union={len(set(ids))}, native={entries}, osc={osc_id}")
+                         f"union={len(set(ids))}, native={len(native)}")
     return sorted(ids)
 
 

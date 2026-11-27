@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#include <limits>
 #include <vector>
 #define CHECK(x) do{if(!(x)){std::fprintf(stderr,"SDK check line %d: %s\n",__LINE__,#x);std::abort();}}while(0)
 struct Mini {
@@ -30,7 +31,34 @@ struct MiniData : Mini {
   b.out(0).set_channels(1);b.out(0).mark_constant();b.out(0).ch(0)[0]=v->value;
  }
 };
-
+// A116: the codegen pin must preserve exact finite-sample semantics.
+static void finite_samples_tests(){
+ const float inf=std::numeric_limits<float>::infinity();
+ const float nan=std::numeric_limits<float>::quiet_NaN();
+ // 0.5f and 2.0f have exponent bits 126 and 128 (OR == 255),
+ // yet both are finite. This exercises the exact fallback scan.
+ alignas(16) float data[35];
+ for(uint32_t offset:{0u,1u})for(uint32_t count=0;count<=33;++count){
+  float* row=data+offset;
+  for(uint32_t i=0;i<count;++i)row[i]=(i%2)?2.f:.5f;
+  CHECK(ws::finite_samples(row,count));
+  for(uint32_t i=0;i<count;++i){
+   float saved=row[i];
+   for(float bad:{nan,inf,-inf}){
+    row[i]=bad;CHECK(!ws::finite_samples(row,count));
+   }
+   row[i]=saved;
+  }
+  for(uint32_t i=0;i<count;++i)row[i]=(i%2)?-0.f:std::numeric_limits<float>::denorm_min();
+  CHECK(ws::finite_samples(row,count));
+ }
+ const float limits[]={0.f,-0.f,std::numeric_limits<float>::max(),
+                       -std::numeric_limits<float>::max(),std::numeric_limits<float>::min()};
+ CHECK(ws::finite_samples(limits,5));
+ CHECK(ws::finite_samples(nullptr,0));
+ CHECK(ws::finite_samples(&nan,0));
+ CHECK(!ws::finite_samples(&nan,1));
+}
  // SDK-1: independent beat-clock oracles, not a second implementation.
 static void beat_clock_tests() {
     using wsbeat::BeatClock;
@@ -109,6 +137,7 @@ static void beat_clock_tests() {
 
 int main(){
  beat_clock_tests();
+ finite_samples_tests();
  for(double sr:{44100.,48000.,96000.}){ws::LinearRamp r(0);r.prepare(sr);CHECK(r.next()==0);r.set(1);uint32_t n=static_cast<uint32_t>(sr*.005);for(uint32_t i=1;i<=n;++i)CHECK(std::abs(r.next()-double(i)/n)<1e-12);CHECK(r.constant());r.set(.2);r.reset();CHECK(r.next()==.2);}
  ws::Schmitt gate;CHECK(!gate.process(.5f));CHECK(gate.process(.51f));CHECK(gate.process(.25f));CHECK(!gate.process(.24f));
  ws::Trigger trig;trig.prepare(44100);trig.fire();int high=0;for(int i=0;i<100;++i)high+=trig.next()>0;CHECK(high==45);

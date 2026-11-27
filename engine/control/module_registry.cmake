@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# MB2/CAT-1 fallback (0023 §3.5): generate one wrapper translation unit per
+# folder, then link their separate objects in one archive. Never unity-build
+# the wrappers. Native and Web share discovery and entry names.
+function(ws_builtin_registry target root)
+  file(GLOB module_sources CONFIGURE_DEPENDS "${root}/modules/*/module.cpp"
+    "${root}/sdk/examples/*/module.cpp")
+  set(WS_REGISTRY_DECLARATIONS "")
+  set(WS_REGISTRY_ENTRIES "")
+  set(folders "")
+  set(module_target "${target}_builtin_modules")
+  add_library("${module_target}" STATIC)
+  set_target_properties("${module_target}" PROPERTIES UNITY_BUILD OFF)
+  target_link_libraries("${module_target}" PRIVATE ${ARGN})
+  set(wrapper_dir "${CMAKE_CURRENT_BINARY_DIR}/${target}_generated_modules")
+  foreach(source IN LISTS module_sources)
+    get_filename_component(folder_path "${source}" DIRECTORY)
+    get_filename_component(folder "${folder_path}" NAME)
+    if(NOT folder MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
+      message(FATAL_ERROR "Invalid module folder for static entry symbol: ${folder}")
+    endif()
+    if(folder IN_LIST folders)
+      message(FATAL_ERROR "Duplicate module folder for static entry symbol: ${folder}")
+    endif()
+    list(APPEND folders "${folder}")
+    set(WS_ENTRY_FOLDER "${folder}")
+    set(WS_ENTRY_SOURCE "${source}")
+    set(module_entry_source "${wrapper_dir}/${folder}.cpp")
+    configure_file("${root}/engine/control/module_entry.cpp.in" "${module_entry_source}" @ONLY)
+    target_sources("${module_target}" PRIVATE "${module_entry_source}")
+    # Folder-local extra sources/dependencies only. Source-specific flags
+    # must use module_entry_source, not change unrelated wrapper options.
+    if(EXISTS "${folder_path}/module.cmake")
+      include("${folder_path}/module.cmake")
+    endif()
+    string(APPEND WS_REGISTRY_DECLARATIONS "extern \"C\" const ws2_descriptor *WS2_CALL ws_module_entry_${folder}(void);\n")
+    string(APPEND WS_REGISTRY_ENTRIES "        ws_module_entry_${folder}(),\n")
+  endforeach()
+  target_link_libraries("${target}" PRIVATE "${module_target}")
+  set(generated "${CMAKE_CURRENT_BINARY_DIR}/${target}_module_registry.cpp")
+  configure_file("${root}/engine/control/module_registry.cpp.in" "${generated}" @ONLY)
+  target_sources("${target}" PRIVATE "${generated}")
+endfunction()
