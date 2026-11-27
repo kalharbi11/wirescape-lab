@@ -27,7 +27,7 @@ async function writeFile(dir: DirectoryHandle, name: string, content: string | B
 /** Require a new/empty folder. Never overwrite an existing Player bundle. Write
  * the manifest last, so an interrupted export has no committed setlist. */
 export async function writePlayerBundle(dir: DirectoryHandle, bundle: PlayerBundle, scripts: ReadonlyMap<string, File>): Promise<void> {
-  for await (const _ of dir.keys()) throw new Error('Choose an empty folder; existing files are not overwritten.');
+  if (!(await dir.keys().next()).done) throw new Error('Choose an empty folder; existing files are not overwritten.');
   for (const name of bundle.scripts) {
     const file = scripts.get(name);
     if (!file || !safeScriptName(name) || file.size > MAX_FILE) throw new Error(`Missing or oversized script: ${name}`);
