@@ -130,8 +130,8 @@ bool ObservedMidi::open(const midi::Endpoint &e, midi::Callback cb) {
             // On throw keep both identities and downstream alive: Service
             // owns a close obligation and retries it before this slot is reused.
             if (backend_ && backend_->open(e, {&s, message, ump})) return true;
-            s.endpoint = {};
-            s.downstream = {};
+            // Keep the slot until Service calls close after a refused open,
+            // just as on a throwing partial open.
             return false;
         }
     return false;

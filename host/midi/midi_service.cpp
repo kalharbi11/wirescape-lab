@@ -103,7 +103,13 @@ void Service::refresh() {
         if (!slot.online && found) {
             slot.actual = *found; slot.accepting = true; slot.needs_close = true;
             const bool opened = backend_.open(*found, Callback{&slot, midi1, ump}); slot.online = opened;
-            if (!opened) { slot.accepting = false; slot.needs_close = false; ++send_fail_; }
+            if (!opened) {
+                slot.accepting = false;
+                ++send_fail_;
+                backend_.close(slot.actual); // confirm quiescence before reusing the target
+                slot.needs_close = false;
+                slot.emergency = true;
+            }
         }
     }
 }

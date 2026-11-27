@@ -162,9 +162,11 @@ bool Host::online(const Endpoint &endpoint) const {
 }
 bool Host::stop_impl(bool retry_close) noexcept {
     if (service_) {
-        if (close_pending_ && !retry_close) {
+        if (close_pending_) {
+            // The old subscriptions may refer to a retired graph. No release
+            // from their retained slots may be delivered to the new graph.
             engine_ = nullptr;
-            return false;
+            if (!retry_close) return false;
         }
         try { service_->stop(); }
         catch (...) {

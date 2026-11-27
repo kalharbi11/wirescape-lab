@@ -1505,7 +1505,11 @@ Json Session::apply(const Json &command) {
                                        found->at("system_name").get<std::string>()};
         const bool enable = command.at("on").get<bool>();
         auto old = midi_->enabled();
-        need(stop_midi(), "unavailable", "Cannot stop MIDI subscriptions");
+        const auto now = std::chrono::steady_clock::now();
+        if (!stop_midi(now)) {
+            start_midi(now); // bind the unchanged graph, do not retry close before deadline
+            throw Refusal("unavailable", "Cannot stop MIDI subscriptions");
+        }
         midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
