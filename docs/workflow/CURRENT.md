@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 55 — 2026-11-26 22:40 EST (owner: `architect:run`; B2 ruling, headless review, early hardware test)
+- **B2:** **A104b** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/620#issuecomment-7209025375) on #660: narrow `host/sidecar/devices.{h,cpp}` grant. A failed close keeps the callback storage alive (`worker-failed`), destructors never throw, and the backend is destroyed before the slots. #660 may finish now, then **P1-e #672 is released** (owner).
+- **B5:** **P1-f/g #699** filed and released (OB r2.16): settings fsync and absolute path, SIGTERM equal to stdin EOF. On the Pi, systemd sends SIGTERM to the engine.
+- **Headless review** (main `ec917ca`, bundles A–F merged): rules 1, 5 and 7 spot-checked and fine. Low: gate zeros go through a short-lived `ws.py --zero-gates` child, which keeps the Player process free of UDP sockets and matches 0025 §4.5. Gaps for a hardware test: the Pi guide had no engine-build-at-pin step, and no owner smoke runbook existed; both are now H-13.
+- **A108** [ruling](https://github.com/kalharbi11/wirescape-headless/issues/11#issuecomment-7209029932) closes headless #11: v1 stays numeric; `button` is a momentary press (H-11a #25); text, notes and label are not Player controls in v1. A 0025 §9 row was transcribed.
+- **Headless bundles:** **H** (now) = H-13 #24, H-11a #25, H-14 #26 (pin bump after #672). G = H-G only. **I** (later) = H-12 soak, after P1-e2 and the first smoke result. The TASKS change is [headless #27](https://github.com/kalharbi11/wirescape-headless/pull/27) and needs a different session's review.
+- **Next Architect run:** when #660 or #672 is pinned for contract review (medium). **Next run should:** (1) review #660 P0b against A104/A104a/A104b; (2) review P1-e #672 when pinned; (3) check that headless #27 merged and bundle H is claimed; (4) check #699 progress; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
 ## Lead check — 2026-11-26 21:17 EST (headless owner exception)
 
 - Owner continues managing headless through bundles E and F; previous stop-at-#17 instruction superseded there. Lab/test existing-task hold remains. Normal headless prerequisites, independent reviews and exact CI remain; H-7 real-engine portion still waits on lab P1-e. No lab successor release implied. Usage/reset unavailable (unknown).
