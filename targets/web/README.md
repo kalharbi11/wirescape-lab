@@ -6,7 +6,7 @@ Built and tested by `.github/workflows/web-demo.yml`; deployed to GitHub Pages f
 once Settings → Pages → Source is set to GitHub Actions. Internals: [DESIGN.md](DESIGN.md).
 
 ## Works
-- Every module in `engine/control/module_catalog.inc` except `midi.*` and `osc.*`. The list is
+- Every module discovered by the generated built-in registry except `midi.*` and `osc.*`. The list is
   not kept by hand: `web_module()` in `web_engine.cpp` filters the engine catalogue, and
   `web_engine_tests` checks that the web catalogue equals the engine catalogue minus those two
   prefixes. A newly registered module appears in the browser with no extra change.
