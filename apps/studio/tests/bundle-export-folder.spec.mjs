@@ -2,6 +2,11 @@
 import { test, expect } from '@playwright/test';
 import { mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildPlayerBundle } from '../src/app/bundleExport.ts';
+
+const fixture = fileURLToPath(new URL('./fixtures/sc4-bundle/', import.meta.url));
+const fixtureScript = '# SPDX-License-Identifier: GPL-3.0-only\n# Inert fixture; export and default Player check do not execute it.\n';
 
 test('SC4 exports a set with scripts into a temporary folder from Studio', async ({ page }, info) => {
   const root = info.outputPath('bundle');
@@ -49,7 +54,7 @@ test('SC4 exports a set with scripts into a temporary folder from Studio', async
   await page.getByTestId('bundle-patches').setInputFiles({ name: 'second.json',
     mimeType: 'application/json', buffer: Buffer.from(sourceText) });
   await page.getByTestId('bundle-scripts').setInputFiles({ name: 'voice.py',
-    mimeType: 'text/x-python', buffer: Buffer.from('# no execution\n') });
+    mimeType: 'text/x-python', buffer: Buffer.from(fixtureScript) });
   await expect(page.getByTestId('bundle-write')).toBeEnabled();
   await page.getByTestId('bundle-write').click();
   await expect(page.getByTestId('bundle-status')).toContainText('Exported 2 patches');
@@ -60,5 +65,18 @@ test('SC4 exports a set with scripts into a temporary folder from Studio', async
   expect(manifest.setlist[1].pages[0].controls).toHaveLength(8);
   expect(await readFile(join(root, manifest.setlist[1].patch), 'utf8')).toBe(sourceText);
   expect(await readdir(join(root, 'scripts'))).toEqual(['voice.py']);
-  expect(await readFile(join(root, 'scripts/voice.py'), 'utf8')).toBe('# no execution\n');
+  expect(await readFile(join(root, 'scripts/voice.py'), 'utf8')).toBe(fixtureScript);
+});
+
+test('SC4 fixture equals the exporter output byte for byte', async () => {
+  const patch = { format: 'wirescape.native.patch', version: 2, connections: [],
+    modules: [{ id: 1, module: 'essentials.macro' }, { id: 2, module: 'osc.in', config: { port: 9000 } }],
+    ui: { scriptLinks: { '2': { script: 'voice.py', part: 0 } } } };
+  const exported = buildPlayerBundle('Fixture set', [{ title: 'Fixture patch', patch }]);
+  expect(await readFile(join(fixture, 'player.json'), 'utf8')).toBe(JSON.stringify(exported.player, null, 2) + '\n');
+  expect(await readdir(join(fixture, 'patches'))).toEqual(exported.patches.map(p => p.name));
+  for (const p of exported.patches)
+    expect(await readFile(join(fixture, 'patches', p.name), 'utf8')).toBe(p.text);
+  expect(await readdir(join(fixture, 'scripts'))).toEqual(exported.scripts);
+  expect(await readFile(join(fixture, 'scripts/voice.py'), 'utf8')).toBe(fixtureScript);
 });
