@@ -1723,7 +1723,7 @@ Json Session::apply(const Json &command) {
                 next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio,
                                                          options_.control_osc_port, options_.control_osc_lan);
                 next_in->observe(monitor_.get());
-                next_in->prepare(active_, staged_patch.dump()); // no socket opens yet
+                next_in->prepare(active_, staged_patch.dump(), osc_filter_generation_ + 1); // no socket opens yet
                 next_in->observe_controller(controller_observer(osc_filter_generation_ + 1));
             }
         } else if (type == "osc.out") {
