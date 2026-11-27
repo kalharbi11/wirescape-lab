@@ -32,7 +32,7 @@ struct EndpointState {
 class Service {
 public:
     Service(Backend&, Sink);
-    ~Service();
+    ~Service() noexcept;
     Service(const Service&) = delete;
     Service& operator=(const Service&) = delete;
     bool enable(Selection);
@@ -42,6 +42,8 @@ public:
     bool replace_routes(std::vector<Route>, const std::function<bool()> &commit = {});
     bool start();
     void stop();
+    // Host only: after worker join and backend destruction has joined all callbacks.
+    void backend_destroyed() noexcept { backend_alive_ = false; }
     void poll(); // deterministic fake-backend tests; never call while start() is active
     bool recovering() const noexcept { return recovering_.load(std::memory_order_acquire); }
     Counters counters() const noexcept;
@@ -66,6 +68,7 @@ private:
         std::atomic<uint64_t> received{0};
     };
     Backend& backend_;
+    bool backend_alive_ = true; // control owner; false only after final backend destruction
     Sink sink_;
     std::array<std::unique_ptr<Slot>, 16> slots_{};
     std::array<Route, 64> routes_{};

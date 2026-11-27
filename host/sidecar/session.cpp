@@ -17,6 +17,7 @@
 #include <iostream>
 #include <random>
 #include <stdexcept>
+#include <string_view>
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
@@ -365,7 +366,7 @@ void Session::start(std::chrono::steady_clock::time_point now) {
     } catch (...) {
         osc_out_->stop();
         osc_->stop();
-        midi_->stop();
+        stop_midi();
         stop_audio();
         throw;
     }
@@ -380,7 +381,7 @@ Session::~Session() {
 void Session::shutdown() {
     osc_out_->retire();
     osc_->stop(); // stop/join packet acquisition before audio or engine teardown
-    midi_->stop();
+    stop_midi();
     stop_audio();
     if (capture_.enabled() && !capture_reported_) {
         capture_reported_ = true;
@@ -425,7 +426,7 @@ void Session::start_audio(std::chrono::steady_clock::time_point now, StoppedGrap
             need(!device_.empty(), "unavailable", "No selected audio output");
             try {
                 stream_ = std::make_unique<audio::Stream>(engine_, audio::StreamSelection{options_.directory, device_},
-                                                          options_.rate, options_.block, [this] { midi_->stop(); });
+                                                          options_.rate, options_.block, [this] { stop_midi(); });
             } catch (const audio::PreferredBufferSize &driver) {
                 open_at_driver_block(driver.frames(), rollback, fresh); // exactly one retry; throws on refusal
             }
@@ -582,7 +583,7 @@ void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json 
     if (block <= config_.max_block) {
         stream_ = std::make_unique<audio::Stream>(
             engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
-            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
+            [this] { stop_midi(); }, /*allow_preferred_retry=*/false);
         if (!requested_block_) requested_block_ = options_.block;
         options_.block = block;
         return;
@@ -604,14 +605,14 @@ void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json 
         }
     };
     std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-    midi_->stop();
+    stop_midi();
     bool restore_midi_on_failure = true;
     auto resume_midi = [this, &restore_midi_on_failure](void *) noexcept {
         if (!restore_midi_on_failure) return;
         try {
             start_midi();
         } catch (...) {
-            midi_->stop();
+            stop_midi();
         }
     };
     std::unique_ptr<void, decltype(resume_midi)> midi_restart(this, resume_midi);
@@ -622,7 +623,7 @@ void Session::open_at_driver_block(int64_t frames, StoppedGraph *rollback, Json 
     try {
         stream_ = std::make_unique<audio::Stream>(
             engine_, audio::StreamSelection{options_.directory, device_}, options_.rate, block,
-            [this] { midi_->stop(); }, /*allow_preferred_retry=*/false);
+            [this] { stop_midi(); }, /*allow_preferred_retry=*/false);
     } catch (...) {
         swap_stopped_graph(previous);
         throw;
@@ -665,16 +666,24 @@ void Session::midi_recovered() noexcept {
     midi_retry_error_ = nullptr;
     midi_backoff_ = std::chrono::milliseconds(100);
 }
+bool Session::stop_midi(std::chrono::steady_clock::time_point now) noexcept {
+    if (midi_->stop()) return true;
+    if (!midi_retry_error_ || std::string_view(midi_retry_error_) != "worker-failed")
+        midi_failed("worker-failed", now);
+    return false;
+}
 void Session::start_midi(std::chrono::steady_clock::time_point now, bool strict) {
-    // Enumeration-only retry is independent of a subscription restart.
+    // A retained close obligation cannot be retried by unrelated graph/audio
+    // commands before its deadline. Host still binds the current graph.
+    const bool defer_close = midi_->recovering() && midi_retry_error_ && now < midi_retry_;
     const bool enumeration_pending = midi_->enabled().empty() && !strict &&
-                                     midi_retry_error_ != nullptr;
+        midi_retry_error_ && std::string_view(midi_retry_error_) == "enumeration-failed";
     std::string error;
-    if (midi_->start(active_, patch_.dump(), error)) {
+    if (midi_->start(active_, patch_.dump(), error, !defer_close)) {
         if (!enumeration_pending) midi_recovered();
         return;
     }
-    midi_failed("start-failed", now);
+    if (!defer_close) midi_failed(midi_->recovering() ? "worker-failed" : "start-failed", now);
     if (strict) throw Refusal("unavailable", "Cannot start MIDI subscriptions");
 }
 void Session::start_osc() {
@@ -1114,7 +1123,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
     }
     app_engine_prepare_master_fade_in(candidate.get());
     try {
-        midi_->stop();
+        stop_midi();
         app_engine_panic(active_);
     } catch (...) {
         app_engine_resume_master_fade(active_);
@@ -1141,7 +1150,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         } catch (...) {
-            midi_->stop();
+            stop_midi();
             patch_ = old_patch;
             app_engine_prepare_master_fade_in(previous);
             if (exchange(candidate, std::chrono::steady_clock::now() + gap_budget)) {
@@ -1172,7 +1181,7 @@ bool Session::commit(Json patch, bool new_namespace, std::optional<uint32_t> ret
                 }
             }
         } catch (...) {
-            midi_->stop();
+            stop_midi();
             stop_audio();
             engine_ = std::move(previous);
             active_ = engine_.get();
@@ -1372,7 +1381,7 @@ Json Session::apply(const Json &command) {
             }
         };
         std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-        midi_->stop();
+        stop_midi();
         stop_audio();
         StoppedGraph previous;
         Json fresh = Json::array();
@@ -1402,7 +1411,7 @@ Json Session::apply(const Json &command) {
             return result;
         } catch (...) {
             const bool rate_refused = audio_reason_ == "rate-unsupported";
-            midi_->stop();
+            stop_midi();
             stop_audio();
             if (previous.engine) swap_stopped_graph(previous);
             config_ = old_config;
@@ -1454,7 +1463,7 @@ Json Session::apply(const Json &command) {
             }
         };
         std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-        midi_->stop();
+        stop_midi();
         stop_audio();
         device_ = id;
         try {
@@ -1469,7 +1478,7 @@ Json Session::apply(const Json &command) {
             // Preserve the attempted PortAudio/ASIO failure before a successful
             // rollback reopens the old stream and clears audio.error.
             const std::string failed_open = audio_error_;
-            midi_->stop();
+            stop_midi();
             stop_audio();
             if (previous.engine) swap_stopped_graph(previous);
             config_ = old_config;
@@ -1496,7 +1505,7 @@ Json Session::apply(const Json &command) {
                                        found->at("system_name").get<std::string>()};
         const bool enable = command.at("on").get<bool>();
         auto old = midi_->enabled();
-        midi_->stop();
+        need(stop_midi(), "unavailable", "Cannot stop MIDI subscriptions");
         midi_->select(selection, enable);
         try {
             need(midi_->enabled().size() <= 16, "limit", "Too many MIDI inputs");
@@ -1506,7 +1515,7 @@ Json Session::apply(const Json &command) {
             if (enable) need(midi_->online(selection), "unavailable", "MIDI input could not be opened");
             persist();
         } catch (...) {
-            midi_->stop();
+            stop_midi();
             auto selected = midi_->enabled();
             for (auto &e : selected) midi_->select(e, false);
             for (auto &e : old) midi_->select(e, true);
@@ -1969,7 +1978,7 @@ bool Session::poll_audio(std::chrono::steady_clock::time_point now, bool enumera
             }
         };
         std::unique_ptr<void, decltype(resume_osc)> osc_restart(this, resume_osc);
-        midi_->stop();
+        stop_midi(now);
         stop_audio();
         audio_reason_.clear(); // genuine device loss supersedes a prior refused setting
         audio_state_ = "device-lost";
@@ -2047,7 +2056,8 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     observer_->expire_learning(now);
     auto old_audio = audio_devices_, old_midi = midi_devices_;
     const auto old_unavailable = unavailable_audio_drivers_;
-    if (midi_->enabled().empty() && (!midi_retry_error_ || now >= midi_retry_)) {
+    if (midi_->enabled().empty() && !midi_->recovering() &&
+        (!midi_retry_error_ || now >= midi_retry_)) {
         try { observer_->endpoints(); midi_recovered(); }
         catch (...) { midi_failed("enumeration-failed", now); }
     }
@@ -2059,8 +2069,8 @@ bool Session::poll(std::chrono::steady_clock::time_point now) {
     if (!warm && cold_due) cold_enumeration_ = now;
     const auto enumerated = refresh_devices(warm || cold_due, !warm);
     auto changed = poll_audio(now, enumerated);
-    if (midi_retry_error_ && !midi_->enabled().empty() && now >= midi_retry_ &&
-        (!options_.audio || stream_)) {
+    if (midi_retry_error_ && (!midi_->enabled().empty() || midi_->recovering()) &&
+        now >= midi_retry_ && (!options_.audio || stream_)) {
         start_midi(now);
         changed = true;
     }

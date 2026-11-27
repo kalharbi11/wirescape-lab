@@ -147,6 +147,7 @@ class Session {
     std::chrono::milliseconds midi_backoff_{100};
     void midi_failed(const char *, std::chrono::steady_clock::time_point) noexcept;
     void midi_recovered() noexcept;
+    bool stop_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) noexcept;
     void start_midi(std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now(),
                     bool strict = false);
     void start_osc();

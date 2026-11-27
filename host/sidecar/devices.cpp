@@ -12,6 +12,7 @@ ObservedMidi::ObservedMidi(bool fake, bool authorized, std::unique_ptr<midi::Bac
         slots_[i].index = static_cast<uint8_t>(i);
     }
 }
+ObservedMidi::~ObservedMidi() { backend_.reset(); } // join while slots and observation atomics still live
 void ObservedMidi::capture_cc(CcCapture cc) noexcept {
     // Epoch precedes armed: a callback racing a rearm must not be treated as a new capture.
     const uint64_t epoch = learn_epoch_.load(std::memory_order_acquire) & 31u;
@@ -126,8 +127,11 @@ bool ObservedMidi::open(const midi::Endpoint &e, midi::Callback cb) {
             s.endpoint = e;
             s.downstream = cb;
             if (fake_) return true;
+            // On throw keep both identities and downstream alive: Service
+            // owns a close obligation and retries it before this slot is reused.
             if (backend_ && backend_->open(e, {&s, message, ump})) return true;
             s.endpoint = {};
+            s.downstream = {};
             return false;
         }
     return false;

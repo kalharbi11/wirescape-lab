@@ -20,7 +20,7 @@ bool Service::Ring::pop(Packet& packet) noexcept {
     packet = packets[r % capacity]; read.store(r + 1, std::memory_order_release); return true;
 }
 Service::Service(Backend& backend, Sink sink) : backend_(backend), sink_(sink) {}
-Service::~Service() { stop(); }
+Service::~Service() noexcept { if (backend_alive_) try { stop(); } catch (...) { ++send_fail_; } }
 bool Service::enable(Selection saved) {
     if (running_ || saved.name.empty()) return false;
     for (size_t i = 0; i < count_; ++i) if (slots_[i]->saved.name == saved.name && slots_[i]->saved.system_name == saved.system_name) return true;
@@ -140,7 +140,10 @@ void Service::pump() {
             for (uint32_t n = 0; n < Ring::capacity && slot.ring.pop(packet); ++n) ++dropped_;
             packet = {}; packet.timestamp = now_ns(); packet.event.struct_size = sizeof(ws2_event); packet.event.type = WS2_NOTE_CHOKE; packet.event.source_id = slot.source; packet.event.channel = -1; packet.event.note_id = -1; send(slot, packet);
         }
-        for (uint32_t n = 0; n < Ring::capacity && slot.ring.pop(packet); ++n) send(slot, packet);
+        // A failed close can leave an in-flight writer. Discard all of its
+        // old packets until close confirms quiescence, never forward stale input.
+        for (uint32_t n = 0; n < Ring::capacity && slot.ring.pop(packet); ++n)
+            if (!slot.accepting && slot.needs_close) ++dropped_; else send(slot, packet);
     }
 }
 void Service::quiesce() {
@@ -148,10 +151,13 @@ void Service::quiesce() {
     // must join its callback writers before the slot is reused (Backend contract).
     bool close_failed = false;
     for (size_t i = 0; i < count_; ++i) {
+        slots_[i]->accepting = false;
+        slots_[i]->online = false;
+    }
+    for (size_t i = 0; i < count_; ++i) {
         auto &slot = *slots_[i];
-        slot.accepting = false;
-        slot.online = false;
         if (slot.needs_close) {
+            slot.emergency = true;
             try {
                 backend_.close(slot.actual);
                 slot.needs_close = false;
@@ -199,7 +205,12 @@ bool Service::start() {
 }
 void Service::stop() {
     running_.store(false, std::memory_order_release); if (worker_.joinable()) worker_.join();
-    quiesce();
+    try { quiesce(); }
+    catch (...) {
+        ++send_fail_;
+        recovering_.store(true, std::memory_order_release);
+        throw;
+    }
     recovering_.store(false, std::memory_order_release);
 }
 Counters Service::counters() const noexcept { return {received_, dropped_, malformed_, oversize_, ring_full_, disconnects_, send_fail_, ignored_rpn_}; }

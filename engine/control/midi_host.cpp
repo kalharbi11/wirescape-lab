@@ -46,7 +46,16 @@ Host::Host(bool authorized, std::unique_ptr<Backend> fake)
     : injected_backend_(bool(fake)), backend_(std::move(fake)), authorized_(authorized) {
     if (!backend_ && authorized_) backend_ = real_backend(true);
 }
-Host::~Host(){stop();}
+Host::~Host() {
+    stop();
+    if (service_) {
+        // A permanent close fault must not free a callback target. Backend
+        // destruction joins its writers while both layers of slots are alive.
+        backend_.reset();
+        service_->backend_destroyed();
+        service_.reset();
+    }
+}
 void Host::authorize(bool enabled) {
     if (service_) throw std::runtime_error("Stop playback before changing MIDI authorization");
     if (enabled && !backend_) backend_ = real_backend(true);
@@ -57,7 +66,7 @@ std::vector<Endpoint> Host::endpoints() {
     if (service_) throw std::runtime_error("Stop playback before refreshing MIDI endpoints");
     return authorized_ && backend_ ? backend_->endpoints() : std::vector<Endpoint>{};
 }
-void Host::select(Endpoint selection,bool enable){if(service_)throw std::runtime_error("Stop playback before changing MIDI endpoints");auto match=[&](const Endpoint&s){return s.name==selection.name&&s.system_name==selection.system_name;};enabled_.erase(std::remove_if(enabled_.begin(),enabled_.end(),match),enabled_.end());if(enable)enabled_.push_back(std::move(selection));}
+void Host::select(Endpoint selection,bool enable){if(service_ && !close_pending_)throw std::runtime_error("Stop playback before changing MIDI endpoints");auto match=[&](const Endpoint&s){return s.name==selection.name&&s.system_name==selection.system_name;};enabled_.erase(std::remove_if(enabled_.begin(),enabled_.end(),match),enabled_.end());if(enable)enabled_.push_back(std::move(selection));}
 void Host::restore(const std::string&document){
  if(service_)throw std::runtime_error("Stop playback before restoring MIDI endpoints");
  auto j=nlohmann::json::parse(document);std::vector<Endpoint> staged;
@@ -77,6 +86,7 @@ void Host::restore(const std::string&document){
 
 int Host::deliver(void *opaque, uint32_t node, const ws2_event &e, uint64_t ns) noexcept {
     auto &h = *static_cast<Host *>(opaque);
+    if (!h.engine_) return WS2_STATE;
     auto &engine = app_engine_native(h.engine_);
     int result = engine.enqueue(1, node, WS2_DIRECT_PORT, e, ns, wirescape::engine2::Timing::Timestamped,
                                 engine.meter().generation);
@@ -87,7 +97,13 @@ int Host::deliver(void *opaque, uint32_t node, const ws2_event &e, uint64_t ns) 
     if (result == WS2_OK && h.monitor_) h.monitor_->midi(node, e, ns);
     return result;
 }
-bool Host::start(AppEngine*engine,const std::string&document,std::string&error){stop();try{
+bool Host::start(AppEngine*engine,const std::string&document,std::string&error,bool retry_close){
+    if (!stop_impl(retry_close)) {
+        engine_ = engine; // graph can continue live replans while ingress is quiesced
+        error = "MIDI close failed";
+        return false;
+    }
+    try {
         engine_ = engine;
         if (enabled_.empty()) {
             error.clear();
@@ -108,8 +124,8 @@ bool Host::start(AppEngine*engine,const std::string&document,std::string&error){
         if (!service_->start()) throw std::runtime_error("MIDI service did not start");
         error.clear();
         return true;
- }catch(const std::exception&e){error=e.what();stop();return false;}
- catch(...){error="MIDI service start failed";stop();return false;}}
+ }catch(const std::exception&e){error=e.what();stop();engine_=engine;return false;}
+ catch(...){error="MIDI service start failed";stop();engine_=engine;return false;}}
 bool Host::replan(AppEngine *candidate, const std::string &document, uint64_t timeout_ns, std::string &error,
                   engine2::Engine::BeforePublish before_publish, void *context) {
     try {
@@ -144,14 +160,25 @@ bool Host::online(const Endpoint &endpoint) const {
         return s.saved.name == endpoint.name && s.saved.system_name == endpoint.system_name && s.online;
     });
 }
-void Host::stop() {
+bool Host::stop_impl(bool retry_close) noexcept {
     if (service_) {
-        service_->stop();
-        last_statistics_ = diagnostics(); // Snapshot cumulative totals and stopped ports.
+        if (close_pending_ && !retry_close) {
+            engine_ = nullptr;
+            return false;
+        }
+        try { service_->stop(); }
+        catch (...) {
+            close_pending_ = true;
+            engine_ = nullptr;
+            return false; // keep the joined Service and every callback slot alive
+        }
+        try { last_statistics_ = diagnostics(); } catch (...) { last_statistics_.clear(); }
         add_service_counters(completed_, service_->counters());
         service_.reset();
     }
+    close_pending_ = false;
     engine_ = nullptr;
+    return true;
 }
 std::string Host::diagnostics() const {
     if (!service_ && !last_statistics_.empty()) return last_statistics_;

@@ -145,21 +145,35 @@ uint32_t Stream::buffer_frames() const noexcept { return impl_->frames; }
 // Link-time MIDI seam: this executable never constructs a real MIDI backend.
 namespace fake {
 std::atomic<unsigned> midi_enumerations{0}, midi_opens{0}, midi_closes{0};
-std::atomic<bool> midi_throw_once{false}, midi_throw_while{false}, midi_close_throw_once{false};
+std::atomic<bool> midi_throw_once{false}, midi_throw_while{false}, midi_close_throw_once{false},
+    midi_close_throw_while{false};
+std::atomic<unsigned> midi_close_attempts{0}, midi_destructor_callbacks{0};
 class MidiBackend final : public wirescape::midi::Backend {
+    wirescape::midi::Callback callback_{};
 public:
+    ~MidiBackend() override {
+        if (callback_.message) {
+            const uint8_t on[]{0x90, 60, 100};
+            callback_.message(callback_.context, on, sizeof(on), app_engine_clock_ns());
+            ++midi_destructor_callbacks;
+        }
+    }
     std::vector<wirescape::midi::Endpoint> endpoints() override {
         ++midi_enumerations;
         if (midi_throw_once.exchange(false) || midi_throw_while.load())
             throw std::runtime_error("injected MIDI enumeration failure");
         return {{"Fake MIDI", "fake:midi"}};
     }
-    bool open(const wirescape::midi::Endpoint &, wirescape::midi::Callback) override {
+    bool open(const wirescape::midi::Endpoint &, wirescape::midi::Callback callback) override {
+        callback_ = callback;
         ++midi_opens;
         return true;
     }
     void close(const wirescape::midi::Endpoint &) override {
-        if (midi_close_throw_once.exchange(false)) throw std::runtime_error("injected MIDI close failure");
+        ++midi_close_attempts;
+        if (midi_close_throw_once.exchange(false) || midi_close_throw_while.load())
+            throw std::runtime_error("injected MIDI close failure");
+        callback_ = {};
         ++midi_closes;
     }
 };
@@ -1707,7 +1721,27 @@ void test_p0b_midi_start_failure(const std::filesystem::path &root) {
         check(fake::midi_opens.load() > before_close && !midi().contains("recovery") &&
                   fake::engine == graph && fake::stopped == stops && fake::attempts.size() == attempts,
               "P0b close-fault retry restores old selection without audio restart");
-    }
+        // A permanently failing close retains the target until backend destruction.
+        fake::midi_close_throw_while = true;
+        const auto permanent = session.reply({{{"v", 0}, {"id", "p0b-permanent"}, {"type", "setMidiEnabled"},
+            {"deviceId", "Fake MIDI|fake:midi"}, {"on", false}}, {}, {}});
+        check(permanent["ok"] == false && midi()["recovery"]["error"] == "worker-failed",
+              "P0b permanent close remains retrying");
+        const auto attempts_at_fault = fake::midi_close_attempts.load();
+        const auto retry_now = std::chrono::steady_clock::now();
+        session.poll(retry_now + 100ms);
+        const auto first_retry = fake::midi_close_attempts.load();
+        check(first_retry == attempts_at_fault + 1, "P0b permanent close retries once");
+        for (int i = 0; i < 10; ++i) session.poll(retry_now + 100ms);
+        check(fake::midi_close_attempts.load() == first_retry, "P0b repeated poll cannot spin close");
+        session.poll(retry_now + 300ms);
+        check(fake::midi_close_attempts.load() == first_retry + 1 &&
+                  midi()["recovery"]["error"] == "worker-failed" && fake::engine == graph &&
+                  fake::stopped == stops && audio(session)["state"] == "running",
+              "P0b permanent close retry retains audio and status");
+    } // backend destructor fires a real callback into the retained live slots
+    fake::midi_close_throw_while = false;
+    check(fake::midi_destructor_callbacks.load() == 1, "P0b backend destructor callback reached live storage");
     fake::render = false;
 }
 void test_p0a_status(const std::filesystem::path &root) {
