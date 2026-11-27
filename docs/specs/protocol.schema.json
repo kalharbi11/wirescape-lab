@@ -560,6 +560,9 @@
         },
         "clock": {
           "type": "object"
+        },
+        "controller": {
+          "$ref": "#/$defs/controllerStatus"
         }
       }
     },
@@ -1332,6 +1335,41 @@
               "maxItems": 256
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "id",
+            "type",
+            "kinds"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "id": {
+              "$ref": "#/$defs/requestId"
+            },
+            "type": {
+              "const": "controllerStream"
+            },
+            "kinds": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "cc",
+                  "pc",
+                  "note",
+                  "osc"
+                ]
+              },
+              "maxItems": 4
+            },
+            "oscUnmatched": {
+              "type": "boolean"
+            }
+          }
         }
       ]
     },
@@ -1428,6 +1466,21 @@
                       }
                     }
                   }
+                },
+                "kinds": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "cc",
+                      "pc",
+                      "note",
+                      "osc"
+                    ]
+                  },
+                  "maxItems": 4
+                },
+                "oscUnmatched": {
+                  "type": "boolean"
                 }
               }
             }
@@ -1771,6 +1824,40 @@
               "$ref": "#/$defs/gen"
             }
           }
+        },
+        {
+          "type": "object",
+          "required": [
+            "v",
+            "session",
+            "type",
+            "gen",
+            "events"
+          ],
+          "properties": {
+            "v": {
+              "const": 0
+            },
+            "session": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "type": {
+              "const": "controller"
+            },
+            "gen": {
+              "$ref": "#/$defs/gen"
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/controllerEvent"
+              },
+              "maxItems": 384,
+              "minItems": 1
+            }
+          }
         }
       ]
     },
@@ -1838,6 +1925,279 @@
           }
         }
       }
+    },
+    "controllerConfig": {
+      "type": "object",
+      "required": [
+        "kinds",
+        "oscUnmatched"
+      ],
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cc",
+              "pc",
+              "note",
+              "osc"
+            ]
+          },
+          "maxItems": 4
+        },
+        "oscUnmatched": {
+          "type": "boolean"
+        }
+      }
+    },
+    "controllerStatus": {
+      "type": "object",
+      "required": [
+        "kinds",
+        "oscUnmatched",
+        "events",
+        "dropped"
+      ],
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cc",
+              "pc",
+              "note",
+              "osc"
+            ]
+          },
+          "maxItems": 4
+        },
+        "oscUnmatched": {
+          "type": "boolean"
+        },
+        "events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped": {
+          "type": "object",
+          "required": [
+            "fifo",
+            "latest",
+            "oversize"
+          ],
+          "properties": {
+            "fifo": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "latest": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "oversize": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "controllerEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "t",
+            "deviceId",
+            "channel",
+            "controller",
+            "value"
+          ],
+          "properties": {
+            "kind": {
+              "const": "cc"
+            },
+            "t": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deviceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "channel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "controller": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "t",
+            "deviceId",
+            "channel",
+            "program"
+          ],
+          "properties": {
+            "kind": {
+              "const": "pc"
+            },
+            "t": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deviceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "channel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "program": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "t",
+            "deviceId",
+            "channel",
+            "note",
+            "velocity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "noteOn"
+            },
+            "t": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deviceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "channel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "note": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            },
+            "velocity": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 127
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "t",
+            "deviceId",
+            "channel",
+            "note",
+            "velocity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "noteOff"
+            },
+            "t": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deviceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "channel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "note": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            },
+            "velocity": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 127
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "t",
+            "port",
+            "address",
+            "args",
+            "matched"
+          ],
+          "properties": {
+            "kind": {
+              "const": "osc"
+            },
+            "t": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "address": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4
+            },
+            "matched": {
+              "type": "boolean"
+            },
+            "more": {
+              "const": true
+            }
+          }
+        }
+      ]
     }
   }
 }
