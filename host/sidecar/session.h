@@ -93,7 +93,7 @@ class Session {
     std::set<uint32_t> used_ids_;
     // A78: latest refused config per blocked live module, never a stale graph.
     uint64_t next_defer_id_ = 0;
-    bool client_deferred_ = false, client_hello_seen_ = false;
+    bool client_deferred_ = false, client_hello_seen_ = false, client_render_liveness_ = false;
     std::map<uint32_t, PendingConfig> pending_configs_;
     Json config_events_ = Json::array();
     Json config_event(uint32_t, const PendingConfig &, const char *, uint64_t) const;
@@ -112,6 +112,10 @@ class Session {
     audio::EngineSlot sink_slot_; // null-sink twin of the PortAudio callback handoff
     std::atomic<double> cpu_{0};
     std::atomic<uint64_t> dropouts_{0};
+    // Session lifetime total (null sink plus retired device streams); only
+    // the sink or quiescent control owner increments it, never a reset.
+    static_assert(std::atomic<uint64_t>::is_always_lock_free);
+    std::atomic<uint64_t> rendered_blocks_{0}, sink_last_completed_ns_{0};
     RenderHistogram bench_; // only sink thread records; joined before shutdown reads
     NullSinkCapture capture_; // opened before, written only by, closed after the sink thread
     CaptureMarks marks_;      // <capture>.marks; control thread only (reply())

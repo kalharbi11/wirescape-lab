@@ -2,6 +2,7 @@
 // Exercises the production audio::Stream against only the device-off fake PortAudio DLL/so.
 #include "../document/runtime_patch.h"
 #include "portaudio_service.h"
+#include "wirescape_sdk.h"
 #include <chrono>
 #include <filesystem>
 #include <iostream>
@@ -17,6 +18,65 @@
 static void require(bool value, const char *message) {
     if (!value) throw std::runtime_error(message);
 }
+namespace {
+// Test-only descriptor, never added to the shipped catalogue. The actual
+// production callback enters process and spins until the control owner releases it.
+std::atomic<bool> stall_requested{false}, stall_entered{false};
+struct StallSource {
+    static constexpr ws::Info info{"test.p0a_stall", "P0a stall fixture", 1};
+    static constexpr std::array<ws2_port, 0> inputs{};
+    static constexpr std::array outputs{ws::port("out", "Out", WS2_CV_BI)};
+    static constexpr std::array<ws2_param, 0> params{};
+    void prepare(const ws::Setup &) {}
+    void reset() {}
+    void process(ws::Block &b) {
+        if (stall_requested.load(std::memory_order_acquire)) {
+            stall_entered.store(true, std::memory_order_release);
+            while (stall_requested.load(std::memory_order_acquire)) {}
+        }
+        b.out(0).set_channels(1);
+        b.out(0).mark_constant();
+        b.out(0).ch(0)[0] = 0.f;
+    }
+};
+
+void test_render_liveness(const wirescape::engine2::Config &config,
+                          const wirescape::audio::StreamSelection &selection) {
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+    wirescape::audio::EngineOwner engine(app_engine_create(&config), app_engine_destroy);
+    require(bool(engine), "P0a engine");
+    require(app_engine_native(engine.get()).add_node(1, ws::Module<StallSource>::descriptor()) &&
+                app_engine_prepare(engine.get(), 1, 0) == WS2_OK, "P0a synthetic graph prepares");
+    stall_requested.store(false);
+    stall_entered.store(false);
+    wirescape::audio::Stream stream(engine, selection, 48000, 128);
+    // Unblock before the Stream destructor joins, even if an assertion throws.
+    struct Release { ~Release() { stall_requested.store(false, std::memory_order_release); } } release;
+    auto wait = [](auto predicate, steady_clock::time_point deadline) {
+        while (!predicate() && steady_clock::now() < deadline) std::this_thread::sleep_for(1ms);
+        return predicate();
+    };
+    require(wait([&] { return stream.rendered_blocks() >= 2; }, steady_clock::now() + 2s),
+            "P0a completed blocks advance while rendering");
+    require(stream.running() && !stream.stalled(), "P0a healthy active stream is not stalled");
+    stall_requested.store(true, std::memory_order_release);
+    require(wait([] { return stall_entered.load(std::memory_order_acquire); }, steady_clock::now() + 2s),
+            "P0a actual DSP entered bounded test spin");
+    const auto entered = steady_clock::now();
+    const auto frozen = stream.rendered_blocks();
+    require(stream.running() && !stream.stalled(), "P0a active immediately before stall deadline");
+    require(wait([&] { return stream.stalled(); }, entered + 1s), "P0a detect stalled within one second");
+    require(stream.running() && stream.rendered_blocks() == frozen,
+            "P0a backend active despite no completed render");
+    stall_requested.store(false, std::memory_order_release);
+    require(wait([&] { return stream.rendered_blocks() > frozen && !stream.stalled(); },
+                 steady_clock::now() + 1s), "P0a progress clears stalled state");
+    engine = stream.stop();
+    require(bool(engine) && !stream.running() && !stream.stalled(), "P0a stopped is not stalled");
+}
+} // namespace
+
 int main(int argc, char **argv) {
     try {
         require(argc == 4, "fake backend directory, library, and sidecar directory required");
@@ -95,6 +155,7 @@ int main(int argc, char **argv) {
         abort_engine = abort_stream.stop();
         require(bool(abort_engine), "stop failure uses abort then returns graph ownership");
         fail(0);
+        test_render_liveness(config, selection);
         return 0;
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';
