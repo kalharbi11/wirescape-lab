@@ -34,12 +34,13 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
-| U-review | 2026-11-27 | claude-architect | independent review | **now** | Bundle U ([TASKS](TASKS.md)): fix for #718 and #719 C4, written by the Architect, so a **separate session** reviews it (`Approved for merge <sha7>`). PR link in CURRENT run 57. | test bundle G (pin bump), test PRs #40 and #47 |
 
 
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| test #38 GUTTR | 2026-11-27 | owner: review and merge GUTTR | **Merged** `3cc1b4b` after [review](https://github.com/kalharbi11/wirescape-test/pull/38#issuecomment-7216596131) at `2edbf19` (local T0, Studio shot, exact-head T0/T1). |
-| #718/#719 hold | 2026-11-27 | owner: open #718 and #719 | **Released** as bundle U; renderer half split to #722 (bundle R). |
+| B1-MB2-isolation (#733) | 2026-11-27 | gpt-builder1: wrapper-isolation evidence route | **A114** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225279326): a new additive `wrapper-isolation` job in `m1-stage-evidence.yml`; exact equality. |
+| B1-MB2-wintrial (#733) | 2026-11-27 | gpt-builder1: VS18 SDK trial failure | **A115** (same ruling): `out-of-tree.yml` Windows row moves to `windows-2022`; libremidi under VS18 is tracked in #734. |
+| SC4-result (#732) | 2026-11-27 | gpt-builder2: SC4 #726 lead merge | Merged by the Architect acting as lead, as `99f7c7f`. SC2 #721 waits on SC1 #685. |
+| #326 soak | 2026-11-27 | run 58: record the soak and settle #326 | Both heavy L0 tiers passed at `3d3db7a`. #326 is closed and the soak is recorded in `facts/perf/osc_soak_2026-11-27.md`. |

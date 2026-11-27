@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - { name: linux-x64, runner: ubuntu-latest }
-          - { name: windows-x64, runner: windows-latest }
+          - { name: windows-x64, runner: windows-2022 }
     defaults:
       run:
         shell: bash

@@ -86,9 +86,12 @@ def measure(probe, ident, voices, valgrind):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=ROOT / "build/native")
+    parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if os.environ.get("GITHUB_ACTIONS") != "true" or sys.platform != "linux":
         parser.error("requires an ephemeral Linux GitHub Actions checkout")
+    output = args.output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
     build = args.build_dir.resolve()
     if not (build / "CMakeCache.txt").is_file():
         parser.error("configure and build Release targets first")
@@ -141,6 +144,7 @@ def main():
                         new = measure(probe, ident, voices, valgrind)
                         row.update(before_ir=old["ir_per_block"],
                                    after_ir=new["ir_per_block"],
+                                   before_totals=old["totals"], after_totals=new["totals"],
                                    equal=old["ir_per_block"] == new["ir_per_block"])
                     except (RuntimeError, ValueError, OSError) as error:
                         row.update(equal=False, error=str(error))
@@ -150,7 +154,25 @@ def main():
                       "descriptor_rows_changed": descriptor_changes,
                       "instruction_rows": len(rows), "instruction_failures": failures,
                       "pass": not changed and not descriptor_changes and not failures}
-            print("MB2_ISOLATION " + json.dumps(result, sort_keys=True), flush=True)
+            # Persist the entire table, including unchanged rows and raw length totals.
+            result["object_rows"] = [{"folder": name, "before": before_hashes[name],
+                                      "after": after_hashes[name],
+                                      "equal": before_hashes[name] == after_hashes[name]}
+                                     for name in sorted(folders)]
+            result["descriptor_rows"] = [{"id": ident, "before": before_desc[ident],
+                                          "after": after_desc[ident],
+                                          "equal": before_desc[ident] == after_desc[ident]}
+                                         for ident in sorted(ids)]
+            result["instruction_table"] = rows
+            result["head"] = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                                             text=True, capture_output=True,
+                                             check=True, timeout=10).stdout.strip()
+            output.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n",
+                              encoding="utf-8")
+            print("MB2_ISOLATION " + json.dumps(
+                {k: v for k, v in result.items() if k not in
+                 ("object_rows", "descriptor_rows", "instruction_table")}, sort_keys=True),
+                flush=True)
             return 0 if result["pass"] else 1
         finally:
             shutil.rmtree(DUMMY_FOLDER)

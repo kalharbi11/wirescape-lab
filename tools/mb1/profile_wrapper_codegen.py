@@ -67,6 +67,21 @@ def costs(path, root):
     function = file = original = "unknown"
     edge = False
     total = None
+    position = 0
+    names = {"fn": {}, "fl": {}}
+
+    def decode(value, kind):
+        # A literal name can begin with "(anonymous namespace)" or
+        # "(below main)"; only a numeric parenthesis is a string reference.
+        m = re.fullmatch(r"\((\d+)\)(?: (.*))?", value)
+        if not m:
+            return value
+        index, label = m.groups()
+        if label is not None:
+            names[kind][index] = label
+        if index not in names[kind]:
+            raise ValueError(f"undefined Callgrind {kind} reference {index}")
+        return names[kind][index]
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if raw.startswith("positions:") and raw.split()[1:] != ["line"]:
             raise ValueError("unexpected Callgrind positions")
@@ -74,23 +89,33 @@ def costs(path, root):
             raise ValueError("unexpected Callgrind events")
         if raw.startswith("summary:"):
             total = int(raw.split()[1])
-        elif raw.startswith("fn="):
-            function = raw[3:]
-            if function.startswith("("):
-                raise ValueError("unexpected compressed function")
-        elif raw.startswith("fl="):
-            original = file = source_name(raw[3:], root)
-        elif raw.startswith(("fi=", "fe=")):
-            file = source_name(raw[3:], root) if raw[3:] else original
+        elif raw.startswith(("fn=", "cfn=")):
+            key, value = raw.split("=", 1)
+            label = decode(value, "fn")
+            if key == "fn":
+                function = label
+        elif raw.startswith(("fl=", "fi=", "fe=", "cfl=", "cfi=")):
+            key, value = raw.split("=", 1)
+            label = source_name(decode(value, "fl"), root) if value else original
+            if key == "fl":
+                original = file = label
+            elif key in ("fi", "fe"):
+                file = label
         elif raw.startswith("calls="):
             edge = True
-        elif re.fullmatch(r"\d+\s+\d+", raw):
-            number, ir = map(int, raw.split())
+        elif re.fullmatch(r"(?:\d+|[+-]\d+|\*)(?:\s+\d+)?", raw):
+            fields = raw.split()
+            token = fields[0]
+            if token.startswith(("+", "-")):
+                position += int(token)
+            elif token != "*":
+                position = int(token)
+            ir = int(fields[1]) if len(fields) == 2 else 0
             if edge:
                 edge = False
                 continue
             functions[function] += ir
-            lines[(file, number)] += ir
+            lines[(file, position)] += ir
     if total is None or not functions:
         raise ValueError("missing Callgrind self costs/summary")
     return total, functions, lines
