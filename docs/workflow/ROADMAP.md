@@ -38,9 +38,9 @@ as written, but it gates no new work.
 | 1 | M3 acceptance | T1.6a–c and TR1e merged | Accept when MB2 merges |
 | 1 | `wirescape-test` | Skeleton | Run 2 rules; harness pinned to the lab; T0/T1 CI; first modules |
 | 1 | `wirescape-headless` Player ([0025](../../proposals/0025-player-osc-scripts-tools.md) §2, §6.2) | Design final; README/AGENTS merged; H-0 CI in review; tasks H-1…H-12, H-G filed as an unassigned pool ([TASKS](https://github.com/kalharbi11/wirescape-headless/blob/main/docs/TASKS.md)) | Fake-player track (H-1–H-3, H-6) needs no engine change; real engine H-4 at the first pin; hardware map H-7 needs P1-e. **Player v1** = gates PG1–PG10 (0025 §2.10) + Gate P0 + P1 (e)–(h) merged + facts H-f1, H-f2 |
-| 2 | Gate P1 (e) controller stream, (e2) control OSC port ([OB](milestones/OB.md) r2.15) | Filed [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) | B2 after P0b #620; Claude contract review. Critical path for a Player on hardware: P0 → P1-e → H-7 → H-f1 |
+| 2 | Gate P1 (e) controller stream, (e2) control OSC port ([OB](milestones/OB.md) r2.15) | [#672](https://github.com/kalharbi11/wirescape-lab/issues/672): P1-e #702 and P1-e2 #708 merged | Player hardware work proceeds through the headless pin and smoke. H-12 waits for the first smoke result. |
 | 2 | [SC](milestones/SC.md) scripts and OSC features | SC r1 contract; OSC In features unfrozen | SC1 (B1 after OB-h5 #603), SC2 (B2 after P1-e), SC4 at Stage 2; SC3 after headless H-10; SC5 design first; SC6 → SC7 |
-| 2 | Player gate P1 (0023 R2.3) | New | Controller stream with Program Change (after run 2), settings fsync, SIGTERM, callback and OSC allocation coverage |
+| 2 | Player gate P1 (0023 R2.3) | (e)/(e2) #702/#708 and (f)/(g) #701 merged | Remaining row (h) covers callback and OSC allocation. |
 | 2 | M3 TR1h, then TR3 | Unparked | Additive v0 `setTransport` and `status.transport`; Studio tempo and play control |
 | 2 | Studio bridge | Run 2 specs | Macro UI, Mappings panel, map mode, lock toggle, bundle export, Player preview; MB3; first promotions |
 | 2 | Player v1 | Run 2 specs | Reference UI, `player.json` pages and hardware map, switching by UI, controller and Program Change, variations, UI guide |
