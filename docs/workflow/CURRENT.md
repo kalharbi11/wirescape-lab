@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead check — 2026-11-26 19:16 EST
+
+- Checked all five lanes and test/headless live PRs; usage/reset unavailable (unknown). Prioritized cross-repo integration.
+- Merged inbox #680 `2c757aa` after exact docs Lab success 45915203485. Source-verified #679: prepare_tree invokes generator before descriptor build, tracks only UI output, and MB1 requires known-ID plus experimental membership consistency. Architect ruling/compatibility task required before next MB1-containing test pin bump; old pin unaffected.
+- Headless #17 `a8bee37`: H1 success but H0 45914524482 fails control replay after restart at test_scripting.py:331. Posted bounded correction packet; no merge/approval. Independent review remains after correction. Bundle D may proceed; E/F wait B/C merge. Test repo has no open PRs.
+- Lab #674 still conflicts: Architect must reconcile transcription with newer run-51 docs; SC1 waits merged contract. #642 exact Lab/Golden/paired/offline success verified but final Result absent; other product heads remain builder work/evidence. No product merge or test waiver.
+- Next Architect run is useful now for #679 and #674; do not wait for #677/#638/#627 to become review-ready. No automatic wake applied. Next milestone: MB1 → fixture fixes → MB2; Player hardware path P0 → P1-e → H-7 → owner facts. OB1 owner listening, real-folder roundtrip, Pi 6a/6b and Architect candidate acceptance remain unchanged and gate no new work.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 51 + lead — 2026-11-26 18:45 EST (owner: `architect:run`, lab only, act as lead, check what run 50 missed)
 - **Missed in run 50, fixed:**
   - **#610 merged unqualified** (`e6fad99` at 23:00 ET, head `b59aef6`). That was B5's diagnostic-only head. It had a red mandatory x64 ASan row (`switch 54: gate/note retained after swap`), no Result, and #545 had not merged. **A105** ([#602](https://github.com/kalharbi11/wirescape-lab/issues/602#issuecomment-7205547306)): #602 reopened as B5's first task. The test stays in `main` (no revert, no skip). One bounded exception, for that test, x64 ASan, that exact text, until the fix merges or 2026-11-29. Lead: record how #610 came to merge.

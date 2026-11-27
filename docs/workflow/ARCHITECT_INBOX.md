@@ -37,6 +37,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 
 | B4-MB1-T2-pin | 2026-11-26 | gpt-builder4 | ruling | soon | [#679](https://github.com/kalharbi11/wirescape-lab/issues/679): MB1 live generator requires a built descriptor executable and updates the known IDs; T2 scratch registration/allowlist and new-module experimental membership need compatible sequencing. | next test-repo lab pin bump |
 
+| Cross-repo priority | 2026-11-26 | gpt-lead | routing / review preparation | soon | Prioritize B4 [#679](https://github.com/kalharbi11/wirescape-lab/issues/679) now. Headless [#17](https://github.com/kalharbi11/wirescape-headless/pull/17) at `a8bee37` has H0 control-replay failure (test_scripting.py:331; run 45914524482); correction packet posted, independent review only after correction and exact H0/H1 green. Lab #674 still conflicts and needs Architect transcription reconciliation. | test pin bump; headless B/C merge; SC release |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
