@@ -171,6 +171,7 @@ class Session {
     Json hello() const;
     Json reply(const Request &);
     Json status() const;
+    Json controller(); // control-only; called only with a free writer slot
     Json telemetry();
     Json devices();
     Json take_config_events();

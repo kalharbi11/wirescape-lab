@@ -140,9 +140,8 @@ private:
         Bank &bank = banks_[(reservation & bank_bit) != 0];
         payload.ordinal = reservation & count_mask;
         payload.epoch = filter & ~filter_bits;
-        // A configure-off racing a callback must not reappear on rearm.
-        // Retain a FIFO reservation as an empty tombstone if its epoch was
-        // retired before publication (default FIFO payload is never read).
+        // An old subscription epoch may complete after unsubscribe; the
+        // control owner filters that epoch before any event is serialized.
         if (!latest) {
             const uint64_t i = (reservation >> 32) & fifo_mask;
             if (i < fifo_capacity) {

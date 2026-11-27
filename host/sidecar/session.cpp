@@ -1334,6 +1334,25 @@ Json Session::apply(const Json &command) {
         observer_->arm_learning(armed);
         return {{"armed", armed}};
     }
+    if (type == "controllerStream") {
+        const auto &kinds = command.at("kinds");
+        need(kinds.is_array() && kinds.size() <= 4, "invalid", "Invalid controller kinds");
+        std::vector<std::string> selected;
+        for (const auto &kind : kinds) {
+            need(kind.is_string(), "invalid", "Invalid controller kind");
+            const auto value = kind.get<std::string>();
+            need(value == "cc" || value == "pc" || value == "note" || value == "osc",
+                 "invalid", "Unknown controller kind");
+            need(std::find(selected.begin(), selected.end(), value) == selected.end(),
+                 "invalid", "Repeated controller kind");
+            selected.push_back(value);
+        }
+        need(!command.contains("oscUnmatched") || command.at("oscUnmatched").is_boolean(),
+             "invalid", "Invalid oscUnmatched");
+        auto &capture = observer_->controller_stream();
+        capture.configure(selected, command.value("oscUnmatched", false));
+        return capture.setting();
+    }
     if (type == "setOsc") throw Refusal("unavailable", "Capability not available");
     if (type == "setSampleRate" || type == "setBufferFrames") {
         const bool rate_change = type == "setSampleRate";
@@ -1849,7 +1868,7 @@ Json Session::midi_status() const {
 Json Session::hello() const {
     Json capabilities = Json::array(
         {"midiLearn", "telemetry.playhead", "telemetry.monitor", "setSampleRate", "setBufferFrames", "osc", "osc.out",
-         "applyGraph", "configDeferred", "audio.renderLiveness"});
+         "applyGraph", "configDeferred", "audio.renderLiveness", "controllerStream"});
     return {{"v", 0},
             {"session", token_},
             {"type", "hello"},
@@ -1861,12 +1880,22 @@ Json Session::hello() const {
             {"audio", audio_status()},
             {"midi", midi_status()}};
 }
+Json Session::controller() {
+    auto events = observer_->controller_stream().drain();
+    if (events.empty()) return nullptr;
+    auto value = base();
+    value["type"] = "controller";
+    value["events"] = std::move(events);
+    return value;
+}
 Json Session::status() const {
     // The caller is the existing 100ms control-thread status tick, never render.
     if (active_) app_engine_native(active_).refresh_latency();
     auto value = base();
     value["type"] = "status";
     value["status"] = {{"audio", audio_status()}, {"midi", midi_status()}};
+    auto controller_status = observer_->controller_stream().status();
+    if (!controller_status.is_null()) value["status"]["controller"] = std::move(controller_status);
     // Snapshot only on the control thread. Summary fields are aggregate actual
     // bind state; multi-port details stay in the bounded per-route list.
     Json osc_status = {{"enabled", false}, {"bind", "127.0.0.1"}, {"port", 0}, {"lan", false}};
