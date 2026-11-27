@@ -12,6 +12,10 @@ struct Argument {
     float real = 0;
     const uint8_t *data = nullptr;
     uint32_t size = 0;
+    // Controller-only extended parser fields; legacy graph encode/numeric
+    // behavior and argument layout for existing callers remain unchanged.
+    int64_t wide_integer = 0;
+    double wide_real = 0;
 };
 struct Message {
     std::string_view address;
@@ -20,6 +24,9 @@ struct Message {
 };
 inline uint32_t big32(const uint8_t *p) {
     return uint32_t(p[0]) << 24 | uint32_t(p[1]) << 16 | uint32_t(p[2]) << 8 | p[3];
+}
+inline uint64_t big64(const uint8_t *p) {
+    return (uint64_t{big32(p)} << 32) | big32(p + 4);
 }
 inline void put32(uint8_t *p, uint32_t v) {
     for (uint32_t i = 0; i < 4; ++i) p[i] = uint8_t(v >> ((3 - i) * 8));
@@ -37,7 +44,8 @@ inline bool string(const uint8_t *bytes, size_t size, size_t &at, std::string_vi
     return true;
 }
 namespace detail {
-template <class Emit> bool parse_message(const uint8_t *bytes, size_t size, Emit &receive) {
+template <class Emit> bool parse_message(const uint8_t *bytes, size_t size, Emit &receive,
+                                           bool extended, bool &legacy_packet) {
     Message message;
     size_t at = 0;
     std::string_view tags;
@@ -57,7 +65,19 @@ template <class Emit> bool parse_message(const uint8_t *bytes, size_t size, Emit
             at += 4;
             if (arg.type == 'i') std::memcpy(&arg.integer, &bits, 4);
             else std::memcpy(&arg.real, &bits, 4);
-        } else if (arg.type == 's') {
+        } else if (extended && (arg.type == 'h' || arg.type == 'd' || arg.type == 't')) {
+            if (size - at < 8) return false;
+            const uint64_t bits = big64(bytes + at);
+            at += 8;
+            legacy_packet = false;
+            if (arg.type == 'h') std::memcpy(&arg.wide_integer, &bits, 8);
+            if (arg.type == 'd') std::memcpy(&arg.wide_real, &bits, 8);
+        } else if (extended && (arg.type == 'c' || arg.type == 'r' || arg.type == 'm')) {
+            if (size - at < 4) return false;
+            at += 4;
+            legacy_packet = false; // well-formed but skipped by the stream
+        } else if (arg.type == 's' || (extended && arg.type == 'S')) {
+            if (arg.type == 'S') legacy_packet = false;
             std::string_view text;
             if (!string(bytes, size, at, text)) return false;
             arg.data = reinterpret_cast<const uint8_t *>(text.data());
@@ -81,9 +101,9 @@ template <class Emit> bool parse_message(const uint8_t *bytes, size_t size, Emit
     receive(message);
     return true;
 }
-} // namespace detail
 // Walk the same bounded bundle tree without recursion or dynamic allocation.
-template <class Emit> bool parse(const uint8_t *bytes, size_t size, Emit receive, uint32_t depth = 0) {
+template <bool Extended, class Emit> bool parse_tree(const uint8_t *bytes, size_t size, Emit receive,
+                                                      uint32_t depth) {
     struct Frame {
         const uint8_t *bytes;
         size_t size, at;
@@ -95,6 +115,11 @@ template <class Emit> bool parse(const uint8_t *bytes, size_t size, Emit receive
     // valid first child can mutate the engine before a later child rejects.
     // Rewalking costs no heap allocation and keeps the existing depth/size limits.
     auto discard = [](const Message &) {};
+    bool legacy_packet = true;
+    auto publish = [&](const Message &message) {
+        if constexpr (Extended) receive(message, legacy_packet);
+        else receive(message);
+    };
     for (uint32_t pass = 0; pass < 2; ++pass) {
         std::array<Frame, 5> stack{};
         size_t used = 1;
@@ -104,8 +129,9 @@ template <class Emit> bool parse(const uint8_t *bytes, size_t size, Emit receive
             if (!frame.entered) {
                 if (!frame.bytes || !frame.size || frame.size > 65507 || (frame.size & 3)) return false;
                 if (frame.size < 8 || std::memcmp(frame.bytes, "#bundle\0", 8) != 0) {
-                    const bool valid = pass == 0 ? detail::parse_message(frame.bytes, frame.size, discard)
-                                                 : detail::parse_message(frame.bytes, frame.size, receive);
+                    const bool valid = pass == 0
+                        ? parse_message(frame.bytes, frame.size, discard, Extended, legacy_packet)
+                        : parse_message(frame.bytes, frame.size, publish, Extended, legacy_packet);
                     if (!valid) return false;
                     --used;
                     continue;
@@ -128,6 +154,17 @@ template <class Emit> bool parse(const uint8_t *bytes, size_t size, Emit receive
         }
     }
     return true;
+}
+} // namespace detail
+template <class Emit> bool parse(const uint8_t *bytes, size_t size, Emit receive, uint32_t depth = 0) {
+    return detail::parse_tree<false>(bytes, size, receive, depth);
+}
+// Extended, stream-only decode. The bool accompanying each child applies
+// to the ENTIRE validated packet, preserving legacy all-or-nothing graph
+// delivery for bundles containing extended tags. Do not graph-encode a
+// message from a packet whose legacy_packet is false.
+template <class Emit> bool parse_controller(const uint8_t *bytes, size_t size, Emit receive, uint32_t depth = 0) {
+    return detail::parse_tree<true>(bytes, size, receive, depth);
 }
 // Encode a valid message into the ABI payload bound, truncating only string/blob
 // contents while retaining a valid complete packet and all numeric arguments.
