@@ -8,6 +8,18 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 58 — 2026-11-27 (owner: resolve B2's blocked status and the Architect questions; check both repos)
+
+- **Decided:**
+  - **A112** (SC4 #720, [ruling](https://github.com/kalharbi11/wirescape-lab/pull/726#issuecomment-7217307649)): a narrow write-only bridge in `preload.ts`, with the folder chosen by main and a validated manifest. The headless check uses a committed fixture and `tools/sc4/player_check.py` at a pinned headless SHA. #726 and #720 are back to in-progress.
+  - **A113** (MB2 #358, [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217309596)): the sorted hello order is accepted with no Studio change. A generated projection `tools/mb1/descriptor_inventory.json` is accepted. A106 is unchanged.
+  - **B2 blocked items:** #494 closed as not reproduced (zero enqueue drops in all ten OB-h1 reports). #326's blocker #631 is fixed (#635). A post-fix soak was dispatched on `3d3db7a`: close #326 if both heavy L0 tiers pass, otherwise it becomes a bundle task. #622 lost its lane label.
+  - Bundle U was merged by the lead as `3d3db7a` (#724). #719 is closed; its renderer half is #722. Inbox PRs #728 and #729 are superseded by this entry.
+- **Held:** SC2 #721 until SC4 and SC1 #685 merge. Bundle T until M merges.
+- **Next Architect run:** when #725 (MB2) is pinned for contract review, or when the soak finishes (medium). **Next run should:** (1) record the soak and settle #326; (2) contract-review MB2; (3) review SC1 #685 once its Result is posted.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 57 — 2026-11-27 (owner: `architect:run`; review and merge the test-repo GUTTR, unblock #718/#719, start short lab bundles)
 
 - **Decided:**
