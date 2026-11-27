@@ -156,7 +156,76 @@ static void control_only_route() {
     REQUIRE(service.states()[0].received == 1 && service.states()[0].dropped == 1);
 }
 
+// A111: sharing one socket must not duplicate the ingress observer call,
+// even when the ordinary and control observer hooks both exist. Coalescing
+// at the sidecar writer could hide a duplicate, so count at the worker.
+static void shared_control_route() {
+    using namespace wirescape::osc;
+    struct Witness {
+        std::atomic<unsigned> delivered{0}, ordinary{0}, control{0};
+        std::atomic<bool> subscribed{true};
+        static int deliver(void *p, uint32_t, const ws2_event &, uint64_t) noexcept {
+            static_cast<Witness *>(p)->delivered.fetch_add(1, std::memory_order_release);
+            return WS2_OK;
+        }
+        static bool observing(void *p) noexcept {
+            return static_cast<Witness *>(p)->subscribed.load(std::memory_order_acquire);
+        }
+        static void observe(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->ordinary.fetch_add(1, std::memory_order_relaxed);
+        }
+        static void observe_control(void *p, uint16_t, const Message &) noexcept {
+            static_cast<Witness *>(p)->control.fetch_add(1, std::memory_order_relaxed);
+        }
+    } witness;
+    Service service({&witness, Witness::deliver, nullptr, Witness::observing,
+                     Witness::observe, Witness::observe_control});
+    REQUIRE(service.add({1, 0, false}) && service.add({0, 0, false, true}) && service.start());
+    REQUIRE(service.counters().sockets == 1);
+    REQUIRE(service.states().size() == 2);
+    Message message;
+    message.address = "/control/shared";
+    message.count = 1;
+    message.arguments[0].type = 'f';
+    message.arguments[0].real = .5f;
+    uint8_t packet[1472]{};
+    bool shortened = false;
+    const auto bytes = encode(message, packet, sizeof(packet), shortened);
+    REQUIRE(bytes > 0 && !shortened);
+    const auto sender = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in address{};
+    address.sin_family = AF_INET;
+    address.sin_port = htons(service.bound_port());
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    auto send = [&] {
+        REQUIRE(sendto(sender, reinterpret_cast<const char *>(packet), int(bytes), 0,
+                       reinterpret_cast<sockaddr *>(&address), sizeof(address)) == int(bytes));
+    };
+    send();
+    for (uint32_t attempt = 0; attempt < 2000 && witness.delivered.load(std::memory_order_acquire) < 1; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    REQUIRE(witness.delivered.load() == 1);
+    REQUIRE(witness.control.load() == 1 && witness.ordinary.load() == 0);
+    witness.subscribed.store(false, std::memory_order_release);
+    send();
+    for (uint32_t attempt = 0; attempt < 2000 && witness.delivered.load(std::memory_order_acquire) < 2; ++attempt)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+    closesocket(sender);
+#else
+    close(sender);
+#endif
+    service.stop();
+    REQUIRE(witness.delivered.load() == 2);
+    REQUIRE(witness.control.load() == 1 && witness.ordinary.load() == 0);
+    const auto states = service.states();
+    REQUIRE(!states[0].control && states[1].control);
+    REQUIRE(states[0].received == 2 && states[1].received == 2);
+    REQUIRE(states[0].dropped == 0 && states[1].dropped == 0);
+}
+
 int main() {
+    shared_control_route();
     control_only_route();
     legacy_cc_and_out();
     osc_out_v2_destination_config();

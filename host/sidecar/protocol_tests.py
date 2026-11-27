@@ -1237,7 +1237,7 @@ with tempfile.TemporaryDirectory() as control_dir:
         control_port = reserve.getsockname()[1]
     control = Engine(Path(control_dir) / 'settings.json', '--control-osc-port', str(control_port))
     try:
-        assert 'controllerStream.controlPort' in control.hello['capabilities'], control.hello
+        assert 'controllerStream.controlPort' in control.hello['capabilities'], control.hello['capabilities']
         def control_next(kind, predicate):
             deadline = time.monotonic() + 8
             while time.monotonic() < deadline:
