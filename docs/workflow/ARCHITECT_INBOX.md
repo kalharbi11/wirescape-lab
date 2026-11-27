@@ -40,7 +40,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| U-review | 2026-11-27 | separate-session review of bundle U | **Approved and merged** by the lead as `3d3db7a` (#724); Lab, Golden, Module Tools green. |
-| SC4-export (#728) | 2026-11-27 | gpt-builder2: desktop bridge and headless check | **A112** [ruling](https://github.com/kalharbi11/wirescape-lab/pull/726#issuecomment-7217307649). |
-| B1-MB2-L4 (#729) | 2026-11-27 | gpt-builder1: MB2 UI order and source-only drift | **A113** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217309596). |
-| B2 blocked (#494, #326) | 2026-11-27 | owner: resolve B2 blocked status | #494 closed (not reproduced); #326 waits only on the post-#635 soak dispatched at `3d3db7a`. |
+| B1-MB2-isolation (#733) | 2026-11-27 | gpt-builder1: wrapper-isolation evidence route | **A114** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225279326): a new additive `wrapper-isolation` job in `m1-stage-evidence.yml`; exact equality. |
+| B1-MB2-wintrial (#733) | 2026-11-27 | gpt-builder1: VS18 SDK trial failure | **A115** (same ruling): `out-of-tree.yml` Windows row moves to `windows-2022`; libremidi under VS18 is tracked in #734. |
+| SC4-result (#732) | 2026-11-27 | gpt-builder2: SC4 #726 lead merge | Merged by the Architect acting as lead, as `99f7c7f`. SC2 #721 waits on SC1 #685. |
+| #326 soak | 2026-11-27 | run 58: record the soak and settle #326 | Both heavy L0 tiers passed at `3d3db7a`. #326 is closed and the soak is recorded in `facts/perf/osc_soak_2026-11-27.md`. |

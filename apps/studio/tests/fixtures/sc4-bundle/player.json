@@ -1,0 +1,106 @@
+{
+  "format": "wirescape.player",
+  "version": 1,
+  "title": "Fixture set",
+  "setlist": [
+    {
+      "patch": "patches/patch-0001.json",
+      "title": "Fixture patch",
+      "controls": [
+        {
+          "id": "macro-1-1",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 1
+            }
+          }
+        },
+        {
+          "id": "macro-1-2",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 2
+            }
+          }
+        },
+        {
+          "id": "macro-1-3",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 3
+            }
+          }
+        },
+        {
+          "id": "macro-1-4",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 4
+            }
+          }
+        },
+        {
+          "id": "macro-1-5",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 5
+            }
+          }
+        },
+        {
+          "id": "macro-1-6",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 6
+            }
+          }
+        },
+        {
+          "id": "macro-1-7",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 7
+            }
+          }
+        },
+        {
+          "id": "macro-1-8",
+          "target": {
+            "macro": {
+              "page": 1,
+              "knob": 8
+            }
+          }
+        }
+      ],
+      "pages": [
+        {
+          "title": "Macro 1",
+          "controls": [
+            "macro-1-1",
+            "macro-1-2",
+            "macro-1-3",
+            "macro-1-4",
+            "macro-1-5",
+            "macro-1-6",
+            "macro-1-7",
+            "macro-1-8"
+          ]
+        }
+      ],
+      "scripts": [
+        {
+          "file": "scripts/voice.py",
+          "port": 9000
+        }
+      ]
+    }
+  ]
+}

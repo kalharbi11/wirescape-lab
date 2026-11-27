@@ -103,8 +103,49 @@ static void stored_modulation_duplicates() {
           "sum all amounts before clamping");
 }
 
+// #663: missing feedback settings must work at Daisy-sized blocks, without
+// weakening the validation of explicitly authored feedback delays.
+static void small_block_feedback_default() {
+    Json patch = Json::parse(R"({"format":"wirescape.native.patch","version":2,"settings":{},
+      "modules":[{"id":1,"module":"essentials.vca","version":2}],
+      "connections":[],"outputs":[{"module":1,"port":"audio","bus_channel":0}]})");
+    for (uint32_t block : {16u, 17u, 32u, 64u}) {
+        wirescape::engine2::Config cfg{};
+        cfg.max_block = block;
+        std::string error;
+        auto load = [&] {
+            return Owner(wirescape::document::load_runtime_patch(patch.dump(), nullptr, cfg, error),
+                         app_engine_destroy);
+        };
+        auto plain = load();
+        check(bool(plain), "#663 omitted feedback_block prepares at small block");
+        float samples[64]{};
+        check(app_engine_render(plain.get(), samples, block) == WS2_OK, "#663 render small block");
+
+        patch["connections"] = Json::array({{{"kind","signal"},
+            {"from",{{"module",1},{"port","audio"}}},
+            {"to",{{"module",1},{"port","audio"}}}}});
+        auto loop = load();
+        check(bool(loop), "#663 feedback loop prepares with omitted setting");
+        auto loops = app_engine_native(loop.get()).feedback_loops();
+        check(loops.size() == 1 && loops[0].delay_frames == (block < 32 ? block : 32),
+              "#663 default delay is min(32, max_block)");
+
+        patch["settings"]["feedback_block"] = 1;
+        auto explicit_loop = load();
+        check(bool(explicit_loop), "#663 explicit valid feedback delay prepares");
+        loops = app_engine_native(explicit_loop.get()).feedback_loops();
+        check(loops.size() == 1 && loops[0].delay_frames == 1, "#663 explicit delay preserved");
+        patch["settings"]["feedback_block"] = block + 1;
+        check(!load() && error == "Invalid feedback block", "#663 explicit oversized delay refused");
+        patch["settings"].erase("feedback_block");
+        patch["connections"] = Json::array();
+    }
+}
+
 int main(int argc,char**argv){try{
  stored_modulation_duplicates();
+ small_block_feedback_default();
  check(argc==2,"demo argument");std::ifstream input(argv[1]);std::string bytes((std::istreambuf_iterator<char>(input)),{});check(!bytes.empty(),"read demo");
  wirescape::engine2::Config cfg{};
     cfg.sample_rate = 48000;

@@ -707,6 +707,88 @@ async function savePatch(input: unknown): Promise<{ name: string } | null> {
     throw new Error('Could not save patch');
   } finally { await fs.promises.rm(temp, { force: true }).catch(() => {}); }
 }
+// SC4: a separate folder-write operation. No patch save-target changes,
+// renderer-chosen destination paths, generic filesystem access or script execution.
+const BUNDLE_MAX_FILES = 256;
+const BUNDLE_MAX_BYTES = 64 * 1024 * 1024;
+type BundlePatchFile = { name: string; text: string };
+type BundleScriptFile = { name: string; bytes: Uint8Array };
+function checkedBundle(input: unknown): { playerJson: string; patches: BundlePatchFile[]; scripts: BundleScriptFile[] } {
+  if (!input || typeof input !== 'object') throw new Error('Invalid bundle');
+  const { playerJson, patches, scripts } = input as { playerJson: unknown; patches: unknown; scripts: unknown };
+  if (typeof playerJson !== 'string' || Buffer.byteLength(playerJson, 'utf8') > LIMIT ||
+      !Array.isArray(patches) || !patches.length || patches.length > BUNDLE_MAX_FILES ||
+      !Array.isArray(scripts) || 1 + patches.length + scripts.length > BUNDLE_MAX_FILES) throw new Error('Invalid bundle or file limit');
+  let total = Buffer.byteLength(playerJson, 'utf8');
+  const patchPaths = new Set<string>(), scriptPaths = new Set<string>(), folded = new Set<string>();
+  for (const [i, p] of patches.entries()) {
+    if (!p || p.name !== `patch-${String(i + 1).padStart(4, '0')}.json` || typeof p.text !== 'string' ||
+        Buffer.byteLength(p.text, 'utf8') > LIMIT || nativeFile(p.text).version !== 2)
+      throw new Error('Invalid native bundle patch');
+    patchPaths.add('patches/' + p.name);
+    total += Buffer.byteLength(p.text, 'utf8');
+  }
+  for (const s of scripts) {
+    if (!s || typeof s.name !== 'string' || !/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]{0,119}\.py$/.test(s.name) ||
+        /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(s.name) ||
+        s.name.includes('..') || folded.has(s.name.toLowerCase()) || !(s.bytes instanceof Uint8Array) || s.bytes.byteLength > LIMIT)
+      throw new Error('Invalid or duplicate bundle script');
+    folded.add(s.name.toLowerCase());
+    scriptPaths.add('scripts/' + s.name);
+    total += s.bytes.byteLength;
+  }
+  if (total > BUNDLE_MAX_BYTES) throw new Error('Bundle exceeds 64 MiB');
+  const manifest = JSON.parse(playerJson);
+  if (!manifest || manifest.format !== 'wirescape.player' || manifest.version !== 1 ||
+      typeof manifest.title !== 'string' || !manifest.title.trim() ||
+      !Array.isArray(manifest.setlist) || manifest.setlist.length !== patches.length)
+    throw new Error('Invalid Player manifest');
+  const ordered = [...patchPaths], usedScripts = new Set<string>();
+  for (const [i, entry] of manifest.setlist.entries()) {
+    if (!entry || entry.patch !== ordered[i] || typeof entry.title !== 'string' ||
+        !Array.isArray(entry.scripts)) throw new Error('Invalid Player setlist');
+    const entryScripts = new Set<string>();
+    for (const s of entry.scripts) {
+      if (!s || !scriptPaths.has(s.file) || entryScripts.has(s.file) ||
+          !Number.isInteger(s.port) || s.port < 1024 || s.port > 65535)
+        throw new Error('Invalid Player script reference');
+      entryScripts.add(s.file); usedScripts.add(s.file);
+    }
+  }
+  if (usedScripts.size !== scriptPaths.size) throw new Error('Unreferenced bundle script');
+  return { playerJson, patches, scripts };
+}
+async function savePlayerBundle(input: unknown): Promise<{ name: string } | null> {
+  if (!window) throw new Error('Window unavailable');
+  const bundle = checkedBundle(input); // Reject malformed input before asking for a folder.
+  const result = await dialog.showOpenDialog(window, {
+    title: 'Choose an empty Player bundle folder', properties: ['openDirectory', 'createDirectory'],
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  const root = path.resolve(result.filePaths[0]);
+  if (await fs.promises.realpath(root) !== root || !(await fs.promises.lstat(root)).isDirectory() || (await fs.promises.readdir(root)).length)
+    throw new Error('Choose an empty folder; existing files are not overwritten.');
+  const patchDir = path.join(root, 'patches'), scriptDir = path.join(root, 'scripts');
+  // Exclusive creation for every directory and file. A failure leaves an
+  // incomplete folder, reported to the user, rather than overwriting data.
+  try {
+    await fs.promises.mkdir(patchDir, { mode: 0o700 });
+    await fs.promises.mkdir(scriptDir, { mode: 0o700 });
+    const write = async (dir: string, name: string, bytes: string | Uint8Array) => {
+      if (await fs.promises.realpath(dir) !== dir || !(await fs.promises.lstat(dir)).isDirectory())
+        throw new Error('Unsafe bundle directory');
+      await fs.promises.writeFile(path.join(dir, name), bytes, {
+        flag: fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW ?? 0), mode: 0o600,
+      });
+    };
+    for (const p of bundle.patches) await write(patchDir, p.name, p.text);
+    for (const s of bundle.scripts) await write(scriptDir, s.name, s.bytes);
+    await write(root, 'player.json', bundle.playerJson);
+    return { name: path.basename(root) };
+  } catch {
+    throw new Error('Bundle write incomplete; choose a new empty folder for retry.');
+  }
+}
 function configureMenu(): void {
   const intent = (type: string, options: Record<string, unknown> = {}) => notify({ v: 0, type, ...options });
   const menu = Menu.buildFromTemplate([
@@ -786,6 +868,10 @@ app.whenReady().then(() => {
   ipcMain.handle('wirescape:open', (event, request: unknown) => {
     if (!senderAllowed(event)) throw new Error('Unavailable');
     return request === undefined ? openPatch() : libraryPatch(request);
+  });
+  ipcMain.handle('wirescape:bundle-export', (event, input: unknown) => {
+    if (!senderAllowed(event)) throw new Error('Unavailable');
+    return savePlayerBundle(input);
   });
   ipcMain.handle('wirescape:save', (event, input: unknown) => {
     if (!senderAllowed(event)) throw new Error('Unavailable');

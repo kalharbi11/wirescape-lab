@@ -132,6 +132,8 @@ def publish(out, info, results, error):
 def run(args):
     case_path = Path(args.case)
     source = json.loads(case_path.read_text())
+    if args.block is not None:
+        source["block"] = args.block
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     patch = (json.dumps(source["patch"], sort_keys=True, separators=(",", ":")) + "\n").encode()
@@ -198,6 +200,8 @@ if __name__ == "__main__":
     parser.add_argument("--negative-late", action="store_true")
     parser.add_argument("--render")
     parser.add_argument("--case")
+    parser.add_argument("--block", type=int, choices=range(1, 1025), metavar="1..1024",
+                        help="override only the case block size")
     parser.add_argument("--out")
     parser.add_argument("--compiler", default="unavailable")
     parser.add_argument("--configuration", default="unavailable")
