@@ -13,18 +13,18 @@ For each case the renderer requires non-silent PCM (`rms_fs > 1e-8`) and a posit
 
 ## Current offline instrumentation boundary
 
-Current device-free `native/tools/render/main.cpp` accepts only `noteOn`, `noteOff`, `gate`, and `setParam` script entries. It cannot enqueue raw MIDI UMP or OSC message events. No product/renderer changes are permitted by issue #66.
+The device-free renderer accepts `noteOn`, `noteOff`, `gate`, `setParam`, and raw `midi` script entries. A MIDI entry supplies a target `node`, absolute `frame`, and `words` array of 1–4 unsigned 32-bit UMP words; the count must match the message-type nibble. OSC message injection remains unsupported. Issue #722 adds MIDI ingress; it does not by itself establish causal coverage for every MIDI module.
 
 | Runtime ID | Reproduction / observation boundary |
 | --- | --- |
-| `midi.in` | Module processes `WS2_MIDI` UMP events; renderer's event parser rejects `type: midi`, so no deterministic offline MIDI ingress to propagate to audio |
-| `midi.to_cv` | Its `midi` input needs `WS2_MIDI`; renderer supports no such input event, so pitch/gate conversion cannot be causally observed |
-| `midi.cc_to_cv` | Its `midi` input needs `WS2_MIDI` CC messages; renderer supports no raw UMP, so CC modulation is not exercised |
+| `midi.in` | Raw UMP ingress is available; a causal routed-output coverage case remains to be established |
+| `midi.to_cv` | Renderer regression #722 checks sample-exact gate and bend conversion from raw UMP; broader coverage-suite contribution remains separate |
+| `midi.cc_to_cv` | Raw UMP CC injection is available; a causal CC modulation coverage case remains to be established |
 | `osc.in` | Input expects `WS2_MESSAGE` OSC bytes; offline script rejects `type: osc`, so a mapped control signal cannot be stimulated |
 | `osc.out` | No audio or signal output; DSP writes an internal `OutBus` that the headless WAV renderer does not expose. Bundled `osc-out-01.json` includes it, but its output audio can be entirely independent of `osc.out` |
 | `monitor` | No outputs; DSP writes capture observations to a `Tap`, not the audio renderer. Renderer exposes WAV and metering only, not tap samples |
 
-To reproduce the missing script capability without opening devices, invoke the renderer with an otherwise valid coverage patch and a script containing an event of the unsupported type, e.g. `[{"frame":0,"node":1,"type":"midi"}]`; it returns `wirescape_render: unknown event type: midi`. Corresponding OSC events fail similarly. For `osc.out` and `monitor`, inspect the zero-output descriptor and compare WAVs with their disconnected instances: no causal PCM difference is expected. A future issue would need **test-only, device-free** raw event injection plus OSC-out/monitor bus/tap inspection, approved and implemented by Fable, to meet the remaining strict contribution criteria.
+For device-free MIDI injection, use an entry such as `{"frame":0,"node":1,"type":"midi","words":[546323556]}` (MIDI 1.0 note-on). The renderer regression exercises note-on/off and pitch bend. OSC injection and OSC-out/monitor bus or tap inspection remain separate gaps; zero-output descriptors cannot establish causal PCM contribution by themselves.
 
 Current coverage facts distinguish unmeasured contribution, non-silent bundled patch *presence*, and a measured audio bypass intervention. There is no claim that the six modules above have passed the T0.11 contribution gate, or that unrelated background audio proves coverage.
 
