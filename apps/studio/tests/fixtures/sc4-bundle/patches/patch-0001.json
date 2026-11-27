@@ -1,0 +1,26 @@
+{
+  "format": "wirescape.native.patch",
+  "version": 2,
+  "connections": [],
+  "modules": [
+    {
+      "id": 1,
+      "module": "essentials.macro"
+    },
+    {
+      "id": 2,
+      "module": "osc.in",
+      "config": {
+        "port": 9000
+      }
+    }
+  ],
+  "ui": {
+    "scriptLinks": {
+      "2": {
+        "script": "voice.py",
+        "part": 0
+      }
+    }
+  }
+}
