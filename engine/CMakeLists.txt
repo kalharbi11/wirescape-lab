@@ -264,6 +264,9 @@ target_link_libraries(wirescape_catalog_dependencies INTERFACE macro_upstream)
 add_library(wirescape_app_engine STATIC control/app_engine.cpp)
 target_include_directories(wirescape_app_engine PUBLIC control)
 target_link_libraries(wirescape_app_engine PUBLIC wirescape_engine2 wirescape_catalog_dependencies)
+include(control/module_registry.cmake)
+ws_builtin_registry(wirescape_app_engine "${CMAKE_CURRENT_SOURCE_DIR}/.." wirescape_sdk2 wirescape_catalog_dependencies)
+target_include_directories(wirescape_app_engine PRIVATE ../host/document)
 target_link_libraries(wirescape_cli PRIVATE wirescape_app_engine)
 
 # MB1: device-free descriptor inspection; no JSON dependency in the DSP engine.

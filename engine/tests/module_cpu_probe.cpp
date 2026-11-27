@@ -6,7 +6,7 @@
 //   module_cpu_probe {"module":..., "render_ns":{"max":..,"p99":..}, "allocations":.., ...}
 #include "../../tests/native/abi2/allocation_watch.h"
 #include "../data_slots.h"
-#include "module_catalog.h"
+#include "module_registry.h"
 #include "module_cpu_probe_output.h"
 #include "runtime_module_config.h"
 #include <algorithm>

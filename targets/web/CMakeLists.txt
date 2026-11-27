@@ -45,6 +45,15 @@ target_include_directories(web_core PUBLIC ${native}/sdk/include ${native}/engin
 target_compile_definitions(web_core PUBLIC WS_ENGINE_BUILD)
 target_link_libraries(web_core PUBLIC web_macro nlohmann_json::nlohmann_json ${CMAKE_DL_LIBS})
 
+# Same module sources and generated registry as native, with the web toolchain.
+add_library(web_module_dependencies INTERFACE)
+target_include_directories(web_module_dependencies INTERFACE ${native}/sdk/include ${native}/engine/include
+  ${native}/host/include ${native}/sdk ${native}/engine ${native}/engine/voice)
+target_compile_definitions(web_module_dependencies INTERFACE WS_ENGINE_BUILD)
+target_link_libraries(web_module_dependencies INTERFACE web_macro)
+include(${native}/engine/control/module_registry.cmake)
+ws_builtin_registry(web_core "${native}" web_module_dependencies)
+
 if(EMSCRIPTEN)
   # Standalone module (no JS glue): the worklet instantiates it with a few WASI stubs.
   add_executable(wirescape_web web_engine.cpp)
@@ -56,6 +65,7 @@ if(EMSCRIPTEN)
   # Native wasm exceptions: no JS glue needed (Chrome 95+, Firefox 100+, Safari 15.2+).
   target_compile_options(web_core PUBLIC -fwasm-exceptions -O3)
   target_compile_options(web_macro PUBLIC -fwasm-exceptions -O3)
+  target_compile_options(web_module_dependencies INTERFACE -fwasm-exceptions -O3)
   target_link_options(wirescape_web PRIVATE -fwasm-exceptions -O3)
 else()
   enable_testing()
