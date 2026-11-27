@@ -8,6 +8,16 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 52 + lead — 2026-11-26 19:45 EST (owner: `architect:run`; resolve lab agents' asks, act as lead, serve the test-repo Architect)
+- **A106** on [#679](https://github.com/kalharbi11/wirescape-lab/issues/679#issuecomment-7206774997): post-MB1 test pin bump needs MOD-T2c ([test #18](https://github.com/kalharbi11/wirescape-test/issues/18)); MB1 merge not gated. M3 r2.3.
+- **SDK-1 filed** as [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) (B4, after MB1 and MOD-T2c); M3 and BUILDERS link it.
+- **Lead:** #674 reconciled with main (run 50 transcription kept as "run 50b"; newer inbox and BUILDERS from main kept) and merged with this entry. #664 + #665 taken by the Architect as one test-only PR, [#683](https://github.com/kalharbi11/wirescape-lab/pull/683) (auto-merge on exact-head Lab green).
+- **Held:** test-repo T2 for random, macro and clock_divmult needs the owner's go-ahead, not the Architect's. adsr and function_envelope T2 wait for the #664/#665 merge, then the test pin bump. The first post-MB1 pin needs MOD-T2c.
+- **Lanes:** unchanged from the 19:16 lead check; no lane is idle.
+- **Next Architect run:** when #602's fix (#677) or #627 is pinned for review (medium). **Next run should:** (1) review the #602 fix and close A105's exception; (2) review OB-h2 #601 when pinned; (3) check that the #664/#665 PR merged; (4) P0a #627 review; (5) OB1 acceptance once owner evidence exists.
+
+Signed: claude-architect, 2026-11-26
+
 ## Lead check — 2026-11-26 19:16 EST
 
 - Checked all five lanes and test/headless live PRs; usage/reset unavailable (unknown). Prioritized cross-repo integration.
@@ -29,6 +39,15 @@ Signed: gpt-lead, 2026-11-26
 - **Next Architect run:** when B5 pins the #602 fix or #601 asks for its contract review (medium). **Next run should:** (1) review the #602 fix and close A105's exception; (2) review OB-h2 #601 when pinned; (3) confirm #674 merged and #672 is in B2's queue; (4) P0a #627 review when pinned; (5) OB1 acceptance once owner evidence exists.
 
 Signed: claude-architect, 2026-11-26
+
+## Architect run 50b — 2026-11-26 18:30 EST (owner: `architect:run`; Planner run 2b transcription and headless setup)
+- **Transcribed 0025 (final):** Gate P1 (e) filed as [#672](https://github.com/kalharbi11/wirescape-lab/issues/672) (B2 after P0b #620, Claude contract review, e2 as second PR); [OB r2.15](milestones/OB.md) Gate P1 table; new contract [SC](milestones/SC.md) r1 (SC1–SC7); MM4 depends on #672; ROADMAP and PRIORITY rows for the Player, P1 (e) and SC; facts H-f1–H-f3 named as unmeasured; planner `02` marked done.
+- **Freeze lifted** for the Player, OSC In features, scripts and the tool host (SC5 stays design-first until headless H-10 exists).
+- **`wirescape-headless`:** Planner PR #1 reviewed and merged `2cad95c`. H-0 CI skeleton written by this run ([headless #16](https://github.com/kalharbi11/wirescape-headless/pull/16)) and waiting for a different session's review. H-1…H-12 and H-G filed as an **unassigned task pool** in bundles A–G (headless #3–#15, `docs/TASKS.md`); any agent starts with `headless: run`. Bundle A (H-1, H-2) is free now.
+- **Lanes:** B2 queue gains P1-e → P1-e2 → SC2; B1 gains SC1 (after OB-h5 #603) → SC4 → SC3 (after H-10). Lead dispatch wins on conflict.
+- **Concurrent session:** another Architect session reviewed #545 at 23:11 ET (Approved 638d8b6, auto-merge on) and holds the other Open rows; this run did not touch them.
+- **Owner settings:** headless branch protection after H-0 merges (required `H0 gate`, `H1 gate`, no approvals); allow auto-merge and squash on headless.
+- **Next Architect run:** after headless H-0 and lab #620 merge (medium). **Next run should:** (1) confirm #672 is dispatched to B2 once #620 merges; (2) check headless bundle A progress and that reviews come from different sessions; (3) review P1-e when pinned; (4) OB1 acceptance once owner evidence exists.
 
 ## Architect run 50 — 2026-11-26 18:15 EST (owner: `architect:run`; reviews, merges, test-repo prep)
 - **wirescape-test:** #4 (T2 per 0024 §9.1–§9.3) reviewed as a separate session and merged `1f94fa5`; lab **#652 closed**. Module PRs were updated to the new `main` and reviewed against 0024: MOD-1 #9 merged `ed9fa03`, MOD-3 #11 `93fbd53`, MOD-5 #12 `ad78f91`; MOD-2 #10 merged after its index-row conflict was resolved at `dd9fe39` (T0/T1 green). Filed **MOD-3a** [test #13](https://github.com/kalharbi11/wirescape-test/issues/13) (Medium: a clock-mode reset between edges does not zero the beat and can double-step; Low: a division change alone draws a value; index refresh to lab #664/#665) and **MOD-4** [test #14](https://github.com/kalharbi11/wirescape-test/issues/14) (copies `beat_clock.h` after MOD-3a; files SDK-1).
