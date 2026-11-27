@@ -30,7 +30,7 @@ covers lane queues that are not listed here. Contracts, reviews, CI gates and SR
 
 Claims live on the task issues. As of 2026-11-27, M, S and R are claimed: drafts #725 and #727, and PR #726.
 Rulings: A112 (SC4 bridge and headless check), A113 (MB2 order and projection), A114/A115 (MB2 isolation evidence and SDK trial runner).
-**2026-11-27 run 59:** #663 merged (`bbe07ff`), so R moves to #722. SC4 merged (`99f7c7f`), so S's SC2 waits only on SC1 #685.
+**2026-11-27 run 59:** #663 merged (`bbe07ff`), so R moves to #722. SC4 merged (`99f7c7f`), so S's SC2 waits on SC1 #685 and, under A117 (it writes `engine/control/osc_host`), on MB2 #725. A116 rules on MB2's `finite_samples` regression.
 
 | Bundle | Tasks in order | Paths (summary) | Why now |
 |---|---|---|---|

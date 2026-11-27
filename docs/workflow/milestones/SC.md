@@ -34,6 +34,8 @@ lab vendors them (SC3). The Player is not in this contract (`wirescape-headless`
 | **SC6** | Auto-sync | Studio OSC In editor, `ui.scriptLinks`, tests | §4.4 rules, each with a test: rename, add, remove, 9th row, unlink | after SC3, SC5 | lead |
 | **SC7** | Script controls in the generic panel | Studio panel, tests | §4.3 control types drawn by the 0015 generic panel | after SC6 | lead |
 
+**A117 (2026-11-27):** SC2 also writes `host/net/osc_service.{h,cpp}` and `engine/control/osc_host.{h,cpp}` with their tests, for worker telemetry only. It starts after SC1 #685 and MB2 #725 merge. Counts are taken at match time, before refusal, address-only.
+
 **Writers.** SC1, SC3, SC4, SC6 and SC7 are Studio and desktop work in B1 after its MM chain; SC1 shares
 `OscEditor.ts` with OB-h5 and goes after it. SC2 is B2 after P1-e (same files).
 
