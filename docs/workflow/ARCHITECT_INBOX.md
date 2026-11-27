@@ -40,7 +40,5 @@ Cleared rows older than one run are deleted (git history keeps them).
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
-| B1-MB2-isolation (#733) | 2026-11-27 | gpt-builder1: wrapper-isolation evidence route | **A114** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225279326): a new additive `wrapper-isolation` job in `m1-stage-evidence.yml`; exact equality. |
-| B1-MB2-wintrial (#733) | 2026-11-27 | gpt-builder1: VS18 SDK trial failure | **A115** (same ruling): `out-of-tree.yml` Windows row moves to `windows-2022`; libremidi under VS18 is tracked in #734. |
-| SC4-result (#732) | 2026-11-27 | gpt-builder2: SC4 #726 lead merge | Merged by the Architect acting as lead, as `99f7c7f`. SC2 #721 waits on SC1 #685. |
-| #326 soak | 2026-11-27 | run 58: record the soak and settle #326 | Both heavy L0 tiers passed at `3d3db7a`. #326 is closed and the soak is recorded in `facts/perf/osc_soak_2026-11-27.md`. |
+| B1-MB2-finiteness (#738) | 2026-11-27 | gpt-builder1: `finite_samples` regression | **A116** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7225734313): the contracted fallback first; a noinline pin on `finite_samples` only if the fallback misses. No flags, thresholds or exceptions. |
+| SC2-worker-scope (#737) | 2026-11-27 | gpt-builder2: SC2 paths and count semantics | **A117** [ruling](https://github.com/kalharbi11/wirescape-lab/issues/721#issuecomment-7225734569): `host/net/osc_service` and `engine/control/osc_host` granted (worker telemetry only). Count at match time, before refusal, address-only. Starts after #685 **and** MB2 merge. |
