@@ -5,6 +5,8 @@
 #include "app_engine.h"
 #include "monitor_capture.h"
 #include <array>
+#include <atomic>
+#include <optional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,9 +41,20 @@ class Host {
         std::array<char, 256> address{};
         uint16_t port = 0, length = 0;
         uint32_t enabled_mask = 0; // one bit per configured OSC In filter (maximum 32)
+        std::array<uint8_t, 32> row_masks{}; // enabled matching rows per filter
         bool valid = false, known = false;
     };
     std::array<AddressMatch, 128> cached_matches_{};
+    // Single worker writer; sequence doubles as the count (odd while updating).
+    // Status reads a coherent pair or keeps its previous coherent snapshot.
+    struct Activity {
+        std::atomic<uint64_t> sequence{0}, timestamp_ns{0};
+        mutable RowActivity snapshot{}; // control owner only
+    };
+    std::array<std::array<Activity, 8>, 32> activity_{};
+    std::optional<uint64_t> activity_generation_;
+    static void match_rows(void *, uint16_t, std::string_view, uint64_t) noexcept;
+    void reset_activity() noexcept;
     const AddressMatch &classify(uint16_t port, std::string_view address) noexcept;
     static bool accept(void *, uint32_t, std::string_view) noexcept;
     static bool observing(void *) noexcept;
@@ -66,7 +79,10 @@ class Host {
     Host &operator=(const Host &) = delete;
     // Stage filters and socket declarations without opening sockets. Activate
     // only after the engine accepts the corresponding document/slot write.
-    void prepare(AppEngine *, const std::string &document);
+    // Session passes its accepted filter generation to preserve counts on a
+    // same-generation worker restart (e.g. rollback). Standalone starts reset.
+    void prepare(AppEngine *, const std::string &document,
+                 std::optional<uint64_t> activity_generation = std::nullopt);
     void activate() noexcept;
     void start(AppEngine *, const std::string &document);
     void stop() noexcept;

@@ -595,7 +595,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         failure = osc_route_when(lambda route: route['state'] == 'port-busy')
         assert failure['port'] == port and failure['received'] == 0 and failure['dropped'] == 0
         assert failure['module'] == '9'
-        assert failure['rows'] == [dict(received=0, ageMs=None)], failure
+        assert failure['rows'] == [dict(received=0, ageMs=None)] * 8, failure
         invalid = json.loads(json.dumps(osc_patch))
         invalid['modules'][1]['config']['port'] = 65536
         assert osc_engine.call('loadGraph', False, patch=invalid)['gen'] == gen
@@ -614,7 +614,8 @@ with tempfile.TemporaryDirectory() as osc_dir:
             sender.sendto(packet, ('127.0.0.1', port))
         matched = osc_route_when(lambda route: route['received'] > 0)
         assert matched['received'] >= 1
-        assert len(matched['rows']) == 1 and matched['rows'][0]['received'] == 1, matched
+        assert len(matched['rows']) == 8 and matched['rows'][0]['received'] == 1, matched
+        assert matched['rows'][1:] == [dict(received=0, ageMs=None)] * 7, matched
         assert isinstance(matched['rows'][0]['ageMs'], (int, float)) and matched['rows'][0]['ageMs'] >= 0, matched
         # Successful live edits must restart ingress against the newly committed
         # generation. The same listener remains localhost-only and usable.
@@ -622,7 +623,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         assert edited_gen != gen
         restarted = osc_route_when(lambda route: route['state'] == 'lan-not-confirmed')
         assert restarted['port'] == port
-        assert restarted['rows'] == [dict(received=0, ageMs=None)], restarted
+        assert restarted['rows'] == [dict(received=0, ageMs=None)] * 8, restarted
 
         # Removing the source must retire the worker/port before graph disposal.
         removed_gen = osc_engine.call('removeModule', moduleId=9)['gen']

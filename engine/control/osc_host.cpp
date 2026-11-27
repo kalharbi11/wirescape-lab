@@ -66,6 +66,7 @@ const Host::AddressMatch &Host::classify(uint16_t port, std::string_view address
         if (!address.empty()) std::memcpy(found->address.data(), address.data(), address.size());
         found->known = false;
         found->enabled_mask = 0;
+        found->row_masks.fill(0);
         // Service bounds routes to 32. Include fully disabled filters so their
         // addresses cannot be reintroduced through another route's discovery.
         for (size_t i = 0; i < self.filters_.size(); ++i) {
@@ -74,12 +75,40 @@ const Host::AddressMatch &Host::classify(uint16_t port, std::string_view address
             for (uint32_t row = 0; row < filter.patterns.size(); ++row) {
                 if (!filter.patterns[row].match(address)) continue;
                 found->known = true;
-                if (filter.enabled[row]) found->enabled_mask |= uint32_t{1} << i;
+                if (filter.enabled[row]) {
+                    found->enabled_mask |= uint32_t{1} << i;
+                    found->row_masks[i] |= uint8_t(1u << row);
+                }
             }
         }
         found->valid = true;
     }
     return *found;
+}
+void Host::match_rows(void *context, uint16_t port, std::string_view address,
+                      uint64_t timestamp_ns) noexcept {
+    auto &self = *static_cast<Host *>(context);
+    if (address.size() > 255) return;
+    const auto &match = self.classify(port, address);
+    for (size_t i = 0; i < self.filters_.size(); ++i) {
+        const auto mask = match.row_masks[i];
+        if (!mask) continue;
+        for (size_t row = 0; row < 8; ++row) {
+            if (!(mask & (1u << row))) continue;
+            auto &activity = self.activity_[i][row];
+            activity.sequence.fetch_add(1);
+            activity.timestamp_ns.store(timestamp_ns);
+            activity.sequence.fetch_add(1);
+        }
+    }
+}
+void Host::reset_activity() noexcept {
+    // Called only with the service stopped and joined.
+    for (auto &filter : activity_) for (auto &row : filter) {
+        row.sequence.store(0, std::memory_order_relaxed);
+        row.timestamp_ns.store(0, std::memory_order_relaxed);
+        row.snapshot = {};
+    }
 }
 bool Host::observing(void *context) noexcept {
     const auto &observer = static_cast<Host *>(context)->controller_;
@@ -102,8 +131,11 @@ void Host::observe_control_message(void *context, uint16_t port, const Message &
     if (observer.control_message)
         observer.control_message(observer.context, port, message, match.enabled_mask != 0, observer.generation);
 }
-void Host::prepare(AppEngine *engine, const std::string &document) {
+void Host::prepare(AppEngine *engine, const std::string &document,
+                   std::optional<uint64_t> activity_generation) {
     stop();
+    if (!activity_generation || activity_generation != activity_generation_) reset_activity();
+    activity_generation_ = activity_generation;
     auto patch = nlohmann::json::parse(document);
     std::vector<Route> routes;
     for (auto &module : patch.at("modules")) {
@@ -143,7 +175,7 @@ void Host::prepare(AppEngine *engine, const std::string &document) {
     if (control_port_) routes.push_back({0, control_port_, control_lan_, true});
     if (routes.size() + disabled_.size() > 32) throw std::runtime_error("Too many OSC routes");
     if (routes.empty()) return;
-    service_ = std::make_unique<Service>(Sink{this, deliver, accept, observing, observe_message, observe_control_message}, authorized_);
+    service_ = std::make_unique<Service>(Sink{this, deliver, accept, observing, observe_message, observe_control_message, match_rows}, authorized_);
     for (const auto &route : routes)
         if (!service_->add(route)) throw std::runtime_error("Cannot stage OSC route");
     engine_ = engine;
@@ -175,6 +207,28 @@ void Host::stop() noexcept {
 std::vector<RouteState> Host::states() const {
     auto out = service_ ? service_->states() : std::vector<RouteState>{};
     out.insert(out.end(), disabled_.begin(), disabled_.end());
+    for (auto &route : out) {
+        if (route.control) continue;
+        for (size_t i = 0; i < filters_.size(); ++i) {
+            if (filters_[i]->node != route.node) continue;
+            for (size_t row = 0; row < route.rows.size(); ++row) {
+                const auto &activity = activity_[i][row];
+                // Bounded status-side retries; no torn count/time pairs and no
+                // blocking the worker or adding work to render/audio.
+                for (unsigned attempt = 0; attempt < 4; ++attempt) {
+                    const auto before = activity.sequence.load();
+                    if (before & 1) continue;
+                    const auto timestamp = activity.timestamp_ns.load();
+                    if (before == activity.sequence.load()) {
+                        activity.snapshot = {before / 2, timestamp};
+                        break;
+                    }
+                }
+                route.rows[row] = activity.snapshot;
+            }
+            break;
+        }
+    }
     return out;
 }
 } // namespace wirescape::osc
