@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test';
 
 /** Electron's five-member bridge, injected before any Studio module runs. */
-export async function mockBridge(page: Page, options: { applyGraph?: boolean; configDeferred?: boolean; dropHelloAck?: boolean } = {}): Promise<void> {
+export async function mockBridge(page: Page, options: { applyGraph?: boolean; configDeferred?: boolean; dropHelloAck?: boolean; dataSlots?: Record<string, string[]> } = {}): Promise<void> {
   await page.addInitScript((options) => {
     type Message = Record<string, any>;
     const listeners = new Set<(m: Message) => void>();
@@ -51,6 +51,10 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
     const hello = async () => {
       if (!catalogue.modules.length) {
         catalogue = await (await fetch('/wirescape_modules.json')).json();
+        if (options.dataSlots) for (const m of catalogue.modules) {
+          const slots = options.dataSlots[m.id];
+          if (slots?.length) m.data_slots = copy(slots);
+        }
       }
       emit({ v: 0, type: 'hello', session: session(), protocol: 0,
         engine: { version: 'test', sha: 'abc1234' }, capabilities: ['midiLearn', 'telemetry.playhead', ...(options.applyGraph ? ['applyGraph'] : []), ...(options.configDeferred ? ['configDeferred'] : [])],

@@ -2,6 +2,7 @@
 #include "session.h"
 #include "../document/runtime_module_config.h"
 #include "io_data_migration.h"
+#include "../document/groove_data_migration.h"
 #include "../../engine/data_pack.h"
 #include "d5_gap_deadline.h"
 #include "null_sink_wait.h"
@@ -196,8 +197,17 @@ Json catalogue(AppEngine *engine) {
             }
             params.push_back(value);
         }
-        result.push_back(
-            {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)}, {"ports", ports}, {"parameters", params}});
+        Json entry = {{"id", d->id}, {"name", d->name}, {"category", wirescape_sidecar_category(d->id)},
+                      {"ports", ports}, {"parameters", params}};
+        // A100: advertise declared slots generically, not module-specific capabilities.
+        if (d->struct_size >= offsetof(ws2_descriptor, data_slots) + sizeof(d->data_slots) &&
+            d->data_slots && d->data_slot_count) {
+            Json slots = Json::array();
+            for (uint32_t slot = 0; slot < d->data_slot_count; ++slot)
+                slots.push_back(d->data_slots[slot].id);
+            entry["data_slots"] = std::move(slots);
+        }
+        result.push_back(std::move(entry));
     }
     return {{"modules", result}};
 }
@@ -753,6 +763,11 @@ Json Session::execution(Json patch) {
                 throw Refusal("invalid", diagnostic.c_str());
             throw Refusal("refused", "Graph configuration or state refused");
         }
+        try {
+            document::materialize_groove_legacy_data(m, id);
+        } catch (const std::exception &e) {
+            throw Refusal("invalid", e.what());
+        }
         if (std::string(d->id) == "essentials.output") output = std::min(output, id);
         auto values = m.value("parameters", Json::object());
         need(values.is_object());
@@ -1169,6 +1184,9 @@ Json Session::reconcile_graph(const Json &before, bool live) {
         if (type != b["module"].get<std::string>() || type == "osc.out") return false;
         try {
             const auto id = a["id"].get<uint32_t>();
+            if (type == "sequencing.groove")
+                return document::groove_construction_bytes(a.value("config", Json::object()), id) ==
+                       document::groove_construction_bytes(b.value("config", Json::object()), id);
             return document::runtime_module_config(type, a.value("config", Json::object()), id) ==
                    document::runtime_module_config(type, b.value("config", Json::object()), id);
         } catch (...) {

@@ -54,6 +54,8 @@ export interface ModuleDescriptor {
   id: string;
   name: string;
   category: string;
+  /** Native hello only: IDs of declared live data slots (absent on old engines). */
+  data_slots?: string[];
   ports: ModulePort[];
   parameters: ModuleParam[];
 }

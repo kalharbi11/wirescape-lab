@@ -125,8 +125,14 @@ export class RealEngine implements EngineClient {
 
   stop(): void { this.unsubscribe?.(); this.unsubscribe = undefined; this.started = false; }
 
+  supportsGroovePattern(): boolean {
+    const slots = this.registry.get('sequencing.groove')?.data_slots;
+    return Array.isArray(slots) && slots.includes('pattern');
+  }
+
   canApplyGroove(moduleId: number): boolean {
     if (!this.ready || this.state !== 'real' || this.load || this.active || this.queue.length) return false;
+    if (this.supportsGroovePattern()) return true;
     if (this.statusGen === this.gen && this.status && this.status.audio.state !== 'running') return true;
     const position = this.playheadEnabled ? this.playhead?.[moduleId] : undefined;
     return position?.[0] === -1 && position[1] === -1;

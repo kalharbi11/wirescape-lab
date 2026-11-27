@@ -27,6 +27,8 @@ measurement is MM-f (facts only; the cap stays 64).
 - **I3 Patches stay self-contained.** Mapping helpers are Studio-only `ui` keys (`ui.mappingNodes`);
   a patch without them loads, renders and saves byte-identically to today (§3.5). Macro names live in the
   Macro module's `labels` data, never under `ui`.
+  Writers always send all 8 `labels.rows` (the record is fixed-length; the pinned renderer refuses fewer);
+  an empty name shows the default (Architect, 2026-11-26, from wirescape-test #12).
 - **I4 setParam-only targets are not mappable** and are dimmed with the §3.4 reason.
 - **I5 Node budget.** Mapping nodes and Macro pages count against the sidecar's 64 nodes; map mode
   refuses a mapping that needs a 65th node, with the reason (§3.5).
