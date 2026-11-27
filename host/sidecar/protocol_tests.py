@@ -1384,21 +1384,34 @@ with tempfile.TemporaryDirectory() as osc_stream_dir:
                 end = start + 2.0
                 sent = 0
                 packet = bundle(*(osc_packet('/stream/load/%d' % i) for i in range(8)))
-                while time.monotonic() < end:
+                while True:
                     now = time.monotonic()
+                    if now >= end:
+                        break
                     if load:
-                        # Absolute schedule, no missed tick silently removed.
+                        # Absolute schedule: 200 bundles of eight at 10 ms
+                        # intervals, all within the original 2 s window.
                         while sent < 1600 and now >= start + sent / 800:
                             sender.sendto(packet, ('127.0.0.1', port))
                             sent += 8
                     try:
-                        msg = osc_stream.messages.get(timeout=0.001)
+                        msg = osc_stream.messages.get_nowait()
                     except queue.Empty:
+                        # Queue.get(timeout=0.001) uses a coarse Windows
+                        # condition wait, which can overrun the final 10 ms
+                        # send slot. Python 3.12 sleep uses a high-resolution
+                        # waitable timer on Windows. Bound the sleep by the
+                        # next due send and measurement end; do not extend
+                        # the window or lower the required event count.
+                        wake = min(end, start + sent / 800) if load and sent < 1600 else end
+                        delay = min(0.0005, wake - time.monotonic())
+                        if delay > 0:
+                            time.sleep(delay)
                         continue
                     if msg.get('type') in stamps:
                         stamps[msg['type']].append(time.monotonic())
                 if load:
-                    assert sent == 1600, sent
+                    assert sent == 1600, f'load generator missed {1600 - sent} events before its 2 s deadline'
                 return stamps
 
             idle = cadence(False)
