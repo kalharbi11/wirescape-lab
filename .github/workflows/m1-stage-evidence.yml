@@ -217,6 +217,14 @@ jobs:
           set -euo pipefail
           cd scratch
           python tools/dev.py build --headless --config Release
+      # Temporary A119 diagnostic, only in the MB2 scratch job. Remove after attribution.
+      - name: Attribute Output and Groove in the formal paired configuration
+        if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.ref == 'task/358-cat1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scratch
+          python tools/mb1/profile_formal_residual.py --base "$BASE_SHA" --head "$HEAD_SHA" --output ../isolation-evidence/a119-attribution.json
       - name: Compare existing wrappers before and after dummy addition
         if: steps.scope.outputs.run == 'true'
         shell: bash

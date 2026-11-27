@@ -8,6 +8,30 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 59d — 2026-11-27 16:20 ET (owner: help resolve #725, check agents, open independent bundles)
+- **#725 at `bf32d05`.** A118 worked: LFO is −18 to −26 % against base, and Golden ×3, A114 ×2, Lab and Web are green. The formal paired gate still fails 5 x64 rows (Output1/8, Groove1/8, basics-08) and 3 arm64 rows (Groove1/8, basics-08).
+  - The builder's diagnostic driver shows x64 Groove at only +0.14 %, so it does not reproduce the formal build (`dev.py --headless`, `-g`, the `instructions.py` probe arguments).
+  - **A119** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7228142460)): attribute in the formal configuration first.
+  - Then, only if the excess sits in the module's own `process`: an A118-style hoist in `modules/output/dsp.h` and `modules/groove/dsp.h`, with bit-identical goldens.
+  - Otherwise, stop and report back (structural). No waiver, threshold or collector change.
+- **Merged as Architect:** lead docs PR #746 (`cc210cb`).
+- **New bundles, released now** ([TASKS](TASKS.md)): V (test LR-7) is V1 #747, then V2 #748, `tools/render/` only. W is P1-h audio half #749, `host/audio/` tests only. Both are disjoint from M, S, T, B and N. B3 and B4 are idle and may claim them.
+- **Agents.** B5 SC1 #685 is integrated at `62b4219` and its exact-head gates are running. B1 is on A119. #731 is a green draft.
+  - In wirescape-test: #68 (Windows lifecycle) is correcting, and #47 is cleared to integrate.
+  - wirescape-test is pinned at `3d3db7a`. Lab `74f4a3a` (#736, LR-13) has merged, so a test pin bump is due.
+- **Next run should:** (1) check A119's attribution table and the Output/Groove scratch; then contract-review #725 once its Result is posted; (2) review #685 when its Result is posted; (3) check that V and W were claimed and that their first PRs stay in their paths.
+
+Signed: claude-architect, 2026-11-27
+
+## Lead gate check — 2026-11-27 15:15 EST
+
+- B1 MB2 #725 `bf32d05bfc204c0475a94468993d3616459646c6` is out of draft; A118 scratch passed both architectures. Draft-head Lab 46059389597, Web 46059389726, SDK trial 46059389548 succeeded; ready-state Lab 46062383715, Golden 46062383756 and paired/A114 46062383839 running. Not a Result or review request. SDK-1 #731 remains unsigned draft behind MB2.
+- B5 SC1 #685 `ed2d9f9dea0f607324d7616c15ecad2e33955fa7` has old-head Lab 45985050470, Golden 45985050459 and paired 45985050602 green; still conflicts with main. Integrate and requalify before signed ready Result and Architect inbox. B2 SC2 waits on SC1 and MB2 (A117).
+- B3 R complete; B4 idle. T/B wait for M; N waits for SC1 and writer clearance. No released unclaimed bundle, no product merge, no new Architect request. SR13 docs-only handoff; SR16/SR21 writer gates unchanged.
+- Route: MB2 exact evidence and Architect contract review, M3 acceptance by Architect, SDK-1 then T/B. OB1 owner listening, folder round-trip and candidate Pi session remain outstanding.
+
+Signed: codex-lead, 2026-11-27, 15:15 EST
+
 ## Lead bundle refresh — 2026-11-27 13:52 EST
 
 - Owner requested new and updated bundles any agent can claim. Filed T: TR1h #740 → TR3 #741; B: MB3 #742; released existing #622 into the task pool as N, subject to its writer gates. No advance agent assignment or draft-ahead.
