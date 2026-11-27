@@ -141,7 +141,20 @@ jobs:
               return result
           def binary(root, name):
               return root/"build/native"/name
-          def manifest_ids(root, side):
+          def registry_ids(root, side):
+              # MB2 and later: count the live compiled registry, not deleted manifests.
+              if side=="after" and (root/"engine/control/module_registry.cmake").is_file():
+                  result=call([binary(root,"wire-describe")],root)
+                  if result["exit_code"]!=0:
+                      raise RuntimeError("wire-describe failed for generated registry")
+                  rows=json.loads(result["stdout"])["modules"]
+                  ids=[row["id"] for row in rows]
+                  known=[line.strip() for line in (root/"tools/foundation/fixtures/known_module_ids.txt").read_text().splitlines()
+                         if line.strip() and not line.startswith("#")]
+                  sources=[p for base in ("modules","sdk/examples") for p in (root/base).glob("*/module.cpp")]
+                  if ids!=sorted(ids) or ids!=known or len(set(ids))!=len(sources) or len(ids)!=len(sources):
+                      raise RuntimeError("compiled registry, sources and known ID inventory differ")
+                  return ids
               bases = ("native/modules2", "native/sdk/examples") if side=="before" else ("modules", "sdk/examples")
               paths = [p for base in bases for p in (root/base).glob("*/module.json")]
               ids = sorted(json.loads(p.read_text())["id"] for p in paths)
@@ -150,7 +163,7 @@ jobs:
               if len(ids)!=expected or len(set(ids))!=expected:
                   raise RuntimeError("catalogue and manifest count mismatch")
               return ids
-          ids = {side:manifest_ids(root, side) for side,root in roots.items()}
+          ids = {side:registry_ids(root, side) for side,root in roots.items()}
           common_ids = sorted(set(ids["before"]) & set(ids["after"]))
           write("inventory.json", dict(provenance=provenance, module_ids=ids, common_module_ids=common_ids))
           # The imported benchmark accepts exactly two positional arguments; 256 frames on both.
@@ -315,8 +328,9 @@ jobs:
               module_dir,sdk,inc=("native/modules2","native/sdk","native/include") if side=="before" else ("modules","sdk","sdk/include")
               sources=sorted((root/module_dir).glob("*/module.cpp"))+sorted((root/sdk/"examples").glob("*/module.cpp"))
               sources.append(root/sdk/"template/module.cpp")
-              catalog=root/("native/control/module_catalog.inc" if side=="before" else "engine/control/module_catalog.inc")
-              count=len(re.findall(r"(?m)^\s*WS_APP_MODULE\(",catalog.read_text()))
+              # The paired native step already verifies this inventory against
+              # the subject's historical registration or live compiled registry.
+              count=len(json.loads((out/"inventory.json").read_text())["module_ids"][side])
               if len(sources)!=count+1: raise RuntimeError("catalogue inventory mismatch")
               rows=[]
               with tempfile.TemporaryDirectory(prefix="cmp-m7-") as temp:

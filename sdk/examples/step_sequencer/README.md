@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Example Step Sequencer (`example.step_sequencer`)
 
+Sixteen-step pitch, gate and velocity sequencer with note events
+
 A worked SDK example: a sixteen-step sequencer that drives pitch, gate and velocity CV and also
 emits note events. It shows edge detection, a small state machine, event output with bounded
 capacity, large parameter sets and versioned state. Library `ws2_example_step_sequencer`, test

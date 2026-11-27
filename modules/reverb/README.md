@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Reverb (`fx.reverb`)
 
+Original eight-line stereo FDN reverb with freeze.
+
 Original stereo **8-line feedback delay network** (FDN) reverb for rooms through halls. Two allpass stages per channel diffuse the input, the feedback matrix is orthonormal, and the wet outputs use orthogonal projections. Audio and feedback history are processed continuously even at Mix 0.
 
 ## Ports

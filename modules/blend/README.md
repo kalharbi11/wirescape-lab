@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Blend (`sound.blend`)
 
+Two-source equal-power crossfade and splice.
+
 Joins two sources, **A** and **B**, in time. One position (0 = A, 1 = B) drives an equal-power mix, `A·cos(p·π/2) + B·sin(p·π/2)`, so the middle is −3 dB per side and doesn't dip.
 
 | Mode | What it does |

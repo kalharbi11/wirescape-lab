@@ -1,5 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Quantizer (`essentials.quantizer`)
+
+Quantizes pitch to the nearest note of a scale, with hysteresis, scale-step shift, optional sample-and-hold trigger and a trigger when the note changes.
+
 Snaps a pitch to the nearest note of a scale and says when the note changes. Pitch is 1.0 per octave, 0 = C4.
 ## Ports
 | Kind | ID | Name | Notes |

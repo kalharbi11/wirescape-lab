@@ -24,15 +24,20 @@ struct Lfo {
         for(uint32_t group=0;group<b.channels();group+=4)for(uint32_t c=group;c<std::min(group+4,b.channels());++c){
             auto*out=b.out(0).ch(c);
             auto *phase_out = b.out(1).ch(c);
+            const auto rateCh=b.param(0).ch(c);
+            const auto depthCh=b.param(1).ch(c);
+            const auto offsetCh=b.param(2).ch(c);
+            const auto syncCh=b.param(3).ch(c);
+            const auto beatsCh=b.param(4).ch(c);
             for(uint32_t i=0;i<b.frames();++i){
-                if(b.param(3).value(c,i)>=.5f&&b.transport()){
+                if(syncCh[i]>=.5f&&b.transport()){
                     double position=b.transport()->beat+((b.transport()->flags&WS2_PLAYING)?i*b.transport()->bpm/(60.*b.sample_rate()):0);
-                    double cycles=position/b.param(4).value(c,i);phase[c]=tau*(cycles-std::floor(cycles));
+                    double cycles=position/beatsCh[i];phase[c]=tau*(cycles-std::floor(cycles));
                 }
-                out[i]=static_cast<float>(std::sin(phase[c])*b.param(1).value(c,i)+b.param(2).value(c,i));
+                out[i]=static_cast<float>(std::sin(phase[c])*depthCh[i]+offsetCh[i]);
                 // Sample the same phase as control, before free-run advancement.
                 phase_out[i] = std::min(static_cast<float>(phase[c] / tau), 0x1.fffffep-1f);
-                if(!(b.param(3).value(c,i)>=.5f&&b.transport())){phase[c]+=tau*b.param(0).value(c,i)/b.sample_rate();if(phase[c]>=tau)phase[c]=std::fmod(phase[c],tau);}
+                if(!(syncCh[i]>=.5f&&b.transport())){phase[c]+=tau*rateCh[i]/b.sample_rate();if(phase[c]>=tau)phase[c]=std::fmod(phase[c],tau);}
             }
         }
     }

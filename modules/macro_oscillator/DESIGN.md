@@ -172,9 +172,9 @@ aux outputs use the same taps; latency reports the original core 12-frame
 delay plus the resampler delay in host frames. The filter, branch isolation,
 memory and lifetime constraints are directly tested in the module folder.
 
-The existing `module.json` description still says 48-kHz-only because the
-M7 K3 contract explicitly freezes `module.json`. That preexisting metadata
-string needs its own contract-scoped disposition, not an unauthorized K3 edit.
+The pre-MB2 manifest description said 48-kHz-only under the M7 K3 metadata freeze.
+MB2 preserves that historical string in the README, explicitly labeled as historical;
+the supported rates are documented separately.
 The input CV/control quantum remains 12 internal Plaits frames; the host
 signals are sampled at the host sample that triggers each internal quantum.
 This may delay modulation consistently with the declared filter latency.

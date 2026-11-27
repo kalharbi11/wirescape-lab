@@ -356,8 +356,9 @@ struct Sequencer {
         for (uint32_t t = 0; t < kTracks; ++t)
             if (step % pattern.tracks[t].div == 0) trigger(b, t, i, data);
     }
-    bool edge(const ws::Block &b, uint32_t p, uint32_t i) {
-        const bool high = b.param(p).value(0, i) > 0.5f;
+    // A119: the caller hoists each parameter's channel handle out of the frame loop.
+    bool edge(const ws::Channel &control, uint32_t p, uint32_t i) {
+        const bool high = control[i] > 0.5f;
         const bool rise = observed[p] && high && !control_high[p];
         observed[p] = true;
         control_high[p] = high;
@@ -498,6 +499,19 @@ struct Sequencer {
                 [[maybe_unused]] const ws2_transport *host, [[maybe_unused]] bool host_playing,
                 [[maybe_unused]] double host_step) {
         const bool clocked = HostMode || external_clock;
+        // A119: loop-invariant accessor handles, taken once per block after the
+        // output layout is set. Values and the order of every operation are unchanged.
+        const ws::Channel clock_in = external_clock ? b.in(0).ch(0) : ws::Channel{};
+        const ws::Channel run_in = external_run ? b.in(1).ch(0) : ws::Channel{};
+        const ws::Channel reset_in = external_reset ? b.in(2).ch(0) : ws::Channel{};
+        std::array<ws::Channel, kParams> controls{};
+        for (uint32_t p = 0; p < kParams; ++p) controls[p] = b.param(p).ch(0);
+        std::array<std::array<float *, 8>, kTracks> outs{};
+        for (uint32_t t = 0; t < kTracks; ++t) {
+            const uint32_t base = t * 5;
+            outs[t] = {b.out(base).ch(0), b.out(base + 1).ch(0), b.out(base + 2).ch(0), b.out(base + 3).ch(0),
+                       b.out(10 + t).ch(0), b.out(12 + t).ch(0), b.out(14 + t).ch(0), b.out(16 + t).ch(0)};
+        }
         for (uint32_t i = 0; i < b.frames(); ++i) {
             for (uint32_t t = 0; t < kTracks; ++t) {
                 auto &p = players[t];
@@ -527,7 +541,7 @@ struct Sequencer {
                 host_was_playing = host_playing;
             }
             if (external_clock) {
-                const bool now = clock_schmitt.process(b.in(0).ch(0)[i]);
+                const bool now = clock_schmitt.process(clock_in[i]);
                 clock_rise = now && !clock_high;
                 clock_high = now;
                 if (clock_samples != UINT64_MAX) ++clock_samples;
@@ -539,18 +553,18 @@ struct Sequencer {
                 tick = clock_rise;
             }
             if (external_run) {
-                const bool now = run_schmitt.process(b.in(1).ch(0)[i]);
+                const bool now = run_schmitt.process(run_in[i]);
                 run_rise = now && !run_high;
                 run_fall = !now && run_high;
                 run_high = now;
             }
             if (external_reset) {
-                const bool now = reset_schmitt.process(b.in(2).ch(0)[i]);
+                const bool now = reset_schmitt.process(reset_in[i]);
                 reset_rise = now && !reset_high;
                 reset_high = now;
             }
             std::array<bool, kParams> rise{};
-            for (uint32_t p = 0; p < kParams; ++p) rise[p] = edge(b, p, i);
+            for (uint32_t p = 0; p < kParams; ++p) rise[p] = edge(controls[p], p, i);
             bool started = false;
             if (rise[2] || reset_rise) { // RESET > STOP > MUTE > START > step advance.
                 release_all(b, i);
@@ -637,19 +651,19 @@ struct Sequencer {
             }
             for (uint32_t t = 0; t < kTracks; ++t) {
                 const auto &p = players[t];
-                const uint32_t base = t * 5;
-                b.out(base).ch(0)[i] = p.pitch;
-                b.out(base + 1).ch(0)[i] = p.sounding.on ? 1.f : 0.f;
-                b.out(base + 2).ch(0)[i] = p.mod1;
-                b.out(base + 3).ch(0)[i] = p.mod2;
+                const auto &o = outs[t];
+                o[0][i] = p.pitch;
+                o[1][i] = p.sounding.on ? 1.f : 0.f;
+                o[2][i] = p.mod1;
+                o[3][i] = p.mod2;
                 // STOP is complete only after the global transport, this track and
                 // every owed release have stopped. A disarmed track under a running
                 // transport is not stopped; a refused NOTE_OFF keeps the position.
                 const bool active = running || p.playing || p.pending.on || p.sounding.on;
-                b.out(10 + t).ch(0)[i] = active ? static_cast<float>(step_t[t]) : -1.f;
-                b.out(12 + t).ch(0)[i] = static_cast<float>(p.loop & 0xffffu);
-                b.out(14 + t).ch(0)[i] = p.fired ? 1.f : 0.f;
-                b.out(16 + t).ch(0)[i] = static_cast<float>(p.loop >> 16u);
+                o[4][i] = active ? static_cast<float>(step_t[t]) : -1.f;
+                o[5][i] = static_cast<float>(p.loop & 0xffffu);
+                o[6][i] = p.fired ? 1.f : 0.f;
+                o[7][i] = static_cast<float>(p.loop >> 16u);
                 if (p.sounding.on) players[t].gate_age += 1.;
             }
         }

@@ -13,7 +13,7 @@ test('T01, T02, T09, T10: hello catalogue, correlated commands and real device l
   await expect(page.getByTestId('library-item-essentials.output')).toBeVisible();
   await page.getByTestId('open-settings').click();
   await expect(page.getByTestId('audio-device')).toContainText('USB Stereo');
-  await expect(page.getByTestId('midi-device')).toContainText('M8 MIDI 1');
+  await expect(page.getByTestId('midi-device')).toContainText('Test MIDI 1');
   const wire = await page.evaluate(() => (window as any).__mockBridge.sent as any[]);
   expect(wire[0]).toMatchObject({ v: 0, type: 'loadGraph' });
   expect(wire.every(m => typeof m.id === 'string' && m.id.length <= 64)).toBe(true);
@@ -134,12 +134,12 @@ test('MIDI In dropdown uses enumerated endpoints without normalizing original co
   }));
   const choice = page.getByTestId('midi-endpoint-10');
   await expect(choice.locator('option:checked')).toHaveText('All enabled devices');
-  await expect(choice.locator('option[value="M8 MIDI 1|M8:M8 MIDI 1"]')).toHaveCount(1);
+  await expect(choice.locator('option[value="Test MIDI 1|Test:Test MIDI 1"]')).toHaveCount(1);
   let patch = await state(page);
   expect(patch.modules.find((m: any) => m.id === 10).config).toEqual({ opaque: 'kept' });
-  await choice.selectOption('M8 MIDI 1|M8:M8 MIDI 1');
+  await choice.selectOption('Test MIDI 1|Test:Test MIDI 1');
   await expect.poll(async () => (await state(page)).modules.find((m: any) => m.id === 10).config)
-    .toEqual({ endpoint: 'M8 MIDI 1', system_name: 'M8:M8 MIDI 1', opaque: 'kept' });
+    .toEqual({ endpoint: 'Test MIDI 1', system_name: 'Test:Test MIDI 1', opaque: 'kept' });
   patch = await state(page);
   expect(patch.modules.find((m: any) => m.id === 10).config.opaque).toBe('kept');
 });

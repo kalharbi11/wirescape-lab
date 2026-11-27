@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Groove playable v1 — native G1/G4a/G5a config v2 (#496, #526)
 
+Two synchronized 32-step tracks, pitch/gate/notes, two sample-and-hold modulation lanes, and queued transport
+
 `sequencing.groove` is a two-track sixteenth-note sequencer with independent
 8/16/32/64-step lengths. **Persisted patch JSON**, not the native transient
 POD, defines its behavior. Existing authored `config.version:1` patches keep

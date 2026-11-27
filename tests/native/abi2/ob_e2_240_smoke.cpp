@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // #240 OB-e2: production engine, live catalogue, real two-second device-off smoke.
 // No native module, sidecar, shared harness or build-system source modification.
-#include "module_catalog.h"
+#include "module_registry.h"
+#include "../../../modules/osc_out/config.h"
 #include "engine2.h"
 #include "wirescape_sdk.h"
 #include "allocation_watch.h"

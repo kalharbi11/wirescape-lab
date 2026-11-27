@@ -144,9 +144,9 @@ the unavailable readings.
 `bench/gate/instructions.py::module_rows` launches only the native
 `abi2_module_cpu_probe` through Valgrind; it does not create a sidecar or
 the network-capable `OutHost`. The standalone probe
-(`native/engine2/tests/module_cpu_probe.cpp`) directly invokes the module
+(`engine/tests/module_cpu_probe.cpp`) directly invokes the module
 descriptor's create/prepare/process/destroy methods from
-`native/control/module_catalog.h`, without constructing
+`engine/control/module_registry.h`, without constructing
 `native/control/osc_out_host.cpp::OutHost`. The module implementation
 (`native/modules2/osc_out/dsp.h`) defaults to a local `OutBus`
 (`config.bus ? config.bus : &local_bus`) and only updates atomic counters

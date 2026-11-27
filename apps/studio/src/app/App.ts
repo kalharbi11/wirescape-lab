@@ -22,8 +22,8 @@ import { OnScreenKeyboard } from './OnScreenKeyboard';
 import { DevPanel } from './DevPanel';
 import { Modal, field, select, switchButton } from './Modal';
 import { showBundleExport } from './bundleExportDialog';
-import { showOscEditor, type OscConfig } from './OscEditor';
-import { showOscOutEditor, type OscOutConfig } from './OscOutEditor';
+import { showOscEditor, genericOscDefaults, readOscConfig, type OscConfig, type OscRow } from './OscEditor';
+import { showOscOutEditor, genericOscOutDefaults, type OscOutConfig } from './OscOutEditor';
 import { readOscRaw } from './oscCapture';
 import { oscEditorSource, oscConstructionChanged, splitOscEditorSave } from './ioData';
 import { STARTERS, BUNDLED_STARTERS, DEFAULT_STARTER, type Starter } from './starters';
@@ -178,8 +178,8 @@ export class App {
 
   private build(): void {
     this.library = new Library(this.registry, {
-      add: type => { this.setLibraryOpen(false); this.addModuleCentred(type); },
-      addAt: (type, x, y) => { this.setLibraryOpen(false); this.addModuleAt(type, x, y); },
+      add: async type => { this.setLibraryOpen(false); await this.addModuleCentred(type); },
+      addAt: async (type, x, y) => { this.setLibraryOpen(false); await this.addModuleAt(type, x, y); },
     });
 
     this.quick = new QuickAdd(this.registry);
@@ -222,6 +222,7 @@ export class App {
       onSelectionChange: s => this.onSelectionChange(s),
       rename: id => this.renameModule(id),
       onEditOsc: id => this.openOscEditor(id),
+      onOscKind: (id, row, kind) => this.quickOscKind(id, row, kind),
       oscStatus: () => this.lastStatus?.osc,
       connectMapping: c => {
         if (c.kind !== 'modulation') return false;
@@ -1254,9 +1255,19 @@ export class App {
       async (config: OscOutConfig) => this.commitOscConfig(id, config, 'osc.out'));
   }
 
-  /** Row-only saves use live data; construction edits remain one ordinary graph replan. */
+  /** SC1 quick kind edit explicitly uses the acknowledged ordinary graph path. */
+  private async quickOscKind(id: number, row: number, kind: OscRow['kind']): Promise<boolean> {
+    const mod = this.doc.modules.get(id);
+    if (this.documentBusy || mod?.module !== 'osc.in' || row < 0 || row >= 8) return false;
+    const { config } = readOscConfig(oscEditorSource(mod));
+    if (config.rows[row].kind === kind) return true;
+    config.rows[row].kind = kind;
+    return this.commitOscConfig(id, config, 'osc.in', true);
+  }
+
+  /** Row-only saves use live data; construction and explicit quick kind edits use a graph replan. */
   private async commitOscConfig(id: number, config: OscConfig | OscOutConfig,
-    type: 'osc.in' | 'osc.out'): Promise<boolean> {
+    type: 'osc.in' | 'osc.out', forceGraph = false): Promise<boolean> {
     if (this.documentBusy || !await this.waitBeforeGraphAuthoring()) return false;
     const mod = this.doc.modules.get(id);
     if (!mod || mod.module !== type) return false;
@@ -1265,7 +1276,7 @@ export class App {
       restoreHistory: this.history.checkpoint() };
     this.history.flush();
     const edit = splitOscEditorSave(mod, config);
-    if (!oscConstructionChanged(mod, config)) {
+    if (!forceGraph && !oscConstructionChanged(mod, config)) {
       const running = this.editEngine();
       const pending = running instanceof RealEngine && running.hasPendingConfig(id);
       // A retained data write must not replace a pending construction intent.
@@ -1854,15 +1865,19 @@ export class App {
 
   // ---- adding modules ---------------------------------------------------
 
-  private addModuleCentred(type: string): number | null {
+  private addModuleCentred(type: string): number | null | Promise<number | null> {
     const r = this.canvas.viewport.rect();
     return this.addModuleAt(type, r.left + r.width / 2, r.top + r.height / 2, true);
   }
 
-  private addModuleAt(type: string, clientX: number, clientY: number, centre = false): number | null {
+  private addModuleAt(type: string, clientX: number, clientY: number, centre = false): number | null | Promise<number | null> {
     if (this.documentBusy) return null;
     const d = this.registry.get(type);
     if (!d) { this.toasts.show(`Unknown module "${type}".`, 'error'); return null; }
+    if (type === 'osc.in' || type === 'osc.out') return this.addNewOsc(type, clientX, clientY, centre).catch(err => {
+      this.toasts.show(err instanceof Error ? err.message : 'The engine refused that module.', 'error');
+      return null;
+    });
     const world = this.canvas.viewport.toWorld(clientX, clientY);
     const params: Record<string, number> = {};
     for (const p of d.parameters) params[p.id] = p.default;
@@ -1890,6 +1905,38 @@ export class App {
     return id;
   }
 
+  /** SC1: one graph addition with explicitly authored defaults; old patches and paste stay unchanged. */
+  private async addNewOsc(type: 'osc.in' | 'osc.out', clientX: number, clientY: number, centre: boolean): Promise<number | null> {
+    if (this.documentBusy || !await this.waitBeforeGraphAuthoring() || this.documentBusy) return null;
+    const d = this.registry.get(type);
+    if (!d) { this.toasts.show('OSC module is unavailable.', 'error'); return null; }
+    const world = this.canvas.viewport.toWorld(clientX, clientY);
+    const params = Object.fromEntries(d.parameters.map(p => [p.id, p.default]));
+    this.history.flush();
+    const before = { patch: this.doc.toJSON(), dirty: this.doc.dirty, restoreHistory: this.history.checkpoint() };
+    const id = this.allocateId();
+    this.beginDocumentOperation();
+    try {
+      this.doc.addModule(type, params, centre ? world.x - 300 : world.x - 40, centre ? world.y - 180 : world.y - 30, id);
+      const edit = splitOscEditorSave(this.doc.modules.get(id)!, type === 'osc.in' ? genericOscDefaults() : genericOscOutDefaults());
+      this.doc.setIoFields(id, edit.authored.config, edit.authored.data);
+      if (centre) {
+        const card = this.canvas.cardFor(id);
+        if (card) this.doc.setPosition(id, world.x - card.width / 2, world.y - card.height / 2);
+      }
+      this.history.flush();
+      await this.applyAuthoredGraph(before, this.doc.toJSON());
+      this.canvas.selectModule(id, false);
+      this.canvas.invalidateAnchors();
+      this.setLibraryOpen(false);
+      this.toasts.show(d.name + ' added.');
+      return id;
+    } catch (err) {
+      this.toasts.show(err instanceof Error ? err.message : 'The engine refused that module.', 'error');
+      return null;
+    } finally { this.endDocumentOperation(); }
+  }
+
   private attachDropTarget(): void {
     const vp = this.canvas.root;
     vp.addEventListener('dragover', e => {
@@ -1900,12 +1947,12 @@ export class App {
       }
     });
     vp.addEventListener('dragleave', () => vp.classList.remove('drop-target'));
-    vp.addEventListener('drop', e => {
+    vp.addEventListener('drop', async e => {
       vp.classList.remove('drop-target');
       const type = e.dataTransfer?.getData('application/x-wirescape-module');
       if (!type) return;
       e.preventDefault();
-      this.addModuleAt(type, e.clientX, e.clientY);
+      await this.addModuleAt(type, e.clientX, e.clientY);
     });
   }
 
@@ -1920,9 +1967,9 @@ export class App {
     this.quick.open({
       at: client,
       need,
-      choose: type => {
+      choose: async type => {
         if (this.documentBusy || this.viewEpoch !== epoch) return;
-        const id = this.addModuleAt(type, client.x, client.y);
+        const id = await this.addModuleAt(type, client.x, client.y);
         if (id !== null && then) {
           requestAnimationFrame(() => {
             if (!this.documentBusy && this.viewEpoch === epoch) { then(id); this.canvas.invalidateAnchors(); }
@@ -2584,6 +2631,7 @@ export class App {
       setPref: (p: Partial<Preferences>) => this.setPref(p),
       zoomTo: (s: number) => this.canvas.viewport.zoomTo(s),
       fit: () => this.canvas.fit(),
+      // For OSC, callers must await the acknowledged ID (or null on refusal).
       addModule: (type: string) => this.addModuleCentred(type),
       connect: (c: Connection) => {
         if (this.documentBusy) return;

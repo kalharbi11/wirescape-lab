@@ -56,14 +56,6 @@ add_executable(midi_service_tests service_tests.cpp ../../tests/native/abi2/allo
 target_link_libraries(midi_service_tests PRIVATE wirescape_midi_service wirescape_midi_backend)
 add_test(NAME abi2_midi_service_tests COMMAND midi_service_tests)
 
-foreach(module midi_in midi_to_cv midi_cc_to_cv)
-  add_library(ws2_${module} SHARED ../../modules/${module}/module.cpp)
-  target_link_libraries(ws2_${module} PRIVATE wirescape_sdk2 wirescape_voice2)
-  add_executable(abi2_${module}_tests ../../modules/${module}/tests.cpp ../../tests/native/abi2/allocation_watch.cpp)
-  target_link_libraries(abi2_${module}_tests PRIVATE wirescape_engine2 wirescape_voice2)
-  add_test(NAME abi2_${module}_tests COMMAND abi2_${module}_tests)
-endforeach()
-
 # OB-g2 test-local device-off injected source (Host's production Backend seam).
 add_executable(abi2_midi_scripted_tests scripted_backend_tests.cpp)
 target_link_libraries(abi2_midi_scripted_tests PRIVATE wirescape_midi_host)

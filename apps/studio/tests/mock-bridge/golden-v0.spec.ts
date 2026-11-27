@@ -230,7 +230,7 @@ test('golden v0: RealEngine maps commands, replies, refusals and pushes through 
     deviceId: 'USB Stereo',
   });
   expect(result.sent.find((r: Wire) => r.type === 'setMidiEnabled')).toMatchObject({
-    deviceId: 'M8 MIDI 1|M8:M8 MIDI 1', on: false,
+    deviceId: 'Test MIDI 1|Test:Test MIDI 1', on: false,
   });
   expect(result.sent.find((r: Wire) => r.type === 'setModAmount')).toMatchObject({
     amount: -0.5, connection: { amount: 0.2 },

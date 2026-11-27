@@ -8,6 +8,43 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 59f — 2026-11-27 18:30 ET (owner: finish #725, refresh dependent bundles; acting lead)
+- **#725 (MB2 + CAT-1) merged as `027db95`.**
+  - A119 commit `ed33428` hoisted accessors in Output and Groove, with independent review PASS by a separate session.
+  - Contract review [approved](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7229543648).
+  - After updating to `main` (`7222216`): Lab, Golden ×3, Web, the SDK trial, isolation ×2 and arm64 paired are green.
+  - The single x64 row `osc.out/voices8` (+1.13 %) was attributed to the probe's timing-dependent `std::sort`; the callback moved only +0.2 %. It is covered by **A120** ([ruling](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7229995026)): one row, one platform, callback cap ≤1 %, this merge only.
+  - The A39 exception expired: all six historical rows recovered.
+- **Unblocked:** SDK-1 #731 (B1), SC2 #721 (S / B2), MB3 #742 (bundle B, no longer waits for SDK-1).
+- **New bundle X:** X1 #759, a deterministic probe (A120 follow-up) → X2 #760, the probe notes mode (test LR-5).
+- **T is held behind SC2** because both write the sidecar and `engine/control`.
+- **Also merged:** lead docs #756 and #757.
+- **wirescape-test:** `LAB_PIN` should now move to `027db95`, per its AGENTS rule ("when lab MB2 merges"). Promotions open with owner-requested T2 runs.
+- **Next run should:** (1) review SDK-1 #731 at its Result, then accept M3; (2) contract-review SC2 and X1 when pinned; (3) check the V2 and W merges.
+
+Signed: claude-architect, 2026-11-27
+
+## Lead merge check — 2026-11-27 17:32 EST
+
+- Owner instruction: Architect owns #725 now; no changes to that task, branch or review queue.
+- Merged #752 as b5cc475 and #755 as 137e0b0 after signed exact-head Results, path review, Lab/Golden/M1 success. V2 #748 is released to bundle V from current main; N is complete.
+- #753 5e38a41 has signed Result and draft-head Lab success; ready-state Lab 46076698017, Golden 46076698100 and M1 46076698001 are still running. No premature merge.
+- B1–B5 checked; BUILDERS refreshed. SC2 waits on MB2; T/B wait on M. No new lab bundle beyond V2 is released by these merges.
+- Test: existing #68 Windows lifecycle, #71 Quad VCA and #72 Reverb can continue devices-off. #65 then #66 follow #71's merge, one at a time. #69 ledger review and later serialized pin integration are also device-free work; do not collide with active module/index writers. Promotions wait on MB2 and owner-requested T2.
+- Headless: #41 latency collector has corrected exact-head independent approval; builder readiness confirmation remains. #32 soak protocol stays on its existing branch with owner-smoke/qualification prerequisites. K #37 is already closed; no free new implementation bundle is open. Owner Pi measurements and lab #711 workload remain outstanding.
+- Route remains MB2 under Architect, then SDK-1 and eligible T/B; owner listening, patch-folder check and Pi acceptance remain owner-only. Shared account usage/reset unavailable (unknown). No devices or H2/T2 dispatched.
+
+Signed: codex-lead, 2026-11-27, 17:32 EST
+
+## Architect run 59e — 2026-11-27 16:30 ET (owner: review SC1, check #725, act as lead)
+- **Acting lead:** claude-architect, owner request, for this run. One lead is active at a time.
+- **SC1 #685** [approved](https://github.com/kalharbi11/wirescape-lab/pull/685#issuecomment-7228382595) at `62b4219` (no High or Medium; two Lows) and merged as lead: `23f3fe2`. #684 closed. Docs PR #751 closed as superseded (the row is in Cleared).
+- **Released:** bundle N #622 (its SC1 gate is met). SC2 #721 still waits for MB2 (A117).
+- **#725:** B1 is running the A119 formal attribution at `63e598b` (a temporary diagnostic step inside the A114 job, to be removed before final evidence). No source edit yet. Nothing for the Architect until the table lands.
+- **Next run should:** (1) read the A119 table and rule on the stop rule or the hoist; (2) contract-review #725 at its Result; (3) check claims on V, W and N.
+
+Signed: claude-architect, 2026-11-27
+
 ## Architect run 59d — 2026-11-27 16:20 ET (owner: help resolve #725, check agents, open independent bundles)
 - **#725 at `bf32d05`.** A118 worked: LFO is −18 to −26 % against base, and Golden ×3, A114 ×2, Lab and Web are green. The formal paired gate still fails 5 x64 rows (Output1/8, Groove1/8, basics-08) and 3 arm64 rows (Groove1/8, basics-08).
   - The builder's diagnostic driver shows x64 Groove at only +0.14 %, so it does not reproduce the formal build (`dev.py --headless`, `-g`, the `instructions.py` probe arguments).

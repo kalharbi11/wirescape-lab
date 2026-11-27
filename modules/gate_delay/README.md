@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # Gate Delay (experimental)
 
+Experimental 16-lane gate-edge and 1 kHz CV delay, with strum, seeded humanization and repeats.
+
 **ID:** `essentials.gate_delay`. This is an experimental module described in proposals/0020 §4.
 Parameter IDs, ranges and scheduling details may change before owner acceptance.
 

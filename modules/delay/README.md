@@ -1,6 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
 # fx.delay: stereo delay
 
+Stereo delay with clock sync, a tone control and a limiter in the feedback loop, and ping-pong mode.
+
 Module ID `fx.delay` (library `ws2_delay`, category Effects). A clean stereo delay: echoes that follow a patched
 clock, feedback that holds instead of growing, a tone control inside the loop, and ping-pong. No tape character.
 

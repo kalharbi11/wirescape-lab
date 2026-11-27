@@ -47,6 +47,8 @@ const address = (v: unknown, out: boolean): string => {
 function inputRow(raw: unknown): OscRow {
   const r = obj(raw);
   const input_min = num(r.input_min), input_max = num(r.input_max);
+  if (r.label !== undefined && (typeof r.label !== 'string' || new TextEncoder().encode(r.label).length > 32))
+    throw new Error('OSC preset row label must fit in 32 UTF-8 bytes.');
   if (Math.fround(input_max) <= Math.fround(input_min)) throw new Error('OSC preset input max must exceed min.');
   return {
     pattern: address(r.pattern, false), argument: num(r.argument, 0, 31, true),
@@ -54,6 +56,7 @@ function inputRow(raw: unknown): OscRow {
     output_min: num(r.output_min), output_max: num(r.output_max),
     smoothing_ms: num(r.smoothing_ms, 0, 2000), timeout_ms: num(r.timeout_ms, 0, 3600000),
     stale: one(r.stale, ['hold', 'zero'] as const), ...enabled(r.enabled, true),
+    ...(typeof r.label === 'string' && r.label ? { label: r.label } : {}),
   };
 }
 function outputRow(raw: unknown): OscOutRow {
