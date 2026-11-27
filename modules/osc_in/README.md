@@ -15,7 +15,7 @@ Kinds: `cv`, `gate` or `trigger`. CV clips/scales finite numbers to the output r
 and smooths them; gate uses0/1 and threshold0.5; trigger fires at least1ms even for a
 message with no arguments/Impulse. At most64 triggers per row/block are accepted.
 Stale `zero` sets a timed-out target to0; `hold` retains it. Timeout0 disables expiry.
-Default rows match `/pico1/knob/1`…`8`. Unknown kinds, bad ranges and invalid patterns
+Config-less engine fallback rows match `/pico1/knob/1`…`8` (unchanged). New Studio OSC In modules explicitly author `/ws/knob/1`…`8`, CV 0–1, 5 ms smoothing, timeout 0 and stale hold. Existing patches are not rewritten. Pico, TouchOSC and Script presets remain available. Unknown kinds, bad ranges and invalid patterns
 fail preparation. Unknown authored config/row keys are ignored with bounded control-thread load diagnostics, but an authored integer `config.version` other than 1 (or a non-integer) refuses; future restricting keys must bump that version so old engines refuse instead of broadening listening or permissions. Raw messages are forwarded as valid OSC wire packets.
 
 Per-row `enabled` (#612) is an optional boolean. Absent means `true`, so older

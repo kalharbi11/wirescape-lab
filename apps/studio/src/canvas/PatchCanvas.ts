@@ -35,6 +35,7 @@ export interface CanvasServices extends PanelHost {
   onSelectionChange(s: Selection): void;
   rename(moduleId: number): void;
   onEditOsc(moduleId: number): void;
+  onOscKind(moduleId: number, row: number, kind: 'cv' | 'gate' | 'trigger'): Promise<boolean>;
   oscStatus(): OscStatus | undefined;
   /** Send a connect to the engine; throws EngineRefusal if it is refused. */
   engineConnect(c: Connection): void;
@@ -146,6 +147,7 @@ export class PatchCanvas {
       onHeaderPointerDown: e => this.beginDrag(e, id),
       onRenameRequest: () => this.s.rename(id),
       onEditOsc: () => this.s.onEditOsc(id),
+      onOscKind: (row, kind) => this.s.onOscKind(id, row, kind),
       oscStatus: () => this.s.oscStatus(),
       wirePort: p => {
         p.addEventListener('pointerdown', e => this.beginPatch(e as PointerEvent, p));
@@ -247,7 +249,12 @@ export class PatchCanvas {
         this.refreshKnobsFor(e.c);
         break;
       case 'mod-amount': this.syncCables(); this.placeCableTools(); break;
-      case 'config': this.cards.get(e.id)?.refreshCcLabels(); break;
+      case 'config': {
+        const card = this.cards.get(e.id);
+        card?.refreshCcLabels();
+        card?.refreshOscRows();
+        break;
+      }
       case 'param': {
         this.cards.get(e.id)?.panel?.refreshParam(e.paramId);
         this.cards.get(e.id)?.refreshMissing();

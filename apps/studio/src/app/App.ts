@@ -20,7 +20,7 @@ import { ComputerKeyboard, isTyping } from './Keyboard';
 import { OnScreenKeyboard } from './OnScreenKeyboard';
 import { DevPanel } from './DevPanel';
 import { Modal, field, select, switchButton } from './Modal';
-import { showOscEditor, genericOscDefaults, type OscConfig } from './OscEditor';
+import { showOscEditor, genericOscDefaults, readOscConfig, type OscConfig, type OscRow } from './OscEditor';
 import { showOscOutEditor, genericOscOutDefaults, type OscOutConfig } from './OscOutEditor';
 import { readOscRaw } from './oscCapture';
 import { oscEditorSource, oscConstructionChanged, splitOscEditorSave } from './ioData';
@@ -211,6 +211,7 @@ export class App {
       onSelectionChange: s => this.onSelectionChange(s),
       rename: id => this.renameModule(id),
       onEditOsc: id => this.openOscEditor(id),
+      onOscKind: (id, row, kind) => this.quickOscKind(id, row, kind),
       oscStatus: () => this.lastStatus?.osc,
       engineConnect: c => {
         this.editEngine().connect(c);
@@ -1176,9 +1177,19 @@ export class App {
       async (config: OscOutConfig) => this.commitOscConfig(id, config, 'osc.out'));
   }
 
-  /** Row-only saves use live data; construction edits remain one ordinary graph replan. */
+  /** SC1 quick kind edit explicitly uses the acknowledged ordinary graph path. */
+  private async quickOscKind(id: number, row: number, kind: OscRow['kind']): Promise<boolean> {
+    const mod = this.doc.modules.get(id);
+    if (this.documentBusy || mod?.module !== 'osc.in' || row < 0 || row >= 8) return false;
+    const { config } = readOscConfig(oscEditorSource(mod));
+    if (config.rows[row].kind === kind) return true;
+    config.rows[row].kind = kind;
+    return this.commitOscConfig(id, config, 'osc.in', true);
+  }
+
+  /** Row-only saves use live data; construction and explicit quick kind edits use a graph replan. */
   private async commitOscConfig(id: number, config: OscConfig | OscOutConfig,
-    type: 'osc.in' | 'osc.out'): Promise<boolean> {
+    type: 'osc.in' | 'osc.out', forceGraph = false): Promise<boolean> {
     if (this.documentBusy || !await this.waitBeforeGraphAuthoring()) return false;
     const mod = this.doc.modules.get(id);
     if (!mod || mod.module !== type) return false;
@@ -1187,7 +1198,7 @@ export class App {
       restoreHistory: this.history.checkpoint() };
     this.history.flush();
     const edit = splitOscEditorSave(mod, config);
-    if (!oscConstructionChanged(mod, config)) {
+    if (!forceGraph && !oscConstructionChanged(mod, config)) {
       const running = this.editEngine();
       const pending = running instanceof RealEngine && running.hasPendingConfig(id);
       // A retained data write must not replace a pending construction intent.
