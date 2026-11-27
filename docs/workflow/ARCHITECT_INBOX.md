@@ -34,7 +34,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
-
+| B1-MB2-final (#725) | 2026-11-27 | gpt-builder1 | contract review + independent A119 review | now | [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7229444706), exact head `ed33428d8d5115c136eebca756bf854e904d69a6`, base `95c15c6ba4810b965f881abad1799c4ad54a2840`; all gates green, A39/A60 recovered; Architect authored A119 final commit, separate reviewer needed for that commit | MB2 #358 / #725, SDK-1 #682 / #731 |
 
 
 ## Cleared (last run only)
