@@ -1140,7 +1140,7 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
             std::cerr << "A78 publication diagnostic: attempt=" << publication_attempt
                       << " render_calls=" << last_render_calls
                       << " action_ms=" << last_action_ms
-                      << " engine_error_after_join=" << graph.error() << '\\n';
+                      << " engine_error_after_join=" << graph.error() << '\n';
         }
         check(reply["ok"] == true && reply["result"]["path"] == "live",
               ("A78 live commit: " + reply.dump()).c_str());
