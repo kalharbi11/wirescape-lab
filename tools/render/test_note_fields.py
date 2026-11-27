@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """#747: note field validation, exact velocity and MIDI channel identity."""
+import hashlib
 import json
 from pathlib import Path
 import struct
@@ -53,6 +54,23 @@ def main():
             assert len(data) == 44 + FRAMES * 8
             return list(struct.iter_unpack("<ff", data[44:]))
 
+        # Record raw WAV digests before the red assertion, on both the
+        # test-only and implementation heads, for an exact paired comparison.
+        cases = sorted(Path(__file__).with_name("cases").glob("*.json"))
+        assert cases, "missing render cases"
+        for path in cases:
+            case = json.loads(path.read_text(encoding="utf-8"))
+            opts = dict(graph=case["patch"], rate=case["rate"], block=case["block"],
+                        seconds=case["seconds"], seed=case["seed"])
+            original = run(case["events"], **opts)
+            print("baseline-wav", path.name, hashlib.sha256(original).hexdigest(), flush=True)
+            explicit = [dict(e, velocity=1, channel=0)
+                        if e["type"] in ("noteOn", "noteOff") else e
+                        for e in case["events"]]
+            assert original == run(explicit, **opts), path.name
+            if baseline:
+                assert original == run(case["events"], binary=baseline, **opts), path.name
+
         # Positive control: prove the existing production probe is loadable.
         default = samples(run([note(7), note(100, "noteOff")]))
         assert default[7] == (1.0, 1.0), default[7]
@@ -81,23 +99,6 @@ def main():
             run([note(7, velocity=velocity, channel=15),
                  note(100, "noteOff", velocity=velocity, channel=15)])
 
-        # All existing cases: omitted fields must be identical to explicit
-        # legacy defaults. An optional second binary checks actual base bytes.
-        cases = sorted(Path(__file__).with_name("cases").glob("*.json"))
-        assert cases, "missing render cases"
-        for path in cases:
-            case = json.loads(path.read_text(encoding="utf-8"))
-            opts = dict(graph=case["patch"], rate=case["rate"], block=case["block"],
-                        seconds=case["seconds"], seed=case["seed"])
-            original = run(case["events"], **opts)
-            explicit = [dict(e, velocity=1, channel=0)
-                        if e["type"] in ("noteOn", "noteOff") else e
-                        for e in case["events"]]
-            assert original == run(explicit, **opts), path.name
-            if baseline:
-                assert original == run(case["events"], binary=baseline, **opts), path.name
-            print(path.name, "byte-identical defaults" +
-                  (" and baseline" if baseline else ""))
     print("#747 exact note velocity/channel and validation passed")
 
 
