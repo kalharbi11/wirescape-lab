@@ -945,8 +945,18 @@ void test_e7_rate_dependent_state_refusal(const std::filesystem::path &root) {
                                       {"from", {{"module", 3}, {"port", "audio"}}},
                                       {"to", {{"module", 1}, {"port", "audio"}}}}})}
     };
-    check(call("c2-load", "loadGraph", {{"patch", patch}})["ok"] == true,
-          "C2 spectral witness must prepare at 96 kHz");
+    const auto c2_blocks_before = fake::completed_blocks.load(std::memory_order_acquire);
+    const auto c2_started = std::chrono::steady_clock::now();
+    const auto c2_loaded = call("c2-load", "loadGraph", {{"patch", patch}});
+    if (c2_loaded["ok"] != true) {
+        const auto elapsed_ms = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - c2_started).count();
+        std::cerr << "C2 load diagnostic: elapsed_ms=" << elapsed_ms
+                  << " callback_blocks="
+                  << (fake::completed_blocks.load(std::memory_order_acquire) - c2_blocks_before)
+                  << " reply=" << c2_loaded.dump() << " audio=" << audio(s).dump() << '\n';
+    }
+    check(c2_loaded["ok"] == true, "C2 spectral witness must prepare at 96 kHz");
     check(bool(fake::freeze_render), "C2 callback quiescence seam available");
     fake::freeze_render();
     fake::render = false;
