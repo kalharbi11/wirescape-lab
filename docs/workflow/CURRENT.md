@@ -8,6 +8,26 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Lead check — 2026-11-26 20:58 EST (owner: finish started tasks only; planner pending)
+
+- Owner hold supersedes self-release, draft-aheads and later lane queues. Finish existing lab PRs only: B1 #649/#685; B2 #638/#660; B3 #678; B5 #627. B4 has no started product PR, so holds. No new task/claim in lab, test or headless based on a merge. Usage/reset unavailable (unknown).
+- Merged #677 `9813b2837a3d5200652b3ae9cc04cbac17208505`, exact head 74043db, signed Result 7207654013, Lab 45923801448, Golden 45923801583 and paired 45923801381 all success. Test-only sequencing fix retains oracle/load/deadline; causal red and both-arch ASan repeat=3 pinned. B2 shared witness writer released; B5 integrates into existing #627. A105 closure is for Architect to record.
+- Merged #655 `6e6900f4016165f7b2a8a9881b0d6ef1eba94464` under SR18/SR20(c): four bench-only files, scoped exact Lab success and signed Result 7207500280. Lead corrected its earlier unnecessary Golden/paired demand: existing workflow filters exclude bench/mm_f; MM-f names no such gate. No failed gate waived or paths widened. #678 may finish because already started; final Result/ready CI requested, then stop.
+- MM1 #649 e03d95a signed Result, full exact Lab/Web success verified; ready-state Lab pending, auto-merge enabled. #685 still active. #638 awaits integrated witness, #660 its existing predecessor gate, #627 exact integrated qualification/Architect review. No speculative reruns or new tasks.
+- Architect inbox updated for A105 closure after #677 merge; no new design ruling requested. Headless #17 still has its existing H0 correction packet; do not start newer bundles. Test #18 compatibility remains required before a future pin bump, but do not start it under this hold unless it was already started. Planner may revise order. OB1 owner evidence/acceptance unchanged; gates no new work.
+
+Signed: gpt-lead, 2026-11-26
+
+## Lead check — 2026-11-26 19:58 EST
+
+- Reconciled Architect run 52/A106 and all five live lane updates. Usage/reset unavailable (unknown). Prioritized test/headless integration.
+- MB1 #642 merged `fad44d049c7f2777a5e556ec588edf085152fd0f` at exact tested `566a1c2`, signed Result 7206773992; Lab, Golden, M1 paired and Offline all success. A106 does not gate MB1. Notified B4 and test #18; first MB1-containing test pin bump waits MOD-T2c. Fixture #683 merged at the end check; no duplicate B4 work.
+- MB2 #358 waits open control writer #638; preflight only. B1 SC1 #685 started after #674 merged. B3 #655 Lab green but no final Result/exact Golden-paired reported; completion requested, #678 remains behind merge. B5 #677 has causal evidence and raw 1000-switch facts; final-head qualification pending, no premature writer release or A105 closure.
+- Test repo has no open PR; MOD-T2c #18 is the next priority. Headless #17 remains unchanged at a8bee37 with H0 replay failure, correction packet already posted; owner resumes headless session with `headless: run`. Bundle D is independent; E/F wait B/C merge. No blind rerun, product approval or Architect wake.
+- No new ready Architect batch: A106 answered #679 and #674 merged. Next Architect run after #677/#638/#627 is pinned, or a new design stop. Route: MB1 → fixture/compatibility → MB2; Player P0 → P1-e → H-7 → owner facts. OB1 owner listening, real-folder roundtrip, Pi 6a/6b and candidate acceptance remain unchanged and gate no new work.
+
+Signed: gpt-lead, 2026-11-26
+
 ## Architect run 52 + lead — 2026-11-26 19:45 EST (owner: `architect:run`; resolve lab agents' asks, act as lead, serve the test-repo Architect)
 - **A106** on [#679](https://github.com/kalharbi11/wirescape-lab/issues/679#issuecomment-7206774997): post-MB1 test pin bump needs MOD-T2c ([test #18](https://github.com/kalharbi11/wirescape-test/issues/18)); MB1 merge not gated. M3 r2.3.
 - **SDK-1 filed** as [#682](https://github.com/kalharbi11/wirescape-lab/issues/682) (B4, after MB1 and MOD-T2c); M3 and BUILDERS link it.

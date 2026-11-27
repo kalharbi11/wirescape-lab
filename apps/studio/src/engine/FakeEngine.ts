@@ -9,6 +9,7 @@ import { ioObject, mergeSlotValue, ioRows, oscProjection, ioConstruction } from 
 import type { ModuleRegistry } from '../modules/registry';
 import { findParam, findPort, normToValue, valueToNorm } from '../modules/registry';
 import { hzToMidi } from '../modules/musicalPitch';
+import { fakeMacroDescriptor } from './fakeMacro';
 
 const TICK_HZ = 30;
 
@@ -91,6 +92,9 @@ export class FakeEngine implements EngineClient {
   ];
 
   constructor(private readonly registry: ModuleRegistry) {
+    // Never insert a simulated descriptor into an actual engine catalogue.
+    if (!window.wirescape && !registry.has('essentials.macro'))
+      registry.replace([...registry.all, fakeMacroDescriptor()]);
     // Browser Web mode cannot host UDP or advertise the osc.out capability.
     this.capabilities = window.wirescape?.web ? [] : ['osc.out', 'applyGraph'];
     this.status.midi.devices = this.midiDevices.map(d => ({ ...d }));
@@ -178,6 +182,11 @@ export class FakeEngine implements EngineClient {
   onUnapplied(cb: (items: UnappliedParameter[]) => void): () => void {
     this.unappliedCbs.add(cb); return () => this.unappliedCbs.delete(cb);
   }
+  /** Last acknowledged graph for A101 recovery, not the optimistic editor. */
+  confirmedDocument(): PatchV2 | null {
+    return this.document ? structuredClone(this.document) : null;
+  }
+
   /** Test hook: simulate an exhausted native parameter-event queue. */
   setNextUnapplied(items: { moduleId: number; paramId: string }[]): void {
     this.nextUnapplied = items.map(item => ({ ...item }));
@@ -350,6 +359,7 @@ export class FakeEngine implements EngineClient {
   }
 
   setModAmount(c: Connection, amount: number): void {
+    this.guardRefusal();
     const k = key(c);
     const found = this.conns.find(x => key(x) === k);
     if (found) found.amount = amount;
@@ -364,7 +374,8 @@ export class FakeEngine implements EngineClient {
     if (!m || !node) throw new EngineRefusal({ code: 'not-found', message: 'Module not found' });
     const declared = m.module === 'midi.cc_to_cv' ? 'mapping' :
       ['osc.in', 'osc.out'].includes(m.module) ? 'routes' :
-      m.module === 'sequencing.groove' ? 'pattern' : undefined;
+      m.module === 'sequencing.groove' ? 'pattern' :
+      m.module === 'essentials.macro' ? 'labels' : undefined;
     if (slot !== declared || value === null || typeof value !== 'object' || Array.isArray(value))
       throw new EngineRefusal({ code: 'invalid', message: 'Unknown or invalid data slot' });
     if (this.capabilities.length === 0 && (m.module === 'osc.in' || m.module === 'osc.out'))
@@ -750,6 +761,14 @@ export class FakeEngine implements EngineClient {
     const n = this.nodes.get(moduleId);
     if (!n) return 0;
     switch (n.type) {
+      case 'essentials.macro': {
+        const i = /^out([1-8])$/.exec(portId)?.[1];
+        if (!i) return 0;
+        let value = n.params['knob' + i] ?? 0;
+        for (const c of this.conns) if (c.kind === 'modulation' && c.to.module === n.id && c.to.port === 'knob' + i)
+          value += (c.amount ?? 0) * this.sourceValue(c, cache);
+        return Math.max(0, Math.min(1, value));
+      }
       case 'essentials.lfo': {
         const ph = this.phases.get(n.id) ?? 0;
         return Math.sin(ph * Math.PI * 2) * (n.params.depth ?? 1) + (n.params.offset ?? 0);

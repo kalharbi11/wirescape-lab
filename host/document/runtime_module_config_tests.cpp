@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 using namespace wirescape::document;
-#define CHECK(x) do{if(!(x))std::abort();}while(0)
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"CHECK failed at line %d: %s\n",__LINE__,#x);std::abort();}}while(0)
 static void instance_config_union() {
     const auto chord = runtime_module_config("essentials.chord", nlohmann::json::object(), 0x12345678);
     CHECK(chord == std::vector<uint8_t>({0x78, 0x56, 0x34, 0x12}));
@@ -83,6 +83,12 @@ static void osc_future_keys() {
     std::vector<std::string> label_diagnostics;
     const auto labelled_bytes = runtime_module_config("osc.in", labelled, 17, &label_diagnostics);
     if (!label_diagnostics.empty()) throw std::runtime_error("SC1 label emitted a legacy OSC In diagnostic");
+    if (labelled_bytes != legacy_bytes) {
+        for (size_t i = 0; i < std::min(labelled_bytes.size(), legacy_bytes.size()); ++i)
+            if (labelled_bytes[i] != legacy_bytes[i])
+                std::fprintf(stderr, "SC1 config byte %zu: labelled=%u baseline=%u\n", i,
+                             unsigned(labelled_bytes[i]), unsigned(legacy_bytes[i]));
+    }
     CHECK(labelled_bytes == legacy_bytes && labelled.dump() == original);
     auto future = known;
     future["futureOption"] = Json::object({{"nested", 1}});
