@@ -1342,6 +1342,33 @@ with tempfile.TemporaryDirectory() as osc_stream_dir:
                 'dropped', {}).get('oversize', 0) >= 1)
             assert status['status']['controller']['dropped'] == dict(fifo=0, latest=0, oversize=1), status
 
+            # The worker has a per-listener 64 decoded-message budget, not
+            # merely a datagram budget. One 65-child bundle must not evade it.
+            # Use distinct keys and a post-status sentinel to distinguish
+            # missing ingress from legitimate latest-wins coalescing.
+            def route_status(message):
+                return next(r for r in message['status']['osc']['routes']
+                            if r['port'] == port)
+
+            budget_before = route_status(status)['listener_budget_dropped']
+            burst = bundle(*(osc_packet('/b/%02d' % i) for i in range(65)))
+            assert len(burst) <= 2048
+            sender.sendto(burst, ('127.0.0.1', port))
+            observed = []
+            deadline = time.monotonic() + 8
+            while True:
+                assert time.monotonic() < deadline, 'OSC worker did not report bundle budget'
+                message = osc_stream.pushes.pop(0) if osc_stream.pushes else osc_stream.receive()
+                if message.get('type') == 'controller':
+                    observed.extend(event['address'] for event in message['events'])
+                elif message.get('type') == 'status':
+                    if route_status(message)['listener_budget_dropped'] > budget_before:
+                        assert route_status(message)['listener_budget_dropped'] == budget_before + 1
+                        break
+            sender.sendto(osc_packet('/stream/budget-done'), ('127.0.0.1', port))
+            observed.extend(event['address'] for event in collect_until('/stream/budget-done'))
+            assert observed == ['/b/%02d' % i for i in range(64)] + ['/stream/budget-done'], observed
+
             # Compare cadence on this same graph, with and without 800 ingress
             # events/s. Use 8 children per 10 ms bundle to avoid timer-dependent
             # 1.25 ms sleeps on Windows. Observe pipe arrivals in real time.
@@ -1375,7 +1402,18 @@ with tempfile.TemporaryDirectory() as osc_stream_dir:
                 return stamps
 
             idle = cadence(False)
+            before_load = osc_next('status', lambda m: m['gen'] == gen)
+            before_route = route_status(before_load)
+            before_attempted = before_route['received'] + before_route['enqueue_dropped']
+            before_emitted = before_load['status']['controller']['events']
             busy = cadence(True)
+            after_load = osc_next('status', lambda m: m['gen'] == gen and
+                                  route_status(m)['received'] + route_status(m)['enqueue_dropped']
+                                  >= before_attempted + 1600)
+            after_route = route_status(after_load)
+            assert after_route['listener_budget_dropped'] == before_route['listener_budget_dropped']
+            assert after_load['status']['controller']['events'] > before_emitted
+            assert after_load['status']['controller']['dropped'] == before_load['status']['controller']['dropped']
             for stamps in (idle, busy):
                 assert len(stamps['status']) >= 18, stamps
                 assert max(b - a for a, b in zip(stamps['status'], stamps['status'][1:])) < 0.150, stamps
