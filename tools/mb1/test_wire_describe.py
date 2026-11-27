@@ -82,6 +82,25 @@ class DescriptorEquality(unittest.TestCase):
                 self.assertIs(type(descriptor["version"]), int)
                 self.assertGreaterEqual(descriptor["version"], 1)
 
+    def test_a97_manifest_descriptions_survive(self):
+        # Frozen pre-MB2 metadata, not an input to the registry or generator.
+        descriptions = read_json(ROOT / "tools/mb1/manifest_descriptions.json")
+        self.assertEqual(len(descriptions), 25)
+        paths = sorted((ROOT / "modules").glob("*/module.json"))
+        paths += sorted((ROOT / "sdk/examples").glob("*/module.json"))
+        # During migration compare every old manifest; after deletion keep the
+        # independent frozen witness for the documentation strings.
+        if paths:
+            original = {path.parent.relative_to(ROOT).as_posix(): read_json(path)["description"]
+                        for path in paths if "description" in read_json(path)}
+            self.assertEqual(original, descriptions)
+        for folder, expected in descriptions.items():
+            with self.subTest(folder=folder):
+                lines = (ROOT / folder / "README.md").read_text(encoding="utf-8").splitlines()
+                title = next(i for i, line in enumerate(lines) if line.startswith("# "))
+                description = next(line for line in lines[title + 1:] if line.strip())
+                self.assertEqual(description, expected)
+
     def test_live_generator_matches_committed_outputs(self):
         result = subprocess.run([sys.executable, str(ROOT / "tools/gen_ui_catalogue.py"),
                                  "--check", "--describe", str(DESCRIBE.resolve())],
