@@ -22,6 +22,10 @@ function(ws_builtin_registry target root)
       WS_MODULE2_ENTRY_NAME=ws_module_entry_${folder}
       WS_MODULE2_VERSION_NAME=ws_module_version_${folder})
     target_link_libraries("${module_target}" PRIVATE ${ARGN})
+    # Optional folder-local additions for built-in compilation, on both targets.
+    if(EXISTS "${folder_path}/module.cmake")
+      include("${folder_path}/module.cmake")
+    endif()
     target_link_libraries("${target}" PRIVATE "${module_target}")
     string(APPEND WS_REGISTRY_DECLARATIONS "extern \"C\" const ws2_descriptor *WS2_CALL ws_module_entry_${folder}(void);\n")
     string(APPEND WS_REGISTRY_ENTRIES "        ws_module_entry_${folder}(),\n")
