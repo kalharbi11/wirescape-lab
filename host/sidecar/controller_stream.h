@@ -17,8 +17,9 @@ namespace wirescape::sidecar {
 // A callback reserves a bank and ingress ordinal in one atomic RMW. One
 // producer per enabled MIDI endpoint and one OSC worker: writers of the same
 // key are serialized by the ingress owner, never by a capture-side mutex.
-// The control thread closes a bank before inspecting any non-atomic payload;
-// if an admitted producer was preempted, try again on the next control poll.
+// The control thread rotates a bank only after all of its reservations
+// completed, using an exact compare-exchange to exclude a racing arrival.
+// A preempted producer postpones that window without opening another one.
 // No render thread touches this object. Banks are allocated at session start.
 class ControllerStream {
 public:
@@ -88,9 +89,37 @@ private:
     // encode selected kinds and unmatched OSC. Control is the sole writer.
     std::atomic<uint64_t> filter_{0};
     std::atomic<uint64_t> dropped_fifo_{0}, dropped_latest_{0}, oversize_{0};
-    uint64_t emitted_ = 0, retired_ = 0; // control owner only
-    bool has_retired_ = false;
+    uint64_t emitted_ = 0; // control owner only
 
+    // Validate UTF-8 before storing any network-provided text. Invalid text
+    // must never reach Json::dump() in the pipe writer (which exits on error).
+    // Return -1 for an invalid sequence. Called only after the byte bound.
+    static int utf8_scalars(std::string_view text) noexcept {
+        int count = 0;
+        for (size_t i = 0; i < text.size();) {
+            const auto first = static_cast<unsigned char>(text[i++]);
+            unsigned tail = 0;
+            uint32_t scalar = first, minimum = 0;
+            if (first < 0x80) {}
+            else if (first >= 0xc2 && first <= 0xdf) {
+                tail = 1; scalar = first & 0x1fu; minimum = 0x80;
+            } else if (first >= 0xe0 && first <= 0xef) {
+                tail = 2; scalar = first & 0x0fu; minimum = 0x800;
+            } else if (first >= 0xf0 && first <= 0xf4) {
+                tail = 3; scalar = first & 7u; minimum = 0x10000;
+            } else return -1;
+            if (tail > text.size() - i) return -1;
+            for (unsigned n = 0; n < tail; ++n) {
+                const auto byte = static_cast<unsigned char>(text[i++]);
+                if ((byte & 0xc0u) != 0x80u) return -1;
+                scalar = (scalar << 6) | (byte & 0x3fu);
+            }
+            if (scalar < minimum || scalar > 0x10ffffu ||
+                (scalar >= 0xd800u && scalar <= 0xdfffu)) return -1;
+            ++count;
+        }
+        return count;
+    }
     static uint64_t now_us() noexcept {
         return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -259,6 +288,8 @@ public:
         // Invalid IDs cannot be advertised by the existing device schema.
         if (device.size() >= identity_bytes || system.size() > identity_bytes - device.size() - 1)
             return;
+        const int device_chars = utf8_scalars(device), system_chars = utf8_scalars(system);
+        if (device_chars < 0 || system_chars < 0 || device_chars + 1 + system_chars > 256) return;
         Payload payload;
         payload.kind = kind;
         payload.time = now_us();
@@ -283,7 +314,7 @@ public:
             oversize_.fetch_add(1, std::memory_order_relaxed);
             return;
         }
-        if (address.empty()) return;
+        if (address.empty() || utf8_scalars(address) < 0) return;
         Key key;
         key.osc = true; key.port = port; key.length = static_cast<uint16_t>(address.size());
         std::memcpy(key.text.data(), address.data(), address.size());
@@ -300,19 +331,20 @@ public:
         submit(key, payload, filter);
     }
 
-    // Control owner only, and only when the writer slot is available. The
-    // exchange is the window boundary; no producer can subsequently reserve
-    // that bank. Do not touch any payload until every reservation completes.
+    // Control owner only, and only when the writer slot is available. A
+    // rotation requires every writer to have completed and the reservation
+    // word still to be identical. If a producer raced, leave the single
+    // pending window intact: the 128/256 capacities must not double while
+    // a preempted writer holds a retired bank. No waits or retries here.
     Json drain() {
         Json events = Json::array();
-        if (!has_retired_) {
-            const uint64_t active = gate_.load(std::memory_order_acquire);
-            if (!(active & count_mask)) return events;
-            retired_ = gate_.exchange((active & bank_bit) ^ bank_bit, std::memory_order_acq_rel);
-            has_retired_ = true;
-        }
-        Bank &bank = banks_[(retired_ & bank_bit) != 0];
-        if (bank.completed.load(std::memory_order_acquire) != (retired_ & count_mask))
+        uint64_t active = gate_.load(std::memory_order_acquire);
+        if (!(active & count_mask)) return events;
+        Bank &bank = banks_[(active & bank_bit) != 0];
+        if (bank.completed.load(std::memory_order_acquire) != (active & count_mask))
+            return events;
+        const uint64_t next = (active & bank_bit) ^ bank_bit;
+        if (!gate_.compare_exchange_strong(active, next, std::memory_order_acq_rel))
             return events;
         std::array<Pending, latest_capacity + fifo_capacity> pending{};
         size_t used = 0;
@@ -324,7 +356,7 @@ public:
         };
         for (auto &cell : bank.latest)
             if (cell.state.load(std::memory_order_relaxed) == 2) include(cell.key, cell.payload);
-        const size_t fifo_count = static_cast<size_t>((retired_ >> 32) & fifo_mask);
+        const size_t fifo_count = static_cast<size_t>((active >> 32) & fifo_mask);
         for (size_t i = 0; i < (std::min)(fifo_count, fifo_capacity); ++i)
             include(bank.fifo[i].key, bank.fifo[i].payload);
         std::sort(pending.begin(), pending.begin() + used, [](const Pending &a, const Pending &b) {
@@ -335,7 +367,6 @@ public:
         emitted_ += used;
         for (auto &cell : bank.latest) cell.state.store(0, std::memory_order_relaxed);
         bank.completed.store(0, std::memory_order_relaxed);
-        has_retired_ = false;
         return events;
     }
     Json status() const {
