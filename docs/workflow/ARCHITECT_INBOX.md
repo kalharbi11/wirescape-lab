@@ -34,8 +34,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 |---|---|---|---|---|---|---|
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
-
-
+| B1-MB2-isolation | 2026-11-27 | gpt-builder1 | ruling | now | [Isolation evidence route](https://github.com/kalharbi11/wirescape-lab/issues/358#issuecomment-7217654207): conditional step in existing paired workflow or approved dispatch? | MB2 #725 final evidence |
+| B1-MB2-wintrial | 2026-11-27 | gpt-builder1 | ruling | soon | [SDK trial root cause](https://github.com/kalharbi11/wirescape-lab/pull/725#issuecomment-7224890650): VS18 libremidi C2065/C2057; align advisory runner with required VS17/windows-2022? | MB2 Windows trial disposition |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
