@@ -169,3 +169,16 @@ test('MM1 Forget: partial ACK uses A101 whole-graph compensation', async ({ page
   expect(after.history).toEqual(before.history);
   expect(after.graph).toEqual(before.graph);
 });
+
+test('MM1 real bridge: refused amount compensates accepted base without rebuilding or authoring history', async ({ page }) => {
+  await setup(page);
+  const before = await snapshot(page);
+  await page.evaluate(() => (window as any).__mockBridge.refuseNext('setModAmount', 'refused'));
+  const error = await page.evaluate(async c => {
+    try { await window.__wirescapeTest.editMappingRange(c, 'min', .1); return ''; }
+    catch (e) { return (e as Error).message; }
+  }, connection);
+  expect(error).toContain('Scripted refused');
+  expect(await commands(page)).toEqual(['setParam', 'setModAmount', 'setParam']);
+  expect(await snapshot(page)).toEqual(before);
+});
