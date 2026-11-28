@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "wirescape_sdk.h"
+#include "wirescape/beat_clock.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -58,7 +59,84 @@ static void finite_samples_tests(){
  CHECK(ws::finite_samples(&nan,0));
  CHECK(!ws::finite_samples(&nan,1));
 }
+ // SDK-1: independent beat-clock oracles, not a second implementation.
+static void beat_clock_tests() {
+    using wsbeat::BeatClock;
+    using wsbeat::division_beats;
+    using wsbeat::division_index;
+    const double expected[]{16,8,4,3,2,1.5,4./3,1,.75,2./3,.5,.375,1./3,.25,.1875,1./6,.125,1./12};
+    for (int i=0; i<18; ++i) {
+        CHECK(division_beats(float(i)) == expected[i]);
+        CHECK(division_index(3*expected[i], expected[i]) == 3);
+        CHECK(division_index(3*expected[i]-1e-5, expected[i]) == 2);
+    }
+    CHECK(division_beats(-100) == 16);
+    CHECK(division_beats(100) == 1./12);
+    CHECK(division_beats(7.5f) == .75);
+    CHECK(division_beats(std::nanf("")) == 1);
+    CHECK(division_index(-.25,.25) == -1);
+    const auto near = [](double a, double b) { return std::abs(a-b)<1e-12; };
+    for (double rate : {44100.,48000.,96000.}) {
+        BeatClock c;
+        ws2_transport t{};
+        t.struct_size=sizeof(t); t.flags=WS2_PLAYING; t.bpm=120; t.beat=12;
+        for (uint32_t frame=0; frame<32; ++frame)
+            CHECK(near(c.step(false,0,false,1,&t,frame,rate),12+frame*2/rate));
+        CHECK(near(c.samples_per_beat(),rate/2));
+        CHECK(near(c.step(false,0,true,1,&t,32,rate),0));
+        CHECK(near(c.step(false,0,false,1,&t,33,rate),2/rate));
+        // Stopped transport advances from the last beat, not t.beat.
+        t.flags=0; t.bpm=90; t.beat=99;
+        const double last=c.beat();
+        for (uint32_t frame=0; frame<32; ++frame)
+            CHECK(near(c.step(false,0,false,1,&t,frame,rate),last+(frame+1)*1.5/rate));
+        CHECK(near(c.samples_per_beat(),rate/1.5));
+        CHECK(c.step(false,0,true,1,&t,32,rate)==0);
+        CHECK(near(c.step(false,0,false,1,nullptr,0,rate),2/rate));
+        c.reset();
+        CHECK(c.beat()==0 && !c.held());
+        CHECK(near(c.step(false,0,false,1,nullptr,0,rate),2/rate));
+
+        // Clock at 4 PPQ: an edge is 1/4 beat, period 8 samples.
+        c.reset();
+        CHECK(c.step(true,1,true,4,nullptr,0,rate)==0);
+        for (uint32_t f=1; f<8; ++f)
+            CHECK(c.step(true,0,false,4,nullptr,f,rate)==0);
+        CHECK(c.step(true,1,false,4,nullptr,8,rate)==.25);
+        CHECK(c.samples_per_beat()==32);
+        CHECK(c.step(true,.375f,false,4,nullptr,9,rate)==.28125);
+        CHECK(c.step(true,0,true,4,nullptr,10,rate)==0);
+        for (uint32_t f=11; f<16; ++f)
+            CHECK(near(c.step(true,0,false,4,nullptr,f,rate),double(f-10)/32));
+        CHECK(c.step(true,1,false,4,nullptr,16,rate)==.1875);
+        for (uint32_t f=17; f<32; ++f)
+            CHECK(c.step(true,0,false,4,nullptr,f,rate)<.4375);
+        CHECK(c.step(true,0,false,4,nullptr,32,rate)<.4375 && c.held());
+        const double held=c.beat();
+        CHECK(c.step(true,0,false,4,nullptr,33,rate)==held);
+        CHECK(c.step(true,1,false,4,nullptr,34,rate)==.4375 && !c.held());
+
+        // State round-trip while a gate is latched in the hysteresis band.
+        BeatClock restored;
+        const auto state=c.save();
+        CHECK(restored.restore(state));
+        CHECK(restored.save().flags==state.flags);
+        auto bad=state; bad.flags=16;
+        CHECK(!restored.restore(bad));
+        bad=state; bad.samples_per_beat=0;
+        CHECK(!restored.restore(bad));
+        CHECK(restored.beat()==c.beat() && restored.save().flags==state.flags);
+        for (uint32_t f=35; f<80; ++f) {
+            const float clock=f<38?.375f:(f%8==0?1.f:0.f);
+            CHECK(restored.step(true,clock,false,4,nullptr,f,rate)==
+                  c.step(true,clock,false,4,nullptr,f,rate));
+            CHECK(restored.held()==c.held());
+        }
+    }
+}
+
 int main(){
+ beat_clock_tests();
  finite_samples_tests();
  for(double sr:{44100.,48000.,96000.}){ws::LinearRamp r(0);r.prepare(sr);CHECK(r.next()==0);r.set(1);uint32_t n=static_cast<uint32_t>(sr*.005);for(uint32_t i=1;i<=n;++i)CHECK(std::abs(r.next()-double(i)/n)<1e-12);CHECK(r.constant());r.set(.2);r.reset();CHECK(r.next()==.2);}
  ws::Schmitt gate;CHECK(!gate.process(.5f));CHECK(gate.process(.51f));CHECK(gate.process(.25f));CHECK(!gate.process(.24f));
