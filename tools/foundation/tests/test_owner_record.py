@@ -24,6 +24,13 @@ class OwnerRecordTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             owner_record.probe_json('nothing')
 
+    def test_test_json_after_progress_lines(self):
+        out = '1/2 Test #1: a ... Passed\n2/2 Test #2: b ... Passed\n{\n  "status": "passed",\n  "summary": "CTest passed"\n}\n'
+        self.assertEqual(owner_record.trailing_json(out)['summary'], 'CTest passed')
+        self.assertEqual(owner_record.trailing_json('{"status": "failed"}')['status'], 'failed')
+        with self.assertRaises(ValueError):
+            owner_record.trailing_json('no json here')
+
     def test_io_modules_are_not_probed(self):
         ids = owner_record.module_ids()
         self.assertIn('essentials.vco', ids)

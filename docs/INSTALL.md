@@ -3,15 +3,41 @@
 
 Wirescape 1.0 is the Electron app (Studio patch editor plus the native
 `wirescape-engine`). There is no installer yet; you build one exact commit from
-source. The old Qt app is retired, so don't use its shortcuts, packages or
+source. Until the owner accepts a build as **v1.0**, each test build is a beta (`beta_01`,
+`beta_02`, …) listed with its commit in [releases/betas.md](releases/betas.md). The old Qt app is retired, so don't use its shortcuts, packages or
 `--qt-prefix` launches. What's in 1.0 and how to report a test:
 [releases/v1.0.md](releases/v1.0.md).
 
+- [Where things live](#where-things-live)
 - [Windows 10/11 x64](#windows-1011-x64)
 - [Raspberry Pi 5](#raspberry-pi-5)
 - [Testing and reporting](#testing-and-reporting)
 - [Update to a later version](#update-to-a-later-version)
+- [Remove a version](#remove-a-version)
 - [Troubleshooting](#troubleshooting)
+
+## Where things live
+
+Shared tools go in normal system places and each version builds in its own folder. A new
+version never needs anything from an old folder, and deleting a version folder never removes a
+shared tool.
+
+| What | Where | Shared by all versions? |
+|---|---|---|
+| Compilers, Git, Python, CMake, Ninja, Node.js | system or user tool folders (step 1 of each platform) | yes |
+| ALSA, PortAudio, GTK and other libraries (Pi) | `/usr/lib`, installed with apt | yes |
+| npm and Electron download caches (Pi) | `~/.npm`, `~/.cache/electron` | yes |
+| npm and Electron caches, pinned PortAudio + ASIO SDK build (Windows) | `.tools\windows-setup\` inside the version folder (moving to shared caches is planned) | no |
+| `node_modules`, `build`, `build_reports`, `user_data/settings.json` | inside the version folder | no |
+| Window size and the default patch folder | Pi `~/.config/wirescape-desktop`, Windows `%APPDATA%\wirescape-desktop` | **yes** |
+| `wirescape` command, menu entry, autostart (Pi, optional) | `~/.local/bin/wirescape`, `~/.local/share/applications/wirescape.desktop`, `~/.config/autostart/wirescape.desktop` | **one at a time** |
+
+- **Patches:** every version opens and saves in the same default patch folder, so your patches
+  survive deleting a version. An older version may not open a patch saved by a newer one; keep a
+  copy before going back.
+- **Pi launcher:** there is one `wirescape` command and menu entry. It runs the folder you last ran
+  `install-desktop-entry.sh` from. After deleting that folder, rerun the script from the version you
+  keep, or remove the entry ([Remove a version](#remove-a-version)).
 
 ## Windows 10/11 x64
 
@@ -69,16 +95,17 @@ An elevated shell produces a warning; use a normal user shell when possible.
 
 ### 2. Get a clean checkout of the version
 
-Use a **new folder** for each version. Your old folder, patches and settings
+Use a **new folder** for each beta, named after it, inside one `C:\wirescape` folder
+(for example `C:\wirescape\beta_02`). Your old folder, patches and settings
 stay untouched, and stale Qt build caches can't leak in.
 Any folder works, including paths with spaces. You don't need to uninstall an
 earlier beta; just close it before launching 1.0 so they don't share audio and
 MIDI devices.
 
 ```powershell
-git clone https://github.com/kalharbi11/wirescape-lab.git C:\src\wirescape-1.0
-cd C:\src\wirescape-1.0
-# 1.0 is the commit named in docs/releases/v1.0.md. Before it is pinned, use current main:
+git clone https://github.com/kalharbi11/wirescape-lab.git C:\wirescape\beta_02
+cd C:\wirescape\beta_02
+# Use the commit listed for this beta in docs/releases/betas.md, or current main:
 $Ref = (git rev-parse origin/main).Trim()
 git switch --detach $Ref
 ```
@@ -146,14 +173,25 @@ for real sound. Build in a **new folder**; an older checkout stays untouched.
 
 ```sh
 sudo apt update
-sudo apt install -y git build-essential pkg-config python3 python3-venv \
+sudo apt install -y git build-essential pkg-config python3 python3-venv cmake ninja-build \
   libasound2-dev libportaudio2 libasound2-plugins \
   libnss3 libgbm1 libgtk-3-0t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libxcomposite1 libxdamage1 libxrandr2
 ```
 
-On Bookworm, drop the `t64` suffixes if apt cannot find those names. **Node 22 LTS** (arm64) comes
-from [nodejs.org](https://nodejs.org/en/download) or nvm (`nvm install 22`). If CMake 4.2.3 and
-Ninja 1.13.0 are not installed, put them in a venv inside the new checkout (step 2).
+On Bookworm, drop the `t64` suffixes if apt cannot find those names. The apt `cmake` and
+`ninja-build` are enough: Wirescape needs CMake 3.20 or newer (CI tests 4.2.3). Nothing is
+installed inside the Wirescape folder.
+
+**Node.js 22 or newer (arm64), installed once for the whole system.** The apt `nodejs` package is
+too old, so use NodeSource:
+
+```sh
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+node --version      # v22.x; the preflight accepts 22, 24 and 26
+```
+
+If `node` is already 22, 24 or 26 (from apt, NodeSource or nvm), keep it.
 
 **Realtime audio (recommended, once):** run `sudo usermod -aG audio "$USER"`, then create
 `/etc/security/limits.d/99-wirescape-audio.conf` with these two lines, and log out and back in:
@@ -166,13 +204,11 @@ Ninja 1.13.0 are not installed, put them in a venv inside the new checkout (step
 ### 2. Get the version and build (devices stay off)
 
 ```sh
-git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape-test
-cd ~/wirescape-test
-Ref=$(git rev-parse origin/main)          # or the commit named in docs/releases/
+mkdir -p ~/wirescape
+git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape/beta_02
+cd ~/wirescape/beta_02                    # one new folder per beta, named after it
+Ref=$(git rev-parse origin/main)          # or the commit listed for this beta in docs/releases/betas.md
 git switch --detach "$Ref"
-# Only if cmake/ninja are missing or the wrong version:
-python3 -m venv .tools/build-tools && . .tools/build-tools/bin/activate
-python -m pip install cmake==4.2.3 ninja==1.13.0
 python3 tools/pi/preflight.py --check-only   # read-only; lists anything missing
 sh tools/pi/update-and-build.sh "$Ref"       # ~30-60 min the first time; add --jobs 1 if low on memory
 python3 tools/dev.py test                    # headless tests
@@ -180,7 +216,8 @@ python3 tools/pi/app_smoke.py --report build_reports/pi-app-smoke   # needs the 
 ```
 
 The build logs and summary are in `build_reports/pi-source-build/<sha>/`. A failed stage names
-its log file. Fix that, then rerun the same command.
+its log file. Fix that, then rerun the same command. Run `tools/dev.py test` in one version folder
+at a time: some tests use fixed localhost ports.
 
 ### 3. Launch
 
@@ -188,6 +225,13 @@ its log file. Fix that, then rerun the same command.
 python3 tools/dev.py launch --confirm-audio --confirm-midi            # sound + MIDI
 python3 tools/dev.py launch --confirm-audio --confirm-midi --confirm-lan   # + LAN OSC (ESP32)
 ```
+
+Over SSH, put `DISPLAY=:0` in front so the window opens on the Pi's monitor
+(`DISPLAY=:0 python3 tools/dev.py launch --confirm-audio --confirm-midi`); without it nothing appears
+and the log says `Missing X server or $DISPLAY`. Wirescape runs one copy at a time: a second launch
+brings the open window forward. **MIDI inputs start switched off.** Click a crossed-out device in the
+bottom bar (or use Settings → MIDI) to switch it on; the choice is saved in this folder's
+`user_data/settings.json`, whichever way you launch.
 
 LAN consent alone keeps null audio and loopback-only OSC; all three flags are needed for a network
 controller ([CONTROLLERS.md](CONTROLLERS.md)). The launcher refuses a stale or incomplete build.
@@ -281,7 +325,7 @@ changed is rebuilt (usually a few minutes). Close Wirescape first.
 **Windows** (VS x64 Developer PowerShell, in your existing folder):
 
 ```powershell
-cd C:\src\wirescape-1.0                    # your existing checkout
+cd C:\wirescape\beta_02                    # your existing checkout
 git status --short                          # must print nothing; commit or move local edits first
 git fetch --prune origin
 $Ref = (git rev-parse origin/main).Trim()   # or the commit named in the release notes
@@ -319,6 +363,24 @@ Repeat Windows steps 2–4 in a **new folder**, using that version's commit from
 its release notes. Keep the previous folder until the new one passes your test.
 Switching back just means running the old folder's `tools\windows\Wirescape.cmd`.
 On the Pi, repeat [Pi step 2](#2-get-the-version-and-build-devices-stay-off) in a new folder.
+
+## Remove a version
+
+**Windows:** close Wirescape and delete the version folder (for example `C:\wirescape\beta_02`).
+Nothing outside it points at it.
+
+**Raspberry Pi 5:** close Wirescape. If the `wirescape` command or menu entry runs this folder,
+remove them first, then delete the folder:
+
+```sh
+sh ~/wirescape/beta_02/tools/pi/install-autostart.sh --remove
+rm -f ~/.local/bin/wirescape ~/.local/share/applications/wirescape.desktop
+rm -rf ~/wirescape/beta_02
+```
+
+Shared tools, caches and `~/.config/wirescape-desktop` (window size and the default patch folder)
+stay for the next version. To remove those too, for every version, copy your patches out of
+`~/.config/wirescape-desktop/patches` first, then `rm -rf ~/.config/wirescape-desktop`.
 
 ## Troubleshooting
 

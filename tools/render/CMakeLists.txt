@@ -68,3 +68,9 @@ add_test(NAME render_evidence_note_fields
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_note_fields.py
     $<TARGET_FILE:wirescape_render>)
 set_tests_properties(render_evidence_note_fields PROPERTIES TIMEOUT 120)
+
+# #748: independent stereo render evidence and unchanged legacy rows.
+add_test(NAME render_evidence_stereo_channels
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_stereo_evidence.py
+    $<TARGET_FILE:wirescape_render>)
+set_tests_properties(render_evidence_stereo_channels PROPERTIES TIMEOUT 120)
