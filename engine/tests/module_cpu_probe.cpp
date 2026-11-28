@@ -226,8 +226,11 @@ int main(int argc, char **argv) {
     // A120: the timing samples are wall-clock dependent. Keep their sorting,
     // formatting and subsequent cleanup outside the whole-probe Ir count.
     // The measured loop, callbacks, scan and teardown above remain unchanged.
-#if defined(CALLGRIND_STOP_INSTRUMENTATION)
-    CALLGRIND_STOP_INSTRUMENTATION;
+    // Collection starts enabled in the gate's standard Callgrind invocation.
+    // Toggle only collection, not instrumentation: stopping instrumentation
+    // loses the accumulated summary needed by the two-length reader.
+#if defined(CALLGRIND_TOGGLE_COLLECT)
+    CALLGRIND_TOGGLE_COLLECT;
 #endif
     std::vector<int64_t> sorted = ns;
     std::sort(sorted.begin(), sorted.end());
