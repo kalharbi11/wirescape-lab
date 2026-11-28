@@ -121,6 +121,7 @@ void process(ws::Block& b) {
 - `auto x = b.in(i).ch(c)` is a value view (handles CONSTANT and unpatched for you), not a `const float*`.
 - For tight loops or SIMD, get a plain pointer with `b.in(i).row(c, scratch, frames)`: it aliases a varying signal or fills `scratch` for a constant one. Reserve one scratch row per simultaneously live input in `prepare` and count it in `memory_requirements` (see `sdk/template/module.cpp`).
 - Parameters arrive already smoothed and modulated, in plain units, through `b.param(i)` (same view API as inputs).
+- Hoist `b.param(i)` and `ch(c)` view lookups out of per-sample loops: cache the parameter view once per block and the input, parameter and output channel views once per channel (when the channel mapping is unchanged). Index those cached views inside the sample loop; keep CONSTANT semantics intact.
 
 ## 10. Events (notes, MIDI, messages)
 - Read: `for (const auto& e : b.events_in(port))` or, for sample accuracy, `b.split(range_fn, event_fn)`: it calls `range_fn(first, end)` for the samples between events and `event_fn(e)` at each event, in order. Offsets are relative to this block.

@@ -26,7 +26,8 @@ def check(condition, message):
         raise ValueError(message)
 
 
-def wav_samples(path, rate, frames):
+def wav_samples(path, rate, frames, stereo="mirrored"):
+    check(stereo in ("mirrored", "independent"), "unknown stereo mode")
     data = path.read_bytes()
     check(len(data) == 44 + frames * 8 and len(data) <= 20 * 1024 * 1024, "WAV length/size")
     check(data[:4] == b"RIFF" and data[8:16] == b"WAVEfmt " and data[36:40] == b"data", "WAV header")
@@ -37,8 +38,10 @@ def wav_samples(path, rate, frames):
     values = struct.unpack_from("<" + str(frames * 2) + "f", data, 44)
     left, right = values[::2], values[1::2]
     check(all(math.isfinite(x) for x in values), "non-finite audio")
-    check(max(abs(a - b) for a, b in zip(left, right)) < 1e-5, "stereo bus mismatch")
-    return left
+    if stereo == "mirrored":
+        check(max(abs(a - b) for a, b in zip(left, right)) < 1e-5, "stereo bus mismatch")
+        return left
+    return left, right
 
 
 def measure(samples, case):
@@ -75,6 +78,29 @@ def measure(samples, case):
                         "measured_hz": observed, "expected_hz": want,
                         "tolerance_fraction": FREQUENCY_TOLERANCE})
     return results
+
+
+def measure_case(samples, case, stereo):
+    # Validate selectors before evaluating any assertion. bool is not a JSON
+    # integer channel, nor is a numerically integral float.
+    for window in case["windows"] + case["frequencies"]:
+        if "channel" in window:
+            channel = window["channel"]
+            check(type(channel) is int and channel in (0, 1), "invalid window channel")
+            check(stereo == "independent", "window channel requires independent stereo")
+    if stereo == "mirrored":
+        return measure(samples, case)
+    rows = []
+    for channel, signal in enumerate(samples):
+        selected = dict(case)
+        for key in ("windows", "frequencies"):
+            selected[key] = [w for w in case[key] if w.get("channel", channel) == channel]
+        try:
+            measured = measure(signal, selected)
+        except ValueError as exc:
+            raise ValueError(f"channel {channel}: {exc}") from exc
+        rows.extend(dict(row, channel=channel) for row in measured)
+    return rows
 
 
 def negative_fixtures():
@@ -122,7 +148,10 @@ def publish(out, info, results, error):
              "", "| Assertion | Measurement |", "|---|---|"]
     for item in results:
         value = item.get("measured_hz", item.get("rms_fs", item.get("peak_fs", item.get("value", "finite"))))
-        lines.append(f"| {item['check']} | {value} |")
+        label = item["check"]
+        if "channel" in item:
+            label += f" (channel {item['channel']})"
+        lines.append(f"| {label} | {value} |")
     if error:
         lines.extend(["", "FAIL: " + str(error)[:1200]])
     lines.extend(["", "Automated offline assertions only; not real-device or subjective-listening approval."])
@@ -180,8 +209,9 @@ def run(args):
         else:
             check(proc.returncode == 0, f"renderer exit {proc.returncode}: {proc.stderr[-600:]}")
             check(all(counters[key] == 0 for key in fields), "nonzero renderer event metrics")
-            samples = wav_samples(out / "audio.wav", rate, frames)
-            results = measure(samples, source)
+            stereo = source.get("stereo", "mirrored")
+            samples = wav_samples(out / "audio.wav", rate, frames, stereo)
+            results = measure_case(samples, source, stereo)
             size = sum(f.stat().st_size for f in out.iterdir() if f.is_file())
             check(size <= 7 * 1024 * 1024, "case artifacts exceed 7 MiB")
     except (OSError, ValueError, subprocess.TimeoutExpired) as exc:

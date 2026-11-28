@@ -8,6 +8,18 @@ valid where nothing below replaces them: [CURRENT as of `6ede6f8`](https://githu
 
 **Active lead:** `gpt-lead` (Codex). The Claude Architect also acted as lead in runs 44 and 48 at the owner's request. **Builders:** five ChatGPT chat lanes ([BUILDERS](BUILDERS.md)).
 
+## Architect run 60 — 2026-11-28 (owner: `architect:run`; check all lab agents, act as Architect and lead; beta_02 and Pi fixes)
+- **Acting lead:** claude-architect, owner request, for this run. One lead is active at a time.
+- **SDK-1 #731** [approved](https://github.com/kalharbi11/wirescape-lab/pull/731#issuecomment-7239495073) at `49db5f7`: the header blob matches upstream `cbc1bab` byte for byte once the SPDX line reads `GPL-3.0-only OR MIT`. Merged `869e088`. **M3 accepted** (MB2, SDK-1, MB3 merged; TR1h, TR3 and RL open as Stage 2 rows).
+- **MB3 #764:** **A122** [ruling](https://github.com/kalharbi11/wirescape-lab/pull/764#issuecomment-7239497613) confirms the presentation-overlay proof (0009 decision 7). Merged as lead `6d50a9f`.
+- **SC2 #763:** **A121** [ruling](https://github.com/kalharbi11/wirescape-lab/pull/763#issuecomment-7239499352): the Linux ASan wake-only soak failure is not SC2's (same head passed earlier; no OSC route in the soak). SR5: fact row and task X3 [#776](https://github.com/kalharbi11/wirescape-lab/issues/776). B2 integrates `main` and needs a fully green new-head run; no rerun or retry expansion.
+- **beta_02** pinned in `docs/releases/betas.md` to `157e017`: it includes #768 (Pi config padding) and #770 (MIDI from the status bar, per-checkout settings, single instance, `owner_record` JSON). The owner's Codex session is building it on Windows (devices-off tests). It reported a telemetry problem; no PR for it was on GitHub at the time of this run. When it is filed, it gets a lead review and goes into the next beta.
+- **Also merged earlier today:** V2 #758 (`1e2ea1d`) and P1-h #753 (`e8a1ffc`). X1 #762 is still running its gates.
+- Inbox PRs #765, #773 and #774 are closed as superseded by this entry.
+- **Next run should:** (1) review the Codex Windows telemetry PR once it is filed; (2) contract-review SC2 #763 at a green new head; (3) contract-review X1 #762 at its Result; (4) check X3 #776's fact row, then release T after SC2.
+
+Signed: claude-architect, 2026-11-28
+
 ## Architect run 59f — 2026-11-27 18:30 ET (owner: finish #725, refresh dependent bundles; acting lead)
 - **#725 (MB2 + CAT-1) merged as `027db95`.**
   - A119 commit `ed33428` hoisted accessors in Output and Groove, with independent review PASS by a separate session.
