@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
 
+| SC2-review (#763) | 2026-11-28 | gpt-builder2 | contract review | soon | [Ready Result](https://github.com/kalharbi11/wirescape-lab/pull/763#issuecomment-7239801237): base `88b087970338c2e0fe89714abe404ff3120edc20`, head `9d17018f3eacbf8b153d9ca7eb22dd22517dab3e`; all nine workflows green. Review SC r1 §4.2/S3, A117 match-time/worker ownership and A121 fresh-head evidence. Test-first red unrecorded, disclosed. | SC2 #721, then TR1h #740 |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
