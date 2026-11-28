@@ -28,10 +28,13 @@ function startup(args) {
   return { paths, engineArgs: Array.from(context.capturedEngineArgs) };
 }
 
-test('default launch leaves existing app paths and native settings untouched', () => {
+test('default launch keeps app paths and uses one absolute per-checkout settings file (#769)', () => {
   const result = startup(['--null-audio']);
   expect(result.paths).toEqual({});
-  expect(result.engineArgs).toEqual(['--null-audio']);
+  expect(result.engineArgs).toEqual(['--null-audio', '--settings',
+    path.resolve(path.dirname(compiled), '../../../user_data/settings.json')]);
+  const explicit = startup(['--null-audio', '--settings', '/tmp/chosen-settings.json']);
+  expect(explicit.engineArgs).toEqual(['--null-audio', '--settings', '/tmp/chosen-settings.json']);
 });
 
 test('isolated profile sets both Electron paths and the native settings argument', () => {

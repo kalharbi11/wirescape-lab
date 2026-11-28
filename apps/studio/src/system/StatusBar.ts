@@ -6,6 +6,8 @@ export interface StatusBarHooks {
   onPanic(): void;
   onOpenSettings(): void;
   onClockToggle(running: boolean): void;
+  /** #769: clicking a MIDI chip switches that input on or off. */
+  onMidiToggle?(deviceId: string, on: boolean): void;
 }
 
 const AUDIO_TEXT: Record<SystemStatus['audio']['state'], string> = {
@@ -143,7 +145,12 @@ export class StatusBar {
       const dot = el('i', 'midi-dot');
       dot.style.opacity = String(s.midi.activity[d.id] ?? 0);
       chip.append(dot, document.createTextNode(d.name));
-      chip.title = `${d.name} — ${d.enabled ? 'enabled' : 'disabled'}`;
+      chip.title = `${d.name} — ${d.enabled ? 'enabled' : 'disabled'}; click to ${d.enabled ? 'disable' : 'enable'}`;
+      chip.setAttribute('role', 'button');
+      chip.tabIndex = 0;
+      const toggle = () => this.hooks.onMidiToggle?.(d.id, !d.enabled);
+      chip.addEventListener('click', toggle);
+      chip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
       this.midi.append(chip);
     }
 

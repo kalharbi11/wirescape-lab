@@ -103,6 +103,10 @@ if (isolatedProfile !== null) {
   if (settingsIndex === -1) engineArgs.push('--settings', selected);
   else engineArgs[settingsIndex + 1] = selected;
 }
+// #769: one absolute native settings file per checkout, whatever directory the
+// app was launched from (shortcut, autostart, dev.py). Isolated profiles set their own.
+if (isolatedProfile === null && !engineArgs.includes('--settings'))
+  engineArgs.push('--settings', path.resolve(__dirname, '../../../user_data/settings.json'));
 let window: BrowserWindow | null = null;
 const UI_DIR = path.resolve(__dirname, '../../studio/dist');
 type EngineProcess = {
@@ -834,6 +838,14 @@ function createWindow(): void {
     void dialog.showMessageBox({ type: 'error', message: 'Build the Studio UI before launching Wirescape.' });
   });
 }
+// #769: a second launch focuses the running window instead of starting a second
+// engine that competes for the audio and MIDI devices. The lock is per userData.
+if (!app.requestSingleInstanceLock()) app.quit();
+app.on('second-instance', () => {
+  if (!window) return;
+  if (window.isMinimized()) window.restore();
+  window.focus();
+});
 app.whenReady().then(() => {
   readyAt = process.hrtime.bigint();
   // Same-origin, local-only assets: unlike file://, fetch() can load catalogue JSON.

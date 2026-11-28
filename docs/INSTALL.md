@@ -226,6 +226,13 @@ python3 tools/dev.py launch --confirm-audio --confirm-midi            # sound + 
 python3 tools/dev.py launch --confirm-audio --confirm-midi --confirm-lan   # + LAN OSC (ESP32)
 ```
 
+Over SSH, put `DISPLAY=:0` in front so the window opens on the Pi's monitor
+(`DISPLAY=:0 python3 tools/dev.py launch --confirm-audio --confirm-midi`); without it nothing appears
+and the log says `Missing X server or $DISPLAY`. Wirescape runs one copy at a time: a second launch
+brings the open window forward. **MIDI inputs start switched off.** Click a crossed-out device in the
+bottom bar (or use Settings → MIDI) to switch it on; the choice is saved in this folder's
+`user_data/settings.json`, whichever way you launch.
+
 LAN consent alone keeps null audio and loopback-only OSC; all three flags are needed for a network
 controller ([CONTROLLERS.md](CONTROLLERS.md)). The launcher refuses a stale or incomplete build.
 Optional, per user, no sudo: `sh tools/pi/install-desktop-entry.sh` adds a menu entry, and
