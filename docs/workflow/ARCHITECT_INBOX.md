@@ -35,6 +35,7 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A31 | 2026-11-23 | owner | blocker (Pi) | **postponed to OB1 candidate** (OB r2.6) | wirescape-pi hosted jobs cannot run until the private repo's Actions minutes return (2026-11-30), the runner is re-registered, and PI-1 [#369](https://github.com/kalharbi11/wirescape-lab/issues/369) (lab-side dispatch/publish, owner token `PI_BRIDGE_TOKEN`) lands. **Interim (run 44):** Pi evidence comes from owner-run `tools/owner_record.py` zips uploaded to [#590](https://github.com/kalharbi11/wirescape-lab/issues/590), plus hosted Linux arm64 CI. Keep this row Open until a `/pi-run` round-trip works. | Pi runs only (advisory, OB r2.4a) |
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
+| B1-SDK1-review (#731) | 2026-11-28 | gpt-builder1 | Architect review | soon | [Signed Result](https://github.com/kalharbi11/wirescape-lab/pull/731#issuecomment-7239334853); M3 SDK-1 / 0024 C2/C3/C6; base `157e01729fe9095ff0d8b09335980c656682e49f`, head `49db5f720f68a2c8c1f6110bd9e012eaaebd7b8b`; all exact-head gates green; upstream header unchanged except SPDX, native/scalar coverage, A118/A119 guide Low addressed | SDK-1 #682 / M3 acceptance |
 
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
