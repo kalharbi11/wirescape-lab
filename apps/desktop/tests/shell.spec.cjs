@@ -20,7 +20,9 @@ test('explicit LAN consent is forwarded verbatim to a socket-free engine stub', 
     const page = await app.firstWindow();
     await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
     await expect.poll(() => fs.existsSync(recorded)).toBe(true);
-    expect(JSON.parse(fs.readFileSync(recorded, 'utf8'))).toEqual(['--null-audio', '--confirm-lan']);
+    expect(JSON.parse(fs.readFileSync(recorded, 'utf8'))).toEqual(['--null-audio', '--confirm-lan',
+      // #769: the default native settings file is absolute and per checkout.
+      '--settings', path.resolve(__dirname, '../../../user_data/settings.json')]);
   } finally {
     await app.close();
     fs.rmSync(directory, { recursive: true, force: true });

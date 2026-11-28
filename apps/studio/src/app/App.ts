@@ -284,6 +284,7 @@ export class App {
       onPanic: () => { this.keyboard.releaseAll(); this.engine.panic(); this.toasts.show('All notes stopped.'); },
       onOpenSettings: () => this.openSettings(),
       onClockToggle: running => this.toggleClock(running),
+      onMidiToggle: (deviceId, on) => this.engine.setMidiEnabled(deviceId, on),
     });
 
     this.keyboard = new ComputerKeyboard(this.engine);
@@ -2315,8 +2316,13 @@ export class App {
     computerKeys.dataset.testid = 'computer-keyboard-plays';
     b.append(field('Computer keyboard plays', computerKeys,
       'A/W/S… plays notes in patches with a Keyboard module. MIDI inputs use their own device switches.'));
+    // #769: never leave the MIDI section silently empty while waiting or after a failure.
+    const midiLoading = el('div', 'muted', 'Listing MIDI devices…');
+    midiLoading.dataset.testid = 'midi-loading';
+    midiFields.append(midiLoading);
     void engine.listMidiDevices().then(devices => {
       if (!b.contains(midiFields)) return;
+      midiLoading.remove();
       if (!devices.length) {
         const empty = el('div', 'muted', 'No MIDI devices available.');
         empty.dataset.testid = 'midi-no-devices';

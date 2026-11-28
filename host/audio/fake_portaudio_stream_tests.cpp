@@ -11,8 +11,14 @@
 #define EXPORT
 #endif
 namespace {
+// Test-only observer: the executable owns the TLS watches. Snapshot on open,
+// so other lifecycle tests continue to invoke the callback directly.
+using CallbackDriver = int (*)(PaStreamCallback *, void *, unsigned long,
+                               const PaStreamCallbackTimeInfo *, void *);
+CallbackDriver callback_driver = nullptr;
 struct FakeStream {
     PaStreamCallback *callback = nullptr;
+    CallbackDriver driver = nullptr;
     void *user = nullptr;
     unsigned long frames = 0;
     std::atomic<bool> active{false};
@@ -25,6 +31,7 @@ FakeStream *cast(PaStream *stream) { return static_cast<FakeStream *>(stream); }
 } // namespace
 extern "C" {
 EXPORT void ws_fake_fail(int code) { fail = code; }
+EXPORT void ws_fake_set_callback_driver(CallbackDriver driver) { callback_driver = driver; }
 EXPORT void ws_fake_stats(int *out) {
     const int counts[]{opens.load(), starts.load(), callbacks.load(), stops.load(), closes.load()};
     for (int i = 0; i < 5; ++i) out[i] = counts[i];
@@ -43,6 +50,7 @@ PaError Pa_OpenStream(PaStream **out, const PaStreamParameters *, const PaStream
     if (fail == 1) return paInvalidDevice;
     auto *stream = new FakeStream;
     stream->callback = cb;
+    stream->driver = callback_driver;
     stream->user = user;
     stream->frames = frames;
     *out = static_cast<PaStream *>(stream);
@@ -58,7 +66,9 @@ PaError Pa_StartStream(PaStream *opaque) {
         while (stream->active) {
             const PaStreamCallbackTimeInfo times{};
             ++callbacks;
-            const int result = stream->callback(nullptr, output, stream->frames, &times, 0, stream->user);
+            const int result = stream->driver
+                ? stream->driver(stream->callback, output, stream->frames, &times, stream->user)
+                : stream->callback(nullptr, output, stream->frames, &times, 0, stream->user);
             if (result != paContinue) stream->active = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }

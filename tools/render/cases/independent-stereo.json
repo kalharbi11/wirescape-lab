@@ -1,0 +1,106 @@
+{
+  "SPDX-License-Identifier": "GPL-3.0-only",
+  "name": "Independent stereo VCO frequencies",
+  "rate": 48000,
+  "block": 128,
+  "seconds": 2,
+  "seed": 7,
+  "peak_limit": 1.1,
+  "stereo": "independent",
+  "patch": {
+    "format": "wirescape.native.patch",
+    "version": 2,
+    "settings": {
+      "seed": 7
+    },
+    "name": "Evidence: independent stereo",
+    "modules": [
+      {
+        "id": 1,
+        "module": "essentials.vco",
+        "version": 2,
+        "parameters": {
+          "frequency": 220
+        }
+      },
+      {
+        "id": 2,
+        "module": "essentials.vco",
+        "version": 2,
+        "parameters": {
+          "frequency": 440
+        }
+      },
+      {
+        "id": 3,
+        "module": "essentials.output",
+        "version": 2,
+        "parameters": {}
+      },
+      {
+        "id": 4,
+        "module": "essentials.output",
+        "version": 2,
+        "parameters": {}
+      }
+    ],
+    "connections": [
+      {
+        "kind": "signal",
+        "from": {
+          "module": 1,
+          "port": "audio"
+        },
+        "to": {
+          "module": 3,
+          "port": "audio"
+        }
+      },
+      {
+        "kind": "signal",
+        "from": {
+          "module": 2,
+          "port": "audio"
+        },
+        "to": {
+          "module": 4,
+          "port": "audio"
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "module": 3,
+        "port": "audio",
+        "bus_channel": 0
+      },
+      {
+        "module": 4,
+        "port": "audio",
+        "bus_channel": 1
+      }
+    ]
+  },
+  "events": [],
+  "windows": [
+    {
+      "kind": "active",
+      "start": 10000,
+      "end": 80000
+    }
+  ],
+  "frequencies": [
+    {
+      "start": 20000,
+      "end": 80000,
+      "hz": 220,
+      "channel": 0
+    },
+    {
+      "start": 20000,
+      "end": 80000,
+      "hz": 440,
+      "channel": 1
+    }
+  ]
+}

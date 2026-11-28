@@ -89,6 +89,8 @@ Status: **live** (binds a current contract) · **spent** (its task merged or clo
 | A105 | 2026-11-26 | OB-h3 #602 reopened: #610 merged unqualified; the test stays; B5 fixes first; bounded exception for one x64 ASan signature, expires on fix merge or 2026-11-29 | issue #602 comment 7205547306; milestones/OB.md (OB-h3 row) | live |
 | A112 | 2026-11-27 | SC4 #720: narrow write-only desktop export bridge (`preload.ts` one channel, main-chosen folder, validated manifest); headless check via a committed fixture and `tools/sc4/player_check.py` at a pinned headless SHA | PR #726 comment 7217307649 | live |
 | A113 | 2026-11-27 | MB2 #358: sorted hello order accepted (no Studio change); generated `tools/mb1/descriptor_inventory.json` projection accepted; A106 unchanged | issue #358 comment 7217309596 | live |
+| A121 | 2026-11-28 | SC2 #763: Linux ASan edit-soak wake-only failure (same head passed earlier; no OSC route, so SC2 code is off the path) is not attributed to SC2. SR5: fact row and neutral task X3 #776; SC2 integrates main and needs a fully green new-head run; no rerun, waiver or retry expansion | PR #763 comment 7239499352 | live |
+| A122 | 2026-11-28 | MB3 #742: under 0009 decision 7 the Studio-catalogue proof is stock presentation refuses the new ID, plus the unmodified generator with a disposable overlay outside the checkout lists it, plus no source edit outside `modules/<folder>/`. Overturned when 0003 moves presentation into the module folder | PR #764 comment 7239497613 | done (#764 merged `6d50a9f`) |
 
 Not found: A7, A8, A9, A24, A25, A29, A30, A33, A34, A36, A38, A43, A47, A48, A49, A65, A66, A72, A73, A74.
 Ambiguous, left out: A1-A4 of 0006 are assumptions (M1.md:49) and A2 is also a KNOWN_ISSUES row; A5 and A11 are

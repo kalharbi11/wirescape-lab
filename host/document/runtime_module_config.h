@@ -40,6 +40,12 @@ template <class T> class ZeroFilledConfig {
   public:
     ZeroFilledConfig() {
         std::memset(raw_, 0, sizeof(raw_));
+        // GCC's -flifetime-dse (on at -O2) may delete stores made before an
+        // object's constructor runs, which left padding as stack garbage on the
+        // Pi (osc.in byte 2380, 2026-11-28). The barrier keeps the zero fill.
+#if defined(__GNUC__) || defined(__clang__)
+        __asm__ __volatile__("" : : "r"(raw_) : "memory");
+#endif
         object_ = ::new (static_cast<void *>(raw_)) T;
     }
     ZeroFilledConfig(const ZeroFilledConfig &) = delete;
