@@ -295,6 +295,8 @@ export async function mockBridge(page: Page, options: { applyGraph?: boolean; co
       devices: () => emit({ v: 0, type: 'devices', session: session(), gen: String(gen),
         audioDevices: copy(audio), midiDevices: copy(midi) }),
       status: emitStatus,
+      oscStatus: (osc: Message) => emit({ v: 0, type: 'status', session: session(), gen: String(gen),
+        status: { audio: copy(audioStatus), midi: midiStatus(), osc } }),
       captureCc: (deviceId: string, channel: number, controller: number, value: number) => {
         if (!learnArmed || !midi.some(d => d.id === deviceId && d.enabled) ||
             !Number.isInteger(channel) || channel < 1 || channel > 16 ||

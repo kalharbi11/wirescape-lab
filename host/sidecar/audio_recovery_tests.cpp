@@ -1226,6 +1226,28 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     const auto before_route = route();
     check(before_route["state"] == "listening" && before_route["received"].get<uint64_t>() == 1,
           "A78 active ingress route receives loopback witness");
+    // SC2 adds a live elapsed age to each row. Preserve the original exact
+    // comparison for every other field, including every row count; the only
+    // legal difference during a refused edit is a nondecreasing age.
+    auto unchanged_route = [](Json current, Json previous) {
+        const auto &rows = previous.at("rows");
+        if (!rows.is_array() || rows.size() != 8 || !current.at("rows").is_array() ||
+            current["rows"].size() != rows.size()) return false;
+        for (size_t i = 0; i < rows.size(); ++i) {
+            const auto &age = current["rows"][i].at("ageMs");
+            const auto &prior_age = rows[i].at("ageMs");
+            if (prior_age.is_null()) {
+                if (!age.is_null()) return false;
+            } else if (!age.is_number_unsigned() || !prior_age.is_number_unsigned() ||
+                       age.get<uint64_t>() < prior_age.get<uint64_t>()) return false;
+            current["rows"][i].erase("ageMs");
+            previous["rows"][i].erase("ageMs");
+        }
+        return current == previous;
+    };
+    check(before_route["rows"].size() == 8 && before_route["rows"][0]["received"] == 1 &&
+          before_route["rows"][0]["ageMs"].is_number_unsigned(),
+          "A78 SC2 matched row has a count and age before refusal");
     // Legacy client cannot silently acquire pending work.
     const auto legacy = apply(edit(160));
     check(legacy["ok"] == false && legacy["code"] == "busy" && legacy["gen"] == gen &&
@@ -1244,7 +1266,7 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     auto b = deferred(edit(200), gen);
     check(a != b, "A78 latest edit has new correlation ID");
     terminal(a, "superseded", gen);
-    check(route() == before_route, "A78 refused initial/mixed/latest edits preserve active OSC counters and binding");
+    check(unchanged_route(route(), before_route), "A78 refused initial/mixed/latest edits preserve active OSC counters and binding; only age advances");
     // A80: same pending config in a full snapshot does not reapply it.
     auto other = edit(200);
     other["modules"][2]["parameters"] = {{"rate", 3}};
@@ -1259,7 +1281,7 @@ void test_a78_deferred_config(const std::filesystem::path &root) {
     for (unsigned i = 0; i < 4; ++i) {
         s.poll(now);
         check(s.status()["gen"] == gen && s.take_config_events().empty() &&
-              graph.replacement_tail_pending(2) && route() == after_other, "A78 poll before retirement is inert");
+              graph.replacement_tail_pending(2) && unchanged_route(route(), after_other), "A78 poll before retirement is inert");
     }
     retire();
     with_render([&] { s.poll(now); });

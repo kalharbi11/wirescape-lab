@@ -87,7 +87,8 @@ export interface OscStatus {
   lan?: boolean;
   last_error?: string;
   routes?: { module: string; port: number; bind: string;
-    state: 'listening' | 'lan-not-confirmed' | 'port-busy' | 'disabled'; received: number; dropped: number }[];
+    state: 'listening' | 'lan-not-confirmed' | 'port-busy' | 'disabled'; received: number; dropped: number;
+    rows?: { received: number; ageMs: number | null }[] }[];
   /** Older fake OSC controls are unrelated to the per-module OSC host. */
   allowNetwork?: boolean;
   recent?: { time: number; address: string; args: (number | string)[] }[];

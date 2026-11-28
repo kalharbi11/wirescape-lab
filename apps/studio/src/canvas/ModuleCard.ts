@@ -82,7 +82,7 @@ export class ModuleCard {
   private readonly polyBadge: HTMLElement;
   private readonly info: { destroy(): void } | null = null;
   private monitorOff: (() => void) | null = null;
-  private oscRows: { label: HTMLElement; kind: HTMLSelectElement }[] = [];
+  private oscRows: { label: HTMLElement; kind: HTMLSelectElement; dot: HTMLElement; received?: number }[] = [];
   private oscClampOff: (() => void) | null = null;
   private oscLabel?: HTMLElement;
   private oscCount?: HTMLElement;
@@ -169,8 +169,12 @@ export class ModuleCard {
         this.oscRows = Array.from({ length: 8 }, (_, i) => {
           const row = el('label', 'osc-quick-row');
           row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:4px;';
+          const dot = el('span', 'osc-row-indicator');
+          dot.dataset.testid = `osc-row-indicator-${o.moduleId}-row${i + 1}`;
+          dot.setAttribute('role', 'img');
+          dot.dataset.state = 'grey';
           const label = el('span', '', `Row ${i + 1}`);
-          label.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          label.style.cssText = 'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
           const kind = el('select', 'input-select') as HTMLSelectElement;
           kind.dataset.testid = `osc-quick-kind-${o.moduleId}-row${i + 1}`;
           for (const value of ['cv', 'gate', 'trigger'] as const) {
@@ -184,9 +188,9 @@ export class ModuleCard {
             try { await o.onOscKind?.(i, kind.value as OscRow['kind']); }
             finally { kind.disabled = false; this.refreshOscRows(); }
           });
-          row.append(label, kind);
+          row.append(dot, label, kind);
           rowList.append(row);
-          return { label, kind };
+          return { label, kind, dot };
         });
         box.append(rowList);
         const clamps = el('div', 'osc-clamp-hints');
@@ -560,6 +564,7 @@ export class ModuleCard {
       kind.setAttribute('aria-label', `${label.textContent} kind`);
       kind.value = rows[i].kind;
     });
+    this.refreshOscIndicators(this.o.oscStatus?.()?.routes?.find(r => r.module === String(this.o.moduleId)));
     for (const p of this.sigOuts) {
       const port = this.nodePool.get(key('output', p.id));
       if (!port) continue;
@@ -649,6 +654,31 @@ export class ModuleCard {
     this.titleEl.dataset.testid = `module-title-${this.o.moduleId}`;
   }
 
+  private refreshOscIndicators(route?: NonNullable<OscStatus['routes']>[number]): void {
+    const node = this.o.host.doc.modules.get(this.o.moduleId);
+    if (!node) return;
+    const rows = readOscConfig(oscProjection(node)).config.rows;
+    this.oscRows.forEach((view, i) => {
+      const row = rows[i], activity = route?.rows?.[i];
+      const state = route?.state === 'port-busy' || route?.state === 'lan-not-confirmed' ? 'red' :
+        route?.state === 'disabled' || row.enabled === false || !activity || !activity.received || activity.ageMs === null ? 'grey' :
+        row.timeout_ms > 0 && activity.ageMs > row.timeout_ms ? 'amber' : 'green';
+      const advanced = activity !== undefined && view.received !== undefined && activity.received > view.received;
+      const reset = activity === undefined || (view.received !== undefined && activity.received < view.received);
+      if (state !== 'green' || reset || advanced) view.dot.getAnimations().forEach(a => a.cancel());
+      view.dot.dataset.state = state;
+      const description = state === 'red' ? 'Route unavailable or LAN unconfirmed' :
+        state === 'grey' ? 'Disabled or no received messages' : state === 'amber' ? 'Timed out' : 'Receiving';
+      view.dot.title = description;
+      view.dot.setAttribute('aria-label', `${row.label || `Row ${i + 1}`}: ${description}`);
+      if (state === 'green' && advanced && !motionOff()) {
+        view.dot.animate([{ filter: 'brightness(1.8)', transform: 'scale(1.35)' },
+          { filter: 'brightness(1)', transform: 'scale(1)' }], { duration: 250, easing: 'ease-out' });
+      }
+      view.received = activity?.received;
+    });
+  }
+
   /** Actual route counters are per-module, not the global OSC aggregate. */
   setOscStatus(osc?: OscStatus): void {
     if (!this.oscLabel || !this.oscCount || !this.oscDot) return;
@@ -681,6 +711,7 @@ export class ModuleCard {
     }
     this.oscDot.classList.toggle('listening', route?.state === 'listening');
     this.oscLastReceived = route?.received;
+    this.refreshOscIndicators(route);
   }
 
   /** Poly badge shows the voice count when the module is polyphonic. */

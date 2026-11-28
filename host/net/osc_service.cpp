@@ -228,6 +228,9 @@ struct Service::Impl {
                             }
                             if (!graph_listener) return;
                         }
+                        // Count graph matches before normalization, budget or enqueue refusal.
+                        if (legacy_packet && graph_listener && sink.match_rows)
+                            sink.match_rows(sink.context, listeners[i].requested, message.address, timestamp);
                         if (legacy_packet && messages >= 64) {
                             dropped.fetch_add(1, std::memory_order_relaxed);
                             budget_dropped.fetch_add(1, std::memory_order_relaxed);

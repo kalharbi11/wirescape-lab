@@ -2,6 +2,7 @@
 #pragma once
 #include "wirescape/module2.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -26,6 +27,12 @@ struct Sink {
     bool (*observing)(void *) noexcept = nullptr;
     void (*observe)(void *, uint16_t port, const Message &) noexcept = nullptr;
     void (*observe_control)(void *, uint16_t port, const Message &) noexcept = nullptr;
+    // SC2: one graph-decode witness, independent of stream subscription and delivery.
+    void (*match_rows)(void *, uint16_t port, std::string_view address,
+                       uint64_t timestamp_ns) noexcept = nullptr;
+};
+struct RowActivity {
+    uint64_t received = 0, timestamp_ns = 0;
 };
 struct RouteState {
     uint32_t node = 0;
@@ -39,6 +46,7 @@ struct RouteState {
     uint64_t budget_dropped = 0, enqueue_dropped = 0;
     uint64_t listener_budget_dropped = 0, listener_enqueue_dropped = 0;
     bool control = false;
+    std::array<RowActivity, 8> rows{};
 };
 struct ListenerState {
     uint16_t port = 0; // actual bound port (including OS-assigned test ports)

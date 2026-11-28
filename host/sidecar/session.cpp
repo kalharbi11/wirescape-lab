@@ -728,7 +728,7 @@ osc::ControllerObserver Session::controller_observer(uint64_t route_generation) 
 }
 void Session::start_osc() {
     // prepare stops/joins any previous worker before installing the observer.
-    osc_->prepare(active_, patch_.dump());
+    osc_->prepare(active_, patch_.dump(), osc_filter_generation_);
     osc_->observe_controller(controller_observer(osc_filter_generation_));
     osc_->activate();
     osc_out_->start(); // control-owned sender; never touches the render thread
@@ -1723,7 +1723,7 @@ Json Session::apply(const Json &command) {
                 next_in = std::make_unique<osc::Host>(options_.lan && !options_.null_audio,
                                                          options_.control_osc_port, options_.control_osc_lan);
                 next_in->observe(monitor_.get());
-                next_in->prepare(active_, staged_patch.dump()); // no socket opens yet
+                next_in->prepare(active_, staged_patch.dump(), osc_filter_generation_ + 1); // no socket opens yet
                 next_in->observe_controller(controller_observer(osc_filter_generation_ + 1));
             }
         } else if (type == "osc.out") {
@@ -1964,6 +1964,8 @@ Json Session::status() const {
     Json osc_status = {{"enabled", false}, {"bind", "127.0.0.1"}, {"port", 0}, {"lan", false}};
     Json osc_routes = Json::array();
     bool any_bound = false, any_lan = false, port_busy = false;
+    const auto now_ns = uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
     for (const auto &route : osc_->states()) {
         if (osc_routes.empty()) osc_status["port"] = route.port;
         const std::string state = route.state;
@@ -1982,6 +1984,15 @@ Json Session::status() const {
         entry["enqueue_dropped"] = route.enqueue_dropped;
         entry["listener_budget_dropped"] = route.listener_budget_dropped;
         entry["listener_enqueue_dropped"] = route.listener_enqueue_dropped;
+        if (!route.control) {
+            Json rows = Json::array();
+            for (const auto &row : route.rows) {
+                Json age = nullptr;
+                if (row.received) age = (now_ns >= row.timestamp_ns ? now_ns - row.timestamp_ns : 0) / 1000000;
+                rows.push_back({{"received", row.received}, {"ageMs", std::move(age)}});
+            }
+            entry["rows"] = std::move(rows);
+        }
         osc_routes.push_back(std::move(entry));
     }
     osc_status["enabled"] = any_bound;

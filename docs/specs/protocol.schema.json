@@ -552,6 +552,18 @@
                   "listener_enqueue_dropped": {
                     "type": "integer",
                     "minimum": 0
+                  },
+                  "rows": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "items": {
+                      "type": "object",
+                      "required": ["received", "ageMs"],
+                      "properties": {
+                        "received": {"type": "integer", "minimum": 0},
+                        "ageMs": {"type": ["integer", "null"], "minimum": 0}
+                      }
+                    }
                   }
                 }
               }

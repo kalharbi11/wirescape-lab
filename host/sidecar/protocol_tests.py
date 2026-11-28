@@ -563,6 +563,15 @@ with tempfile.TemporaryDirectory() as osc_dir:
                                          config=dict(port=port, lan=True,
                                                      rows=[dict(pattern='/pico1/knob/1', kind='cv',
                                                                 smoothing_ms=0)])))
+        # SC2: the no-OSC status payload is unchanged, including its serialized keys.
+        empty_osc = None
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            message = osc_engine.pushes.pop(0) if osc_engine.pushes else osc_engine.receive()
+            if message.get('type') == 'status' and message.get('gen') == '0':
+                empty_osc = json.dumps(message['status']['osc'], separators=(',', ':'))
+                break
+        assert empty_osc == '{"bind":"127.0.0.1","enabled":false,"lan":false,"out":[],"port":0,"routes":[]}', empty_osc
         gen = osc_engine.call('loadGraph', patch=osc_patch)['gen']
 
         def osc_route_when(predicate):
@@ -586,6 +595,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
         failure = osc_route_when(lambda route: route['state'] == 'port-busy')
         assert failure['port'] == port and failure['received'] == 0 and failure['dropped'] == 0
         assert failure['module'] == '9'
+        assert failure['rows'] == [dict(received=0, ageMs=None)] * 8, failure
         invalid = json.loads(json.dumps(osc_patch))
         invalid['modules'][1]['config']['port'] = 65536
         assert osc_engine.call('loadGraph', False, patch=invalid)['gen'] == gen
@@ -602,12 +612,18 @@ with tempfile.TemporaryDirectory() as osc_dir:
         packet += b',f\0\0' + struct.pack('>f', 0.5)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
             sender.sendto(packet, ('127.0.0.1', port))
-        assert osc_route_when(lambda route: route['received'] > 0)['received'] >= 1
+        matched = osc_route_when(lambda route: route['received'] > 0)
+        assert matched['received'] >= 1
+        assert len(matched['rows']) == 8 and matched['rows'][0]['received'] == 1, matched
+        assert matched['rows'][1:] == [dict(received=0, ageMs=None)] * 7, matched
+        assert isinstance(matched['rows'][0]['ageMs'], (int, float)) and matched['rows'][0]['ageMs'] >= 0, matched
         # Successful live edits must restart ingress against the newly committed
         # generation. The same listener remains localhost-only and usable.
         edited_gen = osc_engine.call('addModule', moduleId=11, moduleType='essentials.vco')['gen']
         assert edited_gen != gen
-        assert osc_route_when(lambda route: route['state'] == 'lan-not-confirmed')['port'] == port
+        restarted = osc_route_when(lambda route: route['state'] == 'lan-not-confirmed')
+        assert restarted['port'] == port
+        assert restarted['rows'] == [dict(received=0, ageMs=None)] * 8, restarted
 
         # Removing the source must retire the worker/port before graph disposal.
         removed_gen = osc_engine.call('removeModule', moduleId=9)['gen']
@@ -618,6 +634,7 @@ with tempfile.TemporaryDirectory() as osc_dir:
             if message.get('type') == 'status' and message['gen'] == removed_gen:
                 assert message['status']['osc'] == dict(
                     enabled=False, bind='127.0.0.1', port=0, lan=False, routes=[], out=[])
+                assert json.dumps(message['status']['osc'], separators=(',', ':')) == empty_osc
                 break
         else:
             raise AssertionError('OSC source removal did not clear status')
@@ -1320,6 +1337,7 @@ with tempfile.TemporaryDirectory() as control_dir:
         assert initial['gen'] == '0', initial
         assert route['port'] == control_port and route['bind'] == '127.0.0.1', route
         assert route['received'] == 0 and route['dropped'] == 0, route
+        assert 'rows' not in route, route  # SC2: launch-only control route is excluded.
         assert control.call('controllerStream', kinds=['osc'], oscUnmatched=False)['gen'] == '0'
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
             def send_control(address):
@@ -1351,7 +1369,9 @@ with tempfile.TemporaryDirectory() as control_dir:
             shared = minimal()
             shared['modules'].append(dict(id=9, module='osc.in', config=dict(
                 port=control_port, rows=[dict(pattern='/control/matched', enabled=True),
-                                        dict(pattern='/control/disabled', enabled=False)])))
+                                        dict(pattern='/control/disabled', enabled=False),
+                                        dict(pattern='/control/matched', enabled=True),
+                                        dict(pattern='/control/matched', enabled=False)])))
             gen = control.call('loadGraph', patch=shared)['gen']
             control_next('status', lambda m: m['gen'] == gen and control_route(m) is not None
                          and control_route(m)['state'] == 'listening' and any(
@@ -1364,8 +1384,35 @@ with tempfile.TemporaryDirectory() as control_dir:
                 e.get('address') == '/control/matched' for e in m['events']))
             events = [e for e in push['events'] if e.get('address') == '/control/matched']
             assert len(events) == 1 and events[0]['matched'] is True, push
-            control_next('status', lambda m: m['gen'] == gen and any(
-                r['module'] == '9' and r['received'] >= 1 for r in m['status']['osc']['routes']))
+            def graph_activity(message):
+                return next((r['rows'] for r in message['status']['osc']['routes'] if r['module'] == '9'), [])
+
+            def counts(expected):
+                status = control_next('status', lambda m: m['gen'] == gen and graph_activity(m)
+                                      and graph_activity(m)[0]['received'] >= expected)
+                rows = graph_activity(status)
+                assert len(rows) == 8 and [r['received'] for r in rows] == [expected, 0, expected, 0, 0, 0, 0, 0], rows
+                assert rows[0]['ageMs'] >= 0 and rows[2]['ageMs'] >= 0, rows
+                assert all(r['ageMs'] is None for i, r in enumerate(rows) if i not in (0, 2)), rows
+                assert 'rows' not in control_route(status), status
+                return rows
+
+            counts(1)
+            # Same address is a cache hit. A missing argument still counts, and
+            # disabling the controller subscriber cannot disable graph telemetry.
+            assert control.call('controllerStream', kinds=[])['gen'] == gen
+            encoded = b'/control/matched\0'
+            encoded += b'\0' * ((-len(encoded)) % 4)
+            sender.sendto(encoded + b',\0\0\0', ('127.0.0.1', control_port))
+            counts(2)
+            # A valid string argument is not a numeric CV argument; it still matches.
+            sender.sendto(encoded + b',s\0\0' + b'bad\0', ('127.0.0.1', control_port))
+            counts(3)
+            # An accepted graph commit resets all rows, not the launch control route.
+            gen = control.call('loadGraph', patch=shared)['gen']
+            reset = control_next('status', lambda m: m['gen'] == gen and graph_activity(m))
+            assert graph_activity(reset) == [dict(received=0, ageMs=None)] * 8, reset
+            assert 'rows' not in control_route(reset), reset
     finally:
         control.close()
 
