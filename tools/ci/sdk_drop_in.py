@@ -3,6 +3,7 @@
 import argparse
 import difflib
 import json
+import os
 from pathlib import Path
 import shlex
 import shutil
@@ -20,7 +21,8 @@ def run(args, cwd, capture=False):
     args = [str(a) for a in args]
     print("+", shlex.join(args), flush=True)
     return subprocess.run(args, cwd=cwd, check=True, text=True,
-                          stdout=subprocess.PIPE if capture else None).stdout
+                          stdout=subprocess.PIPE if capture else None,
+                          env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}).stdout
 
 def index(document):
     rows = {}
@@ -49,6 +51,22 @@ def verify_discovery(document):
 
 def status(root):
     return run(["git", "status", "--porcelain=v1", "--untracked-files=all", "--ignored=matching"], root, True)
+
+def require_clean(root, message):
+    changes = status(root)
+    if changes:
+        raise ValueError(message + ":\n" + changes)
+
+
+def remove_empty_configure_reports(source):
+    # engine/CMakeLists.txt creates this ignored directory at configure time,
+    # even when no benchmark is run. Remove only empty directories; rmdir
+    # refuses to remove any generated file or unexpected nested directory.
+    for path in (source / "build_reports/abi2", source / "build_reports"):
+        if path.exists():
+            print("Removing empty configure directory:", path, flush=True)
+            path.rmdir()
+
 
 def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -98,8 +116,7 @@ def catalogue(source, build, overlay, report):
     print("Generated Studio catalogue contains template using disposable presentation overlay")
 
 def trial(source, build, overlay, report):
-    if status(source):
-        raise ValueError("scratch worktree is not clean")
+    require_clean(source, "scratch worktree is not clean")
     module = source / "modules" / FOLDER
     if module.exists():
         raise ValueError("scratch folder collides with tracked module")
@@ -118,8 +135,8 @@ def trial(source, build, overlay, report):
         raise ValueError("negative discovery check did not fail")
     registry = build / "engine2/wirescape_app_engine_module_registry.cpp"
     registry_before = registry.read_text(encoding="utf-8")
-    if status(source):
-        raise ValueError("baseline build changed scratch source")
+    remove_empty_configure_reports(source)
+    require_clean(source, "baseline build changed scratch source")
     # MB2 uses the descriptor only; the standalone SDK still ships a legacy
     # manifest. Do not stage that manifest as part of the native drop-in.
     shutil.copytree(source / "sdk/template", module, ignore=shutil.ignore_patterns("module.json"))
@@ -146,9 +163,10 @@ def trial(source, build, overlay, report):
         raise ValueError("generated registry did not add template symbol")
     run(["cmake", "--build", build, "--target", "ws2_" + FOLDER,
          "abi2_" + FOLDER + "_tests"], source)
-    run(["ctest", "--test-dir", build, "--output-on-failure", "-R",
+    run(["ctest", "--test-dir", build, "--output-on-failure", "--no-tests=error", "-R",
          "^abi2_" + FOLDER + "_tests$"], source)
     catalogue(source, build, overlay, report)
+    remove_empty_configure_reports(source)
     changes = status(source)
     (report / "scratch-source-status.txt").write_text(changes, encoding="utf-8")
     print(changes, end="")
@@ -156,8 +174,7 @@ def trial(source, build, overlay, report):
                           for line in changes.splitlines()):
         raise ValueError("source changes outside the template folder")
     shutil.rmtree(module)
-    if status(source):
-        raise ValueError("scratch source not clean after cleanup")
+    require_clean(source, "scratch source not clean after cleanup")
     print("PASS: native discovery and generated catalogue; existing descriptors unchanged; scratch cleaned")
 
 def main():
