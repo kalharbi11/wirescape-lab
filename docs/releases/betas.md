@@ -8,4 +8,4 @@ own folder named after it: `~/wirescape/beta_NN` on the Pi, `C:\wirescape\beta_N
 | Beta | Commit | Date (ET) | Built on | Owner result |
 |---|---|---|---|---|
 | beta_01 | `8fce43d` | 2026-11-28 | Pi 5 (folder `~/wirescape/wirescape-8fce43d`) | Build and app smoke passed; 137/138 headless tests. `runtime_module_config_tests` failed on config padding (fix: #768) |
-| beta_02 | main after #768 merges | | Pi 5, Windows | pending |
+| beta_02 | `157e017` | 2026-11-28 | Pi 5, Windows (owner laptop, built by Codex) | pending. Includes #768 (config padding under GCC lifetime DSE) and #770 (MIDI from the status bar, per-checkout settings, single instance, `owner_record` JSON). The Windows build reported a telemetry problem; its fix goes in the next beta once merged |
