@@ -45,6 +45,20 @@ TIERS = {
 }
 
 
+def trailing_json(text: str):
+    """Parse the JSON document at the end of a tool's stdout.
+
+    `dev.py test --json` prints one line per test before its JSON result
+    (owner Pi record, 2026-11-28: a passing CTest was recorded as failed)."""
+    stripped = text.strip()
+    if stripped.startswith('{'):
+        return json.loads(stripped)
+    start = stripped.rfind('\n{')
+    if start < 0:
+        raise ValueError('no JSON document in output')
+    return json.loads(stripped[start + 1:])
+
+
 def redact(text: str) -> str:
     home = str(Path.home())
     for needle in {home, home.replace('\\', '/')} - {'', '/'}:
@@ -270,7 +284,7 @@ def main(argv=None) -> int:
             record.skip('ctest', '--skip-tests')
         else:
             record.run('ctest', [py, 'tools/dev.py', 'test', '--json'], timeout=3600, parse=lambda s: {
-                k: v for k, v in json.loads(s).items() if k in ('status', 'summary')})
+                k: v for k, v in trailing_json(s).items() if k in ('status', 'summary')})
         record.run('engine_benchmark', [py, 'tools/dev.py', 'benchmark', '--blocks', str(tier['bench_blocks']), '--json'],
                    timeout=3600, parse=lambda s: json.loads(s).get('benchmark'))
         probe = binary('abi2_module_cpu_probe')
