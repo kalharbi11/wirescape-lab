@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """MB3 regression tests; all inputs are synthetic and device-free."""
+import tempfile
+from pathlib import Path
 import unittest
-from sdk_drop_in import DROP_ID, verify_discovery
+from sdk_drop_in import DROP_ID, remove_empty_configure_reports, verify_discovery
 
 def descriptor():
     return {
@@ -29,6 +31,25 @@ class DiscoveryTests(unittest.TestCase):
 
     def test_positive(self):
         self.assertEqual(verify_discovery({"modules": [descriptor()]}), descriptor())
+
+class ConfigureReportsTests(unittest.TestCase):
+    def test_empty_directories_removed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "build_reports/abi2").mkdir(parents=True)
+            remove_empty_configure_reports(root)
+            self.assertFalse((root / "build_reports").exists())
+            remove_empty_configure_reports(root)
+
+    def test_nonempty_directory_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "build_reports/abi2/unexpected.json"
+            report.parent.mkdir(parents=True)
+            report.write_text("unexpected", encoding="utf-8")
+            with self.assertRaises(OSError):
+                remove_empty_configure_reports(root)
+            self.assertEqual(report.read_text(encoding="utf-8"), "unexpected")
 
 if __name__ == "__main__":
     unittest.main()
