@@ -19,6 +19,11 @@
 #include <string>
 #include <vector>
 
+// Optional client requests: no Valgrind dependency for ordinary native builds.
+#if defined(__linux__) && __has_include(<valgrind/callgrind.h>)
+#include <valgrind/callgrind.h>
+#endif
+
 namespace {
 struct Arena {
     std::vector<unsigned char> bytes;
@@ -218,6 +223,15 @@ int main(int argc, char **argv) {
         }
     }
     for (auto &x : all) d->destroy(x->self);
+    // A120: the timing samples are wall-clock dependent. Keep their sorting,
+    // formatting and subsequent cleanup outside the whole-probe Ir count.
+    // The measured loop, callbacks, scan and teardown above remain unchanged.
+    // Collection starts enabled in the gate's standard Callgrind invocation.
+    // Toggle only collection, not instrumentation: stopping instrumentation
+    // loses the accumulated summary needed by the two-length reader.
+#if defined(CALLGRIND_TOGGLE_COLLECT)
+    CALLGRIND_TOGGLE_COLLECT;
+#endif
     std::vector<int64_t> sorted = ns;
     std::sort(sorted.begin(), sorted.end());
     const int64_t worst = sorted.empty() ? 0 : sorted.back();
