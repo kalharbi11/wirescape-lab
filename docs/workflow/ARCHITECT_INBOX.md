@@ -36,6 +36,8 @@ Cleared rows older than one run are deleted (git history keeps them).
 | A3 | 2026-11-17 | gpt-lead | ruling (optional) | later | MT2 T11 option-metadata grant. MT2 is parked in the lab (0023 §7.1; module tooling grows in `wirescape-test`); PR #176 was closed in the run-44 cleanup (branch kept). Re-rule when it is reopened. | MT2 only |
 
 
+| SC2-Linux-wake (#763) | 2026-11-28 | gpt-builder2 | ruling | soon | [Blocked Result](https://github.com/kalharbi11/wirescape-lab/pull/763#issuecomment-7239334457): base `ce3cca83bdaa97fe2a8df0abf9e41f3fe2fb851c`, head `54a141252291593d05d9aa34c437ad1392cf8f41`; Golden green, latest Linux sanitizer no-OSC soak wake-only failure after prior green. SR5: request bounded base/head diagnosis or neutral follow-up; no waiver/retry expansion. | SC2 #721, then TR1h #740 |
+
 ## Cleared (last run only)
 | ID | Date ET | Ask | Answer |
 |---|---|---|---|
