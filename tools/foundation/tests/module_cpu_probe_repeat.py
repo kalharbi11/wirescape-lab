@@ -86,6 +86,10 @@ def main():
         # Compare integer deltas, not rounded floating point displays.
         deltas = [row["totals"][1] - row["totals"][0] for row in pairs]
         identical = len(set(deltas)) == 1
+        # The dev-run comment truncates long lines; keep the repeat table visible.
+        print(json.dumps({"row": f"module/{ident}/voices{voices}",
+                          "lengths": COUNTS, "deltas": deltas,
+                          "identical": identical}), flush=True)
         print(json.dumps({"row": f"module/{ident}/voices{voices}",
                           "lengths": COUNTS, "pairs": pairs,
                           "deltas": deltas, "identical": identical}), flush=True)
