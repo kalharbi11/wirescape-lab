@@ -3,7 +3,8 @@
 
 Wirescape 1.0 is the Electron app (Studio patch editor plus the native
 `wirescape-engine`). There is no installer yet; you build one exact commit from
-source. The old Qt app is retired, so don't use its shortcuts, packages or
+source. Until the owner accepts a build as **v1.0**, each test build is a beta (`beta_01`,
+`beta_02`, …) listed with its commit in [releases/betas.md](releases/betas.md). The old Qt app is retired, so don't use its shortcuts, packages or
 `--qt-prefix` launches. What's in 1.0 and how to report a test:
 [releases/v1.0.md](releases/v1.0.md).
 
@@ -94,16 +95,17 @@ An elevated shell produces a warning; use a normal user shell when possible.
 
 ### 2. Get a clean checkout of the version
 
-Use a **new folder** for each version. Your old folder, patches and settings
+Use a **new folder** for each beta, named after it, inside one `C:\wirescape` folder
+(for example `C:\wirescape\beta_02`). Your old folder, patches and settings
 stay untouched, and stale Qt build caches can't leak in.
 Any folder works, including paths with spaces. You don't need to uninstall an
 earlier beta; just close it before launching 1.0 so they don't share audio and
 MIDI devices.
 
 ```powershell
-git clone https://github.com/kalharbi11/wirescape-lab.git C:\src\wirescape-1.0
-cd C:\src\wirescape-1.0
-# 1.0 is the commit named in docs/releases/v1.0.md. Before it is pinned, use current main:
+git clone https://github.com/kalharbi11/wirescape-lab.git C:\wirescape\beta_02
+cd C:\wirescape\beta_02
+# Use the commit listed for this beta in docs/releases/betas.md, or current main:
 $Ref = (git rev-parse origin/main).Trim()
 git switch --detach $Ref
 ```
@@ -202,9 +204,10 @@ If `node` is already 22, 24 or 26 (from apt, NodeSource or nvm), keep it.
 ### 2. Get the version and build (devices stay off)
 
 ```sh
-git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape-test
-cd ~/wirescape-test                       # one new folder per version, e.g. ~/wirescape-1.1
-Ref=$(git rev-parse origin/main)          # or the commit named in docs/releases/
+mkdir -p ~/wirescape
+git clone https://github.com/kalharbi11/wirescape-lab.git ~/wirescape/beta_02
+cd ~/wirescape/beta_02                    # one new folder per beta, named after it
+Ref=$(git rev-parse origin/main)          # or the commit listed for this beta in docs/releases/betas.md
 git switch --detach "$Ref"
 python3 tools/pi/preflight.py --check-only   # read-only; lists anything missing
 sh tools/pi/update-and-build.sh "$Ref"       # ~30-60 min the first time; add --jobs 1 if low on memory
@@ -315,7 +318,7 @@ changed is rebuilt (usually a few minutes). Close Wirescape first.
 **Windows** (VS x64 Developer PowerShell, in your existing folder):
 
 ```powershell
-cd C:\src\wirescape-1.0                    # your existing checkout
+cd C:\wirescape\beta_02                    # your existing checkout
 git status --short                          # must print nothing; commit or move local edits first
 git fetch --prune origin
 $Ref = (git rev-parse origin/main).Trim()   # or the commit named in the release notes
@@ -356,16 +359,16 @@ On the Pi, repeat [Pi step 2](#2-get-the-version-and-build-devices-stay-off) in 
 
 ## Remove a version
 
-**Windows:** close Wirescape and delete the version folder (for example `C:\src\wirescape-1.0`).
+**Windows:** close Wirescape and delete the version folder (for example `C:\wirescape\beta_02`).
 Nothing outside it points at it.
 
 **Raspberry Pi 5:** close Wirescape. If the `wirescape` command or menu entry runs this folder,
 remove them first, then delete the folder:
 
 ```sh
-sh ~/wirescape-test/tools/pi/install-autostart.sh --remove
+sh ~/wirescape/beta_02/tools/pi/install-autostart.sh --remove
 rm -f ~/.local/bin/wirescape ~/.local/share/applications/wirescape.desktop
-rm -rf ~/wirescape-test
+rm -rf ~/wirescape/beta_02
 ```
 
 Shared tools, caches and `~/.config/wirescape-desktop` (window size and the default patch folder)
